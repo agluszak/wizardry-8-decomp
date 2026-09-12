@@ -1,5 +1,7 @@
 #pragma once
 
+#include "surrender/srMath.h"
+
 struct W8MonsterInfo;
 struct W8VisibilityRecord;
 
@@ -16,13 +18,13 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
                                    W8VisibilityRecord* record); /* 0x005058A0 */
 
 /* Shared perception primitive for monster/player and player/monster checks.
-   Positions are passed as scalars, not vectors. penalty_source is party minimum
-   level or monster missile value; penalty_modifier is ambient light, npc fade
-   flag, or visibility state depending on the caller. skip_field_of_view mirrors
-   W8VisibilityRecord::state_04. The final int is unused by retail. */
-float ComputeSightThreshold(float observer_x, float observer_y, float observer_z, float target_x,
-                            float target_y, float target_z, float observer_yaw,
-                            unsigned int perception_attribute, int ranged_bonus,
+   Retail passes observer and target as by-value srVector3T<float> blocks.
+   penalty_source is party minimum level or monster missile value;
+   penalty_modifier is ambient light, npc fade flag, or visibility state depending
+   on the caller. skip_field_of_view mirrors W8VisibilityRecord::state_04. The
+   final int is unused by retail. */
+float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
+                            float observer_yaw, unsigned int perception_attribute, int ranged_bonus,
                             unsigned char blinded, unsigned char extended_sight_active,
                             int penalty_source, int penalty_modifier, int skip_field_of_view,
                             int unused, float distance); /* 0x00505A40 */

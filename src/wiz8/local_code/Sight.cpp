@@ -136,13 +136,9 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
 {
     W8MonsterRecord* target_record;
     W8Monster* source_monster;
-    float observer_x;
-    float observer_y;
-    float observer_z;
+    srVector3T<float> observer_position;
     W8Monster* target_monster;
-    float target_x;
-    float target_y;
-    float target_z;
+    srVector3T<float> target_position;
     float observer_yaw;
     int penalty_modifier;
     float distance;
@@ -155,15 +151,15 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     }
     target_record = GetMonsterDataForInfo(target);
     source_monster = source->monster;
-    observer_x = source_monster->movement_0c0.position_040.x;
-    observer_y = source_monster->movement_0c0.position_040.y +
-                 source_monster->movement_0c0.height_offset_0b8;
-    observer_z = source_monster->movement_0c0.position_040.z;
+    observer_position.x = source_monster->movement_0c0.position_040.x;
+    observer_position.y = source_monster->movement_0c0.position_040.y +
+                          source_monster->movement_0c0.height_offset_0b8;
+    observer_position.z = source_monster->movement_0c0.position_040.z;
     target_monster = target->monster;
-    target_x = target_monster->movement_0c0.position_040.x;
-    target_y = target_monster->movement_0c0.position_040.y +
-               target_monster->movement_0c0.height_offset_0b8;
-    target_z = target_monster->movement_0c0.position_040.z;
+    target_position.x = target_monster->movement_0c0.position_040.x;
+    target_position.y = target_monster->movement_0c0.position_040.y +
+                        target_monster->movement_0c0.height_offset_0b8;
+    target_position.z = target_monster->movement_0c0.position_040.z;
     observer_yaw = source_monster->GetYaw();
     if (target->fInCombat == 0) {
         penalty_modifier = target_record->flag_248;
@@ -180,13 +176,13 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     } else {
         ranged_bonus = 0;
     }
-    threshold = ComputeSightThreshold(
-        observer_x, observer_y, observer_z, target_x, target_y, target_z, observer_yaw,
-        source->converted_attributes_247[4], static_cast<int>(ranged_bonus),
-        static_cast<unsigned char>(source->condition_turns[12] != 0),
-        static_cast<unsigned char>(source_record->kind_0cb == 12),
-        static_cast<int>(target_record->missile_value_24f), penalty_modifier,
-        static_cast<int>(record->state_04), 0, distance);
+    threshold =
+        ComputeSightThreshold(observer_position, target_position, observer_yaw,
+                              source->converted_attributes_247[4], static_cast<int>(ranged_bonus),
+                              static_cast<unsigned char>(source->condition_turns[12] != 0),
+                              static_cast<unsigned char>(source_record->kind_0cb == 12),
+                              static_cast<int>(target_record->missile_value_24f), penalty_modifier,
+                              static_cast<int>(record->state_04), 0, distance);
     if (threshold < distance) {
         return 0;
     }
@@ -195,9 +191,8 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
 
 /* Maximum distance at which the observer can perceive the target. */
 // FUNCTION: WIZ8 0x00505a40
-float ComputeSightThreshold(float observer_x, float observer_y, float observer_z, float target_x,
-                            float target_y, float target_z, float observer_yaw,
-                            unsigned int perception_attribute, int ranged_bonus,
+float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
+                            float observer_yaw, unsigned int perception_attribute, int ranged_bonus,
                             unsigned char blinded, unsigned char extended_sight_active,
                             int penalty_source, int penalty_modifier, int skip_field_of_view,
                             int unused, float distance)
@@ -206,8 +201,6 @@ float ComputeSightThreshold(float observer_x, float observer_y, float observer_z
     W8World* world;
     double far_clip;
     float viewing_distance;
-    srVector3T<float> observer;
-    srVector3T<float> target;
     float heading;
     float angle_delta;
     int sight_percent;
@@ -219,13 +212,7 @@ float ComputeSightThreshold(float observer_x, float observer_y, float observer_z
     if (viewing_distance <= g_float_005ebb34) {
         srAssertFail("flViewingDistance > 0", SIGHT_CPP, 0x30c, 0);
     }
-    observer.x = observer_x;
-    observer.y = observer_y;
-    observer.z = observer_z;
-    target.x = target_x;
-    target.y = target_y;
-    target.z = target_z;
-    heading = GetHeadingAngle(&observer, &target);
+    heading = GetHeadingAngle(&observer_position, &target_position);
     angle_delta = ShortestAngleDistance(observer_yaw, heading);
     if (blinded != 0 && extended_sight_active == 0) {
         return g_float_005ebb34;
@@ -697,17 +684,24 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 fade_flag = 0;
             }
             {
-                float threshold = ComputeSightThreshold(
-                    own_x, own_y, own_z, camera_position.x, camera_position.y, camera_position.z,
-                    yaw, monster_info->converted_attributes_247[4], fade_flag,
-                    monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
-                    static_cast<int>(minimum_level), static_cast<int>(light),
-                    monster_info->player_visibility.state_04, 0, player_distance);
+                srVector3T<float> observer_position;
+                srVector3T<float> target_position;
 
-                if (threshold < player_distance) {
-                    visible_to_player = 0;
-                } else {
-                    visible_to_player = 1;
+                observer_position.Set(own_x, own_y, own_z);
+                target_position = camera_position;
+                {
+                    float threshold = ComputeSightThreshold(
+                        observer_position, target_position, yaw,
+                        monster_info->converted_attributes_247[4], fade_flag,
+                        monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
+                        static_cast<int>(minimum_level), static_cast<int>(light),
+                        monster_info->player_visibility.state_04, 0, player_distance);
+
+                    if (threshold < player_distance) {
+                        visible_to_player = 0;
+                    } else {
+                        visible_to_player = 1;
+                    }
                 }
             }
         }
@@ -797,9 +791,14 @@ after_sight:
 
                     if (row->occupied != 0 && character->hp_current != 0 &&
                         character->highest_condition < 0xf) {
+                        srVector3T<float> observer_position;
+                        srVector3T<float> target_position;
+
+                        observer_position = camera_position;
+                        target_position.Set(own_x, own_y, own_z);
                         float threshold = ComputeSightThreshold(
-                            camera_position.x, camera_position.y, camera_position.z, own_x, own_y,
-                            own_z, yaw, character->attributes[6].effective,
+                            observer_position, target_position, yaw,
+                            character->attributes[6].effective,
                             static_cast<unsigned char>(character->skills[15].level),
                             character->condition_turns[12] != 0, character->current_profession == 6,
                             record->missile_value_24f, npc_fade_flag,
