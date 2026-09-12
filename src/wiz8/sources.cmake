@@ -163,6 +163,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/music_playlist.cpp
     src/wiz8/npc_items.cpp
     src/wiz8/record_file_0055a480.cpp
+    src/wiz8/surrender_det3.cpp
     src/wiz8/surrender_math.cpp
     src/wiz8/virtual_file_stream.cpp
     src/wiz8/vc6_runtime.cpp

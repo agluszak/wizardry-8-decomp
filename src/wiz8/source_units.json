@@ -49,6 +49,7 @@
     "src/wiz8/startup_ui_state.cpp",
     "src/wiz8/startup_world.cpp",
     "src/wiz8/surface2d.cpp",
+    "src/wiz8/surrender_det3.cpp",
     "src/wiz8/version.cpp",
     "src/wiz8/virtual_file_stream.cpp"
   ],
