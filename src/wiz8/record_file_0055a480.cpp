@@ -22,6 +22,40 @@
 
    Several reads here have no transferred-byte check and two allocations have no
    null check. That is the original's own error handling, not an omission. */
+
+/* Free each record's string table and the first entry's sub-entry array. The
+   header, name, records array, and remaining entry allocations are left for
+   the caller; NPC rebinding overwrites the pointer without releasing them. */
+// FUNCTION: WIZ8 0x0055a0a0
+void ReleaseRecordFile0055A0A0(W8RecordFile0055A480* file)
+{
+    W8FileRecord0055A140* record;
+    unsigned int index;
+    unsigned int string_index;
+
+    if (file == 0) {
+        return;
+    }
+    if (file->record_count == 0) {
+        return;
+    }
+    for (index = 0; index < file->record_count; ++index) {
+        record = file->records + index;
+        if (record == 0) {
+            continue;
+        }
+        if (record->entries != 0 && record->entries->sub_entries != 0) {
+            free(record->entries->sub_entries);
+        }
+        if (record->strings != 0) {
+            for (string_index = 0; string_index < record->string_count; ++string_index) {
+                free(record->strings[string_index]);
+            }
+            free(record->strings);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0055a140
 unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
 {
@@ -85,14 +119,13 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         disk_sub_count = entry->sub_entry_count;
         if (disk_sub_count != 0) {
             entry->sub_entry_count = 0;
-            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(
-                malloc(disk_sub_count * 8));
+            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(malloc(disk_sub_count * 8));
             if (entry->sub_entries == 0) {
                 return 0;
             }
             entry->sub_entry_count = entry->sub_entry_count + disk_sub_count;
-            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count),
-                   0, disk_sub_count * 8);
+            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count), 0,
+                   disk_sub_count * 8);
             total_sub_entries = total_sub_entries + entry->sub_entry_count;
             for (sub_index = 0; sub_index < entry->sub_entry_count; ++sub_index) {
                 sub_entry = entry->sub_entries + sub_index;

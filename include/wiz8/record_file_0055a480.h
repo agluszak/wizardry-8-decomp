@@ -9,7 +9,8 @@
  *
  * The loader and the reader overwrite three record slots with the arrays they
  * allocate, so on-disk fields and runtime pointers share storage. Every offset
- * here is unaligned, which is what fixes the packing.
+ * here is unaligned, which is what fixes the packing. NPC rebinding at
+ * 0x00524CA0 stores the loaded file on W8NpcState::record_file.
  */
 
 #pragma pack(push, 1)
@@ -19,8 +20,8 @@
    pointer to it. */
 struct W8FileSubEntry0055A140 {
     unsigned char unknown_00[4];
-    char* text;                          /* 0x04 */
-};                                       /* 0x08 */
+    char* text; /* 0x04 */
+}; /* 0x08 */
 
 /* One 0x12-byte entry. Only the sub-entry count and array are read by recovered
    source; the leading thirteen bytes come off disk untouched. */
@@ -28,28 +29,29 @@ struct W8FileEntry0055A140 {
     unsigned char unknown_00[0xd];
     unsigned char sub_entry_count;       /* 0x0d */
     W8FileSubEntry0055A140* sub_entries; /* 0x0e */
-};                                       /* 0x12 */
+}; /* 0x12 */
 
 /* One 0x0c-byte record. Field roles come from the reader at 0x0055A140. */
 struct W8FileRecord0055A140 {
-    unsigned char string_count;          /* 0x00 */
-    char** strings;                      /* 0x01: string_count entries */
-    W8FileEntry0055A140* entries;        /* 0x05: entry_count entries */
-    unsigned short entry_count;          /* 0x09 */
+    unsigned char string_count;   /* 0x00 */
+    char** strings;               /* 0x01: string_count entries */
+    W8FileEntry0055A140* entries; /* 0x05: entry_count entries */
+    unsigned short entry_count;   /* 0x09 */
     unsigned char unknown_0b;
-};                                       /* 0x0c */
+}; /* 0x0c */
 
 /* The 0x0e-byte header the loader reads first. A non-zero name slot on disk
    selects the length-prefixed name that follows it. */
 struct W8RecordFile0055A480 {
     unsigned char unknown_00[4];
-    unsigned short record_count;         /* 0x04 */
-    char* name;                          /* 0x06 */
-    W8FileRecord0055A140* records;       /* 0x0a */
-};                                       /* 0x0e */
+    unsigned short record_count;   /* 0x04 */
+    char* name;                    /* 0x06 */
+    W8FileRecord0055A140* records; /* 0x0a */
+}; /* 0x0e */
 
 #pragma pack(pop)
 
+void ReleaseRecordFile0055A0A0(W8RecordFile0055A480* file);
 unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record);
 W8RecordFile0055A480* LoadRecordFile0055A480(char* path);
 
