@@ -109,7 +109,7 @@ void BitArray::CopyFrom(BitArray& other)
 // FUNCTION: WIZ8 0x0043aec0
 unsigned char BitArray::Load(int handle)
 {
-    int magic;
+    unsigned int magic;
     unsigned int packed_size;
     void* packed;
     unsigned int file_bit_count;
@@ -128,39 +128,35 @@ unsigned char BitArray::Load(int handle)
         return 0;
     }
     packed = ::operator new(packed_size);
-    if (packed == 0) {
-        set_count = 0;
-        while (NextSetBit(1) != 0) {
-            ++set_count;
-            NextSetBit(0);
-        }
-        return 1;
-    }
-    if (FileRead(handle, packed, packed_size, 0) == 0) {
-        ::operator delete(packed);
-        return 0;
-    }
-
-    decoded = 0;
-    {
-        srBinIMStream stream(packed, packed_size);
-        srHuffman::BitIStream bits(stream);
-        srHuffman::Decompressor decoder(bits);
-        remaining = decoder.getDataCount();
-        if (remaining != 0) {
-            decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
-            cursor = decoded;
-            for (; remaining != 0; --remaining) {
-                *cursor = decoder.decompressSymbol();
-                ++cursor;
-            }
-        }
-        memcpy(puiIndex, decoded, word_count * sizeof(unsigned int));
-        ::operator delete(decoded);
-        ::operator delete(packed);
-        magic = 0;
-        if (FileRead(handle, &magic, 4, 0) == 0 || magic != 0xdeadd00d) {
+    if (packed != 0) {
+        if (FileRead(handle, packed, packed_size, 0) == 0) {
+            ::operator delete(packed);
             return 0;
+        }
+
+        decoded = 0;
+        {
+            srBinIMStream stream(packed, packed_size);
+            {
+                srHuffman::BitIStream bits(stream);
+                srHuffman::Decompressor decoder(bits);
+                remaining = decoder.getDataCount();
+                if (remaining != 0) {
+                    decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
+                    cursor = decoded;
+                    for (; remaining != 0; --remaining) {
+                        *cursor = decoder.decompressSymbol();
+                        ++cursor;
+                    }
+                }
+            }
+            memcpy(puiIndex, decoded, word_count * sizeof(unsigned int));
+            ::operator delete(decoded);
+            ::operator delete(packed);
+            magic = 0;
+            if (FileRead(handle, &magic, 4, 0) == 0 || magic != 0xdeadd00d) {
+                return 0;
+            }
         }
     }
 
