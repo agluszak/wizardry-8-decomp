@@ -53,6 +53,10 @@ void LearnSpell(W8Character* character, int spell_id, char announce);
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
 void RecountLearnedSpellsByRealm004F96A0(W8Character* character);
+char CanCharacterCastSpell(W8Character* character, int spell_id);
+unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
+                                           char prefer_unlocked, unsigned int power_level,
+                                           int level_bonus);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
                         unsigned int power_level, int a, int b, int c, int d, int e, int f,

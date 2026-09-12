@@ -174,8 +174,8 @@ the report gives):
   to `main`, not a single final publication.
 - Rename a function as soon as its behavior is established (the list above is the precedent);
   update every call site and the owner header in the same change.
-- Do not use `config/verification/unresolved-baseline.csv` as a work queue; it is stale.
-  Decide whether a body is missing from current definitions plus current call sites.
+- Decide whether a body is missing from current definitions plus current call sites; do not
+  treat a leftover unresolved-symbol list as a work queue.
 
 ## Session log
 

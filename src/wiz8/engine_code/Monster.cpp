@@ -3926,8 +3926,8 @@ extern int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
 // SYNTHETIC: WIZ8 0x004c3710
 // W8MonsterShakeCallback::`scalar deleting destructor'
 
-// SYNTHETIC: WIZ8 0x004c3730
-// W8MonsterShakeCallback::~W8MonsterShakeCallback
+// FUNCTION: WIZ8 0x004c3730
+W8MonsterShakeCallback::~W8MonsterShakeCallback() {}
 
 // SYNTHETIC: WIZ8 0x004cab40
 // W8MonsterShakeCallbackBase::`scalar deleting destructor'

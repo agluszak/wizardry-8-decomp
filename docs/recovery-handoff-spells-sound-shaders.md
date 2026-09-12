@@ -127,10 +127,8 @@ that as the reference example for "missing virtual slot" triage.
   `Function44E830`, `W8Prop::BuildOrRefreshPathingRepresentation`,
   `Function479030`, `Function4836A0`, `Function48F280`, `Function4B5780`,
   `Function4D9080`, `Function5588E0` remain deliberately unchanged.
-- Verification debt: the unresolved baseline
-  (`config/verification/unresolved-baseline.csv`) is stale, and the global
-  vtable gate has ~20 pre-existing mismatches in classes untouched by this
-  work.
+- Verification debt: the global vtable gate has ~20 pre-existing mismatches in
+  classes untouched by this work.
 
 ## Working notes
 

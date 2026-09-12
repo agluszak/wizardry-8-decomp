@@ -8,7 +8,7 @@
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/saved_location.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/text_types.h"
 
 #include <stddef.h>
@@ -73,7 +73,7 @@ struct W8GlobalStatus {
     unsigned char status_header_block_1904[0x100];
     W8LevelProgressRow level_progress[47];
     unsigned char unknown_2013[0x294];
-    W8SavedLocation pending_move_location;
+    W8WorldCameraState pending_move_location;
     /* 0x22e3: the party-wide modifier block the effect rebuild clears and
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */

@@ -324,9 +324,9 @@ static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
    particle finishes and then deletes itself.
 
    Class-triage: two vtables plus the derived-to-base vptr swap are real ABI
-   facts, but nothing recovered stores or dispatches through the base. The
-   empty base is retained only so the destructor emits that vptr swap; it is
-   not an authored domain type. */
+   facts. The empty base keeps its own table at 0x005ed290; the derived
+   ordinary destructor at 0x004c3730 is the seven-byte vptr swap onto that
+   table. Nothing recovered stores or dispatches through the base pointer. */
 class W8MonsterShakeCallbackBase {
 public:
     virtual ~W8MonsterShakeCallbackBase() {}
@@ -335,6 +335,7 @@ public:
 class W8MonsterShakeCallback : public W8MonsterShakeCallbackBase {
 public:
     W8MonsterShakeCallback() : m_pMonster(0), m_pParticles(0) {}
+    virtual ~W8MonsterShakeCallback();
 
     virtual void RestoreAnimation();
 
