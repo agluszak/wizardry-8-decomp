@@ -168,7 +168,7 @@ void Function4EDD20(void)
         return;
     }
     if (gXStatus.fCombatMode) {
-        gXStatus.field_028 = true;
+        gXStatus.fEncumbranceDirty = true;
         return;
     }
 
@@ -235,13 +235,13 @@ void Function4EDD20(void)
     }
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        if (gXStatus.field_01f == 0) {
+        if (gXStatus.fNpcDialogueMode == 0) {
             RequestRedraw(0xff);
-            gXStatus.field_028 = false;
+            gXStatus.fEncumbranceDirty = false;
             return;
         }
     } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
     }
-    gXStatus.field_028 = false;
+    gXStatus.fEncumbranceDirty = false;
 }

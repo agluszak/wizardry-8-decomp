@@ -503,7 +503,7 @@ void EndCombat004EA310(int mode)
     if (gXStatus.fPartyMovementMode != 0) {
         BeginFreeTurnPhase();
     }
-    if (gXStatus.field_055 != 0) {
+    if (gXStatus.fPartyMovementUi != 0) {
         ReleasePartyMovement();
     }
     RequestRedrawCombatBar();
@@ -562,7 +562,8 @@ void EndCombat004EA310(int mode)
         ClearSurfaceRect(0x253, 0x34, 0x269, 0x159);
         RequestRedraw(0x810ff);
     }
-    if (gXStatus.field_01f == 0 && gXStatus.field_01d == 0 && gXStatus.fItemSelectMode == 0) {
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0) {
         Function58F6B0(0);
     }
     free(g_combat_state);
@@ -647,7 +648,7 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
 // FUNCTION: WIZ8 0x004e8000
 void Function4E8000(int party_slot, int action_kind, int action_detail, int arg_4, void* data)
 {
-    if (gXStatus.field_01d == 0 && gXStatus.fItemSelectMode == 0) {
+    if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         g_status_685170.buffers.party_rows[party_slot].action_03d = -1;
         AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_CURRENT);
     }
@@ -732,7 +733,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         detail = &row->action_detail_045;
         break;
     case 2:
-        if (gXStatus.field_01d == 0) {
+        if (gXStatus.fSpellCastMode == 0) {
             if (gXStatus.fItemSelectMode == 0) {
                 srAssertFail("gXStatus.fItemSelectMode",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x2e0, 0);
@@ -817,7 +818,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
-    if (gXStatus.field_06f == 0 && IsScreenIdle() != 0) {
+    if (gXStatus.iTargetingMode == 0 && IsScreenIdle() != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
             if (IsPartySlotEligible00524A10(slot) != 0) {
                 return 1;

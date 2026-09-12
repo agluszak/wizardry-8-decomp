@@ -324,7 +324,7 @@ void Function554BD0(W8PartyFormationState* formation, int slot, int new_row, int
     if (detach != 0 && old_row != -1) {
         Function554DD0(formation, old_row);
     }
-    if (g_status_685170.game_started != 0 && gXStatus.field_01f == 0) {
+    if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
             formation == &g_status_685170.formation) {
             Function5B1C80();

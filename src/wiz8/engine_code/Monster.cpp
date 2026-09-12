@@ -2464,7 +2464,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         flags_1dc &= ~0x20;
         return 1;
     case 0x0e:
-        if (gXStatus.field_01f == 1) {
+        if (gXStatus.fNpcDialogueMode == 1) {
             return 0;
         }
         break;

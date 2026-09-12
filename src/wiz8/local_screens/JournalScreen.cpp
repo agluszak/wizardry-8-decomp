@@ -127,7 +127,7 @@ void RecordFactChangeForJournal(int fact_id)
     if (*description == 0 || g_level_block == 0) {
         return;
     }
-    if (gXStatus.field_01f != 0) {
+    if (gXStatus.fNpcDialogueMode != 0) {
         Function5289B0(8, 0);
         return;
     }

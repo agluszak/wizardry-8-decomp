@@ -972,7 +972,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
                     0x987, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
                 unsigned int chance = group->member_count * 20;
 
-                if (gXStatus.field_01f == 0 && Random(chance) == 0) {
+                if (gXStatus.fNpcDialogueMode == 0 && Random(chance) == 0) {
                     StartMonsterCycle(monster_info, 2, 1);
                 }
             }

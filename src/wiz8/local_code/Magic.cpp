@@ -221,7 +221,7 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
                              unsigned char fallback)
 {
     W8SpellUsage usable_when;
-    bool shopping;
+    bool lock_or_trap;
 
     if (spell_id >= W8_SPELL_COUNT) {
         srAssertFail("uiSpell < SPELL_COUNT", MAGIC_CPP, 4179, 0);
@@ -236,7 +236,7 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
         return 1;
     }
 
-    shopping = gXStatus.field_024 != 0 || gXStatus.field_025 != 0;
+    lock_or_trap = gXStatus.fLockInteract != 0 || gXStatus.fTrapInteract != 0;
 
     switch (usable_when) {
     case W8_SPELL_USABLE_ANY_TIME:
@@ -255,22 +255,22 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
         if (gXStatus.fCampMode == 0) {
             return 0;
         }
-        return !shopping;
-    case W8_SPELL_USABLE_WHILE_SHOPPING:
+        return !lock_or_trap;
+    case W8_SPELL_USABLE_ON_LOCK_OR_TRAP:
         if (spell_id != 0x27) {
-            return spell_id == 0x12 ? gXStatus.field_025 : 0;
+            return spell_id == 0x12 ? gXStatus.fTrapInteract : 0;
         }
-        if (gXStatus.field_024 != 0) {
+        if (gXStatus.fLockInteract != 0) {
             return 1;
         }
-        return gXStatus.field_025 != 0;
+        return gXStatus.fTrapInteract != 0;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 4228, "SpellUsableNow: ERROR - Invalid uiSpellUsableWhen");
         return fallback;
     }
 
     if (gXStatus.fCampMode == 0) {
-        return !shopping;
+        return !lock_or_trap;
     }
     return 0;
 }

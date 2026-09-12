@@ -582,7 +582,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
     W8MonsterInfo* monster_info;
     int tint;
 
-    if (g_level_block->highlight_override != -1 && gXStatus.field_06f == 0) {
+    if (g_level_block->highlight_override != -1 && gXStatus.iTargetingMode == 0) {
         overridden = true;
         owner = g_level_block->highlight_override;
     }
@@ -888,7 +888,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     }
 
     SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
-    if (g_modal_owner_0068edd0 == 0 && gXStatus.field_06f == 0 && IsScreenIdle() &&
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.iTargetingMode == 0 && IsScreenIdle() &&
         gXStatus.iCurrentCursor != W8_CURSOR_INVALID_TARGET) {
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
     }
@@ -1031,7 +1031,7 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot)
         return W8_TARGETING_CONTEXT_DIALOGUE;
     }
     if (party_slot == g_status_685170.selected_character &&
-        (gXStatus.field_01d != 0 || gXStatus.fItemSelectMode != 0)) {
+        (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }
     return gXStatus.fCombatMode != 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
@@ -1128,12 +1128,12 @@ unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_i
     return TargetMatchesNeeded(&monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
 
-/* Map gXStatus.field_06f to a cursor-table index for SetTargetCursor.
+/* Map gXStatus.iTargetingMode to a cursor-table index for SetTargetCursor.
    Returned values are cursor slots (including 10..12), not W8TargetingContext. */
 // FUNCTION: WIZ8 0x0053A3D0
 int GetTargetingCursorForState(int alternate)
 {
-    switch (gXStatus.field_06f) {
+    switch (gXStatus.iTargetingMode) {
     case 1:
     case 6:
     case 7:
@@ -1203,7 +1203,7 @@ void SetTargetingMode(int state)
 {
     int cursor;
 
-    gXStatus.field_06f = state;
+    gXStatus.iTargetingMode = state;
     switch (state) {
     case 1:
     case 6:

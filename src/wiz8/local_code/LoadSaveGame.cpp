@@ -949,7 +949,7 @@ unsigned char AutoSaveIfAllowed(char forced)
     if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
-        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.field_01f == 0 &&
+        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each

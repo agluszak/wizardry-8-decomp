@@ -347,7 +347,7 @@ void Function5B2580(void)
 void Function5B2200(void)
 {
     Function5B2580();
-    gXStatus.field_022 = 0;
+    gXStatus.fReviewCharacterMode = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

@@ -501,7 +501,7 @@ void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target)
         Function5A9E70(target);
     }
     g_status_685170.difficulty = g_settings_6850c8.difficulty;
-    gXStatus.field_028 = true;
+    gXStatus.fEncumbranceDirty = true;
     Function482720(0x2932e00);
     Function482740(1);
     if (notify) {

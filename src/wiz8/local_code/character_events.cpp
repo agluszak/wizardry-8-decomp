@@ -18,8 +18,15 @@
 #include "timer.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_code/Strings.h"
+#undef S32
+#undef U32
 #include "bink.h"
 #include "FileMan.h"
+
+extern unsigned char IsSoundPlaying(int sound_handle);
+extern unsigned char StopSound(int sound_handle);
+extern void QueueGameplayEvent(int event_type, int party_slot);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -571,7 +578,8 @@ int Function52E750(void)
             }
         }
 
-        if (gXStatus.field_01f != 0 && (party_slot & 1) != 0 && Function56EC90(party_slot) != 0) {
+        if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
+            Function56EC90(party_slot) != 0) {
             continue;
         }
         if (record->field_09b == 0 && record->field_0bd == 0 &&
