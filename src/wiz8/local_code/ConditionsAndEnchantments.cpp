@@ -14,7 +14,6 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
@@ -88,8 +87,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
         if (condition == 9) {
             if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0 &&
-                Function42B740(g_loaded_level_id) != '\t' &&
-                Function42B740(g_loaded_level_id) != '\n') {
+                Function42B740(g_status_685170.current_level) != '\t' &&
+                Function42B740(g_status_685170.current_level) != '\n') {
                 return;
             }
         } else if (condition == 0xb &&

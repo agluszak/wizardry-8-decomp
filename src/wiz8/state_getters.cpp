@@ -1,6 +1,5 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/location_variables.h"
 #include "wiz8/state_getters.h"
 #include "wiz8/game_status.h"
 
@@ -9,7 +8,7 @@
 // FUNCTION: WIZ8 0x0042b580
 int GetLoadedLevelID(void)
 {
-    return g_loaded_level_id;
+    return g_status_685170.current_level;
 }
 
 // The original bounds-checks only the upper end, so a negative level_id reads

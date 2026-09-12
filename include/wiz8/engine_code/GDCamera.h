@@ -89,5 +89,3 @@ void PlacePartyAtPoint(const srVector3T<float>* point);
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
 unsigned char IsCameraTransitionActive00420E10(void);
-
-extern unsigned char g_flag_006875a5;

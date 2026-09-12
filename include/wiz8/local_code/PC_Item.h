@@ -14,9 +14,6 @@ unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInsta
 
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
-extern unsigned int g_party_gold;
-extern unsigned char g_shared_item_pool[];
-extern unsigned int g_shared_item_pool_count;
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
 unsigned int Function520C70(int character_index);

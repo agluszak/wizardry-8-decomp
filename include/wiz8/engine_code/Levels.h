@@ -70,7 +70,6 @@ extern float g_default_world_height_00603ac8;
 extern float g_position_height_epsilon_005ebfdc;
 extern unsigned char g_environment_load_flag_00603ad0;
 extern unsigned char g_value_0068f0fd;
-extern unsigned char g_flag_00687607;
 
 unsigned char Function42AF60(int level, int entrance);
 

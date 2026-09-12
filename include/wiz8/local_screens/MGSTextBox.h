@@ -43,5 +43,3 @@ bool CurrentDialogueLineHasContent(void);                              /* 0x0058
 int FindStoppedTextLine(void);                                         /* 0x0058D760 */
 void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
-
-extern int g_text_line_cursor_00686905;

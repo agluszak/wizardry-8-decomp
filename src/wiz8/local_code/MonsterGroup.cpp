@@ -474,8 +474,9 @@ W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
     record = MonsterDBFromSpecies(monster_group->monster_id);
     name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
-        swprintf(g_monster_name_buffer, L"Al-%s", g_party_characters[g_alternate_name_slot].name);
-        return g_monster_name_buffer;
+        swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
+                 g_party_characters[g_status_685170.alternate_name_slot_247f].name);
+        return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_group->flag_2c != 0) {
         return record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;

@@ -797,7 +797,8 @@ void InitializeStateDrivenPropVariables00445200(Trigger* trigger)
         variable_id = 0;
         while (variable_id < g_location_variable_names_006598f8.GetCount()) {
             if (_stricmp(*g_location_variable_names_006598f8.GetAt(variable_id), name) == 0 &&
-                *g_location_variable_levels_006598e0.GetAt(variable_id) == g_loaded_level_id) {
+                *g_location_variable_levels_006598e0.GetAt(variable_id) ==
+                    g_status_685170.current_level) {
                 break;
             }
             ++variable_id;
@@ -811,7 +812,7 @@ void InitializeStateDrivenPropVariables00445200(Trigger* trigger)
             strcpy(variable_name, name);
             g_location_variable_names_006598f8.Add(variable_name);
             g_location_variable_values_00659990.Add(slot == 0);
-            g_location_variable_levels_006598e0.Add(g_loaded_level_id);
+            g_location_variable_levels_006598e0.Add(g_status_685170.current_level);
         }
     }
 }
@@ -3388,7 +3389,7 @@ int GetLocationVarIDByName(const char* name)
         variable_name = g_location_variable_names_006598f8.GetAt(variable_id);
         if (_stricmp(*variable_name, name) == 0) {
             variable_level = g_location_variable_levels_006598e0.GetAt(variable_id);
-            if (*variable_level == g_loaded_level_id) {
+            if (*variable_level == g_status_685170.current_level) {
                 return variable_id;
             }
         }

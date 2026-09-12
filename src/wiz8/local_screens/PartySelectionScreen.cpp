@@ -2172,8 +2172,6 @@ void PartySelectionScreenFrame(void)
     RenderFrame();
 }
 
-// GLOBAL: WIZ8 0x006875B4
-unsigned char g_flag_6875b4;
 // GLOBAL: WIZ8 0x0068DE50
 int g_value_68de50;
 
@@ -2194,7 +2192,7 @@ void GameStartRouterFrame(void)
     unsigned long code;
 
     RequestScreenTransition();
-    if (!g_flag_6875b4) {
+    if (!g_status_685170.skip_loose_character_check_2444) {
         code = 4;
     } else {
         switch (g_value_68de50) {

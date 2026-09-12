@@ -456,7 +456,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->value_2ac = 0;
     g_level_block->value_2b4 = 0;
     g_level_block->value_2b0 = 0;
-    g_level_block->text_lines[4 + g_text_line_cursor_00686905] = FindStoppedTextLine();
+    g_level_block->text_lines[4 + g_status_685170.text_line_cursor_1795] = FindStoppedTextLine();
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;
