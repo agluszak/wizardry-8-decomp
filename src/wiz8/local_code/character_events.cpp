@@ -379,11 +379,12 @@ void MaybeStartIncapacitationEvent(unsigned int party_slot)
 // FUNCTION: WIZ8 0x0052E590
 unsigned char PartyPortraitEventsIdle(void)
 {
-    int slot;
+    W8PartySlotRow* row = g_party_slot_rows;
+    const W8MonsterManagerEntry* current;
 
-    for (slot = 0; slot < 8; ++slot) {
-        if (g_party_slot_rows[slot].occupied != 0 &&
-            g_monster_manager_entries[slot].field_000 != 0) {
+    for (current = g_monster_manager_entries; current < &g_monster_manager_entries[8];
+         ++current, ++row) {
+        if (row->occupied != 0 && current->field_000 != 0) {
             return 0;
         }
     }
