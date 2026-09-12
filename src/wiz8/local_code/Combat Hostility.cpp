@@ -76,7 +76,7 @@ unsigned char MonsterCanAimSpell005474B0(int spell_id)
 }
 
 // FUNCTION: WIZ8 0x00547510
-unsigned char Function547510(void)
+unsigned char CombatAllowsLiveGroups(void)
 {
     return gXStatus.fCombatMode != 0 && g_combat_state->flag_a54 == 0 &&
            g_combat_state->value_004 <= 1;

@@ -253,13 +253,15 @@ int W8ModalDialogBase::CreateControls()
                                      const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
                                  3, 0, 1, 2, 2);
     if (m_field_60 != -1) {
-        m_field_5c = QuickCreateButton(m_field_60, 0, 0, 4, 0x7f, Function5D32C0, Function5D32C0);
+        m_field_5c = QuickCreateButton(m_field_60, 0, 0, 4, 0x7f, ConfirmMessageDialog,
+                                       ConfirmMessageDialog);
     }
     m_field_78 = LoadButtonImage(reinterpret_cast<unsigned char*>(
                                      const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
                                  7, 4, 5, 6, 6);
     if (m_field_78 != -1) {
-        m_field_74 = QuickCreateButton(m_field_78, 0, 0, 4, 0x7f, Function5D3370, Function5D3370);
+        m_field_74 =
+            QuickCreateButton(m_field_78, 0, 0, 4, 0x7f, CancelMessageDialog, CancelMessageDialog);
     }
     if (m_field_5c != -1 && m_field_74 != -1) {
         int button_width;
@@ -385,7 +387,7 @@ unsigned char W8ModalDialogBase::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005d32c0
-void Function5D32C0(GUI_BUTTON* button, int reason)
+void ConfirmMessageDialog(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {
@@ -414,7 +416,7 @@ void Function5D32C0(GUI_BUTTON* button, int reason)
 }
 
 // FUNCTION: WIZ8 0x005d3370
-void Function5D3370(GUI_BUTTON* button, int reason)
+void CancelMessageDialog(GUI_BUTTON* button, int reason)
 {
     W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
     if (!dialog) {

@@ -1101,7 +1101,7 @@ void W8State5OptionPanel005EF4AC::Redraw()
 unsigned char W8State5InputHandler005C0E50::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
-        Function568950(input);
+        DispatchMainGameMouseButtons(input);
         return 0;
     }
 
@@ -1950,7 +1950,7 @@ void W8State5Controller::TogglePartyMemberSelection()
     W8State5PartyCollection* collection = g_state5_party_collection_69c4ec;
     W8Character* character = collection->GetCharacter(selected);
     if (!character->in_party) {
-        int slot = Function4EF4A0(character, -1);
+        int slot = AddCharacterToParty(character, -1);
         if (slot != -1) {
             delete character;
             collection->characters.SetAt(selected, &g_party_characters[slot]);
@@ -2167,7 +2167,7 @@ void PartySelectionScreenFrame(void)
             }
         }
     }
-    Function52E750();
+    UpdateCharacterEventState();
     controller->DrawState5Composition();
     RenderFrame();
 }
@@ -2237,7 +2237,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
         return;
     }
     if (value != 0 && g_portrait_frame_flags_0061cbc0[portrait] != 0) {
-        char drawn = Function52EBE0(portrait, left, top, flags, party_slot, 1);
+        char drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
@@ -2253,7 +2253,8 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
    frame and its blend predecessor; the A track draws the frame the animation
    is moving to, and a dead character stops after the B track. */
 // FUNCTION: WIZ8 0x0052ebe0
-char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, char animate)
+char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+                                char animate)
 {
     W8PortraitAnimationState* state = &g_portrait_animation_states[party_slot];
     W8ScreenRect rect;
@@ -2295,7 +2296,7 @@ char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, 
             other.bottom = height + other.top;
             UnionScreenRects(&other, &rect, &rect);
         }
-        Function422EC0(&rect, 1, 0);
+        InvalidateScreenRects(&rect, 1, 0);
         state->previous_b_10 = state->current_b_14;
         state->dirty_b_25 = 0;
     }
@@ -2327,7 +2328,7 @@ char Function52EBE0(int portrait, int left, int top, int flags, int party_slot, 
             other.bottom = height + other.top;
             UnionScreenRects(&other, &rect, &rect);
         }
-        Function422EC0(&rect, 1, 0);
+        InvalidateScreenRects(&rect, 1, 0);
         state->previous_a_00 = state->current_a_04;
         state->dirty_a_26 = 0;
     }

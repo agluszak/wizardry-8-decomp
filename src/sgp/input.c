@@ -1328,19 +1328,19 @@ unsigned short TranslateCharacterToKey(unsigned short character)
 }
 
 // FUNCTION: WIZ8 0x00402800
-unsigned short Function402800(unsigned short character)
+unsigned short IsUppercaseWideChar(unsigned short character)
 {
     return character > L'@' && character < L'[';
 }
 
 // FUNCTION: WIZ8 0x00402820
-unsigned short Function402820(unsigned short character)
+unsigned short IsLowercaseWideChar(unsigned short character)
 {
     return character > L'`' && character < L'{';
 }
 
 // FUNCTION: WIZ8 0x00402840
-unsigned short Function402840(unsigned short character)
+unsigned short IsPunctuationWideChar(unsigned short character)
 {
     return (character >= L'!' && character <= L'/') ||
            (character >= L':' && character <= L'@') ||
@@ -1349,7 +1349,7 @@ unsigned short Function402840(unsigned short character)
 }
 
 // FUNCTION: WIZ8 0x00402880
-int Function402880(int character)
+int ToUppercaseWideChar(int character)
 {
     if ((unsigned short)character > L'`' &&
         (unsigned short)character < L'{') {
@@ -1359,7 +1359,7 @@ int Function402880(int character)
 }
 
 // FUNCTION: WIZ8 0x004028A0
-int Function4028A0(int character)
+int ToLowercaseWideChar(int character)
 {
     if ((unsigned short)character > L'@' &&
         (unsigned short)character < L'[') {
@@ -1376,8 +1376,8 @@ int CompareWideTextIgnoreAsciiCase00402920(const wchar_t* first, const wchar_t* 
     unsigned short left;
     unsigned short right;
     do {
-        left = Function4028A0(*first++);
-        right = Function4028A0(*second++);
+        left = ToLowercaseWideChar(*first++);
+        right = ToLowercaseWideChar(*second++);
     } while (left != 0 && left == right);
     return (UINT32)left - (UINT32)right;
 }

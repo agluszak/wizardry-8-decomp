@@ -394,7 +394,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
 
     InitializeMonsterManagerState();
     InitializeItemManagerState();
-    Function443A50();
+    ResetNextTriggerId();
     if (!chunk->Read(&header, sizeof(header), &transferred)) {
         return 0;
     }
@@ -917,7 +917,7 @@ void DeleteCurrentSaveFiles(void)
 {
     char path[260];
 
-    sprintf(path, "%s\\%s.%s", "Saves", ConvertWideStringToString(GetAddress69C1CC()),
+    sprintf(path, "%s\\%s.%s", "Saves", ConvertWideStringToString(GetLastSaveName()),
             g_save_extension);
     if (_access(path, 2) != 0 && errno == EACCES) {
         _chmod(path, _S_IREAD | _S_IWRITE);
@@ -965,7 +965,7 @@ unsigned char AutoSaveIfAllowed(char forced)
            encoding; funnelling both arms through one pointer costs the extra
            move that a selected argument needs. */
         if (g_status_685170.iron_man != 0) {
-            strcpy(name, ConvertWideStringToString(GetAddress69C1CC()));
+            strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {
             strcpy(name, "AutoSave");
         }

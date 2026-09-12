@@ -314,7 +314,7 @@ void ReleaseRuntimeDialogOwners(void)
 }
 
 // FUNCTION: WIZ8 0x005B2580
-void Function5B2580(void)
+void ReleaseReviewCommonPanels(void)
 {
     Controls* panel = g_panel_69c2ec;
     if (panel != 0) {
@@ -342,16 +342,16 @@ void Function5B2580(void)
 }
 
 // FUNCTION: WIZ8 0x005B2200
-void Function5B2200(void)
+void CloseReviewCommonUi(void)
 {
-    Function5B2580();
+    ReleaseReviewCommonPanels();
     gXStatus.field_022 = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);
     ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
     InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-    Function56AAB0();
+    ResumeMainGameWorld();
 }
 
 // SYNTHETIC: WIZ8 0x005b1b90

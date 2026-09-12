@@ -33,8 +33,8 @@ public:
 
     unsigned int WrapMessage(wchar_t* message); /* 0x005D2A50 */
 
-    friend void Function5D32C0(GUI_BUTTON* button, int reason);
-    friend void Function5D3370(GUI_BUTTON* button, int reason);
+    friend void ConfirmMessageDialog(GUI_BUTTON* button, int reason);
+    friend void CancelMessageDialog(GUI_BUTTON* button, int reason);
 
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
@@ -59,5 +59,5 @@ protected:
 
 static_assert(sizeof(W8ModalDialogBase) == 0x98, "W8ModalDialogBase_must_be_0x98");
 
-void Function5D32C0(GUI_BUTTON* button, int reason);
-void Function5D3370(GUI_BUTTON* button, int reason);
+void ConfirmMessageDialog(GUI_BUTTON* button, int reason);
+void CancelMessageDialog(GUI_BUTTON* button, int reason);

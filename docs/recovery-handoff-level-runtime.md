@@ -149,12 +149,12 @@ the report gives):
 - `CharacterCanSwitchTo` 0x004E79A0 — already declared in `combat_state.h` as
   `unsigned char (int, int, int, int)`; `Combat.cpp` still has a duplicate local extern to
   remove when its body lands;
-- `Function4E7CC0()` 0x004E7CC0; `Function4E8000()` 0x004E8000;
+- `Function4E7CC0()` 0x004E7CC0; `SetCharacterCombatAction()` 0x004E8000;
 - `SwitchCharacterTo()` 0x004ED390; `Function55EE30(int)` 0x0055EE30;
   `MonsterChooseTarget()` 0x0051AC30.
 - These sit under the already-recovered `GetCharacterTurnValue` and
   `DropCharacterFromRound`; `DropCharacterFromRound` delegates its re-selection/reset through
-  `Function55EE30` and `Function4E8000`, so recovering those explains it.
+  `Function55EE30` and `SetCharacterCombatAction`, so recovering those explains it.
 
 ### 7. Dialog completions
 

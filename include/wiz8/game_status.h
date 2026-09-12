@@ -176,4 +176,4 @@ static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2")
 
 extern W8GlobalStatus g_status_685170;
 
-void Function554580(unsigned char* storage);
+void InitializePartyFormation(unsigned char* storage);

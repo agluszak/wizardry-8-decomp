@@ -123,9 +123,9 @@ that as the reference example for "missing virtual slot" triage.
   ~0.10 because the original keeps compiler-lowered counted loops; restore the
   loop form if byte fidelity there matters.
 - Intentionally address-named, body known-faithful but not exact:
-  `Function421100`/`Function421150` (GDCamera wrappers), `Function443A50`,
+  `Function421100`/`Function421150` (GDCamera wrappers),
   `Function44E830`, `W8Prop::BuildOrRefreshPathingRepresentation`,
-  `Function479030`, `Function4836A0`, `Function48F280`, `Function4B5780`,
+  `Function479030`, `Function4836A0`, `Function48F280`,
   `Function4D9080`, `Function5588E0` remain deliberately unchanged.
 - Verification debt: the unresolved baseline
   (`config/verification/unresolved-baseline.csv`) is stale, and the global

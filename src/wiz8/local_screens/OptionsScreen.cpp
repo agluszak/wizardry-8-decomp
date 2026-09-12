@@ -1430,7 +1430,7 @@ unsigned char W8OptionsScreen::ProcessInput(const InputAtom* input)
             m_text_editor = 0;
             return 1;
         }
-        Function568950(input);
+        DispatchMainGameMouseButtons(input);
     } else if (m_key_capture != 0 && input->usEvent == KEY_DOWN) {
         return m_key_capture->OnKey(static_cast<unsigned short>(input->usParam), input->usKeyState);
     }
@@ -2121,7 +2121,7 @@ void OptionsScreenFrame()
 }
 
 // FUNCTION: WIZ8 0x005A9E70
-void Function5A9E70(const wchar_t* target)
+void SetLastSaveName(const wchar_t* target)
 {
     wcsncpy(g_options_last_save_name_0069c1cc, target, 0x40);
     reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
@@ -2129,7 +2129,7 @@ void Function5A9E70(const wchar_t* target)
 }
 
 // FUNCTION: WIZ8 0x005A9E90
-wchar_t* GetAddress69C1CC(void)
+wchar_t* GetLastSaveName(void)
 {
     return g_options_last_save_name_0069c1cc;
 }

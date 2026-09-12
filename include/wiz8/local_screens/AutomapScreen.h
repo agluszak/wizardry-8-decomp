@@ -25,7 +25,7 @@ unsigned char GetFlag68F104(void);
 
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
-unsigned char Function57E490(void);
+unsigned char CanUseCurrentAutomapTool(void);
 
 void ResetAutomapView005817D0(void);
 void Function581CE0(int handle);

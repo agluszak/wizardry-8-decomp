@@ -2447,8 +2447,8 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
             return;
         }
         signed char npc_slot = npc->group_index;
-        Function52E690(&g_party_characters[npc_slot], g_item_message_005ee68c, 0,
-                       g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        QueueCharacterEvent(&g_party_characters[npc_slot], g_item_message_005ee68c, 0,
+                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
     default:
@@ -2460,7 +2460,8 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
         break;
     }
 
-    Function52E690(character, message, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+    QueueCharacterEvent(character, message, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
     item->unknown_07[2] |= 1;
 }
 

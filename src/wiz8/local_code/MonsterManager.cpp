@@ -187,7 +187,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
 
     record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     if (monster_info->monster == 0 || monster_info->monster->GetFlag216004CA290() != 0) {
-        registry_before = Function428E20();
+        registry_before = GetUsedPageFileBytes();
         ActivateMonster(monster_info, 0);
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         MonsterSetAdjustedPosition004C5F00(monster_info->monster, &monster_info->position_17);
@@ -228,7 +228,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         monster_info->monster->flag_216 = 0;
 
-        registry_after = Function428E20();
+        registry_after = GetUsedPageFileBytes();
         monster_info->monster->registry_weight_27c = registry_after - registry_before;
         g_monster_cycle_registry_weight_0065ba4c += registry_after - registry_before;
         if (GetFlag68F105() != 0) {
@@ -326,7 +326,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 }
 
 // FUNCTION: WIZ8 0x004e4600
-void Function4E4600(W8MonsterInfo* monster_info)
+void ClearMonsterPathAndResume(W8MonsterInfo* monster_info)
 {
     int result;
 
@@ -744,7 +744,7 @@ void DestroyUngroupedMonsters(void)
                 srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
             }
             if (monster_info->monster != 0) {
-                Function4C59C0(monster_info->monster, GetWorld());
+                DetachMonsterRepresentation(monster_info->monster, GetWorld());
                 RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                 DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
@@ -1140,7 +1140,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
             srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
         }
         if (monster_info->monster != 0) {
-            Function4C59C0(monster_info->monster, GetWorld());
+            DetachMonsterRepresentation(monster_info->monster, GetWorld());
             RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
             DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
@@ -1474,7 +1474,7 @@ void ProcessMonsterManagerFrame(void)
                     srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
                 }
                 if (monster_info->monster != 0) {
-                    Function4C59C0(monster_info->monster, GetWorld());
+                    DetachMonsterRepresentation(monster_info->monster, GetWorld());
                     RemoveMonsterFromWorldList(GetWorld(), monster_info->monster);
                     DeleteMonster004C5860(monster_info->monster);
                     monster_info->monster = 0;

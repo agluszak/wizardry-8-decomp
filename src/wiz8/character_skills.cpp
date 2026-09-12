@@ -288,13 +288,13 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
             if (character->skills[index].flag_00) {
                 character->skills[index].flag_00 = 0;
                 if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
-                    Function5B1B30(index);
+                    RefundCharacterScreenSkill(index);
                 }
             }
         } else if (!character->skills[index].flag_00) {
             character->skills[index].flag_00 = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
-                Function5B1AF0(index);
+                ResetCharacterScreenSkill(index);
             }
         }
     }

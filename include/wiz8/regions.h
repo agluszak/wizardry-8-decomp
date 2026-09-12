@@ -163,7 +163,7 @@ void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
 
-unsigned int Function568950(const InputAtom* input);
+unsigned int DispatchMainGameMouseButtons(const InputAtom* input);
 
 void ResetRegions(void);
 

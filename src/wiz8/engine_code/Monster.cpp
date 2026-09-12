@@ -2003,10 +2003,10 @@ void W8Monster::ProcessScript004C80E0()
                         suppress = 1;
                     }
                 }
-                Function56C590(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
-                                   command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
-                                   propagated_value_1e4, 1)),
-                               0, line_number, command == MONSCR_SAY ? 1 : suppress);
+                ForwardNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                           command == MONSCR_SAY ? 0x1ac9 : 0x1b77, MONSTER_CPP,
+                                           propagated_value_1e4, 1)),
+                                       0, line_number, command == MONSCR_SAY ? 1 : suppress);
                 if (command == MONSCR_NPCINTERACTION) {
                     script_wait_240 = MONSCR_NPCINTERACTION;
                 } else if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
@@ -2217,7 +2217,7 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token != 0) {
                     if (_stricmp(token, "STARTGOLEMATTACK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         W8MonsterGroup* group = FindFirstMonsterByID(0x68);
                         if (group != 0)
                             Function547570(group, 1, 0);
@@ -2233,13 +2233,13 @@ void W8Monster::ProcessScript004C80E0()
                             trigger->Run(-1);
                     } else if (_stricmp(token, "UNLOCKUI") == 0 ||
                                _stricmp(token, "ENDGARIWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "ENDHOGARWALK") == 0) {
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                     } else if (_stricmp(token, "ENDHOGARWALKANDPUTTOSLEEP") == 0) {
                         W8TargetSource source;
-                        Function577540();
+                        ClearMainGameTargetState();
                         SetScript004C7F10("ClosePatrol.msf", 1);
                         monster_info =
                             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
@@ -2248,7 +2248,7 @@ void W8Monster::ProcessScript004C80E0()
                         SetMonsterCondition(monster_info->location_id, 0xf, 6, 0, &source, 1);
                     } else if (_stricmp(token, "ENDBELAWALK") == 0) {
                         flags_1dc |= 0x40;
-                        Function577540();
+                        ClearMainGameTargetState();
                     } else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
                         W8NpcState* npc = GetNpcStateByKind(0x8d);
                         if (npc != 0)
@@ -5205,7 +5205,7 @@ void DeleteMonster004C5860(W8Monster* monster)
     }
 }
 // FUNCTION: WIZ8 0x004C59C0
-void Function4C59C0(W8Monster* monster, W8World* world)
+void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
 {
     if (monster != 0 && world != 0) {
         monster->DetachRepresentation004A7A70(world);

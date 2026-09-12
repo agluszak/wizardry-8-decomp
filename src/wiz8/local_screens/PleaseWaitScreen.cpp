@@ -125,7 +125,7 @@ unsigned char PleaseWaitScreenEnter(void)
         case 0:
             InitializeFactState();
             g_load_descriptor_69b7c8->parameter = Function509750();
-            Function58FD30();
+            ReleaseMessageStorage();
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;
         case 1:

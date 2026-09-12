@@ -127,7 +127,7 @@ struct W8HandAttack {
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 
-/* One 0x11-byte condition record from 0x1817. Function5248A0 reads byte 8 of
+/* One 0x11-byte condition record from 0x1817. GetConditionRecordFlag reads byte 8 of
    one of the four; the rest is not yet named. */
 struct W8CharacterConditionRecord {
     unsigned char unknown_00[8];

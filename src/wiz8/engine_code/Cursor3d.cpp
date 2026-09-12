@@ -49,7 +49,7 @@ void ReleaseWorldCursor004909C0(void)
     g_float_60ab48 = delta.Length();
 
     PListRemove(g_world->plsMonsters, cursor->monster_00);
-    Function4C59C0(cursor->monster_00, g_world);
+    DetachMonsterRepresentation(cursor->monster_00, g_world);
     DeleteMonster004C5860(cursor->monster_00);
     if (cursor->particle_04 != 0) {
         cursor->particle_04->release();
@@ -100,7 +100,7 @@ void HideWorldCursor00490B90(void)
     monster = cursor->monster_00;
     world = g_world;
     PListRemove(world->plsMonsters, monster);
-    Function4C59C0(monster, world);
+    DetachMonsterRepresentation(monster, world);
     cursor->visible_40 = 0;
     if (cursor->particle_04 != 0) {
         cursor->particle_04->SetActive(0);

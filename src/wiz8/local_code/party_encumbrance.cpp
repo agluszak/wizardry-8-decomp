@@ -148,8 +148,8 @@ bool RecalculateCarriedWeight(W8Character* character)
         if (g_current_screen_state.id != W8_SCREEN_CAMP) {
             effect = g_special_event_0068c558;
         }
-        Function52E690(character, effect, 0, g_effect_argument_005ed8c8,
-                       g_effect_argument_005ed914);
+        QueueCharacterEvent(character, effect, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
     }
     return previous != character->inventory_weight;
 #pragma clang diagnostic pop

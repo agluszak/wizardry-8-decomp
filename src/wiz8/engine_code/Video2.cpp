@@ -58,7 +58,7 @@
    they are declared here instead of the released Video2 header. */
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
                        unsigned char positional_3);
-void Function4229E0(void);
+void SaveJpegScreenshot(void);
 void FlushDirtyTiles00425B40(void);
 
 /*
@@ -343,7 +343,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     InitializeRendererSceneObjects();
     if (!g_flag_659710) {
         if (g_flag_006840bc) {
-            Function56AAB0();
+            ResumeMainGameWorld();
         }
         if (ghWindow && g_gerd_659634) {
             g_flag_659710 = 1;
@@ -771,7 +771,7 @@ unsigned char VideoInspectorIsEnabled(void)
 void SuspendVideoManager(void)
 {
     if (g_flag_659710) {
-        Function56AA30();
+        PauseMainGameWorld();
         g_flag_659710 = 0;
         if (g_gerd_659634) {
             g_flush_pending_603c3a = 0;
@@ -792,7 +792,7 @@ unsigned char RestoreVideoManager(void)
         return 1;
     }
     if (g_flag_006840bc) {
-        Function56AAB0();
+        ResumeMainGameWorld();
     }
     if (ghWindow && g_gerd_659634) {
         g_flag_659710 = 1;
@@ -1045,7 +1045,7 @@ void RenderFrame(void)
     g_gerd_659634->endFrame();
 
     if (g_flag_659711) {
-        Function4229E0();
+        SaveJpegScreenshot();
         g_flag_659711 = 0;
     }
     if (g_flag_6596f4) {
@@ -1084,7 +1084,7 @@ void RenderFrame(void)
     }
 }
 // FUNCTION: WIZ8 0x00427440
-void Function427440(void)
+void InvalidateRendererTextureCache(void)
 {
     if (g_gerd_659634 != 0) {
         g_gerd_659634->invalidateTextureCache();
@@ -1123,7 +1123,7 @@ void SetRendererOption4Enabled(char enabled)
 }
 
 // FUNCTION: WIZ8 0x00428e20
-int Function428E20(void)
+int GetUsedPageFileBytes(void)
 {
     MEMORYSTATUS status;
     memset(&status, 0, sizeof(status));
@@ -1133,7 +1133,7 @@ int Function428E20(void)
 }
 
 // FUNCTION: WIZ8 0x00427260
-unsigned char Function427260(void)
+unsigned char RendererBufferIsLockable(void)
 {
     srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
     if (surface != 0) {
@@ -1676,7 +1676,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
 
 /* Invalidate each rectangle in a run; a flagged region cancels the rest. */
 // FUNCTION: WIZ8 0x00422ec0
-void Function422EC0(W8ScreenRect* rects, unsigned int count, int flags)
+void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags)
 {
     unsigned int index;
 
@@ -2333,7 +2333,7 @@ int g_screenshot_index_659724;
 int g_screenshot_page_659728;
 
 // FUNCTION: WIZ8 0x004229e0
-void Function4229E0(void)
+void SaveJpegScreenshot(void)
 {
     srSurfaceIOManager* surface_io_manager = srCore.getSurfaceIOManager();
     srExtension::load("JPEGImporter", 0);

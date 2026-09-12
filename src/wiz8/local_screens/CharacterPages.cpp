@@ -663,7 +663,7 @@ void W8CharacterPage005EF57C::HandleInput(InputAtom* input)
     if (m_screen_05c->HasDialog())
         return;
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
-        Function568950(input);
+        DispatchMainGameMouseButtons(input);
         return;
     }
 

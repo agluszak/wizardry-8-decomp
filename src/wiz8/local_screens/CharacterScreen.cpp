@@ -197,7 +197,7 @@ void W8CharacterScreen::UpdateDialog()
     if (m_dialog_1b1c != 0) {
         if (m_dialog_response_1b20 == 1) {
             Function52DDD0();
-            if (Function52E750() == 0 &&
+            if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_field_41 = 0;
             }
@@ -593,7 +593,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
    current. They adjust the named skill through the page-2 helpers and then
    refresh page 2, the skills list. */
 // FUNCTION: WIZ8 0x005b1af0
-void Function5B1AF0(int skill_id)
+void ResetCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
     ResetSkillContribution(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);
@@ -603,7 +603,7 @@ void Function5B1AF0(int skill_id)
 }
 
 // FUNCTION: WIZ8 0x005b1b30
-void Function5B1B30(int skill_id)
+void RefundCharacterScreenSkill(int skill_id)
 {
     W8CharacterScreen* screen = g_character_screen_0069c2e8;
     RefundSkillAllocation(&screen->m_character_018, &screen->m_creation_state_187c, skill_id);

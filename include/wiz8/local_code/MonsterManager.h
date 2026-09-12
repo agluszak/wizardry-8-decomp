@@ -294,7 +294,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
 bool InitializeMonsterManagerState(void);
 void ActivateMonsterInWorld(W8MonsterInfo* monster_info);
 void ActivateMonster(W8MonsterInfo* monster_info, int mode);
-void Function4E4600(W8MonsterInfo* monster_info);
+void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
