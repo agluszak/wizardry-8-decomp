@@ -1358,10 +1358,8 @@ float W8Navigator::GetValue120()
 // FUNCTION: WIZ8 0x00454040
 void W8Navigator::SetFacingToward(const srVector3T<float>* target)
 {
-    srVector3T<float> current;
-    current.x = movement_0c0.position_040.x;
-    current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    current.z = movement_0c0.position_040.z;
+    srVector3T<float> current = movement_0c0.position_040;
+    current.y += movement_0c0.height_offset_0b8;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
         float angle = GetHeadingAngle(&current, target);
         movement_0c0.yaw = NormalizeAngle(angle);
@@ -1532,11 +1530,8 @@ void W8Navigator::UpdateAngles00453990()
 // FUNCTION: WIZ8 0x00453f30
 void W8Navigator::AimAtPosition(const srVector3T<float>* target)
 {
-    srVector3T<float> current;
-
-    current.x = movement_0c0.position_040.x;
-    current.y = movement_0c0.position_040.y + movement_0c0.height_offset_0b8;
-    current.z = movement_0c0.position_040.z;
+    srVector3T<float> current = movement_0c0.position_040;
+    current.y += movement_0c0.height_offset_0b8;
     if (target->x != current.x || target->y != current.y || target->z != current.z) {
         movement_0c0.target_yaw = NormalizeAngle(GetHeadingAngle(&current, target));
         if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {

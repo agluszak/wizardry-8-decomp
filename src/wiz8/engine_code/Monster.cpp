@@ -1823,12 +1823,8 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
             if (vertices != 0) {
                 srMatrix4T<float> matrix;
                 srVector3T<float> owner_position = GetPosition();
-                float x = vertices[vertex].x * m_pRep->scale_5f0;
-                float y = vertices[vertex].y * m_pRep->scale_5f0;
-                float z = vertices[vertex].z * m_pRep->scale_5f0;
-
                 current_model->getWorldSpaceMatrix(matrix);
-                srVector3T<float> local(x, y, z);
+                srVector3T<float> local = vertices[vertex] * m_pRep->scale_5f0;
                 srVector3T<float> rotated = matrix.TransformDirection(local);
                 position->x = rotated.x + owner_position.x;
                 position->y = rotated.y + owner_position.y + movement_0c0.vertical_base_07c;
@@ -4450,9 +4446,7 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
         }
     }
 
-    position->x = movement_0c0.position_040.x;
-    position->y = movement_0c0.position_040.y;
-    position->z = movement_0c0.position_040.z;
+    *position = movement_0c0.position_040;
     position->y += movement_0c0.height_offset_0b8;
 }
 

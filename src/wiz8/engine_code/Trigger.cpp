@@ -1972,9 +1972,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     g_octree_6598a4->AdjustPortalDestination(&destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
-    rotation.vectors[0].Set(1.0, 0.0, 0.0);
-    rotation.vectors[1].Set(0.0, 1.0, 0.0);
-    rotation.vectors[2].Set(0.0, 0.0, 1.0);
+    rotation.SetIdentity();
     if (angle != 0.0f) {
         rotation.RotateAroundAxis(sin(angle), cos(angle), destination_direction);
     }
@@ -2579,9 +2577,7 @@ void Trigger::Run(int source)
             source_position.Set(position_118, position_11c, position_120);
             target_position = source_position;
             target_position.z += 100.0f;
-            rotation.vectors[0].Set(1.0, 0.0, 0.0);
-            rotation.vectors[1].Set(0.0, 1.0, 0.0);
-            rotation.vectors[2].Set(0.0, 0.0, 1.0);
+            rotation.SetIdentity();
             axis = rotation.vectors[2];
             if (angle_0fc != 0.0f) {
                 rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);

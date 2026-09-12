@@ -278,9 +278,7 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
         position *= g_world_scale_005ebc40;
         SetWorldScenePosition004511D0(GetWorld(), &position);
 
-        rotation.vectors[0].Set(1.0f, 0.0f, 0.0f);
-        rotation.vectors[1].Set(0.0f, 1.0f, 0.0f);
-        rotation.vectors[2].Set(0.0f, 0.0f, 1.0f);
+        rotation.SetIdentity();
         if (angle != 0.0f) {
             rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
         }
@@ -795,9 +793,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             srVector3T<float> transformed;
             double angle = -1.5707963267948966;
 
-            rotation.vectors[0].Set(1.0, 0.0, 0.0);
-            rotation.vectors[1].Set(0.0, 1.0, 0.0);
-            rotation.vectors[2].Set(0.0, 0.0, 1.0);
+            rotation.SetIdentity();
             if (record.rotation_angle != 0.0f) {
                 rotation.RotateAroundAxis(sin(record.rotation_angle), cos(record.rotation_angle),
                                           record.rotation_axis);

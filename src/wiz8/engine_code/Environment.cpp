@@ -154,9 +154,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     direction.Set(0.0, g_environment_value_0060a3a4, 0.0);
 
     srMatrix3T<float> rotation;
-    rotation.vectors[0].Set(1.0, 0.0, 0.0);
-    rotation.vectors[1].Set(0.0, 1.0, 0.0);
-    rotation.vectors[2].Set(0.0, 0.0, 1.0);
+    rotation.SetIdentity();
 
     angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {

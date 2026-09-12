@@ -2063,9 +2063,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
 
     srMatrix3T<float> rotation;
-    rotation.vectors[0].Set(1.0f, 0.0f, 0.0f);
-    rotation.vectors[1].Set(0.0f, 1.0f, 0.0f);
-    rotation.vectors[2].Set(0.0f, 0.0f, 1.0f);
+    rotation.SetIdentity();
     float angle = bearing - target_yaw;
     if ((double)angle != g_zero_005ebb40) {
         rotation.RotateAboutY(sin(angle), cos(angle));
@@ -2073,10 +2071,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
 
     srVector3T<float> transformed = rotation.Transform(trace_offset_0ac);
 
-    srVector3T<float> trace_source;
-    trace_source.x = position->x + transformed.x;
-    trace_source.y = position->y + transformed.y;
-    trace_source.z = position->z + transformed.z;
+    srVector3T<float> trace_source = *position + transformed;
     srVector3T<float> trace_target = movement->target_position_04c;
     trace_target.y += trace_height_offset_0bc;
 
