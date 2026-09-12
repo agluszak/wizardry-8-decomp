@@ -3,6 +3,7 @@
 #include "srStringTable.h"
 #include "srTexture.h"
 #include "srTypeRegistry.h"
+#include "srVertexPipe.h"
 #include "srMath.h"
 #include "srShader.h"
 #include "srFlags.h"
@@ -51,14 +52,19 @@ public:
     enum e_error {};
     enum e_closeHint {};
     enum e_buffer {};
-    enum e_matrixMode { MATRIX_MODE_POSITIONAL_0 = 0 };
-    enum e_antiAlias {};
-    enum e_cullMode {
-        CULL_MODE_POSITIONAL_0 = 0,
-        CULL_MODE_POSITIONAL_1 = 1,
-        CULL_MODE_POSITIONAL_2 = 2
-    };
-    enum e_enable { ENABLE_POSITIONAL_1 = 1 };
+    /* Wizardry uses 0 immediately before model-view loads and 1 immediately
+       before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
+       GL_PROJECTION (0x1701) for those two stacks. */
+    enum e_matrixMode { MATRIX_MODELVIEW = 0, MATRIX_PROJECTION = 1 };
+    enum e_antiAlias { ANTIALIAS_NONE = 0 };
+    /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
+       DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
+    enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
+    /* toggle XORs 1<<option into +0x20. Option 0 also dirties dirty_24 bit 0
+       (Wizardry render-option 5). Option 1 is the particle path. Option 4 is
+       SetRendererOption4Enabled. Option 5 wraps/unwraps srDebugDD. GERD dump
+       has no enable-name table. */
+    enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
     enum e_winding { WINDING_POSITIONAL_0 = 0 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
 
@@ -229,7 +235,7 @@ private:
     unsigned long dirty_21c0_;
     srFlags<srRendererDefs::e_vertexArray> vertex_array_mask_21c4_;
     unsigned long vertex_count_21c8_;
-    unsigned char unknown_21cc_[4];
+    srFlags<srRendererDefs::e_clip> clip_state_21cc_;
     long array_components_21d0_[6];
     srRendererDefs::e_type array_types_21e8_[6];
     unsigned long array_strides_2200_[6];

@@ -5,7 +5,6 @@
 #include "srFlags.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
-#include "srVertexProcessor.h"
 
 #include <new>
 
@@ -35,7 +34,7 @@ public:
     };
     /* getLocalBounds and srBounder::getBounds/setBounds copy 11 dwords.
        Model instances fill the box and sphere from srModel; the trailing
-       dword is 0 (empty), 1 (box+sphere), or 2 (node flag 2). Bounder's
+       dword is 0 (empty), 1 (box+sphere), or 2 (FLAG_GLOBAL). Bounder's
        constructor writes 2 into that last dword. */
     struct BoundInfo {
         srVector3T<float> minimum;
@@ -47,8 +46,20 @@ public:
 
     enum e_processType { PROCESS_TYPE_POSITIONAL_0 = 0 };
 
-    enum e_flag { FLAG_POSITIONAL_0 = 0, FLAG_POSITIONAL_1 = 1, FLAG_POSITIONAL_2 = 2 };
+    /* srNode ctor dump table at 0x1009c374: DISABLE,TERMINATE,GLOBAL,
+       IGNORE_TRANSFORM (bits 0–3 of flags_124). traverse omits this node
+       when DISABLE is set and does not walk children when TERMINATE is set.
+       Lights, clip planes and bounders set GLOBAL. setFlag(IGNORE_TRANSFORM)
+       also dirties the cached world transform. */
+    enum e_flag {
+        FLAG_DISABLE = 0,
+        FLAG_TERMINATE = 1,
+        FLAG_GLOBAL = 2,
+        FLAG_IGNORE_TRANSFORM = 3
+    };
 
+    /* Dump walks +0x120 with DAT_100a4a04; that pointer is unset on disk, so
+       dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent);
@@ -211,50 +222,6 @@ private:
     srNode* first_child_;                    /* 0x134 */
 };
 
-/* SR.DLL's exported primary and secondary vtable names establish the exact
-   srNode/srVertexProcessor multiple-inheritance prefix. */
-class srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
-                      public srVertexProcessor {
-public:
-    SR_DLL_IMPORT srIlluminator(srNode* parent);
-    SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
-    static SR_DLL_IMPORT const char* sGetClassName();
-    virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
-    virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type) override;
-    virtual int isActive(srVertexPipe& pipe) override = 0;
-    virtual void process(srVertexPipe& pipe) override = 0;
-    SR_DLL_IMPORT unsigned long getGroupMask() const;
-    SR_DLL_IMPORT void setGroupMask(unsigned long mask);
-
-protected:
-    /* Empty and header-visible, not exported: stLight's destructor at
-       0x0049C430 expands this level and srLight's inline instead of calling
-       either, and reaches SR.DLL only for srNode::~srNode. The registry
-       teardown at this level belongs to the srClassSupport base, and the
-       vptr store this body would make is dead-stored away by the base's own
-       store that immediately follows. */
-    virtual ~srIlluminator() override {}
-
-public:
-    /* srIlluminator's renderer-owned tail begins after the four-byte
-       srVertexProcessor secondary base at complete-object offset 0x13c. */
-    unsigned char unknown_13c_[0x14];
-    union {
-        int m_positional_18;
-        double m_positional_double_18;
-    };
-    union {
-        double m_positional_double_20;
-        struct {
-            float m_positional_20;
-            float m_positional_24;
-        };
-    };
-    float m_positional_28;
-    unsigned int unknown_2c;
-};
-
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
-static_assert((sizeof(srIlluminator) == 0x168), "srIlluminator_must_be_0x168");
 static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");
 static_assert((sizeof(srNode::BoundInfo) == 0x2c), "srNode_BoundInfo_must_be_0x2c");

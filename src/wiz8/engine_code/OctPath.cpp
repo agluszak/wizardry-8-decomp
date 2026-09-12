@@ -3711,7 +3711,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         if (CollectPathVisualization0045D880(&adjusted) != 0) {
             if (m_owned_054 != 0) {
                 BuildPathVisualization0045BE30();
-                m_owned_054->clearFlag(srNode::FLAG_POSITIONAL_0);
+                m_owned_054->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
 
@@ -3719,17 +3719,17 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             node = m_owned_054;
             if (node != 0) {
                 node->setParent(world->dynamic_scene, 1);
-                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
-            node->clearFlag(srNode::FLAG_POSITIONAL_0);
+            node->clearFlag(srNode::FLAG_DISABLE);
             return;
         }
 
         node = m_owned_054;
         if (node != 0) {
-            node->setFlag(srNode::FLAG_POSITIONAL_0);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_DISABLE);
+            node->setFlag(srNode::FLAG_TERMINATE);
         }
         return;
     }
@@ -3738,8 +3738,8 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(*source, 0);
         node = m_owned_054;
         if (node != 0) {
-            node->setFlag(srNode::FLAG_POSITIONAL_0);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_DISABLE);
+            node->setFlag(srNode::FLAG_TERMINATE);
         }
         return;
     }
@@ -3749,9 +3749,9 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             EnsurePathVisualization0045D530();
             node = m_owned_054;
             node->setParent(world->dynamic_scene, 1);
-            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            node->setFlag(srNode::FLAG_TERMINATE);
             if (m_owned_054 == 0) {
-                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
         }
@@ -3761,7 +3761,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(adjusted, 1);
     }
 
-    m_owned_054->clearFlag(srNode::FLAG_POSITIONAL_0);
+    m_owned_054->clearFlag(srNode::FLAG_DISABLE);
 }
 
 /* Populate the editor mesh from the currently visible waypoint set. Marker
@@ -4380,7 +4380,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     }
     m_owned_054->setName("WayPoint Mesh");
     m_owned_054->setExclusionMask(3);
-    m_owned_054->setFlag(srNode::FLAG_POSITIONAL_0);
+    m_owned_054->setFlag(srNode::FLAG_DISABLE);
     return m_owned_054;
 }
 

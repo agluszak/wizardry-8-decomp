@@ -35,7 +35,7 @@ stLight::stLight(srNode* parent)
     if (parent != 0) {
         setParent(parent, 0);
     }
-    m_positional_18 = 2;
+    attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
     m_owned_244 = 0;
     m_positional_239 = 1;
     m_positional_248 = 0;
@@ -100,14 +100,14 @@ void stLight::traverse(srNode::TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1)) {
-        if (testFlag(FLAG_POSITIONAL_0) || fabs(intensity_1d0) <= g_double_005ebc70 ||
+    if (!testFlag(FLAG_TERMINATE)) {
+        if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
             (g_light_update_flags_0060bfdc & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
         } else if (m_definition_234 != 0) {
-            if (!testFlag(FLAG_POSITIONAL_2)) {
+            if (!testFlag(FLAG_GLOBAL)) {
                 srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 1;
@@ -121,7 +121,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
                 firstChild()->traverse(info);
             }
 
-            if (!testFlag(FLAG_POSITIONAL_2)) {
+            if (!testFlag(FLAG_GLOBAL)) {
                 srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
                 entry.node = this;
                 entry.value = 2;
@@ -178,7 +178,7 @@ void stLight::Reset0049D070()
                 static_cast<stLightDefinition005ECDBC*>(m_definition_234);
             intensity_1d0 = definition->intensity_28;
             if ((definition->flags_08 & 8) != 0) {
-                m_color_6c = definition->color_10;
+                diffuse_1a4 = definition->color_10;
             }
         }
     }

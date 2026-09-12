@@ -1722,10 +1722,10 @@ void Trigger::FinishAction()
                 stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
                 if (light != 0) {
                     light->m_positional_23a = 1;
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                        light->setFlag(srNode::FLAG_DISABLE);
                     } else {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
                     action_completed = 1;
                 }
@@ -2479,17 +2479,17 @@ void Trigger::Run(int source)
             if (light != 0) {
                 light->m_positional_23a = 1;
                 if (action_230 == 4) {
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                        light->setFlag(srNode::FLAG_DISABLE);
                     } else {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
                 } else if (action_230 == 0x30) {
-                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) != 0) {
-                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    if (light->testFlag(srNode::FLAG_DISABLE) != 0) {
+                        light->clearFlag(srNode::FLAG_DISABLE);
                     }
-                } else if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
-                    light->setFlag(srNode::FLAG_POSITIONAL_0);
+                } else if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                    light->setFlag(srNode::FLAG_DISABLE);
                 }
                 action_succeeded = 1;
             }

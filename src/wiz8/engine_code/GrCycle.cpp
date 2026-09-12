@@ -438,7 +438,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
             }
             copied_light->ConfigureMonsterCopy();
             copied_light->setLocation(x, y, z);
-            copied_light->setFlag(srNode::FLAG_POSITIONAL_1);
+            copied_light->setFlag(srNode::FLAG_TERMINATE);
             PLAdoptAppend(&g_world->m_lights_0a8, copied_light);
             if (copied_light->definition() != 0) {
                 g_world->lights_to_update->Add(copied_light);
@@ -858,7 +858,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                     psrMesh->scale_1a4 = pRep->value_05c;
                 }
             }
-            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+            psrMesh->clearFlag(srNode::FLAG_DISABLE);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
             path = AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
             if (path != 0) {
@@ -900,7 +900,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         if (child == 0) {
             psrMesh->setLocation(location);
             psrMesh->setRotation(rotation);
-            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+            psrMesh->clearFlag(srNode::FLAG_DISABLE);
         } else {
             do {
                 child->setLocation(location);
@@ -909,7 +909,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             } while (child != 0);
         }
         current_model_instance_1a8 = psrMesh;
-        psrMesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+        psrMesh->clearFlag(srNode::FLAG_TERMINATE);
         psrMesh->setParent(pWorld->dynamic_scene, 0);
     }
     UpdateParticleAttachments004A7E50();
@@ -919,7 +919,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         location.SetFromFloat(&position);
         m_ground_shadow->setLocation(location);
         m_ground_shadow->angle_138 = GetYaw();
-        m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->clearFlag(srNode::FLAG_TERMINATE);
         m_ground_shadow->setParent(g_world->dynamic_scene, 0);
     }
     if (m_plsLights != 0) {
@@ -964,7 +964,7 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
             if (ani_mesh != 0) {
                 AniMeshSetFlag10004B6860(ani_mesh, 0);
             }
-            mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+            mesh->setFlag(srNode::FLAG_DISABLE);
             mesh->setParent(0, 1);
         }
     } else if (current_model_instance_1a8 != 0) {
@@ -973,14 +973,14 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
         }
         W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
         AniMeshSetFlag10004B6860(ani_mesh, 0);
-        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_0);
-        current_model_instance_1a8->setFlag(srNode::FLAG_POSITIONAL_1);
+        current_model_instance_1a8->setFlag(srNode::FLAG_DISABLE);
+        current_model_instance_1a8->setFlag(srNode::FLAG_TERMINATE);
         current_model_instance_1a8->setParent(0, 0);
         current_model_instance_1a8 = 0;
     }
 
     if (m_ground_shadow != 0) {
-        m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->setFlag(srNode::FLAG_TERMINATE);
         m_ground_shadow->setParent(0, 1);
     }
 }
@@ -1490,9 +1490,9 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
 {
     if (m_ground_shadow != 0) {
         if (visible) {
-            m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_0);
+            m_ground_shadow->clearFlag(srNode::FLAG_DISABLE);
         } else {
-            m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_0);
+            m_ground_shadow->setFlag(srNode::FLAG_DISABLE);
         }
     }
 }

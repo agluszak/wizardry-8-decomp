@@ -358,8 +358,8 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
             srModelInstance* instance = static_cast<srModelInstance*>(node);
             srMeshModel* mesh = static_cast<srMeshModel*>(instance->model());
 
-            mesh->setControlMask(0x20);
-            mesh->setControlMask(0x10);
+            mesh->setControlMask(0x20); /* CONTROL_SKIP_AUTO_SPHERE */
+            mesh->setControlMask(0x10); /* CONTROL_SKIP_AUTO_BOX */
         }
     }
 

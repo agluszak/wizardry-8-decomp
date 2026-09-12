@@ -9,16 +9,17 @@ class srMaterialIFace;
 class srVertexPipe;
 
 /* Exact exported renderer APIs pass this 0x20-byte value by reference, and
-   srTriMeshPipeline's array instantiation advances by the same 0x20 stride. */
+   srTriMeshPipeline's array instantiation advances by the same 0x20 stride.
+   Slot order follows getEyeSpaceLocation/getDiffuse/getSpecular/getST/getQ. */
 struct srVertexArray {
-    srVector4T<float>* values_00;
-    srVector4T<float>* values_04;
-    srVector4T<float>* values_08;
-    srVector2T<float>* values_0c;
-    srVector2T<float>* values_10;
-    float* values_14;
-    float* values_18;
-    unsigned char* values_1c;
+    srVector4T<float>* eye_locations_00;
+    srVector4T<float>* diffuse_04;
+    srVector4T<float>* specular_08;
+    srVector2T<float>* st0_0c;
+    srVector2T<float>* st1_10;
+    float* q0_14;
+    float* q1_18;
+    unsigned char* packed_1c;
 };
 
 static_assert(sizeof(srVertexArray) == 0x20, "srVertexArray_must_be_0x20");
@@ -49,7 +50,22 @@ public:
         unsigned long flags;        /* 0x50 */
     };
 
-    enum e_channel {};
+    /* Bit indices for enableChannel/getChannelMask. setupDiffuse enables 1,
+       setupSpecular 2, setupAlpha 3, setupFog 4, setupST(0) 5, setupST(1) 6,
+       setupQ(0) 7, setupQ(1) 8. srLight::process uses 9 and 10. Wizardry's
+       environment mapper requires channel 5 before getST(0). */
+    enum e_channel {
+        CHANNEL_DIFFUSE = 1,
+        CHANNEL_SPECULAR = 2,
+        CHANNEL_ALPHA = 3,
+        CHANNEL_FOG = 4,
+        CHANNEL_ST0 = 5,
+        CHANNEL_ST1 = 6,
+        CHANNEL_Q0 = 7,
+        CHANNEL_Q1 = 8,
+        CHANNEL_LIGHT_AMBIENT = 9,
+        CHANNEL_LIGHT_DIFFUSE = 10
+    };
 
 protected:
     /* Header-visible, like srIlluminator's and srLight's: the srIlluminator
@@ -75,94 +91,3 @@ public:
 static_assert(sizeof(srVertexProcessor) == 0x04, "srVertexProcessor_must_be_0x04");
 static_assert(sizeof(srVertexProcessor::MaterialInfo) == 0x54,
               "srVertexProcessor_MaterialInfo_must_be_0x54");
-
-class srVertexPipe {
-public:
-    struct Input {
-        unsigned long record_count_00;
-        unsigned long vertex_count_04;
-        const unsigned long* indices_08;
-        int position_is_float3_0c;
-        const srVector3T<float>* positions_10;
-        const void* values_14;
-        srVector3T<float> eye_center_18;
-        float eye_radius_24;
-        const srMatrix4T<float>* model_view_28;
-        const srMatrix4T<float>* normal_matrix_2c;
-        srVertexArray* vertex_arrays_30;
-        unsigned long exclusion_mask_34;
-        srVector4T<float> ambient_light_38;
-        const void* records_48;
-        srVertexProcessor** processors_4c;
-        unsigned long processor_count_50;
-        float environment_minimum_54;
-        float environment_maximum_58;
-        float environment_scale_5c;
-        float environment_inverse_scale_60;
-    };
-
-    SR_DLL_IMPORT srVertexPipe();
-    SR_DLL_IMPORT ~srVertexPipe();
-    SR_DLL_IMPORT srVertexPipe& operator=(const srVertexPipe& other);
-
-    SR_DLL_IMPORT void applyDiffuseLight(const srVector4T<float>& light);
-    SR_DLL_IMPORT void applyDiffuseLight(const float* values, const srVector4T<float>& light);
-    SR_DLL_IMPORT void applyFog(const float* values);
-    SR_DLL_IMPORT void copyDiffuseToSpecular();
-    SR_DLL_IMPORT void copySpecularToDiffuse();
-    SR_DLL_IMPORT void disableChannel(srVertexProcessor::e_channel channel);
-    SR_DLL_IMPORT void enableChannel(srVertexProcessor::e_channel channel);
-    SR_DLL_IMPORT const unsigned long* getAVT() const;
-    SR_DLL_IMPORT float* getAlpha();
-    SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel> getChannelMask() const;
-    SR_DLL_IMPORT const float* getDepthCue();
-    SR_DLL_IMPORT srVector4T<float>* getDiffuse();
-    SR_DLL_IMPORT unsigned long getExclusionMask() const;
-    SR_DLL_IMPORT void getEyeSpaceBoundingSphere(srVector3T<float>& center, float& radius) const;
-    SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceDir();
-    SR_DLL_IMPORT const float* getEyeSpaceDist();
-    SR_DLL_IMPORT const srVector4T<float>* getEyeSpaceLocation();
-    SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceNormal();
-    SR_DLL_IMPORT const float* getEyeSpaceZDist();
-    SR_DLL_IMPORT float* getFog();
-    SR_DLL_IMPORT const srVertexProcessor::MaterialInfo& getMaterialInfo() const;
-    SR_DLL_IMPORT float* getQ(unsigned long index, int create);
-    SR_DLL_IMPORT srVector2T<float>* getST(unsigned long index, int create);
-    static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
-    getShaderDisableMask(const srShader& shader);
-    static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
-    getShaderDisableMask(const srShader* shader, const unsigned long* channels,
-                         unsigned long channel_count);
-    SR_DLL_IMPORT srVector4T<float>* getSpecular();
-    SR_DLL_IMPORT void* getUserArray(unsigned long index);
-    SR_DLL_IMPORT unsigned long getVertexCount() const;
-    SR_DLL_IMPORT int isChannelAvailable(srVertexProcessor::e_channel channel) const;
-    SR_DLL_IMPORT void process(const Input& input);
-    SR_DLL_IMPORT void swapDiffuseAndSpecular();
-    SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
-
-private:
-    SR_DLL_IMPORT void finishDiffuseAlpha();
-    SR_DLL_IMPORT void finishSpecularFog();
-    SR_DLL_IMPORT void processVertexBuffer();
-    static SR_DLL_IMPORT unsigned long scanChangeIndexed(const unsigned long* first,
-                                                         unsigned long first_count,
-                                                         const unsigned long* second,
-                                                         unsigned long second_count);
-    SR_DLL_IMPORT void setMaterial(srMaterialIFace* material);
-    SR_DLL_IMPORT void setupAlpha();
-    SR_DLL_IMPORT void setupDepthCue();
-    SR_DLL_IMPORT void setupDiffuse();
-    SR_DLL_IMPORT void setupEyeSpaceDirAndDist();
-    SR_DLL_IMPORT void setupEyeSpaceNormal();
-    SR_DLL_IMPORT void setupEyeSpaceZDist();
-    SR_DLL_IMPORT void setupFog();
-    SR_DLL_IMPORT void setupQ(unsigned long index);
-    SR_DLL_IMPORT void setupST(unsigned long index);
-    SR_DLL_IMPORT void setupSpecular();
-
-    unsigned char unknown_00_[0x9c];
-};
-
-static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
-static_assert(sizeof(srVertexPipe::Input) == 0x64, "srVertexPipe_Input_must_be_0x64");

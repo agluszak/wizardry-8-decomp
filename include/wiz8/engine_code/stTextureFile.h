@@ -59,7 +59,11 @@ protected:
     virtual void setupDefaultValues() override; /* 0x0047C600 */
 
 private:
-    enum TextureState { LOAD_FAILED = 0x01, DEFAULTS_PENDING = 0x02 };
+    /* Masks for srTexture::e_flag dump bits. */
+    enum TextureState {
+        LOAD_FAILED = 1UL << FLAG_GENERATESURFACE_FAILURE,
+        DEFAULTS_PENDING = 1UL << FLAG_DIRTY_DEFAULTS
+    };
 
     srColorSurface* LoadSurface0047C090(int handle, int* image_type);
 

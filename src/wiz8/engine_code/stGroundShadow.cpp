@@ -48,9 +48,9 @@ stGroundShadow::stGroundShadow(srNode* parent)
         g_ground_shadow_texture_006834cc =
             LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "Shadow.tga", 1);
         g_ground_shadow_texture_006834cc->addReference();
-        g_ground_shadow_texture_006834cc->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
-        g_ground_shadow_texture_006834cc->setWrapS(static_cast<srTextureIFace::e_wrap>(1));
-        g_ground_shadow_texture_006834cc->setWrapT(static_cast<srTextureIFace::e_wrap>(1));
+        g_ground_shadow_texture_006834cc->setMipmap(srTextureIFace::MIPMAP_NONE);
+        g_ground_shadow_texture_006834cc->setWrapS(srTextureIFace::WRAP_CLAMP);
+        g_ground_shadow_texture_006834cc->setWrapT(srTextureIFace::WRAP_CLAMP);
 
         srMaterial* material = SR_NEW(srMaterial);
         g_ground_shadow_material_006834d0 = material;
@@ -78,14 +78,14 @@ void stGroundShadow::traverse(TraverseInfo& info)
         nextSibling()->traverse(info);
     }
 
-    if (!testFlag(FLAG_POSITIONAL_0)) {
+    if (!testFlag(FLAG_DISABLE)) {
         TraverseInfo::Entry& entry = info.entries[info.entry_count];
         entry.node = this;
         entry.value = 0;
         ++info.entry_count;
     }
 
-    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+    if (!testFlag(FLAG_TERMINATE) && firstChild() != 0) {
         firstChild()->traverse(info);
     }
 }

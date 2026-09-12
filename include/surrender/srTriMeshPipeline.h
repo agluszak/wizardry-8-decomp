@@ -3,9 +3,10 @@
 #include "srArray.h"
 #include "srMaterialIFace.h"
 #include "srMath.h"
+#include "srPtr.h"
 #include "srShader.h"
 #include "srTextureIFace.h"
-#include "srVertexProcessor.h"
+#include "srVertexPipe.h"
 
 class srGERD;
 class srMaterialIFace;
@@ -24,34 +25,39 @@ class srMaterialIFace;
 class srTriMeshPipeline {
 public:
     struct Record {
-        inline Record() : flags_00(0), value_04(0), value_0c(0), value_10(2) {}
+        inline Record() : flags_00(0), disable_mask_04(0), colors_0c(0), color_format_10(2) {}
 
         unsigned long flags_00;
-        unsigned long value_04;
+        unsigned long disable_mask_04;
         srMaterialIFace* material_08;
-        void* value_0c;
-        unsigned long value_10;
-        unsigned char unknown_14_[8];
+        /* Bit 0: DIG or particle colors (+0x0c) with format at +0x10.
+           Bit 1: DCG at +0x14. Bit 2: SCG at +0x18. */
+        void* colors_0c;
+        unsigned long color_format_10;
+        srVector4T<float>* dcg_14;
+        srVector4T<float>* scg_18;
         /* Optional per-vertex arrays, each gated by its own flags_00 bit:
            0x004994D0 sets +0x1c under bit 3 and +0x20 under bit 4. */
-        float* value_1c;
-        srVector2T<float>* value_20;
-        unsigned char unknown_24_[0x38];
+        float* alphas_1c;
+        srVector2T<float>* st0_20;
+        srVector2T<float>* st1_24;
+        srPtr<srMaterialIFace>* vertex_materials_28;
+        unsigned char unknown_2c_[0x30];
     };
 
     struct Pass {
         inline Pass()
         {
-            flags_08.value = 0x0100241b;
+            flags_08.value = 0x0100241b; /* default packed srShader */
         }
 
-        srTextureIFace* value_00;
-        unsigned long value_04;
+        srTextureIFace* texture_00;
+        unsigned long pass_value_04;
         srShader flags_08;
-        void* value_0c;
+        void* texture_array_0c;
         unsigned long value_10;
-        const srShader* value_14;
-        srVector2T<float>* value_18;
+        const srShader* shader_14;
+        srVector2T<float>* st_18;
         unsigned long value_1c;
     };
 
@@ -87,33 +93,35 @@ public:
     virtual ~srTriMeshPipeline();
 
     srHeapArray<srVertexProcessor*> vertex_processors_04;
-    srHeapArray<unsigned long> values_0c;
+    srHeapArray<unsigned long> culler_scratch_0c;
     Record* current_record_14;
     Pass* current_pass_18;
-    unsigned long value_1c;
-    unsigned long value_20;
-    unsigned long value_24;
+    unsigned long triangle_count_1c;
+    unsigned long vertex_count_20;
+    unsigned long active_triangle_count_24;
+    /* Bit 0: run getClipMask (frustum 0x3f plus user planes in bits 6+).
+       Bit 1: vertex/triangle batch-limit path. Reset/Get always set both. */
     unsigned long flags_28;
-    const unsigned long* value_2c;
-    const srVector4T<float>* value_30;
-    const srVector3i* value_34;
+    const unsigned long* active_triangles_2c;
+    const srVector4T<float>* projected_vertices_30;
+    const srVector3i* triangles_34;
     /* stParticle stores allocation_160 (vec3*) here; Reset/Get null it.
        FlushSlots00475600 then CALLINDs vp+0x18c (_minMax vec4) with this
        pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
        xyz-only center math keep these as vec3; the vec4 slot is recorded,
        not a reason to widen the fields. */
-    const srVector3T<float>* value_38;
-    const void* value_3c;
-    unsigned long value_40;
-    srVector3T<float> value_44;
-    srVector3T<float> value_50;
-    srVector3T<float> value_5c;
-    float value_68;
-    unsigned long value_6c;
+    const srVector3T<float>* positions_38;
+    const void* vertex_extras_3c;
+    unsigned long extra_40;
+    srVector3T<float> bounds_minimum_44;
+    srVector3T<float> bounds_maximum_50;
+    srVector3T<float> bounds_center_5c;
+    float bounds_radius_68;
+    unsigned long bounds_state_6c;
     unsigned long unknown_70;
     srShader shader_74;
-    srTextureIFace* value_78;
-    unsigned long value_7c;
+    srTextureIFace* texture_78;
+    unsigned long pass_value_7c;
     srMaterialIFace* material_80;
     unsigned long slot_count_84;
     srGERD* renderer_88;

@@ -2501,7 +2501,7 @@ unsigned char W8Monster::GetFlag216004CA290() const
 unsigned char W8Monster::IsWithinWorldRange004CA2A0()
 {
     if (node_308 != 0) {
-        return node_308->testFlag(srNode::FLAG_POSITIONAL_0) == 0;
+        return node_308->testFlag(srNode::FLAG_DISABLE) == 0;
     } else {
         double far_clip = WorldGetFarClip(GetWorld());
         srVector3T<float> position = GetPosition();
@@ -3246,7 +3246,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         g_octree_6598a4->UpdateMonsterLocation((unsigned short)propagated_value_1e4, &position);
     }
 
-    if ((node_308 == 0 || node_308->testFlag(srNode::FLAG_POSITIONAL_0) == 0) &&
+    if ((node_308 == 0 || node_308->testFlag(srNode::FLAG_DISABLE) == 0) &&
         IsRenderable004C7C00(0) != 0) {
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance004A8250();
@@ -3264,7 +3264,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
             lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
             if (lights != 0 && (count = lights->GetCount()) != 0) {
                 for (index = 0; index < count; ++index) {
-                    (*lights->GetAt(index))->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    (*lights->GetAt(index))->clearFlag(srNode::FLAG_DISABLE);
                 }
             }
             if (m_pRep->monster_light_624 != 0) {
@@ -3277,7 +3277,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
         if (lights != 0 && (count = lights->GetCount()) != 0) {
             for (index = 0; index < count; ++index) {
-                (*lights->GetAt(index))->setFlag(srNode::FLAG_POSITIONAL_0);
+                (*lights->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
             }
         }
         if (m_pRep->monster_light_624 != 0) {
@@ -3504,9 +3504,9 @@ void W8Monster::SetCycle(signed char cycle)
         count = lights->GetCount();
         for (index = 0; index < count; ++index) {
             if (enabled_1bd != 0) {
-                (*lights->GetAt(index))->clearFlag(srNode::FLAG_POSITIONAL_0);
+                (*lights->GetAt(index))->clearFlag(srNode::FLAG_DISABLE);
             } else {
-                (*lights->GetAt(index))->setFlag(srNode::FLAG_POSITIONAL_0);
+                (*lights->GetAt(index))->setFlag(srNode::FLAG_DISABLE);
             }
         }
     }
@@ -3671,9 +3671,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 widened_scale = mesh_scale;
                 mesh->setScale(widened_scale);
                 if ((flags_1dc & 0x400) == 0) {
-                    mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    mesh->clearFlag(srNode::FLAG_DISABLE);
                 } else {
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                    mesh->setFlag(srNode::FLAG_DISABLE);
                 }
                 item->ApplyRepTransform0049FAA0();
             }
@@ -3721,9 +3721,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 widened.SetFromFloat(&location);
                 mesh->setLocation(widened);
                 if ((flags_1dc & 0x400) == 0) {
-                    mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    mesh->clearFlag(srNode::FLAG_DISABLE);
                 } else {
-                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                    mesh->setFlag(srNode::FLAG_DISABLE);
                 }
             }
             ++group;

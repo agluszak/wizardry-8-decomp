@@ -349,7 +349,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         model->control_state_390 |= 8;
         if ((polygon_types.data[type] & 0x6000) == 0x4000) {
             model->flags_3a0 |= 1;
-            model->control_state_394 |= 0x40;
+            model->control_state_394 |= 0x40; /* CONTROL_STARTUP */
             model->control_state_390 |= 8;
         } else {
             model->flags_3a0 &= ~1U;

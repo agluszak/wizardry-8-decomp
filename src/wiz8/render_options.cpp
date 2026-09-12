@@ -47,17 +47,20 @@ void SetRenderOption(int option, int enabled)
 {
     switch (option) {
     case 2:
-        g_gerd_659634->setTextureDefaultMagFilter((srTextureIFace::e_filter)(enabled ? 3 : 0));
+        g_gerd_659634->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                          : srTextureIFace::FILTER_NONE);
         break;
     case 3:
-        g_gerd_659634->setTextureDefaultMinFilter((srTextureIFace::e_filter)(enabled ? 3 : 0));
+        g_gerd_659634->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                          : srTextureIFace::FILTER_NONE);
         break;
     case 4:
-        g_gerd_659634->setTextureDefaultMipmap((srTextureIFace::e_mipmap)(enabled ? 2 : 0));
+        g_gerd_659634->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
+                                                       : srTextureIFace::MIPMAP_NONE);
         break;
     case 5:
         if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
-            g_gerd_659634->toggle((srGERD::e_enable)0);
+            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
     case 6:

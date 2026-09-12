@@ -182,7 +182,7 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
     modeller.setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 
     srShader shader;
-    shader.value = 0x0100c5b3;
+    shader.value = 0x0100c5b3; /* packed srShader: LEQUAL, color write, dst 1-srcA, fog, modulate */
     modeller.setShader(shader, 0);
 
     W8ColorSurface* surface =
@@ -205,7 +205,7 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
     srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
     texture->autoRelease();
     texture->setSurfacePtr(surface);
-    texture->setMipmap(static_cast<srTextureIFace::e_mipmap>(0));
+    texture->setMipmap(srTextureIFace::MIPMAP_NONE);
 
     srVector3T<float> scale(500.0f, 500.0f, 500.0f);
     modeller.scale(scale);

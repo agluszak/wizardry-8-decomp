@@ -190,7 +190,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 }
             }
             if (record.visible == 0) {
-                light->setFlag(srNode::FLAG_POSITIONAL_0);
+                light->setFlag(srNode::FLAG_DISABLE);
             }
             light->setGroupMask(2);
         } else if (record.version < 2 || record.visible != 0) {
@@ -209,16 +209,16 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 
         if (light != 0) {
             if (_strnicmp(light->getName(), "Sun", 3) == 0) {
-                light->m_color_6c.SetZero();
-                light->m_direction_60 = record.colour;
+                light->diffuse_1a4.SetZero();
+                light->ambient_198 = record.colour;
                 light->setGroupMask(light->getGroupMask() | 4);
                 AddEnvironmentLight00483F30(light);
             } else {
-                light->m_color_6c = record.colour;
-                light->m_direction_60.SetZero();
+                light->diffuse_1a4 = record.colour;
+                light->ambient_198.SetZero();
             }
 
-            light->m_position_78.SetZero();
+            light->specular_1b0.SetZero();
             ConfigureWorldLight0046E300(light, record.range * g_world_scale_005ebc40);
             light->intensity_1d0 = record.intensity;
             light->setLocation(record.location.x * g_world_scale_005ebc40,
@@ -377,9 +377,9 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
                      serialized_position.y * g_world_scale_005ebc40,
                      serialized_position.z * g_world_scale_005ebc40);
         clip_plane->setLocation(position);
-        clip_plane->setFlag(srNode::FLAG_POSITIONAL_2);
+        clip_plane->setFlag(srNode::FLAG_GLOBAL);
         clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
-        clip_plane->setFlag(srNode::FLAG_POSITIONAL_0);
+        clip_plane->setFlag(srNode::FLAG_DISABLE);
     }
     return 1;
 }
