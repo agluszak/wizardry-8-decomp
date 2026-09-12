@@ -144,9 +144,10 @@ unsigned char BitArray::Load(int handle)
                 if (remaining != 0) {
                     decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
                     cursor = decoded;
-                    for (; remaining != 0; --remaining) {
+                    while (remaining > 0) {
                         *cursor = decoder.decompressSymbol();
                         ++cursor;
+                        --remaining;
                     }
                 }
             }
@@ -161,9 +162,10 @@ unsigned char BitArray::Load(int handle)
     }
 
     set_count = 0;
-    while (NextSetBit(1) != 0) {
-        ++set_count;
-        NextSetBit(0);
+    if (NextSetBit(1) != 0) {
+        do {
+            ++set_count;
+        } while (NextSetBit(0) != 0);
     }
     return 1;
 }
