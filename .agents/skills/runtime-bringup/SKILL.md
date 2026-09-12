@@ -27,6 +27,10 @@ character commit/start pathways. `new-game-entry` remains a lower-level bring-up
 it as a substitute for acceptance of the complete new-game-to-main-game transition. When scenario
 input depends on UI geometry, derive it from live regions/controls instead of hard-coded coordinates.
 
+For original-binary reachability/order questions use the existing
+[dynamic oracle](../../../docs/dynamic-oracle.md); its observations are scenario-bounded and never prove
+unreachability. Do not create another trace harness when the existing one answers the question.
+
 Both runnable products install the same in-process exception filter. The filter records every
 general-purpose register, scans registers as well as stack words for image addresses, and
 `uv run wiz8 run`/`runtime-test` symbolize the record through the product MAP, including the
@@ -35,30 +39,31 @@ unresolved externals of the caller's object. Do not chase a bare Wine backtrace 
 `Wiz8Runtime.exe` and `Wiz8RuntimeTest.exe` link without `/FORCE:UNRESOLVED`. Unrecovered calls enter
 a build-generated `// STUB:` trap that prints
 `WIZ8_RUNTIME_STUB address=... symbol=... name=...` and breaks before touching the caller's stack.
-`uv run wiz8 build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail body
-removes its stub on the next build. If stubgen reports an unresolved identity at an already recovered
+`uv run wiz8 build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail
+body removes its stub on the next build. If stubgen maps an unresolved spelling to an already recovered
 address, fix the declaration/linkage/signature; never add a handwritten fake body.
 
 ## Recover the failing behavior
 
-1. Establish the requested transition/observation with `uv run wiz8 run --original`, then compare `uv run wiz8 run`
-   under the shared setup. If retail also fails, investigate the environment before blaming recovery.
-2. Drive real product pathways: input queue/hooks, screen dispatch, callbacks, persistence, resource
+1. Establish the requested transition/observation with `uv run wiz8 run --original`, then compare the
+   recomp under the shared setup. If retail also fails, investigate the environment first.
+2. Drive real product pathways: input queue/hooks, screen dispatch, callbacks, persistence and resource
    loading. The harness may inject input/events externally; matching source must never gain test-only
-   branches. Menu/new-game scenarios use the real keyboard/input path, not direct downstream handlers.
+   branches. Menu/new-game scenarios use the real input path, not downstream-handler bypasses.
 3. At failure, recover the nearest missing/wrong framework boundary instead of hard-coding a
-   screen-specific bypass. For source changes/comparison use [matching-decomp](../matching-decomp/SKILL.md);
-   inspect unanswered binary facts with its [PyGhidra reference](../matching-decomp/references/pyghidra.md).
+   screen-specific bypass. Use [matching-decomp](../matching-decomp/SKILL.md) for source recovery,
+   [ghidra-analysis](../ghidra-analysis/SKILL.md) for unanswered retail facts, and
+   [type-modeling](../type-modeling/SKILL.md) when the failure exposes an ABI/layout defect.
 4. Validate the relevant behavior with the existing deterministic harness and the requested observable
    result. Prefer stable semantic observations over coordinates, arbitrary sleeps, incidental call
-   counts, or internal helper order. Reuse successful results until relevant inputs change.
+   counts or internal helper order. Reuse successful results until relevant inputs change.
 
 Runtime behavior is authoritative for behavioral questions. A build, live process, or semantic harness
 result alone does not prove visible rendering/input: observe the requested presentation and transition.
 Private-display DirectDraw captures can be black; use host-visible evidence for visual acceptance.
 Report only what was observed and stop at the requested flow; unrelated screens do not expand the task.
 
-`runtime-test` is for relevant behavior, not mandatory for every recovered function. Extend its existing
-observations only when needed; do not create a second harness/reporting framework unless the existing
-one fundamentally cannot observe the required behavior. Product architecture and environment details:
-[Wiz8 executable](../../../docs/targets/wiz8-executable.md).
+`runtime-test` is for relevant behavior, not mandatory for every recovered function. Extend its
+existing observations only when needed; do not create a second harness/reporting framework unless the
+existing one fundamentally cannot observe the required behavior. Product architecture and environment
+details: [Wiz8 executable](../../../docs/targets/wiz8-executable.md).

@@ -1,55 +1,43 @@
 ---
 name: matching-decomp
-description: Recover Wizardry 8 C++ bodies and declarations against the pinned VC6 target; use for source-model changes and interpreting focused comparison mismatches.
+description: Recover Wizardry 8 C++ bodies against the pinned VC6 target and interpret focused comparison mismatches.
 ---
 
 # Matching decompilation
 
-## Choose the primitive
+Use this skill for function-body recovery, source placement, matching annotations, inlining/header
+visibility, source-oracle lookup, and focused reccmp mismatches.
 
-- Ordinary linked recovered function: `uv run wiz8 compare ADDRESS...` (examples below).
-- COFF contributions, relocations, folding/aliases, data, vtables, or address mapping:
-  [comparison](references/comparison.md).
-- Native Ghidra reads/edits, divergent GZF checkpoints, or regenerating canonical state from the
-  source PDB: [PyGhidra](references/pyghidra.md).
-- Type/prototype/layout disagreement or Clang diagnostics:
-  [type and layout evidence](references/type-and-layout-evidence.md).
-- Unexplained focused divergence: [mismatch patterns](references/mismatch-patterns.md).
-- Possible SGP, MSVC/runtime, zlib, IJG, or Info-ZIP source: [source oracles](references/source-oracles.md).
+Route other questions instead of expanding this skill:
 
-Read only the relevant reference. Prefer documented project/reccmp entry points. Do not inspect
-implementation code, `site-packages`, console-script metadata, or CLI parser internals merely to
-discover an already documented workflow. Inspect implementation only to debug the tool itself or
-resolve insufficient/contradictory documentation; fix stale invocation instructions at their owner.
+- live Ghidra inspection/edits/checkpoints: [ghidra-analysis](../ghidra-analysis/SKILL.md);
+- prototypes, fields, globals, enums, layouts, classes, inheritance or vtables:
+  [type-modeling](../type-modeling/SKILL.md);
+- runtime/UI/loading behavior: [runtime-bringup](../runtime-bringup/SKILL.md);
+- build/reccmp/clang/source-index/CLI infrastructure: [tooling-maintenance](../tooling-maintenance/SKILL.md).
+
+For comparison details use [comparison](references/comparison.md); for unexplained codegen differences
+use [mismatch patterns](references/mismatch-patterns.md); for possible SGP/MSVC/zlib/IJG/Info-ZIP
+source use [source oracles](references/source-oracles.md). Read only the reference needed for the task.
 
 ## Recovery loop
 
-1. Identify the requested entity and existing C++/header/TU owner. Search source and known oracles
-   before recovering anything new; reuse evidence unless missing, stale, or contradictory.
-   Consult the normal recovery context for original-TU ownership before placing a recovered game
-   function; do not manually rediscover source ownership unless the returned evidence is ambiguous.
-2. Inspect only unanswered binary facts. Direct PyGhidra through
-   `wiz8decomp.ghidra.env.open_program(settings, "wiz8")` is the normal native inspection/edit path.
-3. Correct demonstrably wrong Ghidra facts with native transactions; save the coherent batch and
-   invalidate stale decompiler results. No separate permission round is needed within recovery.
-   Keep uncertain facts unknown; do not repeatedly query a known-bad prototype.
-4. Update one coherent source-model batch in its canonical owners, including affected declarations
-   and consumers. Another similar occurrence alone does not expand the task (`AGENTS.md`).
-5. Run focused linked comparison. Include callers affected by a shared declaration/layout/ABI change.
-6. If final linkage obscures the question, choose the modality in [comparison](references/comparison.md).
-   Stop when no evidence-backed source correction remains; report any unmet acceptance criterion.
+1. Identify the requested entity and its existing C++/header/TU owner. Search source and accepted
+   oracles before recovering anything new. Reuse reviewed evidence unless missing, stale or contradictory.
+2. Consult `uv run wiz8 report context ADDRESS...` when TU/source/provenance context helps. Uncertain
+   placement blocks insertion, not investigation.
+3. Inspect only unanswered retail facts. Use the Ghidra-analysis skill rather than rediscovering or
+   wrapping native APIs.
+4. Correct established analysis facts before relying on them. For type/layout changes follow
+   type-modeling and update the canonical declarations/consumers as one coherent batch.
+5. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
+   spelling merely to manipulate registers/CFG/score.
+6. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
+7. If final linkage obscures the question, select the appropriate object/data/vtable modality from the
+   comparison reference. Stop when no evidence-backed source correction remains.
 
-Optional source-aware conveniences, when their joined output helps:
-
-```sh
-uv run wiz8 report context ADDRESS...
-uv run wiz8 recover function ADDRESS...
-```
-
-`recover` writes candidate artifacts without editing source, building, or comparing. Neither command
-is a prerequisite. Uncertain placement blocks insertion, not investigation.
-If an incoming reviewed GZF diverges from the local checkpoint, use the
-[checkpoint merge procedure](references/pyghidra.md#divergent-gzf-checkpoints); never replace one side wholesale.
+`uv run wiz8 recover function ADDRESS...` is an optional candidate generator. It writes disposable
+artifacts; it does not edit source, build or compare and is never a prerequisite.
 
 ## Compare the recovered function
 
@@ -60,64 +48,52 @@ uv run wiz8 compare --file src/wiz8/engine_code/Prop.cpp
 uv run wiz8 compare --changed
 ```
 
-Selected `compare` refreshes the compiler-backed source index from the current source and then builds
-the comparison product itself. Do not pre-run `uv run wiz8 analyze source-index`, `uv run wiz8 check`,
-or `uv run wiz8 build` merely to prepare comparison. It returns structured focused results, including
-the first reported divergence and available bounded instruction window; use that result instead of a
-second homemade triage command.
+Selected `compare` refreshes the compiler-backed source index and builds the comparison product itself.
+Do not pre-run `analyze source-index`, `check` or `build` merely to prepare it.
 
-- `exact` / `effective`: stop investigating that body unless another task requirement remains.
-- `mismatch`: inspect the first meaningful divergence; formulate a concrete source/type/ABI/lifetime/
-  ownership hypothesis before editing. A percentage or changed CFG is not authored-source evidence.
-- `inconclusive` / `missing`: identify absent evidence, pairing, or unsupported analysis; do not assume
-  a source defect or claim equivalence.
+- `exact` / `effective`: stop investigating that body unless another acceptance criterion remains.
+- `mismatch`: inspect the first meaningful divergence and form a concrete source/type/ABI/lifetime/
+  ownership hypothesis before editing. A percentage or changed CFG is not source evidence.
+- `inconclusive` / `missing`: identify the absent pairing/evidence/analysis; do not claim equivalence.
 
-Do not tweak source spelling for scores. Revert demonstrated regressions; retain straightforward
-C++ when evidence supplies no correction, and report the unresolved result honestly.
+Revert demonstrated semantic/ABI regressions. When no evidence-backed correction remains, keep the
+straightforward source and report the unresolved mismatch rather than inventing compiler folklore.
 
 ## Accepting a substantial new body
 
-A large newly recovered body - a dispatcher, a multi-branch switch, anything long enough that one
-mismatch can hide another - is accepted only after all of the following hold:
+A large dispatcher/multi-branch body is accepted only when:
 
-- the cast, identity and structural gates are green for the affected tree;
-- no unexplained byte-pointer escape survives from an object whose fields are already typed;
-- every pre-existing address identity is reconciled to one name, one normalized prototype and one
-  calling convention;
-- the comparison is meaningful, or every inconclusive region has explicit manual CFG verification
-  against retail: instruction stream, call targets and branch roles.
+- structural/identity/cast gates for the affected tree are green;
+- typed objects do not escape through unexplained byte-pointer arithmetic;
+- existing address identities agree on one name, normalized prototype and calling convention;
+- comparison is meaningful, or inconclusive regions received explicit retail CFG/call/branch review.
 
-This is exactly the "inconclusive is acceptable" boundary that needs tightening. Inconclusive
-comparison status is matching evidence, not semantic acceptance: it never excuses wrong assertion
-control flow, a wrong field read, or an unverified branch. A 700-line dispatcher needs the manual
-CFG pass; a small wrapper or a straightforward body does not.
+Inconclusive matching evidence never excuses a wrong branch, field read, assertion path, call target or
+side effect. Small straightforward bodies do not need a ritual manual CFG pass.
 
-## Placement and output
+## Markers and placement
 
-`FUNCTION` sits immediately above the declaration/definition it owns. Nothing else binds through it:
-put diagnostic pragmas, explanatory comments, and other preprocessor lines above the marker rather
-than between the marker and the source entity. `TEMPLATE` is immediately followed by a comment naming
-the emitted symbol and owns no body. `LIBRARY` is address-only. `SYNTHETIC` is immediately followed by
-its exact generated identity comment and owns no declaration/body; separate it from the next source
-entity or give that entity its own marker. An independently emitted ordinary destructor uses
-`FUNCTION`, a template emission uses `TEMPLATE`; absent a standalone body, use only the
-declaration/inline destructor required by the evidenced hierarchy. Keep `// GLOBAL` at canonical definitions.
+`FUNCTION` sits immediately above the declaration/definition it owns. Put pragmas, explanatory
+comments and unrelated preprocessor lines above the marker, never between marker and entity.
+`TEMPLATE` is immediately followed by the emitted-symbol comment and owns no body. `LIBRARY` is
+address-only. `SYNTHETIC` is immediately followed by its generated-identity comment and owns no
+declaration/body. Keep `GLOBAL` at the canonical definition.
 
-## Header visibility and inline
+Preserve TU ownership/order in `src/wiz8/sources.cmake`. An independently emitted ordinary destructor
+uses `FUNCTION`; compiler deleting wrappers are `SYNTHETIC`; template emissions are `TEMPLATE`.
 
-An inlined copy by itself does not place a body in a header or make it `inline` in the source:
+## Header visibility and inlining
 
-- inlined copies in one proven translation unit only: no conclusion about header/source placement;
-- inlined copies in multiple independently proven units with no out-of-line body: strong evidence the
-  body was header-visible;
-- an out-of-line emission plus some inlined copies: ordinary compiler behavior; do not restructure
-  source to reproduce which calls were inlined;
-- never manually inline a body at individual call sites, and never use an explicit specialization,
-  explicit instantiation, or similar mechanism only to force an out-of-line copy.
+An inlined copy does not by itself prove an authored `inline` or header body:
 
-SGP/DLL exports are declared, never defined inline in a product header: an exported symbol in the
-import surface proves the original call went out of line.
+- copies only in one proven TU: no placement conclusion;
+- copies in multiple independently proven TUs with no out-of-line body: strong header-visibility evidence;
+- an out-of-line emission plus inlined copies: ordinary compiler behavior; keep normal source structure.
 
-Batch related Ghidra reads in one session. Keep native objects while computing; filter before printing.
-Write large listings/decompilations to named `build/` artifacts and print the useful result/path.
-Do not repeatedly dump whole files or parse textual output when a structured API/result exists.
+Never manually inline a function at call sites or add explicit specialization/instantiation solely to
+force one VC6 emission. SGP/DLL exports are declarations, not product-header inline definitions; an
+exported symbol proves the original call crosses that binary interface.
+
+Write large decompilations/listings to named `build/` artifacts and print only the useful result/path.
+Do not repeatedly dump whole files or inspect implementation internals merely to discover a documented
+workflow.
