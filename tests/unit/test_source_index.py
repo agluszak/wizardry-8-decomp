@@ -454,11 +454,13 @@ def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path) -> None:
                 {
                     "directory": "/out",
                     "file": "/repo/src/wiz8/local_code/Magic.cpp",
-                    "command": "/usr/bin/clang-cl -I/repo/include /c /Fo/out/Magic.cpp.obj "
+                    "command": "/usr/bin/clang-cl -I/repo/include "
+                    "/FI/repo/include/wiz8/compat/compiler.h /c /Fo/out/Magic.cpp.obj "
                     "/repo/src/wiz8/local_code/Magic.cpp",
                     "arguments": [
                         "/usr/bin/clang-cl",
                         "-I/repo/include",
+                        "/FI/repo/include/wiz8/compat/compiler.h",
                         "/c",
                         "/Fo/out/Magic.cpp.obj",
                         "/repo/src/wiz8/local_code/Magic.cpp",
@@ -480,7 +482,8 @@ def test_host_compile_database_rewrites_guest_mounts(tmp_path: Path) -> None:
     assert rewritten[0]["file"] == f"{host}/src/wiz8/local_code/Magic.cpp"
     assert rewritten[0]["directory"] == lint
     assert rewritten[0]["arguments"][1] == f"-I{host}/include"
-    assert rewritten[0]["arguments"][3] == f"/Fo{lint}/Magic.cpp.obj"
+    assert rewritten[0]["arguments"][2] == f"/FI{host}/include/wiz8/compat/compiler.h"
+    assert rewritten[0]["arguments"][4] == f"/Fo{lint}/Magic.cpp.obj"
 
 
 def test_host_compile_database_rejects_unowned_repo_entries(tmp_path: Path) -> None:

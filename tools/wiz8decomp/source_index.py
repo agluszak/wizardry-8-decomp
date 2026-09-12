@@ -20,7 +20,18 @@ _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
-_ATTACHED_INCLUDE_FLAGS = ("-isystem", "-iquote", "-idirafter", "-I", "/I", "/Fo", "/Fd")
+_ATTACHED_INCLUDE_FLAGS = (
+    "-isystem",
+    "-iquote",
+    "-idirafter",
+    "-include",
+    "-I",
+    "/FI",
+    "-FI",
+    "/I",
+    "/Fo",
+    "/Fd",
+)
 # The analysis image exports Wine TEMP/TMP as Z:\out\tmp. Linux clang++ and the
 # indexer binary treat those as the process temp directory, so docker runs that
 # are not Wine jobs have to point them at a real Unix path.
