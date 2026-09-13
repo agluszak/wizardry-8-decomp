@@ -10,6 +10,14 @@ extern W8GrowableVector<char*> g_encounter_names;
 extern int g_encounter_tables_level;
 
 struct W8MonsterGroup;
+struct W8MonsterGenerator;
+
+/* MonGen.cpp's generator registry accessors. */
+int GetMonsterGeneratorCount(void);                      /* 0x0048BD80 */
+W8MonsterGenerator* GetMonsterGenerator(int index);      /* 0x0048BD90 */
+void AddMonsterGenerator(W8MonsterGenerator* generator); /* 0x0048BE30 */
+void RemoveMonsterGenerator(W8MonsterGenerator* generator); /* 0x0048BEB0 */
+W8EncounterTableRuntime* GetEncounterTable(int index);   /* 0x0048AD00 */
 
 void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);

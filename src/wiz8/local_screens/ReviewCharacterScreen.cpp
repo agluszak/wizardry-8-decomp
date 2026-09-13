@@ -1,5 +1,7 @@
 #include "soundman.h"
 #include "wiz8/magic.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/render_state.h"
@@ -873,4 +875,32 @@ unsigned char CampScreenLeave(int)
         gXStatus.unknown_026[0] = 1;
     }
     return 1;
+}
+
+/* Kicked off by the post-quake camera-shake callback: latches the endgame
+   flags, resets input regions, then starts the fade whose completion runs
+   Function5A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
+   fade, fact 0x2f4 swaps the timing and marks the variant. */
+// FUNCTION: WIZ8 0x005A6580
+void BeginEndgameSequence005A6580(void)
+{
+    int fade_to_black = 0;
+    int fade_code = 0x5dc;
+    int endgame_variant = 0;
+
+    g_status_685170.flag_49c0 = 1;
+    UpdateHeldItemCursor();
+    if (GetFact(0x1a2) != 0) {
+        fade_to_black = 1;
+    } else if (GetFact(0x2f4) != 0) {
+        fade_code = 1;
+        endgame_variant = 1;
+    }
+    MSYS_Init();
+    ResetRegions();
+    ActivateDialogRegion(0x138);
+    VideoRemoveToolTip();
+    g_level_block->transition_pending = 1;
+    g_level_block->flag_327 = 1;
+    Function5A6620(fade_to_black, 0, fade_code, Function5A6B90, 1, endgame_variant);
 }

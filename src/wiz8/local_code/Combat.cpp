@@ -718,8 +718,8 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     if (character->hp_current != 0 && character->highest_condition < 0xd && action_detail != -1) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
-        } else if (Function536F60(party_slot, 2) == 0 &&
-                   Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
+        } else if (TargetIsInPlay(party_slot, 2) == 0 &&
+                   RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
             Function4ECC80(&source,
                            &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
         }
@@ -962,7 +962,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
     }
     if (arg_3 == 0) {
         W8TargetingContext validated = GetValidatedTargetingContext(party_slot, context);
-        if (Function536F60(party_slot, 2, validated) == 0) {
+        if (TargetIsInPlay(party_slot, 2, validated) == 0) {
             return 0;
         }
     }

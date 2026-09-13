@@ -2883,6 +2883,115 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
 /* Release the location-variable names and empty their parallel value and
    level vectors. Trigger.cpp creates the names as copied character arrays. */
 
+/* The .oct writers stage at most 0x100 records through a stack buffer per
+   FileWrite call. A negative remainder still attempts the write; only a zero
+   remainder skips it. */
+
+// FUNCTION: WIZ8 0x004372E0
+unsigned char WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count)
+{
+    srVector4T<float> staging[0x100];
+    int written = 0;
+    int index;
+    unsigned char success = 1;
+
+    do {
+        if (count <= written) {
+            break;
+        }
+        int todo = count - written;
+        if (todo < 0x101) {
+            if (todo != 0) {
+                if (todo > 0) {
+                    for (index = 0; index < todo; ++index) {
+                        staging[index] = values[written + index];
+                    }
+                    written += todo;
+                }
+                success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+            }
+        } else {
+            todo = 0x100;
+            for (index = 0; index < todo; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += todo;
+            success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+        }
+    } while (success != 0);
+    return success;
+}
+
+// FUNCTION: WIZ8 0x00437390
+unsigned char WriteVector3Array00437390(int file, const srVector3T<float>* values, int count)
+{
+    srVector3T<float> staging[0x100];
+    int written = 0;
+    int index;
+    unsigned char success = 1;
+
+    while (written < count) {
+        int todo = count - written;
+        if (todo < 0x101) {
+            if (todo != 0) {
+                if (todo > 0) {
+                    for (index = 0; index < todo; ++index) {
+                        staging[index] = values[written + index];
+                    }
+                    written += todo;
+                }
+                success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+            }
+        } else {
+            todo = 0x100;
+            for (index = 0; index < todo; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += todo;
+            success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+        }
+        if (success == 0) {
+            return 0;
+        }
+    }
+    return success;
+}
+
+// FUNCTION: WIZ8 0x00437430
+unsigned char WriteVector2Array00437430(int file, const srVector2T<float>* values, int count)
+{
+    srVector2T<float> staging[0x100];
+    int written = 0;
+    int index;
+    unsigned char success = 1;
+
+    while (written < count) {
+        int todo = count - written;
+        if (todo < 0x101) {
+            if (todo != 0) {
+                if (todo > 0) {
+                    for (index = 0; index < todo; ++index) {
+                        staging[index] = values[written + index];
+                    }
+                    written += todo;
+                }
+                success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+            }
+        } else {
+            todo = 0x100;
+            for (index = 0; index < todo; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += todo;
+            success &= FileWrite(file, staging, todo * sizeof(staging[0]), 0);
+        }
+        if (success == 0) {
+            return 0;
+        }
+    }
+    return success;
+}
+
 // FUNCTION: WIZ8 0x004374C0
 unsigned char ReadVector4Array004374C0(int file, srVector4T<float>* values, int count)
 {

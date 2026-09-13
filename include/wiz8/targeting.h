@@ -153,7 +153,7 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
 void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
 void RefreshAllPartyTargets0053BF80(void);
-unsigned char Function536570(int party_slot, W8TargetingContext context, int arg);
+unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext context, int arg);
 /* 0x005387F0 */
 void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
@@ -196,15 +196,20 @@ void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                                int reason); /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
-unsigned char Function536F60(int party_slot, int value,
-                             W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-void Function5398D0(void);
-unsigned char Function53A1D0(void);
-void Function53B1D0(void);
+void RefreshMonsterTargetCounts005398D0(void);
+unsigned char AnyMonsterVisible0053A1D0(void);
+void UpdateTargetMarkerHighlight0053B1D0(void);
+
+class W8Monster;
+/* 0x0053A060: whether `monster` sits within `max_distance` of `position` and
+   still projects on screen. */
+unsigned char Function53A060(W8Monster* monster, const srVector3T<float>* position,
+                             float max_distance);
 void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
-unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */
+unsigned char TargetIsInPlay(int party_slot, int value,
+                             W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
 
 void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 void Function53CD60(void);            /* 0x0053CD60 */

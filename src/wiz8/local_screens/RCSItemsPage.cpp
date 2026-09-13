@@ -348,9 +348,6 @@ unsigned char CanSplitItemStack005BAA50(const W8ItemInstance* item)
     return record->quantity_kind == 1;
 }
 
-/* The split-stack dialog's layout is unresolved (ctor 0x005DCED0, size 0xd8);
-   the destroy callback reads the entered count at +0xc0 and the kind marker
-   at +0xc8 by offset. reinterpret-ok: unresolved gap class fields. */
 // FUNCTION: WIZ8 0x005BAA80
 void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
 {

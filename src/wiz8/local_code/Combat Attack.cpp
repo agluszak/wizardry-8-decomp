@@ -297,7 +297,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
 {
     W8Character* character;
 
-    if (!TargetIsInPlay(party_slot, 0, 0)) {
+    if (!TargetIsInPlay(party_slot, 0, W8_TARGETING_CONTEXT_OUT_OF_COMBAT)) {
         return false;
     }
     if (!IsPartySlotEligible00524A10(party_slot)) {

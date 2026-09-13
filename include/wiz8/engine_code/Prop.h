@@ -15,6 +15,7 @@ class srModelInstance;
 class stModelInstance;
 class Trigger;
 class W8Prop;
+struct W8AIMissile;
 
 extern unsigned char g_byte_00659a64;
 
@@ -101,6 +102,9 @@ public:
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void CollectModelInstances0044E570(W8GrowableVector<stModelInstance*>* instances);
+    /* Run trigger_18 when its action is one of the missile-impact kinds
+       (0x3a..0x3c); the record hands Run the missile's table index. */
+    void RunMissileTrigger0044E230(W8AIMissile* record);
 
     Trigger* trigger_18;            /* 0x18 */
     unsigned int flags_1c;          /* 0x1c */

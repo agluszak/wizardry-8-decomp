@@ -8,10 +8,14 @@
  */
 
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrObject.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stLight.h"
@@ -36,6 +40,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/game_status.h"
 #include "wiz8/character.h"
 #include "wiz8/notices.h"
@@ -46,27 +51,12 @@
 
 #include "wiz8/startup_world.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
 #define MISSILE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp"
-
-/* The copy body establishes only these fields. Padding remains explicit: the
-   source leaves it uninitialized in the freshly allocated result. */
-struct W8AIMissile {
-    unsigned char value_00;
-    unsigned char value_01;
-    unsigned char unknown_02[2];
-    int value_04;
-    int value_08;
-    unsigned char unknown_0c[4];
-    int value_10;
-    int value_14;
-    int value_18;
-    unsigned char value_1c;
-    unsigned char unknown_1d[3];
-};
 
 static_assert(sizeof(W8AIMissile) == 0x20, "W8AIMissile_must_be_0x20");
 
@@ -78,16 +68,184 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
     if (copy == 0) {
         srAssertFail("pAIMissile", MISSILE_CPP, 0x86d, 0);
     }
-    copy->value_00 = source->value_00;
-    copy->value_01 = source->value_01;
+    copy->kind_00 = source->kind_00;
+    copy->flag_01 = source->flag_01;
     copy->value_04 = source->value_04;
     copy->value_08 = source->value_08;
     copy->value_10 = source->value_10;
-    copy->value_14 = source->value_14;
-    copy->value_18 = source->value_18;
-    copy->value_1c = source->value_1c;
+    copy->elapsed_14 = source->elapsed_14;
+    copy->limit_18 = source->limit_18;
+    copy->flag_1c = source->flag_1c;
     return copy;
 }
+
+/* Advance a homing missile one AI step: run the trajectory predictor for the
+   clamped half-tick delta, fold the returned advance into the elapsed clock,
+   steer the representation while the path is unobstructed, and end the flight
+   at expiry or an early-impact limit. */
+// FUNCTION: WIZ8 0x004a4cf0
+unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
+{
+    W8Missile* missile;
+    srVector3T<float> position;
+    srVector3T<float> out;
+    float advance;
+    float remaining;
+    float pitch;
+    float yaw;
+    srMatrix3T<float> rotation;
+    unsigned int count;
+    unsigned int delta;
+
+    if (record == 0) {
+        return 0;
+    }
+    missile = record->missile_0c;
+    if (missile->flag_1e1 != 0) {
+        if (missile->flag_1e6 == 0) {
+            return 1;
+        }
+        position = missile->GetPosition();
+        pitch = GetElevationToCamera004BE520(&position);
+        position = missile->GetPosition();
+        yaw = GetHeadingToCamera004BE650(&position);
+        rotation.SetIdentity();
+        rotation.RotateAboutY(yaw);
+        rotation.RotateAboutX(pitch);
+        missile->m_pRep->SetRotation004B88D0(&rotation);
+        return 1;
+    }
+    position = missile->GetPosition();
+    count = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
+    delta = count - record->value_10;
+    if (delta > 0xfa) {
+        delta = 0xfa;
+    }
+    record->value_10 = count;
+    if (g_flag_006840bc != 0) {
+        return 1;
+    }
+    advance = AdvanceMissileAI004A50A0(record, &out, delta);
+    remaining = missile->duration_1f8 - record->elapsed_14 + 1.0f;
+    if (remaining <= advance) {
+        advance = remaining;
+    }
+    if (record->limit_18 > 0.0f) {
+        remaining = record->limit_18 - record->elapsed_14 + 1.0f;
+        if (remaining <= advance) {
+            advance = remaining;
+        }
+    }
+    record->elapsed_14 = advance + record->elapsed_14;
+    missile->SetPosition004A6DF0(&out);
+    if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 &&
+        missile->flag_1e4 != 0) {
+        pitch = GetElevationToCamera004BE520(&out);
+        yaw = GetHeadingToCamera004BE650(&out);
+        rotation.SetIdentity();
+        if ((double)yaw != 0.0) {
+            rotation.RotateAboutY(sin(yaw), cos(yaw));
+        }
+        if ((double)pitch != 0.0) {
+            rotation.RotateAboutX(sin(pitch), cos(pitch));
+        }
+        missile->m_pRep->SetRotation004B88D0(&rotation);
+    }
+    if (advance + record->elapsed_14 <= missile->duration_1f8) {
+        if (record->limit_18 > 0.0f && record->limit_18 < advance + record->elapsed_14 &&
+            missile->CheckNavigatorCollision00453540(&position, &out) == 0) {
+            missile->EnterImpactCycle();
+        }
+        return 1;
+    }
+    missile->flag_1e0 = 1;
+    if (missile->missile_table_index_1d8 == 0x23 &&
+        (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
+        missile->DetonateMissileSpell004A49E0();
+    }
+    if (g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) {
+        AbsorbMissileDamage00500460(missile);
+    }
+    return 1;
+}
+
+/* Predict the homing missile's next position `steps` half-ticks ahead and
+   re-aim its representation at that point. A ray through the world octree
+   flags the record when a prop blocks the path and fires the prop's
+   missile trigger. Returns the distance the step covered. */
+// FUNCTION: WIZ8 0x004a50a0
+float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out,
+                               unsigned int steps)
+{
+    W8MissileRep* representation;
+    W8Missile* missile;
+    W8Prop* prop;
+    srVector3T<float> direction;
+    srVector3T<float> position;
+    srVector3T<float> basis;
+    srMatrix3T<float> rotation;
+    float advance;
+    float pitch;
+    float yaw;
+    int entity;
+
+    representation = record->missile_0c->m_pRep;
+    if (steps == 0) {
+        *out = representation->location_004;
+        return 0.0f;
+    }
+    advance = (float)steps * record->value_04;
+    record->missile_0c->GetVelocity(&direction);
+    *out = direction;
+    position = record->missile_0c->GetPosition();
+    out->x = position.x + direction.x * advance;
+    out->y = position.y + direction.y * advance;
+    out->z = position.z + direction.z * advance;
+    if (g_world->octree != 0 &&
+        (entity = TraceAgainstProps00436510(&position, out, 0, 0)) != 0) {
+        record->limit_18 = 1.0f;
+        prop = *g_world->collidable_props->GetAt(entity - 1);
+        prop->RunMissileTrigger0044E230(record);
+    }
+    if (record->flag_01 != 0) {
+        float dx;
+        float dy;
+        float dz;
+
+        record->value_08 = record->value_08 - (float)steps * (float)g_double_005ece50;
+        position = record->missile_0c->GetPosition();
+        if (out->y != position.y) {
+            dx = representation->location_004.x - out->x;
+            dy = representation->location_004.y - out->y;
+            dz = representation->location_004.z - out->z;
+            if (sqrtf(dx * dx + dy * dy + dz * dz) != g_float_005ebb34) {
+                pitch = GetElevationAngle(&representation->location_004, out);
+                yaw = GetHeadingAngle(&representation->location_004, out);
+                missile = record->missile_0c;
+                rotation.vectors[0].x = 1.0f;
+                rotation.vectors[0].y = 0.0f;
+                rotation.vectors[0].z = 0.0f;
+                basis.Set(0.0, 1.0, 0.0);
+                rotation.vectors[1] = basis;
+                basis.Set(0.0, 0.0, 1.0);
+                rotation.vectors[2] = basis;
+                if ((double)yaw != 0.0) {
+                    rotation.RotateAboutY(sin(yaw), cos(yaw));
+                }
+                if ((double)pitch != 0.0) {
+                    rotation.RotateAboutX(sin(pitch), cos(pitch));
+                }
+                missile->m_pRep->SetRotation004B88D0(&rotation);
+                missile->SetTargetYaw(yaw);
+                missile->SetTargetPitch(pitch);
+            }
+        }
+    }
+    return advance;
+}
+
+// GLOBAL: WIZ8 0x005ece50
+const double g_double_005ece50 = 0.009800000000000001;
 
 // GLOBAL: WIZ8 0x0065bde0
 W8MissileTableRecord* g_missile_table_65bde0;
@@ -477,7 +635,7 @@ void W8Missile::StartIfHostActive()
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
-            Function4A49E0();
+            DetonateMissileSpell004A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
             AbsorbMissileDamage00500460(this);
@@ -717,6 +875,31 @@ void W8Missile::AdvanceAnimationFrame(int value, int flags)
     W8GrCycle::AdvanceAnimationFrame(value, flags);
 }
 
+/* Cast spell 0x83 at the missile's own position on behalf of the character
+   that fired it - the detonation a stored-spell missile (table index 0x23)
+   releases once its flight ends. */
+// FUNCTION: WIZ8 0x004a49e0
+void W8Missile::DetonateMissileSpell004A49E0()
+{
+    W8TargetSource source;
+    W8CombatSlot target;
+    srVector3T<float> position;
+
+    if (source_22c.iType != W8_TARGET_SOURCE_CHARACTER) {
+        srAssertFail("m_Source.iType == SOURCE_TYPE_CHARACTER", MISSILE_CPP, 0x6c5, 0);
+    }
+    position = GetPosition();
+    ResetTargetSource(&source);
+    source.iChar = source_22c.iChar;
+    source.iType = W8_TARGET_SOURCE_CHARACTER;
+    source.point = position;
+    source.unknown_18[2] = 1;
+    ResetCombatSlot(&target);
+    target.iType = W8_TARGET_KIND_PLACE;
+    target.point = position;
+    CastSpellFromSource(0x83, &source, &target, 1, 0, 0, 0, 0, 0, 0, 0);
+}
+
 /* Post "<source> hits <target>" to the notice box and colour the target's
    name with the target side's colour when it differs from the source's. */
 // FUNCTION: WIZ8 0x004a4ac0
@@ -770,7 +953,7 @@ void W8Missile::EnterImpactCycle()
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
-            Function4A49E0();
+            DetonateMissileSpell004A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
             AbsorbMissileDamage00500460(this);

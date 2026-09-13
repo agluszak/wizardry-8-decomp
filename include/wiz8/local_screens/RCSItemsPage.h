@@ -14,6 +14,9 @@ extern int giCasterCharSlot;
    OpenSplitStackDialog005BA400 and consumed by SplitStackDialogResult005BAA80. */
 extern W8ItemInstance* g_split_item_source_0069c424;
 
+/* The result kind SplitStackDialogResult005BAA80 treats as acceptance. */
+extern int g_split_result_kind_005efb44;
+
 void SetItemPageMode005B9FD0(char mode);
 void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback destroy_callback);
 void OpenStatInfoDialog005BA2B0(unsigned int uiIndex);

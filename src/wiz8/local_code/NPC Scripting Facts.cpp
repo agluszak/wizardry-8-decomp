@@ -20,6 +20,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/magic.h"
 #include "wiz8/npc_state.h"
@@ -49,7 +50,7 @@ static void ClearPotionExplosionSoundFlag(void*)
 static void ReplayEarthquakeShake(void)
 {
     CreateCameraShakeEffect004AE080(3.0f, 0, 1.0f, 0, 0);
-    Function5A6580();
+    BeginEndgameSequence005A6580();
 }
 
 // FUNCTION: WIZ8 0x00506670

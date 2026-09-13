@@ -124,8 +124,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         case 0xd:
             SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
-            Function536570(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
-            Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+            RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
+            RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
             break;
         }
         Function50E650(party_slot);

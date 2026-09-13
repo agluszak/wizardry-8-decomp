@@ -17,6 +17,7 @@
 #include "random.h"
 
 #include <string.h>
+#include <wchar.h>
 
 /* Retail Local Code\Party Import.cpp: converts imported Wizardry 7
    characters into the Wizardry 8 layout. */
@@ -296,7 +297,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
 }
 
 // FUNCTION: WIZ8 0x005595D0
-void GrantStartingSpells005595D0(W8Character* character)
+void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
 {
     unsigned char scratch[0x3dc];
     char count;
@@ -513,12 +514,12 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
 // FUNCTION: WIZ8 0x00559BC0
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
-                          const W8Wiz7Character* same_record, const W8Wiz7Character* imported,
-                          unsigned int base_value)
+                          const W8Wiz7Character* imported)
 {
     int mapped;
     unsigned int unlocks;
     unsigned int roll;
+    unsigned int base_value;
     char routed = 0;
     int i;
 

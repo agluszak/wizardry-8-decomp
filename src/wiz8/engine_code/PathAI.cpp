@@ -41,7 +41,7 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
     case 1:
         return 0;
     case 3:
-        return Function4A4CF0(path);
+        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>(path)); // reinterpret-ok: the kind byte selects the tagged record type
     default:
         return 0;
     }
@@ -465,10 +465,68 @@ void PathAISetValue004A9F60(W8PathAI* path, float value)
             path->value_04 = value;
             return;
         }
-        Function4A9FE0(path, value * path->scale_34);
+        PathAIAdvanceByDistance004A9FE0(path, value * path->scale_34);
         return;
     }
     path->value_04 = value;
+}
+
+/* Advance the timed path by `distance` world units: fold it into the elapsed
+   accumulator, then walk the node chain past every segment the distance
+   covers, ending with the in-segment fraction in value_24. */
+// FUNCTION: WIZ8 0x004a9fe0
+void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
+{
+    srVector3T<float> position;
+    srVector3T<float>* next;
+    srVector3T<float>* current;
+    unsigned int index;
+    float remaining;
+    float segment;
+
+    if (path->scale_34 <= g_float_005ebb34) {
+        return;
+    }
+    path->value_30 += distance;
+    path->value_04 = path->value_30 / path->scale_34;
+    if (path->value_04 >= g_float_005ebb38) {
+        if (path->flag_38 != 0) {
+            path->value_04 = g_float_005ebb34;
+            path->value_24 = g_float_005ebb34;
+            path->value_30 = g_float_005ebb34;
+            path->value_20 = 0;
+            return;
+        }
+        path->value_04 = g_float_005ebb38;
+        path->value_24 = g_float_005ebb38;
+        path->value_30 = path->scale_34;
+        path->value_20 = path->nodes_0c->count - 1;
+        return;
+    }
+    remaining = distance;
+    while (true) {
+        PathAIPosition004AA370(path, &position);
+        index = path->value_20 + 1;
+        next = *path->nodes_0c->GetAt(index);
+        segment = (position - *next).Length();
+        if (remaining < segment) {
+            break;
+        }
+        path->value_20 = index;
+        remaining -= segment;
+        path->value_24 = g_float_005ebb34;
+        if (path->nodes_0c->count - 1U <= index) {
+            path->value_20 = path->nodes_0c->count - 1;
+            path->value_04 = g_float_005ebb38;
+            path->value_24 = g_float_005ebb38;
+            return;
+        }
+    }
+    index = path->value_20;
+    next = *path->nodes_0c->GetAt(index + 1);
+    current = *path->nodes_0c->GetAt(index);
+    segment = (*current - *next).Length();
+    path->value_24 = (segment * path->value_24 + remaining) / segment;
 }
 
 // FUNCTION: WIZ8 0x004aa160
@@ -517,7 +575,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
                 PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
             } else {
                 point_count = (float)path->nodes_0c->count;
-                Function4A9FE0(path, path->scale_34 / point_count * path->value_2c * elapsed *
+                PathAIAdvanceByDistance004A9FE0(path, path->scale_34 / point_count * path->value_2c * elapsed *
                                          g_float_005ec128);
             }
             path->tick_28 = now;

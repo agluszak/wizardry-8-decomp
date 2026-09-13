@@ -21,6 +21,8 @@ struct W8ItemRep : public W8AnimRepBase005EC1D8 {
     unsigned int flags; /* 0x90 */
 
     unsigned int SetFlags(unsigned int mask, bool enabled); /* 0x0049F310 */
+    /* Writes or clears the mesh tint quad at m_psrMesh + 0x4c. */
+    void Function49FDB0(unsigned char enabled); /* 0x0049FDB0 */
 };
 
 struct W8Item : public W8GrObject {

@@ -9,6 +9,11 @@
 class W8SpellVisual : public W8GrCycle {
 public:
     W8SpellVisual();
+    /* Cloned from a registered shared visual: keeps the cycle type, the saved
+       flags and the idle pacing, restarts the transient state, and gets its
+       own emitter host and identity counter. Inlined at the 0x004AB580 clone
+       site; no out-of-line copy constructor exists in the image. */
+    W8SpellVisual(const W8SpellVisual& other);
     virtual ~W8SpellVisual() override;
 
     virtual void UpdateRepresentation(W8World* world) override;
@@ -41,5 +46,18 @@ public:
 };
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");
+
+inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(other)
+{
+    value_1d8 = other.value_1d8;
+    started = 0;
+    flag_1e5 = 0;
+    flag_1e6 = other.flag_1e6;
+    flag_1e7 = other.flag_1e7;
+    value_1e8 = other.value_1e8;
+    value_1ec = 0;
+    host = static_cast<W8SpellEmitterHost*>(other.host->Clone());
+    unknown_008 = IncrementValue60DFAC();
+}
 
 void DestroyAllSpellVisuals(W8World* world); /* 0x004AC3D0 */

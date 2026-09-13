@@ -16,12 +16,15 @@ class srModelInstance;
 struct W8World;
 struct W8ReadLevelInfo;
 
-/* Callers build this pair as `{ GetWorld(), 0 }` before loading a .mon file.
-   The loader carries the world into its four-field read record; the second
-   dword is retained because both independent callers allocate and clear it. */
+/* Callers build this trio before loading a .mon/.mls resource. The loader
+   carries world_00 into its four-field read record and never reads the other
+   two, but callers still store into them: monster callers null
+   bitmap_directory_04 and set directory_08 to "Data\\Monsters", while the
+   spell factory points directory_08 at the spell-bitmap tree. */
 struct W8GrCycleLoadContext {
     W8World* world_00;
-    int value_04;
+    const char* bitmap_directory_04;
+    const char* directory_08;
 };
 
 class stLight;

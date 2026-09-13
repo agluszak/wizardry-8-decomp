@@ -180,7 +180,7 @@ unsigned char g_flag_68f0f9;
 unsigned char g_debug_monster_cycle_0068f0fc;
 
 // GLOBAL: WIZ8 0x0068f100
-W8MipeState* g_debug_monster_ids_0068f100;
+W8MipeState* g_mipe_state_0068f100;
 
 // GLOBAL: WIZ8 0x0068f2c8
 unsigned int g_main_game_text_panel_region_set_0068f2c8;
@@ -2161,7 +2161,7 @@ render_world:
         ProcessMonsterManagerFrame();
         if (g_debug_monster_cycle_0068f0fc) {
             W8Monster* monster =
-                GetMonsterByLocationID(IListGetAt(&g_debug_monster_ids_0068f100->monster_ids, 0));
+                GetMonsterByLocationID(IListGetAt(&g_mipe_state_0068f100->monster_ids, 0));
             if (monster) {
                 ClearSurfaceRect(0x122, 0x159, 0x226, 0x168);
                 SetFont(g_font_683660);
@@ -2205,14 +2205,14 @@ render_world:
         }
         if (gXStatus.fCombatMode && g_level_block->refresh_combat_panel &&
             !ClockIsTicking(g_level_block->combat_panel_timer)) {
-            Function5398D0();
+            RefreshMonsterTargetCounts005398D0();
             g_level_block->combat_panel_timer = SetCountdownClock(500);
             g_level_block->refresh_combat_panel = 0;
         }
         if (gXStatus.iTargetingMode == 4) {
             RefreshSpellTargetHighlightsAtRange();
         } else if (gXStatus.iTargetingMode == 3 && IsWorldCursorVisible()) {
-            Function53B1D0();
+            UpdateTargetMarkerHighlight0053B1D0();
         } else if (gXStatus.iTargetingMode != 5 && g_level_block->refresh_party_panel) {
             UpdateAllMonsterHighlights(g_status_685170.selected_character,
                                        g_level_block->highlighted_item);
@@ -2234,7 +2234,7 @@ render_world:
         if (gXStatus.fTrapInteractMode)
             UpdateMainGameScreen();
         int active;
-        if (!AnyPropTriggerInView00445140(g_world) && !Function53A1D0() && !Function4F8650() &&
+        if (!AnyPropTriggerInView00445140(g_world) && !AnyMonsterVisible0053A1D0() && !Function4F8650() &&
             !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
             active = 0;
         } else {

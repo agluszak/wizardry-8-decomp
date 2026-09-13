@@ -284,7 +284,8 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 
     record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     context.world_00 = GetWorld();
-    context.value_04 = 0;
+    context.bitmap_directory_04 = 0;
+    context.directory_08 = "Data\\Monsters";
 
     if (mode == 0) {
         success = MonsterReadAllCycles004C58E0(

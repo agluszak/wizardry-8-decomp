@@ -113,6 +113,8 @@ public:
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
     int GetWidth00480EF0();                                             /* 0x00480EF0 */
     int GetHeight00480F70();                                            /* 0x00480F70 */
+    void Function480EB0(unsigned char enable);                          /* 0x00480EB0 */
+    void Function480FF0(srVector4T<float>* first, srVector4T<float>* second); /* 0x00480FF0 */
 
     unsigned char displayState() const
     {

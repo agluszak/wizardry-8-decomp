@@ -40,6 +40,10 @@ public:
     {
         return surface_5c != 0;
     }
+    srColorSurface* getSurface() const
+    {
+        return surface_5c;
+    }
     unsigned char hasAlpha() const
     {
         return has_alpha_64;

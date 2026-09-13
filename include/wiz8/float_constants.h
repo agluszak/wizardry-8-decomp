@@ -76,6 +76,9 @@ extern float g_float_005ed8b8;
    0x005EC3FC and 0x005ED1E8 are the positive and negative half turns returned
    when the heading is exactly on the axis, and 0x005EC2A8 is the slightly
    different half turn the elevation helper subtracts. */
+/* 0x005ECE50: the per-step homing decay AdvanceMissileAI multiplies into the
+   record's turn budget. */
+extern const double g_double_005ece50;
 extern const float g_camera_half_pi_005ec3fc;
 extern const float g_float_005ec2a8;
 extern const float g_float_005ed1e8;

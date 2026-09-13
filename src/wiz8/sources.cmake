@@ -171,6 +171,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/dialog_code/DialogTextArea.cpp
     src/wiz8/dialog_code/stButton.cpp
     src/wiz8/dialog_code/SpellInfoDialog.cpp
+    src/wiz8/dialog_code/SplitItemDialog.cpp
     src/wiz8/dialog_code/DialogScrollBar.cpp
     src/wiz8/engine_code/MonGen.cpp
     src/wiz8/music_playlist.cpp

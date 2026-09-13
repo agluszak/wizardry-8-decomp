@@ -20,13 +20,16 @@ class Trigger;
    so this declaration is the shared owner until an original name is proven. */
 class W8DialogNumericInput {
 public:
-    void Initialize(int flags, const W8ControlsRect* bounds, int value, int font,
-                    W8DialogBase* dialog, W8DialogButton* button); /* 0x005E1460 */
-    void SetValue(int value);                                      /* 0x005E14C0 */
-    void SetActive(unsigned char active);                          /* 0x005E14D0 */
-    void SetActive(unsigned char active, const POINT* point);      /* 0x005E1500 */
-    void Draw(unsigned char force);                                /* 0x005E15C0 */
-    unsigned char HandleInput(const InputAtom* input);             /* 0x005E19A0 */
+    /* 0x005E1460: the only call site (0x005DDA60) allocates 0x30 bytes, null
+       checks the result and merges the returned `this`, which is the ordinary
+       VC6 `new T(args)` shape rather than a separate initializer call. */
+    W8DialogNumericInput(int flags, const W8ControlsRect* bounds, int value, int font,
+                         W8DialogBase* dialog, W8DialogButton* button);
+    void SetValue(int value);                                 /* 0x005E14C0 */
+    void SetActive(unsigned char active);                     /* 0x005E14D0 */
+    void SetActive(unsigned char active, const POINT* point); /* 0x005E1500 */
+    void Draw(unsigned char force);                           /* 0x005E15C0 */
+    unsigned char HandleInput(const InputAtom* input);        /* 0x005E19A0 */
 
     W8ControlsRect m_bounds; /* 0x00 */
     int m_caret;             /* 0x10: -1 when inactive */
@@ -242,25 +245,59 @@ static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0")
    this vtable at +0; the listed slots are the ones that differ from
    W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
    the count the destroy callback SplitStackDialogResult005BAA80 reads back
-   and result_0c8 is the dialog result kind it tests. The constructor body is
-   unrecovered (gap), so the remaining fields stay unknown. */
+   and result_0c8 is the dialog result kind it tests. */
 // VTABLE: WIZ8 0x005efb78
 class W8Dialog005DCED0 : public W8DialogBase {
 public:
-    W8Dialog005DCED0(int kind, W8ItemInstance* item, int param); /* 0x005DCED0 */
-    virtual ~W8Dialog005DCED0() override;                        /* 0x005DD010 */
+    W8Dialog005DCED0(int kind, W8ItemInstance* item, int count); /* 0x005DCED0 */
+    virtual ~W8Dialog005DCED0() override;                        /* 0x005DD030 */
     virtual int CreateControls() override;                       /* 0x005DD130 */
     virtual void DestroyControls() override;                     /* 0x005DD3C0 */
     virtual void Draw() override;                                /* 0x005DDB60 */
     virtual unsigned char ProcessInput() override;               /* 0x005DE1B0 */
     virtual void OnNumericInputChanged(int value) override;      /* 0x005DDFA0 */
 
+private:
+    /* 0x005DD480: create and place the arrow, frame, accept and cancel
+       buttons; eight for inventory splits, ten in trade modes. */
+    unsigned char CreateButtons005DD480();
+    /* 0x005DD750: create the label text buffers and fill the item-name rows. */
+    unsigned char CreateTextBuffers005DD750();
+    /* 0x005DDA60: create the count entry field over its backing button. */
+    unsigned char CreateNumericInput005DDA60();
+    /* 0x005DCC00: refresh the two trade-price labels in trade modes. */
+    void UpdateCostLabels005DCC00();
+    /* 0x005DDE60: enable the minus/plus arrows while each side has count. */
+    void UpdateArrowStates005DDE60();
+    /* 0x005DDEE0: enable accept when the split is nonzero and affordable. */
+    void UpdateAcceptButton005DDEE0();
+    /* 0x005DE120: numeric-field and Enter/Escape handling for ProcessInput. */
+    unsigned char HandleInputEvent005DE120(const InputAtom* input);
+
+    /* Per-button callbacks stored through W8DialogButton::Configure. */
+    static void OnSplitDecrement005DE350(W8DialogButton* button);      /* 0x005DE350 */
+    static void OnSplitIncrement005DE4E0(W8DialogButton* button);      /* 0x005DE4E0 */
+    static void OnSplitDecrementMany005DE670(W8DialogButton* button);  /* 0x005DE670 */
+    static void OnSplitIncrementMany005DE810(W8DialogButton* button);  /* 0x005DE810 */
+    static void OnAccept005DE9B0(W8DialogButton* button);              /* 0x005DE9B0 */
+    static void OnCancel005DE9D0(W8DialogButton* button);              /* 0x005DE9D0 */
+    static void OnCountFieldClick005DE9F0(W8DialogButton* button);     /* 0x005DE9F0 */
+
 public:
-    unsigned char unknown_054[0x6c];
-    unsigned int split_count_0c0;
-    int unknown_0c4;
+    W8DialogButton* m_buttons_054[10]; /* 0x054: minus/plus, frames, accept/cancel */
+    W8TextBuffer* m_texts_07c[14];     /* 0x07c */
+    W8DialogNumericInput* m_count_input_0b4; /* 0x0b4 */
+    /* 0x0b8: the numeric field while a click or keypress owns it. */
+    W8DialogNumericInput* m_active_input_0b8;
+    int m_remaining_0bc;    /* 0x0bc: the count left in the source stack */
+    int split_count_0c0;
+    int m_stack_total_0c4;  /* 0x0c4: stack_count when the dialog opened */
     int result_0c8;
-    unsigned char unknown_0cc[0xc];
+private:
+    unsigned int m_kind_0cc;    /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    W8ItemInstance* m_item_0d0; /* 0x0d0 */
+    unsigned char m_first_draw_0d4; /* 0x0d4: draw the item icon once */
+    unsigned char unknown_0d5[3];
 };
 
 static_assert(sizeof(W8Dialog005DCED0) == 0xd8, "W8Dialog005DCED0_must_be_0xd8");

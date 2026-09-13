@@ -146,6 +146,18 @@ public:
     }
     virtual void SetPosition(const srVector3T<float>* position); /* 0x00456020 */
 
+    /* Copy movement_0c0.velocity_034 out - the missile homing step scales this
+       by its step count to predict the next position. */
+    void GetVelocity(srVector3T<float>* velocity); /* 0x004534F0 */
+    /* movement_0c0.target_yaw = NormalizeAngle(angle). */
+    void SetTargetYaw(float angle); /* 0x004538D0 */
+    /* movement_0c0.target_pitch_024 = NormalizeAngle(angle). */
+    void SetTargetPitch(float angle); /* 0x00453920 */
+    /* Find the navigator occupying `to`; the move collides when both sides'
+       OnCollision accept it. */
+    unsigned char CheckNavigatorCollision00453540(const srVector3T<float>* from,
+                                                  const srVector3T<float>* to);
+
     void configureStartupRange(float range);
     void configureStartupDepth(float near_depth, float far_depth);
 
