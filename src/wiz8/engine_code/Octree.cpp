@@ -61,6 +61,18 @@ void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
 // GLOBAL: WIZ8 0x00659770
 unsigned long g_octree_storage_00659770;
 
+// GLOBAL: WIZ8 0x00659778
+GETFILESTRUCT g_octree_file_search_00659778;
+
+// GLOBAL: WIZ8 0x006598b2
+unsigned char g_octree_file_search_active_006598b2;
+
+// GLOBAL: WIZ8 0x00606810
+char g_octree_point_extension_00606810[] = ".pts";
+
+// GLOBAL: WIZ8 0x006068a0
+char g_octree_file_search_wildcard_006068a0[] = "*";
+
 // GLOBAL: WIZ8 0x00659890
 unsigned long g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
@@ -694,6 +706,90 @@ void W8Octree::CollectVisibleCells0042FE90()
             }
         }
     }
+}
+
+// FUNCTION: WIZ8 0x004329a0
+unsigned char FindNextLevelFile(char* name)
+{
+    if (name == 0) {
+        g_octree_file_search_active_006598b2 = 0;
+        return 0;
+    }
+
+    if (g_octree_file_search_active_006598b2 == 0) {
+        char pattern[256];
+        char extension[52];
+
+        strcpy(pattern, name);
+        char* extension_start = strrchr(pattern, '.');
+        extension[0] = '\0';
+        if (extension_start != 0) {
+            strcpy(extension, extension_start);
+            *extension_start = '\0';
+        }
+        strcat(pattern, g_octree_file_search_wildcard_006068a0);
+        strcat(pattern, extension);
+        g_octree_file_search_active_006598b2 =
+            GetFileFirst(pattern, &g_octree_file_search_00659778);
+    } else {
+        g_octree_file_search_active_006598b2 = GetFileNext(&g_octree_file_search_00659778);
+    }
+    if (g_octree_file_search_active_006598b2 == 0) {
+        GetFileClose(&g_octree_file_search_00659778);
+        return 0;
+    }
+
+    char* separator = strrchr(name, '\\');
+    if (separator != 0) {
+        separator[1] = '\0';
+    }
+    strcat(name, g_octree_file_search_00659778.zFileName);
+    return g_octree_file_search_active_006598b2;
+}
+
+// FUNCTION: WIZ8 0x00432b80
+unsigned char W8Octree::LoadPointFiles(const char* level_name)
+{
+    char name[256];
+    strcpy(name, level_name);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, g_octree_point_extension_00606810);
+
+    FindNextLevelFile(0);
+    unsigned char first = 1;
+    unsigned char read_ok = 0;
+    while (FindNextLevelFile(name) != 0) {
+        if (first != 0) {
+            first = 0;
+        } else {
+            m_positional_16d = 1;
+        }
+        int file = FileOpen(name, 1, 0);
+        if (file == 0) {
+            return 0;
+        }
+        if (FileRead(file, &m_positional_170, 4, 0) == 0) {
+            FileClose(file);
+            return 0;
+        }
+        m_sr_owned_174 =
+            static_cast<srVector3T<float>*>(srHeap.allocate((m_positional_170 + 1) * 0xc));
+        if (m_sr_owned_174 == 0) {
+            FileClose(file);
+            return 0;
+        }
+        read_ok = FileRead(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
+        FileClose(file);
+    }
+    if (read_ok != 0) {
+        return read_ok;
+    }
+    srHeap.free(m_sr_owned_174);
+    m_positional_170 = 0;
+    return 0;
 }
 
 /* Write the octree's point array to a companion file.
@@ -2225,7 +2321,7 @@ finish:
         *game_data = pGameData;
         g_octree_game_data_00652db0 = pGameData;
         ReadRegionLinkFile(m_owned_0c0);
-        ApplyLevelName00432B80(m_owned_0c0);
+        LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
             ReadWaypointFile0043A0F0();
         }

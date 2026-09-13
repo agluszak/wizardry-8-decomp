@@ -167,6 +167,7 @@ public:
     void UpdateVisibility004304A0();
     unsigned char UpdateWorldTrace00433EB0();
     unsigned char SavePoints00432D60(char* path);
+    unsigned char LoadPointFiles(const char* level_name);
     unsigned char ReadRegionLinkFile(const char* level_name);
     unsigned char SaveRegionLinks004331F0(char* path);
     unsigned char ValidateRegionMeshLinks00433AB0();
@@ -266,7 +267,7 @@ public:
     unsigned char m_positional_16d;
     unsigned char m_padding_16e[2];
     unsigned long m_positional_170;
-    void* m_sr_owned_174;
+    srVector3T<float>* m_sr_owned_174;
     unsigned long m_positional_178;
     unsigned long m_positional_17c;
     W8PathingService* pathing_180;
@@ -378,7 +379,6 @@ unsigned int __stdcall OctreeTraverse(void* walker, void* arg_2, void* arg_3, in
                                       unsigned int limit); /* 0x0042F280 */
 void LeaveLocation0042E880(unsigned short location_id, int reason);
 
-void ApplyLevelName00432B80(const char* name);
 int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
                                              double blue, double alpha);
