@@ -103,3 +103,6 @@ void MonsterLight::StartFadeOut0049DAF0()
 
 // TEMPLATE: WIZ8 0x0049E300
 // srClassSupport<srLight,srIlluminator,0,4640>::getClassNode
+
+// SYNTHETIC: WIZ8 0x0049E440
+// MonsterLight::`vector deleting destructor'`adjustor{312}'

@@ -85,13 +85,19 @@ W8GrObject::~W8GrObject()
 
 /* Engine Code\GrObject.cpp. The member name m_plsSoundEvents comes from the
    canonical assertion in this translation unit; the element class is
-   Engine Code\SoundEvent.cpp's W8SoundEvent. */
+   Engine Code\SoundEvent.cpp's W8SoundEvent. 0x005ED098 is this
+   specialization's construction-phase table (Ghidra names it
+   W8SoundEventVector005ED094), written while the base subobject's
+   destructor still owns teardown. */
 
 // VTABLE: WIZ8 0x005ed094
 // class W8GrowableVector<W8SoundEvent*>
 
 // SYNTHETIC: WIZ8 0x004b6dc0
 // W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004b6d90
+// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor' (construction-phase copy)
 
 // TEMPLATE: WIZ8 0x004b6de0
 // W8GrowableVector<W8SoundEvent*>::~W8GrowableVector<W8SoundEvent*>
