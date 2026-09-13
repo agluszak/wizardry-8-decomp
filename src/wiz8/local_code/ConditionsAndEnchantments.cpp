@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -593,15 +595,15 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
 // FUNCTION: WIZ8 0x00523a80
 void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character;
     int scan;
 
-    character->enchantments[slot].value_00 = 0;
-    character->enchantments[slot].value_04 = 0;
-    character->enchantments[slot].value_08 = 0;
+    memset(&g_status_685170.buffers.characters[party_slot].enchantments[slot], 0,
+           sizeof(W8Enchantment));
 
+    character = &g_status_685170.buffers.characters[party_slot];
     for (scan = 7; scan >= 0; --scan) {
-        if (character->enchantments[scan].value_08 != 0) {
+        if (character->enchantments[scan].value_08 > 0 || scan == 0) {
             character->enchantment_top = scan;
             break;
         }
@@ -626,9 +628,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
 
-    monster_info->enchantments[slot].value_00 = 0;
-    monster_info->enchantments[slot].value_04 = 0;
-    monster_info->enchantments[slot].value_08 = 0;
+    memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
@@ -653,9 +653,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
 
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
-    monster_info->enchantments[slot].value_00 = 0;
-    monster_info->enchantments[slot].value_04 = 0;
-    monster_info->enchantments[slot].value_08 = 0;
+    memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {

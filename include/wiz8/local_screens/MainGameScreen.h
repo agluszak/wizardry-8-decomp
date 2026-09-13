@@ -503,7 +503,7 @@ extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 
 void BeginLevelTransition(void); /* 0x005611A0 */
-void Function5618F0(unsigned short mode);
+void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a change to the main-game mode flag at 0x006850CE. */
 void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
 /* 0x00561EC0: the region-mode pass the party-add entry runs while the

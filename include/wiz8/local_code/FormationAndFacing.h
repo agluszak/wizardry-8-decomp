@@ -25,7 +25,7 @@ struct W8PartyFormationPosition {
    W8CombatState; the functions in this header are the recovered owner. */
 struct W8PartyFormationState {
     W8PartyFormationRow rows[5];
-    unsigned char flags_0f[5];
+    unsigned char row_occupants[5]; /* 0x0f: ubQuadrantOccupants, kept by SetFormationPosition */
     W8PartyFormationPosition positions[8];
     unsigned char unknown_74[0x10];
 };
@@ -43,11 +43,11 @@ void RestoreCombatFormation(void); /* 0x00554A60 */
 void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot);
 /* 0x00554BD0: move one party position into a formation row and column,
    updating both rows' occupant lists. */
-void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
-                          int announce, int detach, int update_facing);
-/* 0x00554DD0: re-place the positions that shared a row whose occupant set
-   changed. */
-void Function554DD0(W8PartyFormationState* formation, int row);
+void SetFormationPosition(W8PartyFormationState* formation, int slot, signed char new_row,
+                          signed char new_column, char announce, char detach, char update_facing);
+/* 0x00554DD0: re-place the positions left in a row after one moved out: a
+   single occupant goes to column 0, two pack toward column 2. */
+void CompactFormationRow(W8PartyFormationState* formation, unsigned char row);
 
 /* 0x00554580 sits in the attribution gap between Magic Effects.cpp and this
    file. The pointer ABI is the formation record, not a byte buffer. */

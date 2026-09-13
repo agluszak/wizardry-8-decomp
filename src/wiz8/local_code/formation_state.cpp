@@ -17,7 +17,7 @@ void InitializePartyFormation(W8PartyFormationState* formation)
         formation->rows[index].slots[0] = -1;
         formation->rows[index].slots[1] = -1;
         formation->rows[index].slots[2] = -1;
-        formation->flags_0f[index] = 0;
+        formation->row_occupants[index] = 0;
     }
     for (index = 0; index < 8; ++index) {
         formation->positions[index].row = 0xff;
