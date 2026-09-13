@@ -55,37 +55,33 @@ void W8DialogScrollBar::DestroyControls()
 // FUNCTION: WIZ8 0x005e0ca0
 unsigned char W8DialogScrollBar::CreateControls(const Resources* resources)
 {
-    m_up_image =
-        LoadButtonImage(
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>(resources->arrows_path)),
-                        3, 0, 1, 2, 2);
+    m_up_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>(resources->arrows_path)),
+        3, 0, 1, 2, 2);
     if (m_up_image != -1) {
         m_up_button = QuickCreateButton(m_up_image, 0, 0, BUTTON_NO_TOGGLE, 126, UpButtonCallback,
                                         UpButtonCallback);
     }
-    m_down_image =
-        LoadButtonImage(
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>(resources->arrows_path)),
-                        11, 8, 9, 10, 10);
+    m_down_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>(resources->arrows_path)),
+        11, 8, 9, 10, 10);
     if (m_down_image != -1) {
         m_down_button = QuickCreateButton(m_down_image, 0, 0, BUTTON_NO_TOGGLE, 126,
                                           DownButtonCallback, DownButtonCallback);
     }
-    m_thumb_image =
-        LoadButtonImage(
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>(resources->arrows_path)),
-                        7, 4, 5, 6, 6);
+    m_thumb_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>(resources->arrows_path)),
+        7, 4, 5, 6, 6);
     if (m_thumb_image != -1) {
         m_thumb_button = QuickCreateButton(m_thumb_image, 0, 0, BUTTON_NO_TOGGLE, 125, 0, 0);
     }
-    m_track_image =
-        LoadButtonImage(
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>(resources->track_path)),
-                        -1, resources->track_frame, -1, resources->track_frame, -1);
+    m_track_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>(resources->track_path)),
+        -1, resources->track_frame, -1, resources->track_frame, -1);
     if (m_track_image != -1) {
         m_track_button = QuickCreateButton(m_track_image, 0, 0, BUTTON_NO_TOGGLE, 125,
                                            TrackButtonCallback, TrackButtonCallback);
