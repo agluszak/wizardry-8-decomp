@@ -189,14 +189,14 @@ unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
         }
     }
 
-    if ((unsigned int)m_ulNumCondLookup < 2 || (unsigned int)m_ulNumCondKeys < 2) {
+    if ((unsigned int)m_ulNumCondFrames < 2 || (unsigned int)m_ulNumCondNodes < 2) {
         m_ulNumCondPaths = 0;
-        m_ulNumCondLookup = 0;
-        m_ulNumCondKeys = 0;
+        m_ulNumCondFrames = 0;
+        m_ulNumCondNodes = 0;
     }
     block[0] = m_ulNumCondPaths;
-    block[1] = m_ulNumCondLookup;
-    block[2] = m_ulNumCondKeys;
+    block[1] = m_ulNumCondFrames;
+    block[2] = m_ulNumCondNodes;
     block[3] = 0;
     success = FileWrite(handle, block, sizeof(block), 0);
     if (success == 0) {
@@ -204,28 +204,28 @@ unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
                      "WritePathNodes: Couldn't write Conditional Counts.\n");
     }
 
-    if ((unsigned int)m_ulNumCondLookup > 1 && (unsigned int)m_ulNumCondKeys > 1) {
+    if ((unsigned int)m_ulNumCondFrames > 1 && (unsigned int)m_ulNumCondNodes > 1) {
         success = FileWrite(handle, m_pCondPaths, m_ulNumCondPaths * sizeof(W8ConditionalPath), 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8b7,
                          "WritePathNodes: Couldn't write Conditional Prop array.\n");
         }
-        success = FileWrite(handle, m_pCondLookup, m_ulNumCondLookup << 2, 0);
+        success = FileWrite(handle, m_pulCondLookup, m_ulNumCondFrames << 2, 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8b9,
                          "WritePathNodes: Couldn't write Conditional Lookup array.\n");
         }
-        success = FileWrite(handle, m_pCondFrames, m_ulNumCondLookup << 1, 0);
+        success = FileWrite(handle, m_pusCondNodeFrames, m_ulNumCondFrames << 1, 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8bb,
                          "WritePathNodes: Couldn't write Conditional Frame array.\n");
         }
-        success = FileWrite(handle, m_pCondKeys, m_ulNumCondKeys << 2, 0);
+        success = FileWrite(handle, m_pulCondNodeKeys, m_ulNumCondNodes << 2, 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8bd,
                          "WritePathNodes: Couldn't write Conditional Key array.\n");
         }
-        success = FileWrite(handle, m_pCondValues, m_ulNumCondKeys << 2, 0);
+        success = FileWrite(handle, m_pulCondNodeValues, m_ulNumCondNodes << 2, 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8bf,
                          "WritePathNodes: Couldn't write Conditional Value array.\n");
@@ -563,13 +563,13 @@ unsigned char W8PathingService::Load00458CE0(int handle)
                      "ReadPathNodes: Couldn't write Conditional Counts.\n");
     }
     m_ulNumCondPaths = block[0];
-    m_ulNumCondLookup = block[1];
-    m_ulNumCondKeys = block[2];
+    m_ulNumCondFrames = block[1];
+    m_ulNumCondNodes = block[2];
     m_positional_000 = block[3];
-    if (m_ulNumCondLookup < 2 || m_ulNumCondKeys < 2) {
+    if (m_ulNumCondFrames < 2 || m_ulNumCondNodes < 2) {
         m_ulNumCondPaths = 0;
-        m_ulNumCondLookup = 0;
-        m_ulNumCondKeys = 0;
+        m_ulNumCondFrames = 0;
+        m_ulNumCondNodes = 0;
         return fSuccess;
     }
     m_pCondPaths = static_cast<W8ConditionalPath*>(malloc(block[0] * sizeof(W8ConditionalPath)));
@@ -577,22 +577,22 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x903,
                      "ReadPathNodes: Couldn't allocate Conditional Prop array.\n");
     }
-    m_pCondLookup = static_cast<int*>(malloc(m_ulNumCondLookup << 2));
+    m_pulCondLookup = static_cast<unsigned int*>(malloc(m_ulNumCondFrames << 2));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x905,
                      "ReadPathNodes: Couldn't allocate Conditional Lookup array.\n");
     }
-    m_pCondFrames = static_cast<short*>(malloc(m_ulNumCondLookup << 1));
+    m_pusCondNodeFrames = static_cast<unsigned short*>(malloc(m_ulNumCondFrames << 1));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x907,
                      "ReadPathNodes: Couldn't allocate Conditional Frame array.\n");
     }
-    m_pCondKeys = static_cast<int*>(malloc(m_ulNumCondKeys << 2));
+    m_pulCondNodeKeys = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x909,
                      "ReadPathNodes: Couldn't allocate Conditional Key array.\n");
     }
-    m_pCondValues = static_cast<int*>(malloc(m_ulNumCondKeys << 2));
+    m_pulCondNodeValues = static_cast<unsigned int*>(malloc(m_ulNumCondNodes << 2));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x90b,
                      "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
@@ -603,22 +603,22 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         srAssertFail("fSuccess", OCTPATH_CPP, 0x90e,
                      "ReadPathNodes: Couldn't write Conditional Prop array.\n");
     }
-    fSuccess = FileRead(handle, m_pCondLookup, m_ulNumCondLookup << 2, &uiRead);
+    fSuccess = FileRead(handle, m_pulCondLookup, m_ulNumCondFrames << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x910,
                      "ReadPathNodes: Couldn't write Conditional Lookup array.\n");
     }
-    fSuccess = FileRead(handle, m_pCondFrames, m_ulNumCondLookup << 1, &uiRead);
+    fSuccess = FileRead(handle, m_pusCondNodeFrames, m_ulNumCondFrames << 1, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x912,
                      "ReadPathNodes: Couldn't write Conditional Frame array.\n");
     }
-    fSuccess = FileRead(handle, m_pCondKeys, m_ulNumCondKeys << 2, &uiRead);
+    fSuccess = FileRead(handle, m_pulCondNodeKeys, m_ulNumCondNodes << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x914,
                      "ReadPathNodes: Couldn't write Conditional Frame array.\n");
     }
-    fSuccess = FileRead(handle, m_pCondValues, m_ulNumCondKeys << 2, &uiRead);
+    fSuccess = FileRead(handle, m_pulCondNodeValues, m_ulNumCondNodes << 2, &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x916,
                      "ReadPathNodes: Couldn't write Conditional Value array.\n");
@@ -710,8 +710,8 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
     unsigned int lookup_index = path_handle;
     unsigned char frame_missing = 1;
 
-    while (m_pCondLookup[lookup_index] != 0 && frame_missing != 0) {
-        if (m_pCondFrames[lookup_index] == frame) {
+    while (m_pulCondLookup[lookup_index] != 0 && frame_missing != 0) {
+        if (m_pusCondNodeFrames[lookup_index] == frame) {
             frame_missing = 0;
         }
         ++lookup_index;
@@ -719,12 +719,12 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
 
     if (frame == -1) {
         lookup_index = path_handle;
-        while (m_pCondLookup[lookup_index] != 0) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
+        while (m_pulCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
                 unsigned int current_value =
-                    FindConditionalPathValue00458970(key, m_pCondValues[key_index]);
+                    FindConditionalPathValue00458970(key, m_pulCondNodeValues[key_index]);
                 if ((current_value & 0x10000000) == 0) {
                     index->Remove(&key, &current_value);
                     current_value |= 0x10000000;
@@ -740,12 +740,13 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
     if (frame_missing != 0) {
         unsigned int current_value;
         lookup_index = path_handle;
-        while (m_pCondLookup[lookup_index] != 0) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
-                current_value = FindConditionalPathValue00458970(key, m_pCondValues[key_index]);
-                if ((m_pCondValues[key_index] & 0x02000000) != 0 &&
+        while (m_pulCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
+                current_value =
+                    FindConditionalPathValue00458970(key, m_pulCondNodeValues[key_index]);
+                if ((m_pulCondNodeValues[key_index] & 0x02000000) != 0 &&
                     (current_value & 0x10000000) != 0) {
                     index->Remove(&key, &current_value);
                     current_value &= 0xefffffff;
@@ -757,12 +758,12 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
         }
 
         lookup_index = path_handle;
-        while (m_pCondLookup[lookup_index] != 0) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                if ((m_pCondValues[key_index] & 0x02000000) == 0 &&
+        while (m_pulCondLookup[lookup_index] != 0) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                if ((m_pulCondNodeValues[key_index] & 0x02000000) == 0 &&
                     (current_value & 0x10000000) == 0) {
-                    unsigned int key = m_pCondKeys[key_index];
+                    unsigned int key = m_pulCondNodeKeys[key_index];
                     index->Remove(&key, &current_value);
                     current_value |= 0x10000000;
                     index->Insert(&key, &current_value);
@@ -775,23 +776,23 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
     }
 
     lookup_index = path_handle;
-    while (m_pCondLookup[lookup_index] != 0) {
-        if (m_pCondFrames[lookup_index] != frame) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
+    while (m_pulCondLookup[lookup_index] != 0) {
+        if (m_pusCondNodeFrames[lookup_index] != frame) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
                 unsigned int current_value =
-                    FindConditionalPathValue00458970(key, m_pCondValues[key_index]);
-                if ((m_pCondValues[key_index] & 0x02000000) != 0) {
+                    FindConditionalPathValue00458970(key, m_pulCondNodeValues[key_index]);
+                if ((m_pulCondNodeValues[key_index] & 0x02000000) != 0) {
                     if ((current_value & 0x10000000) != 0) {
                         index->Remove(&key, &current_value);
-                        m_pCondValues[key_index] &= 0xefffffff;
+                        m_pulCondNodeValues[key_index] &= 0xefffffff;
                         current_value &= 0xefffffff;
                         index->Insert(&key, &current_value);
                     }
                 } else if ((current_value & 0x10000000) == 0) {
                     index->Remove(&key, &current_value);
-                    m_pCondValues[key_index] |= 0x10000000;
+                    m_pulCondNodeValues[key_index] |= 0x10000000;
                     current_value |= 0x10000000;
                     index->Insert(&key, &current_value);
                 }
@@ -802,14 +803,14 @@ void W8PathingService::SetConditionalPathFrame00457EA0(unsigned int path_handle,
     }
 
     lookup_index = path_handle;
-    while (m_pCondLookup[lookup_index] != 0) {
-        if (m_pCondFrames[lookup_index] == frame) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
+    while (m_pulCondLookup[lookup_index] != 0) {
+        if (m_pusCondNodeFrames[lookup_index] == frame) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
                 unsigned int current_value =
-                    FindConditionalPathValue00458970(key, m_pCondValues[key_index]);
-                if ((m_pCondValues[key_index] & 0x02000000) != 0) {
+                    FindConditionalPathValue00458970(key, m_pulCondNodeValues[key_index]);
+                if ((m_pulCondNodeValues[key_index] & 0x02000000) != 0) {
                     if ((current_value & 0x10000000) == 0) {
                         index->Remove(&key, &current_value);
                         current_value |= 0x10000000;
@@ -1211,12 +1212,12 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(unsigned int path_hand
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     unsigned int lookup_index = path_handle;
 
-    while (m_pCondLookup[lookup_index] != 0) {
-        if ((unsigned short)m_pCondFrames[lookup_index] != frame) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
-                unsigned int wanted_value = m_pCondValues[key_index];
+    while (m_pulCondLookup[lookup_index] != 0) {
+        if (m_pusCondNodeFrames[lookup_index] != frame) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
+                unsigned int wanted_value = m_pulCondNodeValues[key_index];
                 unsigned int current_value = 0;
                 int slot = index->FindNextEntry(&key, -1);
                 unsigned char searching = 1;
@@ -1241,12 +1242,12 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(unsigned int path_hand
     }
 
     lookup_index = path_handle;
-    while (m_pCondLookup[lookup_index] != 0) {
-        if ((unsigned short)m_pCondFrames[lookup_index] == frame) {
-            unsigned int key_index = m_pCondLookup[lookup_index];
-            while (m_pCondKeys[key_index] != 0) {
-                unsigned int key = m_pCondKeys[key_index];
-                unsigned int wanted_value = m_pCondValues[key_index];
+    while (m_pulCondLookup[lookup_index] != 0) {
+        if (m_pusCondNodeFrames[lookup_index] == frame) {
+            unsigned int key_index = m_pulCondLookup[lookup_index];
+            while (m_pulCondNodeKeys[key_index] != 0) {
+                unsigned int key = m_pulCondNodeKeys[key_index];
+                unsigned int wanted_value = m_pulCondNodeValues[key_index];
                 unsigned int current_value = 0;
                 int slot = index->FindNextEntry(&key, -1);
                 unsigned char searching = 1;
@@ -2240,17 +2241,17 @@ W8PathingService::~W8PathingService()
     if (m_pCondPaths != 0) {
         free(m_pCondPaths);
     }
-    if (m_pCondLookup != 0) {
-        free(m_pCondLookup);
+    if (m_pulCondLookup != 0) {
+        free(m_pulCondLookup);
     }
-    if (m_pCondFrames != 0) {
-        free(m_pCondFrames);
+    if (m_pusCondNodeFrames != 0) {
+        free(m_pusCondNodeFrames);
     }
-    if (m_pCondKeys != 0) {
-        free(m_pCondKeys);
+    if (m_pulCondNodeKeys != 0) {
+        free(m_pulCondNodeKeys);
     }
-    if (m_pCondValues != 0) {
-        free(m_pCondValues);
+    if (m_pulCondNodeValues != 0) {
+        free(m_pulCondNodeValues);
     }
     g_pathing_00659c60 = 0;
 }
@@ -2316,12 +2317,12 @@ W8PathingService::W8PathingService()
     m_positional_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
-    m_ulNumCondLookup = 0;
-    m_ulNumCondKeys = 0;
-    m_pCondLookup = 0;
-    m_pCondFrames = 0;
-    m_pCondKeys = 0;
-    m_pCondValues = 0;
+    m_ulNumCondFrames = 0;
+    m_ulNumCondNodes = 0;
+    m_pulCondLookup = 0;
+    m_pusCondNodeFrames = 0;
+    m_pulCondNodeKeys = 0;
+    m_pulCondNodeValues = 0;
     g_pathing_00659c60 = this;
     g_runtime_world_scale_6081e8 = 500.0f;
 }
@@ -4970,25 +4971,26 @@ unsigned int W8PathingService::FindPathHandle(const unsigned char* path_name,
             path_range[0] = 1e+08f;
             path_range[2] = -1e+08f;
             lookup_index = path->lookup_index;
-            while (m_pCondLookup[lookup_index] != 0) {
-                unsigned int key_index = m_pCondLookup[lookup_index];
-                while (m_pCondKeys[key_index] != 0) {
-                    value = (unsigned short)m_pCondKeys[key_index];
+            while (m_pulCondLookup[lookup_index] != 0) {
+                unsigned int key_index = m_pulCondLookup[lookup_index];
+                while (m_pulCondNodeKeys[key_index] != 0) {
+                    value = (unsigned short)m_pulCondNodeKeys[key_index];
                     if (value < path_bounds[0]) {
                         path_bounds[0] = value;
                     }
                     if (path_bounds[1] < value) {
                         path_bounds[1] = value;
                     }
-                    value = (unsigned short)((unsigned int)m_pCondKeys[key_index] >> 0x10);
+                    value = (unsigned short)(m_pulCondNodeKeys[key_index] >> 0x10);
                     if (value < path_bounds[2]) {
                         path_bounds[2] = value;
                     }
                     if (path_bounds[3] < value) {
                         path_bounds[3] = value;
                     }
-                    height = (float)((unsigned int)m_pCondValues[key_index] & 0xffff) * span_020 +
-                             level_bounds[1];
+                    height =
+                        (float)(m_pulCondNodeValues[key_index] & 0xffff) * span_020 +
+                        level_bounds[1];
                     if (height < path_range[0]) {
                         path_range[0] = height;
                     }

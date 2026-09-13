@@ -25,6 +25,9 @@ struct W8MainGameResourceSlot {
     int image_id;
 };
 static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
+/* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
+extern const wchar_t g_format_s_006068e4[];
+
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 
 #include "wiz8/screen_state.h"
@@ -541,3 +544,6 @@ void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);
+
+/* 0x006068E4: the shared L"%s" wide format, defined in MainGameScreen.cpp. */
+extern const wchar_t g_format_s_006068e4[];

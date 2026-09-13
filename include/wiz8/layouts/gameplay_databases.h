@@ -306,7 +306,10 @@ struct W8MonsterRecord {
     W8WideChar name_30[24]; /* 0x030: suffix after '#' removed at load */
     W8WideChar name_60[24]; /* 0x060: suffix after '#' removed at load */
     W8WideChar name_90[24]; /* 0x090: suffix after '#' removed at load */
-    unsigned char unknown_0c0[0xb];
+    unsigned char unknown_0c0;
+    /* 0x0c1: rolled by the group-attack summon to size the spawned group. */
+    W8Dice group_size_dice_0c1;
+    unsigned char unknown_0c5[6];
     /* 0x0cb: the monster's kind. The alchemy-casting rule admits kinds four,
        five and thirteen and no others, which is the only body that reads it. */
     unsigned char kind_0cb;
