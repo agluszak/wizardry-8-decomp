@@ -162,7 +162,7 @@ struct W8SpellRuntimeRecord {
     unsigned char field_144;
     unsigned char unknown_145[2];
     /* 0x147: SpellInfoDialog prints the effect-dice line when this is set. */
-    int field_147;
+    int show_effect_dice;
     char sound_name[0x74]; /* 0x14b: relative to Data\Spells\Sounds */
 }; /* 0x1bf */
 static_assert(sizeof(W8SpellRuntimeRecord) == 0x1bf, "W8SpellRuntimeRecord_size");
@@ -170,7 +170,8 @@ static_assert(offsetof(W8SpellRuntimeRecord, duration_044) == 0x044,
               "W8SpellRuntimeRecord_duration_044");
 static_assert(offsetof(W8SpellRuntimeRecord, duration_per_level_04d) == 0x04d,
               "W8SpellRuntimeRecord_duration_per_level");
-static_assert(offsetof(W8SpellRuntimeRecord, field_147) == 0x147, "W8SpellRuntimeRecord_field_147");
+static_assert(offsetof(W8SpellRuntimeRecord, show_effect_dice) == 0x147,
+              "W8SpellRuntimeRecord_show_effect_dice");
 
 struct W8FactDatabaseRecord {
     unsigned int identifier;  /* 0x000 */

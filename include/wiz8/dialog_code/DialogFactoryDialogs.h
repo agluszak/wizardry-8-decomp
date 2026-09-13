@@ -114,7 +114,7 @@ public:
     int m_cancel_button_0d4; /* 0x0d4 */
     int m_cancel_image_0d8;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect_0dc;
-    unsigned char m_field_0ec; /* 0x0ec: scrolling area is scrollable */
+    unsigned char m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char unknown_0ed[3];
     int m_first_visible_line_0f0; /* 0x0f0 */
     int m_selected_line_0f4;      /* 0x0f4 */

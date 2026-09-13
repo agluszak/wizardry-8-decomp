@@ -203,7 +203,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
                              gppStringList[g_spell_range_name_ids_61e9a0[record->range_category]],
                              10, 0xf, 0);
 
-    if (record->field_147 != 0 &&
+    if (record->show_effect_dice != 0 &&
         (record->effect_dice.base != 0 || record->effect_dice.count != 0)) {
         if (record->effect_dice.count == 0) {
             m_text_area_0ec.AddEntry(gppStringList[0x480 / 4],

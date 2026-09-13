@@ -55,17 +55,17 @@ static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38")
    original owner. */
 struct W8CharacterEventQueue {
     W8GrowableVector<W8CharacterEvent*> vector_00;
-    W8GrowableVector<W8CharacterEvent*> vector_10;
+    W8GrowableVector<W8CharacterEvent*> pending_events;
     W8GrowableVector<W8CharacterEvent*> vector_20;
-    W8GrowableVector<W8CharacterEvent*> vector_30;
-    W8GrowableVector<W8CharacterEvent*> vector_40;
-    int value_50;
-    int value_54;
+    W8GrowableVector<W8CharacterEvent*> npc_deferred_events;
+    W8GrowableVector<W8CharacterEvent*> active_events;
+    int active_event_type;
+    int active_party_slot;
     int unknown_58;
-    int value_5c;
-    int unknown_60;
+    int follow_up_flags;
+    int follow_up_clock;
     int value_64;
-    unsigned char* bytes_68;
+    unsigned char* event_character_masks;
 
     W8CharacterEventQueue();
     ~W8CharacterEventQueue();

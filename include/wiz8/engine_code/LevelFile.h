@@ -139,9 +139,11 @@ struct W8LevelFileInvisible { /* 0x241 */
     unsigned char unknown_1b1[0x80]; /* version_00 > 2 */
     unsigned char unknown_231;       /* version_00 > 3 */
     unsigned char unknown_232[4];    /* version_00 > 3 */
-    unsigned char field_236;         /* version_00 > 4 */
+    unsigned char field_236;         /* version_00 > 4: serialized gate */
+    /* Retail zeroes the record, serializes kind_238, but tests this distinct
+       byte for kind 2 in both the reader and writer. */
     unsigned char field_237;
-    unsigned char kind_238;
+    unsigned char kind_238; /* field_236 != 0: serialized kind */
     unsigned char unknown_239[4];
     W8LevelFileLinkedRecord* pRecord_23d; /* kind == 2 */
 };

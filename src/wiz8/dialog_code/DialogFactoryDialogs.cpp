@@ -71,7 +71,7 @@ W8Dialog005CBB40::W8Dialog005CBB40()
     m_field_064.Clear();
     m_selected_line_0f4 = -1;
     m_field_074 = 0;
-    m_field_0ec = 0;
+    m_scrollable = 0;
     m_first_visible_line_0f0 = 0;
 }
 
@@ -436,7 +436,7 @@ void W8Dialog005CBB40::DestroyControls()
     m_field_064.Clear();
     m_selected_line_0f4 = -1;
     m_field_074 = 0;
-    m_field_0ec = 0;
+    m_scrollable = 0;
     m_first_visible_line_0f0 = 0;
 }
 
@@ -462,22 +462,22 @@ void W8Dialog005CBB40::Draw()
                  GetButtonY(m_second_text_button_090);
     unsigned int visible_lines;
     if (m_lines_054.GetCount() < height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8)) {
-        m_field_0ec = 0;
+        m_scrollable = 0;
         visible_lines = m_lines_054.GetCount();
     } else {
         int rows = height / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
         if (m_lines_054.GetCount() > rows) {
             width = width + (-7 - GetButtonWidth(m_up_button_09c));
-            m_field_0ec = 1;
+            m_scrollable = 1;
             visible_lines = rows;
         } else {
-            m_field_0ec = 0;
+            m_scrollable = 0;
             visible_lines = m_lines_054.GetCount();
         }
     }
     ResizeButton(m_area_button_098, static_cast<short>(width), static_cast<short>(height));
     DrawButton(m_area_button_098);
-    if (m_field_0ec != 0) {
+    if (m_scrollable != 0) {
         SetButtonPosition(m_up_button_09c, m_x + dx + 4 + width, m_y + 4 + dy);
         SetButtonPosition(m_down_button_0a4, m_x + dx + 4 + width,
                           m_y + dy + height - GetButtonHeight(m_down_button_0a4) - 4);

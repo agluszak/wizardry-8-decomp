@@ -35,7 +35,6 @@
 #include "wiz8/bink_video.h"
 #include "FileMan.h"
 
-
 #include <stdio.h>
 #include <wchar.h>
 
@@ -121,11 +120,12 @@ unsigned int g_first_remapped_event_005ee718 = 500;
 
 /* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
    The table ends at 0x005EE588 where g_effect_005ee588 begins. TryAdjustQueuedEvent
-   reads field_00 at +4; ProcessDeferredCharacterEvents reads field_01 at +5. */
+   reads field_00 at +4; ProcessDeferredCharacterEvents reads
+   defer_outside_main_game at +5. */
 struct W8CharacterEventDescriptor {
-    int value_00;
+    int portrait_pose_category;
     unsigned char field_00;
-    unsigned char field_01;
+    unsigned char defer_outside_main_game;
     unsigned char unknown_06[2];
 };
 static_assert(sizeof(W8CharacterEventDescriptor) == 8, "W8CharacterEventDescriptor_must_be_8");
@@ -291,13 +291,13 @@ static void CharacterEventSoundEndCallback(void* callback_data)
     if (entry->handled_00 != 0 || queue == 0) {
         return;
     }
-    int index = queue->vector_40.IndexOf(entry);
+    int index = queue->active_events.IndexOf(entry);
     if (index >= 0) {
-        queue->vector_40.RemoveAt(index);
+        queue->active_events.RemoveAt(index);
     }
-    if ((queue->value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
-        queue->unknown_60 = SetCountdownClock((queue->value_5c & 2) != 0 ? Random(6000) + 2000
-                                                                         : Random(60000) + 300000);
+    if ((queue->follow_up_flags & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+        queue->follow_up_clock = SetCountdownClock(
+            (queue->follow_up_flags & 2) != 0 ? Random(6000) + 2000 : Random(60000) + 300000);
     }
     entry->Process0052CED0();
     delete entry;
@@ -400,16 +400,16 @@ wchar_t* W8CharacterEvent::GetQuoteText()
 
 // FUNCTION: WIZ8 0x0052d460
 W8CharacterEventQueue::W8CharacterEventQueue()
-    : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
+    : active_event_type(-1), active_party_slot(-1), follow_up_flags(0), value_64(-1)
 {
-    bytes_68 = new unsigned char[0xb1];
-    memset(bytes_68, 0, 0xb1);
+    event_character_masks = new unsigned char[0xb1];
+    memset(event_character_masks, 0, 0xb1);
 }
 
 // FUNCTION: WIZ8 0x0052d5b0
 W8CharacterEventQueue::~W8CharacterEventQueue()
 {
-    delete[] bytes_68;
+    delete[] event_character_masks;
 }
 
 // FUNCTION: WIZ8 0x0052db80
@@ -418,23 +418,23 @@ void W8CharacterEventQueue::ClearOwnedEntries()
     W8CharacterEvent* entry;
     int count;
 
-    count = vector_40.count;
+    count = active_events.count;
     while (count > 0) {
-        entry = vector_40.RemoveAt(0);
+        entry = active_events.RemoveAt(0);
         entry->Process0052CED0();
-        count = vector_40.count;
+        count = active_events.count;
     }
-    count = vector_30.count;
+    count = npc_deferred_events.count;
     while (count > 0) {
-        entry = vector_30.RemoveAt(0);
+        entry = npc_deferred_events.RemoveAt(0);
         delete entry;
-        count = vector_30.count;
+        count = npc_deferred_events.count;
     }
-    count = vector_10.count;
+    count = pending_events.count;
     while (count > 0) {
-        entry = vector_10.RemoveAt(0);
+        entry = pending_events.RemoveAt(0);
         delete entry;
-        count = vector_10.count;
+        count = pending_events.count;
     }
     count = vector_00.count;
     while (count > 0) {
@@ -449,14 +449,14 @@ void W8CharacterEventQueue::ProcessNextPendingEntry()
 {
     W8CharacterEvent* entry;
 
-    if (vector_40.count > 0) {
-        entry = *vector_40.GetAt(0);
-        vector_40.RemoveAt(vector_40.IndexOf(entry));
-        if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
-            if ((value_5c & 2) != 0) {
-                unknown_60 = SetCountdownClock(Random(6000) + 2000);
+    if (active_events.count > 0) {
+        entry = *active_events.GetAt(0);
+        active_events.RemoveAt(active_events.IndexOf(entry));
+        if ((follow_up_flags & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+            if ((follow_up_flags & 2) != 0) {
+                follow_up_clock = SetCountdownClock(Random(6000) + 2000);
             } else {
-                unknown_60 = SetCountdownClock(Random(60000) + 300000);
+                follow_up_clock = SetCountdownClock(Random(60000) + 300000);
             }
         }
         entry->Process0052CED0();
@@ -595,7 +595,8 @@ static unsigned char CanDispatchCharacterEvent(unsigned int party_slot, unsigned
         mapped_event_type += g_normal_event_count_005ee70c - g_first_remapped_event_005ee718;
     }
     slot_mask = static_cast<unsigned char>(1 << (party_slot & 31));
-    return (gXStatus.character_event_queue->bytes_68[mapped_event_type] & slot_mask) == 0;
+    return (gXStatus.character_event_queue->event_character_masks[mapped_event_type] & slot_mask) ==
+           0;
 }
 
 // FUNCTION: WIZ8 0x0052D260
@@ -736,8 +737,8 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
             if (type_08 != 10) {
-                gXStatus.character_event_queue->value_50 = type_08;
-                gXStatus.character_event_queue->value_54 = party_slot;
+                gXStatus.character_event_queue->active_event_type = type_08;
+                gXStatus.character_event_queue->active_party_slot = party_slot;
             }
             gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
             return 1;
@@ -749,8 +750,8 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
             if (type_08 != 10) {
-                gXStatus.character_event_queue->value_50 = type_08;
-                gXStatus.character_event_queue->value_54 = party_slot;
+                gXStatus.character_event_queue->active_event_type = type_08;
+                gXStatus.character_event_queue->active_party_slot = party_slot;
             }
             gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
             event_type = type_08;
@@ -776,11 +777,11 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
             gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
         }
         if (type_08 != 10) {
-            gXStatus.character_event_queue->value_50 = type_08;
-            gXStatus.character_event_queue->value_54 = party_slot;
+            gXStatus.character_event_queue->active_event_type = type_08;
+            gXStatus.character_event_queue->active_party_slot = party_slot;
         }
         gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
-        if ((gXStatus.character_event_queue->value_5c & 1) == 0) {
+        if ((gXStatus.character_event_queue->follow_up_flags & 1) == 0) {
             return 0;
         }
         if (type_08 < 14) {
@@ -789,11 +790,12 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
         if (type_08 >= 16) {
             return 0;
         }
-        if ((gXStatus.character_event_queue->value_5c & 2) != 0) {
-            gXStatus.character_event_queue->unknown_60 = SetCountdownClock(Random(6000) + 2000);
+        if ((gXStatus.character_event_queue->follow_up_flags & 2) != 0) {
+            gXStatus.character_event_queue->follow_up_clock =
+                SetCountdownClock(Random(6000) + 2000);
             return 0;
         }
-        gXStatus.character_event_queue->unknown_60 = SetCountdownClock(Random(60000) + 300000);
+        gXStatus.character_event_queue->follow_up_clock = SetCountdownClock(Random(60000) + 300000);
         return 0;
     }
 finish_without_dispatch:
@@ -823,7 +825,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         record->portrait_frame = 6;
         record->portrait_frame_dirty = 1;
         int pc_slot = RPCPtrToPCSlot(record);
-        record->field_099 = 0;
+        record->portrait_pose_animation_active = 0;
         unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
         if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
             if (record->target_portrait_pose != 1) {
@@ -897,10 +899,11 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             mapped_event =
                 g_normal_event_count_005ee70c - g_first_remapped_event_005ee718 + event_type;
         }
-        pose_category = g_character_event_descriptors_005ee000[mapped_event].value_00;
+        pose_category =
+            g_character_event_descriptors_005ee000[mapped_event].portrait_pose_category;
     }
     int pc_slot = RPCPtrToPCSlot(record);
-    record->field_099 = 0;
+    record->portrait_pose_animation_active = 0;
     unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
     if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
         if (record->target_portrait_pose != pose_category) {
@@ -922,7 +925,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                 mapped_event =
                     g_normal_event_count_005ee70c - g_first_remapped_event_005ee718 + event_type;
             }
-            if (g_character_event_descriptors_005ee000[mapped_event].field_01 != 0) {
+            if (g_character_event_descriptors_005ee000[mapped_event].defer_outside_main_game != 0) {
                 use_modal_gate = 1;
             } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 use_modal_gate = 1;
@@ -987,7 +990,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
 // FUNCTION: WIZ8 0x0052E160
 void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 {
-    int flags = value_5c;
+    int flags = follow_up_flags;
     unsigned int type = entry->type_08;
     int duration;
 
@@ -999,7 +1002,7 @@ void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
     } else {
         duration = Random(6000) + 2000;
     }
-    unknown_60 = SetCountdownClock(duration);
+    follow_up_clock = SetCountdownClock(duration);
 }
 
 // FUNCTION: WIZ8 0x0052D610
@@ -1019,7 +1022,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
         W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
         if (slot->active_character_event != 0) {
-            vector_40.Remove(slot->active_character_event);
+            active_events.Remove(slot->active_character_event);
             RestartFollowUpClock(slot->active_character_event);
             slot->active_character_event->Process0052CED0();
             delete slot->active_character_event;
@@ -1029,12 +1032,12 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     }
     if (entry->type_08 == 0x21) {
         int index;
-        if (vector_40.count > 0 && vector_40.data[0]->type_08 == 0x21) {
+        if (active_events.count > 0 && active_events.data[0]->type_08 == 0x21) {
             delete entry;
             return 0;
         }
-        for (index = 0; index < vector_10.count; ++index) {
-            if (vector_10.data[index]->type_08 == 0x21) {
+        for (index = 0; index < pending_events.count; ++index) {
+            if (pending_events.data[index]->type_08 == 0x21) {
                 delete entry;
                 return 0;
             }
@@ -1042,10 +1045,10 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     }
     if ((ShouldDeferCharacterEventForNpcScript(0) != 0 || IsNpcScriptSessionActive() != 0) &&
         (entry->flags_10 & 8) == 0) {
-        vector_30.Add(entry);
+        npc_deferred_events.Add(entry);
         return 1;
     }
-    vector_10.Add(entry);
+    pending_events.Add(entry);
     return 1;
 }
 
@@ -1060,9 +1063,9 @@ void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsig
         return;
     }
     if (!enabled) {
-        bytes_68[mask_index] &= (unsigned char)~mask;
+        event_character_masks[mask_index] &= (unsigned char)~mask;
     } else {
-        bytes_68[mask_index] |= mask;
+        event_character_masks[mask_index] |= mask;
     }
 }
 
@@ -1075,24 +1078,25 @@ bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned 
     if (!MapEventTypeToDescriptorIndex(event_type, &mask_index)) {
         return false;
     }
-    return (bytes_68[mask_index] & mask) != 0;
+    return (event_character_masks[mask_index] & mask) != 0;
 }
 
 // FUNCTION: WIZ8 0x0052DC80
 unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entry)
 {
-    if (entry == 0 || value_50 == -1 || entry->type_08 != (unsigned int)value_50) {
+    if (entry == 0 || active_event_type == -1 ||
+        entry->type_08 != (unsigned int)active_event_type) {
         return 1;
     }
 
     unsigned int party_slot = CharacterPointerToPartySlot(entry->character_04);
-    if (party_slot == (unsigned int)value_54) {
+    if (party_slot == (unsigned int)active_party_slot) {
         return 1;
     }
 
     if (ClockIsTicking(unknown_58) == 0) {
-        value_50 = -1;
-        value_54 = -1;
+        active_event_type = -1;
+        active_party_slot = -1;
         return 1;
     }
 
@@ -1116,7 +1120,7 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
 // FUNCTION: WIZ8 0x0052E470
 unsigned char W8CharacterEventQueue::IsMainQueueEmpty() const
 {
-    return vector_10.count < 1;
+    return pending_events.count < 1;
 }
 
 // FUNCTION: WIZ8 0x0052DDD0
@@ -1136,21 +1140,21 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         return;
     }
 
-    if (vector_30.count > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
+    if (npc_deferred_events.count > 0 && ShouldDeferCharacterEventForNpcScript(0) == 0 &&
         IsNpcScriptSessionActive() == 0) {
-        for (index = 0; index < vector_30.count; ++index) {
-            QueueEntry(vector_30.data[index]);
+        for (index = 0; index < npc_deferred_events.count; ++index) {
+            QueueEntry(npc_deferred_events.data[index]);
         }
-        vector_30.Clear();
+        npc_deferred_events.Clear();
     }
 
-    if (vector_10.count != 0) {
+    if (pending_events.count != 0) {
         conflict_count = 1;
-        baseline = vector_10.data[0];
-        conflict_indices = new int[vector_10.count];
+        baseline = pending_events.data[0];
+        conflict_indices = new int[pending_events.count];
         conflict_indices[0] = 0;
-        for (index = 1; index < vector_10.count; ++index) {
-            entry = vector_10.data[index];
+        for (index = 1; index < pending_events.count; ++index) {
+            entry = pending_events.data[index];
             event_type = entry->type_08;
             if (event_type == baseline->type_08 && entry->character_04 != baseline->character_04 &&
                 event_type != 0x2a && event_type != 0x24) {
@@ -1170,14 +1174,14 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
             }
             for (index = conflict_count - 1; index >= 0; --index) {
                 if (conflict_indices[index] != -1) {
-                    delete vector_10.RemoveAt(conflict_indices[index]);
+                    delete pending_events.RemoveAt(conflict_indices[index]);
                 }
             }
         }
         delete[] conflict_indices;
     }
 
-    if (vector_10.count == 0) {
+    if (pending_events.count == 0) {
         UpdateNpcDialogueVoiceAndCursor();
         if (PartyPortraitEventsIdle() != 0) {
             ProcessNpcScriptingFrame();
@@ -1186,13 +1190,14 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
     }
 
     index = 0;
-    while (index < vector_10.count) {
-        entry = vector_10.data[index];
+    while (index < pending_events.count) {
+        entry = pending_events.data[index];
         event_type = entry->type_08;
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
             unsigned int descriptor_index;
             if (MapEventTypeToDescriptorIndex(event_type, &descriptor_index) &&
-                g_character_event_descriptors_005ee000[descriptor_index].field_01 != 0) {
+                g_character_event_descriptors_005ee000[descriptor_index].defer_outside_main_game !=
+                    0) {
                 ++index;
                 continue;
             }
@@ -1208,7 +1213,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
                     GetTickCount() - entry->clock_34 <= (unsigned int)entry->value_30) {
                     return;
                 }
-                vector_10.RemoveAt(index);
+                pending_events.RemoveAt(index);
                 if (TryAdjustQueuedEvent(entry) == 0) {
                     delete entry;
                     return;
@@ -1216,14 +1221,14 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
                 if (entry->DispatchCharacterEventEntry() == 0) {
                     return;
                 }
-                vector_40.Add(entry);
+                active_events.Add(entry);
                 return;
             }
         }
 
-        for (scan = 0; scan < vector_10.count; ++scan) {
-            if (vector_10.data[scan] == entry) {
-                vector_10.RemoveAt(scan);
+        for (scan = 0; scan < pending_events.count; ++scan) {
+            if (pending_events.data[scan] == entry) {
+                pending_events.RemoveAt(scan);
                 return;
             }
         }
@@ -1259,16 +1264,16 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int ar
 // FUNCTION: WIZ8 0x0052D8D0
 void W8CharacterEventQueue::ProcessOwnedEntry(W8CharacterEvent* entry)
 {
-    int index = vector_40.IndexOf(entry);
+    int index = active_events.IndexOf(entry);
 
     if (index >= 0) {
-        vector_40.RemoveAt(index);
+        active_events.RemoveAt(index);
     }
-    if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
-        if ((value_5c & 2) == 0) {
-            unknown_60 = SetCountdownClock(Random(60000) + 300000);
+    if ((follow_up_flags & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+        if ((follow_up_flags & 2) == 0) {
+            follow_up_clock = SetCountdownClock(Random(60000) + 300000);
         } else {
-            unknown_60 = SetCountdownClock(Random(6000) + 2000);
+            follow_up_clock = SetCountdownClock(Random(6000) + 2000);
         }
     }
     entry->Process0052CED0();
@@ -1466,11 +1471,11 @@ int UpdateCharacterEventState(void)
         if (record->portrait_frame_dirty == 0 && record->field_0bd == 0 &&
             (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
              record->portrait_event_active != 0)) {
-            if (record->field_099 == 0) {
+            if (record->portrait_pose_animation_active == 0) {
                 if (record->portrait_pose == record->target_portrait_pose) {
                     if (record->portrait_pose == 1 &&
                         ClockIsTicking(record->portrait_idle_clock) == 0) {
-                        record->field_099 = 1;
+                        record->portrait_pose_animation_active = 1;
                         record->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
                     }
                 } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
@@ -1479,7 +1484,7 @@ int UpdateCharacterEventState(void)
                     record->portrait_pose =
                         g_portrait_tables_0061cb3c
                             .pose_transition[pose * 5 + record->target_portrait_pose];
-                    record->field_099 = 1;
+                    record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
             } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
@@ -1488,14 +1493,14 @@ int UpdateCharacterEventState(void)
                     record->previous_portrait_pose = pose;
                     record->portrait_pose =
                         g_portrait_tables_0061cb3c.pose_transition[pose * 5 + 2];
-                    record->field_099 = 1;
+                    record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
                 if (record->portrait_pose == 2) {
-                    record->field_099 = 0;
+                    record->portrait_pose_animation_active = 0;
                 }
             }
-            if ((record->field_099 != 0 || record->portrait_pose_dirty != 0) &&
+            if ((record->portrait_pose_animation_active != 0 || record->portrait_pose_dirty != 0) &&
                 record->field_0cf == 0) {
                 RefreshPartySlotDisplay(party_slot);
             }

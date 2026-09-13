@@ -1034,7 +1034,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.left = left + 0x116;
         int saved_right = bounds.right;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x21c], g_font_683660);
+        text.SetText(gppStringList[0x21c / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
 
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
@@ -1043,7 +1043,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.top = top + 0xac;
         bounds.bottom = top + 0xb8;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2c4], g_font_683660);
+        text.SetText(gppStringList[0x2c4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
 
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548);
@@ -1093,7 +1093,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.top = top + 0xac;
         bounds.bottom = top + 0xb8;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x298], g_font_683660);
+        text.SetText(gppStringList[0x298 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
 
         bounds.left = left + 0xf8;
@@ -1102,7 +1102,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.right = left + 0x195;
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x29c], g_font_683660);
+        text.SetText(gppStringList[0x29c / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
@@ -1115,7 +1115,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.bottom = bounds.bottom + 0xe;
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2a4], g_font_683660);
+        text.SetText(gppStringList[0x2a4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
@@ -1128,7 +1128,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.top = bounds.top + 0xe;
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x3b4], g_font_683660);
+        text.SetText(gppStringList[0x3b4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
@@ -1143,7 +1143,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.bottom = bounds.bottom + 0xe;
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2b4], g_font_683660);
+        text.SetText(gppStringList[0x2b4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
@@ -1157,7 +1157,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.bottom = bounds.bottom + 0xe;
         text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2bc], g_font_683660);
+        text.SetText(gppStringList[0x2bc / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
@@ -1173,7 +1173,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.top = top + 0x140;
         bounds.bottom = top + 0x14c;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2e4], g_font_683660);
+        text.SetText(gppStringList[0x2e4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->race != -1 || m_character_060->current_profession != -1) {
             for (int realm = 0; realm < 6; ++realm) {
@@ -1207,7 +1207,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.top = top + 0x120;
         bounds.bottom = top + 0x12c;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x2cc], g_font_683660);
+        text.SetText(gppStringList[0x2cc / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
         if (m_character_060->current_profession != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548);
@@ -1251,7 +1251,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.bottom = top + 0x185;
         bounds.right = saved_right;
         text.SetLayoutBounds(&bounds, 1, 1);
-        text.SetText(gppStringList[0x21c], g_font_683660);
+        text.SetText(gppStringList[0x21c / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
     }
 
