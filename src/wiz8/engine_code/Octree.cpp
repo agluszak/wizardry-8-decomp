@@ -1556,6 +1556,42 @@ resolve:
 // TEMPLATE: WIZ8 0x0055dbb0
 // W8HashTable<unsigned int,int>::Insert
 
+// FUNCTION: WIZ8 0x00436b90
+unsigned char W8OctreeObjectRegistry::MoveObjectToCell(int kind, int id, const int* point)
+{
+    unsigned int object_key = kind * 0x10000 + (id & 0xffff);
+    unsigned int cell_key = (point[0] * 0x100 + point[1]) * 0x100 + 1 + point[2];
+    int object_value = static_cast<int>(object_key);
+    int cell_value = static_cast<int>(cell_key);
+
+    by_object->Remove(&object_key, &cell_value);
+    by_object->Insert(&object_key, &cell_value);
+    by_cell->Remove(&cell_key, &object_value);
+    by_cell->Insert(&cell_key, &object_value);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00436dc0
+unsigned char W8OctreeObjectRegistry::UnregisterObject(int kind, int id)
+{
+    unsigned int object_key = kind * 0x10000 + (id & 0xffff);
+    int object_value = static_cast<int>(object_key);
+    unsigned char removed = 0;
+
+    for (;;) {
+        int slot = by_object->FindNextEntry(&object_key, -1);
+        if (slot == -1) {
+            return removed;
+        }
+
+        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
+        int cell_value = static_cast<int>(cell_key);
+        by_object->Remove(&object_key, &cell_value);
+        by_cell->Remove(&cell_key, &object_value);
+        removed = 1;
+    }
+}
+
 /* Record that one object now occupies one cell.
 
    The object's key is its kind in the high half and its id in the low half.

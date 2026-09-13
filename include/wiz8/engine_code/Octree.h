@@ -78,8 +78,8 @@ public:
     /* Returns whether the pairing ended up recorded; every recovered caller
        discards it. */
     unsigned char RegisterObjectCell(int kind, int id, const int* point);
-    unsigned char UpdateObjectCell00436B90(int kind, int id, const int* point);
-    unsigned char RemoveObjectCell00436DC0(int kind, int id);
+    unsigned char MoveObjectToCell(int kind, int id, const int* point);
+    unsigned char UnregisterObject(int kind, int id);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
