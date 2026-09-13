@@ -103,7 +103,6 @@ unsigned short g_profession_level_name_message_ids_61e688[15][9] = {
 };
 // GLOBAL: WIZ8 0x0064da9c
 int g_character_page_title_ids_64da9c[4] = {0xcf, 0xd1, 0xd0, 0xd2};
-extern const wchar_t g_wchar_00689b34;
 
 // GLOBAL: WIZ8 0x0069c2e4
 unsigned int g_character_screen_region_set_0069c2e4;

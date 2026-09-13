@@ -49,6 +49,10 @@ bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
 
 char CanCharacterLearnSpell(W8Character* character, int spell_id);
 void LearnSpell(W8Character* character, int spell_id, char announce);
+/* 0x00500060: learns the spell a spell-source item holds and empties the
+   item. Retail callers push two arguments; the earlier three-parameter decl
+   added a phantom slot. */
+void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */

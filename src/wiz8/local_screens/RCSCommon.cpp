@@ -43,8 +43,6 @@ W8TextControl* g_level_up_button_0069c3c0;
 // GLOBAL: WIZ8 0x0069c400
 W8TextControl* g_dismiss_button_0069c400;
 
-extern void DisplayCampDialog(W8DialogBase* dialog);
-extern void DismissSelectedPartyCharacter(void);
 void ShowDismissCharacterDialog(void);
 void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 

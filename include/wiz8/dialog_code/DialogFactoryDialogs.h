@@ -11,6 +11,7 @@
 #include "input.h"
 
 struct W8WorldItem;
+struct W8ItemInstance;
 class Trigger;
 
 /* The small numeric entry field embedded by the factory dialogs. Constructor
@@ -64,13 +65,13 @@ private:
     unsigned char HandleInputEvent005CD2B0(const InputAtom* input);
 
     /* SGP move/click callbacks for the text area, the scroll arrow buttons and
-       the confirmation buttons. Bodies are not recovered in this change. */
-    static void Function5CCE70(GUI_BUTTON* button, INT32 reason);
-    static void Function5CCF30(GUI_BUTTON* button, INT32 reason);
-    static void Function5CCFE0(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD090(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD130(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD1E0(GUI_BUTTON* button, INT32 reason);
+       the confirmation buttons. Recovered in Dialog Code\stListBox.cpp. */
+    static void TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason);    /* 0x005CCE70 */
+    static void UpButtonCallback(GUI_BUTTON* button, INT32 reason);          /* 0x005CCF30 */
+    static void DownButtonCallback(GUI_BUTTON* button, INT32 reason);        /* 0x005CCFE0 */
+    static void OkButtonCallback(GUI_BUTTON* button, INT32 reason);          /* 0x005CD090 */
+    static void CancelButtonCallback(GUI_BUTTON* button, INT32 reason);      /* 0x005CD130 */
+    static void SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason); /* 0x005CD1E0 */
 
 public:
     /* 0x054: the displayed text lines; the dialog owns and frees each one. */
@@ -234,3 +235,33 @@ public:
 };
 
 static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0");
+
+/* The item-split dialog RCSItemsPage.cpp opens for stackable item stacks.
+   Derivation is proven by the retail static_cast to W8DialogBase at the
+   OpenSplitStackDialog005BA400 call site, the virtual SetText/SetOrigin calls
+   on the result and DisplayCampDialog(W8DialogBase*). The constructor stores
+   this vtable at +0; the listed slots are the ones that differ from
+   W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
+   the count the destroy callback SplitStackDialogResult005BAA80 reads back
+   and result_0c8 is the dialog result kind it tests. The constructor body is
+   unrecovered (gap), so the remaining fields stay unknown. */
+// VTABLE: WIZ8 0x005efb78
+class W8Dialog005DCED0 : public W8DialogBase {
+public:
+    W8Dialog005DCED0(int kind, W8ItemInstance* item, int param); /* 0x005DCED0 */
+    virtual ~W8Dialog005DCED0() override;                        /* 0x005DD010 */
+    virtual int CreateControls() override;                       /* 0x005DD130 */
+    virtual void DestroyControls() override;                     /* 0x005DD3C0 */
+    virtual void Draw() override;                                /* 0x005DDB60 */
+    virtual unsigned char ProcessInput() override;               /* 0x005DE1B0 */
+    virtual void OnNumericInputChanged(int value) override;      /* 0x005DDFA0 */
+
+public:
+    unsigned char unknown_054[0x6c];
+    unsigned int split_count_0c0;
+    int unknown_0c4;
+    int result_0c8;
+    unsigned char unknown_0cc[0xc];
+};
+
+static_assert(sizeof(W8Dialog005DCED0) == 0xd8, "W8Dialog005DCED0_must_be_0xd8");

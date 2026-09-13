@@ -1144,7 +1144,7 @@ int g_learn_sound_0068c510;
    spell's level, the spell's own realm skill at its level, and every spellbook
    skill the spell belongs to at the same. */
 // FUNCTION: WIZ8 0x00500060
-void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstance* item)
+void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
 {
     unsigned int spell_id;
     int usage_points;
@@ -1171,7 +1171,7 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
             PracticeCharacterSkill(character, skill_id, usage_points, 0);
         }
     }
-    EmptyItemRecord(static_cast<W8ItemInstance*>(origin), character, 1);
+    EmptyItemRecord(item, character, 1);
     QueueCharacterEvent(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
                         g_effect_argument_005ed914);
 }

@@ -3,6 +3,8 @@
 #include "wiz8/local_code/RangeControl.h"
 
 class W8DialogBase;
+class W8TextControl;
+class W8Widget;
 struct W8Character;
 
 /* The three listeners own different range controls. Their callbacks update
@@ -84,7 +86,11 @@ struct W8CampScreenState0069C0F4 {
     unsigned char realm_flags[6]; /* 0x4dc */
     unsigned char unknown_4e2[2];
     int item_scroll;
-    unsigned char unknown_4e8[0x7d4];
+    /* 0x4e8: the displayed item-pool indices - the count and the list of pool
+       slots RCSItemsPage.cpp renders. Function5A4A00 rebuilds it; the pool
+       handler reads it through item_scroll. */
+    int item_list_count;
+    int item_list_4ec[500];
     W8CampItemRange* item_range; /* 0xcbc */
     W8CampSpellRange* spell_ranges[6];
     W8CampSkillRange* skill_range; /* 0xcd8 */
@@ -124,6 +130,21 @@ extern unsigned char g_camp_character_pending_0069c104;
 extern unsigned int g_camp_item_region_set_0069c108;
 extern unsigned int g_camp_spell_region_sets_0069c40c[6];
 extern unsigned int g_camp_skill_region_set_0069c51c;
+
+/* Panel controls owned by the camp screen; the 0x69c42c..0x69c464 sets are
+   created by the unrecovered 0x005B9900/0x005B7E00 creators and read here and
+   in RCSItemsPage.cpp. */
+extern W8Widget* g_panel_controls_69c42c[4];
+extern W8TextControl* g_panel_controls_69c43c[2];
+extern W8Widget* g_panel_control_69c444;
+extern W8Widget* g_panel_controls_69c448[7];
+extern W8TextControl* g_panel_controls_69c468[2];
+extern W8TextControl* g_panel_controls_69c470[7];
+
+/* Camp-screen gap functions (0x005A4BE0/0x005A41B0): unrecovered bodies,
+   declared here for the call sites in RCSCommon.cpp and RCSItemsPage.cpp. */
+void DisplayCampDialog(W8DialogBase* dialog);
+void DismissSelectedPartyCharacter(void);
 
 void CreateRcsLevelUpPanel(void);
 void DestroyRcsLevelUpPanel(void);
