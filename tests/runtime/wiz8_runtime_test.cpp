@@ -353,7 +353,8 @@ static bool WaitForTooltip(bool present, unsigned int timeout_ms)
 static bool WaitForMainMenu(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
-    bool dismissed_intro = false;
+    W8BinkVideo* dismissed_video = 0;
+    unsigned int dismissed_at = 0;
     while (GetTickCount() - started < timeout_ms) {
         if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
             *(HWND volatile*)&ghWindow != NULL && g_region_sets[1].enabled) {
@@ -361,12 +362,14 @@ static bool WaitForMainMenu(unsigned int timeout_ms)
         }
         // State zero also exists before input initialization clears the queue.
         // Wait until startup finishes before posting the intro-dismiss events.
-        if (!dismissed_intro && gfGameInitialized && gfApplicationActive &&
-            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO &&
-            *(W8BinkVideo* volatile*)&gpVideo != NULL) {
+        W8BinkVideo* video = *(W8BinkVideo* volatile*)&gpVideo;
+        unsigned int now = GetTickCount();
+        if (gfGameInitialized && gfApplicationActive &&
+            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO && video != NULL &&
+            (video != dismissed_video || now - dismissed_at > 1000)) {
             SendScenarioKey(VK_ESCAPE);
-            SendScenarioKey(VK_ESCAPE);
-            dismissed_intro = true;
+            dismissed_video = video;
+            dismissed_at = now;
         }
         Sleep(10);
     }
