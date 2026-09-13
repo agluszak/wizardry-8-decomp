@@ -5,6 +5,9 @@
 
 class stTextureFile;
 
+srColorSurface* LoadSurface0047C090(int handle);
+void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsigned char* header);
+
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
    srTextureFile (id 0x2112) whose 17-slot vtable is:
 
@@ -68,8 +71,6 @@ private:
         LOAD_FAILED = 1UL << FLAG_GENERATESURFACE_FAILURE,
         DEFAULTS_PENDING = 1UL << FLAG_DIRTY_DEFAULTS
     };
-
-    srColorSurface* LoadSurface0047C090(int handle, int* image_type);
 
     int cached_54;
     char* file_name_58;

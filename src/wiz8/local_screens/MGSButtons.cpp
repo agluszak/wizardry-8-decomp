@@ -165,7 +165,7 @@ void DrawSubMenuCharacterAction00596FE0(void)
     SetFont(g_smfnt_font_683694);
     row = &g_status_685170.buffers.party_rows[slot];
     SetFontObjectPalette16BPP(g_smfnt_font_683694,
-                              g_font_state_palettes_68ee1c[row->party_order_0f1]);
+                              g_font_state_palettes_68ee1c[row->party_order_index]);
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
     character = &g_status_685170.buffers.characters[slot];
     swprintf(text, L"%s - %s", character->name,

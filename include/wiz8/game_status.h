@@ -30,7 +30,9 @@ struct W8GlobalStatus {
     unsigned char game_started; /* 0x000c */
     /* 0x000d..0x0018: the three join counters the party-add entry advances:
        the regular-member, auxiliary and total counts. */
-    int unknown_000d[3];
+    int regular_member_count;
+    int auxiliary_member_count;
+    int total_member_count;
     unsigned int party_gold;
     int selected_character;
     W8ItemInstance party_item_pool_0021[500];
@@ -48,7 +50,7 @@ struct W8GlobalStatus {
     unsigned int party_heading;
     int world_clock;
     unsigned char unknown_18dc[4];
-    unsigned int dwords_18e0[8];
+    unsigned int party_order_slots[8];
     int current_level;
     unsigned char status_header_block_1904[0x100];
     W8LevelProgressRow level_progress[W8_LEVEL_COUNT];
@@ -152,6 +154,14 @@ struct W8GlobalStatus {
     unsigned char flag_49c0;
     unsigned char flag_49c1;
 };
+
+static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
+              "W8GlobalStatus_regular_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,
+              "W8GlobalStatus_auxiliary_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, total_member_count) == 0x0015,
+              "W8GlobalStatus_total_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, party_gold) == 0x0019, "W8GlobalStatus_party_gold_offset");
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");

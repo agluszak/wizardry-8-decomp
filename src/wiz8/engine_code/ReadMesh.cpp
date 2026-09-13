@@ -15,8 +15,7 @@
 #include "FileMan.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
-#include "wiz8/engine_code/materials.h"
-#include "wiz8/engine_code/ReadMesh.h"
+#include "surrender/srVectorProcessor.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -41,6 +40,43 @@ struct W8CompressedReadMeshFace {
 static_assert(sizeof(W8ReadMeshFace) == 0x29, "W8ReadMeshFace_size_must_be_0x29");
 static_assert(sizeof(W8CompressedReadMeshFace) == 0x21,
               "W8CompressedReadMeshFace_size_must_be_0x21");
+
+// FUNCTION: WIZ8 0x004896C0
+void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
+                       srVector3T<float>* scale)
+{
+    float angle;
+    float axis_x;
+    float axis_y;
+    float axis_z;
+
+    FileRead(file, location, sizeof(*location), 0);
+    FileRead(file, &angle, sizeof(angle), 0);
+    FileRead(file, &axis_x, sizeof(axis_x), 0);
+    FileRead(file, &axis_y, sizeof(axis_y), 0);
+    FileRead(file, &axis_z, sizeof(axis_z), 0);
+
+    rotation->SetIdentity();
+    if (angle != 0.0f) {
+        const float cosine = cos(angle);
+        const float sine = sin(angle);
+        const float one_minus_cosine = 1.0f - cosine;
+        srMatrix3T<float> axis_rotation;
+
+        axis_rotation.vectors[0].x = axis_x * axis_x + (1.0f - axis_x * axis_x) * cosine;
+        axis_rotation.vectors[0].y = axis_y * axis_x * one_minus_cosine - axis_z * sine;
+        axis_rotation.vectors[0].z = axis_z * axis_x * one_minus_cosine + axis_y * sine;
+        axis_rotation.vectors[1].x = axis_z * axis_x * one_minus_cosine + axis_y * sine;
+        axis_rotation.vectors[1].y = axis_y * axis_y + (1.0f - axis_y * axis_y) * cosine;
+        axis_rotation.vectors[1].z = axis_z * axis_y * one_minus_cosine - axis_x * sine;
+        axis_rotation.vectors[2].x = axis_x * axis_z * one_minus_cosine - axis_y * sine;
+        axis_rotation.vectors[2].y = axis_y * axis_z * one_minus_cosine + axis_x * sine;
+        axis_rotation.vectors[2].z = axis_z * axis_z + (1.0f - axis_z * axis_z) * cosine;
+        rotation->MultiplyBy(axis_rotation);
+    }
+
+    FileRead(file, scale, sizeof(*scale), 0);
+}
 
 /* The material reader retains its three parallel result tables together with
    the normalized serialized records used to identify a reusable table. */
@@ -80,45 +116,6 @@ static int g_read_mesh_index_65b9e4;
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
 static srTextureIFace** g_multi_mesh_textures_65b9fc;
 
-// FUNCTION: WIZ8 0x004896c0
-void ReadMeshTransform004896C0(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
-                               srVector3T<float>* scale)
-{
-    FileRead(file, &location->x, sizeof(location->x), 0);
-    FileRead(file, &location->y, sizeof(location->y), 0);
-    FileRead(file, &location->z, sizeof(location->z), 0);
-
-    float angle;
-    float axis_x;
-    float axis_y;
-    float axis_z;
-    FileRead(file, &angle, sizeof(angle), 0);
-    FileRead(file, &axis_x, sizeof(axis_x), 0);
-    FileRead(file, &axis_y, sizeof(axis_y), 0);
-    FileRead(file, &axis_z, sizeof(axis_z), 0);
-
-    rotation->SetIdentity();
-    if (angle != 0.0f) {
-        const float cosine = cosf(angle);
-        const float sine = sinf(angle);
-        const float one_minus_cosine = 1.0f - cosine;
-        srMatrix3T<float> axis_rotation;
-        axis_rotation.vectors[0].x = axis_x * axis_x + (1.0f - axis_x * axis_x) * cosine;
-        axis_rotation.vectors[0].y = axis_y * axis_x * one_minus_cosine - axis_z * sine;
-        axis_rotation.vectors[0].z = axis_z * axis_x * one_minus_cosine + axis_y * sine;
-        axis_rotation.vectors[1].x = axis_x * axis_y * one_minus_cosine + axis_z * sine;
-        axis_rotation.vectors[1].y = axis_y * axis_y + (1.0f - axis_y * axis_y) * cosine;
-        axis_rotation.vectors[1].z = axis_z * axis_y * one_minus_cosine - axis_x * sine;
-        axis_rotation.vectors[2].x = axis_x * axis_z * one_minus_cosine - axis_y * sine;
-        axis_rotation.vectors[2].y = axis_y * axis_z * one_minus_cosine + axis_x * sine;
-        axis_rotation.vectors[2].z = axis_z * axis_z + (1.0f - axis_z * axis_z) * cosine;
-        rotation->MultiplyBy(axis_rotation);
-    }
-
-    FileRead(file, &scale->x, sizeof(scale->x), 0);
-    FileRead(file, &scale->y, sizeof(scale->y), 0);
-    FileRead(file, &scale->z, sizeof(scale->z), 0);
-}
 static unsigned long* g_multi_mesh_render_flags_65ba04;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and
@@ -146,37 +143,461 @@ bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materi
 
 } // namespace
 
-// FUNCTION: WIZ8 0x004867f0
-void UpdateMeshAfterVertexLoad004867F0(srMeshModel* model, int frame)
+/* Mesh reordering: sorts polygons by shader/texture keys, vertices by material
+   and first use, and optionally walks shared edges within each polygon group so
+   consecutive polygons form strips. */
+struct W8MeshOrderInfo {
+    long polygon_count;
+    unsigned int polygon_key_count;
+    srVector3i* polygon_vertices;
+    const void* polygon_keys[4];
+    long vertex_count;
+    unsigned int vertex_key_count;
+    srVector3T<float>* vertex_locations;
+    const void* vertex_keys[4];
+};
+
+struct W8MeshOrder {
+    unsigned long* polygons;
+    unsigned long* vertices;
+};
+
+struct W8MeshStripPolygon {
+    unsigned long polygon;
+    int visited;
+};
+
+struct W8MeshStripBuilder {
+    W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count);
+    ~W8MeshStripBuilder();
+
+    unsigned int EdgeKey(const W8MeshStripPolygon* polygon, int edge);
+    int CountNeighbors(int index);
+    W8MeshStripPolygon* EdgePolygon(int slot);
+    void BuildEdgeTable();
+
+    srVector3i* polygon_vertices;
+    W8MeshStripPolygon* polygons;
+    unsigned int count;
+    W8HashTable<unsigned int, int> edges;
+};
+
+template <class T> void InsertionSortByKey(T* items, unsigned long* keys, int first, int last)
 {
-    (void)frame;
+    for (int index = first + 1; index < last; ++index) {
+        T item = items[index];
+        unsigned long key = keys[index];
+        int position = index;
+        while (key < keys[position - 1]) {
+            keys[position] = keys[position - 1];
+            items[position] = items[position - 1];
+            --position;
+            if (position == first) {
+                break;
+            }
+        }
+        keys[position] = key;
+        items[position] = item;
+    }
+}
+
+// TEMPLATE: WIZ8 0x0048a330
+// InsertionSortByKey<unsigned long>
+
+template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first, int last)
+{
+    while (last - first > 8) {
+        unsigned long pivot = keys[last];
+        int low = first - 1;
+        int high = last;
+        int split;
+        do {
+            do {
+                split = low;
+                ++low;
+            } while (low < last && keys[low] < pivot);
+            do {
+                --high;
+            } while (high >= 1 && pivot < keys[high]);
+            T item = items[low];
+            items[low] = items[high];
+            items[high] = item;
+            unsigned long key = keys[low];
+            keys[low] = keys[high];
+            keys[high] = key;
+        } while (low < high);
+        items[high] = items[low];
+        items[low] = items[last];
+        items[last] = items[high];
+        keys[high] = keys[low];
+        keys[low] = keys[last];
+        keys[last] = keys[high];
+        if (first < split) {
+            QuickSortByKey(items, keys, first, split);
+        }
+        first = split + 2;
+        if (last <= first) {
+            return;
+        }
+    }
+    InsertionSortByKey(items, keys, first, last + 1);
+}
+
+// TEMPLATE: WIZ8 0x0048a3d0
+// QuickSortByKey<unsigned long>
+
+// TEMPLATE: WIZ8 0x0048a190
+// QuickSortByKey<W8MeshStripPolygon>
+
+template <class T> void SortByKey(T* items, unsigned long* keys, int count)
+{
+    if (count > 1) {
+        int ordered_pairs = 0;
+        for (int index = 0; index < count - 1; ++index) {
+            if (keys[index] <= keys[index + 1]) {
+                ++ordered_pairs;
+            }
+        }
+        if (ordered_pairs + 1 == count) {
+            return;
+        }
+        if (ordered_pairs < count / 3) {
+            for (int index = 0; index < count / 2; ++index) {
+                T item = items[index];
+                items[index] = items[count - 1 - index];
+                items[count - 1 - index] = item;
+                unsigned long key = keys[index];
+                keys[index] = keys[count - 1 - index];
+                keys[count - 1 - index] = key;
+            }
+            if (ordered_pairs == 0) {
+                return;
+            }
+            InsertionSortByKey(items, keys, 0, count);
+        } else if (ordered_pairs < 50) {
+            InsertionSortByKey(items, keys, 0, count);
+        } else {
+            QuickSortByKey(items, keys, 0, count - 1);
+        }
+    }
+}
+
+// TEMPLATE: WIZ8 0x00489bf0
+// SortByKey<W8MeshStripPolygon>
+
+/* Sorts each run of equal group ids by its key, then renumbers the groups so
+   equal keys within a group stay together. */
+static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned long* groups,
+                            long count)
+{
+    unsigned int index;
+    unsigned int start = 0;
+    for (index = 1; index < (unsigned long)count; ++index) {
+        if (groups[index] != groups[index - 1]) {
+            SortByKey(order + start, keys + start, index - start);
+            start = index;
+        }
+    }
+    SortByKey(order + start, keys + start, count - start);
+
+    int group = 0;
+    groups[0] = 0;
+    for (index = 1; index < (unsigned long)count; ++index) {
+        if (keys[index] != keys[index - 1]) {
+            ++group;
+        }
+        groups[index] = group;
+    }
+}
+
+W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygon_count)
+{
+    polygon_vertices = vertices;
+    count = polygon_count;
+    polygons = new W8MeshStripPolygon[polygon_count];
+    for (unsigned int index = 0; index < count; ++index) {
+        polygons[index].polygon = 0;
+        polygons[index].visited = 0;
+    }
+}
+
+W8MeshStripBuilder::~W8MeshStripBuilder()
+{
+    delete[] polygons;
+}
+
+// FUNCTION: WIZ8 0x00487820
+unsigned int W8MeshStripBuilder::EdgeKey(const W8MeshStripPolygon* polygon, int edge)
+{
+    const srVector3i& vertices = polygon_vertices[polygon->polygon];
+    unsigned int first;
+    unsigned int second;
+    if (edge == 0) {
+        first = vertices.x;
+        second = vertices.y;
+    } else if (edge == 1) {
+        first = vertices.y;
+        second = vertices.z;
+    } else {
+        first = vertices.z;
+        second = vertices.x;
+    }
+    if (second < first) {
+        return (first << 8) ^ second;
+    }
+    return (second << 8) ^ first;
+}
+
+W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
+{
+    int value = edges.entries[slot].value;
+    return reinterpret_cast<W8MeshStripPolygon*>(value); // reinterpret-ok: polygon address
+}
+
+// FUNCTION: WIZ8 0x00487880
+int W8MeshStripBuilder::CountNeighbors(int index)
+{
+    W8MeshStripPolygon* polygon = polygons + index;
+    int neighbors = 0;
+    for (int edge = 0; edge < 3; ++edge) {
+        unsigned int key = EdgeKey(polygon, edge);
+        for (int slot = edges.FindNextEntry(&key, -1); slot != -1;
+             slot = edges.FindNextEntry(&key, slot)) {
+            int value = reinterpret_cast<int>(polygon); // reinterpret-ok: polygon address
+            if (edges.entries[slot].value != value) {
+                ++neighbors;
+                break;
+            }
+        }
+    }
+    return neighbors;
+}
+
+// FUNCTION: WIZ8 0x004879C0
+void W8MeshStripBuilder::BuildEdgeTable()
+{
+    if (edges.bucket_count != 0) {
+        delete[] edges.bucket_heads;
+        delete[] edges.entries;
+    }
+    edges.bucket_count = 0;
+    edges.bucket_heads = 0;
+    edges.entries = 0;
+    edges.free_head = -1;
+    edges.Grow();
+
+    for (unsigned int index = 0; index < count; ++index) {
+        W8MeshStripPolygon* polygon = polygons + index;
+        int value = reinterpret_cast<int>(polygon); // reinterpret-ok: polygon address
+        for (int edge = 0; edge < 3; ++edge) {
+            unsigned int key = EdgeKey(polygon, edge);
+            edges.Insert(&key, &value);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00486970
+W8MeshOrder* ComputeMeshOrder(W8MeshOrderInfo* info, unsigned long flags)
+{
+    unsigned int index;
+    unsigned int polygon;
+
+    if (info->polygon_count == 0 || info->vertex_count == 0) {
+        return 0;
+    }
+
+    W8MeshOrder* order = new W8MeshOrder;
+    if (order != 0) {
+        order->polygons = new unsigned long[info->polygon_count];
+        order->vertices = new unsigned long[info->vertex_count];
+    }
+    for (index = 0; index < (unsigned long)info->polygon_count; ++index) {
+        order->polygons[index] = index;
+    }
+    for (index = 0; index < (unsigned long)info->vertex_count; ++index) {
+        order->vertices[index] = index;
+    }
+    if ((flags & 1) == 0 && (flags & 2) == 0) {
+        return order;
+    }
+
+    unsigned long* polygon_groups = new unsigned long[info->polygon_count];
+    unsigned long* vertex_groups = new unsigned long[info->vertex_count];
+    memset(polygon_groups, 0, info->polygon_count * sizeof(unsigned long));
+    memset(vertex_groups, 0, info->vertex_count * sizeof(unsigned long));
+
+    if ((flags & 1) != 0) {
+        if (info->polygon_key_count != 0) {
+            unsigned long* keys = new unsigned long[info->polygon_count];
+            for (unsigned int table = 0; table < info->polygon_key_count; ++table) {
+                if (info->polygon_count != 0) {
+                    srVectorProcessor::copyIndexed(
+                        keys, static_cast<const SRDWORD*>(info->polygon_keys[table]),
+                        order->polygons, info->polygon_count);
+                }
+                SortGroupsByKey(order->polygons, keys, polygon_groups, info->polygon_count);
+            }
+            delete[] keys;
+        }
+
+        if ((flags & 4) != 0) {
+            for (unsigned int start = 0; start < (unsigned long)info->polygon_count;) {
+                unsigned int end = start;
+                while (end < (unsigned long)info->polygon_count &&
+                       polygon_groups[end] == polygon_groups[start]) {
+                    ++end;
+                }
+                unsigned int length = end - start;
+                if (length > 2) {
+                    W8MeshStripBuilder builder(info->polygon_vertices, length);
+                    for (index = 0; index < length; ++index) {
+                        builder.polygons[index].polygon = order->polygons[start + index];
+                        builder.polygons[index].visited = 0;
+                    }
+                    unsigned long* output = order->polygons + start;
+
+                    builder.BuildEdgeTable();
+                    unsigned long* neighbors = new unsigned long[builder.count];
+                    for (index = 0; index < builder.count; ++index) {
+                        neighbors[index] = builder.CountNeighbors(index);
+                    }
+                    SortByKey(builder.polygons, neighbors, builder.count);
+                    builder.BuildEdgeTable();
+                    delete[] neighbors;
+
+                    for (index = 0; index < builder.count; ++index) {
+                        W8MeshStripPolygon* current = builder.polygons + index;
+                        if (current->visited != 0) {
+                            continue;
+                        }
+                        while (current != 0) {
+                            current->visited = 1;
+                            *output++ = current->polygon;
+                            W8MeshStripPolygon* next = 0;
+                            for (int edge = 0; edge < 3 && next == 0; ++edge) {
+                                unsigned int key = builder.EdgeKey(current, edge);
+                                for (int slot = builder.edges.FindNextEntry(&key, -1); slot != -1;
+                                     slot = builder.edges.FindNextEntry(&key, slot)) {
+                                    W8MeshStripPolygon* candidate = builder.EdgePolygon(slot);
+                                    if (candidate->visited == 0) {
+                                        next = candidate;
+                                        break;
+                                    }
+                                }
+                            }
+                            current = next;
+                        }
+                    }
+                }
+                start += length;
+            }
+        }
+    }
+
+    if ((flags & 2) != 0) {
+        if (info->vertex_key_count != 0) {
+            unsigned long* keys = new unsigned long[info->vertex_count];
+            for (unsigned int table = 0; table < info->vertex_key_count; ++table) {
+                if (info->vertex_count != 0) {
+                    srVectorProcessor::copyIndexed(
+                        keys, static_cast<const SRDWORD*>(info->vertex_keys[table]),
+                        order->vertices, info->vertex_count);
+                }
+                SortGroupsByKey(order->vertices, keys, vertex_groups, info->vertex_count);
+            }
+            delete[] keys;
+        }
+
+        srVector3T<int>* remapped = new srVector3T<int>[info->polygon_count];
+        int* inverse = new int[info->vertex_count];
+        unsigned long* first_use = new unsigned long[info->vertex_count];
+        for (index = 0; index < (unsigned long)info->vertex_count; ++index) {
+            inverse[order->vertices[index]] = index;
+            first_use[index] = 0;
+        }
+        for (polygon = 0; polygon < (unsigned long)info->polygon_count; ++polygon) {
+            const int* source = &info->polygon_vertices[order->polygons[polygon]].x;
+            int* destination = &remapped[polygon].x;
+            for (int corner = 0; corner < 3; ++corner) {
+                destination[corner] = inverse[source[corner]];
+            }
+        }
+        unsigned int used = 0;
+        for (polygon = 0; polygon < (unsigned long)info->polygon_count; ++polygon) {
+            const int* corners = &remapped[polygon].x;
+            for (int corner = 0; corner < 3; ++corner) {
+                if (first_use[corners[corner]] == 0) {
+                    first_use[corners[corner]] = ++used;
+                }
+            }
+        }
+
+        unsigned int start = 0;
+        for (index = 1; index < (unsigned long)info->vertex_count; ++index) {
+            if (vertex_groups[index] != vertex_groups[index - 1]) {
+                SortByKey(order->vertices + start, first_use + start, index - start);
+                start = index;
+            }
+        }
+        SortByKey(order->vertices + start, first_use + start, info->vertex_count - start);
+
+        delete[] remapped;
+        delete[] inverse;
+        delete[] first_use;
+    }
+
+    delete[] polygon_groups;
+    delete[] vertex_groups;
+    return order;
+}
+
+// FUNCTION: WIZ8 0x004867F0
+void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
+{
     if (model == 0) {
         return;
     }
 
-    const long polygon_count = model->polygon_count_230;
-    const long vertex_count = model->vertex_location_count_22c;
-    unsigned long* polygon_indices =
-        static_cast<unsigned long*>(malloc(polygon_count * sizeof(unsigned long)));
-    unsigned long* vertex_indices =
-        static_cast<unsigned long*>(malloc(vertex_count * sizeof(unsigned long)));
-    if (polygon_indices == 0 || vertex_indices == 0) {
-        free(polygon_indices);
-        free(vertex_indices);
-        return;
+    W8MeshOrderInfo info;
+    info.polygon_key_count = 0;
+    info.vertex_key_count = 0;
+    info.polygon_vertices = 0;
+    info.vertex_locations = 0;
+    for (int index = 0; index < 4; ++index) {
+        info.polygon_keys[index] = 0;
+        info.vertex_keys[index] = 0;
+    }
+    info.vertex_count = model->vertex_location_count_22c;
+    info.polygon_count = model->polygon_count_230;
+    info.polygon_vertices = model->getPolyVertex();
+    info.vertex_locations = model->getVertexLoc();
+
+    for (unsigned int pass = 0; pass < (unsigned long)model->pass_count_228; ++pass) {
+        if (model->getPolyShader(pass, 0) != 0 && info.polygon_key_count < 4) {
+            info.polygon_keys[info.polygon_key_count++] = model->getPolyShader(pass, 1);
+        }
+        for (unsigned int layer = 0; layer < 2; ++layer) {
+            if (model->getPolyTexture(pass, layer, 0) != 0 && info.polygon_key_count < 4) {
+                info.polygon_keys[info.polygon_key_count++] = model->getPolyTexture(pass, layer, 1);
+            }
+        }
+        for (int side = 0; side < 2; ++side) {
+            if (model->getVertexMaterial(pass, (srMeshModel::e_side)side, 0) != 0 &&
+                info.vertex_key_count < 4) {
+                info.vertex_keys[info.vertex_key_count++] =
+                    model->getVertexMaterial(pass, (srMeshModel::e_side)side, 1);
+            }
+        }
     }
 
-    for (long polygon_index = 0; polygon_index < polygon_count; ++polygon_index) {
-        polygon_indices[polygon_index] = static_cast<unsigned long>(polygon_index);
+    W8MeshOrder* order = ComputeMeshOrder(&info, flags);
+    if (order != 0) {
+        model->reindexPolygons(order->polygons);
+        model->reindexVertices(order->vertices);
+        delete[] order->polygons;
+        delete[] order->vertices;
+        delete order;
     }
-    for (long vertex_index = 0; vertex_index < vertex_count; ++vertex_index) {
-        vertex_indices[vertex_index] = static_cast<unsigned long>(vertex_index);
-    }
-
-    model->reindexPolygons(polygon_indices);
-    model->reindexVertices(vertex_indices);
-    free(polygon_indices);
-    free(vertex_indices);
 }
 
 // FUNCTION: WIZ8 0x00488650
@@ -609,7 +1030,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
         success = FileRead(file, &flags, sizeof(flags), 0);
     }
     if (version > 1) {
-        ReadMeshTransform004896C0(file, &location, &rotation, &scale);
+        ReadMeshTransform(file, &location, &rotation, &scale);
     }
     if (success == 0) {
         return 0;
@@ -756,15 +1177,15 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
             for (int index = 0; index < model->vertex_location_count_22c; ++index) {
                 model_vertices[index] = vertices[vertex_maps[mesh_index][index]];
             }
-            UpdateMeshAfterVertexLoad004867F0(model, -1);
+            OptimizeMeshOrder(model, ~0UL);
         }
     } else {
         for (short frame = 0; frame < frame_count; ++frame) {
             int mesh_index = 0;
             for (stMeshModel* model = first_model; model != 0; model = model->next, ++mesh_index) {
-                model->InitializeVertexFrames00473B00(frame_count);
+                model->InitializeVertexFrames(frame_count);
                 model->vertex_compression_scale_444 = 500.0f / compression_scale;
-                short* model_vertices = static_cast<short*>(model->GetVertex(frame));
+                short* model_vertices = model->GetVertex(frame);
                 for (int index = 0; index < model->vertex_location_count_22c; ++index) {
                     int source = vertex_maps[mesh_index][index];
                     model_vertices[index * 3] = compressed_vertices[frame][source * 3];

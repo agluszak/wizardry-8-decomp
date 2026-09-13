@@ -451,7 +451,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
         }
 
         if (mark_model_instances && prop != 0) {
-            prop->CollectModelInstances0044E570(&model_instances);
+            prop->CollectModelInstances(&model_instances);
             for (model_index = 0; model_index < model_instances.GetCount(); ++model_index) {
                 stModelInstance* instance = *model_instances.GetAt(model_index);
                 if (instance != 0) {
@@ -1030,7 +1030,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 
     UpdateWorldProps0044E010(world);
     FileRead(info.hFile, &camera_mode, sizeof(camera_mode), 0);
-    UpdateCameraView00450080(world->camera, camera_mode == 0 ? -1 : 1);
+    SetCameraSwayMode(world->camera, camera_mode == 0 ? -1 : 1);
     if (world->octree == 0 && world != g_world) {
         FinalizeWorldScenes0046F410(world->static_scene, world->dynamic_scene);
     }
@@ -1079,7 +1079,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 
                 for (; mesh != 0; mesh = mesh->next) {
                     if (!AnimationIsRunning(animation)) {
-                        mesh->InitializeVertexWeights004721E0(1);
+                        mesh->GetVertexSunlight(1);
                         SetChainValue15C((char*)instance, 5);
                     } else if (AnimationIsRunning(animation) == 1) {
                         SetChainValue15C((char*)instance, 4);

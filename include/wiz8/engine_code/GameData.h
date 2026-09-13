@@ -144,6 +144,8 @@ void ClearLevelDataFlag6(void);
 void ResetLevelDataVectors0041F0D0(void);
 int IsLevelDataFlag4EffectivelySet(void);
 void ResetCurrentEnvironment0041AA40(void);
+void BeginCameraSway0041A960(void);
+void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
 

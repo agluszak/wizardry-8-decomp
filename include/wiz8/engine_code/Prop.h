@@ -101,7 +101,7 @@ public:
     Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void CollectModelInstances0044E570(W8GrowableVector<stModelInstance*>* instances);
+    void CollectModelInstances(W8GrowableVector<stModelInstance*>* instances);
     /* Run trigger_18 when its action is one of the missile-impact kinds
        (0x3a..0x3c); the record hands Run the missile's table index. */
     void RunMissileTrigger0044E230(W8AIMissile* record);

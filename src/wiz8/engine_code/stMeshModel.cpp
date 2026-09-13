@@ -3,6 +3,8 @@
 #include "wiz8/sr_api.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "surrender/srHeap.h"
+#include "wiz8/wiz8_windows.h"
 #include "surrender/srTriangleCuller.h"
 #include "surrender/srTriMeshPipeline.h"
 #include "surrender/srTypeRegistry.h"
@@ -20,41 +22,63 @@
  * well: its vtable sits immediately after the mesh-model vector vftables.
  */
 
-// FUNCTION: WIZ8 0x00470b00
-stMeshModel::stMeshModel(long polygons, long vertex_count_arg)
-    : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0)
+// GLOBAL: WIZ8 0x00659cb8
+W8GrowableVector<stMeshModel*> g_mesh_models;
+
+// GLOBAL: WIZ8 0x0065a0e8
+int g_decompressed_mesh_bytes;
+
+/* Signed-byte normal components back to floats, indexed by the raw byte. */
+// GLOBAL: WIZ8 0x00659ce8
+static float s_compressed_normal_table[256];
+
+// GLOBAL: WIZ8 0x0065a0ef
+static unsigned char s_compressed_normal_table_ready;
+
+// FUNCTION: WIZ8 0x00470B00
+stMeshModel::stMeshModel(long polygons, long vertices)
+    : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), next(0), previous(0),
+      flags_3a0(0), vertex_light_table_3b0(0), flag_3cc(0), vertex_lighting_ready_3cd(0),
+      frame_count(0), frame_vertex_locations(0), frame_vertex_normals(0), frame_polygon_normals(0),
+      compressed_vertex_locations(0), compressed_vertex_normals(0), compressed_polygon_normals(0),
+      skin_table_ids(5), skin_texture_tables(5), skin_table_names(5), mapped_values(5),
+      mapped_keys(5), last_decompress_release_tick_440(0), vertex_compression_scale_444(0.0f),
+      automap_polygons(0), automap_polygon_count(0), automap_filter_active(0),
+      skin_blanking_apt_458(0), skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
 {
-    next = 0;
-    previous = 0;
-    flags_3a0 = 0;
     memset(unknown_3a4, 0, sizeof(unknown_3a4));
-    flag_3cc = 0;
-    vertex_count = 0;
-    compressed_vertex_locations_3d4 = 0;
-    compressed_vertex_normals_3d8 = 0;
-    compressed_polygon_normals_3dc = 0;
-    vertices = 0;
-    vertex_frame_normals_3e4 = 0;
-    polygon_frame_normals_3e8 = 0;
-    unknown_frame_data_3ec = 0;
-    unknown_frame_data_3ec = 0;
-    automap_polygons = 0;
-    automap_polygon_count = 0;
-    automap_filter_active = 0;
-    skin_blanking_apt_458 = 0;
-    skin_blanking_apt_number_45c = 0;
-    skin_blanking_checked_460 = 0;
-    srMeshModel::reset(polygons, vertex_count_arg);
+    memset(unknown_3ce, 0, sizeof(unknown_3ce));
+    memset(unknown_3ec, 0, sizeof(unknown_3ec));
+    memset(unknown_448, 0, sizeof(unknown_448));
+
+    if (!s_compressed_normal_table_ready) {
+        for (int value = -128; value < 128; ++value) {
+            float component = (float)value * (1.0f / 127.0f);
+            if (component < -1.0f) {
+                component = -1.0f;
+            } else if (component > 1.0f) {
+                component = 1.0f;
+            }
+            s_compressed_normal_table[(unsigned char)value] = component;
+        }
+        s_compressed_normal_table_ready = 1;
+    }
+
+    srCore.getRegistry()->registerInstance(
+        srClassSupport<stMeshModel, srMeshModel, false, 0x10003>::sGetClassNode(), this);
+
+    srMeshModel::reset(polygons, vertices);
+
     for (int pass = 0; pass < 4; ++pass) {
         for (int side = 0; side < 2; ++side) {
             materials_1c[pass][side] = 0;
             textures_3c[pass][side] = 0;
         }
-        shaders_5c[pass].value = 0x0100241b;
     }
-    pass_count_228 = 0;
-    sort_bias_238 = 0.0f;
-    control_state_394 &= ~0x10;
+    control_state_394 &= ~0x10UL;
+    if ((control_state_390 & 1) == 0) {
+        control_state_390 |= 9;
+    }
 }
 
 /* Copy `count` dwords between distinct buffers through the imported vp. */
@@ -167,79 +191,183 @@ void stMeshModel::LinkTo(stMeshModel* other)
     }
 }
 
-/* One vertex, bounds-checked against the model's own count and refused
-   outright when there is no table at all. */
+/* One frame's compressed vertex table, refused outright when there is no
+   table at all. */
 // FUNCTION: WIZ8 0x00471aa0
-void* stMeshModel::GetVertex(unsigned int index)
+short* stMeshModel::GetVertex(unsigned int frame)
 {
-    if (vertices != 0 && index < vertex_count) {
-        return vertices[index];
+    if (compressed_vertex_locations != 0 && frame < frame_count) {
+        return compressed_vertex_locations[frame];
     }
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00473B00
-void stMeshModel::InitializeVertexFrames00473B00(int frame_count)
+// FUNCTION: WIZ8 0x00473b00
+void stMeshModel::InitializeVertexFrames(int frames)
 {
-    if (frame_count == 0) {
+    if (frames == 0) {
         srAssertFail("uiFrames", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x6e8,
                      0);
     }
-    if ((flags_3a0 & 4) != 0) {
-        return;
+    if ((flags_3a0 & 4) == 0) {
+        FreeFrameStorage();
+        frame_count = frames;
+        flags_3a0 |= 4;
+        AllocateFrameStorage();
+        g_mesh_models.Add(this);
     }
+}
 
-    vertex_count = static_cast<unsigned int>(frame_count);
-    flags_3a0 |= 4;
-    compressed_vertex_locations_3d4 = new void*[frame_count];
-    compressed_vertex_normals_3d8 = new void*[frame_count];
-    compressed_polygon_normals_3dc = new void*[frame_count];
-    vertices = new void*[frame_count];
-    vertex_frame_normals_3e4 = new void*[frame_count];
-    polygon_frame_normals_3e8 = new void*[frame_count];
-    if (compressed_vertex_locations_3d4 == 0 || compressed_vertex_normals_3d8 == 0 ||
-        compressed_polygon_normals_3dc == 0 || vertices == 0 || vertex_frame_normals_3e4 == 0 ||
-        polygon_frame_normals_3e8 == 0) {
-        delete[] compressed_vertex_locations_3d4;
-        delete[] compressed_vertex_normals_3d8;
-        delete[] compressed_polygon_normals_3dc;
-        delete[] vertices;
-        delete[] vertex_frame_normals_3e4;
-        delete[] polygon_frame_normals_3e8;
-        compressed_vertex_locations_3d4 = 0;
-        compressed_vertex_normals_3d8 = 0;
-        compressed_polygon_normals_3dc = 0;
-        vertices = 0;
-        vertex_frame_normals_3e4 = 0;
-        polygon_frame_normals_3e8 = 0;
-        return;
+/* Zero-filled pointer tables for every frame, then one compressed table per
+   frame: three shorts per vertex location and three bytes per vertex and
+   polygon normal. Any failed allocation releases everything again. */
+// FUNCTION: WIZ8 0x00471340
+unsigned char stMeshModel::AllocateFrameStorage()
+{
+    if (frame_count == 0) {
+        return 0;
     }
-    memset(compressed_vertex_locations_3d4, 0, frame_count * sizeof(void*));
-    memset(compressed_vertex_normals_3d8, 0, frame_count * sizeof(void*));
-    memset(compressed_polygon_normals_3dc, 0, frame_count * sizeof(void*));
-    memset(vertices, 0, frame_count * sizeof(void*));
-    memset(vertex_frame_normals_3e4, 0, frame_count * sizeof(void*));
-    memset(polygon_frame_normals_3e8, 0, frame_count * sizeof(void*));
+    frame_vertex_locations = new srVector3T<float>*[frame_count];
+    if (frame_vertex_locations == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    memset(frame_vertex_locations, 0, frame_count * sizeof(srVector3T<float>*));
+    frame_vertex_normals = new srVector3T<float>*[frame_count];
+    if (frame_vertex_normals == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    memset(frame_vertex_normals, 0, frame_count * sizeof(srVector3T<float>*));
+    frame_polygon_normals = new srVector3T<float>*[frame_count];
+    if (frame_polygon_normals == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    memset(frame_polygon_normals, 0, frame_count * sizeof(srVector3T<float>*));
+    compressed_vertex_locations = new short*[frame_count];
+    if (compressed_vertex_locations == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    compressed_vertex_normals = new unsigned char*[frame_count];
+    if (compressed_vertex_normals == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    compressed_polygon_normals = new unsigned char*[frame_count];
+    if (compressed_polygon_normals == 0) {
+        FreeFrameStorage();
+        return 0;
+    }
+    for (unsigned int frame = 0; frame < frame_count; ++frame) {
+        compressed_vertex_locations[frame] = new short[vertex_location_count_22c * 3];
+        if (compressed_vertex_locations[frame] == 0) {
+            srAssertFail("m_psCompVertexLoc[uiCount]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1ce, 0);
+        }
+        memset(compressed_vertex_locations[frame], 0,
+               vertex_location_count_22c * 3 * sizeof(short));
+        compressed_vertex_normals[frame] = new unsigned char[vertex_location_count_22c * 3];
+        if (compressed_vertex_normals[frame] == 0) {
+            srAssertFail("m_pbCompVertexNormal[uiCount]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1d3, 0);
+        }
+        memset(compressed_vertex_normals[frame], 0, vertex_location_count_22c * 3);
+        compressed_polygon_normals[frame] = new unsigned char[polygon_count_230 * 3];
+        if (compressed_polygon_normals[frame] == 0) {
+            srAssertFail("m_pbCompPolyNormal[uiCount]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x1d8, 0);
+        }
+        memset(compressed_polygon_normals[frame], 0, polygon_count_230 * 3);
+    }
+    return 1;
+}
 
-    for (int frame = 0; frame < frame_count; ++frame) {
-        vertices[frame] = new unsigned char[vertex_location_count_22c * 6];
-        vertex_frame_normals_3e4[frame] = new unsigned char[vertex_location_count_22c * 3];
-        polygon_frame_normals_3e8[frame] = new unsigned char[polygon_count_230 * 3];
-        if (vertices[frame] == 0 || vertex_frame_normals_3e4[frame] == 0 ||
-            polygon_frame_normals_3e8[frame] == 0) {
-            srAssertFail("m_psCompVertexLoc",
-                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x6e8, 0);
+// FUNCTION: WIZ8 0x004715e0
+void stMeshModel::FreeFrameStorage()
+{
+    unsigned int frame;
+
+    ReleaseDecompressedFrames();
+    if (frame_vertex_locations != 0) {
+        delete[] frame_vertex_locations;
+        frame_vertex_locations = 0;
+    }
+    if (frame_vertex_normals != 0) {
+        delete[] frame_vertex_normals;
+        frame_vertex_normals = 0;
+    }
+    if (frame_polygon_normals != 0) {
+        delete[] frame_polygon_normals;
+        frame_polygon_normals = 0;
+    }
+    if (compressed_vertex_locations != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (compressed_vertex_locations[frame] != 0) {
+                delete[] compressed_vertex_locations[frame];
+            }
         }
-        if (vertices[frame] != 0) {
-            memset(vertices[frame], 0, vertex_location_count_22c * 6);
+        delete[] compressed_vertex_locations;
+        compressed_vertex_locations = 0;
+    }
+    if (compressed_vertex_normals != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (compressed_vertex_normals[frame] != 0) {
+                delete[] compressed_vertex_normals[frame];
+            }
         }
-        if (vertex_frame_normals_3e4[frame] != 0) {
-            memset(vertex_frame_normals_3e4[frame], 0, vertex_location_count_22c * 3);
+        delete[] compressed_vertex_normals;
+        compressed_vertex_normals = 0;
+    }
+    if (compressed_polygon_normals != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (compressed_polygon_normals[frame] != 0) {
+                delete[] compressed_polygon_normals[frame];
+            }
         }
-        if (polygon_frame_normals_3e8[frame] != 0) {
-            memset(polygon_frame_normals_3e8[frame], 0, polygon_count_230 * 3);
+        delete[] compressed_polygon_normals;
+        compressed_polygon_normals = 0;
+    }
+}
+
+/* Drop every decompressed float cache, returning the bytes released. */
+// FUNCTION: WIZ8 0x004739e0
+int stMeshModel::ReleaseDecompressedFrames()
+{
+    int released = 0;
+    unsigned int frame;
+
+    if (frame_vertex_locations != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (frame_vertex_locations[frame] != 0) {
+                released += vertex_location_count_22c * sizeof(srVector3T<float>);
+                srHeap.free(frame_vertex_locations[frame]);
+                frame_vertex_locations[frame] = 0;
+            }
         }
     }
+    if (frame_vertex_normals != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (frame_vertex_normals[frame] != 0) {
+                released += vertex_location_count_22c * sizeof(srVector3T<float>);
+                srHeap.free(frame_vertex_normals[frame]);
+                frame_vertex_normals[frame] = 0;
+            }
+        }
+    }
+    if (frame_polygon_normals != 0) {
+        for (frame = 0; frame < frame_count; ++frame) {
+            if (frame_polygon_normals[frame] != 0) {
+                released += polygon_count_230 * sizeof(srVector3T<float>);
+                srHeap.free(frame_polygon_normals[frame]);
+                frame_polygon_normals[frame] = 0;
+            }
+        }
+    }
+    last_decompress_release_tick_440 = GetTickCount();
+    g_decompressed_mesh_bytes -= released;
+    return released;
 }
 
 // FUNCTION: WIZ8 0x004736d0
@@ -374,11 +502,178 @@ void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
     }
 }
 
-/* Thirteen-byte forwarder onto the per-frame normal finalizer. */
+/* Expand one frame's compressed table into `destination`: bit 1 the vertex
+   locations, bit 2 the vertex normals, bit 4 the polygon normals. */
+// FUNCTION: WIZ8 0x00471930
+unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
+                                           srVector3T<float>* destination)
+{
+    if (flags & 1) {
+        for (int index = 0; index < vertex_location_count_22c; ++index) {
+            const short* source = &compressed_vertex_locations[frame][index * 3];
+            destination[index].x = (float)source[0] * vertex_compression_scale_444;
+            destination[index].y = (float)source[1] * vertex_compression_scale_444;
+            destination[index].z = (float)source[2] * vertex_compression_scale_444;
+        }
+        return 1;
+    }
+    if (flags & 2) {
+        for (int index = 0; index < vertex_location_count_22c; ++index) {
+            const unsigned char* source = &compressed_vertex_normals[frame][index * 3];
+            destination[index].x = s_compressed_normal_table[source[0]];
+            destination[index].y = s_compressed_normal_table[source[1]];
+            destination[index].z = s_compressed_normal_table[source[2]];
+        }
+        return 1;
+    }
+    if (flags & 4) {
+        for (int index = 0; index < polygon_count_230; ++index) {
+            const unsigned char* source = &compressed_polygon_normals[frame][index * 3];
+            destination[index].x = s_compressed_normal_table[source[0]];
+            destination[index].y = s_compressed_normal_table[source[1]];
+            destination[index].z = s_compressed_normal_table[source[2]];
+        }
+        return 1;
+    }
+    return 0;
+}
+
+/* Build one frame's compressed polygon and vertex normals from its vertex
+   locations. Vertex normals are summed per polygon corner, remapped through
+   the shade index table when there is one, unitized, and stored as signed
+   bytes scaled by 127. */
+// FUNCTION: WIZ8 0x004729F0
+void stMeshModel::ComputeFrameNormals(int frame)
+{
+    if (polygon_count_230 == 0 || vertex_location_count_22c == 0) {
+        return;
+    }
+
+    srVector3i* poly_vertex = getPolyVertex();
+    srVector3T<float>* pnorm = new srVector3T<float>[polygon_count_230];
+    if (pnorm == 0 || poly_vertex == 0) {
+        return;
+    }
+
+    srVector3T<float>* l = 0;
+    unsigned char decompressed = 0;
+    if (frame_vertex_locations != 0) {
+        l = frame_vertex_locations[frame];
+    }
+    if (l == 0) {
+        l = new srVector3T<float>[vertex_location_count_22c];
+        if (l == 0) {
+            srAssertFail("l", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4ca, 0);
+        }
+        DecompressFrame(frame, 1, l);
+        decompressed = 1;
+    }
+
+    for (int poly = 0; poly < polygon_count_230; ++poly) {
+        const srVector3T<float>& origin = l[poly_vertex[poly].x];
+        srVector3T<float> edge_0(l[poly_vertex[poly].y].x - origin.x,
+                                 l[poly_vertex[poly].y].y - origin.y,
+                                 l[poly_vertex[poly].y].z - origin.z);
+        srVector3T<float> edge_1(l[poly_vertex[poly].z].x - origin.x,
+                                 l[poly_vertex[poly].z].y - origin.y,
+                                 l[poly_vertex[poly].z].z - origin.z);
+        pnorm[poly] = srVector3T<float>(edge_1.z * edge_0.y - edge_1.y * edge_0.z,
+                                        edge_0.z * edge_1.x - edge_1.z * edge_0.x,
+                                        edge_1.y * edge_0.x - edge_0.y * edge_1.x);
+    }
+
+    srVector3T<float>* vnorm = new srVector3T<float>[vertex_location_count_22c];
+    unsigned long* shade_index = getVertexShadeIndex(0);
+    if (vnorm == 0) {
+        srAssertFail("vnorm", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x4db, 0);
+    }
+    if (shade_index == 0) {
+        FillDwordBuffer00474700(vnorm, 0, vertex_location_count_22c * 3);
+        for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
+            vnorm[poly_vertex[corner_poly].x] += pnorm[corner_poly];
+            vnorm[poly_vertex[corner_poly].y] += pnorm[corner_poly];
+            vnorm[poly_vertex[corner_poly].z] += pnorm[corner_poly];
+        }
+    } else {
+        srVector3T<float>* shaded = new srVector3T<float>[vertex_location_count_22c];
+        FillDwordBuffer00474700(shaded, 0, vertex_location_count_22c * 3);
+        for (int corner_poly = 0; corner_poly < polygon_count_230; ++corner_poly) {
+            shaded[shade_index[poly_vertex[corner_poly].x]] += pnorm[corner_poly];
+            shaded[shade_index[poly_vertex[corner_poly].y]] += pnorm[corner_poly];
+            shaded[shade_index[poly_vertex[corner_poly].z]] += pnorm[corner_poly];
+        }
+        srVectorProcessor::copyIndexed(vnorm, shaded, shade_index, vertex_location_count_22c);
+        delete[] shaded;
+    }
+
+    srVectorProcessor::normalize(vnorm, vnorm, 1.0f, vertex_location_count_22c);
+    for (int vertex = 0; vertex < vertex_location_count_22c; ++vertex) {
+        if (vnorm[vertex].x == 0.0f && vnorm[vertex].y == 0.0f && vnorm[vertex].z == 0.0f) {
+            vnorm[vertex].x = 1e-6f;
+            vnorm[vertex].y = 1e-6f;
+            vnorm[vertex].z = 1e-6f;
+        }
+    }
+    srVectorProcessor::mul(&vnorm->x, 127.0f, &vnorm->x, vertex_location_count_22c * 3);
+    for (int index = 0; index < vertex_location_count_22c; ++index) {
+        compressed_vertex_normals[frame][index * 3] = (char)vnorm[index].x;
+        compressed_vertex_normals[frame][index * 3 + 1] = (char)vnorm[index].y;
+        compressed_vertex_normals[frame][index * 3 + 2] = (char)vnorm[index].z;
+    }
+
+    srVectorProcessor::normalize(pnorm, pnorm, 1.0f, polygon_count_230);
+    srVectorProcessor::mul(&pnorm->x, 127.0f, &pnorm->x, polygon_count_230 * 3);
+    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+        compressed_polygon_normals[frame][polygon * 3] = (char)pnorm[polygon].x;
+        compressed_polygon_normals[frame][polygon * 3 + 1] = (char)pnorm[polygon].y;
+        compressed_polygon_normals[frame][polygon * 3 + 2] = (char)pnorm[polygon].z;
+    }
+
+    delete[] pnorm;
+    delete[] vnorm;
+    if (decompressed) {
+        delete[] l;
+    }
+}
+
+/* Thirteen-byte forwarder onto the per-frame normal builder. */
+// FUNCTION: WIZ8 0x00472100
+srVector3T<float>* stMeshModel::GetVertexLights(char initialize, int table)
+{
+    if (table == -1) {
+        table = vertex_light_table_3b0;
+    }
+    srHeapArray<srVector3T<float> >& lights = vertex_lights_3b4[table];
+    if (lights.data == 0 && initialize) {
+        lights.setCapacity(vertex_location_count_22c, 0);
+        srVector3T<float> zero(0.0f, 0.0f, 0.0f);
+        for (unsigned int index = 0; index < lights.capacity; ++index) {
+            lights.data[index] = zero;
+        }
+        if (vertex_sunlight_3c4.data != 0) {
+            vertex_lighting_ready_3cd = 1;
+        }
+    }
+    return lights.data;
+}
+
+// FUNCTION: WIZ8 0x004721E0
+float* stMeshModel::GetVertexSunlight(char initialize)
+{
+    if (vertex_sunlight_3c4.data == 0 && initialize) {
+        vertex_sunlight_3c4.setCapacity(vertex_location_count_22c, 0);
+        for (unsigned int index = 0; index < vertex_sunlight_3c4.capacity; ++index) {
+            vertex_sunlight_3c4.data[index] = 1.0f;
+        }
+        vertex_lighting_ready_3cd = 1;
+    }
+    return vertex_sunlight_3c4.data;
+}
+
 // FUNCTION: WIZ8 0x00473180
 void stMeshModel::FinalizeVertexFrame00473180(int frame)
 {
-    FinalizeVertexFrameInternal004729F0(frame);
+    ComputeFrameNormals(frame);
 }
 
 // TEMPLATE: WIZ8 0x004741E0

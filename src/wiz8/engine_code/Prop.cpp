@@ -908,7 +908,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             mesh_model = static_cast<stMeshModel*>(instance->model());
             for (; mesh_model != 0; mesh_model = mesh_model->next) {
                 if (AnimationIsRunning(animation) == 0) {
-                    mesh_model->InitializeVertexWeights004721E0(1);
+                    mesh_model->GetVertexSunlight(1);
                 }
             }
             if (option_byte != 0) {
@@ -1101,4 +1101,50 @@ int W8Prop::GetAnimationState0044EBE0() const
         return (int)AnimObjValue004A15D0(animation, 2);
     }
     return -1;
+}
+
+/* Every model instance the representation's animation can display: one per
+   frame of each mesh entry (a single-instance mesh contributes frame zero
+   only), or one per frame of every mesh in each mesh list. */
+// FUNCTION: WIZ8 0x0044e570
+void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances)
+{
+    W8AnimObj* animation = Rep()->animation;
+    if (animation == 0) {
+        return;
+    }
+    if (!AnimationIsRunning(animation)) {
+        for (int group = 0; group < 3; ++group) {
+            W8AniMesh* mesh = animation->entries_18[group];
+            if (mesh == 0) {
+                continue;
+            }
+            int frame_count = AniMeshValue004B64F0(mesh);
+            if (mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) {
+                instances->Add(GetAniMeshFrame004B6550(mesh, 0));
+            } else {
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                }
+            }
+        }
+    } else if (AnimationIsRunning(animation) == 1) {
+        for (int group = 0; group < 3; ++group) {
+            W8PList* meshes = animation->meshes_28[group];
+            if (meshes == 0) {
+                continue;
+            }
+            int mesh_count = PLLength(meshes);
+            for (int index = 0; index < mesh_count; ++index) {
+                W8AniMesh* mesh = static_cast<W8AniMesh*>(PLGet(meshes, index));
+                if (mesh == 0) {
+                    continue;
+                }
+                int frame_count = AniMeshValue004B64F0(mesh);
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                }
+            }
+        }
+    }
 }

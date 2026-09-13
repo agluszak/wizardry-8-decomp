@@ -7,13 +7,9 @@
    element construction, assignment, and teardown. `srArray` is a provisional
    spelling because the closed SDK's identifier did not survive; the primary
    template and its operations are compiler- and retail-proved. */
-template <class T>
-class srArray {
+template <class T> class srArray {
 public:
-    inline srArray()
-        : data(0), capacity(0)
-    {
-    }
+    inline srArray() : data(0), capacity(0) {}
 
     inline ~srArray()
     {
@@ -61,16 +57,19 @@ public:
    grows. `srHeapArray` is a provisional spelling, not a per-element wrapper or
    specialization. Its constructor invokes ensure(0); retail retains that call
    even for an empty request. */
-template <class T>
-class srHeapArray {
+template <class T> class srHeapArray {
 public:
-    inline srHeapArray()
-        : data(0), capacity(0)
+    inline srHeapArray() : data(0), capacity(0)
     {
         ensure(0);
     }
 
     inline ~srHeapArray()
+    {
+        release();
+    }
+
+    inline void release()
     {
         if (data != 0) {
             srHeap.free(data);
@@ -79,14 +78,15 @@ public:
         capacity = 0;
     }
 
+    static inline T* allocate(unsigned long count)
+    {
+        return static_cast<T*>(srHeap.allocate(count * sizeof(T)));
+    }
+
     inline srHeapArray& operator=(const srHeapArray& other)
     {
         if (this != &other) {
-            if (data != 0) {
-                srHeap.free(data);
-            }
-            data = 0;
-            capacity = 0;
+            release();
             if (other.capacity != 0) {
                 setCapacity(other.capacity);
                 for (unsigned long index = 0; index < capacity; ++index) {
@@ -97,30 +97,28 @@ public:
         return *this;
     }
 
-    inline void setCapacity(unsigned long new_capacity)
+    /* `preserve` copies the overlapping prefix of the old contents into the
+       new storage; callers that refill the whole array pass 0. */
+    inline void setCapacity(unsigned long new_capacity, int preserve = 1)
     {
         if (capacity != new_capacity) {
-            T* replacement = 0;
             if (new_capacity > 0) {
-                replacement = static_cast<T*>(
-                    srHeap.allocate(new_capacity * sizeof(T)));
-                if (data != 0 && capacity > 0) {
+                T* replacement = allocate(new_capacity);
+                if (data != 0 && capacity > 0 && preserve) {
                     unsigned long copy_count = capacity;
                     if (copy_count >= new_capacity) {
                         copy_count = new_capacity;
                     }
-                    for (unsigned long index = 0;
-                         index < copy_count;
-                         ++index) {
+                    for (unsigned long index = 0; index < copy_count; ++index) {
                         replacement[index] = data[index];
                     }
                 }
+                release();
+                data = replacement;
+                capacity = new_capacity;
+            } else {
+                release();
             }
-            if (data != 0) {
-                srHeap.free(data);
-            }
-            data = replacement;
-            capacity = new_capacity;
         }
     }
 
@@ -150,7 +148,5 @@ public:
     unsigned long capacity;
 };
 
-static_assert(sizeof(srArray<unsigned long>) == 0x08,
-              "srArray_must_be_0x08");
-static_assert(sizeof(srHeapArray<unsigned long>) == 0x08,
-              "srHeapArray_must_be_0x08");
+static_assert(sizeof(srArray<unsigned long>) == 0x08, "srArray_must_be_0x08");
+static_assert(sizeof(srHeapArray<unsigned long>) == 0x08, "srHeapArray_must_be_0x08");

@@ -269,7 +269,6 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
-    analyze_app.command("debt")(debt_command)
 
 
 def source_index_command() -> None:
@@ -280,24 +279,12 @@ def source_index_command() -> None:
     cli.emit(write_source_index(cli.settings()))
 
 
-def debt_command() -> None:
-    """Ranked source-model inconsistencies: empty TUs, overlaps, placement, types."""
-    from .. import command_support as cli
-    from ..debt import structural_debt_report
-
-    cli.emit(structural_debt_report(cli.settings().repo_dir))
-
-
 def unresolved_report_command(
     objects: Annotated[Path | None, typer.Option(help="Object root.")] = None,
     link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
-    write_baseline: Annotated[
-        bool,
-        typer.Option("--write-baseline", help="Initialize or reduce the reviewed baseline."),
-    ] = False,
 ) -> None:
     from .. import command_support as cli
-    from ..unresolved import DEFAULT_BASELINE, unresolved_report, write_unresolved_baseline
+    from ..unresolved import unresolved_report
 
     def action():
         settings = cli.settings()
@@ -305,8 +292,6 @@ def unresolved_report_command(
             objects or settings.recovered_objects_dir,
             link_map or settings.product_build_dir / "Wiz8.map",
         )
-        if write_baseline:
-            return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
         return report
 
     cli.emit(action())

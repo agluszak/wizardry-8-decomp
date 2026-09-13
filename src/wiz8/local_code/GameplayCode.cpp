@@ -862,9 +862,9 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
     row->animation_0fa = slot_kind;
     for (unsigned int index = 0; index < 8; ++index) {
-        if (g_status_685170.dwords_18e0[index] == (unsigned int)-1) {
-            g_status_685170.dwords_18e0[index] = slot;
-            row->party_order_0f1 = index;
+        if (g_status_685170.party_order_slots[index] == (unsigned int)-1) {
+            g_status_685170.party_order_slots[index] = slot;
+            row->party_order_index = index;
             break;
         }
     }
@@ -875,11 +875,11 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         gXStatus.party_slot_state[slot][0] = 0xff;
         PostCharacterNotice(slot, gppStringList[0x940 / 4]);
     }
-    ++g_status_685170.unknown_000d[2];
+    ++g_status_685170.total_member_count;
     if (slot_kind == -1) {
-        ++g_status_685170.unknown_000d[0];
+        ++g_status_685170.regular_member_count;
     } else {
-        ++g_status_685170.unknown_000d[1];
+        ++g_status_685170.auxiliary_member_count;
     }
 
     RebuildCharacterModifierBlock(destination);

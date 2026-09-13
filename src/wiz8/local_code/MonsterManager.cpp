@@ -28,7 +28,6 @@ int g_monster_info_iterator_index;
 #include "wiz8/utility.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Monster.h"
-#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/npc_state.h"
@@ -52,7 +51,6 @@ void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
-extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
 // FUNCTION: WIZ8 0x0052A780

@@ -320,7 +320,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
                   "OctMeshModel::Read -- Could not get vertex normal array.",
                   "OctMeshModel::Read -- Could not read m_pVertNorms.");
 
-    vertex_lights_30 = model->GetVertexDIG00472100(1, -1);
+    vertex_lights_30 = model->GetVertexLights(1, -1);
     ReadMeshArray(file, vertex_lights_30, vertex_count_40,
                   "OctMeshModel::Read -- Could not get static lighting array.",
                   "OctMeshModel::Read -- Could not read m_pVertLights.");
@@ -330,7 +330,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
                   "OctMeshModel::Read -- Could not get poly equation array.",
                   "OctMeshModel::Read -- Could not read m_psrPolyEqtns.");
 
-    float* weights = model->InitializeVertexWeights004721E0(1);
+    float* weights = model->GetVertexSunlight(1);
     if (weights == 0) {
         ShutdownWithErrorBox("OctMeshModel::Read -- Could not allocate intensity array.");
     }

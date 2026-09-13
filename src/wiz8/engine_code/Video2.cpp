@@ -198,7 +198,7 @@ W8World* g_world;
 // GLOBAL: WIZ8 0x00659AB8
 W8World* g_world_659ab8;
 // GLOBAL: WIZ8 0x652da4
-unsigned char g_flag_652da4;
+unsigned char g_camera_sway_active_652da4;
 // GLOBAL: WIZ8 0x5ebb1c
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 // GLOBAL: WIZ8 0x5ebb20
@@ -1792,8 +1792,8 @@ void SetViewport(int left, int top, int right, int bottom)
         if (g_world_659ab8 != 0) {
             g_world_659ab8->camera->setViewPlane(plane, 1.0);
         }
-        if (g_flag_652da4) {
-            UpdateCameraView00450080(g_world->camera, 1);
+        if (g_camera_sway_active_652da4) {
+            SetCameraSwayMode(g_world->camera, 1);
         }
     }
 }

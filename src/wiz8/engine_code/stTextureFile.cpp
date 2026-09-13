@@ -3,110 +3,235 @@
 
 #include "wiz8/engine_code/ReadLevel.h"
 #include "FileMan.h"
+#include "surrender/srCore.h"
+#include "surrender/srHeap.h"
 #include "surrender/srPalette.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/virtual_file.h"
 
 #include <string.h>
 
-// FUNCTION: WIZ8 0x0047C090
-srColorSurface* stTextureFile::LoadSurface0047C090(int handle, int* image_type)
+// GLOBAL: WIZ8 0x0065A138
+unsigned char* g_tga_file_data_0065a138;
+// GLOBAL: WIZ8 0x0065A13C
+unsigned int g_tga_file_data_capacity_0065a13c;
+
+// FUNCTION: WIZ8 0x0047BC80
+void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsigned char* header)
 {
-    unsigned char id_length;
-    unsigned char color_map_type;
-    unsigned char type;
-    unsigned short color_map_origin;
+    srPixelConvert::PixelFormat format;
+    unsigned char* file_data;
+    unsigned int file_size;
+    unsigned int file_position;
+    unsigned int data_size;
+    unsigned int bytes_per_pixel;
+    unsigned int width;
+    unsigned int height;
+    unsigned int row_size;
+    unsigned char* destination;
+
+    surface->getPixelFormat(format);
+    bytes_per_pixel = format.bytes_per_pixel_minus_one + 1;
+    width = header[12] | (static_cast<unsigned int>(header[13]) << 8);
+    height = header[14] | (static_cast<unsigned int>(header[15]) << 8);
+    row_size = width * bytes_per_pixel;
+    file_size = FileGetSize(handle);
+    file_position = FileGetPos(handle);
+    data_size = file_size - file_position;
+
+    if (g_tga_file_data_capacity_0065a13c < data_size) {
+        if (g_tga_file_data_0065a138 != 0) {
+            srHeap.free(g_tga_file_data_0065a138);
+        }
+        g_tga_file_data_0065a138 = static_cast<unsigned char*>(srHeap.allocate(data_size));
+        g_tga_file_data_capacity_0065a13c = data_size;
+    }
+    file_data = g_tga_file_data_0065a138;
+    if (data_size == 0 || file_data == 0 || !FileRead(handle, file_data, data_size, 0)) {
+        return;
+    }
+
+    destination = static_cast<unsigned char*>(surface->getDataPtr());
+    if (destination == 0) {
+        return;
+    }
+
+    if (header[2] == 9 || header[2] == 10 || header[2] == 11) {
+        unsigned int source_offset = 0;
+        unsigned int pixel_offset = 0;
+        unsigned int pixel_count = width * height;
+
+        while (pixel_offset < pixel_count && source_offset < data_size) {
+            unsigned char packet = file_data[source_offset++];
+            unsigned int packet_count = (packet & 0x7f) + 1;
+            unsigned int copy_count = packet_count;
+
+            if ((packet & 0x80) != 0) {
+                const unsigned char* pixel = file_data + source_offset;
+                for (unsigned int index = 0; index < copy_count; ++index) {
+                    unsigned int x = pixel_offset % width;
+                    unsigned int y = pixel_offset / width;
+                    if ((header[17] & 0x20) == 0) {
+                        y = height - 1 - y;
+                    }
+                    if ((header[17] & 0x10) != 0) {
+                        x = width - 1 - x;
+                    }
+                    memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel, pixel,
+                           bytes_per_pixel);
+                    ++pixel_offset;
+                }
+                source_offset += bytes_per_pixel;
+            } else {
+                if (source_offset + packet_count * bytes_per_pixel > data_size) {
+                    packet_count = (data_size - source_offset) / bytes_per_pixel;
+                }
+                copy_count = packet_count;
+                for (unsigned int index = 0; index < copy_count; ++index) {
+                    unsigned int x = pixel_offset % width;
+                    unsigned int y = pixel_offset / width;
+                    if ((header[17] & 0x20) == 0) {
+                        y = height - 1 - y;
+                    }
+                    if ((header[17] & 0x10) != 0) {
+                        x = width - 1 - x;
+                    }
+                    memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel,
+                           file_data + source_offset, bytes_per_pixel);
+                    source_offset += bytes_per_pixel;
+                    ++pixel_offset;
+                }
+            }
+        }
+        return;
+    }
+
+    for (unsigned int row = 0; row < height; ++row) {
+        unsigned int destination_row = row;
+        if ((header[17] & 0x20) == 0) {
+            destination_row = height - 1 - row;
+        }
+        if ((header[17] & 0x10) == 0) {
+            memcpy(destination + destination_row * surface->getPitch(), file_data + row * row_size,
+                   row_size);
+        } else {
+            for (unsigned int column = 0; column < width; ++column) {
+                memcpy(destination + destination_row * surface->getPitch() +
+                           (width - 1 - column) * bytes_per_pixel,
+                       file_data + row * row_size + column * bytes_per_pixel, bytes_per_pixel);
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0047C090
+srColorSurface* LoadSurface0047C090(int handle)
+{
+    unsigned char header[18];
     unsigned short color_map_length;
-    unsigned char color_map_depth;
-    unsigned short origin_x;
-    unsigned short origin_y;
+    unsigned char color_map_entry_size;
     unsigned short width;
     unsigned short height;
     unsigned char pixel_depth;
-    unsigned char descriptor;
+    unsigned char image_descriptor;
+    srARGB palette_colors[1024];
+    unsigned int palette_count;
+    srPalette* palette;
+    srColorSurface* surface;
 
-    FileRead(handle, &id_length, 1, 0);
-    FileRead(handle, &color_map_type, 1, 0);
-    FileRead(handle, &type, 1, 0);
-    FileRead(handle, &color_map_origin, 2, 0);
+    FileRead(handle, &header[0], 1, 0);
+    FileRead(handle, &header[1], 1, 0);
+    FileRead(handle, &header[2], 1, 0);
+    FileRead(handle, &header[3], 2, 0);
     FileRead(handle, &color_map_length, 2, 0);
-    FileRead(handle, &color_map_depth, 1, 0);
-    FileRead(handle, &origin_x, 2, 0);
-    FileRead(handle, &origin_y, 2, 0);
+    FileRead(handle, &color_map_entry_size, 1, 0);
+    FileRead(handle, &header[8], 2, 0);
+    FileRead(handle, &header[10], 2, 0);
     FileRead(handle, &width, 2, 0);
     FileRead(handle, &height, 2, 0);
     FileRead(handle, &pixel_depth, 1, 0);
-    FileRead(handle, &descriptor, 1, 0);
-    (void)color_map_origin;
-    (void)color_map_type;
-    (void)origin_x;
-    (void)origin_y;
+    FileRead(handle, &image_descriptor, 1, 0);
+    header[5] = static_cast<unsigned char>(color_map_length);
+    header[6] = static_cast<unsigned char>(color_map_length >> 8);
+    header[7] = color_map_entry_size;
+    header[12] = static_cast<unsigned char>(width);
+    header[13] = static_cast<unsigned char>(width >> 8);
+    header[14] = static_cast<unsigned char>(height);
+    header[15] = static_cast<unsigned char>(height >> 8);
+    header[16] = pixel_depth;
+    header[17] = image_descriptor;
+    FileSeek(handle, header[0], FILE_SEEK_FROM_CURRENT);
 
-    FileSeek(handle, id_length, FILE_SEEK_FROM_CURRENT);
-    if (image_type != 0) {
-        *image_type = type;
+    if (header[1] == 0) {
+        palette_count = color_map_length;
+    } else if (header[2] == 0 || header[2] == 1 || (header[2] == 9 && header[1] == 1)) {
+        palette_count = color_map_length;
+        for (unsigned int index = 0; index < palette_count; ++index) {
+            palette_colors[index].alpha = 0xff;
+            FileRead(handle, &palette_colors[index].blue, 1, 0);
+            FileRead(handle, &palette_colors[index].green, 1, 0);
+            FileRead(handle, &palette_colors[index].red, 1, 0);
+        }
+    } else {
+        FileSeek(handle, (color_map_entry_size >> 3) * color_map_length, FILE_SEEK_FROM_CURRENT);
+        palette_count = color_map_length;
     }
 
-    srPalette* palette = 0;
-    srARGB colors[1024];
-    if ((type == 1 || type == 9) && color_map_length != 0) {
-        if (color_map_depth != 24 && color_map_depth != 32) {
+    switch (header[2]) {
+    case 0:
+        if (header[1] != 1) {
             return 0;
         }
-        for (unsigned short index = 0; index < color_map_length; ++index) {
-            colors[index].alpha = 0xff;
-            FileRead(handle, &colors[index].blue, 1, 0);
-            FileRead(handle, &colors[index].green, 1, 0);
-            FileRead(handle, &colors[index].red, 1, 0);
-            if (color_map_depth == 32) {
-                FileRead(handle, &colors[index].alpha, 1, 0);
-            }
-        }
-        palette = SR_NEW(srPalette)(colors, color_map_length);
-        if (palette != 0) {
-            palette->setName("TGA importer generated palette");
-            palette->autoRelease();
-        }
-    } else if (type == 2 || type == 10) {
-        palette = srCore.getPalette();
-    }
-
-    srPixelConvert::e_surfaceType surface_type;
-    switch (type) {
+        width = 1;
+        height = 1;
+        palette = SR_NEW(W8Palette)(palette_colors, color_map_length);
+        palette->setName("TGA importer generated palette");
+        palette->autoRelease();
+        break;
     case 1:
     case 9:
-        surface_type = srPixelConvert::SURFACE_L8;
+        if (header[1] == 1) {
+            palette = SR_NEW(W8Palette)(palette_colors, color_map_length);
+            palette->setName("TGA importer generated palette");
+            palette->autoRelease();
+        } else {
+            palette = srCore.getPalette();
+        }
         break;
     case 2:
     case 10:
         if (pixel_depth == 16) {
-            surface_type = srPixelConvert::SURFACE_ARGB1555;
+            surface = SR_NEW(W8ColorSurface)(
+                static_cast<srPixelConvert::e_surfaceType>((image_descriptor & 0xf) == 0 ? 8 : 9),
+                width, height);
         } else if (pixel_depth == 24) {
-            surface_type = srPixelConvert::SURFACE_BGR24;
+            surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
         } else if (pixel_depth == 32) {
-            surface_type = srPixelConvert::SURFACE_BGRA32;
+            surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
+                                                 (image_descriptor & 0xf) == 0 ? 0xd : 0xe),
+                                             width, height);
         } else {
             return 0;
         }
         break;
     case 3:
     case 11:
-        surface_type = srPixelConvert::SURFACE_L8;
+        surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_L8, width, height);
         break;
     default:
         return 0;
     }
 
-    srColorSurface* surface = SR_NEW(W8ColorSurface)(surface_type, width, height);
-    if (surface == 0) {
-        return 0;
+    if (header[2] == 0 || header[2] == 1 || header[2] == 9) {
+        surface =
+            SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(4), width, height);
+        if (surface != 0) {
+            surface->setPalette(palette);
+        }
     }
-    if (palette != 0) {
-        surface->setPalette(palette);
-    }
-    const long data_size = surface->getDataSize();
-    if (data_size > 0) {
-        FileRead(handle, surface->getDataPtr(), data_size, 0);
+
+    if (surface != 0) {
+        LoadSurfacePixels0047BC80(handle, surface, header);
     }
     return surface;
 }
@@ -251,10 +376,9 @@ void stTextureFile::loadSurface()
         return;
     }
 
-    int image_type = 0;
     int handle = FileOpen(file_name_58, 0x41, 0);
     if (handle != 0) {
-        surface_5c = LoadSurface0047C090(handle, &image_type);
+        surface_5c = LoadSurface0047C090(handle);
         FileClose(handle);
     }
 

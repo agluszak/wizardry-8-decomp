@@ -17,6 +17,9 @@
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/sgp_bridge.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Octree.h"
@@ -46,8 +49,6 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/engine_code/Trigger.h"
-#include "wiz8/engine_code/AmbientSound.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -381,6 +382,70 @@ void DetachAllWorldItems(void)
     for (int index = 0; index < count; ++index) {
         DetachWorldItemMeshes0046DE40(*g_worlds_00659a80.GetAt(index));
     }
+}
+
+// GLOBAL: WIZ8 0x005ec1f8
+const double g_double_005ec1f8 = 3.141592653589793;
+// GLOBAL: WIZ8 0x005ebce8
+const double g_double_005ebce8 = 180.0;
+// GLOBAL: WIZ8 0x00607d84
+float g_camera_base_horizontal_fov_607d84;
+// GLOBAL: WIZ8 0x00607d88
+float g_camera_base_vertical_fov_607d88;
+// GLOBAL: WIZ8 0x00659abc
+float g_camera_sway_horizontal_phase_659abc;
+// GLOBAL: WIZ8 0x00659ac0
+float g_camera_sway_vertical_phase_659ac0;
+
+/* Drives the swaying camera view. A positive mode captures the camera's
+   field of view in degrees and enters the mode, a negative mode restores the
+   captured view and leaves it, and zero only advances the sway while it is
+   active: both phases run in degrees per second, wrap at a full turn and
+   offset the view plane through sine. */
+// FUNCTION: WIZ8 0x00450080
+void SetCameraSwayMode(srCamera* camera, int mode)
+{
+    float elapsed = MoveTimer(2);
+
+    if (mode != 0) {
+        if (mode > 0) {
+            g_camera_base_horizontal_fov_607d84 =
+                (float)(camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+            g_camera_base_vertical_fov_607d88 =
+                (float)(camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
+            if (!g_camera_sway_active_652da4) {
+                g_camera_sway_horizontal_phase_659abc = 0.0f;
+                g_camera_sway_vertical_phase_659ac0 = 0.0f;
+                BeginCameraSway0041A960();
+            }
+        } else {
+            double radians = g_double_005ec1f8 * g_float_005ebcf8;
+            camera->setViewPlane(radians * g_camera_base_horizontal_fov_607d84,
+                                 radians * g_camera_base_vertical_fov_607d88);
+            EndCameraSway0041A9A0();
+            return;
+        }
+    }
+    if (!g_camera_sway_active_652da4) {
+        return;
+    }
+
+    g_camera_sway_horizontal_phase_659abc += elapsed * 12.0f;
+    g_camera_sway_vertical_phase_659ac0 += elapsed * 11.0f;
+    if (g_camera_sway_horizontal_phase_659abc > 360.0f) {
+        g_camera_sway_horizontal_phase_659abc -= 360.0f;
+    }
+    if (g_camera_sway_vertical_phase_659ac0 > 360.0f) {
+        g_camera_sway_vertical_phase_659ac0 -= 360.0f;
+    }
+
+    double radians = g_double_005ec1f8 * g_float_005ebcf8;
+    camera->setViewPlane((sin(radians * g_camera_sway_horizontal_phase_659abc) * 0.75 +
+                          g_camera_base_horizontal_fov_607d84) *
+                             radians,
+                         (sin(radians * g_camera_sway_vertical_phase_659ac0) * 0.63 +
+                          g_camera_base_vertical_fov_607d88) *
+                             radians);
 }
 
 // FUNCTION: WIZ8 0x004507A0

@@ -50,8 +50,8 @@ struct W8PartySlotRow {
     unsigned char flag_0d0;
     W8CombatSlot target_context_5;
     /* 0x0f1: the slot's place in the marching order, the index of its entry
-       in g_status_685170.dwords_18e0. */
-    int party_order_0f1;
+       in g_status_685170.party_order_slots. */
+    int party_order_index;
     unsigned char flag_0f5;
     unsigned char unknown_0f6[4];
     int animation_0fa;
@@ -129,10 +129,10 @@ struct W8CombatState {
     int iActionChar;                          /* 0x7b4: -1 when nobody's turn */
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned char unknown_7bc[5];
-    W8EffectSlot effect_slots[9];           /* 0x7c1, 0x11 stride */
-    W8EffectSlot effect_slots_85a[6];      /* 0x85a..0x8bf */
-    W8Missile* engaged_missile;             /* 0x8c0: live missile that blocks ending combat */
-    unsigned char unknown_8c4;              /* 0x8c4 */
+    W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
+    W8EffectSlot effect_slots_85a[6]; /* 0x85a..0x8bf */
+    W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */
+    unsigned char unknown_8c4;        /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
     W8CombatSlot TargetHit;
