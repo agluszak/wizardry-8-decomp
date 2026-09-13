@@ -12,13 +12,13 @@
  */
 
 #include <windows.h>
+#include "wiz8/mouth_gap.h"
 
 typedef signed long S32;
 typedef unsigned long U32;
 
 struct BINK;
 struct BINKSND;
-struct W8MouthGapTrack;
 
 typedef BINK* HBINK;
 
@@ -74,7 +74,5 @@ __declspec(dllimport) S32 __stdcall BinkDoFrame(HBINK bink);
 __declspec(dllimport) S32 __stdcall BinkWait(HBINK bink);
 __declspec(dllimport) void __stdcall BinkNextFrame(HBINK bink);
 }
-
-void Function5E2F40(int sound_handle, W8MouthGapTrack* state);
 
 #endif

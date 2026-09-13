@@ -1,21 +1,13 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/Sight.h"
+#include "sight_semantic_test.h"
 
 #include "surrender/srCamera.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
-struct SightSemanticResult {
-    unsigned char blind_is_zero;
-    unsigned char facing_away_reduces_range;
-    unsigned char skip_fov_restores_range;
-    unsigned char penalty_source_reduces_range;
-    unsigned char attribute_scales_range;
-    unsigned char same_primitive_party_and_monster;
-};
 
 static W8World g_sight_test_world;
 static srNode* g_sight_test_parent = new srNode(0);

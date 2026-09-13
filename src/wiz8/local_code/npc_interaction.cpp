@@ -56,9 +56,5 @@ void ClearNpcMessageQueue(void)
         delete *g_npc_scripting.message_lines.GetAt(index);
     }
     g_npc_scripting.message_lines.Clear();
-    /* Retail resets the complete object, including both vector headers. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdynamic-class-memaccess"
-    memset(&g_npc_scripting, 0, sizeof(g_npc_scripting));
-#pragma clang diagnostic pop
+    memset(static_cast<void*>(&g_npc_scripting), 0, sizeof(g_npc_scripting));
 }

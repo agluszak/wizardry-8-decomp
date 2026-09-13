@@ -1,22 +1,6 @@
 #pragma once
 
-#ifdef S32
-#define WIZ8_NPCSCRIPTING_RESTORE_S32
-#undef S32
-#endif
-#ifdef U32
-#define WIZ8_NPCSCRIPTING_RESTORE_U32
-#undef U32
-#endif
-#include "wiz8/bink_video.h"
-#ifdef WIZ8_NPCSCRIPTING_RESTORE_S32
-#define S32 signed long
-#undef WIZ8_NPCSCRIPTING_RESTORE_S32
-#endif
-#ifdef WIZ8_NPCSCRIPTING_RESTORE_U32
-#define U32 unsigned long
-#undef WIZ8_NPCSCRIPTING_RESTORE_U32
-#endif
+#include "wiz8/mouth_gap.h"
 #include "wiz8/message_box.h"
 #include "surrender/srMath.h"
 
