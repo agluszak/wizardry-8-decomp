@@ -11,6 +11,7 @@
 #include "input.h"
 
 struct W8WorldItem;
+struct W8ItemInstance;
 class Trigger;
 
 /* The small numeric entry field embedded by the factory dialogs. Constructor
@@ -234,3 +235,33 @@ public:
 };
 
 static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0");
+
+/* The item-split dialog RCSItemsPage.cpp opens for stackable item stacks.
+   Derivation is proven by the retail static_cast to W8DialogBase at the
+   OpenSplitStackDialog005BA400 call site, the virtual SetText/SetOrigin calls
+   on the result and DisplayCampDialog(W8DialogBase*). The constructor stores
+   this vtable at +0; the listed slots are the ones that differ from
+   W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
+   the count the destroy callback SplitStackDialogResult005BAA80 reads back
+   and result_0c8 is the dialog result kind it tests. The constructor body is
+   unrecovered (gap), so the remaining fields stay unknown. */
+// VTABLE: WIZ8 0x005efb78
+class W8Dialog005DCED0 : public W8DialogBase {
+public:
+    W8Dialog005DCED0(int kind, W8ItemInstance* item, int param); /* 0x005DCED0 */
+    virtual ~W8Dialog005DCED0() override;                        /* 0x005DD010 */
+    virtual int CreateControls() override;                       /* 0x005DD130 */
+    virtual void DestroyControls() override;                     /* 0x005DD3C0 */
+    virtual void Draw() override;                                /* 0x005DDB60 */
+    virtual unsigned char ProcessInput() override;               /* 0x005DE1B0 */
+    virtual void OnNumericInputChanged(int value) override;      /* 0x005DDFA0 */
+
+public:
+    unsigned char unknown_054[0x6c];
+    unsigned int split_count_0c0;
+    int unknown_0c4;
+    int result_0c8;
+    unsigned char unknown_0cc[0xc];
+};
+
+static_assert(sizeof(W8Dialog005DCED0) == 0xd8, "W8Dialog005DCED0_must_be_0xd8");

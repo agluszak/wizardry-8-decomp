@@ -48,12 +48,6 @@ unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region
 unsigned char PanelTabRegionHandler005BBC70(const W8RegionEvent* event, W8Region* region);
 void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 
-/* 0x005DCED0 split-stack dialog (unresolved gap; the class is not recovered).
-   Function5DCED0 is its 0xd8-byte constructor invoked __thiscall on fresh
-   storage; the destroy callback reads the two fields it fills at +0xc0 and
-   +0xc8, so they are declared here from the observed offsets only. */
-void* Function5DCED0(void* memory, int kind, W8ItemInstance* item, int param);
-
 /* Unresolved gap callees, declared for the call sites in this unit. */
 char Function522A00(W8ItemInstance* item);
 char Function522B80(int character_index, W8ItemInstance* item, int arg_3);
@@ -70,16 +64,6 @@ char Function5A5F30(char arg_1);
 void Function5A6020(W8ItemInstance* item);
 char Function5A6310(W8ItemInstance* item);
 int Function5A6340(int party_slot, int action, int detail_count, W8CombatSlot* target);
-
-/* Gap-owned value externs read by this unit (split-dialog geometry/kind and
-   the character event id queued by UseHeldItemOnItem005BA740). */
-extern int g_value_005efb44;
-extern int g_value_005efb4c;
-extern int g_value_005efb50;
-extern int g_value_005efb64;
-extern int g_value_005ef958;
-extern int g_value_005ef95c;
-extern int g_value_005ee65c;
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id; gap-owned table, also read by the AssayDialog TU. */

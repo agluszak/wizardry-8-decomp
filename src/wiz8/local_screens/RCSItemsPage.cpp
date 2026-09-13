@@ -5,6 +5,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "wiz8/game_status.h"
@@ -47,6 +48,28 @@ int giCasterCharSlot;
 
 // GLOBAL: WIZ8 0x0069C424
 W8ItemInstance* g_split_item_source_0069c424;
+
+// GLOBAL: WIZ8 0x005EFB44
+int g_split_result_kind_005efb44 = 1;
+// GLOBAL: WIZ8 0x005EFB4C
+int g_split_dialog_x_005efb4c = 0xa1;
+// GLOBAL: WIZ8 0x005EFB50
+int g_split_dialog_y_005efb50 = 0x94;
+// GLOBAL: WIZ8 0x005EFB64
+int g_split_dialog_kind_005efb64 = 0;
+// GLOBAL: WIZ8 0x005EF958
+int g_info_dialog_x_005ef958 = 0x80;
+// GLOBAL: WIZ8 0x005EF95C
+int g_info_dialog_y_005ef95c = 0x61;
+// GLOBAL: WIZ8 0x005EE65C
+int g_character_event_kind_005ee65c = 0x35;
+
+/* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
+   callback_id. */
+// GLOBAL: WIZ8 0x0061E7C4
+const unsigned short g_equip_slot_label_ids_61e7c4[12] = {
+    0x433, 0x434, 0x435, 0x436, 0x437, 0x438, 0x439, 0x43a, 0x43b, 0x43c, 0x43d, 0x43e,
+};
 
 /* The items page swaps two control panels in and out: mode zero shows the
    item page, mode one the character page. */
@@ -97,7 +120,7 @@ void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback de
         dialog = new W8AssayDialog(item, g_value_0069c0f8);
     }
     dialog->SetText(&g_wchar_00689b34);
-    dialog->SetOrigin(g_value_005ef958, g_value_005ef95c);
+    dialog->SetOrigin(g_info_dialog_x_005ef958, g_info_dialog_y_005ef95c);
     dialog->m_destroy_callback = destroy_callback;
     DisplayCampDialog(dialog);
 }
@@ -142,21 +165,15 @@ void DropHeldItem005BA3D0(void)
 void OpenSplitStackDialog005BA400(W8ItemInstance* item)
 {
     W8DialogBase* dialog;
-    void* memory;
 
     g_split_item_source_0069c424 = 0;
     if (item->item_id != -1 && item->stack_count > 1 &&
         (g_item_records[item->item_id].flags_041 & 2) == 0 &&
         g_item_records[item->item_id].quantity_kind == 1) {
         g_split_item_source_0069c424 = item;
-        memory = ::operator new(0xd8);
-        if (memory != 0) {
-            dialog = static_cast<W8DialogBase*>(Function5DCED0(memory, g_value_005efb64, item, -1));
-        } else {
-            dialog = 0;
-        }
+        dialog = new W8Dialog005DCED0(g_split_dialog_kind_005efb64, item, -1);
         dialog->SetText(&g_wchar_00689b34);
-        dialog->SetOrigin(g_value_005efb4c, g_value_005efb50);
+        dialog->SetOrigin(g_split_dialog_x_005efb4c, g_split_dialog_y_005efb50);
         dialog->m_destroy_callback = SplitStackDialogResult005BAA80;
         DisplayCampDialog(dialog);
         Function5B59B0(0);
@@ -257,8 +274,8 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
                 OpenItemInfoDialog005BA110(item, 0);
                 if (item->identified == 0) {
                     QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot,
-                                        g_value_005ee65c, 0, g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                                        g_character_event_kind_005ee65c, 0,
+                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                 }
             }
             Function5A4A00();
@@ -267,8 +284,9 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
             giCasterCharSlot = -1;
             return;
         }
-        QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot, g_value_005ee65c,
-                            0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot,
+                            g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
     }
 }
 
@@ -343,10 +361,10 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     unsigned char remaining;
     unsigned char carried;
 
-    if (*reinterpret_cast<int*>(reinterpret_cast<char*>(dialog) + 0xc8) != g_value_005efb44) {
+    if (static_cast<W8Dialog005DCED0*>(dialog)->result_0c8 != g_split_result_kind_005efb44) {
         return;
     }
-    count = *reinterpret_cast<unsigned int*>(reinterpret_cast<char*>(dialog) + 0xc0);
+    count = static_cast<W8Dialog005DCED0*>(dialog)->split_count_0c0;
     remaining = g_split_item_source_0069c424->stack_count - (unsigned char)count;
     carried = (unsigned char)count;
     if (count == 0) {
