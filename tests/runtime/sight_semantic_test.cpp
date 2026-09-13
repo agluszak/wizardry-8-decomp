@@ -1,22 +1,30 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/sr_api.h"
 
 #include "sight_semantic_test.h"
 #include "surrender/srCamera.h"
 
+#include <direct.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
 static W8World g_sight_test_world;
-static srCamera g_sight_test_camera(static_cast<srNode*>(0));
+static srCamera* g_sight_test_camera = 0;
 
 static void SetupSightTestWorld(float far_clip)
 {
     memset(&g_sight_test_world, 0, sizeof(g_sight_test_world));
-    g_sight_test_camera.setClipRange(1.0, far_clip);
-    g_sight_test_world.camera = &g_sight_test_camera;
+    if (g_sight_test_camera == 0) {
+        _chdir("DLL");
+        srInit();
+        _chdir("..");
+        g_sight_test_camera = new srCamera(0);
+    }
+    g_sight_test_camera->setClipRange(1.0, far_clip);
+    g_sight_test_world.camera = g_sight_test_camera;
     g_world = &g_sight_test_world;
 }
 
@@ -63,7 +71,7 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
     facing = ThresholdFacingTarget(1000.0f);
     away = ThresholdFacingAway(1000.0f);
-    result->facing_away_reduces_range = away > facing;
+    result->facing_away_reduces_range = away < facing;
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(0.0f, 0.0f, 1000.0f);
