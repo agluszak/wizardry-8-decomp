@@ -14,8 +14,8 @@
    FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
    FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
    PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
-   Offsets +0x210/+0x218/+0x224 sit past the 100-slot table and are not vp
-   methods. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
+   Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
+   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
    CALLIND +0x38 / +0xd8. srDebugVP is declared; ctor and
    resetInternalStatistics stay imported. */
@@ -39,6 +39,18 @@ public:
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
+    }
+
+    static inline void copyIndexed(SRDWORD* destination, const SRDWORD* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
+    static inline void copyIndexed(srVector3* destination, const srVector3* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
     }
 
     static inline void copy(srVector4* destination, const srVector4& constant, SRDWORD count)
@@ -70,6 +82,11 @@ public:
         vp->_add(destination, vector_source, float_source, count);
     }
 
+    static inline void mul(float* destination, float constant, const float* source, SRDWORD count)
+    {
+        vp->_mul(destination, constant, source, count);
+    }
+
     static inline void mul(srVector3* destination, const srVector3* vector_source,
                            const float* float_source, SRDWORD count)
     {
@@ -80,6 +97,12 @@ public:
                            const float* float_source, SRDWORD count)
     {
         vp->_mul(destination, constant, float_source, count);
+    }
+
+    static inline void normalize(srVector3* destination, const srVector3* vectors, float length,
+                                 SRDWORD count)
+    {
+        vp->_normalize(destination, vectors, length, count);
     }
 
     static inline void minMax(const srVector3* source, srVector3& minimum, srVector3& maximum,

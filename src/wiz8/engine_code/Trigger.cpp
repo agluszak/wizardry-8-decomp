@@ -31,6 +31,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/3dapi.h"
 #include "wiz8/game_status.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
@@ -86,8 +87,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 unsigned char g_flag_00606994 = 1;
 extern void RequestLevelTransition005615F0(int location_id, int entrance,
                                            unsigned char show_message);
-
-extern void UpdateCameraView00450080(srCamera* camera, int mode);
 
 // GLOBAL: WIZ8 0x0068506e
 unsigned char g_flag_0068506e;
@@ -3087,7 +3086,7 @@ void Trigger::Run(int source)
         break;
 
     case 0x10:
-        UpdateCameraView00450080(m_pWorld->camera, source > 0 ? 1 : -1);
+        SetCameraSwayMode(m_pWorld->camera, source > 0 ? 1 : -1);
         return;
 
     case 0x24: {

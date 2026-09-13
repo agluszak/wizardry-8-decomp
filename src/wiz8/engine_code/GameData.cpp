@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
@@ -232,6 +233,37 @@ unsigned char HasLevelDataVector(void)
 
 // GLOBAL: WIZ8 0x00652db4
 W8EnvironRecord* g_environ_00652DB4;
+
+/* The camera-sway mode halves navigator gravity, mirrors it into the active
+   environment record and swaps the camera forward scale; the flag guards both
+   transitions so repeated triggers are idempotent. */
+// FUNCTION: WIZ8 0x0041a960
+void BeginCameraSway0041A960(void)
+{
+    if (g_camera_sway_active_652da4) {
+        return;
+    }
+    g_camera_forward_scale_603ab4 = g_camera_level_forward_scale_603aac;
+    g_navigator_gravity_00603acc = 93.75f;
+    if (g_environ_00652DB4 != 0) {
+        g_environ_00652DB4->value_14 = -93.75f;
+    }
+    g_camera_sway_active_652da4 = 1;
+}
+
+// FUNCTION: WIZ8 0x0041a9a0
+void EndCameraSway0041A9A0(void)
+{
+    if (!g_camera_sway_active_652da4) {
+        return;
+    }
+    g_camera_forward_scale_603ab4 = g_camera_default_forward_scale_603ab0;
+    g_navigator_gravity_00603acc = 187.5f;
+    if (g_environ_00652DB4 != 0) {
+        g_environ_00652DB4->value_14 = -187.5f;
+    }
+    g_camera_sway_active_652da4 = 0;
+}
 
 // FUNCTION: WIZ8 0x0041AA40
 void ResetCurrentEnvironment0041AA40(void)

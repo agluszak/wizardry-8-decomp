@@ -22,9 +22,6 @@
 #include "wiz8/utility.h"
 #include "wiz8/sound_man.h"
 #include "random.h"
-#include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/local_code/ConditionsAndEnchantments.h"
-#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -386,10 +383,8 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
 extern int g_effect_005ee594;
 extern int g_effect_005ee590;
 extern int g_effect_005ee5f8;
-extern unsigned int g_effect_threshold_005ed904;
 // GLOBAL: WIZ8 0x005ed904
 unsigned int g_effect_threshold_005ed904 = 50;
-extern unsigned int g_effect_threshold_005ed900;
 // GLOBAL: WIZ8 0x005ed900
 unsigned int g_effect_threshold_005ed900 = 70;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */

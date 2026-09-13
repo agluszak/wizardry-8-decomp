@@ -165,8 +165,7 @@ def test_unresolved_fragment_does_not_prove_original_tu(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     (tmp_path / "src/wiz8/source_units.json").write_text(
-        '{"schema": "wiz8.source-units-v1", "compiler-emission": [],'
-        ' "unresolved-fragment": ["src/wiz8/engine_code/world_selection.cpp"]}',
+        '{"schema": "wiz8.source-units-v1", "compiler-emission": []}',
         encoding="utf-8",
     )
     layout = TranslationUnitLayout(

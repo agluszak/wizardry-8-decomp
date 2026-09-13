@@ -1,5 +1,6 @@
 #pragma once
 
+#include "surrender/srArray.h"
 #include "surrender/srMeshModel.h"
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
@@ -16,13 +17,12 @@ public:
         return "stMeshModel";
     }
 
-    // 0x00470B00
     stMeshModel(long polygons, long vertices);
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);
-    void LinkTo(stMeshModel* other);     /* 0x00471D60 */
-    void* GetVertex(unsigned int index); /* 0x00471AA0 */
+    void LinkTo(stMeshModel* other);      /* 0x00471D60 */
+    short* GetVertex(unsigned int frame); /* 0x00471AA0 */
     int FindSkinTable004736D0(const char* name);
     int CreateSkinTable00473260(const char* name, int base_table);
     srPtr<srTextureIFace>* GetTextureTable00473720(int table); /* 0x00473720 */
@@ -30,35 +30,51 @@ public:
     void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
                                                   float interpolation);
-    srVector3T<float>* GetVertexDIG00472100(char initialize, int table);
-    float* InitializeVertexWeights004721E0(char initialize);
+    srVector3T<float>* GetVertexLights(char initialize, int table); /* 0x00472100 */
+    float* GetVertexSunlight(char initialize);                      /* 0x004721E0 */
     void Function5AA400(stMeshModel* linked_model);
-    void InitializeVertexFrames00473B00(int frame_count);
+    void InitializeVertexFrames(int frames); /* 0x00473B00 */
+    unsigned char AllocateFrameStorage();    /* 0x00471340 */
+    void FreeFrameStorage();                 /* 0x004715E0 */
+    int ReleaseDecompressedFrames();         /* 0x004739E0 */
     void FinalizeVertexFrame00473180(int frame);
-    void FinalizeVertexFrameInternal004729F0(int frame);
+    unsigned char DecompressFrame(int frame, unsigned char flags,
+                                  srVector3T<float>* destination); /* 0x00471930 */
+    void ComputeFrameNormals(int frame);                           /* 0x004729F0 */
     void ClearAutomapPolygonFilter();
     void ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures);
 
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
     unsigned int flags_3a0;
-    unsigned char unknown_3a4[0x28];
+    unsigned char unknown_3a4[0xc];
+    int vertex_light_table_3b0;
+    /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table
+       -1 selects vertex_light_table_3b0. */
+    srHeapArray<srVector3T<float> > vertex_lights_3b4[2];
+    /* Per-vertex sunlight intensity, filled with 1.0f on demand. */
+    srHeapArray<float> vertex_sunlight_3c4;
     unsigned char flag_3cc;
-    unsigned char unknown_3cd[3];
-    unsigned int vertex_count; /* 0x3d0 */
-    void** compressed_vertex_locations_3d4;
-    void** compressed_vertex_normals_3d8;
-    void** compressed_polygon_normals_3dc;
-    void** vertices; /* 0x3e0 */
-    void** vertex_frame_normals_3e4;
-    void** polygon_frame_normals_3e8;
-    void** unknown_frame_data_3ec;
+    /* Set once both vertex lights and sunlight exist. */
+    unsigned char vertex_lighting_ready_3cd;
+    unsigned char unknown_3ce[2];
+    /* uiFrames: per-frame tables below hold one pointer per frame. The
+       decompressed float caches are srHeap allocations and are counted in
+       g_decompressed_mesh_bytes; the compressed tables are operator new. */
+    unsigned int frame_count;                   /* 0x3d0 */
+    srVector3T<float>** frame_vertex_locations; /* 0x3d4 */
+    srVector3T<float>** frame_vertex_normals;   /* 0x3d8 */
+    srVector3T<float>** frame_polygon_normals;  /* 0x3dc */
+    short** compressed_vertex_locations;        /* 0x3e0 m_psCompVertexLoc */
+    unsigned char** compressed_vertex_normals;  /* 0x3e4 m_pbCompVertexNormal */
+    unsigned char** compressed_polygon_normals; /* 0x3e8 m_pbCompPolyNormal */
+    unsigned char unknown_3ec[4];
     W8GrowableVector<int> skin_table_ids;                         /* 0x3f0; count at 0x3f4 */
     W8GrowableVector<srPtr<srTextureIFace>*> skin_texture_tables; /* 0x400 */
     W8GrowableVector<char*> skin_table_names;                     /* 0x410 */
     W8GrowableVector<short> mapped_values;                        /* 0x420 */
     W8GrowableVector<short> mapped_keys;                          /* 0x430 */
-    unsigned char unknown_440[4];
+    unsigned long last_decompress_release_tick_440;
     float vertex_compression_scale_444;
     unsigned char unknown_448[4];
     unsigned int* automap_polygons;      /* 0x44c */
@@ -71,6 +87,11 @@ public:
 };
 
 static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
+
+/* Every mesh model whose frame storage has been initialized. */
+extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
+/* Bytes currently held by decompressed per-frame float caches. */
+extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 
 int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */
 /* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3

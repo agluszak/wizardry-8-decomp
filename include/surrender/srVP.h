@@ -16,15 +16,23 @@ typedef srVP*(__cdecl* srInitVectorProcessorFn)();
 
 /* These names are present in srDebugVP's own signature table. */
 typedef unsigned char SRBYTE;
+typedef long SRLONG;
 typedef unsigned long SRDWORD;
 typedef srVector2T<float> srVector2;
 typedef srVector3T<float> srVector3;
 typedef srVector4T<float> srVector4;
 typedef srMatrix4T<float> srMatrix4;
 
-/* srDebugVP forwards each entry to the same slot of its wrapped srVP. This
-   prefix therefore records real virtual methods, not padding inserted to
-   reach _minMax at +0x18c. The debug signature for _prefetch omits its third
+/* srDebugVP forwards each entry to the same slot of its wrapped srVP; its
+   vtable holds 167 slots (+0x000..+0x298) and every forwarder pushes the
+   index of its own signature string, which fixes each slot's overload. This
+   declaration stops after _divByW at +0x250; the remaining slots are
+   _srTestBoundingBox, _srSpecularPow, _srCopyIndexedRemap, _srSetIndexed,
+   _srCollectPos, _srCollectNeg, _srCollectNonZero, _srRemapInverse,
+   _srFloatToLinear, _srLinearToFloat, _srDirect3DConvertColor, two
+   _transformIndexed overloads, _dotIndexed, _srCullNoClip, two unnamed
+   no-op forwards and _srGetClipFlags, whose return types are not yet
+   recovered. The debug signature for _prefetch omits its third
    word even though the checked debug, generic, AMD3DNow and KNI
    implementations return with RET 0x0c. That argument stays an
    address-qualified 32-bit scalar until its original type name and
@@ -189,8 +197,107 @@ public:
     virtual int _isNeg(const float* source, SRDWORD count);
     virtual int _isPos(const float* source, SRDWORD count);
     virtual int _isZero(const float* source, SRDWORD count);
+    virtual void _minMax(const float* source, float& minimum, float& maximum, SRDWORD count);
     virtual void _minMax(const srVector3* source, srVector3& minimum, srVector3& maximum,
                          SRDWORD count);
     virtual void _minMax(const srVector4* source, srVector4& minimum, srVector4& maximum,
                          SRDWORD count);
+    virtual float _sum(const float* source, SRDWORD count);
+    virtual void _axpy(float* destination, float add_constant, float multiply_constant,
+                       const float* multiply_source, SRDWORD count);
+    virtual void _axpy(float* destination, float add_constant, const float* scale_source,
+                       const float* multiply_source, SRDWORD count);
+    virtual void _axpy(float* destination, const float* add_source, float multiply_constant,
+                       const float* multiply_source, SRDWORD count);
+    virtual void _axpy(float* destination, const float* add_source, const float* scale_source,
+                       const float* multiply_source, SRDWORD count);
+    virtual void _axpy(float* destination, float add_constant, float scale,
+                       const float* scale_source, const float* multiply_source, SRDWORD count);
+    virtual void _axpy(float* destination, const float* add_source, float scale,
+                       const float* scale_source, const float* multiply_source, SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4& add_constant,
+                       const srVector4& multiply_constant, const float* multiply_source,
+                       SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4& add_constant,
+                       const srVector4* multiply_vectors, const float* multiply_source,
+                       SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4* add_source,
+                       const srVector4& multiply_constant, const float* multiply_source,
+                       SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4* add_source,
+                       const srVector4* multiply_vectors, const float* multiply_source,
+                       SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4& add_constant,
+                       const srVector4& multiply_constant, const float* multiply_source_0,
+                       const float* multiply_source_1, SRDWORD count);
+    virtual void _axpy(srVector4* destination, const srVector4* add_source,
+                       const srVector4& multiply_constant, const float* multiply_source_0,
+                       const float* multiply_source_1, SRDWORD count);
+    virtual void _mulIndexed(float* destination, const float* linear_source,
+                             const float* indexed_source, const SRDWORD* indices, SRDWORD count);
+    virtual void _mulIndexed(float* destination, float constant, const float* indexed_source,
+                             const SRDWORD* indices, SRDWORD count);
+    virtual void _mulIndexed(srVector3* destination, const srVector3* linear_source,
+                             const srVector3* indexed_source, const SRDWORD* indices,
+                             SRDWORD count);
+    virtual void _mulIndexed(srVector3* destination, const srVector3& constant,
+                             const srVector3* indexed_source, const SRDWORD* indices,
+                             SRDWORD count);
+    virtual void _mulIndexed(srVector4* destination, const srVector4* linear_source,
+                             const srVector4* indexed_source, const SRDWORD* indices,
+                             SRDWORD count);
+    virtual void _mulIndexed(srVector4* destination, const srVector4& constant,
+                             const srVector4* indexed_source, const SRDWORD* indices,
+                             SRDWORD count);
+    virtual void _toInt(SRLONG* destination, const float* source, SRDWORD count);
+    virtual void _invPoly(float* destination, const float* source, const srVector3& poly,
+                          SRDWORD count);
+    virtual void _abs(float* destination, const float* source, SRDWORD count);
+    virtual void _neg(float* destination, const float* source, SRDWORD count);
+    virtual void _cubic(float* destination, const float* source, SRDWORD count);
+    virtual void _dot(float* destination, const srVector3& constant, const srVector3* vectors,
+                      SRDWORD count);
+    virtual void _dot(float* destination, const srVector3* vectors_0, const srVector3* vectors_1,
+                      SRDWORD count);
+    virtual void _dot(float* destination, const srVector4& constant, const srVector4* vectors,
+                      SRDWORD count);
+    virtual void _dot(float* destination, const srVector4* vectors_0, const srVector4* vectors_1,
+                      SRDWORD count);
+    virtual void _dot(float* destination, const srVector4& constant, const srVector3* vectors,
+                      SRDWORD count);
+    virtual void _cross(srVector3* destination, const srVector3* vectors_0,
+                        const srVector3* vectors_1, SRDWORD count);
+    virtual void _length(float* destination, const srVector3* vectors, SRDWORD count);
+    virtual void _length(float* destination, const srVector4* vectors, SRDWORD count);
+    virtual void _normalize(srVector3* destination, const srVector3* vectors, float length,
+                            SRDWORD count);
+    virtual void _normalize(srVector4* destination, const srVector4* vectors, float length,
+                            SRDWORD count);
+    virtual void _transform(srVector3* destination, const srVector3* vectors,
+                            const srMatrix4& matrix, SRDWORD count);
+    virtual void _transform(srVector4* destination, const srVector4* vectors,
+                            const srMatrix4& matrix, SRDWORD count);
+    virtual void _transform(srVector4* destination, const srVector3* vectors,
+                            const srMatrix4& matrix, SRDWORD count);
+    virtual void _dir(srVector3* destination, float* lengths, const srVector3* source,
+                      SRDWORD count);
+    virtual void _dir(srVector3* destination, float* lengths, const srVector4* source,
+                      SRDWORD count);
+    virtual void _copyW(srVector4* destination, float constant, SRDWORD count);
+    virtual void _copyW(srVector4* destination, const float* source, SRDWORD count);
+    virtual void _copyW(float* destination, const srVector4* source, SRDWORD count);
+    virtual void _transformOrtho(srVector4* destination, const srVector4* source,
+                                 const srMatrix4& matrix, SRDWORD count);
+    virtual void _transformPerspective(srVector4* destination, const srVector4* source,
+                                       const srMatrix4& matrix, SRDWORD count);
+    virtual void _mulAdd(srVector4* destination, const srVector4& add_constant,
+                         const srVector4& multiply_constant, const srVector4* multiply_source,
+                         SRDWORD count);
+    virtual void _mulAdd(srVector4* destination, const srVector4* add_source,
+                         const srVector4& multiply_constant, const srVector4* multiply_source,
+                         SRDWORD count);
+    virtual void _mulAdd(srVector4* destination, const srVector4& add_constant,
+                         const srVector4* multiply_source_0, const srVector4* multiply_source_1,
+                         SRDWORD count);
+    virtual void _divByW(srVector4* destination, const srVector4* source, SRDWORD count);
 };

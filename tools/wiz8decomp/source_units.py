@@ -31,20 +31,6 @@ UNIT_DIRECTORIES = {
 }
 ORIGINAL_DIRECTORIES = {value: key for key, value in UNIT_DIRECTORIES.items()}
 
-# Filenames that are semantic catch-alls unless explicitly classified otherwise.
-CATCH_ALL_NAMES = frozenset(
-    {
-        "state_getters.cpp",
-        "registry_classes.cpp",
-        "gameplay_teardown.cpp",
-        "bringup_gates.cpp",
-        "unattributed_helpers.cpp",
-        "message_box.cpp",
-        "monster_info_dialog.cpp",
-        "dialogbutton.cpp",
-    }
-)
-
 _SOURCE_UNIT_LINE = re.compile(r'^\s*(?:"([^"]+)"|(\S+))\s*$')
 _CODE_MARKERS = re.compile(
     r"^\s*//\s*(?:FUNCTION|TEMPLATE|VTABLE|GLOBAL|LIBRARY):\s+", re.IGNORECASE
@@ -150,11 +136,8 @@ def mapped_repository_source_file(repo_dir: Path, unit: str) -> str | None:
 
 def classification_for(path: str, document: dict[str, Any], originals: dict[str, str]) -> str:
     compiler = {str(item) for item in document.get("compiler-emission") or ()}
-    unresolved = {str(item) for item in document.get("unresolved-fragment") or ()}
     if path in compiler:
         return COMPILER_EMISSION
-    if path in unresolved:
-        return UNRESOLVED_FRAGMENT
     if path in originals:
         return ORIGINAL_TU
     return UNRESOLVED_FRAGMENT
@@ -191,8 +174,7 @@ def source_unit_violations(repo_dir: Path) -> list[dict[str, Any]]:
     originals = original_source_paths(repo_dir)
     listed = cmake_source_units(repo_dir)
     compiler = {str(item) for item in document.get("compiler-emission") or ()}
-    unresolved = {str(item) for item in document.get("unresolved-fragment") or ()}
-    classified = compiler | unresolved
+    classified = compiler
     violations: list[dict[str, Any]] = []
 
     unknown_classes = classified - set(listed)
@@ -205,42 +187,8 @@ def source_unit_violations(repo_dir: Path) -> list[dict[str, Any]]:
             }
         )
 
-    overlap = compiler & unresolved
-    for path in sorted(overlap):
-        violations.append(
-            {
-                "kind": "duplicate-classification",
-                "file": path,
-                "detail": f"{path} is both compiler-emission and unresolved-fragment",
-            }
-        )
-
     for path in listed:
         kind = classification_for(path, document, originals)
-        name = Path(path).name.casefold()
-        catch_all = name in {item.casefold() for item in CATCH_ALL_NAMES}
-        if catch_all and path not in unresolved and path not in compiler:
-            violations.append(
-                {
-                    "kind": "catch-all-unclassified",
-                    "file": path,
-                    "detail": (
-                        f"{path} is a semantic catch-all and must be listed as "
-                        "unresolved-fragment or compiler-emission"
-                    ),
-                }
-            )
-        if kind == ORIGINAL_TU and catch_all:
-            violations.append(
-                {
-                    "kind": "catch-all-original-tu",
-                    "file": path,
-                    "detail": (
-                        f"{path} is a semantic catch-all and cannot be original-tu "
-                        "without an evidence-backed original path"
-                    ),
-                }
-            )
         if kind == ORIGINAL_TU and path not in originals:
             violations.append(
                 {

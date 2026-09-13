@@ -99,6 +99,8 @@ void PlacePartyAtPoint(const srVector3T<float>* point);
 
 extern float g_camera_level_forward_scale_603aac;
 extern const float g_camera_transition_epsilon_005ebc84;
+extern float g_camera_default_forward_scale_603ab0;
+extern float g_camera_forward_scale_603ab4;
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 

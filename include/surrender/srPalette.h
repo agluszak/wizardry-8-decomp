@@ -46,3 +46,5 @@ private:
 };
 
 static_assert(sizeof(srPalette) == 0x28, "srPalette_must_be_0x28");
+
+typedef srClassSupport<srPalette, srPalette, false, 0x2900> W8Palette;

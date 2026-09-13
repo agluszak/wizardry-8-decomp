@@ -690,7 +690,7 @@ void ResetForNewGame(void)
     g_status_685170.current_level = -1;
     InitializePartyFormation(&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
-        g_status_685170.dwords_18e0[index] = 0xffffffff;
+        g_status_685170.party_order_slots[index] = 0xffffffff;
     }
 }
 

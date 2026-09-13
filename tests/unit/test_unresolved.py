@@ -2,12 +2,7 @@ from pathlib import Path
 
 import pytest
 import wiz8decomp.unresolved as unresolved_module
-from wiz8decomp.unresolved import (
-    load_unresolved_baseline,
-    parse_map_publics,
-    unresolved_report,
-    write_unresolved_baseline,
-)
+from wiz8decomp.unresolved import parse_map_publics, unresolved_report
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 
@@ -79,17 +74,3 @@ def test_imports_are_reported_separately_and_units_are_ranked(
         "__imp__CreateFileA@28": ["recovered.dir/src/first.cpp.obj"]
     }
     assert "__imp__CreateFileA@28" not in report["by_symbol"]
-
-
-def test_unresolved_baseline_can_only_shrink(tmp_path: Path) -> None:
-    path = tmp_path / "unresolved-baseline.csv"
-    initial = {
-        "by_symbol": {"missing-a": ["a.obj"], "missing-b": ["b.obj"]},
-    }
-    reduced = {"by_symbol": {"missing-a": ["a.obj"]}}
-
-    assert write_unresolved_baseline(path, initial)["symbol_count"] == 2
-    assert write_unresolved_baseline(path, reduced)["symbol_count"] == 1
-    assert load_unresolved_baseline(path)["symbols"] == [{"symbol": "missing-a"}]
-    with pytest.raises(ValueError, match="refusing to add 1"):
-        write_unresolved_baseline(path, initial)

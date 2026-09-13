@@ -248,7 +248,7 @@ unsigned char LoadAniMesh004B5D00(int file, W8AniMesh* mesh, unsigned char load_
     stModelInstance* instance = static_cast<stModelInstance*>(loaded_instance);
     stMeshModel* model = static_cast<stMeshModel*>(instance->model());
 
-    if (model->vertex_count > 1) {
+    if (model->frame_count > 1) {
         mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
         mesh->meshes_04 = static_cast<stModelInstance**>(malloc(sizeof(*mesh->meshes_04)));
         if (mesh->meshes_04 == 0) {
