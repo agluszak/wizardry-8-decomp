@@ -871,6 +871,107 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item)
     return false;
 }
 
+// FUNCTION: WIZ8 0x0051F2F0
+char MergeItems(W8Character* character, W8ItemInstance* destination)
+{
+    W8ItemInstance* held = &g_status_685170.item_in_hand_235b;
+    const W8ItemDatabaseRecord* recipe = 0;
+    unsigned int result_item_id = 0;
+
+    if (held->item_id == -1) {
+        srAssertFail("pMergePCItem->iItemNo != -1", PC_ITEM_CPP, 2922, 0);
+    }
+    if (destination->item_id == -1) {
+        srAssertFail("pIntoPCItem->iItemNo != -1", PC_ITEM_CPP, 2923, 0);
+    }
+    if (held->identified == 0 || destination->identified == 0) {
+        ShowCampNoticeLine(gppStringList[0x58c / 4], 0, 1, 0);
+        return 0;
+    }
+
+    for (unsigned int item_id = 0; item_id < gXStatus.uiItemsInDatabase; ++item_id) {
+        const W8ItemDatabaseRecord* candidate = &g_item_records[item_id];
+        if ((candidate->merge_kind_0b9 == held->item_id &&
+             candidate->merge_kind_0bd == destination->item_id) ||
+            (candidate->merge_kind_0bd == held->item_id &&
+             candidate->merge_kind_0b9 == destination->item_id)) {
+            recipe = candidate;
+            result_item_id = item_id;
+            break;
+        }
+    }
+
+    if (recipe != 0) {
+        if (recipe->merge_skill_0c9 != -1) {
+            const W8CharacterSkill& skill = character->skills[recipe->merge_skill_0c9];
+            if (skill.level < recipe->merge_skill_level_0ca) {
+                wchar_t* message =
+                    FormatWideString(gppStringList[0x588 / 4], character->name, 0, 1, 0);
+                ShowCampNoticeLine(message, 0, 0, 0);
+                return 0;
+            }
+            QueueCharacterEvent(character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
+                                g_effect_argument_005ed914);
+            PracticeCharacterSkill(character, recipe->merge_skill_0c9,
+                                   recipe->merge_skill_level_0ca / 10, 0);
+        }
+
+        const bool held_is_stack = g_item_records[held->item_id].quantity_kind == 1;
+        const bool destination_is_stack = g_item_records[destination->item_id].quantity_kind == 1;
+        const unsigned char quantity =
+            held_is_stack && destination_is_stack
+                ? (held->stack_count < destination->stack_count ? held->stack_count
+                                                                : destination->stack_count)
+                : 1;
+        W8ItemInstance* result_destination =
+            held_is_stack && destination_is_stack && held->stack_count <= destination->stack_count
+                ? held
+                : destination;
+
+        if (held_is_stack) {
+            held->stack_count -= quantity;
+            if (held->stack_count == 0) {
+                g_held_item_source_006840c0 = -1;
+                g_held_item_origin_006840c4 = 0xff;
+                g_held_item_slot_006840c5 = 0xffff;
+                ClearHeldItemDisplay();
+            }
+        } else {
+            g_held_item_source_006840c0 = -1;
+            g_held_item_origin_006840c4 = 0xff;
+            g_held_item_slot_006840c5 = 0xffff;
+            ClearHeldItemDisplay();
+        }
+
+        if (destination_is_stack) {
+            destination->stack_count -= quantity;
+            if (destination->stack_count == 0) {
+                EmptyItemRecord(destination, character, 1);
+            }
+        } else {
+            EmptyItemRecord(destination, character, 1);
+        }
+
+        W8ItemInstance created;
+        ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
+        if (recipe->quantity_kind == 1) {
+            created.stack_count = quantity;
+        }
+        CopyItemInstance(result_destination, &created, character, 1);
+        RedistributePartyEncumbrance();
+        return 1;
+    }
+
+    if (held->item_id == destination->item_id) {
+        unsigned char partially_merged = 0;
+        unsigned char merged = MergeItemStacks(destination, held, &partially_merged);
+        return partially_merged != 0 ? 1 : merged;
+    }
+
+    ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 0, 0);
+    return 0;
+}
+
 /* Put an item somewhere it will fit. The flag decides which of the character
    and the party pool is tried first; the other is tried after, and then the
    first again, so a full destination never loses the item. */

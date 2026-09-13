@@ -16,6 +16,7 @@ extern W8SpellRuntimeRecord* g_spell_records;
 extern unsigned int g_spell_database_version;
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
+extern int g_learn_sound_0068c510;
 
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
 bool IsSpellInSingledOutSet(int spell_id);
