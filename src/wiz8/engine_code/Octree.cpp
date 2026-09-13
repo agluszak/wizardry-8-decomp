@@ -78,6 +78,9 @@ extern void Function518510(void* notice);
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;
 
+// GLOBAL: WIZ8 0x006068a4
+char g_region_link_extension_006068a4[] = ".rlk";
+
 // GLOBAL: WIZ8 0x006598a8
 unsigned char g_flag_6598a8;
 // GLOBAL: WIZ8 0x006598b0
@@ -728,6 +731,65 @@ unsigned char W8Octree::SavePoints00432D60(char* path)
     return result;
 }
 
+// FUNCTION: WIZ8 0x00432e90
+unsigned char W8Octree::ReadRegionLinkFile(const char* level_name)
+{
+    unsigned int count = 0;
+    unsigned int* keys = 0;
+    unsigned short* values = 0;
+    int file = 0;
+    unsigned char result = 0;
+    char name[256];
+
+    strcpy(name, level_name);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, g_region_link_extension_006068a4);
+    if (FileExists(name) == 0) {
+        return 0;
+    }
+    file = FileOpen(name, 1, 0);
+    if (file == 0) {
+        return 0;
+    }
+    if (FileRead(file, &count, 4, 0) == 0) {
+        FileClose(file);
+        return 0;
+    }
+
+    keys = static_cast<unsigned int*>(malloc(count * 4));
+    values = static_cast<unsigned short*>(malloc(count * 2));
+    if (keys == 0 || values == 0) {
+        FileClose(file);
+        free(keys);
+        free(values);
+        return 0;
+    }
+    if (FileRead(file, keys, count * 4, 0) == 0 || FileRead(file, values, count * 2, 0) == 0) {
+        FileClose(file);
+        free(keys);
+        free(values);
+        return 0;
+    }
+    if (m_pRegionLinks_150 == 0) {
+        m_pRegionLinks_150 = new W8HashTable<unsigned int, unsigned short>;
+    }
+    for (unsigned int index = 0; index < count; ++index) {
+        m_pRegionLinks_150->Remove(&keys[index], &values[index]);
+        m_pRegionLinks_150->Insert(&keys[index], &values[index]);
+    }
+    result = 1;
+    FileClose(file);
+    free(keys);
+    free(values);
+    if (result != 0) {
+        m_positional_169 = 1;
+    }
+    return result;
+}
+
 /* Write the octree's region-link table to the .rlk companion file.
 
    The collected keys are the region ids from one up to the spatial region
@@ -909,8 +971,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
-        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_DISABLE);
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])->setFlag(srNode::FLAG_DISABLE);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
             ->setFlag(srNode::FLAG_TERMINATE);
     }
@@ -2163,7 +2224,7 @@ finish:
         pGameData->positional_04 = this;
         *game_data = pGameData;
         g_octree_game_data_00652db0 = pGameData;
-        m_positional_169 = ReadLevelName00432E90(m_owned_0c0);
+        ReadRegionLinkFile(m_owned_0c0);
         ApplyLevelName00432B80(m_owned_0c0);
         if (pathing_180 != 0) {
             ReadWaypointFile0043A0F0();

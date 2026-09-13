@@ -167,6 +167,7 @@ public:
     void UpdateVisibility004304A0();
     unsigned char UpdateWorldTrace00433EB0();
     unsigned char SavePoints00432D60(char* path);
+    unsigned char ReadRegionLinkFile(const char* level_name);
     unsigned char SaveRegionLinks004331F0(char* path);
     unsigned char ValidateRegionMeshLinks00433AB0();
     int CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial);
@@ -383,7 +384,6 @@ unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, d
                                              double blue, double alpha);
 int ProbeCellForBlockers00435C40(const int* cell);
 int ProbeCellForTrace00435B00(const int* cell);
-unsigned char ReadLevelName00432E90(const char* name);
 char ResolveTraceHit004353F0(void* result, srVector3T<float>* hit, int mode, int* out, int value_5,
                              int value_6, int value_7);
 unsigned char TestProbeResult00435F00(void* result);
