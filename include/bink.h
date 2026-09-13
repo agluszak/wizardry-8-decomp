@@ -12,6 +12,7 @@
  */
 
 #include <windows.h>
+#include "wiz8/mouth_gap.h"
 
 typedef signed long S32;
 typedef unsigned long U32;
@@ -21,10 +22,9 @@ struct BINKSND;
 
 typedef BINK* HBINK;
 
-typedef S32 (__stdcall *BINKSNDOPEN)(
-    BINKSND* sound, U32 frequency, S32 bits, S32 channels, U32 flags,
-    HBINK bink);
-typedef BINKSNDOPEN (__stdcall *BINKSNDSYSOPEN)(U32 parameter);
+typedef S32(__stdcall* BINKSNDOPEN)(BINKSND* sound, U32 frequency, S32 bits, S32 channels,
+                                    U32 flags, HBINK bink);
+typedef BINKSNDOPEN(__stdcall* BINKSNDSYSOPEN)(U32 parameter);
 
 struct BINKRECT {
     S32 Left;
@@ -59,24 +59,20 @@ struct BINK {
 extern "C" {
 
 __declspec(dllimport) S32 __stdcall BinkDDSurfaceType(void* surface);
-__declspec(dllimport) S32 __stdcall BinkCopyToBuffer(
-    HBINK bink, void* destination, S32 destination_pitch,
-    U32 destination_height, U32 destination_x, U32 destination_y, U32 flags);
+__declspec(dllimport) S32 __stdcall BinkCopyToBuffer(HBINK bink, void* destination,
+                                                     S32 destination_pitch, U32 destination_height,
+                                                     U32 destination_x, U32 destination_y,
+                                                     U32 flags);
 __declspec(dllimport) S32 __stdcall BinkGetRects(HBINK bink, U32 flags);
 __declspec(dllimport) S32 __stdcall BinkPause(HBINK bink, S32 paused);
 __declspec(dllimport) void __stdcall BinkSetVolume(HBINK bink, S32 volume);
 __declspec(dllimport) void __stdcall BinkClose(HBINK bink);
-__declspec(dllimport) S32 __stdcall BinkSetSoundSystem(
-    BINKSNDSYSOPEN open, U32 parameter);
+__declspec(dllimport) S32 __stdcall BinkSetSoundSystem(BINKSNDSYSOPEN open, U32 parameter);
 __declspec(dllimport) BINKSNDOPEN __stdcall BinkOpenMiles(U32 parameter);
 __declspec(dllimport) HBINK __stdcall BinkOpen(const char* path, U32 flags);
 __declspec(dllimport) S32 __stdcall BinkDoFrame(HBINK bink);
 __declspec(dllimport) S32 __stdcall BinkWait(HBINK bink);
 __declspec(dllimport) void __stdcall BinkNextFrame(HBINK bink);
-
 }
-
-
-void Function5E2F40(int sound_handle, unsigned char* state);
 
 #endif

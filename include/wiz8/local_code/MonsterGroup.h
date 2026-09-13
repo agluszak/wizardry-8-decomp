@@ -108,13 +108,6 @@ void Function50FD40(W8MonsterGroup* monster_group, int value);
 void Function547570(W8MonsterGroup* monster_group, unsigned char flag, int value);
 void Function50F720(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
-/* 0x0050F1A0: allocate and populate a new monster group of `count` members of
-   `monster_id` at `position`; the leading nine-member cap and the disposition
-   recompute live inside it. Sits in an unresolved gap of MonsterGroup.cpp;
-   declared for the GroupAttacks call site. */
-W8MonsterGroup* CreateMonsterGroupAt0050F1A0(unsigned int monster_id, unsigned int count,
-                                             const srVector3T<float>* position, char flag_4,
-                                             char flag_5, char flag_6);
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void Function511CE0(W8MonsterGroup* monster_group, unsigned char flag);
 /* 0x004BE5C0: the yaw that faces `position` back toward the camera. It sits in

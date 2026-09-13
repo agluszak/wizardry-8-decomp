@@ -416,7 +416,7 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
     }
 
     for (index = 0; index < count; ++index) {
-        NormalizeMaterialRecord00489980(records + index);
+        ClearMaterialRecordPadding(records + index);
     }
 
     if (g_read_mesh_scratch_count_65b9f8 == count &&
@@ -445,8 +445,7 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
 
     for (index = 0; index < count; ++index) {
         if (index == 0) {
-            CreateDefaultMaterial004B9280(*materials + index, *textures + index,
-                                          *render_flags + index);
+            CreateDefaultMaterial(*materials + index, *textures + index, *render_flags + index);
         } else {
             LoadMaterial004B8A70(info->bitmap_folder, records + index, *materials + index,
                                  *textures + index, *render_flags + index, load_materials);
@@ -871,6 +870,19 @@ void ReleaseRetainedMaterials00489920()
             g_retained_materials_65b9dc[index] = g_retained_materials_65b9dc[index + 1];
         }
         --g_retained_material_count_65b9d4;
+    }
+}
+
+// FUNCTION: WIZ8 0x00489980
+void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material)
+{
+    if (material == 0) {
+        return;
+    }
+    memset(material->positional_001, 0, sizeof(material->positional_001));
+    for (int index = 0; index < 4; ++index) {
+        char* name = material->texture_names_029[index];
+        memset(name + strlen(name), 0, sizeof(material->texture_names_029[index]) - strlen(name));
     }
 }
 

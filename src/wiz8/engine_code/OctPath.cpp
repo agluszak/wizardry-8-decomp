@@ -393,7 +393,7 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         destination->position_04 = source->position_04;
         int point[2];
         g_octree_6598a4->WorldPositionToCell00431440(&destination->position_04, point);
-        g_octree_6598a4->object_registry->UpdateObjectCell00436B90(9, surface + 1, point);
+        g_octree_6598a4->object_registry->MoveObjectToCell(9, surface + 1, point);
         if ((destination->flags_00 & 0xf000) == 0)
             destination->flags_00 |= 0x2000;
     }
@@ -451,7 +451,7 @@ void W8PathingService::BuildWaypointFileData0045E440()
     for (old_surface = 1; old_surface < m_ulNumSurfaces; ++old_surface) {
         W8PathSurface* surface = &m_pSurfaces_048[old_surface];
         if (surface->index_02 == 0 || surface->first_edge_24 == 0) {
-            g_octree_6598a4->object_registry->RemoveObjectCell00436DC0(9, old_surface + 1);
+            g_octree_6598a4->object_registry->UnregisterObject(9, old_surface + 1);
             if (surface->first_edge_24 == 0) {
                 unsigned short removed = 0;
                 unsigned int edge;
@@ -473,12 +473,11 @@ void W8PathingService::BuildWaypointFileData0045E440()
             if (old_surface != next_surface) {
                 m_pSurfaces_048[next_surface] = *surface;
                 m_pSurfaces_048[next_surface].index_02 = next_surface;
-                g_octree_6598a4->object_registry->RemoveObjectCell00436DC0(9, old_surface + 1);
+                g_octree_6598a4->object_registry->UnregisterObject(9, old_surface + 1);
                 int point[2];
                 g_octree_6598a4->WorldPositionToCell00431440(
                     &m_pSurfaces_048[next_surface].position_04, point);
-                g_octree_6598a4->object_registry->UpdateObjectCell00436B90(9, next_surface + 1,
-                                                                           point);
+                g_octree_6598a4->object_registry->MoveObjectToCell(9, next_surface + 1, point);
             }
             ++next_surface;
         }
@@ -4540,8 +4539,8 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
         surface->flags_00 |= 0x40;
     }
     g_octree_6598a4->WorldPositionToCell00431440(position, point);
-    g_octree_6598a4->object_registry->UpdateObjectCell00436B90(
-        9, (unsigned short)m_ulNumSurfaces + 1, point);
+    g_octree_6598a4->object_registry->MoveObjectToCell(9, (unsigned short)m_ulNumSurfaces + 1,
+                                                       point);
     ++m_ulNumSurfaces;
 }
 

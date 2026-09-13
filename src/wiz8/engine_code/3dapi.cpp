@@ -173,9 +173,9 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     strcpy(pvl_path, level_path);
     pvl_path[strlen(pvl_path) - 3] = 'p';
-    sprintf(game_data_path, "%s\\%s.wgd", asset_folder, level_file_name);
-    sprintf(oct_path, "%s\\%s.oct", asset_folder, level_file_name);
-    sprintf(material_path, "%s\\%s.mat", asset_folder, level_file_name);
+    sprintf(game_data_path, "%s\\%s.wgd", level_folder, level_file_name);
+    sprintf(oct_path, "%s\\%s.oct", level_folder, level_file_name);
+    sprintf(material_path, "%s\\%s.mat", level_folder, level_file_name);
     sprintf(material_folder, "%s", asset_folder);
 
     g_worlds_00659a80.Add(world);

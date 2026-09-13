@@ -45,19 +45,21 @@ struct W8EnvironRecord {
     unsigned char pad_05[3];
     int value_08;
     int unknown_0c;
-    int value_10;
+    float value_10;
     float value_14;
-    int value_18;
+    float value_18;
     float value_1c;
     float value_20;
     int value_24;
-    int value_28;
+    float value_28;
     int value_2c;
-    int value_30;
+    float value_30;
     float value_34;
     float value_38;
     float value_3c;
     float value_40;
+
+    unsigned char RescaleToReference(const W8EnvironRecord* reference);
 };
 
 static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
@@ -70,8 +72,9 @@ class BitArray;
    a counted pointer array, the environment count/array pair, and a trailing
    flag. Only straightforward storage is claimed past the prefix. */
 struct W8GameData {
-    W8GameData(int handle, void* parent); /* 0x00449010 */
-    ~W8GameData();                        /* 0x00449BB0 */
+    W8GameData(int handle, void* parent);   /* 0x00449010 */
+    ~W8GameData();                          /* 0x00449BB0 */
+    void ReadProcessedGameData(int handle); /* 0x00449240 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
     /* Builds the octree trace model and answers its scene node. */
@@ -87,7 +90,8 @@ struct W8GameData {
     int vertex_count_20;
     srVector3T<float>* vertices_24;
     int surface_count_28;
-    unsigned char positional_2c[8];
+    int positional_2c_00;
+    int positional_2c_04;
     int integrated_surface_count_34;
     W8GDSurface* surfaces_38;
     int overflow_surface_count_3c;

@@ -42,6 +42,9 @@ struct W8CharacterEvent {
 
     /* Starts portrait/voice dispatch for this queued entry. */
     unsigned char DispatchCharacterEventEntry(); /* 0x0052CA60 */
+
+    unsigned char CharacterEventConditionMet(unsigned int event_type); /* 0x0052C910 */
+    unsigned char PlayEventSound();                                    /* 0x0052D260 */
 };
 
 static_assert(sizeof(W8CharacterEvent) == 0x38, "W8CharacterEvent_must_be_0x38");

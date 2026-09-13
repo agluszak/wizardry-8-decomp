@@ -308,6 +308,56 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
     return 1;
 }
 
+// GLOBAL: WIZ8 0x0060e0f4
+const char g_default_material_name_0060e0f4[] = "Default Material";
+
+// FUNCTION: WIZ8 0x004B9280
+unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
+                                    unsigned long* render_flags)
+{
+    char name[64] = "";
+    srRegistry* registry;
+    srRegistry::ClassNode* node;
+    stMaterial* concrete;
+    srVector4T<float> color;
+
+    *render_flags = 0x0100251b;
+    sprintf(name, g_default_material_name_0060e0f4);
+    *texture = 0;
+
+    registry = srCore.getRegistry();
+    node = stMaterial::sGetClassNode();
+    concrete =
+        static_cast<stMaterial*>(registry->find(node, name, static_cast<const srRuntimeClass*>(0)));
+    *material = concrete;
+    if (concrete != 0) {
+        return 1;
+    }
+
+    concrete = new stMaterial;
+    *material = concrete;
+    if (concrete == 0) {
+        srAssertFail("ppstMaterial", MATERIALS_CPP, 0x130, 0);
+    }
+    concrete->setName(name);
+    concrete->autoRelease();
+
+    color.Set(1.0f, 1.0f, 1.0f, 1.0f);
+    concrete->setAmbient(color);
+    color.Set(1.0f, 1.0f, 1.0f, 1.0f);
+    concrete->setDiffuse(color);
+    color.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    concrete->setSpecular(color);
+    concrete->dirty_74 = 1;
+    concrete->parms_18.shininess = 1.0f;
+    concrete->parms_18.diffuse.w = 1.0f;
+    concrete->dirty_74 = 1;
+    concrete->parms_18.emissive = 0.0f;
+    concrete->dirty_74 = 1;
+    concrete->m_field_78 = 0;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004B95D0
 srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required)
 {

@@ -61,6 +61,18 @@ void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
 // GLOBAL: WIZ8 0x00659770
 unsigned long g_octree_storage_00659770;
 
+// GLOBAL: WIZ8 0x00659778
+GETFILESTRUCT g_octree_file_search_00659778;
+
+// GLOBAL: WIZ8 0x006598b2
+unsigned char g_octree_file_search_active_006598b2;
+
+// GLOBAL: WIZ8 0x00606810
+char g_octree_point_extension_00606810[] = ".pts";
+
+// GLOBAL: WIZ8 0x006068a0
+char g_octree_file_search_wildcard_006068a0[] = "*";
+
 // GLOBAL: WIZ8 0x00659890
 unsigned long g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
@@ -77,6 +89,9 @@ extern void Function518510(void* notice);
 
 // GLOBAL: WIZ8 0x006598a4
 W8Octree* g_octree_6598a4;
+
+// GLOBAL: WIZ8 0x006068a4
+char g_region_link_extension_006068a4[] = ".rlk";
 
 // GLOBAL: WIZ8 0x006598a8
 unsigned char g_flag_6598a8;
@@ -692,6 +707,90 @@ void W8Octree::CollectVisibleCells0042FE90()
     }
 }
 
+// FUNCTION: WIZ8 0x004329a0
+unsigned char FindNextLevelFile(char* name)
+{
+    if (name == 0) {
+        g_octree_file_search_active_006598b2 = 0;
+        return 0;
+    }
+
+    if (g_octree_file_search_active_006598b2 == 0) {
+        char pattern[256];
+        char extension[52];
+
+        strcpy(pattern, name);
+        char* extension_start = strrchr(pattern, '.');
+        extension[0] = '\0';
+        if (extension_start != 0) {
+            strcpy(extension, extension_start);
+            *extension_start = '\0';
+        }
+        strcat(pattern, g_octree_file_search_wildcard_006068a0);
+        strcat(pattern, extension);
+        g_octree_file_search_active_006598b2 =
+            GetFileFirst(pattern, &g_octree_file_search_00659778);
+    } else {
+        g_octree_file_search_active_006598b2 = GetFileNext(&g_octree_file_search_00659778);
+    }
+    if (g_octree_file_search_active_006598b2 == 0) {
+        GetFileClose(&g_octree_file_search_00659778);
+        return 0;
+    }
+
+    char* separator = strrchr(name, '\\');
+    if (separator != 0) {
+        separator[1] = '\0';
+    }
+    strcat(name, g_octree_file_search_00659778.zFileName);
+    return g_octree_file_search_active_006598b2;
+}
+
+// FUNCTION: WIZ8 0x00432b80
+unsigned char W8Octree::LoadPointFiles(const char* level_name)
+{
+    char name[256];
+    strcpy(name, level_name);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, g_octree_point_extension_00606810);
+
+    FindNextLevelFile(0);
+    unsigned char first = 1;
+    unsigned char read_ok = 0;
+    while (FindNextLevelFile(name) != 0) {
+        if (first != 0) {
+            first = 0;
+        } else {
+            m_positional_16d = 1;
+        }
+        int file = FileOpen(name, 1, 0);
+        if (file == 0) {
+            return 0;
+        }
+        if (FileRead(file, &m_positional_170, 4, 0) == 0) {
+            FileClose(file);
+            return 0;
+        }
+        m_sr_owned_174 =
+            static_cast<srVector3T<float>*>(srHeap.allocate((m_positional_170 + 1) * 0xc));
+        if (m_sr_owned_174 == 0) {
+            FileClose(file);
+            return 0;
+        }
+        read_ok = FileRead(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
+        FileClose(file);
+    }
+    if (read_ok != 0) {
+        return read_ok;
+    }
+    srHeap.free(m_sr_owned_174);
+    m_positional_170 = 0;
+    return 0;
+}
+
 /* Write the octree's point array to a companion file.
 
    The level path supplies the base name and its existing extension is
@@ -723,6 +822,65 @@ unsigned char W8Octree::SavePoints00432D60(char* path)
             result = wrote_count | wrote_points;
             FileClose(file);
         }
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00432e90
+unsigned char W8Octree::ReadRegionLinkFile(const char* level_name)
+{
+    unsigned int count = 0;
+    unsigned int* keys = 0;
+    unsigned short* values = 0;
+    int file = 0;
+    unsigned char result = 0;
+    char name[256];
+
+    strcpy(name, level_name);
+    char* extension = strrchr(name, '.');
+    if (extension != 0) {
+        *extension = '\0';
+    }
+    strcat(name, g_region_link_extension_006068a4);
+    if (FileExists(name) == 0) {
+        return 0;
+    }
+    file = FileOpen(name, 1, 0);
+    if (file == 0) {
+        return 0;
+    }
+    if (FileRead(file, &count, 4, 0) == 0) {
+        FileClose(file);
+        return 0;
+    }
+
+    keys = static_cast<unsigned int*>(malloc(count * 4));
+    values = static_cast<unsigned short*>(malloc(count * 2));
+    if (keys == 0 || values == 0) {
+        FileClose(file);
+        free(keys);
+        free(values);
+        return 0;
+    }
+    if (FileRead(file, keys, count * 4, 0) == 0 || FileRead(file, values, count * 2, 0) == 0) {
+        FileClose(file);
+        free(keys);
+        free(values);
+        return 0;
+    }
+    if (m_pRegionLinks_150 == 0) {
+        m_pRegionLinks_150 = new W8HashTable<unsigned int, unsigned short>;
+    }
+    for (unsigned int index = 0; index < count; ++index) {
+        m_pRegionLinks_150->Remove(&keys[index], &values[index]);
+        m_pRegionLinks_150->Insert(&keys[index], &values[index]);
+    }
+    result = 1;
+    FileClose(file);
+    free(keys);
+    free(values);
+    if (result != 0) {
+        m_positional_169 = 1;
     }
     return result;
 }
@@ -1063,9 +1221,6 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(W8NavigatorMovementState* mo
     return 0;
 }
 
-/* ReadOctFile's own direct callees. Their bodies are not recovered, so they
-   keep address-qualified names. */
-extern void ReadWaypointFile0043A0F0(void);
 /* The cell-walk probes and the trace helpers the two line-of-sight bodies use.
    None of their bodies are recovered, so they keep address-qualified names. */
 
@@ -1399,6 +1554,40 @@ resolve:
 
 // TEMPLATE: WIZ8 0x0055dbb0
 // W8HashTable<unsigned int,int>::Insert
+
+// FUNCTION: WIZ8 0x00436b90
+unsigned char W8OctreeObjectRegistry::MoveObjectToCell(int kind, int id, const int* point)
+{
+    unsigned int object_key = kind * 0x10000 + (id & 0xffff);
+    unsigned int cell_key = (point[0] * 0x100 + point[1]) * 0x100 + 1 + point[2];
+    int object_value = static_cast<int>(object_key);
+    int cell_value = static_cast<int>(cell_key);
+
+    by_object->Remove(&object_key, &cell_value);
+    by_object->Insert(&object_key, &cell_value);
+    by_cell->Remove(&cell_key, &object_value);
+    by_cell->Insert(&cell_key, &object_value);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00436dc0
+unsigned char W8OctreeObjectRegistry::UnregisterObject(int kind, int id)
+{
+    unsigned int object_key = kind * 0x10000 + (id & 0xffff);
+    int object_value = static_cast<int>(object_key);
+    unsigned char removed = 0;
+
+    int slot = by_object->FindNextEntry(&object_key, -1);
+    while (slot != -1) {
+        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
+        int cell_value = static_cast<int>(cell_key);
+        by_object->Remove(&object_key, &cell_value);
+        by_cell->Remove(&cell_key, &object_value);
+        removed = 1;
+        slot = by_object->FindNextEntry(&object_key, slot);
+    }
+    return removed;
+}
 
 /* Record that one object now occupies one cell.
 
@@ -2161,10 +2350,10 @@ finish:
         pGameData->positional_04 = this;
         *game_data = pGameData;
         g_octree_game_data_00652db0 = pGameData;
-        m_positional_169 = ReadLevelName00432E90(m_owned_0c0);
-        ApplyLevelName00432B80(m_owned_0c0);
+        ReadRegionLinkFile(m_owned_0c0);
+        LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
-            ReadWaypointFile0043A0F0();
+            pathing_180->ReadWaypointFile00459650();
         }
         return;
     }

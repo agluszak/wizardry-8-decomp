@@ -4,11 +4,13 @@ import pytest
 from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
+    RUNTIME_SCENARIO_STATE_FILES,
     _configure_wine_window_management,
     _crash_detail,
     _parse_runtime_crash,
     _parse_runtime_observation,
     _parse_wine_dump,
+    _reset_runtime_scenario_state,
     _run_runtime_scenario,
     _symbolize_addresses,
     analyze_runtime_crash,
@@ -51,6 +53,23 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
     assert (stage / "Wiz8RuntimeTest.exe").read_bytes() == b"semantic tests"
     assert (stage / "Saves" / "Characters").is_dir()
+
+
+def test_reset_runtime_scenario_state_removes_only_scenario_outputs(tmp_path: Path) -> None:
+    stage = tmp_path / "runtime-test"
+    for relative_path in RUNTIME_SCENARIO_STATE_FILES:
+        path = stage / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"scenario state")
+    retained = stage / "Saves" / "Characters" / "fixture.CHR"
+    retained.write_bytes(b"fixture")
+
+    _reset_runtime_scenario_state(stage)
+
+    assert all(
+        not (stage / relative_path).exists() for relative_path in RUNTIME_SCENARIO_STATE_FILES
+    )
+    assert retained.read_bytes() == b"fixture"
 
 
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:

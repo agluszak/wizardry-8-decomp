@@ -91,7 +91,7 @@ struct W8MonsterManagerEntry {
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
-extern W8MonsterManagerEntry g_monster_manager_entries[8];
+void Function509CD0(unsigned char value, int enabled, int location_id);
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
@@ -299,9 +299,6 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
-/* Unresolved gap, declared for the Noise.cpp call site: returns a float
-   distance/cost for the monster (multiplied by 1000 at the call site). */
-float Function4E5990(W8MonsterInfo* monster_info); /* 0x004E5990 */
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
                                          unsigned char assert_on_failure);
 W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,
