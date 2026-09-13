@@ -471,7 +471,8 @@ unsigned int g_current_region_index;
 wchar_t* g_default_help_text;
 unsigned int g_captured_region_index;
 unsigned int g_hover_region_index;
-unsigned int g_region_help_force_enabled;
+// GLOBAL: WIZ8 0x00689B50
+unsigned char g_region_help_force_enabled;
 
 // GLOBAL: WIZ8 0x00689B32
 unsigned char g_flag_689b32;
@@ -483,6 +484,24 @@ void SetRegionHelpDelay(int delay_ms)
         delay_ms = g_settings_6850c8.tooltip_delay_ms;
     }
     g_region_help_delay = delay_ms;
+}
+
+// FUNCTION: WIZ8 0x004F27C0
+void SetRegionHelpForceEnabled004F27C0(unsigned char enabled)
+{
+    g_region_help_force_enabled = enabled;
+}
+
+// FUNCTION: WIZ8 0x004F27D0
+void EnableRegionHelpFlag004F27D0(W8Region* region)
+{
+    region->help_enabled = 1;
+}
+
+// FUNCTION: WIZ8 0x004F27E0
+void DisableRegionHelpFlag004F27E0(W8Region* region)
+{
+    region->help_enabled = 0;
 }
 
 // FUNCTION: WIZ8 0x004f1220

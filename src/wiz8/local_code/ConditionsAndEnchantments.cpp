@@ -194,14 +194,6 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
    the condition never lands. The two-byte packing is load-bearing: padded to
    four the stride would be 0x54, but the table walks 0x52 per entry. Values
    are the retail table at 0x006171A8; the walkers address the ids at +2. */
-#pragma pack(push, 2)
-struct W8ConditionImmunity {
-    unsigned char kind;
-    unsigned char unknown_01;
-    int conditions[20];
-}; /* 0x52 */
-#pragma pack(pop)
-
 // GLOBAL: WIZ8 0x006171A8
 W8ConditionImmunity g_condition_immunities_006171A8[3] = {
     {20, 1, {2, 7, 17, 3, 6, 11, 15, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},

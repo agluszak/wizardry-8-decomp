@@ -1081,6 +1081,14 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
     g_octree_trace_node_00659894->clearFlag(srNode::FLAG_TERMINATE);
 }
 
+// FUNCTION: WIZ8 0x00434220
+unsigned char W8Octree::TestNoiseLineOfSight00434220(const srVector3T<float>* from,
+                                                     srVector3T<float>* to,
+                                                     srVector3T<float>* out_position, float* range)
+{
+    return pathing_180->Function4604B0(from, to, out_position, range);
+}
+
 // FUNCTION: WIZ8 0x00434250
 unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement,
                                                        float radius, float separation)

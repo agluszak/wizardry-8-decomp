@@ -1131,7 +1131,6 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     ShowNoticeLine(line, 0, 1, 0);
 }
 
-extern int g_learn_sound_0068c510;
 // GLOBAL: WIZ8 0x0068c510
 int g_learn_sound_0068c510;
 /* Learn the spell a scroll or book teaches, and consume it. The item has to

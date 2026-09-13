@@ -2,6 +2,8 @@
 
 #include "wiz8/targeting.h"
 
+extern const wchar_t g_combat_log_format_00617664[]; /* 0x00617664 */
+
 void ChooseAction(int party_slot, int action, int detail, const void* data, int a,
                   int b); /* 0x004E7CC0 */
 void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,

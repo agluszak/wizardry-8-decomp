@@ -79,7 +79,13 @@ struct W8ItemDatabaseRecord {
     unsigned char modifier_0b1_value;
     signed char modifier_0b3_index;
     unsigned char modifier_0b3_value;
-    unsigned char unknown_0b5[0x18]; /* 0x0b5 .. 0x0cc */
+    unsigned char unknown_0b5[4]; /* 0x0b5 .. 0x0b8 */
+    int merge_kind_0b9;           /* first database kind accepted by MergeItems */
+    int merge_kind_0bd;           /* second database kind accepted by MergeItems */
+    unsigned char unknown_0c5[8]; /* 0x0c5 .. 0x0c8 */
+    signed char merge_skill_0c9;  /* skill required to create this item */
+    unsigned char merge_skill_level_0ca;
+    unsigned char unknown_0cb[2];
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
     char video_object_name[0x40]; /* 0x0cd */
 }; /* 0x10d */

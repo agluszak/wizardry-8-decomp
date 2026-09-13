@@ -4,17 +4,17 @@
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 
 #include "random.h"
 
-/* Retail Local Code\Noise.cpp. The TU's only anchored function is
-   0x004F0E80 below; gap neighbours 0x004F1100/0x004F1150 call it and remain
-   unrecovered. */
+/* Retail Local Code\Noise.cpp. */
 
 // FUNCTION: WIZ8 0x004F0E80
 void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int radius, int flag)
@@ -62,8 +62,8 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
             float range = (float)radius;
             srVector3T<float> hit_position;
             srVector3T<float> tested_position;
-            if (g_octree_6598a4->Function434220(position, &monster_position, &tested_position,
-                                                &range) == 0) {
+            if (g_octree_6598a4->TestNoiseLineOfSight00434220(position, &monster_position,
+                                                              &tested_position, &range) == 0) {
                 continue;
             }
             if ((float)((int)GetMonsterRecordScaledFloat1BA(info) * 1000) < range) {
@@ -80,4 +80,21 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
         info->sp_budget_bonus = remaining;
         info->heard_noise_position_37 = noise_position;
     }
+}
+
+// FUNCTION: WIZ8 0x004F1100
+void AlertWorldNoise004F1100(void)
+{
+    srVector3T<float> position = g_startup_world_659c0c->GetPosition();
+    AlertMonsterGroupsToNoise004F0E80(&position, 50000, 1);
+}
+
+// FUNCTION: WIZ8 0x004F1150
+void AlertCombatNoise004F1150(char large_radius)
+{
+    if (g_status_685170.value_2390 != 0) {
+        return;
+    }
+    srVector3T<float> position = g_startup_world_659c0c->GetPosition();
+    AlertMonsterGroupsToNoise004F0E80(&position, large_radius != 0 ? 0x927c : 25000, 0);
 }

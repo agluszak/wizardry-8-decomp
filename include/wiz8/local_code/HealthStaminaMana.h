@@ -1,9 +1,12 @@
 #pragma once
 
+#include <wchar.h>
+
 struct W8Character;
 struct W8Dice;
 struct W8MonsterInfo;
 struct W8Character;
+struct W8SpellEffectResult;
 
 W8Character* FindPartyMemberWithLowestResistance4(void);
 
@@ -11,7 +14,8 @@ void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
-void FatigueCharacter(int party_slot, int amount, char scale_by_load, int report_to);
+void FatigueCharacter(int party_slot, int amount, char scale_by_load,
+                      W8SpellEffectResult* report_to);
 void DamageCharacter(int party_slot, int damage, char announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
                                     char announce); /* 0x0052B6D0 */
@@ -31,8 +35,11 @@ void Function52BB60(W8MonsterInfo* monster_info, unsigned int amount, struct W8T
    inside Health Stamina Mana.cpp (its own assertion names the file); declared
    for the GroupAttacks call sites. Retail call sites pass exactly seven args;
    the sixth parameter receives a kill-counting result block. */
-void ApplyDamageToCharacter0052A890(int party_slot, unsigned int amount, char arg_3, char arg_4,
-                                    char arg_5, int* result_stats, char arg_7);
+unsigned int ApplyDamageToCharacter0052A890(int party_slot, unsigned int amount, char arg_3,
+                                            char arg_4, char arg_5,
+                                            W8SpellEffectResult* result_stats, char arg_7);
+void Function58AAD0(int category, const wchar_t* format, unsigned int amount);
+void Function59AC40(int party_slot, unsigned int amount);
 void CharacterDies(int party_slot);
 void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3);
 void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short base);

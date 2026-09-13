@@ -25,12 +25,37 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
    dialog (kind 3), the split-item dialog (kind 5) and the trigger-owned item
    picker. Their button callbacks and the small positioning helpers are
    declared but not recovered; the calls still match the retail
    sites. */
+
+// FUNCTION: WIZ8 0x005DCED0
+W8Dialog005DCED0::W8Dialog005DCED0(int kind, W8ItemInstance* item, int param)
+{
+    unsigned int split_count;
+
+    SetExtent(0x142, 0xbd);
+    if (kind == 1 || kind == 2) {
+        SetBackground("Data\\Dialogs\\popup_splititem.sti", 0);
+    } else if (kind == 0) {
+        SetBackground("Data\\Dialogs\\popup_splititem.sti", 1);
+    }
+    memset(unknown_054, 0, 0x60);
+    if (g_item_records[item->item_id].maximum_quantity < 0xb) {
+        split_count = 1;
+    } else {
+        split_count = item->stack_count >> 1;
+    }
+    if (param != -1) {
+        split_count = param;
+    }
+    split_count_0c0 = split_count;
+    unknown_0c4 = item->stack_count - split_count;
+}
 
 // FUNCTION: WIZ8 0x005cbb40
 W8Dialog005CBB40::W8Dialog005CBB40()
@@ -97,6 +122,92 @@ void W8Dialog005CBB40::SetText(const wchar_t* text)
         return;
     }
     W8DialogBase::SetText(text);
+}
+
+// FUNCTION: WIZ8 0x005CC650
+int W8Dialog005CBB40::GetVisibleLineCount005CC650()
+{
+    if (m_area_button_098 == -1) {
+        return 0;
+    }
+    return GetButtonHeight(m_area_button_098) /
+           (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
+}
+
+// FUNCTION: WIZ8 0x005CCB80
+void W8Dialog005CBB40::SetCurrentLine005CCB80(int line)
+{
+    int visible_lines = GetVisibleLineCount005CC650();
+    int line_count = m_lines_054.GetCount();
+
+    if (line_count == 0 || line < -1) {
+        return;
+    }
+    if (line == -1) {
+        m_selected_line_0f4 = -1;
+        m_first_visible_line_0f0 = 0;
+        m_dirty_flags |= 1;
+        return;
+    }
+    if (line >= line_count) {
+        line = line_count - 1;
+    }
+    m_selected_line_0f4 = line;
+    if (visible_lines > 0) {
+        if (m_selected_line_0f4 < m_first_visible_line_0f0) {
+            m_first_visible_line_0f0 = m_selected_line_0f4;
+        } else if (m_selected_line_0f4 >= m_first_visible_line_0f0 + visible_lines) {
+            m_first_visible_line_0f0 = m_selected_line_0f4 - visible_lines + 1;
+        }
+        int maximum_first = line_count - visible_lines;
+        if (maximum_first < 0) {
+            maximum_first = 0;
+        }
+        if (m_first_visible_line_0f0 > maximum_first) {
+            m_first_visible_line_0f0 = maximum_first;
+        }
+    }
+    m_dirty_flags |= 1;
+}
+
+// FUNCTION: WIZ8 0x005CD2B0
+unsigned char W8Dialog005CBB40::HandleInputEvent005CD2B0(const InputAtom* input)
+{
+    if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
+        return m_keep_open;
+    }
+
+    if (gfKeyState[VK_UP] != 0) {
+        SetCurrentLine005CCB80(m_selected_line_0f4 - 1);
+    } else if (gfKeyState[VK_DOWN] != 0) {
+        SetCurrentLine005CCB80(m_selected_line_0f4 + 1);
+    }
+
+    switch (toupper(input->usParam)) {
+    case ESC:
+        m_selected_line_0f4 = -1;
+        m_keep_open = 0;
+        return 0;
+    case VK_RETURN:
+        if (m_selected_line_0f4 != -1) {
+            m_keep_open = 0;
+        }
+        return m_keep_open;
+    case VK_PRIOR:
+        SetCurrentLine005CCB80(m_selected_line_0f4 - GetVisibleLineCount005CC650());
+        return m_keep_open;
+    case VK_NEXT:
+        SetCurrentLine005CCB80(m_selected_line_0f4 + GetVisibleLineCount005CC650());
+        return m_keep_open;
+    case VK_HOME:
+        SetCurrentLine005CCB80(0);
+        return m_keep_open;
+    case VK_END:
+        SetCurrentLine005CCB80(m_lines_054.GetCount() - 1);
+        return m_keep_open;
+    default:
+        return m_keep_open;
+    }
 }
 
 /* The list-box dialog. The retail layout puts the line strings in the vector
