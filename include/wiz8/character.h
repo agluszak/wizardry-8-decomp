@@ -297,7 +297,7 @@ struct W8Character {
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
     /* 0x16a2: a persistent 0x67-byte modifier source the party-effect rebuild
-       folds into the derived block; what writes it is not yet recovered. */
+       folds into the derived block; what writes it is not recovered. */
     W8GameplayModifierBlock unknown_16a2;
     /* 0x1709: the equipment bonus block 0x0050E980 accumulates from the worn
        items and 0x0050F030 folds into the derived block at 0x1770. */
