@@ -229,9 +229,7 @@ def _added_c_style_casts(diff: str) -> list[dict[str, Any]]:
 
 
 def _added_format_off(diff: str) -> list[dict[str, Any]]:
-    return added_lines_without_marker(
-        diff, _FORMAT_OFF, _FORMAT_OFF_MARKER, ignore_moved=False
-    )
+    return added_lines_without_marker(diff, _FORMAT_OFF, _FORMAT_OFF_MARKER, ignore_moved=False)
 
 
 def _sgp_notice_violations(repository: Path, diff: str) -> list[dict[str, Any]]:
@@ -281,7 +279,8 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
     if format_violations:
         errors.append(
             "new clang-format off directives need a 'format-off-ok: reason' on the same line; "
-            "keep suppressions to the smallest necessary construct:\n  " + _render(format_violations)
+            "keep suppressions to the smallest necessary construct:\n  "
+            + _render(format_violations)
         )
     if sgp_violations:
         errors.append(

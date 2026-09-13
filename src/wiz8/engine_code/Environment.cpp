@@ -35,7 +35,6 @@
 
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
-
 // GLOBAL: WIZ8 0x0060a3a8
 int g_environment_value_0060a3a8 = 2;
 
@@ -365,6 +364,28 @@ void BuildLightColourRamp00483360(void)
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
         CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+    }
+}
+
+/* Refresh the light direction from the day-phase table when the phase turns
+   over; used after level load once fog is on. */
+// FUNCTION: WIZ8 0x004834B0
+void UpdateEnvironmentLight004834B0(void)
+{
+    if (g_environment_flag_0060a394 != 0) {
+        unsigned long now = GetTickCount();
+        unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
+        if (elapsed != 0) {
+            AdvanceEnvironmentTime00482A20(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
+        }
+    }
+    unsigned int phase =
+        ((static_cast<unsigned int>(g_status_685170.game_time_ms) / 1000U) << 8) / 86400U;
+    if (phase != static_cast<unsigned int>(g_environment_value_0060a3ac)) {
+        g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+        PublishLightDirection(&g_environment_colours_65ad98[phase]);
+        g_environment_value_0060a3ac = static_cast<int>(phase);
     }
 }
 

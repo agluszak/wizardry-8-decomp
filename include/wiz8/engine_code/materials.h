@@ -87,7 +87,8 @@ stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance);
 
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
                                     unsigned long* render_flags);
-srTextureIFace* LoadTexture004B9460(const char* path, unsigned char cached, unsigned char required);
+srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord004B8A70* source,
+                                    unsigned char required);
 
 char BuildPreprocessedFiles00492E60(const char* level_path);
 void Function497690(int channel, const char* message);

@@ -69,18 +69,18 @@ public:
     double far_start_168;  /* 0x168 */
     double far_end_170;    /* 0x170 */
     unsigned char unknown_178_[0x10];
-    float opengl_constant_188;            /* 0x188 */
-    float opengl_linear_18c;              /* 0x18c */
-    float opengl_quadratic_190;           /* 0x190 */
-    unsigned long enable_flags_194;       /* 0x194 */
-    srVector3T<float> ambient_198;        /* 0x198 */
-    srVector3T<float> diffuse_1a4;        /* 0x1a4 */
-    srVector3T<float> specular_1b0;       /* 0x1b0 */
-    srVector3T<float> spot_direction_1bc; /* 0x1bc */
-    float spot_angle_1c8;                 /* 0x1c8 */
-    float spot_exponent_1cc;              /* 0x1cc */
-    float intensity_1d0;                  /* 0x1d0 */
-    float safe_range_1d4;                 /* 0x1d4 */
+    /* BakeInstanceVertexLighting copies this wholesale into a local vec3;
+       setLinearAttenuation stores the linear coefficient in .y. */
+    srVector3T<float> opengl_attenuation_188; /* 0x188 */
+    unsigned long enable_flags_194;           /* 0x194 */
+    srVector3T<float> ambient_198;            /* 0x198 */
+    srVector3T<float> diffuse_1a4;            /* 0x1a4 */
+    srVector3T<float> specular_1b0;           /* 0x1b0 */
+    srVector3T<float> spot_direction_1bc;     /* 0x1bc */
+    float spot_angle_1c8;                     /* 0x1c8 */
+    float spot_exponent_1cc;                  /* 0x1cc */
+    float intensity_1d0;                      /* 0x1d0 */
+    float safe_range_1d4;                     /* 0x1d4 */
     unsigned char unknown_1d8_[0x50];
 };
 #pragma pack(pop)

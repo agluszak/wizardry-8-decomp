@@ -26,6 +26,7 @@
 #include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "wiz8/world_cursor.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -1033,6 +1034,88 @@ unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
         return 0;
     }
     return 1;
+}
+
+/* Recount a node's bad region links.  Leaf nodes union the bounding boxes of
+   the linked mesh model's chain and flag the link when the union is disjoint
+   from the cell; branch nodes subdivide the cell among the eight children and
+   accumulate their counts.  Depths past the record limit count as one bad
+   link. */
+// FUNCTION: WIZ8 0x00433B90
+int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial)
+{
+    W8OctSpatialState0046CCC0 local(spatial);
+    int bad_links = 0;
+    if (spatial->depth_44 < 0x10) {
+        if (spatial->depth_44 == spatial_000.positional_52) {
+            unsigned short link = m_owned_09c[spatial->positional_94].positional_02;
+            if (link != 0) {
+                stModelInstance* mesh =
+                    static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[link].mesh_04]);
+                if (mesh != 0) {
+                    stMeshModel* model = static_cast<stMeshModel*>(mesh->model());
+                    srVector3T<float> minimum;
+                    srVector3T<float> maximum;
+                    minimum.x = minimum.y = minimum.z = 1.0e7f;
+                    maximum.x = maximum.y = maximum.z = -1.0e7f;
+                    for (; model != 0; model = model->next) {
+                        srVector3T<float> box_minimum;
+                        srVector3T<float> box_maximum;
+                        model->getBoundingBox(box_minimum, box_maximum);
+                        if (box_minimum.x < minimum.x) {
+                            minimum.x = box_minimum.x;
+                        }
+                        if (maximum.x < box_maximum.x) {
+                            maximum.x = box_maximum.x;
+                        }
+                        if (box_minimum.y < minimum.y) {
+                            minimum.y = box_minimum.y;
+                        }
+                        if (maximum.y < box_maximum.y) {
+                            maximum.y = box_maximum.y;
+                        }
+                        if (box_minimum.z < minimum.z) {
+                            minimum.z = box_minimum.z;
+                        }
+                        if (maximum.z < box_maximum.z) {
+                            maximum.z = box_maximum.z;
+                        }
+                    }
+                    if (maximum.x < spatial->minimum_0c.x || spatial->maximum_18.x < minimum.x ||
+                        maximum.y < spatial->minimum_0c.y || spatial->maximum_18.y < minimum.y ||
+                        maximum.z < spatial->minimum_0c.z || spatial->maximum_18.z < minimum.z) {
+                        bad_links = 1;
+                    }
+                }
+            }
+        } else {
+            int x = 0;
+            short child = 0;
+            do {
+                for (int y = 0; y < 2; ++y) {
+                    for (int z = 0; z < 2; ++z) {
+                        if (m_owned_09c[spatial->positional_94].children_04[child] != 0) {
+                            local.minimum_0c.x =
+                                static_cast<float>(x) * local.extent_04 + spatial->minimum_0c.x;
+                            local.maximum_18.x = local.minimum_0c.x + local.extent_04;
+                            local.minimum_0c.y =
+                                static_cast<float>(y) * local.extent_04 + spatial->minimum_0c.y;
+                            local.maximum_18.y = local.minimum_0c.y + local.extent_04;
+                            local.minimum_0c.z =
+                                static_cast<float>(z) * local.extent_04 + spatial->minimum_0c.z;
+                            local.maximum_18.z = local.minimum_0c.z + local.extent_04;
+                            bad_links += CountBadRegionMeshLinks00433B90(&local);
+                        }
+                        ++child;
+                    }
+                }
+                ++x;
+            } while (child < 8);
+        }
+    } else {
+        bad_links = 1;
+    }
+    return bad_links;
 }
 
 /* Flip or clear the octree update suspension.

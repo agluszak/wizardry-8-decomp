@@ -39,6 +39,9 @@ struct W8MonsterGenerator {
     /* The save pair. Both are __thiscall in the image. */
     void Save(int handle);
     unsigned char Load(int handle);
+    /* 0x0048C110: the MONG chunk loader; its own assert spells the original
+       name, MonGen::LoadAll. */
+    static unsigned char LoadAll(int save_handle);
     /* Moves the generator, notifying the scene when it is armed. */
     void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */

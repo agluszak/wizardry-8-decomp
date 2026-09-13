@@ -39,9 +39,12 @@ extern float g_light_scale_0060bfe0;
    GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
 typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
 
+/* One spell/condition icon attached to a monster: the icon id and the
+   billboard object created for it. Field names come from the
+   DropMonsterVisual asserts "pSpellMI->psrBMO" and its icon compares. */
 struct W8MonsterLinkedItem005E8 {
-    int unknown_00;
-    W8Item* item_04;
+    int icon_00;
+    W8Item* psrBMO;
 };
 
 /* MonsterRep owns three ordinary arrays of growable vectors. The first is
@@ -65,6 +68,13 @@ struct W8MonsterRep : public W8EmitterHost {
                                 signed char other_cycle);
     unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
                                         int value);
+
+    /* The spell-icon list; named by the DropMonsterVisual assert
+       "pMonRep->GetSpellIcons()". */
+    W8PList* GetSpellIcons()
+    {
+        return linked_objects_5e8;
+    }
 
     W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT];                   /* 0x0ac */
     W8GrowableVector<float> animation_scales[W8_MONSTER_CYCLE_COUNT];                  /* 0x25c */
@@ -389,8 +399,8 @@ void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, fl
 void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
 void NotifyMonsterIdle(W8Monster* monster, int arg_2);
 void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
-void Function4ACD80(W8Monster* monster, int slot, int arg_3);
-void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);
+void DropMonsterVisual(W8Monster* monster, int visual, char add);
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
 void PrepareMonsterCycleForDestruction004ACF90(W8Monster* cycle);
 
 void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */

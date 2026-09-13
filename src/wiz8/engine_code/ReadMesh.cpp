@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #pragma pack(push, 1)
 struct W8ReadMeshFace {
@@ -125,7 +126,6 @@ static unsigned long* g_multi_mesh_render_flags_65ba04;
 // GLOBAL: WIZ8 0x0065b9d0
 static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
 
-
 namespace {
 
 // TEMPLATE: WIZ8 0x00489fe0
@@ -209,32 +209,32 @@ template <class T> void QuickSortByKey(T* items, unsigned long* keys, int first,
         unsigned long pivot = keys[last];
         int low = first - 1;
         int high = last;
-        int split;
+        T item;
+        unsigned long key;
         do {
             do {
-                split = low;
                 ++low;
             } while (low < last && keys[low] < pivot);
             do {
                 --high;
-            } while (high >= 1 && pivot < keys[high]);
-            T item = items[low];
+            } while (high > 0 && pivot < keys[high]);
+            item = items[low];
             items[low] = items[high];
             items[high] = item;
-            unsigned long key = keys[low];
+            key = keys[low];
             keys[low] = keys[high];
             keys[high] = key;
         } while (low < high);
         items[high] = items[low];
         items[low] = items[last];
-        items[last] = items[high];
+        items[last] = item;
         keys[high] = keys[low];
         keys[low] = keys[last];
-        keys[last] = keys[high];
-        if (first < split) {
-            QuickSortByKey(items, keys, first, split);
+        keys[last] = key;
+        if (first < low - 1) {
+            QuickSortByKey(items, keys, first, low - 1);
         }
-        first = split + 2;
+        first = low + 1;
         if (last <= first) {
             return;
         }

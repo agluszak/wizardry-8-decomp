@@ -116,7 +116,6 @@ srVector3T<float> g_monster_attachment_offsets_0060e618[8][8] = {
 float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 
-
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
 // GLOBAL: WIZ8 0x005ed1f0
@@ -3673,7 +3672,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
             for (chunk_index = 0; chunk_index < chunk_count; ++chunk_index, ++index) {
                 W8MonsterLinkedItem005E8* entry = static_cast<W8MonsterLinkedItem005E8*>(
                     PLGet(representation->linked_objects_5e8, index));
-                W8Item* item = entry->item_04;
+                W8Item* item = entry->psrBMO;
                 const srVector3T<float>& source =
                     g_monster_attachment_offsets_0060e618[chunk_count - 1][chunk_index];
                 srVector3T<float> offset;

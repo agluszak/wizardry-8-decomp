@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/stMeshModel.h"
 
+#include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
@@ -28,6 +29,11 @@ W8GrowableVector<stMeshModel*> g_mesh_models;
 // GLOBAL: WIZ8 0x0065a0e8
 int g_decompressed_mesh_bytes;
 
+/* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
+   reclaims least-recently-used frames past it. */
+// GLOBAL: WIZ8 0x00609d34
+int g_decompressed_mesh_byte_limit_00609d34 = 0x800000;
+
 /* Signed-byte normal components back to floats, indexed by the raw byte. */
 // GLOBAL: WIZ8 0x00659ce8
 static float s_compressed_normal_table[256];
@@ -43,13 +49,12 @@ stMeshModel::stMeshModel(long polygons, long vertices)
       compressed_vertex_locations(0), compressed_vertex_normals(0), compressed_polygon_normals(0),
       skin_table_ids(5), skin_texture_tables(5), skin_table_names(5), mapped_values(5),
       mapped_keys(5), last_decompress_release_tick_440(0), vertex_compression_scale_444(0.0f),
-      automap_polygons(0), automap_polygon_count(0), automap_filter_active(0),
+      lerp_buffer_448(0), automap_polygons(0), automap_polygon_count(0), automap_filter_active(0),
       skin_blanking_apt_458(0), skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
 {
     memset(unknown_3a4, 0, sizeof(unknown_3a4));
     memset(unknown_3ce, 0, sizeof(unknown_3ce));
     memset(unknown_3ec, 0, sizeof(unknown_3ec));
-    memset(unknown_448, 0, sizeof(unknown_448));
 
     if (!s_compressed_normal_table_ready) {
         for (int value = -128; value < 128; ++value) {
@@ -106,6 +111,22 @@ void AddFloatBuffer00474730(float* destination, const float* source, int count)
 {
     if (count != 0) {
         srVectorProcessor::add(destination, destination, source, static_cast<SRDWORD>(count));
+    }
+}
+
+/* Copy or translate `count` vertices: a zero offset is a plain copy and a
+   nonzero one goes through the vp constant-vector add. */
+// FUNCTION: WIZ8 0x00470040
+void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<float>* source,
+                            const srVector3T<float>* offset, int count)
+{
+    if (count != 0) {
+        if (offset->x == g_float_005ebb34 && offset->y == g_float_005ebb34 &&
+            offset->z == g_float_005ebb34) {
+            CopyDwordBuffer00470180(destination, source, count * 3);
+        } else {
+            srVectorProcessor::add(destination, *offset, source, static_cast<SRDWORD>(count));
+        }
     }
 }
 
@@ -370,6 +391,34 @@ int stMeshModel::ReleaseDecompressedFrames()
     return released;
 }
 
+/* Evict least-recently-used decompressed frames until `needed` bytes are
+   available, or give up when every registered model has been drained. */
+// FUNCTION: WIZ8 0x00473BF0
+unsigned char ReclaimDecompressedBytes00473BF0(unsigned int needed)
+{
+    unsigned int released = 0;
+    while (released < needed) {
+        stMeshModel* oldest = 0;
+        unsigned long oldest_tick = 0xffffffff;
+        for (int index = 0; index < g_mesh_models.count; ++index) {
+            stMeshModel* model = *g_mesh_models.GetAt(index);
+            if (model == 0) {
+                srAssertFail("pstModel", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
+                             0x712, 0);
+            }
+            if (model->last_decompress_release_tick_440 < oldest_tick) {
+                oldest = model;
+                oldest_tick = model->last_decompress_release_tick_440;
+            }
+        }
+        if (oldest == 0) {
+            return 0;
+        }
+        released += oldest->ReleaseDecompressedFrames();
+    }
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004736d0
 int stMeshModel::FindSkinTable004736D0(const char* name)
 {
@@ -536,6 +585,128 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
         return 1;
     }
     return 0;
+}
+
+/* Allocate one frame's decompressed caches for the tables named by `flags`
+   (bit 0 locations, bit 1 vertex normals, bit 2 polygon normals), reclaiming
+   least-recently-used frames when the byte budget would overflow. */
+// FUNCTION: WIZ8 0x00471720
+unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int frame, unsigned char flags)
+{
+    if ((flags & 1) != 0 && frame_vertex_locations[frame] == 0) {
+        int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
+        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+                return 0;
+            }
+        }
+        g_decompressed_mesh_bytes += needed;
+        frame_vertex_locations[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+        if (frame_vertex_locations[frame] == 0) {
+            srAssertFail("m_pVertexLoc[uiFrame]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x243, 0);
+        }
+    }
+    if ((flags & 2) != 0 && frame_vertex_normals[frame] == 0) {
+        int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
+        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+                return 0;
+            }
+        }
+        g_decompressed_mesh_bytes += needed;
+        frame_vertex_normals[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+        if (frame_vertex_normals[frame] == 0) {
+            srAssertFail("m_pVertexNormal[uiFrame]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x24e, 0);
+        }
+    }
+    if ((flags & 4) != 0 && frame_polygon_normals[frame] == 0) {
+        int needed = polygon_count_230 * sizeof(srVector3T<float>);
+        if (g_decompressed_mesh_byte_limit_00609d34 <= g_decompressed_mesh_bytes + needed) {
+            if (ReclaimDecompressedBytes00473BF0(needed) == 0) {
+                return 0;
+            }
+        }
+        g_decompressed_mesh_bytes += needed;
+        frame_polygon_normals[frame] = static_cast<srVector3T<float>*>(
+            srHeap.allocate(polygon_count_230 * sizeof(srVector3T<float>)));
+        if (frame_polygon_normals[frame] == 0) {
+            srAssertFail("m_pPolyNormal[uiFrame]",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x259, 0);
+        }
+    }
+    return 1;
+}
+
+/* Return frame `frame`'s vertex locations, decompressing on demand. When
+   `interpolation` is positive and another frame follows, both frames are
+   decompressed and lerped into lerp_buffer_448 (m_pLerpBuffer). */
+// FUNCTION: WIZ8 0x00471AD0
+srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, char load,
+                                                           float interpolation)
+{
+    if (frame_vertex_locations == 0) {
+        return 0;
+    }
+    if (g_float_005ebb34 < interpolation && frame < frame_count - 1) {
+        unsigned int next_frame = (frame + 1) % frame_count;
+        if (lerp_buffer_448 == 0) {
+            lerp_buffer_448 = static_cast<srVector3T<float>*>(
+                srHeap.allocate(vertex_location_count_22c * sizeof(srVector3T<float>)));
+            if (lerp_buffer_448 == 0) {
+                srAssertFail("m_pLerpBuffer",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x2d4, 0);
+            }
+        }
+        if (frame_vertex_locations[frame] == 0) {
+            AllocateFrameBuffers00471720(frame, 1);
+            DecompressFrame(frame, 1, frame_vertex_locations[frame]);
+        }
+        if (frame_vertex_locations[next_frame] == 0) {
+            AllocateFrameBuffers00471720(next_frame, 1);
+            DecompressFrame(next_frame, 1, frame_vertex_locations[next_frame]);
+        }
+        if (lerp_buffer_448 != 0) {
+            srVector3T<float>* next = frame_vertex_locations[next_frame];
+            srVector3T<float>* current = frame_vertex_locations[frame];
+            if (next != 0 && current != 0 && vertex_location_count_22c != 0) {
+                if (interpolation == g_float_005ebb38) {
+                    CopyDwordBuffer00470180(lerp_buffer_448, next, vertex_location_count_22c * 3);
+                } else {
+                    srVectorProcessor::lerp(&lerp_buffer_448->x, &next->x, &current->x,
+                                            interpolation, vertex_location_count_22c * 3);
+                }
+            }
+        }
+        return lerp_buffer_448;
+    }
+    if (frame_vertex_locations[frame] == 0) {
+        AllocateFrameBuffers00471720(frame, 1);
+        if (load != 0 && frame_vertex_locations[frame] != 0) {
+            DecompressFrame(frame, 1, frame_vertex_locations[frame]);
+        }
+    }
+    return frame_vertex_locations[frame];
+}
+
+/* Return frame `frame`'s vertex normals, decompressing on demand when `load`
+   is set. */
+// FUNCTION: WIZ8 0x00471CA0
+srVector3T<float>* stMeshModel::GetVertexNormals00471CA0(unsigned int frame, char load)
+{
+    if (frame_vertex_normals == 0) {
+        return 0;
+    }
+    if (frame_vertex_normals[frame] == 0) {
+        AllocateFrameBuffers00471720(frame, 2);
+        if (load != 0 && frame_vertex_normals[frame] != 0) {
+            DecompressFrame(frame, 2, frame_vertex_normals[frame]);
+        }
+    }
+    return frame_vertex_normals[frame];
 }
 
 /* Build one frame's compressed polygon and vertex normals from its vertex

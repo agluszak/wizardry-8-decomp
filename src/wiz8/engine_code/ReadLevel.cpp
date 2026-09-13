@@ -130,7 +130,11 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
     short light_count;
     int index;
     unsigned char success;
-    unsigned char path_success;
+    /* Canonical 0x004BBAD0 leaves this byte uninitialized: when no light loads
+       an AI path it returns the stack residue of the last setLocation double
+       push, which is nonzero in practice. Initialize it so the recompilation
+       is deterministic rather than depending on stack residue. */
+    unsigned char path_success = 1;
 
     success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
