@@ -842,6 +842,113 @@ unsigned char W8Dialog005D97D0::ProcessInput()
     return m_keep_open;
 }
 
+// FUNCTION: WIZ8 0x005da440
+void W8Dialog005D97D0::Function5DA440(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_taken_084 -= 1;
+        if (dialog->m_taken_084 < 0) {
+            dialog->m_taken_084 = 0;
+        }
+        dialog->m_remaining_080 += 1;
+        if (dialog->m_remaining_080 > dialog->m_total_088) {
+            dialog->m_remaining_080 = dialog->m_total_088;
+        }
+        dialog->UpdateButtonStates005DA090();
+        dialog->UpdateTextBuffers005DA000();
+    }
+}
+
+// FUNCTION: WIZ8 0x005da490
+void W8Dialog005D97D0::Function5DA490(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_taken_084 -= 5;
+        if (dialog->m_taken_084 < 0) {
+            dialog->m_taken_084 = 0;
+        }
+        dialog->m_remaining_080 += 5;
+        if (dialog->m_remaining_080 > dialog->m_total_088) {
+            dialog->m_remaining_080 = dialog->m_total_088;
+        }
+        dialog->UpdateButtonStates005DA090();
+        dialog->UpdateTextBuffers005DA000();
+    }
+}
+
+// FUNCTION: WIZ8 0x005da4e0
+void W8Dialog005D97D0::Function5DA4E0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_remaining_080 -= 1;
+        if (dialog->m_remaining_080 < 0) {
+            dialog->m_remaining_080 = 0;
+        }
+        dialog->m_taken_084 += 1;
+        if (dialog->m_taken_084 > dialog->m_total_088) {
+            dialog->m_taken_084 = dialog->m_total_088;
+        }
+        dialog->UpdateButtonStates005DA090();
+        dialog->UpdateTextBuffers005DA000();
+    }
+}
+
+// FUNCTION: WIZ8 0x005da530
+void W8Dialog005D97D0::Function5DA530(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_remaining_080 -= 5;
+        if (dialog->m_remaining_080 < 0) {
+            dialog->m_remaining_080 = 0;
+        }
+        dialog->m_taken_084 += 5;
+        if (dialog->m_taken_084 > dialog->m_total_088) {
+            dialog->m_taken_084 = dialog->m_total_088;
+        }
+        dialog->UpdateButtonStates005DA090();
+        dialog->UpdateTextBuffers005DA000();
+    }
+}
+
+// FUNCTION: WIZ8 0x005da580
+void W8Dialog005D97D0::Function5DA580(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_result_08c = 1;
+        dialog->m_keep_open = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005da5a0
+void W8Dialog005D97D0::Function5DA5A0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        dialog->m_result_08c = 2;
+        dialog->m_keep_open = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x005da5c0
+void W8Dialog005D97D0::Function5DA5C0(W8DialogButton* button)
+{
+    POINT point;
+
+    if (button != 0) {
+        W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
+        SGPMouseGetPos(&point);
+        if (dialog->m_field_78 != 0) {
+            dialog->m_field_78->SetActive(1, &point);
+            dialog->m_active_field_7c = dialog->m_field_78;
+        }
+    }
+}
+
 /* The trigger-owned item picker. The thirteen same-sized button slots are
    allocated by CreateControls; the constructor only clears them. */
 // FUNCTION: WIZ8 0x005cd710

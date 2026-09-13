@@ -24,6 +24,7 @@ public:
                     W8DialogBase* dialog, W8DialogButton* button); /* 0x005E1460 */
     void SetValue(int value);                                      /* 0x005E14C0 */
     void SetActive(unsigned char active);                          /* 0x005E14D0 */
+    void SetActive(unsigned char active, const POINT* point);      /* 0x005E1500 */
     void Draw(unsigned char force);                                /* 0x005E15C0 */
     unsigned char HandleInput(const InputAtom* input);             /* 0x005E19A0 */
 
@@ -143,8 +144,7 @@ private:
     /* 0x005DA180: keyboard handling for the plus/minus buttons and the field. */
     unsigned char HandleInputEvent005DA180(const InputAtom* input);
 
-    /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered. */
+    /* Per-button callbacks stored through W8DialogButton::Configure. */
     static void Function5DA440(W8DialogButton* button);
     static void Function5DA490(W8DialogButton* button);
     static void Function5DA4E0(W8DialogButton* button);
