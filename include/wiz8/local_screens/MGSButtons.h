@@ -16,8 +16,7 @@ extern unsigned int g_submenu_clock_69b880;
 extern unsigned char g_submenu_flag_69b8d4;
 extern W8TextControl* g_submenu_rows_69b8ec[5];
 extern const int g_scroll_button_positions_64c330[2][2];
-/* The action-kind message indexes the caption draw maps through; owned by an
-   unresolved gap TU, declared for the call site. */
+/* The action-kind message indexes the caption draw maps through. */
 extern const unsigned short g_action_kind_message_ids_61e988[];
 
 /* Invalidate (when asked) then redraw the sub-menu panel. */

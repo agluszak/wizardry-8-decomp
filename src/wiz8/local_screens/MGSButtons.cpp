@@ -27,6 +27,11 @@
 
 #define MGSBUTTONS_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSButtons.cpp"
 
+// GLOBAL: WIZ8 0x0061e988
+const unsigned short g_action_kind_message_ids_61e988[12] = {
+    0x050f, 0x0510, 0x0511, 0x0512, 0x0513, 0x0514, 0x0515, 0x0516, 0x0517, 0x0518, 0x0519, 0x051a,
+};
+
 /* The (x, y) of the two scroll arrows. */
 // GLOBAL: WIZ8 0x0064C330
 const int g_scroll_button_positions_64c330[2][2] = {{300, 456}, {323, 456}};
