@@ -6,6 +6,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -361,7 +362,8 @@ static bool WaitForMainMenu(unsigned int timeout_ms)
         // State zero also exists before input initialization clears the queue.
         // Wait until startup finishes before posting the intro-dismiss events.
         if (!dismissed_intro && gfGameInitialized && gfApplicationActive &&
-            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
+            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO &&
+            *(W8BinkVideo* volatile*)&gpVideo != NULL) {
             SendScenarioKey(VK_ESCAPE);
             SendScenarioKey(VK_ESCAPE);
             dismissed_intro = true;
