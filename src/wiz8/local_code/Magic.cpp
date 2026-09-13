@@ -1406,8 +1406,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
     return power_level;
 }
 
-/* 0x0053C630 */
-
 /* Where the cast lands, by the spell's own target type. The kind values are
    W8TargetKind's; the source-kind values are W8TargetSourceKind's. */
 
@@ -1424,7 +1422,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 {
     W8TargetSource source;
     W8CombatSlot target;
-    int hostile;
+    char sight_probe;
 
     if (power_level == 0) {
         return 0;
@@ -1450,16 +1448,16 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         target.iType = W8_TARGET_KIND_PARTY;
         break;
     case 5:
-        hostile = 0;
+        sight_probe = 0;
         target.iType = W8_TARGET_KIND_PARTY;
-        AimCombatSlotAtParty(&target, hostile);
+        ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
     case 6:
     case 8:
-        hostile = 1;
+        sight_probe = 1;
         target.iType = W8_TARGET_KIND_PARTY;
-        AimCombatSlotAtParty(&target, hostile);
+        ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
     default:
@@ -1890,7 +1888,7 @@ extern const unsigned short g_name_prefix_messages[15] = {
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
 };
 /* 0x00689B34: the empty string every no-target kind is described by. */
-extern const wchar_t g_wchar_00689b34;
+extern wchar_t g_wchar_00689b34;
 
 /* Say in words what a spell is aimed at. Each target kind reads its own field,
    which is what makes the two assertions here - on iChar and on iMonsterID -
@@ -1914,7 +1912,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
     switch (target->iType) {
     case 0:
     case 6:
-        return const_cast<wchar_t*>(&g_wchar_00689b34);
+        return &g_wchar_00689b34;
 
     case 1:
     case 9:

@@ -17,7 +17,7 @@ void Function526E90(void);                                       /* 0x00526E90 *
 void Function5289B0(int kind, int argument);                     /* 0x005289B0 */
 void Function529510(void);
 void Function528830(int a, int b, int c, int d);                          /* 0x00528830 */
-void Function529BE0(void);                                                /* 0x00529BE0 */
+void BeginNpcScriptedScene(void);                                         /* 0x00529BE0 */
 void Function529EF0(void);                                                /* 0x00529EF0 */
 void Function50C440(W8NpcState* npc, int value);                          /* 0x0050C440 */
 void Function50C1C0(char name_style, int value, const char* entity_name); /* 0x0050C1C0 */

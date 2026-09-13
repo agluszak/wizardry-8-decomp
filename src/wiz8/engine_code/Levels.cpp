@@ -112,10 +112,10 @@ W8LevelFolderRecord g_level_folders[47] = {
 /* The sky index of the world currently held in g_world_659ab8, or -1 when no
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
-signed char g_loaded_sky_index_00604470;
+signed char g_loaded_sky_index_00604470 = -1;
 /* The CD volume number of the drive the game-data path finder last matched. */
 // GLOBAL: WIZ8 0x00604474
-int g_cd_index_00604474;
+int g_cd_index_00604474 = -1;
 // GLOBAL: WIZ8 0x00659738
 W8MaterialMapper00482010 g_material_mapper_00659738;
 
@@ -181,10 +181,10 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
 }
 
 // FUNCTION: WIZ8 0x0042b740
-char Function42B740(int saved_level)
+char GetLevelBand(int saved_level)
 {
     int level = NormalizeMasterFunctionValue004D9700(saved_level);
-    if (level >= 0 && level < 48) {
+    if (level >= 0 && level <= 0x2f) {
         return g_level_folders[level].unknown_6a;
     }
     return 0;

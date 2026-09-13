@@ -370,7 +370,6 @@ void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
 void MonsterForward4531A0(void);
 
-void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
 void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);
 void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
 void NotifyMonsterIdle(W8Monster* monster, int arg_2);
@@ -381,6 +380,7 @@ void PrepareMonsterCycleForDestruction004ACF90(W8Monster* cycle);
 
 void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForward4C4DE0(int arg_1, int arg_2, int arg_3);
+void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 void Function4C4EF0(void);
 

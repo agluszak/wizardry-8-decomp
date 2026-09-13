@@ -101,7 +101,7 @@ extern float g_path_cardinal_scale_005ec358;
 float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 
 // GLOBAL: WIZ8 0x005ec360
-float g_float_005ec360;
+float g_float_005ec360 = 25000.0f;
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;

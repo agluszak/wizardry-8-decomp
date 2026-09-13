@@ -60,9 +60,17 @@ public:
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void StartIfHostActive(); /* 0x004A4050 */
+    /* Decide what the missile struck - the party or a live monster - record it
+       in combat_slot_260, roll the target's missile deflection and either hand
+       the hit to Combat Attack.cpp or leave it for the combat engine. */
+    virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
     unsigned long GetAnimationState004A4640(int mode);
     void Function4A49E0();
+    void AnnounceCollisionTarget(); /* 0x004A4AC0 */
+    /* Switch the representation to its impact cycle, or end the flight when the
+       missile has no such cycle. */
+    void EnterImpactCycle(); /* 0x004A4C20 */
 
     void SetLaunchValues004A5410(const float* values);
     /* 0x004A5790: true while this in-flight missile still blocks ending combat. */
@@ -94,13 +102,13 @@ public:
     int value_1f4;
     unsigned char unknown_1f8[4];
     float values_1fc[12];
-    unsigned char unknown_22c[0x34];
+    W8TargetSource source_22c;
     W8CombatSlot combat_slot_260;
     /* 0x280: the damage this missile has dealt, folded into the owning spell
        effect by 0x00500460. */
     W8SpellEffectResult result_280;
     unsigned char unknown_2e8[0x3a];
-    unsigned char flag_322;
+    bool retargeted_322; /* the missile struck something other than its intended target */
     unsigned char unknown_323[5];
 };
 

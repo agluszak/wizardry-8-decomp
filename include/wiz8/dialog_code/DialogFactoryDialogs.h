@@ -144,7 +144,7 @@ private:
     unsigned char HandleInputEvent005DA180(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered in this change. */
+       are not recovered. */
     static void Function5DA440(W8DialogButton* button);
     static void Function5DA490(W8DialogButton* button);
     static void Function5DA4E0(W8DialogButton* button);
@@ -202,7 +202,7 @@ private:
     unsigned char HandleInputEvent005CEC20(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered in this change, except Function5CE6E0 which Assay
+       are not recovered, except Function5CE6E0 which Assay
        Dialog also stores on its close button. */
     static void Function5CE5F0(W8DialogButton* button);
     static void Function5CE6A0(W8DialogButton* button);

@@ -60,6 +60,12 @@ unsigned char g_byte_00659a64;
 // VTABLE: WIZ8 0x005ec1d0
 // class W8GrowableVector<unsigned char*>
 
+// SYNTHETIC: WIZ8 0x0044ef60
+// W8GrowableVector<unsigned char*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0044ef00
+// W8GrowableVector<unsigned char*>::~W8GrowableVector<unsigned char*>
+
 // TEMPLATE: WIZ8 0x0044efe0
 // W8GrowableVector<unsigned char*>::W8GrowableVector
 

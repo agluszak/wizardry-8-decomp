@@ -33,7 +33,7 @@ stTextureAnim* g_environment_value_0065a168;
 // GLOBAL: WIZ8 0x0065A16C
 stTextureAnim* g_environment_value_0065a16c;
 // GLOBAL: WIZ8 0x0060A394
-unsigned char g_environment_flag_0060a394;
+unsigned char g_environment_flag_0060a394 = 1;
 // GLOBAL: WIZ8 0x0065A160
 W8Prop* g_environment_value_0065a160;
 // GLOBAL: WIZ8 0x0065AD84
@@ -43,9 +43,9 @@ srVector3T<float> g_environment_origin_65ad88;
 // GLOBAL: WIZ8 0x0065B99C
 int g_environment_state_65b99c;
 // GLOBAL: WIZ8 0x0060A390
-float g_view_distance_0060a390;
+float g_view_distance_0060a390 = 12.0f;
 // GLOBAL: WIZ8 0x0060A3A4
-float g_environment_value_0060a3a4;
+float g_environment_value_0060a3a4 = -1.0f;
 // GLOBAL: WIZ8 0x0065AD78
 EnvironmentColour g_light_direction_0065ad78;
 // GLOBAL: WIZ8 0x0065A170

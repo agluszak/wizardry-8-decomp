@@ -22,10 +22,6 @@
 #include <stdlib.h>
 #include "wiz8/game_status.h"
 
-// GLOBAL: WIZ8 0x0068c098
-int g_string_table_count;
-// GLOBAL: WIZ8 0x0068C09C
-char** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;
 // GLOBAL: WIZ8 0x0061a548
@@ -502,21 +498,21 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
 // FUNCTION: WIZ8 0x005184b0
 void FreeStringTable(void)
 {
-    if (g_string_table != 0) {
+    if (gppStringList != 0) {
         int index = 0;
-        char** table = g_string_table;
-        if (g_string_table_count > 0) {
+        wchar_t** table = gppStringList;
+        if (giStringListLen > 0) {
             do {
                 if (table[index] != 0) {
                     free(table[index]);
-                    table = g_string_table;
+                    table = gppStringList;
                 }
                 ++index;
-            } while (index < g_string_table_count);
+            } while (index < giStringListLen);
         }
         free(table);
-        g_string_table = 0;
-        g_string_table_count = 0;
+        gppStringList = 0;
+        giStringListLen = 0;
     }
 }
 

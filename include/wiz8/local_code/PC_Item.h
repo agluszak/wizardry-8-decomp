@@ -24,7 +24,7 @@ bool ItemHasQuantityKindFour(int item_id);
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
 bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
                         char announce, char skip_stacking);
-void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* origin,
+void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigned char* origin,
                               unsigned short* slot);
 
 void UnequipUnusableItems(W8Character* character); /* 0x0051D960 */
@@ -97,6 +97,12 @@ unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int perc
 
 bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
+bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
+                                   int arg_4, int arg_5); /* 0x0051C280 */
+bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
+/* Unresolved gap, declared for the Party Import.cpp call site: scans the
+   character's carried items for one whose database kind matches. */
+char Function5213C0(W8Character* character, short item_kind, int* out, int arg_4); /* 0x005213C0 */
 void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 
 /* 0x0051B910: per-item-class notice index into gppStringList used for the

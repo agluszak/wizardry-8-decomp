@@ -460,7 +460,7 @@ unsigned char LoadKeywordFile(const char* path,
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
-unsigned char Function577850(void);
+unsigned char CanOpenNpcDialogue(void);
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 unsigned char Function577A40(void);
 void __fastcall
@@ -506,7 +506,7 @@ extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 
 void BeginLevelTransition(void); /* 0x005611A0 */
-void Function5618F0(unsigned short mode);
+void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a change to the main-game mode flag at 0x006850CE. */
 void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
 /* 0x00561EC0: the region-mode pass the party-add entry runs while the
@@ -544,6 +544,3 @@ void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);
-
-/* 0x006068E4: the shared L"%s" wide format, defined in MainGameScreen.cpp. */
-extern const wchar_t g_format_s_006068e4[];

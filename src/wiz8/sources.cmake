@@ -99,6 +99,8 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/Prop.cpp
     src/wiz8/engine_code/Navigator.cpp
     src/wiz8/engine_code/GrObject.cpp
+    "src/wiz8/local_code/Party Import.cpp"
+    src/wiz8/local_code/Noise.cpp
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp
     src/wiz8/engine_code/GrCycle.cpp
@@ -137,6 +139,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/engine_code/world_selection.cpp
     src/wiz8/engine_code/stCube.cpp
+    src/wiz8/engine_code/Camera.cpp
     src/wiz8/engine_code/Cursor3d.cpp
     src/wiz8/engine_code/stLight.cpp
     src/wiz8/engine_code/bounds.cpp
@@ -151,6 +154,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/formation_state.cpp
     src/wiz8/local_code/GroupAttacks.cpp
     src/wiz8/local_code/CharGeneration.cpp
+    src/wiz8/local_screens/mipe.cpp
     src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
     src/wiz8/local_screens/MGSButtons.cpp

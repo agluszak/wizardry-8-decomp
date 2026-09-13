@@ -19,7 +19,9 @@ float g_startup_depth_603ac8 = 1000.0f;
 extern const float g_startup_near_limit_005ec000 = 250.0f;
 
 /* Builds the startup navigation state after the renderer graph is open.
-   0x0044F060 sits in the attribution gap before Engine Code\3dapi.cpp. */
+   0x0044F060 sits in the attribution gap between Prop.cpp (ends 0x0044E1F0)
+   and Engine Code\3dapi.cpp (0x0044F1C0); the two globals sit in the
+   unbracketed .data tail. Unresolved fragment - no proven ownership. */
 // FUNCTION: WIZ8 0x0044f060
 unsigned char InitializeStartupNavigation0044F060(void)
 {
