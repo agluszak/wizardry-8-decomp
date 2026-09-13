@@ -989,38 +989,32 @@ void SpendPartyGold(unsigned int amount)
 void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigned char* origin,
                               unsigned short* slot)
 {
+    unsigned int backpack_index;
     unsigned int equipped_index;
-    unsigned int carried_index;
     unsigned int pool_index;
-    unsigned char* character;
-    W8ItemInstance* equipped;
+    W8Character* character;
+    W8ItemInstance* cursor;
 
     if (item == 0) {
         srAssertFail("pPCItem != NULL", "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp", 0x151b,
                      0);
     }
 
-    /* The original holds the character base in one register and advances it in
-       place for the carried array, rather than deriving each cursor afresh. */
-    equipped_index = 0;
-    character = (unsigned char*)(g_status_685170.buffers.characters + character_index);
-    equipped = reinterpret_cast<W8ItemInstance*>(character + 0x1029); /* reinterpret-ok: the
-        carried-item array begins at a fixed byte offset inside the character record */
-    for (; equipped_index < 8; ++equipped_index, ++equipped) {
-        if (item == equipped) {
+    character = &g_status_685170.buffers.characters[character_index];
+    for (backpack_index = 0; backpack_index < 8; ++backpack_index) {
+        if (item == &character->backpack[backpack_index]) {
             *origin = 0;
-            *slot = (unsigned short)equipped_index;
+            *slot = (unsigned short)backpack_index;
             return;
         }
     }
 
-    carried_index = 0;
-    character += 0xf5d;
-    for (; carried_index < 12; ++carried_index, character += 0xc) {
-        if (item == reinterpret_cast<W8ItemInstance*>(character)) { /* reinterpret-ok: walking
-            carried W8ItemInstance records by their 0xc stride from the character base */
+    equipped_index = 0;
+    cursor = character->equipment;
+    for (; equipped_index < 12; ++equipped_index, ++cursor) {
+        if (item == cursor) {
             *origin = 1;
-            *slot = (unsigned short)carried_index;
+            *slot = (unsigned short)equipped_index;
             return;
         }
     }
