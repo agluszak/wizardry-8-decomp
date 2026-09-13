@@ -344,7 +344,14 @@ struct W8MonsterRecord {
     /* 0x15f: the percentage of hits that land on each of the seven monster
        hit locations; the total is reported when it falls short of 100. */
     unsigned char hit_location_chances_15f[7];
-    unsigned char unknown_166[0x1b];
+    unsigned char unknown_166[0x10];
+    /* 0x176: the monster's own resistance per realm, read alongside the
+       gameplay-modifier bonus wherever a character would read
+       W8CharacterResistance::total. */
+    unsigned char resistances[6];
+    /* 0x17c: hit points gained (or lost, when negative) per game minute. */
+    signed char hp_regeneration_17c;
+    unsigned char unknown_17d[4];
     unsigned int combat_value_181; /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
     short record_id_187;       /* 0x187: equals the zero-based database index */
