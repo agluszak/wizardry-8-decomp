@@ -13,6 +13,8 @@
 
 #include "random.h"
 
+#include <string.h>
+
 /* Retail Local Code\Party Import.cpp: converts imported Wizardry 7
    characters into the Wizardry 8 layout. The entry driver 0x005590B0 that
    calls all four functions stays in the gap. */
@@ -36,10 +38,24 @@ int g_profession_starting_spells_62a5f8[15][6] = {
     {10, 12, 11, 14, 0, 0}, {5, 12, 14, 4, 0, 0}, {0, 0, 0, 0, 0, 0},
 };
 
-// FUNCTION: WIZ8 0x005592D0
-void ConvertAttribute(W8Character* character, const char* import_record)
+/* The item database index whose legacy item number matches the imported
+   one, or -1 when no record carries it. */
+static int FindItemByLegacyNumber(short item_number)
 {
-    unsigned int imported[7] = {0};
+    unsigned int index = 0;
+    while (index < gXStatus.uiItemsInDatabase) {
+        if (g_item_records[index].legacy_item_number_03c == item_number) {
+            return index;
+        }
+        ++index;
+    }
+    return -1;
+}
+
+// FUNCTION: WIZ8 0x005592D0
+void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
+{
+    unsigned int imported_values[7] = {0};
     int mapped;
     int i;
     int total = 0;
@@ -81,7 +97,7 @@ void ConvertAttribute(W8Character* character, const char* import_record)
                 srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x462,
                              "ConvertAttribute: ERROR - Invalid attribute");
             }
-            imported[mapped] = (unsigned char)import_record[0x170 + i];
+            imported_values[mapped] = imported->attributes[i];
             switch (i) {
             case 0:
                 mapped = 0;
@@ -107,13 +123,13 @@ void ConvertAttribute(W8Character* character, const char* import_record)
                 srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x462,
                              "ConvertAttribute: ERROR - Invalid attribute");
             }
-            total = total + imported[mapped];
+            total = total + imported_values[mapped];
         }
     }
     average = total / 6;
     primary = g_profession_primary_attributes_614fc8[character->current_profession];
     for (i = 3; i != 0; --i) {
-        imported[*primary++] += 0x28;
+        imported_values[*primary++] += 0x28;
     }
     for (i = 0; i < 7; ++i) {
         character->attributes[i].value = g_race_attribute_minimums[character->race].values[i];
@@ -133,7 +149,7 @@ void ConvertAttribute(W8Character* character, const char* import_record)
     if (-1 < points) {
         added = 0;
         for (i = 0; i < 7; ++i) {
-            add = (points * imported[i]) / (total + average + 0x78);
+            add = (points * imported_values[i]) / (total + average + 0x78);
             cap = 100 - character->attributes[i].value;
             if (cap <= add) {
                 add = cap;
@@ -212,81 +228,68 @@ void GrantStartingSpells005595D0(W8Character* character)
 }
 
 // FUNCTION: WIZ8 0x00559650
-void ImportEquipment00559650(W8Character* character, const char* import_record)
+void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* imported)
 {
     W8ItemInstance item;
-    /* The worthiest imported items: the first twenty entries are the
-       high-value band, the next twenty the mid band; both copy the imported
-       six-short record and index flat by (band * 20 + index). */
-    short candidates[40][6];
-    int maximum[3];
+    /* The worthiest imported items: band 0 keeps the two most valuable finds
+       (value above 3000), band 1 the next three (above 1000). */
+    W8Wiz7Item candidates[2][20];
+    W8Wiz7Item empty_item;
+    int maximum[2];
     int counts[2];
-    const short* source;
-    const short* entry;
-    short* destination;
+    const W8Wiz7Item* source;
+    const W8Wiz7Item* entry;
     int slot;
-    int count;
     int index;
     int best_index;
     int best_value;
-    unsigned int item_index;
-    int value;
+    int item_index;
+    int price;
     int give;
     const int* starting;
     int item_id;
     int equip_slot;
     W8Profession profession;
 
+    memset(&empty_item, 0, sizeof(empty_item));
     counts[0] = 0;
     counts[1] = 0;
     EmptyAllCarriedItems(character);
     for (slot = 0; slot < 2; ++slot) {
-        destination = candidates[counts[0]];
-        source = (const short*)(import_record + 0x40 + slot * 0x78);
-        for (count = 10; count != 0; --count) {
-            if (*source != 0) {
-                item_index = 0;
-                while (item_index < gXStatus.uiItemsInDatabase) {
-                    if (g_item_records[item_index].legacy_item_number_03c == *source) {
-                        if (item_index == 0xffffffff) {
-                            break;
+        source = imported->items[slot];
+        for (index = 0; index < 10; ++index) {
+            if (source->item_number != 0) {
+                item_index = FindItemByLegacyNumber(source->item_number);
+                if (item_index != -1) {
+                    if (item_index != 0x128) {
+                        if (g_item_records[item_index].unidentified_name_index == 0x84 ||
+                            4999 < (int)g_item_records[item_index].value) {
+                            source++;
+                            continue;
                         }
-                        if (item_index != 0x128) {
-                            if (g_item_records[item_index].unidentified_name_index == 0x84 ||
-                                4999 < g_item_records[item_index].value) {
-                                break;
-                            }
-                            if (2999 < g_item_records[item_index].value) {
-                                *(int*)destination = *(const int*)source; /* reinterpret-ok:
-                                     the imported six-short record copies as
-                                     three dwords */
-                                *(int*)(destination + 2) = *(const int*)(source + 2);
-                                *(int*)(destination + 4) = *(const int*)(source + 4);
-                                destination += 6;
-                                counts[0] += 1;
-                                break;
-                            }
-                            if (999 < g_item_records[item_index].value) {
-                                *(int*)candidates[20 + counts[1]] = *(const int*)source;
-                                *(int*)(candidates[20 + counts[1]] + 2) = *(const int*)(source + 2);
-                                *(int*)(candidates[20 + counts[1]] + 4) = *(const int*)(source + 4);
-                                counts[1] += 1;
-                                break;
-                            }
+                        if (2999 < (int)g_item_records[item_index].value) {
+                            candidates[0][counts[0]] = *source;
+                            ++counts[0];
+                            source++;
+                            continue;
                         }
-                        ReplaceOrCreateItem(&item, item_index, '\x01', '\x01', '\x01');
-                        if (g_item_records[item_index].binds_on_equip == '\0') {
-                            StoreItemWithCharacterOrParty(character, &item, '\0', 0,
-                                                          (unsigned int)(slot == 0));
-                        } else {
-                            AddItemToCharacter(character, &item, '\0', '\0', '\0');
+                        if (999 < (int)g_item_records[item_index].value) {
+                            candidates[1][counts[1]] = *source;
+                            ++counts[1];
+                            source++;
+                            continue;
                         }
-                        break;
                     }
-                    ++item_index;
+                    ReplaceOrCreateItem(&item, item_index, '\x01', '\x01', '\x01');
+                    if (g_item_records[item_index].binds_on_equip == '\0') {
+                        StoreItemWithCharacterOrParty(character, &item, '\0', 0,
+                                                      (unsigned int)(slot == 0));
+                    } else {
+                        AddItemToCharacter(character, &item, '\0', '\0', '\0');
+                    }
                 }
             }
-            source += 6;
+            source++;
         }
     }
     maximum[0] = 1;
@@ -301,48 +304,22 @@ void ImportEquipment00559650(W8Character* character, const char* import_record)
         while (0 < maximum[slot]) {
             best_value = 0;
             best_index = -1;
-            index = 0;
-            while (index < counts[slot]) {
-                entry = candidates[slot * 20 + index];
-                if (0 < *entry) {
-                    item_index = 0;
-                    if (gXStatus.uiItemsInDatabase != 0) {
-                        while (g_item_records[item_index].legacy_item_number_03c != *entry) {
-                            ++item_index;
-                            if (gXStatus.uiItemsInDatabase <= item_index) {
-                                item_index = 0xffffffff;
-                                goto found;
-                            }
-                        }
-                    } else {
-                        item_index = 0xffffffff;
-                    }
-                found:
-                    value = g_item_records[item_index].value;
+            for (index = 0; index < counts[slot]; ++index) {
+                entry = &candidates[slot][index];
+                if (0 < entry->item_number) {
+                    item_index = FindItemByLegacyNumber(entry->item_number);
+                    price = g_item_records[item_index].value;
                     if (ItemHasHiddenProperties(item_index) == '\0') {
-                        value = value / 2;
+                        price = price / 2;
                     }
-                    if (best_value < value) {
+                    if (best_value < price) {
                         best_value = g_item_records[item_index].value;
                         best_index = index;
                     }
                 }
-                ++index;
             }
             if (best_index != -1) {
-                item_index = 0;
-                if (gXStatus.uiItemsInDatabase != 0) {
-                    while (g_item_records[item_index].legacy_item_number_03c !=
-                           candidates[slot * 20 + best_index][0]) {
-                        ++item_index;
-                        if (gXStatus.uiItemsInDatabase <= item_index) {
-                            item_index = 0xffffffff;
-                            break;
-                        }
-                    }
-                } else {
-                    item_index = 0xffffffff;
-                }
+                item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
                 ReplaceOrCreateItem(&item, item_index, '\x01', '\x01', '\x01');
                 if (g_item_records[item_index].binds_on_equip == '\0') {
                     StoreItemWithCharacterOrParty(character, &item, '\0', 0, 1);
@@ -350,12 +327,7 @@ void ImportEquipment00559650(W8Character* character, const char* import_record)
                     AddItemToCharacter(character, &item, '\0', '\0', '\0');
                 }
                 --maximum[slot];
-                index = slot * 20 + best_index;
-                candidates[index][0] = 0;
-                candidates[index][1] = 0;
-                *(int*)&candidates[index][2] = 0; /* reinterpret-ok:
-                     the imported six-short record zeroes as dword pairs */
-                *(int*)&candidates[index][4] = 0;
+                candidates[slot][best_index] = empty_item;
             }
         }
     }
@@ -407,13 +379,20 @@ void ImportEquipment00559650(W8Character* character, const char* import_record)
     RebuildEquipmentAndDerivedStats(character);
 }
 
+/* The `mapped` index is deliberately left without a value on the asserted
+   default path: retail falls through the failed assert and reads the
+   imported skill by whatever index it held. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
 // FUNCTION: WIZ8 0x00559BC0
-unsigned int ConvertSkill(unsigned int skill_id, W8Character* character, int unused,
-                          const char* import_record, unsigned int base_value)
+unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
+                          const W8Wiz7Character* same_record, const W8Wiz7Character* imported,
+                          unsigned int base_value)
 {
     int mapped;
     unsigned int unlocks;
     unsigned int roll;
+    char routed = 0;
     int i;
 
     if (g_skill_attributes[skill_id].unknown_04 == 2) {
@@ -449,132 +428,6 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character, int unu
     case 8:
         mapped = 7;
         break;
-    case 9:
-    case 0x10:
-    case 0x11:
-    case 0x12:
-    case 0x14:
-    case 0x17:
-    case 0x1c:
-    case 0x1d:
-    case 0x1e:
-    case 0x1f:
-    case 0x20:
-    case 0x21:
-    convert_by_skill:
-        switch (skill_id) {
-        case 9:
-            base_value = (unsigned char)import_record[0x17d];
-            if ((unsigned char)import_record[0x17d] <= (unsigned char)import_record[0x17e]) {
-                base_value = (unsigned char)import_record[0x17e];
-            }
-            break;
-        case 0x10:
-            base_value = (unsigned char)import_record[0x178];
-            if (base_value <= (unsigned char)import_record[0x179]) {
-                base_value = (unsigned char)import_record[0x179];
-            }
-            if (base_value <= (unsigned char)import_record[0x17a]) {
-                base_value = (unsigned char)import_record[0x17a];
-            }
-            if (base_value <= (unsigned char)import_record[0x17b]) {
-                base_value = (unsigned char)import_record[0x17b];
-            }
-            if (base_value <= (unsigned char)import_record[0x17c]) {
-                base_value = (unsigned char)import_record[0x17c];
-            }
-            if (base_value <= (unsigned char)import_record[0x180]) {
-                base_value = (unsigned char)import_record[0x180];
-            }
-            if (base_value <= (unsigned char)import_record[0x181]) {
-                base_value = (unsigned char)import_record[0x181];
-            }
-        clamp_100:
-            if (100 < base_value) {
-                base_value = 100;
-            }
-            break;
-        case 0x11:
-            base_value = (unsigned char)import_record[0x17f];
-            if (base_value <= (unsigned char)import_record[0x17e]) {
-                base_value = (unsigned char)import_record[0x17e];
-            }
-            if (base_value <= (unsigned char)import_record[0x17d]) {
-                base_value = (unsigned char)import_record[0x17d];
-            }
-            goto clamp_100;
-        case 0x12:
-            if (g_profession_skill_availability[0x12][character->current_profession] == 1) {
-                base_value = (unsigned char)import_record[0x178];
-                if (base_value <= (unsigned char)import_record[0x179]) {
-                    base_value = (unsigned char)import_record[0x179];
-                }
-                if (base_value <= (unsigned char)import_record[0x17a]) {
-                    base_value = (unsigned char)import_record[0x17a];
-                }
-                if (base_value <= (unsigned char)import_record[0x17b]) {
-                    base_value = (unsigned char)import_record[0x17b];
-                }
-                if (base_value <= (unsigned char)import_record[0x17c]) {
-                    base_value = (unsigned char)import_record[0x17c];
-                }
-                if (100 < base_value) {
-                    base_value = 100;
-                }
-                if (g_profession_bonus_skills[character->current_profession] != 0x12) {
-                    for (i = 0; i < 4; ++i) {
-                        if (g_profession_skills[character->current_profession][i] == 0x12) {
-                            if (3 < i) {
-                                base_value >>= 1;
-                            }
-                            goto done;
-                        }
-                    }
-                    base_value >>= 1;
-                }
-            }
-            break;
-        case 0x17:
-        case 0x23:
-        case 0x25:
-        zero_value:
-            base_value = 0;
-            break;
-        case 0x14:
-            base_value =
-                (((unsigned char)import_record[0x193] + (unsigned char)import_record[400] * 4) *
-                 0x14) /
-                100;
-            break;
-        case 0x1c:
-        case 0x1d:
-        case 0x1e:
-        case 0x1f:
-        case 0x20:
-        case 0x21:
-            unlocks = character->skill_unlocks[skill_id];
-            if (unlocks == 0) {
-                goto zero_value;
-            }
-            if (import_record[0x239] == '\x05' || import_record[0x239] == '\r' ||
-                import_record[0x239] == '\x04') {
-                base_value = (unsigned char)import_record[0x195];
-            } else {
-                base_value = (unsigned char)import_record[0x186];
-            }
-            if (unlocks < 3) {
-                base_value = ((unlocks + 1) * base_value) / 3;
-            }
-            if (100 < base_value) {
-                base_value = 100;
-            }
-            break;
-        default:
-            srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x56c,
-                         "ConvertSkill: ERROR - Invalid NEW skill");
-            break;
-        }
-        goto done;
     case 10:
         mapped = 0x10;
         break;
@@ -614,35 +467,150 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character, int unu
     case 0x1b:
         mapped = 0x1f;
         break;
+    case 9:
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x14:
+    case 0x17:
+    case 0x1c:
+    case 0x1d:
+    case 0x1e:
+    case 0x1f:
+    case 0x20:
+    case 0x21:
+        routed = 1;
+        switch (skill_id) {
+        case 9:
+            base_value = imported->skills[5];
+            if (base_value <= imported->skills[6]) {
+                base_value = imported->skills[6];
+            }
+            break;
+        case 0x10:
+            base_value = imported->skills[0];
+            for (i = 1; i < 5; ++i) {
+                if (base_value <= imported->skills[i]) {
+                    base_value = imported->skills[i];
+                }
+            }
+            for (i = 8; i < 10; ++i) {
+                if (base_value <= imported->skills[i]) {
+                    base_value = imported->skills[i];
+                }
+            }
+            if (100 < base_value) {
+                base_value = 100;
+            }
+            break;
+        case 0x11:
+            base_value = imported->skills[7];
+            if (base_value <= imported->skills[6]) {
+                base_value = imported->skills[6];
+            }
+            if (base_value <= imported->skills[5]) {
+                base_value = imported->skills[5];
+            }
+            if (100 < base_value) {
+                base_value = 100;
+            }
+            break;
+        case 0x12:
+            base_value = 0;
+            if (g_profession_skill_availability[0x12][character->current_profession] == 1 &&
+                g_profession_bonus_skills[character->current_profession] != 0x12) {
+                int profession_slot = -1;
+                base_value = imported->skills[0];
+                for (i = 1; i < 5; ++i) {
+                    if (base_value <= imported->skills[i]) {
+                        base_value = imported->skills[i];
+                    }
+                }
+                if (100 < base_value) {
+                    base_value = 100;
+                }
+                /* Retail falls into the zero-value case unless the profession
+                   carries the skill in one of its four table slots; a late
+                   slot halves the imported value on the way out. */
+                for (i = 0; i < 4; ++i) {
+                    if (g_profession_skills[character->current_profession][i] == 0x12) {
+                        profession_slot = i;
+                        break;
+                    }
+                }
+                if (profession_slot == -1) {
+                    base_value = 0;
+                } else if (3 < profession_slot) {
+                    base_value >>= 1;
+                }
+            }
+            break;
+        case 0x14:
+            base_value =
+                ((unsigned int)(imported->skills[0x1b] + imported->skills[0x18] * 4) * 0x14) / 100;
+            break;
+        case 0x17:
+        case 0x23:
+        case 0x25:
+            base_value = 0;
+            break;
+        case 0x1c:
+        case 0x1d:
+        case 0x1e:
+        case 0x1f:
+        case 0x20:
+        case 0x21:
+            unlocks = character->skill_unlocks[skill_id];
+            if (unlocks == 0) {
+                base_value = 0;
+                break;
+            }
+            if (imported->profession_239 == '\x05' || imported->profession_239 == '\r' ||
+                imported->profession_239 == '\x04') {
+                base_value = imported->skills[0x1d];
+            } else {
+                base_value = imported->skills[0xe];
+            }
+            if (unlocks < 3) {
+                base_value = ((unlocks + 1) * base_value) / 3;
+            }
+            if (100 < base_value) {
+                base_value = 100;
+            }
+            break;
+        default:
+            srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x56c,
+                         "ConvertSkill: ERROR - Invalid NEW skill");
+            break;
+        }
+        break;
     default:
         srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x4b3, "ConvertSkill: ERROR - Invalid skill");
-        mapped = (int)import_record;
-        if ((int)import_record == -1) {
-            goto convert_by_skill;
+        break;
+    }
+    if (!routed) {
+        base_value = imported->skills[mapped];
+        if (0x17 < skill_id && skill_id < 0x1c) {
+            if (character->current_profession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
+                base_value == 0) {
+                base_value = ((unsigned int)(imported->skills[0x20] + imported->skills[0x1e])) / 2;
+            }
+            unlocks = 0;
+            for (i = 0x1c; i < 0x22; ++i) {
+                unlocks += character->skill_unlocks[i];
+            }
+            if (unlocks == 0) {
+                roll = Random(5);
+                base_value = base_value / (roll + 5);
+            } else if (unlocks < 5) {
+                base_value = (unlocks * base_value) / 5;
+            }
         }
     }
-    base_value = (unsigned char)import_record[mapped + 0x178];
-    if (0x17 < skill_id && skill_id < 0x1c) {
-        if (character->current_profession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
-            base_value == 0) {
-            base_value =
-                ((unsigned char)import_record[0x198] + (unsigned char)import_record[0x196]) / 2;
-        }
-        unlocks = 0;
-        for (i = 0x1c; i < 0x22; ++i) {
-            unlocks += character->skill_unlocks[i];
-        }
-        if (unlocks == 0) {
-            roll = Random(5);
-            base_value = base_value / (roll + 5);
-        } else if (unlocks < 5) {
-            base_value = (unlocks * base_value) / 5;
-        }
-    }
-done:
     unlocks = (base_value * 2) / 10;
     if (0x14 < unlocks) {
         unlocks = 0x14;
     }
     return unlocks;
 }
+#pragma clang diagnostic pop
