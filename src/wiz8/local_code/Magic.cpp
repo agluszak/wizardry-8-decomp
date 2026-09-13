@@ -654,7 +654,7 @@ void UpdateSpellEffects00500930(void)
                 position.y -= g_float_005ebc64;
                 W8SpellVisual* visual =
                     SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
-                                     *(int*)&missile->values_1fc[8], 0, 0);
+                                     missile->definition_1fc.duration_scale, 0, 0);
                 if (visual != 0) {
                     visual->flag_1e6 = 0;
                     effect->effects.Add(visual);
@@ -742,6 +742,55 @@ void DetachMissileReferences005019A0(W8Missile* missile)
             effect->missiles.RemoveAt(missile_index);
             return;
         }
+    }
+}
+
+/* Which spell a missile type carries, for the missile kinds that are spells
+   at all. Anything else carries no spell. */
+// FUNCTION: WIZ8 0x00501a60
+int MissileSpellId(int missile_type)
+{
+    switch (missile_type) {
+    case 1:
+        return 1;
+    case 2:
+        return 5;
+    case 3:
+        return 10;
+    case 4:
+        return 11;
+    case 5:
+        return 25;
+    case 6:
+        return 79;
+    case 7:
+        return 47;
+    case 8:
+        return 93;
+    case 9:
+        return 48;
+    case 10:
+        return 80;
+    case 11:
+        return 55;
+    case 12:
+        return 36;
+    case 13:
+        return 81;
+    case 14:
+        return 57;
+    case 15:
+        return 76;
+    case 30:
+        return 87;
+    case 31:
+        return 31;
+    case 32:
+        return 122;
+    case 34:
+        return 121;
+    default:
+        return W8_SPELL_NONE;
     }
 }
 

@@ -66,11 +66,11 @@ struct W8LevelRuntimeBlock {
     unsigned char flag_156;
     unsigned char flag_157;
     unsigned char unknown_158[0x14];
-    int highlight_override;    /* 0x16c */
-    int values_170[8];         /* 0x170 */
-    int held_item_display_190; /* 0x190 */
-    int values_194[5];         /* 0x194 */
-    int text_lines[12];        /* 0x1a8 */
+    int highlight_override;      /* 0x16c */
+    int values_170[8];           /* 0x170 */
+    int held_item_display_190;   /* 0x190 */
+    int values_194[5];           /* 0x194 */
+    unsigned int text_lines[12]; /* 0x1a8 */
     int text_slots_1d8[4];
     int text_slots_1e8[4];
     unsigned char dialogue_open;
@@ -463,6 +463,7 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 void Function577260(void);
 void Function576030(int a, int b, int c, int d, int e);
 unsigned char CanOpenNpcDialogue(void);
+bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 unsigned char Function577A40(void);
 void __fastcall

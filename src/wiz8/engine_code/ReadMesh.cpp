@@ -79,9 +79,13 @@ static int g_read_mesh_index_65b9e4;
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
 static srTextureIFace** g_multi_mesh_textures_65b9fc;
 static unsigned long* g_multi_mesh_render_flags_65ba04;
-static int g_retained_material_count_65b9d4;
-static int g_retained_material_capacity_65b9d8;
-static srClass** g_retained_materials_65b9dc;
+/* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
+   its static initializer at 0x00485AF0 constructs it with capacity five and
+   its destructor is run through atexit. The element type is srMaterialIFace*
+   (the material arrays' own element type), which keeps this specialization
+   distinct from AutomapScreen's W8GrowableVector<srClass*>. */
+// GLOBAL: WIZ8 0x0065b9d0
+static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
 
 extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
@@ -699,23 +703,23 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     }
 
     for (int index = 0; index < material_count; ++index) {
-        srClass* material = static_cast<srClass*>(materials[index]);
+        srMaterialIFace* material = materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            int required = g_retained_material_count_65b9d4 + 1;
-            if (required > g_retained_material_capacity_65b9d8) {
-                srClass** previous = g_retained_materials_65b9dc;
-                srClass** replacement = new srClass*[required];
+            int required = g_retained_materials_65b9d0.count + 1;
+            if (required > g_retained_materials_65b9d0.capacity) {
+                srMaterialIFace** previous = g_retained_materials_65b9d0.data;
+                srMaterialIFace** replacement = new srMaterialIFace*[required];
                 if (replacement != 0) {
-                    g_retained_material_capacity_65b9d8 = required;
-                    for (int retained_index = 0; retained_index < g_retained_material_count_65b9d4;
+                    g_retained_materials_65b9d0.capacity = required;
+                    for (int retained_index = 0; retained_index < g_retained_materials_65b9d0.count;
                          ++retained_index) {
                         replacement[retained_index] = previous[retained_index];
                     }
                     delete[] previous;
-                    g_retained_materials_65b9dc = replacement;
+                    g_retained_materials_65b9d0.data = replacement;
                 }
             }
-            g_retained_materials_65b9dc[g_retained_material_count_65b9d4++] = material;
+            g_retained_materials_65b9d0.data[g_retained_materials_65b9d0.count++] = material;
             material->addReference();
         }
     }
@@ -834,23 +838,23 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
     }
 
     for (int index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
-        srClass* material = static_cast<srClass*>(g_multi_mesh_materials_65ba00[index]);
+        srMaterialIFace* material = g_multi_mesh_materials_65ba00[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            int required = g_retained_material_count_65b9d4 + 1;
-            if (required > g_retained_material_capacity_65b9d8) {
-                srClass** previous = g_retained_materials_65b9dc;
-                srClass** replacement = new srClass*[required];
+            int required = g_retained_materials_65b9d0.count + 1;
+            if (required > g_retained_materials_65b9d0.capacity) {
+                srMaterialIFace** previous = g_retained_materials_65b9d0.data;
+                srMaterialIFace** replacement = new srMaterialIFace*[required];
                 if (replacement != 0) {
-                    g_retained_material_capacity_65b9d8 = required;
-                    for (int retained_index = 0; retained_index < g_retained_material_count_65b9d4;
+                    g_retained_materials_65b9d0.capacity = required;
+                    for (int retained_index = 0; retained_index < g_retained_materials_65b9d0.count;
                          ++retained_index) {
                         replacement[retained_index] = previous[retained_index];
                     }
                     delete[] previous;
-                    g_retained_materials_65b9dc = replacement;
+                    g_retained_materials_65b9d0.data = replacement;
                 }
             }
-            g_retained_materials_65b9dc[g_retained_material_count_65b9d4++] = material;
+            g_retained_materials_65b9d0.data[g_retained_materials_65b9d0.count++] = material;
             material->addReference();
         }
     }
@@ -863,12 +867,12 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
 // FUNCTION: WIZ8 0x00489920
 void ReleaseRetainedMaterials00489920()
 {
-    while (g_retained_material_count_65b9d4 != 0) {
-        g_retained_materials_65b9dc[0]->release();
-        for (int index = 0; index < g_retained_material_count_65b9d4 - 1; ++index) {
-            g_retained_materials_65b9dc[index] = g_retained_materials_65b9dc[index + 1];
+    while (g_retained_materials_65b9d0.count != 0) {
+        g_retained_materials_65b9d0.data[0]->release();
+        for (int index = 0; index < g_retained_materials_65b9d0.count - 1; ++index) {
+            g_retained_materials_65b9d0.data[index] = g_retained_materials_65b9d0.data[index + 1];
         }
-        --g_retained_material_count_65b9d4;
+        --g_retained_materials_65b9d0.count;
     }
 }
 

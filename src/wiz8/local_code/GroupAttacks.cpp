@@ -169,7 +169,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -187,7 +187,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -208,7 +208,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = uiRollA + uiRollB + 1 + uiRollC;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -227,13 +227,13 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     if (iAIKind != 10) {
-                        ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                        ApplyEffectAndAnnounce(&uiDamage, &target,
                                                g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     }
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        ApplyDamageToCharacter0052A890(iChar, uiDamage, 0, announce, 0, 0, 0);
+                        ApplyDamageToCharacter(iChar, uiDamage, 0, announce, 0, 0, 0);
                         if (announce == 0) {
                             uiTotals[i] = uiTotals[i] + uiDamage;
                             uiHits[i] = uiHits[i] + 1;
@@ -285,12 +285,12 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        Function52BB60(monster_info, uiDamage, pSource, 0, 1, 0, 0, 0);
+                        ApplyDamageToMonster(monster_info, uiDamage, pSource, 0, 1, 0, 0, 0);
                         if (announce == 0) {
                             uiTotals[i] = uiTotals[i] + uiDamage;
                             uiHits[i] = uiHits[i] + 1;
@@ -303,7 +303,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 6 + 1;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage != 0) {
                         monster_info->spell_points_2f9 =
@@ -322,7 +322,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollB = Random(uiBound);
                     uiRollC = Random(uiBound);
                     uiDamage = uiRollA + uiRollB + uiRollC;
-                    ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                    ApplyEffectAndAnnounce(&uiDamage, &target,
                                            g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
@@ -341,13 +341,13 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                     uiRollC = Random(uiBound);
                     uiDamage = (uiRollA + uiRollB + uiRollC) / 3 + 1;
                     if (iAIKind != 10) {
-                        ApplyEffectAndAnnounce((int*)&uiDamage, &target,
+                        ApplyEffectAndAnnounce(&uiDamage, &target,
                                                g_ai_kind_realm_table_61f0fc[iAIKind], uiMinRoll);
                     }
                     if (uiDamage == 0) {
                         AnnounceEffectResisted(&target);
                     } else {
-                        Function52BB60(monster_info, uiDamage, pSource, 0, announce, 0, 0, 0);
+                        ApplyDamageToMonster(monster_info, uiDamage, pSource, 0, announce, 0, 0, 0);
                         if (announce == 0) {
                             uiTotals[i] = uiTotals[i] + uiDamage;
                             uiHits[i] = uiHits[i] + 1;

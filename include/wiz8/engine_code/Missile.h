@@ -4,6 +4,7 @@ unsigned char LoadMissileDatabase(void);
 void ReleaseMissileDatabase(void);
 
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/targeting.h"
 
@@ -72,7 +73,7 @@ public:
        missile has no such cycle. */
     void EnterImpactCycle(); /* 0x004A4C20 */
 
-    void SetLaunchValues004A5410(const float* values);
+    void SetEffectDefinition(const W8SpellEffectDefinition* definition); /* 0x004A5410 */
     /* 0x004A5790: true while this in-flight missile still blocks ending combat. */
     unsigned char BlocksEndingCombat004A5790();
 
@@ -101,7 +102,7 @@ public:
     float lifetime_1f0;
     int value_1f4;
     unsigned char unknown_1f8[4];
-    float values_1fc[12];
+    W8SpellEffectDefinition definition_1fc;
     W8TargetSource source_22c;
     W8CombatSlot combat_slot_260;
     /* 0x280: the damage this missile has dealt, folded into the owning spell
@@ -128,8 +129,9 @@ extern unsigned int g_missile_table_count_65bddc;
 #pragma pack(push, 1)
 struct W8MissileTableRecord {
     unsigned char unknown_000[0x140];
-    float value_140;
-    unsigned char unknown_144[0x10];
+    float radius_140;    /* 0x140: replaces the launched effect's radius */
+    int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
+    unsigned char unknown_148[0x0c];
     unsigned char flag_154; /* 0x154: blocks ending combat while set */
     unsigned char unknown_155[0x90];
 };

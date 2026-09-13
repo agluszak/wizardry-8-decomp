@@ -40,9 +40,8 @@
 #define HEALTH_STAMINA_MANA_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Health Stamina Mana.cpp"
 
 // FUNCTION: WIZ8 0x0052A890
-unsigned int ApplyDamageToCharacter0052A890(int party_slot, unsigned int amount, char arg_3,
-                                            char arg_4, char arg_5,
-                                            W8SpellEffectResult* result_stats, char arg_7)
+unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
+                                    char arg_5, W8SpellEffectResult* result_stats, char arg_7)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int absorbed;
@@ -152,14 +151,14 @@ enum { W8_RESTORE_EVERYTHING = -1 };
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
 // FUNCTION: WIZ8 0x0052a820
-void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3)
+void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3)
 {
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
             g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD) {
-            ApplyHealthChangeToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, arg_2, 0);
+            ApplyDamageToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, result, 0);
         }
     }
 }

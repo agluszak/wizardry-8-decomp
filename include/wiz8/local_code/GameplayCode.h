@@ -7,6 +7,10 @@ bool AnyCharacterActive(void);
 void CalcInitiative(W8Character* character);
 void CalcAttacks(W8Character* character);
 void CalcArmorClasses(W8Character* character);
+/* 0x00616308: the percentage of hits that land on each of the five character
+   hit locations, in the order the per-location armour classes use; the error
+   text spells its name. */
+extern const unsigned char gubLocalACPercent[5];
 void CalcCharacterLevelBand(W8Character* character);
 
 void CalcCharacterTableValue(W8Character* character);

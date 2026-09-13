@@ -14,6 +14,7 @@ class W8SoundEvent;
 
 /* GrObject.cpp owns this base.  The original Item.cpp assertion
    `pMissile->GrObject::GetAI()` independently establishes the class name. */
+// VTABLE: WIZ8 0x005ed090
 class W8GrObject {
 public:
     W8GrObject();                        /* 0x004B6900 */
