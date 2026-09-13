@@ -38,7 +38,7 @@ void Function52BB60(W8MonsterInfo* monster_info, unsigned int amount, struct W8T
 unsigned int ApplyDamageToCharacter0052A890(int party_slot, unsigned int amount, char arg_3,
                                             char arg_4, char arg_5,
                                             W8SpellEffectResult* result_stats, char arg_7);
-void Function58AAD0(int category, const wchar_t* format, unsigned int amount);
+void Function58AAD0(int category, const wchar_t* format, ...);
 void Function59AC40(int party_slot, unsigned int amount);
 void CharacterDies(int party_slot);
 void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3);

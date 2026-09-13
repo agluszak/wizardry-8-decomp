@@ -12,6 +12,7 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/targeting.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
@@ -179,7 +180,7 @@ unsigned char g_flag_68f0f9;
 unsigned char g_debug_monster_cycle_0068f0fc;
 
 // GLOBAL: WIZ8 0x0068f100
-W8IList* g_debug_monster_ids_0068f100;
+W8MipeState* g_debug_monster_ids_0068f100;
 
 // GLOBAL: WIZ8 0x0068f2c8
 unsigned int g_main_game_text_panel_region_set_0068f2c8;
@@ -2143,7 +2144,7 @@ render_world:
         ProcessMonsterManagerFrame();
         if (g_debug_monster_cycle_0068f0fc) {
             W8Monster* monster =
-                GetMonsterByLocationID(IListGetAt(g_debug_monster_ids_0068f100, 0));
+                GetMonsterByLocationID(IListGetAt(&g_debug_monster_ids_0068f100->monster_ids, 0));
             if (monster) {
                 ClearSurfaceRect(0x122, 0x159, 0x226, 0x168);
                 SetFont(g_font_683660);
