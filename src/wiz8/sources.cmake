@@ -115,6 +115,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/3d.cpp
     src/wiz8/engine_code/Bink.cpp
     src/wiz8/level_specific_code/MasterFunctionList.cpp
+    src/wiz8/level_specific_code/Monastery2.cpp
     src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
     src/wiz8/engine_code/Quality.cpp

@@ -1,4 +1,5 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/level_specific_code/Monastery2.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/sr_api.h"
@@ -148,8 +149,6 @@ unsigned char Function4DC6E0(Trigger* trigger);
 unsigned char Function4DC710(Trigger* trigger);
 unsigned char Function4DC730(Trigger* trigger);
 unsigned char Function4DC770(Trigger* trigger);
-unsigned char Function4DC7A0(Trigger* trigger);
-unsigned char Function4DC880(Trigger* trigger);
 unsigned char Function4DC910(Trigger* trigger);
 unsigned char Function4DCA20(Trigger* trigger);
 unsigned char Function4DCA60(Trigger* trigger);
@@ -681,13 +680,13 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1d8,
                          "Missing trigger 'bell_button'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC7A0;
+        pTrigger->activation_callback_360 = Monastery2BellButton004DC7A0;
         pTrigger = FindTriggerByName("micro_door2");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1dc,
                          "Missing trigger 'micro_door2'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC880;
+        pTrigger->activation_callback_360 = Monastery2MicroDoor2004DC880;
         return;
     case 0xc:
         Function4DBAB0();
