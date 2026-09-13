@@ -1407,8 +1407,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
     return power_level;
 }
 
-/* 0x0053C630 */
-
 /* Where the cast lands, by the spell's own target type. The kind values are
    W8TargetKind's; the source-kind values are W8TargetSourceKind's. */
 
@@ -1425,7 +1423,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 {
     W8TargetSource source;
     W8CombatSlot target;
-    int hostile;
+    char sight_probe;
 
     if (power_level == 0) {
         return 0;
@@ -1451,16 +1449,16 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         target.iType = W8_TARGET_KIND_PARTY;
         break;
     case 5:
-        hostile = 0;
+        sight_probe = 0;
         target.iType = W8_TARGET_KIND_PARTY;
-        AimCombatSlotAtParty(&target, hostile);
+        ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
     case 6:
     case 8:
-        hostile = 1;
+        sight_probe = 1;
         target.iType = W8_TARGET_KIND_PARTY;
-        AimCombatSlotAtParty(&target, hostile);
+        ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
     default:

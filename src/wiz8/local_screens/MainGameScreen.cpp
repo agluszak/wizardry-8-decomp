@@ -2180,7 +2180,7 @@ unsigned char MainGameScreenLeave(int leaving)
             } else {
                 mode = 2;
             }
-            Function5618F0(mode);
+            SetViewportMode(mode);
         }
         g_flag_0068edc9 = 0;
     }
@@ -2195,7 +2195,7 @@ unsigned char MainGameScreenLeave(int leaving)
             g_level_block->redraw_flags |= 0x8200;
         }
         if (g_flag_0068edbc) {
-            Function5618F0(Function5698C0());
+            SetViewportMode(Function5698C0());
         }
         g_flag_0068edbc = 0;
     }
@@ -2207,7 +2207,7 @@ unsigned char MainGameScreenLeave(int leaving)
             g_level_block->redraw_flags |= 0x8200;
         }
         if (g_flag_0068edc8) {
-            Function5618F0(Function5698C0());
+            SetViewportMode(Function5698C0());
         }
         g_flag_0068edc8 = 0;
     }
@@ -2295,6 +2295,46 @@ void RequestRefreshPartyState(void)
 bool IsModalOpen(void)
 {
     return g_modal_owner_0068edd0 != 0;
+}
+
+/* The 3D view's screen rectangle for each of the seven viewport modes, with
+   exclusive right and bottom edges. Mode 7, which leaving a level stores, sits
+   outside the table so the next change always applies. */
+// GLOBAL: WIZ8 0x00647d30
+W8ScreenRect g_viewport_modes_647d30[7] = {
+    {23, 18, 617, 450},  {23, 18, 617, 358},  {128, 18, 512, 358}, {128, 18, 512, 279},
+    {128, 18, 512, 450}, {128, 18, 512, 416}, {23, 18, 617, 416},
+};
+
+/* The viewport currently applied, as four separate dwords. */
+// GLOBAL: WIZ8 0x00647f44
+int g_viewport_left_647f44;
+// GLOBAL: WIZ8 0x00647f48
+int g_viewport_top_647f48;
+// GLOBAL: WIZ8 0x00647f4c
+int g_viewport_right_647f4c;
+// GLOBAL: WIZ8 0x00647f50
+int g_viewport_bottom_647f50;
+
+/* Switch the 3D view to another viewport mode: resize the view region to the
+   inclusive rectangle and hand the renderer the exclusive one. */
+// FUNCTION: WIZ8 0x005618f0
+void SetViewportMode(int mode)
+{
+    W8ScreenRect* rect;
+
+    if (mode == g_level_block->camera_mode_100) {
+        return;
+    }
+    rect = &g_viewport_modes_647d30[mode];
+    SetRegionBounds(0xe6, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
+    g_viewport_left_647f44 = rect->left;
+    g_viewport_top_647f48 = rect->top;
+    g_viewport_right_647f4c = rect->right;
+    g_viewport_bottom_647f50 = rect->bottom;
+    SetViewport(g_viewport_left_647f44, g_viewport_top_647f48, g_viewport_right_647f4c,
+                g_viewport_bottom_647f50);
+    g_level_block->camera_mode_100 = mode;
 }
 
 /* Take the screen for a modal owner and put its region up. */

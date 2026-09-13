@@ -1,5 +1,6 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -11,6 +12,8 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
+#include "wiz8/regions.h"
+#include "wiz8/targeting.h"
 #include "wiz8/xstatus.h"
 
 #include "bink.h"
@@ -45,8 +48,7 @@ struct W8NpcDialogueStagingRestore {
     short staged_short_49e;
 };
 #pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12,
-              "W8NpcDialogueStagingRestore_must_be_12");
+static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 
 // GLOBAL: WIZ8 0x0068c494
 W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
@@ -252,6 +254,27 @@ void SetFlag68C4F7(void)
 void ClearFlag68C4F7(void)
 {
     g_flag_68c4f7 = 0;
+}
+
+/* Fact 0x1bf: raise the scripted-scene gate, drop the level's transient data
+   vectors, force the single-target mode, and reopen the party-member region
+   sets (7 + slot, member region 0x5a + slot) for every occupied slot. */
+// FUNCTION: WIZ8 0x00529BE0
+void BeginNpcScriptedScene(void)
+{
+    int party_slot;
+
+    g_flag_68c4f7 = 1;
+    ResetLevelDataVectors0041F0D0();
+    g_flag_68506f = 1;
+    SetTargetingMode(1);
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+            RegionSetEnable(party_slot + 7);
+            EnableRegionSetInput(party_slot + 7);
+            EnableRegionInput(party_slot + 0x5a);
+        }
+    }
 }
 // FUNCTION: WIZ8 0x0052A070
 unsigned char GetFlag68C4FA(void)

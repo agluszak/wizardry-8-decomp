@@ -176,6 +176,7 @@ public:
     void StartPatrol(const srVector3T<float>* home, float distance, float variation);
     void SetFlag25(char value);                                            /* 0x004531F0 */
     void SetMovementStopped00453880();                                     /* 0x00453880 */
+    void PropagateGroupPosition();                                         /* 0x00454C80 */
     void UpdateAngles00453990();                                           /* 0x00453990 */
     unsigned char ConfigureMovement00453D20(float minimum, float maximum); /* 0x00453D20 */
     unsigned char SetMovementTarget(const srVector3T<float>* target,
@@ -276,7 +277,6 @@ extern unsigned char g_flag_006081e4;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_linked_radius_scale_005ebc98;
 
-void Function454C80(void); /* 0x00454C80 */
 unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
 void SetMonsterTurnSpeed(float speed); /* 0x00453C70 */

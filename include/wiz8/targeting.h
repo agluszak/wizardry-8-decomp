@@ -176,8 +176,8 @@ void SetTargetToGroup(int group_id, W8TargetingContext context);
 
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 
-unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
-void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
+/* 0x0053C630: fill the slot's point from where its target is. */
+unsigned char ResolveTargetPoint(W8CombatSlot* target, char sight_probe);
 void ApplyTarget(W8CombatSlot* target, W8TargetingContext context);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
@@ -197,8 +197,8 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */
 
-void Function53AE00(void); /* 0x0053AE00 */
-void Function53CD60(void); /* 0x0053CD60 */
+void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
+void Function53CD60(void);            /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
 bool CanPartySlotParticipate(int party_slot);      /* 0x0053C270 */
 W8TargetingContext Function53BC90(int party_slot); /* 0x0053BC90 */

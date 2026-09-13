@@ -242,7 +242,7 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
     position->unknown_01[1] = 0xff;
     for (unsigned int index = 0; index < 3; ++index) {
         unsigned char row = row_order[index];
-        signed char occupants = formation->flags_0f[row];
+        signed char occupants = formation->row_occupants[row];
         if (occupants == 0) {
             SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
             return;
@@ -271,9 +271,40 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
    the slot in the new row and update the facing. The detach flag re-places
    the positions left in the old row, and the announce flag posts the row
    name to the slot. */
+// FUNCTION: WIZ8 0x00554dd0
+void CompactFormationRow(W8PartyFormationState* formation, unsigned char row)
+{
+    signed char last_free = -1;
+    signed char column;
+    int slot;
+
+    switch (formation->row_occupants[row]) {
+    case 1:
+        for (column = 0; column < 3; ++column) {
+            slot = formation->rows[row].slots[column];
+            if (slot != -1) {
+                SetFormationPosition(formation, slot, row, 0, 0, 0, 1);
+                return;
+            }
+        }
+        break;
+    case 2:
+        for (column = 2; column >= 0; --column) {
+            slot = formation->rows[row].slots[column];
+            if (slot == -1) {
+                last_free = column;
+            } else if (last_free != -1) {
+                SetFormationPosition(formation, slot, row, last_free, 0, 0, 1);
+                last_free = column;
+            }
+        }
+        break;
+    }
+}
+
 // FUNCTION: WIZ8 0x00554bd0
-void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_row, int new_column,
-                          int announce, int detach, int update_facing)
+void SetFormationPosition(W8PartyFormationState* formation, int slot, signed char new_row,
+                          signed char new_column, char announce, char detach, char update_facing)
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;
@@ -284,26 +315,26 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_ro
         if (*occupant == -1) {
             srAssertFail("pFormation->bOccupantChar[bOldQuadrant] != -1", FORMATION_CPP, 0x18e, 0);
         }
-        if (formation->flags_0f[old_row] == 0) {
+        if (formation->row_occupants[old_row] == 0) {
             srAssertFail("pFormation->ubQuadrantOccupants[bOldQuadrant] > 0", FORMATION_CPP, 0x18f,
                          0);
         }
         *occupant = -1;
-        --formation->flags_0f[old_row];
+        --formation->row_occupants[old_row];
     }
-    position->row = (signed char)new_row;
-    position->unknown_01[1] = (unsigned char)new_column;
+    position->row = new_row;
+    position->unknown_01[1] = new_column;
     if (new_row != -1) {
         signed char* occupant = &formation->rows[new_row].slots[new_column];
         if (*occupant != -1) {
             srAssertFail("pFormation->bOccupantChar[bNewQuadrant] == -1", FORMATION_CPP, 0x19d, 0);
         }
-        if (formation->flags_0f[new_row] >= 3) {
+        if (formation->row_occupants[new_row] >= 3) {
             srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] <= 3", FORMATION_CPP, 0x19e,
                          0);
         }
         *occupant = (signed char)slot;
-        ++formation->flags_0f[new_row];
+        ++formation->row_occupants[new_row];
         if (update_facing != 0) {
             switch (new_row) {
             case 0:
@@ -323,7 +354,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, int new_ro
         }
     }
     if (detach != 0 && old_row != -1) {
-        Function554DD0(formation, old_row);
+        CompactFormationRow(formation, old_row);
     }
     if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&

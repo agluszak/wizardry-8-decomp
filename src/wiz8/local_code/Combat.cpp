@@ -505,7 +505,7 @@ void EndCombat004EA310(int mode)
         ReleasePartyMovement();
     }
     RequestRedrawCombatBar();
-    Function53AE00();
+    ClearAllMonsterHighlights();
     SetTargetingMode(0);
     RemoveConditionFromEveryone(5);
     RemoveConditionFromParty(0xd);
