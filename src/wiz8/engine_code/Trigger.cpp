@@ -1875,7 +1875,7 @@ show_action_message:
 
         if (message_id != -1) {
             char path[512];
-            W8WideChar text[1996];
+            wchar_t text[1996];
 
             if (level_folder == 0) {
                 level_folder = "";
@@ -2657,8 +2657,9 @@ void Trigger::Run(int source)
                 } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell(srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
-                               spell_id, (unsigned int)m_lData3);
+                PointCastSpell(
+                    srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
+                    spell_id, (unsigned int)m_lData3);
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }

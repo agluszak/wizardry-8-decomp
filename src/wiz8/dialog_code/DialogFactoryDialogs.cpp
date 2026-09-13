@@ -62,7 +62,7 @@ W8Dialog005CBB40::W8Dialog005CBB40()
     m_inlay_image_0f8 = -1;
     int line_count = m_lines_054.GetCount();
     for (index = 0; index < line_count; ++index) {
-        W8WideChar* line = *m_lines_054.GetAt(index);
+        wchar_t* line = *m_lines_054.GetAt(index);
         if (line != 0) {
             free(line);
         }
@@ -92,7 +92,7 @@ W8Dialog005CBB40::~W8Dialog005CBB40()
 void W8Dialog005CBB40::SetText(const wchar_t* text)
 {
     if (m_text_button_08c != -1) {
-        SpecifyButtonText(m_text_button_08c, const_cast<unsigned short*>(text));
+        SpecifyButtonText(m_text_button_08c, const_cast<wchar_t*>(text));
         W8DialogBase::SetText(0);
         return;
     }
@@ -110,14 +110,14 @@ int W8Dialog005CBB40::CreateControls()
     }
     m_inlay_image_0f8 = LoadGenericButtonImages(
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
         0,
-        reinterpret_cast<unsigned char*>(
-            m_background_path), // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            m_background_path),
         static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
         m_text, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
@@ -138,13 +138,13 @@ int W8Dialog005CBB40::CreateControls()
     SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled_69ca32);
     m_inlay_image_094 = LoadGenericButtonImages(
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
         0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
         0, 3, 3);
     if (m_inlay_image_094 == -1) {
@@ -164,7 +164,7 @@ int W8Dialog005CBB40::CreateControls()
     }
     SetButtonUserDataPointer(m_area_button_098, this);
     m_up_image_0a0 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogUpArrow.STI")),
         3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
@@ -172,7 +172,7 @@ int W8Dialog005CBB40::CreateControls()
             QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, Function5CCF30, Function5CCF30);
     }
     m_down_image_0a8 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogDownArrow.STI")),
         3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
@@ -180,14 +180,14 @@ int W8Dialog005CBB40::CreateControls()
             QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, Function5CCFE0, Function5CCFE0);
     }
     m_slider_image_0b0 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogSlideBar.STI")),
         -1, 0, -1, -1, -1);
     if (m_slider_image_0b0 != -1) {
         m_slider_button_0ac = QuickCreateButton(m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
     }
     m_ok_image_0c0 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
@@ -195,7 +195,7 @@ int W8Dialog005CBB40::CreateControls()
             QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, Function5CD090, Function5CD090);
     }
     m_cancel_image_0d8 = LoadButtonImage(
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
@@ -213,13 +213,13 @@ int W8Dialog005CBB40::CreateControls()
         SetButtonUserDataPointer(m_cancel_button_0d4, this);
         m_inlay_image_0b4 = LoadGenericButtonImages(
             0,
-            reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
                 const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
             0,
-            reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
                 const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
             0,
-            reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
                 const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
             0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
@@ -341,7 +341,7 @@ void W8Dialog005CBB40::DestroyControls()
     }
     int line_count = m_lines_054.GetCount();
     for (index = 0; index < line_count; ++index) {
-        W8WideChar* line = *m_lines_054.GetAt(index);
+        wchar_t* line = *m_lines_054.GetAt(index);
         if (line != 0) {
             free(line);
         }
@@ -430,7 +430,7 @@ void W8Dialog005CBB40::Draw()
     }
     for (index = 0; index < (int)visible_lines; ++index) {
         line = m_first_visible_line_0f0 + index;
-        W8WideChar* text = *m_lines_054.GetAt(line);
+        wchar_t* text = *m_lines_054.GetAt(line);
         if (line == m_selected_line_0f4) {
             ColorFillVideoSurfaceArea(
                 -0xe, m_x + 3 + dx,
@@ -1206,16 +1206,15 @@ void W8Dialog005CD710::Draw()
         DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2, 2, 0);
         SetFont(g_wiz_text_font_683640);
         if (item->stack_count > 1) {
-            W8WideChar* name = GetItemDisplayName(item);
-            gprintf(button->GetX() + 0x3c, button->GetY() + 6, (unsigned short*)L"%s (%d)", name,
-                    item->stack_count);
+            wchar_t* name = GetItemDisplayName(item);
+            gprintf(button->GetX() + 0x3c, button->GetY() + 6, L"%s (%d)", name, item->stack_count);
         } else {
-            W8WideChar* name = GetItemDisplayName(item);
-            gprintf(button->GetX() + 0x3c, button->GetY() + 6, (unsigned short*)name);
+            wchar_t* name = GetItemDisplayName(item);
+            gprintf(button->GetX() + 0x3c, button->GetY() + 6, name);
         }
         unsigned short weight = g_item_records[item->item_id].weight;
         gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
-                (unsigned short*)L"%4.1f lbs", (double)((float)weight * 0.1f));
+                L"%4.1f lbs", (double)((float)weight * 0.1f));
     }
 }
 

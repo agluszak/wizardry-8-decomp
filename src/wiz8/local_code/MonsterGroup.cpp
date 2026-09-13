@@ -470,7 +470,7 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
    Its opening assertion is followed immediately by MonsterGroupGetRecord's own,
    which is that body inlined here. */
 // FUNCTION: WIZ8 0x00510280
-W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
+wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
 {
     W8MonsterRecord* record;
     unsigned int name_form;
@@ -850,7 +850,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     if (announce_spawn != 0 && g_flag_689b32 != 0) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
-        const W8WideChar* name = record->name_00;
+        const wchar_t* name = record->name_00;
 
         if (group->flag_2c == 0) {
             name += (group->member_count != 1) + 2;

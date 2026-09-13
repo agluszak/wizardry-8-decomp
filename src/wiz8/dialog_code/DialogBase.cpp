@@ -91,7 +91,7 @@ void W8DialogBase::SetText(const wchar_t* text)
         }
     }
     if (m_resource != -1) {
-        SpecifyButtonText(m_resource, const_cast<unsigned short*>(text));
+        SpecifyButtonText(m_resource, const_cast<wchar_t*>(text));
     }
     m_dirty_flags |= 1;
 }
@@ -156,10 +156,14 @@ int W8DialogBase::CreateControls()
     if (m_border == -1) {
         m_border = LoadGenericButtonImages(
             0,
-            reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
             0,
-            reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
-            0, reinterpret_cast<unsigned char*>(m_background_path),
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
+            0,
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
         if (m_border == -1) {
             return m_error = 4;

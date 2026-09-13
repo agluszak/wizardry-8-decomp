@@ -5,7 +5,6 @@
 
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/dice.h"
-#include "wiz8/text_types.h"
 #include <wchar.h>
 
 /*
@@ -136,7 +135,7 @@ struct W8SpellRuntimeRecord {
     int spell_level;              /* 0x056: zero through seven */
     unsigned char wizardry_spell; /* 0x05a */
     char resource_name[64];       /* 0x05b: visual/MLS resource basename */
-    W8WideChar display_name[64];  /* 0x09b */
+    wchar_t display_name[64];  /* 0x09b */
     unsigned char unknown_11b[4];
     unsigned char divinity_spell; /* 0x11f */
     unsigned char psionics_spell; /* 0x120 */
@@ -182,8 +181,8 @@ struct W8FactDatabaseRecord {
     signed char visibility_037;
     /* 0x038 and 0x100: the alternate and normal journal descriptions, wide,
        selected by the fact's current value. */
-    W8WideChar alternate_description_038[0x64];
-    W8WideChar description_100[0x6c];
+    wchar_t alternate_description_038[0x64];
+    wchar_t description_100[0x6c];
 }; /* 0x1d8 */
 
 /* One optional NPC stock-rule entry appended after its database record.
@@ -302,10 +301,10 @@ struct W8LevelDatabaseRecord {
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
 
 struct W8MonsterRecord {
-    W8WideChar name_00[24]; /* 0x000: suffix after '#' removed at load */
-    W8WideChar name_30[24]; /* 0x030: suffix after '#' removed at load */
-    W8WideChar name_60[24]; /* 0x060: suffix after '#' removed at load */
-    W8WideChar name_90[24]; /* 0x090: suffix after '#' removed at load */
+    wchar_t name_00[24]; /* 0x000: suffix after '#' removed at load */
+    wchar_t name_30[24]; /* 0x030: suffix after '#' removed at load */
+    wchar_t name_60[24]; /* 0x060: suffix after '#' removed at load */
+    wchar_t name_90[24]; /* 0x090: suffix after '#' removed at load */
     unsigned char unknown_0c0[0xb];
     /* 0x0cb: the monster's kind. The alchemy-casting rule admits kinds four,
        five and thirteen and no others, which is the only body that reads it. */

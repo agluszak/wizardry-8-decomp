@@ -1,7 +1,6 @@
 #pragma once
 
 #include "wiz8/targeting.h"
-#include "wiz8/text_types.h"
 #include "wiz8/vector.h"
 
 class W8SpellVisual;
@@ -24,7 +23,7 @@ class W8Missile;
 struct W8SpellDamageReport {
     int kind;           /* 0x00 */
     int value;          /* 0x04 */
-    W8WideChar text[1]; /* 0x08 */
+    wchar_t text[1]; /* 0x08 */
 };
 
 /* What one missile or queued effect accumulates while it resolves: the total

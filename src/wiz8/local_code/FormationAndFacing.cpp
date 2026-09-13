@@ -223,7 +223,7 @@ bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
 /* The five formation rows' display names, indexed by row. Two of the five
    carry no name in the data. */
 // GLOBAL: WIZ8 0x00649e54
-W8WideChar g_formation_row_names_00649e54[5][10] = {
+wchar_t g_formation_row_names_00649e54[5][10] = {
     L"Front", L"", L"Right", L"", L"Rear",
 };
 

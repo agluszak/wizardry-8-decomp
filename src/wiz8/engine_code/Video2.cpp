@@ -2609,7 +2609,7 @@ void VideoToolTip(UINT16* text)
     bounds.right = 0xfa;
     bounds.bottom = 0xfa;
     W8TextBuffer* buffer =
-        new W8TextBuffer(&bounds, (const wchar_t*)text, g_font10arial_683668,
+        new W8TextBuffer(&bounds, text, g_font10arial_683668,
                          g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
     if (buffer == 0) {
         return;

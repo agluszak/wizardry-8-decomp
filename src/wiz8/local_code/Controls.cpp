@@ -491,7 +491,8 @@ void W8TextBuffer::UpdateLayout()
     wchar_t* line = m_buffer;
     unsigned int accumulated_width = 0;
     wchar_t* previous_break = 0;
-    short separator_width = StringPixLength((unsigned short*)g_W8TextSeparator0060CC74, m_font);
+    short separator_width =
+        StringPixLength(const_cast<wchar_t*>(g_W8TextSeparator0060CC74), m_font);
 
     m_lineCount = 1;
     if ((m_layoutMode & 0x40) == 0) {
@@ -500,7 +501,7 @@ void W8TextBuffer::UpdateLayout()
         wchar_t* break_at = line + span;
         while (*break_at != L'\0') {
             *break_at = L'\0';
-            short word_width = StringPixLength((unsigned short*)line, m_font);
+            short word_width = StringPixLength(line, m_font);
             if ((unsigned int)((int)word_width + accumulated_width) < available_width) {
                 accumulated_width += (int)separator_width + (int)word_width;
                 previous_break = break_at;
@@ -521,7 +522,7 @@ void W8TextBuffer::UpdateLayout()
             span = wcscspn(line, g_W8TextBreakCharacters00617C88);
             break_at = line + span;
         }
-        short final_width = StringPixLength((unsigned short*)line, m_font);
+        short final_width = StringPixLength(line, m_font);
         unsigned int total_width = (int)final_width + accumulated_width;
         if (available_width <= total_width) {
             if (previous_break != 0) {
@@ -641,13 +642,11 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
         if (m_alternateRenderer == 0) {
-            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
-                           (unsigned short*)L"%s", line);
+            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset, L"%s", line);
         } else {
-            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
-                           (unsigned short*)L"%s", line);
+            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset, L"%s", line);
         }
         y += GetLineHeight();
         line[span] = L'\n';
@@ -659,13 +658,11 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
     }
 
     {
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
         if (m_alternateRenderer == 0) {
-            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
-                           (unsigned short*)L"%s", line);
+            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset, L"%s", line);
         } else {
-            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
-                           (unsigned short*)L"%s", line);
+            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset, L"%s", line);
         }
     }
 
@@ -706,8 +703,8 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
-        gprintf(x + offset, y + offset, (unsigned short*)L"%s", line);
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
+        gprintf(x + offset, y + offset, L"%s", line);
         y += GetLineHeight();
         line[span] = L'\n';
         if (m_layoutBounds.bottom <= y) {
@@ -718,8 +715,8 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
     }
 
     {
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
-        gprintf(x + offset, y + offset, (unsigned short*)L"%s", line);
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
+        gprintf(x + offset, y + offset, L"%s", line);
     }
 
 done:

@@ -315,9 +315,9 @@ bool ScreenPointInRect(const W8ScreenRect* rect, const POINT* point)
 }
 
 // FUNCTION: WIZ8 0x00517ea0
-void StripMonsterNameSuffix(W8WideChar* name)
+void StripMonsterNameSuffix(wchar_t* name)
 {
-    wchar_t* suffix = wcschr((wchar_t*)name, L'#');
+    wchar_t* suffix = wcschr(name, L'#');
 
     if (suffix != 0) {
         *suffix = L'\0';

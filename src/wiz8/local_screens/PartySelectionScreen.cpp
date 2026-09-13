@@ -1001,7 +1001,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
 
     const wchar_t* personality =
         gppStringList[g_personality_message_ids_61e674[character->personality_0081]];
-    width = StringPixLength(const_cast<unsigned short*>(personality), g_font_683660);
+    width = StringPixLength(const_cast<wchar_t*>(personality), g_font_683660);
     mprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
 
     mprintf(0x96, 0x127, gppStringList[0x1ae8 / 4]);

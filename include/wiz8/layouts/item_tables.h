@@ -2,7 +2,6 @@
 #define WIZ8_LAYOUTS_ITEM_TABLES_H
 
 #include "wiz8/dice.h"
-#include "wiz8/text_types.h"
 
 #pragma pack(push, 1)
 
@@ -31,7 +30,7 @@ struct W8ItemRequirement {
 }; /* 0x02 */
 
 struct W8ItemDatabaseRecord {
-    W8WideChar display_name[30]; /* 0x000 */
+    wchar_t display_name[30]; /* 0x000 */
     unsigned char unknown_03c[2];
     unsigned char equip_class;              /* 0x03e: zero through twelve */
     unsigned short unidentified_name_index; /* 0x03f */
