@@ -355,7 +355,14 @@ struct W8MonsterRecord {
     /* 0x15f: the percentage of hits that land on each of the seven monster
        hit locations; the total is reported when it falls short of 100. */
     unsigned char hit_location_chances_15f[7];
-    unsigned char unknown_166[0x1b];
+    unsigned char unknown_166[0x10];
+    /* 0x176: the monster's own resistance per realm, read alongside the
+       gameplay-modifier bonus wherever a character would read
+       W8CharacterResistance::total. */
+    unsigned char resistances[6];
+    /* 0x17c: hit points gained (or lost, when negative) per game minute. */
+    signed char hp_regeneration_17c;
+    unsigned char unknown_17d[4];
     unsigned int combat_value_181; /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
     short record_id_187;       /* 0x187: equals the zero-based database index */
@@ -363,7 +370,11 @@ struct W8MonsterRecord {
     /* 0x1b9: the AI never closes in or backs off from the party when set. */
     unsigned char holds_ground_1b9;
     float float_1ba; /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[0x8a];
+    unsigned char unknown_1be[3];
+    /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
+       stores the value itself as the selected monster index. */
+    short value_1c1;
+    unsigned char unknown_1c3[0x85];
     unsigned char flag_248;
     unsigned char unknown_249;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers

@@ -818,7 +818,7 @@ unsigned char W8Dialog005D97D0::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005da440
-void W8Dialog005D97D0::Function5DA440(W8DialogButton* button)
+void W8Dialog005D97D0::SplitDecrementOne005DA440(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -836,7 +836,7 @@ void W8Dialog005D97D0::Function5DA440(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da490
-void W8Dialog005D97D0::Function5DA490(W8DialogButton* button)
+void W8Dialog005D97D0::SplitDecrementFive005DA490(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -854,7 +854,7 @@ void W8Dialog005D97D0::Function5DA490(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da4e0
-void W8Dialog005D97D0::Function5DA4E0(W8DialogButton* button)
+void W8Dialog005D97D0::SplitIncrementOne005DA4E0(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -872,7 +872,7 @@ void W8Dialog005D97D0::Function5DA4E0(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da530
-void W8Dialog005D97D0::Function5DA530(W8DialogButton* button)
+void W8Dialog005D97D0::SplitIncrementFive005DA530(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -890,7 +890,7 @@ void W8Dialog005D97D0::Function5DA530(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da580
-void W8Dialog005D97D0::Function5DA580(W8DialogButton* button)
+void W8Dialog005D97D0::SplitAccept005DA580(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -900,7 +900,7 @@ void W8Dialog005D97D0::Function5DA580(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da5a0
-void W8Dialog005D97D0::Function5DA5A0(W8DialogButton* button)
+void W8Dialog005D97D0::SplitCancel005DA5A0(W8DialogButton* button)
 {
     if (button != 0) {
         W8Dialog005D97D0* dialog = static_cast<W8Dialog005D97D0*>(button->m_owner_040);
@@ -910,7 +910,7 @@ void W8Dialog005D97D0::Function5DA5A0(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005da5c0
-void W8Dialog005D97D0::Function5DA5C0(W8DialogButton* button)
+void W8Dialog005D97D0::SplitActivateField005DA5C0(W8DialogButton* button)
 {
     POINT point;
 

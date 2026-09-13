@@ -73,15 +73,11 @@ W8PList* g_mipe_monster_entries_0068f124;
 // GLOBAL: WIZ8 0x0068f12c
 W8WorldCursorNode0048DB30* g_mipe_cube_0068f12c;
 
-static short MonsterRecordSelectionValue(const W8MonsterRecord* record)
-{
-    return *reinterpret_cast<const short*>( // reinterpret-ok: retail record field is unmodeled
-        reinterpret_cast<const unsigned char*>(record) + // reinterpret-ok: raw record byte addressing
-        0x1c1);
-}
-
+/* The MIPE toggle: leaving the panel restores the level flags and combat
+   state and tears the editor state down; entering it clears combat flags,
+   prints the mode menu and builds the monster entry list. */
 // FUNCTION: WIZ8 0x0057d740
-void Function57D740(void)
+void ToggleMipePanel0057D740(void)
 {
     if (g_flag_68f105 != 0) {
         g_level_block->flag_271 = 1;
@@ -154,8 +150,7 @@ void Function57D740(void)
         }
         wcscpy(entry->name, records[index].name_00);
         entry->kind = records[index].kind_0cb;
-        entry->selectable =
-            records[index].deleted == 0 && MonsterRecordSelectionValue(&records[index]) == -1;
+        entry->selectable = records[index].deleted == 0 && records[index].value_1c1 == -1;
         PLAdoptAppend(g_mipe_monster_entries_0068f124, entry);
     }
     free(records);
@@ -165,11 +160,9 @@ void Function57D740(void)
     IListInit(&g_mipe_state_0068f100->monster_ids);
     g_mipe_state_0068f100->monster_ids.capacity = 1000000;
     g_mipe_state_0068f100->selecting = 0;
-    *reinterpret_cast<float*>( // reinterpret-ok: retail diagnostic state field is unmodeled
-        &g_mipe_state_0068f100->unknown_32[2]) =
-        1.0f;
+    g_mipe_state_0068f100->value_34 = 1.0f;
     g_mipe_state_0068f100->speed_step = 0.020000000f;
-    g_mipe_state_0068f100->unknown_5c[5] = 0xff;
+    g_mipe_state_0068f100->flag_61 = 0xff;
     PListInit(&g_mipe_state_0068f100->waypoints);
 
     for (int cursor_index = 0, count = GetWorldCursorNodeCount0048ED00(); cursor_index < count;
@@ -198,7 +191,7 @@ void Function57D740(void)
     } else {
         W8MonsterRecord record;
         LoadMonsterDatabaseRecord(monster_index, &record);
-        g_mipe_monster_index_0068f112 = MonsterRecordSelectionValue(&record);
+        g_mipe_monster_index_0068f112 = record.value_1c1;
     }
 
     unsigned int item_index = 0;
@@ -561,8 +554,9 @@ void HandleWaypointKey00579DF0(unsigned short key)
         WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
     } else if (key == 0x58) {
         if (g_mipe_state_0068f100 != 0) {
-            unsigned int count = ILLength(reinterpret_cast<W8IList*>( // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                &g_mipe_state_0068f100->waypoints));
+            unsigned int count = ILLength(
+                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                    W8IList*>(&g_mipe_state_0068f100->waypoints));
             if (count != 0) {
                 monster = (W8Monster*)PLGet(&g_mipe_state_0068f100->waypoints, count - 1);
                 if (monster != 0) {
@@ -1004,8 +998,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
             }
             found = 0;
             if (0 <
-                (int)ILLength(reinterpret_cast<W8IList*>( // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                    g_mipe_category_list_0068f11c))) {
+                (int)ILLength(
+                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                        W8IList*>(g_mipe_category_list_0068f11c))) {
                 do {
                     table = (W8EncounterTableRuntime*)PLGet(g_mipe_category_list_0068f11c, found);
                     entry = GetEncounterTable(current_index);
@@ -1015,8 +1010,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                     ++found;
                 } while (
                     found <
-                    (int)ILLength(reinterpret_cast<W8IList*>( // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                        g_mipe_category_list_0068f11c)));
+                    (int)ILLength(
+                        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                            W8IList*>(g_mipe_category_list_0068f11c)));
             }
             g_mipe_table_base_0068f120 = (found / 6) * 6;
             g_mipe_table_row_0068f118 = found % 6;

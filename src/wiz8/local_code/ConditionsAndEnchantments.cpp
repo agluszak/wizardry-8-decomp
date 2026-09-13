@@ -206,7 +206,7 @@ W8ConditionImmunity g_condition_immunities_006171A8[3] = {
    handling on the way in. */
 // FUNCTION: WIZ8 0x00523C00
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,
-                         W8TargetSource* target, int quiet)
+                         W8TargetSource* target, char announce)
 {
     unsigned int list_index;
     W8MonsterInfo* monster_info;
@@ -320,10 +320,10 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         ResetCombatSlot(&monster_info->Target);
     }
     if ((unsigned int)condition >= 0x12) {
-        MonsterStartsDying(monster_info, quiet);
+        MonsterStartsDying(monster_info, announce);
         return;
     }
-    if (quiet != 0 && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
+    if (announce != 0 && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         WriteGameLog(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
     }
@@ -609,6 +609,44 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     Function50E650(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         g_flag_006840bb = 1;
+    }
+}
+
+/* Run one of a character's enchantment slots down by the given number of
+   turns, emptying it the same way ClearCharacterEnchantmentSlot does when
+   nothing is left. */
+// FUNCTION: WIZ8 0x00523b30
+void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
+{
+    unsigned int remaining =
+        g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08;
+    W8Character* character;
+    int scan;
+
+    if (remaining <= turns) {
+        memset(&g_status_685170.buffers.characters[party_slot].enchantments[slot], 0,
+               sizeof(W8Enchantment));
+
+        character = &g_status_685170.buffers.characters[party_slot];
+        for (scan = 7; scan >= 0; --scan) {
+            if (character->enchantments[scan].value_08 > 0 || scan == 0) {
+                character->enchantment_top = scan;
+                break;
+            }
+        }
+
+        RequestPartySlotRedraw(party_slot);
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+            RequestRedraw(0x200000);
+            RequestRedraw(0x8000);
+        }
+        Function50E650(party_slot);
+        if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
+            g_flag_006840bb = 1;
+        }
+    } else {
+        g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08 =
+            remaining - turns;
     }
 }
 

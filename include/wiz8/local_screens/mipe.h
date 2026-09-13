@@ -34,7 +34,8 @@ struct W8MipeState {
     srVector3T<float> drag_anchor; /* 0x24 */
     unsigned char unknown_30;
     unsigned char dragging; /* 0x31 */
-    unsigned char unknown_32[6];
+    unsigned char unknown_32[2];
+    float value_34;                /* 0x34: initialised to 1.0 */
     int waypoint_count;            /* 0x38 */
     W8PList waypoints;             /* 0x3c */
     W8Monster* monster;            /* 0x48 */
@@ -42,7 +43,9 @@ struct W8MipeState {
     Trigger* trigger;              /* 0x50 */
     W8MonsterGenerator* generator; /* 0x54 */
     W8Prop* prop;                  /* 0x58 */
-    unsigned char unknown_5c[8];
+    unsigned char unknown_5c[5];
+    unsigned char flag_61; /* 0x61: initialised to 0xff */
+    unsigned char unknown_62[2];
 };
 #pragma pack(pop)
 
@@ -58,7 +61,7 @@ void ShowCubeParameters005780F0(void);
 void ShowMonsterGeneratorStatus005781F0(void);
 void ShowMonsterGeneratorEditor005782D0(void);
 
-void Function57D740(void);
+void ToggleMipePanel0057D740(void);
 
 unsigned char GetFlag68F105(void);
 unsigned char GetFlag68F104(void);

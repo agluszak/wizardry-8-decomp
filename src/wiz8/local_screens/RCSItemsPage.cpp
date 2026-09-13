@@ -13,6 +13,7 @@
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
@@ -229,7 +230,7 @@ void ReportCastResult005BA620(int party_slot)
     W8Character* character;
     int result;
 
-    Function52FE80(g_rcs_mode_0064cbe8, 0);
+    StartBreathCycle(g_rcs_mode_0064cbe8, 0);
     result = Function548E20(g_rcs_mode_0064cbe8, party_slot);
     character = g_status_685170.buffers.characters + party_slot;
     if (result == 0) {

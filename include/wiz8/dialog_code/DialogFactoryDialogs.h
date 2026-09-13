@@ -148,13 +148,13 @@ private:
     unsigned char HandleInputEvent005DA180(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. */
-    static void Function5DA440(W8DialogButton* button);
-    static void Function5DA490(W8DialogButton* button);
-    static void Function5DA4E0(W8DialogButton* button);
-    static void Function5DA530(W8DialogButton* button);
-    static void Function5DA580(W8DialogButton* button);
-    static void Function5DA5A0(W8DialogButton* button);
-    static void Function5DA5C0(W8DialogButton* button);
+    static void SplitDecrementOne005DA440(W8DialogButton* button);
+    static void SplitDecrementFive005DA490(W8DialogButton* button);
+    static void SplitIncrementOne005DA4E0(W8DialogButton* button);
+    static void SplitIncrementFive005DA530(W8DialogButton* button);
+    static void SplitAccept005DA580(W8DialogButton* button);
+    static void SplitCancel005DA5A0(W8DialogButton* button);
+    static void SplitActivateField005DA5C0(W8DialogButton* button);
 
 private:
     W8DialogButton* m_fields_54[6];

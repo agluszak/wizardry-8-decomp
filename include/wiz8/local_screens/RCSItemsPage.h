@@ -54,7 +54,6 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 /* Unresolved gap callees, declared for the call sites in this unit. */
 char Function522A00(W8ItemInstance* item);
 char Function522B80(int character_index, W8ItemInstance* item, int arg_3);
-void Function52FE80(int party_slot, char arg_2);
 int Function548E20(int party_slot, unsigned int arg_2);
 char Function4DA0F0(W8ItemInstance* item);
 unsigned int Function51D3B0(int party_slot, char arg_2, int arg_3);
