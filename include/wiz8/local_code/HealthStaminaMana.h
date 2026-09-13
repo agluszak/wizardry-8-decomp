@@ -38,8 +38,8 @@ void ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amount,
    seven args; the sixth parameter receives a kill-counting result block. */
 unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
                                     char arg_5, W8SpellEffectResult* result_stats, char arg_7);
-void Function58AAD0(int category, const wchar_t* format, unsigned int amount);
-void Function59AC40(int party_slot, unsigned int amount);
+void WriteGameLogAmount(int category, const wchar_t* format, unsigned int amount);
+void RecordCharacterDamage(int party_slot, unsigned int amount);
 void CharacterDies(int party_slot);
 void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3);
 /* 0x0052BA80: roll the dice once for every live monster within the radius of

@@ -59,7 +59,7 @@
 #define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
 
 // GLOBAL: WIZ8 0x00604478
-W8LevelFolderRecord g_level_folders[47] = {
+W8LevelFolderRecord g_level_folders[W8_LEVEL_COUNT] = {
     {"Arnika", "Arnika2", "ARN", 1, 3, 2},
     {"Ascension", "Ascension", "ASC", 0, 3, 12},
     {"Bayjin", "Bayjin1", "BA1", -1, 3, 8},
@@ -184,6 +184,8 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
 char GetLevelBand(int saved_level)
 {
     int level = NormalizeMasterFunctionValue004D9700(saved_level);
+    /* `<= 0x2f` is the retail bound: it admits the first test-level slot, one
+       past the W8_LEVEL_COUNT-entry table. */
     if (level >= 0 && level <= 0x2f) {
         return g_level_folders[level].unknown_6a;
     }
@@ -207,7 +209,7 @@ void UnloadSkyWorld(void)
 // FUNCTION: WIZ8 0x0042b500
 unsigned char GetLevelLocationCode(int level_id, char* location_code)
 {
-    if (level_id >= 47) {
+    if (level_id >= W8_LEVEL_COUNT) {
         return 0;
     }
     if (!location_code) {
@@ -225,7 +227,7 @@ static __inline int LevelFindIDByLocationCode(const char* location_code)
 {
     int level_id;
 
-    for (level_id = 0; level_id < 47; level_id++) {
+    for (level_id = 0; level_id < W8_LEVEL_COUNT; level_id++) {
         if (_stricmp(g_level_folders[level_id].location_code, location_code) == 0) {
             return level_id;
         }
@@ -249,7 +251,7 @@ int FindLevelIdByLocationCode(const char* location_code)
     if (level_id >= 57) {
         return -1;
     }
-    if (level_id < 47) {
+    if (level_id < W8_LEVEL_COUNT) {
         if (strlen(g_level_folders[level_id].folder_name) == 0 ||
             strlen(g_level_folders[level_id].level_name) == 0) {
             return -1;
@@ -264,7 +266,7 @@ int FindLevelIdByLocationCode(const char* location_code)
 // FUNCTION: WIZ8 0x0042b550
 const char* GetLevelFolderName(int level_id)
 {
-    if (level_id >= 47 || level_id < 0) {
+    if (level_id >= W8_LEVEL_COUNT || level_id < 0) {
         return 0;
     }
     return g_level_folders[level_id].folder_name;
@@ -298,7 +300,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     W8LevelInfo local_info;
     W8World* sky_world;
 
-    if (level < 47) {
+    if (level < W8_LEVEL_COUNT) {
         sky_index = g_level_folders[level].sky_index;
     } else {
         sky_index = 0;
@@ -392,7 +394,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
 extern float g_runtime_world_scale_6081e8;
 
 // GLOBAL: WIZ8 0x00605820
-unsigned short g_level_name_indices_605820[47] = {
+unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {
     0x6f7, 0x6f8, 0x6f9, 0x6fa, 0x6fb, 0x6fd, 0x6fc, 0x6fe, 0x6ff, 0x700, 0x701, 0x719,
     0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70a, 0x70b, 0x70c, 0x719,
     0x70d, 0x70e, 0x70f, 0x710, 0x719, 0x711, 0x719, 0x712, 0x713, 0x714, 0x719, 0x715,
@@ -440,7 +442,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp", 237, 0);
     }
 
-    if (level < 47) {
+    if (level < W8_LEVEL_COUNT) {
         sprintf(info->level_folder, "%s\\%s", "Levels", g_level_folders[level].folder_name);
         sprintf(info->level_file_name, "%s.%s", g_level_folders[level].level_name, "LVL");
         if (g_level_folders[level].sky_index == -1) {
@@ -475,7 +477,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
     }
 
     sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
-    if (level < 47) {
+    if (level < W8_LEVEL_COUNT) {
         if (g_level_folders[level].sky_index != -1 && !FileExists(info->sky_path)) {
             sprintf(info->sky_folder, "%s\\Test", "Levels");
             sprintf(info->sky_file_name, "%s.%s", g_sky_names_00605880[0], "LVL");
@@ -559,7 +561,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     if (!restoring_game && entrance != -1) {
         Trigger* trigger = 0;
 
-        if (level < 47) {
+        if (level < W8_LEVEL_COUNT) {
             char trigger_name[8];
             sprintf(trigger_name, "%3s%02d", g_level_folders[level].level_name, entrance);
             trigger = FindTriggerByName(trigger_name);
@@ -602,7 +604,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                                 &g_status_685170.pending_move_location);
     }
 
-    if (level < 47 && !g_status_685170.level_progress[level].visited) {
+    if (level < W8_LEVEL_COUNT && !g_status_685170.level_progress[level].visited) {
         ResetMonsterGroupTurnState();
         RebindMonsterGroupScripts();
         g_status_685170.level_progress[level].visited = 1;
@@ -623,7 +625,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     RebuildPartyEffectBlock0050E700();
 
     if (!restoring_game) {
-        if (level < 47) {
+        if (level < W8_LEVEL_COUNT) {
             ResetNpcBindingsForParty0050DB50();
             ClearPendingNpcLevelFlags0050C270();
             ReleaseNpcMonsterBindings0050C2E0();
@@ -667,7 +669,7 @@ unsigned char UnloadLevel(const char* save_directory)
         EndCombat004EA310(1);
     }
 
-    if (g_status_685170.current_level < 47) {
+    if (g_status_685170.current_level < W8_LEVEL_COUNT) {
         g_status_685170.level_progress[g_status_685170.current_level].sight_clock =
             g_status_685170.world_clock;
     }

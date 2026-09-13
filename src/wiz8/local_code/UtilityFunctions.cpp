@@ -4,6 +4,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
@@ -18,6 +19,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <stdio.h>
+#include <string.h>
 #include <wchar.h>
 #include <stdlib.h>
 #include "wiz8/game_status.h"
@@ -513,6 +515,143 @@ void FreeStringTable(void)
         free(table);
         gppStringList = 0;
         giStringListLen = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00518510
+bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_accept, bool has_cancel,
+                      void (*callback)(void))
+{
+    SGPRect rect;
+    char filename[16];
+    if (g_message_box_state != 0) {
+        return false;
+    }
+    unsigned short height = 0x58;
+    if (has_accept || has_cancel) {
+        height = 0x6c;
+    }
+    unsigned short width = StringPixLength((unsigned short*)text, font) + 10;
+    if (width > 0x258) {
+        width = 0x258;
+    } else if (width < 0x64) {
+        width = 0x78;
+    }
+    g_message_box_background_image = LoadGenericButtonImages(
+        0,
+        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            const_cast<char*>(DEFAULT_GENERIC_BUTTON_OFF)),
+        0,
+        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            const_cast<char*>(DEFAULT_GENERIC_BUTTON_ON)),
+        0,
+        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
+            const_cast<char*>("Data\\Dialogs\\DialogBackground.STI")),
+        0, 0, 0);
+    int yloc = (0x1e0 - height) / 2;
+    g_message_box_background_button = CreateTextButton(
+        reinterpret_cast<unsigned short*>(text), // reinterpret-ok: SGP text API takes UINT16*
+        (unsigned short)font, 0xff, 0, g_message_box_background_image, (0x280 - width) / 2, yloc,
+        width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
+    if (g_message_box_background_button < 0) {
+        return false;
+    }
+    SpecifyButtonMultiColorFont(g_message_box_background_button, 1);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfortify-source"
+    /* Retail's sixteen-byte name slot is too small for these full paths; the
+       strcpy tail overruns into the saved-register area, which retail never
+       reads again. The byte-true layout is kept. */
+    if (has_accept) {
+        strcpy(filename, "Data\\Message Box\\Ok.sti");
+        g_message_box_accept_image = LoadButtonImage(
+            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            0, 1, 2, 3, 4);
+        if (g_message_box_accept_image < 0) {
+            return false;
+        }
+        g_message_box_accept_button = QuickCreateButton(
+            g_message_box_accept_image, 0x131 - (has_cancel ? 0x1e : 0), yloc + 0x46, 4, 0x7e,
+            MessageBoxAcceptMoveCallback, MessageBoxAcceptClickCallback);
+        if (g_message_box_accept_button < 0) {
+            return false;
+        }
+    } else {
+        g_message_box_accept_button = -1;
+    }
+    if (has_cancel) {
+        strcpy(filename, "Data\\Message Box\\Cancel.sti");
+        g_message_box_cancel_image = LoadButtonImage(
+            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
+            0, 1, 2, 3, 4);
+        if (g_message_box_cancel_image < 0) {
+            return false;
+        }
+        g_message_box_cancel_button = QuickCreateButton(
+            g_message_box_cancel_image, 0x131 + (has_accept ? 0x1e : 0), yloc + 0x46, 4, 0x7e,
+            MessageBoxCancelMoveCallback, MessageBoxCancelClickCallback);
+        if (g_message_box_cancel_button < 0) {
+            return false;
+        }
+    } else {
+        g_message_box_cancel_button = -1;
+    }
+#pragma clang diagnostic pop
+    if (has_accept || has_cancel) {
+        DisableButton(g_message_box_background_button);
+    }
+    g_message_box_font = font;
+    g_message_box_shade = shade;
+    g_message_box_state = 2;
+    g_message_box_callback = callback;
+    GetButtonArea(g_message_box_background_button, &rect);
+    InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 0x11);
+    return true;
+}
+
+// FUNCTION: WIZ8 0x005188c0
+void MessageBoxAcceptMoveCallback(GUI_BUTTON* button, INT32 reason)
+{
+    if (reason & (MSYS_CALLBACK_REASON_GAIN_MOUSE | MSYS_CALLBACK_REASON_LOST_MOUSE)) {
+        SGPRect rect;
+        GetButtonArea(g_message_box_accept_button, &rect);
+        InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00518900
+void MessageBoxAcceptClickCallback(GUI_BUTTON* button, INT32 reason)
+{
+    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+        button->uiFlags |= BUTTON_CLICKED_ON;
+    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+        if (button->uiFlags & BUTTON_CLICKED_ON) {
+            g_message_box_state = 1;
+            g_message_box_accepted = 1;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00518930
+void MessageBoxCancelMoveCallback(GUI_BUTTON* button, INT32 reason)
+{
+    if (reason & (MSYS_CALLBACK_REASON_GAIN_MOUSE | MSYS_CALLBACK_REASON_LOST_MOUSE)) {
+        SGPRect rect;
+        GetButtonArea(g_message_box_cancel_button, &rect);
+        InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00518970
+void MessageBoxCancelClickCallback(GUI_BUTTON* button, INT32 reason)
+{
+    if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+        button->uiFlags |= BUTTON_CLICKED_ON;
+    } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
+        if (button->uiFlags & BUTTON_CLICKED_ON) {
+            g_message_box_state = 1;
+            g_message_box_accepted = 0;
+        }
     }
 }
 

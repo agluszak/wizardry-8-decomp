@@ -29,6 +29,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/Octree.h"
@@ -82,7 +83,6 @@ srNode* g_octree_trace_node_00659894;
 unsigned char g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
 unsigned char g_octree_trace_enabled_00659899;
-extern void Function518510(void* notice);
 
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
@@ -1034,8 +1034,8 @@ unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
     spatial.positional_94 = 1;
     int bad_links = CountBadRegionMeshLinks00433B90(&spatial);
     if (bad_links != 0) {
-        Function518510(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links,
-                                        g_small_font_683678, 1, 1, 0, 0));
+        CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links),
+                         g_small_font_683678, 1, 1, 0, 0);
         return 0;
     }
     return 1;

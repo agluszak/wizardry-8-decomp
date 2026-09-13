@@ -214,7 +214,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
 
         AddMonsterToWorld0046E580(GetWorld(), monster_info->monster);
         MonsterSetFacing004C5B60(monster_info->monster, monster_info->derived_23);
-        Function50E8C0(monster_info->location_id);
+        RefreshMonsterLocationState(monster_info->location_id);
         monster_info->monster->movement_0c0.value_008 =
             static_cast<unsigned int>(record->missile_value_24f) * 0x10000U +
             monster_info->location_id;
@@ -1113,7 +1113,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {
-                Function5103E0(monster_group);
+                RefreshMonsterGroupConditions(monster_group);
                 if (monster_group->leader_group_id == 0) {
                     RefreshMonsterGroupAndAllies(monster_group);
                 }

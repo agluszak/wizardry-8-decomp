@@ -258,7 +258,13 @@ void StartCombat(int surprise);
 void Function530110(void);
 void Function530150(int value);
 void Function56E510(void);
-void Function586740(void);
+/* 0x00586740 is the lock-interaction state machine; its receiver is the heap
+   object at 0x0068F2C0 and arrives in ECX, which __fastcall is how a
+   member-shaped call is reachable from a free declaration. */
+struct W8LockInteraction00586740;
+// GLOBAL: WIZ8 0x0068F2C0
+W8LockInteraction00586740* g_lock_interaction_68f2c0;
+void __fastcall ProcessLockInteraction(W8LockInteraction00586740* interaction);
 void Function593360(void);
 void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
@@ -266,7 +272,7 @@ unsigned char Function57E3C0(void);
 // FUNCTION: WIZ8 0x00587960
 void ProcessLockInteractMode(void)
 {
-    Function586740();
+    ProcessLockInteraction(g_lock_interaction_68f2c0);
 }
 
 // FUNCTION: WIZ8 0x00587cf0
@@ -1942,9 +1948,9 @@ void MainGameScreenFrame(void)
         if (!FileExists(path)) {
             Function4314C0(1);
         }
-        for (; g_next_link_level_0068ede8 < 47; ++g_next_link_level_0068ede8) {
+        for (; g_next_link_level_0068ede8 < W8_LEVEL_COUNT; ++g_next_link_level_0068ede8) {
             if (LevelBuildInfoByID(g_next_link_level_0068ede8, &info)) {
-                if (g_next_link_level_0068ede8 < 47) {
+                if (g_next_link_level_0068ede8 < W8_LEVEL_COUNT) {
                     int level = g_next_link_level_0068ede8++;
                     RequestLevelTransition005615F0(level, -1, 0);
                     goto update_screen;

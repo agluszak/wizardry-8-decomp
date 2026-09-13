@@ -189,6 +189,14 @@ def _scan_global_comment(lines: list[str], index: int) -> tuple[list[str], int, 
     return None
 
 
+def _extern_declaration(decl: str, parsed: re.Match[str] | None) -> bool:
+    """``extern`` without an initializer is a declaration, not a definition."""
+
+    if not decl.startswith("extern "):
+        return False
+    return parsed is None or not parsed.group(0).rstrip().endswith("=")
+
+
 def parse_global_definitions(
     repo_dir: Path, sizes: dict[str, int] | None = None
 ) -> list[dict[str, Any]]:
@@ -224,8 +232,9 @@ def parse_global_definitions(
                     continue
                 comments, look, decl = scanned
                 window = " ".join(comments)
+                parsed = _DECL.match(decl)
                 if (
-                    decl.startswith("extern ")
+                    _extern_declaration(decl, parsed)
                     or _IDENTITY_ALIAS.search(window)
                     or _DOCUMENTED_ALIAS.search(window)
                 ):
@@ -235,7 +244,6 @@ def parse_global_definitions(
                     # Function-local static. Same ownership rules still apply when
                     # it carries an independent GLOBAL address, so keep it.
                     pass
-                parsed = _DECL.match(decl)
                 if parsed is None:
                     definitions.append(
                         {
@@ -302,12 +310,13 @@ def unaddressed_globals(repo_dir: Path) -> list[dict[str, Any]]:
                     continue
                 name = ""
                 decl = ""
+                parsed = None
                 if scanned is not None:
                     decl = scanned[2]
                     parsed = _DECL.match(decl)
                     if parsed is not None:
                         name = parsed.group("name")
-                if decl.startswith("extern "):
+                if _extern_declaration(decl, parsed):
                     continue
                 detail = (
                     f"{name or 'global'} has a GLOBAL marker without a retail address; "

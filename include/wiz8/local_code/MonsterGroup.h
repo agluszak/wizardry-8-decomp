@@ -72,8 +72,8 @@ struct W8MonsterGroup {
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
                                       unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
-unsigned char Function510CC0(W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a,
-                             int b, int c, int d); /* 0x00510CC0 */
+unsigned char MoveMonsterGroupToPosition(W8MonsterGroup* group, srVector3T<float>* position,
+                                         float yaw, int a, int b, int c, int d); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the
    group moves straight to the camera position, and with flag set it picks a
    point at the requested distance on a random angle around the camera yaw,
@@ -99,20 +99,20 @@ void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);
 wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
-void Function48C750(W8MonsterGroup* group);
+void ReleaseMonsterGroup(W8MonsterGroup* group);
 W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);
-void Function510590(W8MonsterGroup* monster_group);
-void Function48C670(W8MonsterGroup* monster_group);
-void Function50FD40(W8MonsterGroup* monster_group, int value);
-void Function547570(W8MonsterGroup* monster_group, unsigned char flag, int value);
-void Function50F720(W8MonsterGroup* monster_group);
+void RefreshMonsterGroup(W8MonsterGroup* monster_group);
+void DetachMonsterGroup(W8MonsterGroup* monster_group);
+void SetMonsterGroupMode(W8MonsterGroup* monster_group, int value);
+void SetMonsterGroupDisposition(W8MonsterGroup* monster_group, unsigned char flag, int value);
+void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
-void Function511CE0(W8MonsterGroup* monster_group, unsigned char flag);
-void Function5103E0(W8MonsterGroup* monster_group);
+void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
+void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
 
-void Function50E5C0(int party_slot);
-void Function50E8C0(int location_id);
+void RefreshPartyMemberCombatState(int party_slot);
+void RefreshMonsterLocationState(int location_id);
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
 #endif

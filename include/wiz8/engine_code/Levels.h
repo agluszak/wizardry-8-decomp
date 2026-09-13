@@ -44,14 +44,18 @@ struct W8LevelInfo {
 
 static_assert(sizeof(W8LevelInfo) == 0x458, "W8LevelInfo_must_be_0x458");
 
-extern W8LevelFolderRecord g_level_folders[47];
+/* The forty-seven real levels. Level ids 47..56 are the test-level slots the
+   LoadLevel assert (TEST_LEVEL_COUNT) still admits. */
+enum { W8_LEVEL_COUNT = 47 };
+
+extern W8LevelFolderRecord g_level_folders[W8_LEVEL_COUNT];
 
 int GetLoadedLevelID(void);
 const char* GetLevelFolderName(int level_id);
 unsigned char GetLevelLocationCode(int level_id, char* location_code);
 int FindLevelIdByLocationCode(const char* location_code);
 
-extern unsigned short g_level_name_indices_605820[47];
+extern unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT];
 
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info);

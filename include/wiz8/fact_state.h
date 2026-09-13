@@ -1,6 +1,9 @@
 #ifndef WIZ8_FACT_STATE_H
 #define WIZ8_FACT_STATE_H
 
+/* 1000 entries, indices 0..999, stored at 0x00689B78 and ending exactly at
+   g_npc_name_buffer. GetFact/SetFact check fact_id > 1000, so index 1000
+   aliases g_npc_name_buffer[0] - a retail off-by-one, kept faithful. */
 extern unsigned char g_fact_values[1000];
 extern unsigned char g_fact_notifications_suppressed;
 extern unsigned char g_import_party_loaded;

@@ -451,7 +451,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     }
 applied:
     g_status_685170.item_in_hand_235b.stack_count = carried;
-    Function50E5C0(g_rcs_mode_0064cbe8);
+    RefreshPartyMemberCombatState(g_rcs_mode_0064cbe8);
     Function5A4A00();
     RecalculateCharacterDerivedStats(g_status_685170.buffers.characters + g_rcs_mode_0064cbe8);
     RecalculateCarriedWeight(g_value_0069c0f8);

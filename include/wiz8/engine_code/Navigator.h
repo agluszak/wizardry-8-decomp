@@ -84,8 +84,8 @@ struct W8NavigatorMovementState {
     float turn_rate_068;
     unsigned short flag_06c;
     unsigned char unknown_06e[6];
-    unsigned char pitch_enabled_074;
-    unsigned char roll_enabled_075;
+    bool pitch_enabled_074;
+    bool roll_enabled_075;
     unsigned char unknown_076[2];
     float vertical_velocity_078;
     float vertical_base_07c;
@@ -103,7 +103,7 @@ struct W8NavigatorMovementState {
     float secondary_height_offset_0bc;
     float vertical_offset_0c0;
     float value_0c4;
-    unsigned char position_adjusted_0c8;
+    bool position_adjusted_0c8;
     unsigned char unknown_0c9[3];
 
     W8NavigatorMovementState(); /* 0x004572C0 */
@@ -137,7 +137,9 @@ public:
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
     /* Called with what this navigator ran into: the startup world navigator
-       or another mover. True once the collision was consumed. */
+       or another mover. True once the collision was consumed. Same folded
+       body as W8GrCycle::CanEnterCycle at 0x004A7140; /OPT:NOICF emits this
+       copy. */
     virtual bool OnCollision(W8Navigator*)
     {
         return true;
@@ -223,9 +225,15 @@ public:
        one. The float view is the declared one; the dword uses spell out
        their reinterpretation. */
     srVector3T<float> movement_target_018;
-    unsigned char flag_024;
-    unsigned char flag_025;
-    unsigned char movement_complete_026;
+    /* Set when the navigator's movement has stopped - the constructors raise
+       it, SetMovementStopped00453880 raises it when motion halts (levelling
+       pitch unless the navigation mode banks), and a successful
+       PrepareLinkedNavigator00466FB0 clears it while a path is active. A
+       monster scripts wait on it: CanContinueScript004CA0F0 blocks a WALKTO
+       until it is set. */
+    bool movement_stopped_024;
+    bool flag_025;
+    bool movement_complete_026;
     unsigned char unknown_027;
     srVector3T<float> position_028;
     float minimum_height_034;
@@ -252,12 +260,12 @@ public:
     unsigned int unknown_090;
     unsigned int unknown_094;
     unsigned int unknown_098;
-    unsigned char position_dirty_09c;
+    bool position_dirty_09c;
     unsigned char unknown_09d[3];
     W8NavigatorOwned0A0* owned_object_0a0;
     srVector3T<float> tracked_position_0a4;
     float tracked_distance_0b0;
-    unsigned char tracked_dirty_0b4;
+    bool tracked_dirty_0b4;
     unsigned char unknown_0b5[3];
     int linked_update_time_0b8;
     unsigned char unknown_0bc[4];

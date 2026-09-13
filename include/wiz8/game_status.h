@@ -51,7 +51,7 @@ struct W8GlobalStatus {
     unsigned int dwords_18e0[8];
     int current_level;
     unsigned char status_header_block_1904[0x100];
-    W8LevelProgressRow level_progress[47];
+    W8LevelProgressRow level_progress[W8_LEVEL_COUNT];
     unsigned char unknown_2013[0x294];
     /* 0x22a7: CamPos staged by recall when the anchor is on another level;
        LoadLevel restores it after the new world exists. */

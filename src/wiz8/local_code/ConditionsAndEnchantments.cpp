@@ -312,7 +312,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         monster_info->condition_argument = argument;
         handled = 1;
     }
-    Function50E8C0(location_id);
+    RefreshMonsterLocationState(location_id);
     if (handled == 0) {
         return;
     }
@@ -392,15 +392,15 @@ void ClearMonsterCondition(int location_id, int condition)
             break;
         case 7:
             monster_info->condition_argument = 0;
-            Function50E8C0(location_id);
+            RefreshMonsterLocationState(location_id);
             return;
         case 9:
         case 0xC:
             RefreshMonsterSight(monster_info);
-            Function50E8C0(location_id);
+            RefreshMonsterLocationState(location_id);
             return;
         }
-        Function50E8C0(location_id);
+        RefreshMonsterLocationState(location_id);
     }
 }
 
@@ -622,7 +622,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
 
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
-    Function50E8C0(location_id);
+    RefreshMonsterLocationState(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
     }
@@ -647,7 +647,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
-    Function50E8C0(location_id);
+    RefreshMonsterLocationState(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
     }

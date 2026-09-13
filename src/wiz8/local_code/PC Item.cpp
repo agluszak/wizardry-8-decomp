@@ -198,7 +198,11 @@ wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
 // GLOBAL: WIZ8 0x00648c5c
 const int g_equip_slot_icons[6] = {0, 0, 0, 0, 0, 0};
+/* The leading entries are an offset alias of the tail of
+   g_equip_class_name_ids_61e7dc; retail reads both views of one block. */
 // GLOBAL: WIZ8 0x0061E810
+// offset alias of the tail of g_equip_class_name_ids_61e7dc; shared retail
+// storage.
 extern const unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
     0x45a, 0x45b, 0x45c, 0x45d, 0x45e, 0x45f, 0x460, 0x461, 0x462, 0x463, 0x464, 0x465, 0x466,
     0x467, 0x468, 0x469, 0x46a, 0x46b, 0x46c, 0x46d, 0x46e, 0x46f, 0x470, 0x471, 0x472, 0x473,
@@ -1018,7 +1022,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
                 stored = MergeItemStacks(destination, item, 0);
             }
             if (character->in_party) {
-                Function50E5C0(CharacterPointerToPartySlot(character));
+                RefreshPartyMemberCombatState(CharacterPointerToPartySlot(character));
             }
             if (stored) {
                 return true;
@@ -2317,7 +2321,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     if (item == &character->equipment[11]) {
         g_byte_652da6 = FindItemOnParty(0x254, 0, 0, 0, 0);
     }
-    Function50E5C0(party_slot);
+    RefreshPartyMemberCombatState(party_slot);
 
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     if (row->action_03d == 8 && row->action_detail_045.item_use.item == item) {

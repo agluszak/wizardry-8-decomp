@@ -403,6 +403,9 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
             }
         }
     }
+    /* Scalar delete is correct: the callers build these buffers with scalar
+       operator_new (FUN_004EBA70/FUN_004EBFE0), and retail calls ??3@YAXPAX@Z,
+       not the array form. */
     delete piCharTargets;
     delete piMonsterTargets;
 }
@@ -466,7 +469,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
     } else {
         disposition = 1;
     }
-    Function547570(group, disposition, 0);
+    SetMonsterGroupDisposition(group, disposition, 0);
     if (monster_info->player_visibility.state_04 == 1) {
         placed = PositionMonsterGroupNearCamera00511050(group, 0.0f, 0.0f, 1);
         if (placed == 0) {
@@ -477,7 +480,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
         }
     } else {
         yaw = GetCameraFacingYaw004BE5C0(position);
-        placed = Function510CC0(group, position, yaw, 1, 0, 0, 0);
+        placed = MoveMonsterGroupToPosition(group, position, yaw, 1, 0, 0, 0);
     }
     if (placed == 0) {
         RemoveAllGroupMembers(group);
@@ -485,6 +488,6 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
         return;
     }
     RefreshAllSight();
-    Function511CE0(group, 0);
-    Function50F720(group);
+    SetMonsterGroupNavigatorDirty(group, 0);
+    NotifyMonsterGroupActivity(group);
 }
