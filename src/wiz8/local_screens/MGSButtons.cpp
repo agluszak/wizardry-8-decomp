@@ -27,14 +27,14 @@
 
 #define MGSBUTTONS_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSButtons.cpp"
 
+// GLOBAL: WIZ8 0x0061e988
+const unsigned short g_action_kind_message_ids_61e988[12] = {
+    0x050f, 0x0510, 0x0511, 0x0512, 0x0513, 0x0514, 0x0515, 0x0516, 0x0517, 0x0518, 0x0519, 0x051a,
+};
+
 /* The (x, y) of the two scroll arrows. */
 // GLOBAL: WIZ8 0x0064C330
 const int g_scroll_button_positions_64c330[2][2] = {{300, 456}, {323, 456}};
-
-/* String ids naming each combat action kind, indexed by the row's action. */
-// GLOBAL: WIZ8 0x0061E988
-const unsigned short g_action_kind_message_ids_61e988[12] = {1295, 1296, 1297, 1298, 1299, 1300,
-                                                             1301, 1302, 1303, 1304, 1305, 1306};
 
 // GLOBAL: WIZ8 0x0069B858
 W8DialogButton* g_submenu_scroll_buttons_69b858[2];

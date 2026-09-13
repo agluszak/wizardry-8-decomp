@@ -27,6 +27,6 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
 
 void UpdateMeshAfterVertexLoad004867F0(srMeshModel* model, int frame);
 
-void NormalizeMaterialRecord00489980(W8MaterialRecord004B8A70* material);
+void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material);
 void ReadMeshTransform004896C0(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
                                srVector3T<float>* scale);

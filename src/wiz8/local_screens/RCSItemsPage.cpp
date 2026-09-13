@@ -380,10 +380,12 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
             split.uses_or_charges = g_split_item_source_0069c424->uses_or_charges;
             split.identified = g_split_item_source_0069c424->identified;
             split.unknown_07[0] = g_split_item_source_0069c424->unknown_07[0];
-            *reinterpret_cast<unsigned int*>(
+            *reinterpret_cast<  // reinterpret-ok: item serialized word crosses byte-array storage
+                unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
                 &split.unknown_07
-                     [1]) = // reinterpret-ok: two-item layout word shared with the held item
-                *reinterpret_cast<const unsigned int*>(
+                     [1]) =        // reinterpret-ok: two-item layout word shared with the held item
+                *reinterpret_cast< // reinterpret-ok: item serialized word crosses byte-array storage
+                    const unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
                     &g_split_item_source_0069c424->unknown_07[1]);
             split.stack_count = (unsigned char)count;
             g_split_item_source_0069c424->stack_count = remaining;
@@ -401,9 +403,12 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         split.uses_or_charges = g_split_item_source_0069c424->uses_or_charges;
         split.identified = g_split_item_source_0069c424->identified;
         split.unknown_07[0] = g_split_item_source_0069c424->unknown_07[0];
-        *reinterpret_cast<unsigned int*>(
+        *reinterpret_cast<  // reinterpret-ok: item serialized word crosses byte-array storage
+            unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
             &split.unknown_07[1]) = // reinterpret-ok: unresolved layout word copied verbatim
-            *reinterpret_cast<const unsigned int*>(&g_split_item_source_0069c424->unknown_07[1]);
+            *reinterpret_cast< // reinterpret-ok: item serialized word crosses byte-array storage
+                const unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
+                &g_split_item_source_0069c424->unknown_07[1]);
         split.stack_count = remaining;
         if (g_held_item_source_006840c0 == -1) {
             goto add_to_pool;
@@ -986,7 +991,9 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             return 0;
         }
         delta = GetMouseWheelDeltaValue(
-            reinterpret_cast<const W8RegionMouseEvent*>(event)
+            reinterpret_cast< // reinterpret-ok: reason 0x800 carries mouse event payload
+                const W8RegionMouseEvent*>(
+                event)             // reinterpret-ok: reason 0x800 carries mouse event payload
                 ->mouse_position); // reinterpret-ok: reason 0x800 carries the mouse event payload
         count = delta;
         if (delta > 0) {

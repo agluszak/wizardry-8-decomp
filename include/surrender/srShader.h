@@ -7,6 +7,8 @@
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
+    srShader();
+
     enum e_pass {
         PASS_NEVER = 0,
         PASS_LESS = 1,

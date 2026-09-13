@@ -249,10 +249,11 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         }
         for (i = 0; i < pLevel->nNamedPositions; ++i) {
             W8LevelFileNamedPosition* pPosition = pLevel->pNamedPositions + i;
-            Function497690(5, reinterpret_cast<const char*>(
-                                  String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
-                                         (double)pPosition->x_81, (double)pPosition->y_85,
-                                         (double)pPosition->z_89)));
+            Function497690(
+                5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                       String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
+                              (double)pPosition->x_81, (double)pPosition->y_85,
+                              (double)pPosition->z_89)));
         }
     }
 
@@ -845,13 +846,17 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x408, 0);
         }
         Function497690(
-            5, reinterpret_cast<const char*>(String("Switch Trigger: %s (recipients: %s)\n",
-                                                    pSwitch->name_1f, pSwitch->recipients_9f)));
+            5,
+            reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                const char*>(String(
+                "Switch Trigger: %s (recipients: %s)\n", // reinterpret-ok: String returns a logging buffer
+                pSwitch->name_1f, pSwitch->recipients_9f)));
         if (pSwitch->version_00 > 1) {
             ok &= FileRead(hFile, pSwitch->unknown_21f, 4, 0);
             ok &= FileRead(hFile, pSwitch->switch_name_223, 0x40, 0);
-            Function497690(5, reinterpret_cast<const char*>(
-                                  String("Switch Trigger name: %s\n", pSwitch->switch_name_223)));
+            Function497690(
+                5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                       String("Switch Trigger name: %s\n", pSwitch->switch_name_223)));
         }
         if (pSwitch->version_00 > 2) {
             ok &= FileRead(hFile, &pSwitch->field_263, 1, 0);
@@ -908,7 +913,10 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSound->version_00 > 3) {
             ok &= FileRead(hFile, pSound->field_ef, 0x80, 0);
             Function497690(
-                5, reinterpret_cast<const char*>(String("Sound Trigger: %s\n", pSound->field_ef)));
+                5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                       const char*>(String(
+                       "Sound Trigger: %s\n",
+                       pSound->field_ef))); // reinterpret-ok: String returns a logging buffer
         }
         if (pSound->version_00 > 4) {
             ok &= FileRead(hFile, &pSound->field_16f, 1, 0);
@@ -939,9 +947,12 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
     ok &= FileRead(hFile, pInvis->name_1b, 0x80, 0);
     ok &= FileRead(hFile, pInvis->recipients_9b, 0x100, 0);
     ok &= fSuccess;
-    Function497690(5,
-                   reinterpret_cast<const char*>(String("Invisible Trigger: %s (recipients: %s)\n",
-                                                        pInvis->name_1b, pInvis->recipients_9b)));
+    Function497690(
+        5,
+        reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+            const char*>(String(
+            "Invisible Trigger: %s (recipients: %s)\n", // reinterpret-ok: String returns a logging buffer
+            pInvis->name_1b, pInvis->recipients_9b)));
     if (pInvis->version_00 > 1) {
         ok &= FileRead(hFile, &pInvis->unknown_19b, 1, 0);
         pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(0x30));
@@ -1159,7 +1170,10 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
     memset(pSuper, 0, sizeof(W8LevelFileSuperTrigger));
     unsigned char fSuccess = FileRead(hFile, &pSuper->version_00, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->name_01, 0x80, 0);
-    Function497690(5, reinterpret_cast<const char*>(String("Super Trigger: %s ", pSuper->name_01)));
+    Function497690(5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                          const char*>(String(
+                          "Super Trigger: %s ",
+                          pSuper->name_01))); // reinterpret-ok: String returns a logging buffer
     fSuccess &= FileRead(hFile, &pSuper->flags_81, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_82, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_83, 1, 0);
@@ -1167,29 +1181,36 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
     fSuccess &= FileRead(hFile, &pSuper->field_85, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_86, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_87, 1, 0);
-    Function497690(5, reinterpret_cast<const char*>(String(
-                          "     Active: %d Kind: %d WhenActive: %d PropIndex: %d, activated %d "
-                          "times, inactive %d times, interaction: %d",
-                          pSuper->field_82, pSuper->field_83, pSuper->field_84, pSuper->field_85,
-                          pSuper->field_86, pSuper->field_87, pSuper->flags_81 & 1)));
+    Function497690(
+        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
+               "     Active: %d Kind: %d WhenActive: %d PropIndex: %d, activated %d "
+               "times, inactive %d times, interaction: %d",
+               pSuper->field_82, pSuper->field_83, pSuper->field_84, pSuper->field_85,
+               pSuper->field_86, pSuper->field_87, pSuper->flags_81 & 1)));
     fSuccess &= FileRead(hFile, &pSuper->field_88, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_8c, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_90, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->recipients_94, 0x100, 0);
-    Function497690(5, reinterpret_cast<const char*>(
-                          String("     trigger: %d (on %d, off %d) name: %s", pSuper->field_88,
-                                 pSuper->field_8c, pSuper->field_90, pSuper->recipients_94)));
+    Function497690(5,
+                   reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                       String("     trigger: %d (on %d, off %d) name: %s", pSuper->field_88,
+                              pSuper->field_8c, pSuper->field_90, pSuper->recipients_94)));
     fSuccess &= FileRead(hFile, &pSuper->field_194, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->field_195, 0x100, 0);
-    Function497690(5, reinterpret_cast<const char*>(String("     ataxia/cure: %d PSEvents %s",
-                                                           pSuper->field_194, pSuper->field_195)));
+    Function497690(
+        5,
+        reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+            const char*>(String(
+            "     ataxia/cure: %d PSEvents %s", // reinterpret-ok: String returns a logging buffer
+            pSuper->field_194, pSuper->field_195)));
     fSuccess &= FileRead(hFile, &pSuper->field_295, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_296, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_29a, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->field_29b, 0x80, 0);
-    Function497690(5, reinterpret_cast<const char*>(String(
-                          "     allow save: %d, price: %d door kind %d anim: %s", pSuper->field_295,
-                          pSuper->field_296, pSuper->field_29a, pSuper->field_29b)));
+    Function497690(
+        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
+               "     allow save: %d, price: %d door kind %d anim: %s", pSuper->field_295,
+               pSuper->field_296, pSuper->field_29a, pSuper->field_29b)));
     if (pSuper->version_00 > 1) {
         fSuccess &= FileRead(hFile, pSuper->field_49b, 0xc, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_4a7, 4, 0);
@@ -1199,7 +1220,7 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
         fSuccess &= FileRead(hFile, &pSuper->field_4ae, 1, 0);
         fSuccess &= FileRead(hFile, pSuper->field_4af, 0x10, 0);
         Function497690(
-            5, reinterpret_cast<const char*>(
+            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                    String("     size: (%f, %f, %f) direction: %f speed: %f wait (%d,%d,%d) loop %d",
                           (double)pSuper->field_49b[0], (double)pSuper->field_49b[1],
                           (double)pSuper->field_49b[2], (double)pSuper->field_4a7,
@@ -1210,24 +1231,26 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
         fSuccess &= FileRead(hFile, &pSuper->field_4c1, 1, 0);
         fSuccess &= FileRead(hFile, pSuper->field_4c2, 0x100, 0);
         fSuccess &= FileRead(hFile, pSuper->field_5c2, 0x100, 0);
-        Function497690(5, reinterpret_cast<const char*>(
-                              String("     ignore: %d Group %d set_group %d groups %s objects %s",
-                                     pSuper->field_4bf, pSuper->field_4c0, pSuper->field_4c1,
-                                     pSuper->field_4c2, pSuper->field_5c2)));
+        Function497690(
+            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                   String("     ignore: %d Group %d set_group %d groups %s objects %s",
+                          pSuper->field_4bf, pSuper->field_4c0, pSuper->field_4c1,
+                          pSuper->field_4c2, pSuper->field_5c2)));
         fSuccess &= FileRead(hFile, &pSuper->field_6c2, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_6c3, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
         fSuccess &= FileRead(hFile, pSuper->field_6cb, 0x100, 0);
         Function497690(
-            5, reinterpret_cast<const char*>(
+            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                    String("     close door: %d wait: %d 5fCount %d event: %s", pSuper->field_6c2,
                           pSuper->field_6c3, pSuper->field_6c7, pSuper->field_6cb)));
         fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
     }
     if (pSuper->version_00 > 2) {
         fSuccess &= FileRead(hFile, pSuper->field_7cf, 0x80, 0);
-        Function497690(5, reinterpret_cast<const char*>(
-                              String("     attach particle system: %s", pSuper->field_7cf)));
+        Function497690(
+            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                   String("     attach particle system: %s", pSuper->field_7cf)));
     }
     if ((fSuccess & 1) == 0) {
         return 0;
@@ -1406,7 +1429,11 @@ unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
         fSuccess &= FileRead(hFile, &pDoorRec->unknown_0c, 1, 0);
         fSuccess &= FileRead(hFile, pDoorRec->unknown_0d, 0xc, 0);
         fSuccess &= FileRead(hFile, pDoorRec->name_19, 0x80, 0);
-        Function497690(5, reinterpret_cast<const char*>(String("Door: %s", pDoorRec->name_19)));
+        Function497690(
+            5,
+            reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                const char*>(String(
+                "Door: %s", pDoorRec->name_19))); // reinterpret-ok: String returns a logging buffer
         *(W8LevelFileDoor**)(pDoor + 1) = pDoorRec;
         return fSuccess;
     }
@@ -1947,7 +1974,11 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileRead(hFile, pProp->name_13, 0x40, 0);
-            Function497690(5, reinterpret_cast<const char*>(String("Prop: %s", pProp->name_13)));
+            Function497690(
+                5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                       const char*>(
+                       String("Prop: %s",
+                              pProp->name_13))); // reinterpret-ok: String returns a logging buffer
         }
         if (fSuccess == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x918, 0);
@@ -1958,10 +1989,12 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
                 pProp->usFrame_Pos =
                     static_cast<unsigned int*>(malloc(pProp->num_frame_pos_b7 << 2));
                 if (pProp->usFrame_Pos == 0) {
-                    srAssertFail("pProps[i1].usFrame_Pos", LEVELFILE_CPP, 0x91f,
-                                 reinterpret_cast<const char*>(
-                                     String("Could not allocate %d segments for %s",
-                                            (int)pProp->num_frame_pos_b7, pProp->name_13)));
+                    srAssertFail(
+                        "pProps[i1].usFrame_Pos", LEVELFILE_CPP, 0x91f,
+                        reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+                            const char*>( // reinterpret-ok: String returns a logging buffer
+                            String("Could not allocate %d segments for %s",
+                                   (int)pProp->num_frame_pos_b7, pProp->name_13)));
                 }
                 fSuccess &= FileRead(hFile, pProp->usFrame_Pos, pProp->num_frame_pos_b7 << 2, 0);
             }
@@ -2100,11 +2133,12 @@ unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSyste
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
     }
-    Function497690(5, reinterpret_cast<const char*>(
-                          String("Particle System: %s Position (%f, %f, %f)", pRecord + 1,
-                                 (double)(*(float*)(pRecord + 0x41) * g_world_scale_005ebc40),
-                                 (double)(*(float*)(pRecord + 0x45) * g_world_scale_005ebc40),
-                                 (double)(*(float*)(pRecord + 0x49) * g_world_scale_005ebc40))));
+    Function497690(5,
+                   reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                       String("Particle System: %s Position (%f, %f, %f)", pRecord + 1,
+                              (double)(*(float*)(pRecord + 0x41) * g_world_scale_005ebc40),
+                              (double)(*(float*)(pRecord + 0x45) * g_world_scale_005ebc40),
+                              (double)(*(float*)(pRecord + 0x49) * g_world_scale_005ebc40))));
     return fSuccess;
 }
 

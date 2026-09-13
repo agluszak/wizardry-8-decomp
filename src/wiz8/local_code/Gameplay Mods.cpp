@@ -190,9 +190,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
 void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* target)
 {
     const W8EffectSlot* slot = source;
-    int remaining = 12;
 
-    do {
+    for (int index = 0; index < 12; ++index, ++slot) {
         if (slot->active != 0) {
             unsigned char amount = static_cast<unsigned char>(slot->amount);
             unsigned int percent = slot->percent;
@@ -235,9 +234,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
                 break;
             }
         }
-        ++slot;
-        --remaining;
-    } while (remaining != 0);
+    }
 }
 
 /* Fold the six combat effect records at +0x85a into the shared modifier block. */
@@ -245,9 +242,8 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
 void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* target)
 {
     const W8EffectSlot* slot = source;
-    int remaining = 6;
 
-    do {
+    for (int index = 0; index < 6; ++index, ++slot) {
         if (slot->active != 0) {
             unsigned char adjusted;
             unsigned int percent = slot->percent;
@@ -275,9 +271,7 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock*
                 break;
             }
         }
-        ++slot;
-        --remaining;
-    } while (remaining != 0);
+    }
 }
 
 /* Rebuild one character's derived modifier block from the equipment,
