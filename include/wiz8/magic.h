@@ -23,6 +23,8 @@ bool IsSpellInSingledOutSet(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
+/* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
+int MissileSpellId(int missile_type);
 
 class W8SpellVisual;
 struct W8EffectSlot;

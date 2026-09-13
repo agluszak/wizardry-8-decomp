@@ -1,10 +1,39 @@
 #pragma once
 
 #include "surrender/srMath.h"
+#include "wiz8/dice.h"
 
 struct W8CombatSlot;
 struct W8TargetSource;
 struct W8SpellEffectEntry;
+
+#pragma pack(push, 1)
+
+/* One spell effect definition, 0x30 bytes. A missile carries its own copy at
+   0x1fc. The radius at 0x00 bounds an area effect (0 for a single target),
+   the dice at 0x04 are rolled for the effect's size, the three values at
+   0x20 through 0x2c combine into its duration, and the percentage at 0x24
+   scales both. */
+struct W8SpellEffectDefinition {
+    float radius;     /* 0x00: an area effect reaches this far; 0 is single-target */
+    W8Dice magnitude; /* 0x04 */
+    /* 0x08: the percentage chance of each condition the effect can inflict,
+       rolled by ApplyEffectConditions. */
+    unsigned char condition_chances[0x10];
+    int power_level;        /* 0x18 */
+    int value_1c;           /* 0x1c */
+    int duration_scale;     /* 0x20 */
+    unsigned int percent;   /* 0x24 */
+    int duration_base;      /* 0x28 */
+    int duration_per_power; /* 0x2c */
+};
+
+#pragma pack(pop)
+
+static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_must_be_0x30");
+
+unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition); /* 0x00551A20 */
+unsigned int RollEffectDuration(W8SpellEffectDefinition* definition);  /* 0x005519C0 */
 
 /* Local Code\Magic Effects.cpp. IsScreenBusy at 0x00554540 follows the
    unit's assertion-backed hull (0x00553910) and precedes Formation & Facing's
@@ -12,9 +41,10 @@ struct W8SpellEffectEntry;
 
 unsigned char IsScreenBusy(void);
 
-void ApplyEffectToTarget(int* result, W8CombatSlot* target, int arg_3, int arg_4); /* 0x00552250 */
-void AnnounceEffectResisted(W8CombatSlot* target);                                 /* 0x00552070 */
-void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3,
+void ApplyEffectToTarget(unsigned int* result, W8CombatSlot* target, int arg_3,
+                         int arg_4);               /* 0x00552250 */
+void AnnounceEffectResisted(W8CombatSlot* target); /* 0x00552070 */
+void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int arg_3,
                             int arg_4); /* 0x00552340 */
 /* 0x00551BA0 sits in the unresolved gap before the unit's assertion hull;
    GroupAttacks.cpp's call sites need the declaration. Its own assertion names

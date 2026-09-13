@@ -433,7 +433,7 @@ W8Missile::W8Missile()
         srAssertFail("m_pRep", MISSILE_CPP, 0x38e, 0);
     }
 
-    memset(values_1fc, 0, sizeof(values_1fc));
+    memset(&definition_1fc, 0, sizeof(definition_1fc));
     memset(static_cast<void*>(&result_280), 0, 0xa2);
     ResetCombatSlot(&combat_slot_260);
 }
@@ -548,13 +548,13 @@ W8MissileRep::~W8MissileRep()
     }
 }
 
-/* Copy the twelve-word state block, then replace its first float from the
-   selected 0x1e5-byte missile database row. */
+/* Copy the effect definition, then replace its radius from the selected
+   0x1e5-byte missile database row. */
 // FUNCTION: WIZ8 0x004A5410
-void W8Missile::SetLaunchValues004A5410(const float* values)
+void W8Missile::SetEffectDefinition(const W8SpellEffectDefinition* definition)
 {
-    memcpy(values_1fc, values, sizeof(values_1fc));
-    values_1fc[0] = g_missile_table_65bde0[missile_table_index_1d8].value_140;
+    memcpy(&definition_1fc, definition, sizeof(definition_1fc));
+    definition_1fc.radius = g_missile_table_65bde0[missile_table_index_1d8].radius_140;
 }
 
 /* The representation a missile was fired from. */

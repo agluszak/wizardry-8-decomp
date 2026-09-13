@@ -40,6 +40,9 @@ enum {
 };
 
 /* 0x00616604: one entry per sex, race and profession together. */
+// GLOBAL: WIZ8 0x00616308
+const unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
+
 // GLOBAL: WIZ8 0x00616604
 const int g_character_table_00616604[480] = {
     3,  1,  0,  0,  3,  56, 4,  2,  1,  2,  5,  4,  24, 4,  5,  13, 12, 0,  12, 13, 56, 13, 12, 12,

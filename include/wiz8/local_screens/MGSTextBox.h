@@ -10,8 +10,12 @@ struct W8MonsterInfo;
 
 /* Local Screens\MGSTextBox.cpp owns the four message runs at 0x0068F2D8. */
 struct W8MessageStorageRecord {
-    void* allocation_00;
-    unsigned char unknown_04[4];
+    wchar_t* wString; /* 0x00: the assertion at 0x0058B410 names it */
+    unsigned char unknown_04;
+    /* 0x05-0x07: the recoloured span [start, stop) of this line. */
+    unsigned char highlight_color;
+    unsigned char highlight_start;
+    unsigned char highlight_stop;
     int clock_08;
     unsigned char unknown_0c[0x0c];
     W8PList* entries_18;

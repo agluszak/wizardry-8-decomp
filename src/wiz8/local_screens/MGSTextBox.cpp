@@ -1,6 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/game_status.h"
 // GLOBAL: WIZ8 0x0068f2d4
 W8MainGameScreen* g_main_game_screen;
@@ -10,9 +11,12 @@ W8MainGameScreen* g_main_game_screen;
 #include "timer.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/screen_state.h"
+#include "wiz8/sr_api.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 /*
  * Local Screens\MGSTextBox.cpp.
@@ -22,6 +26,8 @@ W8MainGameScreen* g_main_game_screen;
  * item manager and the movement rules reach through - the text state simply
  * occupies a different part of it.
  */
+
+#define MGS_TEXT_BOX_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSTextBox.cpp"
 
 /* The redraw the text box asks for whenever anything it shows changes. */
 enum { W8_REDRAW_TEXT_BOX = 0x800 };
@@ -45,8 +51,8 @@ void ReleaseMessageStorage(void)
     for (int row = 0; row < 4; ++row) {
         for (int index = 0; index < 0x15e; ++index) {
             W8MessageStorageRecord* record = &g_message_storage_68f2d8[row][index];
-            if (record->allocation_00) {
-                free(record->allocation_00);
+            if (record->wString) {
+                free(record->wString);
             }
             W8PList* entries = record->entries_18;
             if (entries) {
@@ -125,6 +131,71 @@ void ScrollTextBoxToCursor(void)
         return;
     }
     ScrollTextBoxTo(0);
+}
+
+/* Recolour the character span [start, stop) of the most recent line of one
+   text box. A -1 box means the one the current game mode posts to. When the
+   line was wrapped, the box's split position says where the second row
+   begins: a span ending before it recolours the previous row alone, one
+   crossing it is cut in two, and one past it moves down by the split. */
+// FUNCTION: WIZ8 0x0058b410
+void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,
+                           short text_box)
+{
+    W8MessageStorageRecord* line;
+    W8MessageStorageRecord* previous;
+
+    if (!(stop >= start)) {
+        srAssertFail("ubStopChar >= ubStartChar", MGS_TEXT_BOX_CPP, 0x247, 0);
+    }
+    if (g_current_screen_state.id != 7) {
+        return;
+    }
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        } else if (GetFlag68F105()) {
+            text_box = 0;
+        } else {
+            text_box = gXStatus.fCombatMode != 0;
+        }
+    }
+    if (!(g_status_685170.text_box_lines_used_4997[text_box] > 0)) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x261, 0);
+    }
+    line =
+        &g_message_storage_68f2d8[text_box][g_status_685170.text_box_lines_used_4997[text_box] - 1];
+    if (!(line->wString != 0)) {
+        srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x263, 0);
+    }
+    if (g_level_block->text_lines[8 + text_box] == (unsigned int)-1) {
+        return;
+    }
+    if (g_level_block->text_lines[8 + text_box] == 0) {
+        line->highlight_stop = stop;
+        line->highlight_start = start;
+        line->highlight_color = color;
+        return;
+    }
+    if (!(g_status_685170.text_box_lines_used_4997[text_box] >= 2)) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] >= 2", MGS_TEXT_BOX_CPP, 0x277, 0);
+    }
+    previous =
+        &g_message_storage_68f2d8[text_box][g_status_685170.text_box_lines_used_4997[text_box] - 2];
+    if (start >= g_level_block->text_lines[8 + text_box]) {
+        line->highlight_start = start - g_level_block->text_lines[8 + text_box];
+    } else {
+        previous->highlight_start = start;
+        previous->highlight_color = color;
+        if (stop < g_level_block->text_lines[8 + text_box]) {
+            previous->highlight_stop = stop;
+            return;
+        }
+        previous->highlight_stop = (unsigned char)wcslen(previous->wString);
+        line->highlight_start = 0;
+    }
+    line->highlight_stop = stop - g_level_block->text_lines[8 + text_box];
+    line->highlight_color = color;
 }
 
 /* Whichever byte the open dialogue exposes at 0x2d, or nothing when no
