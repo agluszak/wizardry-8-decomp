@@ -67,7 +67,7 @@ int NormalizeMasterFunctionValue004D9700(int value)
 // GLOBAL: WIZ8 0x006834DD
 unsigned char g_flag_006834dd;
 // GLOBAL: WIZ8 0x006109F0
-unsigned char g_flag_6109f0;
+unsigned char g_flag_6109f0 = 1;
 // GLOBAL: WIZ8 0x006834E0
 int g_value_6834e0;
 // GLOBAL: WIZ8 0x00652DA5

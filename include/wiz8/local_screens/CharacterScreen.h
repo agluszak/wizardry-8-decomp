@@ -79,7 +79,7 @@ public:
     virtual void SetCharacter(W8Character* character, W8CharacterCreationState* creation_state,
                               int mode); /* 0x005AFF00 */
     virtual void Activate() = 0;
-    virtual void Deactivate(); /* 0x005CA1F0 */
+    virtual void Deactivate() = 0;
     virtual void Accept() = 0;
     virtual void GetNavigationState(bool* next_enabled, bool* exit_enabled) = 0;
     virtual void HandleInput(InputAtom* input); /* 0x005B1BE0 */
@@ -182,6 +182,7 @@ public:
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
+    virtual void Deactivate() override; /* 0x005CA1F0 */
     virtual void Accept() override;
     virtual void GetNavigationState(bool*, bool*) override;
     virtual void HandleInput(InputAtom*) override;
@@ -260,6 +261,7 @@ public:
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
+    virtual void Deactivate() override;
     virtual void Accept() override;
     virtual void GetNavigationState(bool*, bool*) override;
     virtual void AdjustEntry(W8CharacterPageEntry*, int) override;
@@ -326,7 +328,7 @@ struct W8SpellRealmAnimation {
     unsigned int initial_frame;
 };
 extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
-extern const wchar_t g_format_s_parenthesized_s_00617584[];
+extern const wchar_t g_format_s_space_s_00617584[];
 
 /* One message id per character trait, indexed by trait id. */
 extern unsigned short g_character_trait_name_ids_61e530[0x20];

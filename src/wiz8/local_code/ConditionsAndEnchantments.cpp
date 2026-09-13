@@ -187,24 +187,24 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
     }
 }
 
-/* Condition immunity sets by monster kind. Each entry is a kind byte followed
-   by twenty condition ids; a match means the condition never lands. The
-   two-byte packing is load-bearing: padded to four the stride would be 0x54,
-   but the table walks 0x52 per entry. Values are the retail table at
-   0x006171AA. */
+/* Condition immunity sets by monster kind. Each entry is a kind byte, one
+   byte no recovered reader consumes, and twenty condition ids; a match means
+   the condition never lands. The two-byte packing is load-bearing: padded to
+   four the stride would be 0x54, but the table walks 0x52 per entry. Values
+   are the retail table at 0x006171A8; the walkers address the ids at +2. */
 #pragma pack(push, 2)
 struct W8ConditionImmunity {
     unsigned char kind;
-    unsigned char pad;
+    unsigned char unknown_01;
     int conditions[20];
 }; /* 0x52 */
 #pragma pack(pop)
 
-// GLOBAL: WIZ8 0x006171AA
-W8ConditionImmunity g_condition_immunities_006171AA[3] = {
-    {20, 0, {2, 7, 17, 3, 6, 11, 15, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+// GLOBAL: WIZ8 0x006171A8
+W8ConditionImmunity g_condition_immunities_006171A8[3] = {
+    {20, 1, {2, 7, 17, 3, 6, 11, 15, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
     {22, 0, {2, 7, 4, 3, 6, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-    {17, 0, {11, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    {17, 1, {11, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
 };
 
 /* Setting a monster's condition runs the sameCountdown rescan, group recount
@@ -255,7 +255,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         return;
     }
     kind = record->kind_0cb;
-    for (immunity = g_condition_immunities_006171AA; immunity < g_condition_immunities_006171AA + 3;
+    for (immunity = g_condition_immunities_006171A8; immunity < g_condition_immunities_006171A8 + 3;
          ++immunity) {
         if (immunity->kind == kind) {
             for (index = 0; index < 0x14; ++index) {

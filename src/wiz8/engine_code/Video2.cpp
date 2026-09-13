@@ -101,7 +101,7 @@ int g_screen_depth_603c44 = 16;
 // GLOBAL: WIZ8 0x603c48
 int g_pixel_format_603c48 = 9;
 // GLOBAL: WIZ8 0x603d74
-int g_renderer_mode_603d74;
+int g_renderer_mode_603d74 = 1;
 // GLOBAL: WIZ8 0x65962c
 srModelInstance* g_current_model_instance_65962c;
 // GLOBAL: WIZ8 0x6596fc
@@ -146,7 +146,7 @@ LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
 RECT g_window_rect_659610;
 
 // GLOBAL: WIZ8 0x600088
-unsigned int g_color_key_600088;
+unsigned int g_color_key_600088 = 0x3def;
 // GLOBAL: WIZ8 0x65963c
 srModeler* g_modeler_65963c;
 // GLOBAL: WIZ8 0x659640

@@ -30,7 +30,7 @@
 enum { W8_FORMATION_ROW_WIDTH = 3 };
 
 // GLOBAL: WIZ8 0x005ec35c
-float g_float_005ec35c;
+float g_float_005ec35c = 12500.0f;
 
 /* The formation. Three party positions per row at 0x00687511, and each
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks

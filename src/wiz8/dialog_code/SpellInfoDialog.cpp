@@ -195,7 +195,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
     target_type = GetSpellTargetType(m_spell_054, 0);
     m_text_area_0ec.AddEntry(
         gppStringList[0x478 / 4],
-        FormatWideString(g_format_s_parenthesized_s_00617584,
+        FormatWideString(g_format_s_space_s_00617584,
                          gppStringList[g_spell_target_type_name_ids_60d4b4[target_type]],
                          g_spell_target_parentheticals_60d4e0[target_type]),
         10, 0xf, 0);
