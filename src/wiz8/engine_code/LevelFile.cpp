@@ -17,14 +17,11 @@
 W8LevelFile* g_level_file_6833fc;
 
 /* Scratch message buffer for the mesh/anim-object load failures; original name
-   and extent unknown. */
+   unknown. The next defined symbol is g_level_file_6833fc at 0x006833FC, so the
+   buffer is at most 0x404 bytes; 0x400 matches this file's other 0x400 sprintf
+   buffers. */
 // GLOBAL: WIZ8 0x00682ff8
 char g_level_file_error_682ff8[0x400];
-
-/* Unrecovered callees. */
-unsigned int Function004050D0(int hFile);
-unsigned char Function004D5430(int hFile, void* block); /* the +0x4c opaque block */
-unsigned char Function004D5580(int hFile, void* block); /* the +0x4c opaque block */
 
 // FUNCTION: WIZ8 0x004CFDC0
 W8LevelFile* ReadLevelFile004CFDC0(int hFile)
@@ -134,7 +131,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         }
     }
 
-    FileRead(hFile, &pLevel->field_2c, sizeof(pLevel->field_2c), 0);
+    FileRead(hFile, pLevel->unknown_2c, sizeof(pLevel->unknown_2c), 0);
     fSuccess = FileRead(hFile, &pLevel->nProps, sizeof(pLevel->nProps), 0);
     if (pLevel->nProps != 0) {
         pLevel->pProps = ReadPropsFile004D4CB0(hFile, pLevel->nProps);
@@ -162,12 +159,12 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         for (i = 0; i < pLevel->nCameras; ++i) {
             W8LevelFileCamera* pCamera = pLevel->pCameras + i;
             memset(pCamera, 0, sizeof(W8LevelFileCamera));
-            unsigned char ok = FileRead(hFile, &pCamera->field_00, 4, 0);
-            ok &= FileRead(hFile, &pCamera->field_04, 4, 0);
+            unsigned char ok = FileRead(hFile, pCamera->unknown_00, 4, 0);
+            ok &= FileRead(hFile, pCamera->unknown_04, 4, 0);
             ok &= FileRead(hFile, &pCamera->flag_08, 1, 0);
-            ok &= FileRead(hFile, pCamera->field_09, 0x14, 0);
+            ok &= FileRead(hFile, pCamera->unknown_09, 0x14, 0);
             if (pCamera->flag_08 != 0) {
-                ok &= FileRead(hFile, &pCamera->field_1d, 4, 0);
+                ok &= FileRead(hFile, pCamera->unknown_1d, 4, 0);
             }
             fSuccess &= ReadPathAIFile004D3770(hFile, &pCamera->pathAI_21) & ok;
         }
@@ -200,11 +197,11 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         }
     }
 
-    ok = FileRead(hFile, &pLevel->field_688, sizeof(pLevel->field_688), 0);
+    ok = FileRead(hFile, pLevel->unknown_688, sizeof(pLevel->unknown_688), 0);
     ok &= FileRead(hFile, &pLevel->nClippingPlanes, sizeof(pLevel->nClippingPlanes), 0);
     ok &= fSuccess;
     if (pLevel->nClippingPlanes != 0) {
-        ok &= FileRead(hFile, &pLevel->field_690, 1, 0);
+        ok &= FileRead(hFile, &pLevel->unknown_690, 1, 0);
         pLevel->pClippingPlanes =
             static_cast<unsigned char*>(malloc(pLevel->nClippingPlanes * 0x50));
         if (pLevel->pClippingPlanes == 0) {
@@ -259,8 +256,8 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         }
     }
 
-    FileRead(hFile, &pLevel->field_6b9, sizeof(pLevel->field_6b9), 0);
-    pLevel->field_6bd = Function004050D0(hFile);
+    FileRead(hFile, pLevel->unknown_6b9, sizeof(pLevel->unknown_6b9), 0);
+    pLevel->field_6bd = FileGetPos(hFile);
     return pLevel;
 }
 
@@ -367,7 +364,7 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
         free(pLevel->pItems);
     }
     FileWrite(hFile, &iCount, 4, 0);
-    FileWrite(hFile, &pLevel->field_2c, 4, 0);
+    FileWrite(hFile, pLevel->unknown_2c, 4, 0);
     FileWrite(hFile, &iCount, 4, 0);
     FileWrite(hFile, &pLevel->nProps, 4, 0);
     if ((pLevel->nProps != 0) &&
@@ -388,12 +385,12 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
         }
         for (i = 0; i < pLevel->nCameras; ++i) {
             W8LevelFileCamera* pCamera = pLevel->pCameras + i;
-            unsigned char okCam = FileWrite(hFile, &pCamera->field_00, 4, 0);
-            okCam &= FileWrite(hFile, &pCamera->field_04, 4, 0);
+            unsigned char okCam = FileWrite(hFile, pCamera->unknown_00, 4, 0);
+            okCam &= FileWrite(hFile, pCamera->unknown_04, 4, 0);
             okCam &= FileWrite(hFile, &pCamera->flag_08, 1, 0);
-            okCam &= FileWrite(hFile, pCamera->field_09, 0x14, 0);
+            okCam &= FileWrite(hFile, pCamera->unknown_09, 0x14, 0);
             if (pCamera->flag_08 != 0) {
-                okCam &= FileWrite(hFile, &pCamera->field_1d, 4, 0);
+                okCam &= FileWrite(hFile, pCamera->unknown_1d, 4, 0);
             }
             fSuccess &= WritePathAIFile004D38E0(hFile, &pCamera->pathAI_21) & okCam;
         }
@@ -425,10 +422,10 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
         free(pLevel->pTriggers);
     }
     fSuccess = FileWrite(hFile, &iCount, 4, 0);
-    fSuccess = FileWrite(hFile, &pLevel->field_688, 4, 0) & fSuccess;
+    fSuccess = FileWrite(hFile, pLevel->unknown_688, 4, 0) & fSuccess;
     fSuccess = FileWrite(hFile, &pLevel->nClippingPlanes, 4, 0) & fSuccess;
     if (pLevel->nClippingPlanes != 0) {
-        fSuccess &= FileWrite(hFile, &pLevel->field_690, 1, 0);
+        fSuccess &= FileWrite(hFile, &pLevel->unknown_690, 1, 0);
         fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * 0x50, 0);
         free(pLevel->pClippingPlanes);
         if (fSuccess == 0) {
@@ -471,7 +468,7 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
         }
     }
     fSuccess = FileWrite(hFile, &iCount, 4, 0);
-    fSuccess = FileWrite(hFile, &pLevel->field_6b9, 4, 0) & fSuccess;
+    fSuccess = FileWrite(hFile, pLevel->unknown_6b9, 4, 0) & fSuccess;
     chunk = 0x400;
     unsigned char fDone;
     do {
@@ -522,14 +519,14 @@ unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
         fSuccess = FileRead(hFile, &pMesh->flags_0c, 1, 0);
     }
     if (pMesh->version_00 > 1) {
-        fSuccess &= FileRead(hFile, pMesh->field_10, 0xc, 0);
-        fSuccess &= FileRead(hFile, pMesh->field_1c, 0x10, 0);
-        fSuccess &= FileRead(hFile, pMesh->field_2c, 0xc, 0);
+        fSuccess &= FileRead(hFile, pMesh->unknown_10, 0xc, 0);
+        fSuccess &= FileRead(hFile, pMesh->unknown_1c, 0x10, 0);
+        fSuccess &= FileRead(hFile, pMesh->unknown_2c, 0xc, 0);
     }
     if (pMesh->version_00 > 3) {
         fSuccess &= FileRead(hFile, &pMesh->field_38, 1, 0);
         if (pMesh->field_38 != 0) {
-            fSuccess &= FileRead(hFile, &pMesh->field_3c, 4, 0);
+            fSuccess &= FileRead(hFile, pMesh->unknown_3c, 4, 0);
         }
     }
     if (fSuccess == 0) {
@@ -565,7 +562,7 @@ unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
             pMesh->lods_48 = pLods;
         } else {
             if (pMesh->lod_mode_40 > 1) {
-                FileRead(hFile, &pMesh->field_58, 4, 0);
+                FileRead(hFile, pMesh->unknown_58, 4, 0);
             }
             void** pLods = static_cast<void**>(malloc(pMesh->num_lods_42 * 4));
             if (pLods == 0) {
@@ -614,14 +611,14 @@ unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
         fSuccess = FileWrite(hFile, &pMesh->flags_0c, 1, 0);
     }
     if (pMesh->version_00 > 1) {
-        fSuccess &= FileWrite(hFile, pMesh->field_10, 0xc, 0);
-        fSuccess &= FileWrite(hFile, pMesh->field_1c, 0x10, 0);
-        fSuccess &= FileWrite(hFile, pMesh->field_2c, 0xc, 0);
+        fSuccess &= FileWrite(hFile, pMesh->unknown_10, 0xc, 0);
+        fSuccess &= FileWrite(hFile, pMesh->unknown_1c, 0x10, 0);
+        fSuccess &= FileWrite(hFile, pMesh->unknown_2c, 0xc, 0);
     }
     if (pMesh->version_00 > 3) {
         fSuccess &= FileWrite(hFile, &pMesh->field_38, 1, 0);
         if (pMesh->field_38 != 0) {
-            fSuccess &= FileWrite(hFile, &pMesh->field_3c, 4, 0);
+            fSuccess &= FileWrite(hFile, pMesh->unknown_3c, 4, 0);
         }
     }
     if (fSuccess == 0) {
@@ -638,7 +635,7 @@ unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
         fSuccess &= FileWrite(hFile, &pMesh->lod_mode_40, 1, 0);
         fSuccess &= FileWrite(hFile, &pMesh->num_lods_42, 2, 0);
         if (pMesh->lod_mode_40 > 1) {
-            fSuccess &= FileWrite(hFile, &pMesh->field_58, 4, 0);
+            fSuccess &= FileWrite(hFile, pMesh->unknown_58, 4, 0);
         }
         if ((pMesh->flags_0c & 2) == 0) {
             void** pLods = pMesh->lods_48;
@@ -694,17 +691,17 @@ unsigned char ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->flags_02, 4, 0);
-    fSuccess &= FileRead(hFile, &pLight->field_06, 2, 0);
-    fSuccess &= FileRead(hFile, pLight->field_08, 0xc, 0);
-    fSuccess &= FileRead(hFile, pLight->field_14, 0xc, 0);
-    fSuccess &= FileRead(hFile, &pLight->field_20, 4, 0);
-    fSuccess &= FileRead(hFile, &pLight->field_24, 4, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_06, 2, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_08, 0xc, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_14, 0xc, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_20, 4, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_20 + 4, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
     }
     if (pLight->version_00 > 1) {
-        fSuccess = FileRead(hFile, pLight->field_28, 0x14, 0) != 0;
+        fSuccess = FileRead(hFile, pLight->unknown_28, 0x14, 0) != 0;
         if ((pLight->flags_02 & 0x200) != 0) {
             *(unsigned char*)&pLight->flags_02 = 1;
             pLight->pExtra_3c = malloc(0x3c);
@@ -736,17 +733,17 @@ unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->flags_02, 4, 0);
-    fSuccess &= FileWrite(hFile, &pLight->field_06, 2, 0);
-    fSuccess &= FileWrite(hFile, pLight->field_08, 0xc, 0);
-    fSuccess &= FileWrite(hFile, pLight->field_14, 0xc, 0);
-    fSuccess &= FileWrite(hFile, &pLight->field_20, 4, 0);
-    fSuccess &= FileWrite(hFile, &pLight->field_24, 4, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_06, 2, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_08, 0xc, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_14, 0xc, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_20, 4, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_20 + 4, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
     }
     if (pLight->version_00 > 1) {
-        fSuccess = FileWrite(hFile, pLight->field_28, 0x14, 0) != 0;
+        fSuccess = FileWrite(hFile, pLight->unknown_28, 0x14, 0) != 0;
         if (((pLight->flags_02 & 0x200) != 0) && (pLight->pExtra_3c != 0)) {
             fSuccess &= FileWrite(hFile, pLight->pExtra_3c, 0x3c, 0);
             if (fSuccess == 0) {
@@ -770,10 +767,10 @@ unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 1, 0);
-    fSuccess &= FileRead(hFile, pLight->field_01, 0xc, 0);
-    fSuccess &= FileRead(hFile, pLight->field_0d, 0xc, 0);
-    fSuccess &= FileRead(hFile, &pLight->field_19, 4, 0);
-    fSuccess &= FileRead(hFile, &pLight->field_1d, 4, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_01, 0xc, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_0d, 0xc, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_19, 4, 0);
+    fSuccess &= FileRead(hFile, pLight->unknown_1d, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
@@ -795,10 +792,10 @@ unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 1, 0);
-    fSuccess &= FileWrite(hFile, pLight->field_01, 0xc, 0);
-    fSuccess &= FileWrite(hFile, pLight->field_0d, 0xc, 0);
-    fSuccess &= FileWrite(hFile, &pLight->field_19, 4, 0);
-    fSuccess &= FileWrite(hFile, &pLight->field_1d, 4, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_01, 0xc, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_0d, 0xc, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_19, 4, 0);
+    fSuccess &= FileWrite(hFile, pLight->unknown_1d, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
@@ -831,18 +828,18 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         }
         memset(pSwitch, 0, sizeof(W8LevelFileSwitch));
         ok = FileRead(hFile, &pSwitch->version_00, 1, 0);
-        ok &= FileRead(hFile, &pSwitch->field_01, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_05, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_09, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_0d, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_11, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_15, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_19, 4, 0);
-        ok &= FileRead(hFile, &pSwitch->field_1d, 1, 0);
-        ok &= FileRead(hFile, &pSwitch->field_1e, 1, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 4, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 8, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 0xc, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 0x10, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 0x14, 4, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 0x18, 4, 0);
+        ok &= FileRead(hFile, &pSwitch->unknown_1d, 1, 0);
+        ok &= FileRead(hFile, &pSwitch->unknown_1e, 1, 0);
         ok &= FileRead(hFile, pSwitch->name_1f, 0x80, 0);
         ok &= FileRead(hFile, pSwitch->recipients_9f, 0x100, 0);
-        ok &= FileRead(hFile, pSwitch->field_19f, 0x80, 0);
+        ok &= FileRead(hFile, pSwitch->unknown_01 + 0x18f, 0x80, 0);
         ok &= fSuccess;
         if (ok == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x408, 0);
@@ -851,7 +848,7 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             5, reinterpret_cast<const char*>(String("Switch Trigger: %s (recipients: %s)\n",
                                                     pSwitch->name_1f, pSwitch->recipients_9f)));
         if (pSwitch->version_00 > 1) {
-            ok &= FileRead(hFile, &pSwitch->field_21f, 4, 0);
+            ok &= FileRead(hFile, pSwitch->unknown_21f, 4, 0);
             ok &= FileRead(hFile, pSwitch->switch_name_223, 0x40, 0);
             Function497690(5, reinterpret_cast<const char*>(
                                   String("Switch Trigger name: %s\n", pSwitch->switch_name_223)));
@@ -870,7 +867,7 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
             }
         }
         if (pSwitch->version_00 > 3) {
-            ok &= FileRead(hFile, &pSwitch->field_26d, 4, 0);
+            ok &= FileRead(hFile, pSwitch->unknown_26d, 4, 0);
         }
         pTrigger->pData_02 = pSwitch;
         g_level_file_6833fc->switch_triggers_6c5[g_level_file_6833fc->num_switch_triggers_6c1] =
@@ -885,28 +882,28 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         }
         memset(pSound, 0, sizeof(W8LevelFileSound));
         ok = FileRead(hFile, &pSound->version_00, 1, 0);
-        ok &= FileRead(hFile, &pSound->field_01, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_05, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_09, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_0d, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_11, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_15, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_19, 4, 0);
-        ok &= FileRead(hFile, &pSound->field_1d, 4, 0);
-        ok &= FileRead(hFile, pSound->field_21, 0xc, 0);
-        ok &= FileRead(hFile, pSound->field_2d, 0xc, 0);
-        ok &= FileRead(hFile, pSound->field_39, 0xc, 0);
+        ok &= FileRead(hFile, pSound->unknown_01, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 4, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 8, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 0xc, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 0x10, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 0x14, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 0x18, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_01 + 0x1c, 4, 0);
+        ok &= FileRead(hFile, pSound->unknown_21, 0xc, 0);
+        ok &= FileRead(hFile, pSound->unknown_2d, 0xc, 0);
+        ok &= FileRead(hFile, pSound->unknown_39, 0xc, 0);
         ok &= FileRead(hFile, pSound->name_45, 0x80, 0);
         ok &= fSuccess;
         if (pSound->version_00 > 1) {
-            ok &= FileRead(hFile, &pSound->field_c5, 1, 0);
-            ok &= FileRead(hFile, &pSound->field_c6, 1, 0);
+            ok &= FileRead(hFile, &pSound->unknown_c5, 1, 0);
+            ok &= FileRead(hFile, &pSound->unknown_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            ok &= FileRead(hFile, pSound->field_c7, 0xc, 0);
-            ok &= FileRead(hFile, &pSound->field_d3, 4, 0);
-            ok &= FileRead(hFile, pSound->field_d7, 0xc, 0);
-            ok &= FileRead(hFile, pSound->field_e3, 0xc, 0);
+            ok &= FileRead(hFile, pSound->unknown_c7, 0xc, 0);
+            ok &= FileRead(hFile, pSound->unknown_d3, 4, 0);
+            ok &= FileRead(hFile, pSound->unknown_d7, 0xc, 0);
+            ok &= FileRead(hFile, pSound->unknown_e3, 0xc, 0);
         }
         if (pSound->version_00 > 3) {
             ok &= FileRead(hFile, pSound->field_ef, 0x80, 0);
@@ -934,11 +931,11 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
     memset(pInvis, 0, sizeof(W8LevelFileInvisible));
     ok = FileRead(hFile, &pInvis->version_00, 1, 0);
     ok &= FileRead(hFile, &pInvis->field_01, 4, 0);
-    ok &= FileRead(hFile, pInvis->field_05, 0xc, 0);
-    ok &= FileRead(hFile, &pInvis->field_11, 4, 0);
-    ok &= FileRead(hFile, &pInvis->field_15, 4, 0);
-    ok &= FileRead(hFile, &pInvis->field_19, 1, 0);
-    ok &= FileRead(hFile, &pInvis->field_1a, 1, 0);
+    ok &= FileRead(hFile, pInvis->unknown_05, 0xc, 0);
+    ok &= FileRead(hFile, pInvis->unknown_11, 4, 0);
+    ok &= FileRead(hFile, pInvis->unknown_15, 4, 0);
+    ok &= FileRead(hFile, &pInvis->unknown_19, 1, 0);
+    ok &= FileRead(hFile, &pInvis->unknown_1a, 1, 0);
     ok &= FileRead(hFile, pInvis->name_1b, 0x80, 0);
     ok &= FileRead(hFile, pInvis->recipients_9b, 0x100, 0);
     ok &= fSuccess;
@@ -946,7 +943,7 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                    reinterpret_cast<const char*>(String("Invisible Trigger: %s (recipients: %s)\n",
                                                         pInvis->name_1b, pInvis->recipients_9b)));
     if (pInvis->version_00 > 1) {
-        ok &= FileRead(hFile, &pInvis->field_19b, 1, 0);
+        ok &= FileRead(hFile, &pInvis->unknown_19b, 1, 0);
         pInvis->pPlane_19c = static_cast<W8LevelFilePlane*>(malloc(0x30));
         if (pInvis->pPlane_19c == 0) {
             srAssertFail("pInvis->pPlane", LEVELFILE_CPP, 0x441, 0);
@@ -955,14 +952,14 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         ok &= FileRead(hFile, pInvis->pPlane_19c, 0x30, 0);
     }
     if (pInvis->version_00 > 2) {
-        ok &= FileRead(hFile, &pInvis->field_1a0, 4, 0);
-        ok &= FileRead(hFile, pInvis->field_1a4, 0xc, 0);
-        ok &= FileRead(hFile, &pInvis->field_1b0, 1, 0);
-        ok &= FileRead(hFile, pInvis->field_1b1, 0x80, 0);
+        ok &= FileRead(hFile, pInvis->unknown_1a0, 4, 0);
+        ok &= FileRead(hFile, pInvis->unknown_1a4, 0xc, 0);
+        ok &= FileRead(hFile, &pInvis->unknown_1b0, 1, 0);
+        ok &= FileRead(hFile, pInvis->unknown_1b1, 0x80, 0);
     }
     if (pInvis->version_00 > 3) {
-        ok &= FileRead(hFile, &pInvis->field_231, 1, 0);
-        ok &= FileRead(hFile, &pInvis->field_232, 4, 0);
+        ok &= FileRead(hFile, &pInvis->unknown_231, 1, 0);
+        ok &= FileRead(hFile, pInvis->unknown_232, 4, 0);
     }
     if (pInvis->version_00 > 4) {
         ok &= FileRead(hFile, &pInvis->field_236, 1, 0);
@@ -974,8 +971,8 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 unsigned char okRecord = 0;
                 if (pRecord != 0) {
                     okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
-                    okRecord &= FileRead(hFile, pRecord->unknown_001, 0x1b0, 0);
-                    okRecord &= FileRead(hFile, &pRecord->field_1b1, 2, 0);
+                    okRecord &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
+                    okRecord &= FileRead(hFile, pRecord->unknown_1b1, 2, 0);
                     g_level_file_6833fc
                         ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
                         pRecord;
@@ -1004,9 +1001,6 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess;
     unsigned char ok;
-    void* pData;
-    const void* tail;
-    unsigned int tail_size;
 
     ok = FileWrite(hFile, &pTrigger->version_00, 1, 0);
     if ((ok != 0) && (FileWrite(hFile, &pTrigger->type_01, 1, 0) != 0)) {
@@ -1022,24 +1016,24 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x4be, 0);
         }
         ok = FileWrite(hFile, &pSwitch->version_00, 1, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_01, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_05, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_09, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_0d, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_11, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_15, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_19, 4, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_1d, 1, 0);
-        ok &= FileWrite(hFile, &pSwitch->field_1e, 1, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 4, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 8, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 0xc, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 0x10, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 0x14, 4, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 0x18, 4, 0);
+        ok &= FileWrite(hFile, &pSwitch->unknown_1d, 1, 0);
+        ok &= FileWrite(hFile, &pSwitch->unknown_1e, 1, 0);
         ok &= FileWrite(hFile, pSwitch->name_1f, 0x80, 0);
         ok &= FileWrite(hFile, pSwitch->recipients_9f, 0x100, 0);
-        ok &= FileWrite(hFile, pSwitch->field_19f, 0x80, 0);
+        ok &= FileWrite(hFile, pSwitch->unknown_01 + 0x18f, 0x80, 0);
         ok &= fSuccess;
         if (ok == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x4cd, 0);
         }
         if (pSwitch->version_00 > 1) {
-            ok &= FileWrite(hFile, &pSwitch->field_21f, 4, 0);
+            ok &= FileWrite(hFile, pSwitch->unknown_21f, 4, 0);
             ok &= FileWrite(hFile, pSwitch->switch_name_223, 0x40, 0);
         }
         if (pSwitch->version_00 > 2) {
@@ -1051,14 +1045,11 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
                 }
             }
         }
-        if (pSwitch->version_00 < 4) {
-            free(pSwitch);
-            return ok;
+        if (pSwitch->version_00 > 3) {
+            ok &= FileWrite(hFile, pSwitch->unknown_26d, 4, 0);
         }
-        tail = &pSwitch->field_26d;
-        tail_size = 4;
-        fSuccess = ok;
-        break;
+        free(pSwitch);
+        return ok;
     }
     case 2: {
         W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(pTrigger->pData_02);
@@ -1067,28 +1058,28 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         }
         ok = FileWrite(hFile, &pInvis->version_00, 1, 0);
         ok &= FileWrite(hFile, &pInvis->field_01, 4, 0);
-        ok &= FileWrite(hFile, pInvis->field_05, 0xc, 0);
-        ok &= FileWrite(hFile, &pInvis->field_11, 4, 0);
-        ok &= FileWrite(hFile, &pInvis->field_15, 4, 0);
-        ok &= FileWrite(hFile, &pInvis->field_19, 1, 0);
-        ok &= FileWrite(hFile, &pInvis->field_1a, 1, 0);
+        ok &= FileWrite(hFile, pInvis->unknown_05, 0xc, 0);
+        ok &= FileWrite(hFile, pInvis->unknown_11, 4, 0);
+        ok &= FileWrite(hFile, pInvis->unknown_15, 4, 0);
+        ok &= FileWrite(hFile, &pInvis->unknown_19, 1, 0);
+        ok &= FileWrite(hFile, &pInvis->unknown_1a, 1, 0);
         ok &= FileWrite(hFile, pInvis->name_1b, 0x80, 0);
         ok &= FileWrite(hFile, pInvis->recipients_9b, 0x100, 0);
         ok &= fSuccess;
         if (pInvis->version_00 > 1) {
-            ok &= FileWrite(hFile, &pInvis->field_19b, 1, 0);
+            ok &= FileWrite(hFile, &pInvis->unknown_19b, 1, 0);
             ok &= FileWrite(hFile, pInvis->pPlane_19c, 0x30, 0);
             free(pInvis->pPlane_19c);
         }
         if (pInvis->version_00 > 2) {
-            ok &= FileWrite(hFile, &pInvis->field_1a0, 4, 0);
-            ok &= FileWrite(hFile, pInvis->field_1a4, 0xc, 0);
-            ok &= FileWrite(hFile, &pInvis->field_1b0, 1, 0);
-            ok &= FileWrite(hFile, pInvis->field_1b1, 0x80, 0);
+            ok &= FileWrite(hFile, pInvis->unknown_1a0, 4, 0);
+            ok &= FileWrite(hFile, pInvis->unknown_1a4, 0xc, 0);
+            ok &= FileWrite(hFile, &pInvis->unknown_1b0, 1, 0);
+            ok &= FileWrite(hFile, pInvis->unknown_1b1, 0x80, 0);
         }
         if (pInvis->version_00 > 3) {
-            ok &= FileWrite(hFile, &pInvis->field_231, 1, 0);
-            ok &= FileWrite(hFile, &pInvis->field_232, 4, 0);
+            ok &= FileWrite(hFile, &pInvis->unknown_231, 1, 0);
+            ok &= FileWrite(hFile, pInvis->unknown_232, 4, 0);
         }
         if (pInvis->version_00 > 4) {
             ok &= FileWrite(hFile, &pInvis->field_236, 1, 0);
@@ -1099,8 +1090,8 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
                     unsigned char okRecord = 0;
                     if (pRecord != 0) {
                         okRecord = FileWrite(hFile, &pRecord->kind_00, 1, 0);
-                        okRecord &= FileWrite(hFile, pRecord->unknown_001, 0x1b0, 0);
-                        okRecord &= FileWrite(hFile, &pRecord->field_1b1, 2, 0);
+                        okRecord &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
+                        okRecord &= FileWrite(hFile, pRecord->unknown_1b1, 2, 0);
                         free(pRecord);
                     }
                     ok &= okRecord;
@@ -1119,50 +1110,43 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
             srAssertFail("pSound", LEVELFILE_CPP, 0x51e, 0);
         }
         ok = FileWrite(hFile, &pSound->version_00, 1, 0);
-        ok &= FileWrite(hFile, &pSound->field_01, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_05, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_09, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_0d, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_11, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_15, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_19, 4, 0);
-        ok &= FileWrite(hFile, &pSound->field_1d, 4, 0);
-        ok &= FileWrite(hFile, pSound->field_21, 0xc, 0);
-        ok &= FileWrite(hFile, pSound->field_2d, 0xc, 0);
-        ok &= FileWrite(hFile, pSound->field_39, 0xc, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 4, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 8, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 0xc, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 0x10, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 0x14, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 0x18, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_01 + 0x1c, 4, 0);
+        ok &= FileWrite(hFile, pSound->unknown_21, 0xc, 0);
+        ok &= FileWrite(hFile, pSound->unknown_2d, 0xc, 0);
+        ok &= FileWrite(hFile, pSound->unknown_39, 0xc, 0);
         ok &= FileWrite(hFile, pSound->name_45, 0x80, 0);
         ok &= fSuccess;
         if (pSound->version_00 > 1) {
-            ok &= FileWrite(hFile, &pSound->field_c5, 1, 0);
-            ok &= FileWrite(hFile, &pSound->field_c6, 1, 0);
+            ok &= FileWrite(hFile, &pSound->unknown_c5, 1, 0);
+            ok &= FileWrite(hFile, &pSound->unknown_c6, 1, 0);
         }
         if (pSound->version_00 > 2) {
-            ok &= FileWrite(hFile, pSound->field_c7, 0xc, 0);
-            ok &= FileWrite(hFile, &pSound->field_d3, 4, 0);
-            ok &= FileWrite(hFile, pSound->field_d7, 0xc, 0);
-            ok &= FileWrite(hFile, pSound->field_e3, 0xc, 0);
+            ok &= FileWrite(hFile, pSound->unknown_c7, 0xc, 0);
+            ok &= FileWrite(hFile, pSound->unknown_d3, 4, 0);
+            ok &= FileWrite(hFile, pSound->unknown_d7, 0xc, 0);
+            ok &= FileWrite(hFile, pSound->unknown_e3, 0xc, 0);
         }
         if (pSound->version_00 > 3) {
             ok &= FileWrite(hFile, pSound->field_ef, 0x80, 0);
         }
-        if (pSound->version_00 < 5) {
-            free(pSound);
-            return ok;
+        if (pSound->version_00 > 4) {
+            ok &= FileWrite(hFile, &pSound->field_16f, 1, 0);
         }
-        tail = &pSound->field_16f;
-        tail_size = 1;
-        fSuccess = ok;
-        break;
+        free(pSound);
+        return ok;
     }
     case 4:
         return WriteSuperTriggerFile004D3000(hFile, pTrigger) & fSuccess;
     default:
         return fSuccess;
     }
-    pData = const_cast<void*>(tail);
-    fSuccess &= FileWrite(hFile, pData, tail_size, 0);
-    free(pTrigger->pData_02);
-    return fSuccess;
 }
 
 // FUNCTION: WIZ8 0x004D2A30
@@ -1217,9 +1201,9 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
         Function497690(
             5, reinterpret_cast<const char*>(
                    String("     size: (%f, %f, %f) direction: %f speed: %f wait (%d,%d,%d) loop %d",
-                          (double)pSuper->field_49b[0], (double)pSuper->field_49b[4],
-                          (double)pSuper->field_49b[8], (double)(float)pSuper->field_4a7,
-                          (double)*(float*)&pSuper->field_4af[0], (int)pSuper->field_4ab,
+                          (double)pSuper->field_49b[0], (double)pSuper->field_49b[1],
+                          (double)pSuper->field_49b[2], (double)pSuper->field_4a7,
+                          (double)pSuper->field_4af[0], (int)pSuper->field_4ab,
                           (int)pSuper->field_4ac, (int)pSuper->field_4ad, (int)pSuper->field_4ae)));
         fSuccess &= FileRead(hFile, &pSuper->field_4bf, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_4c0, 1, 0);
@@ -1292,8 +1276,8 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
             unsigned char ok = 0;
             if (pRecord != 0) {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
-                ok &= FileRead(hFile, pRecord->unknown_001, 0x1b0, 0);
-                ok &= FileRead(hFile, &pRecord->field_1b1, 2, 0);
+                ok &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
+                ok &= FileRead(hFile, pRecord->unknown_1b1, 2, 0);
                 g_level_file_6833fc
                     ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] = pRecord;
                 ++g_level_file_6833fc->num_linked_records_2609;
@@ -1400,8 +1384,8 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
             unsigned char ok = 0;
             if (pRecord != 0) {
                 ok = FileWrite(hFile, &pRecord->kind_00, 1, 0);
-                ok &= FileWrite(hFile, pRecord->unknown_001, 0x1b0, 0);
-                ok &= FileWrite(hFile, &pRecord->field_1b1, 2, 0);
+                ok &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
+                ok &= FileWrite(hFile, pRecord->unknown_1b1, 2, 0);
                 free(pRecord);
             }
             fSuccess &= ok;
@@ -1417,10 +1401,10 @@ unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec != 0) {
-        unsigned char fSuccess = FileRead(hFile, pDoorRec->unknown_000, 10, 0);
-        fSuccess &= FileRead(hFile, &pDoorRec->field_0a, 2, 0);
-        fSuccess &= FileRead(hFile, &pDoorRec->field_0c, 1, 0);
-        fSuccess &= FileRead(hFile, pDoorRec->field_0d, 0xc, 0);
+        unsigned char fSuccess = FileRead(hFile, pDoorRec->unknown_00, 10, 0);
+        fSuccess &= FileRead(hFile, pDoorRec->unknown_0a, 2, 0);
+        fSuccess &= FileRead(hFile, &pDoorRec->unknown_0c, 1, 0);
+        fSuccess &= FileRead(hFile, pDoorRec->unknown_0d, 0xc, 0);
         fSuccess &= FileRead(hFile, pDoorRec->name_19, 0x80, 0);
         Function497690(5, reinterpret_cast<const char*>(String("Door: %s", pDoorRec->name_19)));
         *(W8LevelFileDoor**)(pDoor + 1) = pDoorRec;
@@ -1433,10 +1417,10 @@ unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
 unsigned char WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor)
 {
     W8LevelFileDoor* pDoorRec = *(W8LevelFileDoor**)(pDoor + 1);
-    unsigned char fSuccess = FileWrite(hFile, pDoorRec->unknown_000, 10, 0);
-    fSuccess &= FileWrite(hFile, &pDoorRec->field_0a, 2, 0);
-    fSuccess &= FileWrite(hFile, &pDoorRec->field_0c, 1, 0);
-    fSuccess &= FileWrite(hFile, pDoorRec->field_0d, 0xc, 0);
+    unsigned char fSuccess = FileWrite(hFile, pDoorRec->unknown_00, 10, 0);
+    fSuccess &= FileWrite(hFile, pDoorRec->unknown_0a, 2, 0);
+    fSuccess &= FileWrite(hFile, &pDoorRec->unknown_0c, 1, 0);
+    fSuccess &= FileWrite(hFile, pDoorRec->unknown_0d, 0xc, 0);
     fSuccess &= FileWrite(hFile, pDoorRec->name_19, 0x80, 0);
     free(pDoorRec);
     return fSuccess;
@@ -1447,8 +1431,8 @@ unsigned char ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileRead(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileRead(hFile, &pPathAI->scaled_01, 1, 0);
-    fSuccess &= FileRead(hFile, &pPathAI->field_02, 4, 0);
-    fSuccess &= FileRead(hFile, &pPathAI->field_06, 4, 0);
+    fSuccess &= FileRead(hFile, pPathAI->unknown_02, 4, 0);
+    fSuccess &= FileRead(hFile, pPathAI->unknown_06, 4, 0);
     fSuccess &= FileRead(hFile, &pPathAI->path_count_0a, 4, 0);
     if (pPathAI->scaled_01 == 2) {
         if (pPathAI->path_count_0a != 0) {
@@ -1473,8 +1457,8 @@ unsigned char WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileWrite(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->scaled_01, 1, 0);
-    fSuccess &= FileWrite(hFile, &pPathAI->field_02, 4, 0);
-    fSuccess &= FileWrite(hFile, &pPathAI->field_06, 4, 0);
+    fSuccess &= FileWrite(hFile, pPathAI->unknown_02, 4, 0);
+    fSuccess &= FileWrite(hFile, pPathAI->unknown_06, 4, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->path_count_0a, 4, 0);
     if (pPathAI->scaled_01 == 2) {
         if (pPathAI->path_count_0a != 0) {
@@ -1509,11 +1493,12 @@ unsigned char ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj,
 
     memset(pAnimObj, 0, sizeof(W8LevelFileAnimObj));
     unsigned char fHeader = FileRead(hFile, &pAnimObj->version_00, 1, 0);
-    unsigned char f =
-        fHeader & FileRead(hFile, &pAnimObj->num_anims_01, 1, 0) &
-        FileRead(hFile, &pAnimObj->field_02, 1, 0) & FileRead(hFile, &pAnimObj->field_03, 1, 0) &
-        FileRead(hFile, &pAnimObj->field_04, 1, 0) & FileRead(hFile, &pAnimObj->field_05, 1, 0) &
-        FileRead(hFile, &pAnimObj->kind_06, 1, 0);
+    unsigned char f = fHeader & FileRead(hFile, &pAnimObj->num_anims_01, 1, 0) &
+                      FileRead(hFile, &pAnimObj->unknown_02, 1, 0) &
+                      FileRead(hFile, &pAnimObj->unknown_03, 1, 0) &
+                      FileRead(hFile, &pAnimObj->unknown_04, 1, 0) &
+                      FileRead(hFile, &pAnimObj->unknown_05, 1, 0) &
+                      FileRead(hFile, &pAnimObj->kind_06, 1, 0);
     if (pAnimObj->version_00 < 3) {
         pAnimObj->field_07 = 15.0f;
     } else if ((f == 0) || (ok = FileRead(hFile, &pAnimObj->field_07, 4, 0), ok == 0)) {
@@ -1522,21 +1507,21 @@ unsigned char ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj,
         f = 1;
     }
     if (pAnimObj->version_00 < 5) {
-        pAnimObj->field_0b = 0;
-    } else if ((f == 0) || (ok = FileRead(hFile, &pAnimObj->field_0b, 1, 0), ok == 0)) {
+        pAnimObj->unknown_0b = 0;
+    } else if ((f == 0) || (ok = FileRead(hFile, &pAnimObj->unknown_0b, 1, 0), ok == 0)) {
         f = 0;
     } else {
         f = 1;
     }
     if (pAnimObj->version_00 < 6) {
-        pAnimObj->field_0c = 0;
+        pAnimObj->unknown_0c = 0;
         pAnimObj->field_0d = 1.0f;
-        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->field_11, 0x32, 0), ok != 0)) {
+        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->unknown_11, 0x32, 0), ok != 0)) {
             goto header_done;
         }
-    } else if ((f != 0) && (ok = FileRead(hFile, &pAnimObj->field_0c, 1, 0), ok != 0)) {
+    } else if ((f != 0) && (ok = FileRead(hFile, &pAnimObj->unknown_0c, 1, 0), ok != 0)) {
         f = FileRead(hFile, &pAnimObj->field_0d, 4, 0);
-        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->field_11, 0x32, 0), ok != 0)) {
+        if ((f != 0) && (ok = FileRead(hFile, pAnimObj->unknown_11, 0x32, 0), ok != 0)) {
             goto header_done;
         }
     }
@@ -1739,12 +1724,13 @@ unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
     short i;
     short j;
 
-    unsigned char f =
-        FileWrite(hFile, &pAnimObj->version_00, 1, 0) &
-        FileWrite(hFile, &pAnimObj->num_anims_01, 1, 0) &
-        FileWrite(hFile, &pAnimObj->field_02, 1, 0) & FileWrite(hFile, &pAnimObj->field_03, 1, 0) &
-        FileWrite(hFile, &pAnimObj->field_04, 1, 0) & FileWrite(hFile, &pAnimObj->field_05, 1, 0) &
-        FileWrite(hFile, &pAnimObj->kind_06, 1, 0);
+    unsigned char f = FileWrite(hFile, &pAnimObj->version_00, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->num_anims_01, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->unknown_02, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->unknown_03, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->unknown_04, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->unknown_05, 1, 0) &
+                      FileWrite(hFile, &pAnimObj->kind_06, 1, 0);
     if (pAnimObj->version_00 > 2) {
         if ((f == 0) || (ok = FileWrite(hFile, &pAnimObj->field_07, 4, 0), ok == 0)) {
             f = 0;
@@ -1753,7 +1739,7 @@ unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
         }
     }
     if (pAnimObj->version_00 > 4) {
-        if ((f == 0) || (ok = FileWrite(hFile, &pAnimObj->field_0b, 1, 0), ok == 0)) {
+        if ((f == 0) || (ok = FileWrite(hFile, &pAnimObj->unknown_0b, 1, 0), ok == 0)) {
             f = 0;
         } else {
             f = 1;
@@ -1761,13 +1747,13 @@ unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
     }
     unsigned char fSuccess;
     if (pAnimObj->version_00 < 6) {
-        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->field_11, 0x32, 0), ok != 0)) {
+        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->unknown_11, 0x32, 0), ok != 0)) {
             fSuccess = 1;
             goto header_done;
         }
-    } else if ((f != 0) && (ok = FileWrite(hFile, &pAnimObj->field_0c, 1, 0), ok != 0)) {
+    } else if ((f != 0) && (ok = FileWrite(hFile, &pAnimObj->unknown_0c, 1, 0), ok != 0)) {
         f = FileWrite(hFile, &pAnimObj->field_0d, 4, 0);
-        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->field_11, 0x32, 0), ok != 0)) {
+        if ((f != 0) && (ok = FileWrite(hFile, pAnimObj->unknown_11, 0x32, 0), ok != 0)) {
             fSuccess = 1;
             goto header_done;
         }
@@ -1951,13 +1937,13 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->field_01, 1, 0);
+            FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->unknown_01, 1, 0);
         if (pProp->version_00 > 4) {
-            fSuccess &=
-                FileRead(hFile, &pProp->field_02, 1, 0) & FileRead(hFile, pProp->field_03, 0xc, 0);
+            fSuccess &= FileRead(hFile, &pProp->unknown_02, 1, 0) &
+                        FileRead(hFile, pProp->unknown_03, 0xc, 0);
         }
         if (pProp->version_00 > 5) {
-            fSuccess &= FileRead(hFile, &pProp->field_0f, 4, 0);
+            fSuccess &= FileRead(hFile, pProp->unknown_0f, 4, 0);
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileRead(hFile, pProp->name_13, 0x40, 0);
@@ -2005,8 +1991,8 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x93e, 0);
             }
             if (pProp->flag_bc != 0) {
-                fSuccess &= FileRead(hFile, &pProp->field_bd, 1, 0) &
-                            FileRead(hFile, &pProp->field_be, 1, 0);
+                fSuccess &= FileRead(hFile, &pProp->unknown_bd, 1, 0) &
+                            FileRead(hFile, &pProp->unknown_be, 1, 0);
             }
         }
     }
@@ -2029,13 +2015,13 @@ unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pPro
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->field_01, 1, 0);
+            FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->unknown_01, 1, 0);
         if (pProp->version_00 > 4) {
-            fSuccess &= FileWrite(hFile, &pProp->field_02, 1, 0) &
-                        FileWrite(hFile, pProp->field_03, 0xc, 0);
+            fSuccess &= FileWrite(hFile, &pProp->unknown_02, 1, 0) &
+                        FileWrite(hFile, pProp->unknown_03, 0xc, 0);
         }
         if (pProp->version_00 > 5) {
-            fSuccess &= FileWrite(hFile, &pProp->field_0f, 4, 0);
+            fSuccess &= FileWrite(hFile, pProp->unknown_0f, 4, 0);
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileWrite(hFile, pProp->name_13, 0x40, 0);
@@ -2072,8 +2058,8 @@ unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pPro
                 srAssertFail("fSuccess", LEVELFILE_CPP, 0x993, 0);
             }
             if (pProp->flag_bc != 0) {
-                fSuccess &= FileWrite(hFile, &pProp->field_bd, 1, 0) &
-                            FileWrite(hFile, &pProp->field_be, 1, 0);
+                fSuccess &= FileWrite(hFile, &pProp->unknown_bd, 1, 0) &
+                            FileWrite(hFile, &pProp->unknown_be, 1, 0);
             }
         }
     }
@@ -2087,29 +2073,29 @@ unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSyste
     char* pRecord = reinterpret_cast<char*>(pSystem); /* reinterpret-ok: raw serialized memory */
     unsigned char fSuccess = FileRead(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 < 2) {
-        pSystem->field_217[0] = 0;
-        pSystem->field_217[1] = 0;
+        pSystem->unknown_217[0] = 0;
+        pSystem->unknown_217[1] = 0;
     } else {
-        fSuccess &= FileRead(hFile, pSystem->field_217, 2, 0);
+        fSuccess &= FileRead(hFile, pSystem->unknown_217, 2, 0);
     }
     if (pSystem->version_00 < 3) {
-        pSystem->field_219[0] = 0;
-        pSystem->field_219[1] = 0;
-        pSystem->field_219[2] = 0;
-        pSystem->field_219[3] = 0;
-        pSystem->field_21d = 0;
+        pSystem->unknown_219[0] = 0;
+        pSystem->unknown_219[1] = 0;
+        pSystem->unknown_219[2] = 0;
+        pSystem->unknown_219[3] = 0;
+        pSystem->unknown_21d = 0;
     } else {
-        fSuccess &=
-            FileRead(hFile, pSystem->field_219, 4, 0) & FileRead(hFile, &pSystem->field_21d, 1, 0);
+        fSuccess &= FileRead(hFile, pSystem->unknown_219, 4, 0) &
+                    FileRead(hFile, &pSystem->unknown_21d, 1, 0);
     }
     if (pSystem->version_00 < 4) {
-        pSystem->field_21e[0] = 0;
-        pSystem->field_21e[1] = 0;
-        pSystem->field_21e[2] = 0;
-        pSystem->field_21e[3] = 0;
+        pSystem->unknown_21e[0] = 0;
+        pSystem->unknown_21e[1] = 0;
+        pSystem->unknown_21e[2] = 0;
+        pSystem->unknown_21e[3] = 0;
     } else {
-        fSuccess &=
-            FileRead(hFile, pSystem->field_21e, 4, 0) & FileRead(hFile, pSystem->field_222, 4, 0);
+        fSuccess &= FileRead(hFile, pSystem->unknown_21e, 4, 0) &
+                    FileRead(hFile, pSystem->unknown_222, 4, 0);
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
@@ -2127,15 +2113,15 @@ unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSyst
 {
     unsigned char fSuccess = FileWrite(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 > 1) {
-        fSuccess &= FileWrite(hFile, pSystem->field_217, 2, 0);
+        fSuccess &= FileWrite(hFile, pSystem->unknown_217, 2, 0);
     }
     if (pSystem->version_00 > 2) {
-        fSuccess &= FileWrite(hFile, pSystem->field_219, 4, 0) &
-                    FileWrite(hFile, &pSystem->field_21d, 1, 0);
+        fSuccess &= FileWrite(hFile, pSystem->unknown_219, 4, 0) &
+                    FileWrite(hFile, &pSystem->unknown_21d, 1, 0);
     }
     if (pSystem->version_00 > 3) {
-        fSuccess &=
-            FileWrite(hFile, pSystem->field_21e, 4, 0) & FileWrite(hFile, pSystem->field_222, 4, 0);
+        fSuccess &= FileWrite(hFile, pSystem->unknown_21e, 4, 0) &
+                    FileWrite(hFile, pSystem->unknown_222, 4, 0);
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa2a, "Couldn't Write particle system.\n");

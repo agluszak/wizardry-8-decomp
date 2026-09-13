@@ -186,9 +186,9 @@ public:
     void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
     void SetConditionalPathFrame00457EA0(unsigned int path_handle, short frame);
     unsigned int FindConditionalPathValue00458970(unsigned int key, unsigned int value);
-    void LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
-                              W8HashTable<unsigned int, unsigned int*>* pCondValues);
-    /* 0x004CE510 */
+    void
+    LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
+                         W8HashTable<unsigned int, unsigned int*>* pCondValues); /* 0x004CE510 */
     unsigned char HandlePathEdgeTransition00460350(W8NavigatorMovementState* movement);
     void ReduceWaypointCosts00462220(unsigned int waypoint, float amount);
     unsigned char AdvanceAttachmentWaypoint00462DE0(const srVector3T<float>* source,

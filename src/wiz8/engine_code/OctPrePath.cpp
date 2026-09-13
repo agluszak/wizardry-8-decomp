@@ -121,13 +121,11 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
     memset(m_pCondPaths, 0, m_ulNumCondPaths * sizeof(W8ConditionalPath));
     m_ulNumCondPaths = 0;
     if (ulOriginalCount > 1) {
-        W8ConditionalPath** ppPath = ppCondPaths;
-        for (i = ulOriginalCount - 1; i != 0; --i) {
-            ++ppPath;
-            if (*ppPath != 0) {
+        for (i = 1; i < ulOriginalCount; ++i) {
+            if (ppCondPaths[i] != 0) {
                 int index = m_ulNumCondPaths;
                 ++m_ulNumCondPaths;
-                memcpy(m_pCondPaths + index, *ppPath, sizeof(W8ConditionalPath));
+                memcpy(m_pCondPaths + index, ppCondPaths[i], sizeof(W8ConditionalPath));
             }
         }
     }

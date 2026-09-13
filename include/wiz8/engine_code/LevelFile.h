@@ -11,15 +11,11 @@
 
 #pragma pack(push, 1)
 
-/* Serialized texture/material table record; the 0x11a-byte body plus the
-   0x10-byte texture-mode tail written only when version_00 > 3. Identical to
-   W8MaterialRecord004B8A70. */
-
 struct W8LevelFilePathAI {
     unsigned char version_00;
     unsigned char scaled_01; /* == 2 -> pScaledPaths */
-    int field_02;
-    int field_06;
+    unsigned char unknown_02[4];
+    unsigned char unknown_06[4];
     int path_count_0a;
     void* pScaledPaths; /* 0x0e: path_count_0a * 0x28 */
     void* pPaths;       /* 0x12: path_count_0a * 0x1c */
@@ -30,68 +26,67 @@ struct W8LevelFileMesh {
     int num_vertices_04;
     int num_faces_08;
     unsigned char flags_0c; /* bit0: LOD vertices; bit1: short LOD verts; bit2: compressed faces */
-    unsigned char positional_0d[3];
-    float field_10[3]; /* version > 1 */
-    float field_1c[4]; /* version > 1 */
-    float field_2c[3]; /* version > 1 */
-    char field_38;     /* version > 3 */
-    unsigned char positional_39[3];
-    int field_3c;     /* version > 3 && field_38 != 0 */
-    char lod_mode_40; /* flags_0c & 1 */
-    unsigned char pad_41;
+    unsigned char unknown_0d[3];
+    unsigned char unknown_10[0xc];  /* version > 1 */
+    unsigned char unknown_1c[0x10]; /* version > 1 */
+    unsigned char unknown_2c[0xc];  /* version > 1 */
+    char field_38;                  /* version > 3 */
+    unsigned char unknown_39[3];
+    unsigned char unknown_3c[4]; /* version > 3 && field_38 != 0 */
+    char lod_mode_40;            /* flags_0c & 1 */
+    unsigned char unknown_41;
     short num_lods_42;    /* flags_0c & 1 */
     void** lod_shorts_44; /* flags_0c & 2: num_lods_42 elements of num_vertices_04 * 6 */
     void**
         lods_48; /* flags_0c & 1 && !(flags_0c & 2): num_lods_42 elements of num_vertices_04 * 0xc */
     void*
         pstVertices; /* 0x4c: !(flags_0c & 1): num_vertices_04 * 0x18 allocated, 0x12a..0xc read each */
-    void* pstCompFaces; /* 0x50: flags_0c & 4: num_faces_08 * 0x21 */
-    void* pstFaces;     /* 0x54: num_faces_08 * 0x52 allocated, 0x29 read each */
-    int field_58;       /* flags_0c & 1 && lod_mode_40 > 1 */
+    void* pstCompFaces;          /* 0x50: flags_0c & 4: num_faces_08 * 0x21 */
+    void* pstFaces;              /* 0x54: num_faces_08 * 0x52 allocated, 0x29 read each */
+    unsigned char unknown_58[4]; /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
 struct W8LevelFileLight {
     short version_00;
     int flags_02; /* bit 0x200 -> pExtra_3c */
-    short field_06;
-    float field_08[3];
-    float field_14[3];
-    int field_20;
-    int field_24;
-    float field_28[5];             /* version_00 > 1 */
-    void* pExtra_3c;               /* 0x3c record, flags_02 & 0x200 */
-    W8LevelFilePathAI* pPathAI_40; /* *pExtra_3c & 0x10 */
+    unsigned char unknown_06[2];
+    unsigned char unknown_08[0xc];
+    unsigned char unknown_14[0xc];
+    unsigned char unknown_20[8];
+    unsigned char unknown_28[0x14]; /* version_00 > 1 */
+    void* pExtra_3c;                /* 0x3c record, flags_02 & 0x200 */
+    W8LevelFilePathAI* pPathAI_40;  /* *pExtra_3c & 0x10 */
 };
 
 struct W8LevelFileAnimLight {
     char version_00;
-    float field_01[3];
-    float field_0d[3];
-    int field_19;
-    int field_1d;
+    unsigned char unknown_01[0xc];
+    unsigned char unknown_0d[0xc];
+    unsigned char unknown_19[4];
+    unsigned char unknown_1d[4];
     void* pExtra_21; /* 0x3c record, version_00 > 1 */
 };
 
 struct W8LevelFileMonster {
-    unsigned char unknown_000[0x1e];
+    unsigned char unknown_00[0x1e];
     int num_mon_path_1e;
     void* MonPath_22; /* num_mon_path_1e * 0x1c */
 };
 
 struct W8LevelFileCamera {
-    int field_00;
-    int field_04;
+    unsigned char unknown_00[4];
+    unsigned char unknown_04[4];
     char flag_08;
-    char field_09[0x14];
-    int field_1d; /* flag_08 != 0 */
+    unsigned char unknown_09[0x14];
+    unsigned char unknown_1d[4]; /* flag_08 != 0 */
     W8LevelFilePathAI pathAI_21;
 };
 
 struct W8LevelFileDoor { /* 0x99 */
-    unsigned char unknown_000[0xa];
-    unsigned short field_0a;
-    unsigned char field_0c;
-    unsigned char field_0d[0xc];
+    unsigned char unknown_00[0xa];
+    unsigned char unknown_0a[2];
+    unsigned char unknown_0c;
+    unsigned char unknown_0d[0xc];
     char name_19[0x80];
 };
 
@@ -99,58 +94,52 @@ struct W8LevelFileDoor { /* 0x99 */
    the +0x2609/+0x260d registry of the level workspace. */
 struct W8LevelFileLinkedRecord {
     unsigned char kind_00;
-    unsigned char unknown_001[0x1b0];
-    short field_1b1;
+    unsigned char unknown_01[0x1b0];
+    unsigned char unknown_1b1[2];
     int value_1b3;
     float value_1b7;
 };
 
 struct W8LevelFileSwitch { /* 0x271 */
     unsigned char version_00;
-    int field_01;
-    int field_05;
-    int field_09;
-    int field_0d;
-    int field_11;
-    int field_15;
-    int field_19;
-    unsigned char field_1d;
-    unsigned char field_1e;
+    unsigned char unknown_01[0x1c];
+    unsigned char unknown_1d;
+    unsigned char unknown_1e;
     char name_1f[0x80];
     char recipients_9f[0x100];
-    char field_19f[0x80];
-    int field_21f;               /* version_00 > 1 */
-    char switch_name_223[0x40];  /* version_00 > 1 */
-    unsigned char field_263;     /* version_00 > 2 */
-    unsigned char door_kind_264; /* field_263 != 0 */
-    W8LevelFileDoor* pDoor_265;  /* door_kind_264 == 1 */
-    int field_269;
-    int field_26d; /* version_00 > 3 */
+    unsigned char unknown_19f[0x80];
+    unsigned char unknown_21f[4]; /* version_00 > 1 */
+    char switch_name_223[0x40];   /* version_00 > 1 */
+    unsigned char field_263;      /* version_00 > 2 */
+    unsigned char door_kind_264;  /* field_263 != 0 */
+    W8LevelFileDoor* pDoor_265;   /* door_kind_264 == 1 */
+    unsigned char unknown_269[4];
+    unsigned char unknown_26d[4]; /* version_00 > 3 */
 };
 
 struct W8LevelFilePlane { /* 0x30 */
-    unsigned char unknown_000[0x30];
+    unsigned char unknown_00[0x30];
 };
 
 struct W8LevelFileInvisible { /* 0x241 */
     unsigned char version_00;
     int field_01;
-    unsigned char field_05[0xc];
-    int field_11;
-    int field_15;
-    unsigned char field_19;
-    unsigned char field_1a;
+    unsigned char unknown_05[0xc];
+    unsigned char unknown_11[4];
+    unsigned char unknown_15[4];
+    unsigned char unknown_19;
+    unsigned char unknown_1a;
     char name_1b[0x80];
     char recipients_9b[0x100];
-    unsigned char field_19b;      /* version_00 > 1 */
-    W8LevelFilePlane* pPlane_19c; /* version_00 > 1: 0x30 record */
-    int field_1a0;                /* version_00 > 2 */
-    unsigned char field_1a4[0xc]; /* version_00 > 2 */
-    unsigned char field_1b0;      /* version_00 > 2 */
-    char field_1b1[0x80];         /* version_00 > 2 */
-    unsigned char field_231;      /* version_00 > 3 */
-    int field_232;                /* version_00 > 3 */
-    unsigned char field_236;      /* version_00 > 4 */
+    unsigned char unknown_19b;       /* version_00 > 1 */
+    W8LevelFilePlane* pPlane_19c;    /* version_00 > 1: 0x30 record */
+    unsigned char unknown_1a0[4];    /* version_00 > 2 */
+    unsigned char unknown_1a4[0xc];  /* version_00 > 2 */
+    unsigned char unknown_1b0;       /* version_00 > 2 */
+    unsigned char unknown_1b1[0x80]; /* version_00 > 2 */
+    unsigned char unknown_231;       /* version_00 > 3 */
+    unsigned char unknown_232[4];    /* version_00 > 3 */
+    unsigned char field_236;         /* version_00 > 4 */
     unsigned char field_237;
     unsigned char kind_238;
     unsigned char unknown_239[4];
@@ -159,26 +148,19 @@ struct W8LevelFileInvisible { /* 0x241 */
 
 struct W8LevelFileSound { /* 0x170 */
     unsigned char version_00;
-    int field_01;
-    int field_05;
-    int field_09;
-    int field_0d;
-    int field_11;
-    int field_15;
-    int field_19;
-    int field_1d;
-    unsigned char field_21[0xc];
-    unsigned char field_2d[0xc];
-    unsigned char field_39[0xc];
+    unsigned char unknown_01[0x20];
+    unsigned char unknown_21[0xc];
+    unsigned char unknown_2d[0xc];
+    unsigned char unknown_39[0xc];
     char name_45[0x80];
-    unsigned char field_c5;      /* version_00 > 1 */
-    unsigned char field_c6;      /* version_00 > 1 */
-    unsigned char field_c7[0xc]; /* version_00 > 2 */
-    int field_d3;                /* version_00 > 2 */
-    unsigned char field_d7[0xc]; /* version_00 > 2 */
-    unsigned char field_e3[0xc]; /* version_00 > 2 */
-    char field_ef[0x80];         /* version_00 > 3 */
-    unsigned char field_16f;     /* version_00 > 4 */
+    unsigned char unknown_c5;      /* version_00 > 1 */
+    unsigned char unknown_c6;      /* version_00 > 1 */
+    unsigned char unknown_c7[0xc]; /* version_00 > 2 */
+    unsigned char unknown_d3[4];   /* version_00 > 2 */
+    unsigned char unknown_d7[0xc]; /* version_00 > 2 */
+    unsigned char unknown_e3[0xc]; /* version_00 > 2 */
+    char field_ef[0x80];           /* version_00 > 3 */
+    unsigned char field_16f;       /* version_00 > 4 */
 };
 
 struct W8LevelFileSuperTrigger { /* 0x867 */
@@ -202,13 +184,13 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     unsigned char field_29a;
     char field_29b[0x80];
     unsigned char unknown_31b[0x180];
-    unsigned char field_49b[0xc];  /* version_00 > 1 */
-    int field_4a7;                 /* version_00 > 1 */
-    unsigned char field_4ab;       /* version_00 > 1 */
-    unsigned char field_4ac;       /* version_00 > 1 */
-    unsigned char field_4ad;       /* version_00 > 1 */
-    unsigned char field_4ae;       /* version_00 > 1 */
-    unsigned char field_4af[0x10]; /* version_00 > 1 */
+    float field_49b[3];      /* version_00 > 1 */
+    float field_4a7;         /* version_00 > 1 */
+    unsigned char field_4ab; /* version_00 > 1 */
+    unsigned char field_4ac; /* version_00 > 1 */
+    unsigned char field_4ad; /* version_00 > 1 */
+    unsigned char field_4ae; /* version_00 > 1 */
+    float field_4af[4];      /* version_00 > 1 */
     unsigned char field_4bf;
     unsigned char field_4c0;
     unsigned char field_4c1;
@@ -268,16 +250,16 @@ struct W8LevelFileTransform { /* 0x1c */
 struct W8LevelFileAnimObj { /* 0x5f */
     char version_00;
     char num_anims_01; /* also morph count */
-    char field_02;
-    char field_03;
-    char field_04;
-    char field_05;
-    char kind_06;   /* 0 -> morphs, else transforms */
-    float field_07; /* version_00 >= 3; default 15.0f */
-    char field_0b;  /* version_00 >= 5 */
-    char field_0c;  /* version_00 >= 6 */
-    float field_0d; /* version_00 >= 6; default 1.0f */
-    char field_11[0x32];
+    char unknown_02;
+    char unknown_03;
+    char unknown_04;
+    char unknown_05;
+    char kind_06;    /* 0 -> morphs, else transforms */
+    float field_07;  /* version_00 >= 3; default 15.0f */
+    char unknown_0b; /* version_00 >= 5 */
+    char unknown_0c; /* version_00 >= 6 */
+    float field_0d;  /* version_00 >= 6; default 1.0f */
+    unsigned char unknown_11[0x32];
     char* abHowMany;                      /* 0x43: num_anims_01 bytes */
     unsigned char num_bound_box_47;       /* version_00 > 6 */
     void* pBoundBox;                      /* 0x48: num_bound_box_47 * 0x18 */
@@ -292,19 +274,19 @@ struct W8LevelFileAnimObj { /* 0x5f */
 
 struct W8LevelFileProp { /* 0xbf */
     char version_00;
-    char field_01;
-    char field_02;      /* version_00 > 4 */
-    float field_03[3];  /* version_00 > 4 */
-    int field_0f;       /* version_00 > 5 */
-    char name_13[0x40]; /* version_00 > 6 */
+    unsigned char unknown_01;
+    unsigned char unknown_02;      /* version_00 > 4 */
+    unsigned char unknown_03[0xc]; /* version_00 > 4 */
+    unsigned char unknown_0f[4];   /* version_00 > 5 */
+    char name_13[0x40];            /* version_00 > 6 */
     W8LevelFileAnimObj anim_obj_53;
     char has_trigger_b2;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
     char num_frame_pos_b7;        /* version_00 > 7 */
     unsigned int* usFrame_Pos;    /* 0xb8: num_frame_pos_b7 * 4 */
     char flag_bc;                 /* version_00 > 8 */
-    char field_bd;
-    char field_be;
+    unsigned char unknown_bd;
+    unsigned char unknown_be;
 };
 
 struct W8LevelFileParticleSystem { /* 0x226 */
@@ -312,15 +294,15 @@ struct W8LevelFileParticleSystem { /* 0x226 */
     char name_01[0x40];
     float position_41[3];
     unsigned char unknown_04d[0x1ca];
-    unsigned char field_217[2]; /* version_00 >= 2 */
-    unsigned char field_219[4]; /* version_00 >= 3 */
-    unsigned char field_21d;    /* version_00 >= 3 */
-    unsigned char field_21e[4]; /* version_00 >= 4 */
-    unsigned char field_222[4]; /* version_00 >= 4 */
+    unsigned char unknown_217[2]; /* version_00 >= 2 */
+    unsigned char unknown_219[4]; /* version_00 >= 3 */
+    unsigned char unknown_21d;    /* version_00 >= 3 */
+    unsigned char unknown_21e[4]; /* version_00 >= 4 */
+    unsigned char unknown_222[4]; /* version_00 >= 4 */
 };
 
 struct W8LevelFileNamedPosition { /* 0x9d */
-    unsigned char field_00;
+    unsigned char unknown_00;
     char name_01[0x80];
     float x_81;
     float y_85;
@@ -343,7 +325,7 @@ struct W8LevelFile {
     W8LevelFileMonster* pMonsters;       /* 0x20: nMonsters * 0x26 */
     int nItems;                          /* 0x24 */
     void* pItems;                        /* 0x28: nItems * 0x44 */
-    int field_2c;                        /* 0x2c */
+    unsigned char unknown_2c[4];         /* 0x2c */
     int nProps;                          /* 0x30 */
     W8LevelFileProp* pProps;             /* 0x34: nProps * 0xbf */
     int nBitmaps;                        /* 0x38 */
@@ -354,9 +336,9 @@ struct W8LevelFile {
     unsigned char unknown_04c[0x634];    /* 0x4c: read by Function004D5430 */
     int nTriggers;                       /* 0x680 */
     W8LevelFileTrigger* pTriggers;       /* 0x684: nTriggers * 6 */
-    int field_688;
+    unsigned char unknown_688[4];
     int nClippingPlanes;            /* 0x68c */
-    unsigned char field_690;        /* read when nClippingPlanes != 0 */
+    unsigned char unknown_690;      /* read when nClippingPlanes != 0 */
     unsigned char* pClippingPlanes; /* 0x691: nClippingPlanes * 0x50 */
     unsigned char unknown_695[0xc];
     int nParticleSystems;                        /* 0x6a1 */
@@ -365,8 +347,8 @@ struct W8LevelFile {
     W8LevelFileNamedPosition* pNamedPositions;   /* 0x6ad: nNamedPositions * 0x9d */
     int field_6b1;
     int* pIntTable_6b5; /* field_6b1 * 4 */
-    int field_6b9;
-    int field_6bd; /* Function004050D0 result on read */
+    unsigned char unknown_6b9[4];
+    int field_6bd; /* FileGetPos result on read */
     int num_switch_triggers_6c1;
     W8LevelFileSwitch* switch_triggers_6c5[1000];
     int num_invisible_planes_1665;
@@ -400,6 +382,12 @@ static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
+
+/* These two read/write the level workspace's opaque +0x4c block. They sit in
+   the unresolved gap 0x4D5370..0x4D57A0 immediately past the LevelFile hull;
+   declared here for the call sites only - TU ownership is unproven. */
+unsigned char Function004D5430(int hFile, unsigned char* block);
+unsigned char Function004D5580(int hFile, unsigned char* block);
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
 unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
