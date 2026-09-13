@@ -64,21 +64,23 @@ bool RunSightSemanticTests(SightSemanticResult* result)
     blind = ComputeSightThreshold(observer, target, 0.0f, 50, 0, 1, 0, 0, 0, 0, 0, 500.0f);
     result->blind_is_zero = blind == g_float_005ebb34;
 
-    facing = ThresholdFacingTarget(1000.0f);
-    away = ThresholdFacingAway(1000.0f);
-    result->facing_away_reduces_range = away > facing;
+    facing = ThresholdFacingTarget(9000.0f);
+    away = ThresholdFacingAway(9000.0f);
+    result->facing_away_reduces_range = away < facing;
 
     observer.Set(0.0f, 0.0f, 0.0f);
-    target.Set(0.0f, 0.0f, 1000.0f);
+    target.Set(0.0f, 0.0f, 9000.0f);
     skip_fov =
-        ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 0, 0, 1, 0, 1000.0f);
+        ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 0, 0, 1, 0, 9000.0f);
     result->skip_fov_restores_range = fabs(skip_fov - facing) < 1.0f;
 
-    penalized = ComputeSightThreshold(observer, target, 0.0f, 50, 0, 0, 0, 5, 0, 0, 0, 1000.0f);
-    result->penalty_source_reduces_range = penalized < facing;
+    penalized =
+        ComputeSightThreshold(observer, target, 3.1415927f, 50, 0, 0, 0, 5, 0, 0, 0, 9000.0f);
+    result->penalty_source_reduces_range = penalized < away;
 
-    attributed = ComputeSightThreshold(observer, target, 0.0f, 25, 0, 0, 0, 0, 0, 0, 0, 1000.0f);
-    result->attribute_scales_range = attributed < facing;
+    attributed =
+        ComputeSightThreshold(observer, target, 3.1415927f, 25, 0, 0, 0, 0, 0, 0, 0, 9000.0f);
+    result->attribute_scales_range = attributed < away;
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(100.0f, 0.0f, 0.0f);
