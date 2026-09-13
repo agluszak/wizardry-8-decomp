@@ -87,6 +87,13 @@ bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 
 void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 
+/* 0x0051B910: per-item-class notice index into gppStringList used for the
+   unidentified ("Uncursed item" style) display name. */
+unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
+
+/* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
+extern const unsigned short g_generic_item_name_notice[147];
+
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;

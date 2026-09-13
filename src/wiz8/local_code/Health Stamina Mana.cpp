@@ -515,7 +515,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
    it, and a character with no protection against it is put under condition
    one. */
 // FUNCTION: WIZ8 0x0052b7e0
-void DamageCharacter(int party_slot, int unused, int damage, char announce)
+void DamageCharacter(int party_slot, int damage, char announce)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
@@ -524,7 +524,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
     }
 
     if (character->hp_max != 0 && character->hp_current != 0) {
-        FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0, 0);
+        FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0);
         if (announce) {
             WriteGameLog(8, (const wchar_t*)gppStringList[0x710 / 4], damage);
         }
@@ -679,12 +679,12 @@ extern int g_effect_005ee598;
    exhausted condition; merely dropping into the deep band applies the
    deep-fatigue effect once. */
 // FUNCTION: WIZ8 0x0052af50
-void FatigueCharacter(int party_slot, int amount, char scale_by_load, int load_percent,
-                      int report_to)
+void FatigueCharacter(int party_slot, int amount, char scale_by_load, int report_to)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     int previous_band;
     int band;
+    int load_percent;
 
     if (character->stamina <= 0 || character->hp_current == 0 || amount == 0) {
         return;
@@ -812,8 +812,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
 /* Drain spell points from one named realm, taking no more than it holds.
    Announced with the realm's own name. */
 // FUNCTION: WIZ8 0x0052b6d0
-void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, int unused,
-                                    char announce)
+void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, char announce)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int available;
