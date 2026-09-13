@@ -14,7 +14,9 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/character_skills.h"
 #include "wiz8/magic.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
@@ -24,6 +26,8 @@
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 #include <stdlib.h>
 #include "wiz8/game_status.h"
@@ -34,6 +38,100 @@
    worker. */
 
 #define HEALTH_STAMINA_MANA_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Health Stamina Mana.cpp"
+
+// FUNCTION: WIZ8 0x0052A890
+unsigned int ApplyDamageToCharacter0052A890(int party_slot, unsigned int amount, char arg_3,
+                                            char arg_4, char arg_5,
+                                            W8SpellEffectResult* result_stats, char arg_7)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int absorbed;
+    unsigned int applied;
+
+    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+        srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 403, 0);
+    }
+    if (character->hp_current == 0) {
+        return 0;
+    }
+    if (g_status_685170.value_2390 != 0) {
+        PostCharacterNotice(party_slot, gppStringList[0x94c / 4], amount);
+        return 0;
+    }
+
+    if (character->enchantments[2].value_08 != 0) {
+        absorbed = character->enchantments[2].value_06;
+        if (amount <= absorbed) {
+            PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], amount);
+            character->enchantments[2].value_06 = static_cast<unsigned short>(absorbed - amount);
+            if (result_stats != 0) {
+                ++result_stats->count;
+            }
+            return 0;
+        }
+
+        PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], absorbed);
+        amount -= absorbed;
+        ClearCharacterEnchantmentSlot(party_slot, 2);
+        PostCharacterNotice(party_slot, gppStringList[0x650 / 4]);
+    }
+
+    FatigueCharacter(party_slot, (amount * 2) / 3, 0, result_stats);
+    if (result_stats != 0) {
+        result_stats->amount += amount;
+        ++result_stats->count;
+    }
+
+    if (arg_5 != 0) {
+        if (arg_7 != 0) {
+            PostCharacterNotice(party_slot, gppStringList[0x9a0 / 4], amount);
+        } else if (arg_4 != 0) {
+            Function58AAD0(9, gppStringList[0x950 / 4], amount);
+        } else {
+            PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
+                                arg_3 != 0 ? gppStringList[0x95c / 4] : &g_wchar_00689b34);
+        }
+    }
+
+    applied = character->hp_current;
+    if (applied <= amount) {
+        if (CharacterHasTrait00547940(character, 2) != 0 &&
+            static_cast<unsigned int>(character->condition_turns[0x11]) < 7) {
+            Function547A50(party_slot);
+            Function59AC40(party_slot, amount);
+            return applied;
+        }
+        if (applied < amount) {
+            amount = applied;
+        }
+    }
+
+    character->hp_current = applied - amount;
+    Function59AC40(party_slot, amount);
+    if (character->hp_current != 0) {
+        if (gXStatus.fSurprisePossible == 0) {
+            QueueDamageReactionEvents(character);
+        }
+    } else {
+        if (result_stats != 0) {
+            W8SpellDamageReport* report = static_cast<W8SpellDamageReport*>(malloc(0x6c));
+            if (report != 0) {
+                memset(report, 0, 0x6c);
+                report->kind = 1;
+                report->value = party_slot;
+                result_stats->reports.Add(report);
+            }
+        }
+        SetCharacterCondition(party_slot, W8_CONDITION_DEAD, W8_CONDITION_INDEFINITE, 0, 0,
+                              result_stats == 0);
+    }
+
+    if (character->condition_turns[0xf] != 0 && arg_3 == 0 &&
+        Random(100) < (character->attributes[6].effective >> 1) + 0x32) {
+        RemoveCharacterCondition(party_slot, 0xf, 1);
+    }
+    return amount;
+}
 
 /* Stamina and realm spell-point constants the encodings keep as addressable
    storage rather than immediates. */
@@ -256,7 +354,6 @@ enum {
 /* How much stamina shakes exhaustion off again. */
 enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 
-extern void PostCharacterNotice(int party_slot, const wchar_t* notice, ...);
 /* 0x00590950 */
 
 // FUNCTION: WIZ8 0x0052a710
@@ -674,7 +771,8 @@ extern int g_effect_005ee598;
    exhausted condition; merely dropping into the deep band applies the
    deep-fatigue effect once. */
 // FUNCTION: WIZ8 0x0052af50
-void FatigueCharacter(int party_slot, int amount, char scale_by_load, int report_to)
+void FatigueCharacter(int party_slot, int amount, char scale_by_load,
+                      W8SpellEffectResult* report_to)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     int previous_band;
