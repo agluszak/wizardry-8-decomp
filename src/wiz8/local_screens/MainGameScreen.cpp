@@ -2440,6 +2440,81 @@ void RequestRedrawParty(void)
     }
 }
 
+// FUNCTION: WIZ8 0x00561a20
+void RefreshSelectedPartyPortrait(unsigned int party_slot)
+{
+    if (g_level_block == 0 || g_level_block->value_0fc == 0 ||
+        g_level_block->party_bytes_109[party_slot] != 0) {
+        return;
+    }
+    if (g_level_block->flag_314 != 0 && party_slot == static_cast<unsigned int>(g_value_64c1c8) &&
+        gXStatus.monster_manager_entries[party_slot].field_0bd == 0 &&
+        gXStatus.monster_manager_entries[party_slot].field_09c == 0) {
+        if (gXStatus.monster_manager_entries[party_slot].quote.quote_handle == -1 ||
+            g_settings_6850c8.pc_subtitles == 0) {
+            return;
+        }
+    }
+
+    if (g_level_block->values_200[0] == static_cast<int>(party_slot)) {
+        g_level_block->values_200[0] = -1;
+        if (g_level_block->dialogue_owner != 0) {
+            ReleaseObject004257F0(g_level_block->dialogue_owner);
+            g_level_block->dialogue_owner = 0;
+        }
+        Function563DD0();
+        g_main_game_mode_0068eddc = 0;
+        RequestRedraw(0x8000 | 0xff);
+    } else if (g_level_block->values_200[0] != -1) {
+        RequestRedraw(0x8000);
+    }
+
+    if (g_level_block->values_200[1] == static_cast<int>(party_slot)) {
+        g_level_block->values_200[1] = -1;
+        if (g_level_block->dialogue_owner != 0) {
+            ReleaseObject004257F0(g_level_block->dialogue_owner);
+            g_level_block->dialogue_owner = 0;
+        }
+        Function563DD0();
+        g_main_game_mode_0068eddc = 0;
+        RequestRedraw(0x8000 | 0xff);
+    } else if (g_level_block->values_200[1] != -1) {
+        RequestRedraw(0x8000);
+    }
+
+    if (g_main_game_mode_0068eddc == 3) {
+        if (gXStatus.unknown_026[0] != 0) {
+            Function56E800(0);
+        }
+    } else if (g_main_game_mode_0068eddc == 5) {
+        Function5187E0();
+    } else if (g_main_game_mode_0068eddc == 6) {
+        if (g_level_block->dialogue_owner != 0) {
+            ReleaseObject004257F0(g_level_block->dialogue_owner);
+            g_level_block->dialogue_owner = 0;
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+    }
+
+    g_main_game_mode_0068eddc = 4;
+    g_level_block->highlight_override = -1;
+    g_level_block->party_bytes_109[party_slot] = 1;
+    g_level_block->flag_108 = 1;
+    g_level_block->values_114[party_slot] = 0x69;
+    g_level_block->values_134[party_slot] = 6;
+    RequestRedraw(1u << (party_slot & 0x1f));
+    DisableRegionInput(party_slot + 0x5a);
+    if (gXStatus.monster_manager_entries[party_slot].field_0d0 == 0) {
+        RegionSetEnable(party_slot + 7);
+        EnableRegionSetInput(party_slot + 7);
+    }
+}
+
 // FUNCTION: WIZ8 0x005699b0
 void RequestRedrawCombatBar(void)
 {

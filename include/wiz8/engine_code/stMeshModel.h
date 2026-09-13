@@ -16,7 +16,7 @@ public:
         return "stMeshModel";
     }
 
-    // Unrecovered; 0x00470B00. FUNCTION stays off until the body exists.
+    // 0x00470B00
     stMeshModel(long polygons, long vertices);
 
     int FindMappedIndex(short key); /* 0x004712D0 */
@@ -46,9 +46,13 @@ public:
     unsigned char flag_3cc;
     unsigned char unknown_3cd[3];
     unsigned int vertex_count; /* 0x3d0 */
-    unsigned char unknown_3d4[0xc];
+    void** compressed_vertex_locations_3d4;
+    void** compressed_vertex_normals_3d8;
+    void** compressed_polygon_normals_3dc;
     void** vertices; /* 0x3e0 */
-    unsigned char unknown_3e4[0xc];
+    void** vertex_frame_normals_3e4;
+    void** polygon_frame_normals_3e8;
+    void** unknown_frame_data_3ec;
     W8GrowableVector<int> skin_table_ids;                         /* 0x3f0; count at 0x3f4 */
     W8GrowableVector<srPtr<srTextureIFace>*> skin_texture_tables; /* 0x400 */
     W8GrowableVector<char*> skin_table_names;                     /* 0x410 */

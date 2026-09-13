@@ -9,10 +9,19 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/mouth_gap.h"
 #include "wiz8/targeting.h"
 #include "wiz8/vector.h"
 
 struct W8CharacterEvent;
+
+struct W8PortraitQuoteState {
+    int quote_handle;
+    unsigned short x;
+    unsigned short y;
+    unsigned short width;
+    unsigned short height;
+};
 
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 compares exactly prefix_length characters and then uses the same
@@ -40,9 +49,9 @@ struct W8MonsterManagerEntry {
 
     unsigned char field_000;
     int field_001;
-    unsigned char unknown_005[0x10];
-    unsigned char field_015;
-    unsigned char unknown_016[0x5b];
+    W8MouthGapTrack mouth_gap;  /* 0x005 */
+    W8PortraitQuoteState quote; /* 0x019 */
+    unsigned char unknown_029[0x4c];
     W8CharacterEvent* field_071;
     int field_075;
     int field_079;
@@ -88,6 +97,20 @@ struct W8MonsterManagerEntry {
 #pragma pack(pop)
 
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
+static_assert(sizeof(W8PortraitQuoteState) == 0x0c, "W8PortraitQuoteState_size");
+static_assert(offsetof(W8MonsterManagerEntry, mouth_gap) == 0x05,
+              "W8MonsterManagerEntry_mouth_gap_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote) == 0x19, "W8MonsterManagerEntry_quote_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote.quote_handle) == 0x19,
+              "W8MonsterManagerEntry_quote_handle_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote.x) == 0x1d,
+              "W8MonsterManagerEntry_quote_x_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote.y) == 0x1f,
+              "W8MonsterManagerEntry_quote_y_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote.width) == 0x21,
+              "W8MonsterManagerEntry_quote_width_offset");
+static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
+              "W8MonsterManagerEntry_quote_height_offset");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
 void Function509CD0(unsigned char value, int enabled, int location_id);

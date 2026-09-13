@@ -9,7 +9,7 @@
 	#include "Types.h"
 	#include "windows.h"
 	#include "FileMan.h"
-	#include "LibraryDataBase.h"
+#include "LibraryDataBase.h"
 	#include "MemMan.h"
 	#include "stdio.h"
 	#include "WCheck.h"
@@ -777,8 +777,6 @@ HWFILE OpenFileFromLibrary( STR pName )
 
 			//Set the file position in the library to the begining of the 'file' in the library
 			uiNewFilePosition = SetFilePointer( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, gFileDataBase.pLibraries[ sLibraryID ].pOpenFiles[ uiFileNum ].pFileHeader->uiFileOffset, NULL, FILE_BEGIN );
-
-			uiNewFilePosition = GetFileSize( gFileDataBase.pLibraries[ sLibraryID ].hLibraryHandle, NULL );
 
 		}
 		else

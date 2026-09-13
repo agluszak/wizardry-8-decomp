@@ -19,6 +19,7 @@
 #include "wiz8/engine_code/ReadMesh.h"
 
 #include <stdlib.h>
+#include <math.h>
 #include <string.h>
 
 #pragma pack(push, 1)
@@ -78,6 +79,46 @@ unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
 static int g_read_mesh_index_65b9e4;
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
 static srTextureIFace** g_multi_mesh_textures_65b9fc;
+
+// FUNCTION: WIZ8 0x004896c0
+void ReadMeshTransform004896C0(int file, srVector3T<float>* location, srMatrix3T<float>* rotation,
+                               srVector3T<float>* scale)
+{
+    FileRead(file, &location->x, sizeof(location->x), 0);
+    FileRead(file, &location->y, sizeof(location->y), 0);
+    FileRead(file, &location->z, sizeof(location->z), 0);
+
+    float angle;
+    float axis_x;
+    float axis_y;
+    float axis_z;
+    FileRead(file, &angle, sizeof(angle), 0);
+    FileRead(file, &axis_x, sizeof(axis_x), 0);
+    FileRead(file, &axis_y, sizeof(axis_y), 0);
+    FileRead(file, &axis_z, sizeof(axis_z), 0);
+
+    rotation->SetIdentity();
+    if (angle != 0.0f) {
+        const float cosine = cosf(angle);
+        const float sine = sinf(angle);
+        const float one_minus_cosine = 1.0f - cosine;
+        srMatrix3T<float> axis_rotation;
+        axis_rotation.vectors[0].x = axis_x * axis_x + (1.0f - axis_x * axis_x) * cosine;
+        axis_rotation.vectors[0].y = axis_y * axis_x * one_minus_cosine - axis_z * sine;
+        axis_rotation.vectors[0].z = axis_z * axis_x * one_minus_cosine + axis_y * sine;
+        axis_rotation.vectors[1].x = axis_x * axis_y * one_minus_cosine + axis_z * sine;
+        axis_rotation.vectors[1].y = axis_y * axis_y + (1.0f - axis_y * axis_y) * cosine;
+        axis_rotation.vectors[1].z = axis_z * axis_y * one_minus_cosine - axis_x * sine;
+        axis_rotation.vectors[2].x = axis_x * axis_z * one_minus_cosine - axis_y * sine;
+        axis_rotation.vectors[2].y = axis_y * axis_z * one_minus_cosine + axis_x * sine;
+        axis_rotation.vectors[2].z = axis_z * axis_z + (1.0f - axis_z * axis_z) * cosine;
+        rotation->MultiplyBy(axis_rotation);
+    }
+
+    FileRead(file, &scale->x, sizeof(scale->x), 0);
+    FileRead(file, &scale->y, sizeof(scale->y), 0);
+    FileRead(file, &scale->z, sizeof(scale->z), 0);
+}
 static unsigned long* g_multi_mesh_render_flags_65ba04;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and
@@ -104,6 +145,39 @@ bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materi
 }
 
 } // namespace
+
+// FUNCTION: WIZ8 0x004867f0
+void UpdateMeshAfterVertexLoad004867F0(srMeshModel* model, int frame)
+{
+    (void)frame;
+    if (model == 0) {
+        return;
+    }
+
+    const long polygon_count = model->polygon_count_230;
+    const long vertex_count = model->vertex_location_count_22c;
+    unsigned long* polygon_indices =
+        static_cast<unsigned long*>(malloc(polygon_count * sizeof(unsigned long)));
+    unsigned long* vertex_indices =
+        static_cast<unsigned long*>(malloc(vertex_count * sizeof(unsigned long)));
+    if (polygon_indices == 0 || vertex_indices == 0) {
+        free(polygon_indices);
+        free(vertex_indices);
+        return;
+    }
+
+    for (long polygon_index = 0; polygon_index < polygon_count; ++polygon_index) {
+        polygon_indices[polygon_index] = static_cast<unsigned long>(polygon_index);
+    }
+    for (long vertex_index = 0; vertex_index < vertex_count; ++vertex_index) {
+        vertex_indices[vertex_index] = static_cast<unsigned long>(vertex_index);
+    }
+
+    model->reindexPolygons(polygon_indices);
+    model->reindexVertices(vertex_indices);
+    free(polygon_indices);
+    free(vertex_indices);
+}
 
 // FUNCTION: WIZ8 0x00488650
 stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces, int vertex_count,
