@@ -224,11 +224,11 @@ struct W8ProcessedGameDataHeader {
     unsigned int version_00;
     srVector3T<float> minimum_04;
     srVector3T<float> maximum_10;
-    int integrated_surface_count_1c;
+    int vertex_count_1c;
     int surface_count_20;
     int positional_24;
     int positional_28;
-    int vertex_count_2c;
+    int integrated_surface_count_2c;
     int value_30;
     int value_34;
     int total_surface_count_38;
@@ -298,8 +298,8 @@ void W8GameData::ReadProcessedGameData(int handle)
     surface_count_28 = header.surface_count_20;
     positional_2c_00 = header.positional_24;
     positional_2c_04 = header.positional_28;
-    integrated_surface_count_34 = header.integrated_surface_count_1c;
-    vertex_count_20 = header.vertex_count_2c;
+    integrated_surface_count_34 = header.integrated_surface_count_2c;
+    vertex_count_20 = header.vertex_count_1c;
     value_60 = header.value_30;
     value_68 = header.value_34;
     total_surface_count_44 = header.total_surface_count_38;
