@@ -77,7 +77,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
     : flags_00(other.flags_00), intensity_04(other.intensity_04), value_08(other.value_08),
       position_0c(other.position_0c), timer_18(other.timer_18.m_duration_seconds, 0),
       cycle_3c(other.cycle_3c), frame_40(other.frame_40), subcycle_44(other.subcycle_44),
-      value_48(other.value_48)
+      completion_callback_48(other.completion_callback_48)
 {
     flags_00 &= ~1u;
 }
@@ -90,7 +90,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float intensity,
                                          int value_08_, const srVector3T<float>* position)
     : flags_00(0), intensity_04(intensity), value_08(value_08_), timer_18(duration, 0), cycle_3c(0),
-      frame_40(0), subcycle_44(0), value_48(0)
+      frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
     if (g_shake_effects_0065be2c == 0) {
         g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
@@ -196,8 +196,8 @@ void UpdateShakeEffects004AE310()
                 g_shake_effects_0065be2c->RemoveAt(index);
                 --index;
                 effect->flags_00 &= ~1u;
-                if (effect->value_48 != 0) {
-                    reinterpret_cast<void (*)()>(effect->value_48)();
+                if (effect->completion_callback_48 != 0) {
+                    effect->completion_callback_48();
                 }
                 if ((effect->flags_00 >> 1 & 1) != 0 && effect != 0) {
                     delete effect;

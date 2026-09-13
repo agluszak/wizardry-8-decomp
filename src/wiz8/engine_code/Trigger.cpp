@@ -371,7 +371,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
             if (g_modal_owner_0068edd0 == 0 && trigger->world_item_group_34c != 0) {
                 W8Dialog005CD710* dialog = new W8Dialog005CD710;
                 if (dialog != 0) {
-                    dialog->m_user_data = reinterpret_cast<int>(trigger);
+                    dialog->m_user_data = trigger;
                     dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
                     g_flag_0068506e = 0;
@@ -411,7 +411,7 @@ void OnItemDialogClosed004456C0(W8DialogBase* base)
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup005CF110();
-        reinterpret_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
+        static_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
     }
 }
 
@@ -1875,7 +1875,7 @@ show_action_message:
 
         if (message_id != -1) {
             char path[512];
-            W8WideChar text[1996];
+            wchar_t text[1996];
 
             if (level_folder == 0) {
                 level_folder = "";
@@ -2657,8 +2657,9 @@ void Trigger::Run(int source)
                 } else {
                     spell_id = 0x2a;
                 }
-                PointCastSpell(srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
-                               spell_id, (unsigned int)m_lData3);
+                PointCastSpell(
+                    srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
+                    spell_id, (unsigned int)m_lData3);
                 if (action_230 == 0x2b) {
                     RemoveAllConditionsFromParty();
                 }

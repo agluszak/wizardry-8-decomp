@@ -178,8 +178,8 @@ unsigned char MainMenuScreenEnter(void)
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
     SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
-    measured = StringPixLength((unsigned short*)wide, g_font_683660);
-    gprintf(0x27b - measured, 5, (unsigned short*)wide);
+    measured = StringPixLength(wide, g_font_683660);
+    gprintf(0x27b - measured, 5, wide);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     ResetRegions();
     RegionSetEnable(1);
@@ -254,7 +254,7 @@ void MainMenuScreenFrame()
                     if (g_flag_689b32 != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-                        gprintfDirty(5, 5, (unsigned short*)L"Developer mode enabled.");
+                        gprintfDirty(5, 5, L"Developer mode enabled.");
                     }
                 } else {
                     switch (input.usParam) {

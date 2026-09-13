@@ -191,12 +191,11 @@ void CreditsScreenFrame(void)
         if ((entry->flags & 4) == 0) {
             SetFont((entry->flags & 1) ? g_font_bold_0068368c : g_options_detail_font_683614);
             if ((entry->flags & 2) == 0) {
-                gprintf((0x280 - entry->pixel_width) / 2, y, (unsigned short*)L"%s",
-                        entry->primary);
+                gprintf((0x280 - entry->pixel_width) / 2, y, L"%s", entry->primary);
             } else {
-                gprintf(0x136 - entry->pixel_width, y, (unsigned short*)L"%s", entry->primary);
+                gprintf(0x136 - entry->pixel_width, y, L"%s", entry->primary);
                 if (entry->secondary != 0) {
-                    gprintf(0x14a, y, (unsigned short*)L"%s", entry->secondary);
+                    gprintf(0x14a, y, L"%s", entry->secondary);
                 }
             }
         }

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WIZ8_TESTS_RUNTIME_SIGHT_SEMANTIC_TEST_H
+#define WIZ8_TESTS_RUNTIME_SIGHT_SEMANTIC_TEST_H
 
 struct SightSemanticResult {
     unsigned char blind_is_zero;
@@ -11,3 +12,5 @@ struct SightSemanticResult {
 
 bool RunSightSemanticTests(SightSemanticResult* result);
 void PrintSightSemanticResults(const SightSemanticResult* result);
+
+#endif

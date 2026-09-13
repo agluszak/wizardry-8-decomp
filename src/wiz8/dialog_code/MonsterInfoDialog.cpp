@@ -118,9 +118,9 @@ void W8MonsterInfoDialog::Draw()
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x1f1, MONSTER_INFO_DIALOG_CPP, m_location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        W8WideChar* name = GetMonsterName(monster_info, 0, 0);
+        wchar_t* name = GetMonsterName(monster_info, 0, 0);
         INT16 width = StringPixLength(name, g_font_683660);
-        gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, (unsigned short*)L"%s", name);
+        gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, L"%s", name);
     }
     m_text_area_ec.Draw(0);
     m_scroll_bar_58.Draw(0);

@@ -4947,8 +4947,8 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
    low and high halves of each entry, and the height from the entry's low half
    scaled by the service's own span and lifted by the bounds floor. */
 // FUNCTION: WIZ8 0x00457cf0
-unsigned int W8PathingService::FindPathHandle(const unsigned char* path_name,
-                                              unsigned short* path_bounds, float* path_range)
+unsigned int W8PathingService::FindPathHandle(const char* path_name, unsigned short* path_bounds,
+                                              float* path_range)
 {
     W8ConditionalPath* path;
     unsigned int index;
@@ -4962,7 +4962,7 @@ unsigned int W8PathingService::FindPathHandle(const unsigned char* path_name,
     index = 0;
     path = m_pCondPaths;
     do {
-        if (strcmp(reinterpret_cast<const char*>(path_name), path->name) == 0) {
+        if (strcmp(path_name, path->name) == 0) {
             path_bounds[2] = 0xffff;
             path_bounds[0] = 0xffff;
             path_bounds[3] = 0;

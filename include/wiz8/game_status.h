@@ -8,7 +8,6 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/FormationAndFacing.h"
-#include "wiz8/text_types.h"
 
 #include <stddef.h>
 
@@ -104,7 +103,7 @@ struct W8GlobalStatus {
     unsigned char unknown_2445[2];
     int difficulty;
     unsigned char unknown_244b[8];
-    W8WideChar monster_name_buffer_2453[22];
+    wchar_t monster_name_buffer_2453[22];
     unsigned char alternate_name_slot_247f;
     unsigned char unknown_2480[9];
     unsigned char flag_2489; /* 0x2489: fact 0x14c gate */

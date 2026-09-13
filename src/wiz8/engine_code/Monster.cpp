@@ -3154,7 +3154,7 @@ W8AniMesh* W8MonsterRep::GetEmitterAniMesh(char cycle)
     if (animation == 0) {
         return 0;
     }
-    return (W8AniMesh*)AnimObjEntry004A1660(animation, m_bLOD, 0);
+    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, m_bLOD, 0));
 }
 
 /* Synchronize the live world representation with the Navigator state, update
@@ -4118,7 +4118,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0xc4e, 0);
     }
-    return (W8AniMesh*)AnimObjEntry004A1660(animation, animationIndex(), 0);
+    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, animationIndex(), 0));
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then

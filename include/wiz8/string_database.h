@@ -1,7 +1,6 @@
 #pragma once
 
-#include "wiz8/text_types.h"
 
-unsigned char GetStringFromStringDatabase(const char* path, int index, W8WideChar* output,
+unsigned char GetStringFromStringDatabase(const char* path, int index, wchar_t* output,
                                           unsigned int* metadata_04, unsigned int* metadata_00);
-void ShowString(W8WideChar* text);
+void ShowString(wchar_t* text);

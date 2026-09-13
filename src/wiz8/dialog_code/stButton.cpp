@@ -186,10 +186,10 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
                                         int tooltip_index, W8DialogButtonCallback right_callback,
                                         W8DialogButtonCallback double_click_callback)
 {
-    m_image_018 =
-        LoadButtonImage(reinterpret_cast<UINT8*>(const_cast<char*>(image_path)), gray_frame,
-                        off_normal_frame, off_hover_frame, on_normal_frame,
-                        on_hover_frame); // reinterpret-ok: SGP LoadButtonImage takes UINT8*
+    m_image_018 = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>(image_path)),
+        gray_frame, off_normal_frame, off_hover_frame, on_normal_frame, on_hover_frame);
     if (m_image_018 != -1) {
         m_button_01c = QuickCreateButton(m_image_018, 0, 0, BUTTON_NO_TOGGLE, priority,
                                          DialogButtonCallback, DialogButtonCallback);

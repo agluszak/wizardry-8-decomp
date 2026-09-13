@@ -130,7 +130,7 @@ struct W8CombatState {
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned char unknown_7bc[5];
     W8EffectSlot effect_slots[9];           /* 0x7c1, 0x11 stride */
-    unsigned char effect_storage_85a[0x66]; /* 0x85a..0x8bf: six 0x11-byte records */
+    W8EffectSlot effect_slots_85a[6];      /* 0x85a..0x8bf */
     W8Missile* engaged_missile;             /* 0x8c0: live missile that blocks ending combat */
     unsigned char unknown_8c4;              /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned

@@ -6,7 +6,7 @@
 
 extern unsigned char g_flag_00652dce;
 
-void CopyLevelDataHandle(int* destination, const int* source);
+void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source);
 
 #include "wiz8/geometry.h"
 

@@ -458,13 +458,12 @@ bool CombatHasCondition(int condition_id)
             }
         }
         /* 0x00501250: nine 0x11-byte strides from g_combat_state+0x85a.
-           The first six occupy effect_storage_85a; the rest overlap
+           The first six occupy effect_slots_85a; the rest overlap
            engaged_missile and TargetHit. Retail does that overlapping
            walk; it is a raw stride, not a typed array of nine. */
         // clang-format off
-        unsigned char* bytes = g_combat_state->effect_storage_85a;
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
-            slot = reinterpret_cast<W8EffectSlot*>(bytes + index * sizeof(W8EffectSlot)); /* reinterpret-ok: 0x11-byte stride from +0x85a; originating layout unresolved */
+            slot = g_combat_state->effect_slots_85a + index;
             if (slot->active != 0 && slot->effect_id == condition_id) {
                 return true;
             }

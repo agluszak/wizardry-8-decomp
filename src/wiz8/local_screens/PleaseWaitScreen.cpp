@@ -97,7 +97,9 @@ unsigned char PleaseWaitScreenInitialize(void)
     if (FileExistsNoDB("CD.ROM")) {
         g_cd_marker_present_69b7d0 = 1;
     }
-    g_level_load_font_69b7c0 = LoadFontFile((UINT8*)"Data\\Level Load\\levelload_font.sti");
+    g_level_load_font_69b7c0 =
+        LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                          const_cast<char*>("Data\\Level Load\\levelload_font.sti")));
     return 1;
 }
 

@@ -306,7 +306,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
 // FUNCTION: WIZ8 0x005dc490
 void W8SpellInfoDialog::DrawLabels()
 {
-    W8WideChar* text;
+    wchar_t* text;
     INT16 width;
     W8SpellRuntimeRecord* record = &g_spell_records[m_spell_054];
 
@@ -314,24 +314,24 @@ void W8SpellInfoDialog::DrawLabels()
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     text = record->display_name;
     width = StringPixLength(text, g_font_683660);
-    gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, (unsigned short*)L"%s", text);
+    gprintf(m_x + 0x25 + (0xe7 - width) / 2, m_y + 0x12, L"%s", text);
     text = gppStringList[0x460 / 4];
     width = StringPixLength(text, g_font_683660);
-    gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, (unsigned short*)L"%s", text);
+    gprintf(m_x + 0x25 + (0x53 - width) / 2, m_y + 0x24, L"%s", text);
     if (record->field_12b == 3) {
         text = gppStringList[0x468 / 4];
     } else {
         text = gppStringList[0x464 / 4];
     }
     width = StringPixLength(text, g_font_683660);
-    gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, (unsigned short*)L"%s", text);
+    gprintf(m_x + 0x25 + (0x7b - width) / 2, m_y + 0x33, L"%s", text);
     text = FormatWideString(g_format_d_0060aa20, record->spell_level);
     width = StringPixLength(text, g_font_683660);
-    gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, (unsigned short*)L"%s", text);
+    gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
     text =
         FormatWideString(g_format_d_s_0061a128, record->spell_point_cost, gppStringList[0x46c / 4]);
     width = StringPixLength(text, g_font_683660);
-    gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, (unsigned short*)L"%s", text);
+    gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005dc6c0

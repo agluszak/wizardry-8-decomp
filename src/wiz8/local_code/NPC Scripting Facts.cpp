@@ -44,7 +44,7 @@ static void ClearPotionExplosionSoundFlag(void*)
     ClearFlag68C4F7();
 }
 
-/* Camera-shake completion callback stored on W8CameraShakeEffect::value_48. */
+/* Camera-shake completion callback stored on W8CameraShakeEffect::completion_callback_48. */
 // FUNCTION: WIZ8 0x005092d0
 static void ReplayEarthquakeShake(void)
 {
@@ -921,8 +921,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake_End.wav", 0);
         shake = CreateCameraShakeEffect004AE080(6.0f, 0, 1.0f, 0, 0);
         shake->flags_00 |= 0x20;
-        shake->value_48 = reinterpret_cast<int>(
-            ReplayEarthquakeShake); /* reinterpret-ok: shake completion callback stored as int */
+        shake->completion_callback_48 = ReplayEarthquakeShake;
         return;
     default:
         return;

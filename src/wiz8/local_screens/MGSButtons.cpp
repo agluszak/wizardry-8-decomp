@@ -151,7 +151,7 @@ void DrawSubMenuCharacterAction00596FE0(void)
     int action;
     unsigned int monster_index;
     W8MonsterInfo* monster_info;
-    W8WideChar* name;
+    wchar_t* name;
     wchar_t text[126];
     wchar_t second[126];
     INT16 width;

@@ -123,7 +123,7 @@ void RecordFactChangeForJournal(int fact_id)
     if (record->visibility_037 > visibility) {
         return;
     }
-    const W8WideChar* description =
+    const wchar_t* description =
         GetFact(fact_id) ? record->alternate_description_038 : record->description_100;
     if (*description == 0 || g_level_block == 0) {
         return;
@@ -154,7 +154,7 @@ void DrawJournalLine005BDD00(const wchar_t* text, int column, int y, int palette
     if (!centered) {
         x = 5;
     } else {
-        x = (right - StringPixLength(const_cast<unsigned short*>(text), g_journal_font_69c4cc)) / 2;
+        x = (right - StringPixLength(const_cast<wchar_t*>(text), g_journal_font_69c4cc)) / 2;
         if (x < 0) {
             x = 0;
         }
@@ -166,7 +166,7 @@ void DrawJournalLine005BDD00(const wchar_t* text, int column, int y, int palette
     } else if (palette == 1) {
         SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_palette_69c4d0);
     }
-    gprintf(left + x, y, (unsigned short*)L"%s", text);
+    gprintf(left + x, y, L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005bd860
@@ -361,7 +361,9 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005bddd0
 unsigned char JournalScreenInitialize(void)
 {
-    g_journal_font_69c4cc = LoadFontFile((UINT8*)"Data\\Journal\\journal_font.sti");
+    g_journal_font_69c4cc =
+        LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                          const_cast<char*>("Data\\Journal\\journal_font.sti")));
     g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
     g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;
@@ -405,7 +407,7 @@ unsigned char JournalScreenEnter(void)
     for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
         W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
-        const W8WideChar* description =
+        const wchar_t* description =
             entry.alternate_text ? fact->alternate_description_038 : fact->description_100;
         if ((g_journal_show_all_0069c4e0 || fact->visibility_037 <= maximum_visibility) &&
             *description != 0) {

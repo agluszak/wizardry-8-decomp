@@ -352,7 +352,7 @@ int ComputePortraitMessageDuration(wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x00528a80
-void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
+void AddMessageBoxLine(int type, wchar_t* text, void* extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
 

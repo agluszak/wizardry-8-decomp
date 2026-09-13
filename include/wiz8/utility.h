@@ -31,7 +31,7 @@ int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);
 void ClampUnsignedInteger(unsigned int* value, unsigned int minimum, unsigned int maximum);
-int CompareUnsignedDescending(const unsigned int* first, const unsigned int* second);
+int CompareUnsignedDescending(const void* first, const void* second);
 int CompareSignedAscending(const void* first, const void* second);
 int CompareSignedDescending(const void* first, const void* second);
 char* FormatString(const char* format, ...);
