@@ -45,8 +45,6 @@
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                         char right_button, char left_button);
 
-extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
-
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
     0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0,     0x27b, 0x27c, 0x27d,

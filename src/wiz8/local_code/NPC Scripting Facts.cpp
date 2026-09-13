@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/Monster.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/game_status.h"
@@ -921,8 +921,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake_End.wav", 0);
         shake = CreateCameraShakeEffect004AE080(6.0f, 0, 1.0f, 0, 0);
         shake->flags_00 |= 0x20;
-        shake->value_48 = reinterpret_cast<int>(
-            ReplayEarthquakeShake); /* reinterpret-ok: shake completion callback stored as int */
+        shake->value_48 = reinterpret_cast<int /* reinterpret-ok: callback pointer as int */>(
+            ReplayEarthquakeShake);
         return;
     default:
         return;

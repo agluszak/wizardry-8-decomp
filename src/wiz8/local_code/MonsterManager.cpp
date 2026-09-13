@@ -51,7 +51,6 @@ int g_monster_info_iterator_index;
 
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
-void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
 extern int g_dword_6850be;

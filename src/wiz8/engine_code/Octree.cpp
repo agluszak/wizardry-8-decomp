@@ -30,6 +30,7 @@
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
@@ -69,8 +70,6 @@ srNode* g_octree_trace_node_00659894;
 unsigned char g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
 unsigned char g_octree_trace_enabled_00659899;
-extern void Function518510(void* notice);
-
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
 /* Draw the probe box through the world camera. */
@@ -909,8 +908,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
-        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_DISABLE);
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])->setFlag(srNode::FLAG_DISABLE);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
             ->setFlag(srNode::FLAG_TERMINATE);
     }

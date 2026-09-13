@@ -1,7 +1,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
-#include "wiz8/engine_code/AnimRep.h"
+#include "wiz8/engine_code/AnimRep.hpp"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/cursor.h"
@@ -1313,7 +1313,8 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0,
+                                1);
         }
         return;
     }
