@@ -541,3 +541,6 @@ void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);
+
+/* 0x006068E4: the shared L"%s" wide format, defined in MainGameScreen.cpp. */
+extern const wchar_t g_format_s_006068e4[];

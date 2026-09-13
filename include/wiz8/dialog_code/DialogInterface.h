@@ -18,3 +18,6 @@ unsigned char GetDialogResult(W8DialogBase* dialog);
 void DrawDialog(W8DialogBase* dialog);
 unsigned char ProcessDialogInput(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
+/* The shared empty wide string dialogs hand to SetText; defined in
+   OptionsScreen.cpp, referenced across dialog and screen TUs. */
+extern const wchar_t g_wchar_00689b34;
