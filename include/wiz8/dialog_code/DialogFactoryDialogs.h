@@ -64,7 +64,7 @@ private:
     unsigned char HandleInputEvent005CD2B0(const InputAtom* input);
 
     /* SGP move/click callbacks for the text area, the scroll arrow buttons and
-       the confirmation buttons. Bodies are not recovered in this change. */
+       the confirmation buttons. Bodies are not recovered. */
     static void Function5CCE70(GUI_BUTTON* button, INT32 reason);
     static void Function5CCF30(GUI_BUTTON* button, INT32 reason);
     static void Function5CCFE0(GUI_BUTTON* button, INT32 reason);
@@ -144,7 +144,7 @@ private:
     unsigned char HandleInputEvent005DA180(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered in this change. */
+       are not recovered. */
     static void Function5DA440(W8DialogButton* button);
     static void Function5DA490(W8DialogButton* button);
     static void Function5DA4E0(W8DialogButton* button);
@@ -202,7 +202,7 @@ private:
     unsigned char HandleInputEvent005CEC20(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered in this change, except Function5CE6E0 which Assay
+       are not recovered, except Function5CE6E0 which Assay
        Dialog also stores on its close button. */
     static void Function5CE5F0(W8DialogButton* button);
     static void Function5CE6A0(W8DialogButton* button);
