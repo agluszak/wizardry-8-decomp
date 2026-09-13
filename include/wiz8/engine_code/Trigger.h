@@ -257,9 +257,9 @@ int ResetNextTriggerId(void);
 void SaveWorldTriggers0043C810(W8World* world, int handle);
 unsigned char LoadWorldTriggers0043C860(W8World* world, int handle);
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring);
-int LoadTriggerRuntimeStates0043CCF0(int handle);
+unsigned char LoadTriggerRuntimeStates0043CCF0(int handle);
 void SaveTriggerActionData0043D120(W8World* world, int handle);
-int LoadTriggerActionData0043D1F0(int handle);
+unsigned char LoadTriggerActionData0043D1F0(int handle);
 
 extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;

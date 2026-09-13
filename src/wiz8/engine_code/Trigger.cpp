@@ -241,7 +241,7 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
    restoring, a state byte block is re-randomized and the type-10 action data is
    re-linked to the stored item. */
 // FUNCTION: WIZ8 0x0043ccf0
-int LoadTriggerRuntimeStates0043CCF0(int handle)
+unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
 {
     int version;
     int saved_count;
@@ -729,7 +729,7 @@ void SaveTriggerActionData0043D120(W8World* world, int handle)
    a version/count header, then per record the trigger name and its 0x100-byte
    inline payload. Records for missing triggers are skipped with a seek. */
 // FUNCTION: WIZ8 0x0043d1f0
-int LoadTriggerActionData0043D1F0(int handle)
+unsigned char LoadTriggerActionData0043D1F0(int handle)
 {
     int version;
     int saved_count;
