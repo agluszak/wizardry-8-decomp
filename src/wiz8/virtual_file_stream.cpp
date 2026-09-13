@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Unresolved fragment: all nine functions lie in the single anchored gap
+   between Quality.cpp (0x0047B500) and stModelInstance.cpp (0x00480920).
+   One contiguous interval, but no anchor proves a single original TU. */
+
 /* The SurRender-facing stream adapter that carries the SLF virtual file system
    into the SR stream hierarchy. It is declared as what it is rather than as an
    opaque prefix: the two vtables the constructor at 0x0047CBD0 installs are the

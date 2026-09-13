@@ -21,8 +21,8 @@ class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
 extern int g_automap_zoom_mode;
 
-unsigned char GetFlag68F105(void);
-unsigned char GetFlag68F104(void);
+extern unsigned char g_flag_68f104;
+extern unsigned char g_flag_68f105;
 
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
