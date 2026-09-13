@@ -57,7 +57,7 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
    empty text and as a swprintf format argument. No recovered writer owns it
    yet; this definition only anchors the address until that function lands. */
 // GLOBAL: WIZ8 0x00689b34
-extern const wchar_t g_wchar_00689b34 = 0;
+wchar_t g_wchar_00689b34;
 
 /* Layout flag handed to every row-registered child text control.  No other
    recovered site reads it yet; ownership stays with this constant until a
@@ -166,11 +166,32 @@ W8OptionsPanelSet::~W8OptionsPanelSet()
 }
 
 W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
+
+// SYNTHETIC: WIZ8 0x005ac680
+// W8OptionsGamePanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ac6a0
+// W8OptionsGamePanel::~W8OptionsGamePanel
+
 W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
+
+// SYNTHETIC: WIZ8 0x005ac7c0
+// W8OptionsMousePanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ac7e0
+// W8OptionsMousePanel::~W8OptionsMousePanel
+
 W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
 W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
 W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
 W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
+
+// SYNTHETIC: WIZ8 0x005acb80
+// W8OptionsAdvancedGraphicsPanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005acba0
+// W8OptionsAdvancedGraphicsPanel::~W8OptionsAdvancedGraphicsPanel
+
 W8OptionsKeyboardPanel::W8OptionsKeyboardPanel(int panel)
     : W8OptionsPanel(panel), m_panel(panel), m_captured_button(0)
 {
@@ -189,6 +210,12 @@ W8OptionsUnavailablePanel::W8OptionsUnavailablePanel(int message)
     : W8OptionsPanel(13), m_message(message)
 {
 }
+
+// SYNTHETIC: WIZ8 0x005ac540
+// W8OptionsUnavailablePanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ac560
+// W8OptionsUnavailablePanel::~W8OptionsUnavailablePanel
 
 // FUNCTION: WIZ8 0x005aa7d0
 void W8OptionsSaveLoadPanel::Populate()

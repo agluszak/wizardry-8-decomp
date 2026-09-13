@@ -30,11 +30,27 @@
 #include "wiz8/magic.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/game_status.h"
+#include "wiz8/character.h"
+#include "wiz8/notices.h"
+#include "wiz8/targeting.h"
+#include "wiz8/utility.h"
+#include "wiz8/xstatus.h"
+#include "random.h"
 
 #include "wiz8/startup_world.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
+
+#define MISSILE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp"
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
@@ -60,7 +76,7 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
     W8AIMissile* copy = static_cast<W8AIMissile*>(malloc(sizeof(W8AIMissile)));
 
     if (copy == 0) {
-        srAssertFail("pAIMissile", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x86d, 0);
+        srAssertFail("pAIMissile", MISSILE_CPP, 0x86d, 0);
     }
     copy->value_00 = source->value_00;
     copy->value_01 = source->value_01;
@@ -184,7 +200,7 @@ W8Missile* NextMissile004A2760(char restart)
 void UpdateWorldMissiles004A27C0(W8World* world)
 {
     if (world == 0) {
-        srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 200, 0);
+        srAssertFail("pWorld", MISSILE_CPP, 200, 0);
     }
     srVector3T<double> camera_location = world->camera->getLocation();
     int index = 0;
@@ -254,7 +270,7 @@ unsigned int W8MissileRep::ApplyEmitterSetting(char emitter)
 #pragma clang diagnostic pop
 
     if (target == 0) {
-        srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x7e, 0);
+        srAssertFail("pao", MISSILE_CPP, 0x7e, 0);
     }
     return AnimObjValue004A15D0(target, m_bLOD);
 }
@@ -303,8 +319,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
 
                 copied_lights = new W8GrowableVector<stLight*>;
                 if (copied_lights == 0) {
-                    srAssertFail("plsNewLights",
-                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x184,
+                    srAssertFail("plsNewLights", MISSILE_CPP, 0x184,
                                  "Out of memory creating monster light list");
                 }
                 for (light_index = 0; light_index < source_lights->GetCount(); ++light_index) {
@@ -318,8 +333,7 @@ W8MissileRep::W8MissileRep(const W8MissileRep& other)
                         *copied_light = *source_light;
                     }
                     if (copied_light == 0) {
-                        srAssertFail("pstNewLight",
-                                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x18c,
+                        srAssertFail("pstNewLight", MISSILE_CPP, 0x18c,
                                      "Out of memory creating monster light");
                     }
                     copied_light->ConfigureMonsterCopy();
@@ -350,8 +364,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     signed char emitter;
 
     if (info == 0 || info->hFile == 0 || missile == 0) {
-        srAssertFail("pInfo && pInfo->hFile && pMissile",
-                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x1df, 0);
+        srAssertFail("pInfo && pInfo->hFile && pMissile", MISSILE_CPP, 0x1df, 0);
     }
     animation = CreateAnimObj004A01A0();
     success = AnimObjReadFromFile004A05C0(info, animation, 1, lights, 1);
@@ -398,7 +411,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
 W8Missile::W8Missile()
     : missile_table_index_1d8(-1), m_pRep(0), flag_1e0(0), flag_1e1(0), flag_1e2(1), flag_1e3(0),
       flag_1e4(0), flag_1e5(0), flag_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0),
-      lifetime_1f0(15000.0f), value_1f4(0), flag_322(0)
+      lifetime_1f0(15000.0f), value_1f4(0), retargeted_322(false)
 {
     W8GrObject::unknown_004 = 1;
     radius_084 = 1.0f;
@@ -417,13 +430,19 @@ W8Missile::W8Missile()
 
     m_pRep = new W8MissileRep;
     if (m_pRep == 0) {
-        srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x38e, 0);
+        srAssertFail("m_pRep", MISSILE_CPP, 0x38e, 0);
     }
 
     memset(values_1fc, 0, sizeof(values_1fc));
     memset(static_cast<void*>(&result_280), 0, 0xa2);
     ResetCombatSlot(&combat_slot_260);
 }
+
+// SYNTHETIC: WIZ8 0x004a3e30
+// W8Missile::`vector deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004a5da0
+// W8Missile::`vector deleting destructor'`adjustor{24}'
 
 /* Release the representation and every external reference before ordinary
    vector and GrCycle teardown. */
@@ -495,13 +514,15 @@ void DestroyAllMissiles(W8World* world)
         W8Missile* missile = *world->missiles->GetAt(0);
 
         if (missile == 0) {
-            srAssertFail("pMissile", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4ab,
-                         0);
+            srAssertFail("pMissile", MISSILE_CPP, 0x4ab, 0);
         }
         g_world->missiles->RemoveAt(g_world->missiles->IndexOf(missile));
         DestroyMissile(missile);
     }
 }
+
+// SYNTHETIC: WIZ8 0x004a2d80
+// W8MissileRep::`scalar deleting destructor'
 
 /* Release the two owned animations and every light vector before the ordinary
    vector members and W8EmitterHost base tear themselves down. */
@@ -563,7 +584,7 @@ W8AniMesh* W8Missile::GetCurrentAniMesh()
     W8AnimObj* animation = m_pRep->emitters[m_pRep->current_cycle];
 
     if (animation == 0) {
-        srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
+        srAssertFail("pao", MISSILE_CPP, 0x55e, 0);
     }
     return animation->entries_18[m_pRep->m_bLOD];
 }
@@ -605,8 +626,7 @@ signed char W8Missile::GetNumSubCycles()
 bool W8Missile::IsCycleSupported(signed char cycle)
 {
     if (cycle >= 2) {
-        srAssertFail("bCycle<MISSILE_NUM_CYCLES",
-                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4bf, 0);
+        srAssertFail("bCycle<MISSILE_NUM_CYCLES", MISSILE_CPP, 0x4bf, 0);
     }
     return m_pRep->emitters[cycle] != 0;
 }
@@ -621,8 +641,8 @@ void W8Missile::SetCycle(signed char cycle)
     int index;
 
     if (cycle < 0 || cycle >= 2) {
-        srAssertFail("bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST",
-                     "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x4d6, 0);
+        srAssertFail("bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST", MISSILE_CPP,
+                     0x4d6, 0);
     }
 
     lights = *m_pRep->light_lists[m_pRep->current_cycle].GetAt(0);
@@ -695,4 +715,155 @@ void W8Missile::AdvanceAnimationFrame(int value, int flags)
     representation_before = m_pRep;
     representation_before->counter_095 = GetNumSubCycles() - 1;
     W8GrCycle::AdvanceAnimationFrame(value, flags);
+}
+
+/* Post "<source> hits <target>" to the notice box and colour the target's
+   name with the target side's colour when it differs from the source's. */
+// FUNCTION: WIZ8 0x004a4ac0
+void W8Missile::AnnounceCollisionTarget()
+{
+    wchar_t text[120];
+    unsigned char target_start;
+    unsigned char target_stop;
+    unsigned char source_color;
+    unsigned char target_color;
+
+    if (gXStatus.fCombatMode == 0) {
+        return;
+    }
+    swprintf(text, L"%s ", gppStringList[0x6fc / 4]);
+    target_start = wcslen(text);
+    if (combat_slot_260.iType == W8_TARGET_KIND_MONSTER) {
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0x701, MISSILE_CPP, combat_slot_260.iMonsterID, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        wcscat(text, GetMonsterName(monster_info, 0, 0));
+    } else {
+        wcscat(text, g_status_685170.buffers.characters[combat_slot_260.iChar].name);
+    }
+    target_stop = wcslen(text);
+    source_color = GetSourceNoticeColor(&source_22c);
+    target_color = GetTargetNoticeColor(&source_22c, &combat_slot_260);
+    wcscat(text, L" ");
+    wcscat(text, gppStringList[0x700 / 4]);
+    ShowNotice(source_color, text, -1, -1, 0);
+    if (target_color != source_color) {
+        HighlightTextBoxRange(target_color, target_start, target_stop, -1);
+    }
+}
+
+// FUNCTION: WIZ8 0x004a4c20
+void W8Missile::EnterImpactCycle()
+{
+    if (IsCycleSupported(1)) {
+        if (GetAnimationState004A4640(6) != 1) {
+            W8MissileRep* representation = m_pRep;
+            srVector3T<float> position = representation->location_004;
+            representation->pending_cycle = 1;
+            representation->behaviour_071 = 1;
+            flag_1e1 = 1;
+            if (flag_1e5 != 0) {
+                representation->location_004.y = SettlePositionToGround00420BD0(&position, 0);
+            }
+        }
+    } else {
+        flag_1e0 = 1;
+        if (missile_table_index_1d8 == 0x23 &&
+            (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
+            Function4A49E0();
+        }
+        if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+            AbsorbMissileDamage00500460(this);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004a4720
+bool W8Missile::OnCollision(W8Navigator* other)
+{
+    char hit_result;
+    unsigned char deflect_chance;
+
+    if (g_startup_world_659c0c == other) {
+        if (TargetSourceIsCharacter(&source_22c, 0)) {
+            goto miss;
+        }
+        if (combat_slot_260.iType != W8_TARGET_KIND_PARTY &&
+            combat_slot_260.iType != W8_TARGET_KIND_CHARACTER) {
+            if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+                goto miss;
+            }
+            if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
+                retargeted_322 = true;
+            }
+            combat_slot_260.iType = W8_TARGET_KIND_CHARACTER;
+            combat_slot_260.iChar = GetRandomCharacter(1, 1, -1, -1);
+            combat_slot_260.iMonsterID = -1;
+            if (gXStatus.fCombatMode != 0) {
+                AnnounceCollisionTarget();
+            }
+        }
+    } else {
+        if (other->movement_0c0.location_id_004 <= 0) {
+            goto miss;
+        }
+        W8Monster* monster = static_cast<W8Monster*>(other);
+        int location_id = monster->propagated_value_1e4;
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0x636, MISSILE_CPP, location_id, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (TargetSourceIsMonster(&source_22c, 0) && source_22c.iMonsterID == location_id) {
+            goto miss;
+        }
+        if (monster_info->hp_current == 0) {
+            goto miss;
+        }
+        if (combat_slot_260.iType != W8_TARGET_KIND_MONSTER ||
+            combat_slot_260.iMonsterID != location_id) {
+            if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+                goto miss;
+            }
+            if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
+                retargeted_322 = true;
+            }
+            combat_slot_260.iType = W8_TARGET_KIND_MONSTER;
+            combat_slot_260.iChar = -1;
+            combat_slot_260.iMonsterID = location_id;
+            if (gXStatus.fCombatMode != 0) {
+                AnnounceCollisionTarget();
+            }
+        }
+    }
+
+    hit_result = 1;
+    if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 == 0) {
+        if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
+            deflect_chance =
+                g_status_685170.buffers.characters[combat_slot_260.iChar].bonus_1770.value_49;
+        } else {
+            W8MonsterInfo* monster_info =
+                MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot_260.iMonsterID, 1);
+            deflect_chance = monster_info->modifiers_1db.value_49;
+        }
+        if (deflect_chance > 0 && Random(100) + 1 <= deflect_chance) {
+            hit_result = 2;
+        }
+    }
+
+    if (missile_table_index_1d8 == 0x23) {
+        g_combat_state->unknown_8c4 = hit_result;
+    } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
+        g_combat_state->unknown_8c4 = hit_result;
+        g_combat_state->TargetHit = combat_slot_260;
+    } else if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+        ResolveSpellMissileHit(this);
+    } else {
+        ResolveMissileHit(this, hit_result == 2);
+    }
+    EnterImpactCycle();
+    state_088 = 0;
+    return true;
+
+miss:
+    return false;
 }

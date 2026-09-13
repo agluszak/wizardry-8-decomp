@@ -10,6 +10,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -54,9 +55,6 @@ void Function546E70(void);
 extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
-/* Writes the monster's world position through an out-parameter; __cdecl, since
-   0x004C5750 ends in a bare `ret`. */
-float Function4BE5C0(srVector3T<float>* position);
 // FUNCTION: WIZ8 0x0052A780
 int CalculateMonsterHealthTier(int current, int maximum)
 {
@@ -259,7 +257,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
     RequestRefreshPartyState();
     Function593330();
-    if (record->unknown_0c0[0] != 0) {
+    if (record->unknown_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
     Function509CD0(record->unknown_0cd[0], 1, monster_info->location_id);

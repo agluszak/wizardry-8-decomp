@@ -21,8 +21,8 @@ class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
 extern int g_automap_zoom_mode;
 
-unsigned char GetFlag68F105(void);
-unsigned char GetFlag68F104(void);
+extern unsigned char g_flag_68f104;
+extern unsigned char g_flag_68f105;
 
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
@@ -31,7 +31,7 @@ unsigned char CanUseCurrentAutomapTool(void);
 void ResetAutomapView005817D0(void);
 void Function581CE0(int handle);
 unsigned char Function582050(srVector3T<float>* position);
-void Function5820F0(int tool);
+void SetAutomapToolCursor(int tool);
 W8AutomapNote* Function582180(void);
 void Function5822C0(void);
 void Function582930(void);
@@ -39,3 +39,5 @@ void Function583BC0(void);
 
 unsigned char ReadAutomapNodes00584DD0(int hFile);
 void RedrawTextBoxBody(void);
+
+float GetFloat64B914(void);

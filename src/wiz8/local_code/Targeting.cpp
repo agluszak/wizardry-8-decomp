@@ -18,6 +18,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/npc_interaction.h"
+#include "wiz8/startup_world.h"
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group_006840b7;
 // GLOBAL: WIZ8 0x006840b3
@@ -120,6 +121,33 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
         return 1;
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x0053c320
+char GetSourceNoticeColor(const W8TargetSource* source)
+{
+    if (TargetSourceIsCharacter(source, 1)) {
+        return 8;
+    }
+    if (TargetSourceIsMonster(source, 1)) {
+        return 9;
+    }
+    return 12;
+}
+
+// FUNCTION: WIZ8 0x0053c3f0
+char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* target)
+{
+    if (TargetSourceIsCharacter(source, 1)) {
+        return 8;
+    }
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        return g_status_685170.buffers.party_rows[target->iChar].party_order_0f1;
+    }
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        return 9;
+    }
+    return 12;
 }
 
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
@@ -367,7 +395,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
     GetCameraPosition(&eye);
-    GetMonsterBounds(monster_info->monster, &lower, &upper);
+    MonsterGetWorldAnimationBounds004CA4F0(monster_info->monster, &lower, &upper);
     return ShowTargetMarker(&eye, &lower, &upper);
 }
 
@@ -653,6 +681,43 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
     return 0;
 }
 
+/* Resolve where a target physically is into the slot's own point: the camera
+   for the character and party kinds, the monster's model position plus its
+   height for the monster kind. The sight-probe variant takes the navigator
+   position lifted by the sight offset instead. Answers zero for any kind
+   without a place. */
+// FUNCTION: WIZ8 0x0053c630
+unsigned char ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
+{
+    srVector3T<float> point;
+    W8Monster* monster;
+
+    if (target->iType == W8_TARGET_KIND_PARTY || target->iType == W8_TARGET_KIND_CHARACTER) {
+        if (sight_probe) {
+            point = g_startup_world_659c0c->GetPosition();
+        } else {
+            GetCameraPosition(&point);
+        }
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        monster = GetMonsterByLocationID(target->iMonsterID);
+        if (sight_probe) {
+            point = monster->GetPosition();
+        } else {
+            point = monster->movement_0c0.position_040;
+            point.y += monster->movement_0c0.height_offset_0b8;
+        }
+    } else {
+        return 0;
+    }
+    if (sight_probe) {
+        point.y += g_float_005ebc64;
+    }
+    target->point.x = point.x;
+    target->point.y = point.y;
+    target->point.z = point.z;
+    return 1;
+}
+
 /* Which monster a party slot should turn on when it has to pick one for
    itself. Every live, in-combat, still-standing monster the slot is hostile to
    and can reach becomes a candidate; the candidates are then ordered and the
@@ -933,6 +998,35 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
                 SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0, 0);
             }
         }
+    }
+}
+
+/* Combat's end: untint every live monster for each party slot whose bit it
+   still carries, then drop the whole mask. */
+// FUNCTION: WIZ8 0x0053ae00
+void ClearAllMonsterHighlights(void)
+{
+    unsigned int index;
+    unsigned int party_slot;
+
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        W8Monster* monster = monster_info->monster;
+        unsigned char flags;
+
+        if (monster_info->flag_14 == 0 || monster == 0) {
+            continue;
+        }
+        flags = MonsterGetRuntimeFlag5BC(monster);
+        if (flags == 0) {
+            continue;
+        }
+        for (party_slot = 0; party_slot < 8; ++party_slot) {
+            if ((flags & (1 << party_slot)) != 0) {
+                MonsterForward4C4DE0(party_slot, monster_info->location_id, 0);
+            }
+        }
+        MonsterSetRuntimeFlag5BC(monster, 0);
     }
 }
 
@@ -1313,7 +1407,8 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0,
+                                1);
         }
         return;
     }
@@ -1360,7 +1455,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
 
-    Function421150(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
     if (position.x == g_target_position_0068407f.x && position.y == g_target_position_0068407f.y &&
         position.z == g_target_position_0068407f.z) {
         return;

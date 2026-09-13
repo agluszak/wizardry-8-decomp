@@ -94,7 +94,7 @@ const wchar_t g_format_d_0060aa20[] = L"%d";
 // GLOBAL: WIZ8 0x00614b58
 const wchar_t g_format_d_slash_d_00614b58[] = L"%d/%d";
 // GLOBAL: WIZ8 0x00617584
-const wchar_t g_format_s_parenthesized_s_00617584[] = L"%s (%s)";
+const wchar_t g_format_s_space_s_00617584[] = L"%s %s";
 // GLOBAL: WIZ8 0x0064789c
 const wchar_t g_dash_0064789c[] = L"-";
 // GLOBAL: WIZ8 0x0064dc24
@@ -515,6 +515,14 @@ void W8CharacterPage005EF778::Activate()
     }
     m_dirty_06d = 1;
     m_prepared_06c = 1;
+}
+
+/* The skills page's Deactivate is the same one-call body; the linker folded
+   both onto this address, so only this definition carries the marker. */
+// FUNCTION: WIZ8 0x005ca1f0
+void W8CharacterPage005EF778::Deactivate()
+{
+    EnableRegionSet(0);
 }
 
 /* Rebuild the three row displays from the character's current profession,
@@ -1060,7 +1068,7 @@ void W8CharacterPage005EF778::Redraw()
                 text.SetLayoutBounds(&bounds, 1, 1);
                 text.SetText(
                     FormatWideString(
-                        g_format_s_parenthesized_s_00617584,
+                        g_format_s_space_s_00617584,
                         gppStringList
                             [g_character_skill_name_ids_61e454
                                  [g_profession_bonus_skills[m_character_060->current_profession]]],

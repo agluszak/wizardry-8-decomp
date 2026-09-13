@@ -5,6 +5,8 @@
 
 #include "input.h"
 
+struct Controls;
+
 extern unsigned char g_flag_689b32;
 
 struct W8RegionSet {
@@ -52,7 +54,7 @@ struct W8Region {
     unsigned char help_enabled;
     unsigned char unknown_13;
     int help_text_id;
-    void* owner;
+    Controls* owner;
 }; /* 0x1c */
 
 void InitializeRegionHelpState(void);
@@ -148,7 +150,7 @@ void ResetRegionSet(unsigned int region_set_index);
 unsigned int AddRegionToSet(unsigned int region_set_index);
 void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
-void SetRegionOwner(unsigned int region_index, void* owner);
+void SetRegionOwner(unsigned int region_index, Controls* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
 void ClearHotRegion004F2A80(void);
 void UpdateRegionHelp(void);
@@ -162,6 +164,13 @@ unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
+
+/* Unresolved region-manager gap helpers used by RCSItemsPage.cpp: the first
+   records that region help is armed, and the other two set and clear a
+   W8Region's help-enabled byte at +0x12. */
+void Function4F27C0(char armed);
+void Function4F27D0(W8Region* region);
+void Function4F27E0(W8Region* region);
 
 unsigned int DispatchMainGameMouseButtons(const InputAtom* input);
 

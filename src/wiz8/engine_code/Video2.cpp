@@ -101,7 +101,7 @@ int g_screen_depth_603c44 = 16;
 // GLOBAL: WIZ8 0x603c48
 int g_pixel_format_603c48 = 9;
 // GLOBAL: WIZ8 0x603d74
-int g_renderer_mode_603d74;
+int g_renderer_mode_603d74 = 1;
 // GLOBAL: WIZ8 0x65962c
 srModelInstance* g_current_model_instance_65962c;
 // GLOBAL: WIZ8 0x6596fc
@@ -146,7 +146,7 @@ LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
 RECT g_window_rect_659610;
 
 // GLOBAL: WIZ8 0x600088
-unsigned int g_color_key_600088;
+unsigned int g_color_key_600088 = 0x3def;
 // GLOBAL: WIZ8 0x65963c
 srModeler* g_modeler_65963c;
 // GLOBAL: WIZ8 0x659640
@@ -2800,6 +2800,9 @@ void SetDisplayGamma(float value)
 // TEMPLATE: WIZ8 0x00429D50
 // srClassSupport<srMaterial,srMaterial,0,8720>::clone
 
+// SYNTHETIC: WIZ8 0x00423e50
+// srClassSupport<srMaterial,srMaterial,0,8720>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x00429E80
 // srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID
 
@@ -2820,6 +2823,9 @@ void SetDisplayGamma(float value)
 // TEMPLATE: WIZ8 0x0042A0A0
 // srClassSupport<srCamera,srCamera,0,5120>::clone
 
+// SYNTHETIC: WIZ8 0x00423e80
+// srClassSupport<srCamera,srCamera,0,5120>::`scalar deleting destructor'
+
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srScene self-support template. */
 // VTABLE: WIZ8 0x005EBE48
@@ -2837,6 +2843,9 @@ void SetDisplayGamma(float value)
 // TEMPLATE: WIZ8 0x0042A150
 // srClassSupport<srScene,srScene,0,4112>::clone
 
+// SYNTHETIC: WIZ8 0x00423eb0
+// srClassSupport<srScene,srScene,0,4112>::`scalar deleting destructor'
+
 // VTABLE: WIZ8 0x005EBD10
 // class srClassSupport<srColorSurface, class srColorSurface, 0, 12560>
 
@@ -2851,3 +2860,6 @@ void SetDisplayGamma(float value)
 
 // TEMPLATE: WIZ8 0x00429AD0
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
+
+// SYNTHETIC: WIZ8 0x00423f00
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'

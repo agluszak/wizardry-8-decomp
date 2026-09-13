@@ -17,6 +17,7 @@ public:
     stMeshModel* Read0049E9A0(int file, srMaterialIFace** materials, srTextureIFace** textures,
                               unsigned long* render_flags, stMeshModel** meshes,
                               int material_count);
+    unsigned char Write0049E5D0(int hFile); /* 0x0049E5D0, body unrecovered */
 
     short version_00;
     short padding_02;

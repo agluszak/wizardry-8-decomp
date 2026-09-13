@@ -9,7 +9,7 @@
    constants. */
 
 // GLOBAL: WIZ8 0x006068EC
-float g_rate_006068EC;
+float g_rate_006068EC = 0.1f;
 
 // GLOBAL: WIZ8 0x006598bc
 W8Object0043A910* g_object_6598bc;

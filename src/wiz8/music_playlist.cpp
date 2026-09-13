@@ -11,6 +11,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Unresolved fragment: all six functions lie in the single anchored gap
+   between Camera.cpp (0x0048F2F0) and Cursor3d.cpp (0x00490C60). One
+   contiguous interval, but no anchor proves the file is one original TU. */
+
 stScript* g_music_playlist_65ba74;
 unsigned int g_music_playlist_tick_65ba78;
 unsigned char g_music_playlist_active_65ba7e;

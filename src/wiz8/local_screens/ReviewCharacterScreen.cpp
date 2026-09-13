@@ -87,7 +87,7 @@ void Function5C5240(void);
 Controls* g_camp_secondary_panel_0069c428;
 
 // The review-screen panel sets torn down on leave: each set is a panel with
-// its button controls beside it. Their creators are not yet recovered, so the
+// its button controls beside it. Their creators are not recovered, so the
 // members keep neutral names.
 // GLOBAL: WIZ8 0x0069c43c
 W8TextControl* g_panel_controls_69c43c[2];

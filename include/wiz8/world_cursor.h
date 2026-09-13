@@ -23,9 +23,9 @@ struct W8WorldCursorState {
     unsigned char unknown_34[0xc];
     bool visible_40;
     unsigned char unknown_41[0x0b];
-    /* 0x4c: the camera-distance value restored to the shared slot when the
-       cursor is destroyed. */
-    float value_4c;
+    /* 0x4c: seeded from and restored to g_cursor_saved_value_60ab44; both
+       ends only copy the whole word. */
+    int value_4c;
     unsigned char unknown_50[0x90];
 };
 #pragma pack(pop)

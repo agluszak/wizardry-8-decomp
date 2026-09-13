@@ -588,7 +588,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        Function529BE0();
+        BeginNpcScriptedScene();
         return;
     case 0x1c2:
         if (value == 0) {
