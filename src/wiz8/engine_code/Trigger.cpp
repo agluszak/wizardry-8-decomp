@@ -905,8 +905,8 @@ void W8TriggerShakeEvent::Update()
    The caller passes the intensity, the effect duration and the optional
    countdown duration, all scaled by the trigger unit's 0.001 factor. */
 // FUNCTION: WIZ8 0x00444F70
-unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
-                                              float countdown_duration, unsigned char reverse)
+bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countdown_duration,
+                                     bool reverse)
 {
     W8TriggerShakeEvent* pEvent = new W8TriggerShakeEvent;
 
@@ -970,7 +970,7 @@ void Trigger::Activate00444750()
 }
 
 // FUNCTION: WIZ8 0x00444810
-unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_party)
+bool Trigger::HasActorWithinRadius(float radius, bool include_party)
 {
     srVector3T<float> center;
 
@@ -1008,7 +1008,7 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
         }
     }
 
-    if (include_party != 0) {
+    if (include_party) {
         srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
         if ((party_position - center).Length() <= radius) {
             return 1;
@@ -1018,7 +1018,7 @@ unsigned char Trigger::HasActorWithinRadius(float radius, unsigned char include_
 }
 
 // FUNCTION: WIZ8 0x004457c0
-unsigned char Trigger::PlayActionSound(const char* sound_name, int volume)
+bool Trigger::PlayActionSound(const char* sound_name, int volume)
 {
     srVector3T<float> position;
 
@@ -2137,8 +2137,8 @@ void Trigger::UpdateActionAnimation()
 // FUNCTION: WIZ8 0x00441110
 void Trigger::FinishAction()
 {
-    unsigned char was_running = flag_0a0_06;
-    unsigned char action_completed = 0;
+    bool was_running = flag_0a0_06;
+    bool action_completed = false;
     char* recipient;
 
     flag_0a0_06 = 0;
@@ -2163,7 +2163,7 @@ void Trigger::FinishAction()
         if (m_pEvent != 0 && m_lData2 > 0) {
             m_pEvent->completed_035 = 1;
         }
-        action_completed = 1;
+        action_completed = true;
         break;
 
     case 0x23: {
@@ -2171,7 +2171,7 @@ void Trigger::FinishAction()
         if (index >= 0) {
             g_timed_events_006599b8.RemoveAt(index);
         }
-        action_completed = 1;
+        action_completed = true;
         break;
     }
 
@@ -2180,14 +2180,14 @@ void Trigger::FinishAction()
             m_pEvent->completed_035 = 1;
         }
         g_trigger_action_active_006599c8 = 0;
-        action_completed = 1;
+        action_completed = true;
         break;
     }
 
     if (flag_0a0_03 == 0 && action_230 != 0) {
         if (action_230 == 4) {
             recipient = m_pacRecipients;
-            action_completed = 0;
+            action_completed = false;
             while (recipient != 0) {
                 strcpy(g_trigger_parse_buffer_00659908, recipient);
                 char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
@@ -2206,7 +2206,7 @@ void Trigger::FinishAction()
                     } else {
                         light->clearFlag(srNode::FLAG_DISABLE);
                     }
-                    action_completed = 1;
+                    action_completed = true;
                 }
             }
         } else if (action_230 == 0x22) {
@@ -2220,7 +2220,7 @@ void Trigger::FinishAction()
             goto finish_linked_triggers;
         }
 
-        if (action_completed == 0) {
+        if (!action_completed) {
             goto reactivate_linked_triggers;
         }
     }
@@ -2286,7 +2286,7 @@ static char* NextTriggerRecipient(char** cursor)
 }
 
 // FUNCTION: WIZ8 0x004409b0
-void Trigger::CommitActionResult(unsigned char apply_state_changes)
+void Trigger::CommitActionResult(bool apply_state_changes)
 {
     char* recipient;
 
@@ -2297,7 +2297,7 @@ void Trigger::CommitActionResult(unsigned char apply_state_changes)
         while (recipient != 0) {
             Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
-                unsigned char was_running = flag_0a0_06;
+                bool was_running = flag_0a0_06;
                 flag_0a0_06 = 1;
                 trigger->Run(m_lData1);
                 flag_0a0_06 = was_running;
@@ -2305,7 +2305,7 @@ void Trigger::CommitActionResult(unsigned char apply_state_changes)
         }
     }
 
-    if (m_pacStateToMod != 0 && apply_state_changes != 0) {
+    if (m_pacStateToMod != 0 && apply_state_changes) {
         int state_id;
         int state_value;
 
@@ -2395,7 +2395,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     int entity_value;
     int current_location;
     float angle;
-    unsigned char named_entity;
+    bool named_entity;
 
     if (g_modal_owner_0068edd0 != 0) {
         return;
@@ -2409,7 +2409,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
        path. Both GOG builds then read the stack slot holding this for those
        values. Preserve that source bug rather than assigning entity_value and
        silently making the path behave differently. */
-    if (named_entity == 0) {
+    if (!named_entity) {
         char location_code[4];
         char entrance_code[3];
 
@@ -2431,7 +2431,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
         return;
     }
 
-    if (named_entity == 0) {
+    if (!named_entity) {
         Trigger* target = FindTriggerByName(destination);
 
         destination_position.x = target->position_118;
@@ -2499,13 +2499,13 @@ void Trigger::GenerateItemGroup()
 void Trigger::Run(int source)
 {
     ActivationCallback callback = activation_callback_360;
-    unsigned char apply_state_changes = 1;
-    unsigned char action_succeeded = 0;
+    bool apply_state_changes = true;
+    bool action_succeeded = false;
 
-    if (SelectAction() == 0) {
+    if (!SelectAction()) {
         return;
     }
-    if (callback != 0 && callback(this) == 0) {
+    if (callback != 0 && !callback(this)) {
         return;
     }
 
@@ -2730,13 +2730,13 @@ void Trigger::Run(int source)
         }
 
         case 2: {
-            unsigned char active;
+            bool active;
 
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
             active = m_pProp->Rep()->flag_06d;
-            if (active != 0) {
+            if (active) {
                 break;
             }
             value_0b1 = value_0b1 == 1 ? 0 : 1;
@@ -2799,7 +2799,7 @@ void Trigger::Run(int source)
 
         case 0x2c: {
             W8TriggerActionData005EC134* action_data = 0;
-            unsigned char was_active;
+            bool was_active;
 
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
                 action_data = static_cast<W8TriggerActionData005EC134*>(m_pActionData);
@@ -2815,12 +2815,12 @@ void Trigger::Run(int source)
                 break;
             }
             was_active = m_pProp->Rep()->flag_06d;
-            m_pProp->SetRepresentationActive(was_active == 0, 1);
+            m_pProp->SetRepresentationActive(!was_active, 1);
             value_0b1 = value_0b1 == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 Function41C680(value_0b8, value_0b1);
             }
-            if (was_active == 0) {
+            if (!was_active) {
                 flag_0a0_06 = 1;
             } else {
                 flag_0a0_06 = 0;
@@ -2854,8 +2854,8 @@ void Trigger::Run(int source)
         break;
 
     case 3: {
-        unsigned char was_active;
-        unsigned char action_succeeded = 1;
+        bool was_active;
+        bool action_succeeded = true;
 
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
@@ -2892,7 +2892,7 @@ void Trigger::Run(int source)
                 int contained_items = 0;
 
                 if (item_count != 1 && m_pProp->Rep()->flag_064 != 0) {
-                    action_succeeded = 0;
+                    action_succeeded = false;
                 }
 
                 item = world_item_group_34c->next;
@@ -2929,19 +2929,19 @@ void Trigger::Run(int source)
                     flag_0a0_25 = 1;
                 }
 
-                if (action_succeeded == 0) {
+                if (!action_succeeded) {
                     return;
                 }
             }
         }
 
     toggle_item_prop:
-        m_pProp->SetRepresentationActive(was_active == 0, 1);
+        m_pProp->SetRepresentationActive(!was_active, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
         }
-        if (was_active == 0) {
+        if (!was_active) {
             flag_0a0_06 = 1;
         } else {
             flag_0a0_06 = 0;
@@ -2971,13 +2971,13 @@ void Trigger::Run(int source)
                 } else if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
                     light->setFlag(srNode::FLAG_DISABLE);
                 }
-                action_succeeded = 1;
+                action_succeeded = true;
             }
         }
         if (trigger_kind_018 == 2) {
             flag_0a0_06 = 1;
         }
-        if (action_succeeded == 0) {
+        if (!action_succeeded) {
             return;
         }
         break;
@@ -3028,14 +3028,14 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
-                unsigned char was_running = flag_0a0_06;
+                bool was_running = flag_0a0_06;
                 flag_0a0_06 = 1;
                 target->Run(m_lData1);
                 flag_0a0_06 = was_running;
-                action_succeeded = 1;
+                action_succeeded = true;
             }
         }
-        if (action_succeeded == 0) {
+        if (!action_succeeded) {
             return;
         }
         break;
@@ -3193,10 +3193,10 @@ void Trigger::Run(int source)
                 } else {
                     target->flag_0a0_04 = target->flag_0a0_04 == 0;
                 }
-                action_succeeded = 1;
+                action_succeeded = true;
             }
         }
-        if (action_succeeded == 0) {
+        if (!action_succeeded) {
             return;
         }
         break;
@@ -3380,7 +3380,7 @@ void Trigger::Run(int source)
             }
             g_location_variable_values_00659990.SetAt(state_id, 1);
         }
-        apply_state_changes = 0;
+        apply_state_changes = false;
         break;
 
     case 0x41:
@@ -3400,7 +3400,7 @@ void Trigger::Run(int source)
             } else {
                 ToggleAmbientSoundByName0047AA70((int)g_world, name);
             }
-            action_succeeded = 1;
+            action_succeeded = true;
         }
         break;
     }
@@ -3424,10 +3424,10 @@ void Trigger::Run(int source)
                 } else {
                     particle->SetActive(particle->active_1a0 == 0);
                 }
-                action_succeeded = 1;
+                action_succeeded = true;
             }
         }
-        if (action_succeeded == 0) {
+        if (!action_succeeded) {
             return;
         }
         break;
@@ -3439,16 +3439,16 @@ void Trigger::Run(int source)
         if (recipient == 0 || m_pEvent != 0) {
             return;
         }
-        action_succeeded = 0;
+        action_succeeded = false;
         while (recipient != 0) {
             stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
                 particle->trigger_flag_192 = 1;
                 particle->SetActive(1);
-                action_succeeded = 1;
+                action_succeeded = true;
             }
         }
-        if (action_succeeded == 0) {
+        if (!action_succeeded) {
             return;
         }
 
@@ -3547,7 +3547,7 @@ commit_action:
 }
 
 // FUNCTION: WIZ8 0x00444600
-unsigned char Trigger::CanRunLinkedTriggers()
+bool Trigger::CanRunLinkedTriggers()
 {
     char* recipient;
 
@@ -3568,18 +3568,18 @@ unsigned char Trigger::CanRunLinkedTriggers()
             recipient = 0;
         }
         trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
-        if (trigger != 0 && trigger->CanRunLinkedTriggers() == 0) {
-            return 0;
+        if (trigger != 0 && !trigger->CanRunLinkedTriggers()) {
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x0043d340
-unsigned char Trigger::SelectAction()
+bool Trigger::SelectAction()
 {
-    unsigned char fallback_selected = 0;
-    unsigned char result = 1;
+    bool fallback_selected = false;
+    bool result = true;
 
     if (g_flag_006081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
         (m_pActionData->flags_008 & 1) != 0) {
@@ -3602,14 +3602,14 @@ unsigned char Trigger::SelectAction()
             if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
                 action_230 = fallback_action_22e;
                 action_state_232 = 4;
-                fallback_selected = 1;
+                fallback_selected = true;
             }
         } else {
             char* required_state = 0;
-            unsigned char more_states = 1;
+            bool more_states = true;
             char state_name[128];
 
-            while (more_states != 0) {
+            while (more_states) {
                 char* comma;
                 int state_id;
 
@@ -3621,7 +3621,7 @@ unsigned char Trigger::SelectAction()
                 strcpy(state_name, required_state);
                 comma = strchr(state_name, ',');
                 if (comma == 0) {
-                    more_states = 0;
+                    more_states = false;
                 } else {
                     *comma = '\0';
                 }
@@ -3634,7 +3634,7 @@ unsigned char Trigger::SelectAction()
                 if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
                     action_230 = fallback_action_22e;
                     action_state_232 = 4;
-                    fallback_selected = 1;
+                    fallback_selected = true;
                     break;
                 }
             }
@@ -3654,29 +3654,29 @@ unsigned char Trigger::SelectAction()
                 }
                 action_230 = fallback_action_22e;
                 action_state_232 = 4;
-                fallback_selected = 1;
+                fallback_selected = true;
             }
         }
     } else {
         W8TriggerActionData005EC134* action_data =
             static_cast<W8TriggerActionData005EC134*>(m_pActionData);
-        unsigned char linked_trigger_blocked = 0;
+        bool linked_trigger_blocked = false;
 
         if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
-            linked_trigger_blocked = 1;
+            linked_trigger_blocked = true;
         } else {
             char* cursor = m_pacRecipients;
             char* name;
             while ((name = NextTriggerRecipient(&cursor)) != 0) {
                 Trigger* trigger = FindTriggerByName(name);
-                if (trigger != 0 && trigger->CanRunLinkedTriggers() == 0) {
-                    linked_trigger_blocked = 1;
+                if (trigger != 0 && !trigger->CanRunLinkedTriggers()) {
+                    linked_trigger_blocked = true;
                     break;
                 }
             }
         }
 
-        if (linked_trigger_blocked != 0) {
+        if (linked_trigger_blocked) {
             if (m_pEvent == 0 || g_timed_events_006599b8.IndexOf(m_pEvent) == -1) {
                 return 0;
             }
@@ -3697,14 +3697,14 @@ unsigned char Trigger::SelectAction()
                 }
                 action_230 = fallback_action_22e;
                 action_state_232 = 4;
-                fallback_selected = 1;
+                fallback_selected = true;
             } else {
                 state_370.state = 1;
                 action_data->flags_008 &= ~4;
                 if (action_data->linked_trigger_00c[0] != '\0') {
                     Trigger* linked_trigger;
                     action_state_232 = 1;
-                    result = 0;
+                    result = false;
                     linked_trigger = FindTriggerByName(action_data->linked_trigger_00c);
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
@@ -3730,7 +3730,7 @@ unsigned char Trigger::SelectAction()
         }
     }
 
-    if (fallback_selected == 0) {
+    if (!fallback_selected) {
         if (flag_0a0_14 == 0) {
             action_230 = initial_action_22a;
             action_state_232 = 2;
