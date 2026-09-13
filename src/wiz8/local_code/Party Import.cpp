@@ -5,10 +5,13 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 
 #include "random.h"
@@ -16,8 +19,7 @@
 #include <string.h>
 
 /* Retail Local Code\Party Import.cpp: converts imported Wizardry 7
-   characters into the Wizardry 8 layout. The entry driver 0x005590B0 that
-   calls all four functions stays in the gap. */
+   characters into the Wizardry 8 layout. */
 
 #define PARTY_IMPORT_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Party Import.cpp"
 
@@ -50,6 +52,105 @@ static int FindItemByLegacyNumber(short item_number)
         ++index;
     }
     return -1;
+}
+
+// FUNCTION: WIZ8 0x005590B0
+void ImportWizardry7Character005590B0(W8Character* character, char* imported)
+{
+    W8Wiz7Character* imported_record = (W8Wiz7Character*)imported;
+    W8Profession profession;
+    unsigned int level;
+    unsigned int skill_id;
+    int status;
+
+    memset(character, 0, sizeof(W8Character));
+    swprintf(character->name, g_combat_log_format_00617664, TitleCaseString(imported));
+    wcscpy(character->name_part_2, character->name);
+    character->race = (unsigned char)imported[0x237];
+    character->gender = (W8Gender)(unsigned char)imported[0x238];
+    switch ((unsigned char)imported[0x239]) {
+    default:
+        profession = W8_PROFESSION_FIGHTER;
+        break;
+    case 1:
+        profession = W8_PROFESSION_MAGE;
+        break;
+    case 2:
+        profession = W8_PROFESSION_PRIEST;
+        break;
+    case 3:
+        profession = W8_PROFESSION_ROGUE;
+        break;
+    case 4:
+        profession = W8_PROFESSION_RANGER;
+        break;
+    case 5:
+        profession = W8_PROFESSION_ALCHEMIST;
+        break;
+    case 6:
+        profession = W8_PROFESSION_BARD;
+        break;
+    case 7:
+        profession = W8_PROFESSION_PSIONIC;
+        break;
+    case 8:
+        profession = W8_PROFESSION_VALKYRIE;
+        break;
+    case 9:
+        profession = W8_PROFESSION_BISHOP;
+        break;
+    case 10:
+        profession = W8_PROFESSION_LORD;
+        break;
+    case 11:
+        profession = W8_PROFESSION_SAMURAI;
+        break;
+    case 12:
+        profession = W8_PROFESSION_MONK;
+        break;
+    case 13:
+        profession = W8_PROFESSION_NINJA;
+        break;
+    }
+    character->current_profession = profession;
+    CalcCharacterTableValue(character);
+    level = (unsigned short)*(short*)(imported + 0x24);
+    if (*(short*)(imported + 0x24) > 0) {
+        level = 1;
+    }
+    AdvanceCharacterToLevel(character, level);
+    character->experience = 13000;
+    character->value_09f9 = *(int*)(imported + 0x10);
+    character->death_count_09fd = *(short*)(imported + 0x26) - 1;
+    character->profession_levels[character->current_profession] = character->level;
+    character->original_profession = character->current_profession;
+    character->level_band_base = 0;
+    status = (unsigned char)imported[0x23b];
+    if (status == 2 || status == 3) {
+        character->condition_turns[0x12] = 9999;
+        character->highest_condition = 0x12;
+    } else {
+        character->highest_condition = 0;
+    }
+    character->enchantment_top = 0;
+    ConvertAttribute(character, imported_record);
+    GrantStartingSpells005595D0(character);
+    for (skill_id = 0; skill_id < 0x29; ++skill_id) {
+        character->skills[skill_id].flag_00 = 0;
+        character->skills[skill_id].value_02 =
+            ConvertSkill(skill_id, character, imported_record, imported_record, 0);
+    }
+    RefreshCharacterSkillAvailability00553CD0(character);
+    ImportEquipment00559650(character, imported_record);
+    DeriveCharacterPersonality004EFA30(character);
+    Function4EFAD0(character);
+    CalcCharacterLevelBand(character);
+    RecalculateCharacterDerivedStats(character);
+    character->stamina = character->stamina_max;
+    character->hp_current = character->hp_max;
+    for (skill_id = 0; skill_id < 6; ++skill_id) {
+        character->sp_left[skill_id] = character->sp_max[skill_id];
+    }
 }
 
 // FUNCTION: WIZ8 0x005592D0

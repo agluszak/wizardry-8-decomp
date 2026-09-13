@@ -26,17 +26,14 @@ struct W8Wiz7Character {
     unsigned char profession_239; /* 0x239: Wiz7 class byte */
 };
 
-/* Local Code\Party Import.cpp: the four Wizardry 7 character-import
-   conversions. ConvertAttribute/ConvertSkill are named by their assertion
-   strings; the other two are behaviour names. The driver 0x005590B0 that
-   calls all four stays in the gap (it is not called by any recovered body,
-   so it is not declared here). */
+/* Local Code\Party Import.cpp: the Wizardry 7 character-import conversions. */
 void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported); /* 0x005592D0 */
 void GrantStartingSpells005595D0(W8Character* character);
 void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* imported);
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* same_record, const W8Wiz7Character* imported,
                           unsigned int base_value); /* 0x00559BC0 */
+void ImportWizardry7Character005590B0(W8Character* character, char* imported);
 
 /* Rebuilds the character's learned-spell buckets through a 0x3dc-byte
    scratch record after the spell grant. */
