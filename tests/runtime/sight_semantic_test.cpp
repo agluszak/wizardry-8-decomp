@@ -104,10 +104,11 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
 void PrintSightSemanticResults(const SightSemanticResult* result)
 {
-    printf("WIZ8_SIGHT_SEMANTIC blind_is_zero=%u facing_away_reduces_range=%u "
-           "skip_fov_restores_range=%u penalty_source_reduces_range=%u "
-           "attribute_scales_range=%u same_primitive_party_and_monster=%u\n",
-           result->blind_is_zero, result->facing_away_reduces_range,
-           result->skip_fov_restores_range, result->penalty_source_reduces_range,
-           result->attribute_scales_range, result->same_primitive_party_and_monster);
+    printf(
+        "WIZ8_RUNTIME_TEST scenario=sight-threshold blind_is_zero=%u facing_away_reduces_range=%u "
+        "skip_fov_restores_range=%u penalty_source_reduces_range=%u "
+        "attribute_scales_range=%u same_primitive_party_and_monster=%u\n",
+        result->blind_is_zero, result->facing_away_reduces_range, result->skip_fov_restores_range,
+        result->penalty_source_reduces_range, result->attribute_scales_range,
+        result->same_primitive_party_and_monster);
 }

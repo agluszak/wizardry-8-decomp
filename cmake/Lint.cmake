@@ -26,7 +26,7 @@ endfunction()
 # and writable-string VC6 APIs stay here: "fixing" them invents source the
 # binary does not contain.
 set(WIZ8_CLANG_COMPAT_FLAGS
-    -Xclang -fno-wchar
+    -Xclang -fno-wchar # clang-cl equivalent of VC6's /Zc:wchar_t- wchar model
     -fms-extensions
     -ferror-limit=0
     -fdiagnostics-parseable-fixits

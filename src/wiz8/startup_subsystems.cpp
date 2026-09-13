@@ -97,7 +97,7 @@ unsigned char InitializeMenuFonts(void)
 
 #define LOAD_FONT(destination, filename)                                                           \
     strcpy(path, filename);                                                                        \
-    destination = LoadFontFile((UINT8*)path)
+    destination = LoadFontFile(reinterpret_cast<UINT8*>(path) /* reinterpret-ok: SGP API declared UINT8* for text */) \
 
     LOAD_FONT(g_large_font_683674, "Data\\Fonts\\LargeFont.sti");
     LOAD_FONT(g_small_font_683678, "Data\\Fonts\\SmallFont.sti");
