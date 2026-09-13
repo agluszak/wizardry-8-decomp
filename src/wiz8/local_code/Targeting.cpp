@@ -1805,9 +1805,9 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
     previous_kind = target->iType;
     if (gXStatus.fCombatMode != 0) {
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
-            int* pending = reinterpret_cast<int*>(
-                reinterpret_cast<char*>(
-                    g_combat_state) + // reinterpret-ok: per-slot pending-action counter inside the combat rows, not yet fielded
+            int* pending = reinterpret_cast<int*>( // reinterpret-ok: per-slot pending-action counter inside the combat rows, not yet fielded
+                reinterpret_cast<char*>( // reinterpret-ok: raw byte addressing into the combat rows
+                    g_combat_state) +
                 0xac +
                 party_slot * 0xd4);
             *pending += 1;
@@ -2493,9 +2493,8 @@ void RefreshMonsterTargetCounts005398D0(void)
                 selectable_count += 1;
             }
         }
-        cached = reinterpret_cast<int*>(
-            group
-                ->unknown_0c); // reinterpret-ok: cached on-screen/selectable pair the retail refresh stores in the group's opaque eight-byte scratch
+        cached = reinterpret_cast<int*>( // reinterpret-ok: cached on-screen/selectable pair the retail refresh stores in the group's opaque eight-byte scratch
+            group->unknown_0c);
         if (on_screen_count != cached[0] || selectable_count != cached[1]) {
             RequestRedrawParty();
             cached[0] = on_screen_count;
@@ -2565,8 +2564,8 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
         monster = GetMonsterByLocationID(location_id);
         point = g_target_position_0068407f;
         if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
-            float* channels = reinterpret_cast<float*>(
-                &block); // reinterpret-ok: highlight tint stored as four floats in the render-state block
+            float* channels = reinterpret_cast<float*>( // reinterpret-ok: highlight tint stored as four floats in the render-state block
+                &block);
             channels[0] = 0.0f;
             channels[1] = 1.0f;
             channels[2] = 0.0f;

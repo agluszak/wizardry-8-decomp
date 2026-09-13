@@ -41,8 +41,8 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
     case 1:
         return 0;
     case 3:
-        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>(
-            path)); // reinterpret-ok: the kind byte selects the tagged record type
+        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>( // reinterpret-ok: the kind byte selects the tagged record type
+            path));
     default:
         return 0;
     }
