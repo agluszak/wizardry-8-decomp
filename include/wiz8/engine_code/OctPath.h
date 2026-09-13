@@ -6,6 +6,18 @@
 #include "wiz8/engine_code/stHash.hpp"
 
 class stModelInstance;
+class GDPreProp;
+
+/* One pre-path prop record handed to LinkCollideableProps: the prop's path
+   name plus the GDPreProp array OctPreTree.cpp builds for it (stride 0x48). */
+struct W8PreProp {
+    char name[0x40];
+    unsigned short num_stop_meshes_40;
+    unsigned short padding_42;
+    GDPreProp* pStopMeshes;
+};
+
+static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
    and later releases it with delete. Its storage has no proven
@@ -174,6 +186,9 @@ public:
     void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
     void SetConditionalPathFrame00457EA0(unsigned int path_handle, short frame);
     unsigned int FindConditionalPathValue00458970(unsigned int key, unsigned int value);
+    void LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
+                              W8HashTable<unsigned int, unsigned int*>* pCondValues);
+    /* 0x004CE510 */
     unsigned char HandlePathEdgeTransition00460350(W8NavigatorMovementState* movement);
     void ReduceWaypointCosts00462220(unsigned int waypoint, float amount);
     unsigned char AdvanceAttachmentWaypoint00462DE0(const srVector3T<float>* source,
@@ -369,14 +384,14 @@ public:
        first by name and names the other four in its own failure messages: a
        lookup, a frame, a key and a value array, sized from the two counts.
        FindPathHandle scans the 0x44-byte path records by name. */
-    W8ConditionalPath* m_pCondPaths; /* 0x21c */
-    int m_ulNumCondPaths;            /* 0x220 */
-    int m_ulNumCondLookup;           /* 0x224 */
-    int m_ulNumCondKeys;             /* 0x228 */
-    int* m_pCondLookup;              /* 0x22c */
-    short* m_pCondFrames;            /* 0x230 */
-    int* m_pCondKeys;                /* 0x234 */
-    int* m_pCondValues;              /* 0x238 */
+    W8ConditionalPath* m_pCondPaths;     /* 0x21c */
+    int m_ulNumCondPaths;                /* 0x220 */
+    int m_ulNumCondFrames;               /* 0x224 */
+    int m_ulNumCondNodes;                /* 0x228 */
+    unsigned int* m_pulCondLookup;       /* 0x22c */
+    unsigned short* m_pusCondNodeFrames; /* 0x230 */
+    unsigned int* m_pulCondNodeKeys;     /* 0x234 */
+    unsigned int* m_pulCondNodeValues;   /* 0x238 */
     unsigned char flag_23c;
     unsigned char m_padding_23d[3];
 };

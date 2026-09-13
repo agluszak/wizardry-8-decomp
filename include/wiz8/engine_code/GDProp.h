@@ -15,6 +15,7 @@ struct W8WorldItem;
    m_pVertices member names and establish their offsets. */
 class GDProp {
     friend class W8Prop;
+    friend class W8PathingService;
 
 public:
     GDProp(srModelInstance* instance, const unsigned char* path_name, unsigned short prop_number,
@@ -51,6 +52,16 @@ private:
     unsigned short m_path_bound_52; /* 0x52 */
     W8PList* m_list_54;             /* 0x54 */
 }; /* 0x58 */
+
+/* OctPreTree.cpp's per-prop path record element: the GDProp plus the frame
+   index 0x0046C0F0 writes at +0x58 and W8PathingService::LinkCollideableProps
+   reads back. */
+class GDPreProp : public GDProp {
+public:
+    unsigned short m_frame_58; /* 0x58 */
+}; /* 0x5c */
+
+static_assert(sizeof(GDPreProp) == 0x5c, "GDPreProp_must_be_0x5c");
 
 void AddItemToSector(int sector, W8WorldItem* item); /* 0x004B7AD0 */
 void RegisterPathSurface004B7730(unsigned int index, const int* point);
