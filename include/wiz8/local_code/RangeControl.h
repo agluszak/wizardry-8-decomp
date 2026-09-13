@@ -34,6 +34,7 @@ public:
 /* The range panel is shared by Controls.cpp and the state-5 party-selection
    controls. Its listener, value and child ownership are therefore part of the
    shared range-control declaration rather than a translation-unit-local sketch. */
+// VTABLE: WIZ8 0x005ed74c
 class W8RangeControl : public Controls {
 public:
     friend class W8VerticalRangeThumb;

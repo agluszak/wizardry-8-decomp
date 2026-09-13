@@ -18,6 +18,7 @@ public:
 /* W8Control is itself the ordinary two-slot text-control listener. The same
    W8TextControl pointer is laid out, registered in the vector and dispatched
    for selected/deselected state; there is no parallel vector-element object. */
+// VTABLE: WIZ8 0x005ed654
 class W8ControlSelection : public W8TextControl::Listener {
 public:
     W8ControlSelection();

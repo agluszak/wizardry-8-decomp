@@ -4,6 +4,7 @@
 
 /* The 0x28-byte timer-derived helper constructed by GDCamera. Its original
    name is not exposed; the vtable address remains the stable identity. */
+// VTABLE: WIZ8 0x005ebcfc
 class W8IntervalGate : public W8GameTimer {
 public:
     W8IntervalGate(); /* 0x0043A4E0 */
