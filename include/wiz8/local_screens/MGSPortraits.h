@@ -2,6 +2,14 @@
 
 void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);
+unsigned char ReleasePortraitQuoteBubble(int quote_handle);
+int LayoutPortraitQuoteBubble(int surface_handle, unsigned char param_2, unsigned char param_3,
+                              const wchar_t* text, unsigned int max_width, int param_6, int param_7,
+                              int param_8, unsigned short* out_width, unsigned short* out_height,
+                              unsigned int font_palette);
+const wchar_t* FormatPortraitQuoteNoticeText(int quote_handle, int channel, int scroll_range,
+                                             const void* unused);
+void RefreshSelectedPartyPortrait(unsigned int party_slot);
 void Function59B940(void);
 void Function59BDB0(void);
 void EnablePortraitAdvanceRegions0059BB70(void);                 /* 0x0059BB70 */

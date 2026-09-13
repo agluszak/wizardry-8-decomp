@@ -20,32 +20,23 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
+#include "wiz8/engine_code/Video2.h"
+#include "sgp.h"
 #undef S32
 #undef U32
 #include "bink.h"
+#include "wiz8/bink_video.h"
 #include "FileMan.h"
 
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
-extern void Function5E2D10(char* path, int* gap_data);
-extern unsigned char gfCapturingVideo;
-extern unsigned char ReleasePortraitQuoteBubble(int quote_handle);
-extern int LayoutPortraitQuoteBubble(int surface_handle, unsigned char param_2,
-                                     unsigned char param_3, const wchar_t* text,
-                                     unsigned int max_width, int param_6, int param_7, int param_8,
-                                     unsigned short* out_width, unsigned short* out_height,
-                                     unsigned int font_palette);
-extern void ClearSurfaceRect(int left, int top, int right, int bottom);
-extern void InvalidateRegion(int left, int top, int right, int bottom, int flags);
-extern const wchar_t* FormatPortraitQuoteNoticeText(int quote_handle, int channel, int scroll_range,
-                                                    const void* unused);
-extern void RefreshSelectedPartyPortrait(unsigned int party_slot);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -814,7 +805,6 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
     // clang-format off
     W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
     unsigned char* bubble = record->unknown_016;
-    char* character_bytes = reinterpret_cast<char*>(g_status_685170.buffers.characters); // reinterpret-ok: serialized party-character stride base
     int* quote_handle = reinterpret_cast<int*>(bubble + 3); // reinterpret-ok: quote-bubble handle in portrait record
     short* bubble_x = reinterpret_cast<short*>(bubble + 7); // reinterpret-ok: quote-bubble x in portrait record
     short* bubble_y = reinterpret_cast<short*>(bubble + 9); // reinterpret-ok: quote-bubble y in portrait record
@@ -835,9 +825,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         record->field_09b = 1;
         int pc_slot = RPCPtrToPCSlot(record);
         record->field_099 = 0;
-        unsigned int highest_condition =
-            *reinterpret_cast<unsigned int*>(character_bytes + pc_slot * W8_CHARACTER_SERIALIZED_SIZE + // reinterpret-ok: serialized character highest_condition
-                                             0xb01); // reinterpret-ok: serialized character highest_condition
+        unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
         if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
             if (record->field_08d != 1) {
                 record->field_08d = 1;
@@ -849,14 +837,12 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             record->field_000 = active;
             return;
         }
-        unsigned int stored_event =
-            *reinterpret_cast<unsigned int*>(&record->field_113 + 1); // reinterpret-ok: retail stores beside portrait-range dword
+        unsigned int stored_event = record->pending_event_type_114;
         unsigned int mapped_event = stored_event;
         if (static_cast<int>(g_normal_event_count_005ee70c) < static_cast<int>(mapped_event)) {
         show_deactivate_quote:
             wchar_t formatted[100];
-            const wchar_t* character_name =
-                reinterpret_cast<const wchar_t*>(character_bytes + party_slot * W8_CHARACTER_SERIALIZED_SIZE + 5); // reinterpret-ok: serialized character name at retail offset
+            const wchar_t* character_name = g_status_685170.buffers.characters[party_slot].name;
             swprintf(formatted, L"%s", character_name);
             int scroll_range = GetTextBoxScrollRange();
             ShowNotice(1, formatted, 3, scroll_range, 0);
@@ -916,9 +902,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
     }
     int pc_slot = RPCPtrToPCSlot(record);
     record->field_099 = 0;
-    unsigned int highest_condition =
-        *reinterpret_cast<unsigned int*>(character_bytes + pc_slot * W8_CHARACTER_SERIALIZED_SIZE + // reinterpret-ok: serialized character highest_condition
-                                         0xb01); // reinterpret-ok: serialized character highest_condition
+    unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
     if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
         if (record->field_08d != pose_category) {
             record->field_08d = pose_category;

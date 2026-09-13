@@ -155,7 +155,6 @@ void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
 void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
-void Function509CD0(unsigned char value, int enabled, int location_id);
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_float_005ec52c;
 extern unsigned char g_flag_689b32;

@@ -12,6 +12,7 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/bink_video.h"
 
 #include "bink.h"
 #include "soundman.h"
@@ -22,9 +23,6 @@
 
 extern int GetEnvironmentValue0060A3A8(void);
 extern W8Monster* GetNpcMonster(W8NpcState* npc);
-extern void Function509CD0(unsigned char value, int enabled, int location_id);
-extern void Function576030(int a, int b, int c, int d, int e);
-extern void Function5E2EF0(unsigned char* state);
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
 
@@ -37,7 +35,7 @@ short g_staged_short_68c3ce;
 // GLOBAL: WIZ8 0x0068c3d0
 unsigned char g_staged_flag_68c3d0;
 // GLOBAL: WIZ8 0x0068c3d8
-int g_staged_value_68c3d8;
+W8RecordFile0055A480* g_staged_value_68c3d8;
 // GLOBAL: WIZ8 0x0068c3dc
 W8NpcState* g_staged_npc_68c3dc;
 
@@ -56,7 +54,7 @@ W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
 // GLOBAL: WIZ8 0x0068c4a1
 unsigned char g_flag_68c4a1;
 // GLOBAL: WIZ8 0x0068c4a8
-int g_value_68c4a8;
+W8RecordFile0055A480* g_value_68c4a8;
 // GLOBAL: WIZ8 0x0068c4b0
 int g_voice_handle_68c4b0;
 // GLOBAL: WIZ8 0x0068c4b4
@@ -304,8 +302,7 @@ void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
     g_flag_68c4a0 = 0;
     g_npc_dialogue_staging_restore_68c494.value_498 = -1;
     g_npc_state_68c4ac = npc;
-    g_value_68c4a8 =
-        reinterpret_cast<int>(npc->record_file); // reinterpret-ok: retail stores the record pointer in an integer slot
+    g_value_68c4a8 = npc->record_file;
 }
 
 // FUNCTION: WIZ8 0x00525C50
@@ -348,10 +345,12 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
             if (g_npc_state_68c4ac != 0 && g_npc_state_68c4ac->record_file != 0 &&
                 g_npc_dialogue_staging_restore_68c494.value_494 <
                     g_npc_state_68c4ac->record_file->record_count) {
+                W8FileRecord0055A140* records = g_npc_state_68c4ac->record_file->records;
+                // clang-format off
+                int record_address = reinterpret_cast<int>(records); // reinterpret-ok: retail callback API takes the record address as an integer
+                // clang-format on
                 Function576030(
-                    0, 0,
-                    reinterpret_cast<int>(g_npc_state_68c4ac->record_file->records) + // reinterpret-ok: retail callback API takes the record address as an integer
-                        g_npc_dialogue_staging_restore_68c494.value_494 * 0xc,
+                    0, 0, record_address + g_npc_dialogue_staging_restore_68c494.value_494 * 0xc,
                     g_npc_dialogue_staging_restore_68c494.value_494, -1);
                 return;
             }

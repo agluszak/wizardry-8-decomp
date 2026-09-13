@@ -4,6 +4,9 @@
 #include "bink.h"
 #include "wiz8/wiz8_windows.h"
 
+void Function5E2D10(char* path, int* gap_data);
+void Function5E2EF0(unsigned char* state);
+
 /* First-party owner around the closed Bink middleware handle. Engine
    Code\Bink.cpp is named by the retained failure path in its surface copy. */
 class W8BinkVideo {
