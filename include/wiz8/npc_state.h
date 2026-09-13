@@ -141,7 +141,7 @@ void Function50E650(int party_slot);
 unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
-unsigned char Function50ABF0(Trigger* trigger);
+bool Function50ABF0(Trigger* trigger);
 /* 0x00524CA0: the NPC-side rebinding pass. */
 void ReloadNpcScriptResources(W8NpcState* npc);
 /* 0x00526E90: message-box idle processor for queued script lines. */

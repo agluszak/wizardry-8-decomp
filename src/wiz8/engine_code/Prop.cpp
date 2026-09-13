@@ -704,10 +704,10 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
 }
 
 // FUNCTION: WIZ8 0x0044bf50
-unsigned char CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
+bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
 {
     W8Prop* prop;
-    unsigned char success;
+    bool success;
 
     if (info == 0) {
         srAssertFail("pInfo", PROP_CPP, 0x344, 0);
@@ -717,7 +717,7 @@ unsigned char CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out
         srAssertFail("pProp", PROP_CPP, 0x348, 0);
     }
     success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(info, prop);
-    if (success != 0) {
+    if (success) {
         *prop_out = prop;
         prop->m_animation_timer->SetDuration(
             g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
@@ -730,10 +730,10 @@ unsigned char CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out
    prop->m_pRep into ECX before the two stack arguments, so this is a
    PropRep method: LoadProp(pInfo, pProp). */
 // FUNCTION: WIZ8 0x0044aee0
-unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
+bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
 {
     int hFile;
-    unsigned char success;
+    bool success;
     signed char version;
     unsigned char frame_count = 0;
     unsigned char option_byte = 0;
@@ -741,7 +741,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     float playback_scale = 0.0f;
     float flag_bits = 0.0f;
     W8AnimObj* animation = 0;
-    unsigned char result = 0;
+    bool result = false;
     long fail_line;
 
     if (info == 0 || info->hFile == 0 || prop == 0) {
@@ -756,9 +756,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
         int ok;
         W8AniMesh* mesh;
 
-        if (success == 0 || (success = FileRead(hFile, &b0, 1, 0), success == 0) ||
-            (success = FileRead(hFile, &b1, 1, 0), success == 0) ||
-            (success = FileRead(hFile, &b2, 1, 0), success == 0)) {
+        if (!success || (success = FileRead(hFile, &b0, 1, 0), !success) ||
+            (success = FileRead(hFile, &b1, 1, 0), !success) ||
+            (success = FileRead(hFile, &b2, 1, 0), !success)) {
             ok = 0;
         } else {
             ok = 1;
@@ -775,7 +775,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
                 goto fail;
             }
             success = FileRead(hFile, &playback_scale, 4, 0);
-            if (success == 0) {
+            if (!success) {
                 fail_line = 0xcb;
                 goto fail;
             }
@@ -786,9 +786,9 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
             srAssertFail("pAniMesh", PROP_CPP, 0xd5, 0);
         }
         result = LoadAniMeshFromInfo004B5B30(info, mesh, 1);
-        if (result == 0) {
+        if (!result) {
             fail_line = 0xd8;
-            result = 0;
+            result = false;
             goto fail_with_result;
         }
         animation = CreateAnimObj004A01A0();
@@ -809,7 +809,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
 
         flag_bits = 0.0f;
         info->mesh_filename = 0;
-        if (success != 0) {
+        if (success) {
             FileRead(hFile, &frame_count, 1, 0);
         }
         if (version > 4) {
@@ -1010,11 +1010,11 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     }
 
     if (version > 2) {
-        if (result == 0) {
-            result = 0;
+        if (!result) {
+            result = false;
         } else {
             success = FileRead(hFile, &attach_flag, 1, 0);
-            result = success != 0 ? 1 : 0;
+            result = success;
         }
         if (attach_flag != 0) {
             Trigger* trigger;
@@ -1060,16 +1060,16 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     if (version >= 9) {
         unsigned char extra = 0;
 
-        if (result != 0) {
+        if (result) {
             success = FileRead(hFile, &extra, 1, 0);
-            result = success != 0 ? 1 : 0;
+            result = success;
         }
         if (extra != 0) {
-            if (result != 0 && (success = FileRead(hFile, &this->flag_0c0, 1, 0), success != 0) &&
-                (success = FileRead(hFile, &this->flag_0c1, 1, 0), success != 0)) {
+            if (result && (success = FileRead(hFile, &this->flag_0c0, 1, 0), success) &&
+                (success = FileRead(hFile, &this->flag_0c1, 1, 0), success)) {
                 result = 1;
             } else {
-                result = 0;
+                result = false;
             }
         }
     }

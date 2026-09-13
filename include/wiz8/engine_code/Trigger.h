@@ -98,7 +98,7 @@ static_assert(sizeof(W8TriggerState370) == 9, "W8TriggerState370_must_be_9");
    table contains any srNode slots. */
 class Trigger : public srClassSupport<Trigger, srClass, 1, 0x10008> {
 public:
-    typedef unsigned char(__cdecl* ActivationCallback)(Trigger* trigger);
+    typedef bool(__cdecl* ActivationCallback)(Trigger* trigger);
 
     static const char* sGetClassName()
     {
@@ -111,10 +111,10 @@ public:
 
     static Trigger* CreateAndLoadLevelTrigger(int handle, W8World* world);
 
-    unsigned char HasActorWithinRadius(float radius, unsigned char include_party);
-    unsigned char PlayActionSound(const char* sound_name, int volume);
+    bool HasActorWithinRadius(float radius, bool include_party);
+    bool PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
-    void CommitActionResult(unsigned char apply_state_changes);
+    void CommitActionResult(bool apply_state_changes);
     void CompleteItemInteraction004447F0();
     void Activate00444750();
     bool Save0043BE60(int hFile);
@@ -123,8 +123,8 @@ public:
     void SetPosition004416F0(srVector3T<float>* position);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
-    unsigned char CanRunLinkedTriggers();
-    unsigned char SelectAction();
+    bool CanRunLinkedTriggers();
+    bool SelectAction();
     void GenerateItemGroup();
     void RunDestination00440DD0(const char* destination);
     void Run(int source);
@@ -268,8 +268,8 @@ extern int g_value_0068c548;
 extern int g_value_005ee59c;
 extern int g_value_005ee5a0;
 
-unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
-                                              float countdown_duration, unsigned char reverse);
+bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countdown_duration,
+                                     bool reverse);
 bool AnyPropTriggerInView00445140(W8World* world);
 
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);

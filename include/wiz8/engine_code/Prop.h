@@ -41,7 +41,7 @@ public:
     int FindCurrentAnimationSlot(); /* 0x0044BAE0 */
     unsigned char AdvanceAnimationSegment();
     /* CreateAndLoadProp loads m_pRep into ECX, then passes (pInfo, pProp). */
-    unsigned char LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop); /* 0x0044AEE0 */
+    bool LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop); /* 0x0044AEE0 */
 
     W8AnimObj* animation;   /* 0x98 */
     float animation_speed;  /* 0x9c */
@@ -96,7 +96,7 @@ public:
     bool IsSetting6FTwo();
     void ToggleSetting6E();
     Trigger* GetValue18();
-    unsigned char IsTriggerInView0044E3A0(srVector3T<float>* position);
+    bool IsTriggerInView0044E3A0(srVector3T<float>* position);
     Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum);
@@ -118,7 +118,7 @@ public:
 static_assert(sizeof(W8Prop) == 0x90, "W8Prop_must_be_0x90");
 
 W8Prop* FindPropByName(W8World* world, const char* name);
-unsigned char CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop);
+bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop);
 
 char ResolvePickedProp(W8World* world);
 void UpdateWorldProps0044E010(W8World* world);
