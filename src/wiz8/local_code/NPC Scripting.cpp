@@ -39,44 +39,6 @@ W8RecordFile0055A480* g_staged_value_68c3d8;
 // GLOBAL: WIZ8 0x0068c3dc
 W8NpcState* g_staged_npc_68c3dc;
 
-#pragma pack(push, 1)
-struct W8NpcDialogueStagingRestore {
-    int value_494;
-    int value_498;
-    unsigned short unknown_49c;
-    short staged_short_49e;
-};
-#pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
-
-// GLOBAL: WIZ8 0x0068c494
-W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
-// GLOBAL: WIZ8 0x0068c4a1
-unsigned char g_flag_68c4a1;
-// GLOBAL: WIZ8 0x0068c4a8
-W8RecordFile0055A480* g_value_68c4a8;
-// GLOBAL: WIZ8 0x0068c4b0
-int g_voice_handle_68c4b0;
-// GLOBAL: WIZ8 0x0068c4b4
-unsigned int g_value_68c4b4;
-// GLOBAL: WIZ8 0x0068c4b8
-unsigned int g_value_68c4b8;
-// GLOBAL: WIZ8 0x0068c4dc
-unsigned char g_bink_state_68c4dc;
-// GLOBAL: WIZ8 0x0068c4ec
-unsigned char g_value_68c4ec;
-// GLOBAL: WIZ8 0x0068c4f4
-unsigned char g_flag_68c4f4;
-// GLOBAL: WIZ8 0x0068c4f5
-unsigned char g_flag_68c4f5;
-// GLOBAL: WIZ8 0x0068c4fb
-unsigned char g_flag_68c4fb;
-// GLOBAL: WIZ8 0x0068c4fa
-unsigned char g_flag_68c4fa;
-// GLOBAL: WIZ8 0x0068c4f8
-unsigned char g_flag_68c4f8;
-// GLOBAL: WIZ8 0x0068c4f9
-unsigned char g_flag_68c4f9;
 // GLOBAL: WIZ8 0x0068c500
 unsigned char g_flag_68c500;
 
@@ -90,15 +52,6 @@ const char g_sedexus_moaning_sound_0061c324[] = "Data\\Sound\\Ambients\\Al_Sedex
 
 // GLOBAL: WIZ8 0x005EE634
 int g_effect_005ee634 = 43;
-
-/* Message-box line storage. AddMessageBoxLine and the other owners in this
-   translation unit share these globals; there is no MessageBox.cpp unit. */
-// GLOBAL: WIZ8 0x0068c4c8
-W8MessageBoxLine** g_message_box_lines;
-// GLOBAL: WIZ8 0x0068c4c0
-int g_message_box_line_count;
-// GLOBAL: WIZ8 0x0068c4c4
-int g_message_box_line_capacity;
 
 /* Local Code\NPC Scripting.cpp. The NPC-scripting flag gates the scripted
    monster state; the four accessors below are its only owners. */
@@ -157,28 +110,28 @@ void UpdateNpcDialogueVoiceAndCursor(void)
     DWORD tick_count;
     W8Monster* monster;
 
-    if (g_flag_68c4f6 != 0) {
+    if (g_npc_scripting.flag_c6 != 0) {
         tick_count = GetTickCount();
-        if (g_value_68c4b4 < tick_count - g_value_68c4b8) {
+        if (g_npc_scripting.value_84 < tick_count - g_npc_scripting.value_88) {
             FinishNpcVoicePlayback(1);
         }
         goto update_cursor;
     }
-    if (g_flag_68c4a0 != 0) {
-        if (g_flag_68c4a1 == 0) {
+    if (g_npc_scripting.flag_70 != 0) {
+        if (g_npc_scripting.flag_71 == 0) {
             tick_count = GetTickCount();
-            if (g_value_68c4b4 < tick_count - g_value_68c4b8) {
+            if (g_npc_scripting.value_84 < tick_count - g_npc_scripting.value_88) {
                 FinishNpcVoicePlayback(1);
             }
-            if (g_flag_68c4a1 == 0) {
+            if (g_npc_scripting.flag_71 == 0) {
                 goto update_cursor;
             }
         }
-        if (g_npc_state_68c4ac->is_grouped == 0) {
-            Function5E2F40(g_voice_handle_68c4b0, &g_bink_state_68c4dc);
-            monster = GetNpcMonster(g_npc_state_68c4ac);
+        if (g_npc_scripting.npc->is_grouped == 0) {
+            Function5E2F40(g_npc_scripting.voice_handle, &g_npc_scripting.gap_track);
+            monster = GetNpcMonster(g_npc_scripting.npc);
             if (monster != 0) {
-                monster->unknown_214 = g_value_68c4ec;
+                monster->unknown_214 = g_npc_scripting.gap_track.mouth_open;
             }
         }
     }
@@ -189,8 +142,8 @@ update_cursor:
             SetTargetCursor(1);
             return;
         }
-        if (g_flag_68c4a0 == 0) {
-            if (g_message_box_line_count < 1) {
+        if (g_npc_scripting.flag_70 == 0) {
+            if (g_npc_scripting.message_lines.GetCount() < 1) {
                 if (gXStatus.iCurrentCursor != 8) {
                     SetTargetCursor(-1);
                     return;
@@ -213,11 +166,11 @@ void ProcessNpcScriptingFrame(void)
     int selected_party_member;
     SOUNDPARMS local_sound_parms;
 
-    if ((g_flag_68c4f9 != 0 || g_flag_68c4f8 != 0) &&
+    if ((g_npc_scripting.flag_c9 != 0 || g_npc_scripting.flag_c8 != 0) &&
         ((environment = GetEnvironmentValue0060A3A8(), environment == 0) ||
          (environment = GetEnvironmentValue0060A3A8(), environment == 2))) {
-        g_flag_68c4f7 = 0;
-        if (g_flag_68c4f8 == 0) {
+        g_npc_scripting.flag_c7 = 0;
+        if (g_npc_scripting.flag_c8 == 0) {
             memset(&local_sound_parms, 0xff, sizeof(SOUNDPARMS));
             g_sedexus_sound_handle_61aea0 = (int)SoundPlayStreamedFile(
                 (STR)g_sedexus_moaning_sound_0061c324, &local_sound_parms);
@@ -239,34 +192,35 @@ void ProcessNpcScriptingFrame(void)
                 QueueCharacterEvent(character, g_effect_005ee634, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
             }
-            g_flag_68c4fa = 0;
+            g_npc_scripting.flag_ca = 0;
             if (g_sedexus_sound_handle_61aea0 != -1) {
                 SoundStop((unsigned int)g_sedexus_sound_handle_61aea0);
                 g_sedexus_sound_handle_61aea0 = -1;
             }
         }
-        g_flag_68c4f9 = 0;
-        g_flag_68c4f8 = 0;
+        g_npc_scripting.flag_c9 = 0;
+        g_npc_scripting.flag_c8 = 0;
     }
-    if (g_flag_68c4f7 == 0 && g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0) {
+    if (g_npc_scripting.flag_c7 == 0 && g_npc_scripting.flag_70 == 0 &&
+        g_npc_scripting.flag_c6 == 0) {
         if (g_screen_state_00649f1c->script_busy < 1) {
             ProcessNpcScriptingIdlePass();
-            if (g_flag_68c4a0 != 0) {
+            if (g_npc_scripting.flag_70 != 0) {
                 return;
             }
-            if (g_flag_68c4f6 != 0) {
+            if (g_npc_scripting.flag_c6 != 0) {
                 return;
             }
         }
-        if (g_message_box_line_count == 0) {
-            if (g_flag_68c4f5 != 0) {
-                g_npc_dialogue_staging_restore_68c494.staged_short_49e = g_staged_short_68c3ce;
-                g_flag_68c4a0 = g_staged_flag_68c3d0;
-                g_npc_dialogue_staging_restore_68c494.value_498 = g_staged_value_68c3c8;
-                g_value_68c4a8 = g_staged_value_68c3d8;
-                g_npc_state_68c4ac = g_staged_npc_68c3dc;
-                g_npc_dialogue_staging_restore_68c494.value_494 = g_staged_value_68c3c4;
-                g_flag_68c4f5 = 0;
+        if (g_npc_scripting.message_lines.GetCount() == 0) {
+            if (g_npc_scripting.flag_c5 != 0) {
+                g_npc_scripting.staging_restore.staged_short_49e = g_staged_short_68c3ce;
+                g_npc_scripting.flag_70 = g_staged_flag_68c3d0;
+                g_npc_scripting.staging_restore.value_498 = g_staged_value_68c3c8;
+                g_npc_scripting.record_file = g_staged_value_68c3d8;
+                g_npc_scripting.npc = g_staged_npc_68c3dc;
+                g_npc_scripting.staging_restore.value_494 = g_staged_value_68c3c4;
+                g_npc_scripting.flag_c5 = 0;
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
                 g_flag_68506f == 0 && g_screen_state_00649f1c->script_busy == 0 &&
@@ -287,71 +241,69 @@ void ProcessNpcScriptingFrame(void)
 void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
 {
     if (preserve_state != 0) {
-        g_flag_68c4f5 = 1;
-        g_staged_short_68c3ce = g_npc_dialogue_staging_restore_68c494.staged_short_49e;
-        g_staged_flag_68c3d0 = g_flag_68c4a0;
-        g_staged_value_68c3c8 = g_npc_dialogue_staging_restore_68c494.value_498;
-        g_staged_value_68c3d8 = g_value_68c4a8;
-        g_staged_npc_68c3dc = g_npc_state_68c4ac;
-        g_staged_value_68c3c4 = g_npc_dialogue_staging_restore_68c494.value_494;
+        g_npc_scripting.flag_c5 = 1;
+        g_staged_short_68c3ce = g_npc_scripting.staging_restore.staged_short_49e;
+        g_staged_flag_68c3d0 = g_npc_scripting.flag_70;
+        g_staged_value_68c3c8 = g_npc_scripting.staging_restore.value_498;
+        g_staged_value_68c3d8 = g_npc_scripting.record_file;
+        g_staged_npc_68c3dc = g_npc_scripting.npc;
+        g_staged_value_68c3c4 = g_npc_scripting.staging_restore.value_494;
     }
     if (npc->has_monster == 0) {
         Function509CD0(npc->name_style, 0, -1);
     }
-    g_npc_dialogue_staging_restore_68c494.staged_short_49e = 0;
-    g_flag_68c4a0 = 0;
-    g_npc_dialogue_staging_restore_68c494.value_498 = -1;
-    g_npc_state_68c4ac = npc;
-    g_value_68c4a8 = npc->record_file;
+    g_npc_scripting.staging_restore.staged_short_49e = 0;
+    g_npc_scripting.flag_70 = 0;
+    g_npc_scripting.staging_restore.value_498 = -1;
+    g_npc_scripting.npc = npc;
+    g_npc_scripting.record_file = npc->record_file;
 }
 
 // FUNCTION: WIZ8 0x00525C50
 void FinishNpcVoicePlayback(unsigned char resume_script)
 {
-    if (g_flag_68c4f6 != 0) {
-        g_flag_68c4f6 = 0;
+    if (g_npc_scripting.flag_c6 != 0) {
+        g_npc_scripting.flag_c6 = 0;
         Function576030(0, 0, 0, -1, -1);
-        g_npc_dialogue_staging_restore_68c494.value_498 =
-            g_npc_dialogue_staging_restore_68c494.value_494;
+        g_npc_scripting.staging_restore.value_498 = g_npc_scripting.staging_restore.value_494;
         return;
     }
-    if (g_flag_68c4a0 != 0) {
-        if (g_flag_68c4a1 != 0) {
-            g_flag_68c4a1 = 0;
-            if (g_voice_handle_68c4b0 != -1) {
-                g_flag_68c4fb = 1;
-                SoundStop(static_cast<unsigned int>(g_voice_handle_68c4b0));
-                g_flag_68c4fb = 0;
+    if (g_npc_scripting.flag_70 != 0) {
+        if (g_npc_scripting.flag_71 != 0) {
+            g_npc_scripting.flag_71 = 0;
+            if (g_npc_scripting.voice_handle != -1) {
+                g_npc_scripting.flag_cb = 1;
+                SoundStop(static_cast<unsigned int>(g_npc_scripting.voice_handle));
+                g_npc_scripting.flag_cb = 0;
             }
-            Function5E2EF0(&g_bink_state_68c4dc);
+            Function5E2EF0(&g_npc_scripting.gap_track);
         }
-        W8Monster* monster = GetNpcMonster(g_npc_state_68c4ac);
+        W8Monster* monster = GetNpcMonster(g_npc_scripting.npc);
         if (monster != 0) {
             monster->StopTalking004C7470();
         }
-        W8MonsterManagerEntry* entry = GetNpcGroupEntry(g_npc_state_68c4ac);
+        W8MonsterManagerEntry* entry = GetNpcGroupEntry(g_npc_scripting.npc);
         if (entry != 0) {
             if (entry->field_071 == 0) {
-                SetPartyPortraitEventState(g_npc_state_68c4ac->group_index, 0, -1, 0, 1);
+                SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 0, -1, 0, 1);
             } else {
                 gXStatus.character_event_queue->ProcessOwnedEntry(entry->field_071);
             }
         }
-        g_flag_68c4a0 = 0;
-        g_voice_handle_68c4b0 = -1;
-        g_npc_dialogue_staging_restore_68c494.value_498 =
-            g_npc_dialogue_staging_restore_68c494.value_494;
+        g_npc_scripting.flag_70 = 0;
+        g_npc_scripting.voice_handle = -1;
+        g_npc_scripting.staging_restore.value_498 = g_npc_scripting.staging_restore.value_494;
         if (g_screen_state_00649f1c->script_busy == 0 && resume_script != 0) {
-            if (g_npc_state_68c4ac != 0 && g_npc_state_68c4ac->record_file != 0 &&
-                g_npc_dialogue_staging_restore_68c494.value_494 <
-                    g_npc_state_68c4ac->record_file->record_count) {
-                W8FileRecord0055A140* records = g_npc_state_68c4ac->record_file->records;
+            if (g_npc_scripting.npc != 0 && g_npc_scripting.npc->record_file != 0 &&
+                g_npc_scripting.staging_restore.value_494 <
+                    g_npc_scripting.npc->record_file->record_count) {
+                W8FileRecord0055A140* records = g_npc_scripting.npc->record_file->records;
                 // clang-format off
                 int record_address = reinterpret_cast<int>(records); // reinterpret-ok: retail callback API takes the record address as an integer
                 // clang-format on
-                Function576030(
-                    0, 0, record_address + g_npc_dialogue_staging_restore_68c494.value_494 * 0xc,
-                    g_npc_dialogue_staging_restore_68c494.value_494, -1);
+                Function576030(0, 0,
+                               record_address + g_npc_scripting.staging_restore.value_494 * 0xc,
+                               g_npc_scripting.staging_restore.value_494, -1);
                 return;
             }
             Function576030(0, 0, 0, -1, -1);
@@ -362,22 +314,23 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
 // FUNCTION: WIZ8 0x00525DD0
 unsigned char IsNpcScriptSessionActive(void)
 {
-    return g_flag_68c4a0 != 0 || g_flag_68c4f6 != 0;
+    return g_npc_scripting.flag_70 != 0 || g_npc_scripting.flag_c6 != 0;
 }
 
 // FUNCTION: WIZ8 0x00525DF0
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
 {
-    if (g_flag_68c4f7 != 0) {
+    if (g_npc_scripting.flag_c7 != 0) {
         return 0;
     }
-    if (g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0 && g_message_box_line_count == 0) {
+    if (g_npc_scripting.flag_70 == 0 && g_npc_scripting.flag_c6 == 0 &&
+        g_npc_scripting.message_lines.GetCount() == 0) {
         return 0;
     }
-    if (g_npc_state_68c4ac == 0) {
+    if (g_npc_scripting.npc == 0) {
         return 0;
     }
-    if (GetNpcGroupEntry(g_npc_state_68c4ac) != 0 && require_group_entry == 0) {
+    if (GetNpcGroupEntry(g_npc_scripting.npc) != 0 && require_group_entry == 0) {
         return 0;
     }
     return 1;
@@ -386,7 +339,7 @@ unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_
 // FUNCTION: WIZ8 0x00525E50
 bool IsMessageBoxLineQueueEmpty(void)
 {
-    return g_message_box_line_count == 0;
+    return g_npc_scripting.message_lines.GetCount() == 0;
 }
 
 // FUNCTION: WIZ8 0x00525E60
@@ -399,54 +352,37 @@ int ComputePortraitMessageDuration(wchar_t* text)
 void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
-    int new_capacity;
-    int index;
 
     memset(line, 0, sizeof(W8MessageBoxLine));
     line->unknown_00 = -1;
     line->type = type;
     line->text = text;
     line->extra = extra;
-    line->npc = g_npc_state_68c4ac;
+    line->npc = g_npc_scripting.npc;
 
-    new_capacity = g_message_box_line_count + 1;
-    if (new_capacity > g_message_box_line_capacity) {
-        W8MessageBoxLine** old_lines = g_message_box_lines;
-
-        g_message_box_lines = new W8MessageBoxLine*[new_capacity];
-        if (g_message_box_lines == 0) {
-            g_message_box_lines = old_lines;
-            return;
-        }
-        g_message_box_line_capacity = new_capacity;
-        for (index = 0; index < g_message_box_line_count; ++index) {
-            g_message_box_lines[index] = old_lines[index];
-        }
-        delete[] old_lines;
+    if (g_npc_scripting.message_lines.Add(line) < 0) {
+        delete line;
     }
-
-    g_message_box_lines[g_message_box_line_count] = line;
-    ++g_message_box_line_count;
 }
 // FUNCTION: WIZ8 0x00529560
 void SetFlag68C4F4(void)
 {
-    g_flag_68c4f4 = 1;
+    g_npc_scripting.flag_c4 = 1;
 }
 // FUNCTION: WIZ8 0x00529BC0
 void SetFlag68C4F7(void)
 {
-    g_flag_68c4f7 = 1;
+    g_npc_scripting.flag_c7 = 1;
 }
 // FUNCTION: WIZ8 0x00529BD0
 void ClearFlag68C4F7(void)
 {
-    g_flag_68c4f7 = 0;
+    g_npc_scripting.flag_c7 = 0;
 }
 // FUNCTION: WIZ8 0x0052A070
 unsigned char GetFlag68C4FA(void)
 {
-    return g_flag_68c4fa;
+    return g_npc_scripting.flag_ca;
 }
 // FUNCTION: WIZ8 0x0052A1A0
 void SetFlag68C500(unsigned char value)

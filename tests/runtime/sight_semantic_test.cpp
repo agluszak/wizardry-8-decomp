@@ -18,7 +18,8 @@ struct SightSemanticResult {
 };
 
 static W8World g_sight_test_world;
-static srCamera g_sight_test_camera;
+static srNode* g_sight_test_parent = new srNode(0);
+static srCamera g_sight_test_camera(g_sight_test_parent);
 
 static void SetupSightTestWorld(float far_clip)
 {

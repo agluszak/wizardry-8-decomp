@@ -649,7 +649,8 @@ unsigned char W8CharacterEvent::PlayEventSound()
     record->field_081 = total_ms;
     Function5E2D10(
         sound_path,
-        reinterpret_cast<int*>(&record->unknown_005[0])); // reinterpret-ok: retail gap list storage
+        reinterpret_cast</* reinterpret-ok: retail portrait gap storage overlays this record */
+                         W8MouthGapTrack*>(&record->unknown_005[0]));
     return 1;
 }
 
@@ -1404,7 +1405,10 @@ int UpdateCharacterEventState(void)
                     }
                 }
             } else {
-                Function5E2F40(record->field_001, &record->unknown_005[0]);
+                Function5E2F40(
+                    record->field_001,
+                    reinterpret_cast</* reinterpret-ok: retail portrait gap storage overlays this record */
+                                     W8MouthGapTrack*>(&record->unknown_005[0]));
                 sound_active = record->field_015;
             }
         }

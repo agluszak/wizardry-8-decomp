@@ -46,6 +46,7 @@ RUNTIME_SCENARIOS = (
     "main-menu-startup",
     "main-menu-new-game",
     "main-game-start",
+    "npc-state-reset",
     "main-menu-exit-auto-repeat",
 )
 # The in-process harness owns each scenario's budget (``kScenarioBudgetMs`` in

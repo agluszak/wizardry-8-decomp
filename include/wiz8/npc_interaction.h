@@ -1,13 +1,9 @@
 #pragma once
 
+#include "wiz8/local_code/NPCScripting.h"
+
 /* The NPC-scripting gates NPC Scripting.cpp sets and npc_interaction.cpp
    reads. */
-extern unsigned char g_flag_68c4a0;
-extern unsigned char g_flag_68c4f6;
-extern unsigned char g_flag_68c4f7;
-
-struct W8NpcState;
-extern W8NpcState* g_npc_state_68c4ac;
 const char* GetNpcDisplayName(W8NpcState* npc);
 
 unsigned char IsNpcScriptSessionActive(void);

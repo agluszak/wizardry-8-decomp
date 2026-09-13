@@ -6,14 +6,17 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/message_box.h"
 
-// GLOBAL: WIZ8 0x0068C4A0
-unsigned char g_flag_68c4a0;
-// GLOBAL: WIZ8 0x0068C4AC
-W8NpcState* g_npc_state_68c4ac;
-// GLOBAL: WIZ8 0x0068C4F6
-unsigned char g_flag_68c4f6;
-// GLOBAL: WIZ8 0x0068C4F7
-unsigned char g_flag_68c4f7;
+// SYNTHETIC: WIZ8 0x00524A70
+// `dynamic initializer for 'g_npc_scripting''
+// SYNTHETIC: WIZ8 0x00524A90
+// `dynamic atexit destructor for 'g_npc_scripting''
+// SYNTHETIC: WIZ8 0x00524AE0
+// W8NpcScriptingState::W8NpcScriptingState
+// SYNTHETIC: WIZ8 0x00524AA0
+// W8NpcScriptingState::~W8NpcScriptingState
+
+// GLOBAL: WIZ8 0x0068C430
+W8NpcScriptingState g_npc_scripting;
 
 /* NPC interaction availability and its party-slot eligibility query. Live
    query: 0x00524A10 is a gap between Local Code\Conditions & Enchantments.cpp
@@ -44,22 +47,18 @@ bool IsPartySlotEligible00524A10(int slot)
     return eligible;
 }
 
-/* Free queued NPC message-box lines and clear the line count. Retail then
-   STOSD-zeroes the 0xcc-byte scripting object those counters live in; the
-   remaining named flags in that run are already BSS-zero on new game. */
 // FUNCTION: WIZ8 0x00524c50
 void ClearNpcMessageQueue(void)
 {
     int index;
 
-    for (index = 0; index < g_message_box_line_count; ++index) {
-        delete g_message_box_lines[index];
+    for (index = 0; index < g_npc_scripting.message_lines.GetCount(); ++index) {
+        delete *g_npc_scripting.message_lines.GetAt(index);
     }
-    g_message_box_line_count = 0;
-    g_message_box_line_capacity = 0;
-    g_message_box_lines = 0;
-    g_flag_68c4a0 = 0;
-    g_npc_state_68c4ac = 0;
-    g_flag_68c4f6 = 0;
-    g_flag_68c4f7 = 0;
+    g_npc_scripting.message_lines.Clear();
+    /* Retail resets the complete object, including both vector headers. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdynamic-class-memaccess"
+    memset(&g_npc_scripting, 0, sizeof(g_npc_scripting));
+#pragma clang diagnostic pop
 }

@@ -10,6 +10,8 @@
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/video_object_catalog.h"
@@ -17,7 +19,14 @@
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
 
-struct SightSemanticResult;
+struct SightSemanticResult {
+    unsigned char blind_is_zero;
+    unsigned char facing_away_reduces_range;
+    unsigned char skip_fov_restores_range;
+    unsigned char penalty_source_reduces_range;
+    unsigned char attribute_scales_range;
+    unsigned char same_primitive_party_and_monster;
+};
 bool RunSightSemanticTests(SightSemanticResult* result);
 void PrintSightSemanticResults(const SightSemanticResult* result);
 
@@ -64,6 +73,7 @@ struct RuntimeObservation {
     unsigned char skill_tooltip_shown;
     unsigned char skill_tooltip_removed;
     unsigned char skill_interacted;
+    unsigned char npc_state_reset_ok;
     unsigned char playlist_active;
     int playlist_tracks;
     int playlist_weight;
@@ -472,7 +482,8 @@ static DWORD WINAPI DriveScenario(void*)
     }
 
     if (strcmp(g_scenario, "main-menu-new-game") == 0 ||
-        strcmp(g_scenario, "main-game-start") == 0 || strcmp(g_scenario, "new-game-entry") == 0) {
+        strcmp(g_scenario, "main-game-start") == 0 || strcmp(g_scenario, "npc-state-reset") == 0 ||
+        strcmp(g_scenario, "new-game-entry") == 0) {
         SendScenarioKey(VK_PRIOR, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_DOWN, KEYEVENTF_EXTENDEDKEY);
         SendScenarioKey(VK_RETURN);
@@ -702,6 +713,7 @@ static DWORD WINAPI DriveScenario(void*)
            the character before the page opens so the real Next control is
            enabled, the same state a user reaches by typing a name. */
         if (strcmp(g_scenario, "main-game-start") == 0 ||
+            strcmp(g_scenario, "npc-state-reset") == 0 ||
             strcmp(g_scenario, "new-game-entry") == 0) {
             if (screen->m_character_018.name[0] == 0) {
                 wcscpy(screen->m_character_018.name, L"Probe");
@@ -735,6 +747,7 @@ static DWORD WINAPI DriveScenario(void*)
         g_observation.character_page_after = screen->m_page_index_00c;
 
         if (strcmp(g_scenario, "main-game-start") == 0 ||
+            strcmp(g_scenario, "npc-state-reset") == 0 ||
             strcmp(g_scenario, "new-game-entry") == 0) {
             /* Commit the character through the final page's own next control.
                A broken AdvancePage callback must fail the scenario rather than
@@ -768,7 +781,8 @@ static DWORD WINAPI DriveScenario(void*)
                 return FailScenario();
             }
 
-            if (strcmp(g_scenario, "main-game-start") == 0) {
+            if (strcmp(g_scenario, "main-game-start") == 0 ||
+                strcmp(g_scenario, "npc-state-reset") == 0) {
                 /* The product's start control requires a six-member party, so
                    the remaining members are fixture copies; they still enter
                    through the recovered party-add path rather than by writing
@@ -835,6 +849,30 @@ static DWORD WINAPI DriveScenario(void*)
             }
             if (!g_observation.main_game_entered) {
                 return FailScenario();
+            }
+            if (strcmp(g_scenario, "npc-state-reset") == 0) {
+                W8MessageBoxLine* line = new W8MessageBoxLine;
+                memset(line, 0, sizeof(W8MessageBoxLine));
+                if (g_npc_scripting.message_lines.Add(line) < 0) {
+                    delete line;
+                    return FailScenario();
+                }
+                g_npc_scripting.flag_c5 = 1;
+                g_npc_scripting.voice_handle = 7;
+                g_npc_scripting.staging_restore.value_494 = 0x1234;
+                g_npc_scripting.gap_track.mouth_open = 1;
+                g_npc_scripting.last_tick = 99;
+                ResetLiveSessionForLoad();
+                unsigned char zero_state[sizeof(g_npc_scripting)];
+                memset(zero_state, 0, sizeof(zero_state));
+                g_observation.npc_state_reset_ok =
+                    memcmp(&g_npc_scripting, zero_state, sizeof(zero_state)) == 0 &&
+                    g_npc_scripting.message_lines.GetCount() == 0;
+                if (!g_observation.npc_state_reset_ok) {
+                    return FailScenario();
+                }
+                /* WinMain exits after this flow, so a second in-process new-game
+                   session is not available without starting a fresh process. */
             }
             gfProgramIsRunning = 0;
             return 0;
@@ -912,7 +950,7 @@ int main(int argc, char** argv)
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "new-game-entry|sight-threshold\n");
+                "npc-state-reset|new-game-entry|sight-threshold\n");
         return 64;
     }
 
@@ -930,11 +968,11 @@ int main(int argc, char** argv)
     if (strcmp(argv[2], "main-menu-startup") != 0 &&
         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
-        strcmp(argv[2], "main-menu-new-game") != 0) {
+        strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "new-game-entry|sight-threshold\n");
+                "npc-state-reset|new-game-entry|sight-threshold\n");
         return 64;
     }
 
@@ -986,6 +1024,7 @@ int main(int argc, char** argv)
            "final_page_entered=%u final_page_redrawn=%u "
            "character_committed=%u character_in_party=%u main_game_entered=%u "
            "return_observed=%u teardown=%u timed_out=%u "
+           "npc_state_reset_ok=%u "
            "character_page_start=%d character_page_after=%d "
            "tooltip_shown=%u tooltip_removed=%u "
            "skill_tooltip_shown=%u skill_tooltip_removed=%u "
@@ -1004,10 +1043,10 @@ int main(int argc, char** argv)
            g_observation.final_page_redrawn, g_observation.character_committed,
            g_observation.character_in_party, g_observation.main_game_entered,
            g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
-           g_observation.character_page_start, g_observation.character_page_after,
-           g_observation.tooltip_shown, g_observation.tooltip_removed,
-           g_observation.skill_tooltip_shown, g_observation.skill_tooltip_removed,
-           g_observation.skill_interacted);
+           g_observation.npc_state_reset_ok, g_observation.character_page_start,
+           g_observation.character_page_after, g_observation.tooltip_shown,
+           g_observation.tooltip_removed, g_observation.skill_tooltip_shown,
+           g_observation.skill_tooltip_removed, g_observation.skill_interacted);
 
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == W8_SCREEN_MAIN_MENU &&
@@ -1021,12 +1060,15 @@ int main(int argc, char** argv)
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
+                                strcmp(g_scenario, "npc-state-reset") == 0 ||
                                 strcmp(g_scenario, "new-game-entry") == 0;
     const bool transition_ok =
         !character_flow ||
         (g_observation.transition_observed && g_observation.character_entered &&
          g_observation.final_page_entered && g_observation.final_page_redrawn &&
-         (strcmp(g_scenario, "main-game-start") == 0 || strcmp(g_scenario, "new-game-entry") == 0
+         (strcmp(g_scenario, "main-game-start") == 0 ||
+                  strcmp(g_scenario, "npc-state-reset") == 0 ||
+                  strcmp(g_scenario, "new-game-entry") == 0
               ? (g_observation.character_committed && g_observation.main_game_entered)
               : (g_observation.character_returned && g_observation.return_observed)));
     const bool character_ok =
@@ -1038,12 +1080,15 @@ int main(int argc, char** argv)
         !character_flow || (g_observation.skill_tooltip_shown &&
                             g_observation.skill_tooltip_removed && g_observation.skill_interacted);
     const bool gameplay_ok =
-        (strcmp(g_scenario, "main-game-start") != 0 && strcmp(g_scenario, "new-game-entry") != 0) ||
+        (strcmp(g_scenario, "main-game-start") != 0 && strcmp(g_scenario, "npc-state-reset") != 0 &&
+         strcmp(g_scenario, "new-game-entry") != 0) ||
         (g_observation.character_committed && g_observation.character_in_party &&
          g_observation.main_game_entered);
+    const bool npc_state_reset_ok =
+        strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
     const int result = driver_status == 0 && startup_ok && (character_flow || exit_ok) &&
                                transition_ok && character_ok && skills_ok && gameplay_ok &&
-                               teardown_ok
+                               npc_state_reset_ok && teardown_ok
                            ? 0
                            : 1;
     fflush(stdout);
