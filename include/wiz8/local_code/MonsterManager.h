@@ -262,7 +262,9 @@ struct W8MonsterInfo {
        database record sets a base for; the power-level chooser adds the two
        and reports a DATA ERROR when the base is zero. */
     int sp_budget_bonus;
-    unsigned char unknown_2f9[4];
+    /* 0x2f9: the monster's live spell-point pool; the group-attack drain
+       halves each resisted amount off it. */
+    unsigned int spell_points_2f9;
     int control_state; /* 0x2fd: group-recomputed control state */
     unsigned char unknown_301;
     /* 0x302/0x303: the two alternating look-around timers the aging pass

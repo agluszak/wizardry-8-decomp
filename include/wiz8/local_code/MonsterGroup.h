@@ -73,8 +73,8 @@ struct W8MonsterGroup {
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
                                       unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
-void Function510CC0(W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a, int b,
-                    int c, int d); /* 0x00510CC0 */
+unsigned char Function510CC0(W8MonsterGroup* group, srVector3T<float>* position, float yaw, int a,
+                             int b, int c, int d); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the
    group moves straight to the camera position, and with flag set it picks a
    point at the requested distance on a random angle around the camera yaw,
@@ -107,6 +107,16 @@ void Function48C670(W8MonsterGroup* monster_group);
 void Function50FD40(W8MonsterGroup* monster_group, int value);
 void Function547570(W8MonsterGroup* monster_group, unsigned char flag, int value);
 void Function50F720(W8MonsterGroup* monster_group);
+unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
+/* 0x0050F1A0: allocate and populate a new monster group of `count` members of
+   `monster_id` at `position`; the leading nine-member cap and the disposition
+   recompute live inside it. Sits in an unresolved gap of MonsterGroup.cpp;
+   declared for the GroupAttacks call site. */
+W8MonsterGroup* CreateMonsterGroupAt0050F1A0(unsigned int monster_id, unsigned int count,
+                                             const srVector3T<float>* position, char flag_4,
+                                             char flag_5, char flag_6);
+/* 0x00511CE0: mark every member's navigator position dirty (or clean). */
+void Function511CE0(W8MonsterGroup* monster_group, unsigned char flag);
 
 void Function5103E0(W8MonsterGroup* monster_group);
 

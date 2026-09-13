@@ -259,7 +259,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
     RequestRefreshPartyState();
     Function593330();
-    if (record->unknown_0c0[0] != 0) {
+    if (record->unknown_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
     Function509CD0(record->unknown_0cd[0], 1, monster_info->location_id);
