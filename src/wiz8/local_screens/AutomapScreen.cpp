@@ -849,17 +849,6 @@ unsigned char AutomapScreenFinalize(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0057DBB0
-unsigned char GetFlag68F105(void)
-{
-    return g_flag_68f105;
-}
-// FUNCTION: WIZ8 0x0057DBC0
-unsigned char GetFlag68F104(void)
-{
-    return g_flag_68f104;
-}
-
 /* Select which automap buttons are enabled for the update mode, then dirty
    and redraw both and remember the mode. */
 // FUNCTION: WIZ8 0x0057FD90
