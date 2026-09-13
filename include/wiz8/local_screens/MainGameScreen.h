@@ -10,6 +10,7 @@ struct W8IList;
 struct W8NpcState;
 
 void RequestRedrawParty(void);
+void RefreshSelectedPartyPortrait(unsigned int party_slot);
 void ClearHighlightIfItIs(const int* item);
 
 /* One animated cursor resource the main-game / camp screens can install. The
@@ -84,7 +85,12 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_211[3];
     unsigned int clock_214; /* 0x214 */
     unsigned char flag_218; /* 0x218 */
-    unsigned char unknown_219[0x23];
+    unsigned char unknown_219[7];
+    int dialogue_x_220;
+    int dialogue_y_224;
+    int dialogue_height_228;
+    unsigned char unknown_22c[0xc];
+    int dialogue_width_238;
     int value_23c;                   /* 0x23c */
     int value_240;                   /* 0x240 */
     unsigned int world_update_flags; /* 0x244 */
@@ -498,6 +504,7 @@ extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;
 extern unsigned char g_flag_0068edd8;
 extern int g_main_game_mode_0068eddc;
+extern int g_value_64c1c8;
 extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern unsigned char g_flag_0068edd9;

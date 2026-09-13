@@ -21,6 +21,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/dialog_code/PortraitQuote.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/Strings.h"
@@ -59,10 +60,16 @@ const char g_quote_personality_names_005ed91c[9][0x14] = {
 };
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
-// GLOBAL: WIZ8 0x0061cb44
-int g_pose_transition_table_0061cb44[30] = {
-    0x1380080, 0x1380080, 0x130013, 0x670067, 0xbc00bc, 0x1110111, 1, 3, 3, 4, 5, 3, 2, 3, 3,
-    3,         1,         2,        3,        4,        1,         1, 3, 3, 4, 1, 1, 1, 1, 1,
+struct W8PortraitTables {
+    unsigned short quote_x[8];
+    unsigned short quote_y[8];
+    int pose_transition[30];
+};
+// GLOBAL: WIZ8 0x0061cb3c
+W8PortraitTables g_portrait_tables_0061cb3c = {
+    {0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138},
+    {0x0013, 0x0067, 0x00bc, 0x0111, 0x0013, 0x0067, 0x00bc, 0x0111},
+    {1, 3, 3, 4, 5, 3, 2, 3, 3, 3, 1, 2, 3, 4, 1, 1, 3, 3, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 };
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
@@ -647,10 +654,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     }
     SoundGetMilliSecondPosition(sound_handle, &total_ms, &current_ms);
     record->field_081 = total_ms;
-    Function5E2D10(
-        sound_path,
-        reinterpret_cast</* reinterpret-ok: retail portrait gap storage overlays this record */
-                         W8MouthGapTrack*>(&record->unknown_005[0]));
+    Function5E2D10(sound_path, &record->mouth_gap);
     return 1;
 }
 
@@ -805,13 +809,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
 {
     // clang-format off
     W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
-    unsigned char* bubble = record->unknown_016;
-    int* quote_handle = reinterpret_cast<int*>(bubble + 3); // reinterpret-ok: quote-bubble handle in portrait record
-    short* bubble_x = reinterpret_cast<short*>(bubble + 7); // reinterpret-ok: quote-bubble x in portrait record
-    short* bubble_y = reinterpret_cast<short*>(bubble + 9); // reinterpret-ok: quote-bubble y in portrait record
-    short* bubble_width = reinterpret_cast<short*>(bubble + 0xb); // reinterpret-ok: quote-bubble width in portrait record
-    short* bubble_height = reinterpret_cast<short*>(bubble + 0xd); // reinterpret-ok: quote-bubble height in portrait record
-    char* portrait_quote_tables = reinterpret_cast<char*>(g_pose_transition_table_0061cb44); // reinterpret-ok: portrait quote tables precede pose transitions
+    W8PortraitQuoteState* quote = &record->quote;
 
     if (record->field_000 == active) {
         return;
@@ -834,7 +832,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         } else {
             record->field_08d = 2;
         }
-        if (*quote_handle == -1) {
+        if (quote->quote_handle == -1) {
             record->field_000 = active;
             return;
         }
@@ -848,7 +846,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             int scroll_range = GetTextBoxScrollRange();
             ShowNotice(1, formatted, 3, scroll_range, 0);
             const wchar_t* suffix =
-                FormatPortraitQuoteNoticeText(*quote_handle, 3, scroll_range, 0);
+                GetPortraitQuoteText(quote->quote_handle);
             ShowNotice(0xf, suffix);
         } else {
             if (g_first_remapped_event_005ee718 <= mapped_event) {
@@ -859,13 +857,13 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                 goto show_deactivate_quote;
             }
         }
-        ReleasePortraitQuoteBubble(*quote_handle);
+        ReleasePortraitQuoteBubble(quote->quote_handle);
         if (g_current_screen_state.id == W8_SCREEN_CAMP ||
             (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0)) {
-            int left = *bubble_x;
-            int top = *bubble_y;
-            ClearSurfaceRect(left, top, *bubble_width + left, *bubble_height + top);
-            InvalidateRegion(left, top, *bubble_width + left, *bubble_height + top, 0);
+            int left = quote->x;
+            int top = quote->y;
+            ClearSurfaceRect(left, top, quote->width + left, quote->height + top);
+            InvalidateRegion(left, top, quote->width + left, quote->height + top, 0);
         }
         RegionSetDisable(party_slot + 0x1d);
         DisableRegionSetInput(party_slot + 0x1d);
@@ -912,10 +910,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         record->field_08d = 2;
     }
     if (quote_text == 0 || show_quote == 0) {
-        bubble[3] = 0xff;
-        bubble[4] = 0xff;
-        bubble[5] = 0xff;
-        bubble[6] = 0xff;
+        quote->quote_handle = -1;
     } else {
         unsigned char layout_quote = 0;
         unsigned char use_modal_gate = 0;
@@ -940,44 +935,37 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             layout_quote = 1;
         }
         if (layout_quote == 0 || g_settings_6850c8.pc_subtitles == 0) {
-            bubble[3] = 0xff;
-            bubble[4] = 0xff;
-            bubble[5] = 0xff;
-            bubble[6] = 0xff;
+            quote->quote_handle = -1;
         } else {
             unsigned short width;
             unsigned short height;
-            *quote_handle = LayoutPortraitQuoteBubble(-1, 0, 0, quote_text, 200, 0, 0, 0, &width,
-                                                      &height, 0xffffffff);
-            *bubble_width = static_cast<short>(width);
-            *bubble_height = static_cast<short>(height);
+            quote->quote_handle = LayoutPortraitQuoteBubble(-1, 0, 0, quote_text, 200, 0, 0, 0,
+                                                             &width, &height, 0xffffffff);
+            quote->width = width;
+            quote->height = height;
             if (g_current_screen_state.id == W8_SCREEN_CAMP) {
                 if (static_cast<int>(party_slot) == g_rcs_mode_0064cbe8) {
-                    bubble[7] = 10;
-                    bubble[8] = 1;
-                    bubble[9] = 8;
-                    bubble[10] = 0;
+                    quote->x = 10;
+                    quote->y = 8;
                 } else {
-                    *bubble_x = static_cast<short>(((party_slot & 1) * 0x30) + 0x36);
-                    *bubble_y = static_cast<short>((party_slot >> 1) * 0x27 + 5);
+                    quote->x = static_cast<unsigned short>(((party_slot & 1) * 0x30) + 0x36);
+                    quote->y = static_cast<unsigned short>((party_slot >> 1) * 0x27 + 5);
                 }
                 g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
             } else {
-                unsigned short base_x = *reinterpret_cast<unsigned short*>( // reinterpret-ok: portrait quote x table
-                    portrait_quote_tables - 8 + party_slot * 2); // reinterpret-ok: portrait quote x table
-                *bubble_x = base_x;
-                *bubble_y = *reinterpret_cast<unsigned short*>( // reinterpret-ok: portrait quote y table
-                    portrait_quote_tables + party_slot * 2 + 8); // reinterpret-ok: portrait quote y table
+                unsigned short base_x = g_portrait_tables_0061cb3c.quote_x[party_slot];
+                quote->x = base_x;
+                quote->y = g_portrait_tables_0061cb3c.quote_y[party_slot];
                 if ((party_slot & 1) == 1) {
-                    *bubble_x = static_cast<short>(base_x - *bubble_width + 200);
+                    quote->x = static_cast<unsigned short>(base_x - quote->width + 200);
                 }
-                if (*bubble_y + *bubble_height > 0x165) {
-                    *bubble_y = static_cast<short>(0x165 - *bubble_height);
+                if (quote->y + quote->height > 0x165) {
+                    quote->y = static_cast<unsigned short>(0x165 - quote->height);
                 }
             }
-            unsigned short x = *bubble_x;
-            unsigned short y = *bubble_y;
-            SetRegionBounds(party_slot + 0x12e, x, y, x + *bubble_width, *bubble_height + y);
+            unsigned short x = quote->x;
+            unsigned short y = quote->y;
+            SetRegionBounds(party_slot + 0x12e, x, y, x + quote->width, quote->height + y);
             RegionSetEnable(party_slot + 0x1d);
             EnableRegionSetInput(party_slot + 0x1d);
         }
@@ -1405,11 +1393,8 @@ int UpdateCharacterEventState(void)
                     }
                 }
             } else {
-                Function5E2F40(
-                    record->field_001,
-                    reinterpret_cast</* reinterpret-ok: retail portrait gap storage overlays this record */
-                                     W8MouthGapTrack*>(&record->unknown_005[0]));
-                sound_active = record->field_015;
+                Function5E2F40(record->field_001, &record->mouth_gap);
+                sound_active = record->mouth_gap.mouth_open;
             }
         }
 
@@ -1489,7 +1474,7 @@ int UpdateCharacterEventState(void)
                     int pose = record->field_089;
                     record->field_085 = pose;
                     record->field_089 =
-                        g_pose_transition_table_0061cb44[pose * 5 + record->field_08d];
+                        g_portrait_tables_0061cb3c.pose_transition[pose * 5 + record->field_08d];
                     record->field_099 = 1;
                     record->field_091 = SetCountdownClock(Random(50) + 50);
                 }
@@ -1497,7 +1482,7 @@ int UpdateCharacterEventState(void)
                 int pose = record->field_089;
                 if (pose != 2) {
                     record->field_085 = pose;
-                    record->field_089 = g_pose_transition_table_0061cb44[pose * 5 + 2];
+                    record->field_089 = g_portrait_tables_0061cb3c.pose_transition[pose * 5 + 2];
                     record->field_099 = 1;
                     record->field_091 = SetCountdownClock(Random(50) + 50);
                 }

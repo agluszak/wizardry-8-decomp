@@ -6,6 +6,8 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/message_box.h"
 
+#include <wchar.h>
+
 // SYNTHETIC: WIZ8 0x00524A70
 // `dynamic initializer for 'g_npc_scripting''
 // SYNTHETIC: WIZ8 0x00524A90
@@ -57,4 +59,21 @@ void ClearNpcMessageQueue(void)
     }
     g_npc_scripting.message_lines.Clear();
     memset(static_cast<void*>(&g_npc_scripting), 0, sizeof(g_npc_scripting));
+}
+
+// FUNCTION: WIZ8 0x005294c0
+unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output)
+{
+    if (npc == 0 || npc->record_file == 0 || output == 0 ||
+        type >= npc->record_file->record_count) {
+        return 0;
+    }
+
+    W8FileRecord0055A140* record = &npc->record_file->records[type];
+    if (record->strings == 0) {
+        return 0;
+    }
+
+    swprintf(output, L"%S", record->strings[0]);
+    return 1;
 }

@@ -989,6 +989,11 @@ int main(int argc, char** argv)
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
 
+    if (strcmp(g_scenario, "sight-threshold") == 0) {
+        SGPExit();
+        return driver_status;
+    }
+
     /* Keep the scenario result on stderr before teardown: a teardown failure
        must not erase whether the flow itself reached its goal. */
     fprintf(stderr,

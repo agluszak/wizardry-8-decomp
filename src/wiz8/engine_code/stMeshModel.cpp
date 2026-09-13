@@ -20,6 +20,43 @@
  * well: its vtable sits immediately after the mesh-model vector vftables.
  */
 
+// FUNCTION: WIZ8 0x00470b00
+stMeshModel::stMeshModel(long polygons, long vertex_count_arg)
+    : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0)
+{
+    next = 0;
+    previous = 0;
+    flags_3a0 = 0;
+    memset(unknown_3a4, 0, sizeof(unknown_3a4));
+    flag_3cc = 0;
+    vertex_count = 0;
+    compressed_vertex_locations_3d4 = 0;
+    compressed_vertex_normals_3d8 = 0;
+    compressed_polygon_normals_3dc = 0;
+    vertices = 0;
+    vertex_frame_normals_3e4 = 0;
+    polygon_frame_normals_3e8 = 0;
+    unknown_frame_data_3ec = 0;
+    unknown_frame_data_3ec = 0;
+    automap_polygons = 0;
+    automap_polygon_count = 0;
+    automap_filter_active = 0;
+    skin_blanking_apt_458 = 0;
+    skin_blanking_apt_number_45c = 0;
+    skin_blanking_checked_460 = 0;
+    srMeshModel::reset(polygons, vertex_count_arg);
+    for (int pass = 0; pass < 4; ++pass) {
+        for (int side = 0; side < 2; ++side) {
+            materials_1c[pass][side] = 0;
+            textures_3c[pass][side] = 0;
+        }
+        shaders_5c[pass].value = 0x0100241b;
+    }
+    pass_count_228 = 0;
+    sort_bias_238 = 0.0f;
+    control_state_394 &= ~0x10;
+}
+
 /* Copy `count` dwords between distinct buffers through the imported vp. */
 // FUNCTION: WIZ8 0x00470180
 void CopyDwordBuffer00470180(void* destination, const void* source, int count)
@@ -139,6 +176,70 @@ void* stMeshModel::GetVertex(unsigned int index)
         return vertices[index];
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x00473B00
+void stMeshModel::InitializeVertexFrames00473B00(int frame_count)
+{
+    if (frame_count == 0) {
+        srAssertFail("uiFrames", "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x6e8,
+                     0);
+    }
+    if ((flags_3a0 & 4) != 0) {
+        return;
+    }
+
+    vertex_count = static_cast<unsigned int>(frame_count);
+    flags_3a0 |= 4;
+    compressed_vertex_locations_3d4 = new void*[frame_count];
+    compressed_vertex_normals_3d8 = new void*[frame_count];
+    compressed_polygon_normals_3dc = new void*[frame_count];
+    vertices = new void*[frame_count];
+    vertex_frame_normals_3e4 = new void*[frame_count];
+    polygon_frame_normals_3e8 = new void*[frame_count];
+    if (compressed_vertex_locations_3d4 == 0 || compressed_vertex_normals_3d8 == 0 ||
+        compressed_polygon_normals_3dc == 0 || vertices == 0 || vertex_frame_normals_3e4 == 0 ||
+        polygon_frame_normals_3e8 == 0) {
+        delete[] compressed_vertex_locations_3d4;
+        delete[] compressed_vertex_normals_3d8;
+        delete[] compressed_polygon_normals_3dc;
+        delete[] vertices;
+        delete[] vertex_frame_normals_3e4;
+        delete[] polygon_frame_normals_3e8;
+        compressed_vertex_locations_3d4 = 0;
+        compressed_vertex_normals_3d8 = 0;
+        compressed_polygon_normals_3dc = 0;
+        vertices = 0;
+        vertex_frame_normals_3e4 = 0;
+        polygon_frame_normals_3e8 = 0;
+        return;
+    }
+    memset(compressed_vertex_locations_3d4, 0, frame_count * sizeof(void*));
+    memset(compressed_vertex_normals_3d8, 0, frame_count * sizeof(void*));
+    memset(compressed_polygon_normals_3dc, 0, frame_count * sizeof(void*));
+    memset(vertices, 0, frame_count * sizeof(void*));
+    memset(vertex_frame_normals_3e4, 0, frame_count * sizeof(void*));
+    memset(polygon_frame_normals_3e8, 0, frame_count * sizeof(void*));
+
+    for (int frame = 0; frame < frame_count; ++frame) {
+        vertices[frame] = new unsigned char[vertex_location_count_22c * 6];
+        vertex_frame_normals_3e4[frame] = new unsigned char[vertex_location_count_22c * 3];
+        polygon_frame_normals_3e8[frame] = new unsigned char[polygon_count_230 * 3];
+        if (vertices[frame] == 0 || vertex_frame_normals_3e4[frame] == 0 ||
+            polygon_frame_normals_3e8[frame] == 0) {
+            srAssertFail("m_psCompVertexLoc",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp", 0x6e8, 0);
+        }
+        if (vertices[frame] != 0) {
+            memset(vertices[frame], 0, vertex_location_count_22c * 6);
+        }
+        if (vertex_frame_normals_3e4[frame] != 0) {
+            memset(vertex_frame_normals_3e4[frame], 0, vertex_location_count_22c * 3);
+        }
+        if (polygon_frame_normals_3e8[frame] != 0) {
+            memset(polygon_frame_normals_3e8[frame], 0, polygon_count_230 * 3);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004736d0

@@ -4,9 +4,112 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "FileMan.h"
 #include "surrender/srPalette.h"
+#include "surrender/srTypeRegistry.h"
 #include "wiz8/virtual_file.h"
 
 #include <string.h>
+
+// FUNCTION: WIZ8 0x0047C090
+srColorSurface* stTextureFile::LoadSurface0047C090(int handle, int* image_type)
+{
+    unsigned char id_length;
+    unsigned char color_map_type;
+    unsigned char type;
+    unsigned short color_map_origin;
+    unsigned short color_map_length;
+    unsigned char color_map_depth;
+    unsigned short origin_x;
+    unsigned short origin_y;
+    unsigned short width;
+    unsigned short height;
+    unsigned char pixel_depth;
+    unsigned char descriptor;
+
+    FileRead(handle, &id_length, 1, 0);
+    FileRead(handle, &color_map_type, 1, 0);
+    FileRead(handle, &type, 1, 0);
+    FileRead(handle, &color_map_origin, 2, 0);
+    FileRead(handle, &color_map_length, 2, 0);
+    FileRead(handle, &color_map_depth, 1, 0);
+    FileRead(handle, &origin_x, 2, 0);
+    FileRead(handle, &origin_y, 2, 0);
+    FileRead(handle, &width, 2, 0);
+    FileRead(handle, &height, 2, 0);
+    FileRead(handle, &pixel_depth, 1, 0);
+    FileRead(handle, &descriptor, 1, 0);
+    (void)color_map_origin;
+    (void)color_map_type;
+    (void)origin_x;
+    (void)origin_y;
+
+    FileSeek(handle, id_length, FILE_SEEK_FROM_CURRENT);
+    if (image_type != 0) {
+        *image_type = type;
+    }
+
+    srPalette* palette = 0;
+    srARGB colors[1024];
+    if ((type == 1 || type == 9) && color_map_length != 0) {
+        if (color_map_depth != 24 && color_map_depth != 32) {
+            return 0;
+        }
+        for (unsigned short index = 0; index < color_map_length; ++index) {
+            colors[index].alpha = 0xff;
+            FileRead(handle, &colors[index].blue, 1, 0);
+            FileRead(handle, &colors[index].green, 1, 0);
+            FileRead(handle, &colors[index].red, 1, 0);
+            if (color_map_depth == 32) {
+                FileRead(handle, &colors[index].alpha, 1, 0);
+            }
+        }
+        palette = SR_NEW(srPalette)(colors, color_map_length);
+        if (palette != 0) {
+            palette->setName("TGA importer generated palette");
+            palette->autoRelease();
+        }
+    } else if (type == 2 || type == 10) {
+        palette = srCore.getPalette();
+    }
+
+    srPixelConvert::e_surfaceType surface_type;
+    switch (type) {
+    case 1:
+    case 9:
+        surface_type = srPixelConvert::SURFACE_L8;
+        break;
+    case 2:
+    case 10:
+        if (pixel_depth == 16) {
+            surface_type = srPixelConvert::SURFACE_ARGB1555;
+        } else if (pixel_depth == 24) {
+            surface_type = srPixelConvert::SURFACE_BGR24;
+        } else if (pixel_depth == 32) {
+            surface_type = srPixelConvert::SURFACE_BGRA32;
+        } else {
+            return 0;
+        }
+        break;
+    case 3:
+    case 11:
+        surface_type = srPixelConvert::SURFACE_L8;
+        break;
+    default:
+        return 0;
+    }
+
+    srColorSurface* surface = SR_NEW(W8ColorSurface)(surface_type, width, height);
+    if (surface == 0) {
+        return 0;
+    }
+    if (palette != 0) {
+        surface->setPalette(palette);
+    }
+    const long data_size = surface->getDataSize();
+    if (data_size > 0) {
+        FileRead(handle, surface->getDataPtr(), data_size, 0);
+    }
+    return surface;
+}
 
 // VTABLE: WIZ8 0x005EC5F8
 // class stTextureFile

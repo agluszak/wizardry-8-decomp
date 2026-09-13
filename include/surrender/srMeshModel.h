@@ -61,6 +61,7 @@ public:
     };
 
     srMeshModel(long polygons, long vertices);
+    void reset(long polygons, long vertices);
     srMeshModel& operator=(const srMeshModel& other);
 
     static const char* sGetClassName()
