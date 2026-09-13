@@ -239,8 +239,21 @@ W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
 // FUNCTION: WIZ8 0x0047D4D0
 srBinStream& W8VirtualFileBinIStream::seek(unsigned long position, e_seekDir direction)
 {
-    static const int origins[] = {1, 4, 2};
-    if (!FileSeek(m_hFile, position, origins[direction])) {
+    int origin;
+    switch (direction) {
+    case SR_SEEK_BEGIN:
+        origin = 1;
+        break;
+    case SR_SEEK_CURRENT:
+        origin = 4;
+        break;
+    case SR_SEEK_END:
+        origin = 2;
+        break;
+    default:
+        return *this;
+    }
+    if (!FileSeek(m_hFile, position, origin)) {
         setState(SR_STREAM_ERROR);
     }
     return *this;
