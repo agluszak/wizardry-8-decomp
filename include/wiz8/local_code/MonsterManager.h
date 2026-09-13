@@ -47,24 +47,24 @@ struct W8MonsterManagerEntry {
     W8MonsterManagerEntry();
     ~W8MonsterManagerEntry();
 
-    unsigned char field_000;
-    int field_001;
+    unsigned char portrait_event_active;
+    int voice_sound_handle;
     W8MouthGapTrack mouth_gap;  /* 0x005 */
     W8PortraitQuoteState quote; /* 0x019 */
     unsigned char unknown_029[0x4c];
-    W8CharacterEvent* field_071;
-    int field_075;
-    int field_079;
-    int field_07d;
-    int field_081;
-    int field_085;
-    int field_089;
-    int field_08d;
-    int field_091;
-    int field_095;
+    W8CharacterEvent* active_character_event;
+    int previous_portrait_frame;
+    int portrait_frame;
+    int portrait_frame_clock;
+    int voice_time_remaining_ms;
+    int previous_portrait_pose;
+    int portrait_pose;
+    int target_portrait_pose;
+    int portrait_pose_clock;
+    int portrait_idle_clock;
     unsigned char field_099;
-    unsigned char field_09a;
-    unsigned char field_09b;
+    unsigned char portrait_pose_dirty;
+    unsigned char portrait_frame_dirty;
     unsigned char field_09c;
     unsigned char field_09d;
     unsigned char field_09e;

@@ -91,7 +91,7 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
       width(source_width), height(source_height), tiles(new stTexture2D*[tile_count]),
       tile_u((float)tile_extent / (float)source_width),
       tile_v((float)tile_extent / (float)source_height), field_168(0), field_16c(1.0f), scale(0.0f),
-      field_194(0)
+      texture_update_flags(0)
 {
     int row;
     int column;
@@ -281,7 +281,7 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int t
         if (texture->bottom - y < update_height) {
             update_height = texture->bottom - y;
         }
-        if (field_194 & 1) {
+        if (texture_update_flags & UPDATE_FULL_TILE) {
             destination_x = 0;
             destination_y = 0;
             update_width = tile_size;
@@ -301,7 +301,7 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int t
 // FUNCTION: WIZ8 0x0047e5b0
 void stSurface2D::enableRendererFlag(unsigned int flag)
 {
-    field_194 |= flag;
+    texture_update_flags |= flag;
 }
 
 // SYNTHETIC: WIZ8 0x0047DFC0

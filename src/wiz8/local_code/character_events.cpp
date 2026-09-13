@@ -476,12 +476,12 @@ void W8CharacterEvent::Process0052CED0()
 
     party_slot = CharacterPointerToPartySlot(character_04);
     slot = &gXStatus.monster_manager_entries[party_slot];
-    sound_was_active = slot->field_000;
-    slot->field_071 = 0;
+    sound_was_active = slot->portrait_event_active;
+    slot->active_character_event = 0;
     if (sound_was_active != 0) {
-        if (IsSoundPlaying(slot->field_001) != 0) {
+        if (IsSoundPlaying(slot->voice_sound_handle) != 0) {
             handled_00 = 1;
-            StopSound(slot->field_001);
+            StopSound(slot->voice_sound_handle);
         }
         SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
     }
@@ -643,19 +643,20 @@ unsigned char W8CharacterEvent::PlayEventSound()
     sound_parms.pCallbackData = this;
     sound_handle = SoundPlay(sound_path, &sound_parms);
     record = &gXStatus.monster_manager_entries[party_slot];
-    record->field_001 = sound_handle;
+    record->voice_sound_handle = sound_handle;
     if (sound_handle == 0xffffffff) {
         if (type_08 > 0x91) {
             static const wchar_t kFallbackVoiceText[] = L"Ouch play this sound";
-            record->field_081 =
+            record->voice_time_remaining_ms =
                 ComputePortraitMessageDuration(const_cast<wchar_t*>(kFallbackVoiceText));
         } else {
-            record->field_081 = ComputePortraitMessageDuration(g_character_text_0068c580);
+            record->voice_time_remaining_ms =
+                ComputePortraitMessageDuration(g_character_text_0068c580);
         }
         return 1;
     }
     SoundGetMilliSecondPosition(sound_handle, &total_ms, &current_ms);
-    record->field_081 = total_ms;
+    record->voice_time_remaining_ms = total_ms;
     Function5E2D10(sound_path, &record->mouth_gap);
     return 1;
 }
@@ -704,7 +705,7 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
         }
     }
     slot = &gXStatus.monster_manager_entries[party_slot];
-    if (slot->field_000 == 0) {
+    if (slot->portrait_event_active == 0) {
         if (event_type == 0x33) {
             SetNpcDialoguePanelVisible(0);
         }
@@ -732,7 +733,7 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 ReleaseRecordFile0055A0A0(npc->record_file);
                 ReloadNpcScriptResources(npc);
             }
-            slot->field_071 = this;
+            slot->active_character_event = this;
             event_type = type_08;
             if (event_type > 1 && (event_type < 4 || event_type == 0x1c)) {
                 gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
@@ -760,7 +761,7 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 SetPartyPortraitEventState(
                     party_slot, 1, event_type, g_character_text_0068c580,
                     1 - ((flags_10 & g_character_event_flags_mask_005ed8e4) != 0));
-                slot->field_071 = this;
+                slot->active_character_event = this;
                 row->pending_event_type_ff = type_08;
                 slot->pending_event_type_114 = type_08;
                 return 1;
@@ -813,29 +814,29 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
     W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
     W8PortraitQuoteState* quote = &record->quote;
 
-    if (record->field_000 == active) {
+    if (record->portrait_event_active == active) {
         return;
     }
     if (active == 0) {
-        record->field_000 = 0;
+        record->portrait_event_active = 0;
         if (gfCapturingVideo != 0) {
             return;
         }
-        record->field_075 = record->field_079;
-        record->field_079 = 6;
-        record->field_09b = 1;
+        record->previous_portrait_frame = record->portrait_frame;
+        record->portrait_frame = 6;
+        record->portrait_frame_dirty = 1;
         int pc_slot = RPCPtrToPCSlot(record);
         record->field_099 = 0;
         unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
         if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
-            if (record->field_08d != 1) {
-                record->field_08d = 1;
+            if (record->target_portrait_pose != 1) {
+                record->target_portrait_pose = 1;
             }
         } else {
-            record->field_08d = 2;
+            record->target_portrait_pose = 2;
         }
         if (quote->quote_handle == -1) {
-            record->field_000 = active;
+            record->portrait_event_active = active;
             return;
         }
         unsigned int stored_event = record->pending_event_type_114;
@@ -872,24 +873,24 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             RequestRedraw(0x8000);
             RequestRedrawParty();
-            record->field_000 = 0;
+            record->portrait_event_active = 0;
             return;
         }
         if (g_current_screen_state.id == W8_SCREEN_CAMP) {
             g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
         }
-        record->field_000 = active;
+        record->portrait_event_active = active;
         return;
     }
 
-    record->field_000 = 1;
+    record->portrait_event_active = 1;
     if (gfCapturingVideo != 0) {
         return;
     }
-    record->field_075 = record->field_079;
-    record->field_079 = 7;
-    record->field_09b = 1;
-    record->field_07d = SetCountdownClock(0x78);
+    record->previous_portrait_frame = record->portrait_frame;
+    record->portrait_frame = 7;
+    record->portrait_frame_dirty = 1;
+    record->portrait_frame_clock = SetCountdownClock(0x78);
     int pose_category;
     if (static_cast<int>(g_normal_event_count_005ee70c) < static_cast<int>(event_type)) {
         pose_category = 1;
@@ -905,11 +906,11 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
     record->field_099 = 0;
     unsigned int highest_condition = g_status_685170.buffers.characters[pc_slot].highest_condition;
     if (highest_condition < 0xf && gXStatus.fSurprisePossible == 0) {
-        if (record->field_08d != pose_category) {
-            record->field_08d = pose_category;
+        if (record->target_portrait_pose != pose_category) {
+            record->target_portrait_pose = pose_category;
         }
     } else {
-        record->field_08d = 2;
+        record->target_portrait_pose = 2;
     }
     if (quote_text == 0 || show_quote == 0) {
         quote->quote_handle = -1;
@@ -977,10 +978,10 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);
         record->field_0cf = 1;
-        record->field_000 = active;
+        record->portrait_event_active = active;
         return;
     }
-    record->field_000 = active;
+    record->portrait_event_active = active;
     // clang-format on
 }
 
@@ -1020,11 +1021,11 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
     }
     if (entry->type_08 > 0x91 && (entry->flags_10 & 0x20) == 0) {
         W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
-        if (slot->field_071 != 0) {
-            vector_40.Remove(slot->field_071);
-            RestartFollowUpClock(slot->field_071);
-            slot->field_071->Process0052CED0();
-            delete slot->field_071;
+        if (slot->active_character_event != 0) {
+            vector_40.Remove(slot->active_character_event);
+            RestartFollowUpClock(slot->active_character_event);
+            slot->active_character_event->Process0052CED0();
+            delete slot->active_character_event;
         }
         entry->DispatchCharacterEventEntry();
         return 1;
@@ -1351,7 +1352,7 @@ queue_follow_up_event:
                         g_effect_argument_005ed8cc, g_effect_argument_005ed914);
 }
 
-/* Occupied slots with field_000 set still have a portrait/voice record in
+/* Occupied slots with portrait_event_active set still have a portrait/voice record in
    flight; trap-trigger follow-up waits until none of those are active. */
 // FUNCTION: WIZ8 0x0052E590
 unsigned char PartyPortraitEventsIdle(void)
@@ -1361,7 +1362,7 @@ unsigned char PartyPortraitEventsIdle(void)
 
     for (current = gXStatus.monster_manager_entries; current < &gXStatus.monster_manager_entries[8];
          ++current, ++row) {
-        if (row->occupied != 0 && current->field_000 != 0) {
+        if (row->occupied != 0 && current->portrait_event_active != 0) {
             return 0;
         }
     }
@@ -1385,26 +1386,27 @@ int UpdateCharacterEventState(void)
         if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
             continue;
         }
-        if (record->field_000 != 0) {
-            if (record->field_001 == -1) {
-                if (record->field_081 == 0) {
-                    if (record->field_071 == 0) {
+        if (record->portrait_event_active != 0) {
+            if (record->voice_sound_handle == -1) {
+                if (record->voice_time_remaining_ms == 0) {
+                    if (record->active_character_event == 0) {
                         SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
                     } else {
-                        gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
+                        gXStatus.character_event_queue->ProcessOwnedEntry(
+                            record->active_character_event);
                     }
                 }
             } else {
-                Function5E2F40(record->field_001, &record->mouth_gap);
+                Function5E2F40(record->voice_sound_handle, &record->mouth_gap);
                 sound_active = record->mouth_gap.mouth_open;
             }
         }
 
-        if (record->field_000 == 0) {
+        if (record->portrait_event_active == 0) {
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
                 if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                    gXStatus.monster_manager_entries[scan].field_000 != 0) {
+                    gXStatus.monster_manager_entries[scan].portrait_event_active != 0) {
                     break;
                 }
             }
@@ -1414,14 +1416,14 @@ int UpdateCharacterEventState(void)
         } else {
             W8Character* character = &g_status_685170.buffers.characters[party_slot];
             if ((character->highest_condition > 14 || character->hp_current == 0) &&
-                record->field_071 != 0) {
-                gXStatus.character_event_queue->ProcessOwnedEntry(record->field_071);
+                record->active_character_event != 0) {
+                gXStatus.character_event_queue->ProcessOwnedEntry(record->active_character_event);
             }
-            if (record->field_000 == 0) {
+            if (record->portrait_event_active == 0) {
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
                     if (g_status_685170.buffers.party_rows[scan].occupied != 0 &&
-                        gXStatus.monster_manager_entries[scan].field_000 != 0) {
+                        gXStatus.monster_manager_entries[scan].portrait_event_active != 0) {
                         break;
                     }
                 }
@@ -1431,31 +1433,31 @@ int UpdateCharacterEventState(void)
             } else {
                 any_active = 1;
                 if (sound_active == 0) {
-                    if (ClockIsTicking(record->field_07d) == 0) {
-                        if (record->field_081 < 120) {
-                            record->field_075 = record->field_079;
-                            record->field_079 = 6;
-                            record->field_09a = 1;
-                            record->field_081 = 0;
+                    if (ClockIsTicking(record->portrait_frame_clock) == 0) {
+                        if (record->voice_time_remaining_ms < 120) {
+                            record->previous_portrait_frame = record->portrait_frame;
+                            record->portrait_frame = 6;
+                            record->portrait_pose_dirty = 1;
+                            record->voice_time_remaining_ms = 0;
                         } else {
                             int direction = ChooseDifferentMonsterDirection004C2E00(
-                                                (short)record->field_079 - 6) +
+                                                (short)record->portrait_frame - 6) +
                                             6;
                             if (g_value_0068c57c <= record->field_113 &&
                                 record->field_113 <= g_value_0068c554) {
                                 direction = 8;
                             }
-                            record->field_075 = record->field_079;
-                            record->field_079 = direction;
-                            record->field_09a = 1;
-                            record->field_07d = SetCountdownClock(120);
-                            record->field_081 -= 120;
+                            record->previous_portrait_frame = record->portrait_frame;
+                            record->portrait_frame = direction;
+                            record->portrait_pose_dirty = 1;
+                            record->portrait_frame_clock = SetCountdownClock(120);
+                            record->voice_time_remaining_ms -= 120;
                         }
                     }
                 } else {
-                    record->field_075 = record->field_079;
-                    record->field_079 = 6;
-                    record->field_09a = 1;
+                    record->previous_portrait_frame = record->portrait_frame;
+                    record->portrait_frame = 6;
+                    record->portrait_pose_dirty = 1;
                 }
             }
         }
@@ -1464,35 +1466,40 @@ int UpdateCharacterEventState(void)
             Function56EC90(party_slot) != 0) {
             continue;
         }
-        if (record->field_09b == 0 && record->field_0bd == 0 &&
-            (g_current_screen_state.id != W8_SCREEN_CHARACTER || record->field_000 != 0)) {
+        if (record->portrait_frame_dirty == 0 && record->field_0bd == 0 &&
+            (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
+             record->portrait_event_active != 0)) {
             if (record->field_099 == 0) {
-                if (record->field_089 == record->field_08d) {
-                    if (record->field_089 == 1 && ClockIsTicking(record->field_095) == 0) {
+                if (record->portrait_pose == record->target_portrait_pose) {
+                    if (record->portrait_pose == 1 &&
+                        ClockIsTicking(record->portrait_idle_clock) == 0) {
                         record->field_099 = 1;
-                        record->field_095 = SetCountdownClock(Random(5000) + 5000);
+                        record->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
                     }
-                } else if (ClockIsTicking(record->field_091) == 0) {
-                    int pose = record->field_089;
-                    record->field_085 = pose;
-                    record->field_089 =
-                        g_portrait_tables_0061cb3c.pose_transition[pose * 5 + record->field_08d];
+                } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
+                    int pose = record->portrait_pose;
+                    record->previous_portrait_pose = pose;
+                    record->portrait_pose =
+                        g_portrait_tables_0061cb3c
+                            .pose_transition[pose * 5 + record->target_portrait_pose];
                     record->field_099 = 1;
-                    record->field_091 = SetCountdownClock(Random(50) + 50);
+                    record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
-            } else if (ClockIsTicking(record->field_091) == 0) {
-                int pose = record->field_089;
+            } else if (ClockIsTicking(record->portrait_pose_clock) == 0) {
+                int pose = record->portrait_pose;
                 if (pose != 2) {
-                    record->field_085 = pose;
-                    record->field_089 = g_portrait_tables_0061cb3c.pose_transition[pose * 5 + 2];
+                    record->previous_portrait_pose = pose;
+                    record->portrait_pose =
+                        g_portrait_tables_0061cb3c.pose_transition[pose * 5 + 2];
                     record->field_099 = 1;
-                    record->field_091 = SetCountdownClock(Random(50) + 50);
+                    record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
-                if (record->field_089 == 2) {
+                if (record->portrait_pose == 2) {
                     record->field_099 = 0;
                 }
             }
-            if ((record->field_099 != 0 || record->field_09a != 0) && record->field_0cf == 0) {
+            if ((record->field_099 != 0 || record->portrait_pose_dirty != 0) &&
+                record->field_0cf == 0) {
                 RefreshPartySlotDisplay(party_slot);
             }
         }

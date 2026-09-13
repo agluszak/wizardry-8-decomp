@@ -287,10 +287,10 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
         }
         W8MonsterManagerEntry* entry = GetNpcGroupEntry(g_npc_scripting.npc);
         if (entry != 0) {
-            if (entry->field_071 == 0) {
+            if (entry->active_character_event == 0) {
                 SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 0, -1, 0, 1);
             } else {
-                gXStatus.character_event_queue->ProcessOwnedEntry(entry->field_071);
+                gXStatus.character_event_queue->ProcessOwnedEntry(entry->active_character_event);
             }
         }
         g_npc_scripting.flag_70 = 0;

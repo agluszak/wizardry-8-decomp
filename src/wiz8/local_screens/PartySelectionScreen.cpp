@@ -2267,10 +2267,10 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
     if (g_portrait_frame_flags_0061cbc0[portrait] == 0) {
         return drawn;
     }
-    if (state->field_09a != 0 || state->field_089 != state->field_085 ||
-        (animate != 0 && state->field_089 != 1)) {
-        GetCatalogImageSize(0x12, portrait, state->field_089, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->field_089, &image_x, &image_y);
+    if (state->portrait_pose_dirty != 0 || state->portrait_pose != state->previous_portrait_pose ||
+        (animate != 0 && state->portrait_pose != 1)) {
+        GetCatalogImageSize(0x12, portrait, state->portrait_pose, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->portrait_pose, &image_x, &image_y);
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
@@ -2283,11 +2283,12 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         if (g_status_685170.buffers.characters[party_slot].hp_current == 0) {
             return 1;
         }
-        DrawCatalogImage(-0xe, 0x12, portrait, state->field_089, left, top, flags | 0x200, 0);
+        DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_pose, left, top, flags | 0x200, 0);
         drawn = 1;
-        if (state->field_085 != -1) {
-            GetCatalogImageSize(0x12, portrait, state->field_085, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->field_085, &image_x, &image_y);
+        if (state->previous_portrait_pose != -1) {
+            GetCatalogImageSize(0x12, portrait, state->previous_portrait_pose, &width, &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_pose, &image_x,
+                                            &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;
@@ -2295,30 +2296,32 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             UnionScreenRects(&other, &rect, &rect);
         }
         InvalidateScreenRects(&rect, 1, 0);
-        state->field_085 = state->field_089;
-        state->field_09a = 0;
+        state->previous_portrait_pose = state->portrait_pose;
+        state->portrait_pose_dirty = 0;
     }
-    if (state->field_09b == 0 && state->field_079 == state->field_075 &&
-        (animate == 0 || state->field_079 == 6)) {
+    if (state->portrait_frame_dirty == 0 &&
+        state->portrait_frame == state->previous_portrait_frame &&
+        (animate == 0 || state->portrait_frame == 6)) {
         if (drawn == 0) {
             return 0;
         }
     } else {
-        GetCatalogImageSize(0x12, portrait, state->field_079, &width, &height);
-        GetCatalogImagePosition00549700(0x12, portrait, state->field_079, &image_x, &image_y);
+        GetCatalogImageSize(0x12, portrait, state->portrait_frame, &width, &height);
+        GetCatalogImagePosition00549700(0x12, portrait, state->portrait_frame, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].flag_34 != 0) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
-        DrawCatalogImage(-0xe, 0x12, portrait, state->field_079, left, top, flags, 0);
+        DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_frame, left, top, flags, 0);
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
         drawn = 1;
-        if (state->field_075 != -1) {
-            GetCatalogImageSize(0x12, portrait, state->field_075, &width, &height);
-            GetCatalogImagePosition00549700(0x12, portrait, state->field_075, &image_x, &image_y);
+        if (state->previous_portrait_frame != -1) {
+            GetCatalogImageSize(0x12, portrait, state->previous_portrait_frame, &width, &height);
+            GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_frame,
+                                            &image_x, &image_y);
             other.left = image_x + left;
             other.top = image_y + top;
             other.right = width + other.left;
@@ -2326,8 +2329,8 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             UnionScreenRects(&other, &rect, &rect);
         }
         InvalidateScreenRects(&rect, 1, 0);
-        state->field_075 = state->field_079;
-        state->field_09b = 0;
+        state->previous_portrait_frame = state->portrait_frame;
+        state->portrait_frame_dirty = 0;
     }
     if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
          gXStatus.fSurprisePossible != 0) ||

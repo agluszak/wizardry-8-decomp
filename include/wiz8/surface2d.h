@@ -37,6 +37,8 @@ public:
 // VTABLE: WIZ8 0x005EC77C srClassSupport<stSurface2D, srNode, 0, 65550>
 class stSurface2D : public srClassSupport<stSurface2D, srNode, false, 0x1000e> {
 public:
+    enum { UPDATE_FULL_TILE = 1 };
+
     static const char* sGetClassName()
     {
         return "stSurface2D";
@@ -69,7 +71,7 @@ public:
     float field_16c;
     float coordinates[8]; /* 0x170 */
     float scale;          /* 0x190 */
-    int field_194;
+    int texture_update_flags;
 };
 
 static_assert((sizeof(stTexture2D) == 0x6c), "stTexture2D_must_be_0x6c");

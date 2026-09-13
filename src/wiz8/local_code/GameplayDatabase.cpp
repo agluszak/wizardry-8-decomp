@@ -768,24 +768,24 @@ void ResetGameplaySlot(unsigned int slot)
     int tier;
 
     memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
-    record->field_000 = 0;
-    record->field_001 = -1;
-    record->field_075 = -1;
-    record->field_079 = 6;
+    record->portrait_event_active = 0;
+    record->voice_sound_handle = -1;
+    record->previous_portrait_frame = -1;
+    record->portrait_frame = 6;
     record->field_099 = 0;
     tier = 1;
     if (g_status_685170.buffers.characters[slot].highest_condition >= 0xf) {
         tier = 2;
     }
-    record->field_089 = tier;
-    record->field_08d = tier;
-    record->field_085 = -1;
-    record->field_09a = 0;
-    record->field_09b = 0;
-    record->field_07d = SetCountdownClock(0);
-    record->field_081 = 0;
-    record->field_091 = SetCountdownClock(0);
-    record->field_095 = SetCountdownClock(Random(5000) + 5000);
+    record->portrait_pose = tier;
+    record->target_portrait_pose = tier;
+    record->previous_portrait_pose = -1;
+    record->portrait_pose_dirty = 0;
+    record->portrait_frame_dirty = 0;
+    record->portrait_frame_clock = SetCountdownClock(0);
+    record->voice_time_remaining_ms = 0;
+    record->portrait_pose_clock = SetCountdownClock(0);
+    record->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
     record->field_0ca = SetCountdownClock(0);
     record->field_09c = 0;
     record->field_09d = 0;
@@ -798,7 +798,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->field_0c2 = -1;
     record->field_0be = -1;
     record->field_0c6 = 0;
-    record->field_071 = 0;
+    record->active_character_event = 0;
     record->field_0bc = 0;
     record->field_0ac = 0;
     record->field_0b0 = 0;

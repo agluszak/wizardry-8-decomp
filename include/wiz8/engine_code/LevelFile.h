@@ -108,11 +108,11 @@ struct W8LevelFileSwitch { /* 0x271 */
     char name_1f[0x80];
     char recipients_9f[0x100];
     unsigned char unknown_19f[0x80];
-    unsigned char unknown_21f[4]; /* version_00 > 1 */
-    char switch_name_223[0x40];   /* version_00 > 1 */
-    unsigned char field_263;      /* version_00 > 2 */
-    unsigned char door_kind_264;  /* field_263 != 0 */
-    W8LevelFileDoor* pDoor_265;   /* door_kind_264 == 1 */
+    unsigned char unknown_21f[4];       /* version_00 > 1 */
+    char switch_name_223[0x40];         /* version_00 > 1 */
+    unsigned char has_door_trigger_263; /* version_00 > 2 */
+    unsigned char door_kind_264;        /* has_door_trigger_263 != 0 */
+    W8LevelFileDoor* pDoor_265;         /* door_kind_264 == 1 */
     unsigned char unknown_269[4];
     unsigned char unknown_26d[4]; /* version_00 > 3 */
 };
@@ -167,46 +167,47 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     unsigned char version_00;
     char name_01[0x80];
     unsigned char flags_81; /* bit0 suppresses the door-kind half */
-    unsigned char field_82;
-    unsigned char field_83;
-    unsigned char field_84;
-    unsigned char field_85;
-    unsigned char field_86;
-    unsigned char field_87;
-    int field_88;
-    int field_8c;
-    int field_90;
+    unsigned char active_82;
+    unsigned char kind_83;
+    unsigned char when_active_84;
+    unsigned char prop_index_85;
+    unsigned char activation_count_86;
+    unsigned char inactive_count_87;
+    int trigger_88;
+    int trigger_on_8c;
+    int trigger_off_90;
     char recipients_94[0x100];
-    unsigned char field_194;
-    char field_195[0x100];
-    unsigned char field_295;
-    int field_296;
-    unsigned char field_29a;
-    char field_29b[0x80];
+    unsigned char ataxia_or_cure_194;
+    char ps_events_195[0x100];
+    unsigned char allow_save_295;
+    int price_296;
+    unsigned char door_kind_29a;
+    char animation_29b[0x80];
     unsigned char unknown_31b[0x180];
-    float field_49b[3];      /* version_00 > 1 */
-    float field_4a7;         /* version_00 > 1 */
-    unsigned char field_4ab; /* version_00 > 1 */
-    unsigned char field_4ac; /* version_00 > 1 */
-    unsigned char field_4ad; /* version_00 > 1 */
-    unsigned char field_4ae; /* version_00 > 1 */
-    float field_4af[4];      /* version_00 > 1 */
-    unsigned char field_4bf;
-    unsigned char field_4c0;
-    unsigned char field_4c1;
-    char field_4c2[0x100];
-    char field_5c2[0x100];
-    unsigned char field_6c2;
-    int field_6c3;
+    float size_49b[3];      /* version_00 > 1 */
+    float direction_4a7;    /* version_00 > 1 */
+    unsigned char wait_4ab; /* version_00 > 1 */
+    unsigned char wait_4ac; /* version_00 > 1 */
+    unsigned char wait_4ad; /* version_00 > 1 */
+    unsigned char loop_4ae; /* version_00 > 1 */
+    float speed_4af;        /* version_00 > 1 */
+    float unknown_4b3[3];   /* version_00 > 1 */
+    unsigned char ignore_4bf;
+    unsigned char group_4c0;
+    unsigned char set_group_4c1;
+    char groups_4c2[0x100];
+    char objects_5c2[0x100];
+    unsigned char close_door_6c2;
+    int wait_6c3;
     int field_6c7;
-    char field_6cb[0x100];
+    char event_6cb[0x100];
     int field_7cb;
-    char field_7cf[0x80];        /* version_00 > 2 */
-    unsigned char door_kind_84f; /* !(flags_81 & 1) */
-    void* pType1_850;            /* door_kind_84f == 1: 0x1c record */
-    void* pPlane_854;            /* door_kind_84f == 2: 0x30 record */
-    unsigned char field_858;     /* !(flags_81 & 1) */
-    void* pRecord_859;           /* field_858 != 0: 0x85 record */
+    char particle_system_7cf[0x80]; /* version_00 > 2 */
+    unsigned char door_kind_84f;    /* !(flags_81 & 1) */
+    void* pType1_850;               /* door_kind_84f == 1: 0x1c record */
+    void* pPlane_854;               /* door_kind_84f == 2: 0x30 record */
+    unsigned char field_858;        /* !(flags_81 & 1) */
+    void* pRecord_859;              /* field_858 != 0: 0x85 record */
     unsigned char field_85d;
     unsigned char kind_85e;               /* field_85d != 0 */
     void* pDoor_85f;                      /* kind_85e == 1 */
