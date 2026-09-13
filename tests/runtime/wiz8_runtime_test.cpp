@@ -80,6 +80,7 @@ struct RuntimeObservation {
 
 static RuntimeObservation g_observation;
 static const char* g_scenario;
+static unsigned char g_sight_semantic_ok;
 
 /* The whole in-process scenario must finish inside this budget; the Python
    runner's outer kill is larger so this report always wins. */
@@ -465,6 +466,14 @@ static DWORD WINAPI DriveScenario(void*)
             g_observation.patch_catalog_count, g_observation.patch_precedence_ok,
             g_observation.physical_fallback_ok);
     fflush(stderr);
+
+    if (strcmp(g_scenario, "sight-threshold") == 0) {
+        SightSemanticResult sight_result;
+        g_sight_semantic_ok = RunSightSemanticTests(&sight_result);
+        PrintSightSemanticResults(&sight_result);
+        gfProgramIsRunning = 0;
+        return g_sight_semantic_ok ? 0 : 1;
+    }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
         gfProgramIsRunning = 0;
@@ -944,21 +953,11 @@ int main(int argc, char** argv)
         return 64;
     }
 
-    if (strcmp(argv[2], "sight-threshold") == 0) {
-        SightSemanticResult sight_result;
-
-        if (!RunSightSemanticTests(&sight_result)) {
-            PrintSightSemanticResults(&sight_result);
-            return 1;
-        }
-        PrintSightSemanticResults(&sight_result);
-        return 0;
-    }
-
     if (strcmp(argv[2], "main-menu-startup") != 0 &&
         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
-        strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0) {
+        strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
+        strcmp(argv[2], "sight-threshold") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
@@ -1048,6 +1047,7 @@ int main(int argc, char** argv)
         g_observation.physical_fallback_ok && g_observation.shade_table_ok;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
+    const bool sight_flow = strcmp(g_scenario, "sight-threshold") == 0;
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||
@@ -1076,7 +1076,8 @@ int main(int argc, char** argv)
          g_observation.main_game_entered);
     const bool npc_state_reset_ok =
         strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
-    const int result = driver_status == 0 && startup_ok && (character_flow || exit_ok) &&
+    const int result = driver_status == 0 && startup_ok &&
+                               (sight_flow ? g_sight_semantic_ok : (character_flow || exit_ok)) &&
                                transition_ok && character_ok && skills_ok && gameplay_ok &&
                                npc_state_reset_ok && teardown_ok
                            ? 0
