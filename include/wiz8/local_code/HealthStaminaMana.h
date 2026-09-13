@@ -29,16 +29,23 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce);
 void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announce);
 /* 0x0052BB60: the monster-side effect application pass the aging producer
    drives for both sign directions. The result block, when given, collects
-   the damage dealt. */
-void ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amount,
-                          struct W8TargetSource* source, int enabled, unsigned char in_combat,
-                          int a, W8SpellEffectResult* result, int c);
+   the damage dealt; the applied amount is also returned. `quiet` marks
+   non-provoking damage such as a poison tick: it picks the notice strings,
+   skips the condition-target bookkeeping, and silences the struck reaction. */
+unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amount,
+                                  struct W8TargetSource* source, char quiet,
+                                  unsigned char in_combat, char a,
+                                  W8SpellEffectResult* result_stats, char c);
 /* 0x0052A890: the character-side counterpart - damage absorbed by the
    slot-2 enchantment first, two thirds of the rest fatigue the character, the
    remainder comes off hit points and can kill. Retail call sites pass exactly
    seven args; the sixth parameter receives a kill-counting result block. */
 unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
                                     char arg_5, W8SpellEffectResult* result_stats, char arg_7);
+extern const wchar_t g_poison_suffix_0061c964[]; /* 0x0061C964 */
+/* 0x0052BEB0: how a monster answers being struck - the struck cycle, a
+   possible condition knock-on, and the hostility check toward the attacker. */
+void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, char quiet);
 void WriteGameLogAmount(int category, const wchar_t* format, unsigned int amount);
 void RecordCharacterDamage(int party_slot, unsigned int amount);
 void CharacterDies(int party_slot);
@@ -52,6 +59,13 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
 int __cdecl CompareSpellPointDeficits(const void* first, const void* second);
+/* 0x0052F000: set the pose a party-slot portrait animates toward; clears any
+   pose animation in progress and forces the incapacitated pose when the
+   character is too far gone or the party is surprised. */
+void SetPortraitTargetPose(struct W8MonsterManagerEntry* slot, int pose);
+/* 0x0052FE00: re-blit each active portrait quote bubble when the screen comes
+   back from a modal view. */
+void RedrawPortraitQuoteBubbles(void);
 /* 0x0052FE80: queue the character's breath/idle event unless a spell or item
    is being aimed; `force` queues it regardless. */
 void StartBreathCycle(int party_slot, char force);

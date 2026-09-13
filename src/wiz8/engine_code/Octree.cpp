@@ -1077,10 +1077,9 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
 
 // FUNCTION: WIZ8 0x00434220
 unsigned char W8Octree::TestNoiseLineOfSight00434220(const srVector3T<float>* from,
-                                                     srVector3T<float>* to,
-                                                     srVector3T<float>* out_position, float* range)
+                                                     srVector3T<float>* to, float* range, int* hops)
 {
-    return pathing_180->Function4604B0(from, to, out_position, range);
+    return pathing_180->Function4604B0(from, to, range, hops);
 }
 
 // FUNCTION: WIZ8 0x00434250

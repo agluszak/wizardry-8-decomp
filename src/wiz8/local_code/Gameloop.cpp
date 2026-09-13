@@ -114,7 +114,7 @@ void GameLoop(void)
             &gXStatus.character_event_queue->active_events
                  .count) != /* reinterpret-ok: retail reads only the low byte of active_events.count */
         0) {
-        gXStatus.character_event_queue->ProcessNextPendingEntry();
+        gXStatus.character_event_queue->CompleteFirstActiveEvent();
         state = g_current_screen_state.id;
     }
     if (state != -1) {

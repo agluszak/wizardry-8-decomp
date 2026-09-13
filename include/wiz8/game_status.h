@@ -107,7 +107,10 @@ struct W8GlobalStatus {
     unsigned char unknown_244b[8];
     wchar_t monster_name_buffer_2453[22];
     unsigned char alternate_name_slot_247f;
-    unsigned char unknown_2480[9];
+    unsigned char unknown_2480[8];
+    /* 0x2488: one-shot gate; when set, the next condition-change and
+       condition-cleared reaction is swallowed and the flag cleared. */
+    unsigned char skip_next_condition_reaction;
     unsigned char flag_2489; /* 0x2489: fact 0x14c gate */
     /* 0x248a: armed by the long NPC reward event; the event also stamps
        0x2493 with the world clock. */

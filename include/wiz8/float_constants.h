@@ -16,6 +16,9 @@
 
 extern float g_float_005ebb38;
 extern float g_float_005ebb34;
+/* 0x005EE774: scales the record float into the group-engagement probe
+   distance. */
+extern float g_float_005ee774;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
 extern float g_float_005ebc64;
 extern double g_double_005ebc70;
@@ -95,5 +98,11 @@ extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
+/* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
+   from. */
+extern const double g_double_005ed7b0;
+/* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
+   noises. */
+extern const double g_double_005ee768;
 
 #endif

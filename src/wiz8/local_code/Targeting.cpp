@@ -1071,7 +1071,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         if (record->untargetable_24a != 0) {
             continue;
         }
-        if (monster_info->flag_16 != side && side != W8_SIDE_ANY) {
+        if (monster_info->ubDisposition != side && side != W8_SIDE_ANY) {
             continue;
         }
 

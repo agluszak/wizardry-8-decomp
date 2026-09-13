@@ -130,14 +130,46 @@ struct W8MessageBoxLine;
 // VTABLE: WIZ8 0x005ed890
 // class W8GrowableVector<W8MessageBoxLine*>
 
+// TEMPLATE: WIZ8 0x0052a1d0
+// W8GrowableVector<W8MessageBoxLine*>::~W8GrowableVector<W8MessageBoxLine*>
+
 // VTABLE: WIZ8 0x005ed894
 // class W8GrowableVector<int*>
+
+/* Emitted for the NPC-state line queue at 0x0068C4BC (Ghidra types it
+   W8GrowableVector<int*>); the only caller is 0x00525FA0 in the NPC
+   Scripting.cpp span, which is where this InsertAt was emitted. */
+// TEMPLATE: WIZ8 0x0052a1f0
+// W8GrowableVector<int*>::InsertAt
 
 // SYNTHETIC: WIZ8 0x0052a290
 // W8GrowableVector<W8MessageBoxLine*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0052a2c0
 // W8GrowableVector<int*>::`scalar deleting destructor'
+
+/* Local Code\Health Stamina Mana.cpp's W8CharacterEventQueue members: the
+   queue constructor writes each vector's table in two stages, first
+   0x005EE74C - this specialization's construction-phase table - then the
+   final 0x005EE748. The deleting destructor at 0x0052E570 chains to the
+   destructor body at 0x0052E520, which reinstalls the construction-phase
+   table before freeing data. */
+class W8CharacterEvent;
+
+// VTABLE: WIZ8 0x005ee748
+// class W8GrowableVector<W8CharacterEvent*>
+
+// SYNTHETIC: WIZ8 0x0052e570
+// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0052e540
+// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x0052e520
+// W8GrowableVector<W8CharacterEvent*>::~W8GrowableVector<W8CharacterEvent*>
+
+// TEMPLATE: WIZ8 0x0052e4d0
+// W8GrowableVector<W8CharacterEvent*>::Remove
 
 // VTABLE: WIZ8 0x005ed810
 // class W8GrowableVector<W8NpcState*>

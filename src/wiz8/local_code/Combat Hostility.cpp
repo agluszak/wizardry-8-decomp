@@ -34,10 +34,10 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
         second->monster_species == W8_NEUTRAL_SPECIES_224) {
         return 0;
     }
-    if (first->flag_16 == second->flag_16) {
+    if (first->ubDisposition == second->ubDisposition) {
         return 2;
     }
-    if (first->flag_16 == 0 || second->flag_16 == 0) {
+    if (first->ubDisposition == 0 || second->ubDisposition == 0) {
         return 0;
     }
     first_record = GetMonsterDataForInfo(first);

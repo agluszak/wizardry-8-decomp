@@ -284,8 +284,10 @@ public:
                                            srVector3T<float>* destination,
                                            unsigned char adjust_destination,
                                            unsigned char diagonal_steps);
-    unsigned char Function4604B0(const srVector3T<float>* from, srVector3T<float>* to,
-                                 srVector3T<float>* out_position, float* range); /* 0x004604B0 */
+    /* `range` carries the walk budget in and the path cost back out; `hops`
+       returns the reached-waypoint count. */
+    unsigned char Function4604B0(const srVector3T<float>* from, srVector3T<float>* to, float* range,
+                                 int* hops); /* 0x004604B0 */
     unsigned int EditWaypointLinkFlags0045F530(const char* title, unsigned int* flags,
                                                unsigned int direction);
     void EditTeleportalLink(const srVector3T<float>* destination,
