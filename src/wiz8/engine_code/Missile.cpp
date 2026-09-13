@@ -425,6 +425,12 @@ W8Missile::W8Missile()
     ResetCombatSlot(&combat_slot_260);
 }
 
+// SYNTHETIC: WIZ8 0x004a3e30
+// W8Missile::`vector deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004a5da0
+// W8Missile::`vector deleting destructor'`adjustor{24}'
+
 /* Release the representation and every external reference before ordinary
    vector and GrCycle teardown. */
 // FUNCTION: WIZ8 0x004a3fc0
@@ -502,6 +508,9 @@ void DestroyAllMissiles(W8World* world)
         DestroyMissile(missile);
     }
 }
+
+// SYNTHETIC: WIZ8 0x004a2d80
+// W8MissileRep::`scalar deleting destructor'
 
 /* Release the two owned animations and every light vector before the ordinary
    vector members and W8EmitterHost base tear themselves down. */

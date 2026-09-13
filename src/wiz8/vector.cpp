@@ -52,8 +52,20 @@
 // VTABLE: WIZ8 0x005ee8c8
 // class W8GrowableVector<W8ChunkHead*>
 
+// SYNTHETIC: WIZ8 0x0055cbe0
+// W8GrowableVector<W8ChunkHead*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0055cb90
+// W8GrowableVector<W8ChunkHead*>::~W8GrowableVector<W8ChunkHead*>
+
 // VTABLE: WIZ8 0x005ec15c
 // class W8GrowableVector<W8WorldItem*>
+
+// SYNTHETIC: WIZ8 0x004461e0
+// W8GrowableVector<W8WorldItem*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00446070
+// W8GrowableVector<W8WorldItem*>::~W8GrowableVector<W8WorldItem*>
 
 class W8Missile;
 

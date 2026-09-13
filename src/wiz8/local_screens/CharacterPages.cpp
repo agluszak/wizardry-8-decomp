@@ -334,12 +334,6 @@ void W8CharacterPage::AddEntry(W8CharacterPageEntry* entry)
 void W8CharacterPage::HandleInput(InputAtom*) {}
 void W8CharacterPage::Refresh() {}
 
-// FUNCTION: WIZ8 0x005ca1f0
-void W8CharacterPage::Deactivate()
-{
-    EnableRegionSet(0);
-}
-
 // VTABLE: WIZ8 0x005ef5c8 W8CharacterPage005EF5C8
 // VTABLE: WIZ8 0x005ef5c0 W8CharacterPageEntryListener
 // class W8CharacterPage005EF5C8
@@ -372,6 +366,11 @@ void W8CharacterPage005EF5C8::Activate()
     Refresh();
     m_dirty_06d = 1;
     m_prepared_06c = 1;
+}
+
+void W8CharacterPage005EF5C8::Deactivate()
+{
+    EnableRegionSet(0);
 }
 
 // FUNCTION: WIZ8 0x005c76c0

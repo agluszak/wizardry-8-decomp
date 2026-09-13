@@ -44,8 +44,6 @@
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                         char right_button, char left_button);
 
-extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
-
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
     0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0,     0x27b, 0x27c, 0x27d,
@@ -103,7 +101,7 @@ unsigned short g_profession_level_name_message_ids_61e688[15][9] = {
 };
 // GLOBAL: WIZ8 0x0064da9c
 int g_character_page_title_ids_64da9c[4] = {0xcf, 0xd1, 0xd0, 0xd2};
-extern const wchar_t g_wchar_00689b34;
+extern wchar_t g_wchar_00689b34;
 
 // GLOBAL: WIZ8 0x0069c2e4
 unsigned int g_character_screen_region_set_0069c2e4;

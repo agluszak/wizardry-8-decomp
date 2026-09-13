@@ -460,7 +460,7 @@ int g_sight_effect_005ee620 = 0x26;
 // GLOBAL: WIZ8 0x005ee66c
 int g_sight_effect_005ee66c = 0x39;
 // GLOBAL: WIZ8 0x005ed7f8
-const float g_sight_threat_scale_005ed7f8 = 0.6666667f;
+const float g_sight_threat_scale_005ed7f8 = 0.6667f;
 
 /* Recompute one monster's sight state. Direction zero is the monster-to-
    monster pass, which revisits every other monster's per-monster record;
