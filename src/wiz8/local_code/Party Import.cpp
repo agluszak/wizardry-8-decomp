@@ -342,8 +342,8 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
             ReplaceOrCreateItem(&item, item_id, '\x01', '\x01', '\x01');
             equip_slot = GetItemDefaultEquipSlot(item_id);
             if (equip_slot == -1) {
-                if (Function5213C0(character, g_item_records[item_id].unidentified_name_index, 0,
-                                   2) == '\0') {
+                if (FindCharacterItemByDatabaseKind005213C0(
+                        character, g_item_records[item_id].unidentified_name_index, 0, 2) == '\0') {
                     AddItemToCharacter(character, &item, '\x01', '\0', '\0');
                 }
             } else {

@@ -1833,6 +1833,38 @@ bool EveryCharacterHasItem(int item_id, int include_backpack)
     return true;
 }
 
+// FUNCTION: WIZ8 0x005213C0
+char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
+                                             W8ItemInstance** out, int include_backpack)
+{
+    for (int slot = 0; slot < 12; ++slot) {
+        W8ItemInstance* item = &character->equipment[slot];
+        if (item->item_id != -1 &&
+            g_item_records[item->item_id].unidentified_name_index == item_kind) {
+            if (out != 0) {
+                *out = item;
+            }
+            return 1;
+        }
+    }
+    if (include_backpack != 0) {
+        for (int slot = 0; slot < 8; ++slot) {
+            W8ItemInstance* item = &character->backpack[slot];
+            if (item->item_id != -1 &&
+                g_item_records[item->item_id].unidentified_name_index == item_kind) {
+                if (out != 0) {
+                    *out = item;
+                }
+                return 1;
+            }
+        }
+    }
+    if (out != 0) {
+        *out = 0;
+    }
+    return 0;
+}
+
 /* At what range an item's spell works. An item with no spell has no range at
    all, which is a different answer from touch. */
 // FUNCTION: WIZ8 0x005207e0

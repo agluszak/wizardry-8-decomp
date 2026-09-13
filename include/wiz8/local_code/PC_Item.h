@@ -100,9 +100,10 @@ bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
 bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item, char party_first,
                                    int arg_4, int arg_5); /* 0x0051C280 */
 bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
-/* Unresolved gap, declared for the Party Import.cpp call site: scans the
-   character's carried items for one whose database kind matches. */
-char Function5213C0(W8Character* character, short item_kind, int* out, int arg_4); /* 0x005213C0 */
+/* Find the first equipped, or optionally carried, item with a matching
+   unidentified database name kind. */
+char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
+                                             W8ItemInstance** out, int include_backpack);
 void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 
 /* 0x0051B910: per-item-class notice index into gppStringList used for the
