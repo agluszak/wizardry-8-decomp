@@ -109,7 +109,9 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/game_timer.cpp
     src/wiz8/engine_code/materials.cpp
     src/wiz8/engine_code/Monster.cpp
+    src/wiz8/engine_code/OctPrePath.cpp
     src/wiz8/engine_code/stScript.cpp
+    src/wiz8/engine_code/LevelFile.cpp
     src/wiz8/local_code/Targeting.cpp
     src/wiz8/3d_code/PList.cpp
     src/wiz8/engine_code/3d.cpp
