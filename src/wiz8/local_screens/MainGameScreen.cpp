@@ -263,7 +263,7 @@ void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
 
 // FUNCTION: WIZ8 0x00587960
-void Function587960(void)
+void ProcessLockInteractMode(void)
 {
     Function586740();
 }
@@ -1341,7 +1341,7 @@ void UpdateMainGameScreen(void)
 }
 
 // FUNCTION: WIZ8 0x00577850
-unsigned char Function577850(void)
+unsigned char CanOpenNpcDialogue(void)
 {
     return gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 != 0;
 }
@@ -2052,7 +2052,7 @@ render_world:
         if (gXStatus.fNpcDialogueMode)
             Function56E510();
         if (gXStatus.fLockInteractMode)
-            Function587960();
+            ProcessLockInteractMode();
         if (gXStatus.fTrapInteractMode)
             UpdateMainGameScreen();
         int active;
@@ -2359,7 +2359,7 @@ int IsScreenInputBlocked(void)
     if (gXStatus.fSpellCastMode != 0) {
         return 1;
     }
-    if (gXStatus.fNpcDialogueMode != 0 && !Function577850()) {
+    if (gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) {
         return 1;
     }
     if (gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&

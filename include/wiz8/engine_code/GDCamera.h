@@ -79,8 +79,8 @@ void LevelCamera();
 void TurnCameraToDegrees(float degrees);
 void SetCameraYawDegrees(float degrees);
 void ApplyCameraRotation(srMatrix3T<float>* rotation);
-void Function421100(float distance, srVector3T<float>* output);
-void Function421150(float distance, srVector3T<float>* output);
+void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
+void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
 void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
 void GetCameraPosition(srVector3T<float>* position);
 /* 0x004BE940: project one point through the camera and report whether it is

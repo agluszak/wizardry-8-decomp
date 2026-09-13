@@ -118,7 +118,7 @@ unsigned char IsCameraTransitionActive00420E10(void)
    GameData.cpp ownership was never evidence-backed; they keep their address
    names until body-level evidence names the operations. */
 // FUNCTION: WIZ8 0x00421100
-void Function421100(float distance, srVector3T<float>* output)
+void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output)
 {
     srVector3T<float> result = *output;
     g_gd_camera_65a0f8->GetForwardPoint(distance, &result);
@@ -126,7 +126,7 @@ void Function421100(float distance, srVector3T<float>* output)
 }
 
 // FUNCTION: WIZ8 0x00421150
-void Function421150(float distance, srVector3T<float>* output)
+void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output)
 {
     g_gd_camera_65a0f8->GetForwardPoint(distance, output);
 }

@@ -82,8 +82,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
         if (condition == 9) {
             if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0 &&
-                Function42B740(g_status_685170.current_level) != '\t' &&
-                Function42B740(g_status_685170.current_level) != '\n') {
+                GetLevelBand(g_status_685170.current_level) != '\t' &&
+                GetLevelBand(g_status_685170.current_level) != '\n') {
                 return;
             }
         } else if (condition == 0xb &&

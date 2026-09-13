@@ -45,8 +45,7 @@ struct W8NpcDialogueStagingRestore {
     short staged_short_49e;
 };
 #pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12,
-              "W8NpcDialogueStagingRestore_must_be_12");
+static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 
 // GLOBAL: WIZ8 0x0068c494
 W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
@@ -223,7 +222,7 @@ void ProcessNpcScriptingFrame(void)
                 g_flag_68506f == 0 &&
                 reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
                     0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
-                (can_open_dialogue = Function577850(), can_open_dialogue != 0)) {
+                (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
                 Function56E800(0);
             }
             if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==

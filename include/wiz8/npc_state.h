@@ -51,7 +51,7 @@ struct W8NpcState {
     /* 0x1d: set by CreateNpcRuntimeNode when the node is built. */
     unsigned char unknown_1d;
     unsigned char unknown_1e[6];
-    /* 0x24: the level-band byte Function42B740 returns for the bound level. */
+    /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
     unsigned char level_band;
     bool is_present; /* 0x25 */
     bool is_grouped; /* 0x26 */
