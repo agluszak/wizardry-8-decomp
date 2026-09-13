@@ -35,6 +35,10 @@ int GetTextBoxScrollRange(void);
 void PostCharacterNotice(int party_slot, const wchar_t* format, ...);            /* 0x00590950 */
 void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...); /* 0x00590B40 */
 void ScrollTextBoxTo(int line);                                                  /* 0x0058BBC0 */
+/* 0x0058B410: recolour the character span [start, stop) of the most recent
+   line in one text box; -1 picks the box the current game mode writes to. */
+void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,
+                           short text_box);
 
 void Function58F6B0(int value); /* 0x0058F6B0 */
 

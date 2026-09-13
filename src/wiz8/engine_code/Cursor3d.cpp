@@ -21,8 +21,11 @@ W8WorldCursorState* g_world_cursor_0065ba8c;
 // GLOBAL: WIZ8 0x0065ba94
 srClass* g_cursor_value_0065ba94;
 
+/* 0x60ab44: the world cursor's saved slot value; -1 until a cursor is torn
+   down. Only ever copied whole between here and the cursor, so its domain is
+   still unknown. */
 // GLOBAL: WIZ8 0x0060ab44
-float g_float_60ab44;
+int g_cursor_saved_value_60ab44 = -1;
 
 // GLOBAL: WIZ8 0x0060ab48
 float g_float_60ab48 = 4000.0f;
@@ -64,7 +67,7 @@ void ReleaseWorldCursor004909C0(void)
         cursor->light_24 = 0;
     }
     cursor->flag_09 = 0;
-    g_float_60ab44 = cursor->value_4c;
+    g_cursor_saved_value_60ab44 = cursor->value_4c;
     SetFlag603C60();
     RequestRefreshPartyState();
     ClearTargetMarker();
