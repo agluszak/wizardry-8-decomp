@@ -839,7 +839,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     }
 
     group->flag_28 = 1;
-    yaw = Function4BE5C0(const_cast<srVector3T<float>*>(position));
+    yaw = GetCameraFacingYaw004BE5C0(const_cast<srVector3T<float>*>(position));
     Function510CC0(group, const_cast<srVector3T<float>*>(position), yaw, 0, 0, 0, 0);
     Function510590(group);
     Function547570(group, MonsterGroupCalcDefaultDisposition(group), 0);

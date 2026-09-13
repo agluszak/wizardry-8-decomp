@@ -1,8 +1,35 @@
 #include "wiz8/geometry.h"
+#include "wiz8/engine_code/GDCamera.h"
 
-/* Geometry bounds helper. Live query: 0x004BE870 sits between the proved
-   Engine Code\quad.cpp (upper 0x004BE200) and Engine Code\Monster.cpp
-   (lower 0x004BF0F0) intervals. */
+#include <float.h>
+
+/* Unresolved fragment in the gap between the proved Engine Code\quad.cpp
+   (upper 0x004BE200) and Engine Code\Monster.cpp (lower 0x004BF0F0)
+   intervals. */
+
+// FUNCTION: WIZ8 0x004BE5C0
+float GetCameraFacingYaw004BE5C0(srVector3T<float>* position)
+{
+    float position_x = position->x;
+    float position_z = position->z;
+    srVector3T<float> camera_position;
+
+    GetCameraPosition(&camera_position);
+    if (camera_position.z - position_z == g_float_005ebb34) {
+        if (g_float_005ebb34 < camera_position.x - position_x) {
+            return g_camera_half_pi_005ec3fc;
+        }
+        return g_float_005ed1e8;
+    }
+    {
+        float angle = static_cast<float>(
+            atan2(camera_position.x - position_x, camera_position.z - position_z));
+        if (!_finite(angle)) {
+            return g_float_005ebb34;
+        }
+        return angle;
+    }
+}
 
 // FUNCTION: WIZ8 0x004BE870
 unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,

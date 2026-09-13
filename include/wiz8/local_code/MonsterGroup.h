@@ -109,11 +109,6 @@ void Function50F720(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void Function511CE0(W8MonsterGroup* monster_group, unsigned char flag);
-/* 0x004BE5C0: the yaw that faces `position` back toward the camera. It sits in
-   an unresolved gap (ownership unproven); declared here for the three caller
-   TUs - MonsterManager.cpp, MonsterGroup.cpp and GroupAttacks.cpp. */
-float Function4BE5C0(srVector3T<float>* position);
-
 void Function5103E0(W8MonsterGroup* monster_group);
 
 void Function50E5C0(int party_slot);
