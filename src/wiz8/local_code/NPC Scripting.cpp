@@ -227,7 +227,7 @@ void ProcessNpcScriptingFrame(void)
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
                 g_flag_68506f == 0 && g_screen_state_00649f1c->script_busy == 0 &&
-                (can_open_dialogue = Function577850(), can_open_dialogue != 0)) {
+                (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
                 Function56E800(0);
             }
             if (g_screen_state_00649f1c->script_busy == 0 &&

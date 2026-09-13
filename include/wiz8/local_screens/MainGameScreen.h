@@ -461,7 +461,7 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
 void Function576030(int a, int b, int c, int d, int e);
-unsigned char Function577850(void);
+unsigned char CanOpenNpcDialogue(void);
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 unsigned char Function577A40(void);
 void __fastcall

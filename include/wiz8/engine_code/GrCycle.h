@@ -146,7 +146,7 @@ public:
     void ResetRepresentation004A7420();
     void DetachRepresentation004A7A70(W8World* world);
     /* Runs at the end of every representation update; its own body is the
-       shake/particle event walk and is not recovered yet. */
+       shake/particle event walk and is not recovered. */
     void UpdateParticleAttachments004A7E50();
     void SelectLOD004A7BE0(const srVector3T<float>* position); /* 0x004A7BE0 */
     void UpdateLights004A7150();
