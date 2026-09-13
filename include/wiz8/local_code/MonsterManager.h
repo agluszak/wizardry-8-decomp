@@ -318,7 +318,7 @@ bool InitializeMonsterManagerState(void);
 void ActivateMonsterInWorld(W8MonsterInfo* monster_info);
 void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
-void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
+void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
                                          unsigned char assert_on_failure);

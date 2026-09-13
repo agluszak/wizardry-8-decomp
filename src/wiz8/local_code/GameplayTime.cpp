@@ -273,7 +273,7 @@ after_early: {
     }
     {
         W8MonsterRecord* data = GetMonsterDataForInfo(monster_info);
-        int amount = (static_cast<int>(static_cast<signed char>(data->unknown_166[0x16])) +
+        int amount = (static_cast<int>(data->hp_regeneration_17c) +
                       static_cast<int>(
                           static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]))) *
                      static_cast<int>(minutes);
