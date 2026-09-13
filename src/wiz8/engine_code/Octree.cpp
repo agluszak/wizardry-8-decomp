@@ -199,8 +199,7 @@ void W8Octree::UpdateVisibility004304A0()
     }
     m_projected_regions_valid_16a = 0;
     m_positional_16b = 0;
-    CollectVisibleRegions00430D50(&camera_location_1c0, reinterpret_cast<int*>(m_positional_204), 0,
-                                  1);
+    CollectVisibleRegions00430D50(&camera_location_1c0, m_positional_204, 0, 1);
     CollectVisibleCells0042FE90();
     if (pathing_180 != 0) {
         srVector3T<float> dof;
@@ -909,8 +908,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
-        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_DISABLE);
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])->setFlag(srNode::FLAG_DISABLE);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
             ->setFlag(srNode::FLAG_TERMINATE);
     }

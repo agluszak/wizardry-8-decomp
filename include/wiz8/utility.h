@@ -55,7 +55,10 @@ void FormatDebugMessage(int channel, const char* format, ...);
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_gender);
 
-extern char** g_string_table; /* 0x0068C09C */
+/* Entries are consumed only as wide strings (or freed); the retail
+   table is heterogeneous storage typed void** until a narrow consumer is
+   recovered. */
+extern void** g_string_table; /* 0x0068C09C */
 extern const wchar_t g_format_d_0060aa20[];
 
 #endif

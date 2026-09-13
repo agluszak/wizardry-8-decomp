@@ -296,7 +296,7 @@ public:
     float horizontal_fov_cosine_1f8;
     float vertical_fov_cosine_1fc;
     float far_clip_200;
-    unsigned char m_positional_204[0x18];
+    int m_positional_204[6];
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
     srVector4T<float> m_frustum_planes_21c[6]; /* 0x21c */
