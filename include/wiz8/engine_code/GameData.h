@@ -90,7 +90,8 @@ struct W8GameData {
     int vertex_count_20;
     srVector3T<float>* vertices_24;
     int surface_count_28;
-    unsigned char positional_2c[8];
+    int positional_2c_00;
+    int positional_2c_04;
     int integrated_surface_count_34;
     W8GDSurface* surfaces_38;
     int overflow_surface_count_3c;
