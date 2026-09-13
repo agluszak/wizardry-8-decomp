@@ -221,21 +221,20 @@ void W8GameData::IntegrateTriggers()
 }
 
 struct W8ProcessedGameDataHeader {
-    unsigned int value_00;
-    unsigned int version_04;
-    srVector3T<float> minimum_08;
-    srVector3T<float> maximum_14;
-    int integrated_surface_count_20;
-    int surface_count_24;
+    unsigned int version_00;
+    srVector3T<float> minimum_04;
+    srVector3T<float> maximum_10;
+    int integrated_surface_count_1c;
+    int surface_count_20;
+    int positional_24;
     int positional_28;
-    int positional_2c;
-    int vertex_count_30;
+    int vertex_count_2c;
+    int value_30;
     int value_34;
-    int value_38;
-    int total_surface_count_3c;
-    int value_40;
-    int environ_count_44;
-    unsigned char unknown_48[0x20];
+    int total_surface_count_38;
+    int value_3c;
+    int environ_count_40;
+    unsigned char unknown_44[0x24];
 };
 
 static_assert(sizeof(W8ProcessedGameDataHeader) == 0x68, "W8ProcessedGameDataHeader_must_be_0x68");
@@ -285,27 +284,27 @@ void W8GameData::ReadProcessedGameData(int handle)
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x465,
                      "ReadProcessedGameData: Couldn't read GameData info.");
     }
-    if (header.version_04 != 1) {
+    if (header.version_00 != 1) {
         srAssertFail("(FileGD.iVersion == GAMEDATA_VERSION)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x46c,
                      reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
                          String("ReadProcessedGameData: File version %d does not match program "
                                 "version %d.",
-                                header.version_04, 1)));
+                                header.version_00, 1)));
     }
 
-    minimum_08 = header.minimum_08;
-    maximum_14 = header.maximum_14;
-    surface_count_28 = header.surface_count_24;
-    positional_2c_00 = header.positional_28;
-    positional_2c_04 = header.positional_2c;
-    integrated_surface_count_34 = header.integrated_surface_count_20;
-    vertex_count_20 = header.vertex_count_30;
-    value_60 = header.value_34;
-    value_68 = header.value_38;
-    total_surface_count_44 = header.total_surface_count_3c;
-    value_70 = header.value_40;
-    environ_count_80 = header.environ_count_44;
+    minimum_08 = header.minimum_04;
+    maximum_14 = header.maximum_10;
+    surface_count_28 = header.surface_count_20;
+    positional_2c_00 = header.positional_24;
+    positional_2c_04 = header.positional_28;
+    integrated_surface_count_34 = header.integrated_surface_count_1c;
+    vertex_count_20 = header.vertex_count_2c;
+    value_60 = header.value_30;
+    value_68 = header.value_34;
+    total_surface_count_44 = header.total_surface_count_38;
+    value_70 = header.value_3c;
+    environ_count_80 = header.environ_count_40;
 
     bits_58 = new BitArray(total_surface_count_44);
     bits_5c = new BitArray(total_surface_count_44);
