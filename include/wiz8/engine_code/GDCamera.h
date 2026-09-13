@@ -10,10 +10,14 @@ struct W8LevelDataRecord;
 
 static_assert(sizeof(srMatrix3T<float>) == 0x24, "srMatrix3T_float_must_be_0x24");
 
-/* Engine Code\Camera.cpp. GameData.cpp's original `gpGDCamera` assertion
-   identifies the owner allocated at 0x0065A0F8; its constructor allocation
-   proves the complete 0xC0-byte extent. Positional members remain named by
-   offset until Camera.cpp's consumers establish their original roles. */
+/* Reconstructed owner with unproven TU identity. The cluster 0x476140-
+   0x478EB0 sits in the gap between stMeshModel.cpp and AmbientSound.cpp and
+   is NOT Engine Code\Camera.cpp - that TU's only anchor is
+   UpdateCameraPathState0048F2F0 at 0x0048F2F0. GameData.cpp's original
+   `gpGDCamera` assertion identifies the owner allocated at 0x0065A0F8; its
+   constructor allocation proves the complete 0xC0-byte extent. Positional
+   members remain named by offset until consumers establish their original
+   roles. */
 class GDCamera {
 public:
     GDCamera(); /* 0x00476140 */
