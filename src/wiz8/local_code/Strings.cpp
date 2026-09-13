@@ -16,12 +16,12 @@ wchar_t** gppStringList; /* 0x0068C09C */
    encoding, and the count guard admits at most 0x7D0 code units, which is the
    shared quote buffer's proven extent. */
 // FUNCTION: WIZ8 0x0052FF80
-unsigned char GetStringFromStringDatabase(const char* path, int index, W8WideChar* output,
+unsigned char GetStringFromStringDatabase(const char* path, int index, wchar_t* output,
                                           unsigned int* metadata_04, unsigned int* metadata_00)
 {
     HWFILE handle;
     unsigned char header[5];
-    W8WideChar* destination;
+    wchar_t* destination;
     int count;
     int entry_offset;
     int length;
@@ -55,8 +55,7 @@ unsigned char GetStringFromStringDatabase(const char* path, int index, W8WideCha
             FileRead(handle, destination, length * 2, 0);
             if (header[4] && length > 0) {
                 for (character = 0; character < length; ++character) {
-                    destination[character] =
-                        static_cast<W8WideChar>(~destination[character] + 0x9697);
+                    destination[character] = static_cast<wchar_t>(~destination[character] + 0x9697);
                 }
             }
             FileClose(handle);

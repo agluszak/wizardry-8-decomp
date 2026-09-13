@@ -156,7 +156,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
     unsigned int line_index = 0;
     unsigned int words_on_line = 0;
     int line_width = 0;
-    int space_width = StringPixLength(const_cast<unsigned short*>(L" "), g_dialog_font_64fde8);
+    int space_width = StringPixLength(const_cast<wchar_t*>(L" "), g_dialog_font_64fde8);
     int maximum_width = m_width + 0xf;
     unsigned int index;
 
@@ -234,9 +234,15 @@ int W8ModalDialogBase::CreateControls()
     W8DialogBase::CreateControls();
     if (m_edge_image == -1) {
         m_edge_image = LoadGenericButtonImages(
-            0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-            0, reinterpret_cast<unsigned char*>(const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-            0, reinterpret_cast<unsigned char*>(m_background_path),
+            0,
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            0,
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
+            0,
+            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+                m_background_path),
             static_cast<short>(m_background_flags), 0, 0);
         if (m_edge_image == -1) {
             return m_error = 3;
@@ -248,16 +254,18 @@ int W8ModalDialogBase::CreateControls()
                          static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
-    m_confirm_image = LoadButtonImage(reinterpret_cast<unsigned char*>(const_cast<char*>(
-                                          "Data\\Dialogs\\DialogConfirmation.sti")),
-                                      3, 0, 1, 2, 2);
+    m_confirm_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+        3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button = QuickCreateButton(
             m_confirm_image, 0, 0, 4, 0x7f, ModalDialogConfirmCallback, ModalDialogConfirmCallback);
     }
-    m_cancel_image = LoadButtonImage(reinterpret_cast<unsigned char*>(const_cast<char*>(
-                                         "Data\\Dialogs\\DialogConfirmation.sti")),
-                                     7, 4, 5, 6, 6);
+    m_cancel_image = LoadButtonImage(
+        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+        7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button = QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f,
                                             ModalDialogCancelCallback, ModalDialogCancelCallback);

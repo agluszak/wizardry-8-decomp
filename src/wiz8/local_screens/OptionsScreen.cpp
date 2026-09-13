@@ -592,18 +592,18 @@ void W8OptionsSaveRow::Redraw(int full_redraw)
     int text_x = x + 0x5e;
     if (m_save->version_major + m_save->version_minor * 0.1f + m_save->version_patch * 0.01f <=
         1.24f) {
-        gprintf(text_x, y + 9, (unsigned short*)L"%s", level_name);
-        gprintf(text_x, y + 0x16, (unsigned short*)L"%s %3d, %2d:%2.2d", gppStringList[0x826],
+        gprintf(text_x, y + 9, L"%s", level_name);
+        gprintf(text_x, y + 0x16, L"%s %3d, %2d:%2.2d", gppStringList[0x826],
                 m_save->game_time_days, m_save->game_time_ms / 3600000,
                 (m_save->game_time_ms / 60000) % 60);
-        gprintf(text_x, y + 0x23, (unsigned short*)L"%s", timestamp);
+        gprintf(text_x, y + 0x23, L"%s", timestamp);
     } else {
-        gprintf(text_x, y + 9, (unsigned short*)L"%s", gppStringList[0x830]);
-        gprintf(text_x, y + 0x16, (unsigned short*)L"%s", gppStringList[0x831]);
+        gprintf(text_x, y + 9, L"%s", gppStringList[0x830]);
+        gprintf(text_x, y + 0x16, L"%s", gppStringList[0x831]);
     }
-    gprintf(text_x, y + 0x34, (unsigned short*)L"%s", m_save->name);
+    gprintf(text_x, y + 0x34, L"%s", m_save->name);
     if (m_save->iron_man != 0) {
-        gprintf(x + 0x156, y + 9, (unsigned short*)L"%s", gppStringList[0x827]);
+        gprintf(x + 0x156, y + 9, L"%s", gppStringList[0x827]);
     }
 }
 

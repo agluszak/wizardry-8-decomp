@@ -70,7 +70,7 @@ public:
     W8DialogDestroyCallback m_destroy_callback; /* 0x44 */
     /* Generic owner slot. The item dialog stores its Trigger here and the
        destroy callback reads it back. */
-    int m_user_data; /* 0x48 */
+    void* m_user_data; /* 0x48 */
 protected:
     int m_field_4c;                    /* 0x4c */
     unsigned char m_right_button_down; /* 0x50 */

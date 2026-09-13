@@ -26,7 +26,8 @@ public:
     int GetVerticalPosition();
     void SetLineHeight(unsigned int height);
     void FillBounds(int colour);
-    void RenderText(int a, int b, int x_offset, int y_offset, unsigned char force);
+    void RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
+                    unsigned char force);
     void RenderToTarget(int offset, unsigned char force, int target);
     void UpdateLayout(); /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);

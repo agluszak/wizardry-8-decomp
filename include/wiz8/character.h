@@ -358,7 +358,7 @@ extern float g_profession_hit_point_factors[W8_PROFESSION_COUNT];
 
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
 int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc);
-void StripMonsterNameSuffix(W8WideChar* name);
+void StripMonsterNameSuffix(wchar_t* name);
 unsigned int CharacterPointerToPartySlot(const W8Character* character);
 unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
                                     char value_5, char value_6);

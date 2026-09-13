@@ -146,7 +146,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 /* The one record id that is displayed as a character's name with a prefix
    rather than out of the monster database. */
 void Function5248D0(W8MonsterInfo* monster_info);
-void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
+void Function58AB60(int value_1, int value_2, void* notice, wchar_t* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void Function508D70(unsigned int monster_list_index);
@@ -1545,8 +1545,8 @@ void ProcessMonsterManagerFrame(void)
    wide characters apart. A monster with no group at all is a bug unless it is
    already dying, and says so on the debug channel rather than asserting. */
 // FUNCTION: WIZ8 0x004e5150
-W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                           unsigned char name_form)
+wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                        unsigned char name_form)
 {
     W8MonsterGroup* monster_group;
 
@@ -1617,7 +1617,7 @@ unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot)
    records can suppress exact values, and ordinary monsters expose current and
    maximum HP independently at knowledge thresholds ten and five. */
 // FUNCTION: WIZ8 0x004e52c0
-void FormatMonsterHealth(W8MonsterInfo* monster_info, W8WideChar* health_text)
+void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
 {
     unsigned char suppress_exact_health = 0;
     unsigned int health_knowledge;

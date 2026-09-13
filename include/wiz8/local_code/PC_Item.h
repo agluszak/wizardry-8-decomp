@@ -32,9 +32,9 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
 void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
-W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity);
+wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity);
 unsigned int GetItemStackValue(const W8ItemInstance* item);
-W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
+wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 bool FindItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** found,
                          int include_backpack, const W8ItemInstance* resume_after);
 /* 0x00521060: the whole-party counterpart. It tests the item in hand and the

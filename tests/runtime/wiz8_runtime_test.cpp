@@ -17,9 +17,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
 
-struct SightSemanticResult;
-bool RunSightSemanticTests(SightSemanticResult* result);
-void PrintSightSemanticResults(const SightSemanticResult* result);
+#include "sight_semantic_test.h"
 
 #include "english.h"
 #include "FileMan.h"

@@ -103,7 +103,7 @@ void UpdateGameDataRuntime0041F260()
    proven, so it keeps its address. */
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041cf80
-void CopyLevelDataHandle(int* destination, const int* source)
+void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)
 {
     *destination = *source;
 }

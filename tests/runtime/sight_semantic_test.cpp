@@ -1,30 +1,30 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/sr_api.h"
 
+#include "sight_semantic_test.h"
 #include "surrender/srCamera.h"
 
+#include <direct.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-struct SightSemanticResult {
-    unsigned char blind_is_zero;
-    unsigned char facing_away_reduces_range;
-    unsigned char skip_fov_restores_range;
-    unsigned char penalty_source_reduces_range;
-    unsigned char attribute_scales_range;
-    unsigned char same_primitive_party_and_monster;
-};
-
 static W8World g_sight_test_world;
-static srCamera g_sight_test_camera;
+static srCamera* g_sight_test_camera = 0;
 
 static void SetupSightTestWorld(float far_clip)
 {
     memset(&g_sight_test_world, 0, sizeof(g_sight_test_world));
-    g_sight_test_camera.setClipRange(1.0, far_clip);
-    g_sight_test_world.camera = &g_sight_test_camera;
+    if (g_sight_test_camera == 0) {
+        _chdir("DLL");
+        srInit();
+        _chdir("..");
+        g_sight_test_camera = new srCamera(0);
+    }
+    g_sight_test_camera->setClipRange(1.0, far_clip);
+    g_sight_test_world.camera = g_sight_test_camera;
     g_world = &g_sight_test_world;
 }
 
@@ -71,7 +71,7 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
     facing = ThresholdFacingTarget(1000.0f);
     away = ThresholdFacingAway(1000.0f);
-    result->facing_away_reduces_range = away > facing;
+    result->facing_away_reduces_range = away < facing;
 
     observer.Set(0.0f, 0.0f, 0.0f);
     target.Set(0.0f, 0.0f, 1000.0f);
@@ -104,10 +104,11 @@ bool RunSightSemanticTests(SightSemanticResult* result)
 
 void PrintSightSemanticResults(const SightSemanticResult* result)
 {
-    printf("WIZ8_SIGHT_SEMANTIC blind_is_zero=%u facing_away_reduces_range=%u "
-           "skip_fov_restores_range=%u penalty_source_reduces_range=%u "
-           "attribute_scales_range=%u same_primitive_party_and_monster=%u\n",
-           result->blind_is_zero, result->facing_away_reduces_range,
-           result->skip_fov_restores_range, result->penalty_source_reduces_range,
-           result->attribute_scales_range, result->same_primitive_party_and_monster);
+    printf(
+        "WIZ8_RUNTIME_TEST scenario=sight-threshold blind_is_zero=%u facing_away_reduces_range=%u "
+        "skip_fov_restores_range=%u penalty_source_reduces_range=%u "
+        "attribute_scales_range=%u same_primitive_party_and_monster=%u\n",
+        result->blind_is_zero, result->facing_away_reduces_range, result->skip_fov_restores_range,
+        result->penalty_source_reduces_range, result->attribute_scales_range,
+        result->same_primitive_party_and_monster);
 }

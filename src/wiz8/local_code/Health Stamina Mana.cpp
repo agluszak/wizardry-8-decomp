@@ -192,11 +192,9 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
 
     if (announce) {
         if (monster_info->hp_current == monster_info->hp_max) {
-            WriteGameLog(9, (const wchar_t*)gppStringList[0x964 / 4],
-                         GetMonsterName(monster_info, 0, 0));
+            WriteGameLog(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
-            WriteGameLog(9, (const wchar_t*)gppStringList[0x96c / 4],
-                         GetMonsterName(monster_info, 0, 0), amount);
+            WriteGameLog(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 }
@@ -350,9 +348,9 @@ void HealCharacter(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->hp_current == hp_max) {
-            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x960 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x960 / 4]);
         } else {
-            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x968 / 4], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x968 / 4], amount);
         }
     }
 
@@ -399,9 +397,9 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->stamina == stamina_max) {
-            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x970 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x970 / 4]);
         } else {
-            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x978 / 4], amount);
+            PostCharacterNotice(party_slot, gppStringList[0x978 / 4], amount);
         }
     }
 
@@ -435,7 +433,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
         return;
     }
     if (g_status_685170.value_2390 != 0) {
-        PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x980 / 4], amount);
+        PostCharacterNotice(party_slot, gppStringList[0x980 / 4], amount);
         return;
     }
 
@@ -448,7 +446,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
-                WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
+                WriteGameLog(8, gppStringList[0x98c / 4], amount,
                              gppStringList[g_realm_message_offsets[realm]]);
             }
             remaining = amount - taken;
@@ -487,8 +485,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
             if (order[index].deficit == 0 || (index != W8_SPELL_REALM_COUNT - 1 &&
                                               order[index].deficit < order[index + 1].deficit)) {
                 if (index == W8_SPELL_REALM_COUNT - 1) {
-                    PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x68c / 4],
-                                        granted);
+                    PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
                     return;
                 }
                 continue;
@@ -502,12 +499,12 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
                 break;
             }
             if (amount == 0) {
-                PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x68c / 4], granted);
+                PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
                 return;
             }
         }
     }
-    PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x68c / 4], granted);
+    PostCharacterNotice(party_slot, gppStringList[0x68c / 4], granted);
 }
 
 /* Wound one character. Two thirds of the damage also tires them, the damage
@@ -526,7 +523,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
     if (character->hp_max != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0, 0);
         if (announce) {
-            WriteGameLog(8, (const wchar_t*)gppStringList[0x710 / 4], damage);
+            WriteGameLog(8, gppStringList[0x710 / 4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
@@ -609,11 +606,9 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
     }
     if (announce) {
         if ((unsigned int)monster_info->runtime_stat_current_33 == stamina_max) {
-            WriteGameLog(9, (const wchar_t*)gppStringList[0x974 / 4],
-                         GetMonsterName(monster_info, 0, 0));
+            WriteGameLog(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
-            WriteGameLog(9, (const wchar_t*)gppStringList[0x97c / 4],
-                         GetMonsterName(monster_info, 0, 0), amount);
+            WriteGameLog(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 
@@ -827,7 +822,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     }
 
     if (g_status_685170.value_2390 != 0) {
-        PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x988 / 4], amount,
+        PostCharacterNotice(party_slot, gppStringList[0x988 / 4], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;
     }
@@ -843,7 +838,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     }
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
-        WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
+        WriteGameLog(8, gppStringList[0x98c / 4], amount,
                      gppStringList[g_realm_message_offsets[realm]]);
     }
 }
@@ -1046,9 +1041,7 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
     for (index = 0; index < 4; ++index) {
         realm_skills[index] = character->skills[0x18 + index].level;
     }
-    qsort(realm_skills, 4, 4,
-          reinterpret_cast<int(__cdecl*)(const void*, const void*)>(
-              CompareUnsignedDescending)); /* reinterpret-ok: qsort's untyped C comparator ABI */
+    qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
     float weighted = (float)(realm_skills[0] + (realm_skills[1] >> 1) + (realm_skills[2] >> 2) +
                              (realm_skills[3] >> 3));

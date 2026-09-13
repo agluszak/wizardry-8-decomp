@@ -359,7 +359,7 @@ unsigned int __stdcall FindNavigatorPosition00437F30(const srVector3T<float>* so
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
-extern unsigned long g_octree_storage_00659770;
+extern unsigned int* g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
 extern srNode* g_octree_trace_node_00659894;
 extern float g_octree_cell_scale_005ebcd0;

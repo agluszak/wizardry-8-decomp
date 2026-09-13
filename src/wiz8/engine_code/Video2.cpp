@@ -2045,7 +2045,7 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     if (surface_description.lpSurface != 0) {
         if (top < bottom) {
-            row = reinterpret_cast<unsigned char*>(surface_description.lpSurface) + left * 2 +
+            row = static_cast<unsigned char*>(surface_description.lpSurface) + left * 2 +
                   surface_description.lPitch * top;
             rows = bottom - top;
             do {
@@ -2609,7 +2609,7 @@ void VideoToolTip(UINT16* text)
     bounds.right = 0xfa;
     bounds.bottom = 0xfa;
     W8TextBuffer* buffer =
-        new W8TextBuffer(&bounds, (const wchar_t*)text, g_font10arial_683668,
+        new W8TextBuffer(&bounds, text, g_font10arial_683668,
                          g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
     if (buffer == 0) {
         return;
@@ -2623,7 +2623,8 @@ void VideoToolTip(UINT16* text)
         PackColour00429700(colour, 1.0, 0.0, 0.0, 0.0);
         surface->setHLine(0, y, g_help_box_width, *(unsigned long*)colour);
     }
-    buffer->RenderText((int)data, (int)surface->getPitch(), 2, 1, 1);
+    buffer->RenderText(static_cast<unsigned char*>(data),
+                       static_cast<unsigned int>(surface->getPitch()), 2, 1, 1);
     surface->setHLine(0, 0, g_help_box_width, 0xffed9954);
     surface->setHLine(0, g_help_box_height - 1, g_help_box_width, 0xffed9954);
     surface->setVLine(0, 0, g_help_box_height, 0xffed9954);

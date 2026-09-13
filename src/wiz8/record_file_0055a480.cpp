@@ -70,7 +70,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
     int index;
     int sub_index;
     int total_sub_entries;
-    W8WideChar wide[2000];
+    wchar_t wide[2000];
 
     total_sub_entries = 0;
     FileRead(handle, record, 0xc, &transferred);

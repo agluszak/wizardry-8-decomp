@@ -1,7 +1,6 @@
 #ifndef WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
-#include "wiz8/text_types.h"
 #include "wiz8/geometry.h"
 
 struct W8IList;
@@ -97,7 +96,7 @@ void RebindMonsterGroupScripts(void);
 
 void DespawnMonsterGroup(W8MonsterGroup* monster_group);
 void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);
-W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group);
+wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
 void Function48C750(W8MonsterGroup* group);

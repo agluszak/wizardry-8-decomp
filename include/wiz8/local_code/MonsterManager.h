@@ -1,7 +1,6 @@
 #ifndef WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 #define WIZ8_LOCAL_CODE_MONSTER_MANAGER_H
 
-#include "wiz8/text_types.h"
 #include <stddef.h>
 
 #include "surrender/srMath.h"
@@ -90,8 +89,6 @@ struct W8MonsterManagerEntry {
 
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
-
-extern W8MonsterManagerEntry g_monster_manager_entries[8];
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
@@ -319,7 +316,7 @@ void InitializeMonsterRuntimeStats(void);
 float CalculateMonsterScale(W8MonsterInfo* monster_info);
 void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state);
 void ProcessMonsterManagerFrame(void);
-void FormatMonsterHealth(W8MonsterInfo* monster_info, W8WideChar* health_text);
+void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 
@@ -327,7 +324,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 unsigned char ShutdownMonsterManager(void);
 
-W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);

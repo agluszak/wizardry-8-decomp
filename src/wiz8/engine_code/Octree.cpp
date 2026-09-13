@@ -42,6 +42,7 @@
 #include "wiz8/screen_state.h"
 
 #include <math.h>
+#include "surrender/srModelInstance.h"
 
 #define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
@@ -59,7 +60,7 @@ void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
 }
 
 // GLOBAL: WIZ8 0x00659770
-unsigned long g_octree_storage_00659770;
+unsigned int* g_octree_storage_00659770;
 
 // GLOBAL: WIZ8 0x00659890
 unsigned long g_octree_state_00659890;
@@ -1673,7 +1674,7 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
     W8MonsterInfo* info;
     W8Monster* monster;
     int sector;
-    int mesh;
+    srModelInstance* mesh;
     int point[3];
 
     if (location_id == 0) {
@@ -1684,11 +1685,10 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
     if (info != 0 && info->monster != 0) {
         monster = info->monster;
         sector = GetSectorForPosition00430BF0(position);
-        if (sector == 0 || (mesh = reinterpret_cast<int*>(
-                                g_world->psrMeshes)[m_pSubmeshes[sector].mesh_04]) == 0) {
+        if (sector == 0 || (mesh = g_world->psrMeshes[m_pSubmeshes[sector].mesh_04]) == 0) {
             monster->node_308 = 0;
         } else {
-            monster->node_308 = reinterpret_cast<srNode*>(mesh);
+            monster->node_308 = mesh;
         }
     }
     point[0] = (int)((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
@@ -1978,8 +1978,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                                  0);
                                                 }
                                                 g_octree_storage_00659770 =
-                                                    reinterpret_cast<unsigned long>(
-                                                        malloc(limit * 4));
+                                                    static_cast<unsigned int*>(malloc(limit * 4));
                                                 if (g_octree_storage_00659770 == 0) {
                                                     fLoaded = 0;
                                                     strcpy(acMessage,
@@ -1987,9 +1986,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                            "index list for regions.");
                                                 } else {
                                                     for (index = 0; index < limit; ++index) {
-                                                        reinterpret_cast<unsigned int*>(
-                                                            g_octree_storage_00659770)[index] =
-                                                            index;
+                                                        g_octree_storage_00659770[index] = index;
                                                     }
                                                 }
                                             }

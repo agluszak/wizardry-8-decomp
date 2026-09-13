@@ -45,8 +45,7 @@ struct W8NpcDialogueStagingRestore {
     short staged_short_49e;
 };
 #pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12,
-              "W8NpcDialogueStagingRestore_must_be_12");
+static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 
 // GLOBAL: WIZ8 0x0068c494
 W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
@@ -295,7 +294,7 @@ bool IsMessageBoxLineQueueEmpty(void)
 }
 
 // FUNCTION: WIZ8 0x00528a80
-void AddMessageBoxLine(int type, W8WideChar* text, void* extra)
+void AddMessageBoxLine(int type, wchar_t* text, void* extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
     int new_capacity;

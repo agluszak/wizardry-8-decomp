@@ -19,8 +19,8 @@ float g_float_005ebccc = 0.75f;
 #include <string.h>
 
 // FUNCTION: WIZ8 0x004b6e00
-GDProp::GDProp(srModelInstance* instance, const unsigned char* path_name,
-               unsigned short prop_number, unsigned char surface_flag, unsigned char vertex_flag)
+GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
+               unsigned char surface_flag, unsigned char vertex_flag)
 {
     m_flags_00 = 0;
     m_path_handle_04 = 0;

@@ -64,6 +64,11 @@ printing and put large disposable output under `build/`. Detailed operational re
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require same-line `reinterpret-ok: <reason>`; a marker never justifies
   hiding known type disagreement.
+- SGP's released source spells textual filenames and format strings as `UINT8*` (`LoadButtonImage`
+  and related APIs); preserve those declarations as historical ABI/API spelling rather than
+  pretending `STR8`/`char*` was original. Wizardry text declarations use `char*`/`wchar_t*`;
+  the cast at an SGP call is the documented boundary.
+- Never use `unsigned char`/`UINT8` for a character merely because it is one byte.
 
 ## Scope and completion
 

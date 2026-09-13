@@ -266,7 +266,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
     field->usInputType = input_type;
     if (input_type == 0x1002)
         capacity = 6;
-    field->szString = (wchar_t*)malloc((capacity + 1) * sizeof(wchar_t));
+    field->szString = static_cast<wchar_t*>(malloc((capacity + 1) * sizeof(wchar_t)));
     if (text == 0) {
         field->ubStrLen = 0;
         swprintf(field->szString, &g_wchar_00689b34);
@@ -831,8 +831,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     unsigned char position = gubParkingPos;
     int mouse_offset = gusMouseXPos - current_field->region.RegionTopLeftX;
     unsigned int start = gubParkingPos;
-    short width =
-        StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(current_field->szString + start));
+    short width = StringPixLengthArg(pColors->usFont, 1, current_field->szString + start);
     if ((width / 2) / 2 < mouse_offset) {
         int count = 1;
         int previous_width = width / 2;
@@ -841,8 +840,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
                 break;
             ++position;
             ++count;
-            width = StringPixLengthArg(pColors->usFont, count,
-                                       (unsigned short*)(current_field->szString + start));
+            width = StringPixLengthArg(pColors->usFont, count, current_field->szString + start);
             int midpoint = (width - previous_width) / 2 + previous_width;
             previous_width = width;
             if (mouse_offset <= midpoint)
@@ -897,16 +895,14 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         } else {
             int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
             unsigned int start = gubParkingPos;
-            short width =
-                StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
+            short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
             if ((width / 2) / 2 < mouse_offset) {
                 int count = 1;
                 int previous_width = width / 2;
                 do {
                     position = (unsigned char)(position + 1);
                     ++count;
-                    width = StringPixLengthArg(pColors->usFont, count,
-                                               (unsigned short*)(field->szString + start));
+                    width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
                     int midpoint = (width - previous_width) / 2 + previous_width;
                     previous_width = width;
                     if (field->ubStrLen <= position || mouse_offset <= midpoint)
@@ -973,8 +969,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
             TEXTINPUTNODE* field = gpActive;
             int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
             unsigned int start = gubParkingPos;
-            short width =
-                StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
+            short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
             if ((width / 2) / 2 < mouse_offset) {
                 int count = 1;
                 int previous_width = width / 2;
@@ -983,8 +978,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
                         break;
                     position = (unsigned char)(position + 1);
                     ++count;
-                    width = StringPixLengthArg(pColors->usFont, count,
-                                               (unsigned short*)(field->szString + start));
+                    width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
                     int midpoint = (width - previous_width) / 2 + previous_width;
                     previous_width = width;
                     if (mouse_offset <= midpoint)
@@ -1080,7 +1074,7 @@ void RenderActiveTextField(void)
     }
 
     for (size_t index = 0; index < guiVisibleCount; ++index) {
-        short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)visible);
+        short prefix = StringPixLengthArg(pColors->usFont, index, visible);
         if (has_selection && (int)(selection_first - gubParkingPos) <= (int)index &&
             (int)index < (int)(selection_last - gubParkingPos)) {
             SetFontForeground(pColors->ubHiForeColor);
@@ -1142,7 +1136,7 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
     escaped[escaped_length] = L'\0';
 
     for (size_t index = 0; index < wcslen(escaped); ++index) {
-        short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)escaped);
+        short prefix = StringPixLengthArg(pColors->usFont, index, escaped);
         if (field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10 < prefix + 3) {
             break;
         }
@@ -1203,7 +1197,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
     unsigned int start = gubVisibleStart;
     wcscpy(buffer, text + start);
     buffer[cursor - start] = L'\0';
-    int measured = StringPixLength((unsigned short*)buffer, pColors->usFont);
+    int measured = StringPixLength(buffer, pColors->usFont);
     size_t count = wcslen(buffer);
     unsigned char retained_start;
 
@@ -1212,7 +1206,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
         do {
             ++suffix;
             ++start;
-            measured = StringPixLength((unsigned short*)suffix, pColors->usFont);
+            measured = StringPixLength(suffix, pColors->usFont);
         } while (width < measured);
         retained_start = (unsigned char)start;
 
@@ -1221,7 +1215,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
             size_t length = wcslen(buffer);
             count = length;
             for (size_t index = 0; index < wcslen(buffer); ++index) {
-                short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)buffer);
+                short prefix = StringPixLengthArg(pColors->usFont, index, buffer);
                 count = index;
                 if (width < prefix + 3)
                     break;
@@ -1234,7 +1228,7 @@ unsigned int CalculateCursorPos(int width, int cursor, const wchar_t* text, int*
         count = length;
         retained_start = gubVisibleStart;
         for (size_t index = 0; index < wcslen(buffer); ++index) {
-            short prefix = StringPixLengthArg(pColors->usFont, index, (unsigned short*)buffer);
+            short prefix = StringPixLengthArg(pColors->usFont, index, buffer);
             retained_start = gubVisibleStart;
             count = index;
             if (width < prefix + 3)
@@ -1270,8 +1264,7 @@ void SelectAllText(void)
     } else {
         int mouse_offset = gusMouseXPos - field->region.RegionTopLeftX;
         unsigned int start = gubParkingPos;
-        short width =
-            StringPixLengthArg(pColors->usFont, 1, (unsigned short*)(field->szString + start));
+        short width = StringPixLengthArg(pColors->usFont, 1, field->szString + start);
         if ((width / 2) / 2 < mouse_offset) {
             int count = 1;
             int previous_width = width / 2;
@@ -1280,8 +1273,7 @@ void SelectAllText(void)
                     break;
                 ++position;
                 ++count;
-                width = StringPixLengthArg(pColors->usFont, count,
-                                           (unsigned short*)(field->szString + start));
+                width = StringPixLengthArg(pColors->usFont, count, field->szString + start);
                 int midpoint = (width - previous_width) / 2 + previous_width;
                 previous_width = width;
                 if (mouse_offset <= midpoint)

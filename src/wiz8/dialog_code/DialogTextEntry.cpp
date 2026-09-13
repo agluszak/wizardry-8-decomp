@@ -86,13 +86,13 @@ void W8DialogTextEntry::Draw(unsigned char force)
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
         if (prefix_remaining > 0) {
             if (prefix_remaining < static_cast<int>(span)) {
                 wchar_t saved = line[prefix_remaining];
                 line[prefix_remaining] = L'\0';
-                mprintf(x, y, (unsigned short*)L"%s", line);
-                x += StringPixLength((unsigned short*)line, m_font);
+                mprintf(x, y, L"%s", line);
+                x += StringPixLength(line, m_font);
                 line[prefix_remaining] = saved;
                 if (!m_selected) {
                     SetFontObjectPalette16BPP(
@@ -104,7 +104,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             }
             prefix_remaining -= span;
         }
-        mprintf(x, y, (unsigned short*)L"%s", line);
+        mprintf(x, y, L"%s", line);
         y += GetLineHeight();
         line[span] = L'\n';
         if (m_layoutBounds.bottom <= y) {
@@ -114,12 +114,12 @@ void W8DialogTextEntry::Draw(unsigned char force)
         span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     }
     {
-        int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
+        int x = GetHorizontalPosition(StringPixLength(line, m_font));
         if (prefix_remaining > 0 && prefix_remaining < static_cast<int>(span)) {
             wchar_t saved = line[prefix_remaining];
             line[prefix_remaining] = L'\0';
-            mprintf(x, y, (unsigned short*)L"%s", line);
-            x += StringPixLength((unsigned short*)line, m_font);
+            mprintf(x, y, L"%s", line);
+            x += StringPixLength(line, m_font);
             line[prefix_remaining] = saved;
             if (!m_selected) {
                 SetFontObjectPalette16BPP(m_font, m_text_palette < 15
@@ -128,7 +128,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             }
             line += prefix_remaining;
         }
-        mprintf(x, y, (unsigned short*)L"%s", line);
+        mprintf(x, y, L"%s", line);
     }
 done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,

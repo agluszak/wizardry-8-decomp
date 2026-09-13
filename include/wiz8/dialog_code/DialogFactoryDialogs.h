@@ -4,7 +4,6 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
-#include "wiz8/text_types.h"
 #include "wiz8/vector.h"
 
 #include "Button System.h"
@@ -74,7 +73,7 @@ private:
 
 public:
     /* 0x054: the displayed text lines; the dialog owns and frees each one. */
-    W8GrowableVector<W8WideChar*> m_lines_054;
+    W8GrowableVector<wchar_t*> m_lines_054;
     /* 0x064: pointer vector of the W8MasterFunction (void (*)(int)) pointer
        specialization emitted by MasterFunctionList.cpp (vtable 0x005ED43C,
        ctor 0x004D9A70, scalar deleting destructor 0x004D9A40). This unit only

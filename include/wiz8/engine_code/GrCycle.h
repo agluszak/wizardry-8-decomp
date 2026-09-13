@@ -63,7 +63,7 @@ public:
     int cycle_3c;    /* 0x3c */
     int frame_40;    /* 0x40 */
     int subcycle_44; /* 0x44 */
-    int value_48;    /* 0x48 */
+    void (*completion_callback_48)(void); /* 0x48 */
 };
 
 static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_0x4c");

@@ -681,9 +681,8 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
     }
 
     if (m_gd_prop == 0) {
-        m_gd_prop = new GDProp(instance, reinterpret_cast<unsigned char*>(m_name),
-                               static_cast<unsigned short>(Rep()->flag_064), Rep()->flag_0c0,
-                               Rep()->flag_0c1);
+        m_gd_prop = new GDProp(instance, m_name, static_cast<unsigned short>(Rep()->flag_064),
+                               Rep()->flag_0c0, Rep()->flag_0c1);
     } else {
         if ((flags_1c & 0x20) != 0) {
             m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->flag_064),
@@ -945,7 +944,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Pr
     }
 
     if (animation->flag_05 == 0) {
-        W8AniMesh* mesh = reinterpret_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, 2, 0));
+        W8AniMesh* mesh = static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, 2, 0));
         unsigned char value_count = AniMeshValue004B64F0(mesh);
         stModelInstance* frame = GetAniMeshFrame004B6550(mesh, 0);
         srVector3T<float> minimum;
