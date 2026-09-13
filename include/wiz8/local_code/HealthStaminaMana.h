@@ -50,4 +50,6 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
-void StartBreathCycle(int party_slot, int arg_2); /* 0x0052FE80 */
+/* 0x0052FE80: queue the character's breath/idle event unless a spell or item
+   is being aimed; `force` queues it regardless. */
+void StartBreathCycle(int party_slot, char force);

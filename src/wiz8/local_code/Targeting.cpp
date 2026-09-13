@@ -1843,7 +1843,7 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
                 AimAtTarget(party_slot, &new_target, (W8TargetingContext)arg);
                 result = 1;
                 if (arg != 0) {
-                    Function52FE80(party_slot, 0);
+                    StartBreathCycle(party_slot, 0);
                 }
                 if (arg == 0) {
                     if (g_settings_6850c8.verbose_combat_messages != 0) {
