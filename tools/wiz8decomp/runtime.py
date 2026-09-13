@@ -333,13 +333,16 @@ def _unresolved_for_owners(
     }
 
 
-def _crash_detail(map_path: Path, object_root: Path | None, crash: _RuntimeCrash) -> str:
-    resolved = _resolve_addresses(map_path, [candidate.address for candidate in crash.candidates])
+def format_crash_candidates(
+    map_path: Path, object_root: Path | None, candidates: list[tuple[str, int]]
+) -> tuple[str, list[SymbolResolution]]:
+    """Symbolize candidates and correlate unresolved references at their object owners."""
+    resolved = _resolve_addresses(map_path, [address for _, address in candidates])
     lines: list[str] = []
-    for index, (candidate, item) in enumerate(list(zip(crash.candidates, resolved))[:8]):
+    for index, (candidate, item) in enumerate(list(zip(candidates, resolved))[:8]):
         if item is None:
             continue
-        lines.append(f"#{index} {candidate.source}: {item.format()}")
+        lines.append(f"#{index} {candidate[0]}: {item.format()}")
     owners = [item.owner for item in resolved if item is not None]
     for owner, symbols in _unresolved_for_owners(object_root, map_path, owners).items():
         lines.append(f"unresolved references from {owner}:")
@@ -347,7 +350,14 @@ def _crash_detail(map_path: Path, object_root: Path | None, crash: _RuntimeCrash
             lines.append(f"  {symbol}")
         if len(symbols) > 12:
             lines.append(f"  ... (+{len(symbols) - 12} more)")
-    return "\n" + "\n".join(lines) if lines else ""
+    return "\n".join(lines), [item for item in resolved if item is not None]
+
+
+def _crash_detail(map_path: Path, object_root: Path | None, crash: _RuntimeCrash) -> str:
+    detail, _ = format_crash_candidates(
+        map_path, object_root, [(item.source, item.address) for item in crash.candidates]
+    )
+    return "\n" + detail if detail else ""
 
 
 def _parse_failure_report(
@@ -465,8 +475,13 @@ def _runtime_failure(
     return RuntimeError(f"{scenario} failed: {summary}\nartifacts={artifact}")
 
 
-def _runtime_test_environment(settings: Settings) -> tuple[Path, dict[str, str]]:
-    prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
+def runtime_test_environment(
+    settings: Settings, *, prefix: Path | None = None
+) -> tuple[Path, dict[str, str]]:
+    if prefix is None:
+        prefix = Path(
+            os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime")
+        )
     prefix.mkdir(parents=True, exist_ok=True)
     # The scenarios never assert audible output. Force the soundless-machine
     # path so Wine's stub audio drivers cannot perturb semantic observations.
@@ -480,9 +495,7 @@ def _runtime_test_environment(settings: Settings) -> tuple[Path, dict[str, str]]
     return prefix, environment
 
 
-def _configure_wine_window_management(
-    environment: dict[str, str], *, private_display: bool
-) -> None:
+def configure_wine_window_management(environment: dict[str, str], *, private_display: bool) -> None:
     """Keep Wine from waiting for a window manager on a private X server."""
 
     subprocess.run(
@@ -593,12 +606,12 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     stage = staged.root
     executable = staged.executable
     object_root = staged.objects
-    prefix, environment = _runtime_test_environment(settings)
+    prefix, environment = runtime_test_environment(settings)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     with runtime_display(
         environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"
     ) as display:
-        _configure_wine_window_management(environment, private_display=display is not None)
+        configure_wine_window_management(environment, private_display=display is not None)
         try:
             for order_name, scenarios in (
                 ("forward", RUNTIME_SCENARIOS),

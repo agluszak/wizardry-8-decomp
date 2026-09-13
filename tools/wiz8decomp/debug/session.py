@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import socket
 import subprocess
 import threading
@@ -15,7 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeVar
 
-from .gdb_report import symbolize_gdb_report
+from ..binary.pe import image_layout
 from .mi_process import DebuggerTransportError, GdbMiProcess
 from .mi_protocol import MiRecord
 
@@ -24,6 +25,7 @@ PROXY_START_TIMEOUT_SECONDS = 45.0
 T = TypeVar("T")
 
 __all__ = [
+    "CrashSnapshot",
     "DebuggerLifecycle",
     "DebuggerTransportError",
     "GdbSession",
@@ -35,12 +37,19 @@ __all__ = [
     "terminal_stop_summary",
 ]
 
+REGISTER_LINE = re.compile(
+    r"^(?P<name>eip|esp|ebp|eax|ebx|ecx|edx|esi|edi)\s+0x(?P<value>[0-9a-fA-F]+)\b"
+)
+MEMORY_WORD_LINE = re.compile(r"^0x(?P<address>[0-9a-fA-F]+):\s+(?P<words>(?:0x[0-9a-fA-F]+\s*)+)$")
+HEX_VALUE = re.compile(r"=.*?0x(?P<value>[0-9a-fA-F]+)\b")
+
 
 @dataclass(frozen=True)
 class StopEvent:
     reason: str
     signal_name: str | None
     breakpoint_number: str | None
+    thread_id: str | None
     raw: str
 
 
@@ -57,16 +66,65 @@ class DebuggerLifecycle:
     inferior_active: bool
 
 
+@dataclass(frozen=True)
+class ImageLayout:
+    base: int
+    size: int
+    headers_size: int
+
+
+@dataclass(frozen=True)
+class CrashSnapshot:
+    event: StopEvent
+    registers: dict[str, int]
+    frame_addresses: tuple[int, ...]
+    stack_words: tuple[tuple[int, int], ...]
+    fault_address: int | None
+    image: ImageLayout
+    raw_path: Path
+
+
+def _parse_frame_addresses(lines: list[str]) -> tuple[int, ...]:
+    return tuple(
+        int(match.group(1), 16)
+        for line in lines
+        if (match := re.match(r"^\s*#\d+\s+0x([0-9a-fA-F]+)\b", line))
+    )
+
+
+def _parse_registers(lines: list[str]) -> dict[str, int]:
+    registers: dict[str, int] = {}
+    for line in lines:
+        match = REGISTER_LINE.match(line)
+        if match is not None:
+            registers[match.group("name")] = int(match.group("value"), 16)
+    return registers
+
+
+def _parse_stack_words(lines: list[str]) -> tuple[tuple[int, int], ...]:
+    words: list[tuple[int, int]] = []
+    for line in lines:
+        match = MEMORY_WORD_LINE.match(line)
+        if match is None:
+            continue
+        row = int(match.group("address"), 16)
+        for index, value in enumerate(match.group("words").split()):
+            words.append((row + index * 4, int(value, 16)))
+    return tuple(words)
+
+
 def stop_event_from_record(record: MiRecord) -> StopEvent | None:
     if record.message != "stopped" or not isinstance(record.payload, dict):
         return None
     reason = record.payload.get("reason")
     signal_name = record.payload.get("signal-name")
     breakpoint_number = record.payload.get("bkptno")
+    thread_id = record.payload.get("thread-id")
     return StopEvent(
         reason=reason if isinstance(reason, str) else "stopped",
         signal_name=signal_name if isinstance(signal_name, str) else None,
         breakpoint_number=breakpoint_number if isinstance(breakpoint_number, str) else None,
+        thread_id=thread_id if isinstance(thread_id, str) else None,
         raw=record.raw,
     )
 
@@ -296,6 +354,16 @@ class GdbSession:
     def continue_inferior(self) -> None:
         self._command("-exec-continue --all")
 
+    def set_breakpoint(self, address: int, condition: str | None = None) -> str:
+        prefix = f"-break-insert -c {json.dumps(condition)} " if condition else "-break-insert "
+        result = self._call(self._require_mi().command(f"{prefix}*0x{address:08x}"), 32)
+        payload = result.result.payload
+        breakpoint = payload.get("bkpt") if isinstance(payload, dict) else None
+        number = breakpoint.get("number") if isinstance(breakpoint, dict) else None
+        if not isinstance(number, str):
+            raise DebuggerTransportError(f"GDB returned no breakpoint number for 0x{address:08x}")
+        return number
+
     def wait_for_stop(self, timeout: float) -> StopEvent | None:
         event = self.poll_stop()
         return event if event is not None else self._wait_for_stop(timeout)
@@ -304,36 +372,54 @@ class GdbSession:
         self._drain_events()
         return self._stops.popleft() if self._stops else None
 
-    def capture_stop(self, label: str, event: StopEvent) -> Path:
+    def capture_stop(self, label: str, event: StopEvent) -> CrashSnapshot:
         self.stop_count += 1
         path = self.artifact_dir / f"debugger-stop-{self.stop_count:02d}-{label}.txt"
         sections = [("stop", [event.raw])]
+        captured: dict[str, list[str]] = {}
         for heading, command in (
-            ("all threads", "thread apply all bt full"),
+            ("all threads", "thread apply all bt 16"),
             ("registers", "info registers"),
-            ("modules", "info sharedlibrary"),
-            ("near pc", "x/32i $pc-32"),
-            ("eax pointee", "x/32bx $eax"),
-            ("ebx pointee", "x/32bx $ebx"),
-            ("ecx pointee", "x/32bx $ecx"),
-            ("edx pointee", "x/32bx $edx"),
-            ("esi pointee", "x/64bx $esi"),
-            ("edi pointee", "x/64bx $edi"),
-            ("stack", "x/256wx $sp"),
+            ("stack", "x/96wx $sp"),
+            ("near pc", "x/24i $pc-24"),
         ):
             try:
                 output = self._console(command, timeout=30)
             except DebuggerTransportError as error:
                 output = [str(error)]
+            captured[heading] = output
             sections.append((heading, output))
+        registers = _parse_registers(captured.get("registers", []))
+        fault_output: list[str] = []
+        if event.signal_name == "SIGSEGV":
+            try:
+                fault_output = self._console(
+                    "p/x $_siginfo._sifields._sigfault.si_addr", timeout=10
+                )
+            except DebuggerTransportError as error:
+                fault_output = [str(error)]
+            sections.append(("fault address", fault_output))
         with path.open("w", encoding="utf-8") as report:
             for heading, output in sections:
                 report.write(f"=== {heading} ===\n")
                 report.writelines(line if line.endswith("\n") else line + "\n" for line in output)
-        symbolize_gdb_report(path, self.executable.with_suffix(".map"))
-        return path
+        fault_match = next(
+            (match for line in fault_output if (match := HEX_VALUE.search(line))), None
+        )
+        fault_address = int(fault_match.group("value"), 16) if fault_match is not None else None
+        image = ImageLayout(*image_layout(self.executable))
+        stack_words = _parse_stack_words(captured.get("stack", []))
+        return CrashSnapshot(
+            event=event,
+            registers=registers,
+            frame_addresses=_parse_frame_addresses(captured.get("all threads", [])),
+            stack_words=stack_words,
+            fault_address=fault_address,
+            image=image,
+            raw_path=path,
+        )
 
-    def interrupt_and_capture(self, label: str) -> tuple[Path | None, StopEvent | None]:
+    def interrupt_and_capture(self, label: str) -> tuple[CrashSnapshot | None, StopEvent | None]:
         event = self.poll_stop()
         if event is None:
             self._command("-exec-interrupt --all", timeout=5)
@@ -377,7 +463,8 @@ class GdbSession:
         return list(result.output)
 
     def _console(self, command: str, timeout: float = 30.0) -> list[str]:
-        return self._command(f"-interpreter-exec console {json.dumps(command)}", timeout=timeout)
+        chunks = self._command(f"-interpreter-exec console {json.dumps(command)}", timeout=timeout)
+        return "".join(chunks).splitlines()
 
     def _drain_events(self) -> None:
         records = self._call(self._require_mi().drain_events(), 2)
