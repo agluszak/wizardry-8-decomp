@@ -206,7 +206,10 @@ struct W8MonsterInfo {
     int hp_current;              /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;     /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33; /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x10];
+    /* 0x37: the position and radius of the last noise this monster heard;
+       Noise.cpp writes the heard position and the radius that carried. */
+    srVector3T<float> heard_noise_position_37;
+    int heard_noise_radius_43;
     /* 0x47/0x4b: the hit-point regeneration rate and its fractional
        accumulator, styled on 0x0048c120's stamina pair below. */
     float hp_regen_rate_47;
@@ -294,6 +297,9 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
+/* Unresolved gap, declared for the Noise.cpp call site: returns a float
+   distance/cost for the monster (multiplied by 1000 at the call site). */
+float Function4E5990(W8MonsterInfo* monster_info); /* 0x004E5990 */
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
                                          unsigned char assert_on_failure);
 W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,

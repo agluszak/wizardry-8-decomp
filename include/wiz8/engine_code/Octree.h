@@ -142,6 +142,10 @@ public:
     unsigned long FindLeaf00433660(const int* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
     bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
+    /* Unresolved gap member, declared for the Noise.cpp call site: tests a
+       sight line and reports the hit position/range. */
+    unsigned char Function434220(const srVector3T<float>* from, srVector3T<float>* to,
+                                 srVector3T<float>* out_position, float* range); /* 0x00434220 */
     short TraceLineOfSight(const srVector3T<float>* from, const srVector3T<float>* to,
                            char trace_world, int from_location_id, int to_location_id,
                            char visit_octree, int trace_mode);
