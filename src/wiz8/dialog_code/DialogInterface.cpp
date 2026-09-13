@@ -3,8 +3,6 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/sr_api.h"
 
-extern const wchar_t g_wchar_00689b34;
-
 /*
  * Dialog Code\DialogInterface.cpp, named by the assertion this body embeds at
  * line 152.

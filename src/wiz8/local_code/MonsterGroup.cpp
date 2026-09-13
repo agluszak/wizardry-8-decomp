@@ -28,8 +28,6 @@
 
 static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 
-float Function4BE5C0(srVector3T<float>* position);
-
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };

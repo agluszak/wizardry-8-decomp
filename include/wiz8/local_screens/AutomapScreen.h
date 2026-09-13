@@ -39,3 +39,5 @@ void Function583BC0(void);
 
 unsigned char ReadAutomapNodes00584DD0(int hFile);
 void RedrawTextBoxBody(void);
+
+float GetFloat64B914(void);

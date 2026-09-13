@@ -7,9 +7,10 @@
 /* Reconstructed logical owner; original translation-unit identity is unproven.
    Live query: 0x005D14D0/0x005D1640 sit in the gap between DialogInterface.cpp
    (upper 0x005CF580) and stMessageDialog.cpp (lower 0x005D2800). Retail
-   Dialog Code\stListBox.cpp has assertion sites at 0x005CCE-0x005CD2 with no
-   Ghidra function, so those anchors never form a hull. These helpers are not
-   that unit. */
+   Dialog Code\stListBox.cpp's hull is 0x005CCE70-0x005CD1E0: the six SGP
+   button callbacks of W8Dialog005CBB40, now defined in stListBox.cpp. The
+   intervening helpers (0x005CC650/0x005CCB80/0x005CD2B0) are not in that hull,
+   and neither are these. */
 
 // VTABLE: WIZ8 0x005ef89c W8GrowableVector<W8DialogTextEntry*>
 // class W8GrowableVector<W8DialogTextEntry*>
