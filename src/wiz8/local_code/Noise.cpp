@@ -62,8 +62,8 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
             float range = (float)radius;
             srVector3T<float> hit_position;
             srVector3T<float> tested_position;
-            if (g_octree_6598a4->Function434220(position, &monster_position, &tested_position,
-                                                &range) == 0) {
+            if (g_octree_6598a4->TestNoiseLineOfSight00434220(position, &monster_position,
+                                                              &tested_position, &range) == 0) {
                 continue;
             }
             if ((float)((int)GetMonsterRecordScaledFloat1BA(info) * 1000) < range) {
