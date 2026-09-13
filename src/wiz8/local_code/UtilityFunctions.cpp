@@ -25,7 +25,7 @@
 // GLOBAL: WIZ8 0x0068c098
 int g_string_table_count;
 // GLOBAL: WIZ8 0x0068C09C
-void** g_string_table;
+wchar_t** g_string_table;
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;
 // GLOBAL: WIZ8 0x0061a548
@@ -504,7 +504,7 @@ void FreeStringTable(void)
 {
     if (g_string_table != 0) {
         int index = 0;
-        void** table = g_string_table;
+        wchar_t** table = g_string_table;
         if (g_string_table_count > 0) {
             do {
                 if (table[index] != 0) {

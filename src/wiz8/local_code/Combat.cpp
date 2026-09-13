@@ -521,7 +521,7 @@ void EndCombat004EA310(int mode)
         group_count = PLLength(gXStatus.plsMonsterGroupList);
     }
     if (g_combat_state->flag_a54 != 0) {
-        const wchar_t* message = static_cast<const wchar_t*>(g_string_table[0x233]);
+        const wchar_t* message = g_string_table[0x233];
         ShowNotice(0xc, message, 1, -1, 0);
     }
     unsigned int active = CountActiveCharacters();
@@ -738,11 +738,11 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     RequestRedraw(1 << (party_slot & 0x1f));
     g_level_block->pick_changed_154 = 0;
     if (action_detail == 9) {
-        PostCharacterNotice(party_slot, static_cast<const wchar_t*>(g_string_table[0x225]));
+        PostCharacterNotice(party_slot, g_string_table[0x225]);
     } else if (action_kind == 9 &&
                !(g_combat_state->iActionChar == party_slot &&
                  g_status_685170.buffers.party_rows[party_slot].pending_action == 9)) {
-        PostCharacterNotice(party_slot, static_cast<const wchar_t*>(g_string_table[0x226]));
+        PostCharacterNotice(party_slot, g_string_table[0x226]);
     }
     CalcArmorClasses(character);
 }
