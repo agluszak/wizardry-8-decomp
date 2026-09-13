@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import fcntl
 import os
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 
 from ..config import (
@@ -38,6 +40,25 @@ def validate_environment(settings: Settings) -> dict[str, str]:
     }
 
 
+def _remove_cwd_from_sys_path() -> None:
+    """Hide local paths that can shadow PyGhidra's Java-package importer."""
+
+    cwd = Path.cwd().resolve()
+    retained: list[str] = []
+    for entry in sys.path:
+        if not entry:
+            continue
+        path = Path(entry).resolve()
+        if path == cwd:
+            continue
+        if path.is_relative_to(cwd) and any(
+            (path / package).is_dir() for package in ("ghidra", "java")
+        ):
+            continue
+        retained.append(entry)
+    sys.path[:] = retained
+
+
 def start_pyghidra(settings: Settings, *, max_heap: str | None = None) -> None:
     validate_environment(settings)
     import pyghidra
@@ -45,6 +66,7 @@ def start_pyghidra(settings: Settings, *, max_heap: str | None = None) -> None:
     if pyghidra.started():
         return
     launcher = pyghidra.HeadlessPyGhidraLauncher(install_dir=settings.ghidra_install_dir)
+    _remove_cwd_from_sys_path()
     if max_heap is not None:
         launcher.add_vmargs(f"-Xmx{max_heap}")
     launcher.start()
