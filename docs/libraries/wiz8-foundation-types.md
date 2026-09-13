@@ -349,3 +349,14 @@ SLF-to-SurRender stream adapter, which builds string temporaries to hand filenam
 not. When those adapter bodies are ported, the type belongs in that unit as a vendor-marked model;
 nothing else should acquire a string class, and `srStringTable` is unrelated — it is a
 device-description table consumed by `srGERD::loadDevice`.
+
+The same type is defined per-translation-unit, not per-product. `srEXT_Unzip.dll` calls every
+member out of line; `Wiz8.exe` expands the constructors, destructor, and `operator=(ref)` at each
+site while keeping `operator=(char const*)`, `find`, `erase`, `insert`, `operator+=`, `reset`, and
+`operator+` out of line at `0x0047CE00`-`0x0047D2A0`. The member bodies genuinely differ between
+the two products — most visibly `operator=(ref)`, which destroys-then-copies in `Wiz8.exe` but
+delegates to the `char const*` overload in the unzip DLL — so each TU defines its own copies of the
+header-visible methods rather than one side using the other's. A complete call-site scan shows every
+out-of-line emission is called only from inside the `VirtualFileBinIStream` unit, and no `strstr`
+call site outside it has the `find` signature, so "one TU" holds for every operation, not just
+empty construction.

@@ -6,6 +6,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srIStreamOpener.h"
 #include "surrender/srPlugin.h"
+#include "surrender/srString.h"
 #include "surrender/srStringTable.h"
 
 extern "C" {
@@ -33,60 +34,51 @@ private:
 
 static_assert((sizeof(srOwnedBinIMStream) == 0x2c), "srOwnedBinIMStream_must_be_0x2c");
 
-struct srInlineString {
-    srInlineString();
-    srInlineString(const char* source);
-    srInlineString(const srInlineString& source)
-    {
+/* This product carries its own out-of-line srInlineString bodies: retail calls
+   every one of them, including the trivial default constructor, and the
+   (const char*) constructor spells out the assignment rather than delegating
+   to it - see the union note in include/surrender/srString.h. */
+// FUNCTION: SREXT_UNZIP 0x10010D50
+srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
+    strncpy(temporary, source.data_ + begin, end - begin);
+    temporary[end - begin] = '\0';
+
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (temporary != 0 && *temporary != '\0') {
+        size_ = strlen(temporary) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, temporary);
+    }
+    srHeap.free(temporary);
+}
+
+// FUNCTION: SREXT_UNZIP 0x10010E30
+srInlineString::srInlineString(const char* source)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source != 0) {
         inline_[0] = '\0';
         data_ = inline_;
         size_ = 1;
-        if (source.data_ != 0 && *source.data_ != '\0') {
-            size_ = strlen(source.data_) + 1;
+        if (*source != '\0') {
+            size_ = strlen(source) + 1;
             data_ = static_cast<char*>(srHeap.allocate(size_));
-            strcpy(data_, source.data_);
+            strcpy(data_, source);
         }
     }
-    srInlineString(const srInlineString& source, long begin, long end);
-    inline ~srInlineString();
-
-    srInlineString& operator=(const char* source);
-    srInlineString& operator=(const srInlineString& source)
-    {
-        return operator=(source.data_);
-    }
-
-    char* data()
-    {
-        return data_;
-    }
-    const char* data() const
-    {
-        return data_;
-    }
-    unsigned long size() const
-    {
-        return size_;
-    }
-
-    void erasePrefix(unsigned long count)
-    {
-        if (count == 0 || count >= size_) {
-            operator=("");
-            return;
-        }
-        strncpy(data_, data_ + count, size_ - count);
-        size_ = strlen(data_) + 1;
-    }
-
-    char inline_[4];
-    unsigned long size_;
-    char* data_;
-};
-
-static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
-
-srInlineString operator+(const srInlineString& left, const srInlineString& right);
+}
 
 class srZipAdapter;
 
@@ -247,46 +239,51 @@ srBinIStream* srZipOpener::openArchivePath(srInlineString path)
     return adapter_.openMember(archive.data(), member.data());
 }
 
-// FUNCTION: SREXT_UNZIP 0x10010D50
-srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+inline srInlineString::srInlineString(const srInlineString& source)
 {
     inline_[0] = '\0';
     data_ = inline_;
     size_ = 1;
-    char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
-    strncpy(temporary, source.data_ + begin, end - begin);
-    temporary[end - begin] = '\0';
+    if (source.data_ != 0 && *source.data_ != '\0') {
+        size_ = strlen(source.data_) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, source.data_);
+    }
+}
 
+inline srInlineString& srInlineString::operator=(const srInlineString& source)
+{
+    return operator=(source.data_);
+}
+
+// FUNCTION: SREXT_UNZIP 0x10010F60
+inline srInlineString::~srInlineString()
+{
     if (data_ != inline_) {
         srHeap.free(data_);
     }
     inline_[0] = '\0';
     data_ = inline_;
     size_ = 1;
-    if (temporary != 0 && *temporary != '\0') {
-        size_ = strlen(temporary) + 1;
-        data_ = static_cast<char*>(srHeap.allocate(size_));
-        strcpy(data_, temporary);
-    }
-    srHeap.free(temporary);
 }
 
-// FUNCTION: SREXT_UNZIP 0x10010E30
-srInlineString::srInlineString(const char* source)
+// FUNCTION: SREXT_UNZIP 0x10010F90
+srInlineString& srInlineString::operator=(const char* source)
 {
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
     inline_[0] = '\0';
     data_ = inline_;
     size_ = 1;
-    if (source != 0) {
-        inline_[0] = '\0';
-        data_ = inline_;
-        size_ = 1;
-        if (*source != '\0') {
-            size_ = strlen(source) + 1;
-            data_ = static_cast<char*>(srHeap.allocate(size_));
-            strcpy(data_, source);
-        }
+    if (source == 0 || *source == '\0') {
+        return *this;
     }
+
+    size_ = strlen(source) + 1;
+    data_ = static_cast<char*>(srHeap.allocate(size_));
+    strcpy(data_, source);
+    return *this;
 }
 
 // FUNCTION: SREXT_UNZIP 0x100115C0
@@ -341,36 +338,6 @@ srZipAdapter::srZipAdapter()
     // clang-format on
 #pragma clang diagnostic pop
     callbacks_->adapter = this;
-}
-
-// FUNCTION: SREXT_UNZIP 0x10010F60
-inline srInlineString::~srInlineString()
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-}
-
-// FUNCTION: SREXT_UNZIP 0x10010F90
-srInlineString& srInlineString::operator=(const char* source)
-{
-    if (data_ != inline_) {
-        srHeap.free(data_);
-    }
-    inline_[0] = '\0';
-    data_ = inline_;
-    size_ = 1;
-    if (source == 0 || *source == '\0') {
-        return *this;
-    }
-
-    size_ = strlen(source) + 1;
-    data_ = static_cast<char*>(srHeap.allocate(size_));
-    strcpy(data_, source);
-    return *this;
 }
 
 // FUNCTION: SREXT_UNZIP 0x10011020

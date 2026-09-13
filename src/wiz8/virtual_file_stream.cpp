@@ -2,12 +2,10 @@
 #include "surrender/srCore.h"
 #include "surrender/srExtension.h"
 #include "surrender/srIStreamOpener.h"
+#include "surrender/srString.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/virtual_file_stream.h"
 #include "FileMan.h"
-
-#include <stdlib.h>
-#include <string.h>
 
 /* Unresolved fragment: all nine functions lie in the single anchored gap
    between Quality.cpp (0x0047B500) and stModelInstance.cpp (0x00480920).
@@ -26,27 +24,208 @@
 
    The 0x20-byte size the sole caller of the constructor allocates is what the
    assertion below checks, and it holds only if the srBinIStream base really is
-   vptr, vbptr and a virtual srBinStream subobject placed last. */
+   vptr, vbptr and a virtual srBinStream subobject placed last.
+
+   The path normalization is the one Wiz8.exe reach of SurRender's srInlineString:
+   the retail body constructs three objects here and calls this TU's out-of-line
+   find/erase/insert to rewrite each '/' as '\\'. In this product only the
+   constructors and destructor expand inline; the remaining members are defined
+   out-of-line below. */
 // FUNCTION: WIZ8 0x0047CBD0
 W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path) : m_hFile(0)
 {
-    char* normalized;
-    unsigned long index;
+    srInlineString normalized(path);
+    {
+        srInlineString backslash("\\");
+        srInlineString slash("/");
 
-    normalized = (char*)malloc(strlen(path) + 1);
-    if (!normalized) {
-        setState(SR_STREAM_ERROR);
-        return;
-    }
-    strcpy(normalized, path);
-    for (index = 0; normalized[index] != '\0'; ++index) {
-        if (normalized[index] == '/') {
-            normalized[index] = '\\';
+        long index;
+        while ((index = normalized.find(slash, 0)) != -1) {
+            normalized.erase(index, index + slash.size() - 1);
+            normalized.insert(backslash, index);
         }
     }
-    m_hFile = FileOpen(normalized, 0x41, 0);
-    free(normalized);
-    setState(m_hFile == 0 ? SR_STREAM_ERROR : SR_STREAM_OK);
+
+    m_hFile = FileOpen(normalized.data(), 0x41, 0);
+    if (m_hFile != 0) {
+        setState(SR_STREAM_OK);
+    } else {
+        setState(SR_STREAM_ERROR);
+    }
+}
+
+inline srInlineString::srInlineString(const char* source)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString::srInlineString(const srInlineString& source)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source.data_ != 0) {
+        operator=(source);
+    }
+}
+
+inline srInlineString::srInlineString(const srInlineString& source, long begin, long end)
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    char* temporary = static_cast<char*>(srHeap.allocate(end - begin + 2));
+    strncpy(temporary, source.data_ + begin, end - begin);
+    temporary[end - begin] = '\0';
+    operator=(temporary);
+    srHeap.free(temporary);
+}
+
+/* Retail expands this destructor at shallow sites and calls the emission from
+   deeper ones (insert's `*this =` tail). Our build splits the same way. */
+// FUNCTION: WIZ8 0x0047CDD0
+inline srInlineString::~srInlineString()
+{
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    reset();
+}
+
+/* Releases this object's contents, then copies the source text. Where
+   srEXT_Unzip delegates to the (const char*) overload, this product's copy
+   destroys first and copies inline - insert's tail calls the destructor and
+   performs the copy without a second call. */
+inline srInlineString& srInlineString::operator=(const srInlineString& source)
+{
+    this->~srInlineString();
+    if (source.data_ != 0 && *source.data_ != '\0') {
+        size_ = strlen(source.data_) + 1;
+        data_ = static_cast<char*>(srHeap.allocate(size_));
+        strcpy(data_, source.data_);
+    }
+    return *this;
+}
+
+// FUNCTION: WIZ8 0x0047CE00
+srInlineString& srInlineString::operator=(const char* source)
+{
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+    if (source == 0 || *source == '\0') {
+        return *this;
+    }
+
+    size_ = strlen(source) + 1;
+    data_ = static_cast<char*>(srHeap.allocate(size_));
+    strcpy(data_, source);
+    return *this;
+}
+
+// FUNCTION: WIZ8 0x0047CE90
+long srInlineString::find(const srInlineString& needle, unsigned long offset) const
+{
+    const char* found = strstr(data_ + offset, needle.data_);
+    if (found != 0) {
+        return static_cast<long>(found - data_);
+    }
+    return -1;
+}
+
+// FUNCTION: WIZ8 0x0047CEC0
+void srInlineString::erase(unsigned long begin, unsigned long end)
+{
+    if (begin != end) {
+        strncpy(data_ + begin, data_ + end, size_ - end);
+        size_ = strlen(data_) + 1;
+    }
+}
+
+/* Splices text into the content at position: prepend when 0, append at the
+   terminator, otherwise rebuild from the [0, position) and [position, size)
+   pieces through the substring constructor. */
+// FUNCTION: WIZ8 0x0047CF00
+void srInlineString::insert(const srInlineString& text, unsigned long position)
+{
+    srInlineString result;
+    if (position == 0) {
+        result = (text + *this).data();
+    } else if (position == size_ - 1) {
+        result = (*this + text).data();
+    } else {
+        result = srInlineString(*this, 0, static_cast<long>(position)).data();
+        result += text.data();
+        result +=
+            srInlineString(*this, static_cast<long>(position), static_cast<long>(size_ - 1)).data();
+    }
+    *this = result;
+}
+
+// FUNCTION: WIZ8 0x0047D1C0
+srInlineString& srInlineString::operator+=(const char* suffix)
+{
+    if (suffix == 0 || *suffix == '\0') {
+        return *this;
+    }
+    unsigned long combined_size = size_ + strlen(suffix);
+    char* combined = static_cast<char*>(srHeap.allocate(combined_size));
+    strcpy(combined, data_);
+    strcpy(combined + size_ - 1, suffix);
+    if (data_ != inline_) {
+        srHeap.free(data_);
+    }
+    inline_[0] = '\0';
+    size_ = combined_size;
+    data_ = combined;
+    return *this;
+}
+
+inline srInlineString::srInlineString()
+{
+    reset();
+}
+
+/* Retail has a callable emission here - deep expansion sites (insert's
+   destroyed temporaries, the operator+ copy-out) keep calls while shallow
+   sites expand the three stores. Our build inlines it at every site, so the
+   emission does not materialize; the divergence is VC6's per-site inline
+   budget, not the declaration. */
+// FUNCTION: WIZ8 0x0047D290
+inline void srInlineString::reset()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
+// FUNCTION: WIZ8 0x0047D2A0
+srInlineString operator+(const srInlineString& left, const srInlineString& right)
+{
+    srInlineString result(left);
+    if (right.data() == 0 || *right.data() == '\0') {
+        return result;
+    }
+
+    const unsigned long combined_size = result.size() + strlen(right.data());
+    char* combined = static_cast<char*>(srHeap.allocate(combined_size));
+    strcpy(combined, result.data());
+    strcpy(combined + result.size() - 1, right.data());
+    if (result.data_ != result.inline_) {
+        srHeap.free(result.data_);
+    }
+    result.inline_[0] = '\0';
+    result.size_ = combined_size;
+    result.data_ = combined;
+    return result;
 }
 
 // FUNCTION: WIZ8 0x0047D490
@@ -60,8 +239,21 @@ W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
 // FUNCTION: WIZ8 0x0047D4D0
 srBinStream& W8VirtualFileBinIStream::seek(unsigned long position, e_seekDir direction)
 {
-    static const int origins[] = {1, 4, 2};
-    if (!FileSeek(m_hFile, position, origins[direction])) {
+    int origin;
+    switch (direction) {
+    case SR_SEEK_BEGIN:
+        origin = 1;
+        break;
+    case SR_SEEK_CURRENT:
+        origin = 4;
+        break;
+    case SR_SEEK_END:
+        origin = 2;
+        break;
+    default:
+        return *this;
+    }
+    if (!FileSeek(m_hFile, position, origin)) {
         setState(SR_STREAM_ERROR);
     }
     return *this;
