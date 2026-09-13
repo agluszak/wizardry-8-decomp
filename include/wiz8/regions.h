@@ -112,11 +112,6 @@ unsigned char Function005B6360(const W8RegionEvent*, W8Region*);
 unsigned char Function005B66B0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B6AA0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B79F0(const W8RegionEvent*, W8Region*);
-unsigned char Function005BB350(const W8RegionEvent*, W8Region*);
-unsigned char Function005BB560(const W8RegionEvent*, W8Region*);
-unsigned char Function005BB900(const W8RegionEvent*, W8Region*);
-unsigned char Function005BBBB0(const W8RegionEvent*, W8Region*);
-unsigned char Function005BBC70(const W8RegionEvent*, W8Region*);
 unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */

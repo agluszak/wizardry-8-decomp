@@ -31,9 +31,6 @@
 #include <stdio.h>
 #include <wchar.h>
 
-unsigned char Function50F1A0(unsigned int monster_species, int count, srVector3T<float>* position,
-                             int a, int b, int c);
-
 /*
  * Local Code\NPC Manager.cpp.
  *
@@ -1236,8 +1233,8 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
 
 /* Place or move this NPC's monster at the named world entity. Without a live
    monster it loads MONSTERS.DBS, finds the NPC-linked species whose name-style
-   byte matches, and asks the unrecovered spawn helper at 0x0050F1A0 to create
-   it; with a live monster it repositions the Navigator subobject. */
+   byte matches, and asks CreateGroup to create it; with a live monster it
+   repositions the Navigator subobject. */
 // FUNCTION: WIZ8 0x0050c560
 unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
 {

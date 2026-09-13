@@ -455,7 +455,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
     record = MonsterDBFromSpecies(iAIKind);
     count = RollDice(&record->group_size_dice_0c1);
     position = &pAttackerSlot->point;
-    group = CreateMonsterGroupAt0050F1A0(iAIKind, count, position, 0, 0, 1);
+    group = CreateGroup(iAIKind, count, position, 0, 0, 1);
     if (group == 0) {
         srAssertFail("pGroup", GROUP_ATTACKS_CPP, 600, 0);
     }

@@ -31,6 +31,11 @@
 // GLOBAL: WIZ8 0x0064C330
 const int g_scroll_button_positions_64c330[2][2] = {{300, 456}, {323, 456}};
 
+/* String ids naming each combat action kind, indexed by the row's action. */
+// GLOBAL: WIZ8 0x0061E988
+const unsigned short g_action_kind_message_ids_61e988[12] = {1295, 1296, 1297, 1298, 1299, 1300,
+                                                             1301, 1302, 1303, 1304, 1305, 1306};
+
 // GLOBAL: WIZ8 0x0069B858
 W8DialogButton* g_submenu_scroll_buttons_69b858[2];
 // GLOBAL: WIZ8 0x0069B87E
