@@ -85,7 +85,8 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 {
     /* SurRender spells its 32-bit count unsigned long; SGP spells the same
        ABI word UINT32 (unsigned int). The canonical body reuses this parameter
-       slot, so keep that ownership explicit at the header boundary. */
+       slot, so keep that ownership explicit at the header boundary.
+       reinterpret-ok: unsigned long and unsigned int are the same ABI word. */
     if (FileRead(m_hFile, buffer, size, reinterpret_cast<unsigned int*>(&size))) {
         return size;
     }

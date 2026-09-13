@@ -55,7 +55,9 @@ void FormatDebugMessage(int channel, const char* format, ...);
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_gender);
 
-extern char** g_string_table; /* 0x0068C09C */
+/* LoadLocalizedStrings FileReads each entry then DecodeLocalizedText(entry,
+   size/2): elements are 16-bit strings. */
+extern wchar_t** g_string_table; /* 0x0068C09C */
 extern const wchar_t g_format_d_0060aa20[];
 
 #endif
