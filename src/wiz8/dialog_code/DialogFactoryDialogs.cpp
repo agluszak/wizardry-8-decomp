@@ -29,7 +29,7 @@
 /* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
    dialog (kind 3), the split-item dialog (kind 5) and the trigger-owned item
    picker. Their button callbacks and the small positioning helpers are
-   declared but not recovered in this change; the calls still match the retail
+   declared but not recovered; the calls still match the retail
    sites. */
 
 // FUNCTION: WIZ8 0x005cbb40
