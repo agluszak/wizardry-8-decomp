@@ -54,9 +54,6 @@ void Function546E70(void);
 extern int g_dword_6850be;
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
-/* Writes the monster's world position through an out-parameter; __cdecl, since
-   0x004C5750 ends in a bare `ret`. */
-float Function4BE5C0(srVector3T<float>* position);
 // FUNCTION: WIZ8 0x0052A780
 int CalculateMonsterHealthTier(int current, int maximum)
 {

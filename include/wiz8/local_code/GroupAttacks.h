@@ -24,7 +24,3 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
    camera-facing placement allows. */
 void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
                                        W8CombatSlot* pAttackerSlot); /* 0x00556B10 */
-
-/* 0x004BE5C0: the yaw that faces `position` back toward the camera; it is
-   declared locally in MonsterManager.cpp and MonsterGroup.cpp today. */
-float Function4BE5C0(srVector3T<float>* position);

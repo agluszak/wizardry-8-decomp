@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 
 struct W8CombatSlot;
+struct W8TargetSource;
 struct W8SpellEffectEntry;
 
 /* Local Code\Magic Effects.cpp. IsScreenBusy at 0x00554540 follows the
@@ -18,7 +19,6 @@ void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3,
 /* 0x00551BA0 sits in the unresolved gap before the unit's assertion hull;
    GroupAttacks.cpp's call sites need the declaration. Its own assertion names
    Magic Effects.cpp, so the gap is attributed to this unit. */
-struct W8TargetSource;
 char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
                                    int condition_id, int arg_4, unsigned int arg_5, int arg_6,
                                    int arg_7, char arg_8, char arg_9, int arg_10);
