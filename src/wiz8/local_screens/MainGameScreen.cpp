@@ -2310,7 +2310,7 @@ unsigned char MainGameScreenLeave(int leaving)
         DisableRegionSet1C();
     Function529510();
     if (GetFlag68F105())
-        Function57D740();
+        ToggleMipePanel0057D740();
     MoveTimer(1);
     SetEnvironmentTimeEnabled00482990(0);
 

@@ -56,20 +56,19 @@ static int FindItemByLegacyNumber(short item_number)
 }
 
 // FUNCTION: WIZ8 0x005590B0
-void ImportWizardry7Character005590B0(W8Character* character, char* imported)
+void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported)
 {
-    W8Wiz7Character* imported_record = (W8Wiz7Character*)imported;
     W8Profession profession;
     unsigned int level;
     unsigned int skill_id;
     int status;
 
     memset(character, 0, sizeof(W8Character));
-    swprintf(character->name, g_combat_log_format_00617664, TitleCaseString(imported));
+    swprintf(character->name, g_combat_log_format_00617664, TitleCaseString(imported->name_000));
     wcscpy(character->name_part_2, character->name);
-    character->race = (unsigned char)imported[0x237];
-    character->gender = (W8Gender)(unsigned char)imported[0x238];
-    switch ((unsigned char)imported[0x239]) {
+    character->race = imported->race_237;
+    character->gender = (W8Gender)imported->gender_238;
+    switch (imported->profession_239) {
     default:
         profession = W8_PROFESSION_FIGHTER;
         break;
@@ -115,18 +114,18 @@ void ImportWizardry7Character005590B0(W8Character* character, char* imported)
     }
     character->current_profession = profession;
     CalcCharacterTableValue(character);
-    level = (unsigned short)*(short*)(imported + 0x24);
-    if (*(short*)(imported + 0x24) > 0) {
+    level = (unsigned short)imported->level_024;
+    if (imported->level_024 > 0) {
         level = 1;
     }
     AdvanceCharacterToLevel(character, level);
     character->experience = 13000;
-    character->value_09f9 = *(int*)(imported + 0x10);
-    character->death_count_09fd = *(short*)(imported + 0x26) - 1;
+    character->value_09f9 = imported->unknown_010;
+    character->death_count_09fd = imported->deaths_026 - 1;
     character->profession_levels[character->current_profession] = character->level;
     character->original_profession = character->current_profession;
     character->level_band_base = 0;
-    status = (unsigned char)imported[0x23b];
+    status = imported->status_23b;
     if (status == 2 || status == 3) {
         character->condition_turns[0x12] = 9999;
         character->highest_condition = 0x12;
@@ -134,14 +133,14 @@ void ImportWizardry7Character005590B0(W8Character* character, char* imported)
         character->highest_condition = 0;
     }
     character->enchantment_top = 0;
-    ConvertAttribute(character, imported_record);
-    GrantStartingSpells005595D0(character, imported_record);
+    ConvertAttribute(character, imported);
+    GrantStartingSpells005595D0(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
         character->skills[skill_id].flag_00 = 0;
-        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported_record);
+        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported);
     }
     RefreshCharacterSkillAvailability00553CD0(character);
-    ImportEquipment00559650(character, imported_record);
+    ImportEquipment00559650(character, imported);
     DeriveCharacterPersonality004EFA30(character);
     EnsureUniquePartyVoice004EFAD0(character);
     CalcCharacterLevelBand(character);
@@ -298,7 +297,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
 // FUNCTION: WIZ8 0x005595D0
 void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
 {
-    unsigned char scratch[0x3dc];
+    W8LearnedSpellScratch scratch;
     char count;
     int offset;
     int i;
@@ -325,13 +324,12 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
         }
         ++i;
     } while (i < 6);
-    BuildLearnedSpellState004F9600(scratch, character);
+    BuildLearnedSpellState004F9600(&scratch, character);
 }
 
 // FUNCTION: WIZ8 0x004F9600
-void BuildLearnedSpellState004F9600(void* scratch, W8Character* character)
+void BuildLearnedSpellState004F9600(W8LearnedSpellScratch* scratch, W8Character* character)
 {
-    int* scratch_words = (int*)scratch;
     int spell_id;
     int realm;
     int count;
@@ -339,18 +337,18 @@ void BuildLearnedSpellState004F9600(void* scratch, W8Character* character)
     for (realm = 0; realm < 6; ++realm) {
         character->skill_unlocks[0x1c + realm] = 0;
     }
-    scratch_words[0x3d8 / 4] = 0;
+    scratch->learned_total = 0;
     for (spell_id = 0; spell_id < 0x72; ++spell_id) {
         if (character->spell_learned[spell_id] == 1 || character->spell_learned[spell_id] == 2) {
             realm = g_spell_records[spell_id].realm;
             count = character->skill_unlocks[0x1c + realm];
-            scratch_words[count + realm * 10] = spell_id;
+            scratch->spell_ids_by_realm[realm][count] = spell_id;
             character->skill_unlocks[0x1c + realm] = count + 1;
-            ++scratch_words[0x3d8 / 4];
+            ++scratch->learned_total;
         }
     }
     for (realm = 0; realm < 6; ++realm) {
-        scratch_words[0x3c0 / 4 + realm] = 0;
+        scratch->unknown_3c0[realm] = 0;
     }
 }
 

@@ -15,8 +15,8 @@ struct W8Wiz7Item {
    body reads are named; the gaps and the total size are unknown (no
    size assertion). */
 struct W8Wiz7Character {
-    unsigned char name_000[0x10]; /* 0x000: ASCII name TitleCaseString reads */
-    int unknown_010;              /* 0x010: stored verbatim to value_09f9 */
+    char name_000[0x10]; /* 0x000: ASCII name TitleCaseString reads */
+    int unknown_010;     /* 0x010: stored verbatim to value_09f9 */
     unsigned char unknown_014[0x10];
     short level_024;  /* 0x024: positive values import as level 1 */
     short deaths_026; /* 0x026: stored to death_count_09fd minus one */
@@ -41,10 +41,21 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character* 
 void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* imported);
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported); /* 0x00559BC0 */
-void ImportWizardry7Character005590B0(W8Character* character, char* imported);
+void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported);
+
+/* The 0x3dc-byte scratch record BuildLearnedSpellState004F9600 fills: per-realm
+   lists of learned spell ids, a trailing six-int block that is only ever
+   zeroed, and the total learned count. The middle span is unobserved. */
+struct W8LearnedSpellScratch {
+    int spell_ids_by_realm[6][10]; /* 0x000: realm-major learned spell ids */
+    unsigned char unknown_0f0[0x2d0];
+    int unknown_3c0[6]; /* 0x3c0 */
+    int learned_total;  /* 0x3d8 */
+}; /* 0x3dc */
 
 /* Rebuilds the character's learned-spell buckets through a 0x3dc-byte
    scratch record after the spell grant. */
-void BuildLearnedSpellState004F9600(void* scratch, W8Character* character); /* 0x004F9600 */
+void BuildLearnedSpellState004F9600(W8LearnedSpellScratch* scratch,
+                                    W8Character* character); /* 0x004F9600 */
 
 #endif

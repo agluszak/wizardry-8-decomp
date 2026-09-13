@@ -249,23 +249,7 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
     entry->size_1c = 0;
     entry->flag_24 = 0;
 
-    int needed = g_world_cursor_nodes_65ba58.count + 1;
-    if (g_world_cursor_nodes_65ba58.capacity < needed) {
-        W8WorldCursorNode0048DB30** previous = g_world_cursor_nodes_65ba58.data;
-        g_world_cursor_nodes_65ba58.data =
-            static_cast<W8WorldCursorNode0048DB30**>(::operator new(needed * 4));
-        if (g_world_cursor_nodes_65ba58.data == 0) {
-            g_world_cursor_nodes_65ba58.data = previous;
-            return entry;
-        }
-        g_world_cursor_nodes_65ba58.capacity = needed;
-        for (int index = 0; index < g_world_cursor_nodes_65ba58.count; ++index) {
-            g_world_cursor_nodes_65ba58.data[index] = previous[index];
-        }
-        ::operator delete(previous);
-    }
-    g_world_cursor_nodes_65ba58.data[g_world_cursor_nodes_65ba58.count] = entry;
-    ++g_world_cursor_nodes_65ba58.count;
+    g_world_cursor_nodes_65ba58.Add(entry);
     return entry;
 }
 
@@ -409,17 +393,7 @@ void ReleaseWorldCursorNodes0048DB30(void)
             entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
             entry->node_04->release();
-            for (int index = 0; index < g_world_cursor_nodes_65ba58.count; ++index) {
-                if (g_world_cursor_nodes_65ba58.data[index] == entry) {
-                    for (int shift = index; shift < g_world_cursor_nodes_65ba58.count - 1;
-                         ++shift) {
-                        g_world_cursor_nodes_65ba58.data[shift] =
-                            g_world_cursor_nodes_65ba58.data[shift + 1];
-                    }
-                    --g_world_cursor_nodes_65ba58.count;
-                    break;
-                }
-            }
+            g_world_cursor_nodes_65ba58.Remove(entry);
             delete entry;
         }
     }
