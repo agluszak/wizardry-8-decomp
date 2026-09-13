@@ -154,6 +154,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/formation_state.cpp
     src/wiz8/local_code/GroupAttacks.cpp
     src/wiz8/local_code/CharGeneration.cpp
+    src/wiz8/local_screens/mipe.cpp
     src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
     src/wiz8/local_screens/MGSButtons.cpp
