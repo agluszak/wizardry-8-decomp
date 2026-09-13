@@ -263,7 +263,7 @@ after_early: {
             amount += amount >> 1;
         }
         ResetTargetSource(&source);
-        Function52BB60(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
+        ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
     }
 }
     if (monster_info->condition_turns[2] != 0) {
@@ -271,7 +271,7 @@ after_early: {
     }
     {
         W8MonsterRecord* data = GetMonsterDataForInfo(monster_info);
-        int amount = (static_cast<int>(static_cast<signed char>(data->unknown_150[0x2c])) +
+        int amount = (static_cast<int>(static_cast<signed char>(data->unknown_166[0x16])) +
                       static_cast<int>(
                           static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]))) *
                      static_cast<int>(minutes);
@@ -281,7 +281,7 @@ after_early: {
                 W8TargetSource source;
 
                 ResetTargetSource(&source);
-                Function52BB60(monster_info, -amount, &source, 0, 0, 0, 0, 0);
+                ApplyDamageToMonster(monster_info, -amount, &source, 0, 0, 0, 0, 0);
             }
         } else if (monster_info->hp_current < monster_info->hp_max) {
             HealMonster(monster_info, amount, 0);

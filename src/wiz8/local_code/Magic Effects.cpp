@@ -31,23 +31,6 @@
  * paths that take one off again.
  */
 
-#pragma pack(push, 1)
-
-/* One spell effect definition. The dice at 0x04 are rolled for the effect's
-   size, the three values at 0x20 through 0x2c combine into its duration, and
-   the percentage at 0x24 scales both. */
-struct W8SpellEffectDefinition {
-    unsigned char unknown_00[4];
-    W8Dice magnitude; /* 0x04 */
-    unsigned char unknown_08[0x18];
-    int duration_scale;     /* 0x20 */
-    unsigned int percent;   /* 0x24 */
-    int duration_base;      /* 0x28 */
-    int duration_per_power; /* 0x2c */
-};
-
-#pragma pack(pop)
-
 /* The duration that means "for good". */
 enum { W8_EFFECT_PERMANENT = 9999 };
 
@@ -192,7 +175,7 @@ void AnnounceEffectResisted(W8CombatSlot* target)
    shrugged off; the announcement is the same body as its neighbour written out
    again rather than called. */
 // FUNCTION: WIZ8 0x00552340
-void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int arg_4)
+void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int arg_3, int arg_4)
 {
     ApplyEffectToTarget(result, target, arg_3, arg_4);
     if (*result != 0 || g_settings_6850c8.verbose_combat_messages == 0) {

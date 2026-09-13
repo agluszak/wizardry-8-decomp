@@ -135,7 +135,7 @@ struct W8SpellRuntimeRecord {
     int spell_level;              /* 0x056: zero through seven */
     unsigned char wizardry_spell; /* 0x05a */
     char resource_name[64];       /* 0x05b: visual/MLS resource basename */
-    wchar_t display_name[64];  /* 0x09b */
+    wchar_t display_name[64];     /* 0x09b */
     unsigned char unknown_11b[4];
     unsigned char divinity_spell; /* 0x11f */
     unsigned char psionics_spell; /* 0x120 */
@@ -338,7 +338,13 @@ struct W8MonsterRecord {
        MAX_MONSTER_ATTACKS, which is what bounds the array at three. */
     W8MonsterAttack attacks[W8_MAX_MONSTER_ATTACKS]; /* 0x0e7 */
     unsigned char unknown_14d[3];
-    unsigned char unknown_150[0x31];
+    unsigned char unknown_150[0xe];
+    /* 0x15e: selects the row of monster hit-location names for this body. */
+    unsigned char body_type_15e;
+    /* 0x15f: the percentage of hits that land on each of the seven monster
+       hit locations; the total is reported when it falls short of 100. */
+    unsigned char hit_location_chances_15f[7];
+    unsigned char unknown_166[0x1b];
     unsigned int combat_value_181; /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
     short record_id_187;       /* 0x187: equals the zero-based database index */

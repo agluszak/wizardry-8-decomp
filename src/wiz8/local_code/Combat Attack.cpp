@@ -8,6 +8,24 @@
 #include "random.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/CombatSound.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/magic.h"
+#include "wiz8/notices.h"
+#include "wiz8/utility.h"
+#include "wiz8/xstatus.h"
+#include "soundman.h"
 
 #include <string.h>
 #include "wiz8/character_skills.h"
@@ -343,5 +361,241 @@ int AttackModeMod(int is_character, int attack_mode)
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 3663,
                      "AttackModeMod: ERROR - Invalid attack mode");
         return 0;
+    }
+}
+
+// GLOBAL: WIZ8 0x0061e7b0
+const unsigned short g_pc_hit_location_labels[W8_PC_HIT_LOCATIONS + 1][2] = {
+    {0x429, 0x42a}, {0x42b, 0x42c}, {0x42d, 0x42e}, {0x42f, 0x430}, {0x431, 0x432}, {0x433, 0x434},
+};
+
+// clang-format off
+// GLOBAL: WIZ8 0x0061ea24
+const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS][W8_MONSTER_BODY_TYPES] = {
+    {0x55c, 0x563, 0x56a, 0x55c, 0x571, 0x572}, {0x55d, 0x564, 0x56b, 0x55d, 0x572, 0x575},
+    {0x55e, 0x565, 0x56c, 0x55e, 0x55e, 0x55e}, {0x55f, 0x566, 0x56d, 0x55f, 0x573, 0x576},
+    {0x560, 0x567, 0x56e, 0x560, 0x574, 0x577}, {0x561, 0x568, 0x56f, 0x568, 0x560, 0x560},
+    {0x562, 0x569, 0x570, 0x562, 0x55c, 0x55d},
+};
+// clang-format on
+
+/* Land a spell missile on whatever it struck. The spell's own impact sound
+   plays when it has one. A single-target effect (no radius) rolls its size,
+   applies it to the struck monster or character and rolls the effect's
+   conditions against the target. An area effect instead reaches the whole
+   party when a character was struck, or every active monster within the
+   radius of the struck monster's position. */
+// FUNCTION: WIZ8 0x00544d30
+void ResolveSpellMissileHit(W8Missile* missile)
+{
+    W8TargetSource* source = &missile->source_22c;
+    W8CombatSlot* target = &missile->combat_slot_260;
+    W8SpellEffectDefinition* definition = &missile->definition_1fc;
+    W8SpellRuntimeRecord* spell;
+    W8CombatSlot struck;
+    unsigned int magnitude;
+    unsigned int monster_list_index;
+    W8MonsterInfo* monster_info;
+    srVector3T<float> location;
+    unsigned char announce;
+    unsigned char verbose;
+    unsigned int index;
+
+    TargetSourceIsCharacter(source, 0);
+    spell = &g_spell_records[MissileSpellId(missile->missile_table_index_1d8)];
+    if (strlen(spell->sound_name) != 0) {
+        SoundPlay((STR)FormatString("Data\\Missiles\\Sounds\\%s.wav", spell->sound_name), 0);
+    }
+
+    if (definition->radius > g_float_005ebb34) {
+        if (target->iType == W8_TARGET_KIND_MONSTER) {
+            monster_list_index =
+                MonsterGetIndexByLocationID(0x1460, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
+            monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+            DamageMonstersInRadius(monster_info->monster->GetPosition(), definition->radius,
+                                   &definition->magnitude, source, &missile->result_280);
+            announce = g_settings_6850c8.verbose_combat_messages;
+            verbose = g_settings_6850c8.verbose_combat_messages;
+            srVector3T<float> center = monster_info->monster->GetPosition();
+            ResetCombatSlot(&struck);
+            struck.iType = W8_TARGET_KIND_MONSTER;
+            for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+                monster_info = MonsterGetScriptPartByLocationIndex(index);
+                if (monster_info->flag_14 != 0) {
+                    MonsterGetLocation(monster_info->monster, &location);
+                    srVector3T<float> offset(center.x - location.x, center.y - location.y,
+                                             center.z - location.z);
+                    if (offset.Length() <= definition->radius) {
+                        struck.iMonsterID = monster_info->location_id;
+                        ApplyEffectConditions(source, &struck, definition, announce, verbose, 0);
+                    }
+                }
+            }
+        } else {
+            ApplyRolledHealthChangeToParty(&definition->magnitude, &missile->result_280, 1);
+            announce = g_settings_6850c8.verbose_combat_messages;
+            verbose = g_settings_6850c8.verbose_combat_messages;
+            ResetCombatSlot(&struck);
+            struck.iType = W8_TARGET_KIND_CHARACTER;
+            for (index = 0; index < 8; ++index) {
+                if (g_status_685170.buffers.party_rows[index].occupied != 0) {
+                    struck.iChar = index;
+                    ApplyEffectConditions(source, &struck, definition, announce, verbose, 0);
+                }
+            }
+        }
+        return;
+    }
+
+    magnitude = RollEffectMagnitude(definition);
+    if (magnitude > 0) {
+        ApplyEffectAndAnnounce(&magnitude, target, spell->realm, definition->power_level);
+        if (magnitude > 0) {
+            if (target->iType == W8_TARGET_KIND_MONSTER) {
+                monster_list_index =
+                    MonsterGetIndexByLocationID(0x147f, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
+                monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+                ApplyDamageToMonster(monster_info, magnitude, source, 0,
+                                     g_settings_6850c8.verbose_combat_messages, 0,
+                                     &missile->result_280, 0);
+            } else {
+                ApplyDamageToCharacter(target->iChar, magnitude, 0,
+                                       g_settings_6850c8.verbose_combat_messages, 0,
+                                       &missile->result_280, 0);
+            }
+        }
+    }
+    ApplyEffectConditions(source, target, definition, g_settings_6850c8.verbose_combat_messages,
+                          g_settings_6850c8.verbose_combat_messages, &missile->result_280);
+}
+
+/* Land a physical missile on its target. The notice names the target, with
+   the retargeted suffix when the shot was turned aside onto it, and colours
+   the name by side. A deflected shot only reports the deflection. Otherwise
+   the hit location is rolled from the monster body's own chances or the
+   party's gubLocalACPercent, named in verbose mode, and the shot must still
+   penetrate the armour there: a 50 percent base, plus the attack mode's
+   modifier and 5 per point of armour class under 10. A penetrating shot
+   rolls the effect size and, when it is not nothing, plays the hit sound,
+   applies the damage and rolls the effect's conditions. */
+// FUNCTION: WIZ8 0x00545090
+void ResolveMissileHit(W8Missile* missile, bool deflected)
+{
+    W8TargetSource* source = &missile->source_22c;
+    W8CombatSlot* target = &missile->combat_slot_260;
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* record;
+    wchar_t text[120];
+    wchar_t location_name[20];
+    unsigned int monster_list_index;
+    unsigned char target_start;
+    unsigned char target_stop;
+    char source_color;
+    char target_color;
+    unsigned int hit_location;
+    unsigned int total;
+    unsigned int roll;
+    int attack_mode;
+    int chance;
+    int penetration_roll;
+    unsigned int magnitude;
+
+    if (!IsTargetStillPresent(target)) {
+        return;
+    }
+    TargetSourceIsCharacter(source, 0);
+    swprintf(text, L"%s ", gppStringList[0x6fc / 4]);
+    target_start = wcslen(text);
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        monster_list_index =
+            MonsterGetIndexByLocationID(0x14b0, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        wcscat(text, GetMonsterName(monster_info, 0, 0));
+    } else {
+        wcscat(text, g_status_685170.buffers.characters[target->iChar].name);
+    }
+    if (missile->retargeted_322) {
+        wcscat(text, L" ");
+        wcscat(text, gppStringList[0x700 / 4]);
+    }
+    target_stop = wcslen(text);
+    source_color = GetSourceNoticeColor(source);
+    target_color = GetTargetNoticeColor(source, target);
+    ShowNotice(source_color, text, -1, -1, 0);
+    if (target_color != source_color) {
+        HighlightTextBoxRange(target_color, target_start, target_stop, -1);
+    }
+    if (deflected) {
+        ShowNotice(source_color, gppStringList[0x850 / 4], -1, -1, 0);
+        return;
+    }
+
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        monster_list_index =
+            MonsterGetIndexByLocationID(0x14d9, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        record = GetMonsterDataForInfo(monster_info);
+        total = 0;
+        roll = Random(100);
+        for (hit_location = 0;; ++hit_location) {
+            if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
+                FormatDebugMessage(0, "ERROR: DBS Hit Locations total only %d%% for monster %ls",
+                                   total, record->name_00);
+                hit_location = 3;
+                break;
+            }
+            total += record->hit_location_chances_15f[hit_location];
+            if (roll < total) {
+                break;
+            }
+        }
+        if (record->hit_location_chances_15f[hit_location] < 100) {
+            wcscpy(
+                location_name,
+                gppStringList[g_monster_hit_location_labels[hit_location][record->body_type_15e]]);
+        } else {
+            wcscpy(location_name, &g_wchar_00689b34);
+        }
+    } else {
+        total = 0;
+        roll = Random(100);
+        for (hit_location = 0;; ++hit_location) {
+            if (hit_location >= W8_PC_HIT_LOCATIONS) {
+                FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
+                hit_location = 1;
+                break;
+            }
+            total += gubLocalACPercent[hit_location];
+            if (roll < total) {
+                break;
+            }
+        }
+        wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
+    }
+    if (g_settings_6850c8.verbose_combat_messages != 0) {
+        WriteGameLog(source_color, gppStringList[0x830 / 4], location_name);
+    }
+
+    attack_mode = g_missile_table_65bde0[missile->missile_table_index_1d8].attack_mode_144;
+    chance = AttackModeMod(1, attack_mode) + 50 +
+             (10 - TargetArmorClassAtLocation(target, attack_mode, hit_location)) * 5;
+    penetration_roll = Random(100) + 1;
+    CombatLog("TO PENETRATE: Chance %d, Rolled %d", chance, penetration_roll);
+    if (penetration_roll <= chance) {
+        magnitude = RollEffectMagnitude(&missile->definition_1fc);
+        if (magnitude > 0) {
+            MakePCHitSound(missile, target, hit_location, -1);
+            if (target->iType == W8_TARGET_KIND_MONSTER) {
+                ApplyDamageToMonster(monster_info, magnitude, source, 0, 1, 1, 0, 0);
+            } else {
+                ApplyDamageToCharacter(target->iChar, magnitude, 0, 1, 1, 0, 0);
+            }
+            ApplyEffectConditions(source, target, &missile->definition_1fc, 1, 0, 0);
+        } else if (g_settings_6850c8.verbose_combat_messages != 0) {
+            WriteGameLog(source_color, gppStringList[0x838 / 4]);
+        }
+    } else {
+        WriteGameLog(source_color, gppStringList[0x83c / 4]);
+        MakePCHitSound(missile, target, hit_location, -1);
     }
 }
