@@ -32,7 +32,9 @@ struct W8ItemRequirement {
 
 struct W8ItemDatabaseRecord {
     W8WideChar display_name[30]; /* 0x000 */
-    unsigned char unknown_03c[2];
+    /* 0x03c: the item number the Wizardry 7 import matches imported item ids
+       against (Party Import.cpp). */
+    short legacy_item_number_03c;
     unsigned char equip_class;              /* 0x03e: zero through twelve */
     unsigned short unidentified_name_index; /* 0x03f */
     unsigned char flags_041;                /* 0x041 */
