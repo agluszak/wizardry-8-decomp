@@ -83,6 +83,8 @@ void Function5A45B0(void);
 void Function5A4770(void);
 void Function5A42A0(void);
 void Function5C5240(void);
+// GLOBAL: WIZ8 0x0069c42c
+W8Widget* g_panel_controls_69c42c[4];
 // GLOBAL: WIZ8 0x0069c428
 Controls* g_camp_secondary_panel_0069c428;
 
@@ -91,6 +93,10 @@ Controls* g_camp_secondary_panel_0069c428;
 // members keep neutral names.
 // GLOBAL: WIZ8 0x0069c43c
 W8TextControl* g_panel_controls_69c43c[2];
+// GLOBAL: WIZ8 0x0069c444
+W8Widget* g_panel_control_69c444;
+// GLOBAL: WIZ8 0x0069c448
+W8Widget* g_panel_controls_69c448[7];
 // GLOBAL: WIZ8 0x0069c464
 Controls* g_panel_69c464;
 // GLOBAL: WIZ8 0x0069c468

@@ -299,9 +299,6 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 void ClearMonsterPathAndResume(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
-/* Unresolved gap, declared for the Noise.cpp call site: returns a float
-   distance/cost for the monster (multiplied by 1000 at the call site). */
-float Function4E5990(W8MonsterInfo* monster_info); /* 0x004E5990 */
 unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_file, int location_id,
                                          unsigned char assert_on_failure);
 W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int location_id,

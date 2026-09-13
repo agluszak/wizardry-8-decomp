@@ -1,6 +1,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_code/Configuration.h"
@@ -368,55 +369,55 @@ W8Region g_regions[1500] = {
     {0x00000001, 106, 96, 302, 109, Function005B61A0, 0, 1, 0, 2362, 0},
 
     {0x00000001, 106, 124, 302, 133, Function005B6220, 0, 1, 0, 2363, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB350, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 7, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 8, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB560, 11, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 9, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 10, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 11, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BB900, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 0, 1, 0, 2378, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 0, 1, 0, 2378, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 1, 1, 0, 2379, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 2, 1, 0, 2380, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 3, 1, 0, 2381, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 1, 1, 0, 2379, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 2, 1, 0, 2380, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 3, 1, 0, 2381, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 4, 1, 0, 2382, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 5, 1, 0, 2383, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBBB0, 6, 1, 0, 2384, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 4, 1, 0, 2382, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 5, 1, 0, 2383, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 6, 1, 0, 2384, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005BBC70, 0, 1, 0, 2385, 0},
-    {0x00000001, 0, 0, 0, 0, Function005BBC70, 1, 1, 0, 2386, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 0, 1, 0, 2385, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 1, 1, 0, 2386, 0},
     {0x00000001, 0, 0, 0, 0, Function005B79F0, 0, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, Function005B79F0, 1, 0, 0, -1, 0},

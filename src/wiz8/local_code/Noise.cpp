@@ -66,7 +66,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
                                                 &range) == 0) {
                 continue;
             }
-            if ((float)((int)Function4E5990(info) * 1000) < range) {
+            if ((float)((int)GetMonsterRecordScaledFloat1BA(info) * 1000) < range) {
                 continue;
             }
         }
