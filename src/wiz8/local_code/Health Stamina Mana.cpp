@@ -9,6 +9,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -1192,4 +1193,14 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     if (lowest == 999)
         return 0;
     return &g_status_685170.buffers.characters[selected];
+}
+
+// FUNCTION: WIZ8 0x0052fe80
+void StartBreathCycle(int party_slot, char force)
+{
+    if ((gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) || force != 0) {
+        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                            g_special_event_0068c50c, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+    }
 }
