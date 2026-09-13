@@ -3,8 +3,9 @@
 
 template <class T> class srVector3T;
 
-/* Local Code\Noise.cpp. The TU's only anchor is 0x004F0E80; its two gap
-   neighbours 0x004F1100/0x004F1150 call it but stay unrecovered. */
+/* Local Code\Noise.cpp. */
 void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int radius, int flag);
+void AlertWorldNoise004F1100(void);
+void AlertCombatNoise004F1150(char large_radius);
 
 #endif
