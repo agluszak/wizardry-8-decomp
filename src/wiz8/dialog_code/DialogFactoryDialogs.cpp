@@ -99,6 +99,92 @@ void W8Dialog005CBB40::SetText(const wchar_t* text)
     W8DialogBase::SetText(text);
 }
 
+// FUNCTION: WIZ8 0x005CC650
+int W8Dialog005CBB40::GetVisibleLineCount005CC650()
+{
+    if (m_area_button_098 == -1) {
+        return 0;
+    }
+    return GetButtonHeight(m_area_button_098) /
+           (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8);
+}
+
+// FUNCTION: WIZ8 0x005CCB80
+void W8Dialog005CBB40::SetCurrentLine005CCB80(int line)
+{
+    int visible_lines = GetVisibleLineCount005CC650();
+    int line_count = m_lines_054.GetCount();
+
+    if (line_count == 0 || line < -1) {
+        return;
+    }
+    if (line == -1) {
+        m_selected_line_0f4 = -1;
+        m_first_visible_line_0f0 = 0;
+        m_dirty_flags |= 1;
+        return;
+    }
+    if (line >= line_count) {
+        line = line_count - 1;
+    }
+    m_selected_line_0f4 = line;
+    if (visible_lines > 0) {
+        if (m_selected_line_0f4 < m_first_visible_line_0f0) {
+            m_first_visible_line_0f0 = m_selected_line_0f4;
+        } else if (m_selected_line_0f4 >= m_first_visible_line_0f0 + visible_lines) {
+            m_first_visible_line_0f0 = m_selected_line_0f4 - visible_lines + 1;
+        }
+        int maximum_first = line_count - visible_lines;
+        if (maximum_first < 0) {
+            maximum_first = 0;
+        }
+        if (m_first_visible_line_0f0 > maximum_first) {
+            m_first_visible_line_0f0 = maximum_first;
+        }
+    }
+    m_dirty_flags |= 1;
+}
+
+// FUNCTION: WIZ8 0x005CD2B0
+unsigned char W8Dialog005CBB40::HandleInputEvent005CD2B0(const InputAtom* input)
+{
+    if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
+        return m_keep_open;
+    }
+
+    if (gfKeyState[VK_UP] != 0) {
+        SetCurrentLine005CCB80(m_selected_line_0f4 - 1);
+    } else if (gfKeyState[VK_DOWN] != 0) {
+        SetCurrentLine005CCB80(m_selected_line_0f4 + 1);
+    }
+
+    switch (toupper(input->usParam)) {
+    case ESC:
+        m_selected_line_0f4 = -1;
+        m_keep_open = 0;
+        return 0;
+    case VK_RETURN:
+        if (m_selected_line_0f4 != -1) {
+            m_keep_open = 0;
+        }
+        return m_keep_open;
+    case VK_PRIOR:
+        SetCurrentLine005CCB80(m_selected_line_0f4 - GetVisibleLineCount005CC650());
+        return m_keep_open;
+    case VK_NEXT:
+        SetCurrentLine005CCB80(m_selected_line_0f4 + GetVisibleLineCount005CC650());
+        return m_keep_open;
+    case VK_HOME:
+        SetCurrentLine005CCB80(0);
+        return m_keep_open;
+    case VK_END:
+        SetCurrentLine005CCB80(m_lines_054.GetCount() - 1);
+        return m_keep_open;
+    default:
+        return m_keep_open;
+    }
+}
+
 /* The list-box dialog. The retail layout puts the line strings in the vector
    at 0x54 and builds two text buttons, the scrolling text area, the up and
    down arrows, a slider and the confirmation pair. */
