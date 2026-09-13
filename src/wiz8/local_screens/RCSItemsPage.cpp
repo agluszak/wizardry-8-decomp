@@ -764,11 +764,11 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
             Function5A4C70(item, slot, 0);
             if (item->item_id != -1) {
                 SetItemTooltip005BBD30(item, region);
-                Function4F27C0(1);
+                SetRegionHelpForceEnabled004F27C0(1);
                 return 1;
             }
         }
-        Function4F27E0(region);
+        DisableRegionHelpFlag004F27E0(region);
         return 1;
     }
     if (event->reason == 0x100) {
@@ -797,10 +797,10 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
                 }
             } else if (item->item_id != -1) {
                 SetItemTooltip005BBD30(item, region);
-                Function4F27C0(1);
+                SetRegionHelpForceEnabled004F27C0(1);
                 return 0;
             }
-            Function4F27E0(region);
+            DisableRegionHelpFlag004F27E0(region);
         }
         return 0;
     }
@@ -831,7 +831,7 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
         }
         if (event->reason == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            Function4F27E0(region);
+            DisableRegionHelpFlag004F27E0(region);
             return 1;
         }
         if (event->reason != 0x10) {
@@ -844,8 +844,8 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
                 delay = 300;
             }
             SetRegionHelpDelay(delay);
-            Function4F27C0(1);
-            Function4F27D0(region);
+            SetRegionHelpForceEnabled004F27C0(1);
+            EnableRegionHelpFlag004F27D0(region);
             if (item->item_id != -1) {
                 name = FormatItemDisplayName(item, 0);
                 swprintf(g_camp_screen_0069c0f4->caption, L"%s (%s)", name,
@@ -868,13 +868,13 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
                 UpdateItemCursorForState005BAD20(1, item, 0);
-                Function4F27D0(region);
+                EnableRegionHelpFlag004F27D0(region);
                 delay = g_settings_6850c8.tooltip_delay_ms;
                 if ((unsigned int)delay > 300) {
                     delay = 300;
                 }
                 SetRegionHelpDelay(delay);
-                Function4F27C0(1);
+                SetRegionHelpForceEnabled004F27C0(1);
                 if (item->item_id == -1) {
                     swprintf(g_camp_screen_0069c0f4->caption, g_format_s_006068e4,
                              gppStringList[g_equip_slot_label_ids_61e7c4[slot]]);
@@ -890,7 +890,7 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
                 UpdateItemCursorForState005BAD20(0, item, 0);
-                Function4F27E0(region);
+                DisableRegionHelpFlag004F27E0(region);
             }
             return 0;
         }
@@ -949,7 +949,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
         }
         if (event->reason == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-            Function4F27E0(region);
+            DisableRegionHelpFlag004F27E0(region);
             return 1;
         }
         if (event->reason != 0x10) {
@@ -983,7 +983,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
                     SetItemTooltip005BBD30(item, region);
                     return 0;
                 }
-                Function4F27E0(region);
+                DisableRegionHelpFlag004F27E0(region);
             }
             return 0;
         }
@@ -1021,7 +1021,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             return 1;
         }
     }
-    Function4F27E0(region);
+    DisableRegionHelpFlag004F27E0(region);
     return 1;
 }
 
@@ -1097,8 +1097,8 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
         delay = 300;
     }
     SetRegionHelpDelay(delay);
-    Function4F27C0(1);
-    Function4F27D0(region);
+    SetRegionHelpForceEnabled004F27C0(1);
+    EnableRegionHelpFlag004F27D0(region);
     name = FormatItemDisplayName(item, 0);
     wcscpy(g_camp_screen_0069c0f4->caption, name);
     record = g_item_records + item->item_id;
