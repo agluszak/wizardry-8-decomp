@@ -156,8 +156,8 @@ int W8Dialog005CBB40::CreateControls()
         m_inlay_image_094, static_cast<short>(m_x + (GetButtonX(m_text_button_08c) - m_x)),
         static_cast<short>(
             m_y + (GetButtonY(m_text_button_08c) + GetButtonHeight(m_text_button_08c) + 4 - m_y)),
-        static_cast<short>(GetButtonWidth(m_text_button_08c)), 0x14, 4, 0x7e, Function5CCE70,
-        Function5CCE70);
+        static_cast<short>(GetButtonWidth(m_text_button_08c)), 0x14, 4, 0x7e,
+        TextAreaButtonCallback, TextAreaButtonCallback);
     if (m_area_button_098 == -1) {
         m_error = 7;
         return 7;
@@ -169,15 +169,15 @@ int W8Dialog005CBB40::CreateControls()
         3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
         m_up_button_09c =
-            QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, Function5CCF30, Function5CCF30);
+            QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, UpButtonCallback, UpButtonCallback);
     }
     m_down_image_0a8 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogDownArrow.STI")),
         3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
-        m_down_button_0a4 =
-            QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, Function5CCFE0, Function5CCFE0);
+        m_down_button_0a4 = QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, DownButtonCallback,
+                                              DownButtonCallback);
     }
     m_slider_image_0b0 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
@@ -192,15 +192,15 @@ int W8Dialog005CBB40::CreateControls()
         3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
         m_ok_button_0bc =
-            QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, Function5CD090, Function5CD090);
+            QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, OkButtonCallback, OkButtonCallback);
     }
     m_cancel_image_0d8 = LoadButtonImage(
         reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
-        m_cancel_button_0d4 =
-            QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f, Function5CD130, Function5CD130);
+        m_cancel_button_0d4 = QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f,
+                                                CancelButtonCallback, CancelButtonCallback);
     }
     if (m_up_button_09c == -1 || m_down_button_0a4 == -1 || m_slider_button_0ac == -1 ||
         m_ok_button_0bc == -1 || m_cancel_button_0d4 == -1) {
@@ -226,7 +226,7 @@ int W8Dialog005CBB40::CreateControls()
             m_third_text_button_0b8 =
                 CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
                                  g_dialog_font_background_64fded, m_inlay_image_0b4, 0, 0, 1, 1, 4,
-                                 0x7d, Function5CD1E0, Function5CD1E0);
+                                 0x7d, SliderTrackButtonCallback, SliderTrackButtonCallback);
             if (m_third_text_button_0b8 != -1) {
                 SetButtonUserDataPointer(m_third_text_button_0b8, this);
                 m_second_text_button_090 = CreateTextButton(

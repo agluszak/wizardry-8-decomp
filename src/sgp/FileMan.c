@@ -896,6 +896,7 @@ BOOLEAN FileSeek( HWFILE hFile, UINT32 uiDistance, UINT8 uiHow )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x004050d0
 INT32 FileGetPos( HWFILE hFile )
 {
 	HANDLE	hRealFile;
