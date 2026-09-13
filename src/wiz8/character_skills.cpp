@@ -6,6 +6,12 @@
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 
+/* Unresolved fragment in two clusters: 0x00547940/0x005479B0 lie in the
+   Combat Hostility.cpp (ends 0x00547570) to VideoObjectManager.cpp
+   (0x00548F90) gap, and the six 0x00553xxx-0x00555xxx functions plus
+   0x00558610 sit in the gaps around the anchored CharGeneration.cpp,
+   ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
+
 // FUNCTION: WIZ8 0x00558610
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
 {
