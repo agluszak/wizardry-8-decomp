@@ -189,7 +189,7 @@ Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop)
 }
 
 // FUNCTION: WIZ8 0x0043cb30
-void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring)
+void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring)
 {
     int trigger_count = world->triggers->GetCount();
     int saved_count = 0;
@@ -217,16 +217,14 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
                 FileWrite(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
                 FileWrite(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
                 FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                           0);
                 FileWrite(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
                 FileWrite(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
             } else {
                 FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                           0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
                 FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
@@ -241,7 +239,7 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
    restoring, a state byte block is re-randomized and the type-10 action data is
    re-linked to the stored item. */
 // FUNCTION: WIZ8 0x0043ccf0
-unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
+bool LoadTriggerRuntimeStates0043CCF0(int handle)
 {
     int version;
     int saved_count;
@@ -267,8 +265,7 @@ unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
                 FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
-                FileRead(handle, &scratch->state_370.value_01,
-                         sizeof(scratch->state_370.value_01) + sizeof(scratch->state_370.value_05),
+                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
                          0);
                 FileRead(handle, &scratch->value_384, sizeof(scratch->value_384), 0);
                 if (record_version > 1) {
@@ -279,8 +276,7 @@ unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
                 FileRead(handle, &scratch->value_368, sizeof(scratch->value_368), 0);
                 FileRead(handle, &scratch->value_36c, sizeof(scratch->value_36c), 0);
                 FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
-                FileRead(handle, &scratch->state_370.value_01,
-                         sizeof(scratch->state_370.value_01) + sizeof(scratch->state_370.value_05),
+                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
                          0);
                 FileRead(handle, &scratch->value_37c, sizeof(scratch->value_37c), 0);
                 FileRead(handle, &scratch->value_380, sizeof(scratch->value_380), 0);
@@ -296,8 +292,7 @@ unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
                 FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileRead(handle, &trigger->state_370.value_01,
-                         sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                          0);
                 FileRead(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
                 if (record_version > 1) {
@@ -308,8 +303,7 @@ unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
                 FileRead(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
                 FileRead(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
                 FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileRead(handle, &trigger->state_370.value_01,
-                         sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                          0);
                 FileRead(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
                 FileRead(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
@@ -356,11 +350,11 @@ unsigned char LoadTriggerRuntimeStates0043CCF0(int handle)
    attached, with its flag bits packed and the timed-event delay resolved from
    the live event queue. Returns whether the header went out completely. */
 // FUNCTION: WIZ8 0x0043BE60
-unsigned char Trigger::Save0043BE60(int hFile)
+bool Trigger::Save0043BE60(int hFile)
 {
     unsigned char version = 5;
     unsigned char reserved[4];
-    unsigned char header_ok;
+    bool header_ok;
     W8TriggerActionData* action_data;
     unsigned char has_action_data;
     unsigned char action_type;
@@ -454,9 +448,9 @@ unsigned char Trigger::Save0043BE60(int hFile)
    of the trailing block is present; a type-10 action payload rebuilds its
    action data and re-queues the delayed timed event from the saved progress. */
 // FUNCTION: WIZ8 0x0043c1b0
-unsigned char Trigger::Load0043C1B0(int hFile, char version)
+bool Trigger::Load0043C1B0(int hFile, char version)
 {
-    unsigned char header_ok;
+    bool header_ok;
     unsigned char has_action_data;
     unsigned char action_type;
     unsigned char flag_mode;
@@ -618,54 +612,54 @@ unsigned char Trigger::Load0043C1B0(int hFile, char version)
    through a scratch trigger when the name is gone, and anything else pushes
    the tag byte back and ends the walk. */
 // FUNCTION: WIZ8 0x0043c860
-unsigned char LoadWorldTriggers0043C860(W8World* world, int hFile)
+bool LoadWorldTriggers0043C860(W8World* world, int hFile)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
     int trigger_count = world->triggers->GetCount();
     int index = 0;
-    unsigned char header_ok = 1;
-    unsigned char finished = 0;
+    bool header_ok = true;
+    bool finished = false;
 
     for (;;) {
         char tag;
 
-        if (finished != 0 || trigger_count <= index) {
+        if (finished || trigger_count <= index) {
             return header_ok;
         }
-        if (header_ok == 0 || !FileRead(hFile, &tag, 1, 0)) {
-            header_ok = 0;
+        if (!header_ok || !FileRead(hFile, &tag, 1, 0)) {
+            header_ok = false;
         } else {
-            header_ok = 1;
+            header_ok = true;
         }
         if (tag < 1 || tag > 5) {
-            finished = 1;
+            finished = true;
             FileSeek(hFile, -1, FILE_SEEK_FROM_CURRENT);
         } else if (tag < 5) {
             Trigger* trigger = *world->triggers->GetAt(index);
 
             ++index;
-            if (header_ok == 0 || trigger->Load0043C1B0(hFile, tag) == 0) {
-                return 0;
+            if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+                return false;
             }
-            header_ok = 1;
+            header_ok = true;
         } else {
             int trigger_id;
             char name[0x80];
             Trigger* trigger;
 
-            if (header_ok == 0 || !FileRead(hFile, &trigger_id, sizeof(trigger_id), 0) ||
+            if (!header_ok || !FileRead(hFile, &trigger_id, sizeof(trigger_id), 0) ||
                 !FileRead(hFile, name, sizeof(name), 0)) {
-                header_ok = 0;
+                header_ok = false;
             } else {
-                header_ok = 1;
+                header_ok = true;
             }
             trigger = FindTriggerByName(name);
             if (trigger != 0) {
-                if (header_ok == 0 || trigger->Load0043C1B0(hFile, tag) == 0) {
-                    header_ok = 0;
+                if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+                    header_ok = false;
                 } else {
-                    header_ok = 1;
+                    header_ok = true;
                 }
                 ++index;
             } else {
@@ -676,8 +670,8 @@ unsigned char LoadWorldTriggers0043C860(W8World* world, int hFile)
                 ++index;
             }
         }
-        if (header_ok == 0) {
-            return 0;
+        if (!header_ok) {
+            return false;
         }
     }
 #pragma clang diagnostic pop
@@ -729,7 +723,7 @@ void SaveTriggerActionData0043D120(W8World* world, int handle)
    a version/count header, then per record the trigger name and its 0x100-byte
    inline payload. Records for missing triggers are skipped with a seek. */
 // FUNCTION: WIZ8 0x0043d1f0
-unsigned char LoadTriggerActionData0043D1F0(int handle)
+bool LoadTriggerActionData0043D1F0(int handle)
 {
     int version;
     int saved_count;
@@ -2097,8 +2091,7 @@ Trigger::Trigger()
     value_36c = 0;
     state_370.state = 0;
     value_384 = 0;
-    state_370.value_01 = 0;
-    state_370.value_05 = 0;
+    memset(state_370.bytes_01, 0, sizeof(state_370.bytes_01));
 
     flags_0a0 |= 0x10;
     name_01c[0] = 0;
@@ -3933,7 +3926,7 @@ int GetLocationVarValueByName(const char* name)
 void SaveLocationVariables004441E0(int handle)
 {
     int variable_count = g_location_variable_names_006598f8.GetCount();
-    unsigned char written;
+    bool written;
 
     written = FileWrite(handle, &variable_count, sizeof(variable_count), 0) != 0;
     for (int index = 0; index < variable_count; ++index) {
@@ -3941,7 +3934,7 @@ void SaveLocationVariables004441E0(int handle)
         char name[0x80];
         int level;
 
-        if (written == 0) {
+        if (!written) {
             return;
         }
         value = *g_location_variable_values_00659990.GetAt(index);
@@ -3956,13 +3949,13 @@ void SaveLocationVariables004441E0(int handle)
 /* Read the location-variable count then each value/name/level record,
    appending a heap copy of the name to the variable vectors. */
 // FUNCTION: WIZ8 0x00444310
-unsigned char LoadLocationVariables00444310(int handle)
+bool LoadLocationVariables00444310(int handle)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
     int variable_count;
     int index;
-    unsigned char read_ok;
+    bool read_ok;
 
     read_ok = FileRead(handle, &variable_count, sizeof(variable_count), 0) != 0;
     for (index = 0; index < variable_count; ++index) {
@@ -3971,7 +3964,7 @@ unsigned char LoadLocationVariables00444310(int handle)
         int level;
         char* copy;
 
-        if (read_ok == 0) {
+        if (!read_ok) {
             break;
         }
         read_ok = FileRead(handle, &value, sizeof(value), 0) &&
@@ -4013,7 +4006,7 @@ static int s_last_prop_index_00606998 = -1;
    activation range and projects onto the screen. The remembered index is
    checked first so consecutive frames start at the prop that matched. */
 // FUNCTION: WIZ8 0x00445140
-unsigned char AnyPropTriggerInView00445140(W8World* world)
+bool AnyPropTriggerInView00445140(W8World* world)
 {
     srVector3T<float> position;
     unsigned int prop_count;

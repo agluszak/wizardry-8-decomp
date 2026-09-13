@@ -86,13 +86,7 @@ static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
 #pragma pack(push, 1)
 struct W8TriggerState370 {
     unsigned char state;
-    union {
-        struct {
-            int value_01;
-            int value_05;
-        };
-        unsigned char bytes_01[8];
-    };
+    unsigned char bytes_01[8];
 };
 #pragma pack(pop)
 
@@ -123,8 +117,8 @@ public:
     void CommitActionResult(unsigned char apply_state_changes);
     void CompleteItemInteraction004447F0();
     void Activate00444750();
-    unsigned char Save0043BE60(int hFile);
-    unsigned char Load0043C1B0(int hFile, char version);
+    bool Save0043BE60(int hFile);
+    bool Load0043C1B0(int hFile, char version);
     void RunLinkedTriggers00441590();
     void SetPosition004416F0(srVector3T<float>* position);
     void FinishAction();
@@ -255,11 +249,11 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
    action data. */
 int ResetNextTriggerId(void);
 void SaveWorldTriggers0043C810(W8World* world, int handle);
-unsigned char LoadWorldTriggers0043C860(W8World* world, int handle);
-void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring);
-unsigned char LoadTriggerRuntimeStates0043CCF0(int handle);
+bool LoadWorldTriggers0043C860(W8World* world, int handle);
+void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring);
+bool LoadTriggerRuntimeStates0043CCF0(int handle);
 void SaveTriggerActionData0043D120(W8World* world, int handle);
-unsigned char LoadTriggerActionData0043D1F0(int handle);
+bool LoadTriggerActionData0043D1F0(int handle);
 
 extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;
@@ -276,6 +270,6 @@ extern int g_value_005ee5a0;
 
 unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
                                               float countdown_duration, unsigned char reverse);
-unsigned char AnyPropTriggerInView00445140(W8World* world);
+bool AnyPropTriggerInView00445140(W8World* world);
 
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);
