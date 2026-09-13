@@ -224,7 +224,33 @@ void GrantStartingSpells005595D0(W8Character* character)
         }
         ++i;
     } while (i < 6);
-    Function4F9600(scratch, character);
+    BuildLearnedSpellState004F9600(scratch, character);
+}
+
+// FUNCTION: WIZ8 0x004F9600
+void BuildLearnedSpellState004F9600(void* scratch, W8Character* character)
+{
+    int* scratch_words = (int*)scratch;
+    int spell_id;
+    int realm;
+    int count;
+
+    for (realm = 0; realm < 6; ++realm) {
+        character->skill_unlocks[0x1c + realm] = 0;
+    }
+    scratch_words[0x3d8 / 4] = 0;
+    for (spell_id = 0; spell_id < 0x72; ++spell_id) {
+        if (character->spell_learned[spell_id] == 1 || character->spell_learned[spell_id] == 2) {
+            realm = g_spell_records[spell_id].realm;
+            count = character->skill_unlocks[0x1c + realm];
+            scratch_words[count + realm * 10] = spell_id;
+            character->skill_unlocks[0x1c + realm] = count + 1;
+            ++scratch_words[0x3d8 / 4];
+        }
+    }
+    for (realm = 0; realm < 6; ++realm) {
+        scratch_words[0x3c0 / 4 + realm] = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x00559650

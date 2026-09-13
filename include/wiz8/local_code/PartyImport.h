@@ -38,8 +38,8 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* same_record, const W8Wiz7Character* imported,
                           unsigned int base_value); /* 0x00559BC0 */
 
-/* Unresolved gap, declared for the call site: rebuilds the character's
-   derived state through a 0x3dc-byte scratch record after the spell grant. */
-void Function4F9600(void* scratch, W8Character* character); /* 0x004F9600 */
+/* Rebuilds the character's learned-spell buckets through a 0x3dc-byte
+   scratch record after the spell grant. */
+void BuildLearnedSpellState004F9600(void* scratch, W8Character* character); /* 0x004F9600 */
 
 #endif
