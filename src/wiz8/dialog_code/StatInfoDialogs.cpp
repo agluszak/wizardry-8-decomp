@@ -1,6 +1,7 @@
 #include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "Font.h"
 #include "wiz8/character.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
@@ -25,10 +26,6 @@ static const char STAT_INFO_DIALOGS_CPP[] =
 enum { ATTR_COUNT = 7 };
 enum { SKILL_COUNT = 0x29 };
 
-/* Per-attribute lookup tables. Each dialog reads its own pair, widening the
-   16-bit entries into its 32-bit  */
-extern unsigned short g_character_description_first_ids_61e3a4[];
-extern unsigned short g_character_skill_name_ids_61e454[];
 // GLOBAL: WIZ8 0x0061e4fc
 unsigned short g_attr_table_61E4FC[8] = {
     0x6a0, 0x6a1, 0x6a2, 0x6a3, 0x6a4, 0x6a5, 0x6a6, 0,

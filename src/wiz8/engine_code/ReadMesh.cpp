@@ -1200,21 +1200,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     for (int index = 0; index < material_count; ++index) {
         srMaterialIFace* material = materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            int required = g_retained_materials_65b9d0.count + 1;
-            if (required > g_retained_materials_65b9d0.capacity) {
-                srMaterialIFace** previous = g_retained_materials_65b9d0.data;
-                srMaterialIFace** replacement = new srMaterialIFace*[required];
-                if (replacement != 0) {
-                    g_retained_materials_65b9d0.capacity = required;
-                    for (int retained_index = 0; retained_index < g_retained_materials_65b9d0.count;
-                         ++retained_index) {
-                        replacement[retained_index] = previous[retained_index];
-                    }
-                    delete[] previous;
-                    g_retained_materials_65b9d0.data = replacement;
-                }
-            }
-            g_retained_materials_65b9d0.data[g_retained_materials_65b9d0.count++] = material;
+            g_retained_materials_65b9d0.Add(material);
             material->addReference();
         }
     }
@@ -1335,21 +1321,7 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
     for (int index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
         srMaterialIFace* material = g_multi_mesh_materials_65ba00[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            int required = g_retained_materials_65b9d0.count + 1;
-            if (required > g_retained_materials_65b9d0.capacity) {
-                srMaterialIFace** previous = g_retained_materials_65b9d0.data;
-                srMaterialIFace** replacement = new srMaterialIFace*[required];
-                if (replacement != 0) {
-                    g_retained_materials_65b9d0.capacity = required;
-                    for (int retained_index = 0; retained_index < g_retained_materials_65b9d0.count;
-                         ++retained_index) {
-                        replacement[retained_index] = previous[retained_index];
-                    }
-                    delete[] previous;
-                    g_retained_materials_65b9d0.data = replacement;
-                }
-            }
-            g_retained_materials_65b9d0.data[g_retained_materials_65b9d0.count++] = material;
+            g_retained_materials_65b9d0.Add(material);
             material->addReference();
         }
     }
@@ -1364,10 +1336,7 @@ void ReleaseRetainedMaterials00489920()
 {
     while (g_retained_materials_65b9d0.count != 0) {
         g_retained_materials_65b9d0.data[0]->release();
-        for (int index = 0; index < g_retained_materials_65b9d0.count - 1; ++index) {
-            g_retained_materials_65b9d0.data[index] = g_retained_materials_65b9d0.data[index + 1];
-        }
-        --g_retained_materials_65b9d0.count;
+        g_retained_materials_65b9d0.RemoveAt(0);
     }
 }
 

@@ -350,7 +350,11 @@ struct W8MonsterRecord {
     short record_id_187;       /* 0x187: equals the zero-based database index */
     char cycle_name_189[0x31]; /* 0x189: GrCycle lookup key */
     float float_1ba;           /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[0x8a];
+    unsigned char unknown_1be[3];
+    /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
+       stores the value itself as the selected monster index. */
+    short value_1c1;
+    unsigned char unknown_1c3[0x85];
     unsigned char flag_248;
     unsigned char unknown_249;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
