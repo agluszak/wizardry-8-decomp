@@ -445,6 +445,22 @@ class TranslationUnitLayout:
             "interval_upper": _address(interval.upper),
         }
 
+    def _nearest_assertion_anchor(self, entry: int, *, before: bool) -> dict[str, Any] | None:
+        candidates = [
+            anchor
+            for anchor in self.unit_anchors
+            if anchor.evidence == ASSERTION
+            and (anchor.function < entry if before else anchor.function > entry)
+        ]
+        if not candidates:
+            return None
+        anchor = (max if before else min)(candidates, key=lambda item: item.function)
+        return {
+            "function": _address(anchor.function),
+            "source_path": anchor.source_path,
+            "line": anchor.line,
+        }
+
     def _gap(self, entry: int) -> dict[str, Any]:
         index, _interval = self._interval_at(entry)
         previous = self.intervals[index] if index >= 0 else None
@@ -454,6 +470,15 @@ class TranslationUnitLayout:
             "attribution": "gap",
             "alternatives": [],
             "evidence": [],
+            "gap_size": (
+                following.lower - previous.upper
+                if previous is not None and following is not None
+                else None
+            ),
+            "nearest_anchors": {
+                "previous": self._nearest_assertion_anchor(entry, before=True),
+                "next": self._nearest_assertion_anchor(entry, before=False),
+            },
             "previous_hard_unit": (
                 {"source_path": previous.source_path, "upper": _address(previous.upper)}
                 if previous is not None

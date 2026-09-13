@@ -18,6 +18,8 @@ __all__ = [
     "TranslationUnitInterval",
     "derive_intervals",
     "function_inventory",
+    "misplaced_function_rows",
+    "original_unit_rows",
     "render_gameplay_map_csv",
     "render_interval_csv",
     "translation_unit_report",
@@ -119,10 +121,31 @@ def render_interval_csv(intervals: list[TranslationUnitInterval]) -> str:
     )
 
 
+def _anchor_label(anchor: dict[str, Any] | None) -> str:
+    if not anchor:
+        return "-"
+    label = f"{anchor['function']} {anchor['source_path'].rsplit(chr(92), 1)[-1]}"
+    if anchor.get("line") is not None:
+        label += f":{anchor['line']}"
+    return label
+
+
 def _owner_evidence(owner: dict[str, Any]) -> str:
     evidence = owner.get("evidence") or []
     if not evidence:
-        return str(owner.get("attribution") or "")
+        if owner.get("attribution") != "gap":
+            return str(owner.get("attribution") or "")
+        previous = owner.get("previous_hard_unit") or {}
+        following = owner.get("next_hard_unit") or {}
+        anchors = owner.get("nearest_anchors") or {}
+        size = owner.get("gap_size")
+        return (
+            f"gap 0x{previous.get('upper', '?')}..0x{following.get('lower', '?')} "
+            f"({'-' if size is None else hex(size)} bytes) "
+            f"after {previous.get('source_path', '?')}, before {following.get('source_path', '?')}; "
+            f"nearest anchors {_anchor_label(anchors.get('previous'))} / "
+            f"{_anchor_label(anchors.get('next'))}"
+        )
     parts = []
     for item in evidence:
         if not isinstance(item, dict):
@@ -218,6 +241,178 @@ def render_gameplay_map_csv(
     )
 
 
+ORIGINAL_UNIT_FIELDS = [
+    "rank",
+    "original_path",
+    "status",
+    "recovered_file",
+    "hull_lower",
+    "hull_upper",
+    "span_bytes",
+    "anchor_functions",
+    "hull_functions",
+    "recovered_in_unit",
+    "recovered_anchored",
+    "misplaced",
+    "unrecovered",
+    "claimed_outside_hull",
+]
+
+MISPLACED_FIELDS = [
+    "address",
+    "symbol",
+    "current_source_path",
+    "current_class",
+    "owner_original_path",
+    "expected_recovered_file",
+    "hull_lower",
+    "hull_upper",
+    "attribution",
+]
+
+
+def original_unit_rows(
+    repo_dir: Path,
+    layout: TranslationUnitLayout,
+    gameplay: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    """One status row per original ``.cpp`` in the evidence source tree."""
+    import csv
+
+    from ..source_units import mapped_repository_source_file
+
+    tree = repo_dir / "evidence" / "observations" / "wiz8" / "source-tree.csv"
+    originals: list[str] = []
+    if tree.is_file():
+        with tree.open(newline="", encoding="utf-8") as stream:
+            for row in csv.DictReader(stream):
+                relative = (row.get("relative_path") or "").strip().replace("/", "\\")
+                if relative.casefold().endswith(".cpp"):
+                    originals.append(relative)
+    hulls = {interval.source_path: interval for interval in layout.intervals}
+    assertion_functions = {
+        unit: {anchor.function for anchor in anchors if anchor.evidence == "assertion"}
+        for unit, anchors in layout.anchors_by_unit.items()
+    }
+    by_recovered_file: dict[str, list[dict[str, str]]] = {}
+    for function in gameplay:
+        if function.get("source_path"):
+            by_recovered_file.setdefault(function["source_path"], []).append(function)
+
+    rows: list[dict[str, str]] = []
+    for original_path in originals:
+        recovered_file = mapped_repository_source_file(repo_dir, original_path) or ""
+        interval = hulls.get(original_path)
+        members = []
+        if interval is not None:
+            members = [
+                function
+                for function in gameplay
+                if function["owner"] != "surrender-template"
+                and interval.lower <= int(function["address"], 16) <= interval.upper
+            ]
+        recovered_in_unit = [
+            f for f in members if recovered_file and f.get("source_path") == recovered_file
+        ]
+        unit_assertions = assertion_functions.get(original_path, set())
+        recovered_anchored = [
+            f for f in recovered_in_unit if int(f["address"], 16) in unit_assertions
+        ]
+        misplaced = [
+            f for f in members if f.get("source_path") and f["source_path"] != recovered_file
+        ]
+        unrecovered = [f for f in members if not f.get("source_path")]
+        if recovered_file:
+            status = "recovered-original-tu"
+        elif interval is None:
+            status = "evidence-insufficient"
+        elif misplaced:
+            status = "partially-represented"
+        else:
+            status = "absent"
+        claimed = by_recovered_file.get(recovered_file, []) if recovered_file else []
+        if interval is not None:
+            claimed = [
+                f
+                for f in claimed
+                if not (interval.lower <= int(f["address"], 16) <= interval.upper)
+            ]
+        claimed_outside = len(claimed)
+        rows.append(
+            {
+                "rank": "",
+                "original_path": original_path,
+                "status": status,
+                "recovered_file": recovered_file,
+                "hull_lower": _address(interval.lower) if interval is not None else "",
+                "hull_upper": _address(interval.upper) if interval is not None else "",
+                "span_bytes": (
+                    str(interval.upper - interval.lower) if interval is not None else ""
+                ),
+                "anchor_functions": str(len(interval.anchors) if interval is not None else 0),
+                "hull_functions": str(len(members)),
+                "recovered_in_unit": str(len(recovered_in_unit)),
+                "recovered_anchored": str(len(recovered_anchored)),
+                "misplaced": str(len(misplaced)),
+                "unrecovered": str(len(unrecovered)),
+                "claimed_outside_hull": str(claimed_outside),
+            }
+        )
+    missing = [row for row in rows if row["status"] != "recovered-original-tu"]
+    missing.sort(
+        key=lambda row: (
+            -(int(row["misplaced"]) + int(row["unrecovered"])),
+            -int(row["anchor_functions"]),
+            -int(row["span_bytes"] or 0),
+            row["original_path"].casefold(),
+        )
+    )
+    for rank, row in enumerate(missing, start=1):
+        row["rank"] = str(rank)
+    recovered = sorted(
+        (row for row in rows if row["status"] == "recovered-original-tu"),
+        key=lambda row: row["original_path"].casefold(),
+    )
+    return [*missing, *recovered]
+
+
+def misplaced_function_rows(
+    repo_dir: Path,
+    layout: TranslationUnitLayout,
+    gameplay: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    """Gameplay functions inside a hard hull whose recovered file is elsewhere."""
+    from ..source_units import mapped_repository_source_file, source_unit_records
+
+    records = source_unit_records(repo_dir)
+    rows: list[dict[str, str]] = []
+    for function in gameplay:
+        if function["owner"] == "surrender-template" or not function.get("source_path"):
+            continue
+        address = int(function["address"], 16)
+        _index, interval = layout._interval_at(address)
+        if interval is None:
+            continue
+        expected = mapped_repository_source_file(repo_dir, interval.source_path) or ""
+        if function["source_path"] == expected:
+            continue
+        rows.append(
+            {
+                "address": function["address"],
+                "symbol": function["symbol"],
+                "current_source_path": function["source_path"],
+                "current_class": records.get(function["source_path"], {}).get("class", ""),
+                "owner_original_path": interval.source_path,
+                "expected_recovered_file": expected,
+                "hull_lower": _address(interval.lower),
+                "hull_upper": _address(interval.upper),
+                "attribution": str(layout.owner(address).get("attribution") or ""),
+            }
+        )
+    rows.sort(key=lambda row: int(row["address"], 16))
+    return rows
+
+
 def assertion_only_layout(repo_dir: Path) -> TranslationUnitLayout:
     assertions = _read_rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
     units, headers = assertion_anchors(assertions)
@@ -241,11 +436,27 @@ def translation_unit_report(
     interval_csv = render_interval_csv(intervals)
     gameplay_csv, counts = render_gameplay_map_csv(layout, gameplay)
 
+    unit_rows = original_unit_rows(settings.repo_dir, layout, gameplay)
+    misplaced_rows = misplaced_function_rows(settings.repo_dir, layout, gameplay)
+
     report_dir = settings.build_dir / "reports" / "translation-units"
     interval_path = report_dir / "translation-unit-intervals.csv"
     gameplay_path = report_dir / "gameplay-translation-units.csv"
+    original_path = report_dir / "original-translation-units.csv"
+    misplaced_path = report_dir / "misplaced-functions.csv"
     atomic_write(interval_path, interval_csv)
     atomic_write(gameplay_path, gameplay_csv)
+    atomic_write(original_path, _csv(unit_rows, ORIGINAL_UNIT_FIELDS))
+    atomic_write(misplaced_path, _csv(misplaced_rows, MISPLACED_FIELDS))
+    status_counts = {
+        key: len([row for row in unit_rows if row["status"] == key])
+        for key in (
+            "recovered-original-tu",
+            "partially-represented",
+            "absent",
+            "evidence-insufficient",
+        )
+    }
     return {
         "translation_units": len(intervals),
         "gaps": max(len(intervals) - 1, 0),
@@ -256,8 +467,13 @@ def translation_unit_report(
             "conflicting_functions": len(layout.conflicts),
             "header_anchors": len(layout.header_anchors),
         },
+        "original_units": status_counts,
+        "misplaced_functions": len(misplaced_rows),
+        "top_missing": [row["original_path"] for row in unit_rows if row["rank"]][:10],
         "outputs": [
             str(interval_path.relative_to(settings.repo_dir)),
             str(gameplay_path.relative_to(settings.repo_dir)),
+            str(original_path.relative_to(settings.repo_dir)),
+            str(misplaced_path.relative_to(settings.repo_dir)),
         ],
     }
