@@ -1578,18 +1578,16 @@ unsigned char W8OctreeObjectRegistry::UnregisterObject(int kind, int id)
     int object_value = static_cast<int>(object_key);
     unsigned char removed = 0;
 
-    for (;;) {
-        int slot = by_object->FindNextEntry(&object_key, -1);
-        if (slot == -1) {
-            return removed;
-        }
-
+    int slot = by_object->FindNextEntry(&object_key, -1);
+    while (slot != -1) {
         unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
         int cell_value = static_cast<int>(cell_key);
         by_object->Remove(&object_key, &cell_value);
         by_cell->Remove(&cell_key, &object_value);
         removed = 1;
+        slot = by_object->FindNextEntry(&object_key, slot);
     }
+    return removed;
 }
 
 /* Record that one object now occupies one cell.
