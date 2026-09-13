@@ -530,7 +530,7 @@ unsigned char ReadWorldItems004BC380(W8ReadLevelInfo* pInfo, W8World* pWorld)
             }
             if (trigger != 0 && item != 0) {
                 trigger->m_bRepType = 1;
-                trigger->value_114 = item;
+                trigger->rep_item_114 = item;
                 item->trigger_018 = trigger;
             }
         }

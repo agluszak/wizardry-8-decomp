@@ -11,6 +11,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
@@ -106,8 +107,89 @@ int g_value_005ee5a0 = 6;
 // GLOBAL: WIZ8 0x005ec124
 const float g_float_005ec124 = 64.0f;
 
+// FUNCTION: WIZ8 0x00443780
+Trigger* FindTriggerByName(const char* name)
+{
+    char* uppercase_name;
+    Trigger* trigger = 0;
+
+    uppercase_name = (char*)malloc(strlen(name) + 1);
+    if (uppercase_name != 0) {
+        strcpy(uppercase_name, name);
+        _strupr(uppercase_name);
+        trigger = static_cast<Trigger*>(
+            srCore.getRegistry()->find(Trigger::sGetClassNode(), uppercase_name, 0));
+    }
+    free(uppercase_name);
+    return trigger;
+}
+
+/* Resolve the trigger that drives a prop's use action. A kind-one or kind-two
+   trigger without type-10 action data is followed along its recipient chain —
+   each step picks the first recipient that is not the link we came from — until
+   a trigger carrying type-10 action data is found, five hops at most. */
+// FUNCTION: WIZ8 0x00443830
+Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop)
+{
+    Trigger* trigger = prop->GetValue18();
+
+    if (trigger != 0) {
+        W8TriggerActionData* action_data = trigger->m_pActionData;
+
+        if (action_data != 0 && action_data->type_004 == 10) {
+            return trigger;
+        }
+        if (trigger->trigger_kind_018 == 1 || trigger->trigger_kind_018 == 2) {
+            int trigger_count = world->triggers->GetCount();
+
+            for (int index = 0; index < trigger_count; ++index) {
+                Trigger* other = *world->triggers->GetAt(index);
+                Trigger* previous = trigger;
+                int hops = 0;
+
+                if (other == trigger) {
+                    continue;
+                }
+                while (hops < 5 && other->m_pacRecipients != 0 &&
+                       (other->trigger_kind_018 == 1 || other->trigger_kind_018 == 2)) {
+                    char* recipient = other->m_pacRecipients;
+                    Trigger* linked;
+
+                    do {
+                        char* comma;
+
+                        if (recipient == 0) {
+                            goto next_trigger;
+                        }
+                        strcpy(g_trigger_parse_buffer_00659908, recipient);
+                        comma = strchr(g_trigger_parse_buffer_00659908, ',');
+                        if (comma == 0) {
+                            recipient = 0;
+                        } else {
+                            recipient = strchr(recipient, ',') + 1;
+                            *comma = '\0';
+                        }
+                        linked = FindTriggerByName(g_trigger_parse_buffer_00659908);
+                    } while (linked != previous);
+                    action_data = other->m_pActionData;
+                    if (action_data != 0 && action_data->type_004 == 10) {
+                        return other;
+                    }
+                    ++hops;
+                    previous = other;
+                    if (other == 0) {
+                        break;
+                    }
+                }
+            next_trigger:;
+            }
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x0043cb30
-void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring)
+void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring)
 {
     int trigger_count = world->triggers->GetCount();
     int saved_count = 0;
@@ -135,20 +217,130 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
                 FileWrite(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
                 FileWrite(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
                 FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                           0);
                 FileWrite(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
                 FileWrite(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
             } else {
                 FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, &trigger->state_370.value_01,
-                          sizeof(trigger->state_370.value_01) + sizeof(trigger->state_370.value_05),
+                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
                           0);
                 FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
                 FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
             }
+        }
+    }
+}
+
+/* Read the runtime-state records written by SaveTriggerRuntimeStates0043CB30.
+   Each record names its trigger; a record whose trigger no longer exists is
+   still consumed through a scratch trigger so the stream stays aligned. When
+   restoring, a state byte block is re-randomized and the type-10 action data is
+   re-linked to the stored item. */
+// FUNCTION: WIZ8 0x0043ccf0
+bool LoadTriggerRuntimeStates0043CCF0(int handle)
+{
+    int version;
+    int saved_count;
+    int restoring;
+    int index = 0;
+
+    FileRead(handle, &version, sizeof(version), 0);
+    FileRead(handle, &saved_count, sizeof(saved_count), 0);
+    FileRead(handle, &restoring, sizeof(restoring), 0);
+    if (saved_count < 1) {
+        return 1;
+    }
+    for (;;) {
+        char name[0x80];
+        Trigger* trigger;
+
+        FileRead(handle, name, sizeof(name), 0);
+        trigger = FindTriggerByName(name);
+        if (trigger == 0) {
+            Trigger* scratch = new Trigger;
+            int record_version;
+
+            if (restoring == 0 && version > 1) {
+                FileRead(handle, &record_version, sizeof(record_version), 0);
+                FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
+                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
+                         0);
+                FileRead(handle, &scratch->value_384, sizeof(scratch->value_384), 0);
+                if (record_version > 1) {
+                    FileRead(handle, &scratch->value_388, sizeof(scratch->value_388), 0);
+                }
+            } else {
+                FileRead(handle, &record_version, sizeof(record_version), 0);
+                FileRead(handle, &scratch->value_368, sizeof(scratch->value_368), 0);
+                FileRead(handle, &scratch->value_36c, sizeof(scratch->value_36c), 0);
+                FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
+                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
+                         0);
+                FileRead(handle, &scratch->value_37c, sizeof(scratch->value_37c), 0);
+                FileRead(handle, &scratch->value_380, sizeof(scratch->value_380), 0);
+                if (record_version > 1) {
+                    FileRead(handle, &scratch->value_384, sizeof(scratch->value_384), 0);
+                }
+            }
+            delete scratch;
+        } else {
+            int record_version;
+            W8TriggerActionData* action_data;
+
+            if (restoring == 0 && version > 1) {
+                FileRead(handle, &record_version, sizeof(record_version), 0);
+                FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
+                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
+                         0);
+                FileRead(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                if (record_version > 1) {
+                    FileRead(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
+                }
+            } else {
+                FileRead(handle, &record_version, sizeof(record_version), 0);
+                FileRead(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
+                FileRead(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
+                FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
+                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
+                         0);
+                FileRead(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
+                FileRead(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
+                if (record_version > 1) {
+                    FileRead(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                }
+                if (restoring != 0) {
+                    if (trigger->value_368 == 1) {
+                        int size;
+
+                        for (int byte_index = 0; byte_index < 8; ++byte_index) {
+                            trigger->state_370.bytes_01[byte_index] =
+                                static_cast<unsigned char>(Random(4));
+                        }
+                        size = trigger->value_36c;
+                        if (size < 2) {
+                            size = 2;
+                        } else if (size > 7) {
+                            size = 8;
+                        }
+                        trigger->value_384 = size * 3;
+                    }
+                    trigger->value_388 = -1;
+                    trigger->state_370.state = 0;
+                }
+            }
+            action_data = trigger->m_pActionData;
+            if (action_data != 0 && action_data->type_004 == 10 &&
+                ((action_data->flags_008 & 4) == 0 || action_data->item_00a == -1)) {
+                action_data->flags_008 =
+                    ((trigger->state_370.state == 0) << 2) | (action_data->flags_008 & 0xfb);
+                action_data->item_00a = static_cast<short>(trigger->value_380);
+            }
+        }
+        ++index;
+        if (saved_count <= index) {
+            return 1;
         }
     }
 }
@@ -158,11 +350,11 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char 
    attached, with its flag bits packed and the timed-event delay resolved from
    the live event queue. Returns whether the header went out completely. */
 // FUNCTION: WIZ8 0x0043BE60
-unsigned char Trigger::Save0043BE60(int hFile)
+bool Trigger::Save0043BE60(int hFile)
 {
     unsigned char version = 5;
     unsigned char reserved[4];
-    unsigned char header_ok;
+    bool header_ok;
     W8TriggerActionData* action_data;
     unsigned char has_action_data;
     unsigned char action_type;
@@ -252,6 +444,239 @@ unsigned char Trigger::Save0043BE60(int hFile)
     return header_ok;
 }
 
+/* Read one trigger back from the save file. The version byte selects how much
+   of the trailing block is present; a type-10 action payload rebuilds its
+   action data and re-queues the delayed timed event from the saved progress. */
+// FUNCTION: WIZ8 0x0043c1b0
+bool Trigger::Load0043C1B0(int hFile, char version)
+{
+    bool header_ok;
+    unsigned char has_action_data;
+    unsigned char action_type;
+    unsigned char flag_mode;
+    unsigned char flag;
+
+    if (hFile == 0) {
+        srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1f0, 0);
+    }
+    header_ok = FileRead(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
+                FileRead(hFile, &value_0b1, sizeof(value_0b1), 0) &&
+                FileRead(hFile, &value_0b2, sizeof(value_0b2), 0) &&
+                FileRead(hFile, &action_230, sizeof(action_230), 0) &&
+                FileRead(hFile, &action_state_232, sizeof(action_state_232), 0) &&
+                FileRead(hFile, &value_23c, sizeof(value_23c), 0);
+    if ((flags_0a0 & 0x4000000) != 0) {
+        UnregisterSearchableTrigger00516FE0(this);
+    }
+    FileRead(hFile, &has_action_data, sizeof(has_action_data), 0);
+    if (has_action_data != 0) {
+        FileRead(hFile, &action_type, sizeof(action_type), 0);
+        if (action_type == 10) {
+            W8TriggerActionData005EC134* pDoor = new W8TriggerActionData005EC134;
+            unsigned short action_flags;
+            unsigned short progress_delay;
+            unsigned short item;
+
+            if (pDoor == 0) {
+                srAssertFail("pDoor", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x20b,
+                             0);
+            } else {
+                pDoor->flags_008 = 0x40;
+                pDoor->flags_009 &= ~1;
+                pDoor->item_00a = -1;
+                pDoor->type_004 = 10;
+                pDoor->position_08c.SetZero();
+                pDoor->linked_trigger_00c[0] = 0;
+            }
+            delete m_pActionData;
+            m_pActionData = pDoor;
+            pDoor->type_004 = 10;
+            FileRead(hFile, &flag_mode, 1, 0);
+            if (flag_mode == 1) {
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~1) | (flag & 1);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~2) | ((flag & 1) << 1);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~4) | ((flag & 1) << 2);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~8) | ((flag & 1) << 3);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~0x10) | ((flag & 1) << 4);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~0x20) | ((flag & 1) << 5);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~0x40) | ((flag & 1) << 6);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_008 = (pDoor->flags_008 & ~0x80) | (flag << 7);
+                FileRead(hFile, &flag, 1, 0);
+                pDoor->flags_009 = (pDoor->flags_009 & ~1) | (flag & 1);
+            } else {
+                action_flags = 0;
+                progress_delay = 0;
+                FileRead(hFile, &action_flags, 2, 0);
+                if ((action_flags & 1) != 0) {
+                    pDoor->flags_008 |= 1;
+                } else {
+                    pDoor->flags_008 &= ~1;
+                }
+                if ((action_flags & 2) != 0) {
+                    pDoor->flags_008 |= 2;
+                } else {
+                    pDoor->flags_008 &= ~2;
+                }
+                if ((action_flags & 4) != 0) {
+                    pDoor->flags_008 |= 4;
+                } else {
+                    pDoor->flags_008 &= ~4;
+                }
+                if ((action_flags & 8) != 0) {
+                    pDoor->flags_008 |= 8;
+                } else {
+                    pDoor->flags_008 &= ~8;
+                }
+                if ((action_flags & 0x10) != 0) {
+                    pDoor->flags_008 |= 0x10;
+                } else {
+                    pDoor->flags_008 &= ~0x10;
+                }
+                if ((action_flags & 0x20) != 0) {
+                    pDoor->flags_008 |= 0x20;
+                } else {
+                    pDoor->flags_008 &= ~0x20;
+                }
+                if ((action_flags & 0x40) != 0) {
+                    pDoor->flags_008 |= 0x40;
+                } else {
+                    pDoor->flags_008 &= ~0x40;
+                }
+                if ((action_flags & 0x80) != 0) {
+                    pDoor->flags_008 |= 0x80;
+                } else {
+                    pDoor->flags_008 &= ~0x80;
+                }
+                if ((action_flags & 0x100) != 0) {
+                    pDoor->flags_009 |= 1;
+                } else {
+                    pDoor->flags_009 &= ~1;
+                }
+                FileRead(hFile, &progress_delay, 2, 0);
+                if (m_lData1 != 0 && progress_delay != 0) {
+                    if (m_pEvent == 0) {
+                        float duration;
+
+                        m_pEvent = new W8TriggerEvent;
+                        m_pEvent->trigger_030 = this;
+                        m_pEvent->action_004 = 2;
+                        if (m_lData1 < 0) {
+                            duration = 10.0f;
+                        } else {
+                            duration = static_cast<float>(m_lData1);
+                        }
+                        m_pEvent->timer_008.SetDuration(duration);
+                        m_pEvent->timer_008.Restart();
+                        m_pEvent->repeat_034 = 1;
+                    }
+                    m_pEvent->timer_008.SetProgress(static_cast<float>(progress_delay) *
+                                                    g_float_005ec128);
+                    if (g_timed_events_006599b8.IndexOf(m_pEvent) == -1) {
+                        g_timed_events_006599b8.Add(m_pEvent);
+                    }
+                }
+                FileRead(hFile, &item, 2, 0);
+                pDoor->item_00a = static_cast<short>(item);
+            }
+        }
+    }
+
+    if (version > 1) {
+        unsigned char has_world_item;
+
+        FileRead(hFile, &has_world_item, sizeof(has_world_item), 0);
+        if (has_world_item != 0) {
+            world_item_group_34c = LoadItem(hFile, 0);
+        }
+        FileRead(hFile, &flag_350, sizeof(flag_350), 0);
+        FileRead(hFile, &next_activation_time_354, sizeof(next_activation_time_354), 0);
+        FileRead(hFile, &gold_358, sizeof(gold_358), 0);
+        FileRead(hFile, &value_35c, sizeof(value_35c), 0);
+    }
+    if (version == 3) {
+        FileSeek(hFile, 0x1d, FILE_SEEK_FROM_CURRENT);
+    }
+    return header_ok;
+}
+
+/* Read every trigger record of the save file's trigger chunk. Tags 1-4 update
+   the matching in-place trigger, tag 5 names its trigger and is consumed
+   through a scratch trigger when the name is gone, and anything else pushes
+   the tag byte back and ends the walk. */
+// FUNCTION: WIZ8 0x0043c860
+bool LoadWorldTriggers0043C860(W8World* world, int hFile)
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+    int trigger_count = world->triggers->GetCount();
+    int index = 0;
+    bool header_ok = true;
+    bool finished = false;
+
+    for (;;) {
+        char tag;
+
+        if (finished || trigger_count <= index) {
+            return header_ok;
+        }
+        if (!header_ok || !FileRead(hFile, &tag, 1, 0)) {
+            header_ok = false;
+        } else {
+            header_ok = true;
+        }
+        if (tag < 1 || tag > 5) {
+            finished = true;
+            FileSeek(hFile, -1, FILE_SEEK_FROM_CURRENT);
+        } else if (tag < 5) {
+            Trigger* trigger = *world->triggers->GetAt(index);
+
+            ++index;
+            if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+                return false;
+            }
+            header_ok = true;
+        } else {
+            int trigger_id;
+            char name[0x80];
+            Trigger* trigger;
+
+            if (!header_ok || !FileRead(hFile, &trigger_id, sizeof(trigger_id), 0) ||
+                !FileRead(hFile, name, sizeof(name), 0)) {
+                header_ok = false;
+            } else {
+                header_ok = true;
+            }
+            trigger = FindTriggerByName(name);
+            if (trigger != 0) {
+                if (!header_ok || !trigger->Load0043C1B0(hFile, tag)) {
+                    header_ok = false;
+                } else {
+                    header_ok = true;
+                }
+                ++index;
+            } else {
+                Trigger* scratch = new Trigger;
+
+                scratch->Load0043C1B0(hFile, tag);
+                delete scratch;
+                ++index;
+            }
+        }
+        if (!header_ok) {
+            return false;
+        }
+    }
+#pragma clang diagnostic pop
+}
+
 /* Write every trigger of a world for the save file's trigger chunk. A trigger
    whose own serialization reports failure stops the walk. */
 // FUNCTION: WIZ8 0x0043C810
@@ -294,23 +719,38 @@ void SaveTriggerActionData0043D120(W8World* world, int handle)
     }
 }
 
-Trigger* FindTriggerByName(const char* name)
+/* Read the trigger action-data chunk written by SaveTriggerActionData0043D120:
+   a version/count header, then per record the trigger name and its 0x100-byte
+   inline payload. Records for missing triggers are skipped with a seek. */
+// FUNCTION: WIZ8 0x0043d1f0
+bool LoadTriggerActionData0043D1F0(int handle)
 {
-    char* uppercase_name;
-    Trigger* trigger = 0;
+    int version;
+    int saved_count;
+    int index = 0;
 
-    if (name == 0) {
-        return 0;
+    FileRead(handle, &version, sizeof(version), 0);
+    FileRead(handle, &saved_count, sizeof(saved_count), 0);
+    if (saved_count < 1) {
+        return 1;
     }
-    uppercase_name = (char*)malloc(strlen(name) + 1);
-    if (uppercase_name != 0) {
-        strcpy(uppercase_name, name);
-        _strupr(uppercase_name);
-        trigger = static_cast<Trigger*>(
-            srCore.getRegistry()->find(Trigger::sGetClassNode(), uppercase_name, 0));
+    for (;;) {
+        char name[0x80];
+        Trigger* trigger;
+
+        FileRead(handle, name, sizeof(name), 0);
+        trigger = FindTriggerByName(name);
+        if (trigger != 0) {
+            FileRead(handle, trigger->inline_action_data_24c,
+                     sizeof(trigger->inline_action_data_24c), 0);
+        } else {
+            FileSeek(handle, 0x100, FILE_SEEK_FROM_CURRENT);
+        }
+        ++index;
+        if (saved_count <= index) {
+            return 1;
+        }
     }
-    free(uppercase_name);
-    return trigger;
 }
 
 // VTABLE: WIZ8 0x005ec12c
@@ -855,6 +1295,50 @@ W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
 {
     if (owned_string_008 != 0) {
         delete[] owned_string_008;
+    }
+}
+
+/* Clear the running bit and run every comma-separated recipient trigger once
+   when this trigger both links out (flag_0a0_07) and gates on state
+   (flag_0a0_09). */
+// FUNCTION: WIZ8 0x00441590
+void Trigger::RunLinkedTriggers00441590()
+{
+    char* recipient;
+
+    flag_0a0_06 = 0;
+    if (flag_0a0_07 != 0 && flag_0a0_09 != 0 && m_pacRecipients != 0) {
+        recipient = m_pacRecipients;
+        while (recipient != 0) {
+            strcpy(g_trigger_parse_buffer_00659908, recipient);
+            char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
+            if (comma == 0) {
+                recipient = 0;
+            } else {
+                recipient = strchr(recipient, ',') + 1;
+                *comma = '\0';
+            }
+
+            Trigger* trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
+            if (trigger != 0) {
+                trigger->Run(-1);
+            }
+        }
+    }
+}
+
+/* Store the trigger position and flag the representation dirty; an item
+   representation is moved and re-transformed in place. */
+// FUNCTION: WIZ8 0x004416f0
+void Trigger::SetPosition004416F0(srVector3T<float>* position)
+{
+    flags_0a0 |= 0x800;
+    position_118 = position->x;
+    position_11c = position->y;
+    position_120 = position->z;
+    if (rep_item_114 != 0 && m_bRepType == 1) {
+        rep_item_114->SetLocation0049F720(position);
+        rep_item_114->ApplyRepTransform0049FAA0();
     }
 }
 
@@ -1580,7 +2064,7 @@ Trigger::Trigger()
     angle_0fc = 0.0f;
     m_bRepType = 0;
     m_pProp = 0;
-    value_114 = 0;
+    rep_item_114 = 0;
     m_pWorld = 0;
     initial_action_22a = 0;
     value_22c = 0;
@@ -1607,8 +2091,7 @@ Trigger::Trigger()
     value_36c = 0;
     state_370.state = 0;
     value_384 = 0;
-    state_370.value_01 = 0;
-    state_370.value_05 = 0;
+    memset(state_370.bytes_01, 0, sizeof(state_370.bytes_01));
 
     flags_0a0 |= 0x10;
     name_01c[0] = 0;
@@ -3377,6 +3860,130 @@ int GetLocationVarIDByName(const char* name)
     return -1;
 }
 
+/* Create a location variable for the current level unless one with this name
+   already exists. */
+// FUNCTION: WIZ8 0x00443dc0
+void CreateLocationVar(const char* name, int value)
+{
+    int index;
+    int variable_count;
+    char* copy;
+
+    if (name == 0) {
+        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094, 0);
+    }
+    variable_count = g_location_variable_names_006598f8.GetCount();
+    for (index = 0; index < variable_count; ++index) {
+        if (_stricmp(*g_location_variable_names_006598f8.GetAt(index), name) == 0 &&
+            *g_location_variable_levels_006598e0.GetAt(index) == g_status_685170.current_level) {
+            break;
+        }
+    }
+    if (index == variable_count) {
+        index = -1;
+    }
+    if (index != -1) {
+        return;
+    }
+    copy = new char[strlen(name) + 1];
+    if (copy == 0) {
+        srAssertFail("pacVariableName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                     0x109c, 0);
+    }
+    strcpy(copy, name);
+    g_location_variable_names_006598f8.Add(copy);
+    g_location_variable_values_00659990.Add(value);
+    g_location_variable_levels_006598e0.Add(g_status_685170.current_level);
+}
+
+/* The current level's value of the named location variable; asserts when the
+   name is unknown. */
+// FUNCTION: WIZ8 0x004440d0
+int GetLocationVarValueByName(const char* name)
+{
+    int index;
+    int variable_count;
+
+    variable_count = g_location_variable_names_006598f8.GetCount();
+    for (index = 0; index < variable_count; ++index) {
+        if (_stricmp(*g_location_variable_names_006598f8.GetAt(index), name) == 0 &&
+            *g_location_variable_levels_006598e0.GetAt(index) == g_status_685170.current_level) {
+            break;
+        }
+    }
+    if (index == variable_count) {
+        index = -1;
+    }
+    if (index == -1) {
+        srAssertFail("iVar != BAD_INDEX", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                     0x10dd, 0);
+    }
+    return *g_location_variable_values_00659990.GetAt(index);
+}
+
+/* Write the count then each location variable's value, name and level. */
+// FUNCTION: WIZ8 0x004441e0
+void SaveLocationVariables004441E0(int handle)
+{
+    int variable_count = g_location_variable_names_006598f8.GetCount();
+    bool written;
+
+    written = FileWrite(handle, &variable_count, sizeof(variable_count), 0) != 0;
+    for (int index = 0; index < variable_count; ++index) {
+        int value;
+        char name[0x80];
+        int level;
+
+        if (!written) {
+            return;
+        }
+        value = *g_location_variable_values_00659990.GetAt(index);
+        strcpy(name, *g_location_variable_names_006598f8.GetAt(index));
+        level = *g_location_variable_levels_006598e0.GetAt(index);
+        written = FileWrite(handle, &value, sizeof(value), 0) &&
+                  FileWrite(handle, name, sizeof(name), 0) &&
+                  FileWrite(handle, &level, sizeof(level), 0);
+    }
+}
+
+/* Read the location-variable count then each value/name/level record,
+   appending a heap copy of the name to the variable vectors. */
+// FUNCTION: WIZ8 0x00444310
+bool LoadLocationVariables00444310(int handle)
+{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+    int variable_count;
+    int index;
+    bool read_ok;
+
+    read_ok = FileRead(handle, &variable_count, sizeof(variable_count), 0) != 0;
+    for (index = 0; index < variable_count; ++index) {
+        int value;
+        char name[0x80];
+        int level;
+        char* copy;
+
+        if (!read_ok) {
+            break;
+        }
+        read_ok = FileRead(handle, &value, sizeof(value), 0) &&
+                  FileRead(handle, name, sizeof(name), 0) &&
+                  FileRead(handle, &level, sizeof(level), 0);
+        copy = new char[strlen(name) + 1];
+        if (copy == 0) {
+            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1143,
+                         0);
+        }
+        strcpy(copy, name);
+        g_location_variable_names_006598f8.Add(copy);
+        g_location_variable_values_00659990.Add(value);
+        g_location_variable_levels_006598e0.Add(level);
+    }
+    return read_ok;
+#pragma clang diagnostic pop
+}
+
 // FUNCTION: WIZ8 0x004445b0
 void ReleaseAllTriggers(void)
 {
@@ -3388,4 +3995,43 @@ void ReleaseAllTriggers(void)
     g_location_variable_values_00659990.Clear();
     g_location_variable_names_006598f8.Clear();
     g_location_variable_levels_006598e0.Clear();
+}
+
+/* Index of the prop whose trigger last tested in view; -1 until a prop
+   matches. */
+// GLOBAL: WIZ8 0x00606998
+static int s_last_prop_index_00606998 = -1;
+
+/* Report whether any world prop's trigger representation is within its
+   activation range and projects onto the screen. The remembered index is
+   checked first so consecutive frames start at the prop that matched. */
+// FUNCTION: WIZ8 0x00445140
+bool AnyPropTriggerInView00445140(W8World* world)
+{
+    srVector3T<float> position;
+    unsigned int prop_count;
+    int index;
+
+    if (world == 0) {
+        srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1395, 0);
+    }
+    GetCameraPosition(&position);
+    prop_count = PLLength(world->plsProps);
+    if (0 <= s_last_prop_index_00606998 &&
+        s_last_prop_index_00606998 < static_cast<int>(prop_count)) {
+        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, s_last_prop_index_00606998));
+
+        if (prop->IsTriggerInView0044E3A0(&position)) {
+            return 1;
+        }
+    }
+    for (index = 0; index < static_cast<int>(prop_count); ++index) {
+        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+
+        if (prop->IsTriggerInView0044E3A0(&position)) {
+            s_last_prop_index_00606998 = index;
+            return 1;
+        }
+    }
+    return 0;
 }
