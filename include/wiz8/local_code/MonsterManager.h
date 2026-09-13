@@ -91,8 +91,6 @@ struct W8MonsterManagerEntry {
 static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
-extern W8MonsterManagerEntry g_monster_manager_entries[8];
-
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
                                  srVector3T<float>* position);

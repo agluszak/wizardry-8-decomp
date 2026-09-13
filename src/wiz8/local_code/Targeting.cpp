@@ -1265,7 +1265,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
     int detail;
     W8ActionDetailBlock* detail_block;
     unsigned int spell_id;
-    W8MonsterManagerEntry* entry = &g_monster_manager_entries[party_slot];
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
 
     entry->highlighted_monsters.count = 0;
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
