@@ -225,7 +225,7 @@ void ProcessNpcScriptingFrame(void)
                 g_flag_68506f == 0 &&
                 reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
                     0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
-                (can_open_dialogue = Function577850(), can_open_dialogue != 0)) {
+                (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
                 Function56E800(0);
             }
             if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
