@@ -516,31 +516,24 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             }
             break;
         case 0x12:
-            base_value = 0;
-            if (g_profession_skill_availability[0x12][character->current_profession] == 1 &&
-                g_profession_bonus_skills[character->current_profession] != 0x12) {
-                int profession_slot = -1;
-                base_value = imported->skills[0];
-                for (i = 1; i < 5; ++i) {
-                    if (base_value <= imported->skills[i]) {
-                        base_value = imported->skills[i];
-                    }
+            if (g_profession_skill_availability[0x12][character->current_profession] != 1) {
+                base_value = 0;
+                break;
+            }
+            base_value = imported->skills[0];
+            for (i = 1; i < 5; ++i) {
+                if (base_value <= imported->skills[i]) {
+                    base_value = imported->skills[i];
                 }
-                if (100 < base_value) {
-                    base_value = 100;
+            }
+            if (100 < base_value) {
+                base_value = 100;
+            }
+            if (g_profession_bonus_skills[character->current_profession] != 0x12) {
+                for (i = 0; i < 4 && g_profession_skills[character->current_profession][i] != 0x12;
+                     ++i) {
                 }
-                /* Retail falls into the zero-value case unless the profession
-                   carries the skill in one of its four table slots; a late
-                   slot halves the imported value on the way out. */
-                for (i = 0; i < 4; ++i) {
-                    if (g_profession_skills[character->current_profession][i] == 0x12) {
-                        profession_slot = i;
-                        break;
-                    }
-                }
-                if (profession_slot == -1) {
-                    base_value = 0;
-                } else if (3 < profession_slot) {
+                if (i == 4 || 3 < i) {
                     base_value >>= 1;
                 }
             }
