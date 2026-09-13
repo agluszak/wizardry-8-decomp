@@ -123,6 +123,33 @@ unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indi
     return 0;
 }
 
+// FUNCTION: WIZ8 0x0053c320
+char GetSourceNoticeColor(const W8TargetSource* source)
+{
+    if (TargetSourceIsCharacter(source, 1)) {
+        return 8;
+    }
+    if (TargetSourceIsMonster(source, 1)) {
+        return 9;
+    }
+    return 12;
+}
+
+// FUNCTION: WIZ8 0x0053c3f0
+char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* target)
+{
+    if (TargetSourceIsCharacter(source, 1)) {
+        return 8;
+    }
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        return g_status_685170.buffers.party_rows[target->iChar].party_order_0f1;
+    }
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        return 9;
+    }
+    return 12;
+}
+
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
 // GLOBAL: WIZ8 0x0061CE74

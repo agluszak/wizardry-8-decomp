@@ -34,7 +34,7 @@
 #include <new>
 #include <stdlib.h>
 
-extern const wchar_t g_wchar_00689b34;
+extern wchar_t g_wchar_00689b34;
 extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;

@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// GLOBAL: WIZ8 0x0068c098
 int giStringListLen;
-wchar_t** gppStringList; /* 0x0068C09C */
+// GLOBAL: WIZ8 0x0068c09c
+wchar_t** gppStringList;
 
 /* 0x0052FF80: read one entry of a .msg string database. The file ends with the
    entry table; each record carries two metadata dwords, then the code-unit

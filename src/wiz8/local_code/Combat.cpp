@@ -12,6 +12,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
+#include "wiz8/local_code/Strings.h"
 #include "random.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -521,9 +522,7 @@ void EndCombat004EA310(int mode)
         group_count = PLLength(gXStatus.plsMonsterGroupList);
     }
     if (g_combat_state->flag_a54 != 0) {
-        const wchar_t* message = reinterpret_cast<const wchar_t*>(
-            g_string_table[0x233]); /* reinterpret-ok: heterogeneous string table */
-        ShowNotice(0xc, message, 1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x233], 1, -1, 0);
     }
     unsigned int active = CountActiveCharacters();
     if (active != 0 && g_combat_state->value_010 != 0) {
@@ -739,11 +738,11 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
     RequestRedraw(1 << (party_slot & 0x1f));
     g_level_block->pick_changed_154 = 0;
     if (action_detail == 9) {
-        PostCharacterNotice(party_slot, reinterpret_cast<const wchar_t*>(g_string_table[0x225]));
+        PostCharacterNotice(party_slot, gppStringList[0x225]);
     } else if (action_kind == 9 &&
                !(g_combat_state->iActionChar == party_slot &&
                  g_status_685170.buffers.party_rows[party_slot].pending_action == 9)) {
-        PostCharacterNotice(party_slot, reinterpret_cast<const wchar_t*>(g_string_table[0x226]));
+        PostCharacterNotice(party_slot, gppStringList[0x226]);
     }
     CalcArmorClasses(character);
 }

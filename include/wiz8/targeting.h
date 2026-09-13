@@ -128,6 +128,13 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot);
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
+/* Notice colours for combat text: 8 for a party-side source, 9 for a monster
+   and 12 for anything else. The target form colours a character target by
+   its marching-order slot instead. */
+char GetSourceNoticeColor(const W8TargetSource* source); /* 0x0053C320 */
+char GetTargetNoticeColor(const W8TargetSource* source,
+                          const W8CombatSlot* target); /* 0x0053C3F0 */
+
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */

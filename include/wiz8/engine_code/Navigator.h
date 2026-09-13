@@ -136,9 +136,11 @@ public:
     virtual void SetPathAI(W8PathAI* path_ai);
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
-    virtual unsigned char Function4A7140(int) const
+    /* Called with what this navigator ran into: the startup world navigator
+       or another mover. True once the collision was consumed. */
+    virtual bool OnCollision(W8Navigator*)
     {
-        return 1;
+        return true;
     }
     virtual void SetPosition(const srVector3T<float>* position); /* 0x00456020 */
 

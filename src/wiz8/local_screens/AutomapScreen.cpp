@@ -112,11 +112,11 @@ srColorSurface* g_automap_surface;
 // GLOBAL: WIZ8 0x0064b8e4
 int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
-float g_automap_range_0064b910;
+float g_automap_range_0064b910 = 10000.0f;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
 // GLOBAL: WIZ8 0x0064b91c
-unsigned char g_automap_bounds_dirty_0064b91c;
+unsigned char g_automap_bounds_dirty_0064b91c = 1;
 // GLOBAL: WIZ8 0x0068f138
 EnvironmentColour g_automap_saved_light_direction;
 // GLOBAL: WIZ8 0x0068f144

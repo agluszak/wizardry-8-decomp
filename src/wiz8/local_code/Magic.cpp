@@ -1889,7 +1889,7 @@ extern const unsigned short g_name_prefix_messages[15] = {
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
 };
 /* 0x00689B34: the empty string every no-target kind is described by. */
-extern const wchar_t g_wchar_00689b34;
+extern wchar_t g_wchar_00689b34;
 
 /* Say in words what a spell is aimed at. Each target kind reads its own field,
    which is what makes the two assertions here - on iChar and on iMonsterID -
@@ -1913,7 +1913,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
     switch (target->iType) {
     case 0:
     case 6:
-        return const_cast<wchar_t*>(&g_wchar_00689b34);
+        return &g_wchar_00689b34;
 
     case 1:
     case 9:
