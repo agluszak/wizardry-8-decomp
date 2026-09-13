@@ -5,6 +5,9 @@
 
 /* Wizardry's SurRender stream adapter. The virtual srBinStream base starts at
    +0x10; the remaining storage is the FileMan handle and one unknown word. */
+// VTABLE: WIZ8 0x005ec6a0 W8VirtualFileBinIStream
+// VTABLE: WIZ8 0x005ec68c srBinStream
+// class W8VirtualFileBinIStream
 #pragma vtordisp(off)
 class W8VirtualFileBinIStream : public srBinIStream {
 public:

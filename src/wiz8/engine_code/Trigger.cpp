@@ -1276,10 +1276,11 @@ W8TriggerActionData::~W8TriggerActionData() {}
 /* Trigger::Run inlines type-5 construction and installs 0x005EC148; the
    ordinary destructor writes 0x005EC138. 0x005EC148 is that same class's
    construction-phase table, so only the final table keeps the VTABLE marker.
-   0x00445EC0 is the construction-phase deleting wrapper; type-10's inherited
-   slot folds onto it in retail. */
+   0x00445EC0 is the construction-phase deleting wrapper of W8TriggerActionData;
+   type-10's final-table slot folds onto it in retail (the recompiled copy
+   resolves to the type-10 sdd, the only marked table that consumes it). */
 // SYNTHETIC: WIZ8 0x00445ec0
-// W8TriggerActionData::`scalar deleting destructor' (construction-phase copy)
+// W8TriggerActionData005EC134::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ec134
 // class W8TriggerActionData005EC134

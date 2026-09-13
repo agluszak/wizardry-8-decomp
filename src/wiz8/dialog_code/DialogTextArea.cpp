@@ -10,13 +10,13 @@
    Dialog Code\stListBox.cpp's hull is 0x005CCE70-0x005CD1E0: the six SGP
    button callbacks of W8Dialog005CBB40, now defined in stListBox.cpp. The
    intervening helpers (0x005CC650/0x005CCB80/0x005CD2B0) are not in that hull,
-   and neither are these. */
-
-// VTABLE: WIZ8 0x005ef89c W8GrowableVector<W8DialogTextEntry*>
-// class W8GrowableVector<W8DialogTextEntry*>
+   and neither are these. Retail emits a second one-slot table at 0x005EF89C
+   holding the duplicate sdd emission 0x005D2560; the compared table at
+   0x005EF898 (marked in the header) holds 0x005D2590, so only that copy
+   pairs to the recompiled sdd. */
 
 // SYNTHETIC: WIZ8 0x005d2560
-// W8GrowableVector<W8DialogTextEntry*>::`scalar deleting destructor'
+// W8GrowableVector<W8DialogTextEntry*>::`scalar deleting destructor' (second emission)
 
 // TEMPLATE: WIZ8 0x005d2540
 // W8GrowableVector<W8DialogTextEntry*>::~W8GrowableVector<W8DialogTextEntry*>

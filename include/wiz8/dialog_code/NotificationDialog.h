@@ -8,6 +8,7 @@ struct W8DialogCloseListener {
 
 /* Modal Dialog Code class identified by its constructor. The base owns the
    first 0x98 bytes; this class adds the notification payload and target. */
+// VTABLE: WIZ8 0x005eef6c
 class W8NotificationDialog : public W8ModalDialogBase {
 public:
     W8NotificationDialog(int message_index, int caption_id, int notify_value);

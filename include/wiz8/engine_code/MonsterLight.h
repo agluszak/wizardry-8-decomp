@@ -5,7 +5,8 @@
 /* Monster's copy constructor establishes ownership of this complete object.
    Its registry identity deliberately remains srLight: the concrete vtable is
    the evidence that distinguishes this specialization. */
-// VTABLE: WIZ8 0x005ECD18
+// VTABLE: WIZ8 0x005ECD18 MonsterLight
+// VTABLE: WIZ8 0x005ECD0C srVertexProcessor
 class MonsterLight : public srLight {
 public:
     MonsterLight(srNode* parent, unsigned char cycle_color, float range,
@@ -17,6 +18,19 @@ public:
     void StartFadeOut0049DAF0();
 
     virtual ~MonsterLight() override; /* 0x0049E0D0 */
+
+    /* The retail secondary table at 0x005ECD0C carries real override slots for
+       both vertex-processor hooks: isActive's body (0x004D6190) is the
+       constant-return-1 frame folded across the identically-shaped overrides
+       that survive in the image, and process's (0x005B1BE0) is the shared
+       ret-4 no-op. Neither has a surviving MonsterLight name, so the bodies
+       remain inert here while their emissions stay owned by the folded
+       originals they collided with. */
+    virtual int isActive(srVertexPipe&) override
+    {
+        return 1;
+    }
+    virtual void process(srVertexPipe&) override {}
 
 public:
     float m_vertical_offset_228;          /* 0x228 */

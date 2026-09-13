@@ -60,6 +60,12 @@ W8GrObject::W8GrObject(const W8GrObject& other)
    The AI record is released with plain free rather than through either PathAI
    helper, which is asymmetric with the tagged clone the copy constructor uses
    but is what the body does. */
+/* The vtable's deleting-destructor slot holds 0x004B6920, a second emission
+   whose destructor body is inlined rather than shared with the standalone
+   0x004B6B60 below. */
+// SYNTHETIC: WIZ8 0x004b6920
+// W8GrObject::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x004b6b60
 W8GrObject::~W8GrObject()
 {
@@ -79,13 +85,19 @@ W8GrObject::~W8GrObject()
 
 /* Engine Code\GrObject.cpp. The member name m_plsSoundEvents comes from the
    canonical assertion in this translation unit; the element class is
-   Engine Code\SoundEvent.cpp's W8SoundEvent. */
+   Engine Code\SoundEvent.cpp's W8SoundEvent. 0x005ED098 is this
+   specialization's construction-phase table (Ghidra names it
+   W8SoundEventVector005ED094), written while the base subobject's
+   destructor still owns teardown. */
 
 // VTABLE: WIZ8 0x005ed094
 // class W8GrowableVector<W8SoundEvent*>
 
 // SYNTHETIC: WIZ8 0x004b6dc0
 // W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004b6d90
+// W8GrowableVector<W8SoundEvent*>::`scalar deleting destructor' (construction-phase copy)
 
 // TEMPLATE: WIZ8 0x004b6de0
 // W8GrowableVector<W8SoundEvent*>::~W8GrowableVector<W8SoundEvent*>
