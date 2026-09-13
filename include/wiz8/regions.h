@@ -5,6 +5,8 @@
 
 #include "input.h"
 
+struct Controls;
+
 extern unsigned char g_flag_689b32;
 
 struct W8RegionSet {
@@ -52,7 +54,7 @@ struct W8Region {
     unsigned char help_enabled;
     unsigned char unknown_13;
     int help_text_id;
-    void* owner;
+    Controls* owner;
 }; /* 0x1c */
 
 void InitializeRegionHelpState(void);
@@ -148,7 +150,7 @@ void ResetRegionSet(unsigned int region_set_index);
 unsigned int AddRegionToSet(unsigned int region_set_index);
 void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
-void SetRegionOwner(unsigned int region_index, void* owner);
+void SetRegionOwner(unsigned int region_index, Controls* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
 void ClearHotRegion004F2A80(void);
 void UpdateRegionHelp(void);

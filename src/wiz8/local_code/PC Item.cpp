@@ -986,14 +986,14 @@ void SpendPartyGold(unsigned int amount)
 }
 
 // FUNCTION: WIZ8 0x005222d0
-void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* origin,
+void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigned char* origin,
                               unsigned short* slot)
 {
     unsigned int equipped_index;
     unsigned int carried_index;
     unsigned int pool_index;
     unsigned char* character;
-    unsigned char* equipped;
+    W8ItemInstance* equipped;
 
     if (item == 0) {
         srAssertFail("pPCItem != NULL", "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp", 0x151b,
@@ -1004,8 +1004,9 @@ void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* or
        place for the carried array, rather than deriving each cursor afresh. */
     equipped_index = 0;
     character = (unsigned char*)(g_status_685170.buffers.characters + character_index);
-    equipped = character + 0x1029;
-    for (; equipped_index < 8; ++equipped_index, equipped += 0xc) {
+    equipped = reinterpret_cast<W8ItemInstance*>(character + 0x1029); /* reinterpret-ok: the
+        carried-item array begins at a fixed byte offset inside the character record */
+    for (; equipped_index < 8; ++equipped_index, ++equipped) {
         if (item == equipped) {
             *origin = 0;
             *slot = (unsigned short)equipped_index;
@@ -1016,7 +1017,8 @@ void GetOriginOfCharacterItem(int character_index, void* item, unsigned char* or
     carried_index = 0;
     character += 0xf5d;
     for (; carried_index < 12; ++carried_index, character += 0xc) {
-        if (item == character) {
+        if (item == reinterpret_cast<W8ItemInstance*>(character)) { /* reinterpret-ok: walking
+            carried W8ItemInstance records by their 0xc stride from the character base */
             *origin = 1;
             *slot = (unsigned short)carried_index;
             return;
