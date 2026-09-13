@@ -31,7 +31,7 @@ unsigned char CanUseCurrentAutomapTool(void);
 void ResetAutomapView005817D0(void);
 void Function581CE0(int handle);
 unsigned char Function582050(srVector3T<float>* position);
-void Function5820F0(int tool);
+void SetAutomapToolCursor(int tool);
 W8AutomapNote* Function582180(void);
 void Function5822C0(void);
 void Function582930(void);

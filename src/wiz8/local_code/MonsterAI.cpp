@@ -113,7 +113,7 @@ unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
         return AimMonsterAtSpellTarget(monster_info, spell_id);
     }
     if (g_spell_records[spell_id].needs_aim_13f != 0) {
-        return Function53C630(&monster_info->Target, 0);
+        return ResolveTargetPoint(&monster_info->Target, 0);
     }
     return 1;
 }

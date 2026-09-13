@@ -329,8 +329,7 @@ static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_
                 0x4a8, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1)));
         }
     }
-    GetMonsterByLocationID(monster_group->value_9f);
-    Function454C80();
+    GetMonsterByLocationID(monster_group->value_9f)->PropagateGroupPosition();
 }
 
 // FUNCTION: WIZ8 0x005106d0
