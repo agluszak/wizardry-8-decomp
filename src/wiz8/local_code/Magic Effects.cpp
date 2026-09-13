@@ -18,6 +18,7 @@
 #include "random.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/MonsterGroup.h"
@@ -74,15 +75,6 @@ const int g_effect_visual_table[149][2] = {
     {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
     {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
 };
-
-// FUNCTION: WIZ8 0x005af2d0
-void InvalidateMainGameEffectHud(void)
-{
-    if (g_current_screen_state.id == 7) {
-        ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
-        InvalidateRegion(0x7f, 0x14, 0x201, 0x28, 0);
-    }
-}
 
 /* How big the effect lands. A permanent magnitude is taken as it is; anything
    else is scaled by the definition's percentage. */
