@@ -50,3 +50,24 @@ constructor at `0x00509890` leaves the global null if object allocation fails an
 zero if backing allocation fails; `MonsterDBFromSpecies` likewise frees a failed record load and
 returns null. Ported code must preserve these explicit null paths, for example with a nothrow
 allocation boundary, rather than assuming modern throwing `new` semantics.
+
+## Narrow CRT string/memory intrinsics
+
+Under the first-party `/O2 /G6 /MD` profile, `/O2` implies `/Oi` and VC6 expands these narrow
+operations inline instead of emitting MSVCRT calls: `strlen`, `strcpy`, `strcat`, `strcmp`,
+`memcmp`, `memcpy`, `memset`, `_strset`. The wide-character twins (`wcslen`, `wcscpy`, `wcscmp`,
+`wcscat`, ...) are not intrinsics and always appear as CRT calls. An anonymous narrow
+scan/copy/compare loop in retail code is therefore most likely an intrinsic expansion, not an
+authored loop — check the fingerprint before writing source. The reproducible fixture is
+`docker/msvc600/probes/intrinsics_probe.cpp`.
+
+| Source op | Instruction fingerprint |
+| --- | --- |
+| `strlen(s)` | `or ecx,-1; xor eax,eax; repnz scasb` over `s`, then `not ecx; dec ecx` |
+| `strcpy(d,s)` | `strlen` sequence over `s`; `sub edi,ecx; mov esi,edi; mov edi,d; mov edx,edi; shr ecx,2; rep movsd; mov ecx,eax; and ecx,3; rep movsb` |
+| `strcat(d,s)` | `strlen` sequence over `s`, then `repnz scasb` over `d`, `dec edi`, then the `rep movsd`/`rep movsb` copy tail |
+| `strcmp(a,b)` | two-byte-at-a-time walk: `mov dl,[a]; mov bl,[b]; cmp; jne; test cl,cl; je; mov dl,[a+1]; mov bl,[b+1]; add a,2; add b,2; jne head`; result `sbb eax,eax; sbb eax,-1` |
+| `memcmp(a,b,n)` | `repz cmpsb` then `je`/`sbb eax,eax; sbb eax,-1` |
+| `memcpy(d,s,n)` | `shr ecx,2; rep movsd; mov ecx,n; and ecx,3; rep movsb` |
+| `memset(d,c,n)` | byte splat (`bl`,`bh`, `shl 16`, `mov ax,bx`), `shr ecx,2; rep stosd; and ecx,3; rep stosb` |
+| `_strset(s,c)` | `repnz scasb` length pass, `not ecx; dec ecx`, byte splat, `rep stosd`/`rep stosb` |

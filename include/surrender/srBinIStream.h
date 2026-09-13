@@ -10,23 +10,25 @@
 // inherited, because the destructor override lands in the srBinStream subobject
 // table instead. The pure slot is what every reader supplies - srBinIMStream
 // with its own vread, and Wizardry's virtual-file adapter with its.
-class __declspec(novtable) srBinIStream : public virtual srBinStream {
+class SR_DLL_IMPORT srBinIStream : public virtual srBinStream {
 public:
-    SR_DLL_IMPORT srBinIStream();
-    SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
+    // The Wiz8 stream-adapter constructor expands this body inline instead of
+    // calling the imported emission.
+    srBinIStream() {}
+    srBinIStream(const srBinIStream& stream);
     virtual ~srBinIStream() override {}
-    SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
+    srBinIStream& operator=(const srBinIStream& stream);
 
-    SR_DLL_IMPORT unsigned short getChar();
-    SR_DLL_IMPORT unsigned long getDWord();
-    SR_DLL_IMPORT double getDouble();
-    SR_DLL_IMPORT float getFloat();
-    SR_DLL_IMPORT srQuadWord getQuadWord();
-    SR_DLL_IMPORT unsigned short getWord();
-    SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
+    unsigned short getChar();
+    unsigned long getDWord();
+    double getDouble();
+    float getFloat();
+    srQuadWord getQuadWord();
+    unsigned short getWord();
+    srBinIStream& read(void* destination, unsigned long size);
 
 protected:
-    virtual SR_DLL_IMPORT unsigned short vget();
+    virtual unsigned short vget();
 
 private:
     virtual unsigned long vread(void* destination, unsigned long size) = 0;
@@ -40,20 +42,17 @@ public:
     SR_DLL_IMPORT srBinIMStream& operator=(const srBinIMStream& stream);
 
     virtual SR_DLL_IMPORT unsigned long getSize() override;
-    virtual SR_DLL_IMPORT srBinStream& seek(
-        unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,
+                                            srBinStream::e_seekDir direction) override;
     virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
     virtual SR_DLL_IMPORT unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned long vread(
-        void* destination, unsigned long size) override;
+    virtual SR_DLL_IMPORT unsigned long vread(void* destination, unsigned long size) override;
     const unsigned char* data_08;
     unsigned long size_0c;
     unsigned long position_10;
 };
 
-static_assert(sizeof(srBinIStream) == 0x18,
-              "srBinIStream_must_be_0x18");
-static_assert(sizeof(srBinIMStream) == 0x28,
-              "srBinIMStream_must_be_0x28");
+static_assert(sizeof(srBinIStream) == 0x18, "srBinIStream_must_be_0x18");
+static_assert(sizeof(srBinIMStream) == 0x28, "srBinIMStream_must_be_0x28");

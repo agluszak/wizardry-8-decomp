@@ -27,6 +27,16 @@ supported ABI, lifetime, or call-site differences; do not manufacture scopes or 
 Unsigned `x != 0` and `x > 0` are equivalent for an ordinary integer value: interpret the flags and
 operands rather than changing between those spellings to chase `JE` versus `JBE`.
 
+## CRT intrinsics are not authored loops
+
+Under `/O2` (implies `/Oi`), VC6 expands the narrow CRT operations `strlen`, `strcpy`, `strcat`,
+`strcmp`, `memcmp`, `memcpy`, `memset`, `_strset` as inline instructions — `repnz scasb` scans,
+`rep movsd`/`rep movsb` copies, `rep stosd`/`rep stosb` fills, `repz cmpsb` compares. An anonymous
+narrow scan/copy/compare loop in retail code is most likely one of those expansions, not an
+authored loop; check the instruction fingerprints in `docs/libraries/msvc6-runtime.md` (fixture:
+`docker/msvc600/probes/intrinsics_probe.cpp`) before writing a `while`/`for`. The wide-character
+twins are not intrinsics — expanded wide loops are authored code.
+
 ## Stop without inventing certainty
 
 Test one supported source fact at a time. Revert demonstrated semantic or ABI regressions; a worse
