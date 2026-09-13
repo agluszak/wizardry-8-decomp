@@ -21,7 +21,6 @@ extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
 
 extern const float g_negative_one_005ebc38;
-extern const float g_camera_transition_epsilon_005ebc84;
 extern const float g_camera_angle_period_005ec54c;
 extern const float g_camera_angle_lower_005ec548;
 extern const float g_camera_pitch_upper_005ec550;

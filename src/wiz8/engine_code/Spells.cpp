@@ -1301,7 +1301,7 @@ void AudioUpdateFinish004AEFD0()
                     to_listener.Set(listener.x - (float)world.x, listener.y - (float)world.y,
                                     listener.z - (float)world.z);
                     distance = (float)sqrt(DotProduct(to_listener, to_listener));
-                    if ((float)sound->value_144 <= distance) {
+                    if (sound->value_144 <= distance) {
                         SoundSetVolume(sound->sound_handle_13c, 0);
                     } else {
                         angle = -GetCameraYawRadians();

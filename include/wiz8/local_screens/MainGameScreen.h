@@ -515,7 +515,6 @@ extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern unsigned char g_flag_0068edd9;
 extern unsigned char g_debug_monster_cycle_0068f0fc;
-extern W8MipeState* g_mipe_state_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 
