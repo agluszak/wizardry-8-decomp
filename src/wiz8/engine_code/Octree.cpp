@@ -200,8 +200,7 @@ void W8Octree::UpdateVisibility004304A0()
     }
     m_projected_regions_valid_16a = 0;
     m_positional_16b = 0;
-    CollectVisibleRegions00430D50(&camera_location_1c0, reinterpret_cast<int*>(m_positional_204), 0,
-                                  1);
+    CollectVisibleRegions00430D50(&camera_location_1c0, m_positional_204, 0, 1);
     CollectVisibleCells0042FE90();
     if (pathing_180 != 0) {
         srVector3T<float> dof;
