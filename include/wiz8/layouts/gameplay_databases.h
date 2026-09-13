@@ -328,7 +328,12 @@ struct W8MonsterRecord {
     unsigned char attribute_values_d1[5]; /* 0x0d1 */
     W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
     W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
-    unsigned char unknown_0de[5];
+    unsigned char unknown_0de[2];
+    /* 0x0e0/0x0e1: the percentage chances the AI casts a spell or flees each
+       round; a monster with a usable attack ignores them and always tries. */
+    unsigned char spell_chance_0e0;
+    unsigned char flee_chance_0e1;
+    unsigned char unknown_0e2;
     /* 0x0e3: selects this monster's row in the two-byte AI table at
        0x0061EEFC; the row value six is the one the AI singles out. */
     unsigned char ai_kind;
@@ -341,8 +346,10 @@ struct W8MonsterRecord {
        assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
        MAX_MONSTER_ATTACKS, which is what bounds the array at three. */
     W8MonsterAttack attacks[W8_MAX_MONSTER_ATTACKS]; /* 0x0e7 */
-    unsigned char unknown_14d[3];
-    unsigned char unknown_150[0xe];
+    /* 0x14d: the ten spells the AI may cast, zero for none; ChooseMonsterSpell
+       weights them by the fixed table at 0x0061CC14. */
+    unsigned char spells_14d[10];
+    unsigned char unknown_157[7];
     /* 0x15e: selects the row of monster hit-location names for this body. */
     unsigned char body_type_15e;
     /* 0x15f: the percentage of hits that land on each of the seven monster
@@ -352,8 +359,10 @@ struct W8MonsterRecord {
     unsigned int combat_value_181; /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
     short record_id_187;       /* 0x187: equals the zero-based database index */
-    char cycle_name_189[0x31]; /* 0x189: GrCycle lookup key */
-    float float_1ba;           /* 0x1ba: scaled by 0x005ed4f0 */
+    char cycle_name_189[0x30]; /* 0x189: GrCycle lookup key */
+    /* 0x1b9: the AI never closes in or backs off from the party when set. */
+    unsigned char holds_ground_1b9;
+    float float_1ba; /* 0x1ba: scaled by 0x005ed4f0 */
     unsigned char unknown_1be[0x8a];
     unsigned char flag_248;
     unsigned char unknown_249;

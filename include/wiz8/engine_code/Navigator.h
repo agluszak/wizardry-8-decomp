@@ -299,6 +299,5 @@ extern unsigned char g_flag_006081e4;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_linked_radius_scale_005ebc98;
 
-unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
 void SetMonsterTurnSpeed(float speed); /* 0x00453C70 */
