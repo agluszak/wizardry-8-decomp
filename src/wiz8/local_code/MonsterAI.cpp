@@ -1,6 +1,10 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/xstatus.h"
@@ -9,6 +13,7 @@
 #include "wiz8/spell_effect.h"
 #include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/local_code/MonsterAI.h"
 
@@ -68,6 +73,143 @@ void UpdateAllMonsterAI(void)
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0) {
             UpdateMonsterAI(monster_info);
         }
+    }
+}
+
+/* The cycle a monster must have to cast at all. */
+enum { W8_MONSTER_CYCLE_SPELL = 0x19 };
+
+/* Reported once, so a monster missing its spell cycle does not flood the log. */
+// GLOBAL: WIZ8 0x0068d524
+static unsigned char g_spell_cycle_error_reported;
+
+/* Decide what one monster does this round. A monster taken out of the fight
+   by its worst condition, or told to give up, stands down and ends its turn.
+   Otherwise it rolls to hold back, and if not, a monster that is not yet
+   engaged either holds or gives up by its record. An engaged monster with a
+   usable ranged attack and the party out of reach closes in (or backs off
+   when hurt); otherwise it rolls to flee and to cast, weighs its attacks, and
+   only then settles for closing in, backing off or holding. Whatever it
+   settles on is checked, and a group that has given up holds instead. */
+// FUNCTION: WIZ8 0x00531540
+void UpdateMonsterAI(W8MonsterInfo* monster_info)
+{
+    W8MonsterRecord* record;
+    W8RangeCategory range_category;
+    unsigned int chance;
+    unsigned char rating;
+    unsigned int spell;
+    int chosen;
+    float hp_ratio;
+    unsigned char backs_off;
+    srVector3T<float> position;
+
+    if ((unsigned int)monster_info->highest_condition >= 0xf) {
+        monster_info->action_kind = -1;
+        monster_info->pCombat->phase = 0;
+        monster_info->pCombat->active = 1;
+        return;
+    }
+    record = GetMonsterDataForInfo(monster_info);
+    if (monster_info->monster_species == 0x224) {
+        monster_info->action_kind = 1;
+        return;
+    }
+    chance = Function531C00(monster_info, record);
+    if (Random(100) < chance) {
+        monster_info->action_kind = 4;
+        goto validate;
+    }
+    if (monster_info->flag_16 == 0) {
+        if (record->unknown_249 != 0) {
+            monster_info->action_kind = -1;
+            monster_info->pCombat->phase = 0;
+            monster_info->pCombat->active = 1;
+        } else {
+            monster_info->action_kind = 6;
+        }
+        goto validate;
+    }
+    if (record->holds_ground_1b9 == 0 &&
+        (range_category = GetBestMonsterAttackRange(record, 1)) != W8_RANGE_NONE &&
+        (monster_info->condition_turns[0xc] == 0 || record->kind_0cb == 0xc) &&
+        MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
+        record = GetMonsterDataForInfo(monster_info);
+        hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
+        backs_off = hp_ratio <= 0.7f && record->holds_ground_1b9 == 0;
+        monster_info->action_kind = backs_off ? 7 : 5;
+    } else {
+        rating = RateMonsterBestAttack(monster_info, record, 0);
+        chance = record->flee_chance_0e1;
+        if (chance != 0) {
+            if (rating != 0) {
+                chance = 100;
+            }
+            if (CanMonsterFlee(monster_info, record, 0) && Random(100) < chance) {
+                monster_info->action_kind = W8_MONSTER_ACTION_FLEE;
+                if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
+                    position = monster_info->monster->GetPosition();
+                    ResetCombatSlot(&monster_info->Target);
+                    monster_info->Target.iType = W8_TARGET_KIND_PLACE;
+                    monster_info->Target.point = position;
+                } else if (!AimMonsterAtSpellTarget(monster_info, W8_AI_SPELL_PLACE)) {
+                    srAssertFail("fSuccess", MONSTER_AI_CPP, 1052, 0);
+                }
+                goto validate;
+            }
+        }
+        chance = record->spell_chance_0e0;
+        if (chance != 0) {
+            if (rating != 0) {
+                chance = 100;
+            }
+            if (record->spell_chance_0e0 != 0) {
+                if (!MonsterIsCycleSupported(monster_info->monster, W8_MONSTER_CYCLE_SPELL)) {
+                    if (g_spell_cycle_error_reported == 0) {
+                        FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
+                                           record);
+                        g_spell_cycle_error_reported = 1;
+                    }
+                } else {
+                    for (spell = 0; spell < 10; ++spell) {
+                        if (IsSpellUsableByMonster(monster_info, record->spells_14d[spell], 1)) {
+                            if (Random(100) < chance) {
+                                monster_info->action_kind = W8_MONSTER_ACTION_SPELL;
+                                monster_info->action_detail =
+                                    ChooseMonsterSpell(monster_info, record);
+                                if (!AimMonsterAtSpellTarget(monster_info,
+                                                             monster_info->action_detail)) {
+                                    srAssertFail("fSuccess", MONSTER_AI_CPP, 1076, 0);
+                                }
+                                goto validate;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (rating != 0) {
+            if (rating == W8_MONSTER_ATTACK_OUT_OF_REACH) {
+                if (monster_info->condition_turns[0xc] != 0 && record->kind_0cb != 0xc) {
+                    monster_info->action_kind = 6;
+                } else {
+                    record = GetMonsterDataForInfo(monster_info);
+                    hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
+                    backs_off = hp_ratio <= 0.7f && record->holds_ground_1b9 == 0;
+                    monster_info->action_kind = backs_off ? 7 : 5;
+                }
+            } else {
+                monster_info->action_kind = 6;
+            }
+        } else if (!ChooseRandomMonsterAction(monster_info, 0, 0, 1)) {
+            monster_info->action_kind = 1;
+        }
+    }
+validate:
+    if (!IsMonsterActionUsable(monster_info) &&
+        GetMonsterGroupFlagC8(monster_info->monster_group_id)) {
+        monster_info->action_kind = 6;
     }
 }
 
