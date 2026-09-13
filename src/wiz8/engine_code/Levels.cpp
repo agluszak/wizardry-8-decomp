@@ -181,10 +181,10 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
 }
 
 // FUNCTION: WIZ8 0x0042b740
-char Function42B740(int saved_level)
+char GetLevelBand(int saved_level)
 {
     int level = NormalizeMasterFunctionValue004D9700(saved_level);
-    if (level >= 0 && level < 48) {
+    if (level >= 0 && level <= 0x2f) {
         return g_level_folders[level].unknown_6a;
     }
     return 0;

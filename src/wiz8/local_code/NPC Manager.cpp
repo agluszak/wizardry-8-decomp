@@ -1432,7 +1432,7 @@ void RebindNpcLevelTriggers0050AC60(void)
                     trigger->m_lData1 = static_cast<int>(npc_index);
                     npc->has_monster = 1;
                     npc->level_band =
-                        static_cast<unsigned char>(Function42B740(g_status_685170.current_level));
+                        static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
                     npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
                     ReloadNpcScriptResources(npc);
                     npc->is_present = 0;

@@ -62,7 +62,7 @@ unsigned char IsLevelCdMissing0042B6F0(int level);
 unsigned char FindGameDataPath0042B590(char* path, int cd_number);
 int GetLevelCdNumber0042B720(int level);
 void UnloadSkyWorld(void);
-char Function42B740(int saved_level);
+char GetLevelBand(int saved_level);
 
 extern unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_flag_00659756;

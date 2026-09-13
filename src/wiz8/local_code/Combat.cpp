@@ -611,7 +611,7 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
         }
         ClearPartySlotMonsterHighlights(party_slot);
     } else {
-        Function4E7EE0(party_slot, action, detail, data, arg_5, arg_6);
+        ApplyPartyCombatAction(party_slot, action, detail, data, arg_5, arg_6);
         switch (action) {
         case 0:
         case 1:
@@ -644,7 +644,8 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
 /* Apply a chosen in-combat action for party-move kinds 10/11, otherwise record
    the action on the slot row and refresh targeting UI state. */
 // FUNCTION: WIZ8 0x004e7ee0
-void Function4E7EE0(int party_slot, int action, int detail, const void* data, int arg_5, int notify)
+void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
+                            int notify)
 {
     unsigned int party_slot_index;
     W8Character* character;

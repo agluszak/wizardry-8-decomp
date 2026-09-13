@@ -1313,7 +1313,8 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0,
+                                1);
         }
         return;
     }
@@ -1360,7 +1361,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
 
-    Function421150(GetRangeConstant5EC35C(), &position);
+    GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
     if (position.x == g_target_position_0068407f.x && position.y == g_target_position_0068407f.y &&
         position.z == g_target_position_0068407f.z) {
         return;
