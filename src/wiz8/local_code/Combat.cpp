@@ -24,6 +24,7 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MGSPortraits.h"
@@ -422,7 +423,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
         return;
     }
     if (monster_info->action_kind == 0 && combat->attacks_per_round != 0) {
-        if (Function5323F0(monster_info, 1, 0, 0)) {
+        if (ChooseRandomMonsterAction(monster_info, 1, 0, 0)) {
             next = combat->phase +
                    (100 - g_combat_state->round_counter) / (combat->attacks_per_round + 1);
             combat->phase = next;
@@ -907,7 +908,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
         }
         break;
     case 1:
-        if (Function5458A0(party_slot) == 0) {
+        if (CanCharacterKnockOut(party_slot) == 0) {
             if (arg_4 == 0) {
                 return 0;
             }
@@ -919,7 +920,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
                     Function51EA90(character, &character->equipment[6]);
                 }
             }
-            if (Function5458A0(party_slot) == 0) {
+            if (CanCharacterKnockOut(party_slot) == 0) {
                 return 0;
             }
         }

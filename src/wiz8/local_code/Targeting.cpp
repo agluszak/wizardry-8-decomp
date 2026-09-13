@@ -2076,7 +2076,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
             target.iGroupID = BAD_INDEX;
             target.iType = W8_TARGET_KIND_CHARACTER;
             target.iChar = other_slot;
-            if (CanTargetPartySlot(party_slot, &target)) {
+            if (CharacterHasAttackOn(party_slot, &target)) {
                 return 1;
             }
         }
@@ -2086,7 +2086,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
             target.iGroupID = BAD_INDEX;
             target.iType = W8_TARGET_KIND_MONSTER;
             target.iMonsterID = MonsterGetScriptPartByLocationIndex(index)->location_id;
-            if (CanTargetPartySlot(party_slot, &target)) {
+            if (CharacterHasAttackOn(party_slot, &target)) {
                 return 1;
             }
         }

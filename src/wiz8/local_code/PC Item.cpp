@@ -2331,13 +2331,13 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     if (primary_right || primary_left) {
         int hand_state = row->action_kind;
         if (hand_state == 1) {
-            if (!Function5458A0(party_slot)) {
+            if (!CanCharacterKnockOut(party_slot)) {
                 row->action_kind = 0;
                 if (row->action_03d == 1) {
                     row->action_03d = 0;
                 }
             }
-        } else if (hand_state == 0 && row->action_is_kind_one && Function5458A0(party_slot)) {
+        } else if (hand_state == 0 && row->action_is_kind_one && CanCharacterKnockOut(party_slot)) {
             row->action_kind = 1;
             if (row->action_03d == 0) {
                 row->action_03d = 1;

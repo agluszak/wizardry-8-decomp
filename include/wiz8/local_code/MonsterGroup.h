@@ -72,6 +72,8 @@ struct W8MonsterGroup {
 unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, int group_id,
                                       unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
+/* The group's flag at 0xc8, looked up by group id. */
+unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
 unsigned char MoveMonsterGroupToPosition(W8MonsterGroup* group, srVector3T<float>* position,
                                          float yaw, int a, int b, int c, int d); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the
