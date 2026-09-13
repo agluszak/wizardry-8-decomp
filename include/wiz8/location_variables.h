@@ -10,3 +10,5 @@ int GetLocationVarIDByName(const char* name);
 void SetTriggerVariableByName00444030(const char* name, int value);
 void CreateLocationVar(const char* name, int value); /* 0x00443DC0 */
 int GetLocationVarValueByName(const char* name);     /* 0x004440D0 */
+void SaveLocationVariables004441E0(int handle);
+unsigned char LoadLocationVariables00444310(int handle);

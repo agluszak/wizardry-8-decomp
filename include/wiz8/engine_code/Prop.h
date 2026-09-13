@@ -96,6 +96,7 @@ public:
     bool IsSetting6FTwo();
     void ToggleSetting6E();
     Trigger* GetValue18();
+    unsigned char IsTriggerInView0044E3A0(srVector3T<float>* position);
     Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
     void GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum);

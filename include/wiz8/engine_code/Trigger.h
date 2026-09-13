@@ -7,6 +7,7 @@ class stLight;
 #include "wiz8/dice.h"
 #include "wiz8/engine_code/game_timer.h"
 
+struct W8Item;
 class W8Prop;
 class Trigger;
 struct W8World;
@@ -85,8 +86,13 @@ static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
 #pragma pack(push, 1)
 struct W8TriggerState370 {
     unsigned char state;
-    int value_01;
-    int value_05;
+    union {
+        struct {
+            int value_01;
+            int value_05;
+        };
+        unsigned char bytes_01[8];
+    };
 };
 #pragma pack(pop)
 
@@ -118,6 +124,9 @@ public:
     void CompleteItemInteraction004447F0();
     void Activate00444750();
     unsigned char Save0043BE60(int hFile);
+    unsigned char Load0043C1B0(int hFile, char version);
+    void RunLinkedTriggers00441590();
+    void SetPosition004416F0(srVector3T<float>* position);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     unsigned char CanRunLinkedTriggers();
@@ -195,7 +204,7 @@ public:
     unsigned char m_bRepType;
     unsigned char unknown_10d[3];
     W8Prop* m_pProp;
-    void* value_114;
+    W8Item* rep_item_114;
     float position_118;
     float position_11c;
     float position_120;
@@ -246,8 +255,11 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
    action data. */
 int ResetNextTriggerId(void);
 void SaveWorldTriggers0043C810(W8World* world, int handle);
+unsigned char LoadWorldTriggers0043C860(W8World* world, int handle);
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, unsigned char restoring);
+int LoadTriggerRuntimeStates0043CCF0(int handle);
 void SaveTriggerActionData0043D120(W8World* world, int handle);
+int LoadTriggerActionData0043D1F0(int handle);
 
 extern unsigned char g_flag_00606994;
 extern unsigned char g_flag_0068506e;
@@ -264,6 +276,6 @@ extern int g_value_005ee5a0;
 
 unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
                                               float countdown_duration, unsigned char reverse);
-unsigned char Function445140(W8World* world);
+unsigned char AnyPropTriggerInView00445140(W8World* world);
 
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);
