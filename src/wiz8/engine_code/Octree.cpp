@@ -909,8 +909,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
-        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
-            ->setFlag(srNode::FLAG_DISABLE);
+        static_cast<stModelInstance*>(world->psrMeshes[mesh_index])->setFlag(srNode::FLAG_DISABLE);
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])
             ->setFlag(srNode::FLAG_TERMINATE);
     }
@@ -2376,7 +2375,7 @@ void W8Octree::Initialize(const void* raw_header)
 }
 
 // FUNCTION: WIZ8 0x0042e440
-void W8Octree::AddLoadedProp(void* prop)
+void W8Octree::AddLoadedProp(W8Prop* prop)
 {
     if (m_fAccumulating) {
         if (m_usNumPropsLoaded >= (unsigned short)m_ulNumProps) {
@@ -2384,14 +2383,14 @@ void W8Octree::AddLoadedProp(void* prop)
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x485,
                          "Too many props loaded for Octree");
         }
-        m_papProps[m_usNumPropsLoaded] = static_cast<W8Prop*>(prop);
+        m_papProps[m_usNumPropsLoaded] = prop;
         m_usNumPropsLoaded++;
         m_papProps[m_usNumPropsLoaded] = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x0042e4c0
-void W8Octree::AddLoadedParticle(void* particle)
+void W8Octree::AddLoadedParticle(stParticle* particle)
 {
     if (m_fAccumulating) {
         if (m_usNumParticlesLoaded >= (unsigned short)m_ulNumParticles) {
@@ -2399,7 +2398,7 @@ void W8Octree::AddLoadedParticle(void* particle)
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x49d,
                          "Too many particles loaded for Octree");
         }
-        m_papParticles[m_usNumParticlesLoaded] = static_cast<stParticle*>(particle);
+        m_papParticles[m_usNumParticlesLoaded] = particle;
         m_usNumParticlesLoaded++;
         m_papParticles[m_usNumParticlesLoaded] = 0;
     }

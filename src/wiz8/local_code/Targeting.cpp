@@ -395,7 +395,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
     GetCameraPosition(&eye);
-    GetMonsterBounds(monster_info->monster, &lower, &upper);
+    MonsterGetWorldAnimationBounds004CA4F0(monster_info->monster, &lower, &upper);
     return ShowTargetMarker(&eye, &lower, &upper);
 }
 
