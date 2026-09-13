@@ -365,6 +365,10 @@ class TranslationUnitLayout:
         self.interval_lowers = [interval.lower for interval in self.intervals]
         self._validate_hulls()
 
+    def interval_at(self, entry: int) -> TranslationUnitInterval | None:
+        """The hard hull containing ``entry``, if any."""
+        return self._interval_at(entry)[1]
+
     def _interval_at(self, entry: int) -> tuple[int, TranslationUnitInterval | None]:
         import bisect
 

@@ -124,7 +124,7 @@ def render_interval_csv(intervals: list[TranslationUnitInterval]) -> str:
 def _anchor_label(anchor: dict[str, Any] | None) -> str:
     if not anchor:
         return "-"
-    label = f"{anchor['function']} {anchor['source_path'].rsplit(chr(92), 1)[-1]}"
+    label = f"{anchor['function']} {anchor['source_path'].rsplit('\\', 1)[-1]}"
     if anchor.get("line") is not None:
         label += f":{anchor['line']}"
     return label
@@ -277,11 +277,9 @@ def original_unit_rows(
     gameplay: list[dict[str, str]],
 ) -> list[dict[str, str]]:
     """One status row per original ``.cpp`` in the evidence source tree."""
-    import csv
+    from ..source_units import SOURCE_TREE_PATH, mapped_repository_source_file
 
-    from ..source_units import mapped_repository_source_file
-
-    tree = repo_dir / "evidence" / "observations" / "wiz8" / "source-tree.csv"
+    tree = repo_dir / SOURCE_TREE_PATH
     originals: list[str] = []
     if tree.is_file():
         with tree.open(newline="", encoding="utf-8") as stream:
@@ -390,7 +388,7 @@ def misplaced_function_rows(
         if function["owner"] == "surrender-template" or not function.get("source_path"):
             continue
         address = int(function["address"], 16)
-        _index, interval = layout._interval_at(address)
+        interval = layout.interval_at(address)
         if interval is None:
             continue
         expected = mapped_repository_source_file(repo_dir, interval.source_path) or ""
