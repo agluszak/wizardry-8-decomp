@@ -17,6 +17,7 @@
 #include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -348,4 +349,113 @@ void RecalculateCharacterResistances(W8Character* character)
             character->resistances[index].total = 100;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x00551BA0
+char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
+                                   int condition_id, int realm, unsigned int minimum_roll,
+                                   int extra_damage, int damage, char announce, char arg_9,
+                                   int duration)
+{
+    W8Character* character;
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* monster;
+    unsigned int highest_condition;
+    unsigned int index;
+    int source_character;
+    char resolved;
+
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        character = &g_status_685170.buffers.characters[target->iChar];
+        highest_condition = character->highest_condition;
+    } else {
+        monster_info = MonsterInfoFromID(0xdc9, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
+        monster = GetMonsterDataForInfo(monster_info);
+        if (monster->unknown_1be[0] != 0 && condition_id == 0x12) {
+            return 1;
+        }
+        W8ConditionImmunity* immunity = g_condition_immunities_006171A8;
+        for (; immunity < g_condition_immunities_006171A8 + 3; ++immunity) {
+            if (monster->kind_0cb != immunity->kind) {
+                continue;
+            }
+            for (index = 0; index < 20; ++index) {
+                if (condition_id == immunity->conditions[index]) {
+                    return 1;
+                }
+            }
+        }
+        highest_condition = monster_info->highest_condition;
+    }
+
+    if (highest_condition > 0x11) {
+        return 1;
+    }
+    if (condition_id == 0x13) {
+        if (target->iType == W8_TARGET_KIND_MONSTER) {
+            return 1;
+        }
+        if (g_status_685170.buffers.characters[target->iChar].condition_turns[0x13] != 0) {
+            return 1;
+        }
+    }
+
+    if (Function5520D0(target, realm, minimum_roll, condition_id) != 0) {
+        resolved = 1;
+    } else {
+        resolved = 0;
+        if (target->iType == W8_TARGET_KIND_CHARACTER) {
+            switch (condition_id) {
+            case 6:
+                if (CharacterHasTrait00547940(character, 3) != 0) {
+                    if (announce != 0) {
+                        PostCharacterNotice(target->iChar, gppStringList[0x600 / 4]);
+                    }
+                    return 1;
+                }
+            case 2:
+            case 3:
+            case 4:
+            case 7:
+            case 0xf:
+                if (CharacterHasTrait00547940(character, 0x1e) != 0) {
+                    return 1;
+                }
+                break;
+            case 0xb:
+                if (duration == 9999) {
+                    break;
+                }
+            case 0xd:
+                if (CharacterHasTrait00547940(character, 0xe) != 0) {
+                    if (announce != 0) {
+                        PostCharacterNotice(
+                            target->iChar, gppStringList[0x604 / 4],
+                            gppStringList[g_condition_notices_0061E570[condition_id * 4] * 4]);
+                    }
+                    return 1;
+                }
+                break;
+            }
+        }
+
+        source_character = -1;
+        if (target->iType == W8_TARGET_KIND_MONSTER && TargetSourceIsCharacter(source, 0) != 0) {
+            source_character = source->iChar;
+        }
+        resolved = Function551EB0(target, condition_id, realm, minimum_roll, extra_damage, damage,
+                                  source_character, duration, arg_9) == 0;
+    }
+
+    if (resolved != 0 && announce != 0 && g_settings_6850c8.verbose_combat_messages != 0) {
+        if (target->iType == W8_TARGET_KIND_MONSTER) {
+            unsigned int monster_index =
+                MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
+            PostMonsterNotice(MonsterGetScriptPartByLocationIndex(monster_index),
+                              gppStringList[0x6cc / 4]);
+        } else {
+            PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
+        }
+    }
+    return resolved;
 }

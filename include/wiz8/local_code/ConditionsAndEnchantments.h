@@ -2,6 +2,17 @@
 
 struct W8TargetSource;
 
+#pragma pack(push, 2)
+struct W8ConditionImmunity {
+    unsigned char kind;
+    unsigned char unknown_01;
+    int conditions[20];
+};
+#pragma pack(pop)
+
+extern W8ConditionImmunity g_condition_immunities_006171A8[3];
+extern unsigned short g_condition_notices_0061E570[128];
+
 void RemoveCharacterCondition(int party_slot, int condition, int announce);
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,
                          W8TargetSource* target, int quiet);
@@ -13,8 +24,6 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot);
 void Function524110(int location_id, int condition, unsigned int minutes);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
 void RemoveAllConditionsFromParty(void);
-
-extern unsigned short g_condition_notices_0061E570[128];
 
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x005237E0: rescan condition_turns from slot 0x13 downward and write the

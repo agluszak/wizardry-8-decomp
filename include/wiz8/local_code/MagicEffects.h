@@ -20,8 +20,15 @@ void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3,
    GroupAttacks.cpp's call sites need the declaration. Its own assertion names
    Magic Effects.cpp, so the gap is attributed to this unit. */
 char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
-                                   int condition_id, int arg_4, unsigned int arg_5, int arg_6,
-                                   int arg_7, char arg_8, char arg_9, int arg_10);
+                                   int condition_id, int realm, unsigned int minimum_roll,
+                                   int extra_damage, int damage, char announce, char arg_9,
+                                   int duration);
+/* Unrecovered attack-resolution dependencies retained as direct ABI declarations. */
+char Function5520D0(W8CombatSlot* target, int realm, unsigned int minimum_roll,
+                    int condition_id); /* 0x005520D0 */
+char Function551EB0(W8CombatSlot* target, int condition_id, int realm, unsigned int minimum_roll,
+                    int extra_damage, int damage, int source_character, int duration,
+                    char arg_9);                 /* 0x00551EB0 */
 void Function54BA00(W8SpellEffectEntry* effect); /* 0x0054BA00 */
 void Function54C930(W8SpellEffectEntry* effect); /* 0x0054C930 */
 
