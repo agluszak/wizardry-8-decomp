@@ -1,14 +1,17 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/game_status.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/message_box.h"
+#include "wiz8/magic.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
@@ -24,10 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 
-extern int GetEnvironmentValue0060A3A8(void);
-extern W8Monster* GetNpcMonster(W8NpcState* npc);
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
 
 // GLOBAL: WIZ8 0x0068c3c4
 int g_staged_value_68c3c4;

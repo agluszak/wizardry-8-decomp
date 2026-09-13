@@ -28,7 +28,6 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
 #include "random.h"
-#include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/startup_world.h"
@@ -129,7 +128,6 @@ void RefreshAllSight(void)
     }
 }
 
-extern const double g_monster_facing_tolerance_005ec2b0;
 
 /* Whether one monster can see another in combat once line of sight is clear. */
 // FUNCTION: WIZ8 0x005058a0

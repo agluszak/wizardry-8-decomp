@@ -40,7 +40,6 @@ enum {
     W8_LEVEL_FLAG_9 = 0x200
 };
 
-extern unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce

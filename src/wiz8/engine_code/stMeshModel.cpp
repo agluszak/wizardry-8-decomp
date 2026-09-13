@@ -1079,4 +1079,4 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     return pipe;
 }
 // FUNCTION: WIZ8 0x005aa400
-void stMeshModel::Function5AA400(stMeshModel*) {}
+void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}

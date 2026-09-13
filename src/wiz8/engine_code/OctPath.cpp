@@ -47,6 +47,7 @@ float g_float_005ec3d0 = -107374184.0f;
 #include "surrender/srModelInstance.h"
 #include "FileMan.h"
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/OctPreTree.h"
 
@@ -62,41 +63,29 @@ W8PathingService* g_pathing_00659c60;
    place every one of these bodies in OctPath.cpp rather than in Octree.cpp
    where the octree's own loader lives. */
 
-extern unsigned short g_path_reserve_0060827a;
 // GLOBAL: WIZ8 0x0060827a
 unsigned short g_path_reserve_0060827a = 2000;
-extern float g_path_span_scale_005ec344;
 // GLOBAL: WIZ8 0x005ec344
 float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
 
-extern unsigned char g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c5c
 unsigned char g_flag_00659c5c;
-extern void* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x00659c64
 void* g_path_scratch_00659c64;
-extern double g_double_005ec3a8;
 // GLOBAL: WIZ8 0x005ec3a8
 double g_double_005ec3a8 = 1.1;
-extern double g_double_005ec3a0;
 // GLOBAL: WIZ8 0x005ec3a0
 double g_double_005ec3a0 = 25000.0;
-extern double g_double_005ec3b0;
 // GLOBAL: WIZ8 0x005ec3b0
 double g_double_005ec3b0 = 0.1;
-extern float g_path_direction_threshold_0_005ec348;
 // GLOBAL: WIZ8 0x005ec348
 float g_path_direction_threshold_0_005ec348 = -0.9239000082015991f;
-extern float g_path_direction_threshold_1_005ec34c;
 // GLOBAL: WIZ8 0x005ec34c
 float g_path_direction_threshold_1_005ec34c = -0.38269999623298645f;
-extern float g_path_direction_threshold_2_005ec350;
 // GLOBAL: WIZ8 0x005ec350
 float g_path_direction_threshold_2_005ec350 = 0.38269999623298645f;
-extern float g_path_direction_threshold_3_005ec354;
 // GLOBAL: WIZ8 0x005ec354
 float g_path_direction_threshold_3_005ec354 = 0.9239000082015991f;
-extern float g_path_cardinal_scale_005ec358;
 // GLOBAL: WIZ8 0x005ec358
 float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 
@@ -104,19 +93,14 @@ float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 float g_float_005ec360 = 25000.0f;
 // GLOBAL: WIZ8 0x00652dc4
 srShader g_path_shader_00652dc4;
-extern srTextureIFace* g_path_texture_00652dc0;
-extern srMaterialIFace* g_path_material_00652dbc;
 // GLOBAL: WIZ8 0x00652dc0
 srTextureIFace* g_path_texture_00652dc0;
 // GLOBAL: WIZ8 0x00652dbc
 srMaterialIFace* g_path_material_00652dbc;
-extern unsigned int g_path_visualization_cell_00659c6c;
 // GLOBAL: WIZ8 0x00659c6c
 unsigned int g_path_visualization_cell_00659c6c;
-extern float g_path_search_visualization_limit_005ec380;
 // GLOBAL: WIZ8 0x005ec380
 float g_path_search_visualization_limit_005ec380 = 15000.0f;
-extern float g_path_endpoint_scale_005ec1a4;
 
 // GLOBAL: WIZ8 0x0060f9e8
 float g_path_acceleration_factor_0060f9e8 = 3.0f;

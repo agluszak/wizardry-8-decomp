@@ -1,5 +1,7 @@
 #pragma once
 
+void SetRendererReady(void);
+
 #include "surrender/srMath.h"
 
 class srCamera;

@@ -1,5 +1,10 @@
 #pragma once
 
+struct W8NpcState;
+class W8Monster;
+
+W8Monster* GetNpcMonster(W8NpcState* npc);
+
 #include "surrender/srMath.h"
 
 struct W8NpcState;

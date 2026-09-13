@@ -4,6 +4,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/engine_code/Video2.h"
 
 #include "FileMan.h"
@@ -23,7 +24,6 @@
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/game_status.h"
 
-extern void ContinueAfterDarkEndingVideo005AE770(void);
 
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_intro_video_index = 6;

@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/magic.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/engine_code/SpellVisual.h"
@@ -38,8 +39,6 @@
 #include <cstdlib>
 #include <wchar.h>
 #include "wiz8/character_skills.h"
-
-extern void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
@@ -562,8 +561,9 @@ void AbsorbMissileDamage00500460(W8Missile* missile)
             if (*effect->missiles.GetAt(missile_index) == missile) {
                 effect->result_126.count += missile->result_280.count;
                 effect->result_126.amount += missile->result_280.amount;
-                for (int band = 0; band < 20; ++band) {
-                    effect->result_126.damage[band] += missile->result_280.damage[band];
+                for (int condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+                    effect->result_126.condition_counts[condition] +=
+                        missile->result_280.condition_counts[condition];
                 }
                 while (missile->result_280.reports.GetCount() >= 1) {
                     effect->result_126.reports.Add(missile->result_280.reports.RemoveAt(0));
@@ -815,8 +815,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
          g_status_685170.buffers.characters[effect->target.iChar].hp_current == 0)) {
         target.iType = W8_TARGET_KIND_PLACE;
         if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
-            W8NavigatorMovementState* movement =
-                (W8NavigatorMovementState*)((char*)monster_info->monster + 0x18 + 0xc0);
+            W8NavigatorMovementState* movement = &monster_info->monster->movement_0c0;
             position = movement->position_040;
             position.y += movement->height_offset_0b8;
             position.y = SettlePositionToGround00420BD0(&position, 0);
@@ -1938,7 +1937,6 @@ extern const unsigned short g_name_prefix_messages[15] = {
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
 };
 /* 0x00689B34: the empty string every no-target kind is described by. */
-extern wchar_t g_wchar_00689b34;
 
 /* Say in words what a spell is aimed at. Each target kind reads its own field,
    which is what makes the two assertions here - on iChar and on iMonsterID -
@@ -2089,7 +2087,7 @@ enum { W8_SPELL_LURE = 0x26 };
    its mode set. Both are appended to whatever the cast hangs its effects off,
    and an effect that failed to spawn is simply not appended. */
 // FUNCTION: WIZ8 0x004fb360
-void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* target)
+void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target)
 {
     srVector3T<float> position;
     W8SpellVisual* effect;
@@ -2098,33 +2096,33 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* 
     position.y = target->point.y - 1000.0f;
     position.z = target->point.z;
 
-    effect = SpawnSpellEffect(&position, g_spell_records[W8_SPELL_LURE].resource_name, arg_2, 0, 0);
+    effect =
+        SpawnSpellEffect(&position, g_spell_records[W8_SPELL_LURE].resource_name, argument, 0, 0);
     if (effect != 0) {
         effect->flag_1e6 = 0;
         owner->effects.Add(effect);
     }
 
     position = target->point;
-    effect = SpawnSpellEffect(&position, "hyp_lure2", arg_2, 0, 0);
+    effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
     if (effect != 0) {
         effect->flag_1e6 = 0;
-        *(*(unsigned char**)((char*)effect + 0x1e0) + 0x71) = 3;
+        effect->host->behaviour_071 = 3;
         owner->effects.Add(effect);
     }
 }
 
-/* Damage-band names are the condition-notice table from +5, not a second
+/* Condition names are the condition-notice table from +5, not a second
    initialized object at 0x0061E57A. */
-static const unsigned short* const g_spell_band_text_0061e57a = g_condition_notices_0061E570 + 5;
+static const unsigned short* const g_spell_condition_text_0061e57a =
+    g_condition_notices_0061E570 + 5;
 
-/* The band entry the queued report records name their text by, rather than a
-   damage band. */
-enum { W8_SPELL_REPORT_BAND = 17 };
+/* Queued report records use the exhausted-condition notice. */
 
 /* Post what an effect accumulated. The opening separator only appears once
    the text box already has something in it; the total is reported as
    "<count> <unit>" or, for a single hit, "<amount> points", and each nonzero
-   damage band appends its own hit count and band name. Records still queued on
+   condition appends its own affected-target count and condition name. Records still queued on
    the result are then drained: a character-slot record posts the named
    character's notice, a text record formats its own "%s %s" line, and the box
    is reset around each. With nothing reported at all the effect reports that
@@ -2132,7 +2130,7 @@ enum { W8_SPELL_REPORT_BAND = 17 };
 // FUNCTION: WIZ8 0x005005c0
 void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
 {
-    const unsigned short* band_text = g_spell_band_text_0061e57a;
+    const unsigned short* condition_text = g_spell_condition_text_0061e57a;
 
     if (GetTextBoxMode() != 0) {
         Function5905F0(effect->reported_124 == 0 ? L" -- " : L", ", -1);
@@ -2152,20 +2150,20 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
         SetTextBoxMode(1, -1);
         effect->reported_124 = 1;
     }
-    unsigned int* damage = &effect->result_126.damage[1];
+    unsigned int* condition_count = &effect->result_126.condition_counts[1];
 
     do {
-        if (*damage != 0) {
+        if (*condition_count != 0) {
             if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
                 Function5905F0(L", ", -1);
                 SetTextBoxMode(1, -1);
             }
-            if (*damage == 1) {
+            if (*condition_count == 1) {
                 if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
                     Function5905F0(
                         FormatWideString(
                             L"%s %s", g_status_685170.buffers.characters[effect->target.iChar].name,
-                            gppStringList[band_text[0]]),
+                            gppStringList[condition_text[0]]),
                         -1);
                 } else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
                     W8MonsterInfo* monster_info =
@@ -2173,20 +2171,22 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                     if (monster_info != 0) {
                         Function5905F0(FormatWideString(L"%s %s",
                                                         GetMonsterName(monster_info, 0, 0),
-                                                        gppStringList[band_text[0]]),
+                                                        gppStringList[condition_text[0]]),
                                        -1);
                     }
                 }
             } else {
-                Function5905F0(FormatWideString(L"%ld %s", *damage, gppStringList[band_text[1]]),
-                               -1);
+                Function5905F0(
+                    FormatWideString(L"%ld %s", *condition_count,
+                                     gppStringList[condition_text[1]]),
+                    -1);
             }
             SetTextBoxMode(1, -1);
             effect->reported_124 = 1;
         }
-        band_text += 4;
-        ++damage;
-    } while (band_text < g_spell_band_text_0061e57a + 76);
+        condition_text += 4;
+        ++condition_count;
+    } while (condition_text < g_spell_condition_text_0061e57a + 76);
 
     while (effect->result_126.reports.GetCount() > 0) {
         W8SpellDamageReport* report = *effect->result_126.reports.GetAt(0);
@@ -2196,12 +2196,14 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
                     report->value, L"%s",
-                    gppStringList[g_spell_band_text_0061e57a[W8_SPELL_REPORT_BAND * 4]]);
+                    gppStringList[
+                        g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 WriteGameLog(9, L"%s %s", report->text,
-                             gppStringList[g_spell_band_text_0061e57a[W8_SPELL_REPORT_BAND * 4]]);
+                             gppStringList[g_spell_condition_text_0061e57a[
+                                 W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             }
             free(report);

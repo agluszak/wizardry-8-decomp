@@ -44,7 +44,6 @@ float g_float_00603ab8 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x00603abc
 float g_float_00603abc = 112.5f;
 
-extern float g_path_endpoint_scale_005ec1a4;
 // GLOBAL: WIZ8 0x005ec1a4
 float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
 

@@ -18,6 +18,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/LoadSaveGame.h"
@@ -47,8 +48,6 @@ W8CombatState* g_combat_state;
 // GLOBAL: WIZ8 0x006850b0
 unsigned int g_combat_countdown_6850b0;
 
-extern void Function4F0AF0(int move_kind); /* 0x004F0AF0 */
-extern void Function5A1640(void);          /* 0x005A1640 */
 
 /*
  * Local Code\Combat.cpp.
@@ -273,8 +272,6 @@ int PartyAvoidsSurprise(void)
 }
 
 /* 0x004C62C0 */
-extern int g_effect_005ee610;
-extern unsigned int g_flee_hp_fraction_005ed8f8;
 // GLOBAL: WIZ8 0x005ed908
 unsigned int g_flee_chance_005ed908 = 15;
 // GLOBAL: WIZ8 0x005ed490
@@ -547,7 +544,7 @@ void EndCombat004EA310(int mode)
     }
     UpdateScreenOverlays(0);
     RestoreCombatFormation();
-    Function53CD60();
+    ReconcilePartyEquipmentAfterCombat0053CD60();
     gXStatus.fCombatMode = 0;
     if (g_combat_state->unknown_a55[0xc] != 0) {
         Function517780();
@@ -763,7 +760,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
     W8ActionDetailBlock* detail;
 
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        context = Function53BC90(party_slot);
+        context = GetCombatActionContext0053BC90(party_slot);
     }
     switch (context) {
     case 0:
@@ -879,7 +876,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
         return 0;
     }
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
-        context = Function53BC90(party_slot);
+        context = GetCombatActionContext0053BC90(party_slot);
     }
     int chosen;
     int value_a;

@@ -95,7 +95,11 @@ struct W8CombatCharacterRow {
     unsigned char unknown_74[0x0c];
     unsigned char flag_80; /* 0x80 */
     unsigned char flag_81; /* 0x81: toggled when an attack action is chosen */
-    unsigned char unknown_82[0x1a];
+    unsigned char unknown_82[0x12];
+    /* 0x94: incremented when an out-of-combat action is repicked during
+       combat; the eight rows are addressed with the established 0xd4 stride. */
+    int pending_action_repick_count;
+    unsigned char unknown_98[4];
     /* 0x9c: the combat clock value when CatchUpCombatActor last advanced this
        row's phase (its inlined copies stamp g_combat_state->round_counter
        here); the spell-scaling paths read it as the character's combat pace. */

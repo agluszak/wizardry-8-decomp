@@ -43,7 +43,6 @@
 #include "mousesystem.h"
 #include "Font.h"
 #include "surrender/srMeshModel.h"
-#include "wiz8/local_screens/AutomapScreen.h"
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -103,7 +102,6 @@ stModelInstance2D* g_automap_text_marker_0068f2ac;
 // GLOBAL: WIZ8 0x0068F1F4
 W8GrowableVector<srClass*>* g_releasable_68f1f4;
 
-extern float g_float_64b914;
 
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;
@@ -251,7 +249,7 @@ void ResetAutomapView005817D0(void)
         }
         memset(g_automap_state, 0, sizeof(W8AutomapState));
     }
-    while (g_automap_notes->count != 0) {
+    while (g_automap_notes->GetCount() != 0) {
         W8AutomapNote* note = *g_automap_notes->GetAt(0);
         free(note->text);
         delete note;
@@ -412,7 +410,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_tool = 0;
     SetAutomapToolCursor(0);
     CreateAutomapMarkerSprites005822C0();
-    Function583BC0();
+    CreateAutomapButtons00583BC0();
     g_class_68f29c->setParent(0, 1);
     g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
@@ -562,7 +560,7 @@ void EnvironmentColour::Set(double red_value, double green_value, double blue_va
 // FUNCTION: WIZ8 0x00581360
 W8AutomapNote* CreateAutomapNote(const srVector2T<float>* position, int layer, const wchar_t* text)
 {
-    if (text && wcslen(text) < 40 && g_automap_notes->count < 200) {
+    if (text && wcslen(text) < 40 && g_automap_notes->GetCount() < 200) {
         W8AutomapNote* note = new W8AutomapNote;
         if (note) {
             note->position = *position;
@@ -651,7 +649,7 @@ void AutomapScreenFrame(void)
                     g_automap_editing_note = CreateAutomapNote(&location, g_automap_layer, L"_");
                 }
             } else if (g_automap_tool == 3) {
-                W8AutomapNote* note = Function582180();
+                W8AutomapNote* note = FindAutomapNoteUnderCursor00582180();
                 if (note) {
                     int index = g_automap_notes->IndexOf(note);
                     if (index >= 0)
@@ -698,14 +696,14 @@ void AutomapScreenFrame(void)
             }
         } else if (input.usEvent == MOUSE_POS) {
             W8AutomapNote* previous = g_automap_hovered_note;
-            g_automap_hovered_note = Function582180();
+            g_automap_hovered_note = FindAutomapNoteUnderCursor00582180();
             if (previous != g_automap_hovered_note) {
                 if (previous)
                     ShowAutomapNoteTooltip00581460(previous);
-                Function582930();
+                RenderAutomapMarkers00582930();
             }
             srVector3T<float> point;
-            if (Function582050(&point)) {
+            if (GetAutomapPositionUnderCursor00582050(&point)) {
                 point.y = 0.0f;
                 srVector3T<float> distance(point.x - g_automap_saved_camera.position.x, 0.0f,
                                            point.z - g_automap_saved_camera.position.z);
@@ -793,8 +791,8 @@ unsigned char AutomapScreenLeave(int)
         g_automap_surface->release();
         g_automap_surface = 0;
     }
-    while (g_releasable_68f1f4->count) {
-        srClass* object = g_releasable_68f1f4->data[0];
+    while (g_releasable_68f1f4->GetCount()) {
+        srClass* object = *g_releasable_68f1f4->GetAt(0);
         object->release();
         int index = g_releasable_68f1f4->IndexOf(object);
         if (index >= 0)
@@ -815,9 +813,9 @@ unsigned char AutomapScreenLeave(int)
             model->ClearAutomapPolygonFilter();
         }
     }
-    while (g_automap_created_layers.count) {
-        if (g_automap_created_layers.data[0])
-            g_automap_created_layers.data[0]->release();
+    while (g_automap_created_layers.GetCount()) {
+        if (*g_automap_created_layers.GetAt(0))
+            (*g_automap_created_layers.GetAt(0))->release();
         g_automap_created_layers.RemoveAt(0);
     }
     return 1;
@@ -1190,7 +1188,7 @@ void RenderAutomapFrame00581030(void)
 {
     if (g_automap_redraw != 0) {
         if (g_automap_surface_mode == 0) {
-            Function582930();
+            RenderAutomapMarkers00582930();
         } else {
             if (g_automap_overlay_redraw != 0) {
                 SetResidentTexturePolicy(3);
@@ -1214,7 +1212,7 @@ void RenderAutomapFrame00581030(void)
             surface->blit(0xc, 0x20, *g_automap_surface, 0xc, 0x20, 0x1d3, 0x1d3);
             surface->release();
             UnlockPrimarySurface();
-            Function582930();
+            RenderAutomapMarkers00582930();
             InvalidateRegion(0xc, 0x20, 0x1d3, 0x1d3, 0);
             SetRendererOption4Enabled(0);
             RenderFrame();
@@ -1473,17 +1471,9 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
         } else if (input->usParam == 0xd) {
             g_automap_editing_note->text[last] = 0;
             if (wcslen(g_automap_editing_note->text) == 0) {
-                if (0 < g_automap_notes->count) {
-                    int index = 0;
-                    do {
-                        if (g_automap_notes->data[index] == g_automap_editing_note) {
-                            if (index >= 0) {
-                                g_automap_notes->RemoveAt(index);
-                            }
-                            break;
-                        }
-                        index = index + 1;
-                    } while (index < g_automap_notes->count);
+                int index = g_automap_notes->IndexOf(g_automap_editing_note);
+                if (index >= 0) {
+                    g_automap_notes->RemoveAt(index);
                 }
                 free(g_automap_editing_note->text);
                 delete g_automap_editing_note;
@@ -1526,7 +1516,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
         }
     }
     if (g_automap_editing_note != 0) {
-        Function582930();
+        RenderAutomapMarkers00582930();
         return 1;
     }
     if (g_automap_tool != 0) {

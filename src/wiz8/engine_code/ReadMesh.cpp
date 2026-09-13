@@ -125,7 +125,6 @@ static unsigned long* g_multi_mesh_render_flags_65ba04;
 // GLOBAL: WIZ8 0x0065b9d0
 static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
 
-extern void UpdatePleaseWaitLoadFrame005915A0(void);
 
 namespace {
 
@@ -854,7 +853,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         }
         if (previous_model != 0) {
             previous_model->LinkTo(model);
-            previous_model->Function5AA400(model);
+            model->NotifyLinkedModel005AA400(previous_model);
         }
         previous_model = model;
         if (first_model == 0) {
@@ -1334,8 +1333,8 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
 // FUNCTION: WIZ8 0x00489920
 void ReleaseRetainedMaterials00489920()
 {
-    while (g_retained_materials_65b9d0.count != 0) {
-        g_retained_materials_65b9d0.data[0]->release();
+    while (g_retained_materials_65b9d0.GetCount() != 0) {
+        (*g_retained_materials_65b9d0.GetAt(0))->release();
         g_retained_materials_65b9d0.RemoveAt(0);
     }
 }

@@ -33,6 +33,8 @@ struct W8WorldCursorState {
 static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 
 extern W8WorldCursorState* g_world_cursor_0065ba8c;
+/* Build the 3D cursor, light, particle and initial camera-relative bounds. */
+void InitializeWorldCursor00490210(void);
 bool IsWorldCursorVisible(void);
 void GetWorldCursorPosition00490BF0(srVector3T<float>* position);
 void SetWorldCursorNodesVisible0048ED70(unsigned char visible);

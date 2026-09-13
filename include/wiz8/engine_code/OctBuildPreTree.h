@@ -7,6 +7,8 @@
 class BitArray;
 struct W8VersionedLevelParticleRecord;
 
+extern float g_float_005ec52c;
+
 struct W8OctRegionVertex004B2A20 {
     unsigned char positional_00[0x0c];
     srVector3T<float> position_0c;

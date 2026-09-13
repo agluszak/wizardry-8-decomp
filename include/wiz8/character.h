@@ -11,7 +11,7 @@ struct W8MonsterManagerEntry;
 
 #pragma pack(push, 1)
 
-/* The eighteen conditions a character can be under, indexed directly into
+/* The twenty conditions a character can be under, indexed directly into
    W8Character::condition_turns. Only the ones a recovered body names are
    spelled out; the rest keep their numbers. */
 enum {
@@ -28,6 +28,7 @@ enum {
     W8_CONDITION_POISONED = 7,
     W8_CONDITION_SPELLCASTING_BLOCKED = 8,
     W8_CONDITION_HOSTILE = 0xd,
+    W8_CONDITION_ASLEEP = 0xf,
     W8_CONDITION_EXHAUSTED = 0x11,
     /* Eighteen is death: applying it calls CharacterDies, and the bound-equipment
        unlock path is a consequence of that condition being set. */

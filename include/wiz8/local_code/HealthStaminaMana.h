@@ -23,7 +23,8 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
 unsigned int FatigueArmorPenalty(int fatigue_band);
 unsigned int SpellCastFatigueCost(int spell_id, int result);
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
-void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
+void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
+                    W8SpellEffectResult* report_to);
 void HealMonster(W8MonsterInfo* monster_info, int amount, char announce);
 void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announce);
 /* 0x0052BB60: the monster-side effect application pass the aging producer
@@ -50,6 +51,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
+int __cdecl CompareSpellPointDeficits(const void* first, const void* second);
 /* 0x0052FE80: queue the character's breath/idle event unless a spell or item
    is being aimed; `force` queues it regardless. */
 void StartBreathCycle(int party_slot, char force);

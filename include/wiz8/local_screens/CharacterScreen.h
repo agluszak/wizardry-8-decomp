@@ -429,6 +429,7 @@ extern W8CharacterScreen* g_character_screen_0069c2e8;
 
 /* CharacterScreen.cpp GLOBAL at 0x0061E3F0: per-profession message indexes. */
 extern unsigned short g_profession_name_message_ids_61e3f0[32];
+extern unsigned short g_race_name_message_ids_61e3d0[16];
 
 /* Refresh the character-screen response when a party slot changes. */
 void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */

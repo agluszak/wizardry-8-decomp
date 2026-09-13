@@ -90,6 +90,7 @@ unsigned char PleaseWaitScreenInitialize(void);
 unsigned char PleaseWaitScreenEnter(void);
 void PleaseWaitScreenFrame(void);
 unsigned char PleaseWaitScreenLeave(int leaving);
+void UpdatePleaseWaitLoadFrame005915A0(void);
 unsigned char PartySelectionScreenEnter(void);
 void PartySelectionScreenFrame(void);
 unsigned char PartySelectionScreenLeave(int leaving);

@@ -85,8 +85,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
-extern void RequestLevelTransition005615F0(int location_id, int entrance,
-                                           unsigned char show_message);
 
 // GLOBAL: WIZ8 0x0068506e
 unsigned char g_flag_0068506e;
@@ -808,7 +806,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
              trigger->m_pProp->Rep()->flag_06d == 0)) {
             trigger->GenerateItemGroup();
             if (g_modal_owner_0068edd0 == 0 && trigger->world_item_group_34c != 0) {
-                W8Dialog005CD710* dialog = new W8Dialog005CD710;
+                W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
                 if (dialog != 0) {
                     dialog->m_user_data = trigger;
                     dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
@@ -846,7 +844,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
 // FUNCTION: WIZ8 0x004456c0
 void OnItemDialogClosed004456C0(W8DialogBase* base)
 {
-    W8Dialog005CD710* dialog = static_cast<W8Dialog005CD710*>(base);
+    W8TriggerItemPickerDialog* dialog = static_cast<W8TriggerItemPickerDialog*>(base);
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup005CF110();

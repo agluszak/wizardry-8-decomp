@@ -14,6 +14,8 @@ class srModelInstance;
 class srNode;
 class srScene;
 class stSurface2D;
+class stTextureAnim;
+class W8Prop;
 struct EnvironmentColour;
 template <class T> class srVector3T;
 
@@ -74,6 +76,15 @@ extern float g_surface_scale_659680;
    and the texture scrollers read the shared scaled delta. */
 extern unsigned int g_frame_tick_65a154;
 extern float g_frame_elapsed_65a158;
+extern float g_view_distance_0060a390;
+extern unsigned char g_environment_flag_0060a394;
+extern float g_environment_value_0060a3a4;
+extern W8Prop* g_environment_value_0065ad84;
+extern W8Prop* g_environment_value_0065a160;
+extern stTextureAnim* g_environment_value_0065a168;
+extern stTextureAnim* g_environment_value_0065a16c;
+extern stTextureAnim* g_environment_value_0065a170;
+extern srVector3T<float> g_environment_origin_65ad88;
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;

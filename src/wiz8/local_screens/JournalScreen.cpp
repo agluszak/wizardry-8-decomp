@@ -8,6 +8,7 @@
 #include "wiz8/game_status.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"
@@ -34,12 +35,8 @@
 #include <new>
 #include <stdlib.h>
 
-extern wchar_t g_wchar_00689b34;
-extern int g_journal_page_0064df38;
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
-extern W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
-extern unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0069c4e0
 unsigned char g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0064d7b8
@@ -54,7 +51,6 @@ int g_journal_faction_name_indices_0064df4c[11] = {
 };
 // GLOBAL: WIZ8 0x0064df78
 wchar_t g_journal_alternate_page_0064df78[] = L"1 / 1";
-extern int g_journal_page_count_0064df3c;
 // GLOBAL: WIZ8 0x0064df3c
 int g_journal_page_count_0064df3c = -1;
 // GLOBAL: WIZ8 0x0069C4CC
@@ -80,7 +76,7 @@ void InitializeFactJournal(void)
     if (g_fact_journal_entries_0068de40 == 0) {
         g_fact_journal_entries_0068de40 = new W8GrowableVector<W8JournalEntry>();
     } else {
-        g_fact_journal_entries_0068de40->count = 0;
+        g_fact_journal_entries_0068de40->Clear();
     }
 }
 
@@ -363,7 +359,7 @@ unsigned char JournalScreenInitialize(void)
 {
     g_journal_font_69c4cc =
         LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                          const_cast<char*>("Data\\Journal\\journal_font.sti")));
+            const_cast<char*>("Data\\Journal\\journal_font.sti")));
     g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
     g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;
@@ -403,7 +399,7 @@ unsigned char JournalScreenEnter(void)
         break;
     }
 
-    g_journal_entries_0069c4e4->count = 0;
+    g_journal_entries_0069c4e4->Clear();
     for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
         W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
@@ -426,7 +422,7 @@ unsigned char JournalScreenLeave(int)
     ResetRegions();
     delete g_journal_panel_0069c4d4;
     g_journal_panel_0069c4d4 = 0;
-    g_journal_entries_0069c4e4->count = 0;
+    g_journal_entries_0069c4e4->Clear();
     delete g_journal_entries_0069c4e4;
     g_journal_entries_0069c4e4 = 0;
     if (gXStatus.fCampMode) {

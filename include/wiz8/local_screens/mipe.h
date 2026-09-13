@@ -16,7 +16,7 @@ struct W8MonsterGenerator;
 struct W8MipeMonsterEntry {
     wchar_t name[24];
     unsigned char kind;
-    unsigned char selectable;
+    bool selectable;
 };
 
 static_assert(sizeof(W8MipeMonsterEntry) == 0x32, "W8MipeMonsterEntry_size");
@@ -65,9 +65,3 @@ void ToggleMipePanel0057D740(void);
 
 unsigned char GetFlag68F105(void);
 unsigned char GetFlag68F104(void);
-
-void Function58AA20(int value);
-void Function490210(void);
-void Function48E420(W8WorldCursorNode0048DB30* node, int value_04, int value_08, float value_0c);
-W8WorldCursorNode0048DB30* Function48ED10(int index);
-void Function48DCA0(W8WorldCursorNode0048DB30* node);

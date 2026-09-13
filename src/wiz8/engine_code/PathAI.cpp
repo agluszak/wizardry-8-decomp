@@ -2,6 +2,8 @@
 #include "wiz8/engine_code/AnimRep.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/OctPath.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srHeap.h"
@@ -26,8 +28,6 @@ void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 
 void NoOp(void) {}
 
-extern const float g_negative_one_005ebc38;
-extern double g_double_005ec3b0;
 
 // FUNCTION: WIZ8 0x004a9260
 unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)

@@ -300,7 +300,6 @@ void WorldUpdateLights(W8World* world)
 /* 0x00659AB4: the world being rendered, which the list wrappers below reach
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
-extern void SetHeapFree(void* block);
 
 /* Add a monster to the world's monster list, or add/remove an item on the
    item list. Each wrapper still takes the caller's W8World* even though the

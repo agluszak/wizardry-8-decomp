@@ -17,7 +17,9 @@ struct W8MonsterGroup {
     int group_id;             /* 0x00: GroupIndex ID lookup key */
     int member_count;         /* 0x04: decremented when members leave */
     struct W8IList* monsters; /* 0x08: fresh IList per live group */
-    unsigned char unknown_0c[8];
+    /* Refreshed together by the targeting visibility pass. */
+    int visible_member_count;   /* 0x0c */
+    int selectable_member_count; /* 0x10 */
     int active_member_count; /* 0x14: recomputed from member conditions */
     int monster_id;          /* 0x18 */
     /* 0x1c: the mean of the live members' positions, recomputed on demand. */

@@ -38,8 +38,8 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
 {
     W8ItemInstance source;
     W8ItemInstance saved_hand;
-    W8Dialog005DCED0* dialog;
-    W8Dialog005DCED0* cancel_dialog;
+    W8SplitItemDialog* dialog;
+    W8SplitItemDialog* cancel_dialog;
     unsigned char saved_cursor;
     int item_id;
     int expected_split;
@@ -62,7 +62,7 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     /* The constructor picks the split count: half the stack for stacks whose
        record allows more than ten, one for small-capacity stacks. */
     expected_split = g_item_records[item_id].maximum_quantity <= 0xa ? 1 : 3;
-    dialog = new W8Dialog005DCED0(0, &source, -1);
+    dialog = new W8SplitItemDialog(0, &source, -1);
     if (dialog == 0) {
         return false;
     }
@@ -72,7 +72,7 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     delete dialog;
 
     /* An explicit count splits exactly that many off the stack. */
-    dialog = new W8Dialog005DCED0(0, &source, 2);
+    dialog = new W8SplitItemDialog(0, &source, 2);
     if (dialog != 0) {
         result->explicit_count_applied =
             dialog->split_count_0c0 == 2 && dialog->m_remaining_0bc == 4;
@@ -82,9 +82,9 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     /* A cancelled dialog must leave the stack untouched; the result callback
        is the real RCSItemsPage destroy callback. */
     g_split_item_source_0069c424 = &source;
-    cancel_dialog = new W8Dialog005DCED0(0, &source, -1);
+    cancel_dialog = new W8SplitItemDialog(0, &source, -1);
     if (cancel_dialog != 0) {
-        cancel_dialog->result_0c8 = g_split_result_kind_005efb44 + 1;
+        cancel_dialog->split_result_0c8 = g_split_result_kind_005efb44 + 1;
         SplitStackDialogResult005BAA80(cancel_dialog);
         result->cancel_leaves_stack =
             source.stack_count == 6 && g_status_685170.item_in_hand_235b.item_id == -1;

@@ -54,10 +54,10 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int real
    Magic Effects.cpp, so the gap is attributed to this unit. */
 char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
                                    int condition_id, int realm, unsigned int power_level,
-                                   int argument, int magnitude, char announce, char arg_9,
-                                   int duration);
-/* 0x005520D0: the saving throw against a condition. Whoever is already past
-   condition 0x11 is beyond reach and counts as resisting. */
+                                   int argument, int magnitude, char announce_resistance,
+                                   char announce_condition, int duration);
+/* 0x005520D0: the saving throw against a condition. A dead target is beyond
+   reach and counts as resisting. */
 char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_level,
                             int condition_id);
 /* 0x00551EB0: land a condition whose saving throw failed. `source_character`

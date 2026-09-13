@@ -32,7 +32,7 @@ public:
                                                   float interpolation);
     srVector3T<float>* GetVertexLights(char initialize, int table); /* 0x00472100 */
     float* GetVertexSunlight(char initialize);                      /* 0x004721E0 */
-    void Function5AA400(stMeshModel* linked_model);
+    void NotifyLinkedModel005AA400(stMeshModel* previous_model);
     void InitializeVertexFrames(int frames); /* 0x00473B00 */
     unsigned char AllocateFrameStorage();    /* 0x00471340 */
     void FreeFrameStorage();                 /* 0x004715E0 */

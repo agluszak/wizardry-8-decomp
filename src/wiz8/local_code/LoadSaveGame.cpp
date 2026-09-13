@@ -32,7 +32,6 @@
    its 272 bytes. */
 #include "FileMan.h"
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/stLight.h"
@@ -525,7 +524,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     }
 
     chunks->OpenChunk(0x4f545541, 0); /* AUTO */
-    Function581CE0(chunks->m_hFile);
+    SaveAutomapNotes00581CE0(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     if (g_world->triggers->count != 0) {

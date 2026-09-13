@@ -5,11 +5,10 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/text_input.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/Screens.h"
 
-#include "Font.h"
 #include "himage.h"
-#include "input.h"
 #include "Types.h"
 #include "mousesystem.h"
 #include "vobject_blitters.h"
@@ -89,7 +88,6 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 unsigned char gfEditingText;
-extern wchar_t g_wchar_00689b34;
 
 static TextInputColors* pColors;
 static STACKTEXTINPUTNODE* pInputStack;

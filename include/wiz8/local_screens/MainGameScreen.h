@@ -511,6 +511,7 @@ extern unsigned char g_flag_0068edc9;
 extern unsigned char g_flag_0068edd8;
 extern int g_main_game_mode_0068eddc;
 extern int g_value_64c1c8;
+void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern unsigned char g_flag_0068edd9;

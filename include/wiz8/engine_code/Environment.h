@@ -1,5 +1,7 @@
 #pragma once
 
+int GetEnvironmentValue0060A3A8(void);
+
 #include "Types.h"
 #include "surrender/srVertexProcessor.h"
 

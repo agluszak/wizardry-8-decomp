@@ -37,3 +37,6 @@ void ResetGameplaySlot(unsigned int slot);
 void ResetGameplaySettings(void);
 
 void RunNewGameOpeningSequence(unsigned char notify, const wchar_t* target);
+unsigned char IsSoundPlaying(int sound_handle);
+unsigned char StopSound(int sound_handle);
+void QueueGameplayEvent(int event_type, int party_slot);

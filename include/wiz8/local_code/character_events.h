@@ -1,5 +1,7 @@
 #pragma once
 
+#include <wchar.h>
+
 bool IsVoiceMuted(void);
 /* The audio panels pass the raw W8TextControl mask bit (0 or 2) through, so the
    transition is binary but the argument stays byte-valued. */
@@ -9,6 +11,21 @@ struct W8Character;
 struct W8CharacterEvent;
 
 extern int g_special_event_0068c558;
+extern int g_effect_005ee588;
+extern int g_effect_005ee590;
+extern int g_effect_005ee594;
+extern int g_effect_005ee598;
+extern int g_effect_005ee5f8;
+extern int g_effect_005ee610;
+extern unsigned int g_flee_hp_fraction_005ed8f8;
+extern int g_item_message_005ee640;
+extern int g_item_message_005ee644;
+extern int g_item_message_005ee648;
+extern int g_item_message_005ee64c;
+extern int g_item_message_005ee664;
+extern int g_item_message_005ee68c;
+extern int g_item_message_005ee690;
+extern int g_item_message_005ee6fc;
 
 int UpdateCharacterEventState(void);
 W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
@@ -19,7 +36,6 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int ar
    quote. */
 unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type,
                                        unsigned int* metadata);
-extern int g_effect_005ee588;
 /* 0x005EE6F0: first entry of the -1-terminated .rdata event-id table read at
    0x00509560. */
 extern const int g_value_005ee6f0;

@@ -27,9 +27,9 @@
 #include "wiz8/geometry.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
-#include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/render_state.h"
 #include "wiz8/text_input.h"
@@ -39,9 +39,7 @@
 #include "wiz8/utility.h"
 #include "FileMan.h"
 #include "Font.h"
-#include "input.h"
 #include "vsurface.h"
-#include "wiz8/local_code/GameplayCode.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -53,10 +51,6 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
                                  char right_button, char left_button);
 int Function558C40(const char* path);
 
-extern unsigned short g_profession_name_message_ids_61e3f0[];
-extern unsigned short g_race_name_message_ids_61e3d0[];
-extern unsigned short g_gender_name_message_rows_61e430[][4];
-extern unsigned short g_personality_message_ids_61e674[];
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
    bytes allocated at state-5 entry. The second vector supplies the names this

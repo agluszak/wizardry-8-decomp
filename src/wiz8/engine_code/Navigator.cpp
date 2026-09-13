@@ -1,4 +1,6 @@
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
@@ -13,7 +15,6 @@ double g_double_005ec030 = 2500.0;
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
-#include "surrender/srNode.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Monster.h"
@@ -24,7 +25,6 @@ double g_double_005ec030 = 2500.0;
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/engine_code/Octree.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +33,6 @@ double g_double_005ec030 = 2500.0;
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed
    interval, so it keeps an address-qualified name. */
-extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 
 namespace {
 
@@ -649,17 +648,12 @@ void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
     movement_0c0.secondary_height_offset_0bc = far_depth;
 }
 
-extern unsigned char g_navigator_position_changed_659c11;
 
-extern float g_navigator_default_turn_rate_005ec2f4;
 // GLOBAL: WIZ8 0x005ec2f4
 float g_navigator_default_turn_rate_005ec2f4 = 4.398229598999023f;
 
-extern const float g_negative_one_005ebc38;
-extern float g_navigator_snap_angle_005ec2f0;
 // GLOBAL: WIZ8 0x005ec2f0
 float g_navigator_snap_angle_005ec2f0 = 0.029999999329447746f;
-extern float g_navigator_mode3_scale_005ebca4;
 // GLOBAL: WIZ8 0x005ebca4
 float g_navigator_mode3_scale_005ebca4 = 0.4000000059604645f;
 // GLOBAL: WIZ8 0x006081e4
@@ -715,7 +709,6 @@ void W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
     navigator->maximum_height_038 = variation;
     navigator->ConfigureMovement00453D20(distance, variation);
 }
-extern unsigned char g_navigator_vertical_enabled_006081f8;
 // GLOBAL: WIZ8 0x00659c10
 unsigned char g_navigator_link_mode_00659c10;
 // GLOBAL: WIZ8 0x005ebc98
@@ -724,10 +717,8 @@ float g_navigator_linked_radius_scale_005ebc98 = 4.0f;
 float g_navigator_vertical_phase_step_005ebcc8 = 0.25f;
 // GLOBAL: WIZ8 0x005ec150
 extern const double g_double_005ec150 = 500.0;
-extern float g_navigator_minimum_speed_006081ec;
 // GLOBAL: WIZ8 0x006081ec
 float g_navigator_minimum_speed_006081ec = 0.5f;
-extern float g_navigator_minimum_speed_mode23_006081f0;
 // GLOBAL: WIZ8 0x006081f0
 float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 // GLOBAL: WIZ8 0x00659bf8

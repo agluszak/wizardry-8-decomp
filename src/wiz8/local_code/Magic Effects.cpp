@@ -22,7 +22,6 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
 /*
@@ -240,7 +239,7 @@ char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_
         level = character->level;
         highest_condition = character->highest_condition;
     }
-    if (highest_condition >= 0x12) {
+    if (highest_condition >= W8_CONDITION_DEAD) {
         return 1;
     }
 
@@ -519,8 +518,8 @@ void RecalculateCharacterResistances(W8Character* character)
 // FUNCTION: WIZ8 0x00551BA0
 char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
                                    int condition_id, int realm, unsigned int power_level,
-                                   int argument, int magnitude, char announce, char arg_9,
-                                   int duration)
+                                   int argument, int magnitude, char announce_resistance,
+                                   char announce_condition, int duration)
 {
     W8Character* character;
     W8MonsterInfo* monster_info;
@@ -536,7 +535,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
     } else {
         monster_info = MonsterInfoFromID(0xdc9, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
         monster = GetMonsterDataForInfo(monster_info);
-        if (monster->unknown_1be[0] != 0 && condition_id == 0x12) {
+        if (monster->unknown_1be[0] != 0 && condition_id == W8_CONDITION_DEAD) {
             return 1;
         }
         W8ConditionImmunity* immunity = g_condition_immunities_006171A8;
@@ -544,7 +543,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
             if (monster->kind_0cb != immunity->kind) {
                 continue;
             }
-            for (index = 0; index < 20; ++index) {
+            for (index = 0; index < W8_CONDITION_COUNT; ++index) {
                 if (condition_id == immunity->conditions[index]) {
                     return 1;
                 }
@@ -553,7 +552,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
         highest_condition = monster_info->highest_condition;
     }
 
-    if (highest_condition >= 0x12) {
+    if (highest_condition >= W8_CONDITION_DEAD) {
         return 1;
     }
     if (condition_id == 0x13) {
@@ -573,7 +572,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
             switch (condition_id) {
             case 6:
                 if (CharacterHasTrait00547940(character, 3) != 0) {
-                    if (announce != 0) {
+                    if (announce_resistance != 0) {
                         PostCharacterNotice(target->iChar, gppStringList[0x600 / 4]);
                     }
                     return 1;
@@ -582,18 +581,18 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
             case 3:
             case 4:
             case 7:
-            case 0xf:
+            case W8_CONDITION_ASLEEP:
                 if (CharacterHasTrait00547940(character, 0x1e) != 0) {
                     return 1;
                 }
                 break;
             case 0xb:
-                if (duration == 9999) {
+                if (duration == W8_EFFECT_PERMANENT) {
                     break;
                 }
             case 0xd:
                 if (CharacterHasTrait00547940(character, 0xe) != 0) {
-                    if (announce != 0) {
+                    if (announce_resistance != 0) {
                         PostCharacterNotice(
                             target->iChar, gppStringList[0x604 / 4],
                             gppStringList[g_condition_notices_0061E570[condition_id * 4] * 4]);
@@ -608,11 +607,13 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
         if (target->iType == W8_TARGET_KIND_MONSTER && TargetSourceIsCharacter(source, 0) != 0) {
             source_character = source->iChar;
         }
-        resolved = InflictConditionOnTarget(target, condition_id, realm, power_level, argument,
-                                            magnitude, source_character, duration, arg_9) == 0;
+        resolved =
+            InflictConditionOnTarget(target, condition_id, realm, power_level, argument, magnitude,
+                                     source_character, duration, announce_condition) == 0;
     }
 
-    if (resolved != 0 && announce != 0 && g_settings_6850c8.verbose_combat_messages != 0) {
+    if (resolved != 0 && announce_resistance != 0 &&
+        g_settings_6850c8.verbose_combat_messages != 0) {
         if (target->iType == W8_TARGET_KIND_MONSTER) {
             unsigned int monster_index =
                 MonsterGetIndexByLocationID(0xeae, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);

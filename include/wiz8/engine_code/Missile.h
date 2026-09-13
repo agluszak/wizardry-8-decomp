@@ -126,8 +126,8 @@ public:
     W8SpellEffectDefinition definition_1fc;
     W8TargetSource source_22c;
     W8CombatSlot combat_slot_260;
-    /* 0x280: the damage this missile has dealt, folded into the owning spell
-       effect by 0x00500460. */
+    /* 0x280: the damage and condition results this missile has accumulated,
+       folded into the owning spell effect by 0x00500460. */
     W8SpellEffectResult result_280;
     unsigned char unknown_2e8[0x3a];
     bool retargeted_322; /* the missile struck something other than its intended target */

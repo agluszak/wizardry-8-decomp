@@ -65,7 +65,6 @@
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/IntroScreen.h"
@@ -231,7 +230,6 @@ unsigned char g_navigator_position_changed_659c11;
 unsigned char g_flag_006840bb;
 
 void Function4314C0(int save);
-void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 void Function568C40(void);
 void Function569CC0(void);
 void Function5A6970(void);

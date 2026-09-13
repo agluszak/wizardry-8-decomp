@@ -16,6 +16,10 @@ void ScaleWorldCursorNodeY0048DE90(W8WorldCursorNode0048DB30* entry, double scal
 void ScaleWorldCursorNodeZ0048DEE0(W8WorldCursorNode0048DB30* entry, double scale);
 void SetWorldCursorNodeColorComponents0048E420(W8WorldCursorNode0048DB30* entry, float red,
                                                float green, float blue);
+/* 0x0048DCA0 forwards to the full label painter at 0x0048DCB0. */
+void RefreshWorldCursorNodeLabel0048DCA0(W8WorldCursorNode0048DB30* entry);
+/* Return the indexed cursor node, or the first node when the index is past the end. */
+W8WorldCursorNode0048DB30* GetWorldCursorNode0048ED10(int index);
 void AttachWorldCursorNode0048ED30(W8WorldCursorNode0048DB30* entry, unsigned char attached);
 void SetWorldCursorNodeName0048F110(W8WorldCursorNode0048DB30* entry, const char* name);
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode0048DB30* entry, unsigned long color);

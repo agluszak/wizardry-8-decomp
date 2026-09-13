@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
@@ -13,9 +14,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-extern int g_dialog_font_64fde8;
-extern unsigned char g_dialog_font_foreground_64fdec;
-extern unsigned char g_dialog_font_background_64fded;
 
 /* Dialog Code\stMessageDialog.cpp. SetMessage and WrapMessage assert this
    unit (lines 131 and 213); the two button callbacks are proven by their

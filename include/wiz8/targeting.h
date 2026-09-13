@@ -158,7 +158,9 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
 void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
-int Function53C990(int party_slot, int group_id, int arg);
+/* Pick an attack fallback, allowing the character's alternate weapon set when
+   the ordinary group selection has no usable monster. */
+int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8TargetingContext context);
 void SetFactionFlag(char faction, unsigned char flag);
 unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
@@ -203,8 +205,8 @@ void UpdateTargetMarkerHighlight0053B1D0(void);
 class W8Monster;
 /* 0x0053A060: whether `monster` sits within `max_distance` of `position` and
    still projects on screen. */
-unsigned char Function53A060(W8Monster* monster, const srVector3T<float>* position,
-                             float max_distance);
+bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
+                                            float max_distance);
 void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
@@ -212,11 +214,12 @@ unsigned char
 TargetIsInPlay(int party_slot, int value,
                W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
 
-void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
-void Function53CD60(void);            /* 0x0053CD60 */
+void ClearAllMonsterHighlights(void);                  /* 0x0053AE00 */
+void ReconcilePartyEquipmentAfterCombat0053CD60(void); /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
-bool CanPartySlotParticipate(int party_slot);      /* 0x0053C270 */
-W8TargetingContext Function53BC90(int party_slot); /* 0x0053BC90 */
+bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
+/* Resolve the context used by Combat.cpp's selected-action accessors. */
+W8TargetingContext GetCombatActionContext0053BC90(int party_slot); /* 0x0053BC90 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */

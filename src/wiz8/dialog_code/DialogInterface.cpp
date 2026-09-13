@@ -43,7 +43,7 @@ W8DialogBase* CreateDialogByKind(int kind)
         dialog->SetExtent(240, 280);
         break;
     case 5:
-        dialog = new W8Dialog005D97D0;
+        dialog = new W8SplitAmountDialog;
         dialog->SetText(&g_wchar_00689b34);
         dialog->SetOrigin(159, 184);
         return dialog;

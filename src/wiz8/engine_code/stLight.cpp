@@ -1,5 +1,6 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stLight.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/geometry.h"
@@ -17,7 +18,6 @@
    string in the image names this unit; the class ownership is nevertheless
    established by its definitions. */
 
-extern float g_light_scale_0060bfe0;
 
 // GLOBAL: WIZ8 0x0060bfdc
 unsigned int g_light_update_flags_0060bfdc = 1;

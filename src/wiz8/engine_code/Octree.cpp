@@ -32,14 +32,8 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/BitArray.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/OctPath.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stCube.h"
-#include "wiz8/engine_code/3d.h"
-#include "wiz8/engine_code/Navigator.h"
 #include "wiz8/screen_state.h"
 
 #include <math.h>
@@ -1235,8 +1229,6 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(W8NavigatorMovementState* mo
 
 // GLOBAL: WIZ8 0x005ebcd0
 float g_octree_cell_scale_005ebcd0 = 100.0f;
-extern unsigned short g_path_reserve_0060827a;
-extern float g_path_span_scale_005ec344;
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 

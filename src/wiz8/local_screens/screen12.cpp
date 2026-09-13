@@ -6,7 +6,6 @@
 #include "wiz8/render_state.h"
 
 #include "himage.h"
-#include "input.h"
 #include "vsurface.h"
 #include "sgp.h"
 
@@ -15,7 +14,6 @@
    Local Screens\PleaseWaitScreen.cpp (upper 0x00590FA0) and
    Local Screens\MGSKeyboard.cpp (lower 0x00591960). */
 
-extern int g_value_64c1c8;
 // GLOBAL: WIZ8 0x0064c1c8
 int g_value_64c1c8 = -1;
 

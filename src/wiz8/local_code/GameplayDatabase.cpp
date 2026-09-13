@@ -26,7 +26,6 @@ unsigned char g_status_block_685078[56];
 #include "wiz8/item_spawning.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
-#include "wiz8/screen_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
@@ -40,9 +39,6 @@ unsigned char g_status_block_685078[56];
 #include <string.h>
 #include <stdlib.h>
 
-extern unsigned char IsSoundPlaying(int sound_handle);
-extern unsigned char StopSound(int sound_handle);
-extern void QueueGameplayEvent(int event_type, int party_slot);
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170

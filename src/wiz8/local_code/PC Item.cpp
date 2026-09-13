@@ -27,12 +27,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/sound_man.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/ItemManager.h"
-#include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatAttack.h"
-#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 
@@ -296,15 +293,6 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
 }
 
 /* 0x0051FE30 */
-extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
-extern int g_item_message_005ee6fc;
-extern int g_item_message_005ee640;
-extern int g_item_message_005ee644;
-extern int g_item_message_005ee648;
-extern int g_item_message_005ee64c;
-extern int g_item_message_005ee690;
-extern int g_item_message_005ee68c;
-extern int g_item_message_005ee664;
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
@@ -1949,7 +1937,6 @@ void BindEveryPartyItem(void)
     ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
 }
 
-#include <stdlib.h>
 #include "wiz8/game_status.h"
 
 /* Order two pool entries. Both have to hold something - the two assertions say

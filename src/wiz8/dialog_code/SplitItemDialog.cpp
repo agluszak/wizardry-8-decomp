@@ -58,7 +58,7 @@ int g_split_text_string_ids[14] = {
 W8ScreenRect g_split_count_field_bounds = {0xbc, 0x6f, 0xef, 0x7b};
 
 // FUNCTION: WIZ8 0x005DCED0
-W8Dialog005DCED0::W8Dialog005DCED0(int kind, W8ItemInstance* item, int count)
+W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
 {
     int index;
 
@@ -90,16 +90,16 @@ W8Dialog005DCED0::W8Dialog005DCED0(int kind, W8ItemInstance* item, int count)
         m_remaining_0bc = item->stack_count - count;
     }
     m_item_0d0 = item;
-    result_0c8 = 0;
+    split_result_0c8 = 0;
     m_active_input_0b8 = 0;
     m_first_draw_0d4 = 0;
 }
 
 // SYNTHETIC: WIZ8 0x005DD010
-// W8Dialog005DCED0::`scalar deleting destructor'
+// W8SplitItemDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005DD030
-W8Dialog005DCED0::~W8Dialog005DCED0()
+W8SplitItemDialog::~W8SplitItemDialog()
 {
     int index;
     int count;
@@ -137,7 +137,7 @@ W8Dialog005DCED0::~W8Dialog005DCED0()
 }
 
 // FUNCTION: WIZ8 0x005DD130
-int W8Dialog005DCED0::CreateControls()
+int W8SplitItemDialog::CreateControls()
 {
     int index;
     int count;
@@ -145,7 +145,7 @@ int W8Dialog005DCED0::CreateControls()
 
     W8DialogBase::CreateControls();
     m_first_draw_0d4 = 1;
-    result_0c8 = 0;
+    split_result_0c8 = 0;
     if (!CreateButtons005DD480()) {
         m_error = 7;
         return 7;
@@ -219,7 +219,7 @@ int W8Dialog005DCED0::CreateControls()
 }
 
 // FUNCTION: WIZ8 0x005DD3C0
-void W8Dialog005DCED0::DestroyControls()
+void W8SplitItemDialog::DestroyControls()
 {
     int index;
     int count;
@@ -257,7 +257,7 @@ void W8Dialog005DCED0::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005DD480
-unsigned char W8Dialog005DCED0::CreateButtons005DD480()
+unsigned char W8SplitItemDialog::CreateButtons005DD480()
 {
     int count;
     int index;
@@ -321,7 +321,7 @@ unsigned char W8Dialog005DCED0::CreateButtons005DD480()
 }
 
 // FUNCTION: WIZ8 0x005DD750
-unsigned char W8Dialog005DCED0::CreateTextBuffers005DD750()
+unsigned char W8SplitItemDialog::CreateTextBuffers005DD750()
 {
     int count;
     int index;
@@ -388,7 +388,7 @@ unsigned char W8Dialog005DCED0::CreateTextBuffers005DD750()
 }
 
 // FUNCTION: WIZ8 0x005DDA60
-unsigned char W8Dialog005DCED0::CreateNumericInput005DDA60()
+unsigned char W8SplitItemDialog::CreateNumericInput005DDA60()
 {
     W8ControlsRect bounds;
 
@@ -410,7 +410,7 @@ unsigned char W8Dialog005DCED0::CreateNumericInput005DDA60()
 }
 
 // FUNCTION: WIZ8 0x005DDB60
-void W8Dialog005DCED0::Draw()
+void W8SplitItemDialog::Draw()
 {
     int index;
     int button_count;
@@ -469,7 +469,7 @@ void W8Dialog005DCED0::Draw()
 }
 
 // FUNCTION: WIZ8 0x005DDCC0
-void W8Dialog005DCED0::UpdateCostLabels005DCC00()
+void W8SplitItemDialog::UpdateCostLabels005DCC00()
 {
     W8ItemInstance stack;
     wchar_t text[34];
@@ -521,7 +521,7 @@ void W8Dialog005DCED0::UpdateCostLabels005DCC00()
 }
 
 // FUNCTION: WIZ8 0x005DDE60
-void W8Dialog005DCED0::UpdateArrowStates005DDE60()
+void W8SplitItemDialog::UpdateArrowStates005DDE60()
 {
     if (split_count_0c0 == 0) {
         m_buttons_054[0]->SetEnabled(0);
@@ -540,7 +540,7 @@ void W8Dialog005DCED0::UpdateArrowStates005DDE60()
 }
 
 // FUNCTION: WIZ8 0x005DDEE0
-void W8Dialog005DCED0::UpdateAcceptButton005DDEE0()
+void W8SplitItemDialog::UpdateAcceptButton005DDEE0()
 {
     W8ItemInstance stack;
     unsigned char can_accept;
@@ -570,7 +570,7 @@ void W8Dialog005DCED0::UpdateAcceptButton005DDEE0()
 }
 
 // FUNCTION: WIZ8 0x005DDFA0
-void W8Dialog005DCED0::OnNumericInputChanged(int value)
+void W8SplitItemDialog::OnNumericInputChanged(int value)
 {
     wchar_t text[34];
 
@@ -603,7 +603,7 @@ void W8Dialog005DCED0::OnNumericInputChanged(int value)
 }
 
 // FUNCTION: WIZ8 0x005DE120
-unsigned char W8Dialog005DCED0::HandleInputEvent005DE120(const InputAtom* input)
+unsigned char W8SplitItemDialog::HandleInputEvent005DE120(const InputAtom* input)
 {
     int index;
     W8DialogNumericInput** field;
@@ -618,7 +618,7 @@ unsigned char W8Dialog005DCED0::HandleInputEvent005DE120(const InputAtom* input)
     if (input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) {
         int key = toupper(input->usParam);
         if (key == '\r') {
-            result_0c8 = 1;
+            split_result_0c8 = 1;
             m_keep_open = 0;
         } else if (key == 0x1b) {
             m_keep_open = 0;
@@ -629,7 +629,7 @@ unsigned char W8Dialog005DCED0::HandleInputEvent005DE120(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x005DE1B0
-unsigned char W8Dialog005DCED0::ProcessInput()
+unsigned char W8SplitItemDialog::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -674,15 +674,15 @@ unsigned char W8Dialog005DCED0::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005DE350
-void W8Dialog005DCED0::OnSplitDecrement005DE350(W8DialogButton* button)
+void W8SplitItemDialog::OnSplitDecrement005DE350(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
     wchar_t text[34];
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->split_count_0c0 = __max(0, dialog->split_count_0c0 - 1);
     dialog->m_remaining_0bc = __min(dialog->m_stack_total_0c4, dialog->m_remaining_0bc + 1);
     dialog->UpdateArrowStates005DDE60();
@@ -711,15 +711,15 @@ void W8Dialog005DCED0::OnSplitDecrement005DE350(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005DE4E0
-void W8Dialog005DCED0::OnSplitIncrement005DE4E0(W8DialogButton* button)
+void W8SplitItemDialog::OnSplitIncrement005DE4E0(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
     wchar_t text[34];
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->m_remaining_0bc = __max(0, dialog->m_remaining_0bc - 1);
     dialog->split_count_0c0 = __min(dialog->m_stack_total_0c4, dialog->split_count_0c0 + 1);
     dialog->UpdateArrowStates005DDE60();
@@ -748,15 +748,15 @@ void W8Dialog005DCED0::OnSplitIncrement005DE4E0(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005DE670
-void W8Dialog005DCED0::OnSplitDecrementMany005DE670(W8DialogButton* button)
+void W8SplitItemDialog::OnSplitDecrementMany005DE670(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
     wchar_t text[34];
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->split_count_0c0 = __max(0, dialog->split_count_0c0 - 5);
     dialog->m_remaining_0bc = __min(dialog->m_stack_total_0c4, dialog->m_remaining_0bc + 5);
     dialog->UpdateArrowStates005DDE60();
@@ -785,15 +785,15 @@ void W8Dialog005DCED0::OnSplitDecrementMany005DE670(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005DE810
-void W8Dialog005DCED0::OnSplitIncrementMany005DE810(W8DialogButton* button)
+void W8SplitItemDialog::OnSplitIncrementMany005DE810(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
     wchar_t text[34];
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->m_remaining_0bc = __max(0, dialog->m_remaining_0bc - 5);
     dialog->split_count_0c0 = __min(dialog->m_stack_total_0c4, dialog->split_count_0c0 + 5);
     dialog->UpdateArrowStates005DDE60();
@@ -822,42 +822,42 @@ void W8Dialog005DCED0::OnSplitIncrementMany005DE810(W8DialogButton* button)
 }
 
 // FUNCTION: WIZ8 0x005DE9B0
-void W8Dialog005DCED0::OnAccept005DE9B0(W8DialogButton* button)
+void W8SplitItemDialog::OnAccept005DE9B0(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
-    dialog->result_0c8 = 1;
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog->split_result_0c8 = 1;
     dialog->m_keep_open = 0;
 }
 
 // FUNCTION: WIZ8 0x005DE9D0
-void W8Dialog005DCED0::OnCancel005DE9D0(W8DialogButton* button)
+void W8SplitItemDialog::OnCancel005DE9D0(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
-    dialog->result_0c8 = 2;
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
+    dialog->split_result_0c8 = 2;
     dialog->m_keep_open = 0;
 }
 
 // FUNCTION: WIZ8 0x005DE9F0
-void W8Dialog005DCED0::OnCountFieldClick005DE9F0(W8DialogButton* button)
+void W8SplitItemDialog::OnCountFieldClick005DE9F0(W8DialogButton* button)
 {
-    W8Dialog005DCED0* dialog;
+    W8SplitItemDialog* dialog;
     POINT mouse;
     POINT point;
 
     if (button == 0) {
         return;
     }
-    dialog = static_cast<W8Dialog005DCED0*>(button->m_owner_040);
+    dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     SGPMouseGetPos(&mouse);
     if (dialog->m_count_input_0b4 == 0) {
         return;

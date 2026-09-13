@@ -60,7 +60,6 @@
 
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
-extern void SetRendererReady(void);
 
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;

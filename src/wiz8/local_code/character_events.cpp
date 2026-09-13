@@ -1,5 +1,5 @@
-#include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Monster.h"
@@ -35,9 +35,6 @@
 #include "wiz8/bink_video.h"
 #include "FileMan.h"
 
-extern unsigned char IsSoundPlaying(int sound_handle);
-extern unsigned char StopSound(int sound_handle);
-extern void QueueGameplayEvent(int event_type, int party_slot);
 
 #include <stdio.h>
 #include <wchar.h>
@@ -1144,7 +1141,7 @@ void W8CharacterEventQueue::ProcessDeferredCharacterEvents()
         for (index = 0; index < vector_30.count; ++index) {
             QueueEntry(vector_30.data[index]);
         }
-        vector_30.count = 0;
+        vector_30.Clear();
     }
 
     if (vector_10.count != 0) {

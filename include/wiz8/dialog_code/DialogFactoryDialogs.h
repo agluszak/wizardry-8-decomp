@@ -123,10 +123,10 @@ public:
 }; /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0
-class W8Dialog005D97D0 : public W8DialogBase {
+class W8SplitAmountDialog : public W8DialogBase {
 public:
-    W8Dialog005D97D0(); /* 0x005D97D0 */
-    virtual ~W8Dialog005D97D0() override;
+    W8SplitAmountDialog(); /* 0x005D97D0 */
+    virtual ~W8SplitAmountDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
@@ -157,11 +157,11 @@ private:
     static void SplitActivateField005DA5C0(W8DialogButton* button);
 
 private:
-    W8DialogButton* m_fields_54[6];
+    W8DialogButton* m_buttons_054[6];
     W8TextBuffer* m_field_6c;
     W8TextBuffer* m_field_70;
     W8TextBuffer* m_field_74;
-    W8DialogNumericInput* m_field_78;
+    W8DialogNumericInput* m_split_input_078;
     /* 0x07c: the numeric field while the cursor or keyboard owns it. */
     W8DialogNumericInput* m_active_field_7c;
     int m_remaining_080; /* 0x080: total minus the field value */
@@ -171,7 +171,7 @@ private:
 }; /* 0x90 */
 
 static_assert(sizeof(W8Dialog005CBB40) == 0xfc, "W8Dialog005CBB40_must_be_0xfc");
-static_assert(sizeof(W8Dialog005D97D0) == 0x90, "W8Dialog005D97D0_must_be_0x90");
+static_assert(sizeof(W8SplitAmountDialog) == 0x90, "W8SplitAmountDialog_must_be_0x90");
 
 /* The trigger-owned item picker. Its constructor is 0x005CD710, its primary
    table 0x005EF810, and its complete object 0xB0 bytes. The 13 button slots
@@ -179,10 +179,10 @@ static_assert(sizeof(W8Dialog005D97D0) == 0x90, "W8Dialog005D97D0_must_be_0x90")
    item merge path; the item group at +0xac is what the trigger hands in and
    the destroy callback hands back. */
 // VTABLE: WIZ8 0x005ef810
-class W8Dialog005CD710 : public W8DialogBase {
+class W8TriggerItemPickerDialog : public W8DialogBase {
 public:
-    W8Dialog005CD710();                            /* 0x005CD710 */
-    virtual ~W8Dialog005CD710() override;          /* 0x005CD820 */
+    W8TriggerItemPickerDialog();                   /* 0x005CD710 */
+    virtual ~W8TriggerItemPickerDialog() override; /* 0x005CD820 */
     virtual int CreateControls() override;         /* 0x005CDC10 */
     virtual void DestroyControls() override;       /* 0x005CDC40 */
     virtual void Draw() override;                  /* 0x005CDC70 */
@@ -205,14 +205,14 @@ private:
     unsigned char HandleInputEvent005CEC20(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered, except Function5CE6E0 which Assay
-       Dialog also stores on its close button. */
+       are not recovered, except CloseOwningDialog005CE6E0 which AssayDialog
+       also stores on its close button. */
     static void Function5CE5F0(W8DialogButton* button);
     static void Function5CE6A0(W8DialogButton* button);
     static void Function5CE6C0(W8DialogButton* button);
 
 public:
-    static void Function5CE6E0(W8DialogButton* button); /* 0x005CE6E0 */
+    static void CloseOwningDialog005CE6E0(W8DialogButton* button); /* 0x005CE6E0 */
 
 private:
     static void Function5CE6F0(W8DialogButton* button);
@@ -228,7 +228,6 @@ private:
     static void Function5CEAF0(W8DialogButton* button);
 
 public:
-public:
     W8GrowableVector<W8WorldItem*> items_54;
     W8GrowableVector<unsigned char> flags_64;
     W8DialogButton* m_buttons_74[13];
@@ -236,7 +235,7 @@ public:
     W8WorldItem* m_item_group_0ac;
 };
 
-static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0");
+static_assert(sizeof(W8TriggerItemPickerDialog) == 0xb0, "W8TriggerItemPickerDialog_must_be_0xb0");
 
 /* The item-split dialog RCSItemsPage.cpp opens for stackable item stacks.
    Derivation is proven by the retail static_cast to W8DialogBase at the
@@ -245,17 +244,17 @@ static_assert(sizeof(W8Dialog005CD710) == 0xb0, "W8Dialog005CD710_must_be_0xb0")
    this vtable at +0; the listed slots are the ones that differ from
    W8DialogBase (the rest reuse the base implementations). split_count_0c0 is
    the count the destroy callback SplitStackDialogResult005BAA80 reads back
-   and result_0c8 is the dialog result kind it tests. */
+   and split_result_0c8 is the dialog result kind it tests. */
 // VTABLE: WIZ8 0x005efb78
-class W8Dialog005DCED0 : public W8DialogBase {
+class W8SplitItemDialog : public W8DialogBase {
 public:
-    W8Dialog005DCED0(int kind, W8ItemInstance* item, int count); /* 0x005DCED0 */
-    virtual ~W8Dialog005DCED0() override;                        /* 0x005DD030 */
-    virtual int CreateControls() override;                       /* 0x005DD130 */
-    virtual void DestroyControls() override;                     /* 0x005DD3C0 */
-    virtual void Draw() override;                                /* 0x005DDB60 */
-    virtual unsigned char ProcessInput() override;               /* 0x005DE1B0 */
-    virtual void OnNumericInputChanged(int value) override;      /* 0x005DDFA0 */
+    W8SplitItemDialog(int kind, W8ItemInstance* item, int count); /* 0x005DCED0 */
+    virtual ~W8SplitItemDialog() override;                        /* 0x005DD030 */
+    virtual int CreateControls() override;                        /* 0x005DD130 */
+    virtual void DestroyControls() override;                      /* 0x005DD3C0 */
+    virtual void Draw() override;                                 /* 0x005DDB60 */
+    virtual unsigned char ProcessInput() override;                /* 0x005DE1B0 */
+    virtual void OnNumericInputChanged(int value) override;       /* 0x005DDFA0 */
 
 private:
     /* 0x005DD480: create and place the arrow, frame, accept and cancel
@@ -292,7 +291,7 @@ public:
     int m_remaining_0bc; /* 0x0bc: the count left in the source stack */
     int split_count_0c0;
     int m_stack_total_0c4; /* 0x0c4: stack_count when the dialog opened */
-    int result_0c8;
+    int split_result_0c8;
 
 private:
     unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
@@ -301,4 +300,4 @@ private:
     unsigned char unknown_0d5[3];
 };
 
-static_assert(sizeof(W8Dialog005DCED0) == 0xd8, "W8Dialog005DCED0_must_be_0xd8");
+static_assert(sizeof(W8SplitItemDialog) == 0xd8, "W8SplitItemDialog_must_be_0xd8");

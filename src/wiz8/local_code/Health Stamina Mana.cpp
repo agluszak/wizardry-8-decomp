@@ -93,7 +93,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     applied = character->hp_current;
     if (applied <= amount) {
         if (CharacterHasTrait00547940(character, 2) != 0 &&
-            static_cast<unsigned int>(character->condition_turns[0x11]) < 7) {
+            static_cast<unsigned int>(character->condition_turns[W8_CONDITION_EXHAUSTED]) < 7) {
             Function547A50(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
@@ -111,9 +111,10 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         }
     } else {
         if (result_stats != 0) {
-            W8SpellDamageReport* report = static_cast<W8SpellDamageReport*>(malloc(0x6c));
+            W8SpellDamageReport* report =
+                static_cast<W8SpellDamageReport*>(malloc(sizeof(W8SpellDamageReport)));
             if (report != 0) {
-                memset(report, 0, 0x6c);
+                memset(report, 0, sizeof(W8SpellDamageReport));
                 report->kind = 1;
                 report->value = party_slot;
                 result_stats->reports.Add(report);
@@ -123,9 +124,9 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
                               result_stats == 0);
     }
 
-    if (character->condition_turns[0xf] != 0 && arg_3 == 0 &&
+    if (character->condition_turns[W8_CONDITION_ASLEEP] != 0 && arg_3 == 0 &&
         Random(100) < (character->attributes[6].effective >> 1) + 0x32) {
-        RemoveCharacterCondition(party_slot, 0xf, 1);
+        RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
     }
     return amount;
 }
@@ -381,20 +382,11 @@ unsigned int FatigueArmorPenalty(int fatigue_band)
 
 /* Two effects the party is holding that a wounded character can no longer
    sustain, and the third that only the deeper threshold breaks. */
-extern int g_effect_005ee594;
-extern int g_effect_005ee590;
-extern int g_effect_005ee5f8;
 // GLOBAL: WIZ8 0x005ed904
 unsigned int g_effect_threshold_005ed904 = 50;
 // GLOBAL: WIZ8 0x005ed900
 unsigned int g_effect_threshold_005ed900 = 70;
 /* 0x0061E518: one notice index per spell realm, giving the realm's name. */
-extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
-
-/* Orders the six realms by how far short of full they are. The body lives at
-   0x0052B8E0 and is reached only through qsort. */
-extern int __cdecl CompareSpellPointDeficits(const void* first, const void* second);
-
 /* Turn a pool fraction into a band. The same ladder decides a character's
    fatigue band and a monster's, from the percentage of the pool that is
    missing rather than the part that is left. */
@@ -632,7 +624,8 @@ void DamageCharacter(int party_slot, int damage, char announce)
    exhausted condition indefinitely, and tells whoever asked for the fatigue
    that it landed. */
 // FUNCTION: WIZ8 0x0052c070
-void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to)
+void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
+                    W8SpellEffectResult* report_to)
 {
     W8TargetSource target_block;
 
@@ -659,7 +652,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
                             W8_CONDITION_INDEFINITE, 0, &target_block, report_to == 0);
         if (report_to != 0) {
-            *(int*)((char*)report_to + 0x4c) += 1;
+            ++report_to->condition_counts[W8_CONDITION_EXHAUSTED];
         }
     }
 }
@@ -726,7 +719,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
 
     if (monster_info->condition_turns[15] != 0 && quiet == 0 &&
         Random(100) < (unsigned int)((monster_info->converted_attributes_247[4] >> 1) + 0x32)) {
-        ClearMonsterCondition(monster_info->location_id, 0xf);
+        ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
     if (monster_info->control_state == 1) {
         SetMonsterControlState(monster_info, 0);
@@ -756,9 +749,6 @@ static const int kLoadFatiguePercent[W8_LOAD_CATEGORY_COUNT] = {0, 0x19, 0x32, 1
 
 /* The band past which deep fatigue takes hold, and the band it lets go at. */
 enum { W8_FATIGUE_BAND_DEEP = 2, W8_FATIGUE_BAND_RECOVERED = 2 };
-
-/* 0x0052E690 */
-extern int g_effect_005ee598;
 
 /* Tire one character. The load they are carrying scales the cost - eased or
    worsened by the two load modifiers - and the result is taken out of their
@@ -815,7 +805,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
             SetCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, W8_CONDITION_INDEFINITE, 0, 0,
                                   report_to == 0);
             if (report_to != 0) {
-                *(int*)((char*)report_to + 0x4c) += 1;
+                ++report_to->condition_counts[W8_CONDITION_EXHAUSTED];
             }
         }
     } else if (band != previous_band && band > W8_FATIGUE_BAND_DEEP) {
@@ -952,7 +942,7 @@ void CharacterDies(int party_slot)
     }
 
     ++character->death_count_09fd;
-    for (condition = 0; condition < 0x12; ++condition) {
+    for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
         if (condition != 10 && character->condition_turns[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 0);
         }
@@ -1036,7 +1026,8 @@ void RecalculateCharacterHitPoints(W8Character* character)
         character->hp_max = hit_points;
         character->hp_current = remaining;
         if (remaining == 0) {
-            SetCharacterCondition(CharacterPointerToPartySlot(character), 0x12, 9999, 0, 0, 1);
+            SetCharacterCondition(CharacterPointerToPartySlot(character), W8_CONDITION_DEAD,
+                                  W8_CONDITION_INDEFINITE, 0, 0, 1);
         }
     }
 }
@@ -1185,7 +1176,8 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            character->highest_condition < 0x12 && character->resistances[4].total < lowest) {
+            character->highest_condition < W8_CONDITION_DEAD &&
+            character->resistances[4].total < lowest) {
             selected = party_slot;
             lowest = character->resistances[4].total;
         }

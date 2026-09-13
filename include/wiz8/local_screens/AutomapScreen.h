@@ -1,5 +1,7 @@
 #pragma once
 
+extern float g_float_64b914;
+
 #include "wiz8/geometry.h"
 
 #include "surrender/srMath.h"
@@ -29,13 +31,13 @@ void RestoreAutomapCameraPosition(void);
 unsigned char CanUseCurrentAutomapTool(void);
 
 void ResetAutomapView005817D0(void);
-void Function581CE0(int handle);
-unsigned char Function582050(srVector3T<float>* position);
+bool SaveAutomapNotes00581CE0(int handle);
+unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
-W8AutomapNote* Function582180(void);
+W8AutomapNote* FindAutomapNoteUnderCursor00582180(void);
 void CreateAutomapMarkerSprites005822C0(void);
-void Function582930(void);
-void Function583BC0(void);
+void RenderAutomapMarkers00582930(void);
+void CreateAutomapButtons00583BC0(void);
 
 unsigned char ReadAutomapNodes00584DD0(int hFile);
 void RedrawTextBoxBody(void);

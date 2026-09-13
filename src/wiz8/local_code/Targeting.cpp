@@ -39,15 +39,11 @@ int g_target_state_6840b3;
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 #include "Types.h"
-#include "wiz8/local_code/CombatRange.h"
-#include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatHostility.h"
-#include "wiz8/engine_code/quad.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/Combat.h"
-#include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/3d.h"
 
 #include <math.h>
@@ -835,7 +831,8 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         }
         if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
             g_status_685170.buffers.characters[target->iChar].hp_current == 0 ||
-            g_status_685170.buffers.characters[target->iChar].highest_condition > 0x11) {
+            g_status_685170.buffers.characters[target->iChar].highest_condition >=
+                W8_CONDITION_DEAD) {
             return false;
         }
         break;
@@ -979,11 +976,11 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     W8MonsterManagerEntry* slot = &gXStatus.monster_manager_entries[party_slot];
     unsigned int index;
 
-    if (slot->highlighted_monsters.count > 0) {
-        for (index = 0; index < (unsigned int)slot->highlighted_monsters.count; ++index) {
-            SetMonsterHighlight(party_slot, slot->highlighted_monsters.data[index], 0);
+    if (slot->highlighted_monsters.GetCount() > 0) {
+        for (index = 0; index < (unsigned int)slot->highlighted_monsters.GetCount(); ++index) {
+            SetMonsterHighlight(party_slot, *slot->highlighted_monsters.GetAt(index), 0);
         }
-        slot->highlighted_monsters.count = 0;
+        slot->highlighted_monsters.Clear();
         return;
     }
 
@@ -1369,7 +1366,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
     unsigned int spell_id;
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
 
-    entry->highlighted_monsters.count = 0;
+    entry->highlighted_monsters.Clear();
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
     spell_id = 0;
@@ -1413,9 +1410,9 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             }
         }
 
-        for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
+        for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.GetCount();
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 1);
+            SetMonsterHighlight(party_slot, *entry->highlighted_monsters.GetAt(highlight_index), 1);
         }
         return;
     }
@@ -1472,7 +1469,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->flag_14 != 0 && monster_info->hp_current != 0 &&
-            monster_info->condition_turns[0x12] == 0) {
+            monster_info->condition_turns[W8_CONDITION_DEAD] == 0) {
             W8Monster* monster = monster_info->monster;
             float channels[4];
 
@@ -1510,8 +1507,8 @@ void HighlightSpellTargetsAtCachedPosition(void)
     target.point = g_target_position_0068407f;
     PopulateSpellTargetMarkers(spell_id, 1, &source, &target, &markers, &scratch, 0);
 
-    for (int index = 0; index < markers.count; ++index) {
-        W8Monster* monster = GetMonsterByLocationID(markers.data[index]);
+    for (int index = 0; index < markers.GetCount(); ++index) {
+        W8Monster* monster = GetMonsterByLocationID(*markers.GetAt(index));
 
         SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
     }
@@ -1545,7 +1542,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
         return;
     }
 
-    marker_vector->count = 0;
+    marker_vector->Clear();
 
     if (position == 0) {
         srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
@@ -1599,7 +1596,7 @@ bool CanPartySlotParticipate(int party_slot)
 {
     return g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-           g_status_685170.buffers.characters[party_slot].highest_condition < 0x12;
+           g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD;
 }
 
 /* Validate a targeting context a second time, after resolving "current". The
@@ -1719,7 +1716,7 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
 
     if (g_status_685170.buffers.party_rows[party_slot].occupied == 0 ||
         g_status_685170.buffers.characters[party_slot].hp_current == 0 ||
-        g_status_685170.buffers.characters[party_slot].highest_condition > 0x11) {
+        g_status_685170.buffers.characters[party_slot].highest_condition >= W8_CONDITION_DEAD) {
         return 0;
     }
 
@@ -1805,12 +1802,7 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
     previous_kind = target->iType;
     if (gXStatus.fCombatMode != 0) {
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
-            int* pending = reinterpret_cast<int*>( // reinterpret-ok: per-slot pending-action counter inside the combat rows, not yet fielded
-                reinterpret_cast<char*>( // reinterpret-ok: raw byte addressing into the combat rows
-                    g_combat_state) +
-                0xac +
-                party_slot * 0xd4);
-            *pending += 1;
+            ++g_combat_state->characters[party_slot].pending_action_repick_count;
         }
         switch (kind) {
         case 0:
@@ -1833,8 +1825,8 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
             }
             selected = ChooseMonsterTarget(party_slot, group_id, action_context);
             if (selected != -1 ||
-                (is_attack_kind != 0 &&
-                 (selected = Function53C990(party_slot, group_id, action_context)) != -1)) {
+                (is_attack_kind != 0 && (selected = ChooseFallbackMonsterTarget0053C990(
+                                             party_slot, group_id, action_context)) != -1)) {
                 memset(&new_target, 0, sizeof(new_target));
                 new_target.iChar = -1;
                 new_target.iGroupID = -1;
@@ -2394,7 +2386,7 @@ void RefreshAllPartyTargets0053BF80(void)
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
         if (row->occupied != 0 &&
-            (character->hp_current != 0 || character->highest_condition < 0x12)) {
+            (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
             unsigned char can_switch =
@@ -2432,7 +2424,8 @@ void RefreshAllPartyTargets0053BF80(void)
                             MonsterGetScriptPartByLocationIndex(monster_index)->monster_group_id;
                     }
                 }
-                int selected = Function53C990(party_slot, group_id, 1);
+                int selected = ChooseFallbackMonsterTarget0053C990(party_slot, group_id,
+                                                                   W8_TARGETING_CONTEXT_IN_COMBAT);
 
                 if (selected != -1) {
                     W8CombatSlot action;
@@ -2464,7 +2457,6 @@ void RefreshMonsterTargetCounts005398D0(void)
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
         int on_screen_count;
         int selectable_count;
-        int* cached;
 
         if (group->flag_28 == 0) {
             continue;
@@ -2493,12 +2485,11 @@ void RefreshMonsterTargetCounts005398D0(void)
                 selectable_count += 1;
             }
         }
-        cached = reinterpret_cast<int*>( // reinterpret-ok: cached on-screen/selectable pair the retail refresh stores in the group's opaque eight-byte scratch
-            group->unknown_0c);
-        if (on_screen_count != cached[0] || selectable_count != cached[1]) {
+        if (on_screen_count != group->visible_member_count ||
+            selectable_count != group->selectable_member_count) {
             RequestRedrawParty();
-            cached[0] = on_screen_count;
-            cached[1] = selectable_count;
+            group->visible_member_count = on_screen_count;
+            group->selectable_member_count = selectable_count;
         }
     }
 }
@@ -2523,7 +2514,7 @@ unsigned char AnyMonsterVisible0053A1D0(void)
         W8MonsterInfo* monster_info =
             (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, g_last_visible_monster_0061d14c);
         if (monster_info->monster != 0 &&
-            Function53A060(monster_info->monster, &camera, limit) != 0) {
+            IsMonsterVisibleWithinDistance0053A060(monster_info->monster, &camera, limit) != 0) {
             return 1;
         }
     }
@@ -2531,7 +2522,7 @@ unsigned char AnyMonsterVisible0053A1D0(void)
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
 
         if (monster_info->monster != 0 &&
-            Function53A060(monster_info->monster, &camera, limit) != 0) {
+            IsMonsterVisibleWithinDistance0053A060(monster_info->monster, &camera, limit) != 0) {
             g_last_visible_monster_0061d14c = index;
             return 1;
         }
@@ -2546,30 +2537,19 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
 {
     W8MonsterRuntimeBlock4C block;
     srVector3T<float> point;
-    int index;
-
-    if (gXStatus.target_markers.count <= 0) {
+    if (gXStatus.target_markers.GetCount() <= 0) {
         return;
     }
     {
-        int location_id = *gXStatus.target_markers.data;
+        int location_id = gXStatus.target_markers.RemoveAt(0);
         W8Monster* monster;
-
-        if (gXStatus.target_markers.count != 1) {
-            for (index = 0; index < gXStatus.target_markers.count - 1; ++index) {
-                gXStatus.target_markers.data[index] = gXStatus.target_markers.data[index + 1];
-            }
-        }
-        gXStatus.target_markers.count -= 1;
         monster = GetMonsterByLocationID(location_id);
         point = g_target_position_0068407f;
         if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
-            float* channels = reinterpret_cast<float*>( // reinterpret-ok: highlight tint stored as four floats in the render-state block
-                &block);
-            channels[0] = 0.0f;
-            channels[1] = 1.0f;
-            channels[2] = 0.0f;
-            channels[3] = 1.0f;
+            block.highlight_red = 0.0f;
+            block.highlight_green = 1.0f;
+            block.highlight_blue = 0.0f;
+            block.highlight_alpha = 1.0f;
             MonsterSetRuntimeBlock4C(monster, block);
             return;
         }

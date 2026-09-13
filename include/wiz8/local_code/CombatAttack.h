@@ -58,6 +58,10 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                            unsigned char verbose, W8SpellEffectResult* result);
 
 struct W8MonsterRecord;
+struct W8MonsterAttack;
+
+int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
+                                    const W8MonsterAttack* attack, int attack_mode, int flags);
 
 /* Whether a character could attack what `target` names - a party member who
    is in play and not screened by the front rank, or a monster who is engaged,

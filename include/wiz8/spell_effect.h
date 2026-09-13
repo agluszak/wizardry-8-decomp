@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/character.h"
 #include "wiz8/targeting.h"
 #include "wiz8/vector.h"
 
@@ -17,25 +18,28 @@ class W8Missile;
    cast owns at 0x110, and the four state bytes from 0x120. The destructor
    proves the fifth list sits unaligned at 0x17e, which is what makes the
    struct packed. */
-/* One pending damage or effect report. Kind 1 names a character by party slot
-   and carries no text; kind 3 carries its own inline text from 0x08. The
-   message pass frees each record after posting it. */
+/* One pending condition report. Kind 1 names a character by party slot and
+   carries no text; kind 3 carries its own inline text from 0x08. Every creator
+   allocates and clears the complete 0x6c-byte record, and the message pass
+   frees it after posting. */
 struct W8SpellDamageReport {
-    int kind;           /* 0x00 */
-    int value;          /* 0x04 */
-    wchar_t text[1]; /* 0x08 */
+    int kind;         /* 0x00 */
+    int value;        /* 0x04 */
+    wchar_t text[50]; /* 0x08 */
 };
 
+static_assert(sizeof(W8SpellDamageReport) == 0x6c, "W8SpellDamageReport_must_be_0x6c");
+
 /* What one missile or queued effect accumulates while it resolves: the total
-   amount, the number of hits, the twenty-band damage table, and the report
-   records handed to the message pass. Both the missile and the effect embed
-   this at their own offset. The totals and bands are unsigned: the message
-   pass divides them with `div` and tests them with the unsigned branches. */
+   amount, the number of hits, one count per condition, and the report records
+   handed to the message pass. Both the missile and the effect embed this at
+   their own offset. The totals and condition counts are unsigned: the message
+   pass divides or tests them with unsigned instructions. */
 struct W8SpellEffectResult {
-    unsigned int amount;                            /* 0x00 */
-    unsigned int count;                             /* 0x04 */
-    unsigned int damage[20];                        /* 0x08 */
-    W8GrowableVector<W8SpellDamageReport*> reports; /* 0x58 */
+    unsigned int amount;                               /* 0x00 */
+    unsigned int count;                                /* 0x04 */
+    unsigned int condition_counts[W8_CONDITION_COUNT]; /* 0x08 */
+    W8GrowableVector<W8SpellDamageReport*> reports;    /* 0x58 */
 };
 
 static_assert(sizeof(W8SpellEffectResult) == 0x68, "W8SpellEffectResult_must_be_0x68");
@@ -86,4 +90,5 @@ void UpdateSpellEffects00500930(void);
 /* Fold one missile's accumulated damage and reports into the queued effect
    that owns it. */
 void AbsorbMissileDamage00500460(W8Missile* missile);
+void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target);

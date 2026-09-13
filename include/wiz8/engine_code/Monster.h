@@ -26,6 +26,11 @@ struct W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
+extern const float g_monster_rotation_offset_005ec04c;
+extern const double g_monster_facing_tolerance_005ec2b0;
+extern int g_monster_cycle_registry_weight_0065ba4c;
+extern float g_light_scale_0060bfe0;
+
 /* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
    by the setter at 0x004C5AD0. That setter takes the block by value and VC6
    copies it with the interleaved two-register rotation it uses for a struct

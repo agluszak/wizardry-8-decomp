@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -29,7 +30,6 @@
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -48,9 +48,7 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_screens/AutomapScreen.h"
-#include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/Video2.h"
@@ -391,7 +389,6 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     return 1;
 }
 
-extern float g_runtime_world_scale_6081e8;
 
 // GLOBAL: WIZ8 0x00605820
 unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {

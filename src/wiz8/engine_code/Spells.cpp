@@ -46,8 +46,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern const float g_monster_rotation_offset_005ec04c;
-extern const double g_camera_pi_005ec2a0;
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 

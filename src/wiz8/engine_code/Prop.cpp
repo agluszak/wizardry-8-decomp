@@ -18,7 +18,6 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
-#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
@@ -874,14 +873,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                                      String("%s Prop Error Segment %d frame n", prop->m_name,
                                             (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
                 }
-                {
-                    int next_count = this->slots.count + 1;
-
-                    if (next_count <= this->slots.capacity || this->slots.Grow(next_count) != 0) {
-                        this->slots.data[this->slots.count] = slot;
-                        this->slots.count = next_count;
-                    }
-                }
+                this->slots.Add(slot);
             }
         }
         animation = CreateAnimObj004A01A0();
