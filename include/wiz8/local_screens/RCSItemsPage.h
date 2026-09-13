@@ -17,6 +17,14 @@ extern W8ItemInstance* g_split_item_source_0069c424;
 /* The result kind SplitStackDialogResult005BAA80 treats as acceptance. */
 extern int g_split_result_kind_005efb44;
 
+/* The x origin the item info dialogs open at; the main game screen keeps its
+   own y. */
+extern int g_info_dialog_x_005ef958;
+
+/* 0x005EE65C: the character-quote event kind queued when an item action fails
+   or an identification finishes. */
+extern int g_character_event_kind_005ee65c;
+
 void SetItemPageMode005B9FD0(char mode);
 void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback destroy_callback);
 void OpenStatInfoDialog005BA2B0(unsigned int uiIndex);
@@ -58,10 +66,8 @@ int Function548E20(int party_slot, unsigned int arg_2);
 char Function4DA0F0(W8ItemInstance* item);
 unsigned int Function51D3B0(int party_slot, char arg_2, int arg_3);
 char Function53C2C0(int party_slot);
-void Function5A49D0(unsigned int realm);
-void Function5A4A00(void);
-void Function5A4C00(const wchar_t* text, void* callback, int arg_3, int arg_4);
-void Function5A4C70(W8ItemInstance* item, int slot_index, unsigned int origin);
+void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index,
+                                 unsigned int origin);
 char Function5A5F30(char arg_1);
 void Function5A6020(W8ItemInstance* item);
 char Function5A6310(W8ItemInstance* item);

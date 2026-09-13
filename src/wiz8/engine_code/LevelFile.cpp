@@ -175,7 +175,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
 
     fSuccess &= FileRead(hFile, &pLevel->has_block_48, sizeof(pLevel->has_block_48), 0);
     if (pLevel->has_block_48 != 0) {
-        fSuccess &= Function004D5430(hFile, pLevel->unknown_04c);
+        fSuccess &= ReadLevelFileBlock004D5430(hFile, &pLevel->block_04c);
         if (fSuccess == 0) {
             return 0;
         }
@@ -403,7 +403,7 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
     fSuccess = FileWrite(hFile, &iCount, 4, 0);
     fSuccess = FileWrite(hFile, &pLevel->has_block_48, 4, 0) & fSuccess;
     if (pLevel->has_block_48 != 0) {
-        fSuccess &= Function004D5580(hFile, pLevel->unknown_04c);
+        fSuccess &= WriteLevelFileBlock004D5580(hFile, &pLevel->block_04c);
         if (fSuccess == 0) {
             return 0;
         }
@@ -2161,6 +2161,62 @@ unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSyst
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa2a, "Couldn't Write particle system.\n");
+    }
+    return fSuccess;
+}
+
+// FUNCTION: WIZ8 0x004D5430
+unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
+{
+    unsigned char fSuccess = FileRead(hFile, &pBlock->flag_00, 1, 0) & 1;
+    fSuccess &= FileRead(hFile, &pBlock->field_01, 4, 0);
+    fSuccess &= FileRead(hFile, &pBlock->field_05, 4, 0);
+    fSuccess &= FileRead(hFile, &pBlock->field_09, 4, 0);
+    fSuccess &= FileRead(hFile, &pBlock->field_0d, 4, 0);
+    fSuccess &= FileRead(hFile, &pBlock->field_11, 4, 0);
+    fSuccess &= FileRead(hFile, &pBlock->count_15, 1, 0);
+    if (pBlock->count_15 >= 1) {
+        fSuccess &= FileRead(hFile, pBlock->record_16, 0xc, 0);
+    }
+    if (pBlock->count_15 >= 2) {
+        fSuccess &= FileRead(hFile, &pBlock->field_22, 4, 0);
+        fSuccess &= FileRead(hFile, pBlock->record_26, 0xc, 0);
+    }
+    fSuccess = fSuccess != 0 && FileRead(hFile, &pBlock->flag_32, 1, 0) != 0;
+    if (pBlock->flag_32 != 0) {
+        fSuccess &= FileRead(hFile, pBlock->buffer_33, 0x300, 0);
+    }
+    fSuccess = fSuccess != 0 && FileRead(hFile, &pBlock->flag_333, 1, 0) != 0;
+    if (pBlock->flag_333 != 0) {
+        fSuccess &= FileRead(hFile, pBlock->buffer_334, 0x300, 0);
+    }
+    return fSuccess;
+}
+
+// FUNCTION: WIZ8 0x004D5580
+unsigned char WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock)
+{
+    unsigned char fSuccess = FileWrite(hFile, &pBlock->flag_00, 1, 0) & 1;
+    fSuccess &= FileWrite(hFile, &pBlock->field_01, 4, 0);
+    fSuccess &= FileWrite(hFile, &pBlock->field_05, 4, 0);
+    fSuccess &= FileWrite(hFile, &pBlock->field_09, 4, 0);
+    fSuccess &= FileWrite(hFile, &pBlock->field_0d, 4, 0);
+    fSuccess &= FileWrite(hFile, &pBlock->field_11, 4, 0);
+    fSuccess &= FileWrite(hFile, &pBlock->count_15, 1, 0);
+    if (pBlock->count_15 >= 1) {
+        fSuccess &= FileWrite(hFile, pBlock->record_16, 0xc, 0);
+    }
+    if (pBlock->count_15 >= 2) {
+        fSuccess &= FileWrite(hFile, &pBlock->field_22, 4, 0);
+        fSuccess &= FileWrite(hFile, pBlock->record_26, 0xc, 0);
+    }
+    fSuccess = fSuccess != 0 && FileWrite(hFile, &pBlock->flag_32, 1, 0) != 0;
+    if (pBlock->flag_32 != 0) {
+        fSuccess &= FileWrite(hFile, pBlock->buffer_33, 0x300, 0);
+    }
+    fSuccess = fSuccess != 0 && FileWrite(hFile, &pBlock->flag_333, 1, 0) != 0;
+    if (pBlock->flag_333 != 0) {
+        fSuccess &= FileWrite(hFile, pBlock->buffer_334, 0x300, 0);
     }
     return fSuccess;
 }

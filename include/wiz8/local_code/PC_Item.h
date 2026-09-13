@@ -70,6 +70,7 @@ void Function51FD20(W8ItemInstance* item, W8ItemInstance* destination, W8Charact
 void NormalizeItemStack(W8ItemInstance* item);
 unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
                               unsigned char* partially_merged);
+void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance* from);
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
 void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
                                     W8Character* character);
@@ -92,6 +93,11 @@ bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* sec
 bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstance* second);
 
 bool CanCharacterUseItem(const W8Character* character, int item_id);
+
+/* Equip-slot bucket used by the items-page realm filters: 3 for the body
+   slots (0, 4, 5, 10, 11), 4 for accessories (1-3), 2 for the hand slots, 5
+   for anything else. */
+int GetItemEquipSlotGroup(int item_id);
 
 unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int percent);
 
@@ -131,7 +137,16 @@ void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
 void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
-void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
+void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
 unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
+
+/* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
+   handler. 0x0051E980 scans the merge-kind table for the related
+   unidentified-name kind of an item. 0x0051CDE0 reports whether the held item
+   may occupy an equipment slot given the item in its paired hand slot.
+   0x00521E20 shifts the party pool open and inserts the item at an index. */
+char GetItemMergeKind0051E980(int item_id, short* related_kind);
+char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
+char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);

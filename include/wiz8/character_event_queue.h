@@ -59,9 +59,9 @@ struct W8CharacterEventQueue {
     W8GrowableVector<W8CharacterEvent*> vector_20;
     W8GrowableVector<W8CharacterEvent*> npc_deferred_events;
     W8GrowableVector<W8CharacterEvent*> active_events;
-    int active_event_type;
-    int active_party_slot;
-    int unknown_58;
+    int recent_event_type;
+    int recent_event_party_slot;
+    int recent_event_window_clock;
     int follow_up_flags;
     int follow_up_clock;
     int value_64;

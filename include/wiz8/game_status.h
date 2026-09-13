@@ -89,7 +89,13 @@ struct W8GlobalStatus {
     unsigned char unknown_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
     unsigned char flag_2430;
-    unsigned char unknown_2431[3];
+    /* 0x2431: raised by the .nsf quote audit while it runs; ShowNotice counts
+       each notice's wrapped lines under it. */
+    unsigned char quote_audit_2431;
+    /* 0x2432: ShowNotice sets it under quote_audit_2431 when a notice wraps
+       past seven lines; the audit reports those as "Long Quote". */
+    unsigned char long_quote_2432;
+    unsigned char unknown_2433;
     /* 0x2434: index of the party member the main-game selection flow is on.
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */

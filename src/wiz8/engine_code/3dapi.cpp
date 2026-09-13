@@ -60,7 +60,6 @@
 
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
-
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;
 
@@ -71,6 +70,8 @@ unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
 
+// GLOBAL: WIZ8 0x006f0530
+unsigned char g_flag_006f0530;
 // GLOBAL: WIZ8 0x006f0531
 unsigned char g_monster_combat_timer_enabled_006f0531;
 

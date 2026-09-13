@@ -1,16 +1,22 @@
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/character.h"
+#include "wiz8/character_skills.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/game_status.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayTime.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
 
 #include <string.h>
+
+#define GAMEPLAY_MODS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Gameplay Mods.cpp"
 
 /*
  * Local Code\Gameplay Mods.cpp.
@@ -20,7 +26,7 @@
  */
 
 /* Clear the party modifier block, fold the party's effect slots, the combat
-   effect run and each character's own equipment and persistent blocks into
+   effect run and each character's own equipment and condition blocks into
    their derived modifiers, then drive the sky node from the stored light
    byte. */
 // FUNCTION: WIZ8 0x0050E700
@@ -64,7 +70,7 @@ void RebuildPartyEffectBlock0050E700(void)
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
             ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-            ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
+            ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
             if (character->in_party != 0) {
                 ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
             }
@@ -275,20 +281,20 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock*
 }
 
 /* Rebuild one character's derived modifier block from the equipment,
-   persistent and party blocks without rerunning the derived stats. */
+   condition and party blocks without rerunning the derived stats. */
 // FUNCTION: WIZ8 0x0050f030
 void RebuildCharacterModifierBlock(W8Character* character)
 {
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
+    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->in_party != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
 }
 
 /* Rebuild one character's equipment bonus block from its worn items, then its
-   derived block from the equipment, persistent and party blocks, and
+   derived block from the equipment, condition and party blocks, and
    recompute the derived stats. The standalone form character creation runs. */
 // FUNCTION: WIZ8 0x0050e540
 void RebuildEquipmentAndDerivedStats(W8Character* character)
@@ -298,9 +304,204 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
 
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
-    ApplyModifierBlock(&character->bonus_1770, &character->unknown_16a2);
+    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->in_party != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
+}
+
+/* The party-slot counterpart of RebuildEquipmentAndDerivedStats: refill the
+   member's equipment bonus block from its worn items, then its derived block
+   and stats. */
+// FUNCTION: WIZ8 0x0050e5c0
+void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
+    AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
+
+    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
+    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
+    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
+    if (character->in_party != 0) {
+        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+    }
+    RecalculateCharacterDerivedStats(character);
+}
+
+/* Rebuild one party member's condition/enchantment modifier block from the
+   live condition durations, the enchantment slots and the bound-NPC penalty,
+   then its derived block and stats. Every condition and enchantment change
+   funnels through it. */
+// FUNCTION: WIZ8 0x0050e650
+void RebuildConditionsAndDerivedStats(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    memset(&character->condition_modifiers_16a2, 0, sizeof(W8GameplayModifierBlock));
+    ApplyConditionModifiers(character, character->condition_turns, character->condition_argument,
+                            &character->condition_modifiers_16a2);
+    ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
+    ApplyBoundNpcPenalty0050DBF0(character, &character->condition_modifiers_16a2);
+
+    memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
+    ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
+    ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
+    if (character->in_party != 0) {
+        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+    }
+    RecalculateCharacterDerivedStats(character);
+}
+
+/* The monster-side rebuild: refill the monster's modifier block from its
+   condition durations, enchantments and effect slots, then its armor byte's
+   combat adjustment and the combat effect run, and finally the derived
+   attributes and regeneration rates. */
+// FUNCTION: WIZ8 0x0050e8c0
+void RebuildMonsterDerivedStats(int location_id)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0xa6, GAMEPLAY_MODS_CPP, location_id, 1));
+    W8GameplayModifierBlock* modifiers = &monster_info->modifiers_1db;
+
+    memset(modifiers, 0, sizeof(W8GameplayModifierBlock));
+    ApplyConditionModifiers(0, monster_info->condition_turns, monster_info->condition_argument,
+                            modifiers);
+    ApplyEnchantmentModifiers(monster_info->enchantments, modifiers);
+    ApplyPartyEffectSlots(monster_info->effect_slots_10f, modifiers);
+    if (monster_info->fInCombat != 0) {
+        W8EffectSlot* slot = monster_info->pCombat->effect_slots_3e;
+        for (int index = 9; index != 0; --index, ++slot) {
+            if (slot->active != 0 && slot->effect_id == 0x31) {
+                modifiers->armor_bonus_05 -= slot->amount;
+            }
+        }
+        ApplyCombatEffectSlots(monster_info->pCombat->effect_slots_d7, modifiers);
+    }
+    ConvertMonsterAttributes(monster_info);
+    RebuildMonsterRegenRates00502C50(monster_info);
+}
+
+/* Fold the live conditions into the modifier block: each running condition id
+   carries its own fixed penalty set, condition seven also adds the carried
+   argument (poison strength) to the block's regen channel, and condition 0x13
+   scales its hit adjustment off the bound monster when the record still
+   resolves on the saved level. */
+// FUNCTION: WIZ8 0x0050eac0
+void ApplyConditionModifiers(W8Character* character, const int* condition_turns,
+                             int condition_argument, W8GameplayModifierBlock* target)
+{
+    unsigned int i;
+
+    for (unsigned int index = 0; index < W8_CONDITION_COUNT; ++index) {
+        if (condition_turns[index] == 0) {
+            continue;
+        }
+        switch (index) {
+        case 3:
+            target->value_01 -= 2;
+            target->value_4b -= 2;
+            break;
+        case 4:
+            target->value_01 -= 5;
+            target->value_4b -= 4;
+            break;
+        case 5:
+            target->attribute_adjustments[5] -= 0x32;
+            break;
+        case 6:
+            target->value_01 -= 3;
+            target->value_4b -= 2;
+            break;
+        case W8_CONDITION_POISONED:
+            target->value_01 -= 2;
+            target->value_4b -= 2;
+            target->unknown_08[0] += condition_argument;
+            break;
+        case 9:
+            target->value_01 -= 5;
+            for (i = 0; i < 7; ++i) {
+                target->attribute_adjustments[i] -= 0x14;
+            }
+            for (i = 0; i < 0x29; ++i) {
+                target->unknown_13[i] -= 0x14;
+            }
+            break;
+        case 0xb:
+            target->attribute_adjustments[1] -= 0x32;
+            break;
+        case 0xc:
+            if (character == 0 || CharacterHasTrait00547940(character, 7) == 0) {
+                target->attribute_adjustments[6] -= 0x32;
+                target->out_of_formation = 1;
+            } else {
+                target->attribute_adjustments[6] +=
+                    (signed char)ScaleValueByProfessionLevel005479B0(character, 7, 50.0f) - 0x32;
+            }
+            break;
+        case 0xe:
+            target->attribute_adjustments[4] -= 0x32;
+            /* fall through */
+        case W8_CONDITION_ASLEEP:
+        case 0x10:
+        case W8_CONDITION_EXHAUSTED:
+            target->out_of_formation = 1;
+            break;
+        case 0x13:
+            if (GetConditionRecordFlag(CharacterPointerToPartySlot(character), 1) != 0) {
+                W8MonsterInfo* bound;
+                if (character->conditions_1817[1].value_00 == g_status_685170.current_level &&
+                    (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
+                                               character->conditions_1817[1].value_04, 1)) != 0) {
+                    W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
+                    target->unknown_08[1] += -1 - (monster->missile_value_24f >> 1);
+                } else {
+                    target->unknown_08[1] += -5;
+                }
+            }
+            break;
+        }
+    }
+}
+
+/* Fold the enchantment slots into the modifier block: slot five raises one
+   attribute by ten per power, slot six raises them all by five per power and
+   slot seven raises the damage-reduction and armor bytes by eight and one per
+   power, each scaled by the slot's percentage. */
+// FUNCTION: WIZ8 0x0050ecc0
+void ApplyEnchantmentModifiers(const W8Enchantment* enchantments, W8GameplayModifierBlock* target)
+{
+    unsigned char amount;
+    unsigned int i;
+
+    for (unsigned int index = 0; index < 8; ++index) {
+        const W8Enchantment* slot = &enchantments[index];
+        if (slot->value_08 == 0) {
+            continue;
+        }
+        switch (index) {
+        case 5:
+            amount = (unsigned char)(slot->value_00 * 10);
+            AdjustByteByPercent(&amount, slot->percent_04);
+            target->attribute_adjustments[5] += amount;
+            break;
+        case 6:
+            amount = (unsigned char)(slot->value_00 * 5);
+            AdjustByteByPercent(&amount, slot->percent_04);
+            for (i = 0; i < 7; ++i) {
+                target->attribute_adjustments[i] += amount;
+            }
+            break;
+        case 7:
+            amount = (unsigned char)(slot->value_00 << 3);
+            AdjustByteByPercent(&amount, slot->percent_04);
+            target->damage_reduction_adjustment += amount;
+            amount = (unsigned char)slot->value_00;
+            AdjustByteByPercent(&amount, slot->percent_04);
+            target->armor_bonus_05 += amount;
+            break;
+        }
+    }
 }

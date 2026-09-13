@@ -46,6 +46,8 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
@@ -2448,7 +2450,7 @@ void RequestRedrawParty(void)
 void RefreshSelectedPartyPortrait(unsigned int party_slot)
 {
     if (g_level_block == 0 || g_level_block->value_0fc == 0 ||
-        g_level_block->party_bytes_109[party_slot] != 0) {
+        g_level_block->portrait_refresh_pending[party_slot] != 0) {
         return;
     }
     if (g_level_block->flag_314 != 0 && party_slot == static_cast<unsigned int>(g_value_64c1c8) &&
@@ -2507,7 +2509,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
 
     g_main_game_mode_0068eddc = 4;
     g_level_block->highlight_override = -1;
-    g_level_block->party_bytes_109[party_slot] = 1;
+    g_level_block->portrait_refresh_pending[party_slot] = 1;
     g_level_block->flag_108 = 1;
     g_level_block->values_114[party_slot] = 0x69;
     g_level_block->values_134[party_slot] = 6;
@@ -2886,4 +2888,37 @@ void ResumeMainGameWorld(void)
             }
         }
     }
+}
+
+/* Assay dialog destroy callback: closing the dialog leaves the main game
+   screen fully dirty so every region repaints. */
+// FUNCTION: WIZ8 0x005670a0
+void InvalidateMainGameScreen005670A0(W8DialogBase* dialog)
+{
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags = 0xffffffff;
+    }
+}
+
+/* Open the assay dialog over the main game screen. A live modal dialog is
+   parked in the pending slot so it resumes when this one closes. */
+// FUNCTION: WIZ8 0x0056ae20
+void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot)
+{
+    W8DialogBase* dialog;
+
+    if (g_modal_owner_0068edd0 != 0) {
+        g_pending_main_game_dialog_0068edd4 = g_modal_owner_0068edd0;
+        g_modal_owner_0068edd0 = 0;
+    }
+    if (character_slot != -1) {
+        dialog = new W8AssayDialog(item, &g_status_685170.buffers.characters[character_slot]);
+    } else {
+        dialog = new W8AssayDialog(item, 0);
+    }
+    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetOrigin(g_info_dialog_x_005ef958, 0x48);
+    dialog->m_destroy_callback = InvalidateMainGameScreen005670A0;
+    g_modal_owner_0068edd0 = dialog;
+    ActivateDialogRegion(0x138);
 }

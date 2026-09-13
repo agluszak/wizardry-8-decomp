@@ -48,7 +48,6 @@ W8CombatState* g_combat_state;
 // GLOBAL: WIZ8 0x006850b0
 unsigned int g_combat_countdown_6850b0;
 
-
 /*
  * Local Code\Combat.cpp.
  *
@@ -235,7 +234,7 @@ void NotifyNearbyMonsters(int what)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             (unsigned int)monster_info->highest_condition < 0xe &&
-            monster_info->condition_turns[12] == 0 && monster_info->flag_16 == 1) {
+            monster_info->condition_turns[12] == 0 && monster_info->ubDisposition == 1) {
             if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(W8_RANGE_SHORT)) {
                 NotifyMonsterOfSound(monster_info->monster, what);

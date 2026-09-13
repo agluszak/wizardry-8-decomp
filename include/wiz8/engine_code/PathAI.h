@@ -76,8 +76,7 @@ W8PathAI* CreateRecord004A9750(int unused);
 /* The two operations stLight applies to the path it owns at +0x244. The
    release is DestroyPathAI004A9810's body behind an extra `kind_00 == 0`
    guard; the clone allocates a fresh 0x40-byte record and deep-copies the
-   node vector and both trailing arrays. Their bodies are not recovered -
-   only the signatures stLight's lifecycle needs. */
+   node vector and both trailing arrays. */
 void DestroyOwnedPathAI004A9110(W8PathAI* path);
 
 /* The AI records W8GrObject holds at +0x0c are a tagged family: the leading

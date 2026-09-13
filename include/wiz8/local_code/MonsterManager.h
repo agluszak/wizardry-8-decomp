@@ -7,6 +7,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/factions.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/mouth_gap.h"
@@ -132,6 +133,8 @@ struct W8MonsterAction {
     unsigned char unknown_2d[3];
 }; /* 0x30 */
 
+enum { W8_MONSTER_ATTR_COUNT = 5 };
+
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 #pragma pack(push, 1)
@@ -152,10 +155,10 @@ struct W8MonsterCombatState {
     unsigned char unknown_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
-    W8PList* pending_actions;
-    unsigned char unknown_01a[0x24];
-    W8EffectSlot entries_3e[9]; /* 0x03e .. 0x0d7 */
-    W8EffectSlot entries_d7[6]; /* 0x0d7 .. 0x13d */
+    W8PList* plsCombatActionList;
+    int character_hate[9];
+    W8EffectSlot effect_slots_3e[9]; /* 0x03e .. 0x0d7 */
+    W8EffectSlot effect_slots_d7[6]; /* 0x0d7 .. 0x13d */
     unsigned char unknown_13d[0xf];
     int value_14c; /* 0x14c */
     /* 0x150: the monster's turn has been set up already, so the setup runs
@@ -212,21 +215,21 @@ struct W8MonsterInfo {
        The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
        byte, and 0x004e4500 frees it and nulls the field again. */
     W8MonsterCombatState* pCombat;
-    unsigned char flag_14; /* 0x14: live-entry gate in 0x004e5c00 */
+    unsigned char fActive; /* 0x14: live-entry gate in 0x004e5c00 */
     /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
        "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
        the pair that allocates and releases pCombat. */
     unsigned char fInCombat;
-    unsigned char flag_16; /* 0x16: copied from the group's +0x2a */
+    W8Disposition ubDisposition; /* 0x16: copied from the group's +0x2a */
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
        floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
-    float derived_23;            /* 0x23: camera-facing yaw over position_17 */
-    int hp_max;                  /* 0x27: uiHPMax in the Targeting.cpp assertion */
-    int hp_current;              /* 0x2b: reduced by canonical damage consumers */
-    int runtime_stat_max_2f;     /* 0x02f: initialized from MONSTERS.DBS dice */
-    int runtime_stat_current_33; /* 0x033: initialized to the same roll */
+    float derived_23; /* 0x23: camera-facing yaw over position_17 */
+    int hp_max;       /* 0x27: uiHPMax in the Targeting.cpp assertion */
+    int hp_current;   /* 0x2b: reduced by canonical damage consumers */
+    int stamina_max;  /* 0x02f: initialized from MONSTERS.DBS dice */
+    int stamina;      /* 0x033: initialized to the same roll */
     /* 0x37: the position and radius of the last noise this monster heard;
        Noise.cpp writes the heard position and the radius that carried. */
     srVector3T<float> heard_noise_position_37;
@@ -249,14 +252,14 @@ struct W8MonsterInfo {
     int condition_argument;
     W8EffectSlot effect_slots_10f[12];
     W8GameplayModifierBlock modifiers_1db; /* 0x1db */
-    int runtime_value_242;                 /* 0x242: derived from runtime_stat_current_33 */
+    int fatigue_band;                      /* 0x242: derived from stamina */
     unsigned char unknown_246;
-    unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
+    unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
     unsigned char unknown_24c;
-    unsigned char flag_24d;   /* 0x24d: cycle-2 eligibility gate */
-    unsigned char motionless; /* 0x24e: fMotionless in the demo diagnostic */
-    float scale_24f;          /* 0x24f: HP-dependent live Monster scale */
-    unsigned char flag_253;   /* 0x253: set by 0x004e5c00 after processing */
+    unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
+    unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
+    float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
+    unsigned char flag_253;                /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255; /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
     unsigned char unknown_256[0x30];
@@ -265,7 +268,7 @@ struct W8MonsterInfo {
        other monster. The two release paths own it: one drops every record
        about a departing monster, the other empties and destroys the whole
        list. */
-    W8PList* mon_to_mon_visibility;
+    W8PList* plsVisMonToMon;
     /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
@@ -280,7 +283,8 @@ struct W8MonsterInfo {
     int action_kind;
     /* 0x2e5: qualifies action kind zero; three costs markedly more. */
     int action_detail;
-    unsigned char unknown_2e9[8];
+    unsigned int spell_power_level;
+    unsigned char unknown_2ed[4];
     int runtime_value_2f1; /* 0x2f1: released when an entry is destroyed */
     /* 0x2f5: the monster's own contribution to the spell-point budget its
        database record sets a base for; the power-level chooser adds the two
@@ -290,7 +294,7 @@ struct W8MonsterInfo {
        halves each resisted amount off it. */
     unsigned int spell_points_2f9;
     int control_state; /* 0x2fd: group-recomputed control state */
-    unsigned char unknown_301;
+    unsigned char cycle17_state;
     /* 0x302/0x303: the two alternating look-around timers the aging pass
        counts down and rearms from the monster's look frequency/duration. */
     unsigned char look_timer_302;
@@ -298,7 +302,7 @@ struct W8MonsterInfo {
     /* 0x304: the condition's own target source, copied in whole by the
        condition setter. */
     W8TargetSource condition_target_304;
-    int runtime_values_338[3];            /* 0x338: creator clears as one unit */
+    int movement_watch_position[3];       /* 0x338: creator clears as one unit */
     int value_344;                        /* 0x344: creator initializes to -1 */
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;

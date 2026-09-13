@@ -1256,7 +1256,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].blocks_auto_power_in_combat == 1 && gXStatus.fCombatMode != 0) {
         return false;
     }
 
@@ -1299,7 +1299,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].blocks_auto_power_in_combat == 1 && gXStatus.fCombatMode != 0) {
         return 0;
     }
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
@@ -2177,8 +2177,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 }
             } else {
                 Function5905F0(
-                    FormatWideString(L"%ld %s", *condition_count,
-                                     gppStringList[condition_text[1]]),
+                    FormatWideString(L"%ld %s", *condition_count, gppStringList[condition_text[1]]),
                     -1);
             }
             SetTextBoxMode(1, -1);
@@ -2196,14 +2195,13 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
                     report->value, L"%s",
-                    gppStringList[
-                        g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
+                    gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                WriteGameLog(9, L"%s %s", report->text,
-                             gppStringList[g_spell_condition_text_0061e57a[
-                                 W8_CONDITION_EXHAUSTED * 4]]);
+                WriteGameLog(
+                    9, L"%s %s", report->text,
+                    gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             }
             free(report);

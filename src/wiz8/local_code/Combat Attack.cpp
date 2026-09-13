@@ -153,7 +153,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
-    if (monster_info->flag_14 == 0 || monster_info->fInCombat == 0 ||
+    if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
         monster_info->hp_current == 0 || (unsigned int)monster_info->highest_condition >= 0xc ||
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) == 0) {
         return false;
@@ -228,7 +228,7 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord
     unsigned char rating;
     unsigned int attack;
 
-    if (monster_info->motionless != 0) {
+    if (monster_info->fMotionless != 0) {
         return 1;
     }
     best = 0;
@@ -362,7 +362,7 @@ unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(5927, COMBAT_ATTACK_CPP, target->iMonsterID, 1));
-        if (monster_info->flag_14 == 0 || monster_info->hp_current == 0 ||
+        if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
             monster_info->fInCombat == 0) {
             return 0;
         }
@@ -412,7 +412,7 @@ unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* targ
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         target_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(5997, COMBAT_ATTACK_CPP, target->iMonsterID, 1));
-        if (target_info->flag_14 == 0 || target_info->hp_current == 0 ||
+        if (target_info->fActive == 0 || target_info->hp_current == 0 ||
             target_info->fInCombat == 0) {
             return 0;
         }
@@ -444,7 +444,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
-    if (monster_info->flag_14 != 0 && monster_info->fInCombat != 0 &&
+    if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
         monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
         return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
@@ -584,7 +584,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
             struck.iType = W8_TARGET_KIND_MONSTER;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
-                if (monster_info->flag_14 != 0) {
+                if (monster_info->fActive != 0) {
                     MonsterGetLocation(monster_info->monster, &location);
                     srVector3T<float> offset(center.x - location.x, center.y - location.y,
                                              center.z - location.z);

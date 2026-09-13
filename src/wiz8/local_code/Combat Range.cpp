@@ -266,7 +266,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
     float best = 1000000.0f;
 
     *out = 0;
-    if (monster_info->flag_16 == 1 &&
+    if (monster_info->ubDisposition == 1 &&
         IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
         (best = monster_info->monster->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
         *out = 2;
@@ -277,7 +277,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
         for (unsigned int index = 0; index < count; ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+            if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {

@@ -2,6 +2,7 @@
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
 #include "wiz8/geometry.h"
+#include "wiz8/factions.h"
 
 struct W8IList;
 struct W8MonsterRecord;
@@ -18,10 +19,10 @@ struct W8MonsterGroup {
     int member_count;         /* 0x04: decremented when members leave */
     struct W8IList* monsters; /* 0x08: fresh IList per live group */
     /* Refreshed together by the targeting visibility pass. */
-    int visible_member_count;   /* 0x0c */
+    int visible_member_count;    /* 0x0c */
     int selectable_member_count; /* 0x10 */
-    int active_member_count; /* 0x14: recomputed from member conditions */
-    int monster_id;          /* 0x18 */
+    int active_member_count;     /* 0x14: recomputed from member conditions */
+    int monster_id;              /* 0x18 */
     /* 0x1c: the mean of the live members' positions, recomputed on demand. */
     srVector3T<float> centre;
     unsigned char flag_28; /* 0x28: cleared after the record loads */
@@ -30,7 +31,7 @@ struct W8MonsterGroup {
     unsigned char flag_29;
     /* 0x2a: at one the group is live regardless of the global gate at
        0x00547510; anything else has to pass that gate as well. */
-    unsigned char flag_2a;
+    W8Disposition flag_2a;
     unsigned char unknown_2b;
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. GetMonsterName reads it and nothing recovered yet writes it. */
@@ -115,8 +116,6 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
 
-void RefreshPartyMemberCombatState(int party_slot);
-void RefreshMonsterLocationState(int location_id);
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
 #endif

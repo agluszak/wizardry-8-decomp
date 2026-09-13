@@ -547,7 +547,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x12d, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if (monster_info->flag_14 == 0) {
+        if (monster_info->fActive == 0) {
             ActivateMonsterInWorld(monster_info);
         }
     }
@@ -832,7 +832,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
             MonsterGetIndexByLocationID(0x12d, MONSTER_GROUP_CPP, location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-        if (monster_info->flag_14 == 0) {
+        if (monster_info->fActive == 0) {
             ActivateMonsterInWorld(monster_info);
         }
         ++index;

@@ -133,7 +133,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
     for (index = 0xd; index < 0x11; ++index) {
         bytes[index] = 0;
     }
-    RefreshMonsterLocationState(monster_info->location_id);
+    RebuildMonsterDerivedStats(monster_info->location_id);
 }
 
 /* Wipe the party-wide effect block and tell the three displays that read it. */

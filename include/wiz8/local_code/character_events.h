@@ -11,6 +11,7 @@ struct W8Character;
 struct W8CharacterEvent;
 
 extern int g_special_event_0068c558;
+extern int g_special_event_0068c55c;
 extern int g_effect_005ee588;
 extern int g_effect_005ee590;
 extern int g_effect_005ee594;

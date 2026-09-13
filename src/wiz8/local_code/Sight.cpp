@@ -128,7 +128,6 @@ void RefreshAllSight(void)
     }
 }
 
-
 /* Whether one monster can see another in combat once line of sight is clear. */
 // FUNCTION: WIZ8 0x005058a0
 unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
@@ -178,8 +177,8 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     }
     source_record = GetMonsterDataForInfo(source);
     threshold = ComputeSightThreshold(
-        observer_position, target_position, observer_yaw, source->converted_attributes_247[4],
-        ranged_bonus, static_cast<unsigned char>(source->condition_turns[12] != 0),
+        observer_position, target_position, observer_yaw, source->attributes[4], ranged_bonus,
+        static_cast<unsigned char>(source->condition_turns[12] != 0),
         static_cast<unsigned char>(source_record->kind_0cb == 12),
         static_cast<int>(target_record->missile_value_24f), penalty_modifier,
         static_cast<int>(record->state_04), 0, distance);
@@ -252,17 +251,16 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
 
     for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (monster_info->flag_14 == 0) {
+        if (monster_info->fActive == 0) {
             continue;
         }
-        for (index = 0; index < (int)PLLength(monster_info->mon_to_mon_visibility); ++index) {
-            visibility = (W8VisibilityRecord*)PLGet(monster_info->mon_to_mon_visibility, index);
+        for (index = 0; index < (int)PLLength(monster_info->plsVisMonToMon); ++index) {
+            visibility = (W8VisibilityRecord*)PLGet(monster_info->plsVisMonToMon, index);
             if (visibility == 0) {
                 return;
             }
             if (visibility->about_location_id == location_id) {
-                visibility =
-                    (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, index);
+                visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->plsVisMonToMon, index);
                 if (visibility == 0) {
                     srAssertFail("pVisibility != NULL", SIGHT_CPP, 968,
                                  FormatString("ReleaseMonToMonVisibilityInfoAbout: ERROR - "
@@ -283,16 +281,16 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 {
     W8VisibilityRecord* visibility;
 
-    while ((int)PLLength(monster_info->mon_to_mon_visibility) > 0) {
-        visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
+    while ((int)PLLength(monster_info->plsVisMonToMon) > 0) {
+        visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->plsVisMonToMon, 0);
         if (visibility == 0) {
             srAssertFail("pVisibility != NULL", SIGHT_CPP, 990,
                          FormatString("ReleaseMonToMonVisibilityList: ERROR - PLRemoveAt failed"));
         }
         free(visibility);
     }
-    if (PLDestroy(monster_info->mon_to_mon_visibility)) {
-        monster_info->mon_to_mon_visibility = 0;
+    if (PLDestroy(monster_info->plsVisMonToMon)) {
+        monster_info->plsVisMonToMon = 0;
         ReleaseMonToMonVisibilityInfoAbout(monster_info->location_id);
     }
 }
@@ -307,7 +305,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
 
     for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
-        if (monster_info->flag_14 != 0 && !monster_info->monster->IsDying() &&
+        if (monster_info->fActive != 0 && !monster_info->monster->IsDying() &&
             monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
             monster_info->party_threat.state_04 == 1) {
             return true;
@@ -393,15 +391,15 @@ W8VisibilityRecord* FindMonToMonVisibility(W8MonsterInfo* source, W8MonsterInfo*
     int index;
     W8VisibilityRecord* visibility;
 
-    if (source->flag_14 == 0) {
+    if (source->fActive == 0) {
         srAssertFail("pSourceMonsterInfo->fActive", SIGHT_CPP, 1020, 0);
     }
-    if (target->flag_14 == 0) {
+    if (target->fActive == 0) {
         srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 1021, 0);
     }
 
-    for (index = 0; index < (int)PLLength(source->mon_to_mon_visibility); ++index) {
-        visibility = (W8VisibilityRecord*)PLGet(source->mon_to_mon_visibility, index);
+    for (index = 0; index < (int)PLLength(source->plsVisMonToMon); ++index) {
+        visibility = (W8VisibilityRecord*)PLGet(source->plsVisMonToMon, index);
         if (visibility == 0) {
             srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
         } else if (visibility->about_location_id == target->location_id) {
@@ -472,7 +470,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
     srVector3T<float> other_position;
     srVector3T<float> trace_position;
 
-    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME || monster_info->flag_14 == 0 ||
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME || monster_info->fActive == 0 ||
         monster_info->hp_current == 0) {
         return;
     }
@@ -500,16 +498,16 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         do {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->fInCombat != 0 && other->flag_14 != 0 &&
+            if (other != monster_info && other->fInCombat != 0 && other->fActive != 0 &&
                 other->hp_current != 0) {
                 W8VisibilityRecord* entry = 0;
                 bool found = false;
                 unsigned int record_index;
 
-                for (record_index = 0; record_index < PLLength(monster_info->mon_to_mon_visibility);
+                for (record_index = 0; record_index < PLLength(monster_info->plsVisMonToMon);
                      ++record_index) {
                     entry = static_cast<W8VisibilityRecord*>(
-                        PLGet(monster_info->mon_to_mon_visibility, record_index));
+                        PLGet(monster_info->plsVisMonToMon, record_index));
                     if (entry == 0) {
                         return;
                     }
@@ -525,7 +523,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                     memset(entry, 0, sizeof(*entry));
                     entry->about_location_id = other->location_id;
-                    if (PLAdoptAppend(monster_info->mon_to_mon_visibility, entry) == -1) {
+                    if (PLAdoptAppend(monster_info->plsVisMonToMon, entry) == -1) {
                         return;
                     }
                 }
@@ -621,7 +619,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         float distance = monster->GetDistanceToPlayer004C7CB0();
         unsigned char visible_to_player;
 
-        monster_info->flag_24d = distance <= viewing_distance;
+        monster_info->within_viewing_distance = distance <= viewing_distance;
         monster_info->player_visibility.flag_0b = 0;
         monster_info->player_visibility.line_of_sight_28 = 0;
         if (viewing_distance < distance) {
@@ -682,9 +680,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 target_position = camera_position;
                 {
                     float threshold = ComputeSightThreshold(
-                        observer_position, target_position, yaw,
-                        monster_info->converted_attributes_247[4], fade_flag,
-                        monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
+                        observer_position, target_position, yaw, monster_info->attributes[4],
+                        fade_flag, monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
                         static_cast<int>(minimum_level), static_cast<int>(light),
                         monster_info->player_visibility.state_04, 0, player_distance);
 
@@ -746,7 +743,7 @@ after_sight:
     }
 
     {
-        unsigned char in_range = monster_info->flag_24d;
+        unsigned char in_range = monster_info->within_viewing_distance;
 
         monster_info->party_threat.flag_07 = 0;
         monster_info->party_threat.flag_25 = 0;
@@ -817,7 +814,8 @@ after_sight:
                                                g_status_685170.world_clock -
                                                monster_info->party_threat.last_seen_clock_08))) &&
                                  (ShowMonsterTargetMarker(monster_info) == 0)) &&
-                                (monster_info->flag_16 == 1 || monster_info->flag_16 == 0) &&
+                                (monster_info->ubDisposition == 1 ||
+                                 monster_info->ubDisposition == 0) &&
                                 (g_sight_marker_tick_00689b6c == 0 ||
                                  now - g_sight_marker_tick_00689b6c > 199)) {
                                 g_sight_marker_tick_00689b6c = now;

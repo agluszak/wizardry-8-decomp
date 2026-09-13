@@ -3,6 +3,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/cursor.h"
@@ -1010,7 +1011,7 @@ bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip
                 stored = MergeItemStacks(destination, item, 0);
             }
             if (character->in_party) {
-                RefreshPartyMemberCombatState(CharacterPointerToPartySlot(character));
+                RebuildEquipmentAndDerivedStatsForSlot(CharacterPointerToPartySlot(character));
             }
             if (stored) {
                 return true;
@@ -1592,7 +1593,7 @@ void AddItemUses(W8ItemInstance* item, char uses)
    a time - which is what makes the source disappear when it is emptied. Each
    side counts its quantity the way its own record says to. */
 // FUNCTION: WIZ8 0x0051e9f0
-void MergeItemUses(int party_slot, W8ItemInstance* into, W8ItemInstance* from)
+void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance* from)
 {
     unsigned char available;
     unsigned char held;
@@ -1609,7 +1610,7 @@ void MergeItemUses(int party_slot, W8ItemInstance* into, W8ItemInstance* from)
     }
     into->uses_or_charges += (char)moved;
     for (; moved != 0; --moved) {
-        RemoveCharacterItem(party_slot, from, 0);
+        RemoveCharacterItem(character, from, 0);
     }
 }
 
@@ -2308,7 +2309,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     if (item == &character->equipment[11]) {
         g_byte_652da6 = FindItemOnParty(0x254, 0, 0, 0, 0);
     }
-    RefreshPartyMemberCombatState(party_slot);
+    RebuildEquipmentAndDerivedStatsForSlot(party_slot);
 
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
     if (row->action_03d == 8 && row->action_detail_045.item_use.item == item) {

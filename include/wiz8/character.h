@@ -139,9 +139,11 @@ struct W8HandAttack {
 }; /* 0x5b */
 
 /* One 0x11-byte condition record from 0x1817. GetConditionRecordFlag reads byte 8 of
-   one of the four; the rest is not yet named. */
+   one of the four; 0x0050EAC0's condition-0x13 fold reads record one's leading
+   dwords as the level the binding was made on and the bound monster's id. */
 struct W8CharacterConditionRecord {
-    unsigned char unknown_00[8];
+    int value_00;
+    int value_04;
     unsigned char value_08;
     unsigned char unknown_09[8];
 }; /* 0x11 */
@@ -304,9 +306,11 @@ struct W8Character {
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
-    /* 0x16a2: a persistent 0x67-byte modifier source the party-effect rebuild
-       folds into the derived block; what writes it is not recovered. */
-    W8GameplayModifierBlock unknown_16a2;
+    /* 0x16a2: the modifier block 0x0050E650 rebuilds from the character's
+       condition durations, enchantment slots and the bound-NPC penalty, which
+       the derived-block rebuilds fold into 0x1770 alongside the equipment and
+       party blocks. */
+    W8GameplayModifierBlock condition_modifiers_16a2;
     /* 0x1709: the equipment bonus block 0x0050E980 accumulates from the worn
        items and 0x0050F030 folds into the derived block at 0x1770. */
     W8GameplayModifierBlock equipment_bonus_1709;

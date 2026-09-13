@@ -35,7 +35,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
             if (gXStatus.fCombatMode != 0 && group->flag_29 != 0) {
                 continue;
             }
-        } else if (flag == 0 && info->flag_16 != 1) {
+        } else if (flag == 0 && info->ubDisposition != 1) {
             continue;
         }
         W8MonsterRecord* record = GetMonsterDataForInfo(info);

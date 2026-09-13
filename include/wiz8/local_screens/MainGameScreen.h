@@ -54,11 +54,11 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     unsigned char unknown_0f8[4];
-    int value_0fc;                    /* 0x0fc */
-    int camera_mode_100;              /* 0x100 */
-    unsigned int hover_region;        /* 0x104 */
-    unsigned char flag_108;           /* 0x108 */
-    unsigned char party_bytes_109[8]; /* 0x109 */
+    int value_0fc;                             /* 0x0fc */
+    int camera_mode_100;                       /* 0x100 */
+    unsigned int hover_region;                 /* 0x104 */
+    unsigned char flag_108;                    /* 0x108 */
+    unsigned char portrait_refresh_pending[8]; /* 0x109 */
     unsigned char unknown_111[3];
     int values_114[8]; /* 0x114 */
     int values_134[8]; /* 0x134 */
@@ -173,8 +173,8 @@ struct W8LevelRuntimeBlock {
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_0f0) == 0x0f0, "W8LevelRuntimeBlock_flag_0f0");
 static_assert(offsetof(W8LevelRuntimeBlock, value_0fc) == 0x0fc, "W8LevelRuntimeBlock_value_0fc");
-static_assert(offsetof(W8LevelRuntimeBlock, party_bytes_109) == 0x109,
-              "W8LevelRuntimeBlock_party_bytes_109");
+static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_pending) == 0x109,
+              "W8LevelRuntimeBlock_portrait_refresh_pending");
 static_assert(offsetof(W8LevelRuntimeBlock, values_114) == 0x114, "W8LevelRuntimeBlock_values_114");
 static_assert(offsetof(W8LevelRuntimeBlock, values_134) == 0x134, "W8LevelRuntimeBlock_values_134");
 static_assert(offsetof(W8LevelRuntimeBlock, values_170) == 0x170, "W8LevelRuntimeBlock_values_170");
@@ -375,8 +375,14 @@ extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen* g_main_game_screen;
 
 class W8DialogBase;
+struct W8ItemInstance;
 extern W8DialogBase* g_modal_owner_0068edd0;
 extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
+
+/* Open the assay (item info) dialog for an item, evaluated against the party
+   slot's character; -1 means no character. The current modal owner, if any,
+   moves to the pending slot. */
+void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 #pragma pack(push, 1)
 struct W8MainScreenState {

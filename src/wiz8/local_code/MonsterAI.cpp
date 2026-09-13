@@ -54,10 +54,10 @@ extern const int g_ai_kind_table[32][2] = {
 // FUNCTION: WIZ8 0x00532330
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
 {
-    W8PList* queue = monster_info->pCombat->pending_actions;
+    W8PList* queue = monster_info->pCombat->plsCombatActionList;
 
     if (queue != 0 && PLDestroy(queue)) {
-        monster_info->pCombat->pending_actions = 0;
+        monster_info->pCombat->plsCombatActionList = 0;
     }
 }
 
@@ -120,7 +120,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         monster_info->action_kind = 4;
         goto validate;
     }
-    if (monster_info->flag_16 == 0) {
+    if (monster_info->ubDisposition == 0) {
         if (record->unknown_249 != 0) {
             monster_info->action_kind = -1;
             monster_info->pCombat->phase = 0;
@@ -240,7 +240,7 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
         entry->target.iMonsterID = target_value;
     }
     entry->tie_break = (unsigned char)Random(100) + 1;
-    PLAdoptAppend(monster_info->pCombat->pending_actions, entry);
+    PLAdoptAppend(monster_info->pCombat->plsCombatActionList, entry);
 }
 
 /* Whether a monster can aim the spell it wants to cast. The two area target

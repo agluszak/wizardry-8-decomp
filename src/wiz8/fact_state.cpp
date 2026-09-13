@@ -204,7 +204,7 @@ void LoadFactState(int save_handle)
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
-            ReleaseRecordFile0055A0A0(npc->record_file);
+            ReleaseNpcScriptFile0055A0A0(npc->script_file);
             ReloadNpcScriptResources(npc);
         }
     }

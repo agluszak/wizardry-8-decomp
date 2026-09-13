@@ -49,9 +49,9 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
 void AnnounceEffectResisted(W8CombatSlot* target); /* 0x00552070 */
 void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int realm,
                             int power_level); /* 0x00552340 */
-/* 0x00551BA0 sits in the unresolved gap before the unit's assertion hull;
-   GroupAttacks.cpp's call sites need the declaration. Its own assertion names
-   Magic Effects.cpp, so the gap is attributed to this unit. */
+/* 0x00551BA0 sits before the unit's assertion hull rather than inside it;
+   its own assertion names Magic Effects.cpp, which attributes it to this
+   unit. GroupAttacks.cpp's call sites need the declaration. */
 char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
                                    int condition_id, int realm, unsigned int power_level,
                                    int argument, int magnitude, char announce_resistance,

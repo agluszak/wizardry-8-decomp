@@ -7,7 +7,7 @@
 #include <stddef.h>
 
 struct W8NpcState;
-struct W8RecordFile0055A480;
+struct W8NpcScriptFile;
 struct W8ItemInstance;
 struct W8Character;
 struct W8MonsterGroup;
@@ -30,7 +30,7 @@ struct W8NpcScriptingState {
     unsigned char flag_70;
     unsigned char flag_71;
     unsigned char unknown_72[6];
-    W8RecordFile0055A480* record_file;
+    W8NpcScriptFile* script_file;
     W8NpcState* npc;
     int voice_handle;
     unsigned int value_84;
@@ -57,8 +57,8 @@ static_assert(offsetof(W8NpcScriptingState, unknown_72) == 0x72,
               "W8NpcScriptingState_unknown_72_offset");
 static_assert(offsetof(W8NpcScriptingState, flag_70) == 0x70, "W8NpcScriptingState_flag_70_offset");
 static_assert(offsetof(W8NpcScriptingState, flag_71) == 0x71, "W8NpcScriptingState_flag_71_offset");
-static_assert(offsetof(W8NpcScriptingState, record_file) == 0x78,
-              "W8NpcScriptingState_record_file_offset");
+static_assert(offsetof(W8NpcScriptingState, script_file) == 0x78,
+              "W8NpcScriptingState_script_file_offset");
 static_assert(offsetof(W8NpcScriptingState, npc) == 0x7c, "W8NpcScriptingState_npc_offset");
 static_assert(offsetof(W8NpcScriptingState, voice_handle) == 0x80,
               "W8NpcScriptingState_voice_handle_offset");
@@ -109,6 +109,7 @@ void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
 void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
 void Function4F6CF0(W8WorldItem* item);                 /* 0x004F6CF0 */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
-void SetFlag68C4F4(void);   /* 0x00529560 */
+void SetFlag68C4F4(void); /* 0x00529560 */
+void AuditNpcScriptQuotes00529660(void);
 void SetFlag68C4F7(void);   /* 0x00529BC0 */
 void ClearFlag68C4F7(void); /* 0x00529BD0 */

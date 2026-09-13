@@ -11,6 +11,7 @@
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/character.h"
@@ -128,7 +129,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
             break;
         }
-        Function50E650(party_slot);
+        RebuildConditionsAndDerivedStats(party_slot);
         Function52F790(character, condition);
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->occupied != 0 &&
             character->hp_current != 0 && character->highest_condition < 0xd &&
@@ -266,11 +267,11 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             if (condition == 9 || condition == 0xC) {
                 RefreshMonsterSight(monster_info);
             } else if (condition == W8_CONDITION_HOSTILE) {
-                if (monster_info->flag_16 == 0) {
+                if (monster_info->ubDisposition == 0) {
                     monster_info->condition_turns[W8_CONDITION_HOSTILE] = 0;
                     return;
                 }
-                Function5477D0(monster_info, (monster_info->flag_16 == 1) + 1);
+                Function5477D0(monster_info, (monster_info->ubDisposition == 1) + 1);
             }
         }
         slot = 0x13;
@@ -286,7 +287,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             monster_info->monster_group_id, 1);
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
-        if (monster_info->flag_14 != 0) {
+        if (monster_info->fActive != 0) {
             MonsterInfoSetMotionless(monster_info,
                                      (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
@@ -295,7 +296,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         }
         if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
             target->iChar != -1) {
-            int* hate = (int*)&monster_info->pCombat->unknown_01a[target->iChar * 4];
+            int* hate = &monster_info->pCombat->character_hate[target->iChar];
             record = GetMonsterDataForInfo(monster_info);
             *hate += (record->missile_value_24f * (unsigned int)condition) / 3;
         }
@@ -312,7 +313,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         monster_info->condition_argument = argument;
         handled = 1;
     }
-    RefreshMonsterLocationState(location_id);
+    RebuildMonsterDerivedStats(location_id);
     if (handled == 0) {
         return;
     }
@@ -377,7 +378,7 @@ void ClearMonsterCondition(int location_id, int condition)
             monster_info->monster_group_id, 1);
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
-        if (monster_info->flag_14 != 0) {
+        if (monster_info->fActive != 0) {
             MonsterInfoSetMotionless(monster_info,
                                      (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
@@ -392,15 +393,15 @@ void ClearMonsterCondition(int location_id, int condition)
             break;
         case 7:
             monster_info->condition_argument = 0;
-            RefreshMonsterLocationState(location_id);
+            RebuildMonsterDerivedStats(location_id);
             return;
         case 9:
         case 0xC:
             RefreshMonsterSight(monster_info);
-            RefreshMonsterLocationState(location_id);
+            RebuildMonsterDerivedStats(location_id);
             return;
         }
-        RefreshMonsterLocationState(location_id);
+        RebuildMonsterDerivedStats(location_id);
     }
 }
 
@@ -505,7 +506,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         character->condition_argument = argument;
         handled = 1;
     }
-    Function50E650(party_slot);
+    RebuildConditionsAndDerivedStats(party_slot);
     if (handled == 0) {
         return 0;
     }
@@ -606,7 +607,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
         RequestRedraw(0x200000);
         RequestRedraw(0x8000);
     }
-    Function50E650(party_slot);
+    RebuildConditionsAndDerivedStats(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         g_flag_006840bb = 1;
     }
@@ -640,7 +641,7 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
             RequestRedraw(0x200000);
             RequestRedraw(0x8000);
         }
-        Function50E650(party_slot);
+        RebuildConditionsAndDerivedStats(party_slot);
         if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
             g_flag_006840bb = 1;
         }
@@ -660,7 +661,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
 
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
-    RefreshMonsterLocationState(location_id);
+    RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
     }
@@ -685,7 +686,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
-    RefreshMonsterLocationState(location_id);
+    RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
     }

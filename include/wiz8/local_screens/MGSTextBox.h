@@ -36,6 +36,9 @@ unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
 
 void Function5905F0(const wchar_t* text, int mode); /* 0x005905F0 */
+/* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
+   only maintained while game_status.quote_audit_2431 is raised. */
+extern int g_notice_line_count_0069b7bc;
 /* 0x0058FB30: the number of lines the notice pane can scroll. */
 int GetTextBoxScrollRange(void);
 /* 0x00590950/0x00590B40: the two variadic notice formatters. The binary

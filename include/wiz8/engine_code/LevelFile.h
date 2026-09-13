@@ -313,6 +313,26 @@ struct W8LevelFileNamedPosition { /* 0x9d */
     unsigned char unknown_08d[0x10];
 };
 
+/* The serialized block gated by has_block_48, between the camera table and
+   the trigger table. Layout proven by the 0x004D5430 reader / 0x004D5580
+   writer pair; field semantics are unproven - no runtime consumer reads it. */
+struct W8LevelFileBlock { /* 0x634 */
+    unsigned char flag_00;
+    int field_01;
+    int field_05;
+    int field_09;
+    int field_0d;
+    int field_11;
+    unsigned char count_15; /* != 0 -> record_16; > 1 -> field_22/record_26 */
+    unsigned char record_16[0xc];
+    int field_22;
+    unsigned char record_26[0xc];
+    unsigned char flag_32; /* != 0 -> buffer_33 serialized */
+    unsigned char buffer_33[0x300];
+    unsigned char flag_333; /* != 0 -> buffer_334 serialized */
+    unsigned char buffer_334[0x300];
+};
+
 /* The level workspace ReadLevelFile builds. Assert-proven pointer members;
    unproven spans are kept as unknown byte arrays. */
 struct W8LevelFile {
@@ -335,8 +355,8 @@ struct W8LevelFile {
     W8LevelFileProp* pBitmaps;           /* 0x3c: nBitmaps * 0xbf */
     int nCameras;                        /* 0x40 */
     W8LevelFileCamera* pCameras;         /* 0x44: nCameras * 0x37 */
-    int has_block_48;                    /* 0x48: gates the opaque block */
-    unsigned char unknown_04c[0x634];    /* 0x4c: read by Function004D5430 */
+    int has_block_48;                    /* 0x48: gates block_04c */
+    W8LevelFileBlock block_04c;          /* 0x4c */
     int nTriggers;                       /* 0x680 */
     W8LevelFileTrigger* pTriggers;       /* 0x684: nTriggers * 6 */
     unsigned char unknown_688[4];
@@ -384,13 +404,8 @@ static_assert(sizeof(W8LevelFileProp) == 0xbf, "W8LevelFileProp_must_be_0xbf");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
+static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
-
-/* These two read/write the level workspace's opaque +0x4c block. They sit in
-   the unresolved gap 0x4D5370..0x4D57A0 immediately past the LevelFile hull;
-   declared here for the call sites only - TU ownership is unproven. */
-unsigned char Function004D5430(int hFile, unsigned char* block);
-unsigned char Function004D5580(int hFile, unsigned char* block);
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
 unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
@@ -415,5 +430,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count);
 unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
 unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
 unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
+unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
+unsigned char WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
 
 #endif

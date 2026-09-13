@@ -4,11 +4,12 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 
 class Trigger;
 
 struct W8Character;
+struct W8GameplayModifierBlock;
 
 /* One entry in an NPC's stock list. This one is deliberately outside the
    pack(1) block below: AddNpcItem allocates 0x14 bytes for it, which the packed
@@ -32,7 +33,7 @@ struct W8NpcItemEntry {
    loads through it show, and everything reached by the recovered NPC bodies is
    placed off it. */
 struct W8NpcState {
-    W8RecordFile0055A480* record_file; /* 0x00: quote/script file from 0x0055A480 */
+    W8NpcScriptFile* script_file; /* 0x00: .nsf script file loaded by 0x0055A480 */
     unsigned short unknown_04;
     W8NpcDatabaseRecord* record; /* 0x06 */
     W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
@@ -135,8 +136,9 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 /* The NPC-side consequence pass the sight code runs when a marked NPC's
    binding is released. */
 void Function50CF70(W8NpcState* npc, int mode);
-/* 0x0050E650: the per-party-slot companion reset the binding reset runs. */
-void Function50E650(int party_slot);
+/* 0x0050DBF0: the bound-NPC penalty the condition/enchantment rebuild folds
+   into the character's modifier block while the slot's flag_fe is set. */
+void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBlock* target);
 /* 0x0050C560: place or move the NPC's monster at the named world entity. */
 unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
@@ -151,6 +153,10 @@ void ReleaseMarkedNpcBindings0050DA00(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
+/* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
+   record's wanted entries by id or by the shared 0x83 name kind, and a grouped
+   NPC whose member already carries more than one declines. */
+char NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
 bool NpcLeadHasNameStyle(unsigned int kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
    owned item-list teardown. */

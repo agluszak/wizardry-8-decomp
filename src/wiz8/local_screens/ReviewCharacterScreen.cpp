@@ -19,6 +19,7 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/ButtonSound.h"
+#include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Strings.h"
@@ -78,6 +79,13 @@ int g_effect_argument_005ed8cc = 1;
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/game_status.h"
+#include "wiz8/npc_state.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/layouts/item_tables.h"
 void Function5B9070(void);
 void Function5B9350(void);
 void Function5B9900(void);
@@ -799,7 +807,7 @@ void CampScreenFrame(void)
                         }
                     }
                 } else {
-                    Function5B59B0(0);
+                    SetCampItemActionMode005B59B0(0);
                 }
             } else if (input.usParam == 'P') {
                 if (g_status_685170.game_started) {
@@ -877,10 +885,703 @@ unsigned char CampScreenLeave(int)
     return 1;
 }
 
+/* Leave camp. When an item is held out for the pending character, it goes to
+   that character if the selected slot can carry it and the refusal dialog
+   opens otherwise; with no pending character the camp simply closes into a
+   fresh combat round. */
+// FUNCTION: WIZ8 0x005a41b0
+void DismissSelectedPartyCharacter(void)
+{
+    if (g_camp_character_pending_0069c104 != 0) {
+        Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+        if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
+            QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                                g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+            return;
+        }
+        wchar_t* text =
+            FormatWideString(gppStringList[0x24c4 / 4], g_camp_character_0069c100->name);
+        W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    if (IsMessageBoxActive()) {
+        Function5187E0();
+    }
+    BeginCombatRound();
+    RequestScreenTransition();
+}
+
 /* Kicked off by the post-quake camera-shake callback: latches the endgame
    flags, resets input regions, then starts the fade whose completion runs
    Function5A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
    fade, fact 0x2f4 swaps the timing and marks the variant. */
+/* Realm filters 2-5 are exclusive: selecting one clears the others. */
+// FUNCTION: WIZ8 0x005a49d0
+void ClearOtherRealmFilters005A49D0(unsigned int realm)
+{
+    unsigned int index;
+
+    for (index = 2; index < 6; ++index) {
+        if (index != realm) {
+            g_camp_screen_0069c0f4->realm_flags[index] = 0;
+        }
+    }
+}
+
+/* Rebuild the visible item list from the party pool under the realm filters:
+   flag 0 restricts to items the displayed character can use, flag 1 to
+   unidentified items, and flags 2-5 each admit one equip-slot group. The
+   scrollbar's range and value track the count; the scroll position snaps back
+   inside an emptied or shrunken list. */
+// FUNCTION: WIZ8 0x005a4a00
+void RebuildCampItemList005A4A00(void)
+{
+    unsigned int index;
+    unsigned char filter;
+    W8ItemInstance* pool;
+    W8RangeControl* scrollbar;
+    int rows;
+
+    g_camp_screen_0069c0f4->item_list_count = 0;
+    filter = 0;
+    for (index = 0; index < 6; ++index) {
+        if (index != 0 && index != 1 && g_camp_screen_0069c0f4->realm_flags[index] != 0) {
+            filter |= 1 << index;
+        }
+    }
+    pool = g_status_685170.party_item_pool_0021;
+    for (index = 0; index < (unsigned int)g_status_685170.party_item_count_1791; ++index, ++pool) {
+        if (pool->item_id != -1 &&
+            (g_camp_screen_0069c0f4->realm_flags[0] == 0 ||
+             CanCharacterUseItem(g_value_0069c0f8, pool->item_id) != 0) &&
+            (g_camp_screen_0069c0f4->realm_flags[1] == 0 || pool->identified == 0) &&
+            (filter == 0 ||
+             (filter & (unsigned char)(1 << GetItemEquipSlotGroup(pool->item_id))) != 0)) {
+            g_camp_screen_0069c0f4->item_list_4ec[g_camp_screen_0069c0f4->item_list_count] = index;
+            ++g_camp_screen_0069c0f4->item_list_count;
+        }
+    }
+    scrollbar = g_camp_screen_0069c0f4->item_range->m_range;
+    scrollbar->SetRangeEnabled(g_camp_screen_0069c0f4->item_list_count > 8);
+    rows = g_camp_screen_0069c0f4->item_list_count - 8;
+    if (rows > 0) {
+        scrollbar->SetRange(0, rows % 2 == 0 ? rows / 2 : rows / 2 + 1);
+    }
+    if (g_camp_screen_0069c0f4->item_list_count == 0) {
+        g_camp_screen_0069c0f4->item_scroll = 0;
+    } else if (g_camp_screen_0069c0f4->item_list_count <= g_camp_screen_0069c0f4->item_scroll) {
+        g_camp_screen_0069c0f4->item_scroll = (g_camp_screen_0069c0f4->item_list_count - 1) / 8 * 8;
+    }
+    if ((g_camp_screen_0069c0f4->item_scroll & 1) == 0) {
+        scrollbar->SetValue(g_camp_screen_0069c0f4->item_scroll >> 1);
+    } else {
+        scrollbar->SetValue((g_camp_screen_0069c0f4->item_scroll >> 1) + 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x005a4bc0
+void SetCampInputMode005A4BC0(int mode)
+{
+    g_camp_screen_0069c0f4->input_mode = mode;
+    g_camp_screen_0069c0f4->redraw_flags |= 0x7ff;
+}
+
+// FUNCTION: WIZ8 0x005a4be0
+void DisplayCampDialog(W8DialogBase* dialog)
+{
+    g_camp_screen_0069c0f4->dialog = dialog;
+    ActivateDialogRegion(0x138);
+}
+
+// FUNCTION: WIZ8 0x005a4c00
+void OpenCampMessageDialog005A4C00(wchar_t* text, W8DialogDestroyCallback callback,
+                                   int confirmation, int cancel)
+{
+    W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+
+    dialog->SetClientExtent(0xfa, 200);
+    dialog->SetMessage(text, 1, 0x32, confirmation, cancel, 1, 1, 0, 0x15e);
+    SetDialogDestroyCallback(dialog, callback);
+    g_camp_screen_0069c0f4->dialog = dialog;
+    ActivateDialogRegion(0x138);
+}
+
+/* The shared click handler for the camp item regions: a backpack slot arrives
+   with origin 0, a worn slot with origin 1 and a party-pool row with origin
+   2. The screen's entry_mode picks the interpretation - plain handling,
+   identify, stack split, use, use held item on item - and the held item can
+   merge onto the clicked stack, swap with it, or drop into the pool. */
+// FUNCTION: WIZ8 0x005a4c70
+void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, unsigned int origin)
+{
+    W8CombatSlot target;
+    short related_kind;
+    unsigned char changed = 0;
+    unsigned char merged = 0;
+    unsigned char partially_merged = 0;
+    unsigned char merge_tried = 0;
+    unsigned char same_kind = 0;
+    unsigned char choose_character;
+    unsigned int index;
+    int old_pool_count;
+    int result;
+    int party_slot;
+    int paired_slot;
+    unsigned char reidentify;
+    W8ItemInstance* paired;
+    W8Character* character;
+    W8NpcState* npc;
+    W8ModalDialogBase* dialog;
+    wchar_t* text;
+
+    if (item == 0) {
+        srAssertFail("pPCItem != NULL",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x4e5,
+                     0);
+    }
+    if (origin >= 3) {
+        srAssertFail("uiSlotType < SLOT_TYPE_COUNT",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x4e6,
+                     0);
+    }
+
+    /* A held stackable whose name kind the clicked item merges with counts as
+       the same item for the use-merge path below. */
+    if (g_status_685170.item_in_cursor != 0 && item->item_id != -1 &&
+        GetItemMergeKind0051E980(item->item_id, &related_kind) != 0 &&
+        g_item_records[g_status_685170.item_in_hand_235b.item_id].unidentified_name_index ==
+            related_kind) {
+        same_kind = 1;
+    }
+    if (item->item_id == -1 && g_status_685170.item_in_cursor == 0) {
+        return;
+    }
+    if (origin == 1 && g_status_685170.item_in_cursor != 0 &&
+        g_camp_screen_0069c0f4->entry_mode != 1) {
+        if (same_kind == 0 &&
+            CanEquipItemInSlot(g_value_0069c0f8, g_status_685170.item_in_hand_235b.item_id,
+                               slot_index, 1) == 0) {
+            return;
+        }
+        if (CanCharacterUseItem(g_value_0069c0f8, g_status_685170.item_in_hand_235b.item_id) == 0) {
+            return;
+        }
+    }
+    if (g_camp_screen_0069c0f4->entry_mode == 7 || g_camp_screen_0069c0f4->entry_mode == 9) {
+        return;
+    }
+    if (g_status_685170.game_started == 0) {
+        text = gppStringList[0x2400 / 4];
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
+    if (character->condition_turns[0x13] != 0 && (origin == 1 || origin == 0)) {
+        text = gppStringList[0x241c / 4];
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    if (character->condition_turns[0xe] != 0 && (origin == 1 || origin == 0)) {
+        text = gppStringList[0x2420 / 4];
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    if (character->condition_turns[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
+        text = gppStringList[0x2424 / 4];
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
+        g_status_685170.item_in_cursor != 0 && g_held_item_source_006840c0 != g_rcs_mode_0064cbe8) {
+        text = gppStringList[0x2404 / 4];
+        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(250, 200);
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+
+    /* In combat an item click spends the character's action allowance unless
+       it only touches a weapon-class slot or folds into the same-kind merge.
+       A weapon or shield being moved onto a slot it cannot pair with stays
+       gated as well. */
+    unsigned char gated = 1;
+    if (gXStatus.fCombatMode != 0 && origin != 2) {
+        if (g_status_685170.item_in_cursor == 0 ||
+            ((g_item_records[g_status_685170.item_in_hand_235b.item_id].equip_class == 2 ||
+              g_item_records[g_status_685170.item_in_hand_235b.item_id].equip_class == 4) &&
+             g_held_item_source_006840c0 == g_rcs_mode_0064cbe8 &&
+             (origin != 1 ||
+              HeldItemFitsPairedSlot0051CDE0(g_rcs_mode_0064cbe8, slot_index) != 0))) {
+            if (item->item_id == -1 || g_item_records[item->item_id].equip_class == 2 ||
+                g_item_records[item->item_id].equip_class == 4 || same_kind != 0) {
+                gated = 0;
+            }
+        }
+    }
+    if (gated != 0 && Function5A6090(g_rcs_mode_0064cbe8) == 0) {
+        return;
+    }
+    if (g_flag_006f0530 != 0) {
+        TakeItemUnitToHand005A5DA0(item, slot_index, origin);
+        return;
+    }
+    if (g_camp_screen_0069c0f4->entry_mode == 2) {
+        party_slot = CharacterPointerToPartySlot((W8Character*)g_camp_entry_parameter_0069c0fc);
+        if (CanItemLeaveItsSlot(item) == 0) {
+            QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                                g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
+                                g_effect_argument_005ed914);
+            return;
+        }
+        if (g_camp_entry_parameter_0069c0fc == 0) {
+            srAssertFail("gpIdentifyingPC != NULL",
+                         "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp",
+                         0x553, 0);
+        }
+        old_pool_count = g_status_685170.party_item_count_1791;
+        reidentify = 0;
+        ResetCombatSlot(&target);
+        target.iType = W8_TARGET_KIND_ITEM;
+        target.pPCItem = item;
+        StartBreathCycle(party_slot, 0);
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        if (row->pending_action == 8 &&
+            g_item_records[row->pending_action_detail_015.item_use.item->item_id].spell_id ==
+                0x17) {
+            reidentify = 1;
+            result =
+                Function5A6440(party_slot, row->pending_action_detail_015.item_use.item, &target);
+        } else {
+            result = Function5A6340(party_slot, 0x17, 8, &target);
+        }
+        if (origin == 2 && reidentify != 0 &&
+            old_pool_count != g_status_685170.party_item_count_1791) {
+            item = &g_status_685170.party_item_pool_0021[g_status_685170.party_item_count_1791 -
+                                                         old_pool_count + slot_index];
+            RebuildCampItemList005A4A00();
+            RecalculateCarriedWeight(g_value_0069c0f8);
+            RedistributePartyEncumbrance();
+            g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
+            g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
+        }
+        if (result == 1 && item->item_id != -1) {
+            OpenItemInfoDialog005BA110(item, 0);
+            if (item->identified == 0) {
+                QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                                    g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+            }
+        }
+        SetCampItemActionMode005B59B0(0);
+        return;
+    }
+    if (g_camp_screen_0069c0f4->entry_mode == 8) {
+        UseHeldItemOnItem005BA740(item);
+        return;
+    }
+    if (g_camp_screen_0069c0f4->entry_mode == 3) {
+        IdentifyAndOpenItemInfo005BA370(item);
+        return;
+    }
+    if (g_camp_screen_0069c0f4->entry_mode == 4) {
+        if (item->item_id != -1) {
+            OpenSplitStackDialog005BA400(item);
+            return;
+        }
+    } else if (g_camp_screen_0069c0f4->entry_mode == 5) {
+        if (CanCharacterUseItemEntry005BAA10(g_value_0069c0f8, item) != 0) {
+            UseItem005BA4F0(item);
+        }
+        return;
+    } else if (g_camp_screen_0069c0f4->entry_mode == 1) {
+        if (g_status_685170.item_in_cursor != 0) {
+            if (item->item_id == -1) {
+                SetCampItemActionMode005B59B0(0);
+                return;
+            }
+            if (g_camp_character_pending_0069c104 != 0) {
+                Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
+                    QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                } else {
+                    text = FormatWideString(gppStringList[0x24c4 / 4],
+                                            g_camp_character_0069c100->name);
+                    dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                    dialog->SetClientExtent(250, 200);
+                    dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                    SetDialogDestroyCallback(dialog, 0);
+                    g_camp_screen_0069c0f4->dialog = dialog;
+                    ActivateDialogRegion(0x138);
+                }
+                return;
+            }
+            MergeItemStacksWithHeld005BA5D0(item);
+            return;
+        }
+        if (item->item_id == -1) {
+            SetCampItemActionMode005B59B0(0);
+            return;
+        }
+    }
+
+    /* Equipped items that may not be removed get one warning dialog and a
+       bound mark; the next click then unequips them. */
+    if (item->item_id != -1 && origin == 1) {
+        if (CanUnequipSlotItem(g_value_0069c0f8, slot_index) == 0) {
+            text = gppStringList[0x242c / 4];
+            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+            dialog->SetClientExtent(250, 200);
+            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+            SetDialogDestroyCallback(dialog, 0);
+            g_camp_screen_0069c0f4->dialog = dialog;
+            ActivateDialogRegion(0x138);
+            if (item->bound != 0) {
+                return;
+            }
+            BindEquippedItem(g_value_0069c0f8, slot_index);
+            return;
+        }
+        item->bound = 1;
+    }
+
+    if (same_kind != 0) {
+        MergeItemUses(&g_status_685170.buffers.characters[g_rcs_mode_0064cbe8], item,
+                      &g_status_685170.item_in_hand_235b);
+        SetCampItemActionMode005B59B0(0);
+        changed = 1;
+        if (origin == 1) {
+            RebuildEquipmentAndDerivedStatsForSlot(g_rcs_mode_0064cbe8);
+            if (GetPairedEquipSlot(slot_index) != -1) {
+                g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_105 = 0;
+            }
+            RebuildCampItemList005A4A00();
+        } else if (origin == 0) {
+            RecalculateCharacterDerivedStats(
+                &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8]);
+        } else {
+            RebuildCampItemList005A4A00();
+        }
+    } else {
+        /* Fold the held stack onto a matching stack; for the pool the scan
+           continues across every row until the held stack is consumed. */
+        if (g_status_685170.item_in_cursor != 0 &&
+            g_item_records[g_status_685170.item_in_hand_235b.item_id].quantity_kind == 1) {
+            if (item->item_id != -1 && item->item_id == g_status_685170.item_in_hand_235b.item_id) {
+                merged =
+                    MergeItemStacks(item, &g_status_685170.item_in_hand_235b, &partially_merged);
+                merge_tried = 1;
+            }
+            if (merged == 0 && origin == 2) {
+                for (index = 0; index < (unsigned int)g_status_685170.party_item_count_1791;
+                     ++index) {
+                    if (MergeItemStacks(&g_status_685170.party_item_pool_0021[index],
+                                        &g_status_685170.item_in_hand_235b,
+                                        &partially_merged) != 0) {
+                        merged = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if (origin == 2) {
+            if (merged == 0) {
+                if (g_status_685170.item_in_cursor != 0) {
+                    if (g_camp_character_pending_0069c104 != 0) {
+                        Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                        if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
+                            QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                                                g_effect_argument_005ed8cc,
+                                                g_effect_argument_005ed914);
+                        } else {
+                            text = FormatWideString(gppStringList[0x24c4 / 4],
+                                                    g_camp_character_0069c100->name);
+                            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                            dialog->SetClientExtent(250, 200);
+                            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                            SetDialogDestroyCallback(dialog, 0);
+                            g_camp_screen_0069c0f4->dialog = dialog;
+                            ActivateDialogRegion(0x138);
+                        }
+                    } else if (InsertItemIntoPartyPool00521E20(&g_status_685170.item_in_hand_235b,
+                                                               slot_index) != 0) {
+                        changed = 1;
+                        RebuildCampItemList005A4A00();
+                    } else {
+                        text = gppStringList[0x2430 / 4];
+                        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                        dialog->SetClientExtent(250, 200);
+                        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                        SetDialogDestroyCallback(dialog, 0);
+                        g_camp_screen_0069c0f4->dialog = dialog;
+                        ActivateDialogRegion(0x138);
+                    }
+                } else if (slot_index < (unsigned int)g_status_685170.party_item_count_1791) {
+                    /* An empty hand picks the clicked pool row up. */
+                    CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
+                    changed = 1;
+                    if (g_camp_screen_0069c0f4->entry_mode == 6) {
+                        DropHeldItem005BA3D0();
+                        RebuildCampItemList005A4A00();
+                    } else if (g_camp_screen_0069c0f4->entry_mode == 1) {
+                        SetHandCursors005BAFC0(0);
+                        RebuildCampItemList005A4A00();
+                    } else {
+                        RebuildCampItemList005A4A00();
+                    }
+                }
+            }
+        } else {
+            if (merge_tried == 0 && ((g_status_685170.item_in_cursor == 0 && item->item_id != -1) ||
+                                     (g_status_685170.item_in_cursor != 0 && merged == 0))) {
+                if (g_camp_character_pending_0069c104 == 0 ||
+                    g_camp_character_0069c100 == g_value_0069c0f8) {
+                    g_camp_character_pending_0069c104 = 0;
+                    if (item->item_id != -1 &&
+                        (g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1)) {
+                        npc = GetNpcState(
+                            g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].animation_0fa);
+                        if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
+                            g_camp_character_pending_0069c104 = 1;
+                            g_camp_character_0069c100 = g_value_0069c0f8;
+                        }
+                    }
+                    if (g_status_685170.item_in_cursor != 0) {
+                        choose_character = g_held_item_source_006840c0 == -1;
+                        DeliverExceptionalItemReaction(&g_status_685170.item_in_hand_235b,
+                                                       choose_character, g_value_0069c0f8);
+                    }
+                    if (origin == 1 && g_status_685170.item_in_cursor != 0 &&
+                        HeldItemFitsPairedSlot0051CDE0(g_rcs_mode_0064cbe8, slot_index) == 0) {
+                        paired_slot = GetPairedEquipSlot(slot_index);
+                        paired = &g_value_0069c0f8->equipment[paired_slot];
+                        if (CanUnequipSlotItem(g_value_0069c0f8, paired_slot) == 0) {
+                            text = gppStringList[0x2458 / 4];
+                            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                            dialog->SetClientExtent(250, 200);
+                            dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                            SetDialogDestroyCallback(dialog, 0);
+                            g_camp_screen_0069c0f4->dialog = dialog;
+                            ActivateDialogRegion(0x138);
+                            if (paired->bound != 0) {
+                                return;
+                            }
+                            BindEquippedItem(g_value_0069c0f8, paired_slot);
+                            return;
+                        }
+                        paired->bound = 1;
+                        if (item->item_id == -1) {
+                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
+                                           g_value_0069c0f8, 1);
+                            g_camp_character_pending_0069c104 = 0;
+                            if (paired->item_id != -1 &&
+                                (g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1)) {
+                                npc = GetNpcState(
+                                    g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8]
+                                        .animation_0fa);
+                                if (npc != 0 && NpcWantsItem0050DC50(npc, paired) != 0) {
+                                    g_camp_character_pending_0069c104 = 1;
+                                    g_camp_character_0069c100 = g_value_0069c0f8;
+                                }
+                            }
+                            Function51FD20(paired, &g_status_685170.item_in_hand_235b,
+                                           g_value_0069c0f8, 1);
+                            changed = 1;
+                        } else if (AddItemToCharacter(g_value_0069c0f8, paired, 0, 0, 1) != 0) {
+                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
+                                           g_value_0069c0f8, 1);
+                            changed = 1;
+                        } else {
+                            if (g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) {
+                                if (NpcWantsItem0050DC50(
+                                        GetNpcState(
+                                            g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8]
+                                                .animation_0fa),
+                                        paired) != 0) {
+                                    text = gppStringList[0x2430 / 4];
+                                    dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                                    dialog->SetClientExtent(250, 200);
+                                    dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                                    SetDialogDestroyCallback(dialog, 0);
+                                    g_camp_screen_0069c0f4->dialog = dialog;
+                                    ActivateDialogRegion(0x138);
+                                    return;
+                                }
+                            }
+                            if (AddItemToParty(paired, 0, 1) == 0) {
+                                text = gppStringList[0x2430 / 4];
+                                dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                                dialog->SetClientExtent(250, 200);
+                                dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                                SetDialogDestroyCallback(dialog, 0);
+                                g_camp_screen_0069c0f4->dialog = dialog;
+                                ActivateDialogRegion(0x138);
+                                return;
+                            }
+                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
+                                           g_value_0069c0f8, 1);
+                            changed = 1;
+                        }
+                    } else {
+                        Function51FD20(item, &g_status_685170.item_in_hand_235b, g_value_0069c0f8,
+                                       1);
+                        changed = 1;
+                        if (origin == 0 && g_value_0069c0f8->backpack[slot_index].item_id != -1 &&
+                            Random(100) < 5) {
+                            QueueCharacterEvent(g_value_0069c0f8, g_special_event_0068c55c, 0,
+                                                g_effect_argument_005ed8c8,
+                                                g_effect_argument_005ed914);
+                        }
+                    }
+                } else {
+                    Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                    if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
+                        QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+                    } else {
+                        text = FormatWideString(gppStringList[0x24c4 / 4],
+                                                g_camp_character_0069c100->name);
+                        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                        dialog->SetClientExtent(250, 200);
+                        dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
+                        SetDialogDestroyCallback(dialog, 0);
+                        g_camp_screen_0069c0f4->dialog = dialog;
+                        ActivateDialogRegion(0x138);
+                    }
+                }
+            }
+            if (g_camp_screen_0069c0f4->entry_mode == 6 && g_status_685170.item_in_cursor != 0) {
+                DropHeldItem005BA3D0();
+            } else if (g_camp_screen_0069c0f4->entry_mode == 1 &&
+                       g_status_685170.item_in_cursor != 0) {
+                SetHandCursors005BAFC0(0);
+            }
+            if (changed != 0) {
+                if (origin == 1) {
+                    RebuildEquipmentAndDerivedStatsForSlot(g_rcs_mode_0064cbe8);
+                    if (GetPairedEquipSlot(slot_index) != -1) {
+                        g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_105 = 0;
+                    }
+                    RebuildCampItemList005A4A00();
+                } else if (origin == 0) {
+                    RecalculateCharacterDerivedStats(
+                        &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8]);
+                } else {
+                    RebuildCampItemList005A4A00();
+                }
+            }
+        }
+    }
+    if (changed == 0 && partially_merged == 0 && merged == 0) {
+        if (same_kind != 0) {
+            g_camp_screen_0069c0f4->redraw_flags |= 0x1000;
+        }
+        return;
+    }
+    g_camp_screen_0069c0f4->redraw_flags |= 0x1000;
+    if (g_monster_combat_timer_enabled_006f0531 != 0) {
+        g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+    } else {
+        if (origin == 0) {
+            if (partially_merged != 0 || merged != 0) {
+                g_camp_screen_0069c0f4->item_redraw_flags |= 0x1ff;
+            } else {
+                g_camp_screen_0069c0f4->item_redraw_flags |= 2 << slot_index;
+            }
+        } else if (origin == 1) {
+            if (partially_merged != 0 || merged != 0) {
+                g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << slot_index;
+            } else {
+                g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
+                g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+            }
+        } else if (origin == 2) {
+            g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
+        }
+        g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffc00;
+    }
+    RecalculateCarriedWeight(g_value_0069c0f8);
+    RedistributePartyEncumbrance();
+    g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
+    g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+}
+
+// FUNCTION: WIZ8 0x005a5da0
+void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin)
+{
+    W8ItemInstance single;
+    unsigned char moved = 0;
+
+    if (g_camp_screen_0069c0f4->entry_mode != 0) {
+        return;
+    }
+    if (item->item_id == -1) {
+        return;
+    }
+    if (CanSplitItemStack005BAA50(item) == 0) {
+        return;
+    }
+    if (g_status_685170.item_in_cursor == 0) {
+        single = *item;
+        single.stack_count = 1;
+        --item->stack_count;
+        if (origin == 1 || origin == 0) {
+            CopyItemInstance(&g_status_685170.item_in_hand_235b, &single,
+                             &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8], 1);
+            g_held_item_origin_006840c4 = origin;
+            g_held_item_slot_006840c5 = slot;
+        } else {
+            CopyItemInstance(&g_status_685170.item_in_hand_235b, &single, 0, 1);
+        }
+        moved = 1;
+    } else if (item->item_id == g_status_685170.item_in_hand_235b.item_id &&
+               g_status_685170.item_in_hand_235b.stack_count <
+                   g_item_records[g_status_685170.item_in_hand_235b.item_id].maximum_quantity) {
+        ++g_status_685170.item_in_hand_235b.stack_count;
+        --item->stack_count;
+        moved = 1;
+    }
+    if (item->stack_count == 0) {
+        EmptyItemRecord(item, g_value_0069c0f8, 1);
+    } else if (moved == 0) {
+        return;
+    }
+    RebuildEquipmentAndDerivedStatsForSlot(g_rcs_mode_0064cbe8);
+    RebuildCampItemList005A4A00();
+    RecalculateCharacterDerivedStats(&g_status_685170.buffers.characters[g_rcs_mode_0064cbe8]);
+    RecalculateCarriedWeight(g_value_0069c0f8);
+    RedistributePartyEncumbrance();
+    g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+}
+
 // FUNCTION: WIZ8 0x005A6580
 void BeginEndgameSequence005A6580(void)
 {

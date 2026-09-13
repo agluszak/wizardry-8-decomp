@@ -168,7 +168,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0x4fe, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
                         navigator->movement_0c0.location_id_004, 1));
-                if (monster_info->flag_14 != 0 && monster_info->monster_group_id != 0) {
+                if (monster_info->fActive != 0 && monster_info->monster_group_id != 0) {
                     W8MonsterGroup* group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                         0x508, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
                         monster_info->monster_group_id, 1));
@@ -177,7 +177,8 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                     if ((group->flag_29 == 0 ||
                          PositionMonsterGroupNearCamera00511050(
                              group, 0.0f, navigator->movement_0c0.yaw, 0) == 0) &&
-                        (MoveMonsterGroupToPosition(group, &position, navigator->movement_0c0.yaw, 0, 1, 0, 0),
+                        (MoveMonsterGroupToPosition(group, &position, navigator->movement_0c0.yaw,
+                                                    0, 1, 0, 0),
                          g_flag_006081e4 != 0)) {
                         navigator->linked_update_time_0b8 = 0;
                         g_navigator_group_659bf8.Clear();
@@ -647,7 +648,6 @@ void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
     movement_0c0.height_offset_0b8 = near_depth;
     movement_0c0.secondary_height_offset_0bc = far_depth;
 }
-
 
 // GLOBAL: WIZ8 0x005ec2f4
 float g_navigator_default_turn_rate_005ec2f4 = 4.398229598999023f;

@@ -619,7 +619,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->flag_14 == 0) {
+        if (monster_info->fActive == 0) {
             continue;
         }
         if (location_id == monster_info->location_id) {
@@ -752,7 +752,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         W8MonsterRecord* record;
         unsigned int band;
 
-        if (monster_info->flag_14 == 0 || monster_info->fInCombat == 0 ||
+        if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
             monster_info->hp_current == 0 || MonsterIsHostileTo(party_slot, monster_info) != 1 ||
             !CanReachTarget(party_slot, 2, monster_info, context, 0)) {
             continue;
@@ -868,7 +868,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         }
         if (monster_info->hp_current == 0 ||
             monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 ||
-            monster_info->flag_14 == 0) {
+            monster_info->fActive == 0) {
             return false;
         }
         break;
@@ -1015,7 +1015,7 @@ void ClearAllMonsterHighlights(void)
         W8Monster* monster = monster_info->monster;
         unsigned char flags;
 
-        if (monster_info->flag_14 == 0 || monster == 0) {
+        if (monster_info->fActive == 0 || monster == 0) {
             continue;
         }
         flags = MonsterGetRuntimeFlag5BC(monster);
@@ -1063,7 +1063,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         W8MonsterRecord* record;
         srVector3T<float> position;
 
-        if (monster_info->flag_14 == 0 || monster_info->hp_current == 0 ||
+        if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
             monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
             continue;
         }
@@ -1071,7 +1071,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         if (record->untargetable_24a != 0) {
             continue;
         }
-        if (monster_info->flag_16 != side && side != W8_SIDE_ANY) {
+        if (monster_info->ubDisposition != side && side != W8_SIDE_ANY) {
             continue;
         }
 
@@ -1342,7 +1342,7 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
 
-        if (monster_info->flag_14 != 0 && monster != 0) {
+        if (monster_info->fActive != 0 && monster != 0) {
             unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
             unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
@@ -1399,7 +1399,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
             W8Monster* monster = monster_info->monster;
 
-            if (monster_info->flag_14 != 0 && monster != 0) {
+            if (monster_info->fActive != 0 && monster != 0) {
                 unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
                 unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
@@ -1468,7 +1468,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
     g_target_position_0068407f = position;
     monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
-        if (monster_info->flag_14 != 0 && monster_info->hp_current != 0 &&
+        if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
             monster_info->condition_turns[W8_CONDITION_DEAD] == 0) {
             W8Monster* monster = monster_info->monster;
             float channels[4];
@@ -1975,7 +1975,7 @@ unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single
     W8ActionDetailBlock* detail_block;
     char needed;
 
-    if (monster_info->flag_14 == 0) {
+    if (monster_info->fActive == 0) {
         return 0;
     }
     if (monster_info->hp_current == 0) {

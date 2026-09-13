@@ -634,18 +634,17 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
     }
     if (amount != 0) {
         GetMonsterDataForInfo(monster_info);
-        if (amount < (unsigned int)monster_info->runtime_stat_current_33) {
-            monster_info->runtime_stat_current_33 -= amount;
+        if (amount < (unsigned int)monster_info->stamina) {
+            monster_info->stamina -= amount;
         } else {
-            monster_info->runtime_stat_current_33 = 0;
+            monster_info->stamina = 0;
         }
     }
 
-    monster_info->runtime_value_242 =
-        FatigueBandFromMissing(100 - (int)((monster_info->runtime_stat_current_33 * 100) /
-                                           (unsigned int)monster_info->runtime_stat_max_2f));
+    monster_info->fatigue_band = FatigueBandFromMissing(
+        100 - (int)((monster_info->stamina * 100) / (unsigned int)monster_info->stamina_max));
 
-    if (monster_info->runtime_stat_current_33 == 0 &&
+    if (monster_info->stamina == 0 &&
         (unsigned int)monster_info->condition_turns[W8_CONDITION_EXHAUSTED] <
             W8_CONDITION_INDEFINITE) {
         ResetTargetSource(&target_block);
@@ -680,29 +679,28 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
         monster_info->hp_current == 0) {
         return;
     }
-    stamina_max = monster_info->runtime_stat_max_2f;
-    if ((unsigned int)monster_info->runtime_stat_current_33 == stamina_max) {
+    stamina_max = monster_info->stamina_max;
+    if ((unsigned int)monster_info->stamina == stamina_max) {
         return;
     }
 
-    monster_info->runtime_stat_current_33 += amount;
-    if ((unsigned int)monster_info->runtime_stat_current_33 > stamina_max) {
-        monster_info->runtime_stat_current_33 = stamina_max;
+    monster_info->stamina += amount;
+    if ((unsigned int)monster_info->stamina > stamina_max) {
+        monster_info->stamina = stamina_max;
     }
     if (announce) {
-        if ((unsigned int)monster_info->runtime_stat_current_33 == stamina_max) {
+        if ((unsigned int)monster_info->stamina == stamina_max) {
             WriteGameLog(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
             WriteGameLog(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 
-    monster_info->runtime_value_242 =
-        FatigueBandFromMissing(100 - (int)((monster_info->runtime_stat_current_33 * 100) /
-                                           (unsigned int)monster_info->runtime_stat_max_2f));
+    monster_info->fatigue_band = FatigueBandFromMissing(
+        100 - (int)((monster_info->stamina * 100) / (unsigned int)monster_info->stamina_max));
 
     if (monster_info->condition_turns[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
-        (unsigned int)monster_info->runtime_stat_current_33 > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
+        (unsigned int)monster_info->stamina > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED);
     }
 }
@@ -718,7 +716,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     StartMonsterCycle(monster_info, 0x14, 1);
 
     if (monster_info->condition_turns[15] != 0 && quiet == 0 &&
-        Random(100) < (unsigned int)((monster_info->converted_attributes_247[4] >> 1) + 0x32)) {
+        Random(100) < (unsigned int)((monster_info->attributes[4] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
     if (monster_info->control_state == 1) {

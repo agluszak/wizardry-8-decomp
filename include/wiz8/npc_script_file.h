@@ -1,0 +1,68 @@
+#ifndef WIZ8_NPC_SCRIPT_FILE_H
+#define WIZ8_NPC_SCRIPT_FILE_H
+
+/*
+ * The NPC script (.nsf) file format loaded at 0x0055A480 and read one quote
+ * record at a time by 0x0055A140. Its owning translation unit is an
+ * attribution gap.
+ *
+ * Each file is a table of quote records. The quote audit at 0x00529660 walks
+ * `Data\NPC Scripts\*.nsf` and reports every record as a "Long Quote" whose
+ * `subquotes` it calls "subquote" lines. A record's `entries` are script-event
+ * rows whose leading byte discriminates the kind (the dialogue owner at
+ * 0x00576060 tests 0x13 and 0x05); entries carry `sub_entries` with their own
+ * text.
+ *
+ * The recovered callers are ReloadNpcScriptResources (0x00524CA0), which loads
+ * `Data\NPC Scripts\<name>.nsf` and stores the result on
+ * W8NpcState::script_file, and the quote audit named above.
+ *
+ * The loader and the reader overwrite three record slots with the arrays they
+ * allocate, so on-disk fields and runtime pointers share storage. Every offset
+ * here is unaligned, which is what fixes the packing.
+ */
+
+#pragma pack(push, 1)
+
+/* One 8-byte sub-entry. Its leading slot is non-zero on disk to select the
+   length-prefixed narrow string that follows, and is then overwritten with the
+   pointer to it. */
+struct W8NpcQuoteSubEntry {
+    unsigned char unknown_00[4];
+    char* text; /* 0x04 */
+}; /* 0x08 */
+
+/* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;
+   the next twelve bytes come off disk untouched. */
+struct W8NpcQuoteEntry {
+    unsigned char kind_00;
+    unsigned char unknown_01[0xc];
+    unsigned char sub_entry_count;   /* 0x0d */
+    W8NpcQuoteSubEntry* sub_entries; /* 0x0e */
+}; /* 0x12 */
+
+/* One 0x0c-byte quote record. Field roles come from the reader at 0x0055A140. */
+struct W8NpcScriptQuote {
+    unsigned char subquote_count; /* 0x00 */
+    char** subquotes;             /* 0x01: subquote_count entries */
+    W8NpcQuoteEntry* entries;     /* 0x05: entry_count entries */
+    unsigned short entry_count;   /* 0x09 */
+    unsigned char unknown_0b;
+}; /* 0x0c */
+
+/* The 0x0e-byte header the loader reads first. A non-zero name slot on disk
+   selects the length-prefixed name that follows it. */
+struct W8NpcScriptFile {
+    unsigned char unknown_00[4];
+    unsigned short quote_count; /* 0x04 */
+    char* name;                 /* 0x06 */
+    W8NpcScriptQuote* quotes;   /* 0x0a */
+}; /* 0x0e */
+
+#pragma pack(pop)
+
+void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file);
+unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* quote);
+W8NpcScriptFile* LoadNpcScriptFile0055A480(char* path);
+
+#endif

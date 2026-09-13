@@ -1,9 +1,12 @@
 #pragma once
 
 struct W8WorldItem;
+struct W8ItemInstance;
 struct W8MonsterInfo;
 
 W8WorldItem* ItemInfo(unsigned int item_list_index);
+/* Copy a world item's carried item out onto the heap. */
+W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item); /* 0x004F9210 */
 void SetWorldItemFlag02(W8WorldItem* item, char enabled);
 void RebuildAllWorldItemInstances(void);
 

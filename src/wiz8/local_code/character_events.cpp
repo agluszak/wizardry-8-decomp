@@ -4,7 +4,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/npc_state.h"
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/string_database.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/game_status.h"
@@ -120,11 +120,11 @@ unsigned int g_first_remapped_event_005ee718 = 500;
 
 /* 0x005EE000: eight-byte dispatch records indexed by remapped event type.
    The table ends at 0x005EE588 where g_effect_005ee588 begins. TryAdjustQueuedEvent
-   reads field_00 at +4; ProcessDeferredCharacterEvents reads
+   reads coalesce_with_recent_event at +4; ProcessDeferredCharacterEvents reads
    defer_outside_main_game at +5. */
 struct W8CharacterEventDescriptor {
-    int portrait_pose_category;
-    unsigned char field_00;
+    int portrait_pose;
+    unsigned char coalesce_with_recent_event;
     unsigned char defer_outside_main_game;
     unsigned char unknown_06[2];
 };
@@ -240,6 +240,8 @@ int g_special_event_0068c540;
 int g_special_event_0068c550;
 // GLOBAL: WIZ8 0x0068C558
 int g_special_event_0068c558;
+// GLOBAL: WIZ8 0x0068C55C
+int g_special_event_0068c55c;
 // GLOBAL: WIZ8 0x0068C564
 int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
@@ -400,7 +402,7 @@ wchar_t* W8CharacterEvent::GetQuoteText()
 
 // FUNCTION: WIZ8 0x0052d460
 W8CharacterEventQueue::W8CharacterEventQueue()
-    : active_event_type(-1), active_party_slot(-1), follow_up_flags(0), value_64(-1)
+    : recent_event_type(-1), recent_event_party_slot(-1), follow_up_flags(0), value_64(-1)
 {
     event_character_masks = new unsigned char[0xb1];
     memset(event_character_masks, 0, 0xb1);
@@ -721,14 +723,14 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
             }
             if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(1);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             BeginNpcScriptDialogue(npc, 1);
             RunNpcScriptLine(type_08, (flags_10 & 0x40) != 0);
             if ((flags_10 & 0x40) != 0) {
                 SetFlag68C500(0);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             slot->active_character_event = this;
@@ -737,10 +739,10 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
             if (type_08 != 10) {
-                gXStatus.character_event_queue->active_event_type = type_08;
-                gXStatus.character_event_queue->active_party_slot = party_slot;
+                gXStatus.character_event_queue->recent_event_type = type_08;
+                gXStatus.character_event_queue->recent_event_party_slot = party_slot;
             }
-            gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
+            gXStatus.character_event_queue->recent_event_window_clock = SetCountdownClock(5000);
             return 1;
         }
         has_quote = FormatCharacterQuoteText(character_04, type_08, &metadata);
@@ -750,10 +752,10 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
                 gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
             }
             if (type_08 != 10) {
-                gXStatus.character_event_queue->active_event_type = type_08;
-                gXStatus.character_event_queue->active_party_slot = party_slot;
+                gXStatus.character_event_queue->recent_event_type = type_08;
+                gXStatus.character_event_queue->recent_event_party_slot = party_slot;
             }
-            gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
+            gXStatus.character_event_queue->recent_event_window_clock = SetCountdownClock(5000);
             event_type = type_08;
             if (event_type < 0x92) {
                 SetPartyPortraitEventState(
@@ -777,10 +779,10 @@ unsigned char W8CharacterEvent::DispatchCharacterEventEntry()
             gXStatus.character_event_queue->SetEventCharacterMask(event_type, party_slot, 1);
         }
         if (type_08 != 10) {
-            gXStatus.character_event_queue->active_event_type = type_08;
-            gXStatus.character_event_queue->active_party_slot = party_slot;
+            gXStatus.character_event_queue->recent_event_type = type_08;
+            gXStatus.character_event_queue->recent_event_party_slot = party_slot;
         }
-        gXStatus.character_event_queue->unknown_58 = SetCountdownClock(5000);
+        gXStatus.character_event_queue->recent_event_window_clock = SetCountdownClock(5000);
         if ((gXStatus.character_event_queue->follow_up_flags & 1) == 0) {
             return 0;
         }
@@ -900,7 +902,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                 g_normal_event_count_005ee70c - g_first_remapped_event_005ee718 + event_type;
         }
         pose_category =
-            g_character_event_descriptors_005ee000[mapped_event].portrait_pose_category;
+            g_character_event_descriptors_005ee000[mapped_event].portrait_pose;
     }
     int pc_slot = RPCPtrToPCSlot(record);
     record->portrait_pose_animation_active = 0;
@@ -974,7 +976,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         }
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 0 &&
-        g_level_block->party_bytes_109[party_slot] == 0 &&
+        g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);
         record->field_0cf = 1;
@@ -1084,19 +1086,19 @@ bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned 
 // FUNCTION: WIZ8 0x0052DC80
 unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entry)
 {
-    if (entry == 0 || active_event_type == -1 ||
-        entry->type_08 != (unsigned int)active_event_type) {
+    if (entry == 0 || recent_event_type == -1 ||
+        entry->type_08 != (unsigned int)recent_event_type) {
         return 1;
     }
 
     unsigned int party_slot = CharacterPointerToPartySlot(entry->character_04);
-    if (party_slot == (unsigned int)active_party_slot) {
+    if (party_slot == (unsigned int)recent_event_party_slot) {
         return 1;
     }
 
-    if (ClockIsTicking(unknown_58) == 0) {
-        active_event_type = -1;
-        active_party_slot = -1;
+    if (ClockIsTicking(recent_event_window_clock) == 0) {
+        recent_event_type = -1;
+        recent_event_party_slot = -1;
         return 1;
     }
 
@@ -1105,7 +1107,7 @@ unsigned char W8CharacterEventQueue::TryAdjustQueuedEvent(W8CharacterEvent* entr
     if (!MapEventTypeToDescriptorIndex(event_type, &descriptor_index)) {
         return 1;
     }
-    if (g_character_event_descriptors_005ee000[descriptor_index].field_00 == 0) {
+    if (g_character_event_descriptors_005ee000[descriptor_index].coalesce_with_recent_event == 0) {
         return 1;
     }
 
