@@ -39,8 +39,9 @@ inline void ReadMeshArray(int file, T* values, int count, const char* get_messag
 // FUNCTION: WIZ8 0x0049E4C0
 OctMeshModel::OctMeshModel()
     : version_00(0), link_index_04(0), uv_count_08(0), material_index_0c(0), map_count_10(0),
-      vertex_locations_14(0), vertex_map_18(0), vertex_materials_1c(0), poly_vertices_20(0), poly_uv_index_24(0), poly_textures_28(0), vertex_normals_2c(0),
-      vertex_lights_30(0), poly_equations_34(0), sun_lights_38(0), packed_header_3c(0), vertex_count_40(0),
+      vertex_locations_14(0), vertex_map_18(0), vertex_materials_1c(0), poly_vertices_20(0),
+      poly_uv_index_24(0), poly_textures_28(0), vertex_normals_2c(0), vertex_lights_30(0),
+      poly_equations_34(0), sun_lights_38(0), packed_header_3c(0), vertex_count_40(0),
       polygon_count_44(0)
 {
 }
@@ -92,7 +93,7 @@ unsigned char OctMeshModel::Write0049E5D0(int hFile)
     packed_header_3c |= static_cast<unsigned int>(version_00) << 8;
     success = FileWrite(hFile, &packed_header_3c, 4, 0);
     success &= FileWrite(hFile, &vertex_count_40, 4, 0);
-    success &= FileWrite(hFile, &positional_10, 4, 0);
+    success &= FileWrite(hFile, &map_count_10, 4, 0);
     success &= FileWrite(hFile, &polygon_count_44, 4, 0);
     success &= FileWrite(hFile, &link_index_04, 4, 0);
     success &= FileWrite(hFile, &uv_count_08, 4, 0);
@@ -102,94 +103,98 @@ unsigned char OctMeshModel::Write0049E5D0(int hFile)
                      "OctMeshModel::Write -- Could not write INT32 fields.\n");
     }
 
-    write_result = FileWrite(hFile, heap_14, vertex_count_40 * sizeof(srVector3T<float>), 0);
+    write_result =
+        FileWrite(hFile, vertex_locations_14, vertex_count_40 * sizeof(srVector3T<float>), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x109,
                      "OctMeshModel::Write -- Could not write m_psrVertLoc.\n");
     }
-    srHeap.free(heap_14);
-    heap_14 = 0;
+    srHeap.free(vertex_locations_14);
+    vertex_locations_14 = 0;
 
-    write_result = FileWrite(hFile, heap_18, uv_count_08 * sizeof(srVector2T<float>), 0);
+    write_result = FileWrite(hFile, vertex_map_18, uv_count_08 * sizeof(srVector2T<float>), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x10f,
                      "OctMeshModel::Write -- Could not write m_psrMap.\n");
     }
-    srHeap.free(heap_18);
-    heap_18 = 0;
+    srHeap.free(vertex_map_18);
+    vertex_map_18 = 0;
 
     if (material_index_0c < 0) {
-        write_result = FileWrite(hFile, allocated_1c, vertex_count_40 * sizeof(int), 0);
+        write_result = FileWrite(hFile, vertex_materials_1c, vertex_count_40 * sizeof(int), 0);
         if (write_result == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x116,
                          "OctMeshModel::Write -- Could not write m_plVertMats.\n");
         }
     }
-    if (allocated_1c != 0) {
-        free(allocated_1c);
+    if (vertex_materials_1c != 0) {
+        free(vertex_materials_1c);
     }
-    allocated_1c = 0;
+    vertex_materials_1c = 0;
 
-    write_result = FileWrite(hFile, heap_24, polygon_count_44 * sizeof(srVector3i), 0);
+    write_result = FileWrite(hFile, poly_uv_index_24, polygon_count_44 * sizeof(srVector3i), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x11f,
                      "OctMeshModel::Write -- Could not write m_psrPolyUVIndex.\n");
     }
-    srHeap.free(heap_24);
-    heap_24 = 0;
+    srHeap.free(poly_uv_index_24);
+    poly_uv_index_24 = 0;
 
-    write_result = FileWrite(hFile, heap_20, polygon_count_44 * sizeof(srVector3i), 0);
+    write_result = FileWrite(hFile, poly_vertices_20, polygon_count_44 * sizeof(srVector3i), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x125,
                      "OctMeshModel::Write -- Could not write m_psrPolyVertex.\n");
     }
-    srHeap.free(heap_20);
-    heap_20 = 0;
+    srHeap.free(poly_vertices_20);
+    poly_vertices_20 = 0;
 
-    write_result = FileWrite(hFile, allocated_28, polygon_count_44 * sizeof(int), 0);
+    write_result = FileWrite(hFile, poly_textures_28, polygon_count_44 * sizeof(int), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x12a,
                      "OctMeshModel::Write -- Could not write m_plPolyTextures.\n");
     }
-    free(allocated_28);
-    allocated_28 = 0;
+    free(poly_textures_28);
+    poly_textures_28 = 0;
 
-    write_result = FileWrite(hFile, heap_2c, vertex_count_40 * sizeof(srVector3T<float>), 0);
+    write_result =
+        FileWrite(hFile, vertex_normals_2c, vertex_count_40 * sizeof(srVector3T<float>), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x130,
                      "OctMeshModel::Write -- Could not write m_pVertNorms.\n");
     }
-    srHeap.free(heap_2c);
-    heap_2c = 0;
+    srHeap.free(vertex_normals_2c);
+    vertex_normals_2c = 0;
 
-    write_result = FileWrite(hFile, heap_30, vertex_count_40 * sizeof(srVector3T<float>), 0);
+    write_result =
+        FileWrite(hFile, vertex_lights_30, vertex_count_40 * sizeof(srVector3T<float>), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x136,
                      "OctMeshModel::Write -- Could not write m_pVertLights.\n");
     }
-    srHeap.free(heap_30);
-    heap_30 = 0;
+    srHeap.free(vertex_lights_30);
+    vertex_lights_30 = 0;
 
-    write_result = FileWrite(hFile, heap_34, polygon_count_44 * sizeof(srVector4T<float>), 0);
+    write_result =
+        FileWrite(hFile, poly_equations_34, polygon_count_44 * sizeof(srVector4T<float>), 0);
     if (write_result == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x13c,
                      "OctMeshModel::Write -- Could not write m_psrPolyEqtns.\n");
     }
-    srHeap.free(heap_34);
-    heap_34 = 0;
+    srHeap.free(poly_equations_34);
+    poly_equations_34 = 0;
 
     if (version_00 != 0) {
-        write_result = FileWrite(hFile, allocated_rows_38[0], vertex_count_40 * sizeof(float), 0);
+        write_result = FileWrite(hFile, sun_lights_38[0], vertex_count_40 * sizeof(float), 0);
         if (write_result == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\OctSubMesh.cpp", 0x143,
                          "OctMeshModel::Write -- Could not write m_ppflSunLights.\n");
         }
         for (index = 0; index < version_00; ++index) {
-            free(allocated_rows_38[index]);
+            free(sun_lights_38[index]);
         }
-        free(allocated_rows_38);
+        free(sun_lights_38);
     }
-    allocated_rows_38 = 0;
+    sun_lights_38 = 0;
 
     int terminator = -1;
     write_result = FileWrite(hFile, &terminator, 4, 0);

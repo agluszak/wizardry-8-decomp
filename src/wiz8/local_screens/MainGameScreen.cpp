@@ -2234,8 +2234,8 @@ render_world:
         if (gXStatus.fTrapInteractMode)
             UpdateMainGameScreen();
         int active;
-        if (!AnyPropTriggerInView00445140(g_world) && !AnyMonsterVisible0053A1D0() && !Function4F8650() &&
-            !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
+        if (!AnyPropTriggerInView00445140(g_world) && !AnyMonsterVisible0053A1D0() &&
+            !Function4F8650() && !Function57E3C0() && !SelectWorldCursorNode0048EFC0()) {
             active = 0;
         } else {
             active = 1;

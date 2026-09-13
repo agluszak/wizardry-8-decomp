@@ -38,11 +38,19 @@
 #include "wiz8/world_cursor.h"
 #include "wiz8/xstatus.h"
 
+#define MIPE_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\mipe.cpp"
+
 /* Local Screens\mipe.cpp. The MIPE state is a diagnostic monster/item
    selection panel used while the debug flag is active. */
 
+// GLOBAL: WIZ8 0x006850ba
+int g_mipe_cube_serial_006850ba;
+
+// GLOBAL: WIZ8 0x0068f0fe
+unsigned char g_mipe_mongen_visible_0068f0fe;
+
 // GLOBAL: WIZ8 0x0068f108
-int g_mipe_selection_0068f108;
+int g_mipe_mode_0068f108;
 
 // GLOBAL: WIZ8 0x0068f110
 short g_mipe_item_index_0068f110;
@@ -51,25 +59,26 @@ short g_mipe_item_index_0068f110;
 short g_mipe_monster_index_0068f112;
 
 // GLOBAL: WIZ8 0x0068f114
-unsigned char g_mipe_kind_0068f114;
+unsigned char g_mipe_category_0068f114;
 
 // GLOBAL: WIZ8 0x0068f118
-int g_mipe_monster_offset_0068f118;
+int g_mipe_table_row_0068f118;
 
 // GLOBAL: WIZ8 0x0068f120
-int g_mipe_item_offset_0068f120;
+int g_mipe_table_base_0068f120;
 
 // GLOBAL: WIZ8 0x0068f124
 W8PList* g_mipe_monster_entries_0068f124;
 
 // GLOBAL: WIZ8 0x0068f12c
-W8WorldCursorNode0048DB30* g_mipe_cursor_node_0068f12c;
+W8WorldCursorNode0048DB30* g_mipe_cube_0068f12c;
 
 static short MonsterRecordSelectionValue(const W8MonsterRecord* record)
 {
-    return *reinterpret_cast<const short*>(
-        reinterpret_cast<const unsigned char*>(record) +
-        0x1c1); // reinterpret-ok: retail record field is unmodeled
+    return *reinterpret_cast<const short*>( // reinterpret-ok: retail record field is unmodeled
+        reinterpret_cast<const unsigned char*>(
+            record) + // reinterpret-ok: raw record byte addressing
+        0x1c1);
 }
 
 // FUNCTION: WIZ8 0x0057d740
@@ -86,8 +95,8 @@ void Function57D740(void)
         g_flag_68f105 = 0;
         g_flag_68f104 = 1;
         g_debug_monster_cycle_0068f0fc = 0;
-        if (g_mipe_cursor_node_0068f12c != 0) {
-            Function48E420(g_mipe_cursor_node_0068f12c, 0, 0, 0.5f);
+        if (g_mipe_cube_0068f12c != 0) {
+            Function48E420(g_mipe_cube_0068f12c, 0, 0, 0.5f);
         }
         for (unsigned int monster_list_index = 0;
              monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
@@ -124,11 +133,11 @@ void Function57D740(void)
     WriteGameLogAmount(15, L"4) Monster Generators.", 0);
     WriteGameLogAmount(15, L"5) Select object(s).", 0);
     WriteGameLogAmount(15, L"6) Handle triggers.", 0);
-    g_mipe_selection_0068f108 = 0;
+    g_mipe_mode_0068f108 = 0;
     Function490210();
     g_flag_68f105 = 1;
     g_flag_68f104 = 0;
-    g_mipe_cursor_node_0068f12c = 0;
+    g_mipe_cube_0068f12c = 0;
     g_mipe_monster_entries_0068f124 = PLCreate();
 
     W8MonsterRecord* records = static_cast<W8MonsterRecord*>(
@@ -156,16 +165,13 @@ void Function57D740(void)
     memset(g_mipe_state_0068f100, 0, sizeof(W8MipeState));
     IListInit(&g_mipe_state_0068f100->monster_ids);
     g_mipe_state_0068f100->monster_ids.capacity = 1000000;
-    g_mipe_state_0068f100->unknown_0c[4] = 0;
-    *reinterpret_cast<float*>(reinterpret_cast<unsigned char*>(g_mipe_state_0068f100) +
-                              0x34) =
-        1.0f; // reinterpret-ok: retail diagnostic state field is unmodeled
-    *reinterpret_cast<float*>(reinterpret_cast<unsigned char*>(g_mipe_state_0068f100) +
-                              0x4c) =
-        0.020000000f; // reinterpret-ok: retail diagnostic state field is unmodeled
-    *reinterpret_cast<unsigned char*>(
-        reinterpret_cast<unsigned char*>(g_mipe_state_0068f100) + 0x61) =
-        0xff; // reinterpret-ok: retail diagnostic state field is unmodeled
+    g_mipe_state_0068f100->selecting = 0;
+    *reinterpret_cast<float*>(
+        &g_mipe_state_0068f100
+             ->unknown_32[2]) = // reinterpret-ok: retail diagnostic state field is unmodeled
+        1.0f;
+    g_mipe_state_0068f100->speed_step = 0.020000000f;
+    g_mipe_state_0068f100->unknown_5c[5] = 0xff;
     PListInit(&g_mipe_state_0068f100->waypoints);
 
     for (int cursor_index = 0, count = GetWorldCursorNodeCount0048ED00(); cursor_index < count;
@@ -175,13 +181,13 @@ void Function57D740(void)
         Function48DCA0(node);
     }
 
-    int selection = g_mipe_monster_offset_0068f118 + g_mipe_item_offset_0068f120;
+    int selection = g_mipe_table_row_0068f118 + g_mipe_table_base_0068f120;
     unsigned int monster_index = 0;
     int visible = 0;
     while (monster_index < gXStatus.uiMonstersInDatabase) {
         W8MipeMonsterEntry* entry =
             static_cast<W8MipeMonsterEntry*>(PLGet(g_mipe_monster_entries_0068f124, monster_index));
-        if (entry->kind == g_mipe_kind_0068f114 && entry->selectable != 0) {
+        if (entry->kind == g_mipe_category_0068f114 && entry->selectable != 0) {
             if (visible == selection) {
                 break;
             }
@@ -200,7 +206,7 @@ void Function57D740(void)
     unsigned int item_index = 0;
     visible = 0;
     while (item_index < gXStatus.uiItemsInDatabase) {
-        if (g_item_records[item_index].equip_class == g_mipe_kind_0068f114 &&
+        if (g_item_records[item_index].equip_class == g_mipe_category_0068f114 &&
             g_item_records[item_index].unknown_0cb[0] == 0) {
             if (visible == selection) {
                 break;
@@ -218,12 +224,6 @@ void Function57D740(void)
 // GLOBAL: WIZ8 0x0068f11c
 W8PList* g_mipe_category_list_0068f11c;
 
-// GLOBAL: WIZ8 0x0068f120
-int g_mipe_table_base_0068f120;
-
-// GLOBAL: WIZ8 0x0068f12c
-W8WorldCursorNode0048DB30* g_mipe_cube_0068f12c;
-
 // GLOBAL: WIZ8 0x0068f130
 int g_mipe_cube_param_0068f130;
 
@@ -238,28 +238,27 @@ void ShowMonsterSpeedStatus00577F10(void)
     float speed;
 
     Function58AA20(-1);
-    Function58AAD0(6, L"Type ',' to decrease speed, '.' to increase.");
-    Function58AAD0(6, L"Type 'k' to decrease increment, 'l' to increase.");
-    Function58AAD0(0xf, &g_wchar_00689b34);
-    Function58AAD0(0xf, L"Increment: %g", (double)g_mipe_state_0068f100->speed_step);
-    Function58AAD0(0xf, &g_wchar_00689b34);
-    Function58AAD0(0xf, &g_wchar_00689b34);
+    WriteGameLogAmount(6, L"Type ',' to decrease speed, '.' to increase.");
+    WriteGameLogAmount(6, L"Type 'k' to decrease increment, 'l' to increase.");
+    WriteGameLogAmount(0xf, &g_wchar_00689b34);
+    WriteGameLogAmount(0xf, L"Increment: %g", (double)g_mipe_state_0068f100->speed_step);
+    WriteGameLogAmount(0xf, &g_wchar_00689b34);
+    WriteGameLogAmount(0xf, &g_wchar_00689b34);
     if (g_mipe_state_0068f100->monster == 0) {
-        Function58AAD0(8, L"No monster available.");
+        WriteGameLogAmount(8, L"No monster available.");
         return;
     }
     path = (W8PathAI*)MonsterGetObject0C(g_mipe_state_0068f100->monster);
     if (path != 0 && PathAIRecordFlag004A9740(path) == 0) {
         speed = PathAIGetScale004AAA50(path);
-    }
-    else {
+    } else {
         if (g_mipe_state_0068f100->monster == 0) {
-            Function58AAD0(8, L"Monster has no path AI.");
+            WriteGameLogAmount(8, L"Monster has no path AI.");
             return;
         }
         speed = MonsterGetNavigatorValue120(g_mipe_state_0068f100->monster);
     }
-    Function58AAD0(0xf, L"Current speed: %g", (double)speed);
+    WriteGameLogAmount(0xf, L"Current speed: %g", (double)speed);
 }
 
 /* The "Parameters" pane for the selected volume cube. */
@@ -268,32 +267,30 @@ void ShowCubeParameters005780F0(void)
 {
     Function58AA20(-1);
     if (g_mipe_cube_0068f12c == 0) {
-        Function58AAD0(6, L"No cube selected.");
+        WriteGameLogAmount(6, L"No cube selected.");
         return;
     }
-    Function58AAD0(6, L"Parameters:");
+    WriteGameLogAmount(6, L"Parameters:");
     if (g_mipe_cube_param_0068f130 == 0) {
-        Function58AAD0(0, L"Message: %d",
+        WriteGameLogAmount(0, L"Message: %d",
                        GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
-    }
-    else {
-        Function58AAD0(0xf, L"Message: %d",
+    } else {
+        WriteGameLogAmount(0xf, L"Message: %d",
                        GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
     }
     if (g_mipe_cube_param_0068f130 == 1) {
-        Function58AAD0(0, L"Search: %d",
+        WriteGameLogAmount(0, L"Search: %d",
                        GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
-    }
-    else {
-        Function58AAD0(0xf, L"Search: %d",
+    } else {
+        WriteGameLogAmount(0xf, L"Search: %d",
                        GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
     }
     if (g_mipe_cube_param_0068f130 == 2) {
-        Function58AAD0(0, L"Function: %d",
+        WriteGameLogAmount(0, L"Function: %d",
                        GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
         return;
     }
-    Function58AAD0(0xf, L"Function: %d",
+    WriteGameLogAmount(0xf, L"Function: %d",
                    GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
 }
 
@@ -304,33 +301,33 @@ void ShowMonsterGeneratorStatus005781F0(void)
     const char* state;
 
     Function58AA20(-1);
-    Function58AAD0(6, L"Monster Generators (%d)", GetMonsterGeneratorCount());
-    Function58AAD0(0xf, L"1) Create 2) Delete");
-    Function58AAD0(0xf, L"3) Edit   4) Select");
+    WriteGameLogAmount(6, L"Monster Generators (%d)", GetMonsterGeneratorCount());
+    WriteGameLogAmount(0xf, L"1) Create 2) Delete");
+    WriteGameLogAmount(0xf, L"3) Edit   4) Select");
     state = "On";
     if (g_mipe_mongen_visible_0068f0fe == 0) {
         state = "Off";
     }
-    Function58AAD0(0xf, L"5) Toggle Display [%s]", state);
+    WriteGameLogAmount(0xf, L"5) Toggle Display [%s]", state);
     state = "Off";
     if (g_generator_save_flag == 0) {
         state = "On";
     }
-    Function58AAD0(0xf, L"6) Toggle Active  [%s]", state);
-    Function58AAD0(0xf, &g_wchar_00689b34);
+    WriteGameLogAmount(0xf, L"6) Toggle Active  [%s]", state);
+    WriteGameLogAmount(0xf, &g_wchar_00689b34);
     if (g_mipe_state_0068f100->generator != 0) {
         if (g_mipe_state_0068f100->selecting != 0) {
-            Function58AAD0(3, L"<--- MOUSE OVER MONGEN --->");
+            WriteGameLogAmount(3, L"<--- MOUSE OVER MONGEN --->");
             return;
         }
-        Function58AAD0(8, L"MONGEN selected");
+        WriteGameLogAmount(8, L"MONGEN selected");
         return;
     }
     if (g_mipe_state_0068f100->selecting != 0) {
-        Function58AAD0(3, L"---> SELECTING MONGEN <---");
+        WriteGameLogAmount(3, L"---> SELECTING MONGEN <---");
         return;
     }
-    Function58AAD0(0xf, &g_wchar_00689b34);
+    WriteGameLogAmount(0xf, &g_wchar_00689b34);
 }
 
 /* The "Edit Monster Generator" pane. */
@@ -346,35 +343,33 @@ void ShowMonsterGeneratorEditor005782D0(void)
     const wchar_t* format;
 
     Function58AA20(-1);
-    Function58AAD0(6, L"Edit Monster Generator");
-    Function58AAD0(0xf, L"1) Name: %hs", g_mipe_state_0068f100->generator->name);
+    WriteGameLogAmount(6, L"Edit Monster Generator");
+    WriteGameLogAmount(0xf, L"1) Name: %hs", g_mipe_state_0068f100->generator->name);
     if (g_mipe_state_0068f100->generator->value_1c == -1) {
-        Function58AAD0(0xf, L"2) Table: Not Selected");
-    }
-    else {
+        WriteGameLogAmount(0xf, L"2) Table: Not Selected");
+    } else {
         table = GetEncounterTable(g_mipe_state_0068f100->generator->value_1c);
-        Function58AAD0(0xf, L"2) Table: %hs", table->name);
+        WriteGameLogAmount(0xf, L"2) Table: %hs", table->name);
     }
     state = "On";
     if (g_mipe_state_0068f100->generator->flag_44 == 0) {
         state = "Off";
     }
-    Function58AAD0(0xf, L"3) Toggle Active [%s]", state);
+    WriteGameLogAmount(0xf, L"3) Toggle Active [%s]", state);
     generator = g_mipe_state_0068f100->generator;
     if ((generator->flags >> 3 & 1) == 0) {
         interval = generator->value_06;
         chance = (char)generator->flag_04;
         format = L" Custom: %d (4-/5+) chance every %d (6-/7+) s";
         color = 5;
-    }
-    else {
+    } else {
         chance = g_generator_interval_min;
         format = L" Default: %d (4-/5+) chance every %d (6-/7+) s";
         color = 8;
         interval = g_generator_default_interval;
     }
-    Function58AAD0(color, format, chance, (int)interval);
-    Function58AAD0(0xf, L"8) to toggle chance default");
+    WriteGameLogAmount(color, format, chance, (int)interval);
+    WriteGameLogAmount(0xf, L"8) to toggle chance default");
 }
 
 /* '1' halves the selected monster's animation scale, '2' doubles it, '3'
@@ -417,9 +412,8 @@ void HandleMonsterDebugKey00579900(unsigned short key)
         break;
     case 0x34:
         if (ILLength(&g_mipe_state_0068f100->monster_ids) == 1) {
-            info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x6e3, MIPE_CPP,
-                                            IListGetAt(&g_mipe_state_0068f100->monster_ids, 0), 1));
+            info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0x6e3, MIPE_CPP, IListGetAt(&g_mipe_state_0068f100->monster_ids, 0), 1));
             if (info == 0 || info->monster == 0) {
                 srAssertFail("pMonsterInfo && pMonsterInfo->p3D", MIPE_CPP, 0x6e5, 0);
             }
@@ -436,9 +430,8 @@ void HandleMonsterDebugKey00579900(unsigned short key)
         break;
     case 0x35:
         if (ILLength(&g_mipe_state_0068f100->monster_ids) == 1) {
-            info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x703, MIPE_CPP,
-                                            IListGetAt(&g_mipe_state_0068f100->monster_ids, 0), 1));
+            info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0x703, MIPE_CPP, IListGetAt(&g_mipe_state_0068f100->monster_ids, 0), 1));
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MIPE_CPP, 0x705, 0);
             }
@@ -495,8 +488,7 @@ void AdjustMonsterSpeed00579BF0(unsigned short key)
     if (path == 0) {
         factor = 1.0f;
         speed = MonsterGetNavigatorValue120(g_mipe_state_0068f100->monster);
-    }
-    else {
+    } else {
         if (PathAIRecordFlag004A9740(path) != 0) {
             return;
         }
@@ -562,17 +554,18 @@ void HandleWaypointKey00579DF0(unsigned short key)
         g_mipe_state_0068f100->waypoint_count = g_mipe_state_0068f100->waypoint_count + 1;
         PLAdoptAppend(&g_mipe_state_0068f100->waypoints, monster);
         Function58AA20(-1);
-        Function58AAD0(6, L"Type 'C' to create a waypoint.");
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, L"Type X to delete last waypoint.");
-    }
-    else if (key == 0x58) {
+        WriteGameLogAmount(6, L"Type 'C' to create a waypoint.");
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
+    } else if (key == 0x58) {
         if (g_mipe_state_0068f100 != 0) {
-            unsigned int count = ILLength(reinterpret_cast<W8IList*>(&g_mipe_state_0068f100->waypoints)); // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            unsigned int count = ILLength(reinterpret_cast<W8IList*>(
+                &g_mipe_state_0068f100
+                     ->waypoints)); // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
             if (count != 0) {
                 monster = (W8Monster*)PLGet(&g_mipe_state_0068f100->waypoints, count - 1);
                 if (monster != 0) {
@@ -587,13 +580,13 @@ void HandleWaypointKey00579DF0(unsigned short key)
             }
         }
         Function58AA20(-1);
-        Function58AAD0(6, L"Type 'C' to create a waypoint.");
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, &g_wchar_00689b34);
-        Function58AAD0(0xf, L"Type X to delete last waypoint.");
+        WriteGameLogAmount(6, L"Type 'C' to create a waypoint.");
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, &g_wchar_00689b34);
+        WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
     }
 }
 
@@ -612,13 +605,13 @@ int HandleCubeMenuKey0057A310(unsigned int key)
     switch (key & 0xffff) {
     case 0x20:
         Function58AA20(-1);
-        Function58AAD0(6, L"Choose an action:");
-        Function58AAD0(0xf, L"1) Create cube.");
-        Function58AAD0(0xf, L"2) Delete cube.");
-        Function58AAD0(0xf, L"3) Edit cube parameters.");
-        Function58AAD0(0xf, L"4) Move cube.");
-        Function58AAD0(0xf, L"5) Scale cube.");
-        Function58AAD0(0xf, L"6) Select cube.");
+        WriteGameLogAmount(6, L"Choose an action:");
+        WriteGameLogAmount(0xf, L"1) Create cube.");
+        WriteGameLogAmount(0xf, L"2) Delete cube.");
+        WriteGameLogAmount(0xf, L"3) Edit cube parameters.");
+        WriteGameLogAmount(0xf, L"4) Move cube.");
+        WriteGameLogAmount(0xf, L"5) Scale cube.");
+        WriteGameLogAmount(0xf, L"6) Select cube.");
         return 1;
     default:
         return 0;
@@ -653,13 +646,12 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         }
         g_mipe_mode_0068f108 = 0x11;
         Function58AA20(-1);
-        Function58AAD0(6, L"Move Volume Trigger.");
+        WriteGameLogAmount(6, L"Move Volume Trigger.");
         if (g_mipe_cube_0068f12c == 0) {
-            Function58AAD0(0xf, L"Click on trigger to move.");
-        }
-        else {
-            Function58AAD0(0xf, L"Move trigger. Hold down SHIFT to");
-            Function58AAD0(0xf, L"change elevation.");
+            WriteGameLogAmount(0xf, L"Click on trigger to move.");
+        } else {
+            WriteGameLogAmount(0xf, L"Move trigger. Hold down SHIFT to");
+            WriteGameLogAmount(0xf, L"change elevation.");
         }
         g_flag_68f104 = 0;
         ShowWorldCursor00490B10();
@@ -678,11 +670,11 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         scale_planes[1] = 'Y';
         scale_planes[2] = 'Z';
         Function58AA20(-1);
-        Function58AAD0(6, L"Scale Volume Trigger.");
+        WriteGameLogAmount(6, L"Scale Volume Trigger.");
         if (g_mipe_cube_0068f12c != 0) {
-            Function58AAD0(0xf, L"Scaling in the %c plane. ",
+            WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
                            (int)scale_planes[g_mipe_scale_plane_0068f134]);
-            Function58AAD0(0xf, L"Press X/Y/Z to change plane.");
+            WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
             g_flag_68f104 = 0;
             return 1;
         }
@@ -691,16 +683,15 @@ int HandleCubeMenuKey0057A310(unsigned int key)
     case 0x36:
         g_mipe_mode_0068f108 = 0x13;
         Function58AA20(-1);
-        Function58AAD0(6, L"Select cube:");
+        WriteGameLogAmount(6, L"Select cube:");
         if (g_mipe_cube_0068f12c == 0) {
             prompt = L"Click on a cube to select it.";
-        }
-        else {
+        } else {
             prompt = L"Click on another cube to select it.";
         }
         break;
     }
-    Function58AAD0(0xf, prompt);
+    WriteGameLogAmount(0xf, prompt);
     g_flag_68f104 = 0;
     return 1;
 }
@@ -728,13 +719,13 @@ int HandleCubeParameterKey0057A630(unsigned int key)
         return 0;
     case 0x20:
         Function58AA20(-1);
-        Function58AAD0(6, L"Choose an action:");
-        Function58AAD0(0xf, L"1) Create cube.");
-        Function58AAD0(0xf, L"2) Delete cube.");
-        Function58AAD0(0xf, L"3) Edit cube parameters.");
-        Function58AAD0(0xf, L"4) Move cube.");
-        Function58AAD0(0xf, L"5) Scale cube.");
-        Function58AAD0(0xf, L"6) Select cube.");
+        WriteGameLogAmount(6, L"Choose an action:");
+        WriteGameLogAmount(0xf, L"1) Create cube.");
+        WriteGameLogAmount(0xf, L"2) Delete cube.");
+        WriteGameLogAmount(0xf, L"3) Edit cube parameters.");
+        WriteGameLogAmount(0xf, L"4) Move cube.");
+        WriteGameLogAmount(0xf, L"5) Scale cube.");
+        WriteGameLogAmount(0xf, L"6) Select cube.");
         return 1;
     case 0x26:
         if (0 < g_mipe_cube_param_0068f130) {
@@ -760,10 +751,9 @@ int HandleCubeParameterKey0057A630(unsigned int key)
     case 0x37:
     case 0x38:
     case 0x39:
-        if (g_mipe_cube_0068f12c != 0 &&
-            (value = GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c,
-                                                         g_mipe_cube_param_0068f130),
-             value < 99999)) {
+        if (g_mipe_cube_0068f12c != 0 && (value = GetWorldCursorNodeParameter0048E2B0(
+                                              g_mipe_cube_0068f12c, g_mipe_cube_param_0068f130),
+                                          value < 99999)) {
             value = GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c,
                                                         g_mipe_cube_param_0068f130);
             SetWorldCursorNodeParameter0048E2D0(g_mipe_cube_0068f12c, g_mipe_cube_param_0068f130,
@@ -789,14 +779,14 @@ int HandleCubeScaleKey0057A800(unsigned short key)
         scale_planes[1] = 'Y';
         scale_planes[2] = 'Z';
         Function58AA20(-1);
-        Function58AAD0(6, L"Scale Volume Trigger.");
+        WriteGameLogAmount(6, L"Scale Volume Trigger.");
         if (g_mipe_cube_0068f12c == 0) {
-            Function58AAD0(0xf, L"Click on trigger to scale.");
+            WriteGameLogAmount(0xf, L"Click on trigger to scale.");
             return 1;
         }
-        Function58AAD0(0xf, L"Scaling in the %c plane. ",
+        WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
                        (int)scale_planes[g_mipe_scale_plane_0068f134]);
-        Function58AAD0(0xf, L"Press X/Y/Z to change plane.");
+        WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
         return 1;
     default:
         return 0;
@@ -923,8 +913,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         HideWorldCursor00490B90();
         ShowMonsterGeneratorStatus005781F0();
         return 1;
-    case 0x35:
-    {
+    case 0x35: {
         unsigned char visible = g_mipe_mongen_visible_0068f0fe == 0;
         count = GetMonsterGeneratorCount();
         index = 0;
@@ -990,16 +979,15 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     case 0x31:
         g_mipe_mode_0068f108 = 0x19;
         Function58AA20(-1);
-        Function58AAD0(6, L"Enter the name for this generator:");
-        Function58AAD0(0xf, L"%S", g_mipe_state_0068f100->generator->name);
+        WriteGameLogAmount(6, L"Enter the name for this generator:");
+        WriteGameLogAmount(0xf, L"%S", g_mipe_state_0068f100->generator->name);
         return 1;
     case 0x32:
         current_index = g_mipe_state_0068f100->generator->value_1c;
         if (current_index < 0) {
             g_mipe_table_base_0068f120 = 0;
             g_mipe_table_row_0068f118 = 0;
-        }
-        else {
+        } else {
             table = GetEncounterTable(current_index);
             list = g_mipe_category_list_0068f11c;
             g_mipe_category_0068f114 = (unsigned char)table->unknown_150;
@@ -1018,7 +1006,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                 }
             }
             found = 0;
-            if (0 < (int)ILLength(reinterpret_cast<W8IList*>(g_mipe_category_list_0068f11c))) { // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            if (0 <
+                (int)ILLength(reinterpret_cast<W8IList*>(
+                    g_mipe_category_list_0068f11c))) { // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
                 do {
                     table = (W8EncounterTableRuntime*)PLGet(g_mipe_category_list_0068f11c, found);
                     entry = GetEncounterTable(current_index);
@@ -1026,15 +1016,17 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                         break;
                     }
                     ++found;
-                } while (found <
-                         (int)ILLength(reinterpret_cast<W8IList*>(g_mipe_category_list_0068f11c))); // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                } while (
+                    found <
+                    (int)ILLength(reinterpret_cast<W8IList*>(
+                        g_mipe_category_list_0068f11c))); // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
             }
             g_mipe_table_base_0068f120 = (found / 6) * 6;
             g_mipe_table_row_0068f118 = found % 6;
         }
         g_mipe_mode_0068f108 = 0x17;
         Function58AA20(-1);
-        Function58AAD0(6, L"Category: %S",
+        WriteGameLogAmount(6, L"Category: %S",
                        *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
         if (g_mipe_category_list_0068f11c == 0) {
             return 1;
@@ -1044,17 +1036,15 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
             entry = (W8EncounterTableRuntime*)PLGet(g_mipe_category_list_0068f11c,
                                                     g_mipe_table_base_0068f120 + slot);
             if (entry == 0) {
-                Function58AAD0(0xf, &g_wchar_00689b34);
-            }
-            else {
-                Function58AAD0(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S", entry->name);
+                WriteGameLogAmount(0xf, &g_wchar_00689b34);
+            } else {
+                WriteGameLogAmount(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S", entry->name);
             }
             ++slot;
         } while (slot < 6);
         return 1;
     case 0x33:
-        g_mipe_state_0068f100->generator->flag_44 =
-            g_mipe_state_0068f100->generator->flag_44 == 0;
+        g_mipe_state_0068f100->generator->flag_44 = g_mipe_state_0068f100->generator->flag_44 == 0;
         ShowMonsterGeneratorEditor005782D0();
         return 1;
     case 0x34:
@@ -1065,8 +1055,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
             }
-        }
-        else if ('\0' < (char)g_generator_interval_min) {
+        } else if ('\0' < (char)g_generator_interval_min) {
             g_generator_interval_min = (short)(char)((char)g_generator_interval_min - 10);
             ShowMonsterGeneratorEditor005782D0();
             return 1;
@@ -1080,8 +1069,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
             }
-        }
-        else if ((char)g_generator_interval_min < 'd') {
+        } else if ((char)g_generator_interval_min < 'd') {
             g_generator_interval_min = (short)(char)((char)g_generator_interval_min + '\n');
             ShowMonsterGeneratorEditor005782D0();
             return 1;
@@ -1096,8 +1084,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
             }
-        }
-        else if (0 < g_generator_default_interval) {
+        } else if (0 < g_generator_default_interval) {
             g_generator_default_interval = g_generator_default_interval - 10;
             ShowMonsterGeneratorEditor005782D0();
             return 1;
@@ -1141,9 +1128,8 @@ void EditMonsterGeneratorName0057B7E0(unsigned short key)
         if (0 < length) {
             name[length - 1] = '\0';
         }
-    }
-    else if ((((0x2f < key) && (key < 0x3a)) || ((0x40 < key) && (key < 0x5b))) &&
-             (length < 0x1f)) {
+    } else if ((((0x2f < key) && (key < 0x3a)) || ((0x40 < key) && (key < 0x5b))) &&
+               (length < 0x1f)) {
         if (gfKeyState[0x10] == 0) {
             key = key + 0x20;
         }
@@ -1151,8 +1137,8 @@ void EditMonsterGeneratorName0057B7E0(unsigned short key)
         name[length + 1] = '\0';
     }
     Function58AA20(-1);
-    Function58AAD0(6, L"Enter the name for this generator:");
-    Function58AAD0(0xf, L"%S", g_mipe_state_0068f100->generator->name);
+    WriteGameLogAmount(6, L"Enter the name for this generator:");
+    WriteGameLogAmount(0xf, L"%S", g_mipe_state_0068f100->generator->name);
 }
 
 /* The digit keys editing the selected prop trigger's key id. */
@@ -1194,16 +1180,13 @@ void EditTriggerKeyID0057BA60(unsigned int key)
     if (action == 0) {
         if (trigger->value_368 == 3) {
             g_mipe_state_0068f100->prop->GetValue18()->value_23c = key_id;
-        }
-        else {
+        } else {
             g_mipe_state_0068f100->prop->GetValue18()->value_23c = 0xffffffff;
         }
-    }
-    else {
+    } else {
         if (trigger->value_368 == 0 || trigger->state_370.state != 0) {
             pending = 0;
-        }
-        else {
+        } else {
             pending = 1;
         }
         action->flags_008 = (pending << 2) | (action->flags_008 & 0xfb);
@@ -1211,10 +1194,9 @@ void EditTriggerKeyID0057BA60(unsigned int key)
     }
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     Function58AA20(-1);
-    Function58AAD0(6, L"Enter Key ID:");
-    Function58AAD0(0xf, g_format_d_0060aa20, trigger->value_380);
+    WriteGameLogAmount(6, L"Enter Key ID:");
+    WriteGameLogAmount(0xf, g_format_d_0060aa20, trigger->value_380);
 }
-
 
 // FUNCTION: WIZ8 0x0057dbb0
 unsigned char GetFlag68F105(void)
@@ -1271,14 +1253,11 @@ void DragSelectionWithCursor0057DF80(void)
         moved.x = cursor.x - g_mipe_state_0068f100->drag_anchor.x + position.x;
         moved.y = cursor.y - g_mipe_state_0068f100->drag_anchor.y + position.y;
         moved.z = cursor.z - g_mipe_state_0068f100->drag_anchor.z + position.z;
-        g_mipe_state_0068f100->trigger->SetPosition(&moved);
-    }
-    else {
+        g_mipe_state_0068f100->trigger->SetPosition004416F0(&moved);
+    } else {
         for (index = 0; index < (int)ILLength(&g_mipe_state_0068f100->monster_ids); ++index) {
-            info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x114c, MIPE_CPP,
-                                            IListGetAt(&g_mipe_state_0068f100->monster_ids, index),
-                                            1));
+            info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0x114c, MIPE_CPP, IListGetAt(&g_mipe_state_0068f100->monster_ids, index), 1));
             MonsterGetLocalLocation(info->monster, &position);
             moved.x = cursor.x - g_mipe_state_0068f100->drag_anchor.x + position.x;
             moved.y = cursor.y - g_mipe_state_0068f100->drag_anchor.y + position.y;

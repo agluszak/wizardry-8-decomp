@@ -275,27 +275,28 @@ private:
     unsigned char HandleInputEvent005DE120(const InputAtom* input);
 
     /* Per-button callbacks stored through W8DialogButton::Configure. */
-    static void OnSplitDecrement005DE350(W8DialogButton* button);      /* 0x005DE350 */
-    static void OnSplitIncrement005DE4E0(W8DialogButton* button);      /* 0x005DE4E0 */
-    static void OnSplitDecrementMany005DE670(W8DialogButton* button);  /* 0x005DE670 */
-    static void OnSplitIncrementMany005DE810(W8DialogButton* button);  /* 0x005DE810 */
-    static void OnAccept005DE9B0(W8DialogButton* button);              /* 0x005DE9B0 */
-    static void OnCancel005DE9D0(W8DialogButton* button);              /* 0x005DE9D0 */
-    static void OnCountFieldClick005DE9F0(W8DialogButton* button);     /* 0x005DE9F0 */
+    static void OnSplitDecrement005DE350(W8DialogButton* button);     /* 0x005DE350 */
+    static void OnSplitIncrement005DE4E0(W8DialogButton* button);     /* 0x005DE4E0 */
+    static void OnSplitDecrementMany005DE670(W8DialogButton* button); /* 0x005DE670 */
+    static void OnSplitIncrementMany005DE810(W8DialogButton* button); /* 0x005DE810 */
+    static void OnAccept005DE9B0(W8DialogButton* button);             /* 0x005DE9B0 */
+    static void OnCancel005DE9D0(W8DialogButton* button);             /* 0x005DE9D0 */
+    static void OnCountFieldClick005DE9F0(W8DialogButton* button);    /* 0x005DE9F0 */
 
 public:
-    W8DialogButton* m_buttons_054[10]; /* 0x054: minus/plus, frames, accept/cancel */
-    W8TextBuffer* m_texts_07c[14];     /* 0x07c */
+    W8DialogButton* m_buttons_054[10];       /* 0x054: minus/plus, frames, accept/cancel */
+    W8TextBuffer* m_texts_07c[14];           /* 0x07c */
     W8DialogNumericInput* m_count_input_0b4; /* 0x0b4 */
     /* 0x0b8: the numeric field while a click or keypress owns it. */
     W8DialogNumericInput* m_active_input_0b8;
-    int m_remaining_0bc;    /* 0x0bc: the count left in the source stack */
+    int m_remaining_0bc; /* 0x0bc: the count left in the source stack */
     int split_count_0c0;
-    int m_stack_total_0c4;  /* 0x0c4: stack_count when the dialog opened */
+    int m_stack_total_0c4; /* 0x0c4: stack_count when the dialog opened */
     int result_0c8;
+
 private:
-    unsigned int m_kind_0cc;    /* 0x0cc: 0 inventory, 1 and 2 trade modes */
-    W8ItemInstance* m_item_0d0; /* 0x0d0 */
+    unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
+    W8ItemInstance* m_item_0d0;     /* 0x0d0 */
     unsigned char m_first_draw_0d4; /* 0x0d4: draw the item icon once */
     unsigned char unknown_0d5[3];
 };

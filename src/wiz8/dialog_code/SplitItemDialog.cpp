@@ -36,17 +36,17 @@ struct W8SplitButtonOffset {
 
 // GLOBAL: WIZ8 0x0064FE38
 W8SplitButtonOffset g_split_button_offsets[10] = {
-    {0xd9, 0x5a}, {0xbe, 0x5a}, {0xbc, 0x49}, {0xbc, 0x6f}, {0x81, 0x35},
+    {0xd9, 0x5a}, {0xbe, 0x5a}, {0xbc, 0x49},  {0xbc, 0x6f}, {0x81, 0x35},
     {0x81, 0x83}, {0xed, 0x95}, {0x111, 0x95}, {0xf4, 0x35}, {0xf4, 0x83},
 };
 
 // GLOBAL: WIZ8 0x0064FE88
 W8ControlsRect g_split_text_bounds[14] = {
-    {0x48, 0x49, 0xb6, 0x55}, {0x48, 0x6f, 0xb6, 0x7b}, {0xbc, 0x49, 0xef, 0x55},
-    {0x48, 0x0f, 0x12a, 0x1f}, {0x48, 0x23, 0x7d, 0x2f}, {0x81, 0x23, 0x12a, 0x2f},
-    {0x48, 0x35, 0x7d, 0x41}, {0x81, 0x35, 0xb7, 0x41}, {0x48, 0x83, 0x7d, 0x8f},
-    {0x81, 0x83, 0xb7, 0x8f}, {0xbb, 0x35, 0xf0, 0x41}, {0xf4, 0x35, 0x12a, 0x41},
-    {0xbb, 0x83, 0xf0, 0x8f}, {0x90, 0x83, 0x12a, 0x8f},
+    {0x48, 0x49, 0xb6, 0x55},  {0x48, 0x6f, 0xb6, 0x7b},  {0xbc, 0x49, 0xef, 0x55},
+    {0x48, 0x0f, 0x12a, 0x1f}, {0x48, 0x23, 0x7d, 0x2f},  {0x81, 0x23, 0x12a, 0x2f},
+    {0x48, 0x35, 0x7d, 0x41},  {0x81, 0x35, 0xb7, 0x41},  {0x48, 0x83, 0x7d, 0x8f},
+    {0x81, 0x83, 0xb7, 0x8f},  {0xbb, 0x35, 0xf0, 0x41},  {0xf4, 0x35, 0x12a, 0x41},
+    {0xbb, 0x83, 0xf0, 0x8f},  {0x90, 0x83, 0x12a, 0x8f},
 };
 
 // GLOBAL: WIZ8 0x0064FF68
@@ -287,34 +287,34 @@ unsigned char W8Dialog005DCED0::CreateButtons005DD480()
         }
     }
     m_buttons_054[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
-                              OnSplitDecrement005DE350, 0, 0, 0x7f, -1,
-                              OnSplitDecrementMany005DE670, 0);
+                                OnSplitDecrement005DE350, 0, 0, 0x7f, -1,
+                                OnSplitDecrementMany005DE670, 0);
     m_buttons_054[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6,
-                              OnSplitIncrement005DE4E0, 0, 0, 0x7f, -1,
-                              OnSplitIncrementMany005DE810, 0);
-    m_buttons_054[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0, -1, 0,
-                              0);
+                                OnSplitIncrement005DE4E0, 0, 0, 0x7f, -1,
+                                OnSplitIncrementMany005DE810, 0);
+    m_buttons_054[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
+                                -1, 0, 0);
     m_buttons_054[3]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1,
-                              OnCountFieldClick005DE9F0, 0, 0, 0x7f, -1, 0, 0);
-    m_buttons_054[4]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0, -1, 0,
-                              0);
-    m_buttons_054[5]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0, -1, 0,
-                              0);
-    m_buttons_054[6]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2, OnAccept005DE9B0, 0, 0,
-                              0x7f, -1, 0, 0);
-    m_buttons_054[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7, OnCancel005DE9D0, 0, 0,
-                              0x7f, -1, 0, 0);
+                                OnCountFieldClick005DE9F0, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_054[4]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
+                                -1, 0, 0);
+    m_buttons_054[5]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
+                                -1, 0, 0);
+    m_buttons_054[6]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+                                OnAccept005DE9B0, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_054[7]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
+                                OnCancel005DE9D0, 0, 0, 0x7f, -1, 0, 0);
     if (m_kind_0cc == 1 || m_kind_0cc == 2) {
-        m_buttons_054[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0, -1,
-                                  0, 0);
-        m_buttons_054[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0, -1,
-                                  0, 0);
+        m_buttons_054[8]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
+                                    0, -1, 0, 0);
+        m_buttons_054[9]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0,
+                                    0, -1, 0, 0);
     }
     m_buttons_054[0]->m_fires_on_press = 1;
     m_buttons_054[1]->m_fires_on_press = 1;
     for (index = 0; index < count; ++index) {
         m_buttons_054[index]->SetPosition(g_split_button_offsets[index].x + m_x,
-                                        g_split_button_offsets[index].y + m_y);
+                                          g_split_button_offsets[index].y + m_y);
         m_buttons_054[index]->m_owner_040 = this;
     }
     return 1;
@@ -339,11 +339,9 @@ unsigned char W8Dialog005DCED0::CreateTextBuffers005DD750()
         bounds.top = g_split_text_bounds[index].top + m_y;
         bounds.right = g_split_text_bounds[index].right + m_x;
         bounds.bottom = g_split_text_bounds[index].bottom + m_y;
-        m_texts_07c[index] =
-            new W8TextBuffer(&bounds, gppStringList[g_split_text_string_ids[index]],
-                             g_font_683660,
-                             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C,
-                             4);
+        m_texts_07c[index] = new W8TextBuffer(
+            &bounds, gppStringList[g_split_text_string_ids[index]], g_font_683660,
+            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
         if (m_texts_07c[index] == 0) {
             count = 0;
             if (m_kind_0cc == 0) {
@@ -361,16 +359,16 @@ unsigned char W8Dialog005DCED0::CreateTextBuffers005DD750()
         }
     }
     m_texts_07c[2]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                g_W8TextBufferLayoutMask005ED554);
+                                  g_W8TextBufferLayoutMask005ED554);
     m_texts_07c[7]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                g_W8TextBufferLayoutMask005ED554);
+                                  g_W8TextBufferLayoutMask005ED554);
     m_texts_07c[9]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                g_W8TextBufferLayoutMask005ED554);
+                                  g_W8TextBufferLayoutMask005ED554);
     if (m_kind_0cc == 1 || m_kind_0cc == 2) {
         m_texts_07c[11]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                     g_W8TextBufferLayoutMask005ED554);
+                                       g_W8TextBufferLayoutMask005ED554);
         m_texts_07c[13]->SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
-                                     g_W8TextBufferLayoutMask005ED554);
+                                       g_W8TextBufferLayoutMask005ED554);
         if (m_kind_0cc == 1) {
             m_texts_07c[1]->SetText(gppStringList[274], g_font_683660);
             header = gppStringList[268];
@@ -381,13 +379,11 @@ unsigned char W8Dialog005DCED0::CreateTextBuffers005DD750()
         m_texts_07c[0]->SetText(header, g_font_683660);
     }
     m_texts_07c[3]->SetText(FormatItemDisplayName(m_item_0d0, 0), g_font_683660);
-    m_texts_07c[4]->SetText(FormatWideString(L"%s (%s)",
-                                           gppStringList[g_equip_class_name_ids_61e7dc
-                                                             [GetItemEquipClass(m_item_0d0)]],
-                                           gppStringList[g_generic_item_name_notice
-                                                             [GetItemUnidentifiedNameIndex(
-                                                                 m_item_0d0)]]),
-                           g_font_683660);
+    m_texts_07c[4]->SetText(
+        FormatWideString(
+            L"%s (%s)", gppStringList[g_equip_class_name_ids_61e7dc[GetItemEquipClass(m_item_0d0)]],
+            gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(m_item_0d0)]]),
+        g_font_683660);
     return 1;
 }
 
@@ -402,7 +398,7 @@ unsigned char W8Dialog005DCED0::CreateNumericInput005DDA60()
     bounds.right = g_split_count_field_bounds.right + m_x;
     bounds.bottom = g_split_count_field_bounds.bottom + m_y;
     m_count_input_0b4 = new W8DialogNumericInput(0, &bounds, split_count_0c0, g_font_683660, this,
-                                               m_buttons_054[3]);
+                                                 m_buttons_054[3]);
     if (m_count_input_0b4 == 0) {
         NoOp();
         ::operator delete(m_count_input_0b4);
@@ -448,10 +444,9 @@ void W8Dialog005DCED0::Draw()
         W8DialogBase::Draw();
     }
     if (m_first_draw_0d4 != 0) {
-        DrawCatalogImageAndInvalidate(-0xe,
-                                      g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                                          m_item_0d0->item_id),
-                                      0, 0, m_x + 0x18, m_y + 0xe, 2, 0);
+        DrawCatalogImageAndInvalidate(
+            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item_0d0->item_id), 0, 0,
+            m_x + 0x18, m_y + 0xe, 2, 0);
         m_first_draw_0d4 = 0;
     }
     if (m_buttons_054[3]->m_dirty) {
@@ -490,30 +485,26 @@ void W8Dialog005DCED0::UpdateCostLabels005DCC00()
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
-            split_price =
-                Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
+            split_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
         }
         stack.stack_count = (unsigned char)m_remaining_0bc;
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
-            remaining_price =
-                Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
+            remaining_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
         }
     } else if (m_kind_0cc == 2) {
         stack.stack_count = (unsigned char)split_count_0c0;
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
-            split_price =
-                Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
+            split_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
         }
         stack.stack_count = (unsigned char)m_remaining_0bc;
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
-            remaining_price =
-                Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
+            remaining_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
         }
     } else {
         remaining_price = GetItemStackValue(m_item_0d0);
@@ -644,8 +635,7 @@ unsigned char W8Dialog005DCED0::ProcessInput()
     InputAtom input;
 
     SGPMouseGetPos(&mouse);
-    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState,
-                                gfRightButtonState);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     while (DequeueEvent(&input) == 1) {
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:

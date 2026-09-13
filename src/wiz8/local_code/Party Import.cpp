@@ -135,16 +135,15 @@ void ImportWizardry7Character005590B0(W8Character* character, char* imported)
     }
     character->enchantment_top = 0;
     ConvertAttribute(character, imported_record);
-    GrantStartingSpells005595D0(character);
+    GrantStartingSpells005595D0(character, imported_record);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
         character->skills[skill_id].flag_00 = 0;
-        character->skills[skill_id].value_02 =
-            ConvertSkill(skill_id, character, imported_record, imported_record, 0);
+        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported_record);
     }
     RefreshCharacterSkillAvailability00553CD0(character);
     ImportEquipment00559650(character, imported_record);
     DeriveCharacterPersonality004EFA30(character);
-    Function4EFAD0(character);
+    EnsureUniquePartyVoice004EFAD0(character);
     CalcCharacterLevelBand(character);
     RecalculateCharacterDerivedStats(character);
     character->stamina = character->stamina_max;

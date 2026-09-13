@@ -34,8 +34,7 @@ struct W8AIMissile {
 
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
 unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record);
-float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out,
-                               unsigned int steps);
+float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsigned int steps);
 
 /* The missile constructor allocates this complete 0x108-byte representation,
    invokes W8EmitterHost on the same receiver, constructs the two light-list
