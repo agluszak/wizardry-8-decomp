@@ -445,8 +445,7 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
 
     for (index = 0; index < count; ++index) {
         if (index == 0) {
-            CreateDefaultMaterial004B9280(*materials + index, *textures + index,
-                                          *render_flags + index);
+            CreateDefaultMaterial(*materials + index, *textures + index, *render_flags + index);
         } else {
             LoadMaterial004B8A70(info->bitmap_folder, records + index, *materials + index,
                                  *textures + index, *render_flags + index, load_materials);
