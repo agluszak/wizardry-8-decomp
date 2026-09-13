@@ -549,6 +549,36 @@ void W8Navigator::SetMovementStopped00453880()
     }
 }
 
+/* Push this navigator's path and position onto every navigator in its group,
+   and let the whole group move again if this one may. */
+// FUNCTION: WIZ8 0x00454c80
+void W8Navigator::PropagateGroupPosition()
+{
+    if (g_flag_006081e4 != 0) {
+        linked_update_time_0b8 = 0;
+        g_navigator_group_659bf8.Clear();
+        CollectGroupNavigators(&g_navigator_group_659bf8);
+        for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+            W8Navigator* navigator = *g_navigator_group_659bf8.GetAt(index);
+            navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                movement_0c0.attachment_0ac);
+            navigator->position_03c = position_03c;
+            navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
+            navigator->linked_update_time_0b8 = 0;
+        }
+    }
+    if (flag_024 == 0) {
+        flag_024 = 0;
+        if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+            g_navigator_group_659bf8.Clear();
+            CollectGroupNavigators(&g_navigator_group_659bf8);
+            for (int index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+                (*g_navigator_group_659bf8.GetAt(index))->flag_024 = 0;
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x004538f0
 void W8Navigator::SetAngles004538F0(float angle)
 {

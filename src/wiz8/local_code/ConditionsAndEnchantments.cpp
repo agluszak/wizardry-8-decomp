@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -187,24 +189,24 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
     }
 }
 
-/* Condition immunity sets by monster kind. Each entry is a kind byte followed
-   by twenty condition ids; a match means the condition never lands. The
-   two-byte packing is load-bearing: padded to four the stride would be 0x54,
-   but the table walks 0x52 per entry. Values are the retail table at
-   0x006171AA. */
+/* Condition immunity sets by monster kind. Each entry is a kind byte, one
+   byte no recovered reader consumes, and twenty condition ids; a match means
+   the condition never lands. The two-byte packing is load-bearing: padded to
+   four the stride would be 0x54, but the table walks 0x52 per entry. Values
+   are the retail table at 0x006171A8; the walkers address the ids at +2. */
 #pragma pack(push, 2)
 struct W8ConditionImmunity {
     unsigned char kind;
-    unsigned char pad;
+    unsigned char unknown_01;
     int conditions[20];
 }; /* 0x52 */
 #pragma pack(pop)
 
-// GLOBAL: WIZ8 0x006171AA
-W8ConditionImmunity g_condition_immunities_006171AA[3] = {
-    {20, 0, {2, 7, 17, 3, 6, 11, 15, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+// GLOBAL: WIZ8 0x006171A8
+W8ConditionImmunity g_condition_immunities_006171A8[3] = {
+    {20, 1, {2, 7, 17, 3, 6, 11, 15, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
     {22, 0, {2, 7, 4, 3, 6, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-    {17, 0, {11, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+    {17, 1, {11, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
 };
 
 /* Setting a monster's condition runs the sameCountdown rescan, group recount
@@ -255,7 +257,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         return;
     }
     kind = record->kind_0cb;
-    for (immunity = g_condition_immunities_006171AA; immunity < g_condition_immunities_006171AA + 3;
+    for (immunity = g_condition_immunities_006171A8; immunity < g_condition_immunities_006171A8 + 3;
          ++immunity) {
         if (immunity->kind == kind) {
             for (index = 0; index < 0x14; ++index) {
@@ -593,15 +595,15 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
 // FUNCTION: WIZ8 0x00523a80
 void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character;
     int scan;
 
-    character->enchantments[slot].value_00 = 0;
-    character->enchantments[slot].value_04 = 0;
-    character->enchantments[slot].value_08 = 0;
+    memset(&g_status_685170.buffers.characters[party_slot].enchantments[slot], 0,
+           sizeof(W8Enchantment));
 
+    character = &g_status_685170.buffers.characters[party_slot];
     for (scan = 7; scan >= 0; --scan) {
-        if (character->enchantments[scan].value_08 != 0) {
+        if (character->enchantments[scan].value_08 > 0 || scan == 0) {
             character->enchantment_top = scan;
             break;
         }
@@ -626,9 +628,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
 
-    monster_info->enchantments[slot].value_00 = 0;
-    monster_info->enchantments[slot].value_04 = 0;
-    monster_info->enchantments[slot].value_08 = 0;
+    memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
@@ -653,9 +653,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
 
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
-    monster_info->enchantments[slot].value_00 = 0;
-    monster_info->enchantments[slot].value_04 = 0;
-    monster_info->enchantments[slot].value_08 = 0;
+    memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {

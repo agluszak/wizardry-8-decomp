@@ -92,7 +92,7 @@ void SetGameTimeMilliseconds(int value);
    hands off to when the bypass value is set. */
 void UpdateEnvironment482770(void);
 void UpdateEnvironmentLighting00484300(void);
-float GetWorldValue24(const void* world);
+float GetWorldValue24(const W8World* world);
 void SetSkyNodeVisible(bool visible);
 void SetCameraLightIntensity00483E30(float value);
 void RefreshFogRanges004836A0(void);

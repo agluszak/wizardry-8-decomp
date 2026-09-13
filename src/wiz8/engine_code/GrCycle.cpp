@@ -223,7 +223,7 @@ void UpdateShakeEffects004AE310()
 // GLOBAL: WIZ8 0x005ec128
 float g_float_005ec128 = 0.0010000000474974513f;
 // GLOBAL: WIZ8 0x005ebc64
-float g_float_005ebc64;
+float g_float_005ebc64 = 1000.0f;
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle

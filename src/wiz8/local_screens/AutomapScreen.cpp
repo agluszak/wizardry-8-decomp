@@ -112,11 +112,11 @@ srColorSurface* g_automap_surface;
 // GLOBAL: WIZ8 0x0064b8e4
 int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
-float g_automap_range_0064b910;
+float g_automap_range_0064b910 = 10000.0f;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
 // GLOBAL: WIZ8 0x0064b91c
-unsigned char g_automap_bounds_dirty_0064b91c;
+unsigned char g_automap_bounds_dirty_0064b91c = 1;
 // GLOBAL: WIZ8 0x0068f138
 EnvironmentColour g_automap_saved_light_direction;
 // GLOBAL: WIZ8 0x0068f144
@@ -384,7 +384,7 @@ unsigned char AutomapScreenEnter(void)
     gfTrackMousePos = 1;
     g_automap_cursor_inside = IsCursorInsideViewport();
     g_automap_tool = 0;
-    Function5820F0(0);
+    SetAutomapToolCursor(0);
     Function5822C0();
     Function583BC0();
     g_class_68f29c->setParent(0, 1);
@@ -471,7 +471,7 @@ unsigned char AutomapScreenEnter(void)
         srVector3T<float> position = (g_automap_bounds_min + g_automap_bounds_max) / 2.0;
         position.y = g_automap_top_y;
         Function57FC70(&position);
-        Function5820F0(g_automap_tool);
+        SetAutomapToolCursor(g_automap_tool);
         SetAutomapButtonMode(0);
     } else {
         g_automap_position.x = g_automap_saved_camera.position.x;
@@ -650,7 +650,7 @@ void AutomapScreenFrame(void)
                             (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
                         position.y = g_automap_top_y;
                         Function57FC70(&position);
-                        Function5820F0(g_automap_tool);
+                        SetAutomapToolCursor(g_automap_tool);
                         SetAutomapButtonMode(0);
                     } else {
                         float ground_y = g_automap_position.y - g_automap_zoom;
@@ -660,7 +660,7 @@ void AutomapScreenFrame(void)
                             SetAutomapButtonMode(1);
                             g_automap_zoom = g_automap_position.y - ground_y;
                             Function57FC70(&g_automap_position);
-                            Function5820F0(g_automap_tool);
+                            SetAutomapToolCursor(g_automap_tool);
                         } else {
                             Function57FE40();
                         }
@@ -668,7 +668,7 @@ void AutomapScreenFrame(void)
                 }
             } else {
                 g_automap_tool = 0;
-                Function5820F0(0);
+                SetAutomapToolCursor(0);
             }
         } else if (input.usEvent == MOUSE_POS) {
             W8AutomapNote* previous = g_automap_hovered_note;
@@ -849,17 +849,6 @@ unsigned char AutomapScreenFinalize(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0057DBB0
-unsigned char GetFlag68F105(void)
-{
-    return g_flag_68f105;
-}
-// FUNCTION: WIZ8 0x0057DBC0
-unsigned char GetFlag68F104(void)
-{
-    return g_flag_68f104;
-}
-
 /* Select which automap buttons are enabled for the update mode, then dirty
    and redraw both and remember the mode. */
 // FUNCTION: WIZ8 0x0057FD90
@@ -884,6 +873,25 @@ void SetAutomapButtonMode(int update)
     g_automap_buttons[1]->m_dirty = 1;
     g_automap_buttons[1]->Draw();
     g_automap_zoom_mode = update;
+}
+
+/* Show the mouse cursor for an automap tool. With no tool selected and the
+   cursor over the map, the zoom level picks the zoom-in or zoom-out cursor. */
+// FUNCTION: WIZ8 0x005820F0
+void SetAutomapToolCursor(int tool)
+{
+    if (g_automap_tool == 0 && g_automap_cursor_inside) {
+        if (g_automap_zoom <= g_float_005ec360) {
+            tool = 4;
+        } else {
+            tool = 1;
+        }
+    }
+    SetMouseCursorFromVideoObject(
+        GetCatalogVideoObjectHandle(tool + 0x14b, 0), GetCatalogVideoObjectYOffset(tool + 0x14b),
+        g_automap_cursor_offsets[tool][0], g_automap_cursor_offsets[tool][1]);
+    gXStatus.iCurrentCursor = 7;
+    RefreshMouseCursorTexture();
 }
 
 // GLOBAL: WIZ8 0x0064b914

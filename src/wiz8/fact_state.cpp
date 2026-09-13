@@ -23,6 +23,11 @@
 #include "wiz8/game_status.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 
+/* Unresolved fragment: five of the six functions lie in the anchored gap
+   between Sight.cpp (ends 0x00505F30) and NPC Scripting Facts.cpp
+   (0x00506670); 0x005080F0 sits past that hull in the gap before
+   NPC Manager.cpp (0x00509CD0). Two clusters, no proven ownership. */
+
 // GLOBAL: WIZ8 0x0068de63
 unsigned char g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d

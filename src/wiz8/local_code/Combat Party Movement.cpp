@@ -100,6 +100,42 @@ unsigned char CanPartyMove(void)
     return 0;
 }
 
+/* Average the haste bonus over the party: every occupied slot must either be
+   free of the sixth condition or carry the sixth enchantment, else there is no
+   bonus at all. Each contributing slot adds ten steps per point of power,
+   adjusted by the enchantment's percentage. */
+// FUNCTION: WIZ8 0x004f0010
+unsigned char GetPartyHasteSteps(unsigned int* out_steps)
+{
+    unsigned int total = 0;
+    unsigned int count = 0;
+    unsigned int party_slot;
+    unsigned int steps;
+
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        W8Character* character;
+
+        if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+            continue;
+        }
+        character = &g_status_685170.buffers.characters[party_slot];
+        if (character->condition_turns[19] != 0) {
+            continue;
+        }
+        if (character->enchantments[5].value_08 == 0) {
+            return 0;
+        }
+        steps = (unsigned char)(character->enchantments[5].value_00 * 10);
+        AdjustIntegerByPercent(&steps, character->enchantments[5].percent_04);
+        total += steps;
+        ++count;
+    }
+    if (out_steps != 0) {
+        *out_steps = total / count;
+    }
+    return 1;
+}
+
 /* How fast the party moves. The second combat mode is half again as fast, and
    whatever the step count adds is scaled by the same world constant. */
 // FUNCTION: WIZ8 0x004effa0
@@ -111,7 +147,7 @@ float GetPartyMovementSpeed(void)
     if (g_combat_state->uiCurrentPartyAction == 2) {
         speed = 1.5f;
     }
-    if (Function4F0010(&steps)) {
+    if (GetPartyHasteSteps(&steps)) {
         return (steps * g_movement_speed_step_005ed490 + speed) * g_float_005ec0a8;
     }
     return speed * g_float_005ec0a8;

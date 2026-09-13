@@ -128,6 +128,13 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot);
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
+/* Notice colours for combat text: 8 for a party-side source, 9 for a monster
+   and 12 for anything else. The target form colours a character target by
+   its marching-order slot instead. */
+char GetSourceNoticeColor(const W8TargetSource* source); /* 0x0053C320 */
+char GetTargetNoticeColor(const W8TargetSource* source,
+                          const W8CombatSlot* target); /* 0x0053C3F0 */
+
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
@@ -178,8 +185,8 @@ void SetTargetToGroup(int group_id, W8TargetingContext context);
 
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 
-unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
-void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
+/* 0x0053C630: fill the slot's point from where its target is. */
+unsigned char ResolveTargetPoint(W8CombatSlot* target, char sight_probe);
 void ApplyTarget(W8CombatSlot* target, W8TargetingContext context);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
@@ -199,8 +206,8 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
 unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3); /* 0x00536F60 */
 
-void Function53AE00(void); /* 0x0053AE00 */
-void Function53CD60(void); /* 0x0053CD60 */
+void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
+void Function53CD60(void);            /* 0x0053CD60 */
 /* Combat action-selection helpers used across the combat units. */
 bool CanPartySlotParticipate(int party_slot);      /* 0x0053C270 */
 W8TargetingContext Function53BC90(int party_slot); /* 0x0053BC90 */

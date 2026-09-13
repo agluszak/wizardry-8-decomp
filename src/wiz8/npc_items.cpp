@@ -10,6 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Unresolved fragment: all fourteen functions lie in the single anchored
+   gap between Party Import.cpp (ends 0x00559BC0) and chunk.cpp (0x0055BE80),
+   an interval shared with record_file_0055a480.cpp. Whether that span is one
+   original TU or several is unproven. */
+
 /* Add stock to an NPC's item list. Equipment, which is equip_class four, never
    merges: it takes one fresh entry per requested unit and a fixed stock count.
    Anything else merges into the existing entry for that item when there is one,

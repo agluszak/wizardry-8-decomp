@@ -663,12 +663,12 @@ void AddEnvironmentLight00483F30(stLight* light)
 
 /* One value off the world object, guarded by an assertion that names it. */
 // FUNCTION: WIZ8 0x00483ab0
-float GetWorldValue24(const void* world)
+float GetWorldValue24(const W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    return *(const float*)((const char*)world + 0x24);
+    return world->environment_intensity_024;
 }
 
 /* Retain the world's current intensity while replacing its environment
