@@ -113,8 +113,7 @@ stModelInstance2D* Function425190(srTextureIFace* texture, double width, double 
                                   char keep_aspect, char a5);
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
-unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect,
-                             char render_secondary);
+unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect, char render_secondary);
 
 #endif
 

@@ -109,6 +109,6 @@ void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
 void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
 void Function4F6CF0(W8WorldItem* item);                 /* 0x004F6CF0 */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
-void SetFlag68C4F4(void);                               /* 0x00529560 */
-void SetFlag68C4F7(void);                               /* 0x00529BC0 */
-void ClearFlag68C4F7(void);                             /* 0x00529BD0 */
+void SetFlag68C4F4(void);   /* 0x00529560 */
+void SetFlag68C4F7(void);   /* 0x00529BC0 */
+void ClearFlag68C4F7(void); /* 0x00529BD0 */

@@ -63,9 +63,9 @@ public:
     srVector3T<float> position_0c; /* 0x0c */
     W8GameTimer timer_18;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
-    int cycle_3c;    /* 0x3c */
-    int frame_40;    /* 0x40 */
-    int subcycle_44; /* 0x44 */
+    int cycle_3c;                         /* 0x3c */
+    int frame_40;                         /* 0x40 */
+    int subcycle_44;                      /* 0x44 */
     void (*completion_callback_48)(void); /* 0x48 */
 };
 

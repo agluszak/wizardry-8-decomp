@@ -1793,9 +1793,8 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
         if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1 &&
             (record = &g_item_records[detail_block->item_use.item->item_id],
              record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(record->spell_id,
-                                                   ItemClassNormalizesTarget(record),
-                                                   W8_TARGETING_CONTEXT_CURRENT);
+            needed = GetTargetNeededForSpellFriendly(
+                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
             break;
         }
         /* fall through */
@@ -1806,8 +1805,11 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
     previous_kind = target->iType;
     if (gXStatus.fCombatMode != 0) {
         if (resolved == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
-            int* pending = reinterpret_cast<int*>(reinterpret_cast<char*>(g_combat_state) + // reinterpret-ok: per-slot pending-action counter inside the combat rows, not yet fielded
-                                                  0xac + party_slot * 0xd4);
+            int* pending = reinterpret_cast<int*>(
+                reinterpret_cast<char*>(
+                    g_combat_state) + // reinterpret-ok: per-slot pending-action counter inside the combat rows, not yet fielded
+                0xac +
+                party_slot * 0xd4);
             *pending += 1;
         }
         switch (kind) {
@@ -1823,10 +1825,9 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
         }
         if (needed == 2) {
             group_id = -1;
-            if (target->iMonsterID != -1 &&
-                (monster_index = MonsterGetIndexByLocationID(0xf40, TARGETING_CPP,
-                                                           target->iMonsterID, 0),
-                 monster_index != 0xffffffff)) {
+            if (target->iMonsterID != -1 && (monster_index = MonsterGetIndexByLocationID(
+                                                 0xf40, TARGETING_CPP, target->iMonsterID, 0),
+                                             monster_index != 0xffffffff)) {
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 group_id = monster_info->monster_group_id;
             }
@@ -1848,10 +1849,10 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
                     if (g_settings_6850c8.verbose_combat_messages != 0) {
                         PostCharacterNotice(party_slot, gppStringList[0x26b]);
                     }
-                    ChooseCombatAction(party_slot,
-                                       ResolveTargetingContext(party_slot,
-                                                               W8_TARGETING_CONTEXT_IN_COMBAT),
-                                       &kind_2, &action_2, &target_2, &detail_block_2);
+                    ChooseCombatAction(
+                        party_slot,
+                        ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT),
+                        &kind_2, &action_2, &target_2, &detail_block_2);
                     needed = GetTargetNeededForAction(kind_2, action_2, detail_block_2);
                     if (TargetMatchesNeeded(target_2, needed) == 0 ||
                         Function519180(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) == 0) {
@@ -1947,9 +1948,8 @@ unsigned char TargetIsInPlay(int party_slot, int value, W8TargetingContext conte
         if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1 &&
             (record = &g_item_records[detail_block->item_use.item->item_id],
              record->spell_id != 0)) {
-            needed = GetTargetNeededForSpellFriendly(record->spell_id,
-                                                   ItemClassNormalizesTarget(record),
-                                                   W8_TARGETING_CONTEXT_CURRENT);
+            needed = GetTargetNeededForSpellFriendly(
+                record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
             break;
         }
         /* fall through */
@@ -2493,7 +2493,9 @@ void RefreshMonsterTargetCounts005398D0(void)
                 selectable_count += 1;
             }
         }
-        cached = reinterpret_cast<int*>(group->unknown_0c); // reinterpret-ok: cached on-screen/selectable pair the retail refresh stores in the group's opaque eight-byte scratch
+        cached = reinterpret_cast<int*>(
+            group
+                ->unknown_0c); // reinterpret-ok: cached on-screen/selectable pair the retail refresh stores in the group's opaque eight-byte scratch
         if (on_screen_count != cached[0] || selectable_count != cached[1]) {
             RequestRedrawParty();
             cached[0] = on_screen_count;
@@ -2556,15 +2558,15 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
 
         if (gXStatus.target_markers.count != 1) {
             for (index = 0; index < gXStatus.target_markers.count - 1; ++index) {
-                gXStatus.target_markers.data[index] =
-                    gXStatus.target_markers.data[index + 1];
+                gXStatus.target_markers.data[index] = gXStatus.target_markers.data[index + 1];
             }
         }
         gXStatus.target_markers.count -= 1;
         monster = GetMonsterByLocationID(location_id);
         point = g_target_position_0068407f;
         if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
-            float* channels = reinterpret_cast<float*>(&block); // reinterpret-ok: highlight tint stored as four floats in the render-state block
+            float* channels = reinterpret_cast<float*>(
+                &block); // reinterpret-ok: highlight tint stored as four floats in the render-state block
             channels[0] = 0.0f;
             channels[1] = 1.0f;
             channels[2] = 0.0f;

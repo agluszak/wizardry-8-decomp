@@ -24,17 +24,17 @@ public:
     int link_index_04;
     int uv_count_08;
     int material_index_0c;
-    int map_count_10;                     /* m_psrMap entry count */
+    int map_count_10;                       /* m_psrMap entry count */
     srVector3T<float>* vertex_locations_14; /* m_psrVertLoc */
     srVector2T<float>* vertex_map_18;       /* m_psrMap */
-    int* vertex_materials_1c;             /* m_plVertMats */
-    srVector3i* poly_vertices_20;         /* m_psrPolyVertex */
-    srVector3i* poly_uv_index_24;         /* m_psrPolyUVIndex */
-    int* poly_textures_28;                /* m_plPolyTextures */
-    srVector3T<float>* vertex_normals_2c; /* m_pVertNorms */
-    srVector3T<float>* vertex_lights_30;  /* m_pVertLights */
-    srVector4T<float>* poly_equations_34; /* m_psrPolyEqtns */
-    float** sun_lights_38;                /* m_ppflSunLights */
+    int* vertex_materials_1c;               /* m_plVertMats */
+    srVector3i* poly_vertices_20;           /* m_psrPolyVertex */
+    srVector3i* poly_uv_index_24;           /* m_psrPolyUVIndex */
+    int* poly_textures_28;                  /* m_plPolyTextures */
+    srVector3T<float>* vertex_normals_2c;   /* m_pVertNorms */
+    srVector3T<float>* vertex_lights_30;    /* m_pVertLights */
+    srVector4T<float>* poly_equations_34;   /* m_psrPolyEqtns */
+    float** sun_lights_38;                  /* m_ppflSunLights */
     unsigned int packed_header_3c;
     int vertex_count_40;
     int polygon_count_44;

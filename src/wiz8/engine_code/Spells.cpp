@@ -55,12 +55,11 @@ W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
    in load order: FLASH, EXPLOSION, TARGET and CONE. */
 // GLOBAL: WIZ8 0x0060CF80
 const char* g_spell_cycle_names[28] = {
-    "FLASH1",     "FLASH2",     "FLASH3",     "FLASH4",     "FLASH5",
-    "FLASH6",     "FLASH7",     "EXPLOSION1", "EXPLOSION2", "EXPLOSION3",
-    "EXPLOSION4", "EXPLOSION5", "EXPLOSION6", "EXPLOSION7", "TARGET1",
-    "TARGET2",    "TARGET3",    "TARGET4",    "TARGET5",    "TARGET6",
-    "TARGET7",    "CONE1",      "CONE2",      "CONE3",      "CONE4",
-    "CONE5",      "CONE6",      "CONE7",
+    "FLASH1",     "FLASH2",     "FLASH3",     "FLASH4",     "FLASH5",     "FLASH6",
+    "FLASH7",     "EXPLOSION1", "EXPLOSION2", "EXPLOSION3", "EXPLOSION4", "EXPLOSION5",
+    "EXPLOSION6", "EXPLOSION7", "TARGET1",    "TARGET2",    "TARGET3",    "TARGET4",
+    "TARGET5",    "TARGET6",    "TARGET7",    "CONE1",      "CONE2",      "CONE3",
+    "CONE4",      "CONE5",      "CONE6",      "CONE7",
 };
 
 /* The persistent TargetCone visual the targeting code toggles on and off. */
@@ -540,9 +539,8 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
    requested group loads its bitmaps, SOUND_FRAME/SOUND_CYCLE rows attach timed
    sound events, and SHAKE_FRAME rows attach camera-shake effects. */
 // FUNCTION: WIZ8 0x004ab580
-unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context,
-                                              const char* name, int cycle_type,
-                                              W8SpellVisual** visual, int unused)
+unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
+                                              int cycle_type, W8SpellVisual** visual, int unused)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
     if (shared != 0 && shared->value_1d8 == cycle_type) {
@@ -601,8 +599,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
 
             index = -1;
             for (i = 0; i < 28; ++i) {
-                if (_strnicmp(pac_name, g_spell_cycle_names[i],
-                              strlen(g_spell_cycle_names[i])) == 0) {
+                if (_strnicmp(pac_name, g_spell_cycle_names[i], strlen(g_spell_cycle_names[i])) ==
+                    0) {
                     index = i;
                     break;
                 }
@@ -637,8 +635,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wtautological-pointer-compare"
                     if (pac_name == 0) {
-                        srAssertFail("pacName",
-                                     "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x532, 0);
+                        srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                                     0x532, 0);
                     }
 #pragma clang diagnostic pop
                     index = -1;
@@ -650,8 +648,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
                         }
                     }
                     effect = new W8CameraShakeEffect(
-                        duration, 1, intensity,
-                        static_cast<int>(distance * g_world_scale_005ebc40), 0);
+                        duration, 1, intensity, static_cast<int>(distance * g_world_scale_005ebc40),
+                        0);
                     if (effect != 0) {
                         effect->cycle_3c = index;
                         effect->frame_40 = frame;
@@ -674,8 +672,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
 #pragma clang diagnostic pop
             index = -1;
             for (i = 0; i < 28; ++i) {
-                if (_strnicmp(pac_name, g_spell_cycle_names[i],
-                              strlen(g_spell_cycle_names[i])) == 0) {
+                if (_strnicmp(pac_name, g_spell_cycle_names[i], strlen(g_spell_cycle_names[i])) ==
+                    0) {
                     index = i;
                     break;
                 }
@@ -1315,12 +1313,9 @@ void AudioUpdateFinish004AEFD0()
                         transformed = rotation.Transform(offset);
                         Sound3DSetPosition(sound->sound_handle_13c, transformed.x, transformed.y,
                                            transformed.z);
-                        Sound3DSetDirection(sound->sound_handle_13c, -transformed.x,
-                                            -transformed.y, -transformed.z, 0.0f,
-                                            g_float_005ebb38, 0.0f);
-                        volume = (sound->value_140 *
-                                  g_settings_6850c8.sound_effects_volume) /
-                                 0x7f;
+                        Sound3DSetDirection(sound->sound_handle_13c, -transformed.x, -transformed.y,
+                                            -transformed.z, 0.0f, g_float_005ebb38, 0.0f);
+                        volume = (sound->value_140 * g_settings_6850c8.sound_effects_volume) / 0x7f;
                         SoundSetVolume(
                             sound->sound_handle_13c,
                             (UINT32)((g_float_005ebb38 - distance / sound->value_144) * volume));

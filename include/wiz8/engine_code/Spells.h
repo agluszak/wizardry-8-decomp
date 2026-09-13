@@ -13,6 +13,5 @@ void SetTargetConeEnabled004ADD30(char enabled);
 W8SpellVisual* SpawnSpellEffect004AD080(const char* name, int animation, int value_1, int value_2);
 /* Load one named visual from the spell bitmap directory; the out pointer is
    set only on success. */
-unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context,
-                                              const char* name, int cycle_type,
-                                              W8SpellVisual** visual, int unused);
+unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
+                                              int cycle_type, W8SpellVisual** visual, int unused);

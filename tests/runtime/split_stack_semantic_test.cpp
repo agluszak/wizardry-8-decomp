@@ -68,8 +68,7 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     }
     result->ctor_split_in_range = dialog->split_count_0c0 == expected_split;
     result->ctor_counts_sum_to_stack =
-        dialog->split_count_0c0 + dialog->m_remaining_0bc == 6 &&
-        dialog->m_stack_total_0c4 == 6;
+        dialog->split_count_0c0 + dialog->m_remaining_0bc == 6 && dialog->m_stack_total_0c4 == 6;
     delete dialog;
 
     /* An explicit count splits exactly that many off the stack. */
@@ -87,8 +86,8 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     if (cancel_dialog != 0) {
         cancel_dialog->result_0c8 = g_split_result_kind_005efb44 + 1;
         SplitStackDialogResult005BAA80(cancel_dialog);
-        result->cancel_leaves_stack = source.stack_count == 6 &&
-                                      g_status_685170.item_in_hand_235b.item_id == -1;
+        result->cancel_leaves_stack =
+            source.stack_count == 6 && g_status_685170.item_in_hand_235b.item_id == -1;
         delete cancel_dialog;
     }
 

@@ -138,8 +138,7 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
     }
     record->elapsed_14 = advance + record->elapsed_14;
     missile->SetPosition004A6DF0(&out);
-    if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 &&
-        missile->flag_1e4 != 0) {
+    if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 && missile->flag_1e4 != 0) {
         pitch = GetElevationToCamera004BE520(&out);
         yaw = GetHeadingToCamera004BE650(&out);
         rotation.SetIdentity();
@@ -174,8 +173,7 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
    flags the record when a prop blocks the path and fires the prop's
    missile trigger. Returns the distance the step covered. */
 // FUNCTION: WIZ8 0x004a50a0
-float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out,
-                               unsigned int steps)
+float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsigned int steps)
 {
     W8MissileRep* representation;
     W8Missile* missile;
@@ -201,8 +199,7 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out,
     out->x = position.x + direction.x * advance;
     out->y = position.y + direction.y * advance;
     out->z = position.z + direction.z * advance;
-    if (g_world->octree != 0 &&
-        (entity = TraceAgainstProps00436510(&position, out, 0, 0)) != 0) {
+    if (g_world->octree != 0 && (entity = TraceAgainstProps00436510(&position, out, 0, 0)) != 0) {
         record->limit_18 = 1.0f;
         prop = *g_world->collidable_props->GetAt(entity - 1);
         prop->RunMissileTrigger0044E230(record);

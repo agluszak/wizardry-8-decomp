@@ -1058,8 +1058,8 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
     to.z = position.z;
 
     float ground;
-    if (g_octree_game_data_00652db0->positional_04->TraceLineOfSight(&from, &to, 1, -3, -3, 1,
-                                                                     0) == 0) {
+    if (g_octree_game_data_00652db0->positional_04->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) ==
+        0) {
         ground = g_automap_grid_min_0068f1d8.y;
         if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&
             *g_automap_layers.GetAt(1) != 0) {
@@ -1140,8 +1140,7 @@ void UpdateAutomapBounds00580380(void)
                     cell.x = 0.0f;
                     cell.y = 0.0f;
                     cell.z = 0.0f;
-                    if (g_block_68f280 != 0 ||
-                        bit < (unsigned int)g_automap_cell_count_0068f27c) {
+                    if (g_block_68f280 != 0 || bit < (unsigned int)g_automap_cell_count_0068f27c) {
                         unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
                         float half = g_float_64b914 * g_float_005ebc7c;
                         cell.x = (float)(key >> 0x15) * g_float_64b914 + half;
@@ -1209,8 +1208,8 @@ void RenderAutomapFrame00581030(void)
             }
             unsigned int pitch;
             void* pixels = LockPrimarySurface(&pitch);
-            srColorSurface* surface = SR_NEW(W8ColorSurface)(
-                srPixelConvert::SURFACE_ARGB1555, pixels, 0x280, 0x1e0, pitch);
+            srColorSurface* surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555,
+                                                             pixels, 0x280, 0x1e0, pitch);
             surface->setFilter(&srBoxFilter);
             surface->blit(0xc, 0x20, *g_automap_surface, 0xc, 0x20, 0x1d3, 0x1d3);
             surface->release();
@@ -1278,19 +1277,17 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
         if (left <= note->position.x && note->position.x <= left + g_automap_zoom &&
             bottom <= note->position.y && note->position.y <= bottom + g_automap_zoom) {
             int screen_x = (int)((note->position.x - left) / g_automap_zoom * -455.0f);
-            int screen_y =
-                (int)((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
+            int screen_y = (int)((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
             int marker_width;
             if (note == g_automap_editing_note) {
-                marker_width = (int)((double)(unsigned short)g_automap_text_marker_0068f2ac
-                                         ->GetWidth00480EF0() *
+                marker_width = (int)((double)(unsigned short)
+                                         g_automap_text_marker_0068f2ac->GetWidth00480EF0() *
                                      0.22);
             } else {
-                marker_width =
-                    (int)((1.0f / (g_automap_zoom * 0.00004f)) *
-                              (double)(unsigned short)g_automap_text_marker_0068f2ac
-                                  ->GetWidth00480EF0() *
-                          0.5f);
+                marker_width = (int)((1.0f / (g_automap_zoom * 0.00004f)) *
+                                     (double)(unsigned short)
+                                         g_automap_text_marker_0068f2ac->GetWidth00480EF0() *
+                                     0.5f);
             }
             g_automap_text_marker_0068f2ac->GetHeight00480F70();
             W8ScreenRect rect;
@@ -1342,11 +1339,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f29c = Function425190(texture, (double)((float)(int)surface->getWidth() *
-                                                              g_scale_x_5ebb1c),
-                                          (double)((float)(int)surface->getHeight() *
-                                                   g_scale_x_5ebb1c),
-                                          1, 1);
+            g_class_68f29c = Function425190(
+                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
+                (double)((float)(int)surface->getHeight() * g_scale_x_5ebb1c), 1, 1);
             g_class_68f29c->setParent(g_scene_square_65965c, 1);
             static_cast<srMeshModel*>(g_class_68f29c->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
@@ -1360,8 +1355,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         }
     }
     if (g_class_68f2a0 == 0) {
-        stTextureFile* texture =
-            new stTextureFile("Data\\Automap\\map_monsterfriendly_a.tga", 0);
+        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterfriendly_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
@@ -1372,18 +1366,15 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a0 = Function425190(texture, (double)((float)(int)surface->getWidth() *
-                                                              g_scale_x_5ebb1c),
-                                          (double)((float)(int)surface->getHeight() *
-                                                   g_scale_y_5ebb20),
-                                          1, 0);
+            g_class_68f2a0 = Function425190(
+                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
+                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a0->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
     if (g_class_68f2a4 == 0) {
-        stTextureFile* texture =
-            new stTextureFile("Data\\Automap\\map_monsterneutral_a.tga", 0);
+        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterneutral_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
@@ -1394,18 +1385,15 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a4 = Function425190(texture, (double)((float)(int)surface->getWidth() *
-                                                              g_scale_x_5ebb1c),
-                                          (double)((float)(int)surface->getHeight() *
-                                                   g_scale_y_5ebb20),
-                                          1, 0);
+            g_class_68f2a4 = Function425190(
+                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
+                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a4->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
     }
     if (g_class_68f2a8 == 0) {
-        stTextureFile* texture =
-            new stTextureFile("Data\\Automap\\map_monsterhostile_a.tga", 0);
+        stTextureFile* texture = new stTextureFile("Data\\Automap\\map_monsterhostile_a.tga", 0);
         texture->autoRelease();
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_2);
         texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
@@ -1416,11 +1404,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a8 = Function425190(texture, (double)((float)(int)surface->getWidth() *
-                                                              g_scale_x_5ebb1c),
-                                          (double)((float)(int)surface->getHeight() *
-                                                   g_scale_y_5ebb20),
-                                          1, 0);
+            g_class_68f2a8 = Function425190(
+                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
+                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a8->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
@@ -1437,11 +1423,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_automap_text_marker_0068f2ac =
-                Function425190(texture, (double)((float)(int)surface->getWidth() *
-                                                 g_scale_x_5ebb1c),
-                               (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20),
-                               1, 0);
+            g_automap_text_marker_0068f2ac = Function425190(
+                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
+                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_automap_text_marker_0068f2ac->model())
                 ->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
@@ -1458,8 +1442,8 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
             srVector3T<float> point;
             if (GetCursorPositionInViewport(&point) != 0) {
                 int layer = g_automap_layer + 1;
-                if (layer >= 0 && g_automap_layers.count != 0 &&
-                    layer < g_automap_layers.count && *g_automap_layers.GetAt(layer) != 0) {
+                if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+                    *g_automap_layers.GetAt(layer) != 0) {
                     (*g_automap_layers.GetAt(layer))->getLocationY();
                 }
                 g_automap_editing_note->position.x =
@@ -1513,8 +1497,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-                    (short)g_automap_cursor_offsets[0][0],
-                    (short)g_automap_cursor_offsets[0][1]);
+                    (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -1536,8 +1519,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(0x14b, 0), GetCatalogVideoObjectYOffset(0x14b),
-                    (short)g_automap_cursor_offsets[0][0],
-                    (short)g_automap_cursor_offsets[0][1]);
+                    (short)g_automap_cursor_offsets[0][0], (short)g_automap_cursor_offsets[0][1]);
                 gXStatus.iCurrentCursor = 7;
                 RefreshMouseCursorTexture();
             }
@@ -1566,8 +1548,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     if (input->usEvent != KEY_DOWN) {
         return 0;
     }
-    MGSKeyBinding* binding =
-        g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(0x12f));
+    MGSKeyBinding* binding = g_mgs_keyboard->GetBinding(g_mgs_keyboard->FindBinding(0x12f));
     if (input->usParam == binding->key && input->usKeyState == binding->modifiers) {
         RequestScreenTransition();
         return 1;
@@ -1577,8 +1558,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 8:
         g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
         {
-            srVector3T<float> position =
-                (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
+            srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
             position.y = g_automap_top_y;
             SetAutomapCameraPoint0057FC70(&position);
         }
@@ -1654,8 +1634,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
                        g_automap_bounds_max.y + g_automap_bounds_min.y,
                        g_automap_bounds_min.z + g_automap_bounds_max.z);
             g_automap_position = center / 2.0;
-            g_automap_top_y =
-                g_automap_position.y + g_automap_position.x - g_automap_bounds_min.x;
+            g_automap_top_y = g_automap_position.y + g_automap_position.x - g_automap_bounds_min.x;
             g_automap_position.y = g_automap_top_y;
             SetAutomapCameraPoint0057FC70(&g_automap_position);
         }

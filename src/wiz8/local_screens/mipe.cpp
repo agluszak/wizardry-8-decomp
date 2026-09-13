@@ -273,25 +273,25 @@ void ShowCubeParameters005780F0(void)
     WriteGameLogAmount(6, L"Parameters:");
     if (g_mipe_cube_param_0068f130 == 0) {
         WriteGameLogAmount(0, L"Message: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
+                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
     } else {
         WriteGameLogAmount(0xf, L"Message: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
+                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
     }
     if (g_mipe_cube_param_0068f130 == 1) {
         WriteGameLogAmount(0, L"Search: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
+                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
     } else {
         WriteGameLogAmount(0xf, L"Search: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
+                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
     }
     if (g_mipe_cube_param_0068f130 == 2) {
         WriteGameLogAmount(0, L"Function: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
+                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
         return;
     }
     WriteGameLogAmount(0xf, L"Function: %d",
-                   GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
+                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
 }
 
 /* The monster generator top menu plus its selection status line. */
@@ -673,7 +673,7 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         WriteGameLogAmount(6, L"Scale Volume Trigger.");
         if (g_mipe_cube_0068f12c != 0) {
             WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
-                           (int)scale_planes[g_mipe_scale_plane_0068f134]);
+                               (int)scale_planes[g_mipe_scale_plane_0068f134]);
             WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
             g_flag_68f104 = 0;
             return 1;
@@ -785,7 +785,7 @@ int HandleCubeScaleKey0057A800(unsigned short key)
             return 1;
         }
         WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
-                       (int)scale_planes[g_mipe_scale_plane_0068f134]);
+                           (int)scale_planes[g_mipe_scale_plane_0068f134]);
         WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
         return 1;
     default:
@@ -1027,7 +1027,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         g_mipe_mode_0068f108 = 0x17;
         Function58AA20(-1);
         WriteGameLogAmount(6, L"Category: %S",
-                       *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
+                           *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
         if (g_mipe_category_list_0068f11c == 0) {
             return 1;
         }
@@ -1038,7 +1038,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
             if (entry == 0) {
                 WriteGameLogAmount(0xf, &g_wchar_00689b34);
             } else {
-                WriteGameLogAmount(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S", entry->name);
+                WriteGameLogAmount(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S",
+                                   entry->name);
             }
             ++slot;
         } while (slot < 6);

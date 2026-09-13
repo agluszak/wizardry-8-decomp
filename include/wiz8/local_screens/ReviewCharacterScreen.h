@@ -164,8 +164,8 @@ void Function5187E0(void);
 
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
-void Function5A6620(int fade_to_black, int arg_2, int fade_code, void (*callback)(void),
-                    char flag, char arg_6);
+void Function5A6620(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
+                    char arg_6);
 /* Ending sequence picker run when that fade completes. */
 void Function5A6B90(void); /* 0x005A6B90 */
 /* 0x005A6580 */

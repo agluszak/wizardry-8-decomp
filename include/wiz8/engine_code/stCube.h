@@ -15,7 +15,7 @@ void ScaleWorldCursorNodeX0048DE40(W8WorldCursorNode0048DB30* entry, double scal
 void ScaleWorldCursorNodeY0048DE90(W8WorldCursorNode0048DB30* entry, double scale);
 void ScaleWorldCursorNodeZ0048DEE0(W8WorldCursorNode0048DB30* entry, double scale);
 void SetWorldCursorNodeColorComponents0048E420(W8WorldCursorNode0048DB30* entry, float red,
-                                             float green, float blue);
+                                               float green, float blue);
 void AttachWorldCursorNode0048ED30(W8WorldCursorNode0048DB30* entry, unsigned char attached);
 void SetWorldCursorNodeName0048F110(W8WorldCursorNode0048DB30* entry, const char* name);
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode0048DB30* entry, unsigned long color);

@@ -41,7 +41,8 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
     case 1:
         return 0;
     case 3:
-        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>(path)); // reinterpret-ok: the kind byte selects the tagged record type
+        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>(
+            path)); // reinterpret-ok: the kind byte selects the tagged record type
     default:
         return 0;
     }
@@ -575,8 +576,9 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
                 PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
             } else {
                 point_count = (float)path->nodes_0c->count;
-                PathAIAdvanceByDistance004A9FE0(path, path->scale_34 / point_count * path->value_2c * elapsed *
-                                         g_float_005ec128);
+                PathAIAdvanceByDistance004A9FE0(path, path->scale_34 / point_count *
+                                                          path->value_2c * elapsed *
+                                                          g_float_005ec128);
             }
             path->tick_28 = now;
             return 1;

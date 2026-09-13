@@ -369,11 +369,11 @@ void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
    stack. */
 void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
-void* MonsterGetObject0C(W8Monster* monster); /* 0x004C5B30 */
-void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
-float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
-void MonsterForward453690(W8Monster* monster, void* argument);                 /* 0x004C5FB0 */
-void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);          /* 0x004C5FD0 */
+void* MonsterGetObject0C(W8Monster* monster);                         /* 0x004C5B30 */
+void MonsterSetNavigatorValue120(W8Monster* monster, float value);    /* 0x004C5F50 */
+float MonsterGetNavigatorValue120(W8Monster* monster);                /* 0x004C5F70 */
+void MonsterForward453690(W8Monster* monster, void* argument);        /* 0x004C5FB0 */
+void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value); /* 0x004C5FD0 */
 void MonsterForward4531A0(void);
 
 void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);

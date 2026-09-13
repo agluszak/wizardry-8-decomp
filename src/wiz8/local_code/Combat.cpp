@@ -719,7 +719,8 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else if (TargetIsInPlay(party_slot, 2) == 0 &&
-                   RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
+                   RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) ==
+                       1) {
             Function4ECC80(&source,
                            &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
         }
