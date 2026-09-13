@@ -1222,9 +1222,6 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(W8NavigatorMovementState* mo
     return 0;
 }
 
-/* ReadOctFile's own direct callees. Their bodies are not recovered, so they
-   keep address-qualified names. */
-extern void ReadWaypointFile0043A0F0(void);
 /* The cell-walk probes and the trace helpers the two line-of-sight bodies use.
    None of their bodies are recovered, so they keep address-qualified names. */
 
@@ -2323,7 +2320,7 @@ finish:
         ReadRegionLinkFile(m_owned_0c0);
         LoadPointFiles(m_owned_0c0);
         if (pathing_180 != 0) {
-            ReadWaypointFile0043A0F0();
+            pathing_180->ReadWaypointFile00459650();
         }
         return;
     }
