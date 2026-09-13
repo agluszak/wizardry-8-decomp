@@ -615,7 +615,8 @@ void W8TextBuffer::FillBounds(int colour)
 /* Draws each newline-delimited line through the active font context. The
    temporary terminators are restored before advancing to the next line. */
 // FUNCTION: WIZ8 0x004f3710
-void W8TextBuffer::RenderText(int a, int b, int x_offset, int y_offset, unsigned char force)
+void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_offset, int y_offset,
+                              unsigned char force)
 {
     wchar_t* line = m_buffer;
     if (line == 0 || (force == 0 && m_geometryDirty == 0)) {
@@ -642,11 +643,11 @@ void W8TextBuffer::RenderText(int a, int b, int x_offset, int y_offset, unsigned
         line[span] = L'\0';
         int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
-            gprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font, x + x_offset,
-                           y + y_offset, (unsigned short*)L"%s", line);
+            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         } else {
-            mprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font, x + x_offset,
-                           y + y_offset, (unsigned short*)L"%s", line);
+            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         }
         y += GetLineHeight();
         line[span] = L'\n';
@@ -660,11 +661,11 @@ void W8TextBuffer::RenderText(int a, int b, int x_offset, int y_offset, unsigned
     {
         int x = GetHorizontalPosition(StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
-            gprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font, x + x_offset,
-                           y + y_offset, (unsigned short*)L"%s", line);
+            gprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         } else {
-            mprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font, x + x_offset,
-                           y + y_offset, (unsigned short*)L"%s", line);
+            mprintf_buffer(buffer, pitch, m_font, x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         }
     }
 

@@ -38,11 +38,8 @@ void RebuildPartyEffectBlock0050E700(void)
                 g_status_685170.party_modifiers_22e3.armor_bonus_05 = value;
             }
         }
-        // clang-format off
-        ApplyCombatEffectSlots(
-            reinterpret_cast<const W8EffectSlot*>(g_combat_state->effect_storage_85a), /* reinterpret-ok: six 0x11-byte records at +0x85a; helper unrecovered */
-            &g_status_685170.party_modifiers_22e3);
-        // clang-format on
+        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a,
+                               &g_status_685170.party_modifiers_22e3);
     }
     int active = 0;
     unsigned int slot_byte = 0;
@@ -238,8 +235,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
                 break;
             }
         }
-        const unsigned char* bytes = reinterpret_cast<const unsigned char*>(slot); /* reinterpret-ok: advance one 0x11-byte party effect record */
-        slot = reinterpret_cast<const W8EffectSlot*>(bytes + sizeof(W8EffectSlot)); /* reinterpret-ok: resume at the next party effect record */
+        ++slot;
         --remaining;
     } while (remaining != 0);
 }
@@ -279,8 +275,7 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock*
                 break;
             }
         }
-        const unsigned char* bytes = reinterpret_cast<const unsigned char*>(slot); /* reinterpret-ok: advance one 0x11-byte combat effect record */
-        slot = reinterpret_cast<const W8EffectSlot*>(bytes + sizeof(W8EffectSlot)); /* reinterpret-ok: resume at the next combat effect record */
+        ++slot;
         --remaining;
     } while (remaining != 0);
 }

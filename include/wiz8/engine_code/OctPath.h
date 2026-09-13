@@ -157,7 +157,7 @@ static_assert(sizeof(W8PathSearchNode) == 0x2c, "W8PathSearchNode_must_be_0x2c")
 class W8PathingService {
 public:
     W8PathingService(); /* 0x004578E0 */
-    unsigned int FindPathHandle(const unsigned char* path_name, unsigned short* path_bounds,
+    unsigned int FindPathHandle(const char* path_name, unsigned short* path_bounds,
                                 float* path_range); /* 0x00457CF0 */
     /* Neither takes a prop: both walk the service's own surface and edge
        tables, and their receiver is the service. */

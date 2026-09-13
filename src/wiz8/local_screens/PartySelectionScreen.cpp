@@ -397,9 +397,11 @@ void W8State5ListControl005EF464::OnRangeChanged(W8RangeControl* control)
     Invalidate(0);
 }
 
+class W8State5InputHandler005C0E50;
+
 class W8State5DecisionListener005EF4C0 {
 public:
-    virtual void OnDecision(int value, unsigned char accepted) = 0;
+    virtual void OnDecision(W8State5InputHandler005C0E50* handler, unsigned char accepted) = 0;
     virtual void OnToggle(int value) = 0;
 };
 
@@ -554,7 +556,7 @@ public:
     virtual void OnPrimary(W8TextControl* control) override;
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnSelectionChanged(W8State5ListControl005EF464* control, int selection) override;
-    virtual void OnDecision(int value, unsigned char accepted) override;
+    virtual void OnDecision(W8State5InputHandler005C0E50* handler, unsigned char accepted) override;
     virtual void OnToggle(int value) override;
 
     void SetMode(int mode);
@@ -1128,7 +1130,7 @@ unsigned char W8State5InputHandler005C0E50::HandleInput(const InputAtom* input)
 
     SetTargetCursor(-1);
     if (m_listener) {
-        m_listener->OnDecision(reinterpret_cast<int>(this), input->usParam == VK_ESCAPE);
+        m_listener->OnDecision(this, input->usParam == VK_ESCAPE);
     }
     return 1;
 }
@@ -1576,7 +1578,7 @@ void W8State5Controller::OnPrimary(W8TextControl* control)
 {
     if (control == m_text_58) {
         if (m_input_handler_64) {
-            OnDecision(reinterpret_cast<int>(m_input_handler_64), 1);
+            OnDecision(m_input_handler_64, 1);
             return;
         }
         switch (m_mode) {
@@ -1658,7 +1660,7 @@ void W8State5Controller::OnPrimary(W8TextControl* control)
             SetMode(4);
             return;
         case 4:
-            OnDecision(reinterpret_cast<int>(m_input_handler_64), 0);
+            OnDecision(m_input_handler_64, 0);
             return;
         default:
             return;
@@ -1708,7 +1710,7 @@ void W8State5Controller::OnSelectionChanged(W8State5ListControl005EF464*, int se
 }
 
 // FUNCTION: WIZ8 0x005c1d70
-void W8State5Controller::OnDecision(int, unsigned char accepted)
+void W8State5Controller::OnDecision(W8State5InputHandler005C0E50*, unsigned char accepted)
 {
     if (!accepted) {
         wchar_t slot_name[64];

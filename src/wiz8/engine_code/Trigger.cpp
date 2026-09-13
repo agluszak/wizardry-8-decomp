@@ -371,7 +371,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
             if (g_modal_owner_0068edd0 == 0 && trigger->world_item_group_34c != 0) {
                 W8Dialog005CD710* dialog = new W8Dialog005CD710;
                 if (dialog != 0) {
-                    dialog->m_user_data = reinterpret_cast<int>(trigger);
+                    dialog->m_user_data = trigger;
                     dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
                     g_flag_0068506e = 0;
@@ -411,7 +411,7 @@ void OnItemDialogClosed004456C0(W8DialogBase* base)
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup005CF110();
-        reinterpret_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
+        static_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
     }
 }
 

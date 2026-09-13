@@ -17,7 +17,7 @@ class GDProp {
     friend class W8Prop;
 
 public:
-    GDProp(srModelInstance* instance, const unsigned char* path_name, unsigned short prop_number,
+    GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
            unsigned char surface_flag, unsigned char vertex_flag); /* 0x004B6E00 */
     ~GDProp();                                                     /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);

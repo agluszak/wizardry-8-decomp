@@ -116,10 +116,10 @@ void ClampUnsignedInteger(unsigned int* value, unsigned int minimum, unsigned in
 }
 
 // FUNCTION: WIZ8 0x00517a10
-int CompareUnsignedDescending(const unsigned int* first, const unsigned int* second)
+int CompareUnsignedDescending(const void* first, const void* second)
 {
-    unsigned int left = *first;
-    unsigned int right = *second;
+    unsigned int left = *static_cast<const unsigned int*>(first);
+    unsigned int right = *static_cast<const unsigned int*>(second);
 
     if (left > right) {
         return -1;

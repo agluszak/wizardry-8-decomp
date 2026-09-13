@@ -1046,9 +1046,7 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
     for (index = 0; index < 4; ++index) {
         realm_skills[index] = character->skills[0x18 + index].level;
     }
-    qsort(realm_skills, 4, 4,
-          reinterpret_cast<int(__cdecl*)(const void*, const void*)>(
-              CompareUnsignedDescending)); /* reinterpret-ok: qsort's untyped C comparator ABI */
+    qsort(realm_skills, 4, 4, CompareUnsignedDescending);
 
     float weighted = (float)(realm_skills[0] + (realm_skills[1] >> 1) + (realm_skills[2] >> 2) +
                              (realm_skills[3] >> 3));
