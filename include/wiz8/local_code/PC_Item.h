@@ -75,6 +75,18 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
                                     W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
+bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */
+bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item);    /* 0x00520F20 */
+bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item); /* 0x00520F60 */
+bool DropItemInHand(int arg_1);                                                    /* 0x0051BE50 */
+void BindEquippedItem(W8Character* character, int equip_slot);                     /* 0x0051D0D0 */
+bool CanUnequipSlotItem(const W8Character* character, int equip_slot);             /* 0x0051D1C0 */
+bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
+                        char ignore_worn_items); /* 0x0051CEA0 */
+/* 0x0051F2F0: merges the held stack into one existing stack, announcing on
+   refusal; unresolved gap body, declared for the RCSItemsPage call site. */
+char MergeItems(W8Character* character, W8ItemInstance* item);
+
 /* Same equipment class, and same unidentified display name. */
 bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* second);
 bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstance* second);

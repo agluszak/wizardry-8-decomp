@@ -64,13 +64,13 @@ private:
     unsigned char HandleInputEvent005CD2B0(const InputAtom* input);
 
     /* SGP move/click callbacks for the text area, the scroll arrow buttons and
-       the confirmation buttons. Bodies are not recovered in this change. */
-    static void Function5CCE70(GUI_BUTTON* button, INT32 reason);
-    static void Function5CCF30(GUI_BUTTON* button, INT32 reason);
-    static void Function5CCFE0(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD090(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD130(GUI_BUTTON* button, INT32 reason);
-    static void Function5CD1E0(GUI_BUTTON* button, INT32 reason);
+       the confirmation buttons. Recovered in Dialog Code\stListBox.cpp. */
+    static void TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason);    /* 0x005CCE70 */
+    static void UpButtonCallback(GUI_BUTTON* button, INT32 reason);          /* 0x005CCF30 */
+    static void DownButtonCallback(GUI_BUTTON* button, INT32 reason);        /* 0x005CCFE0 */
+    static void OkButtonCallback(GUI_BUTTON* button, INT32 reason);          /* 0x005CD090 */
+    static void CancelButtonCallback(GUI_BUTTON* button, INT32 reason);      /* 0x005CD130 */
+    static void SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason); /* 0x005CD1E0 */
 
 public:
     /* 0x054: the displayed text lines; the dialog owns and frees each one. */

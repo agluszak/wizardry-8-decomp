@@ -36,6 +36,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/ReviewCharacterScreen.cpp
     src/wiz8/local_screens/MGSSpellIcons.cpp
     src/wiz8/local_screens/RCSCommon.cpp
+    src/wiz8/local_screens/RCSItemsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
     src/wiz8/local_screens/CharacterScreen.cpp
@@ -58,6 +59,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/dialog_code/stMessageDialog.cpp
     src/wiz8/dialog_code/DialogBase.cpp
     src/wiz8/dialog_code/DialogFactoryDialogs.cpp
+    src/wiz8/dialog_code/stListBox.cpp
     src/wiz8/dialog_code/DialogTextEntry.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp

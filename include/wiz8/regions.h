@@ -163,6 +163,13 @@ void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 /* 0x004F1910 returns the byte produced by the selected region callback. */
 unsigned char DispatchRegionInput(const InputAtom* event);
 
+/* Unresolved region-manager gap helpers used by RCSItemsPage.cpp: the first
+   records that region help is armed, and the other two set and clear a
+   W8Region's help-enabled byte at +0x12. */
+void Function4F27C0(char armed);
+void Function4F27D0(W8Region* region);
+void Function4F27E0(W8Region* region);
+
 unsigned int DispatchMainGameMouseButtons(const InputAtom* input);
 
 void ResetRegions(void);
