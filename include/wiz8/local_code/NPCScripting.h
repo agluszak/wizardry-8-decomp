@@ -8,9 +8,9 @@ struct W8Character;
 struct W8MonsterGroup;
 struct W8WorldItem;
 
-void UpdateNpcDialogueVoiceAndCursor(void); /* 0x00524DA0 */
-void ProcessNpcScriptingFrame(void);        /* 0x00524EB0 */
-void SetFlag68C500(unsigned char value);    /* 0x0052A1A0 */
+void UpdateNpcDialogueVoiceAndCursor(void);  /* 0x00524DA0 */
+void ProcessNpcScriptingFrame(void);         /* 0x00524EB0 */
+void SetFlag68C500(unsigned char value);     /* 0x0052A1A0 */
 void Function5289B0(int kind, int argument); /* 0x005289B0 */
 void Function529510(void);
 void Function528830(int a, int b, int c, int d);                          /* 0x00528830 */
