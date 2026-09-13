@@ -85,7 +85,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         if (arg_7 != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x9a0 / 4], amount);
         } else if (arg_4 != 0) {
-            Function58AAD0(9, gppStringList[0x950 / 4], amount);
+            WriteGameLogAmount(9, gppStringList[0x950 / 4], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
                                 arg_3 != 0 ? gppStringList[0x95c / 4] : &g_wchar_00689b34);
@@ -97,7 +97,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         if (CharacterHasTrait00547940(character, 2) != 0 &&
             static_cast<unsigned int>(character->condition_turns[0x11]) < 7) {
             Function547A50(party_slot);
-            Function59AC40(party_slot, amount);
+            RecordCharacterDamage(party_slot, amount);
             return applied;
         }
         if (applied < amount) {
@@ -106,7 +106,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     }
 
     character->hp_current = applied - amount;
-    Function59AC40(party_slot, amount);
+    RecordCharacterDamage(party_slot, amount);
     if (character->hp_current != 0) {
         if (gXStatus.fSurprisePossible == 0) {
             QueueDamageReactionEvents(character);

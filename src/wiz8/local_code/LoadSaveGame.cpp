@@ -113,9 +113,9 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
 
-/* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
-   as elsewhere in src/wiz8. The first loads a character from somewhere other
-   than a loose file, the second builds the failure notice the third posts. */
+/* 0x005156C0 and 0x00517A90, not yet identified; named by address as elsewhere
+   in src/wiz8. The first loads a character from somewhere other than a loose
+   file, the second builds the failure notice CreateMessageBox posts. */
 
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
@@ -219,9 +219,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     }
 report:
     if (report_failure) {
-        wchar_t* notice = FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
-                                           g_small_font_683678, 1, 1, 0, 0);
-        Function518510(notice);
+        CreateMessageBox(FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name),
+                         g_small_font_683678, 1, 1, 0, 0);
     }
     return loaded;
 }
@@ -653,7 +652,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         ActivateGroupMembers(group, 0);
         if (group->flag_c3 != 0 && group->leader_group_id == 0) {
-            Function48C750(group);
+            ReleaseMonsterGroup(group);
         }
     }
     return 1;
@@ -904,10 +903,9 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     }
 report:
     if (report_failure) {
-        wchar_t* notice =
-            FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name,
-                             g_small_font_683678, 1, 1, 0, continuation);
-        Function518510(notice);
+        CreateMessageBox(
+            FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name),
+            g_small_font_683678, 1, 1, 0, continuation);
         return 0;
     }
     if (continuation != 0) {

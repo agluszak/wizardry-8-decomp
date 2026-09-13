@@ -54,12 +54,12 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
                                    int extra_damage, int damage, char announce, char arg_9,
                                    int duration);
 /* Unrecovered attack-resolution dependencies retained as direct ABI declarations. */
-char Function5520D0(W8CombatSlot* target, int realm, unsigned int minimum_roll,
-                    int condition_id); /* 0x005520D0 */
-char Function551EB0(W8CombatSlot* target, int condition_id, int realm, unsigned int minimum_roll,
-                    int extra_damage, int damage, int source_character, int duration,
-                    char arg_9);                 /* 0x00551EB0 */
-void Function54BA00(W8SpellEffectEntry* effect); /* 0x0054BA00 */
-void Function54C930(W8SpellEffectEntry* effect); /* 0x0054C930 */
+char CheckConditionResistance(W8CombatSlot* target, int realm, unsigned int minimum_roll,
+                              int condition_id); /* 0x005520D0 */
+char ApplyConditionToTarget(W8CombatSlot* target, int condition_id, int realm,
+                            unsigned int minimum_roll, int extra_damage, int damage,
+                            int source_character, int duration, char arg_9); /* 0x00551EB0 */
+void ProcessSpellEffectTargets(W8SpellEffectEntry* effect);                  /* 0x0054BA00 */
+void FinishSpellEffectTargets(W8SpellEffectEntry* effect);                   /* 0x0054C930 */
 
-void Function552530(void); /* 0x00552530 */
+void ResetCombatEffects(void); /* 0x00552530 */

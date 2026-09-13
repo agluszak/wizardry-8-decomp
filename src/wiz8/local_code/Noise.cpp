@@ -74,7 +74,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
             continue;
         }
         if (flag == 1) {
-            Function50F720(group);
+            NotifyMonsterGroupActivity(group);
         }
         info->heard_noise_radius_43 = radius;
         info->sp_budget_bonus = remaining;

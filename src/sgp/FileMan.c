@@ -2029,6 +2029,8 @@ BOOLEAN FileIsOlderThanFile(CHAR8 *pcFileName1, CHAR8 *pcFileName2, UINT32 ulNum
     ULARGE_INTEGER second_time;
     ULARGE_INTEGER difference;
 
+    /* Retail never checks for INVALID_HANDLE_VALUE: a failed search leaves
+       the WIN32_FIND_DATA uninitialized and the timestamps read as garbage. */
     search = FindFirstFile(pcFileName1, &first);
     FindClose(search);
     search = FindFirstFile(pcFileName2, &second);

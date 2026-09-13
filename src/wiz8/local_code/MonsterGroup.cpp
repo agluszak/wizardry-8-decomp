@@ -320,10 +320,10 @@ static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_
 {
     int index;
 
-    Function510590(monster_group);
+    RefreshMonsterGroup(monster_group);
     for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
         if (monster_group->allied_group_ids[index] != 0) {
-            Function510590(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            RefreshMonsterGroup(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x4a8, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1)));
         }
     }
@@ -444,14 +444,14 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
             GetMonsterGroupIndexByID(0x553, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
     }
     if (monster_group->flag_c3 != 0) {
-        Function48C670(monster_group);
+        DetachMonsterGroup(monster_group);
         monster_group->flag_c3 = 0;
         monster_group->flag_d3 = 1;
         for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
             if (monster_group->allied_group_ids[index] != 0) {
                 ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x564, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1));
-                Function48C670(ally);
+                DetachMonsterGroup(ally);
                 ally->flag_c3 = 0;
                 ally->flag_d3 = 1;
             }
@@ -714,23 +714,23 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         return 0;
     }
     if (monster_group->flag_c3 != 0 && monster_group->leader_group_id == 0) {
-        Function48C670(monster_group);
+        DetachMonsterGroup(monster_group);
     }
-    Function510590(UnlinkMonsterGroupFromLeaderInline(monster_group));
+    RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     if (leader != 0) {
         for (slot = 0; slot < W8_MONSTER_GROUP_ALLY_COUNT; ++slot) {
             if (leader->allied_group_ids[slot] == 0) {
                 leader->allied_group_ids[slot] = monster_group->group_id;
                 monster_group->leader_group_id = leader->group_id;
-                Function510590(monster_group);
-                Function547570(monster_group, leader->flag_2a, 0);
+                RefreshMonsterGroup(monster_group);
+                SetMonsterGroupDisposition(monster_group, leader->flag_2a, 0);
                 return 1;
             }
         }
         return 0;
     }
     if (monster_group->flag_c3 != 0) {
-        Function48C750(monster_group);
+        ReleaseMonsterGroup(monster_group);
     }
     return 1;
 }
@@ -840,9 +840,9 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
 
     group->flag_28 = 1;
     yaw = GetCameraFacingYaw004BE5C0(const_cast<srVector3T<float>*>(position));
-    Function510CC0(group, const_cast<srVector3T<float>*>(position), yaw, 0, 0, 0, 0);
-    Function510590(group);
-    Function547570(group, MonsterGroupCalcDefaultDisposition(group), 0);
+    MoveMonsterGroupToPosition(group, const_cast<srVector3T<float>*>(position), yaw, 0, 0, 0, 0);
+    RefreshMonsterGroup(group);
+    SetMonsterGroupDisposition(group, MonsterGroupCalcDefaultDisposition(group), 0);
 
     if (announce_spawn != 0 && g_flag_689b32 != 0) {
         int registry_after = GetUsedPageFileBytes();
@@ -882,11 +882,11 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
     }
     if (monster_group->leader_group_id == 0) {
         if (monster_group->flag_c3 != 0) {
-            Function48C670(monster_group);
+            DetachMonsterGroup(monster_group);
         }
-        Function50FD40(monster_group, value);
+        SetMonsterGroupMode(monster_group, value);
     } else {
-        Function510590(UnlinkMonsterGroupFromLeaderInline(monster_group));
+        RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     }
     if (ILDestroy(monster_group->monsters) != 0) {
         group_list_index =

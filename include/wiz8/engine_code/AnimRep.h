@@ -12,27 +12,37 @@
    stModelInstance2D store the same layout at +0x164, including the 2D
    left/top extent and right/bottom position shorts. */
 struct W8ModelInstanceRenderState {
-    unsigned long render_depth;
     union {
-        unsigned long state_04;
         struct {
-            short left;
-            short top;
+            unsigned long render_depth;
+            union {
+                unsigned long state_04;
+                struct {
+                    short left;
+                    short top;
+                };
+            };
+            union {
+                unsigned long state_08;
+                struct {
+                    short right;
+                    short bottom;
+                };
+            };
+            union {
+                unsigned long state_0c;
+                struct {
+                    unsigned char display_state;
+                    unsigned char state_0d;
+                    unsigned char padding_0e[2];
+                };
+            };
         };
-    };
-    union {
-        unsigned long state_08;
         struct {
-            short right;
-            short bottom;
-        };
-    };
-    union {
-        unsigned long state_0c;
-        struct {
-            unsigned char display_state;
-            unsigned char state_0d;
-            unsigned char padding_0e[2];
+            float highlight_red;
+            float highlight_green;
+            float highlight_blue;
+            float highlight_alpha;
         };
     };
 };

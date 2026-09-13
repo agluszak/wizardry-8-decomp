@@ -79,7 +79,7 @@ unsigned char g_cd_marker_present_69b7d0;
    the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
    frame handler falls back to. */
 // GLOBAL: WIZ8 0x0064bf8c
-int g_level_backdrops_64bf8c[47] = {
+int g_level_backdrops_64bf8c[W8_LEVEL_COUNT] = {
     0x1bc, 0x1bd, 0x1be, 0x1bf, 0x1c0, 0x1c2, 0x1c1, 0x1c3, 0x1c4, 0x1c5, 0x1c6, 0xe4,
     0x1c7, 0x1c8, 0x1c9, 0x1ca, 0x1cb, 0x1cc, 0x1cd, 0x1ce, 0x1cf, 0x1d0, 0x1d1, 0xe4,
     0x1d2, 0x1d3, 0x1d4, 0x1d5, 0xe4,  0x1d6, 0xe4,  0x1d7, 0x1d8, 0x1d9, 0xe4,  0xe4,
@@ -98,8 +98,7 @@ unsigned char PleaseWaitScreenInitialize(void)
         g_cd_marker_present_69b7d0 = 1;
     }
     g_level_load_font_69b7c0 =
-        LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                          const_cast<char*>("Data\\Level Load\\levelload_font.sti")));
+        LoadFontFile((UINT8*)const_cast<char*>("Data\\Level Load\\levelload_font.sti"));
     return 1;
 }
 
@@ -197,7 +196,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
    which is why it is written out at each site rather than factored here. */
 #define PLEASE_WAIT_SCREEN_DRAW()                                                                  \
     do {                                                                                           \
-        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f                    \
+        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < W8_LEVEL_COUNT          \
                            ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]         \
                            : 0xe4;                                                                 \
         DrawCatalogImage(-14, backdrop, 0, 0, 0, 0, 2, 0);                                         \
@@ -262,7 +261,7 @@ void PleaseWaitScreenFrame(void)
         wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bc8 / 4]);
         break;
     case 3:
-        if ((unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f) {
+        if ((unsigned int)g_load_descriptor_69b7c8->parameter < W8_LEVEL_COUNT) {
             swprintf(
                 g_load_descriptor_69b7c8->caption, L"%s %s...", gppStringList[0x1bcc / 4],
                 gppStringList[g_level_name_indices_605820[g_load_descriptor_69b7c8->parameter]]);

@@ -1435,8 +1435,8 @@ void W8Monster::Update()
     }
 
     if (GetFlag68F105() == 0) {
-        if ((cycle == 1 || cycle == 2) && m_pRep->pending_cycle == -1 && flag_024 == 0 &&
-            flag_025 == 0) {
+        if ((cycle == 1 || cycle == 2) && m_pRep->pending_cycle == -1 &&
+            movement_stopped_024 == 0 && flag_025 == 0) {
             flags_00c |= 0x100000;
         }
 
@@ -1465,7 +1465,8 @@ void W8Monster::Update()
                 break;
             case 1:
             case 2:
-                if (flag_024 == 0 && flag_025 == 0 && (Query(2) != 0 || unknown_1bc != 0)) {
+                if (movement_stopped_024 == 0 && flag_025 == 0 &&
+                    (Query(2) != 0 || unknown_1bc != 0)) {
                     flags_00c &= ~0x100000;
                     if (IsCycleSupported(3) == 0) {
                         m_pRep->behaviour_071 = 3;
@@ -1495,7 +1496,7 @@ void W8Monster::Update()
                 }
                 break;
             case 4:
-                if (flag_024 != 0 || flag_025 != 0) {
+                if (movement_stopped_024 != 0 || flag_025 != 0) {
                     bool transition = Query(2) != 0 || unknown_1bc != 0;
                     if (!transition && m_pRep->flag_601 == 0) {
                         transition = Query(4) < Query(0) / 2;
@@ -1856,7 +1857,7 @@ void W8Monster::ProcessScript004C80E0()
 
     if (monster_info != 0 && (monster_info->flag_255 & 0x10) != 0) {
         monster_info->flag_255 &= ~0x10;
-        if (script_wait_240 == MONSCR_WALKTO && flag_024 != 0) {
+        if (script_wait_240 == MONSCR_WALKTO && movement_stopped_024 != 0) {
             if (script_line_23c > 0) {
                 --script_line_23c;
             }
@@ -2120,7 +2121,7 @@ void W8Monster::ProcessScript004C80E0()
                         if (group_index != (unsigned int)-1) {
                             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
                             if (group != 0) {
-                                Function547570(group, disposition, 0);
+                                SetMonsterGroupDisposition(group, disposition, 0);
                             }
                         }
                     }
@@ -2196,11 +2197,11 @@ void W8Monster::ProcessScript004C80E0()
                         ClearMainGameTargetState();
                         W8MonsterGroup* group = FindFirstMonsterByID(0x68);
                         if (group != 0)
-                            Function547570(group, 1, 0);
+                            SetMonsterGroupDisposition(group, 1, 0);
                         group = FindFirstMonsterByID(0x13e);
                         if (group != 0) {
-                            Function547570(group, 1, 0);
-                            Function50F720(group);
+                            SetMonsterGroupDisposition(group, 1, 0);
+                            NotifyMonsterGroupActivity(group);
                         }
                     } else if (_stricmp(token, "ENDSAVANTWALK") == 0) {
                         flags_1dc |= 0x40;
@@ -2420,7 +2421,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
 {
     switch (script_wait_240) {
     case 1:
-        if (flag_024 == 0) {
+        if (movement_stopped_024 == 0) {
             return 0;
         }
         break;
@@ -4511,12 +4512,10 @@ void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
 {
     W8MonsterRuntimeBlock4C block;
-    float* channels =
-        reinterpret_cast<float*>(&block); // reinterpret-ok: retail highlight paths store rgba in render_state_04c as four floats
-    channels[0] = red;
-    channels[1] = green;
-    channels[2] = blue;
-    channels[3] = alpha;
+    block.highlight_red = red;
+    block.highlight_green = green;
+    block.highlight_blue = blue;
+    block.highlight_alpha = alpha;
     MonsterSetRuntimeBlock4C(monster, block);
 }
 

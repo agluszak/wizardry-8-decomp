@@ -151,6 +151,36 @@ def test_explicit_unresolved_global_is_allowed(tmp_path: Path) -> None:
     assert overlapping_globals(parse_global_definitions(tmp_path)) == []
 
 
+def test_extern_with_initializer_is_a_definition(tmp_path: Path) -> None:
+    _write(
+        tmp_path,
+        "src/wiz8/a.cpp",
+        "// GLOBAL: WIZ8 0x0061eefc\nextern const int g_ai_kind_table[32][2] = {};\n",
+    )
+    _write(
+        tmp_path,
+        "src/wiz8/b.cpp",
+        "// GLOBAL: WIZ8 0x0061eefc\nint g_ai_kind_table_alias;\n",
+    )
+
+    definitions = parse_global_definitions(tmp_path)
+    assert any(item["name"] == "g_ai_kind_table" for item in definitions)
+    violations = overlapping_globals(definitions)
+    assert any("g_ai_kind_table_alias" in item["detail"] for item in violations)
+
+
+def test_extern_definition_without_address_is_a_violation(tmp_path: Path) -> None:
+    _write(
+        tmp_path,
+        "src/wiz8/a.cpp",
+        "// GLOBAL\nextern const int g_table[2] = {};\n",
+    )
+
+    from wiz8decomp.global_model import unaddressed_globals
+
+    assert any(item["kind"] == "unaddressed-global" for item in unaddressed_globals(tmp_path))
+
+
 def test_overlap_gate_raises(tmp_path: Path) -> None:
     _write(tmp_path, "src/wiz8/a.cpp", "// GLOBAL: WIZ8 0x100\nint g_a;\n")
     _write(tmp_path, "src/wiz8/b.cpp", "// GLOBAL: WIZ8 0x100\nint g_b;\n")

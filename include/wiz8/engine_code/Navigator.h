@@ -137,7 +137,9 @@ public:
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
     /* Called with what this navigator ran into: the startup world navigator
-       or another mover. True once the collision was consumed. */
+       or another mover. True once the collision was consumed. Same folded
+       body as W8GrCycle::CanEnterCycle at 0x004A7140; /OPT:NOICF emits this
+       copy. */
     virtual bool OnCollision(W8Navigator*)
     {
         return true;
@@ -223,9 +225,15 @@ public:
        one. The float view is the declared one; the dword uses spell out
        their reinterpretation. */
     srVector3T<float> movement_target_018;
-    unsigned char flag_024;
+    /* Set when the navigator's movement has stopped - the constructors raise
+       it, SetMovementStopped00453880 raises it when motion halts (levelling
+       pitch unless the navigation mode banks), and a successful
+       PrepareLinkedNavigator00466FB0 clears it while a path is active. A
+       monster scripts wait on it: CanContinueScript004CA0F0 blocks a WALKTO
+       until it is set. */
+    bool movement_stopped_024;
     unsigned char flag_025;
-    unsigned char movement_complete_026;
+    bool movement_complete_026;
     unsigned char unknown_027;
     srVector3T<float> position_028;
     float minimum_height_034;

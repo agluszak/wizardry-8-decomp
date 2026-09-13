@@ -34,6 +34,15 @@ ATTRIBUTION_KEYS = (
     "gap",
 )
 
+# Header-resident bodies are COMDAT/inline copies: the linker, not the
+# translation unit, picks which image keeps them (ICF folds identical
+# bodies into whichever copy survives). Their marker cannot be misplaced.
+_HEADER_SUFFIXES = (".h", ".hpp", ".hxx", ".inl")
+
+
+def _is_header_source(source_path: str) -> bool:
+    return source_path.casefold().endswith(_HEADER_SUFFIXES)
+
 
 def function_inventory(
     repo_dir: Path, ghidra_functions: list[dict[str, str]]
@@ -317,7 +326,11 @@ def original_unit_rows(
             f for f in recovered_in_unit if int(f["address"], 16) in unit_assertions
         ]
         misplaced = [
-            f for f in members if f.get("source_path") and f["source_path"] != recovered_file
+            f
+            for f in members
+            if f.get("source_path")
+            and f["source_path"] != recovered_file
+            and not _is_header_source(f["source_path"])
         ]
         unrecovered = [f for f in members if not f.get("source_path")]
         if recovered_file:
@@ -385,7 +398,11 @@ def misplaced_function_rows(
     records = source_unit_records(repo_dir)
     rows: list[dict[str, str]] = []
     for function in gameplay:
-        if function["owner"] == "surrender-template" or not function.get("source_path"):
+        if (
+            function["owner"] == "surrender-template"
+            or not function.get("source_path")
+            or _is_header_source(function["source_path"])
+        ):
             continue
         address = int(function["address"], 16)
         interval = layout.interval_at(address)

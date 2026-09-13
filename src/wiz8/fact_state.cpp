@@ -116,6 +116,7 @@ void SaveFactState(int save_handle)
 // FUNCTION: WIZ8 0x00506310
 void InitializeFactState(void)
 {
+    /* Retail memsets 1000 of the 1001 bytes - index 1000 stays BSS-zeroed. */
     memset(g_fact_values, 0, 1000);
     SetFactNotificationsSuppressed(1);
     if (g_status_685170.skip_loose_character_check_2444) {

@@ -106,13 +106,14 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                     0x4d2, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
+                MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
                 for (int index = 0; index < 4; ++index) {
                     if (group->allied_group_ids[index] != 0) {
                         group_index = GetMonsterGroupIndexByID(0x4d9, GAMEPLAYTIME_CPP,
                                                                group->allied_group_ids[index], 1);
                         group = GetMonsterGroupByListIndex(group_index);
-                        Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
+                        MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(), 0, 0,
+                                                   0, 0);
                     }
                 }
             }
@@ -123,7 +124,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         goto after_early;
     }
     if ((monster->linked_navigator_05c == 0 && monster->flag_025 == 0) &&
-        ((signed char)monster_info->unknown_254 > 1 || monster->flag_024 == 0)) {
+        ((signed char)monster_info->unknown_254 > 1 || monster->movement_stopped_024 == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -170,16 +171,16 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                                     0x50f, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
                                 W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                                Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0,
-                                               0);
+                                MoveMonsterGroupToPosition(group, &notify_position,
+                                                           monster->GetYaw(), 0, 0, 0, 0);
                                 for (int index = 0; index < 4; ++index) {
                                     if (group->allied_group_ids[index] != 0) {
                                         group_index = GetMonsterGroupIndexByID(
                                             0x516, GAMEPLAYTIME_CPP, group->allied_group_ids[index],
                                             1);
                                         group = GetMonsterGroupByListIndex(group_index);
-                                        Function510CC0(group, &notify_position, monster->GetYaw(),
-                                                       0, 0, 0, 0);
+                                        MoveMonsterGroupToPosition(group, &notify_position,
+                                                                   monster->GetYaw(), 0, 0, 0, 0);
                                     }
                                 }
                                 cleared = true;
@@ -220,14 +221,15 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                                 0x53b, GAMEPLAYTIME_CPP, monster_info->monster_group_id, 1);
                             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
 
-                            Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0, 0, 0);
+                            MoveMonsterGroupToPosition(group, &notify_position, monster->GetYaw(),
+                                                       0, 0, 0, 0);
                             for (int index = 0; index < 4; ++index) {
                                 if (group->allied_group_ids[index] != 0) {
                                     group_index = GetMonsterGroupIndexByID(
                                         0x542, GAMEPLAYTIME_CPP, group->allied_group_ids[index], 1);
                                     group = GetMonsterGroupByListIndex(group_index);
-                                    Function510CC0(group, &notify_position, monster->GetYaw(), 0, 0,
-                                                   0, 0);
+                                    MoveMonsterGroupToPosition(group, &notify_position,
+                                                               monster->GetYaw(), 0, 0, 0, 0);
                                 }
                             }
                         }

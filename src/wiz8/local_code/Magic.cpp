@@ -670,7 +670,7 @@ void UpdateSpellEffects00500930(void)
                 effect->target_source_05c.fReflection == 0) {
                 CollectHostileMonsters00547120(&effect->target_source_05c, &effect->values_0e0);
             }
-            Function54BA00(effect);
+            ProcessSpellEffectTargets(effect);
             if (TargetSourceIsMonster(&effect->source, 0) != 0) {
                 if (effect->source.iMonsterID == -1) {
                     srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
@@ -702,7 +702,7 @@ void UpdateSpellEffects00500930(void)
                 if (g_settings_6850c8.verbose_combat_messages == 0) {
                     ReportSpellResult005005C0(effect);
                 }
-                Function54C930(effect);
+                FinishSpellEffectTargets(effect);
             }
         }
         if (effect->kind == 0x4f) {
@@ -1129,6 +1129,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
    spelled as one. */
 /* One message-table index per realm, for the realm's name. */
 // GLOBAL: WIZ8 0x0061E518
+// offset alias of the tail of g_attr_table_61E50C; shared retail storage.
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
     0x30b, 0x30c, 0x30d, 0x30e, 0x30f, 0x310,
 };
@@ -1931,6 +1932,7 @@ enum {
    by its own name group at record+0x0cc, which is what makes the two one
    table. */
 // GLOBAL: WIZ8 0x0061E436
+// offset alias of g_gender_name_message_rows_61e430; shared retail storage.
 extern const unsigned short g_name_prefix_messages[15] = {
     0x2da, 0x2d2, 0x2d5, 0x2d8, 0x2db, 0x2d3, 0x2d6, 0x2d9,
     0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,

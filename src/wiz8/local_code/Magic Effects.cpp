@@ -133,7 +133,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
     for (index = 0xd; index < 0x11; ++index) {
         bytes[index] = 0;
     }
-    Function50E8C0(monster_info->location_id);
+    RefreshMonsterLocationState(monster_info->location_id);
 }
 
 /* Wipe the party-wide effect block and tell the three displays that read it. */
@@ -383,7 +383,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
         }
     }
 
-    if (Function5520D0(target, realm, minimum_roll, condition_id) != 0) {
+    if (CheckConditionResistance(target, realm, minimum_roll, condition_id) != 0) {
         resolved = 1;
     } else {
         resolved = 0;
@@ -426,8 +426,8 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
         if (target->iType == W8_TARGET_KIND_MONSTER && TargetSourceIsCharacter(source, 0) != 0) {
             source_character = source->iChar;
         }
-        resolved = Function551EB0(target, condition_id, realm, minimum_roll, extra_damage, damage,
-                                  source_character, duration, arg_9) == 0;
+        resolved = ApplyConditionToTarget(target, condition_id, realm, minimum_roll, extra_damage,
+                                          damage, source_character, duration, arg_9) == 0;
     }
 
     if (resolved != 0 && announce != 0 && g_settings_6850c8.verbose_combat_messages != 0) {

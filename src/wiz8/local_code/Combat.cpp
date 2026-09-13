@@ -511,7 +511,7 @@ void EndCombat004EA310(int mode)
     RemoveConditionFromEveryone(5);
     RemoveConditionFromParty(0xd);
     Function524540();
-    Function552530();
+    ResetCombatEffects();
     ProcessMonstersAtCombatEnd(mode);
     unsigned int group_count = PLLength(gXStatus.plsMonsterGroupList);
     for (unsigned int group_index = 0; group_index < group_count; ++group_index) {
@@ -526,7 +526,7 @@ void EndCombat004EA310(int mode)
     }
     unsigned int active = CountActiveCharacters();
     if (active != 0 && g_combat_state->value_010 != 0) {
-        if (g_status_685170.current_level < 0x2f) {
+        if (g_status_685170.current_level < W8_LEVEL_COUNT) {
             g_status_685170.level_progress[g_status_685170.current_level].combat_end_count_01 += 1;
         }
         g_combat_state->value_010 /= active;
