@@ -113,6 +113,15 @@ unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 /* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
 extern const unsigned short g_generic_item_name_notice[147];
 
+/* Defined in Dialog Code\AssayDialog.cpp (GLOBAL 0x0061E7DC): the
+   gppStringList index of each equipment class's display name. */
+extern unsigned short g_equip_class_name_ids_61e7dc[32];
+
+/* Unresolved gap, declared for the split-stack dialog's trade-price labels:
+   the gold price of a stack in the active trade context. The mode argument
+   selects the pricing direction (0 for the buy side, 1 for the sell side). */
+int Function55B5E0(int trade_context, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
+
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;

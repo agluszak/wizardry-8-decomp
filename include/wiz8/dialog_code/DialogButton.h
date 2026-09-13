@@ -65,7 +65,14 @@ public:
 private:
     unsigned char unknown_039;
     unsigned char unknown_03a;
-    unsigned char unknown_03b;
+
+public:
+    /* 0x3b: raised on spinner-style buttons (the split dialog's arrows); the
+       dispatch then fires the stored left/right callback on press and clears
+       the pending state on release instead of firing on release. */
+    unsigned char m_fires_on_press;
+
+private:
     unsigned char unknown_03c;
     unsigned char unknown_03d[3];
 

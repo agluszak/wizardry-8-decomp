@@ -21,7 +21,11 @@ struct W8GameData;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
 
-/* Bulk vector-array reads the .oct submesh readers share. */
+/* Bulk vector-array writes and reads the .oct submesh serializers share. The
+   writers stage at most 0x100 records through a stack buffer per FileWrite. */
+unsigned char WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
+unsigned char WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
+unsigned char WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
 unsigned char ReadVector4Array004374C0(int file, srVector4T<float>* values, int count);
 unsigned char ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
 unsigned char ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
@@ -47,6 +51,27 @@ inline unsigned char ReadVectorArray(int file, srVector4T<float>* values, int co
 inline unsigned char ReadVectorArray(int file, srVector2T<float>* values, int count)
 {
     return ReadVector2Array00437510(file, values, count);
+}
+
+/* The polygon index arrays serialize through the same 12-byte vector writer. */
+inline unsigned char WriteVectorArray(int file, const srVector3i* values, int count)
+{
+    return WriteVector3Array00437390(
+        file, reinterpret_cast<const srVector3T<float>*>(values), /* reinterpret-ok: the
+            float writer's raw 12-byte record is the index-triple record */
+        count);
+}
+inline unsigned char WriteVectorArray(int file, const srVector3T<float>* values, int count)
+{
+    return WriteVector3Array00437390(file, values, count);
+}
+inline unsigned char WriteVectorArray(int file, const srVector4T<float>* values, int count)
+{
+    return WriteVector4Array004372E0(file, values, count);
+}
+inline unsigned char WriteVectorArray(int file, const srVector2T<float>* values, int count)
+{
+    return WriteVector2Array00437430(file, values, count);
 }
 
 /* One 0x10-byte entry of the .oct file's submesh table. Field +4 is the index

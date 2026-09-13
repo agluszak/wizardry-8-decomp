@@ -20,6 +20,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
 #include "sight_semantic_test.h"
+#include "split_stack_semantic_test.h"
 
 #include "english.h"
 #include "FileMan.h"
@@ -82,6 +83,7 @@ struct RuntimeObservation {
 static RuntimeObservation g_observation;
 static const char* g_scenario;
 static unsigned char g_sight_semantic_ok;
+static unsigned char g_split_semantic_ok;
 
 /* The whole in-process scenario must finish inside this budget; the Python
    runner's outer kill is larger so this report always wins. */
@@ -478,6 +480,14 @@ static DWORD WINAPI DriveScenario(void*)
         PrintSightSemanticResults(&sight_result);
         gfProgramIsRunning = 0;
         return g_sight_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "split-stack") == 0) {
+        SplitStackSemanticResult split_result;
+        g_split_semantic_ok = RunSplitStackSemanticTest(&split_result);
+        PrintSplitStackSemanticResults(&split_result);
+        gfProgramIsRunning = 0;
+        return g_split_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -954,7 +964,7 @@ int main(int argc, char** argv)
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack\n");
         return 64;
     }
 
@@ -962,11 +972,11 @@ int main(int argc, char** argv)
         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
         strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
-        strcmp(argv[2], "sight-threshold") != 0) {
+        strcmp(argv[2], "sight-threshold") != 0 && strcmp(argv[2], "split-stack") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack\n");
         return 64;
     }
 
@@ -1058,6 +1068,10 @@ int main(int argc, char** argv)
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool sight_flow = strcmp(g_scenario, "sight-threshold") == 0;
+    const bool split_flow = strcmp(g_scenario, "split-stack") == 0;
+    const bool semantic_flow = sight_flow || split_flow;
+    const bool semantic_ok =
+        (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||
@@ -1087,7 +1101,7 @@ int main(int argc, char** argv)
     const bool npc_state_reset_ok =
         strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
     const int result = driver_status == 0 && startup_ok &&
-                               (sight_flow ? g_sight_semantic_ok : (character_flow || exit_ok)) &&
+                               (semantic_flow ? semantic_ok : (character_flow || exit_ok)) &&
                                transition_ok && character_ok && skills_ok && gameplay_ok &&
                                npc_state_reset_ok && teardown_ok
                            ? 0

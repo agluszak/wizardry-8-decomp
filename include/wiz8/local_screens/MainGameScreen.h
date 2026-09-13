@@ -467,6 +467,10 @@ unsigned char LoadKeywordFile(const char* path,
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 void Function577260(void);
+/* 0x005775D0: queue a named scripted action (kind 0 item, 1 NPC, 2/3 other);
+   resolves the name against the item and NPC tables when kind is -1 and
+   ignores duplicates already pending. */
+void Function5775D0(wchar_t* name, char kind);
 void Function576030(int a, int b, int c, int d, int e);
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
@@ -511,7 +515,6 @@ extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern unsigned char g_flag_0068edd9;
 extern unsigned char g_debug_monster_cycle_0068f0fc;
-extern W8MipeState* g_debug_monster_ids_0068f100;
 extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 

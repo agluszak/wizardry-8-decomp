@@ -109,10 +109,12 @@ public:
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
     void SetModel0047F3A0(srModel* model);                        /* 0x0047F3A0 */
 
-    srClass* vInstance() override;                                      /* 0x00481E30 */
-    void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
-    int GetWidth00480EF0();                                             /* 0x00480EF0 */
-    int GetHeight00480F70();                                            /* 0x00480F70 */
+    srClass* vInstance() override;                                            /* 0x00481E30 */
+    void process(const ProcessInfo& info, e_processType type) override;       /* 0x00480920 */
+    int GetWidth00480EF0();                                                   /* 0x00480EF0 */
+    int GetHeight00480F70();                                                  /* 0x00480F70 */
+    void Function480EB0(unsigned char enable);                                /* 0x00480EB0 */
+    void Function480FF0(srVector4T<float>* first, srVector4T<float>* second); /* 0x00480FF0 */
 
     unsigned char displayState() const
     {

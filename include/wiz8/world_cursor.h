@@ -39,5 +39,9 @@ void SetWorldCursorNodesVisible0048ED70(unsigned char visible);
 bool SelectWorldCursorNode0048EFC0(void);
 int GetWorldCursorNodeCount0048ED00(void);
 void HideWorldCursor00490B90(void);
+void ShowWorldCursor00490B10(void);
+/* 0x00490C20: copies the cursor state vector at +0x28, or zero when there is
+   no cursor. */
+void GetWorldCursorAnchor00490C20(srVector3T<float>* position);
 void ReleaseWorldCursor004909C0(void);
 void ReleaseWorldCursorNodes0048DB30(void);

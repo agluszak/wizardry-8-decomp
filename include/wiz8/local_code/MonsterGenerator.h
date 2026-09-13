@@ -29,6 +29,8 @@ struct W8MonsterGenerator {
     /* Named by the assertion message above. Rearms the generator's timer,
        creating it on first use, with a delay jittered around the configured
        interval. */
+    /* 0x0048A680 */
+    W8MonsterGenerator();
     void Reset();
     unsigned char Function48B200(int value);       /* 0x0048B200 */
     void GenerateEncounter(void* encounter_state); /* 0x0048AD20 */
@@ -41,6 +43,8 @@ struct W8MonsterGenerator {
     void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */
     void Reload(int unused, unsigned char active);
+    /* 0x0048CC30: strncpy into the fixed 32-byte name member. */
+    void SetName(const char* name);
     ~W8MonsterGenerator();
 };
 #pragma pack(pop)

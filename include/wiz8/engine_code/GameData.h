@@ -155,5 +155,8 @@ char TestTraceResult0041C330(int value_1b8, unsigned long* objects, void* result
    GameData geometry index; the false branch reports the input height and
    clears the caller's hit byte. */
 float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit);
+/* 0x00420C30: same ground-settle query with a fixed 500-unit probe range,
+   returning the resulting height. */
+float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */

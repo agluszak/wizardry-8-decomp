@@ -17,6 +17,7 @@
 #include "random.h"
 
 #include <string.h>
+#include <wchar.h>
 
 /* Retail Local Code\Party Import.cpp: converts imported Wizardry 7
    characters into the Wizardry 8 layout. */
@@ -134,16 +135,15 @@ void ImportWizardry7Character005590B0(W8Character* character, char* imported)
     }
     character->enchantment_top = 0;
     ConvertAttribute(character, imported_record);
-    GrantStartingSpells005595D0(character);
+    GrantStartingSpells005595D0(character, imported_record);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
         character->skills[skill_id].flag_00 = 0;
-        character->skills[skill_id].value_02 =
-            ConvertSkill(skill_id, character, imported_record, imported_record, 0);
+        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported_record);
     }
     RefreshCharacterSkillAvailability00553CD0(character);
     ImportEquipment00559650(character, imported_record);
     DeriveCharacterPersonality004EFA30(character);
-    Function4EFAD0(character);
+    EnsureUniquePartyVoice004EFAD0(character);
     CalcCharacterLevelBand(character);
     RecalculateCharacterDerivedStats(character);
     character->stamina = character->stamina_max;
@@ -296,7 +296,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
 }
 
 // FUNCTION: WIZ8 0x005595D0
-void GrantStartingSpells005595D0(W8Character* character)
+void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
 {
     unsigned char scratch[0x3dc];
     char count;
@@ -513,12 +513,12 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
 // FUNCTION: WIZ8 0x00559BC0
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
-                          const W8Wiz7Character* same_record, const W8Wiz7Character* imported,
-                          unsigned int base_value)
+                          const W8Wiz7Character* imported)
 {
     int mapped;
     unsigned int unlocks;
     unsigned int roll;
+    unsigned int base_value;
     char routed = 0;
     int i;
 

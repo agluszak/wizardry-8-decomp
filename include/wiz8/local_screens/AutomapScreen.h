@@ -33,7 +33,7 @@ void Function581CE0(int handle);
 unsigned char Function582050(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
 W8AutomapNote* Function582180(void);
-void Function5822C0(void);
+void CreateAutomapMarkerSprites005822C0(void);
 void Function582930(void);
 void Function583BC0(void);
 

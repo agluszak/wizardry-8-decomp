@@ -48,6 +48,7 @@ RUNTIME_SCENARIOS = (
     "main-game-start",
     "npc-state-reset",
     "main-menu-exit-auto-repeat",
+    "split-stack",
 )
 # The in-process harness owns each scenario's budget (``kScenarioBudgetMs`` in
 # tests/runtime/wiz8_runtime_test.cpp). This outer kill only exists to reap a

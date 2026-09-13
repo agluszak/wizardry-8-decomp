@@ -8,12 +8,33 @@ void ReleaseMissileDatabase(void);
 #include "wiz8/spell_effect.h"
 #include "wiz8/targeting.h"
 
-struct W8AIMissile;
 struct W8ReadLevelInfo;
 class stLight;
 class W8Missile;
 
+/* The kind-3 record of the tagged AI family W8GrObject holds at +0x0c (the
+   path record is kind 0). UpdateMissileAI004A4CF0 ticks it: +0x04 is the
+   per-step distance scale, +0x08 the remaining turn budget, +0x0c the missile
+   it steers (CopyAIMissile004A53A0 deliberately leaves it unset), +0x10 the
+   half-tick baseline, +0x14 the elapsed flight clock, +0x18 the early-impact
+   limit and +0x1c a trailing flag. */
+struct W8AIMissile {
+    unsigned char kind_00;
+    unsigned char flag_01;
+    unsigned char unknown_02[2];
+    float value_04;
+    float value_08;
+    W8Missile* missile_0c;
+    int value_10;
+    float elapsed_14;
+    float limit_18;
+    unsigned char flag_1c;
+    unsigned char unknown_1d[3];
+};
+
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
+unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record);
+float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsigned int steps);
 
 /* The missile constructor allocates this complete 0x108-byte representation,
    invokes W8EmitterHost on the same receiver, constructs the two light-list
@@ -67,7 +88,7 @@ public:
     virtual bool OnCollision(W8Navigator* other) override; /* 0x004A4720 */
 
     unsigned long GetAnimationState004A4640(int mode);
-    void Function4A49E0();
+    void DetonateMissileSpell004A49E0();
     void AnnounceCollisionTarget(); /* 0x004A4AC0 */
     /* Switch the representation to its impact cycle, or end the flight when the
        missile has no such cycle. */
@@ -101,7 +122,7 @@ public:
     void* value_1ec;
     float lifetime_1f0;
     int value_1f4;
-    unsigned char unknown_1f8[4];
+    float duration_1f8;
     W8SpellEffectDefinition definition_1fc;
     W8TargetSource source_22c;
     W8CombatSlot combat_slot_260;

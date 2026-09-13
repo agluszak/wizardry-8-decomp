@@ -128,7 +128,6 @@ srVector3T<float> g_monster_attachment_offsets_0060e618[8][8] = {
 float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 extern float g_startup_depth_603ac8;
-extern const float g_camera_transition_epsilon_005ebc84;
 
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const double g_monster_facing_tolerance_005ec2b0;

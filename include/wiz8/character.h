@@ -396,6 +396,9 @@ void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
 bool CharacterHasTrait00547940(const W8Character* character, int trait);
 
 void DeriveCharacterPersonality004EFA30(W8Character* character);
+/* Rerolls personality_0081/voice_0085 until no party member shares the
+   character's gender/personality/voice pick. */
+void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
 int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
 void Function4EF7E0(W8Character*, W8Character*, int);
 int Function558640(W8Character*);

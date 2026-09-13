@@ -100,4 +100,23 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
    locked primary-surface blitter. */
 void Function4048A0(int target, int left, int top, int right, int bottom);
 
+#ifdef __cplusplus
+
+extern const float g_scale_x_5ebb1c;
+extern const float g_scale_y_5ebb20;
+
+class srColorSurface;
+class srTextureIFace;
+class stModelInstance2D;
+/* 0x00425190: build a 2D marker model instance over a texture. */
+stModelInstance2D* Function425190(srTextureIFace* texture, double width, double height,
+                                  char keep_aspect, char a5);
+/* 0x00426F80: render the world into a caller-owned color surface through a
+   scissored viewport, then blit the locked frame buffer onto the target. */
+unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect, char render_secondary);
+
+#endif
+
+void Function4280C0(int x, int y); /* 0x004280C0: warp the system cursor, fullscreen-safe */
+
 #endif

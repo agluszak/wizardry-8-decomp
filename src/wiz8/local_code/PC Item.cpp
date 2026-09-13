@@ -2349,8 +2349,8 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
             if (action == 0 || action == 1) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
-                } else if (!Function536F60(party_slot, 2)) {
-                    Function536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+                } else if (!TargetIsInPlay(party_slot, 2)) {
+                    RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
                 }
             }
             g_combat_state->characters[party_slot].flag_81 ^= 1;

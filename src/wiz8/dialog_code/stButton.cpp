@@ -150,7 +150,7 @@ W8DialogButton::W8DialogButton()
     m_dirty = 1;
     unknown_039 = 0;
     unknown_03a = 0;
-    unknown_03b = 0;
+    m_fires_on_press = 0;
     unknown_03c = 0;
     m_owner_040 = 0;
     m_gray_frame = -1;
@@ -303,7 +303,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             move_callback(self);
                             return;
                         }
-                        if (self->unknown_03b == 0) {
+                        if (self->m_fires_on_press == 0) {
                             return;
                         }
                         if (self->m_right_toggles != 0) {
@@ -322,7 +322,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         button->uiFlags &= ~BUTTON_CLICKED_ON;
                         self->m_dirty = 1;
-                        if (self->unknown_03b != 0 && self->unknown_03c != 0) {
+                        if (self->m_fires_on_press != 0 && self->unknown_03c != 0) {
                             self->unknown_03c = 0;
                             return;
                         }
@@ -340,7 +340,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                     right_callback(self);
                 }
             } else {
-                if (self->unknown_03b == 0) {
+                if (self->m_fires_on_press == 0) {
                     return;
                 }
                 if (self->m_left_toggles != 0) {
@@ -364,7 +364,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags &= ~BUTTON_CLICKED_ON;
         self->m_dirty = 1;
-        if (self->unknown_03b != 0 && self->unknown_03c != 0) {
+        if (self->m_fires_on_press != 0 && self->unknown_03c != 0) {
             self->unknown_03c = 0;
             return;
         }

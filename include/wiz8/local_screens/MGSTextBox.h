@@ -26,6 +26,11 @@ static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_mu
 
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
+/* 0x0058AA20/0x0058AAD0: the editor status-pane helpers in the gap before the
+   anchored MGSTextBox code; -1 clears every line. */
+void Function58AA20(short first_line);
+void WriteGameLogAmount(int color, const wchar_t* format, ...);
+
 void ReleaseMessageStorage(void);
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);

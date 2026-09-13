@@ -78,4 +78,7 @@ void PopulateSpellTargetMarkers(int spell_id, int normalize_single_target, W8Tar
                                 W8GrowableVector<int>* monster_markers,
                                 int highlighting); /* 0x004FD030 */
 
+/* Whether the party as a whole is under one particular condition. */
+bool PartyHasCondition(int condition_id); /* 0x005012B0 */
+
 #endif

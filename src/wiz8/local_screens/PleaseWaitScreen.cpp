@@ -288,7 +288,7 @@ void PleaseWaitScreenFrame(void)
             if (!LoadLevel(level, entrance, 0)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 279, 0);
             }
-            Function5063E0();
+            PostNewGameLoad005063E0();
         }
         break;
     case 1:

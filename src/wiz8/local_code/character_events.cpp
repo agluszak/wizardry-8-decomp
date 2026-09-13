@@ -111,6 +111,8 @@ int g_item_message_005ee664 = 55;
 int g_item_message_005ee68c = 65;
 // GLOBAL: WIZ8 0x005ee690
 int g_item_message_005ee690 = 66;
+// GLOBAL: WIZ8 0x005ee6f0
+const int g_value_005ee6f0 = 129;
 // GLOBAL: WIZ8 0x005ee6fc
 int g_item_message_005ee6fc = 132;
 // GLOBAL: WIZ8 0x005EE70C

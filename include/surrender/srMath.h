@@ -380,6 +380,9 @@ public:
     srMatrix3T<T>* RotateAboutX(double sine, double cosine);
     srMatrix3T<T>* RotateAboutZ(double sine, double cosine);
     srMatrix3T<T>* RotateAroundAxis(double sine, double cosine, const srVector3T<T>& axis);
+    /* The single-angle overloads evaluate the trigonometry themselves. */
+    srMatrix3T<T>* RotateAboutY(double angle);
+    srMatrix3T<T>* RotateAboutX(double angle);
     srVector3T<T> Transform(const srVector3T<T>& value) const;
 
     srVector3T<T> vectors[3];
@@ -500,6 +503,62 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
     rotation.vectors[1] = basis[1];
     rotation.vectors[2] = basis[2];
     MultiplyBy(rotation);
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x00467430
+template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    T cosine;
+    T sine;
+
+    if (angle != 0.0) {
+        cosine = (T)cos(angle);
+        sine = (T)sin(angle);
+        basis[0].x = cosine;
+        basis[0].y = (T)0;
+        basis[0].z = sine;
+        basis[1].x = (T)0;
+        basis[1].y = (T)1;
+        basis[1].z = (T)0;
+        basis[2].x = -sine;
+        basis[2].y = (T)0;
+        basis[2].z = cosine;
+        rotation.vectors[0] = basis[0];
+        rotation.vectors[1] = basis[1];
+        rotation.vectors[2] = basis[2];
+        MultiplyBy(rotation);
+    }
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x004A5AB0
+template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    T cosine;
+    T sine;
+
+    if (angle != 0.0) {
+        cosine = (T)cos(angle);
+        sine = (T)sin(angle);
+        basis[0].x = (T)1;
+        basis[0].y = (T)0;
+        basis[0].z = (T)0;
+        basis[1].x = (T)0;
+        basis[1].y = cosine;
+        basis[1].z = -sine;
+        basis[2].x = (T)0;
+        basis[2].y = sine;
+        basis[2].z = cosine;
+        rotation.vectors[0] = basis[0];
+        rotation.vectors[1] = basis[1];
+        rotation.vectors[2] = basis[2];
+        MultiplyBy(rotation);
+    }
     return this;
 }
 

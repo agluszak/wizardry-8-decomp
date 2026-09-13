@@ -18,7 +18,6 @@ int CountActiveCharacters(void);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 
 void Function4EF1F0(void);
-void Function4EFAD0(W8Character* character); /* 0x004EFAD0 */
 int AddCharacterToParty(W8Character* character, int slot);
 void Function4EF610(int party_slot, int value);
 

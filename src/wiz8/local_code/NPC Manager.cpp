@@ -9,6 +9,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/Combat.h"
 #include "wiz8/magic.h"
 #include "random.h"
 #include "wiz8/combat_state.h"
@@ -562,6 +563,83 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     Function50C1C0(0x18, 8, "NP_ViMon");
 }
 
+/* Runs when the pending flag_2497 transition times out: new-game parties get
+   the opening scripted effect, imported parties instead pull focus to the NPC
+   their ending selected — ending 0x4c the kind-0x0c greeter, ending 0x4b the
+   kind-0x8c greeter with the camera swung onto its head — and anything else
+   falls back to the kind-0x18 greeter. */
+// FUNCTION: WIZ8 0x00509560
+void SelectStartNpcGreeting00509560(void)
+{
+    W8Monster* monster;
+    W8NpcState* npc;
+    W8MonsterInfo* monster_info;
+    unsigned char value;
+    wchar_t display_value[10];
+    srVector3T<float> head;
+
+    value = EvaluateFact(0x4e);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        Function52E5C0(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
+        return;
+    }
+
+    value = EvaluateFact(0x4c);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                     display_value);
+    }
+    if (value != 0) {
+        npc = GetNpcStateByKind(0xc);
+    } else {
+        value = EvaluateFact(0x4b);
+        if (g_status_685170.log_fact_checks_3120) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            } else {
+                wcscpy(display_value, L"FALSE");
+            }
+            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                         display_value);
+        }
+        if (value != 0) {
+            npc = GetNpcStateByKind(0x8c);
+            if (npc == 0) {
+                return;
+            }
+            Function56C5E0(npc, 0, 0, 0, 0);
+            monster_info = GetNpcMonsterInfo(npc);
+            if (monster_info == 0) {
+                return;
+            }
+            monster = monster_info->monster;
+            head.x = monster->movement_0c0.position_040.x;
+            head.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
+            head.z = monster->movement_0c0.position_040.z;
+            g_gd_camera_65a0f8->LookAt(&head, 0);
+            return;
+        }
+        npc = GetNpcStateByKind(0x18);
+    }
+    if (npc != 0) {
+        Function56C5E0(npc, 0, -1, 0, 0);
+    }
+}
+
 /* New-game start level from the campaign facts InitializeFactState planted.
    Import path 0x4c is level 14, 0x4b is level 6, and 0x4e or neither is 8. */
 // FUNCTION: WIZ8 0x00509750
@@ -1087,7 +1165,7 @@ void UpdateNpcEvents0050D530(void)
     if (g_status_685170.flag_2497 != 0 &&
         (g_status_685170.world_clock - g_status_685170.value_242a) > 0x3c) {
         g_status_685170.flag_2497 = 0;
-        Function509560();
+        SelectStartNpcGreeting00509560();
     }
 }
 

@@ -9,6 +9,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/virtual_file.h"
@@ -146,6 +147,25 @@ void InitializeFactState(void)
         SetFact(0x27a, 1, 0);
         SetFact(0x27b, 1, 0);
     }
+    SetFactNotificationsSuppressed(0);
+}
+
+/* Runs once the new-game level has finished loading: queues the two scripted
+   actors named by string-table entries 0x7e7/0x7e8 as pending actions and
+   seeds the starting fact set, all with notifications suppressed. */
+// FUNCTION: WIZ8 0x005063e0
+void PostNewGameLoad005063E0(void)
+{
+    SetFactNotificationsSuppressed(1);
+    Function5775D0(gppStringList[0x7e7], 3);
+    Function5775D0(gppStringList[0x7e8], 3);
+    SetFact(0xcc, 1, 0);
+    SetFact(0x42, 1, 0);
+    SetFact(0x1e9, 1, 0);
+    SetFact(0x7d, 1, 0);
+    SetFact(0x3e, 1, 0);
+    SetFact(0x42, 1, 0);
+    SetFact(0x18b, 1, 0);
     SetFactNotificationsSuppressed(0);
 }
 

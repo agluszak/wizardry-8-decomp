@@ -28,34 +28,9 @@
 #include <string.h>
 
 /* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
-   dialog (kind 3), the split-item dialog (kind 5) and the trigger-owned item
-   picker. Their button callbacks and the small positioning helpers are
-   declared but not recovered; the calls still match the retail
-   sites. */
-
-// FUNCTION: WIZ8 0x005DCED0
-W8Dialog005DCED0::W8Dialog005DCED0(int kind, W8ItemInstance* item, int param)
-{
-    unsigned int split_count;
-
-    SetExtent(0x142, 0xbd);
-    if (kind == 1 || kind == 2) {
-        SetBackground("Data\\Dialogs\\popup_splititem.sti", 0);
-    } else if (kind == 0) {
-        SetBackground("Data\\Dialogs\\popup_splititem.sti", 1);
-    }
-    memset(unknown_054, 0, 0x60);
-    if (g_item_records[item->item_id].maximum_quantity < 0xb) {
-        split_count = 1;
-    } else {
-        split_count = item->stack_count >> 1;
-    }
-    if (param != -1) {
-        split_count = param;
-    }
-    split_count_0c0 = split_count;
-    unknown_0c4 = item->stack_count - split_count;
-}
+   dialog (kind 3) and the trigger-owned item picker; the split-item dialog
+   owns its own translation unit. The small positioning helpers are declared
+   but not recovered; the calls still match the retail sites. */
 
 // FUNCTION: WIZ8 0x005cbb40
 W8Dialog005CBB40::W8Dialog005CBB40()

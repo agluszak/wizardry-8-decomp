@@ -20,6 +20,9 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int ar
 unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type,
                                        unsigned int* metadata);
 extern int g_effect_005ee588;
+/* 0x005EE6F0: first entry of the -1-terminated .rdata event-id table read at
+   0x00509560. */
+extern const int g_value_005ee6f0;
 
 /* True when no occupied party slot has an active portrait/voice record. */
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
