@@ -33,7 +33,6 @@
 extern unsigned char IsSoundPlaying(int sound_handle);
 extern unsigned char StopSound(int sound_handle);
 extern void QueueGameplayEvent(int event_type, int party_slot);
-extern int g_effect_argument_005ed8cc;
 extern void Function5E2D10(char* path, int* gap_data);
 extern unsigned char gfCapturingVideo;
 extern unsigned char ReleasePortraitQuoteBubble(int quote_handle);

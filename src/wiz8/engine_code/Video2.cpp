@@ -1842,6 +1842,12 @@ void VideoRemoveToolTip(void)
     }
 }
 
+// FUNCTION: WIZ8 0x00424A40
+srShader::srShader()
+{
+    value = 0x0100241b;
+}
+
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
                         unsigned char positional_3)
