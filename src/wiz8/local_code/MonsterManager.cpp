@@ -103,7 +103,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->fInCombat = 0;
     monster_info->pCombat = 0;
     monster_info->position_17 = *position;
-    monster_info->derived_23 = Function4BE5C0(position);
+    monster_info->derived_23 = GetCameraFacingYaw004BE5C0(position);
 
     value = RollDice(&record->hit_points_d6);
     monster_info->hp_max = value;

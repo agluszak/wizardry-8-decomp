@@ -476,7 +476,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
             placed = PositionMonsterGroupNearCamera00511050(group, 3000.0f, 0.0f, 1);
         }
     } else {
-        yaw = Function4BE5C0(position);
+        yaw = GetCameraFacingYaw004BE5C0(position);
         placed = Function510CC0(group, position, yaw, 1, 0, 0, 0);
     }
     if (placed == 0) {
