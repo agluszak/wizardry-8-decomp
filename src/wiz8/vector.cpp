@@ -266,8 +266,24 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x00474c40
 // W8GrowableVector<stMeshModel*>::~W8GrowableVector<stMeshModel*>
 
-/* 0x005ECA5C is an unresolved pointer-vector specialization (ctor 0x00489ED0,
-   deleting destructor 0x0048A140, complete destructor 0x00489F30). */
+/* Engine Code\ReadMesh.cpp's g_retained_materials_65b9d0: the static
+   initializer at 0x00485AF0 constructs it with capacity five; the stores
+   feed it srMaterialIFace* entries out of the mesh material arrays.
+   0x005ECA60 is this specialization's construction-phase table. */
+// VTABLE: WIZ8 0x005eca5c
+// class W8GrowableVector<srMaterialIFace*>
+
+// TEMPLATE: WIZ8 0x00489ed0
+// W8GrowableVector<srMaterialIFace*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x0048a140
+// W8GrowableVector<srMaterialIFace*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0048a110
+// W8GrowableVector<srMaterialIFace*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x00489f30
+// W8GrowableVector<srMaterialIFace*>::~W8GrowableVector<srMaterialIFace*>
 
 /* MonGen.cpp's active monster-group list at 0x0065BA10. GenerateEncounter at
    0x0048AD20 stores W8MonsterGroup* elements through g_active_groups. */
@@ -298,8 +314,24 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
 
-/* 0x005ECAD0 is another unresolved specialization that ctor 0x0048F190 builds
-   (deleting destructor 0x0048F240, complete destructor 0x0048F1F0). */
+/* Engine Code\stCube.cpp's g_world_cursor_nodes_65ba58: the static
+   initializer at 0x0048D020 constructs it with capacity five; the table
+   holds the world's W8WorldCursorNode0048DB30* cursor nodes.
+   0x005ECAD4 is this specialization's construction-phase table. */
+// VTABLE: WIZ8 0x005ecad0
+// class W8GrowableVector<W8WorldCursorNode0048DB30*>
+
+// TEMPLATE: WIZ8 0x0048f190
+// W8GrowableVector<W8WorldCursorNode0048DB30*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x0048f240
+// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0048f210
+// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x0048f1f0
+// W8GrowableVector<W8WorldCursorNode0048DB30*>::~W8GrowableVector<W8WorldCursorNode0048DB30*>
 
 /* 0x005ED43C is the W8MasterFunction (void (*)(int)) pointer-vector
    specialization emitted by MasterFunctionList.cpp: ctor 0x004D9A70 (its only
@@ -383,9 +415,24 @@ class srClipPlane;
 // TEMPLATE: WIZ8 0x004bdfe0
 // W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
 
-/* 0x005ED2C8 is the embedded vector W8MonsterRep's constructor at 0x004BEA20
-   initialises at +0xAC (ctor 0x004CAD00, deleting destructor 0x004CAE10,
-   complete destructor 0x004CAD60); its element type stays unresolved. */
+/* Engine Code\Monster.cpp's W8GrowableVector<W8AnimObj*> emission: the 0x1B
+   elements at W8MonsterRep+0xAC (the per-cycle animations array) are built
+   through ??_L with the capacity-five ctor thunk at 0x004BEBC0.
+   0x005ED2CC is this specialization's construction-phase table. */
+// VTABLE: WIZ8 0x005ed2c8
+// class W8GrowableVector<W8AnimObj*>
+
+// TEMPLATE: WIZ8 0x004cad00
+// W8GrowableVector<W8AnimObj*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x004cae10
+// W8GrowableVector<W8AnimObj*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004cade0
+// W8GrowableVector<W8AnimObj*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x004cad60
+// W8GrowableVector<W8AnimObj*>::~W8GrowableVector<W8AnimObj*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -432,7 +479,22 @@ struct W8AutomapNote;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* 0x005EF08C is the final table of a vector constructed inside the
-   OptionsScreen factory at 0x005ABFC0 (the 0x005AD020/0x005AD1B0 destructor
-   pair belongs to it); its element type is unresolved, so the emission stays
-   in the pointer-vector ledger rather than naming an element class. */
+/* Local Screens\OptionsScreen.cpp's W8GrowableVector<W8OptionsPanel*>
+   emission: CreateOptionsPanel at 0x005ABFC0 constructs one inside
+   W8OptionsPanelSet at +0x10, and ~W8OptionsSaveLoadPanel also tears down
+   this specialization's subobject. 0x005EF190 is the construction-phase
+   table. */
+// VTABLE: WIZ8 0x005ef08c
+// class W8GrowableVector<W8OptionsPanel*>
+
+// TEMPLATE: WIZ8 0x005acfc0
+// W8GrowableVector<W8OptionsPanel*>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x005ad1b0
+// W8GrowableVector<W8OptionsPanel*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad180
+// W8GrowableVector<W8OptionsPanel*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x005ad020
+// W8GrowableVector<W8OptionsPanel*>::~W8GrowableVector<W8OptionsPanel*>

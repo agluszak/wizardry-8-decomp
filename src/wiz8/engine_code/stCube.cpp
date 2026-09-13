@@ -14,6 +14,7 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
+#include "wiz8/vector.h"
 #include "surrender/srNode.h"
 #include "surrender/srModeler.h"
 #include "surrender/srMaterial.h"
@@ -35,12 +36,6 @@
    at 0x0048DB30 lies inside the assertion-backed 0x0048D080-0x0048E7B0 hull;
    0x0048ED00-0x0048EFC0 are the following attribution gap, so no assertion
    names their unit. */
-
-// GLOBAL: WIZ8 0x0065ba5c
-int g_world_cursor_node_count_65ba5c;
-
-// GLOBAL: WIZ8 0x0065ba60
-int g_world_cursor_node_capacity_65ba60;
 
 /* One record of the world cursor's node table. The 0x0048D080 constructor
    allocates 0x44 bytes and installs the 0x005ECAB8 vtable after zeroing the
@@ -69,8 +64,11 @@ public:
 };
 static_assert(sizeof(W8WorldCursorNode0048DB30) == 0x44, "W8WorldCursorNode0048DB30_size");
 
-// GLOBAL: WIZ8 0x0065ba64
-W8WorldCursorNode0048DB30** g_world_cursor_nodes_65ba64;
+/* The cursor's node table is a real W8GrowableVector object: its static
+   initializer at 0x0048D020 constructs it with capacity five and its
+   destructor is run through atexit. */
+// GLOBAL: WIZ8 0x0065ba58
+W8GrowableVector<W8WorldCursorNode0048DB30*> g_world_cursor_nodes_65ba58(5);
 
 /* The double selection range at 0x005ECAC8: node distances below it select the
    node. Read as 75000.0, not the zero a float view would give. */
@@ -251,23 +249,23 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
     entry->size_1c = 0;
     entry->flag_24 = 0;
 
-    int needed = g_world_cursor_node_count_65ba5c + 1;
-    if (g_world_cursor_node_capacity_65ba60 < needed) {
-        W8WorldCursorNode0048DB30** previous = g_world_cursor_nodes_65ba64;
-        g_world_cursor_nodes_65ba64 =
+    int needed = g_world_cursor_nodes_65ba58.count + 1;
+    if (g_world_cursor_nodes_65ba58.capacity < needed) {
+        W8WorldCursorNode0048DB30** previous = g_world_cursor_nodes_65ba58.data;
+        g_world_cursor_nodes_65ba58.data =
             static_cast<W8WorldCursorNode0048DB30**>(::operator new(needed * 4));
-        if (g_world_cursor_nodes_65ba64 == 0) {
-            g_world_cursor_nodes_65ba64 = previous;
+        if (g_world_cursor_nodes_65ba58.data == 0) {
+            g_world_cursor_nodes_65ba58.data = previous;
             return entry;
         }
-        g_world_cursor_node_capacity_65ba60 = needed;
-        for (int index = 0; index < g_world_cursor_node_count_65ba5c; ++index) {
-            g_world_cursor_nodes_65ba64[index] = previous[index];
+        g_world_cursor_nodes_65ba58.capacity = needed;
+        for (int index = 0; index < g_world_cursor_nodes_65ba58.count; ++index) {
+            g_world_cursor_nodes_65ba58.data[index] = previous[index];
         }
         ::operator delete(previous);
     }
-    g_world_cursor_nodes_65ba64[g_world_cursor_node_count_65ba5c] = entry;
-    ++g_world_cursor_node_count_65ba5c;
+    g_world_cursor_nodes_65ba58.data[g_world_cursor_nodes_65ba58.count] = entry;
+    ++g_world_cursor_nodes_65ba58.count;
     return entry;
 }
 
@@ -323,7 +321,7 @@ void SetWorldCursorNodeColor0048E400(W8WorldCursorNode0048DB30* entry, unsigned 
 // FUNCTION: WIZ8 0x0048ED00
 int GetWorldCursorNodeCount0048ED00(void)
 {
-    return g_world_cursor_node_count_65ba5c;
+    return g_world_cursor_nodes_65ba58.count;
 }
 
 /* Reparent the world's cursor-attached nodes onto the dynamic scene, or
@@ -332,10 +330,10 @@ int GetWorldCursorNodeCount0048ED00(void)
 // FUNCTION: WIZ8 0x0048ED70
 void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
 {
-    unsigned int count = g_world_cursor_node_count_65ba5c;
+    unsigned int count = g_world_cursor_nodes_65ba58.count;
 
     for (unsigned int index = 0; index < count; ++index) {
-        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[index];
+        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[index];
 
         if (entry != 0) {
             srNode* parent = 0;
@@ -362,8 +360,8 @@ bool SelectWorldCursorNode0048EFC0(void)
         GetCameraPosition(&camera_position);
         camera_location.SetFromFloat(&camera_position);
         int selected = g_cursor_node_index_0060a9b0;
-        if (selected >= 0 && selected < g_world_cursor_node_count_65ba5c) {
-            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[selected];
+        if (selected >= 0 && selected < g_world_cursor_nodes_65ba58.count) {
+            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[selected];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -375,9 +373,9 @@ bool SelectWorldCursorNode0048EFC0(void)
                 }
             }
         }
-        int count = g_world_cursor_node_count_65ba5c;
+        int count = g_world_cursor_nodes_65ba58.count;
         for (int index = 0; index < count; ++index) {
-            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[index];
+            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[index];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -400,8 +398,8 @@ bool SelectWorldCursorNode0048EFC0(void)
 // FUNCTION: WIZ8 0x0048DB30
 void ReleaseWorldCursorNodes0048DB30(void)
 {
-    while (g_world_cursor_node_count_65ba5c != 0) {
-        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba64[0];
+    while (g_world_cursor_nodes_65ba58.count != 0) {
+        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[0];
 
         if (entry != 0) {
             if (entry->buffer_18 != 0) {
@@ -411,12 +409,14 @@ void ReleaseWorldCursorNodes0048DB30(void)
             entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
             entry->node_04->release();
-            for (int index = 0; index < g_world_cursor_node_count_65ba5c; ++index) {
-                if (g_world_cursor_nodes_65ba64[index] == entry) {
-                    for (int shift = index; shift < g_world_cursor_node_count_65ba5c - 1; ++shift) {
-                        g_world_cursor_nodes_65ba64[shift] = g_world_cursor_nodes_65ba64[shift + 1];
+            for (int index = 0; index < g_world_cursor_nodes_65ba58.count; ++index) {
+                if (g_world_cursor_nodes_65ba58.data[index] == entry) {
+                    for (int shift = index; shift < g_world_cursor_nodes_65ba58.count - 1;
+                         ++shift) {
+                        g_world_cursor_nodes_65ba58.data[shift] =
+                            g_world_cursor_nodes_65ba58.data[shift + 1];
                     }
-                    --g_world_cursor_node_count_65ba5c;
+                    --g_world_cursor_nodes_65ba58.count;
                     break;
                 }
             }
