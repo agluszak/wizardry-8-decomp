@@ -507,7 +507,7 @@ void TintHighlightedMonster(W8Monster* monster, int tint)
 /* Raise or lower one character's bit in a monster's highlight mask, and tell
    whatever draws it. */
 // FUNCTION: WIZ8 0x00539630
-void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
+void SetMonsterHighlight(int party_slot, int location_id, char on)
 {
     int index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
@@ -523,14 +523,14 @@ void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
         srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
     }
 
-    bit = (unsigned char)(1 << (location_id & 0x1f));
+    bit = (unsigned char)(1 << (party_slot & 0x1f));
     if (on) {
         MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
-        MonsterForward4C4DE0(location_id, location_id, 1);
+        NotifyMonsterHighlight(party_slot, location_id, 1);
         return;
     }
     MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
-    MonsterForward4C4DE0(location_id, location_id, 0);
+    NotifyMonsterHighlight(party_slot, location_id, 0);
 }
 
 /* The same over a whole group, one member at a time. The count is re-read each
@@ -602,7 +602,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         } else {
             tint = 0;
         }
-        SetMonsterHighlight(monster_info->location_id, owner, 0, (char)tint);
+        HighlightMonsterAsTarget(monster_info->location_id, owner, (char)tint);
     }
 }
 
@@ -912,14 +912,14 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 
     if (slot->highlighted_monsters.count > 0) {
         for (index = 0; index < (unsigned int)slot->highlighted_monsters.count; ++index) {
-            SetMonsterHighlight(party_slot, slot->highlighted_monsters.data[index], 0, 0);
+            SetMonsterHighlight(party_slot, slot->highlighted_monsters.data[index], 0);
         }
         slot->highlighted_monsters.count = 0;
         return;
     }
 
     if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
-        SetMonsterHighlight(party_slot, target->iMonsterID, 0, 0);
+        SetMonsterHighlight(party_slot, target->iMonsterID, 0);
     }
 
     if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
@@ -930,7 +930,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
 
             for (index = 0; index < ILLength(group->monsters); ++index) {
-                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0, 0);
+                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0);
             }
         }
     }
@@ -1265,7 +1265,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
     int detail;
     W8ActionDetailBlock* detail_block;
     unsigned int spell_id;
-    W8MonsterManagerEntry* entry = &g_monster_manager_entries[party_slot];
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
 
     entry->highlighted_monsters.count = 0;
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
@@ -1306,14 +1306,14 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
                 if ((flags & bit) != 0) {
                     MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags & ~bit));
-                    MonsterForward4C4DE0(party_slot, monster_info->location_id, 0);
+                    NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
                 }
             }
         }
 
         for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 1);
         }
         return;
     }
@@ -1333,7 +1333,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
             MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags | bit));
-            MonsterForward4C4DE0(party_slot, target->iMonsterID, 1);
+            NotifyMonsterHighlight(party_slot, target->iMonsterID, 1);
         }
     }
 
@@ -1346,7 +1346,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
             for (unsigned int member_index = 0; member_index < ILLength(group->monsters);
                  ++member_index) {
-                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, member_index), 0, 1);
+                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, member_index), 1);
             }
         }
     }

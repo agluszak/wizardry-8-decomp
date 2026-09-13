@@ -20,14 +20,15 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
 /* Shared perception primitive for monster/player and player/monster checks.
    Retail passes observer and target as by-value srVector3T<float> blocks.
    penalty_source is party minimum level or monster missile value;
-   penalty_modifier is ambient light, npc fade flag, or visibility state depending
-   on the caller. skip_field_of_view mirrors W8VisibilityRecord::state_04. The
-   final int is unused by retail. */
+   retail subtracts twice penalty_source from perception_attribute in the base
+   factor. penalty_modifier applies a -10 or -5 penalty per unit depending on
+   skip_field_of_view, and sight_override forces full range. */
 float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
-                            float observer_yaw, unsigned int perception_attribute, int ranged_bonus,
-                            unsigned char blinded, unsigned char extended_sight_active,
-                            int penalty_source, int penalty_modifier, int skip_field_of_view,
-                            int unused, float distance); /* 0x00505A40 */
+                            float observer_yaw, unsigned int perception_attribute,
+                            unsigned char ranged_bonus, unsigned char blinded,
+                            unsigned char extended_sight_active, int penalty_source,
+                            int penalty_modifier, int skip_field_of_view,
+                            unsigned char sight_override, float distance); /* 0x00505A40 */
 
 bool IsSightRangeOverridden(void);
 bool GetSightCondition37A(const W8MonsterInfo* monster);

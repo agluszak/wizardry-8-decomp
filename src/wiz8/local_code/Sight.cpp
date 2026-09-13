@@ -178,13 +178,12 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
         ranged_bonus = 0;
     }
     source_record = GetMonsterDataForInfo(source);
-    threshold =
-        ComputeSightThreshold(observer_position, target_position, observer_yaw,
-                              source->converted_attributes_247[4], static_cast<int>(ranged_bonus),
-                              static_cast<unsigned char>(source->condition_turns[12] != 0),
-                              static_cast<unsigned char>(source_record->kind_0cb == 12),
-                              static_cast<int>(target_record->missile_value_24f), penalty_modifier,
-                              static_cast<int>(record->state_04), 0, distance);
+    threshold = ComputeSightThreshold(
+        observer_position, target_position, observer_yaw, source->converted_attributes_247[4],
+        ranged_bonus, static_cast<unsigned char>(source->condition_turns[12] != 0),
+        static_cast<unsigned char>(source_record->kind_0cb == 12),
+        static_cast<int>(target_record->missile_value_24f), penalty_modifier,
+        static_cast<int>(record->state_04), 0, distance);
     if (threshold < distance) {
         return 0;
     }
@@ -194,12 +193,12 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
 /* Maximum distance at which the observer can perceive the target. */
 // FUNCTION: WIZ8 0x00505a40
 float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<float> target_position,
-                            float observer_yaw, unsigned int perception_attribute, int ranged_bonus,
-                            unsigned char blinded, unsigned char extended_sight_active,
-                            int penalty_source, int penalty_modifier, int skip_field_of_view,
-                            int unused, float distance)
+                            float observer_yaw, unsigned int perception_attribute,
+                            unsigned char ranged_bonus, unsigned char blinded,
+                            unsigned char extended_sight_active, int penalty_source,
+                            int penalty_modifier, int skip_field_of_view,
+                            unsigned char sight_override, float distance)
 {
-    (void)unused;
     W8World* world;
     double far_clip;
     float viewing_distance;
@@ -220,24 +219,24 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
         return g_float_005ebb34;
     }
     if (angle_delta < static_cast<float>(g_monster_facing_tolerance_005ec2b0) ||
-        skip_field_of_view != 0 || penalty_modifier != 0 || distance == g_float_005ebb34) {
+        sight_override != 0 || skip_field_of_view != 0 || distance == g_float_005ebb34) {
         sight_percent = 100;
     } else {
         float sight_factor =
-            static_cast<float>(ranged_bonus - static_cast<int>(perception_attribute) * 2);
+            static_cast<float>(static_cast<int>(perception_attribute) - penalty_source * 2);
         float sight_ratio = (viewing_distance - distance) / distance;
         sight_percent = (int)(sight_factor * sight_ratio);
     }
-    if (penalty_source != 0) {
-        if (penalty_modifier == 0) {
-            penalty = penalty_source * -10;
+    if (penalty_modifier != 0) {
+        if (skip_field_of_view == 0) {
+            penalty = penalty_modifier * -10;
         } else {
-            penalty = penalty_source * -5;
+            penalty = penalty_modifier * -5;
         }
         sight_percent += penalty;
     }
-    if (perception_attribute != 0) {
-        sight_percent = (static_cast<int>(perception_attribute) + 100) * sight_percent / 100;
+    if (ranged_bonus != 0) {
+        sight_percent = (static_cast<int>(ranged_bonus) + 100) * sight_percent / 100;
     }
     ClampInteger(&sight_percent, 2, 100);
     return static_cast<float>(sight_percent) * viewing_distance * g_movement_speed_step_005ed490;

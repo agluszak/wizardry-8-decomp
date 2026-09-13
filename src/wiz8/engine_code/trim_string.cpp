@@ -6,11 +6,13 @@
    0x00497940 sits in the gap between Engine Code\Cursor3d.cpp (upper
    0x004914e0) and Engine Code\stParticle.cpp (lower 0x00497af0). */
 
+/* Retail checks text[length], which is the terminator, so trailing spaces are
+   never trimmed. Preserve that deliberate retail defect. */
 // FUNCTION: WIZ8 0x00497940
 char* TrimAndLowercaseString(char* text)
 {
-    unsigned int length;
-    unsigned int index;
+    unsigned short length;
+    unsigned short index;
     char copy[1024];
 
     length = strlen(text);

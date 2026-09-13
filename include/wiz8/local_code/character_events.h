@@ -30,5 +30,6 @@ void QueueDamageReactionEvents(W8Character* character);      /* 0x0052F2C0 */
 void Function52F110(int party_slot);
 void Function52F430(W8Character* character);
 void Function52F790(W8Character* character, int condition);
-void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
+void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
+                                unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);

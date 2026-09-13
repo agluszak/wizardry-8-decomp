@@ -357,8 +357,7 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument)
 // FUNCTION: WIZ8 0x0046e640
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 {
-    unsigned int shader_default;
-    Function00424A40(&shader_default);
+    srShader shader;
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -368,7 +367,7 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
                 bool clear = argument == 0 || (mesh->flags_3a0 & 1) != 0;
 
                 if (polygon_shader == 0) {
-                    srShader shader = mesh->getShader(0);
+                    shader = mesh->getShader(0);
                     if (clear) {
                         shader.value &= ~srShader::MASK_DEPTH_WRITE;
                     } else {
@@ -397,8 +396,7 @@ void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument)
 // FUNCTION: WIZ8 0x0046e750
 void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
 {
-    unsigned int shader_default;
-    Function00424A40(&shader_default);
+    srShader shader;
     for (; node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
@@ -409,7 +407,7 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
                 }
                 srShader* polygon_shader = mesh->getPolyShader(0, 0);
                 if (polygon_shader == 0) {
-                    srShader shader = mesh->getShader(0);
+                    shader = mesh->getShader(0);
                     if (argument == 0) {
                         shader.value |= srShader::PASS_ALWAYS;
                     } else {

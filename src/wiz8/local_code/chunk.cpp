@@ -74,7 +74,7 @@ unsigned char W8Chunk::OpenRead(char* path)
     if (head->chunk_id != W8_RIFF_CHUNK_ID) {
         return 0;
     }
-    SkipCurrentChunk();
+    OpenGroup();
     return 1;
 }
 
@@ -115,7 +115,7 @@ unsigned char W8Chunk::OpenReadWrite(char* path)
     if (head->chunk_id != W8_RIFF_CHUNK_ID) {
         return 0;
     }
-    SkipCurrentChunk();
+    OpenGroup();
     return 1;
 }
 

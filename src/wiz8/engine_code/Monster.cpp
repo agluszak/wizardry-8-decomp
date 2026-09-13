@@ -4510,7 +4510,8 @@ void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
 {
     W8MonsterRuntimeBlock4C block;
-    float* channels = reinterpret_cast<float*>(&block); // reinterpret-ok: retail highlight paths store rgba in render_state_04c as four floats
+    float* channels =
+        reinterpret_cast<float*>(&block); // reinterpret-ok: retail highlight paths store rgba in render_state_04c as four floats
     channels[0] = red;
     channels[1] = green;
     channels[2] = blue;
@@ -4576,12 +4577,11 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
     }
 }
 
-/* An unguarded three-argument forward. The arguments are pushed back to front
-   and handed straight on, so nothing here says what any of them mean. */
+/* Attach or detach the TriRed target marker for one party slot on a monster. */
 // FUNCTION: WIZ8 0x004c5eb0
-void MonsterForward4C4DE0(int arg_1, int arg_2, int arg_3)
+void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    Function4C4DE0(arg_1, arg_2, arg_3);
+    Function4C4DE0(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both

@@ -113,6 +113,19 @@ struct W8JournalEntry;
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 struct W8NpcState;
+struct W8MessageBoxLine;
+
+// VTABLE: WIZ8 0x005ed890
+// class W8GrowableVector<W8MessageBoxLine*>
+
+// VTABLE: WIZ8 0x005ed894
+// class W8GrowableVector<int*>
+
+// SYNTHETIC: WIZ8 0x0052a290
+// W8GrowableVector<W8MessageBoxLine*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0052a2c0
+// W8GrowableVector<int*>::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ed810
 // class W8GrowableVector<W8NpcState*>

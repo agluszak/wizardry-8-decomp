@@ -46,6 +46,7 @@ RUNTIME_SCENARIOS = (
     "main-menu-startup",
     "main-menu-new-game",
     "main-game-start",
+    "npc-state-reset",
     "main-menu-exit-auto-repeat",
 )
 # The in-process harness owns each scenario's budget (``kScenarioBudgetMs`` in
@@ -53,6 +54,12 @@ RUNTIME_SCENARIOS = (
 # wedged Wine process, so it stays above the harness budget rather than
 # pre-empting the harness's own timeout report.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
+RUNTIME_SCENARIO_STATE_FILES = (
+    Path("Saves") / "Characters" / "Probe.CHR",
+    Path("Saves") / "AutoSave.SAV",
+    Path("Saves") / "CleanUp.SAV",
+    Path("Saves") / "CurrentGame.SAV",
+)
 
 
 @dataclass(frozen=True)
@@ -101,6 +108,11 @@ def _materialize_config(settings: Settings, stage: Path) -> None:
     if not game_cfg.exists():
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
         game_cfg.write_bytes(bytes.fromhex(encoded))
+
+
+def _reset_runtime_scenario_state(stage: Path) -> None:
+    for relative_path in RUNTIME_SCENARIO_STATE_FILES:
+        (stage / relative_path).unlink(missing_ok=True)
 
 
 def stage_game(
@@ -590,12 +602,12 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
                 ("forward", RUNTIME_SCENARIOS),
                 ("reverse", tuple(reversed(RUNTIME_SCENARIOS))),
             ):
-                runs[order_name] = {
-                    scenario: _run_runtime_scenario(
+                runs[order_name] = {}
+                for scenario in scenarios:
+                    _reset_runtime_scenario_state(stage)
+                    runs[order_name][scenario] = _run_runtime_scenario(
                         executable, stage, environment, scenario, object_root
                     )
-                    for scenario in scenarios
-                }
         finally:
             subprocess.run(
                 ["wineserver", "-k"],

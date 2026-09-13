@@ -12,6 +12,9 @@
 #include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/materials.h"
 
+#include "DEBUG.H"
+#include "FileMan.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -217,6 +220,200 @@ void W8GameData::IntegrateTriggers()
     bits_5c = new BitArray(total_surface_count_44);
 }
 
+struct W8ProcessedGameDataHeader {
+    unsigned int version_00;
+    srVector3T<float> minimum_04;
+    srVector3T<float> maximum_10;
+    int integrated_surface_count_1c;
+    int surface_count_20;
+    int positional_24;
+    int positional_28;
+    int vertex_count_2c;
+    int value_30;
+    int value_34;
+    int total_surface_count_38;
+    int value_3c;
+    int environ_count_40;
+    unsigned char unknown_44[0x24];
+};
+
+static_assert(sizeof(W8ProcessedGameDataHeader) == 0x68, "W8ProcessedGameDataHeader_must_be_0x68");
+
+// FUNCTION: WIZ8 0x0041a820
+unsigned char W8EnvironRecord::RescaleToReference(const W8EnvironRecord* reference)
+{
+    if (reference == 0) {
+        float difference = (float)fabs(g_navigator_gravity_00603acc + value_28);
+        if (g_navigator_gravity_00603acc * g_camera_snap_epsilon_005ebc2c < difference) {
+            return 1;
+        }
+        difference = (float)fabs(value_34 - g_camera_level_forward_scale_603aac);
+        if (g_camera_level_forward_scale_603aac * g_camera_snap_epsilon_005ebc2c < difference) {
+            return 1;
+        }
+        difference = (float)fabs(value_38 - g_float_00603abc);
+        if (g_float_00603abc * g_camera_snap_epsilon_005ebc2c < difference) {
+            return 1;
+        }
+        difference = (float)fabs(value_3c - g_float_00603ab8);
+        if (g_float_00603ab8 * g_camera_snap_epsilon_005ebc2c < difference) {
+            return 1;
+        }
+        return 0;
+    }
+
+    float scale = g_navigator_gravity_00603acc / -reference->value_14;
+    value_10 *= scale;
+    value_14 *= scale;
+    value_18 *= scale;
+    value_34 *= (g_camera_level_forward_scale_603aac / reference->value_34);
+    value_38 *= (g_float_00603abc / reference->value_38);
+    value_3c *= (g_float_00603ab8 / reference->value_3c);
+    return 0;
+}
+
+/* Read the processed GameData header and all of its variable-size banks. */
+// FUNCTION: WIZ8 0x00449240
+void W8GameData::ReadProcessedGameData(int handle)
+{
+    W8ProcessedGameDataHeader header;
+    unsigned int bytes_read;
+    int index;
+
+    if (FileRead(handle, &header, sizeof(header), &bytes_read) == 0) {
+        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x465,
+                     "ReadProcessedGameData: Couldn't read GameData info.");
+    }
+    if (header.version_00 != 1) {
+        srAssertFail("(FileGD.iVersion == GAMEDATA_VERSION)",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x46c,
+                     reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+                         String("ReadProcessedGameData: File version %d does not match program "
+                                "version %d.",
+                                header.version_00, 1)));
+    }
+
+    minimum_08 = header.minimum_04;
+    maximum_14 = header.maximum_10;
+    surface_count_28 = header.surface_count_20;
+    positional_2c_00 = header.positional_24;
+    positional_2c_04 = header.positional_28;
+    integrated_surface_count_34 = header.integrated_surface_count_1c;
+    vertex_count_20 = header.vertex_count_2c;
+    value_60 = header.value_30;
+    value_68 = header.value_34;
+    total_surface_count_44 = header.total_surface_count_38;
+    value_70 = header.value_3c;
+    environ_count_80 = header.environ_count_40;
+
+    bits_58 = new BitArray(total_surface_count_44);
+    bits_5c = new BitArray(total_surface_count_44);
+
+    vertices_24 =
+        static_cast<srVector3T<float>*>(srHeap.allocate((vertex_count_20 * 3 + 6) * sizeof(float)));
+    if (vertices_24 == 0) {
+        srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x483,
+                     "ReadProcessedGameData: Couldn't allocate vertices.");
+    }
+    if (FileRead(handle, vertices_24, vertex_count_20 * 0xc, &bytes_read) == 0) {
+        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x487,
+                     "ReadProcessedGameData: Couldn't read vertices.");
+    }
+
+    surfaces_38 =
+        static_cast<W8GDSurface*>(malloc((surface_count_28 * 0x13 + 0x26) * sizeof(unsigned int)));
+    if (surfaces_38 == 0) {
+        srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x48c,
+                     "ReadProcessedGameData: Couldn't allocate pSurfaces.");
+    }
+    if (FileRead(handle, surfaces_38, surface_count_28 * 0x4c, &bytes_read) == 0) {
+        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x490,
+                     "ReadProcessedGameData: Couldn't read Surface info.");
+    }
+
+    if (value_60 != 0) {
+        block_64 = malloc((value_60 * 3 + 3) * sizeof(unsigned int));
+        if (block_64 == 0) {
+            srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
+        }
+        if (FileRead(handle, block_64, value_60 * 0xc, &bytes_read) == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x49a,
+                         "ReadProcessedGameData: Couldn't read switch interface info.");
+        }
+    }
+
+    if (value_68 != 0) {
+        block_6c = malloc((value_68 * 3 + 3) * sizeof(unsigned int));
+        if (block_6c == 0) {
+            srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
+                         "ReadProcessedGameData: Couldn't allocate switch state info.");
+        }
+        if (FileRead(handle, block_6c, value_68 * 0xc, &bytes_read) == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a5,
+                         "ReadProcessedGameData: Couldn't read switch state info.");
+        }
+    }
+
+    if (value_70 != 0) {
+        block_74 = malloc(value_70 * sizeof(unsigned int) + 4);
+        if (block_74 == 0) {
+            srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
+        }
+        if (FileRead(handle, block_74, value_70 * sizeof(unsigned int), &bytes_read) == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4b0,
+                         "ReadProcessedGameData: Couldn't read conditional poly list.");
+        }
+    }
+
+    if (environ_count_80 != 0) {
+        environs_84 = static_cast<W8EnvironRecord**>(malloc(environ_count_80 * sizeof(void*)));
+        if (environs_84 == 0) {
+            srAssertFail("m_ppEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x4b8, "ReadProcessedGameData: Couldn't allocate environment info.");
+        }
+        memset(environs_84, 0, environ_count_80 * sizeof(void*));
+        for (index = 0; index < environ_count_80; ++index) {
+            W8EnvironRecord* environ_record = new W8EnvironRecord();
+            if (environ_record == 0) {
+                srAssertFail("m_ppEnvirons[i]",
+                             "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4be,
+                             "ReadProcessedGameData: Couldn't allocate environment.");
+            }
+            environ_record->value_00 = 0;
+            environ_record->value_04 = 0;
+            environ_record->value_08 = 0;
+            environ_record->value_10 = 0;
+            environ_record->value_14 = -g_navigator_gravity_00603acc;
+            environ_record->value_18 = 0;
+            environ_record->value_1c = 0.05f;
+            environ_record->value_20 = 1.0f;
+            environ_record->value_24 = 0;
+            environ_record->value_28 = 0;
+            environ_record->value_2c = 0;
+            environ_record->value_30 = g_default_world_height_00603ac8;
+            environ_record->value_34 =
+                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
+            environ_record->value_38 = g_float_00603ab8;
+            environ_record->value_3c = g_float_00603abc;
+            environ_record->value_40 = 1.0f;
+            environs_84[index] = environ_record;
+            if (FileRead(handle, environ_record, 0x44, &bytes_read) == 0) {
+                srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                             0x4c2, "ReadProcessedGameData: Couldn't read GD_Environ.");
+            }
+        }
+        environs_84[0]->RescaleToReference(0);
+        if (environs_84[0]->RescaleToReference(0) != 0) {
+            for (index = 1; index < environ_count_80; ++index) {
+                environs_84[index]->RescaleToReference(environs_84[0]);
+            }
+            environs_84[0]->RescaleToReference(environs_84[0]);
+        }
+    }
+}
+
 /* Builds the processed game-data record in place: zeroed storage, bound
    extremes, the shared engine-time object on first use, a default
    environment bank, and the previous level-data teardown. The zero stores
@@ -229,8 +426,8 @@ W8GameData::W8GameData(int handle, void* parent)
     vertex_count_20 = 0;
     vertices_24 = 0;
     integrated_surface_count_34 = 0;
-    *(int*)&positional_2c[4] = 0;
-    *(int*)&positional_2c[0] = 0;
+    positional_2c_04 = 0;
+    positional_2c_00 = 0;
     surface_count_28 = 0;
     surfaces_38 = 0;
     overflow_surfaces_48 = 0;
@@ -262,7 +459,7 @@ W8GameData::W8GameData(int handle, void* parent)
         }
     }
     if (handle != 0) {
-        Function449240(handle);
+        ReadProcessedGameData(handle);
     }
     if (g_environ_00652DB4 != 0) {
         delete g_environ_00652DB4;

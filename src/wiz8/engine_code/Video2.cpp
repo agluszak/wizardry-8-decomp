@@ -1842,6 +1842,12 @@ void VideoRemoveToolTip(void)
     }
 }
 
+// FUNCTION: WIZ8 0x00424A40
+srShader::srShader()
+{
+    value = 0x0100241b;
+}
+
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
                         unsigned char positional_3)
@@ -2123,13 +2129,6 @@ unsigned char ClearFlag603C60(void)
 {
     g_flag_603c60 = 0;
     return 1;
-}
-
-/* Initialize the default mesh-shader dword the scene walks keep on the stack. */
-// FUNCTION: WIZ8 0x00424A40
-void __fastcall Function00424A40(unsigned int* destination)
-{
-    *destination = 0x0100241b;
 }
 
 // FUNCTION: WIZ8 0x00428020

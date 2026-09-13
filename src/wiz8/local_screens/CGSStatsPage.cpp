@@ -984,7 +984,6 @@ W8CharacterPage005EF778::~W8CharacterPage005EF778()
             delete row;
         }
     }
-    W8CharacterPage::~W8CharacterPage();
 }
 
 /* The page redraw: header figures, the seven attribute entries' section,

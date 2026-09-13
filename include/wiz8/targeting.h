@@ -160,6 +160,8 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot);
 void SetTargetToCharacter(int character_slot, W8TargetingContext context);
 
 void SetTargetingMode(int state);
+void SetMonsterHighlight(int party_slot, int location_id, char on);
+char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight);
 void UpdateAllMonsterHighlights(int party_slot, int location_id);
 /* Cursor-table index for SetTargetCursor, including slots 10..12. Not a
    W8TargetingContext. Retail mangles the return as `H`. */

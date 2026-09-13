@@ -2,6 +2,7 @@
 #define WIZ8_BINK_VIDEO_H
 
 #include "bink.h"
+#include "wiz8/mouth_gap.h"
 #include "wiz8/wiz8_windows.h"
 
 /* First-party owner around the closed Bink middleware handle. Engine
