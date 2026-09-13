@@ -46,6 +46,7 @@ RUNTIME_SCENARIOS = (
     "main-menu-startup",
     "main-menu-new-game",
     "main-game-start",
+    # "new-game-entry",  # Lower-level bring-up path, excluded from the canonical suite.
     "npc-state-reset",
     "main-menu-exit-auto-repeat",
     "split-stack",
