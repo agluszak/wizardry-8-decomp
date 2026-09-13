@@ -5,6 +5,8 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/IntroScreen.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"

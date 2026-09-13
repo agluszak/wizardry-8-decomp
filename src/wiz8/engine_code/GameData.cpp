@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"

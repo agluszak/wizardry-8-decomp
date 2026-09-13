@@ -21,8 +21,6 @@
 
 extern int GetEnvironmentValue0060A3A8(void);
 extern W8Monster* GetNpcMonster(W8NpcState* npc);
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
 
 // GLOBAL: WIZ8 0x0068c3c4
 int g_staged_value_68c3c4;
@@ -45,8 +43,7 @@ struct W8NpcDialogueStagingRestore {
     short staged_short_49e;
 };
 #pragma pack(pop)
-static_assert(sizeof(W8NpcDialogueStagingRestore) == 12,
-              "W8NpcDialogueStagingRestore_must_be_12");
+static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 
 // GLOBAL: WIZ8 0x0068c494
 W8NpcDialogueStagingRestore g_npc_dialogue_staging_restore_68c494;
@@ -134,8 +131,8 @@ void UpdateNpcDialogueVoiceAndCursor(void)
 
 update_cursor:
     if (gXStatus.fNpcDialogueMode != 0) {
-        if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x228] !=
-            0) { /* reinterpret-ok: unnamed W8MainScreenState byte at 0x228 */
+        if (reinterpret_cast<unsigned char* /* reinterpret-ok: raw state byte at 0x228 */>(
+                g_screen_state_00649f1c)[0x228] != 0) {
             SetTargetCursor(1);
             return;
         }
@@ -199,8 +196,8 @@ void ProcessNpcScriptingFrame(void)
         g_flag_68c4f8 = 0;
     }
     if (g_flag_68c4f7 == 0 && g_flag_68c4a0 == 0 && g_flag_68c4f6 == 0) {
-        if (reinterpret_cast<signed char*>(g_screen_state_00649f1c)[0x1fa] <
-            1) { /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
+        if (reinterpret_cast<signed char* /* reinterpret-ok: raw state byte at 0x1fa */>(
+                g_screen_state_00649f1c)[0x1fa] < 1) {
             Function526E90();
             if (g_flag_68c4a0 != 0) {
                 return;
@@ -221,15 +218,15 @@ void ProcessNpcScriptingFrame(void)
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
                 g_flag_68506f == 0 &&
-                reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
+                reinterpret_cast<unsigned char* /* reinterpret-ok: raw state byte at 0x1fa */>(
+                    g_screen_state_00649f1c)[0x1fa] == 0 &&
                 (can_open_dialogue = Function577850(), can_open_dialogue != 0)) {
                 Function56E800(0);
             }
-            if (reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x1fa] ==
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x1fa */
-                reinterpret_cast<unsigned char*>(g_screen_state_00649f1c)[0x262] !=
-                    0 && /* reinterpret-ok: unnamed W8MainScreenState byte at 0x262 */
+            if (reinterpret_cast<unsigned char* /* reinterpret-ok: raw state byte at 0x1fa */>(
+                    g_screen_state_00649f1c)[0x1fa] == 0 &&
+                reinterpret_cast<unsigned char* /* reinterpret-ok: raw state byte at 0x262 */>(
+                    g_screen_state_00649f1c)[0x262] != 0 &&
                 (dialogue_ready = gXStatus.character_event_queue->IsMainQueueEmpty(),
                  dialogue_ready != 0)) {
                 SetNpcDialoguePanelVisible(1);

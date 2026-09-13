@@ -133,6 +133,10 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int
 
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);
+unsigned char CampScreenInitialize(void);
+unsigned char CampScreenEnter(void);
+void CampScreenFrame(void);
+unsigned char CampScreenLeave(int leaving);
 
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;

@@ -1,0 +1,111 @@
+{
+  "schema": "wiz8.header-architecture-v1",
+  "proven-original-headers": {
+    "include/wiz8/engine_code/AnimRep.hpp": "Engine Code\\Include\\AnimRep.hpp",
+    "include/wiz8/engine_code/Trigger.hpp": "Engine Code\\Include\\Trigger.hpp",
+    "include/wiz8/engine_code/stHeap.hpp": "Engine Code\\Include\\stHeap.hpp",
+    "include/wiz8/engine_code/stLight.hpp": "Engine Code\\Include\\stLight.hpp"
+  },
+  "headers": {
+    "include/wiz8/sgp_bridge.h": {
+      "role": "bridge"
+    },
+    "include/wiz8/gameplay_modifiers.h": {
+      "role": "shared-layout"
+    },
+    "include/wiz8/local_code/Targeting.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/Factions.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Spells.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Quality.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/World.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/3d.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/GameData.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/GDFileIO.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Monster.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Octree.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/ReadLevel.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/ReadMesh.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/UpdateMesh.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/Combat.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/GameplayDatabase.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/Magic.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/MagicEffects.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/MonsterManager.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/GameplayCode.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/FormationAndFacing.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/PC_Item.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/item_tables.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/local_code/Controls.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/ControlsRect.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/Widget.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/TextBuffer.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/TextControl.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/RangeControl.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    },
+    "include/wiz8/local_code/ControlSelection.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": ["Local Code\\Controls.cpp"]
+    }
+  }
+}

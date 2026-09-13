@@ -17,7 +17,7 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"

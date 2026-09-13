@@ -39,3 +39,8 @@ void Function583BC0(void);
 
 unsigned char ReadAutomapNodes00584DD0(int hFile);
 void RedrawTextBoxBody(void);
+unsigned char AutomapScreenInitialize(void);
+unsigned char AutomapScreenEnter(void);
+void AutomapScreenFrame(void);
+unsigned char AutomapScreenLeave(int leaving);
+unsigned char AutomapScreenFinalize(void);

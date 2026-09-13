@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/dice.h"
+
 struct W8CombatSlot;
 struct W8MonsterInfo;
 struct W8TargetSource;
@@ -31,3 +33,11 @@ unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, int target, unsigne
                                 int arg_4, int arg_5);
 bool CanAnyHandReachTarget(int party_slot); /* 0x00545910 */
 bool CanCharacterAttack(int party_slot);    /* 0x00545850 */
+struct W8Character;
+
+void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
+int GetCharacterHandDamageBonus(const W8Character* character, int hand);
+int CalcRangeCategoryToTarget(const W8Character* character, int hand);
+int GetHandAttackValue(int party_slot, unsigned int hand);
+int NormalizeAttackMode(int attack_mode);
+unsigned int ChooseAttackMode(unsigned int attack_modes);

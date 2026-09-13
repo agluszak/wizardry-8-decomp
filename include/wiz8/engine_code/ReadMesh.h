@@ -12,8 +12,18 @@ class srModelInstance;
 class srTextureIFace;
 class stMeshModel;
 class srMeshModel;
+class srClass;
 
 bool IsTextureInReadMeshScratch(const void* texture);
+unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance** instance,
+                                          int positional_0, int positional_1, const char* name,
+                                          unsigned char load_materials);
+unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInstance** instances,
+                                              unsigned long count, const char* name);
+unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info);
+void ReleaseReadMeshScratch004881D0();
+void ReleaseRetainedMaterials00489920();
+unsigned char IsReadMeshMaterial00489AC0(const srClass* material);
 unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInstance** instance,
                                               int positional_0, int positional_1, const char* name,
                                               unsigned char load_materials);

@@ -20,6 +20,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/game_status.h"

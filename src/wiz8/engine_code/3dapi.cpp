@@ -24,10 +24,12 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/SpellVisual.h"
+#include "wiz8/engine_code/Spells.h"
 #include "wiz8/engine_code/quad.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/engine_code/stLight.h"
+#include "wiz8/engine_code/UpdateMesh.h"
+#include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -46,7 +48,7 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/AmbientSound.h"
 
 /*

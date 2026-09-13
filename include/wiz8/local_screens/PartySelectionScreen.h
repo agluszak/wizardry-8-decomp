@@ -26,3 +26,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
 
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */
+unsigned char PartySelectionScreenEnter(void);
+void PartySelectionScreenFrame(void);
+unsigned char PartySelectionScreenLeave(int leaving);
+void GameStartRouterFrame(void);

@@ -2,6 +2,18 @@
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/IntroScreen.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/PleaseWaitScreen.h"
+#include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/local_screens/CreditsScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "Container.h"
@@ -110,10 +122,8 @@ void GameLoop(void)
     }
     /* The original tests only the low byte of the vector count. Preserve that
        aliasing instead of widening the load to the field's full int type. */
-    if (*reinterpret_cast<const unsigned char*>(
-            &gXStatus.character_event_queue->vector_40
-                 .count) != /* reinterpret-ok: retail reads only the low byte of vector_40.count */
-        0) {
+    if (*reinterpret_cast<const unsigned char* /* reinterpret-ok: low-byte load */>(
+            &gXStatus.character_event_queue->vector_40.count) != 0) {
         gXStatus.character_event_queue->ProcessNextPendingEntry();
         state = g_current_screen_state.id;
     }

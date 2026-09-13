@@ -127,7 +127,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/Video2.cpp
     src/wiz8/character_skills.cpp
     src/wiz8/fact_state.cpp
-    src/wiz8/render_options.cpp
     src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/engine_code/world_selection.cpp

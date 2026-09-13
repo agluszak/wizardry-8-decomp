@@ -14,3 +14,6 @@ static_assert(sizeof(W8CreditLine) == 0x14, "W8CreditLine_size");
 
 unsigned char ReadWideTextLine004CEED0(int handle, wchar_t* destination, int capacity,
                                        unsigned char* more);
+unsigned char CreditsScreenEnter(void);
+void CreditsScreenFrame(void);
+unsigned char CreditsScreenLeave(int leaving);

@@ -6,7 +6,7 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/screen_state.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/Configuration.h"

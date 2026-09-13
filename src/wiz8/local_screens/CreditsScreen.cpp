@@ -1,5 +1,6 @@
 #include "wiz8/render_state.h"
 #include "wiz8/local_screens/CreditsScreen.h"
+#include "wiz8/local_screens/Screens.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/music_playlist.h"

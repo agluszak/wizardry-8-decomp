@@ -266,4 +266,8 @@ unsigned char CreateTriggerShakeEvent00444F70(int intensity, float duration,
                                               float countdown_duration, unsigned char reverse);
 unsigned char Function445140(W8World* world);
 
+void ReleaseAllTriggers(void);
+void UpdateWorldTriggers00443AE0(W8World* world);
+Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
+
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);

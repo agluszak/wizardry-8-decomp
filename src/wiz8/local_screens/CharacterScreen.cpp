@@ -1,6 +1,7 @@
 #include "soundman.h"
 #include "wiz8/character.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/render_state.h"
@@ -43,8 +44,6 @@
 
 extern void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                         char right_button, char left_button);
-
-extern unsigned char SaveCharacter(W8Character*, int, char, void (*)(void));
 
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {

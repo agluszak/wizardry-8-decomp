@@ -11,6 +11,7 @@
 #include "wiz8/dialog_code/ModalDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"

@@ -8,7 +8,7 @@ void InitializeGameplayRuntimeObjects(void);
 unsigned char LoadMonsterDatabase(W8MonsterRecord** records);
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        unsigned int unused, W8MonsterRecord* records);
-unsigned char InitializeSpellDatabase(void);
+unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 extern unsigned char g_status_block_685078[56];
 class W8GameTimer;
