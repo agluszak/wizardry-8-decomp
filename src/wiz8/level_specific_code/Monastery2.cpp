@@ -14,16 +14,16 @@
    MasterFunctionList registers it under level 9 (Monastery2) and it lies
    between the Monastery2 anchor and the level-8 (Monastery1) callback block.
    The wider gap 0x004DC390-0x004DCB10 holds contiguous per-level callback
-   blocks for five level TUs - MtGigasOuter (0xe), MtGigasTop (0xf),
+   blocks for four level TUs - MtGigasOuter (0xe), MtGigasTop (0xf),
    Monastery2 (9) and Monastery1 (8) - which are not recovered here. */
 
 #define MONASTERY2_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Monastery2.cpp"
 
 // FUNCTION: WIZ8 0x004dc7a0
-unsigned char Monastery2BellButton004DC7A0(Trigger* pPropTrigger)
+unsigned char Monastery2BellButton004DC7A0(Trigger* pTrigger)
 {
     W8Prop* prop;
-    Trigger* trigger;
+    Trigger* pPropTrigger;
     int slot;
 
     prop = FindPropByName(g_world, "dial1");
@@ -36,16 +36,16 @@ unsigned char Monastery2BellButton004DC7A0(Trigger* pPropTrigger)
             return 1;
         } else if (slot == 2) {
             SoundPlay("Data\\Sound\\Ambients\\Mon2Bell3.wav", 0);
-            trigger = FindTriggerByName("bellringswitch");
-            if (trigger == 0) {
+            pPropTrigger = FindTriggerByName("bellringswitch");
+            if (pPropTrigger == 0) {
                 srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x21, 0);
             }
-            trigger->flag_0a0_04 = 0;
-            trigger = FindTriggerByName("bell_button");
-            if (trigger == 0) {
+            pPropTrigger->flag_0a0_04 = 0;
+            pPropTrigger = FindTriggerByName("bell_button");
+            if (pPropTrigger == 0) {
                 srAssertFail("pPropTrigger", MONASTERY2_CPP, 0x24, 0);
             }
-            trigger->flag_0a0_04 = 0;
+            pPropTrigger->flag_0a0_04 = 0;
             return 1;
         }
     }
@@ -53,7 +53,7 @@ unsigned char Monastery2BellButton004DC7A0(Trigger* pPropTrigger)
 }
 
 // FUNCTION: WIZ8 0x004dc880
-unsigned char Monastery2MicroDoor2004DC880(Trigger* pPropTrigger)
+unsigned char Monastery2MicroDoor2004DC880(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8WorldItem* item;
