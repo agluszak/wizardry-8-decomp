@@ -57,11 +57,37 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                            W8SpellEffectDefinition* definition, unsigned char announce,
                            unsigned char verbose, W8SpellEffectResult* result);
 
-unsigned char CanTargetPartySlot(int party_slot, const W8CombatSlot* target);
-unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target);
-unsigned char Function5458A0(int party_slot);
-unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target);
-unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, int target, unsigned int attack,
-                                int arg_4, int arg_5);
-bool CanAnyHandReachTarget(int party_slot); /* 0x00545910 */
-bool CanCharacterAttack(int party_slot);    /* 0x00545850 */
+struct W8MonsterRecord;
+
+/* Whether a character could attack what `target` names - a party member who
+   is in play and not screened by the front rank, or a monster who is engaged,
+   alive, targetable and within the character's reach. */
+unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target); /* 0x00545C20 */
+/* Whether the character can knock out - has the ability, a hand that can
+   reach, and a primary hand that fights at short range or closer. */
+unsigned char CanCharacterKnockOut(int party_slot); /* 0x005458A0 */
+/* Whether a monster would press an attack on what `target` names: a hostile it
+   can reach that outranks it, and that is either below forty percent health or
+   out of formation. */
+unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info,
+                                 W8CombatSlot* target); /* 0x00545CF0 */
+
+/* What RateMonsterAttack reports for one of a monster's three attacks: zero
+   when the attack can be made, otherwise why not. */
+enum {
+    W8_MONSTER_ATTACK_USABLE = 0,
+    W8_MONSTER_ATTACK_NOT_USABLE = 1,
+    W8_MONSTER_ATTACK_OUT_OF_REACH = 3
+};
+
+/* An attack the record does not carry, or carries with bad data, is not
+   usable; otherwise the attack is usable when it can reach someone, judged as
+   though the monster were idle. `hostile_only` narrows the sweep to enemies.
+   RateMonsterBestAttack answers zero as soon as any attack is usable, one for a
+   motionless monster, and otherwise the highest reason it saw. */
+unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                unsigned int attack, int unused, int hostile_only); /* 0x0053D4B0 */
+unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                    int hostile_only); /* 0x0053D450 */
+bool CanAnyHandReachTarget(int party_slot);            /* 0x00545910 */
+bool CanCharacterAttack(int party_slot);               /* 0x00545850 */

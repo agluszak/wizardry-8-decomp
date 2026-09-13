@@ -907,7 +907,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
         }
         break;
     case 1:
-        if (Function5458A0(party_slot) == 0) {
+        if (CanCharacterKnockOut(party_slot) == 0) {
             if (arg_4 == 0) {
                 return 0;
             }
@@ -919,7 +919,7 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
                     Function51EA90(character, &character->equipment[6]);
                 }
             }
-            if (Function5458A0(party_slot) == 0) {
+            if (CanCharacterKnockOut(party_slot) == 0) {
                 return 0;
             }
         }

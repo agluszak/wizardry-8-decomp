@@ -8,6 +8,8 @@
 #include "random.h"
 #include "wiz8/targeting.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/Strings.h"
@@ -178,21 +180,60 @@ int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecor
     return damage;
 }
 
-/* How good this monster's best attack on a target is. A motionless monster is
-   always rated at one; otherwise every one of its three attacks is rated and
-   the best kept, with any attack rating zero stopping the walk outright. */
-// FUNCTION: WIZ8 0x0053d450
-unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, int target, int arg_3)
+/* Why one of a monster's attacks cannot be made, or zero when it can. An
+   attack the record lacks is simply not usable, and so is one whose data is
+   broken, which is reported. Otherwise the attack is out of reach unless it
+   reaches anyone, judged with the monster's current action set aside. */
+// FUNCTION: WIZ8 0x0053d4b0
+unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                unsigned int attack, int unused, int hostile_only)
 {
-    unsigned char best = 0;
+    int action_kind;
+    unsigned char reaches;
+
+    if (attack >= W8_MAX_MONSTER_ATTACKS) {
+        srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_ATTACK_CPP, 235, 0);
+    }
+    if (record->attacks[attack].fHasAttack == 0) {
+        return W8_MONSTER_ATTACK_NOT_USABLE;
+    }
+    if (record->attacks[attack].attack_modes == 0) {
+        FormatDebugMessage(0, "DATA ERROR: %ls has 0 attack modes for attack %d", record, attack);
+        return W8_MONSTER_ATTACK_NOT_USABLE;
+    }
+    if (record->attacks_per_round_0e5 == 0) {
+        FormatDebugMessage(0, "DATA ERROR: %ls has 0 ATTACKS/round", record);
+        return W8_MONSTER_ATTACK_NOT_USABLE;
+    }
+    if (record->swings_per_round_0e6 == 0) {
+        FormatDebugMessage(0, "DATA ERROR: %ls has 0 SWINGS/round", record);
+        return W8_MONSTER_ATTACK_NOT_USABLE;
+    }
+    action_kind = monster_info->action_kind;
+    monster_info->action_kind = 0;
+    reaches = MonsterAttackReachesAnyone(monster_info, attack, hostile_only);
+    monster_info->action_kind = action_kind;
+    return !reaches ? W8_MONSTER_ATTACK_OUT_OF_REACH : W8_MONSTER_ATTACK_USABLE;
+}
+
+/* Why a monster cannot attack at all, or zero when some attack is usable. A
+   motionless monster is always rated at one; otherwise each of its three
+   attacks is rated, a usable one answering at once and the highest reason
+   otherwise kept. */
+// FUNCTION: WIZ8 0x0053d450
+unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                    int hostile_only)
+{
+    unsigned char best;
     unsigned char rating;
     unsigned int attack;
 
     if (monster_info->motionless != 0) {
         return 1;
     }
+    best = 0;
     for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
-        rating = RateMonsterAttack(monster_info, target, attack, 1, arg_3);
+        rating = RateMonsterAttack(monster_info, record, attack, 1, hostile_only);
         if (rating == 0) {
             return 0;
         }
@@ -205,6 +246,9 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, int target, int
 
 /* HAND_COUNT, named by the assertion that bounds every hand argument here. */
 enum { W8_HAND_COUNT = 2 };
+
+/* The ability that lets a character choose the knock-out action. */
+enum { W8_TRAIT_KNOCK_OUT = 0x14 };
 
 /* The skill practised whenever the character's own damage reduction is used. */
 enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
@@ -272,6 +316,125 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
         PracticeCharacterSkill(character, W8_SKILL_DAMAGE_REDUCTION, 1, 0);
     }
     return damage;
+}
+
+/* Whether a character can knock out: the ability itself, a hand that can reach
+   the target, and a primary hand fighting at short range or closer. */
+// FUNCTION: WIZ8 0x005458a0
+unsigned char CanCharacterKnockOut(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int hand;
+
+    if (CharacterHasTrait00547940(character, W8_TRAIT_KNOCK_OUT) == 0) {
+        return 0;
+    }
+    for (hand = 0; hand < W8_HAND_COUNT; ++hand) {
+        if (hand >= W8_HAND_COUNT) {
+            srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
+        }
+        if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
+            CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) !=
+                -1) {
+            return CalcRangeCategoryToTarget(character, 0) <= W8_RANGE_SHORT;
+        }
+    }
+    return 0;
+}
+
+/* Whether a character could attack what a combat slot names. A party member
+   has to be in play and not screened off by the front rank; a monster has to be
+   engaged, alive, targetable and within the character's reach. */
+// FUNCTION: WIZ8 0x00545c20
+unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
+{
+    W8MonsterInfo* monster_info;
+    int target_slot;
+
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        target_slot = target->iChar;
+        if (!CanPartySlotParticipate(target_slot)) {
+            return 0;
+        }
+        if (FrontRankScreens(party_slot, target_slot) > 0) {
+            return 0;
+        }
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(5927, COMBAT_ATTACK_CPP, target->iMonsterID, 1));
+        if (monster_info->flag_14 == 0 || monster_info->hp_current == 0 ||
+            monster_info->fInCombat == 0) {
+            return 0;
+        }
+        if (GetMonsterDataForInfo(monster_info)->untargetable_24a != 0) {
+            return 0;
+        }
+        if (Function5194E0(party_slot, 0, monster_info,
+                           g_combat_state->characters[party_slot].flag_34 == 0, 0) == 0) {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+    return 1;
+}
+
+/* Whether a monster would press an attack on what a combat slot names. The
+   target has to be a hostile the monster's first attack reaches; beyond that
+   the monster only takes on something that outranks it when it is below forty
+   percent health or out of formation. */
+// FUNCTION: WIZ8 0x00545cf0
+unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    W8Character* character;
+    W8MonsterInfo* target_info;
+    int target_slot;
+    unsigned int target_level;
+    unsigned int hp_percent;
+    unsigned char out_of_formation;
+
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        target_slot = target->iChar;
+        if (!CanPartySlotParticipate(target_slot)) {
+            return 0;
+        }
+        if (MonsterVsCharDisposition(target_slot, monster_info) != 2) {
+            return 0;
+        }
+        if (MonsterAttackReachesCharacter(monster_info, record, 0, target_slot) == 0) {
+            return 0;
+        }
+        character = &g_status_685170.buffers.characters[target_slot];
+        hp_percent = character->hp_current * 100 / character->hp_max;
+        target_level = character->level;
+        out_of_formation = character->bonus_1770.out_of_formation;
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        target_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(5997, COMBAT_ATTACK_CPP, target->iMonsterID, 1));
+        if (target_info->flag_14 == 0 || target_info->hp_current == 0 ||
+            target_info->fInCombat == 0) {
+            return 0;
+        }
+        if (GetMonsterDataForInfo(target_info)->untargetable_24a != 0) {
+            return 0;
+        }
+        if (MonsterHostility00546F80(monster_info, target_info) != 2) {
+            return 0;
+        }
+        if (MonsterAttackReachesMonster(monster_info, record, 0, target_info) == 0) {
+            return 0;
+        }
+        target_level = GetMonsterDataForInfo(target_info)->missile_value_24f;
+        hp_percent = target_info->hp_current * 100 / (unsigned int)target_info->hp_max;
+        out_of_formation = monster_info->modifiers_1db.out_of_formation;
+    } else {
+        return 0;
+    }
+    if (target_level > record->missile_value_24f && (hp_percent < 40 || out_of_formation != 0)) {
+        return 1;
+    }
+    return 0;
 }
 
 /* Whether one monster has an attack it could make on what it is aimed at. The

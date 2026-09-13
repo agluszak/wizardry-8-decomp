@@ -332,7 +332,11 @@ struct W8MonsterRecord {
     /* 0x0e3: selects this monster's row in the two-byte AI table at
        0x0061EEFC; the row value six is the one the AI singles out. */
     unsigned char ai_kind;
-    unsigned char unknown_0e4[3];
+    unsigned char unknown_0e4;
+    /* 0x0e5/0x0e6: attacks and swings per round, named by the Combat Attack.cpp
+       data-error messages "has 0 ATTACKS/round" and "has 0 SWINGS/round". */
+    unsigned char attacks_per_round_0e5;
+    unsigned char swings_per_round_0e6;
     /* 0x0e7: the monster's three attacks, named by the Combat Range.cpp
        assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
        MAX_MONSTER_ATTACKS, which is what bounds the array at three. */
