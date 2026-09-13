@@ -374,7 +374,7 @@ void UpdateRadarBlips(void)
     while (info != 0) {
         W8Monster* monster = info->monster;
 
-        if (monster != 0 && info->flag_14 != 0 && info->flag_24d != 0 &&
+        if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
             (monster->flag_217 == 0 || detect_all != 0)) {
             unsigned char hostile = 0;
 

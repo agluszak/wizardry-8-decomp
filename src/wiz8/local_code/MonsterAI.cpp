@@ -274,7 +274,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 
         location_id = IListGetAt(monster_group->monsters, index);
         monster_info = MonsterInfoFromID(0xfe, MONSTER_AI_CPP, location_id, 1);
-        if (monster_info->flag_14 != 0 && monster_info->monster->IsDying() == 0 &&
+        if (monster_info->fActive != 0 && monster_info->monster->IsDying() == 0 &&
             monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc) {
             if (monster_info->player_visibility.state_04 == 1) {
                 return 1;
@@ -786,10 +786,10 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
 // FUNCTION: WIZ8 0x00532330
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
 {
-    W8PList* queue = monster_info->pCombat->pending_actions;
+    W8PList* queue = monster_info->pCombat->plsCombatActionList;
 
     if (queue != 0 && PLDestroy(queue)) {
-        monster_info->pCombat->pending_actions = 0;
+        monster_info->pCombat->plsCombatActionList = 0;
     }
 }
 
@@ -971,7 +971,7 @@ unsigned char MonsterGroupCanEngage(W8MonsterGroup* monster_group)
     if (monster_group->ubDisposition == DISP_HOSTILE) {
         for (index = 0; index < ILLength(monster_group->monsters); ++index) {
             member = GetGroupMemberInfo(monster_group, index);
-            if (member->flag_14 != 0 && member->hp_current != 0 &&
+            if (member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 &&
                 MonsterHasVisibleTarget(member, 1, 1, 1) != 0) {
                 goto members;
@@ -984,7 +984,7 @@ members:
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x4a7, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
         record = GetMonsterDataForInfo(member);
-        if (member->flag_14 == 0 || member->motionless != 0 || member->monster->IsDying() != 0 ||
+        if (member->fActive == 0 || member->fMotionless != 0 || member->monster->IsDying() != 0 ||
             member->hp_current == 0 || (unsigned int)member->highest_condition >= 0xc) {
             continue;
         }
@@ -1014,7 +1014,7 @@ members:
             if (GetMonsterRecordScaledFloat1BA(member) * g_float_005ee774 > distance) {
                 if (waypoint_checked == 0) {
                     leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP, monster_group->value_9f, 1);
-                    if (leader != 0 && leader->flag_14 != 0) {
+                    if (leader != 0 && leader->fActive != 0) {
                         destination = g_startup_world_659c0c->GetPosition();
                         source = leader->monster->GetPosition();
                         waypoint_result = g_octree_6598a4->pathing_180->TestWaypointSpan0045A1B0(
@@ -1101,17 +1101,16 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
     char disposition_needed;
 
     record = GetMonsterDataForInfo(monster_info);
-    if (monster_info->pCombat->pending_actions != 0 &&
-        PLDestroy(monster_info->pCombat->pending_actions) != 0) {
-        monster_info->pCombat->pending_actions = 0;
+    if (monster_info->pCombat->plsCombatActionList != 0 &&
+        PLDestroy(monster_info->pCombat->plsCombatActionList) != 0) {
+        monster_info->pCombat->plsCombatActionList = 0;
     }
-    monster_info->pCombat->pending_actions = PLCreate();
-    if (monster_info->pCombat->pending_actions == 0) {
+    monster_info->pCombat->plsCombatActionList = PLCreate();
+    if (monster_info->pCombat->plsCombatActionList == 0) {
         srAssertFail("pMonsterInfo->pCombat->plsCombatActionList != NULL", MONSTER_AI_CPP, 1385, 0);
     }
     if (target_locked == 0 && attack_locked == 0) {
-        if (CanMonsterAttack(monster_info) != 0 &&
-            Random(100) < monster_info->converted_attributes_247[1]) {
+        if (CanMonsterAttack(monster_info) != 0 && Random(100) < monster_info->attributes[1]) {
             monster_info->action_kind = 8;
             for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
@@ -1133,12 +1132,12 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                     QueueMonsterAction(monster_info, 8, 0, 0, W8_TARGET_KIND_CHARACTER, index);
                 }
             }
-            if ((int)ILLength((W8IList*)monster_info->pCombat->pending_actions) > 0) {
+            if ((int)ILLength((W8IList*)monster_info->pCombat->plsCombatActionList) > 0) {
                 return;
             }
         }
         if (record->behavior_1c0 == 2 && record->unknown_1be[1] != 3 &&
-            Random(100) < monster_info->converted_attributes_247[1]) {
+            Random(100) < monster_info->attributes[1]) {
             QueueMonsterAction(monster_info, 1, -1, 0, W8_TARGET_KIND_NONE, 0);
         }
     }
@@ -1151,7 +1150,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         attack_hi = attack_lo + 1;
     }
     if (target_locked == 0 || attack_locked != 0 || monster_info->pCombat->unknown_015 != 0 ||
-        monster_info->converted_attributes_247[2] >= 0x4b) {
+        monster_info->attributes[2] >= 0x4b) {
         char_lo = 0;
         char_hi = 8;
         scan_chars = 1;
@@ -1219,7 +1218,7 @@ targets_chosen:
         if (scan_monsters != 0) {
             for (index = monster_lo; index < monster_hi; ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
-                if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+                if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                     GetMonsterDataForInfo(other)->untargetable_24a == 0 && other->fInCombat != 0 &&
                     MonsterHostility00546F80(monster_info, other) == disposition_needed &&
                     MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
@@ -1269,7 +1268,7 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
         entry->target.iMonsterID = target_value;
     }
     entry->tie_break = (unsigned char)Random(100) + 1;
-    PLAdoptAppend(monster_info->pCombat->pending_actions, entry);
+    PLAdoptAppend(monster_info->pCombat->plsCombatActionList, entry);
 }
 
 /* Build the monster's list of possible actions and take one of them at
@@ -1286,11 +1285,11 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
 
     record = GetMonsterDataForInfo(monster_info);
     BuildMonsterActionQueue(monster_info, arg_2, arg_3);
-    count = ILLength((W8IList*)monster_info->pCombat->pending_actions);
+    count = ILLength((W8IList*)monster_info->pCombat->plsCombatActionList);
     if (count == 0) {
         return 0;
     }
-    entry = (W8MonsterAction*)PLGet(monster_info->pCombat->pending_actions, (int)Random(count));
+    entry = (W8MonsterAction*)PLGet(monster_info->pCombat->plsCombatActionList, (int)Random(count));
     if (entry == 0) {
         return 0;
     }
@@ -1432,8 +1431,8 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
         }
         target = MonsterInfoFromID(0x7e5, MONSTER_AI_CPP, combat_slot->iMonsterID, 1);
         record = GetMonsterDataForInfo(target);
-        stat_max = target->runtime_stat_max_2f;
-        stat = target->runtime_stat_current_33;
+        stat_max = target->stamina_max;
+        stat = target->stamina;
         hp = target->hp_current;
         hp_max = target->hp_max;
         condition_turns = target->condition_turns;
@@ -1895,7 +1894,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     case 1:
         for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
-            if (member->flag_14 != 0 && member->hp_current != 0 &&
+            if (member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
                 MonsterHostility00546F80(monster_info, member) == 2 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
@@ -1928,7 +1927,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     case 3:
         for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
-            if (member != monster_info && member->flag_14 != 0 && member->hp_current != 0 &&
+            if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
                 MonsterHostility00546F80(monster_info, member) == 1 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
@@ -1987,7 +1986,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     case 6:
         for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
-            if (member != monster_info && member->flag_14 != 0 && member->hp_current != 0 &&
+            if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
                 MonsterHostility00546F80(monster_info, member) == 1 &&
                 MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
@@ -2107,7 +2106,7 @@ void CheckMonsterGroupsLeaveCombat(void)
         for (index = 0; index < ILLength(group->monsters); ++index) {
             member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
-            if (member->flag_14 == 0 || member->hp_current == 0 ||
+            if (member->fActive == 0 || member->hp_current == 0 ||
                 (unsigned int)member->highest_condition >= 0x12 ||
                 MonsterHasNoVisibleEnemy(member, 0) != 0) {
                 continue;
@@ -2117,7 +2116,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             }
             leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->value_9f, 1);
             if (GetMonsterGroupFlagC8(group->group_id) != 0 && leader != 0 &&
-                leader->flag_14 != 0) {
+                leader->fActive != 0) {
                 nearest = GetGroupNearestDistance(group, 999999.0f);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterRecordScaledFloat1BA(leader) * g_float_005ebc64;
@@ -2136,7 +2135,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             for (member_index = 0; member_index < ILLength(group->monsters); ++member_index) {
                 other = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                     0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, member_index), 1));
-                if (other->flag_14 != 0 && other->hp_current != 0 &&
+                if (other->fActive != 0 && other->hp_current != 0 &&
                     (unsigned int)other->highest_condition < 0x12 &&
                     MonsterHasNoVisibleEnemy(other, 1) == 0) {
                     ++engaged;
@@ -2188,7 +2187,7 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
     if (party_only == 0) {
         for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
-            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+            if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0 &&
                 MonsterHostility00546F80(monster_info, other) == 1 &&
                 (record = FindMonToMonVisibility(monster_info, other)) != 0 &&
@@ -2214,7 +2213,7 @@ unsigned char MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int pa
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         member = GetGroupMemberInfo(monster_group, index);
-        if (member->flag_14 != 0 && member->hp_current > 0 &&
+        if (member->fActive != 0 && member->hp_current > 0 &&
             (unsigned int)member->highest_condition < 0x12 &&
             MonsterHasVisibleTarget(member, party_only, hostility, within_reach) != 0) {
             return 1;
@@ -2268,7 +2267,7 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
     if (party_only == 0) {
         for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
-            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+            if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0) {
                 disposition = MonsterHostility00546F80(monster_info, other);
                 if (hostility == 3 || disposition == hostility ||
@@ -2314,8 +2313,7 @@ unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* recor
     if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_13d[9] != 0) {
         return 0;
     }
-    if ((unsigned int)monster_info->runtime_stat_current_33 <
-        (unsigned int)monster_info->runtime_stat_max_2f / 10) {
+    if ((unsigned int)monster_info->stamina < (unsigned int)monster_info->stamina_max / 10) {
         return 0;
     }
     if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
@@ -2477,7 +2475,7 @@ unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int
         int location_id = IListGetAt(target_group->monsters, index);
         member = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xdc9, MONSTER_AI_CPP, location_id, 1));
-        if (member->flag_14 != 0 && member->hp_current != 0 &&
+        if (member->fActive != 0 && member->hp_current != 0 &&
             (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
             MonsterHostility00546F80(monster_info, member) == 1) {
             ++eligible;
@@ -2552,7 +2550,7 @@ unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         for (other_index = 0; other_index < ILLength((W8IList*)gXStatus.plsMonsterList);
              ++other_index) {
             other = MonsterGetScriptPartByLocationIndex(other_index);
-            if (other != member && other->party_threat.unknown_05[1] != 0 && other->flag_14 != 0 &&
+            if (other != member && other->party_threat.unknown_05[1] != 0 && other->fActive != 0 &&
                 other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
                 other_distance = other->monster->GetDistanceToPlayer004C7CB0();
@@ -2608,7 +2606,7 @@ void UpdateMonsterGroupEngagement(void)
         for (index = 0; index < ILLength(group->monsters); ++index) {
             member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0xee7, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
-            if (member->flag_14 != 0 && member->fInCombat != 0 &&
+            if (member->fActive != 0 && member->fInCombat != 0 &&
                 (unsigned int)member->pCombat->value_14c < 3) {
                 member_starting = 1;
                 break;
@@ -2621,7 +2619,7 @@ void UpdateMonsterGroupEngagement(void)
                 for (index = 0; index < ILLength(allied->monsters); ++index) {
                     member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0xee7, MONSTER_AI_CPP, IListGetAt(allied->monsters, index), 1));
-                    if (member->flag_14 != 0 && member->fInCombat != 0 &&
+                    if (member->fActive != 0 && member->fInCombat != 0 &&
                         (unsigned int)member->pCombat->value_14c < 3) {
                         member_starting = 1;
                         break;
@@ -2724,7 +2722,7 @@ unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     } else {
         for (index = 0; index < ILLength(monster_group->monsters); ++index) {
             member = GetGroupMemberInfo(monster_group, index);
-            if (member->flag_14 != 0 && member->hp_current != 0 &&
+            if (member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 &&
                 MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +

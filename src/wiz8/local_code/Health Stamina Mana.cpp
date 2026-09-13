@@ -32,7 +32,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/screen_state.h"
@@ -319,7 +319,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
 
     for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->flag_14 != 0) {
+        if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);
             offset = srVector3T<float>(center.x - location.x, center.y - location.y,
                                        center.z - location.z);
@@ -394,7 +394,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
             monster_info->condition_target_304 = *source;
             if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) != 0 &&
                 source->iChar != -1) {
-                *(int*)&monster_info->pCombat->unknown_01a[source->iChar * 4] += amount;
+                monster_info->pCombat->character_hate[source->iChar] += amount;
             }
         }
         applied = monster_info->hp_current;
@@ -2227,14 +2227,14 @@ unsigned char W8CharacterEvent::Dispatch()
             }
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetFlag68C500(1);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             BeginNpcScriptDialogue(npc, 1);
             RunNpcScriptLine(event_type, (flags & W8_EVENT_NPC_SCRIPT) != 0);
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetFlag68C500(0);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             slot->active_character_event = this;
@@ -2476,7 +2476,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         }
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 0 &&
-        g_level_block->party_bytes_109[party_slot] == 0 &&
+        g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);
         record->field_0cf = 1;

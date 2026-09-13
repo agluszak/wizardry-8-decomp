@@ -903,7 +903,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
             script_conditions.Add(value);
         }
     }
-    monster_info->flag_14 = 0;
+    monster_info->fActive = 0;
     monster_info->monster = 0;
     monster_info->fInCombat = 0;
     monster_info->pCombat = 0;

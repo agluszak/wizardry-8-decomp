@@ -153,3 +153,12 @@ char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
 void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
+
+/* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
+   handler. 0x0051E980 scans the merge-kind table for the related
+   unidentified-name kind of an item. 0x0051CDE0 reports whether the held item
+   may occupy an equipment slot given the item in its paired hand slot.
+   0x00521E20 shifts the party pool open and inserts the item at an index. */
+char GetItemMergeKind0051E980(int item_id, short* related_kind);
+char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
+char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
