@@ -250,7 +250,7 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
 // FUNCTION: WIZ8 0x004F3140
 unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* region)
 {
-    Controls* owner = (Controls*)region->owner;
+    Controls* owner = region->owner;
     W8Widget* widget;
     unsigned short index = region->callback_id;
     unsigned short reason = event->reason;

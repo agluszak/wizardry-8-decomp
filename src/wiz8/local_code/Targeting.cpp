@@ -367,7 +367,7 @@ unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
     GetCameraPosition(&eye);
-    GetMonsterBounds(monster_info->monster, &lower, &upper);
+    MonsterGetWorldAnimationBounds004CA4F0(monster_info->monster, &lower, &upper);
     return ShowTargetMarker(&eye, &lower, &upper);
 }
 
@@ -1313,7 +1313,8 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         for (int highlight_index = 0; highlight_index < entry->highlighted_monsters.count;
              ++highlight_index) {
-            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0, 1);
+            SetMonsterHighlight(party_slot, entry->highlighted_monsters.data[highlight_index], 0,
+                                1);
         }
         return;
     }

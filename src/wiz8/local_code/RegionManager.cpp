@@ -1076,7 +1076,7 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
 }
 
 // FUNCTION: WIZ8 0x004f2a10
-void SetRegionOwner(unsigned int region_index, void* owner)
+void SetRegionOwner(unsigned int region_index, Controls* owner)
 {
     g_regions[region_index].owner = owner;
 }

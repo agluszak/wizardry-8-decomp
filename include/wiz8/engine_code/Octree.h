@@ -132,8 +132,8 @@ public:
     void Reset();
     void Initialize(const void* header);
     ~W8Octree();
-    void AddLoadedProp(void* prop);
-    void AddLoadedParticle(void* particle);
+    void AddLoadedProp(W8Prop* prop);
+    void AddLoadedParticle(stParticle* particle);
     void SetVisitedSet0042E3E0(BitArray* visited);
     int MarkVisited0042E400(int offset);
     void AddCollidablePropBounds(int index, const srVector3T<float>* bounds);
