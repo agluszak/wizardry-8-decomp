@@ -45,6 +45,19 @@ Do not create an empty child merely to imitate `git commit`.
 Follow the verification policy in `AGENTS.md`. After a rebase, rerun only checks affected by incoming
 changes or conflict resolution.
 
+After any rebase or merge of a recovery branch, compare marker identities by retail address against
+the base before publishing:
+
+```sh
+uv run wiz8 report merge-preservation --base origin/main
+```
+
+Revisions are Git refs of the colocated repository (`origin/main`, a commit hash).
+
+It fails on removed or duplicated `FUNCTION`/`GLOBAL`/`VTABLE` addresses and lists changed identities
+and removed functions whose names are still referenced. Explain each intentional loss with
+`--allow 0xADDRESS=reason`; a conflict resolution is not a reason.
+
 ## Publish directly to main
 
 Direct integration requires explicit authorization and completed work:

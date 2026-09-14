@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
 void ResetGameStatus(unsigned char release);
@@ -8,7 +8,7 @@ void InitializeGameplayRuntimeObjects(void);
 unsigned char LoadMonsterDatabase(W8MonsterRecord** records);
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        unsigned int unused, W8MonsterRecord* records);
-unsigned char InitializeSpellDatabase(void);
+unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 
 extern unsigned char g_status_block_685078[56];
 class W8GameTimer;
@@ -31,6 +31,7 @@ unsigned char AllocateStatusBuffers(W8StatusBuffers* status);
 void FreeStatusBuffers(W8StatusBuffers* status);
 void ResetPartySlotRow(int slot);
 void ResetGameplayStatusBlock(void);
+void ResetTargetingState(void);
 void DestroyGameplayObjects(void);
 void ResetForNewGame(void);
 void ResetGameplaySlot(unsigned int slot);

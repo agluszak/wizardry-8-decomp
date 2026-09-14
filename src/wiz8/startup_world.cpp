@@ -1,4 +1,5 @@
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/Navigator.h"

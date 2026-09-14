@@ -4,6 +4,7 @@
 
 #include "surrender/srMath.h"
 
+class W8Monster;
 struct W8Character;
 struct W8Dice;
 struct W8MonsterInfo;
@@ -69,3 +70,11 @@ void RedrawPortraitQuoteBubbles(void);
 /* 0x0052FE80: queue the character's breath/idle event unless a spell or item
    is being aimed; `force` queues it regardless. */
 void StartBreathCycle(int party_slot, char force);
+int SumCharacterSpellPoints(const W8Character* character);
+int SumCharacterSpellPointsLeft(const W8Character* character);
+int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
+void RecalculateCharacterStamina(W8Character* character);
+void RecalculateRealmSpellPoints(W8Character* character);
+int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
+void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */

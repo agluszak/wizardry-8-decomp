@@ -2,7 +2,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/startup_world.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/quad.h"
 
 #include "surrender/srCamera.h"

@@ -20,3 +20,5 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source,
                             W8GameplayModifierBlock* target); /* 0x0050EF50 */
 void ApplyModifierBlock(W8GameplayModifierBlock* target,
                         const W8GameplayModifierBlock* source); /* 0x0050F090 */
+void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBlock* equipment_bonus);
+void RebuildCharacterModifierBlock(W8Character* character);

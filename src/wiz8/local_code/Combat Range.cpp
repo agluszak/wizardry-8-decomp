@@ -9,7 +9,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/CombatRange.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Local Code\Combat Range.cpp.

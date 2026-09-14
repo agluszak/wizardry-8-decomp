@@ -10,7 +10,7 @@
 #include "split_stack_semantic_test.h"
 
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_screens/RCSItemsPage.h"

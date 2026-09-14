@@ -2,7 +2,7 @@
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/notices.h"
@@ -29,6 +29,7 @@
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/3d_code/PList.h"
@@ -41,7 +42,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x006836a8
 W8CombatState* g_combat_state;

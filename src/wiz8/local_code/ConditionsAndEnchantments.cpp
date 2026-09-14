@@ -2,13 +2,14 @@
 
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Strings.h"
@@ -25,7 +26,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/npc_state.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /* Condition-to-notice word table. Only the first word of each four-word
    stride is read, hence the multiplied index. */

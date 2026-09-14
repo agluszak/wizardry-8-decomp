@@ -22,3 +22,7 @@ unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region);
 unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region);
 unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region);
 unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region);
+unsigned char MainMenuScreenInitialize(void);
+unsigned char MainMenuScreenEnter(void);
+void MainMenuScreenFrame(void);
+unsigned char MainMenuScreenLeave(int leaving);

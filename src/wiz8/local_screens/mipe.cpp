@@ -19,7 +19,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stCube.h"

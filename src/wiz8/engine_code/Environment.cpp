@@ -2,8 +2,9 @@
 #include <math.h>
 
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/stLight.h"
+#include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -22,7 +23,7 @@
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/local_code/GameplayTime.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Engine Code\Environment.cpp.

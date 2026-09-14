@@ -18,7 +18,7 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/NPCManager.h"
@@ -308,7 +308,7 @@ unsigned char CountLeadingPartySlots(void)
 }
 
 #include <string.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /* 0x00619DFC: one three-dword row per service - the service id, the bit that
    stands for it, and one more field nothing here reads. -1 ends the table. */

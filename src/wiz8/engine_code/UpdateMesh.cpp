@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/UpdateMesh.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/sr_api.h"
 

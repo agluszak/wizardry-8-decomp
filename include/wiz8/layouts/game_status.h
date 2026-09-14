@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WIZ8_LAYOUTS_GAME_STATUS_H
+#define WIZ8_LAYOUTS_GAME_STATUS_H
 
 #include "Types.h"
 
@@ -6,12 +7,13 @@
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/engine_code/World.h"
-#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/layouts/party_formation.h"
+#include "wiz8/layouts/world.h"
 
 #include <stddef.h>
 
 struct W8PartySlotRow;
+
 struct W8Character;
 
 enum { W8_PARTY_SLOT_COUNT = 8 };
@@ -157,14 +159,6 @@ struct W8GlobalStatus {
     unsigned char flag_49c0;
     unsigned char flag_49c1;
 };
-
-static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
-              "W8GlobalStatus_regular_member_count_offset");
-static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,
-              "W8GlobalStatus_auxiliary_member_count_offset");
-static_assert(offsetof(W8GlobalStatus, total_member_count) == 0x0015,
-              "W8GlobalStatus_total_member_count_offset");
-static_assert(offsetof(W8GlobalStatus, party_gold) == 0x0019, "W8GlobalStatus_party_gold_offset");
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
@@ -216,6 +210,16 @@ static_assert(offsetof(W8GlobalStatus, value_4993) == 0x4993, "W8GlobalStatus_va
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
 static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");
+static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
+              "W8GlobalStatus_regular_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,
+              "W8GlobalStatus_auxiliary_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, total_member_count) == 0x0015,
+              "W8GlobalStatus_total_member_count_offset");
+static_assert(offsetof(W8GlobalStatus, party_gold) == 0x0019, "W8GlobalStatus_party_gold_offset");
+
 static_assert(sizeof(W8GlobalStatus) == 0x49c2, "W8GlobalStatus_must_be_0x49c2");
 
 extern W8GlobalStatus g_status_685170;
+
+#endif

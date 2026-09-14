@@ -15,7 +15,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/FormationAndFacing.h"

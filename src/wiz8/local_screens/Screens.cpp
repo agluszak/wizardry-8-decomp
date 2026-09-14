@@ -1,5 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"

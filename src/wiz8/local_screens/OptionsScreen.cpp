@@ -15,7 +15,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"

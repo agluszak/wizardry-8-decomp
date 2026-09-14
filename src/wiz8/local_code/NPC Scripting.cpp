@@ -1,9 +1,14 @@
+#include "wiz8/bink_video.h"
+
+#include "bink.h"
+#include "soundman.h"
+
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Monster.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/NPCManager.h"
@@ -16,12 +21,8 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/regions.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/xstatus.h"
-#include "wiz8/bink_video.h"
-
-#include "bink.h"
-#include "soundman.h"
 
 #include <windows.h>
 #include <stdio.h>

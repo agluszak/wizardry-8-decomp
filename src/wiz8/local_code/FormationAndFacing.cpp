@@ -50,7 +50,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
 #include "wiz8/sr_api.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/RCSCommon.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 #define FORMATION_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Formation & Facing.cpp"
 

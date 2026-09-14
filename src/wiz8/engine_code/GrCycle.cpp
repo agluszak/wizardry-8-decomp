@@ -2,7 +2,7 @@
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
 #include "random.h"
 // GLOBAL: WIZ8 0x005ebc3c
@@ -14,7 +14,8 @@ float g_float_005ec5c0 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
 float g_float_005ec5c4 = 0.699999988079071f;
 #include "wiz8/engine_code/World.h"
-#include "wiz8/engine_code/stLight.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/ground_shadow.h"

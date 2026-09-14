@@ -272,4 +272,8 @@ bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countd
                                      bool reverse);
 bool AnyPropTriggerInView00445140(W8World* world);
 
+void ReleaseAllTriggers(void);
+void UpdateWorldTriggers00443AE0(W8World* world);
+Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
+
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);

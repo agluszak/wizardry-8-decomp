@@ -2,7 +2,7 @@
 
 #include "surrender/srArray.h"
 #include "surrender/srModelInstance.h"
-#include "wiz8/engine_code/AnimRep.h"
+#include "wiz8/engine_code/AnimRep.hpp"
 
 #include <stddef.h>
 

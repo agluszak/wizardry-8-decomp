@@ -11,6 +11,7 @@
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
@@ -21,7 +22,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Local Screens\RCSCommon.cpp.

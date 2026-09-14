@@ -399,11 +399,7 @@ void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, fl
 void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
 void NotifyMonsterIdle(W8Monster* monster, int arg_2);
 void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
-void DropMonsterVisual(W8Monster* monster, int visual, char add);
-W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
-void PrepareMonsterCycleForDestruction004ACF90(W8Monster* cycle);
 
-void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */
 void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
