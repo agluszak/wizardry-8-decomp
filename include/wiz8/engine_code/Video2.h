@@ -112,6 +112,8 @@ class srColorSurface;
 class srNode;
 class srTextureIFace;
 class stModelInstance2D;
+template <class T> class srVector3T;
+template <class T> class srVector4T;
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* Function425190(srTextureIFace* texture, double width, double height,
                                   char keep_aspect, char a5);
@@ -120,10 +122,18 @@ stModelInstance2D* Function425190(srTextureIFace* texture, double width, double 
 unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect, char render_secondary);
 
 struct W8ControlsRect;
+/* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
+   and `color` becomes the material's emissive vector. MGSRadarMap's blip
+   templates are its observed callers. */
+stModelInstance2D* Function424790(int width, int height, const srVector4T<float>* color, char a4);
+/* 0x004253F0: the render-target sprite factory Function4255C0 wraps; the
+   radar overlay is created through it directly. */
+stModelInstance2D* Function4253F0(int target, const W8ControlsRect* bounds, int a3, int a4,
+                                  char a5);
 /* 0x004255C0: wrap the sprite-surface factory - image is a video surface
    handle (or a negative target id), rect an optional source rectangle. */
 stModelInstance2D* Function4255C0(unsigned int image, const W8ControlsRect* rect, char mode,
-                                int arg_4, int arg_5);
+                                  int arg_4, int arg_5);
 /* 0x004257D0: position a 2D node without pixel snapping. */
 void Function4257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
@@ -137,6 +147,8 @@ int Function427E70(void);
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
+/* 0x004215E0: point-visibility query the radar item loop consults. */
+unsigned char Function4215E0(const srVector3T<float>* position);
 
 #endif
 

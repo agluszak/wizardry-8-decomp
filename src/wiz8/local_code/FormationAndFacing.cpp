@@ -108,7 +108,7 @@ void RestoreCombatFormation(void)
         memcpy(&g_status_685170.formation, &g_combat_state->saved_formation,
                sizeof(W8PartyFormationState));
         RefreshFormationBoard();
-        Function5A24A0();
+        RefreshRadarMap();
         ShowNotice(8, gppStringList[0x92c / 4], 0, -1, 0);
     }
 }
@@ -360,7 +360,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
             formation == &g_status_685170.formation) {
             RefreshFormationBoard();
-            Function5A24A0();
+            RefreshRadarMap();
         }
         if (announce != 0) {
             if (new_row != -1) {

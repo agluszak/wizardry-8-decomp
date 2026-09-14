@@ -211,6 +211,14 @@ class stModelInstance;
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
 
+/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools_0069bf68 emission: the
+   static initializer constructs the eighteen-pool array through this ctor. */
+
+class stModelInstance2D;
+
+// TEMPLATE: WIZ8 0x005a20d0
+// W8GrowableVector<stModelInstance2D*>::W8GrowableVector
+
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 struct W8EncounterScriptName;

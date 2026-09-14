@@ -433,7 +433,7 @@ static void AcceptFormationChanges(void)
         ShowNotice(8, gppStringList[0x1f64 / 4], -1, -1, 0);
     }
     RefreshFormationBoard();
-    Function5A24A0();
+    RefreshRadarMap();
     ReleaseReviewCommonPanels();
     gXStatus.fReviewCharacterMode = 0;
     UpdateHeldItemCursor();
