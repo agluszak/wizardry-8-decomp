@@ -111,20 +111,27 @@ def test_source_index_configures_missing_or_stale_compile_database(
         variables: tuple[()] = ()
         conflicts: tuple[()] = ()
 
-        def write(self, path: Path) -> None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text('{"schema": "reccmp-source-index-v3"}\n', encoding="utf-8")
+        def to_dict(self) -> dict:
+            return {
+                "schema": "reccmp-source-index-v3",
+                "markers": [],
+                "declarations": [],
+                "classes": [],
+                "variables": [],
+                "conflicts": [],
+            }
 
     import wiz8decomp.build as build_module
 
     collected: list[dict] = []
 
-    def collect(*_args, **_kwargs) -> FakeIndex:
+    def collect(*_args, **_kwargs) -> tuple[FakeIndex, Path]:
         collected.append({"force": _kwargs.get("force", False)})
-        return FakeIndex()
+        return FakeIndex(), Path("host-compile-database.json")
 
     monkeypatch.setattr(build_module, "configure_clang", configure)
     monkeypatch.setattr(source_index, "_collect_source_index", collect)
+    monkeypatch.setattr(source_index, "_header_declaration_projection", lambda *args, **kwargs: [])
 
     source_index.write_source_index(settings)
 

@@ -567,21 +567,96 @@ def _collect_source_index(
     settings: Settings,
     *,
     force: bool = False,
-) -> SourceIndex:
+) -> tuple[SourceIndex, Path]:
     """Project adapter: host-path compile DB, then one reccmp collection."""
     cache = repository / "build" / "reccmp-source"
     host_database = host_compile_database(
         repository, database, settings, indexed_targets(repository, database)
     )
     _prepare_analysis_indexer(settings, cache)
-    return SourceIndex.from_compile_database(
-        repository,
+    return (
+        SourceIndex.from_compile_database(
+            repository,
+            host_database,
+            targets,
+            clang="/usr/bin/clang-cl",
+            cache_dir=cache,
+            force=force,
+        ),
         host_database,
-        targets,
-        clang="/usr/bin/clang-cl",
-        cache_dir=cache,
-        force=force,
     )
+
+
+def _header_declaration_projection(
+    repository: Path,
+    host_database: Path,
+    targets: dict[str, tuple[Path, ...]],
+    cache: Path,
+) -> list[dict[str, Any]]:
+    """Per-header declaration occurrences from the current TU artifacts.
+
+    The merged index collapses each ``semantic_id`` to one winner record, so it
+    cannot say which header declares an entity. The cached per-TU NDJSON
+    artifacts record every observed declaration with the file it was seen in;
+    replaying the collection identity hash locates exactly the artifacts that
+    produced this index, ignoring stale cache entries.
+    """
+    import subprocess
+
+    from reccmp.source.batch import resolve_indexer
+    from reccmp.source.index import record_command, relative_unit_id
+
+    indexer = resolve_indexer(cache)
+    compiler_identity = subprocess.run(
+        ["clang++", "--version"], capture_output=True, text=True, check=False
+    ).stdout
+    indexer_digest = hashlib.sha256(indexer.read_bytes() + compiler_identity.encode()).hexdigest()
+    owned = {relative_unit_id(repository, path) for paths in targets.values() for path in paths}
+    seen: dict[tuple[str, str], dict[str, Any]] = {}
+    for entry in json.loads(host_database.read_text(encoding="utf-8")):
+        if relative_unit_id(repository, entry["file"]) not in owned:
+            continue
+        identity = hashlib.sha256()
+        identity.update(indexer_digest.encode() + b"\0")
+        identity.update(
+            shlex.join(record_command(entry, str(indexer), "/usr/bin/clang-cl")).encode() + b"\0"
+        )
+        identity.update(Path(entry["file"]).read_bytes())
+        artifact = cache / "tu" / f"{identity.hexdigest()}.ndjson"
+        if not artifact.is_file():
+            continue
+        with artifact.open(encoding="utf-8") as stream:
+            for line in stream:
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                kind = record.get("record")
+                if kind not in ("declaration", "variable"):
+                    continue
+                source_file = str(record.get("source_file") or "")
+                if not source_file.startswith("include/wiz8/"):
+                    continue
+                semantic_id = str(record.get("semantic_id") or "")
+                if not semantic_id:
+                    continue
+                if kind == "variable":
+                    defined = record.get("definition_kind") != "declaration"
+                else:
+                    defined = bool(record.get("is_definition"))
+                key = (source_file, semantic_id)
+                projected = {
+                    "source_file": source_file,
+                    "semantic_id": semantic_id,
+                    "qualified_name": str(record.get("qualified_name") or ""),
+                    "kind": "global" if kind == "variable" else "function",
+                    "member": bool(record.get("owning_class")),
+                    "defined": defined,
+                    "line": int(record.get("line") or 0),
+                }
+                previous = seen.get(key)
+                if previous is None or (defined and not previous["defined"]):
+                    seen[key] = projected
+    return [seen[key] for key in sorted(seen)]
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
@@ -609,8 +684,20 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         )
         for target, source_roots in roots.items()
     }
-    index = _collect_source_index(repository, database, targets, settings, force=force)
-    index.write(repository / "build/source-index.json")
+    index, host_database = _collect_source_index(
+        repository, database, targets, settings, force=force
+    )
+    document = index.to_dict()
+    document["header_declarations"] = _header_declaration_projection(
+        repository,
+        host_database,
+        targets,
+        repository / "build" / "reccmp-source",
+    )
+    index_path = repository / "build/source-index.json"
+    content = json.dumps(document, separators=(",", ":")) + "\n"
+    if not index_path.is_file() or index_path.read_bytes() != content.encode("utf-8"):
+        index_path.write_bytes(content.encode("utf-8"))
     validate_cross_tu_declarations(repository)
     return {
         "path": "build/source-index.json",
