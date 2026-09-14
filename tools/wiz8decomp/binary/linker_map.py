@@ -30,8 +30,6 @@ SECTION_RE = re.compile(
 )
 LINE_HEADER_RE = re.compile(r"^Line numbers for .*\((?P<source>.+)\) segment ")
 LINE_RE = re.compile(r"(?P<line>[0-9]+)\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})")
-FRAME_RE = re.compile(r"^#(\d+)\s+(0x[0-9A-Fa-f]+)")
-
 MAX_UNBOUNDED_FUNCTION_BYTES = 0x1000
 
 
