@@ -100,7 +100,6 @@ unsigned char Function005AEEA0(const W8RegionEvent*, W8Region*);
 unsigned char Function005AF530(const W8RegionEvent*, W8Region*);
 unsigned char Function005AF5E0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2020(const W8RegionEvent*, W8Region*);
-unsigned char Function005B29D0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2CB0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2D70(const W8RegionEvent*, W8Region*);
 unsigned char Function005B5E90(const W8RegionEvent*, W8Region*);
@@ -111,7 +110,6 @@ unsigned char Function005B62C0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B6360(const W8RegionEvent*, W8Region*);
 unsigned char Function005B66B0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B6AA0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B79F0(const W8RegionEvent*, W8Region*);
 unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */

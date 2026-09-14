@@ -621,9 +621,18 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
                 runs[order_name] = {}
                 for scenario in scenarios:
                     _reset_runtime_scenario_state(stage)
-                    runs[order_name][scenario] = _run_runtime_scenario(
-                        executable, stage, environment, scenario, object_root
-                    )
+                    try:
+                        runs[order_name][scenario] = _run_runtime_scenario(
+                            executable, stage, environment, scenario, object_root
+                        )
+                    finally:
+                        subprocess.run(
+                            ["wineserver", "-k"],
+                            cwd=stage,
+                            env=environment,
+                            check=False,
+                            capture_output=True,
+                        )
         finally:
             subprocess.run(
                 ["wineserver", "-k"],

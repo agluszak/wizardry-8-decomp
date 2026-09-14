@@ -1132,7 +1132,9 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                     QueueMonsterAction(monster_info, 8, 0, 0, W8_TARGET_KIND_CHARACTER, index);
                 }
             }
-            if ((int)ILLength((W8IList*)monster_info->pCombat->plsCombatActionList) > 0) {
+            if (static_cast<int>(ILLength(
+                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share the released list prefix
+                        W8IList*>(monster_info->pCombat->plsCombatActionList))) > 0) {
                 return;
             }
         }
@@ -1285,11 +1287,14 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
 
     record = GetMonsterDataForInfo(monster_info);
     BuildMonsterActionQueue(monster_info, arg_2, arg_3);
-    count = ILLength((W8IList*)monster_info->pCombat->plsCombatActionList);
+    count = ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share the released list prefix
+            W8IList*>(monster_info->pCombat->plsCombatActionList));
     if (count == 0) {
         return 0;
     }
-    entry = (W8MonsterAction*)PLGet(monster_info->pCombat->plsCombatActionList, (int)Random(count));
+    entry = static_cast<W8MonsterAction*>(
+        PLGet(monster_info->pCombat->plsCombatActionList, static_cast<int>(Random(count))));
     if (entry == 0) {
         return 0;
     }
@@ -2313,7 +2318,8 @@ unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* recor
     if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_13d[9] != 0) {
         return 0;
     }
-    if ((unsigned int)monster_info->stamina < (unsigned int)monster_info->stamina_max / 10) {
+    if (static_cast<unsigned int>(monster_info->stamina) <
+        static_cast<unsigned int>(monster_info->stamina_max) / 10) {
         return 0;
     }
     if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&

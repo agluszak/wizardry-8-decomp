@@ -358,12 +358,12 @@ void SetItemCursor(int item_id)
 
 /* Dispatch one already-built notice line to the camp or main-game dialog. */
 // FUNCTION: WIZ8 0x0055F260
-void ShowNoticeLine(const wchar_t* text, int a, int b, int c)
+void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel)
 {
     if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-        ShowCampNoticeLine(text, a, b, c);
+        ShowCampNoticeLine(text, callback, confirmation, cancel);
     } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        ShowMainGameNoticeLine(text, a, b, c);
+        ShowMainGameNoticeLine(text, callback, confirmation, cancel);
     }
 }
 

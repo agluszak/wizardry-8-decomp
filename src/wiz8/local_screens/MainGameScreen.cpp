@@ -18,6 +18,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/fact_state.h"
@@ -2345,8 +2346,9 @@ unsigned char MainGameScreenLeave(int leaving)
         }
         if (g_flag_0068edc9) {
             unsigned short mode;
-            if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->formation_board_visible &&
-                g_level_block->flag_157 && g_settings_6850c8.field_006 == 0) {
+            if (!IsScreenInputBlocked() && !g_level_block->flag_155 &&
+                g_level_block->formation_board_visible && g_level_block->flag_157 &&
+                g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (!IsScreenInputBlocked() &&
                        (!g_level_block->formation_board_visible || !g_level_block->flag_157 ||
@@ -2368,8 +2370,8 @@ unsigned char MainGameScreenLeave(int leaving)
         g_level_block->flag_157 = 0;
         DisableRegionInput(0x62);
         RegionSetDisable(0x12);
-        Function5A20E0(0);
-        Function5A23E0();
+        EnableRadarMap(0);
+        ReleaseRadarMap();
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
             g_level_block->redraw_flags |= 0x8200;
         }

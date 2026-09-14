@@ -163,8 +163,6 @@ void ClearOtherRealmFilters005A49D0(unsigned int realm);
 void RebuildCampItemList005A4A00(void);
 void SetCampInputMode005A4BC0(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
-void OpenCampMessageDialog005A4C00(wchar_t* text, W8DialogDestroyCallback callback,
-                                   int confirmation, int cancel);
 void DismissSelectedPartyCharacter(void);
 
 void CreateRcsLevelUpPanel(void);
@@ -209,7 +207,6 @@ unsigned char CampScreenLeave(int leaving);
 /* Camp spell-page pieces in ReviewCharacterScreen.cpp: the character switch,
    the six realm scrollbars, the page renderer, the resistance bars and the
    spell-list region callback that opens per-spell info dialogs. */
-void SelectCampCharacter005B6B30(int slot);
 void SetCampSpellRangesEnabled005B71C0(unsigned char enable);
 void RefreshCampSpellRanges005B7290(void);
 void EnableCampActionButtons005B9270(void);
@@ -220,15 +217,9 @@ void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
 void Function5A4570(void);
 void Function5C4EE0(void);
 
-/* 0x00683F95: set while some main-game overlay owns the screen; the camp spell
-   page skips its resistance bars then. Written by MainGameScreen code. */
-extern unsigned char g_flag_683f95;
-
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;
 
-void Function5A20E0(int);
-void Function5A23E0(void);
 void Function5187E0(void);
 
 /* 0x005A6620: begin the timed screen fade and run `callback` when it

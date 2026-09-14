@@ -7,7 +7,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/character.h"
 #include "wiz8/engine_code/Monster.h"
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/gameplay_modifiers.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/mouth_gap.h"
@@ -156,7 +156,7 @@ struct W8MonsterCombatState {
     unsigned char unknown_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
-    W8PList* pending_actions;
+    W8PList* plsCombatActionList;
     int character_hate[9];
     W8EffectSlot effect_slots_3e[9]; /* 0x03e .. 0x0d7 */
     W8EffectSlot effect_slots_d7[6]; /* 0x0d7 .. 0x13d */

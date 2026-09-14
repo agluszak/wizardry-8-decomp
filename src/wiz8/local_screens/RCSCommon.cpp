@@ -20,7 +20,6 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
@@ -414,7 +413,8 @@ void SetCampItemActionMode005B59B0(char mode)
     W8TextControl** control;
 
     for (control = g_item_action_controls_69c3cc, index = 8; index != 0; ++control, --index) {
-        if ((unsigned char)((*control)->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>((*control)->m_stateFlags & g_W8TextControlMask005ED570) !=
+            0) {
             (*control)->DisableSecondaryState(0);
         }
     }
@@ -461,8 +461,9 @@ void SetCampItemActionMode005B59B0(char mode)
     if (mode == 0 && g_status_685170.item_in_cursor != 0) {
         SetItemCursor(0);
     }
-    if (selected != -1 && (unsigned char)(g_item_action_controls_69c3cc[selected]->m_stateFlags &
-                                          g_W8TextControlMask005ED570) == 0) {
+    if (selected != -1 &&
+        static_cast<unsigned char>(g_item_action_controls_69c3cc[selected]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) == 0) {
         g_item_action_controls_69c3cc[selected]->EnableSecondaryState(0);
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0x1000;

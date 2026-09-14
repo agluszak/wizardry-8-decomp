@@ -284,6 +284,16 @@ static void ClickControl(W8TextControl* control)
 static DWORD FailScenario()
 {
     g_observation.timed_out = 1;
+    fprintf(stderr,
+            "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
+            "redrawn=%u committed=%u in_party=%u main_game=%u page=%d\n",
+            g_current_screen_state.id, g_pending_screen_state.id, g_observation.transition_observed,
+            g_observation.character_entered, g_observation.final_page_entered,
+            g_observation.final_page_redrawn, g_observation.character_committed,
+            g_observation.character_in_party, g_observation.main_game_entered,
+            g_observation.character_page_after);
+    fflush(stderr);
+    gfProgramIsRunning = 0;
     if (ghWindow != NULL) {
         PostMessage(ghWindow, WM_CLOSE, 0, 0);
     }
@@ -498,16 +508,17 @@ static DWORD WINAPI DriveScenario(void*)
     if (strcmp(g_scenario, "main-menu-new-game") == 0 ||
         strcmp(g_scenario, "main-game-start") == 0 || strcmp(g_scenario, "npc-state-reset") == 0 ||
         strcmp(g_scenario, "new-game-entry") == 0) {
-        SendScenarioKey(VK_PRIOR, KEYEVENTF_EXTENDEDKEY);
-        SendScenarioKey(VK_DOWN, KEYEVENTF_EXTENDEDKEY);
-        SendScenarioKey(VK_RETURN);
+        /* New Game is the second live menu region. Click its current bounds so
+           the scenario uses the ordinary region callback without racing
+           several keyboard pairs through SGP's hook in one frame. */
+        ClickRegion(g_region_sets[1].first_region + 1);
         /* Entering is only complete after GameLoop clears the pending state and
            the controller has built and enabled the mode-zero character panel.
            The panel's shared region-set slot is the readiness marker. */
         unsigned int started = GetTickCount();
         while (GetTickCount() - started < 5000) {
             unsigned int region_set =
-                *(volatile unsigned int*)&g_state5_character_region_set_69c4f0;
+                *(volatile unsigned int*)&g_party_selection_character_region_set_69c4f0;
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
                 *(volatile int*)&g_pending_screen_state.id == -1 && region_set != 0 &&
                 *(volatile unsigned int*)&g_region_sets[region_set].enabled) {
@@ -517,27 +528,21 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.transition_observed) {
-            g_observation.timed_out = 1;
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-            return 2;
+            return FailScenario();
         }
 
         /* The left action panel registers its controls in creation order, so
            the first region in its live set is "Create Character". Click the
            centre of that region's current bounds rather than a fixed pixel. */
         unsigned int left_action_set =
-            *(volatile unsigned int*)&g_state5_left_action_region_set_69c504;
+            *(volatile unsigned int*)&g_party_selection_left_action_region_set_69c504;
         if (left_action_set == 0 || left_action_set >= g_region_set_count) {
-            g_observation.timed_out = 1;
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-            return 2;
+            return FailScenario();
         }
         unsigned int create_region =
             *(volatile unsigned int*)&g_region_sets[left_action_set].first_region;
         if (create_region >= g_region_count) {
-            g_observation.timed_out = 1;
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-            return 2;
+            return FailScenario();
         }
         W8Region* create_bounds = &g_regions[create_region];
         SendScenarioMouse((create_bounds->x1 + create_bounds->x2) / 2,
@@ -821,15 +826,15 @@ static DWORD WINAPI DriveScenario(void*)
                     }
                 }
                 unsigned int bottom_set =
-                    *(volatile unsigned int*)&g_state5_bottom_action_region_set_69c508;
-                for (int click = 0; click < 6; ++click) {
+                    *(volatile unsigned int*)&g_party_selection_bottom_action_region_set_69c508;
+                for (int click = 0; click < 4; ++click) {
                     int start_region = RegionWithHelpText(bottom_set, 0x6cb);
                     if (start_region < 0) {
                         return FailScenario();
                     }
                     ClickRegion(start_region);
                     started = GetTickCount();
-                    while (GetTickCount() - started < 700) {
+                    while (GetTickCount() - started < 2000) {
                         if (*(volatile int*)&g_pending_screen_state.id != -1 ||
                             *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                             break;
@@ -848,7 +853,18 @@ static DWORD WINAPI DriveScenario(void*)
             }
 
             started = GetTickCount();
+            int observed_state = -2;
             while (GetTickCount() - started < 30000) {
+                if (observed_state != *(volatile int*)&g_current_screen_state.id) {
+                    observed_state = *(volatile int*)&g_current_screen_state.id;
+                    fprintf(stderr,
+                            "runtime-test new-game state: current=%d pending=%d intro=%lu "
+                            "skip=%u router=%d\n",
+                            observed_state, *(volatile int*)&g_pending_screen_state.id,
+                            *(volatile unsigned long*)&g_intro_video_index,
+                            g_status_685170.skip_loose_character_check_2444, g_value_68de50);
+                    fflush(stderr);
+                }
                 if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                     *(volatile int*)&g_pending_screen_state.id == -1) {
                     g_observation.main_game_entered = 1;

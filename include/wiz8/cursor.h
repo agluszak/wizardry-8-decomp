@@ -45,10 +45,6 @@ extern int g_cursor_hotspot_y_6596c0;
 int GetAtomCursorX00428580(const InputAtom* atom);
 int GetAtomCursorY004285A0(const InputAtom* atom);
 
-/* Set by the low-level mouse hook on WM_LBUTTONDOWN/UP; drag callbacks gate
-   their tracking on it. */
-extern unsigned char g_left_button_down_6f04ed;
-
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 /* 0x00428520: whether the current cursor hotspot is inside the inclusive
    rectangle (left, top, right, bottom). */

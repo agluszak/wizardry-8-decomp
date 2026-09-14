@@ -1,7 +1,9 @@
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
@@ -259,26 +261,26 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, Function0059DA30, 3, 1, 0, 99, 0},
     {0x00000001, 0, 0, 0, 0, Function0059DA30, 8, 1, 0, 17, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 6, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 6, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 8, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 9, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 7, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 8, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 9, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 10, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 11, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 12, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 10, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 11, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 12, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 13, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 14, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 13, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 14, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function005B2CB0, 0, 1, 0, 1981, 0},
 
     {0x00000001, 0, 0, 0, 0, Function005B2CB0, 1, 1, 0, 1982, 0},
@@ -419,14 +421,14 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 0, 1, 0, 2385, 0},
     {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 1, 1, 0, 2386, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 5, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function005B62C0, 0, 1, 0, 2364, 0},
 
     {0x00000001, 0, 0, 0, 0, Function005B62C0, 1, 1, 0, 2367, 0},

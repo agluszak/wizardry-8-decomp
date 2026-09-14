@@ -21,6 +21,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/magic.h"
+#include "wiz8/notices.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/UtilityFunctions.h"
@@ -325,15 +326,15 @@ void ReportCastResult005BA620(int party_slot)
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
         text = FormatWideString(gppStringList[0x6f8 / 4], character->name, 0, 1, 0);
-        OpenCampMessageDialog005A4C00(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, 1, 0);
     } else if (result == 1) {
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
         text = FormatWideString(gppStringList[0x6f4 / 4], character->name, 0, 1, 0);
-        OpenCampMessageDialog005A4C00(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, 1, 0);
     } else if (result == 2) {
         SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
         text = FormatWideString(gppStringList[0x6f0 / 4], character->name, 0, 1, 0);
-        OpenCampMessageDialog005A4C00(text, 0, 1, 0);
+        ShowCampNoticeLine(text, 0, 1, 0);
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
     SetCampItemActionMode005B59B0(0);
@@ -527,7 +528,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         if (AddItemToParty(&split, 0, 0) != 0) {
             goto applied;
         }
-        OpenCampMessageDialog005A4C00(gppStringList[0x2454 / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
         g_status_685170.item_in_hand_235b.stack_count = remaining;
         if (Function5A5F30(1) != 0 && DropItemInHand(0) != 0) {
             SetCampItemActionMode005B59B0(0);
@@ -687,11 +688,11 @@ void UnequipBothHands005BB010(void)
 
     if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0 &&
         gXStatus.fPartyMovementMode == 0 && g_combat_state->flag_a50 == 0) {
-        OpenCampMessageDialog005A4C00(gppStringList[0x240c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
         return;
     }
     if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) == 0) {
-        OpenCampMessageDialog005A4C00(gppStringList[0x245c / 4], 0, 1, 0);
+        ShowCampNoticeLine(gppStringList[0x245c / 4], 0, 1, 0);
         return;
     }
     character = g_status_685170.buffers.characters + g_rcs_mode_0064cbe8;
@@ -704,7 +705,7 @@ void UnequipBothHands005BB010(void)
         g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
         return;
     }
-    OpenCampMessageDialog005A4C00(gppStringList[0x2458 / 4], 0, 1, 0);
+    ShowCampNoticeLine(gppStringList[0x2458 / 4], 0, 1, 0);
 }
 
 // FUNCTION: WIZ8 0x005BB140
@@ -1007,7 +1008,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
 
     slot = region->callback_id;
     pool_index = g_camp_screen_0069c0f4->item_scroll + slot;
-    if ((unsigned int)g_camp_screen_0069c0f4->item_list_count <= pool_index ||
+    if (g_camp_screen_0069c0f4->item_list_count <= pool_index ||
         g_status_685170.party_item_pool_0021[g_camp_screen_0069c0f4->item_list_4ec[pool_index]]
                 .item_id == -1) {
         pool_index = g_status_685170.party_item_count_1791;
@@ -1094,7 +1095,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             } while (count != 0);
         }
         pool_index = g_camp_screen_0069c0f4->item_scroll + slot;
-        if ((unsigned int)g_camp_screen_0069c0f4->item_list_count <= pool_index) {
+        if (g_camp_screen_0069c0f4->item_list_count <= pool_index) {
             pool_index = g_status_685170.party_item_count_1791;
         } else {
             pool_index = g_camp_screen_0069c0f4->item_list_4ec[pool_index];
