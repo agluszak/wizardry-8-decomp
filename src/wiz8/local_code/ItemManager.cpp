@@ -27,6 +27,11 @@
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
+/* 0x005ED7B0: 1/360, the half-degree step random item angles are built
+   from. */
+// GLOBAL: WIZ8 0x005ed7b0
+extern const double g_double_005ed7b0 = 1.0 / 360.0;
+
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {

@@ -383,13 +383,14 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
     unsigned int found = 0;
     unsigned int returned = 0;
     unsigned int slot;
+    char relaxed;
     int index;
 
     for (index = 0; index < 8; ++index) {
         claimed[index] = 0;
     }
     if (count != 0) {
-        for (skip_first_two = 0; skip_first_two == 0;) {
+        for (relaxed = 0; relaxed == 0;) {
             for (slot = skip_first_two != 0 ? 2u : 0u; slot < 8; ++slot) {
                 W8Character* character = &g_status_685170.buffers.characters[slot];
                 if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
@@ -409,7 +410,7 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
             } else if (require_primary == 1) {
                 require_primary = 2;
             } else {
-                skip_first_two = 1;
+                relaxed = 1;
             }
         }
         if (found > count) {

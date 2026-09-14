@@ -7,6 +7,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
@@ -145,7 +146,6 @@ void Function58AB60(int value_1, int value_2, void* notice, wchar_t* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void Function508D70(unsigned int monster_list_index);
-unsigned char Function531920(W8MonsterGroup* monster_group);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
@@ -1349,7 +1349,7 @@ void ToggleCombatMode(void)
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
-                Function531920(monster_group) != 0) {
+                MonsterGroupCanEngage(monster_group) != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }

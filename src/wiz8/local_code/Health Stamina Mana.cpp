@@ -1355,9 +1355,9 @@ unsigned int FindPartySlotWithLowestHitPoints(void)
     return best_slot;
 }
 
-/* Same sweep over the spell-point pools: the numerator only counts realms
-   whose remaining points are negative, so the member with the deepest
-   aggregate deficit wins. */
+/* Same sweep over the spell-point pools: the numerator counts only realms
+   with points still remaining, so the member with the lowest remaining
+   percentage wins. */
 // FUNCTION: WIZ8 0x0052C3B0
 unsigned int FindPartySlotWithLowestSpellPoints(void)
 {
@@ -1373,12 +1373,12 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
                 pool_max += character->sp_max[realm];
             }
             if (pool_max > 0) {
-                int pool_deficit = 0;
+                int pool_left = 0;
                 for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
                     int left = character->sp_left[realm];
-                    pool_deficit += left & ((left <= 0) - 1);
+                    pool_left += left & ((left <= 0) - 1);
                 }
-                unsigned int percent = (unsigned int)(pool_deficit * 100) / pool_max;
+                unsigned int percent = (unsigned int)(pool_left * 100) / pool_max;
                 if (percent < best_percent) {
                     best_percent = percent;
                     best_slot = slot;

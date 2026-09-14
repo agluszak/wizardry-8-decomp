@@ -118,6 +118,26 @@ static const int g_combat_effect_slot_spells_00616dd8[9] = {
 // GLOBAL: WIZ8 0x0061CC14
 static const int g_spell_cast_weights_0061cc14[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
 
+/* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
+   noises. */
+// GLOBAL: WIZ8 0x005EE768
+extern const double g_double_005ee768 = 1500.0;
+
+/* 0x005EE774: scales the record float into the group-engagement probe
+   distance. */
+// GLOBAL: WIZ8 0x005EE774
+extern const float g_float_005ee774 = 333.33333f;
+
+/* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
+   group combat checks compare nearest-member distances against. */
+// GLOBAL: WIZ8 0x005EE77C
+extern const float g_float_005ee77c = 7500.0f;
+
+/* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
+   monster's distance to the player before it counts as near the group. */
+// GLOBAL: WIZ8 0x005EE780
+extern const float g_float_005ee780 = 1.15f;
+
 /* Reported once, so a monster missing its special-attack cycle does not flood
    the log. */
 // GLOBAL: WIZ8 0x0068D525
@@ -847,7 +867,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
         hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
-        backs_off = hp_ratio <= 0.7f && record->holds_ground_1b9 == 0;
+        backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
         monster_info->action_kind = backs_off ? 7 : 5;
     } else {
         rating = RateMonsterBestAttack(monster_info, record, 0);
@@ -907,7 +927,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
                     hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
-                    backs_off = hp_ratio <= 0.7f && record->holds_ground_1b9 == 0;
+                    backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
                     monster_info->action_kind = backs_off ? 7 : 5;
                 }
             } else {

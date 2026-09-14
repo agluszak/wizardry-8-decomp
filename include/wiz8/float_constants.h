@@ -18,13 +18,13 @@ extern float g_float_005ebb38;
 extern float g_float_005ebb34;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
-extern float g_float_005ee774;
+extern const float g_float_005ee774;
 /* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
    group combat checks compare nearest-member distances against. */
-extern float g_float_005ee77c;
+extern const float g_float_005ee77c;
 /* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
    monster's distance to the player before it counts as near the group. */
-extern float g_float_005ee780;
+extern const float g_float_005ee780;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
 extern float g_float_005ebc64;
 extern double g_double_005ebc70;
