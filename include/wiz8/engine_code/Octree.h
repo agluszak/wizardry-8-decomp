@@ -164,6 +164,7 @@ public:
     void WorldPositionToCell00431440(const srVector3T<float>* position, int* point);
     unsigned long FindLeaf00433660(const int* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
+    unsigned int GetSectorForPosition(const srVector3T<float>* position);
     bool HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
     /* Paths `from` toward `to`; on success `range` returns the path cost and
        `hops` the reached-waypoint count. */
@@ -406,7 +407,6 @@ unsigned int __stdcall OctreeTraverse(void* walker, void* arg_2, void* arg_3, in
                                       unsigned int limit); /* 0x0042F280 */
 void LeaveLocation0042E880(unsigned short location_id, int reason);
 
-int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
                                              double blue, double alpha);
 int ProbeCellForBlockers00435C40(const int* cell);
