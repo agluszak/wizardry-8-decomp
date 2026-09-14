@@ -2,6 +2,7 @@
 
 #include "wiz8/mouth_gap.h"
 #include "wiz8/message_box.h"
+#include "wiz8/vector.h"
 #include "surrender/srMath.h"
 
 #include <stddef.h>
@@ -105,23 +106,19 @@ void SetFlag68C500(unsigned char value);                     /* 0x0052A1A0 */
 unsigned char GetFlag68C4FA(void);                           /* 0x0052A070 */
 void Function5289B0(int kind, int argument);                 /* 0x005289B0 */
 void Function529510(void);
-void Function528830(int a, int b, int c, int d);                          /* 0x00528830 */
-void BeginNpcScriptedScene(void);                                         /* 0x00529BE0 */
-void Function529EF0(void);                                                /* 0x00529EF0 */
-void Function50C440(W8NpcState* npc, int value);                          /* 0x0050C440 */
-void Function50C1C0(char name_style, int value, const char* entity_name); /* 0x0050C1C0 */
-unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
-                                    W8ItemInstance* out);         /* 0x0050BA80 */
-void ReleaseNpcMonsterByKind(int kind);                           /* 0x0050C680 */
-void SetFactionDispositionBand(char faction, unsigned char band); /* 0x00535B40 */
+void Function528830(int a, int b, int c, int d); /* 0x00528830 */
+void BeginNpcScriptedScene(void);                /* 0x00529BE0 */
+void Function529EF0(void);                       /* 0x00529EF0 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
 void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
 void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
 void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
-void Function4F6CF0(W8WorldItem* item);                 /* 0x004F6CF0 */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */
 void AuditNpcScriptQuotes00529660(void);
 void SetFlag68C4F7(void);   /* 0x00529BC0 */
 void ClearFlag68C4F7(void); /* 0x00529BD0 */
+/* 0x00524CA0: the NPC-side rebinding pass; reloads the NPC's .nsf script
+   file and rebuilds its runtime bindings. */
+void ReloadNpcScriptResources(W8NpcState* npc);

@@ -1,13 +1,12 @@
 #include "wiz8/bink_video.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
-#include "wiz8/render_state.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/local_screens/IntroScreen.h"
-#include "wiz8/engine_code/Video2.h"
 
 #include "FileMan.h"
 #include "LibraryDataBase.h"
@@ -25,7 +24,6 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/layouts/game_status.h"
-
 
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_intro_video_index = 6;

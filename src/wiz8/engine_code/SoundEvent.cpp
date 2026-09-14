@@ -14,6 +14,7 @@
 #include <math.h>
 #include <new>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
 
 #define SOUNDEVENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\SoundEvent.cpp"
 

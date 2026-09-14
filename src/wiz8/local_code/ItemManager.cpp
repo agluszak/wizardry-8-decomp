@@ -5,24 +5,29 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/3d.h"
-#include "wiz8/combat_state.h"
-#include "wiz8/character.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
-#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayDatabase.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
 #include "wiz8/engine_code/GDProp.h"
-#include "wiz8/engine_code/Item.h"
 #include "wiz8/float_constants.h"
 
 #include <string.h>
+#include <stdlib.h>
+#include "wiz8/engine_code/GameData.h"
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
@@ -251,8 +256,6 @@ int GenerateItemsFromTable(W8GrowableVector<W8WorldItem*>* output_items, unsigne
 
     return output_items->GetCount();
 }
-
-#include <stdlib.h>
 
 /* 0x00689B54: the cursor the iterator below resumes from. */
 

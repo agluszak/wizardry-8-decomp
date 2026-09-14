@@ -6,6 +6,7 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/sr_api.h"
 #include "soundman.h"
+#include "wiz8/local_code/ItemManager.h"
 
 /* Level Specific Code\Monastery2.cpp (level 9).
 

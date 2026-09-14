@@ -2,12 +2,13 @@
 #include "mousesystem.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/PleaseWaitScreen.h"
 #include "wiz8/local_screens/Screens.h"
@@ -28,6 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "line.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "LibraryDataBase.h"
 
 /*
  * Local Screens\PleaseWaitScreen.cpp.
@@ -69,13 +73,6 @@ W8MessageDialogBase* g_swap_disc_dialog_69b7cc;
 unsigned char g_cd_marker_present_69b7d0;
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
-
-#include "line.h"
-#include "wiz8/engine_code/Levels.h"
-#include "wiz8/fact_state.h"
-#include "wiz8/local_code/NPCManager.h"
-#include "wiz8/local_code/LoadSaveGame.h"
-#include "LibraryDataBase.h"
 
 /* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait
    screen shows while that level loads. 0x00605820 indexes the level's name in

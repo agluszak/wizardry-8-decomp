@@ -277,3 +277,4 @@ void UpdateWorldTriggers00443AE0(W8World* world);
 Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
 
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);
+void DestroyAllWorldTriggers(W8World* world);

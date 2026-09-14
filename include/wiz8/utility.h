@@ -40,7 +40,6 @@ wchar_t* ConvertStringToWide(const char* string);
 char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
-void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font);
 float ShortestAngleDistance(float first, float second);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second, W8ScreenRect* result);
 bool ScreenPointInRect(const W8ScreenRect* rect, const POINT* point);
@@ -63,12 +62,9 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
                                  unsigned int excluded_slot, unsigned int* selected,
                                  unsigned int count, char skip_first_two);
 
-extern const wchar_t g_format_d_0060aa20[];
 /* Shared "%d/%d" format literal; the definition is the GLOBAL in
    CGSStatsPage.cpp. */
-extern const wchar_t g_format_d_slash_d_00614b58[];
 /* Shared "%.1f" format literal; the definition is the GLOBAL in
    Dialog Code\AssayDialog.cpp. */
-extern const wchar_t g_assay_format_1f_0064fbb4[];
 
 #endif

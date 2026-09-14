@@ -2,11 +2,9 @@
 
 void LoadGameConfiguration(void);
 unsigned char SaveGameConfiguration(void);
-void SetDisplayGamma(float value);
 void SetMusicVolume(unsigned char volume);
 bool IsMusicMuted(void);
 void SetMusicMuted(unsigned char muted);
-unsigned int GetTotalPhysicalMemory(void);
 
 /* Local Code\Configuration.cpp owns the persisted 0xa4-byte configuration
    block at 0x006850C8. Difficulty is stored as this int; the options list
@@ -71,5 +69,3 @@ struct W8GameSettings {
 static_assert(sizeof(W8GameSettings) == 0xa4, "W8GameSettings_must_be_0xa4");
 
 extern W8GameSettings g_settings_6850c8;
-
-int GetRendererFamily(void);

@@ -1,5 +1,6 @@
 #pragma once
 
+struct W8ItemInstance;
 struct W8TargetSource;
 
 #pragma pack(push, 2)
@@ -40,3 +41,5 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
 void RemoveConditionFromEveryone(int condition); /* 0x005244A0 */
 void RemoveConditionFromParty(int condition);    /* 0x005246C0 */
 void Function524540(void);                       /* 0x00524540 */
+
+void NormalizeItemQuantityKind(W8ItemInstance* item);

@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/Video2.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/3dapi.h"
@@ -16,7 +17,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/regions.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Quality.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/surface2d.h"
@@ -59,6 +60,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Monster.h"
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */

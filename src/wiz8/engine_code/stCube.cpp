@@ -3,7 +3,8 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/stCube.h"
@@ -28,6 +29,8 @@
 #include <new>
 #include <stdlib.h>
 #include <wchar.h>
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 
 #define ST_CUBE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stCube.cpp"
 

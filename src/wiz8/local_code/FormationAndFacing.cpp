@@ -7,17 +7,36 @@
 #include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
-#include "wiz8/character.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/notices.h"
 #include "wiz8/utility.h"
 #include "surrender/srMath.h"
 
 #include <math.h>
 #include <string.h>
+#include "wiz8/sr_api.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/engine_code/GameData.h"
 
 /* Original translation unit: Local Code\Formation & Facing.cpp. */
 
@@ -46,11 +65,6 @@ int GetQuadrantForPosition(srVector3T<float> position)
     return ((bearing + W8_DEGREES_PER_QUADRANT / 2) % W8_DEGREES_PER_TURN) /
            W8_DEGREES_PER_QUADRANT;
 }
-
-#include "wiz8/sr_api.h"
-#include "wiz8/local_screens/ReviewCharacterScreen.h"
-#include "wiz8/local_screens/RCSCommon.h"
-#include "wiz8/layouts/game_status.h"
 
 #define FORMATION_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Formation & Facing.cpp"
 

@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "wiz8/local_screens/OptionsScreen.h"
 
 /*
  * Wizardry's product fork of Sir-Tech's released Utils/Text_Input.c.

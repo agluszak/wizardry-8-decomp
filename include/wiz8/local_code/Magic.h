@@ -11,13 +11,8 @@ struct W8CombatSlot;
 struct W8Character;
 struct W8ItemInstance;
 struct W8MonsterInfo;
+class W8Missile;
 
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
-extern unsigned int g_event_flag_005ed8e0;
-extern unsigned int g_event_flag_005ed8ec;
-extern int g_effect_005ee58c;
-extern int g_effect_005ee654;
 extern int g_learn_sound_0068c510;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
@@ -76,4 +71,7 @@ int MissileSpellId(int missile_type);
 /* Whether the party as a whole is under one particular condition. */
 bool PartyHasCondition(int condition_id); /* 0x005012B0 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
+
+void DetachMissileReferences005019A0(W8Missile* missile);
+
 #endif

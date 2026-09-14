@@ -16,3 +16,4 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc);
 void StripMonsterNameSuffix(wchar_t* name);
 unsigned int CharacterPointerToPartySlot(const W8Character* character);
 bool IsPartyCharacterPointer(const W8Character* character);
+void FreeStringTable(void);

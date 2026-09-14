@@ -42,7 +42,7 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
 extern const int g_value_005ee6f0;
 
 /* True when no occupied party slot has an active portrait/voice record. */
-unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
+unsigned char PartyPortraitEventsIdle(void);                            /* 0x0052E590 */
 int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot); /* 0x0052FEE0 */
 W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
                                                    int argument,
@@ -66,3 +66,6 @@ void RequeueSelectedPortraitEvent(void);
 void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
+extern int g_special_event_0068c50c; /* 0x0068C50C */
+extern int g_effect_argument_005ed8c8;
+extern int g_effect_argument_005ed914;

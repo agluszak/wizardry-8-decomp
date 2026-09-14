@@ -1,4 +1,5 @@
 #pragma once
+#include "wiz8/dialog_code/DialogBase.h"
 
 void RefreshPartySlotDisplay(unsigned int party_slot); /* 0x0055EC90 */
 void InitializeMainGameLevelBlock(void);               /* 0x0055F2C0 */
@@ -14,3 +15,5 @@ unsigned char IsScreenTransitionPending(void);
 void RequestExitScreen(void);
 unsigned char ExitScreenEnter(void);
 void ExitScreenFrame(void);
+/* 0x0055F260 dispatches one already-built line to the active screen. */
+void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel);

@@ -1,7 +1,7 @@
 #pragma once
 
 extern wchar_t g_default_level_0064d7b8[];
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/vector.h"
 
 #include "wiz8/local_code/TextBuffer.h"

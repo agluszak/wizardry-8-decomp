@@ -44,5 +44,4 @@ void EndMonsterTurn(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 unsigned char CanCharReBreathe(int party_slot);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
-extern int g_special_event_0068c50c;                        /* 0x0068C50C */
-int Function5A1350(void);                                   /* 0x005A1350 */
+int Function5A1350(void); /* 0x005A1350 */

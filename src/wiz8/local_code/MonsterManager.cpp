@@ -2,12 +2,16 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/Sight.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -24,29 +28,34 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/notices.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/utility.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/sr_api.h"
+#include "DEBUG.H"
+#include "random.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include <math.h>
+#include <new>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
 // GLOBAL: WIZ8 0x006840c7
 W8MonsterRecord* g_monster_record_cache[1000];
 // GLOBAL: WIZ8 0x005ed4f0
 float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
 int g_monster_info_iterator_index;
-
-#include "wiz8/notices.h"
-#include "wiz8/local_code/Strings.h"
-#include "wiz8/utility.h"
-#include "wiz8/screen_state.h"
-#include "wiz8/engine_code/Monster.h"
-#include "wiz8/npc_state.h"
-#include "wiz8/sr_api.h"
-#include "DEBUG.H"
-#include "random.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/local_code/ItemManager.h"
-#include <math.h>
-#include <new>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
 
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000

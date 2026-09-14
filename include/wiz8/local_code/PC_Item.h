@@ -3,7 +3,7 @@
 void InitializeItemVideoObjects(void);
 void ReleaseGenericItemNames(void);
 
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/game_status.h"
 
 struct W8ItemDatabaseRecord;
@@ -122,7 +122,6 @@ extern const unsigned short g_generic_item_name_notice[147];
 
 /* Defined in Dialog Code\AssayDialog.cpp (GLOBAL 0x0061E7DC): the
    gppStringList index of each equipment class's display name. */
-extern unsigned short g_equip_class_name_ids_61e7dc[32];
 
 /* Unresolved gap, declared for the split-stack dialog's trade-price labels:
    the gold price of a stack in the active trade context. The mode argument
@@ -154,3 +153,7 @@ char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
 void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
+
+int __cdecl CompareItemsForPool(const void* first, const void* second);
+void Function5218C0(W8Character*);
+unsigned int Function51D3B0(int party_slot, char arg_2, int arg_3);

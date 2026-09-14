@@ -28,6 +28,7 @@ struct W8GrCycleLoadContext {
 };
 
 class stLight;
+class stMeshModel;
 class stParticle;
 class stGroundShadow;
 struct W8AnimObj;
@@ -193,3 +194,4 @@ unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const cha
                                   const char* bitmap_directory = 0);
 unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index,
                                       int value, unsigned char object_type);
+int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */

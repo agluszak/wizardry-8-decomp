@@ -1,4 +1,4 @@
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrObject.h"
@@ -18,7 +18,6 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.hpp"
-#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
@@ -30,6 +29,7 @@
 #include <math.h>
 #include <new>
 #include <windows.h>
+#include "wiz8/engine_code/GameData.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:

@@ -21,18 +21,26 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/startup_world.h"
-// GLOBAL: WIZ8 0x006840b7
-int g_picked_group_006840b7;
-// GLOBAL: WIZ8 0x006840b3
-int g_target_state_6840b3;
-#include "wiz8/character.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Strings.h"
-#include "wiz8/magic.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -40,15 +48,16 @@ int g_target_state_6840b3;
 #include "wiz8/sr_api.h"
 #include "Types.h"
 #include "wiz8/local_code/CombatHostility.h"
-#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/engine_code/Cursor3d.h"
-#include "wiz8/engine_code/Spells.h"
-#include "wiz8/local_code/Combat.h"
 #include "wiz8/engine_code/3d.h"
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
+// GLOBAL: WIZ8 0x006840b7
+int g_picked_group_006840b7;
+// GLOBAL: WIZ8 0x006840b3
+int g_target_state_6840b3;
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
 

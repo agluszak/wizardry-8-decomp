@@ -10,8 +10,9 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/render_state.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/PleaseWaitScreen.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -19,6 +20,7 @@
 
 #include "DEBUG.H"
 #include "FileMan.h"
+#include "wiz8/local_code/Gameloop.h"
 
 #include <cstdio>
 #include <cstring>

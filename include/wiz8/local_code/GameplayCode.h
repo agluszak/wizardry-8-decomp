@@ -29,3 +29,4 @@ void DeriveCharacterPersonality004EFA30(W8Character* character);
    character's gender/personality/voice pick. */
 void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
 unsigned int GetAveragePartyLevel(void);                     /* 0x004EF420 */
+void Function4EF7E0(W8Character*, W8Character*, int);

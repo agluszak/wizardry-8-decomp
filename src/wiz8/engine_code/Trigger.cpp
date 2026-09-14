@@ -3,7 +3,9 @@
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/magic.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/local_code/PC_Item.h"
@@ -54,7 +56,6 @@
 #include "surrender/srMath.h"
 #include "surrender/srScene.h"
 #include "wiz8/local_code/character_events.h"
-#include "wiz8/engine_code/Spells.h"
 
 #include <windows.h>
 

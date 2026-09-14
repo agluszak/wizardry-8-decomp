@@ -1,7 +1,8 @@
-#pragma once
+#ifndef WIZ8_LOCAL_CODE_SPELL_EFFECT_H
+#define WIZ8_LOCAL_CODE_SPELL_EFFECT_H
 
-#include "wiz8/character.h"
-#include "wiz8/local_code/Targeting.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/layouts/targeting.h"
 #include "wiz8/vector.h"
 
 class W8SpellVisual;
@@ -92,3 +93,5 @@ void UpdateSpellEffects00500930(void);
 void AbsorbMissileDamage00500460(W8Missile* missile);
 void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
 void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target);
+
+#endif

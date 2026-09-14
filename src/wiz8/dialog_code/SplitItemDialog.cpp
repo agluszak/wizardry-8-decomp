@@ -5,15 +5,16 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/fonts.h"
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/layouts/item_tables.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 
@@ -23,6 +24,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 
 /* The split-stack dialog ("popup_splititem.sti"). Inventory splits use eight
    buttons and ten labels; the two trade modes add a passive frame and a price

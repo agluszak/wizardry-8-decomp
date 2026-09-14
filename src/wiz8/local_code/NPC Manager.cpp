@@ -1,5 +1,18 @@
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -11,19 +24,28 @@
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Combat.h"
-#include "wiz8/magic.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "random.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/location_variables.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/npc_items.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/npc_script_file.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/local_code/NPCManager.h"
-#include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -32,6 +54,9 @@
 
 #include <stdio.h>
 #include <wchar.h>
+#include <string.h>
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/engine_code/GameData.h"
 
 /*
  * Local Code\NPC Manager.cpp.
@@ -307,9 +332,6 @@ unsigned char CountLeadingPartySlots(void)
     }
     return 0;
 }
-
-#include <string.h>
-#include "wiz8/layouts/game_status.h"
 
 /* 0x00619DFC: one three-dword row per service - the service id, the bit that
    stands for it, and one more field nothing here reads. -1 ends the table. */

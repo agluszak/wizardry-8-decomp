@@ -1,11 +1,11 @@
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/startup_world.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
 
 #include <new>
 #include <stdlib.h>

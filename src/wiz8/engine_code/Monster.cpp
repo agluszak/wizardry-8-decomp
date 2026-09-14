@@ -9,15 +9,19 @@
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Configuration.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/mipe.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
@@ -44,15 +48,15 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/regions.h"
-// GLOBAL: WIZ8 0x00659c14
-int g_value_659c14;
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/item_spawning.h"
-#include "wiz8/magic.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/monster_runtime.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/Targeting.h"
@@ -66,14 +70,18 @@ int g_value_659c14;
 #include "Random.h"
 #include "FileMan.h"
 #include "soundman.h"
-#include "wiz8/engine_code/Spells.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCScripting.h"
 #include <windows.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GrCycle.h"
+// GLOBAL: WIZ8 0x00659c14
+int g_value_659c14;
 
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;

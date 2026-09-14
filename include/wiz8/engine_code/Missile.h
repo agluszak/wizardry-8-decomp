@@ -5,7 +5,7 @@ void ReleaseMissileDatabase(void);
 
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/local_code/MagicEffects.h"
-#include "wiz8/spell_effect.h"
+#include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/local_code/Targeting.h"
 
 struct W8ReadLevelInfo;
@@ -142,7 +142,6 @@ W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<floa
                                unsigned int value_5, unsigned int value_6, unsigned int value_7);
 void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
-void DetachMissileReferences005019A0(W8Missile* missile);
 
 extern unsigned int g_missile_table_count_65bddc;
 

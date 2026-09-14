@@ -217,7 +217,6 @@ extern int g_viewport_right_6595f0;
 extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
 extern int g_resident_texture_policy_659714;
-extern unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_flag_65970d;
 
 void SetResidentTexturePolicy(int policy);
@@ -260,5 +259,10 @@ void SetValue65962C(srModelInstance* value);
 #endif
 
 #endif
+
+extern unsigned char* g_render_options_65a118;
+void SetDisplayGamma(float value);
+unsigned int GetTotalPhysicalMemory(void);
+int GetRendererFamily(void);
 
 #endif

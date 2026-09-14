@@ -1,5 +1,5 @@
 #pragma once
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/vector.h"
 

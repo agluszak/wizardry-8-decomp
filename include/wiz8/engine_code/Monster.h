@@ -405,4 +405,16 @@ void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 
+void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
+/* One eight-byte row per animation cycle at 0x0060EA08. The parser at
+   0x004C2010 compares exactly prefix_length characters and then uses the same
+   offset to read an optional numeric subcycle suffix. */
+struct W8CycleNameRow {
+    const char* name;
+    int prefix_length;
+};
+extern W8CycleNameRow g_cycle_names[];
+extern unsigned char g_monster_shadow_updates_enabled_0065970c;
+
 #endif

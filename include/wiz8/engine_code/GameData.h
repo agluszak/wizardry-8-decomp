@@ -33,6 +33,7 @@ struct W8LevelDataRecord {
 
 struct W8OctBuildTree00446390;
 class Trigger;
+class srCamera;
 class srNode;
 class W8Octree;
 
@@ -127,7 +128,6 @@ static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 static_assert(sizeof(W8LevelDataRecord) == 0xac, "W8LevelDataRecord_must_be_0xac");
 
 extern W8LevelDataRecord* g_level_data_00652dac;
-extern W8GameData* g_octree_game_data_00652db0;
 /* Read by the level-data reset and written by the GameData constructor, which
    now lives in GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ_00652DB4;
@@ -161,3 +161,18 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
 float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit);
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
+srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);
+float GetCameraYawInDegrees();
+float GetCameraYawRadians();
+float GetCameraPitchInDegrees();
+float GetCameraPitchRadians();
+void GetCameraOrientation(float* angle, float* pitch);
+void BeginManualCameraControl();
+void LevelCamera();
+void TurnCameraToDegrees(float degrees);
+void SetCameraYawDegrees(float degrees);
+void ApplyCameraRotation(srMatrix3T<float>* rotation);
+void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
+void GetCameraPosition(srVector3T<float>* position);
+int GetCameraYawDegrees(void);
+void PlacePartyAtPoint(const srVector3T<float>* point);

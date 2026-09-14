@@ -6,13 +6,14 @@
 #include "wiz8/chunk.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/music_playlist.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Quality.h"
 #include "wiz8/utility.h"
 #include "wiz8/wiz8_windows.h"
 #include "soundman.h"
 
 #include <stdio.h>
 #include <string.h>
+#include "wiz8/engine_code/Video2.h"
 
 // GLOBAL: WIZ8 0x006850c8
 W8GameSettings g_settings_6850c8;

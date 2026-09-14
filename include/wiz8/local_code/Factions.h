@@ -45,7 +45,6 @@ struct W8FactionRuntimeRecord {
 #pragma pack(pop)
 
 typedef unsigned char W8FactionDisposition;
-typedef unsigned char W8Disposition;
 
 enum { W8_FACTION_HOSTILE = 0, W8_FACTION_NEUTRAL = 1, W8_FACTION_FRIENDLY = 2 };
 
@@ -65,4 +64,5 @@ signed char GetFactionDispositionScore(signed char faction);
    relations a fresh game begins with. */
 void ResetFactions(void);
 
+void SetFactionDispositionBand(char faction, unsigned char band); /* 0x00535B40 */
 #endif

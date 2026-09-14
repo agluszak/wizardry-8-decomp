@@ -7,7 +7,8 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/3d.h"
@@ -24,8 +25,10 @@
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/magic.h"
-#include "wiz8/spell_effect.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
@@ -40,6 +43,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
 
 /*
  * Local Code\MonsterAI.cpp.

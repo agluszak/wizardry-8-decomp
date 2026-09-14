@@ -13,6 +13,7 @@ class stLight;
 class stMeshModel;
 class stModelInstance;
 struct W8Item;
+struct W8GameData;
 
 void SetSceneAmbientLightWhite(srScene* scene);
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
@@ -59,3 +60,4 @@ void ConfigureWorldLight0046E300(srLight* light, float range);
 void WorldRemoveLight(W8World* world, stLight* light); /* 0x0046E250 */
 void DestroyWorldLights0046E4A0(W8World* world);
 void DetachWorldItemMeshes0046DE40(W8World* world);
+extern W8GameData* g_octree_game_data_00652db0;

@@ -2,8 +2,6 @@
 
 #include <wchar.h>
 
-#include "wiz8/dialog_code/DialogBase.h"
-
 /* Entries in the localized notice table at 0x0068C09C. */
 enum W8NoticeId {
     W8_NOTICE_MONSTER_SLAIN = 0x74c / 4,
@@ -21,13 +19,3 @@ enum W8NoticeId {
    0x0058AC00. The short form is source-level default arguments: the retail
    AddPartyGold caller leaves -1, -1 and 0 from its preceding formatter call
    on the stack and supplies only the channel and formatted line afterward. */
-void ShowNotice(int channel, const wchar_t* text, int a = -1, int b = -1, int c = 0);
-
-/* 0x0055F260 dispatches one already-built line to the active screen. */
-void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel);
-
-/* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
-void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
-                        int cancel); /* 0x005A4C00 */
-void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
-                            int cancel); /* 0x00569A50 */

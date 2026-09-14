@@ -3,7 +3,7 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/sr_api.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_code/PC_Item.h"

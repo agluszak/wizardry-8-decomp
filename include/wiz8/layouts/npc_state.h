@@ -1,15 +1,12 @@
-#ifndef WIZ8_NPC_STATE_H
-#define WIZ8_NPC_STATE_H
+#ifndef WIZ8_LAYOUTS_NPC_STATE_H
+#define WIZ8_LAYOUTS_NPC_STATE_H
 
-#include "wiz8/3d_code/PList.h"
-#include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/npc_script_file.h"
-
-class Trigger;
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/layouts/plist.h"
 
 struct W8Character;
-struct W8GameplayModifierBlock;
+struct W8NpcScriptFile;
 
 /* One entry in an NPC's stock list. This one is deliberately outside the
    pack(1) block below: AddNpcItem allocates 0x14 bytes for it, which the packed
@@ -115,71 +112,5 @@ struct W8NpcState {
 }; /* 0x13d by allocation */
 
 #pragma pack(pop)
-
-/* The NPC-side global frame operation: timed world events and the per-frame
-   NPC state passes. */
-void UpdateNpcEvents0050D530(void);
-
-/* 0x00509890 and 0x00509920: lazily create and then empty the shared NPC-state
-   vector, recreating a runtime node for every database record still in use. */
-void InitializeNpcStates(void);
-void ResetNpcStates(void);
-/* 0x00509AA0: build one runtime state from its database record and return it,
-   reusing the slot of a released node when one is free. */
-W8NpcState* CreateNpcRuntimeNode(int npc_id);
-/* 0x0050AED0: expand the record's character block into a fresh character. */
-unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character);
-/* 0x0050B9E0: copy the record's item table into the state's runtime arrays. */
-void InitializeNpcItemTable(W8NpcState* npc);
-
-int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
-/* The NPC-side consequence pass the sight code runs when a marked NPC's
-   binding is released. */
-void Function50CF70(W8NpcState* npc, int mode);
-/* 0x0050DBF0: the bound-NPC penalty the condition/enchantment rebuild folds
-   into the character's modifier block while the slot's flag_fe is set. */
-void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBlock* target);
-/* 0x0050C560: place or move the NPC's monster at the named world entity. */
-unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
-/* 0x0050ABF0: the activation callback the rebinding installs on the level's
-   NPC triggers. */
-bool Function50ABF0(Trigger* trigger);
-/* 0x00524CA0: the NPC-side rebinding pass. */
-void ReloadNpcScriptResources(W8NpcState* npc);
-void ResetNpcBindingsForParty0050DB50(void);
-void ClearPendingNpcLevelFlags0050C270(void);
-void ReleaseNpcMonsterBindings0050C2E0(void);
-void ReleaseMarkedNpcBindings0050DA00(void);
-void RebindNpcLevelTriggers0050AC60(void);
-W8NpcState* GetNpcState(int index);
-W8NpcState* GetNpcStateByKind(int kind);
-bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);
-/* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
-   record's wanted entries by id or by the shared 0x83 name kind, and a grouped
-   NPC whose member already carries more than one declines. */
-char NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
-bool NpcLeadHasNameStyle(unsigned int kind);
-/* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
-   owned item-list teardown. */
-void ReleaseNpcBinding(int value);
-/* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
-W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
-unsigned char GetNpcDispositionBand(W8NpcState* npc);
-int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity);
-int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);
-char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id);
-int RestockNpcItems(W8NpcState* npc);
-void ClearNpcItems(W8NpcState* npc);
-void SortNpcItems(W8NpcState* npc);
-unsigned char PopulateNpcStock(W8NpcState* npc);
-unsigned char MaintainNpcStock(W8NpcState* npc, char force);
-W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
-unsigned int GetNpcItemCount(W8NpcState* npc);
-unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
-void DecayNpcInventory(W8NpcState* npc);
-
-struct W8MonsterManagerEntry;
-
-W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 
 #endif

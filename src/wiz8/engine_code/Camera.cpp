@@ -14,7 +14,8 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/music_playlist.h"
 #include "surrender/srCamera.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/startup_world.h"
 
 #include <string.h>

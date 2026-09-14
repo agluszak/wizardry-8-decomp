@@ -37,6 +37,8 @@
 #include "wiz8/utility.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 
 #define MIPE_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\mipe.cpp"
 

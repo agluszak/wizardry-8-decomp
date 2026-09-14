@@ -21,6 +21,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include "wiz8/engine_code/GameData.h"
 
 /* Engine Code\MonGen.cpp. InitializeEncounterTables at 0x0048A7A0 asserts
    this unit (line 211) and the 0x0048A7A0-0x0048C110 hard hull is bounded to
