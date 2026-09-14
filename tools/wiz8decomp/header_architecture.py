@@ -1,9 +1,10 @@
 """Header role classification against recovered translation-unit ownership.
 
 Headers mix several concepts today: shared layouts, TU interfaces, reconstructed
-declaration splits, and genuine C/SGP bridges. This module records the intended
-role, maps each out-of-line header declaration onto the TU that defines it, and
-fails classified headers that violate their role.
+declaration splits, header-owned implementations, and genuine C/SGP bridges.
+This module records the intended role, maps each header declaration — free or
+member — onto the TU that defines it, and fails classified headers that
+violate their role.
 
 Path convention: everything under ``include/wiz8/layouts/`` is shared-layout.
 ``include/wiz8/sgp_bridge.h`` is the SGP C bridge. Remaining roles come from
@@ -35,8 +36,11 @@ BRIDGE = "bridge"
 SHARED_LAYOUT = "shared-layout"
 TU_INTERFACE = "tu-interface"
 RECONSTRUCTED = "reconstructed-declarations"
+HEADER_IMPLEMENTATION = "header-implementation"
 UNCLASSIFIED = "unclassified"
-ROLES = frozenset({BRIDGE, SHARED_LAYOUT, TU_INTERFACE, RECONSTRUCTED, UNCLASSIFIED})
+ROLES = frozenset(
+    {BRIDGE, SHARED_LAYOUT, TU_INTERFACE, RECONSTRUCTED, HEADER_IMPLEMENTATION, UNCLASSIFIED}
+)
 PLACED_ATTRIBUTIONS = frozenset({"direct", "bounded", "cross-build"})
 OWNED_ATTRIBUTIONS = PLACED_ATTRIBUTIONS | {"recovered-original-tu"}
 ARCHITECTURE_PATH = Path("src/wiz8/header_architecture.json")
@@ -52,11 +56,14 @@ _FUNCTION_MARKER = re.compile(
 )
 _ADDRESS = re.compile(r"0x[0-9a-fA-F]{6,8}")
 _DECL_NAME = re.compile(
-    r"(?P<name>[A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*\((?P<args>[^;]*?)\)\s*(?:const)?\s*;"
+    r"(?P<name>operator[^\s(]*|~?[A-Za-z_]\w*(?:::[A-Za-z_~]\w*)*)"
+    r"\s*\((?P<args>[^;{}]*?)\)[^;{]*;"
 )
 _SKIP_DECL_PREFIX = re.compile(
     r"^\s*(?:typedef|using|friend|static_assert|enum|struct|class|namespace|#)\b"
 )
+_RECORD_SCOPE = re.compile(r"\b(?:struct|class)\s+([A-Za-z_]\w*)?[^;{}]*$")
+_TRANSPARENT_SCOPE = re.compile(r'^\s*(?:extern\s+"C"|namespace\b)')
 _BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 _LINE_COMMENT = re.compile(r"//.*?$", re.MULTILINE)
 
@@ -80,6 +87,12 @@ def load_header_architecture_document(repo_dir: Path) -> dict[str, Any]:
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") != "wiz8.header-architecture-v1":
         raise HeaderArchitectureError(f"{ARCHITECTURE_PATH} has an unsupported schema")
+    for relative, configured in (document.get("headers") or {}).items():
+        role = str((configured or {}).get("role") or "")
+        if role not in ROLES:
+            raise HeaderArchitectureError(
+                f"{ARCHITECTURE_PATH}: {relative} has unknown role {role!r}"
+            )
     return document
 
 
@@ -162,11 +175,6 @@ def _header_paths(repo_dir: Path) -> list[Path]:
     return paths
 
 
-def _brace_delta(text: str) -> int:
-    cleaned = _strip_comments(text)
-    return cleaned.count("{") - cleaned.count("}")
-
-
 def _code_line(line: str, in_block: bool) -> tuple[str, bool]:
     """Return the compilable span of one source line and the block-comment state."""
 
@@ -195,58 +203,129 @@ def _code_line(line: str, in_block: bool) -> tuple[str, bool]:
     return "".join(pieces), in_block
 
 
+_RECORD_KEYWORDS = re.compile(r"\b(?:struct|class)\s+([A-Za-z_]\w*)")
+_TEMPLATE_PREFIX = re.compile(r"\btemplate\s*<[^;{}>]*>")
+_INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"')
+
+_SCOPE_RECORD = "record"
+_SCOPE_TRANSPARENT = "transparent"
+_SCOPE_OPAQUE = "opaque"
+
+
 def scan_header_function_declarations(path: Path, repo_dir: Path) -> list[dict[str, Any]]:
-    """Out-of-line function declarations at namespace scope in one header."""
+    """Function declarations and in-header definitions in one header.
+
+    Both namespace-scope declarations and member declarations are collected;
+    member names are qualified with the enclosing record (``Class::method``).
+    ``member`` marks declarations inside a class body and ``defined`` marks
+    entries the header itself emits (in-class or out-of-class bodies), so role
+    checks can distinguish a header's interface from the code it owns.
+    ``extern "C"`` and ``namespace`` blocks are transparent: their contents
+    count as namespace-scope declarations. Function bodies, enums, unions and
+    brace initializers are opaque and their contents are ignored.
+    """
 
     relative = _posix(path, repo_dir)
     lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     declarations: list[dict[str, Any]] = []
-    depth = 0
+    scopes: list[dict[str, Any]] = []
+    pending_record: str | None = None
+    pending_transparent = False
     pending_address: int | None = None
     buffer = ""
     buffer_line = 0
     in_block = False
-    for index, line in enumerate(lines):
-        marker = _FUNCTION_MARKER.match(line)
-        if marker is not None:
-            pending_address = int(marker.group("address"), 16)
-        code, in_block = _code_line(line, in_block)
-        stripped = code.strip()
-        if depth == 0 and buffer:
-            buffer = f"{buffer} {stripped}"
-        elif depth == 0 and stripped and not stripped.startswith("#"):
-            if _SKIP_DECL_PREFIX.match(stripped):
-                pending_address = None
-            elif "(" in stripped and not stripped.startswith("static_assert"):
-                buffer = stripped
-                buffer_line = index + 1
-        depth = max(0, depth + _brace_delta(code if code else line))
-        if not buffer:
-            continue
-        if "{" in buffer:
-            buffer = ""
-            pending_address = None
-            continue
-        if ";" not in buffer:
-            continue
-        if "=" in buffer.split("(", 1)[0]:
-            buffer = ""
-            pending_address = None
-            continue
-        name = _declarator_name(buffer)
+
+    def scope_names() -> str:
+        names = [s["name"] for s in scopes if s["kind"] == _SCOPE_RECORD and s["name"]]
+        return "::".join(names)
+
+    def flush(defined: bool, member: bool, index: int) -> None:
+        nonlocal buffer, pending_address
+        head = buffer.split("{", 1)[0]
+        text = head + ";" if defined else buffer
+        name = _declarator_name(text)
         addresses = [int(item, 16) for item in _ADDRESS.findall(buffer)]
         address = pending_address or (addresses[-1] if addresses else None)
         if name is not None:
+            member = member or "::" in name or "::" in head
+            if member and "::" not in name:
+                prefix = scope_names()
+                name = f"{prefix}::{name}" if prefix else name
             declarations.append(
                 {
                     "name": name,
                     "address": address,
                     "header": relative,
                     "line": buffer_line or index + 1,
+                    "member": member,
+                    "defined": defined,
                 }
             )
         buffer = ""
         pending_address = None
+
+    for index, line in enumerate(lines):
+        marker = _FUNCTION_MARKER.match(line)
+        if marker is not None:
+            pending_address = int(marker.group("address"), 16)
+        code, in_block = _code_line(line, in_block)
+        stripped = code.strip()
+
+        scope_text = _TEMPLATE_PREFIX.sub(" ", stripped)
+        brace_pos = stripped.find("{")
+        equals_pos = stripped.find("=")
+        record_names = _RECORD_KEYWORDS.findall(scope_text)
+        if record_names:
+            record_opens = brace_pos >= 0 and (equals_pos < 0 or brace_pos < equals_pos)
+            record_continues = brace_pos < 0 and ";" not in stripped
+            if record_opens or record_continues:
+                pending_record = record_names[-1]
+        if _TRANSPARENT_SCOPE.match(stripped):
+            pending_transparent = True
+
+        scope = scopes[-1] if scopes else None
+        at_member = scope is not None and scope["kind"] == _SCOPE_RECORD
+        at_namespace = scope is None or scope["kind"] == _SCOPE_TRANSPARENT
+        collectible = (at_member or at_namespace) and pending_record is None
+
+        if collectible:
+            if buffer:
+                buffer = f"{buffer} {stripped}"
+            elif stripped and not stripped.startswith("#"):
+                if _SKIP_DECL_PREFIX.match(stripped):
+                    pending_address = None
+                elif "(" in stripped and not stripped.startswith("static_assert"):
+                    buffer = stripped
+                    buffer_line = index + 1
+
+        if buffer:
+            if "{" in buffer:
+                flush(defined=True, member=at_member, index=index)
+            elif ";" in buffer:
+                head = buffer.split("(", 1)[0]
+                if "=" not in head or "operator" in head:
+                    flush(defined=False, member=at_member, index=index)
+                else:
+                    buffer = ""
+                    pending_address = None
+
+        for character in stripped:
+            if character == "{":
+                if pending_record is not None:
+                    scopes.append({"kind": _SCOPE_RECORD, "name": pending_record})
+                    pending_record = None
+                elif pending_transparent:
+                    scopes.append({"kind": _SCOPE_TRANSPARENT, "name": None})
+                    pending_transparent = False
+                else:
+                    scopes.append({"kind": _SCOPE_OPAQUE, "name": None})
+            elif character == "}":
+                if scopes:
+                    scopes.pop()
+            elif character == ";":
+                pending_record = None
+                pending_transparent = False
     return declarations
 
 
@@ -257,9 +336,6 @@ def _role_for(relative: str, document: dict[str, Any]) -> tuple[str, list[str]]:
         return str(configured["role"]), [
             str(item) for item in configured.get("implementation-tus") or ()
         ]
-    proven = document.get("proven-original-headers") or {}
-    if relative in proven:
-        return TU_INTERFACE, []
     if relative == BRIDGE_HEADER:
         return BRIDGE, []
     if relative.startswith("include/wiz8/layouts/"):
@@ -324,6 +400,39 @@ def _definitions_by_name(definitions: dict[int, dict[str, Any]]) -> dict[str, li
     return by_name
 
 
+def _definitions_by_tail(definitions: dict[int, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    by_tail: dict[str, list[dict[str, Any]]] = {}
+    for item in definitions.values():
+        name = str(item.get("name") or "")
+        if name:
+            by_tail.setdefault(name.rsplit("::", 1)[-1], []).append(item)
+    return by_tail
+
+
+def _header_includes(path: Path) -> list[str]:
+    return [
+        match.group(1)
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines()
+        if (match := _INCLUDE.match(line))
+    ]
+
+
+def _resolve_include(
+    relative: str, include: str, scanned: dict[str, list[dict[str, Any]]]
+) -> str | None:
+    """Resolve a quoted include to a scanned ``include/wiz8`` header."""
+
+    candidates = [
+        (Path(relative).parent / include).as_posix(),
+        (Path("include") / include).as_posix(),
+        (HEADER_ROOT / include).as_posix(),
+    ]
+    for candidate in candidates:
+        if candidate in scanned:
+            return candidate
+    return None
+
+
 def analyze_header_architecture(
     repo_dir: Path, layout: TranslationUnitLayout | None = None
 ) -> dict[str, Any]:
@@ -332,6 +441,7 @@ def analyze_header_architecture(
         layout = _assertion_layout(repo_dir)
     definitions = scan_function_definitions(repo_dir)
     by_name = _definitions_by_name(definitions)
+    by_tail = _definitions_by_tail(definitions)
     headers: list[dict[str, Any]] = []
     violations: list[dict[str, Any]] = []
 
@@ -361,17 +471,38 @@ def analyze_header_architecture(
                 }
             )
 
+    scanned: dict[str, list[dict[str, Any]]] = {}
     for path in _header_paths(repo_dir):
-        relative = _posix(path, repo_dir)
+        scanned[_posix(path, repo_dir)] = scan_header_function_declarations(path, repo_dir)
+
+    for relative, declarations in scanned.items():
+        path = repo_dir / relative
         role, implementation_tus = _role_for(relative, document)
-        declarations = scan_header_function_declarations(path, repo_dir)
         units: dict[str, int] = {}
         declared: list[dict[str, Any]] = []
         for declaration in declarations:
+            if declaration.get("defined"):
+                continue
             address = declaration.get("address")
             definition = definitions.get(address) if isinstance(address, int) else None
             if definition is None:
-                matches = by_name.get(str(declaration["name"]), [])
+                name = str(declaration["name"])
+                matches = by_name.get(name, [])
+                if len(matches) != 1 and "::" in name:
+                    tail = name.rsplit("::", 1)[-1]
+                    candidates = by_tail.get(tail, [])
+                    if len(candidates) > 1:
+                        prefix = name.rsplit("::", 1)[0]
+                        narrowed = [
+                            item
+                            for item in candidates
+                            if str(item["name"]).startswith(f"{prefix}::")
+                            or str(item["name"]) == tail
+                        ]
+                        if narrowed:
+                            candidates = narrowed
+                    if len(candidates) == 1:
+                        matches = candidates
                 if len(matches) == 1:
                     definition = matches[0]
                     address = int(definition["address"])
@@ -393,25 +524,44 @@ def analyze_header_architecture(
             "file": relative,
             "role": role,
             "implementation_tus": implementation_tus,
-            "functions": len(declared),
+            "functions": len(declarations),
             "original_units": original_placed,
             "all_units": sorted(units),
         }
         headers.append(record)
 
-        if role == SHARED_LAYOUT and declared:
+        if role == SHARED_LAYOUT and declarations:
             violations.append(
                 {
                     "kind": "layout-declares-functions",
                     "file": relative,
                     "detail": (
-                        f"{relative} is shared-layout but declares "
-                        f"{len(declared)} out-of-line function(s)"
+                        f"{relative} is shared-layout but declares or defines "
+                        f"{len(declarations)} function(s)"
                     ),
-                    "functions": [item["name"] for item in declared[:8]],
+                    "functions": [item["name"] for item in declarations[:8]],
                 }
             )
-        if role == TU_INTERFACE and len(original_placed) > 1:
+        if role == SHARED_LAYOUT:
+            for include in _header_includes(path):
+                target = _resolve_include(relative, include, scanned)
+                if target is None:
+                    continue
+                exposed = [item["name"] for item in scanned[target] if not item["member"]]
+                if exposed:
+                    violations.append(
+                        {
+                            "kind": "layout-includes-interface",
+                            "file": relative,
+                            "detail": (
+                                f"{relative} includes {target}, which declares "
+                                f"{len(exposed)} namespace-scope function(s)"
+                            ),
+                            "include": target,
+                            "functions": exposed[:8],
+                        }
+                    )
+        if role == TU_INTERFACE and not implementation_tus and len(original_placed) > 1:
             violations.append(
                 {
                     "kind": "tu-interface-mixed-units",
@@ -423,7 +573,7 @@ def analyze_header_architecture(
                     "original_units": original_placed,
                 }
             )
-        if role == RECONSTRUCTED and implementation_tus:
+        if role in (TU_INTERFACE, RECONSTRUCTED) and implementation_tus:
             allowed = {item.casefold() for item in implementation_tus}
             foreign = [
                 item
@@ -436,7 +586,7 @@ def analyze_header_architecture(
                 units_found = sorted({str(item["original_unit"]) for item in foreign})
                 violations.append(
                     {
-                        "kind": "reconstructed-foreign-unit",
+                        "kind": f"{role}-foreign-unit",
                         "file": relative,
                         "detail": (
                             f"{relative} lists implementation TUs "

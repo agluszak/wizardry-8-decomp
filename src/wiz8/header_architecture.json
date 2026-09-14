@@ -10,6 +10,40 @@
     "include/wiz8/sgp_bridge.h": {
       "role": "bridge"
     },
+    "include/wiz8/engine_code/stHeap.hpp": {
+      "role": "header-implementation"
+    },
+    "include/wiz8/engine_code/AnimRep.hpp": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Trigger.hpp": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/stLight.hpp": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/engine_code/Levels.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/3d_code/PList.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/environment_colour.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/named_position.h": {
+      "role": "header-implementation"
+    },
+    "include/wiz8/monster_generators.h": {
+      "role": "tu-interface"
+    },
+    "include/wiz8/item_instance.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": [
+        "Local Code\\Conditions & Enchantments.cpp",
+        "Local Code\\PC Item.cpp"
+      ]
+    },
     "include/wiz8/gameplay_modifiers.h": {
       "role": "shared-layout"
     },
@@ -32,7 +66,8 @@
       "role": "tu-interface"
     },
     "include/wiz8/engine_code/GameData.h": {
-      "role": "tu-interface"
+      "role": "tu-interface",
+      "implementation-tus": ["Engine Code\\GameData.cpp", "Engine Code\\GDFileIO.cpp"]
     },
     "include/wiz8/engine_code/GDFileIO.h": {
       "role": "tu-interface"
@@ -41,7 +76,8 @@
       "role": "tu-interface"
     },
     "include/wiz8/engine_code/Octree.h": {
-      "role": "tu-interface"
+      "role": "tu-interface",
+      "implementation-tus": ["Engine Code\\Octree.cpp", "Engine Code\\OctPreTree.cpp"]
     },
     "include/wiz8/engine_code/ReadLevel.h": {
       "role": "tu-interface"

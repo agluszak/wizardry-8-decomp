@@ -1,0 +1,26 @@
+#pragma once
+
+#include "surrender/srMath.h"
+
+struct W8NamedPosition {
+    W8NamedPosition()
+    {
+        name[0] = '\0';
+        position.x = 0.0f;
+        position.y = 0.0f;
+        position.z = 0.0f;
+        value_08c = 0.0f;
+        value_090 = 0.0f;
+        value_094 = 0.0f;
+        value_098 = 0.0f;
+    }
+
+    char name[0x80];
+    srVector3T<float> position;
+    float value_08c;
+    float value_090;
+    float value_094;
+    float value_098;
+};
+
+static_assert(sizeof(W8NamedPosition) == 0x9c, "W8NamedPosition_must_be_0x9c");

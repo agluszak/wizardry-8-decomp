@@ -4,9 +4,10 @@ Ordinary merging can silently turn a recovered FUNCTION back into a bare
 declaration, duplicate an address under two names, or rename an identity
 without moving its callers. The check reads the matching markers from
 ``src/`` and ``include/`` at a base and a head revision and reports, per
-address: removed markers, changed identities, duplicated addresses and
-removed FUNCTION addresses whose name is still referenced by the head
-tree (newly unresolved call targets).
+address: removed markers, changed identities, duplicated addresses,
+FUNCTION/GLOBAL definitions demoted to bare declarations, and removed
+FUNCTION addresses whose name is still referenced by the head tree
+(newly unresolved call targets).
 
 The comparison is textual and revision-based so it runs before a build and
 without a checkout switch. A loss is acceptable only when named on the
@@ -46,17 +47,43 @@ def _tree_files(repo_dir: Path, revision: str) -> list[str]:
     return [name for name in listing.split("\0") if name.endswith(SOURCE_SUFFIXES)]
 
 
-def _owned_entity(lines: list[str], start: int, kind: str) -> str:
-    for index in range(start, min(start + 6, len(lines))):
+def _entity_form(entity: str, kind: str) -> str:
+    """Whether the marked entity is a definition or a bare declaration."""
+
+    if kind == "FUNCTION":
+        if "{" in entity:
+            return "definition"
+        if ";" in entity:
+            return "declaration"
+        return ""
+    if kind == "GLOBAL":
+        return "declaration" if re.match(r"\s*extern\b", entity) else "definition"
+    return ""
+
+
+def _owned_entity(lines: list[str], start: int, kind: str) -> tuple[str, str]:
+    """The entity a marker binds to: normalized text plus declaration/definition form.
+
+    The entity extends past a single line so that multiline signatures still
+    compare whole and a definition body ``{`` versus a terminating ``;`` is
+    visible.
+    """
+
+    collected: list[str] = []
+    for index in range(start, min(start + 12, len(lines))):
         stripped = lines[index].strip()
         if not stripped or stripped.startswith("#"):
             continue
         if stripped.startswith("//"):
-            if kind in ("TEMPLATE", "SYNTHETIC"):
-                return stripped
+            if kind in ("TEMPLATE", "SYNTHETIC") and not collected:
+                return stripped, ""
             continue
-        return re.sub(r"\s+", " ", stripped)
-    return ""
+        collected.append(stripped)
+        joined = " ".join(collected)
+        if ";" in joined or "{" in joined:
+            text = re.sub(r"\s+", " ", joined)
+            return text, _entity_form(text, kind)
+    return re.sub(r"\s+", " ", " ".join(collected)), ""
 
 
 def _entity_name(entity: str) -> str:
@@ -77,8 +104,10 @@ def collect_identities(repo_dir: Path, revision: str) -> dict[Identity, list[dic
                 continue
             kind = marker.group("kind")
             key = (kind, marker.group("target"), int(marker.group("address"), 16))
-            entity = _owned_entity(lines, index + 1, kind)
-            identities[key].append({"file": name, "entity": entity, "name": _entity_name(entity)})
+            entity, form = _owned_entity(lines, index + 1, kind)
+            identities[key].append(
+                {"file": name, "entity": entity, "form": form, "name": _entity_name(entity)}
+            )
     return identities
 
 
@@ -117,6 +146,13 @@ def merge_preservation_report(
         != sorted(item["entity"] for item in after[key])
     ]
     duplicates = [key for key in sorted(after) if key[0] in IDENTITY_KINDS and len(after[key]) > 1]
+    demoted = [
+        key
+        for key in sorted(before.keys() & after.keys())
+        if key[0] in ("FUNCTION", "GLOBAL")
+        and any(item["form"] == "definition" for item in before[key])
+        and all(item["form"] == "declaration" for item in after[key])
+    ]
 
     removed_function_names = {
         item["name"]
@@ -132,6 +168,8 @@ def merge_preservation_report(
         key for key in removed if key[0] in IDENTITY_KINDS and key[2] not in allowed
     ]
     unexplained_duplicates = [key for key in duplicates if key[2] not in allowed]
+    unexplained_demotions = [key for key in demoted if key[2] not in allowed]
+    failed = bool(unexplained_losses or unexplained_duplicates or unexplained_demotions)
 
     def describe(
         keys: list[Identity], source: dict[Identity, list[dict[str, str]]]
@@ -149,7 +187,7 @@ def merge_preservation_report(
         "schema": "wiz8.merge-preservation-v1",
         "base": base,
         "head": head,
-        "status": "passed" if not unexplained_losses and not unexplained_duplicates else "failed",
+        "status": "failed" if failed else "passed",
         "counts": counts,
         "removed": describe(removed, before),
         "added": describe(added, after),
@@ -162,10 +200,19 @@ def merge_preservation_report(
             for key in changed
         ],
         "duplicates": describe(duplicates, after),
+        "demoted": [
+            {
+                "identity": _format_key(key),
+                "base": [item["entity"] for item in before[key]],
+                "head": [item["entity"] for item in after[key]],
+            }
+            for key in demoted
+        ],
         "newly_unresolved": unresolved,
         "allowed": {f"0x{address:08X}": reason for address, reason in sorted(allowed.items())},
         "unexplained_losses": [_format_key(key) for key in unexplained_losses],
         "unexplained_duplicates": [_format_key(key) for key in unexplained_duplicates],
+        "unexplained_demotions": [_format_key(key) for key in unexplained_demotions],
     }
 
 

@@ -3,7 +3,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/gameplay_modifiers.h"
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/world.h"
 

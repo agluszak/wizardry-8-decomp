@@ -1,7 +1,7 @@
 #ifndef WIZ8_LAYOUTS_TARGETING_H
 #define WIZ8_LAYOUTS_TARGETING_H
 
-#include "wiz8/geometry.h"
+#include "surrender/srMath.h"
 
 struct W8ItemInstance;
 struct W8MonsterInfo;

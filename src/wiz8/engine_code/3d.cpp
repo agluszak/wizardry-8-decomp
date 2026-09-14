@@ -1,3 +1,4 @@
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"

@@ -2,8 +2,9 @@
 #define WIZ8_LAYOUTS_WORLD_H
 
 #include "surrender/srMath.h"
-#include "wiz8/3d_code/PList.h"
-#include "wiz8/geometry.h"
+#include "wiz8/environment_colour.h"
+#include "wiz8/layouts/plist.h"
+#include "wiz8/named_position.h"
 #include "wiz8/vector.h"
 
 class srCamera;
@@ -22,45 +23,6 @@ class Trigger;
 class stParticle;
 struct W8PathAI;
 struct W8GameData;
-
-struct EnvironmentColour {
-    EnvironmentColour() {}
-    EnvironmentColour(double red_value, double green_value, double blue_value);
-    EnvironmentColour& operator=(double value)
-    {
-        Set(value, value, value);
-        return *this;
-    }
-    void Set(double red_value, double green_value, double blue_value);
-    float red;
-    float green;
-    float blue;
-};
-
-static_assert(sizeof(EnvironmentColour) == 0x0c, "EnvironmentColour_must_be_0x0c");
-
-struct W8NamedPosition {
-    W8NamedPosition()
-    {
-        name[0] = '\0';
-        position.x = 0.0f;
-        position.y = 0.0f;
-        position.z = 0.0f;
-        value_08c = 0.0f;
-        value_090 = 0.0f;
-        value_094 = 0.0f;
-        value_098 = 0.0f;
-    }
-
-    char name[0x80];
-    srVector3T<float> position;
-    float value_08c;
-    float value_090;
-    float value_094;
-    float value_098;
-};
-
-static_assert(sizeof(W8NamedPosition) == 0x9c, "W8NamedPosition_must_be_0x9c");
 
 struct W8WorldCameraEntry {
     unsigned char positional_00[0x14];

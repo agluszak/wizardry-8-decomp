@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "wiz8/3d_code/PList.h"
+#include "wiz8/layouts/plist.h"
 #include "wiz8/dice.h"
 #include <wchar.h>
 
