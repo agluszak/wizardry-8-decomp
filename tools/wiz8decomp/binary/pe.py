@@ -13,6 +13,14 @@ from ..paths import sha256_file
 from .fingerprints import bytes_entropy, metadata_normalized_pe_hash
 from .rich_header import parse_rich_header
 
+
+def image_layout(path: Path) -> tuple[int, int, int]:
+    """Return the preferred base, image size and header size from a PE image."""
+    with pefile.PE(str(path), fast_load=True) as pe:
+        header = pe.OPTIONAL_HEADER
+        return header.ImageBase, header.SizeOfImage, header.SizeOfHeaders
+
+
 MACHINES = {0x14C: "x86", 0x8664: "x86-64", 0x1C0: "ARM", 0xAA64: "ARM64"}
 SUBSYSTEMS = {
     1: "native",

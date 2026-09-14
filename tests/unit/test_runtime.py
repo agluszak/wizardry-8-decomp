@@ -5,7 +5,6 @@ from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     RUNTIME_SCENARIO_STATE_FILES,
-    _configure_wine_window_management,
     _crash_detail,
     _parse_runtime_crash,
     _parse_runtime_observation,
@@ -14,6 +13,7 @@ from wiz8decomp.runtime import (
     _run_runtime_scenario,
     _symbolize_addresses,
     analyze_runtime_crash,
+    configure_wine_window_management,
     stage_game,
 )
 
@@ -331,7 +331,7 @@ def test_wine_window_management_matches_display_mode(
     )
 
     environment = {"WINEPREFIX": "/prefix"}
-    _configure_wine_window_management(environment, private_display=private_display)
+    configure_wine_window_management(environment, private_display=private_display)
 
     argv = calls[0][0][0]
     assert argv[-3:] == ["/d", managed, "/f"]

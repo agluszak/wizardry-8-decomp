@@ -1,14 +1,24 @@
 from __future__ import annotations
 
 import json
+from contextlib import nullcontext
+from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock
 
+import pytest
 from wiz8decomp.binary.linker_map import LinkerMap
-from wiz8decomp.debug.debugger import find_runtime_stub
-from wiz8decomp.debug.gdb_report import resolve_gdb_report
+from wiz8decomp.debug.debugger import find_runtime_stub, format_crash_snapshot
 from wiz8decomp.debug.mi_protocol import parse_mi_record
 from wiz8decomp.debug.session import (
+    CrashSnapshot,
     DebuggerLifecycle,
+    GdbSession,
+    ImageLayout,
+    _parse_frame_addresses,
+    _parse_registers,
+    _parse_stack_words,
     is_terminal_stop,
     stop_event_from_record,
     terminal_stop_summary,
@@ -24,6 +34,7 @@ def test_sigtrap_stop_is_structured() -> None:
     assert event.reason == "signal-received"
     assert event.signal_name == "SIGTRAP"
     assert event.breakpoint_number is None
+    assert event.thread_id == "1"
     assert not is_terminal_stop(event)
 
 
@@ -106,11 +117,6 @@ def test_stub_recognition_uses_map_not_gdb_names(tmp_path: Path) -> None:
         " 0001:000F9876       ?SetFact@@YAXH@Z 004F9876 f   fact_state.cpp.obj\n",
         encoding="ascii",
     )
-    report_path = tmp_path / "debugger-stop-01-sigtrap.txt"
-    report_path.write_text(
-        "#0  0x005f1234 in ?? ()\n#1  0x005f1270 in ?? ()\n#2  0x004f9876 in ?? ()\n",
-        encoding="utf-8",
-    )
     manifest_path = tmp_path / "runtime_stubs.json"
     manifest_path.write_text(
         json.dumps(
@@ -130,13 +136,243 @@ def test_stub_recognition_uses_map_not_gdb_names(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    frames = resolve_gdb_report(report_path, map_path)
-    assert len(frames) == 3
-    # Every GDB name was ??, yet the MAP still identifies the stub frame.
-    assert frames[1][1].symbol is not None
-    assert frames[1][1].symbol.decorated_name == "_wiz8_runtime_stub_00506670"
-
-    stub = find_runtime_stub(frames, manifest_path)
+    event = stop_event_from_record(
+        parse_mi_record('*stopped,reason="signal-received",signal-name="SIGTRAP"')
+    )
+    snapshot = CrashSnapshot(
+        event=event,
+        registers={"eip": 0x005F1234},
+        frame_addresses=(0x005F1270,),
+        stack_words=(),
+        fault_address=None,
+        image=ImageLayout(0x400000, 0x200000, 0x1000),
+        raw_path=tmp_path / "raw.txt",
+    )
+    report, resolutions = format_crash_snapshot(snapshot, map_path)
+    assert "SIGTRAP" in report
+    stub = find_runtime_stub(resolutions, manifest_path)
     assert stub is not None
     assert stub["address"] == "00506670"
     assert stub["symbol"] == "?HandleFactChange@@YAXHE@Z"
+
+
+def test_pe_header_crash_recovers_raw_stack_candidates_without_foreign_frames(
+    tmp_path: Path,
+) -> None:
+    map_path = tmp_path / "Wiz8Runtime.map"
+    map_path.write_text(
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 000b1f70H .text                   CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:00062810       _ShowRegionHelp            00462810 f   RegionManager.cpp.obj\n"
+        " 0001:00062d00       _AfterRegionHelp           00462d00 f   RegionManager.cpp.obj\n"
+        " 0001:00079800       _LoadGameState             00479800 f   LoadSaveGame.cpp.obj\n"
+        "Line numbers for RegionManager.cpp.obj(Z:\\repo\\RegionManager.cpp) segment .text\n"
+        " 746 0001:0006287d\n",
+        encoding="cp1252",
+    )
+    raw_path = tmp_path / "debugger-stop-01-sigsegv.txt"
+    raw_path.write_text(
+        "Thread 7 (audio_client_main):\n"
+        "#0  0x7bd642fc in wine_unix_call () from ntdll.dll\n"
+        "Thread 6 (wine_rpcrt4_server):\n"
+        "#0  0x7b6c2566 in ?? () from kernelbase.dll\n"
+        "#1  0x21101655 in ?? ()\n"
+        "Thread 1:\n"
+        "#0  0x00400007 in ?? ()\n"
+        "Backtrace stopped: Cannot access memory at address 0x2\n",
+        encoding="utf-8",
+    )
+    register_lines = [
+        "eax            0x6cac998           113953176",
+        "edx            0x462892            4597906",
+        "esp            0x67fdf0            0x67fdf0",
+        "ebp            0xfffffffe          0xfffffffe",
+        "eip            0x400007            0x400007",
+    ]
+    stack_lines = [
+        "0x67fdf0:\t0x06cac998\t0x79b683a0\t0x79b68290\t0x00000000",
+        "0x67fe00:\t0x00000000\t0x00000000\t0x00462d2a\t0x00000167",
+        "0x67fe10:\t0x00479834\t0x7bd644f3\t0x21101655\t0x00000000",
+    ]
+    event = stop_event_from_record(
+        parse_mi_record(
+            '*stopped,reason="signal-received",signal-name="SIGSEGV",frame={addr="0x00400007"}'
+        )
+    )
+    assert event is not None
+    snapshot = CrashSnapshot(
+        event=event,
+        registers=_parse_registers(register_lines),
+        frame_addresses=_parse_frame_addresses(raw_path.read_text().splitlines()),
+        stack_words=_parse_stack_words(stack_lines),
+        fault_address=0x0D959330,
+        image=ImageLayout(base=0x00400000, size=0x000B2000, headers_size=0x1000),
+        raw_path=raw_path,
+    )
+
+    report, resolutions = format_crash_snapshot(snapshot, map_path)
+
+    assert "SIGSEGV at 0x0d959330" in report
+    assert "PC  0x00400007  PE image headers" in report
+    assert "probable consumed return (edx)" in report
+    assert "00462892: _ShowRegionHelp+0x82" in report
+    assert "stack+0x18" in report and "00462d2a: _AfterRegionHelp+0x2a" in report
+    assert "00479834: _LoadGameState+0x34" in report
+    assert "0x7bd" not in report
+    assert "0x211" not in report
+    assert all(0x00400000 <= item.address < 0x004B2000 for item in resolutions)
+
+
+@pytest.mark.parametrize("offset", [2, 3, 7, 0x200])
+def test_header_execution_prioritizes_edx_without_ebp_or_disassembly(
+    tmp_path: Path, offset: int
+) -> None:
+    from wiz8decomp.debug.debugger import _snapshot_candidates
+
+    snapshot = CrashSnapshot(
+        event=stop_event_from_record(
+            parse_mi_record('*stopped,reason="signal-received",signal-name="SIGSEGV"')
+        ),
+        registers={"eip": 0x00400000 + offset, "edx": 0x00462892, "ebp": 0x123456},
+        frame_addresses=(0x00479834,),
+        stack_words=(),
+        fault_address=None,
+        image=ImageLayout(0x00400000, 0xB2000, 0x1000),
+        raw_path=tmp_path / "raw.txt",
+    )
+    assert _snapshot_candidates(snapshot)[0] == ("probable consumed return (edx)", 0x00462892)
+    for initial_offset in (0, 1):
+        initial = replace(snapshot, registers={"eip": 0x400000 + initial_offset, "edx": 0x462892})
+        assert all("consumed" not in source for source, _ in _snapshot_candidates(initial))
+
+
+def test_ordinary_pc_and_modal_assertion_frames_resolve(tmp_path: Path, monkeypatch) -> None:
+    map_path = tmp_path / "runtime.map"
+    map_path.write_text(
+        " 0001:00000000       _srAssertFail 00401000 f   assert.obj\n"
+        " 0001:00000100       _Caller 00401100 f   caller.obj\n"
+    )
+    snapshot = CrashSnapshot(
+        event=stop_event_from_record(
+            parse_mi_record('*stopped,reason="signal-received",signal-name="SIGSEGV"')
+        ),
+        registers={"eip": 0x401008},
+        frame_addresses=(),
+        stack_words=(),
+        fault_address=None,
+        image=ImageLayout(0x400000, 0xB2000, 0x1000),
+        raw_path=tmp_path / "raw.txt",
+    )
+    report, _ = format_crash_snapshot(snapshot, map_path)
+    assert "pc: 00401008: _srAssertFail+0x8" in report
+    modal = replace(
+        snapshot,
+        registers={"eip": 0x7BD642FC},
+        frame_addresses=_parse_frame_addresses(
+            [
+                "#0  0x7bd642fc in MessageBoxA ()",
+                "#1  0x21101655 in ?? ()",
+                "#2  0x00401008 in ?? ()",
+                "#3  0x00401108 in ?? ()",
+            ]
+        ),
+    )
+    _, resolutions = format_crash_snapshot(modal, map_path)
+    assert [item.address for item in resolutions] == [0x401008, 0x401108]
+    correlation = Mock(return_value={"assert.obj": ["_MissingFunction"]})
+    monkeypatch.setattr("wiz8decomp.runtime._unresolved_for_owners", correlation)
+    report, _ = format_crash_snapshot(modal, map_path, tmp_path)
+    correlation.assert_called_once_with(tmp_path, map_path, ["assert.obj", "caller.obj"])
+    assert "unresolved references from assert.obj:\n  _MissingFunction" in report
+
+
+def test_capture_is_bounded_and_parses_frames(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "wiz8decomp.debug.session.image_layout", lambda _: (0x400000, 0xB2000, 0x1000)
+    )
+    session = GdbSession(tmp_path / "runtime.exe", tmp_path, {}, tmp_path)
+    outputs = {
+        "thread apply all bt 16": ["#0  0x7bd642fc in ?? ()", "#1  0x00462892 in ?? ()"],
+        "info registers": ["eip 0x400007", "edx 0x462892"],
+        "x/96wx $sp": ["0x67fe00: 0x00479834"],
+        "x/24i $pc-24": ["Cannot access memory"],
+        "p/x $_siginfo._sifields._sigfault.si_addr": ["$1 = 0x0d959330"],
+    }
+    console = Mock(side_effect=lambda command, **_: outputs[command])
+    monkeypatch.setattr(session, "_console", console)
+    event = stop_event_from_record(
+        parse_mi_record('*stopped,reason="signal-received",signal-name="SIGSEGV"')
+    )
+    snapshot = session.capture_stop("sigsegv", event)
+    assert [call.args[0] for call in console.call_args_list] == list(outputs)
+    assert snapshot.frame_addresses == (0x7BD642FC, 0x462892)
+    assert snapshot.stack_words == ((0x67FE00, 0x479834),)
+    assert snapshot.fault_address == 0xD959330
+    assert "Cannot access memory" in snapshot.raw_path.read_text()
+
+
+def test_console_reassembles_mi_chunks_before_parsing(tmp_path: Path, monkeypatch) -> None:
+    session = GdbSession(tmp_path / "runtime.exe", tmp_path, {}, tmp_path)
+    command = Mock(
+        return_value=[
+            "#0  0x79a9c8b4 in NtUserPeekMessage@20 ()\n#1  0x79b6834f in PeekMessageW@20 ()\n",
+            "#2  PeekMessageA@20 ()\n#3  0x004d",
+            "9a09 in ?? ()\n#4  0x458b08ec in ?? ()\n",
+        ]
+    )
+    monkeypatch.setattr(session, "_command", command)
+    frames = _parse_frame_addresses(session._console("thread apply all bt 16"))
+    assert frames == (0x79A9C8B4, 0x79B6834F, 0x004D9A09, 0x458B08EC)
+
+
+@pytest.mark.parametrize(
+    ("scenario", "product", "arguments"),
+    [
+        (None, "Wiz8Runtime.exe", ["/WINDOW"]),
+        ("main-game-start", "Wiz8RuntimeTest.exe", ["--scenario", "main-game-start"]),
+    ],
+)
+def test_launcher_uses_one_proxy_path(
+    tmp_path: Path, monkeypatch, scenario, product, arguments
+) -> None:
+    from wiz8decomp.debug.debugger import run_debugger
+
+    executable = tmp_path / product
+    executable.touch()
+    settings = SimpleNamespace(
+        repo_dir=tmp_path,
+        work_dir=tmp_path,
+        product_build_dir=tmp_path,
+        recovered_objects_dir=tmp_path,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.stage_game",
+        lambda *a, **kw: SimpleNamespace(
+            executable=kw["executable"],
+            root=tmp_path,
+        ),
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.configure_wine_window_management", Mock())
+    monkeypatch.setattr(
+        "wiz8decomp.debug.debugger.runtime_display", lambda *a, **kw: nullcontext(None)
+    )
+    monkeypatch.setattr("wiz8decomp.debug.debugger._stop_debug_wineserver", Mock())
+    monkeypatch.setattr(
+        "wiz8decomp.debug.debugger._write_provenance", lambda *a: tmp_path / "session.json"
+    )
+    monkeypatch.setattr("wiz8decomp.debug.debugger._debug_result", lambda *a, **kw: {})
+    monkeypatch.setattr(GdbSession, "start", lambda self, **kw: self.proxy.start())
+    monkeypatch.setattr(GdbSession, "continue_inferior", Mock())
+    monkeypatch.setattr(GdbSession, "close", Mock())
+    monkeypatch.setattr("wiz8decomp.debug.session._port_is_listening", lambda _: True)
+    process = Mock()
+    process.poll.return_value = None
+    popen = Mock(return_value=process)
+    monkeypatch.setattr("wiz8decomp.debug.session.subprocess.Popen", popen)
+
+    run_debugger(settings, scenario=scenario)
+
+    command = popen.call_args.args[0]
+    assert command[:4] == ["winedbg", "--gdb", "--no-start", "--port"]
+    assert command[5:] == [str(executable), *arguments]
