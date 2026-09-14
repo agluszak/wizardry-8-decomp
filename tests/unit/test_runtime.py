@@ -17,6 +17,7 @@ from wiz8decomp.runtime import (
     analyze_runtime_crash,
     configure_wine_window_management,
     run_product,
+    run_runtime_suite,
     stage_game,
 )
 
@@ -131,6 +132,36 @@ def test_runtime_observation_is_normalized_to_typed_fields() -> None:
 def test_runtime_observation_requires_one_owned_record() -> None:
     with pytest.raises(RuntimeError, match="expected one runtime observation"):
         _parse_runtime_observation("wine diagnostics only")
+
+
+@pytest.mark.parametrize("check_order", [False, True])
+def test_runtime_suite_selection_and_server_lifetime(
+    tmp_path: Path, monkeypatch, check_order
+) -> None:
+    settings = _settings(tmp_path)
+    scenarios = ("main-menu-startup", "split-stack")
+    visited = []
+    shutdowns = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run", lambda command, **kwargs: shutdowns.append(command)
+    )
+
+    def run(executable, stage, environment, scenario, object_root):
+        visited.append(scenario)
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    result = run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
+    assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
+    assert shutdowns == [["wineserver", "-k"]]
+    assert result["deterministic"] is (True if check_order else None)
 
 
 def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path: Path) -> None:
@@ -300,14 +331,26 @@ def test_unhandled_exception_without_register_dump_reports_parse_failure(
 def test_runtime_timeout_preserves_in_process_diagnostics(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def time_out(*args, **kwargs):
-        raise __import__("subprocess").TimeoutExpired(
-            args[0], 45, output=b"partial stdout", stderr=b"menu reached; teardown stuck"
+    wine = tmp_path / "wine"
+    wine.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys, time\n"
+        "print('partial stdout', flush=True)\n"
+        "print('menu reached; teardown stuck', file=sys.stderr, flush=True)\n"
+        "time.sleep(60)\n"
+    )
+    wine.chmod(0o755)
+    monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_SCENARIO_TIMEOUT_SECONDS", 1)
+    with pytest.raises(RuntimeError, match="last_step=process-start"):
+        _run_runtime_scenario(
+            tmp_path / "test.exe",
+            tmp_path,
+            {"PATH": f"{tmp_path}:/usr/bin:/bin"},
+            "main-menu-startup",
         )
-
-    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", time_out)
-    with pytest.raises(RuntimeError, match="menu reached; teardown stuck"):
-        _run_runtime_scenario(tmp_path / "test.exe", tmp_path, {}, "main-menu-startup")
+    diagnostic = tmp_path / "diagnostics" / "main-menu-startup-failure.txt"
+    assert "menu reached; teardown stuck" in diagnostic.read_text()
+    assert "partial stdout" in diagnostic.read_text()
 
 
 def test_runtime_display_accepts_an_existing_private_display(
