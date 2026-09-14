@@ -930,7 +930,7 @@ int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
 
 // FUNCTION: WIZ8 0x004bea20
 W8MonsterRep::W8MonsterRep()
-    : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), value_5ec(0), scale_5f0(1.0f),
+    : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), standing_height_5ec(0), scale_5f0(1.0f),
       minimum_scale_5f4(0.0f), maximum_scale_5f8(0.0f), value_5fc(1.0f), flag_600(0), flag_601(0),
       value_604(10.0f), value_608(0), value_60c(0), value_610(0), monster_light_624(0)
 {
@@ -1025,7 +1025,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
 // FUNCTION: WIZ8 0x004bebd0
 W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
     : W8EmitterHost(other), flag_5bc(other.flag_5bc), linked_objects_5e8(0),
-      value_5ec(other.value_5ec), scale_5f0(other.scale_5f0),
+      standing_height_5ec(other.standing_height_5ec), scale_5f0(other.scale_5f0),
       minimum_scale_5f4(other.minimum_scale_5f4), maximum_scale_5f8(other.maximum_scale_5f8),
       value_5fc(other.value_5fc), flag_600(other.flag_600), flag_601(other.flag_601),
       value_604(other.value_604), value_608(other.value_608), value_60c(other.value_60c),
@@ -3639,7 +3639,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 offset = source * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
-                location.y += representation->value_5ec +
+                location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_attachment_vertical_scale_005eca84;
 
                 item->SetLocation0049F720(&location);
@@ -3688,7 +3688,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 offset.y += group_height * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
-                location.y += representation->value_5ec +
+                location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_linked_vertical_scale_005ed29c;
 
                 item->SetLocation0049F720(&location);
@@ -5048,6 +5048,25 @@ void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
     cycle->UpdateRepresentation(world);
 }
 
+// FUNCTION: WIZ8 0x004C4EF0
+void W8Monster::RefreshStandingHeight()
+{
+    W8MonsterRep* representation = m_pRep;
+    signed char previous_cycle = representation->current_cycle;
+    SetCycle(1);
+    SetSubCycle(0);
+    srVector3T<float> camera_location;
+    camera_location = g_world->camera->getLocation();
+    SelectLOD004A7BE0(&camera_location);
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    GetAnimationBounds(&minimum, &maximum);
+    representation->standing_height_5ec = maximum.y;
+    if (previous_cycle != -1) {
+        SetCycle(previous_cycle);
+    }
+}
+
 // FUNCTION: WIZ8 0x004C5290
 void W8Monster::ApplyRepresentationScale()
 {
@@ -5117,10 +5136,10 @@ void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
     }
 }
 // FUNCTION: WIZ8 0x004C5ED0
-void Function4C5ED0(W8Monster* monster)
+void RefreshMonsterStandingHeight(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4C4EF0();
+        monster->RefreshStandingHeight();
     }
 }
 // FUNCTION: WIZ8 0x004C6220

@@ -313,7 +313,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 
     ApplyMonsterRepresentationScale(monster_info->monster);
     MonsterSetCycle(monster_info->monster, 1);
-    Function4C5ED0(monster_info->monster);
+    RefreshMonsterStandingHeight(monster_info->monster);
 }
 
 // FUNCTION: WIZ8 0x004e4600
@@ -882,7 +882,7 @@ void InitializeMonsterRuntimeStats(void)
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
         ApplyMonsterRepresentationScale(monster_info->monster);
-        Function4C5ED0(monster_info->monster);
+        RefreshMonsterStandingHeight(monster_info->monster);
     }
 
     for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
@@ -904,7 +904,7 @@ void InitializeMonsterRuntimeStats(void)
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
         ApplyMonsterRepresentationScale(monster_info->monster);
-        Function4C5ED0(monster_info->monster);
+        RefreshMonsterStandingHeight(monster_info->monster);
     }
 }
 
