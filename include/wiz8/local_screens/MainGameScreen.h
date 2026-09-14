@@ -11,6 +11,7 @@ struct W8IList;
 struct W8MipeState;
 struct W8NpcState;
 struct W8NpcScriptQuote;
+struct W8ScreenRect;
 
 void RequestRedrawParty(void);
 void RefreshSelectedPartyPortrait(unsigned int party_slot);
@@ -33,6 +34,7 @@ static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_si
 extern const wchar_t g_format_s_006068e4[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
+extern W8ScreenRect g_viewport_modes_647d30[];
 
 #include "wiz8/screen_state.h"
 
@@ -50,6 +52,29 @@ extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 /* Local Screens\MainGameScreen.cpp owns the live level-screen state. */
 
 #pragma pack(push, 1)
+/* The dormant typed-dialogue input state hung off the block's
+   dialogue_state pointer: a plain heap object, not an srClass
+   derivative. Its unrecovered consumers (0x0058D7E0..0x0058F250) establish
+   this layout; 0x0058D940 frees text, pending_word and line_offsets and then
+   the object with operator delete. */
+struct W8DialogueTextState {
+    wchar_t* text;              /* 0x00 owned buffer the input edits in place */
+    wchar_t* pending_word;      /* 0x04 owned buffer carried across line wraps */
+    int unknown_08;             /* 0x08 */
+    unsigned int* line_offsets; /* 0x0c owned array of per-line char offsets */
+    unsigned int line_count;    /* 0x10 */
+    unsigned int text_capacity; /* 0x14 in characters; 0x0058D7E0 grows it */
+    unsigned int line_capacity; /* 0x18 in entries; 0x0058D890 grows by 0x20 */
+    int unknown_1c;             /* 0x1c */
+    short character_index;      /* 0x20 selected character the input binds to */
+    short unknown_22;
+    unsigned int wrap_width;  /* 0x24 pixel budget per line */
+    unsigned int cursor;      /* 0x28 char index of the insertion point */
+    unsigned char unknown_2c; /* 0x2c */
+    unsigned char dirty;      /* 0x2d set on each append */
+    unsigned char unknown_2e[2];
+};
+
 struct W8LevelRuntimeBlock {
     unsigned char unknown_000[0xf0];
     unsigned char flag_0f0; /* 0x0f0 */
@@ -78,11 +103,18 @@ struct W8LevelRuntimeBlock {
     int text_slots_1e8[4];
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
-    /* The live dialogue's object (an srClass derivative with state at +0x160,
-       past the srModelInstance base). Recovered code only clears this slot
-       and the three teardown slots below; the filling producers are
-       unrecovered, so the concrete class stays unresolved. */
-    srClass* dialogue_owner;
+    /* The dormant free-text dialogue input state. dialogue_open gates the
+       unrecovered input handler at 0x0058F250 (called from the main-game input
+       pump); no instruction in the GOG-base binary ever sets it or installs
+       the object, so the typed-input cluster it feeds - buffer grow
+       0x0058D7E0/0x0058D890, character append 0x0058D9C0, re-wrap
+       0x0058DCA0, teardown 0x0058D940, region handler 0x0058E9F0 - is dead
+       code here and no producer of the pointer exists. It never passes
+       ReleaseObject004257F0. */
+    W8DialogueTextState* dialogue_state;
+    /* 0x200: tracked party slots. [0] is the slot the portrait/info overlay
+       tracks; [3] is the hovered condition-button slot that owns the mode-6
+       highlight overlay. -1 while untracked. */
     int values_200[4];      /* 0x200 */
     unsigned char flag_210; /* 0x210 */
     unsigned char unknown_211[3];
@@ -90,14 +122,20 @@ struct W8LevelRuntimeBlock {
     unsigned char flag_218; /* 0x218 */
     unsigned char unknown_219[7];
     int dialogue_x_220;
-    int dialogue_y_224;
-    int dialogue_height_228;
+    unsigned int dialogue_y_224; /* ClearSurfaceRect's unsigned top/bottom */
+    unsigned int dialogue_height_228;
     unsigned char unknown_22c[0xc];
     int dialogue_width_238;
-    int value_23c;                   /* 0x23c */
-    int value_240;                   /* 0x240 */
-    unsigned int world_update_flags; /* 0x244 */
-    unsigned int world_render_flags; /* 0x248 */
+    int value_23c; /* 0x23c */
+    /* The dialogue highlight sprite. The unrecovered dialogue-box draw at
+       0x00563FC0 lazily creates it from catalog object 0x72 through
+       Function4255C0 - the retail assertion spells it
+       gpMGSV->pHighlightGraphic - and it is released through
+       ReleaseObject004257F0 whenever mode 6 ends or the tracked party slots
+       change. */
+    stModelInstance2D* highlight_graphic; /* 0x240 */
+    unsigned int world_update_flags;      /* 0x244 */
+    unsigned int world_render_flags;      /* 0x248 */
     unsigned char unknown_24c;
     unsigned char flag_24d;
     unsigned char unknown_24e[2];
@@ -308,6 +346,47 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
+/* The 0x50-byte panel stored at W8MainScreenState+0x1a8 (bounds
+   0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
+   Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
+   layout (value_fc == 4) is up, and its Redraw substitutes m_value_4c for
+   m_renderArg_20 in that mode. The constructor is inlined into 0x0056D1D0 as
+   the Controls base call plus m_value_4c = 0x11; no standalone derived body
+   exists. */
+// VTABLE: WIZ8 0x005ee9f0
+class W8MainGamePanel005EE9F0 : public Controls {
+public:
+    W8MainGamePanel005EE9F0(int left, int top, int new_right, int new_bottom, int render_target,
+                            int render_arg_1c, int render_arg_20)
+        : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
+    {
+        m_value_4c = 0x11;
+    }
+    virtual void SetEnabled(bool enable) override; /* 0x0056BC50 */
+    virtual void Redraw() override;                /* 0x0056BD30 */
+
+    int m_value_4c; /* 0x4c: catalog image used while value_fc == 4 */
+};
+static_assert(sizeof(W8MainGamePanel005EE9F0) == 0x50, "W8MainGamePanel005EE9F0_size");
+
+/* The Controls-sized panel stored at W8MainScreenState+0x1c0 (bounds
+   0x1dc,0x166-0x269,0x1c0). Enabling it starts text-input scheme 1 and
+   installs the typed-dialogue input field; Redraw also draws the input-frame
+   image at y 0x19b while flag_1d9 is raised, else 0x18b. The constructor is the
+   plain Controls base call inlined at 0x0056D1D0 with no extra fields. */
+// VTABLE: WIZ8 0x005ee9e4
+class W8MainGamePanel005EE9E4 : public Controls {
+public:
+    W8MainGamePanel005EE9E4(int left, int top, int new_right, int new_bottom, int render_target,
+                            int render_arg_1c, int render_arg_20)
+        : Controls(left, top, new_right, new_bottom, render_target, render_arg_1c, render_arg_20)
+    {
+    }
+    virtual void SetEnabled(bool enable) override; /* 0x0056BAC0 */
+    virtual void Redraw() override;                /* 0x0056BB20 */
+};
+static_assert(sizeof(W8MainGamePanel005EE9E4) == 0x4c, "W8MainGamePanel005EE9E4_size");
+
 /* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller:
    Controls base, six dwords, then the W8DialogTextArea at +0x64 for a 0xBC
    total. W8MainScreenState stores the live instance at +0x1b0. */
@@ -336,6 +415,185 @@ static_assert(offsetof(W8NpcDialogueTextController, scroll_height) == 0x60,
               "W8NpcDialogueTextController_scroll_height");
 static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
               "W8NpcDialogueTextController_text_area");
+
+/* The hover/click target the dialogue controller embeds for its text area
+   (constructed by 0x0055E570, stored in W8MainScreenState at +0x130, parented
+   to the +0x1b0 controller). Entering selects the first visible entry,
+   leaving clears the selection, and the button handlers track the press in
+   m_flags_34 before firing the widget callbacks. */
+// VTABLE: WIZ8 0x005ee92c
+class W8NpcDialogueScrollWidget : public W8Widget {
+public:
+    W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left, int top, int right,
+                              int bottom); /* 0x0055E570 */
+    /* The ordinary destructor at 0x0055E5D0 is a pure JMP thunk to
+       W8Widget::~W8Widget; there is no authored body to match. */
+    // SYNTHETIC: WIZ8 0x0055E5B0
+    // W8NpcDialogueScrollWidget::`scalar deleting destructor'
+
+    virtual ~W8NpcDialogueScrollWidget() override {}
+    virtual void OnMouseEnter(int event) override;     /* 0x0055E5E0 */
+    virtual void OnMouseLeave(int event) override;     /* 0x0055E610 */
+    virtual void OnLeftButtonDown(int event) override; /* 0x0055E640 */
+    virtual void OnLeftButtonUp(int event) override;   /* 0x0055E660 */
+
+    unsigned int m_flags_34; /* 0x34: bit 0 while the primary button is held */
+};
+static_assert(sizeof(W8NpcDialogueScrollWidget) == 0x38, "W8NpcDialogueScrollWidget_size");
+static_assert(offsetof(W8NpcDialogueScrollWidget, m_flags_34) == 0x34,
+              "W8NpcDialogueScrollWidget_flags_34");
+
+class W8LockTumbler;
+
+/* One-slot callback a W8LockTumbler holds at +0x44 and invokes with itself on
+   left-button release (0x00585690). 0x005eeabc is the construction-phase table
+   emitted for the abstract interface; the implementing secondary base sits at
+   W8LockTumblerPanel+0x4c (table 0x005eeaa8). */
+// VTABLE: WIZ8 0x005eeabc
+class W8LockTumblerListener {
+public:
+    virtual void OnTumblerReleased(W8LockTumbler* tumbler) = 0;
+};
+
+/* One lock-picking pin widget (0x48 bytes, created inline inside the
+   W8LockTumblerPanel constructor loop, final table 0x005eea60). +0x3c is the
+   per-pin pattern byte copied from Trigger::state_370.bytes_01; +0x40 is the
+   pin's current pixel offset, 0x22 at rest. */
+// VTABLE: WIZ8 0x005eea60
+class W8LockTumbler : public W8Widget {
+public:
+    /* Inlined into 0x005856E0: the W8Widget base call plus the field writes
+       below; no standalone derived body exists. */
+    W8LockTumbler(Controls* panel, int left, int top, int right, int bottom, int pin_index)
+        : W8Widget(panel, 0xffffffff, left, top, right, bottom), m_pin_set_34(0), m_rising_35(0),
+          m_falling_36(0), m_at_top_37(0), m_hovered_38(0), m_pin_index_3c(pin_index),
+          m_pin_height_40(0x22), m_listener_44(0)
+    {
+    }
+    virtual void Redraw(int full_redraw) override;   /* 0x005854B0 */
+    virtual void OnMouseEnter(int event) override;   /* 0x00585610 */
+    virtual void OnMouseLeave(int event) override;   /* 0x00585650 */
+    virtual void OnLeftButtonUp(int event) override; /* 0x00585690 */
+
+    bool m_pin_set_34;                    /* 0x34: raised and holding */
+    bool m_rising_35;                     /* 0x35: animating toward its target height */
+    bool m_falling_36;                    /* 0x36: dropping back to rest */
+    bool m_at_top_37;                     /* 0x37: redrawn against the shared tumble phase */
+    bool m_hovered_38;                    /* 0x38 */
+    int m_pin_index_3c;                   /* 0x3c: column into the pin pattern tables */
+    int m_pin_height_40;                  /* 0x40: pixel offset, 0x22 at rest */
+    W8LockTumblerListener* m_listener_44; /* 0x44 */
+};
+static_assert(sizeof(W8LockTumbler) == 0x48, "W8LockTumbler_size");
+
+/* One-slot callback W8LockTumblerPanel holds at +0xe8 and invokes with the
+   released tumbler's index (0x00585950). 0x005eeae0 is the construction-phase
+   table; W8LockInteraction implements it on its primary base. */
+// VTABLE: WIZ8 0x005eeae0
+class W8LockTumblerPanelListener {
+public:
+    virtual void OnTumblerPicked(int index) = 0;
+};
+
+/* The tumbler strip of the lock interaction (0xec bytes, ctor 0x005856E0,
+   primary table 0x005eeaac, W8LockTumblerListener secondary at +0x4c with
+   table 0x005eeaa8). Owns the eight tumblers and the three animation timers:
+   the phase timer steps the shared sway, the rise timer moves a pin toward
+   g_lock_pin_target_height_64ba80, the fall timer returns it to rest. */
+// VTABLE: WIZ8 0x005eeaac
+class W8LockTumblerPanel : public Controls, public W8LockTumblerListener {
+public:
+    W8LockTumblerPanel(int tumbler_count, const unsigned char* pin_data); /* 0x005856E0 */
+    // SYNTHETIC: WIZ8 0x005858a0
+    // W8LockTumblerPanel::`scalar deleting destructor'
+
+    virtual ~W8LockTumblerPanel();                                   /* 0x005858C0 */
+    virtual void OnTumblerReleased(W8LockTumbler* tumbler) override; /* 0x00585950 */
+    void UpdateTumblerAnimation();                                   /* 0x00585990 */
+
+    int m_tumbler_count_50;          /* 0x50: pins in use, clamped to [2,8] */
+    W8LockTumbler* m_tumblers_54[8]; /* 0x54 */
+    unsigned char m_animating_74;    /* 0x74: a pin is in flight; input is locked out */
+    unsigned char unknown_75[3];
+    int m_phase_78;               /* 0x78: sway accumulator feeding g_lock_phase_68f2b4 */
+    W8GameTimer m_phase_timer_7c; /* 0x7c: 0.04s */
+    W8GameTimer m_rise_timer_a0;  /* 0xa0: 0.03s */
+    W8GameTimer m_fall_timer_c4;  /* 0xc4: 0.01s */
+    W8LockTumblerPanelListener* m_listener_e8; /* 0xe8 */
+};
+static_assert(sizeof(W8LockTumblerPanel) == 0xec, "W8LockTumblerPanel_size");
+static_assert(offsetof(W8LockTumblerPanel, m_tumblers_54) == 0x54, "W8LockTumblerPanel_tumblers");
+static_assert(offsetof(W8LockTumblerPanel, m_listener_e8) == 0xe8, "W8LockTumblerPanel_listener");
+
+/* The lock interaction's readout column (0x6c bytes, ctor 0x00585B00): the
+   selected character's name plus the lockpick-skill, spell-power and
+   force-chance percentages, one W8TextBuffer per row. */
+// VTABLE: WIZ8 0x005eeac0
+class W8LockInfoPanel : public Controls {
+public:
+    W8LockInfoPanel(int tumbler_count); /* 0x00585B00 */
+    // SYNTHETIC: WIZ8 0x00585e00
+    // W8LockInfoPanel::`scalar deleting destructor'
+
+    virtual ~W8LockInfoPanel();     /* 0x00585E20 */
+    virtual void Redraw() override; /* 0x00586120 */
+    void RefreshInfo();             /* 0x00585ED0 */
+
+    int m_tumbler_count_4c;   /* 0x4c */
+    W8TextBuffer* m_text_050; /* 0x50: character name */
+    W8TextBuffer* m_text_054; /* 0x54 */
+    W8TextBuffer* m_text_058; /* 0x58: lockpick skill */
+    W8TextBuffer* m_text_05c; /* 0x5c */
+    W8TextBuffer* m_text_060; /* 0x60: spell power */
+    W8TextBuffer* m_text_064; /* 0x64 */
+    W8TextBuffer* m_text_068; /* 0x68: force chance */
+};
+static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
+
+/* The lock-picking interaction root allocated at 0x0068F2C0 (0xa4 bytes, ctor
+   0x005861A0, destructor 0x005866A0). The primary base answers the tumbler
+   panel's "released tumbler N" callback; the secondary W8TextControl::Listener
+   at +0x04 (table 0x005eead0) receives the action-panel buttons. Process() at
+   0x00586740 is the per-frame state machine ProcessLockInteractMode drives. */
+// VTABLE: WIZ8 0x005eead8
+class W8LockInteraction : public W8LockTumblerPanelListener, public W8TextControl::Listener {
+public:
+    W8LockInteraction(Trigger* trigger); /* 0x005861A0 */
+    // SYNTHETIC: WIZ8 0x00586680
+    // W8LockInteraction::`scalar deleting destructor'
+
+    virtual ~W8LockInteraction();                            /* 0x005866A0 */
+    virtual void OnTumblerPicked(int index) override;        /* 0x00586B10 */
+    virtual void OnPrimary(W8TextControl* control) override; /* 0x00586C00 */
+    void Process();                                          /* 0x00586740 */
+    void ResolvePick();                                      /* 0x00586C60 */
+    void AttemptForce();                                     /* 0x00586E40 */
+    void EnablePanels(int enable);                           /* 0x00586AF0 */
+    void BeginUnlock();                                      /* 0x005874D0 */
+
+    Trigger* m_trigger_08;  /* 0x08 */
+    int m_tumbler_count_0c; /* 0x0c: trigger->value_36c clamped to [2,8] */
+    W8LockTumblerPanel* m_tumbler_panel_10;
+    W8LockInfoPanel* m_info_panel_14;
+    Controls* m_action_panel_18;
+    W8TextControl* m_done_button_1c;      /* 0x1c: OnPrimary target, state 9 */
+    W8TextControl* m_spell_button_20;     /* 0x20: gated by spell-0x27 power */
+    W8TextControl* m_force_button_24;     /* 0x24: gated by the force chance */
+    W8TextControl* m_cancel_button_28;    /* 0x28: OnPrimary target, state 5 (cancel) */
+    int m_selected_slot_2c;               /* 0x2c: party slot owning the raised pins */
+    int m_picked_tumbler_30;              /* 0x30: index OnTumblerPicked recorded */
+    int m_state_34;                       /* 0x34: Process() state */
+    int m_tumbler_owner_38[8];            /* 0x38: owning party slot per pin, -1 unset */
+    unsigned char m_tumbler_locked_58[8]; /* 0x58: pin kept when the slot is released */
+    int m_slot_attempts_60[8];            /* 0x60: pick attempts per party slot */
+    W8GameTimer m_timer_80;               /* 0x80: state-8 completion delay */
+};
+static_assert(sizeof(W8LockInteraction) == 0xa4, "W8LockInteraction_size");
+static_assert(offsetof(W8LockInteraction, m_trigger_08) == 0x08, "W8LockInteraction_trigger");
+static_assert(offsetof(W8LockInteraction, m_tumbler_panel_10) == 0x10,
+              "W8LockInteraction_tumbler_panel");
+static_assert(offsetof(W8LockInteraction, m_state_34) == 0x34, "W8LockInteraction_state");
+static_assert(offsetof(W8LockInteraction, m_timer_80) == 0x80, "W8LockInteraction_timer");
 
 /* 0x005eebdc is the construction-phase primary table installed at the start
    of 0x00589160; 0x005eebd8 is the complete-object table. Slot 0 is a pure
@@ -409,17 +667,28 @@ struct W8MainScreenState {
     int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
     unsigned char unknown_100[4];
     int value_104;
-    unsigned char unknown_108[0x2c];
-    W8Widget* dialogue_widget_134; /* 0x134 */
-    W8Widget* dialogue_widget_138; /* 0x138 */
-    unsigned char unknown_13c[0x74];
+    unsigned char unknown_108[0x28];
+    W8NpcDialogueScrollWidget* dialogue_scroll_130; /* 0x130 */
+    W8Widget* dialogue_widget_134;                  /* 0x134 */
+    W8Widget* dialogue_widget_138;                  /* 0x138 */
+    unsigned char unknown_13c[0x34];
+    /* The six option buttons hosted by panel_1a8; they activate only while
+       value_fc == 4. Created as plain W8TextControls (regions 0x75..0x7a) by
+       0x0056D1D0. */
+    W8TextControl* option_buttons_170[6];
+    unsigned char unknown_188[0x20];
+    W8MainGamePanel005EE9F0* panel_1a8; /* 0x1a8 */
+    unsigned char unknown_1ac[4];
     W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
     Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
-    unsigned char unknown_1b8[0x1c];
+    unsigned char unknown_1b8[8];
+    W8MainGamePanel005EE9E4* text_input_panel_1c0; /* 0x1c0 */
+    unsigned char unknown_1c4[0x10];
     W8NpcState* dialogue_npc;
     /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
     unsigned char flag_1d8;
-    unsigned char unknown_1d9[0x13];
+    unsigned char flag_1d9;
+    unsigned char unknown_1da[0x12];
     unsigned char flag_1ec;
     unsigned char unknown_1ed[0xd];
     unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
@@ -518,6 +787,8 @@ unsigned char LoadKeywordFile(const char* path,
    the caller's buffer and return the cursor past it, or null at the end. */
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
+struct W8NpcScriptQuote;
+
 void Function577260(void);
 /* 0x005775D0: queue a named scripted action (kind 0 item, 1 NPC, 2/3 other);
    resolves the name against the item and NPC tables when kind is -1 and
@@ -592,6 +863,7 @@ void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
    main-game screen is current. */
 void Function561EC0(void);
 void Function563DD0(void);
+void DismissHighlightOverlay(void); /* 0x00563EB0 */
 void Function565740(int slot);
 void Function568E10(void);
 short Function5698C0(void);

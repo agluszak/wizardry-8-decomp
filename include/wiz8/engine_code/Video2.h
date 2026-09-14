@@ -103,6 +103,9 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
 /* 0x004048A0: fill one rectangle of the target surface through the
    locked primary-surface blitter. */
 void Function4048A0(int target, int left, int top, int right, int bottom);
+/* 0x00402FA0: fill one rectangle of the target surface with the given
+   color/flags word (the lock tumbler well passes 0x8000). */
+void Function402FA0(int target, int left, int top, int right, int bottom, int flags);
 
 #ifdef __cplusplus
 

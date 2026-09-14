@@ -396,7 +396,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->values_170[7] = -1;
     g_level_block->held_item_display_190 = -1;
     g_level_block->value_23c = -1;
-    g_level_block->value_240 = 0;
+    g_level_block->highlight_graphic = 0;
     g_level_block->values_194[1] = 0x35;
     g_level_block->values_200[0] = -1;
     g_level_block->values_200[1] = -1;
@@ -428,7 +428,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_271 = 1;
     g_level_block->dialogue_open = 0;
     g_level_block->flag_272 = 0;
-    g_level_block->dialogue_owner = 0;
+    g_level_block->dialogue_state = 0;
     g_level_block->value_278 = 0;
     g_level_block->tick_274 = GetTickCount();
     g_level_block->value_284 = 0;

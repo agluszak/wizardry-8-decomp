@@ -119,7 +119,7 @@ float g_float_005ebb38 = 1.0f;
 float g_float_005ebc7c = 0.5f;
 
 // FUNCTION: WIZ8 0x004f30f0
-void Controls::EnableRegionSet(bool enable)
+void Controls::EnableRegionSet(unsigned char enable)
 {
     if (m_uiRegionSetId == REGSET_NULL) {
         srAssertFail("m_uiRegionSetId != REGSET_NULL",
@@ -852,7 +852,7 @@ unsigned char W8TextControl::MeasureText004F4800()
 /* Where the text should be drawn: the panel origin plus either the widget's
    corner or an alignment computed from its cached measured extent. */
 // FUNCTION: WIZ8 0x004f4850
-void W8TextControl::GetTextOrigin(int unused, int* px, int* py)
+void W8TextControl::GetTextOrigin(int* px, int* py)
 {
     short* measured;
     short width;
@@ -964,7 +964,7 @@ void W8TextControl::Redraw(int full_redraw)
 
     int x;
     int y;
-    GetTextOrigin(0, &x, &y);
+    GetTextOrigin(&x, &y);
     if (sprite != -1) {
         if (m_alternateTextEnabled != 0) {
             short width;

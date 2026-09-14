@@ -17,6 +17,7 @@ struct W8AutomapNote {
 static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
 extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
+extern int g_value_68f2b0;
 extern int g_value_68f2c4;
 
 class W8DialogButton;

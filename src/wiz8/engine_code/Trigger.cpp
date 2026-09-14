@@ -469,7 +469,7 @@ bool Trigger::Load0043C1B0(int hFile, char version)
     if (has_action_data != 0) {
         FileRead(hFile, &action_type, sizeof(action_type), 0);
         if (action_type == 10) {
-            W8TriggerActionData005EC134* pDoor = new W8TriggerActionData005EC134;
+            W8DoorTriggerActionData* pDoor = new W8DoorTriggerActionData;
             unsigned short action_flags;
             unsigned short progress_delay;
             unsigned short item;
@@ -1277,10 +1277,10 @@ W8TriggerActionData::~W8TriggerActionData() {}
    type-10's final-table slot folds onto it in retail (the recompiled copy
    resolves to the type-10 sdd, the only marked table that consumes it). */
 // SYNTHETIC: WIZ8 0x00445ec0
-// W8TriggerActionData005EC134::`scalar deleting destructor'
+// W8DoorTriggerActionData::`scalar deleting destructor'
 
 // VTABLE: WIZ8 0x005ec134
-// class W8TriggerActionData005EC134
+// class W8DoorTriggerActionData
 
 // VTABLE: WIZ8 0x005ec158
 // class W8TriggerActionData005EC158
@@ -1343,7 +1343,7 @@ void Trigger::SetPosition004416F0(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x004417c0
 W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
 {
-    W8TriggerActionData005EC134* data = new W8TriggerActionData005EC134;
+    W8DoorTriggerActionData* data = new W8DoorTriggerActionData;
     data->type_004 = 10;
     data->flags_008 = 0x40;
     data->flags_009 &= ~1;
@@ -2679,14 +2679,14 @@ void Trigger::Run(int source)
     if (trigger_kind_018 == 1) {
         switch (action_230) {
         case 1: {
-            W8TriggerActionData005EC134* action_data = 0;
+            W8DoorTriggerActionData* action_data = 0;
 
             if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
                 m_pProp->Rep()->flag_06d != 0) {
                 break;
             }
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                action_data = static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+                action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
@@ -2795,11 +2795,11 @@ void Trigger::Run(int source)
         }
 
         case 0x2c: {
-            W8TriggerActionData005EC134* action_data = 0;
+            W8DoorTriggerActionData* action_data = 0;
             bool was_active;
 
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                action_data = static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+                action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
             }
             if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
                 action_data->item_00a != -1) {
@@ -3655,8 +3655,8 @@ bool Trigger::SelectAction()
             }
         }
     } else {
-        W8TriggerActionData005EC134* action_data =
-            static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+        W8DoorTriggerActionData* action_data =
+            static_cast<W8DoorTriggerActionData*>(m_pActionData);
         bool linked_trigger_blocked = false;
 
         if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {

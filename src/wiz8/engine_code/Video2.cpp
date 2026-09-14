@@ -2157,10 +2157,11 @@ unsigned char SetFlag603C60(void)
    mode when the +0x160 flag says otherwise. That flag is the first dword
    past sizeof(srModelInstance); both stModelInstance and stModelInstance2D
    store state_160 there. The four recovered callers pass g_level_block
-   slots (dialogue_owner from MainGameScreen, plus the formation-board
-   sprites released from RCSCommon). The formation slots are produced by
-   Function4255C0 in MGSFormation.cpp; dialogue_owner's producer remains
-   unrecovered, so its concrete class stays unresolved. */
+   slots (highlight_graphic from MainGameScreen, plus the formation-board
+   sprites released from RCSCommon). All are stModelInstance2D-family
+   sprites produced by Function4255C0 - the formation slots in
+   MGSFormation.cpp, the highlight in the unrecovered dialogue-box draw at
+   0x00563FC0. */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject004257F0(srClass* object)
 {

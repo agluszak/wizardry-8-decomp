@@ -7,6 +7,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/npc_interaction.h"
+#include "wiz8/text_input.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/Levels.h"
@@ -25,6 +26,7 @@
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/render_state.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -76,6 +78,7 @@
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/string_database.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/engine_code/Prop.h"
@@ -264,20 +267,761 @@ void Function4E8EA0(void);
 void StartCombat(int surprise);
 
 void Function56E510(void);
-/* 0x00586740 is the lock-interaction state machine; its receiver is the heap
-   object at 0x0068F2C0 and arrives in ECX, which __fastcall is how a
-   member-shaped call is reachable from a free declaration. */
-struct W8LockInteraction00586740;
+// GLOBAL: WIZ8 0x0064BA80
+int g_lock_pin_target_height_64ba80[4] = {10, 16, 22, 28};
+// GLOBAL: WIZ8 0x0064BAE8
+char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
+// GLOBAL: WIZ8 0x0064BABC
+char s_lock_picking_success_64babc[] = "Data\\Sound\\Misc\\Lock_Picking_Success.wav";
+// GLOBAL: WIZ8 0x0064BB10
+char s_lock_pin_rising_64bb10[] = "Data\\Sound\\Misc\\Lock_Pin_Rising.wav";
+// GLOBAL: WIZ8 0x0064BB34
+char s_lock_forcing_fail_64bb34[] = "Data\\Sound\\Misc\\Lock_Forcing_Fail.wav";
+// GLOBAL: WIZ8 0x0064BB5C
+char s_lock_forcing_success_64bb5c[] = "Data\\Sound\\Misc\\Lock_Forcing_Successful.wav";
+// GLOBAL: WIZ8 0x0068F2B4
+int g_lock_phase_68f2b4;
+// GLOBAL: WIZ8 0x0068F2B8
+unsigned int g_lock_tumbler_region_set_68f2b8;
+// GLOBAL: WIZ8 0x0068F2BC
+unsigned int g_lock_action_region_set_68f2bc;
 // GLOBAL: WIZ8 0x0068F2C0
-W8LockInteraction00586740* g_lock_interaction_68f2c0;
-void __fastcall ProcessLockInteraction(W8LockInteraction00586740* interaction);
+W8LockInteraction* g_lock_interaction_68f2c0;
+/* 0x004457A0: thiscall on the embedded lock/trap state at Trigger+0x368;
+   decrements the charge count at its +0x1c and reports whether one remained. */
+int __fastcall Function4457A0(int* lock_state);
+/* 0x00586A70: the selected slot's effective power with spell 0x27. */
+int Function586A70(int slot);
 void Function593360(void);
 unsigned char Function57E3C0(void);
 
 // FUNCTION: WIZ8 0x00587960
 void ProcessLockInteractMode(void)
 {
-    ProcessLockInteraction(g_lock_interaction_68f2c0);
+    g_lock_interaction_68f2c0->Process();
+}
+
+// FUNCTION: WIZ8 0x005854B0
+void W8LockTumbler::Redraw(int full_redraw)
+{
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int frame;
+
+    if (!m_active) {
+        return;
+    }
+    if (!full_redraw && !m_dirty) {
+        return;
+    }
+    left = m_left + m_pPanel->origin_x;
+    right = m_right + m_pPanel->origin_x;
+    top = m_top + m_pPanel->origin_y;
+    bottom = m_bottom + m_pPanel->origin_y;
+    InvalidateRegion(left - 3, top, right + 3, bottom, 0);
+    Function402FA0(-0xe, left, top, right, top + 0x24, 0x8000);
+    Function402FA0(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
+    DrawCatalogImage(-0xe, 0x1ae, 0, 0, left + 3, top, 2, 0);
+    frame = m_pin_index_3c * 4 + 1;
+    if (m_pin_set_34) {
+        frame += m_at_top_37 ? 2 : 1;
+    } else if (m_hovered_38 && !m_rising_35 && !m_falling_36) {
+        frame += 3;
+    }
+    DrawCatalogImage(-0xe, 0x1ae, 0, frame, left, top, 2, 0);
+    if (m_at_top_37) {
+        DrawCatalogImage(-0xe, 0x1ae, 0, g_lock_phase_68f2b4 + 0x11, right, top - 4, 2, 0);
+    }
+    m_dirty = 0;
+}
+
+// FUNCTION: WIZ8 0x00585610
+void W8LockTumbler::OnMouseEnter(int event)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    m_hovered_38 = 1;
+    if (m_enabled && !m_rising_35 && !m_falling_36 && !m_pin_set_34) {
+        Invalidate(event);
+    }
+}
+
+// FUNCTION: WIZ8 0x00585650
+void W8LockTumbler::OnMouseLeave(int event)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    m_hovered_38 = 0;
+    if (m_enabled && !m_pin_set_34) {
+        Invalidate(event);
+    }
+}
+
+// FUNCTION: WIZ8 0x00585690
+void W8LockTumbler::OnLeftButtonUp(int event)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    if (m_enabled && m_hovered_38 && !m_rising_35 && !m_falling_36 && !m_pin_set_34 &&
+        m_listener_44 != 0) {
+        m_listener_44->OnTumblerReleased(this);
+    }
+}
+
+// FUNCTION: WIZ8 0x005856E0
+W8LockTumblerPanel::W8LockTumblerPanel(int tumbler_count, const unsigned char* pin_data)
+    : Controls(0xd3, 0x166, 0, 0, 0x1af, 0, 1), m_phase_timer_7c(0.04f, 0),
+      m_rise_timer_a0(0.03f, 0), m_fall_timer_c4(0.01f, 0)
+{
+    int i;
+    int x;
+
+    m_tumbler_count_50 = tumbler_count;
+    m_animating_74 = 0;
+    m_phase_78 = 0;
+    m_listener_e8 = 0;
+    AcquireRegionSet(&g_lock_tumbler_region_set_68f2b8);
+    for (i = 0, x = 0x28; x < 0x108; i++, x += 0x1c) {
+        m_tumblers_54[i] = new W8LockTumbler(this, x, 8, x + 0x14, 0x52, pin_data[i]);
+        m_tumblers_54[i]->m_listener_44 = this;
+    }
+    EnableRegionSet(1);
+    SetEnabled(1);
+    Invalidate(0);
+    if (m_tumbler_count_50 < 8) {
+        for (i = m_tumbler_count_50; i < 8; i++) {
+            m_tumblers_54[i]->SetActive(0);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005858C0
+W8LockTumblerPanel::~W8LockTumblerPanel()
+{
+    EnableRegionSet(0);
+    DestroyAllControls();
+}
+
+// FUNCTION: WIZ8 0x00585950
+void W8LockTumblerPanel::OnTumblerReleased(W8LockTumbler* tumbler)
+{
+    int index;
+
+    if (m_animating_74) {
+        return;
+    }
+    for (index = 0; index < m_tumbler_count_50; index++) {
+        if (m_tumblers_54[index] == tumbler) {
+            break;
+        }
+    }
+    if (m_listener_e8 != 0) {
+        m_listener_e8->OnTumblerPicked(index);
+    }
+}
+
+// FUNCTION: WIZ8 0x00585990
+void W8LockTumblerPanel::UpdateTumblerAnimation()
+{
+    W8LockTumbler* tumbler;
+    int phase;
+    int rise;
+    int fall;
+    int i;
+
+    phase = static_cast<int>(m_phase_timer_7c.GetProgress());
+    rise = static_cast<int>(m_rise_timer_a0.GetProgress());
+    fall = static_cast<int>(m_fall_timer_c4.GetProgress());
+    if (phase != 0) {
+        m_phase_78 += phase;
+        g_lock_phase_68f2b4 = m_phase_78 % 0xc;
+        if (g_lock_phase_68f2b4 > 6) {
+            g_lock_phase_68f2b4 = 0xc - g_lock_phase_68f2b4;
+        }
+        for (i = 0; i < m_tumbler_count_50; i++) {
+            if (m_tumblers_54[i]->m_at_top_37) {
+                m_tumblers_54[i]->Invalidate(0);
+            }
+        }
+    }
+    if (rise != 0 || fall != 0) {
+        m_animating_74 = 0;
+        for (i = 0; i < m_tumbler_count_50; i++) {
+            tumbler = m_tumblers_54[i];
+            if (rise != 0 && tumbler->m_rising_35) {
+                tumbler->m_pin_height_40 -= rise;
+                if (tumbler->m_pin_height_40 <=
+                    g_lock_pin_target_height_64ba80[tumbler->m_pin_index_3c]) {
+                    tumbler->m_pin_height_40 =
+                        g_lock_pin_target_height_64ba80[tumbler->m_pin_index_3c];
+                    tumbler->m_rising_35 = 0;
+                    tumbler->m_pin_set_34 = 1;
+                }
+                tumbler->Invalidate(0);
+            }
+            if (fall != 0 && tumbler->m_falling_36) {
+                tumbler->m_pin_height_40 += fall;
+                if (tumbler->m_pin_height_40 > 0x21) {
+                    tumbler->m_pin_height_40 = 0x22;
+                    tumbler->m_falling_36 = 0;
+                }
+                tumbler->Invalidate(0);
+            }
+            if (tumbler->m_rising_35 || tumbler->m_falling_36) {
+                m_animating_74 = 1;
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00585B00
+W8LockInfoPanel::W8LockInfoPanel(int tumbler_count) : Controls(0x17, 0x166, 0, 0, 0x1af, 0, 0)
+{
+    W8ControlsRect bounds;
+
+    m_tumbler_count_4c = tumbler_count;
+    bounds.left = origin_x + 0x25;
+    bounds.top = origin_y + 7;
+    bounds.right = origin_x + 0xb4;
+    bounds.bottom = origin_y + 0x11;
+    m_text_050 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_054 = new W8TextBuffer(&bounds, gppStringList[0x1ea4 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_05c = new W8TextBuffer(&bounds, gppStringList[0x1ea8 / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_064 = new W8TextBuffer(&bounds, gppStringList[0x1eac / 4], g_font_683660,
+                                  g_W8TextBufferLayoutMask005ED548, 4);
+    bounds.left = origin_x + 0x98;
+    bounds.top = origin_y + 0x15;
+    bounds.right = origin_x + 0xb5;
+    bounds.bottom = origin_y + 0x1f;
+    m_text_058 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_060 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    bounds.top += 0xe;
+    bounds.bottom += 0xe;
+    m_text_068 = new W8TextBuffer(&bounds, 0, g_font_683660, g_W8TextBufferLayoutMask005ED54C, 4);
+    SetEnabled(1);
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00585E20
+W8LockInfoPanel::~W8LockInfoPanel()
+{
+    delete m_text_050;
+    delete m_text_054;
+    delete m_text_058;
+    delete m_text_05c;
+    delete m_text_060;
+    delete m_text_064;
+    delete m_text_068;
+}
+
+// FUNCTION: WIZ8 0x00585ED0
+void W8LockInfoPanel::RefreshInfo()
+{
+    W8Character* character =
+        &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    unsigned int figure;
+    int divisor;
+    unsigned int book;
+    unsigned int realm;
+
+    m_text_050->SetText(character->name, g_font_683660);
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) ||
+        static_cast<int>(character->skills[10].level) < 0) {
+        m_text_058->SetFontStateIndex(0);
+        m_text_058->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        m_text_058->SetFontStateIndex(-1);
+        m_text_058->SetText(
+            FormatWideString(g_format_d_percent_0064bab0, character->skills[10].level),
+            g_font_683660);
+    }
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->spell_learned[0x27] != 1) {
+        m_text_060->SetFontStateIndex(0);
+        m_text_060->SetText(g_dash_0064789c, g_font_683660);
+    } else {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        m_text_060->SetFontStateIndex(-1);
+        m_text_060->SetText(FormatWideString(g_format_d_percent_0064bab0, (book + realm * 4) / 5),
+                            g_font_683660);
+    }
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->stamina > 0x4f && character->attributes[0].effective > 0x32) {
+        divisor = g_settings_6850c8.difficulty - 1 + m_tumbler_count_4c;
+        ClampInteger(&divisor, 2, 8);
+        figure = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+        if (static_cast<int>(figure) > -1) {
+            m_text_068->SetFontStateIndex(-1);
+            m_text_068->SetText(FormatWideString(g_format_d_percent_0064bab0, figure),
+                                g_font_683660);
+            goto done;
+        }
+    }
+    m_text_068->SetFontStateIndex(0);
+    m_text_068->SetText(g_dash_0064789c, g_font_683660);
+done:
+    m_text_054->SetGeometryDirty();
+    m_text_05c->SetGeometryDirty();
+    m_text_064->SetGeometryDirty();
+    Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x00586120
+void W8LockInfoPanel::Redraw()
+{
+    if (m_fEnabled && m_fDirty) {
+        Controls::Redraw();
+        m_text_050->RenderToTarget(0, 0, -0xe);
+        m_text_054->RenderToTarget(0, 0, -0xe);
+        m_text_058->RenderToTarget(0, 0, -0xe);
+        m_text_05c->RenderToTarget(0, 0, -0xe);
+        m_text_060->RenderToTarget(0, 0, -0xe);
+        m_text_064->RenderToTarget(0, 0, -0xe);
+        m_text_068->RenderToTarget(0, 0, -0xe);
+    }
+}
+
+// FUNCTION: WIZ8 0x005861A0
+W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
+{
+    W8Character* character;
+    int level;
+    int power;
+    unsigned int figure;
+    int divisor;
+    unsigned int book;
+    unsigned int realm;
+    int i;
+
+    m_trigger_08 = trigger;
+    m_state_34 = 0;
+    m_tumbler_count_0c = trigger->value_36c;
+    if (m_tumbler_count_0c < 2) {
+        m_tumbler_count_0c = 2;
+    } else if (m_tumbler_count_0c > 8) {
+        m_tumbler_count_0c = 8;
+    }
+    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->state_370.bytes_01);
+    m_tumbler_panel_10->m_listener_e8 = this;
+    m_info_panel_14 = new W8LockInfoPanel(m_tumbler_count_0c);
+    m_action_panel_18 = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
+    m_action_panel_18->AcquireRegionSet(&g_lock_action_region_set_68f2bc);
+    m_spell_button_20 =
+        new W8TextControl(m_action_panel_18, 0xffffffff, 6, 6, 0, 0, 0x1b0, 0, 8, 10, 9, 10, 0xb);
+    m_spell_button_20->m_listener = this;
+    m_force_button_24 =
+        new W8TextControl(m_action_panel_18, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 0, 2, 1, 2, 3);
+    m_force_button_24->m_listener = this;
+    m_cancel_button_28 =
+        new W8TextControl(m_action_panel_18, 0xffffffff, 6, 0x24, 0, 0, 0x1b0, 0, 4, 6, 5, 6, 7);
+    m_cancel_button_28->m_listener = this;
+    m_done_button_1c =
+        new W8TextControl(m_action_panel_18, 0xffffffff, 0x44, 6, 0, 0, 0x8e, 0, 4, 6, 5, 6, 7);
+    m_done_button_1c->m_listener = this;
+    m_spell_button_20->EnableRegionHelp(0x7cb);
+    m_force_button_24->EnableRegionHelp(0x7cd);
+    m_cancel_button_28->EnableRegionHelp(0x7cc);
+    m_action_panel_18->EnableRegionSet(1);
+    m_action_panel_18->SetEnabled(1);
+    m_action_panel_18->Invalidate(0);
+    m_selected_slot_2c = -1;
+    for (i = 0; i < 8; i++) {
+        m_tumbler_owner_38[i] = -1;
+        m_tumbler_locked_58[i] = 0;
+    }
+    for (i = 0; i < 8; i++) {
+        m_slot_attempts_60[i] = 0;
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        level = -1;
+    } else if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+        level = -1;
+    } else {
+        level = character->skills[10].level;
+    }
+    for (i = 0; i < m_tumbler_panel_10->m_tumbler_count_50; i++) {
+        m_tumbler_panel_10->m_tumblers_54[i]->SetEnabled(level > -1);
+    }
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        power = (book + realm * 4) / 5;
+        if (power > -1) {
+            figure = CanCharacterCastSpell(character, 0x27);
+        } else {
+            figure = 0;
+        }
+    } else {
+        figure = 0;
+    }
+    m_spell_button_20->SetEnabled(figure);
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->stamina < 0x50 || character->attributes[0].effective <= 0x32) {
+        figure = 0xffffffff;
+    } else {
+        divisor = g_settings_6850c8.difficulty - 1 + m_tumbler_count_0c;
+        ClampInteger(&divisor, 2, 8);
+        figure = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+    }
+    m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
+    m_info_panel_14->RefreshInfo();
+    m_action_panel_18->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005866A0
+W8LockInteraction::~W8LockInteraction()
+{
+    delete m_tumbler_panel_10;
+    delete m_info_panel_14;
+    m_action_panel_18->EnableRegionSet(0);
+    m_action_panel_18->DestroyAllControls();
+    delete m_action_panel_18;
+}
+
+// FUNCTION: WIZ8 0x00586740
+void W8LockInteraction::Process()
+{
+    W8Character* character;
+    int slot;
+    int i;
+    int dropped;
+
+    if (m_state_34 == 8 && m_timer_80.GetProgress() >= g_float_005ebb38) {
+        m_trigger_08->CompleteItemInteraction004447F0();
+        m_trigger_08->Run(-1);
+        m_state_34 = 9;
+    }
+    if (m_state_34 == 9) {
+        gXStatus.fLockInteractMode = 0;
+        if (g_lock_interaction_68f2c0 != 0) {
+            delete g_lock_interaction_68f2c0;
+        }
+        g_lock_interaction_68f2c0 = 0;
+        ClearLevelDataFlag6();
+        Function58F6B0(0);
+        ApplyMainGameModeFlag(g_value_68f2b0, 1);
+        RequestRedraw(0x200);
+        RequestRedraw(0x100);
+        RequestRedraw(0x1000);
+        return;
+    }
+    m_tumbler_panel_10->UpdateTumblerAnimation();
+    if (m_tumbler_panel_10->m_animating_74) {
+        return;
+    }
+    switch (m_state_34) {
+    case 1:
+        m_state_34 = 0;
+        ResolvePick();
+        return;
+    case 2:
+        m_state_34 = 0;
+        AttemptForce();
+        return;
+    case 3:
+        dropped = 0;
+        m_state_34 = 4;
+        slot = g_status_685170.selected_character;
+        for (i = 0; i < m_tumbler_count_0c; i++) {
+            if (m_tumbler_owner_38[i] == slot && m_tumbler_locked_58[i] != 0) {
+                m_tumbler_owner_38[i] = -1;
+                m_tumbler_locked_58[i] = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_at_top_37 = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_pin_set_34 = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_falling_36 = 1;
+                m_tumbler_panel_10->m_animating_74 = 1;
+                dropped = 1;
+            }
+        }
+        m_tumbler_panel_10->Invalidate(0);
+        goto lock_release_done;
+    case 5:
+        dropped = 0;
+        m_state_34 = 6;
+        slot = g_status_685170.selected_character;
+        for (i = 0; i < m_tumbler_count_0c; i++) {
+            if (m_tumbler_owner_38[i] == slot && m_tumbler_locked_58[i] != 0) {
+                m_tumbler_owner_38[i] = -1;
+                m_tumbler_locked_58[i] = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_at_top_37 = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_pin_set_34 = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_falling_36 = 1;
+                m_tumbler_panel_10->m_animating_74 = 1;
+                dropped = 1;
+            }
+        }
+        m_tumbler_panel_10->Invalidate(0);
+    lock_release_done:
+        if (dropped) {
+            SoundPlay(s_lock_pin_falling_64bae8, 0);
+            return;
+        }
+        break;
+    case 4:
+        m_state_34 = 0;
+        slot = g_status_685170.selected_character;
+        if (Function586A70(g_status_685170.selected_character) > -1 &&
+            CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x27)) {
+            m_spell_button_20->SetAlternateTextEnabled(0);
+            Function5879A0(1);
+            Function5A0110(0x27, -1, -1);
+            return;
+        }
+        break;
+    case 6:
+        m_state_34 = 0;
+        m_cancel_button_28->SetAlternateTextEnabled(0);
+        gXStatus.fLockInteractMode = 0;
+        EnablePanels(0);
+        gXStatus.fLockInteract = 1;
+        Function58F6B0(0);
+        ApplyMainGameModeFlag(g_value_68f2b0, 1);
+        RequestRedraw(0x200);
+        RequestRedraw(0x100);
+        RequestRedraw(0x1000);
+        Function59C930(g_status_685170.selected_character);
+        return;
+    case 7:
+        m_state_34 = 0;
+        for (i = 0; i < m_tumbler_count_0c; i++) {
+            if (m_tumbler_owner_38[i] == -1) {
+                return;
+            }
+        }
+        SoundPlay(s_lock_picking_success_64babc, 0);
+        ShowNotice(0xc, gppStringList[0x1eb0 / 4]);
+        BeginUnlock();
+        break;
+    }
+}
+
+// FUNCTION: WIZ8 0x00586A70
+int Function586A70(int slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[slot];
+    unsigned int book;
+
+    if (!IsPartySlotEligible00524A10(slot)) {
+        return -1;
+    }
+    if (character->spell_learned[0x27] != 1) {
+        return -1;
+    }
+    book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+    return (character->skills[book].level +
+            character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
+           5;
+}
+
+// FUNCTION: WIZ8 0x00586AF0
+void W8LockInteraction::EnablePanels(int enable)
+{
+    m_tumbler_panel_10->EnableRegionSet(enable);
+    m_action_panel_18->EnableRegionSet(enable);
+}
+
+// FUNCTION: WIZ8 0x00586B10
+void W8LockInteraction::OnTumblerPicked(int index)
+{
+    W8Character* character;
+    int i;
+
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        return;
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+        return;
+    }
+    if (static_cast<int>(character->skills[10].level) < 0) {
+        return;
+    }
+    if (m_selected_slot_2c != g_status_685170.selected_character) {
+        if (m_selected_slot_2c != -1) {
+            for (i = 0; i < m_tumbler_count_0c; i++) {
+                if (m_tumbler_owner_38[i] == m_selected_slot_2c && m_tumbler_locked_58[i] == 0) {
+                    m_tumbler_owner_38[i] = -1;
+                    m_tumbler_panel_10->m_tumblers_54[i]->m_pin_set_34 = 0;
+                    m_tumbler_panel_10->m_tumblers_54[i]->m_falling_36 = 1;
+                    m_tumbler_panel_10->m_animating_74 = 1;
+                }
+            }
+        }
+        m_selected_slot_2c = g_status_685170.selected_character;
+    }
+    m_picked_tumbler_30 = index;
+    m_state_34 = 1;
+    m_tumbler_panel_10->m_tumblers_54[index]->m_hovered_38 = 0;
+    m_tumbler_panel_10->m_tumblers_54[index]->m_rising_35 = 1;
+    m_tumbler_panel_10->m_animating_74 = 1;
+    SoundPlay(s_lock_pin_rising_64bb10, 0);
+}
+
+// FUNCTION: WIZ8 0x00586C00
+void W8LockInteraction::OnPrimary(W8TextControl* control)
+{
+    if (control == m_done_button_1c) {
+        m_state_34 = 9;
+        return;
+    }
+    if (m_tumbler_panel_10->m_animating_74 && m_state_34 != 0) {
+        return;
+    }
+    if (control == m_force_button_24) {
+        m_state_34 = 2;
+    } else if (control == m_spell_button_20) {
+        m_state_34 = 3;
+    } else if (control == m_cancel_button_28) {
+        m_state_34 = 5;
+    }
+}
+
+// FUNCTION: WIZ8 0x00586C60
+void W8LockInteraction::ResolvePick()
+{
+    W8Character* character;
+    int chance;
+    int level;
+    int i;
+    int dropped;
+
+    dropped = 0;
+    for (i = 0; i < m_tumbler_count_0c; i++) {
+        if (m_tumbler_owner_38[i] == m_selected_slot_2c && m_tumbler_locked_58[i] == 0) {
+            character = &g_status_685170.buffers.characters[m_selected_slot_2c];
+            chance = character->skills[10].level + g_settings_6850c8.difficulty * -5 + 5;
+            if ((chance < 0 ? 0 : static_cast<unsigned char>(chance)) <=
+                static_cast<int>(Random(100))) {
+                m_tumbler_owner_38[i] = -1;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_pin_set_34 = 0;
+                m_tumbler_panel_10->m_tumblers_54[i]->m_falling_36 = 1;
+                m_tumbler_panel_10->m_animating_74 = 1;
+                dropped = 1;
+            }
+        }
+    }
+    m_slot_attempts_60[m_selected_slot_2c]++;
+    m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
+    if (Random(5) == 0 && Function4457A0(&m_trigger_08->value_368) != 0) {
+        character = &g_status_685170.buffers.characters[m_selected_slot_2c];
+        level = character->skills[10].level;
+        PracticeCharacterSkill(character, 10, 1, 0);
+        if (level != static_cast<int>(character->skills[10].level)) {
+            m_info_panel_14->RefreshInfo();
+        }
+    }
+    if (dropped) {
+        SoundPlay(s_lock_pin_falling_64bae8, 0);
+    }
+    for (i = 0; i < m_tumbler_count_0c; i++) {
+        if (m_tumbler_owner_38[i] == -1) {
+            return;
+        }
+    }
+    SoundPlay(s_lock_picking_success_64babc, 0);
+    ShowNotice(0xc, gppStringList[0x1eb0 / 4]);
+    m_tumbler_panel_10->EnableRegionSet(0);
+    m_action_panel_18->EnableRegionSet(0);
+    m_state_34 = 8;
+    m_timer_80.SetDuration(1.0f);
+    m_timer_80.Restart();
+}
+
+// FUNCTION: WIZ8 0x00586E40
+void W8LockInteraction::AttemptForce()
+{
+    W8Character* character;
+    unsigned int chance;
+    unsigned int book;
+    int level;
+    int power;
+    int divisor;
+    int i;
+
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->stamina > 0x4f && character->attributes[0].effective > 0x32) {
+        divisor = g_settings_6850c8.difficulty - 1 + m_tumbler_count_0c;
+        ClampInteger(&divisor, 2, 8);
+        chance = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+        if (static_cast<int>(chance) > -1) {
+            FatigueCharacter(g_status_685170.selected_character, 0x50, 0, 0);
+            if (static_cast<int>(Random(100)) < static_cast<int>(chance)) {
+                SoundPlay(s_lock_forcing_success_64bb5c, 0);
+                ShowString(FormatWideString(g_format_s_space_s_00617584, character->name,
+                                            gppStringList[0x1eb8 / 4]));
+                m_tumbler_panel_10->EnableRegionSet(0);
+                m_action_panel_18->EnableRegionSet(0);
+                m_state_34 = 8;
+                m_timer_80.SetDuration(1.0f);
+                m_timer_80.Restart();
+                return;
+            }
+            SoundPlay(s_lock_forcing_fail_64bb34, 0);
+            ShowString(FormatWideString(g_format_s_space_s_00617584, character->name,
+                                        gppStringList[0x1eb4 / 4]));
+            if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+                level = -1;
+            } else if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+                level = -1;
+            } else {
+                level = character->skills[10].level;
+            }
+            for (i = 0; i < m_tumbler_panel_10->m_tumbler_count_50; i++) {
+                m_tumbler_panel_10->m_tumblers_54[i]->SetEnabled(level > -1);
+            }
+            if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+                character->spell_learned[0x27] != 1) {
+                m_spell_button_20->SetEnabled(0);
+            } else {
+                book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+                power = (character->skills[book].level +
+                         character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
+                        5;
+                if (power > -1) {
+                    m_spell_button_20->SetEnabled(CanCharacterCastSpell(character, 0x27));
+                } else {
+                    m_spell_button_20->SetEnabled(0);
+                }
+            }
+            if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+                character->stamina < 0x50 || character->attributes[0].effective <= 0x32) {
+                chance = -1;
+            } else {
+                divisor = g_settings_6850c8.difficulty + m_tumbler_count_0c - 1;
+                ClampInteger(&divisor, 2, 8);
+                chance = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+            }
+            m_force_button_24->SetEnabled(static_cast<int>(chance) > -1);
+            m_info_panel_14->RefreshInfo();
+            m_action_panel_18->SetEnabled(0);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005874D0
+void W8LockInteraction::BeginUnlock()
+{
+    m_tumbler_panel_10->EnableRegionSet(0);
+    m_action_panel_18->EnableRegionSet(0);
+    m_state_34 = 8;
+    m_timer_80.SetDuration(1.0f);
+    m_timer_80.Restart();
 }
 
 // FUNCTION: WIZ8 0x00587cf0
@@ -836,6 +1580,126 @@ void W8MainGameStatusPanel005EEBC0::Redraw()
         m_text_060->RenderToTarget(0, 0, -14);
         m_text_064->RenderToTarget(0, 0, -14);
     }
+}
+
+/* Unlike the base, the six option buttons stay inactive while the expanded
+   NPC dialogue layout (value_fc == 4) is not up. */
+// FUNCTION: WIZ8 0x0056BC50
+void W8MainGamePanel005EE9F0::SetEnabled(bool enable)
+{
+    int index;
+
+    m_fEnabled = enable;
+    for (index = 0; index < m_controls.count; ++index) {
+        if (enable &&
+            (ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[0] ||
+             ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[1] ||
+             ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[2] ||
+             ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[3] ||
+             ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[4] ||
+             ControlAt(index) == g_screen_state_00649f1c->option_buttons_170[5]) &&
+            g_screen_state_00649f1c->value_fc != 4) {
+            continue;
+        }
+        ControlAt(index)->SetActive(enable);
+    }
+}
+
+/* Base redraw except the foreground catalog image is m_value_4c rather than
+   m_renderArg_20 while the expanded dialogue layout is up. */
+// FUNCTION: WIZ8 0x0056BD30
+void W8MainGamePanel005EE9F0::Redraw()
+{
+    int redrawn = 0;
+    int index;
+
+    if (!m_fEnabled) {
+        return;
+    }
+    if (m_fDirty) {
+        if (m_renderTarget != -1) {
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c,
+                             g_screen_state_00649f1c->value_fc == 4 ? m_value_4c : m_renderArg_20,
+                             origin_x, origin_y, 2, 0);
+        }
+        if (m_fWholeAreaDirty) {
+            if (m_renderTarget != -1) {
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
+                                           origin_y, 2);
+            }
+        } else {
+            InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
+                             m_dirtyRect.bottom, 2);
+        }
+        m_fDirty = 0;
+        m_dirtyRect.left = -1;
+        redrawn = 1;
+    } else if (!m_fLayoutDirty) {
+        return;
+    }
+    for (index = 0; index < m_controls.count; ++index) {
+        if (ControlAt(index)->m_active) {
+            ControlAt(index)->Redraw(redrawn);
+        }
+    }
+    m_fLayoutDirty = 0;
+}
+
+/* Enabling starts text-input scheme 1 and installs the typed-dialogue field;
+   disabling removes it. An already-enabled panel does none of this. */
+// FUNCTION: WIZ8 0x0056BAC0
+void W8MainGamePanel005EE9E4::SetEnabled(bool enable)
+{
+    if (!enable || !m_fEnabled) {
+        Controls::SetEnabled(enable);
+        if (enable) {
+            InitTextInputModeWithScheme(1);
+            AddTextInputField(0x1e5, 0x170, 0x7a, 0x12, 0x7f, &g_wchar_00689b34, 0xbe, 0xf, 1);
+        } else {
+            RemoveTextInputField(0);
+        }
+    }
+}
+
+/* Base redraw plus the input-frame image: drawn at y 0x19b while flag_1d9 is
+   raised, else 0x18b. */
+// FUNCTION: WIZ8 0x0056BB20
+void W8MainGamePanel005EE9E4::Redraw()
+{
+    int redrawn = 0;
+    int index;
+
+    if (!m_fEnabled) {
+        return;
+    }
+    if (m_fDirty) {
+        if (m_renderTarget != -1) {
+            DrawCatalogImage(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
+                             origin_y, 2, 0);
+        }
+        DrawCatalogImage(-14, 0x1a9, 0, 0x10, 0x1df,
+                         g_screen_state_00649f1c->flag_1d9 ? 0x19b : 0x18b, 2, 0);
+        if (m_fWholeAreaDirty) {
+            if (m_renderTarget != -1) {
+                InvalidateCatalogImageRect(m_renderTarget, m_renderArg_1c, m_renderArg_20, origin_x,
+                                           origin_y, 2);
+            }
+        } else {
+            InvalidateRegion(m_dirtyRect.left, m_dirtyRect.top, m_dirtyRect.right,
+                             m_dirtyRect.bottom, 2);
+        }
+        m_fDirty = 0;
+        m_dirtyRect.left = -1;
+        redrawn = 1;
+    } else if (!m_fLayoutDirty) {
+        return;
+    }
+    for (index = 0; index < m_controls.count; ++index) {
+        if (ControlAt(index)->m_active) {
+            ControlAt(index)->Redraw(redrawn);
+        }
+    }
+    m_fLayoutDirty = 0;
 }
 
 // FUNCTION: WIZ8 0x00589160
@@ -1481,6 +2345,58 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
     return controller->scroll_height == 0xff;
 }
 
+// FUNCTION: WIZ8 0x0055E570
+W8NpcDialogueScrollWidget::W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left,
+                                                     int top, int right, int bottom)
+    : W8Widget(panel, region, left, top, right, bottom)
+{
+    m_flags_34 = 0;
+}
+
+// FUNCTION: WIZ8 0x0055E5E0
+void W8NpcDialogueScrollWidget::OnMouseEnter(int event)
+{
+    W8NpcDialogueTextController* controller;
+
+    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+    if (controller->text_area.SelectEntry(controller->text_area.m_first_visible_entry)) {
+        controller->InvalidateLayout();
+    }
+}
+
+// FUNCTION: WIZ8 0x0055E610
+void W8NpcDialogueScrollWidget::OnMouseLeave(int event)
+{
+    W8NpcDialogueTextController* controller;
+
+    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+    if (controller->text_area.ClearSelection()) {
+        controller->InvalidateLayout();
+    }
+}
+
+// FUNCTION: WIZ8 0x0055E640
+void W8NpcDialogueScrollWidget::OnLeftButtonDown(int event)
+{
+    if (m_active && m_enabled) {
+        m_flags_34 |= 1;
+        if (m_leftButtonDownCallback) {
+            m_leftButtonDownCallback();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0055E660
+void W8NpcDialogueScrollWidget::OnLeftButtonUp(int event)
+{
+    if (m_active && m_enabled && (m_flags_34 & 1)) {
+        m_flags_34 &= ~1u;
+        if (m_primaryActivationCallback) {
+            m_primaryActivationCallback();
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00577880
 unsigned char SetNpcDialoguePanelVisible(int value)
 {
@@ -1852,7 +2768,7 @@ unsigned char MainGameScreenEnter(void)
     Function598AB0();
     Function5AE9D0();
     Function59B940();
-    Function59BDB0();
+    CreateConditionButtons();
     InitializeMainGameLevelBlock();
     ScrollTextBoxToCursor();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
@@ -2278,9 +3194,9 @@ unsigned char MainGameScreenLeave(int leaving)
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
     } else if (g_main_game_mode_0068eddc == 6) {
-        if (g_level_block->dialogue_owner != 0) {
-            ReleaseObject004257F0(g_level_block->dialogue_owner);
-            g_level_block->dialogue_owner = 0;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
         }
         Function563DD0();
     }
@@ -2468,29 +3384,29 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
         }
     }
 
+    if (g_level_block->values_200[3] == static_cast<int>(party_slot)) {
+        g_level_block->values_200[3] = -1;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        Function563DD0();
+        g_main_game_mode_0068eddc = 0;
+        RequestRedraw(0x8000 | 0xff);
+    } else if (g_level_block->values_200[3] != -1) {
+        RequestRedraw(0x8000);
+    }
+
     if (g_level_block->values_200[0] == static_cast<int>(party_slot)) {
         g_level_block->values_200[0] = -1;
-        if (g_level_block->dialogue_owner != 0) {
-            ReleaseObject004257F0(g_level_block->dialogue_owner);
-            g_level_block->dialogue_owner = 0;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
         }
         Function563DD0();
         g_main_game_mode_0068eddc = 0;
         RequestRedraw(0x8000 | 0xff);
     } else if (g_level_block->values_200[0] != -1) {
-        RequestRedraw(0x8000);
-    }
-
-    if (g_level_block->values_200[1] == static_cast<int>(party_slot)) {
-        g_level_block->values_200[1] = -1;
-        if (g_level_block->dialogue_owner != 0) {
-            ReleaseObject004257F0(g_level_block->dialogue_owner);
-            g_level_block->dialogue_owner = 0;
-        }
-        Function563DD0();
-        g_main_game_mode_0068eddc = 0;
-        RequestRedraw(0x8000 | 0xff);
-    } else if (g_level_block->values_200[1] != -1) {
         RequestRedraw(0x8000);
     }
 
@@ -2501,9 +3417,9 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
     } else if (g_main_game_mode_0068eddc == 6) {
-        if (g_level_block->dialogue_owner != 0) {
-            ReleaseObject004257F0(g_level_block->dialogue_owner);
-            g_level_block->dialogue_owner = 0;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
         }
         ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
                          g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
@@ -2525,6 +3441,38 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
         RegionSetEnable(party_slot + 7);
         EnableRegionSetInput(party_slot + 7);
     }
+}
+
+/* Take the mode-6 hover overlay down: the portrait highlight graphic is
+   released, the dialogue-area rectangle it drew over is cleared and
+   invalidated, the rectangle's position against the viewport decides the
+   extra redraw flags, and the mode resets to the default. */
+// FUNCTION: WIZ8 0x00563EB0
+void DismissHighlightOverlay(void)
+{
+    if (g_level_block->highlight_graphic != 0) {
+        ReleaseObject004257F0(g_level_block->highlight_graphic);
+        g_level_block->highlight_graphic = 0;
+    }
+    if (g_main_game_mode_0068eddc == 6) {
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+    }
+    g_main_game_mode_0068eddc = 0;
 }
 
 // FUNCTION: WIZ8 0x005699b0

@@ -13,6 +13,8 @@
    text-buffer base. Both vectors belong to this object; only all_lines owns
    the entries. visible_lines references entries selected/ordered from it. */
 class W8DialogTextArea {
+    friend class W8NpcDialogueScrollWidget;
+
 public:
     W8DialogTextArea();  /* 0x005D14D0 */
     ~W8DialogTextArea(); /* 0x005D1590 */

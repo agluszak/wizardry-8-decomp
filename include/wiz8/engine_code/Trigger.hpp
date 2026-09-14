@@ -65,14 +65,14 @@ static_assert(sizeof(W8TriggerActionData) == 0x0c, "W8TriggerActionData_must_be_
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
    are the common polymorphic payload above; the remaining bytes are the
    linked trigger name and optional world position read from the save. */
-class W8TriggerActionData005EC134 : public W8TriggerActionData {
+class W8DoorTriggerActionData : public W8TriggerActionData {
 public:
     char linked_trigger_00c[0x80];
     srVector3T<float> position_08c;
 };
 
-static_assert(sizeof(W8TriggerActionData005EC134) == 0x98,
-              "W8TriggerActionData005EC134_must_be_0x98");
+static_assert(sizeof(W8DoorTriggerActionData) == 0x98,
+              "W8DoorTriggerActionData_must_be_0x98");
 
 /* Type 6 owns the string stored in the common payload's +8 union. */
 class W8TriggerActionData005EC158 : public W8TriggerActionData {

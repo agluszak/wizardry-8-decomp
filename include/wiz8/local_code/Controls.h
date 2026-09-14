@@ -55,7 +55,7 @@ struct Controls {
     W8GrowableVector<W8Widget*> m_controls; /* 0x38 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
-    void EnableRegionSet(bool enable);
+    void EnableRegionSet(unsigned char enable);
     void RemoveControl(W8Widget* control);
     void DestroyAllControls();
     void InvalidateLayout();

@@ -36,7 +36,7 @@ public:
     // FUNCTION: WIZ8 0x004F6640
     virtual ~W8TextControl() override {}
     unsigned char MeasureText004F4800();
-    void GetTextOrigin(int unused, int* px, int* py);
+    void GetTextOrigin(int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetEnabled(bool enabled) override;
     virtual void Redraw(int full_redraw) override;
