@@ -29,7 +29,12 @@ public:
     W8TextControl(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
                   int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
                   int text_58);
-    virtual ~W8TextControl() override;
+    /* Retail 0x005B7C40 proves the empty body is inlined into the
+       RCS-owned subclass's destructor rather than called out of line. */
+    // SYNTHETIC: WIZ8 0x004F6030
+    // W8TextControl::`scalar deleting destructor'
+    // FUNCTION: WIZ8 0x004F6640
+    virtual ~W8TextControl() override {}
     unsigned char MeasureText004F4800();
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);

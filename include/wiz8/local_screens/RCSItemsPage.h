@@ -26,7 +26,22 @@ extern int g_info_dialog_x_005ef958;
 extern int g_character_event_kind_005ee65c;
 
 void SetItemPageMode005B9FD0(char mode);
+/* Index-bound button callbacks stored by the camp panel creators in
+   ReviewCharacterScreen.cpp. */
+void SetItemPageMode005B9FB0(void);
+void SetItemPageMode005B9FC0(void);
 void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback destroy_callback);
+void OpenStatInfoDialog005BA200(void);
+void OpenStatInfoDialog005BA210(void);
+void OpenStatInfoDialog005BA220(void);
+void OpenStatInfoDialog005BA230(void);
+void OpenStatInfoDialog005BA240(void);
+void OpenStatInfoDialog005BA250(void);
+void OpenStatInfoDialog005BA260(void);
+void OpenSecondaryStatInfoDialog005BA270(void);
+void OpenSecondaryStatInfoDialog005BA280(void);
+void OpenSecondaryStatInfoDialog005BA290(void);
+void OpenSecondaryStatInfoDialog005BA2A0(void);
 void OpenStatInfoDialog005BA2B0(unsigned int uiIndex);
 void OpenSecondaryStatInfoDialog005BA310(unsigned int uiIndex);
 void IdentifyAndOpenItemInfo005BA370(W8ItemInstance* item);

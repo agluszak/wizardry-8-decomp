@@ -4,6 +4,7 @@
 #include "wiz8/dialog_code/DialogBase.h"
 
 class W8DialogBase;
+class W8HelpTextControl;
 class W8TextControl;
 class W8Widget;
 struct W8Character;
@@ -21,6 +22,9 @@ public:
         delete m_range;
     }
     virtual void OnRangeChanged(W8RangeControl* control) override;
+    /* 0x005C4510: re-invalidates the scrollbar when the visible pool changed
+       and always repaints it. */
+    void UpdateItems(unsigned char items_changed);
     W8RangeControl* m_range;
 };
 
@@ -134,15 +138,17 @@ extern unsigned int g_camp_item_region_set_0069c108;
 extern unsigned int g_camp_spell_region_sets_0069c40c[6];
 extern unsigned int g_camp_skill_region_set_0069c51c;
 
-/* Panel controls owned by the camp screen; the 0x69c42c..0x69c464 sets are
-   created by the unrecovered 0x005B9900/0x005B7E00 creators and read here and
-   in RCSItemsPage.cpp. */
-extern W8Widget* g_panel_controls_69c42c[4];
-extern W8TextControl* g_panel_controls_69c43c[2];
-extern W8Widget* g_panel_control_69c444;
-extern W8Widget* g_panel_controls_69c448[7];
-extern W8TextControl* g_panel_controls_69c468[2];
-extern W8TextControl* g_panel_controls_69c470[7];
+/* Panel controls owned by the camp screen, created by
+   CreateCampSecondaryPanel005B9900, CreateCampActionPanel005B9070 and
+   CreateItemsTabPanel005B9350 and read here and in RCSItemsPage.cpp. The
+   secondary panel owns the Items/Character info page tabs, the character-info
+   help text, the seven attribute rows and the four secondary value labels. */
+extern W8Widget* g_camp_info_labels_0069c42c[4];
+extern W8TextControl* g_camp_page_tabs_0069c43c[2];
+extern W8HelpTextControl* g_camp_help_text_0069c444;
+extern W8Widget* g_camp_stat_labels_0069c448[7];
+extern W8TextControl* g_camp_action_buttons_0069c468[2];
+extern W8TextControl* g_camp_realm_tabs_0069c470[7];
 
 /* Camp-screen gap functions, declared here for the call sites in
    RCSCommon.cpp and RCSItemsPage.cpp. */
@@ -159,6 +165,12 @@ void DestroyRcsLevelUpPanel(void);
 void CreateRcsDismissPanel(void);
 void DestroyRcsDismissPanel(void);
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+/* 0x005B6FD0: like DrawRcsText but the box height is caller-provided and the
+   text is rendered through mprintf with the current font. */
+void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
+                          unsigned int layout_mode);
 
 /* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
    gates an item click on the character's remaining action allowance in

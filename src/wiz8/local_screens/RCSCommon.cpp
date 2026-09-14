@@ -104,6 +104,25 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
     buffer.RenderToTarget(0, 0, -14);
 }
 
+/* Draws text honoring the same layout mask pairs as the buffered variants
+   above, but through mprintf with the current font: the centered and right
+   masks shift the start by the measured string length and the baseline is
+   centered on the caller-provided height. */
+// FUNCTION: WIZ8 0x005b6fd0
+void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
+                          unsigned int layout_mode)
+{
+    if (layout_mode == (g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C)) {
+        left += (width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660)) / 2;
+    } else if (layout_mode ==
+               (g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554)) {
+        left += width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660);
+    }
+    top += (height - GetFontHeight(g_font_683660)) / 2;
+    SetFont(g_font_683660);
+    mprintf(left, top, L"%s", text);
+}
+
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
 {

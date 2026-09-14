@@ -73,6 +73,20 @@ const unsigned short g_equip_slot_label_ids_61e7c4[12] = {
     0x433, 0x434, 0x435, 0x436, 0x437, 0x438, 0x439, 0x43a, 0x43b, 0x43c, 0x43d, 0x43e,
 };
 
+/* The two page-tab primary callbacks: the Items and Character info buttons
+   created by CreateCampSecondaryPanel005B9900. */
+// FUNCTION: WIZ8 0x005B9FB0
+void SetItemPageMode005B9FB0(void)
+{
+    SetItemPageMode005B9FD0(0);
+}
+
+// FUNCTION: WIZ8 0x005B9FC0
+void SetItemPageMode005B9FC0(void)
+{
+    SetItemPageMode005B9FD0(1);
+}
+
 /* The items page swaps two control panels in and out: mode zero shows the
    item page, mode one the character page. */
 // FUNCTION: WIZ8 0x005B9FD0
@@ -80,31 +94,35 @@ void SetItemPageMode005B9FD0(char mode)
 {
     int index;
 
-    if (mode == 0) {
-        g_panel_controls_69c43c[0]->EnableSecondaryState(1);
-        g_panel_controls_69c43c[1]->DisableSecondaryState(1);
-        g_panel_control_69c444->SetActive(true);
-        g_camp_screen_0069c0f4->character_info->SetEnabled(0);
-        for (index = 0; index < 7; ++index) {
-            g_panel_controls_69c448[index]->SetActive(true);
-        }
-        for (index = 0; index < 4; ++index) {
-            g_panel_controls_69c42c[index]->SetActive(true);
-        }
-    } else if (mode == 1) {
-        g_panel_controls_69c43c[0]->DisableSecondaryState(1);
-        g_panel_controls_69c43c[1]->EnableSecondaryState(1);
-        g_panel_control_69c444->SetActive(false);
-        g_camp_screen_0069c0f4->character_info->SetEnabled(1);
-        for (index = 0; index < 7; ++index) {
-            g_panel_controls_69c448[index]->SetActive(false);
-        }
-        for (index = 0; index < 4; ++index) {
-            g_panel_controls_69c42c[index]->SetActive(false);
-        }
-    } else {
+    switch (mode) {
+    default:
         srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x544,
                      "Info toggle error");
+        break;
+    case 1:
+        g_camp_page_tabs_0069c43c[0]->DisableSecondaryState(1);
+        g_camp_page_tabs_0069c43c[1]->EnableSecondaryState(1);
+        g_camp_help_text_0069c444->SetActive(false);
+        g_camp_screen_0069c0f4->character_info->SetEnabled(1);
+        for (index = 0; index < 7; ++index) {
+            g_camp_stat_labels_0069c448[index]->SetActive(false);
+        }
+        for (index = 0; index < 4; ++index) {
+            g_camp_info_labels_0069c42c[index]->SetActive(false);
+        }
+        break;
+    case 0:
+        g_camp_page_tabs_0069c43c[0]->EnableSecondaryState(1);
+        g_camp_page_tabs_0069c43c[1]->DisableSecondaryState(1);
+        g_camp_help_text_0069c444->SetActive(true);
+        g_camp_screen_0069c0f4->character_info->SetEnabled(0);
+        for (index = 0; index < 7; ++index) {
+            g_camp_stat_labels_0069c448[index]->SetActive(true);
+        }
+        for (index = 0; index < 4; ++index) {
+            g_camp_info_labels_0069c42c[index]->SetActive(true);
+        }
+        break;
     }
     g_camp_screen_0069c0f4->item_mode = mode;
     g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
@@ -125,6 +143,76 @@ void OpenItemInfoDialog005BA110(W8ItemInstance* item, W8DialogDestroyCallback de
     dialog->SetOrigin(g_info_dialog_x_005ef958, g_info_dialog_y_005ef95c);
     dialog->m_destroy_callback = destroy_callback;
     DisplayCampDialog(dialog);
+}
+
+/* The secondary-activation callbacks the seven attribute labels and four
+   secondary labels on the camp secondary panel carry: each opens the stat
+   info dialog at its own index. Note retail wires both
+   g_camp_info_labels_0069c42c[2] and [3] to the index-3 thunk. */
+// FUNCTION: WIZ8 0x005BA200
+void OpenStatInfoDialog005BA200(void)
+{
+    OpenStatInfoDialog005BA2B0(0);
+}
+
+// FUNCTION: WIZ8 0x005BA210
+void OpenStatInfoDialog005BA210(void)
+{
+    OpenStatInfoDialog005BA2B0(1);
+}
+
+// FUNCTION: WIZ8 0x005BA220
+void OpenStatInfoDialog005BA220(void)
+{
+    OpenStatInfoDialog005BA2B0(2);
+}
+
+// FUNCTION: WIZ8 0x005BA230
+void OpenStatInfoDialog005BA230(void)
+{
+    OpenStatInfoDialog005BA2B0(3);
+}
+
+// FUNCTION: WIZ8 0x005BA240
+void OpenStatInfoDialog005BA240(void)
+{
+    OpenStatInfoDialog005BA2B0(4);
+}
+
+// FUNCTION: WIZ8 0x005BA250
+void OpenStatInfoDialog005BA250(void)
+{
+    OpenStatInfoDialog005BA2B0(5);
+}
+
+// FUNCTION: WIZ8 0x005BA260
+void OpenStatInfoDialog005BA260(void)
+{
+    OpenStatInfoDialog005BA2B0(6);
+}
+
+// FUNCTION: WIZ8 0x005BA270
+void OpenSecondaryStatInfoDialog005BA270(void)
+{
+    OpenSecondaryStatInfoDialog005BA310(0);
+}
+
+// FUNCTION: WIZ8 0x005BA280
+void OpenSecondaryStatInfoDialog005BA280(void)
+{
+    OpenSecondaryStatInfoDialog005BA310(1);
+}
+
+// FUNCTION: WIZ8 0x005BA290
+void OpenSecondaryStatInfoDialog005BA290(void)
+{
+    OpenSecondaryStatInfoDialog005BA310(3);
+}
+
+// FUNCTION: WIZ8 0x005BA2A0
+void OpenSecondaryStatInfoDialog005BA2A0(void)
+{
+    OpenSecondaryStatInfoDialog005BA310(4);
 }
 
 // FUNCTION: WIZ8 0x005BA2B0
@@ -622,15 +710,15 @@ void UnequipBothHands005BB010(void)
 // FUNCTION: WIZ8 0x005BB140
 void TogglePartyRowFlag005BB140(void)
 {
-    if ((g_panel_controls_69c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+    if ((g_camp_action_buttons_0069c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
         g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_0f5 = 1;
-        g_panel_controls_69c468[0]->SetEnabled(0);
-        g_panel_controls_69c468[0]->Invalidate(0);
+        g_camp_action_buttons_0069c468[0]->SetEnabled(0);
+        g_camp_action_buttons_0069c468[0]->Invalidate(0);
         return;
     }
     g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_0f5 = 0;
-    g_panel_controls_69c468[0]->SetEnabled(1);
-    g_panel_controls_69c468[0]->Invalidate(0);
+    g_camp_action_buttons_0069c468[0]->SetEnabled(1);
+    g_camp_action_buttons_0069c468[0]->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005BB1C0
@@ -707,7 +795,7 @@ void SelectItemsRealmTab005BB250(int tab)
     default:
         realm = tab;
     }
-    if ((g_panel_controls_69c470[tab]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
+    if ((g_camp_realm_tabs_0069c470[tab]->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
         g_camp_screen_0069c0f4->realm_flags[realm] = 0;
     } else {
         g_camp_screen_0069c0f4->realm_flags[realm] = 1;
@@ -715,9 +803,9 @@ void SelectItemsRealmTab005BB250(int tab)
             ClearOtherRealmFilters005A49D0(realm);
             index = 0;
             do {
-                if (index != tab && (g_panel_controls_69c470[index]->m_stateFlags &
+                if (index != tab && (g_camp_realm_tabs_0069c470[index]->m_stateFlags &
                                      g_W8TextControlMask005ED570) != 0) {
-                    g_panel_controls_69c470[index]->DisableSecondaryState(1);
+                    g_camp_realm_tabs_0069c470[index]->DisableSecondaryState(1);
                 }
                 ++index;
             } while (index < 4);
@@ -1031,12 +1119,12 @@ unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region
 {
     if (event->reason < 0x41) {
         if (event->reason == 0x40 || event->reason == 8) {
-            g_panel_controls_69c470[region->callback_id]->OnLeftButtonDown(0);
+            g_camp_realm_tabs_0069c470[region->callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (event->reason == 0x10) {
-            g_panel_controls_69c470[region->callback_id]->OnLeftButtonUp(0);
+            g_camp_realm_tabs_0069c470[region->callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
@@ -1044,11 +1132,11 @@ unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region
         }
     } else if (event->reason == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_panel_controls_69c470[region->callback_id]->OnMouseLeave(0);
+            g_camp_realm_tabs_0069c470[region->callback_id]->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_panel_controls_69c470[region->callback_id]->OnMouseEnter(0);
+            g_camp_realm_tabs_0069c470[region->callback_id]->OnMouseEnter(0);
             return 1;
         }
     }
@@ -1060,12 +1148,12 @@ unsigned char PanelTabRegionHandler005BBC70(const W8RegionEvent* event, W8Region
 {
     if (event->reason < 0x41) {
         if (event->reason == 0x40 || event->reason == 8) {
-            g_panel_controls_69c468[region->callback_id]->OnLeftButtonDown(0);
+            g_camp_action_buttons_0069c468[region->callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (event->reason == 0x10) {
-            g_panel_controls_69c468[region->callback_id]->OnLeftButtonUp(0);
+            g_camp_action_buttons_0069c468[region->callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
@@ -1073,11 +1161,11 @@ unsigned char PanelTabRegionHandler005BBC70(const W8RegionEvent* event, W8Region
         }
     } else if (event->reason == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_panel_controls_69c468[region->callback_id]->OnMouseLeave(0);
+            g_camp_action_buttons_0069c468[region->callback_id]->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_panel_controls_69c468[region->callback_id]->OnMouseEnter(0);
+            g_camp_action_buttons_0069c468[region->callback_id]->OnMouseEnter(0);
             return 1;
         }
     }

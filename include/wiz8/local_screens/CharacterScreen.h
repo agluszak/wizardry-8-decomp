@@ -330,6 +330,10 @@ struct W8SpellRealmAnimation {
 extern W8SpellRealmAnimation g_spell_realm_animations_00648c90[6];
 extern const wchar_t g_format_s_space_s_00617584[];
 
+/* The six realm-icon object ids; the definition is the GLOBAL in
+   CGSStatsPage.cpp. The camp screen's character block reuses them. */
+extern int g_character_resistance_images_0064ce60[6];
+
 /* One message id per character trait, indexed by trait id. */
 extern unsigned short g_character_trait_name_ids_61e530[0x20];
 
