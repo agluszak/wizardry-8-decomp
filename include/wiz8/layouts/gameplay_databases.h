@@ -334,7 +334,9 @@ struct W8MonsterRecord {
        round; a monster with a usable attack ignores them and always tries. */
     unsigned char spell_chance_0e0;
     unsigned char flee_chance_0e1;
-    unsigned char unknown_0e2;
+    /* 0x0e2: the percentage chance the AI advances on the party each round;
+       zero falls back to the behavior byte at +0x1c0. */
+    unsigned char advance_chance_0e2;
     /* 0x0e3: selects this monster's row in the two-byte AI table at
        0x0061EEFC; the row value six is the one the AI singles out. */
     unsigned char ai_kind;
@@ -371,7 +373,11 @@ struct W8MonsterRecord {
     /* 0x1b9: the AI never closes in or backs off from the party when set. */
     unsigned char holds_ground_1b9;
     float float_1ba; /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[3];
+    unsigned char unknown_1be[2];
+    /* 0x1c0: the combat-behavior selector: zero makes a monster with no
+       explicit advance chance always advance on the party, and two (with
+       +0x1bf not three) lets the queue builder add a wait action. */
+    unsigned char behavior_1c0;
     /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
        stores the value itself as the selected monster index. */
     short value_1c1;

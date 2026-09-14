@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 // GLOBAL: WIZ8 0x0068c3c4
 int g_staged_value_68c3c4;
 // GLOBAL: WIZ8 0x0068c3c8
@@ -289,7 +288,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
             if (entry->active_character_event == 0) {
                 SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 0, -1, 0, 1);
             } else {
-                gXStatus.character_event_queue->ProcessOwnedEntry(entry->active_character_event);
+                gXStatus.character_event_queue->CompleteActiveEvent(entry->active_character_event);
             }
         }
         g_npc_scripting.flag_70 = 0;

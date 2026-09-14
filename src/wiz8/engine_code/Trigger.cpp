@@ -2616,9 +2616,8 @@ void Trigger::Run(int source)
             if (m_pacRecipients == 0 || _stricmp(m_pacRecipients, "party") != 0) {
                 break;
             }
-            ApplyItemEffectToRandomCharacter0052E5C0(Random(2) != 0 ? g_value_005ee59c
-                                                                    : g_value_005ee5a0,
-                                                     -1, 0, g_effect_argument_005ed8c8);
+            ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
+                                             -1, 0, g_effect_argument_005ed8c8);
             flag_0a0_06 = 1;
             goto commit_action;
 
@@ -2912,9 +2911,9 @@ void Trigger::Run(int source)
 
                 if (item_count == 1) {
                     if (m_pProp->Rep()->flag_064 == 0) {
-                        ApplyItemEffectToRandomCharacter0052E5C0(Random(2) != 0 ? g_value_0068c548
-                                                                                : g_value_0068c520,
-                                                                 -1, 0, g_effect_argument_005ed8c8);
+                        ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_0068c548
+                                                                        : g_value_0068c520,
+                                                         -1, 0, g_effect_argument_005ed8c8);
                     }
                 } else if (item_count == 2 && g_status_685170.item_in_cursor == 0) {
                     item = world_item_group_34c->next;

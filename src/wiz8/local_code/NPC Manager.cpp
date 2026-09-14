@@ -589,7 +589,7 @@ void SelectStartNpcGreeting00509560(void)
                      display_value);
     }
     if (value != 0) {
-        Function52E5C0(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
         return;
     }
 

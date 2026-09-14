@@ -266,7 +266,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
     float best = 1000000.0f;
 
     *out = 0;
-    if (monster_info->flag_16 == 1 &&
+    if (monster_info->ubDisposition == 1 &&
         IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
         (best = monster_info->monster->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
         *out = 2;

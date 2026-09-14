@@ -373,6 +373,70 @@ void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
     *value += *value * percent / 100;
 }
 
+// FUNCTION: WIZ8 0x00517FB0
+unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
+                                 unsigned int excluded_slot, unsigned int* selected,
+                                 unsigned int count, char skip_first_two)
+{
+    int claimed[8];
+    unsigned int eligible[8];
+    unsigned int found = 0;
+    unsigned int returned = 0;
+    unsigned int slot;
+    char relaxed;
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        claimed[index] = 0;
+    }
+    if (count != 0) {
+        for (relaxed = 0; relaxed == 0;) {
+            for (slot = skip_first_two != 0 ? 2u : 0u; slot < 8; ++slot) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    slot != excluded_slot && claimed[slot] == 0 &&
+                    (character->hp_current != 0 || require_primary == 2) &&
+                    (character->highest_condition < 0x12 || require_secondary == 2)) {
+                    eligible[found] = slot;
+                    ++found;
+                    claimed[slot] = 1;
+                }
+            }
+            if (found >= count) {
+                break;
+            }
+            if (require_secondary == 1) {
+                require_secondary = 2;
+            } else if (require_primary == 1) {
+                require_primary = 2;
+            } else {
+                relaxed = 1;
+            }
+        }
+        if (found > count) {
+            for (index = 0; index < 8; ++index) {
+                claimed[index] = 0;
+            }
+            while (returned < count && found != 0) {
+                unsigned int pick = Random(found);
+                while (claimed[pick] != 0 && pick < 8) {
+                    ++pick;
+                }
+                if (pick >= 8) {
+                    break;
+                }
+                selected[returned] = eligible[pick];
+                ++returned;
+                claimed[pick] = 1;
+                --found;
+            }
+            return returned;
+        }
+    }
+    memcpy(selected, eligible, found * 4);
+    return found;
+}
+
 // FUNCTION: WIZ8 0x00518150
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_gender)

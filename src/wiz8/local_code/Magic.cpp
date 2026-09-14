@@ -206,10 +206,10 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
     if (Function4D9080(monster_info, 4, 0)) {
         return false;
     }
-    if (!Function5327E0(monster_info, spell_id, combat_slot)) {
+    if (!MonsterSpellTargetOK(monster_info, spell_id, combat_slot)) {
         return false;
     }
-    return !Function5330E0(monster_info, spell_id, combat_slot);
+    return !SpellAreaHitsNeutralMonster(monster_info, spell_id, combat_slot);
 }
 
 /* Whether the spell may be cast in the situation the party is in now. Two
@@ -2177,8 +2177,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 }
             } else {
                 Function5905F0(
-                    FormatWideString(L"%ld %s", *condition_count,
-                                     gppStringList[condition_text[1]]),
+                    FormatWideString(L"%ld %s", *condition_count, gppStringList[condition_text[1]]),
                     -1);
             }
             SetTextBoxMode(1, -1);
@@ -2196,14 +2195,13 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
                     report->value, L"%s",
-                    gppStringList[
-                        g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
+                    gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                WriteGameLog(9, L"%s %s", report->text,
-                             gppStringList[g_spell_condition_text_0061e57a[
-                                 W8_CONDITION_EXHAUSTED * 4]]);
+                WriteGameLog(
+                    9, L"%s %s", report->text,
+                    gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;
             }
             free(report);

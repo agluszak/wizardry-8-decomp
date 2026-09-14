@@ -639,7 +639,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         group->member_count = 0;
         group->active_member_count = 0;
         group->flag_28 = 0;
-        group->flag_29 = 0;
+        group->fInCombat = 0;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
         } else {
@@ -671,7 +671,7 @@ void ResetLiveSessionForLoad(void)
         SoundEmptyCache();
     }
     if (gXStatus.character_event_queue != 0) {
-        gXStatus.character_event_queue->ClearOwnedEntries();
+        gXStatus.character_event_queue->DestroyAllEvents();
     }
     ResetMainGameScreenState();
     ClearNpcMessageQueue();

@@ -350,9 +350,9 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x00510b30
 unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
-    if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
+    if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
         monster_group->member_count != 0) {
-        if (monster_group->flag_2a != 1 && CombatAllowsLiveGroups() == 0) {
+        if (monster_group->ubDisposition != 1 && CombatAllowsLiveGroups() == 0) {
             return 0;
         }
         return 1;
@@ -503,14 +503,14 @@ void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
     if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_GROUP_CPP, 0x1eb, 0);
     }
-    if (monster_group->flag_29 == 0) {
+    if (monster_group->fInCombat == 0) {
         srAssertFail("pMonsterGroup->fInCombat", MONSTER_GROUP_CPP, 0x1ec, 0);
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         MonsterInfoLeaveCombat(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x1f1, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1)));
     }
-    monster_group->flag_29 = 0;
+    monster_group->fInCombat = 0;
     RequestRedrawParty();
     lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
     lead->flag_255 |= 0x80;
@@ -723,7 +723,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
                 leader->allied_group_ids[slot] = monster_group->group_id;
                 monster_group->leader_group_id = leader->group_id;
                 RefreshMonsterGroup(monster_group);
-                SetMonsterGroupDisposition(monster_group, leader->flag_2a, 0);
+                SetMonsterGroupDisposition(monster_group, leader->ubDisposition, 0);
                 return 1;
             }
         }
@@ -780,7 +780,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->monster_id = monster_id;
     group->centre = *position;
     group->flag_28 = 0;
-    group->flag_29 = 0;
+    group->fInCombat = 0;
     group->unknown_2b = 3;
     if (use_alternate_name != 0 || (record->flags_0d0 & 0x10) != 0) {
         group->flag_2c = 1;

@@ -151,7 +151,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/npc_interaction.cpp
     "src/wiz8/local_code/NPC Scripting.cpp"
     "src/wiz8/local_code/NPC Scripting Facts.cpp"
-    src/wiz8/local_code/character_events.cpp
     src/wiz8/local_code/formation_state.cpp
     src/wiz8/local_code/GroupAttacks.cpp
     src/wiz8/local_code/CharGeneration.cpp

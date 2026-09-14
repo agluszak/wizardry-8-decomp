@@ -168,8 +168,12 @@ public:
     void SetPitch(float pitch);                               /* 0x00453940 */
     float GetYaw();                                           /* 0x00453970 */
     float GetPitch();                                         /* 0x00453980 */
-    void SetValue120(float value);                            /* 0x00453C50 */
-    float GetValue120();                                      /* 0x00453C60 */
+    /* The world-path reachability probe the group engagement check runs:
+       fills `out_distance` with the route length and returns nonzero when a
+       route inside `max_range` exists. */
+    int FindNavigatorPathDistance(float max_range, float* out_distance); /* 0x00453480 */
+    void SetValue120(float value);                                       /* 0x00453C50 */
+    float GetValue120();                                                 /* 0x00453C60 */
     unsigned char
     ConfigureMovementToPosition00452630(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the
@@ -189,7 +193,10 @@ public:
     unsigned char LinkToNavigator004527A0(W8Navigator* target, double separation); /* 0x004527A0 */
     void SetFacingToward(const srVector3T<float>* position);                       /* 0x00454040 */
     void AimAtPosition(const srVector3T<float>* position);                         /* 0x00453F30 */
-    void StartPatrol(const srVector3T<float>* home, float distance, float variation);
+    bool StartPatrol(const srVector3T<float>* home, float distance,
+                     float variation); /* 0x00453CC0 */
+    /* Stores each non-negative bound as the minimum and maximum height. */
+    void SetHeightRange(float minimum, float maximum);                     /* 0x00453EF0 */
     void SetFlag25(char value);                                            /* 0x004531F0 */
     void SetMovementStopped00453880();                                     /* 0x00453880 */
     void PropagateGroupPosition();                                         /* 0x00454C80 */

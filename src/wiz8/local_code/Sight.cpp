@@ -128,7 +128,6 @@ void RefreshAllSight(void)
     }
 }
 
-
 /* Whether one monster can see another in combat once line of sight is clear. */
 // FUNCTION: WIZ8 0x005058a0
 unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
@@ -817,7 +816,8 @@ after_sight:
                                                g_status_685170.world_clock -
                                                monster_info->party_threat.last_seen_clock_08))) &&
                                  (ShowMonsterTargetMarker(monster_info) == 0)) &&
-                                (monster_info->flag_16 == 1 || monster_info->flag_16 == 0) &&
+                                (monster_info->ubDisposition == 1 ||
+                                 monster_info->ubDisposition == 0) &&
                                 (g_sight_marker_tick_00689b6c == 0 ||
                                  now - g_sight_marker_tick_00689b6c > 199)) {
                                 g_sight_marker_tick_00689b6c = now;
@@ -834,8 +834,8 @@ after_sight:
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
                                     if (notice != 0) {
-                                        notice->value_30 = 0x5dc;
-                                        notice->clock_34 = GetTickCount();
+                                        notice->dispatch_delay_ms = 0x5dc;
+                                        notice->dispatch_delay_start = GetTickCount();
                                     }
                                 }
                             }
@@ -865,8 +865,8 @@ after_sight:
                                             g_effect_argument_005ed914);
 
                                         if (notice != 0) {
-                                            notice->value_30 = 0x5dc;
-                                            notice->clock_34 = GetTickCount();
+                                            notice->dispatch_delay_ms = 0x5dc;
+                                            notice->dispatch_delay_start = GetTickCount();
                                         }
                                     }
                                 }

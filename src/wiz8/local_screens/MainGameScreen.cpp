@@ -26,6 +26,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/cursor.h"
@@ -253,8 +254,7 @@ void Function59B2D0(void);
 void Function5171C0(void);
 void Function4E8EA0(void);
 void StartCombat(int surprise);
-void Function530110(void);
-void Function530150(int value);
+
 void Function56E510(void);
 /* 0x00586740 is the lock-interaction state machine; its receiver is the heap
    object at 0x0068F2C0 and arrives in ECX, which __fastcall is how a
@@ -2181,11 +2181,11 @@ render_world:
             StartCombat(0);
         }
         if (!ClockIsTicking(g_level_block->character_update_timer)) {
-            Function530110();
+            UpdateMonsterSight();
             g_level_block->character_update_timer = SetCountdownClock(500);
         }
         if (!g_flag_006840bc) {
-            Function530150(1);
+            UpdateMonsterGroups(1);
             if (!gXStatus.fCombatMode && AnyCharacterActive() && gXStatus.field_02d &&
                 !gXStatus.fNpcDialogueMode) {
                 StartCombat(0);

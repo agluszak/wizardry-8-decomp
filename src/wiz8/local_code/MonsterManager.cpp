@@ -7,6 +7,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
@@ -93,7 +94,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 
     monster_info->monster_group_id = group->group_id;
     monster_info->monster_species = group->monster_id;
-    monster_info->flag_16 = group->flag_2a;
+    monster_info->ubDisposition = group->ubDisposition;
     monster_info->scale_24f = -1.0f;
     monster_info->flag_14 = 0;
     monster_info->monster = 0;
@@ -145,7 +146,6 @@ void Function58AB60(int value_1, int value_2, void* notice, wchar_t* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void Function508D70(unsigned int monster_list_index);
-unsigned char Function531920(W8MonsterGroup* monster_group);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
@@ -1225,7 +1225,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     ResetCombatSlot(&monster_info->Target);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
     monster_info->monster->flags_00c = 0;
-    if (monster_info->flag_16 == 1) {
+    if (monster_info->ubDisposition == 1) {
         Function546E70();
     }
     if (gXStatus.fCombatMode != 0) {
@@ -1278,7 +1278,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     free(monster_info->pCombat);
     monster_info->pCombat = 0;
     monster_info->fInCombat = 0;
-    if (monster_info->flag_16 == 1) {
+    if (monster_info->ubDisposition == 1) {
         Function546E70();
     }
 }
@@ -1348,8 +1348,8 @@ void ToggleCombatMode(void)
         for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
-            if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
-                Function531920(monster_group) != 0) {
+            if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
+                MonsterGroupCanEngage(monster_group) != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }
@@ -1614,7 +1614,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
     unsigned char suppress_exact_health = 0;
     unsigned int health_knowledge;
 
-    if (monster_info->flag_16 != 1) {
+    if (monster_info->ubDisposition != 1) {
         W8MonsterRecord* record;
         W8NpcState* npc;
 

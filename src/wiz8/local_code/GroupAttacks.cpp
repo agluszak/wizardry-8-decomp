@@ -464,7 +464,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
     }
     MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->value_9f, 1);
     monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, 1);
-    if (monster_info->flag_16 == 2) {
+    if (monster_info->ubDisposition == 2) {
         disposition = 2;
     } else {
         disposition = 1;

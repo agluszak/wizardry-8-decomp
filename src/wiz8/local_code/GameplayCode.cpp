@@ -82,7 +82,7 @@ bool AnyMonsterEngaged(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->fInCombat != 0 && monster_info->flag_16 == 1 &&
+        if (monster_info->fInCombat != 0 && monster_info->ubDisposition == 1 &&
             monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xe) {
             return true;
         }
