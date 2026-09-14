@@ -30,6 +30,7 @@ SECTION_RE = re.compile(
 )
 LINE_HEADER_RE = re.compile(r"^Line numbers for .*\((?P<source>.+)\) segment ")
 LINE_RE = re.compile(r"(?P<line>[0-9]+)\s+(?P<segment>[0-9a-fA-F]{4}):(?P<offset>[0-9a-fA-F]{8})")
+TIMESTAMP_RE = re.compile(r"^\s*Timestamp is ([0-9a-fA-F]+)\b")
 MAX_UNBOUNDED_FUNCTION_BYTES = 0x1000
 
 
@@ -101,7 +102,9 @@ class LinkerMap:
         symbols: list[MapSymbol],
         sections: list[MapSection],
         source_lines: list[SourceLine],
+        timestamp: int | None = None,
     ) -> None:
+        self.timestamp = timestamp
         self.symbols = sorted(symbols, key=lambda symbol: symbol.address)
         self.addresses = [symbol.address for symbol in self.symbols]
         self.sections = sections
@@ -118,11 +121,14 @@ class LinkerMap:
         symbols: list[MapSymbol] = []
         sections: list[MapSection] = []
         source_lines: list[SourceLine] = []
+        timestamp: int | None = None
         if not path.is_file():
             return cls(symbols, sections, source_lines)
         lines = path.read_text(encoding="cp1252", errors="replace").splitlines()
         for line in lines:
-            if match := PUBLIC_RE.match(line):
+            if match := TIMESTAMP_RE.match(line):
+                timestamp = int(match.group(1), 16)
+            elif match := PUBLIC_RE.match(line):
                 symbols.append(
                     MapSymbol(
                         segment=int(match.group("segment"), 16),
@@ -164,7 +170,7 @@ class LinkerMap:
                             line=int(match.group("line")),
                         )
                     )
-        return cls(symbols, sections, source_lines)
+        return cls(symbols, sections, source_lines, timestamp)
 
     def _section_containing(self, symbol: MapSymbol) -> MapSection | None:
         for section in self._sections_by_segment.get(symbol.segment, []):

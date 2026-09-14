@@ -227,7 +227,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
    it. Every retail call site pushes only the two parameters, so the second
    doubles as the out-of-combat override and the default-case return. */
 // FUNCTION: WIZ8 0x005001e0
-unsigned char SpellUsableNow(int spell_id, int allow_out_of_combat)
+unsigned char SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
 {
     W8SpellUsage usable_when;
     bool lock_or_trap;
@@ -1401,7 +1401,8 @@ enum { W8_MONSTER_SPELL_NONE = 0x77 };
    The budget is the monster's database base plus its own runtime bonus; a base
    of zero is a data error the monster is named in. */
 // FUNCTION: WIZ8 0x00500330
-unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unused, int spell_id)
+unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord*,
+                                          int spell_id)
 {
     unsigned int power_level;
     unsigned int budget;

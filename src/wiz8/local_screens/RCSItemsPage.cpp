@@ -285,7 +285,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
 {
     unsigned short slot;
 
-    if (Function522B80(g_rcs_mode_0064cbe8, item, 0) != 0) {
+    if (Function522B80(giReviewCharSlot, item, 0) != 0) {
         SetCampItemActionMode005B59B0(0);
         return;
     }
@@ -295,8 +295,8 @@ void UseItem005BA4F0(W8ItemInstance* item)
         if (Function522A00(item) == 0 || Function4DA0F0(item) != 0) {
             g_flag_00685071 = 1;
             g_value_00685072 = (int)item;
-            g_value_00685077 = (char)g_rcs_mode_0064cbe8;
-            GetOriginOfCharacterItem(g_rcs_mode_0064cbe8, item, &g_flag_00685076, &slot);
+            g_value_00685077 = static_cast<char>(giReviewCharSlot);
+            GetOriginOfCharacterItem(giReviewCharSlot, item, &g_flag_00685076, &slot);
         } else {
             if (g_status_685170.item_in_cursor == 0) {
                 Function5A6020(item);
@@ -329,8 +329,8 @@ void ReportCastResult005BA620(int party_slot)
     W8Character* character;
     int result;
 
-    StartBreathCycle(g_rcs_mode_0064cbe8, 0);
-    result = Function548E20(g_rcs_mode_0064cbe8, party_slot);
+    StartBreathCycle(giReviewCharSlot, 0);
+    result = Function548E20(giReviewCharSlot, party_slot);
     character = g_status_685170.buffers.characters + party_slot;
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
@@ -487,8 +487,8 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
             split.stack_count = (unsigned char)count;
             g_split_item_source_0069c424->stack_count = remaining;
             CopyItemInstance(&g_status_685170.item_in_hand_235b, &split, 0, 1);
-            g_held_item_source_006840c0 = g_rcs_mode_0064cbe8;
-            GetOriginOfCharacterItem(g_rcs_mode_0064cbe8, g_split_item_source_0069c424,
+            g_held_item_source_006840c0 = giReviewCharSlot;
+            GetOriginOfCharacterItem(giReviewCharSlot, g_split_item_source_0069c424,
                                      &g_held_item_origin_006840c4, &g_held_item_slot_006840c5);
             carried = g_status_685170.item_in_hand_235b.stack_count;
         }
@@ -548,9 +548,9 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     }
 applied:
     g_status_685170.item_in_hand_235b.stack_count = carried;
-    RebuildEquipmentAndDerivedStatsForSlot(g_rcs_mode_0064cbe8);
+    RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
     RebuildCampItemList005A4A00();
-    RecalculateCharacterDerivedStats(g_status_685170.buffers.characters + g_rcs_mode_0064cbe8);
+    RecalculateCharacterDerivedStats(g_status_685170.buffers.characters + giReviewCharSlot);
     RecalculateCarriedWeight(g_value_0069c0f8);
     RedistributePartyEncumbrance();
     SetCampItemActionMode005B59B0(0);
@@ -619,8 +619,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
                     if (g_combat_state->flag_a50 == 0) {
                         return;
                     }
-                    if (g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].pending_action !=
-                        9) {
+                    if (g_status_685170.buffers.party_rows[giReviewCharSlot].pending_action != 9) {
                         return;
                     }
                 }
@@ -700,15 +699,15 @@ void UnequipBothHands005BB010(void)
         ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
         return;
     }
-    if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) == 0) {
+    if (IsPartySlotEligible00524A10(giReviewCharSlot) == 0) {
         ShowCampNoticeLine(gppStringList[0x245c / 4], 0, 1, 0);
         return;
     }
-    character = g_status_685170.buffers.characters + g_rcs_mode_0064cbe8;
+    character = g_status_685170.buffers.characters + giReviewCharSlot;
     BindEquippedItem(character, 6);
     BindEquippedItem(character, 7);
     if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
-        Function51D3B0(g_rcs_mode_0064cbe8, 0, 1);
+        Function51D3B0(giReviewCharSlot, 0, 1);
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffe00;
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;
         g_camp_screen_0069c0f4->redraw_flags |= 0x2000;
@@ -721,12 +720,12 @@ void UnequipBothHands005BB010(void)
 void TogglePartyRowFlag005BB140(void)
 {
     if ((g_camp_action_buttons_0069c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
-        g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_0f5 = 1;
+        g_status_685170.buffers.party_rows[giReviewCharSlot].flag_0f5 = 1;
         g_camp_action_buttons_0069c468[0]->SetEnabled(0);
         g_camp_action_buttons_0069c468[0]->Invalidate(0);
         return;
     }
-    g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_0f5 = 0;
+    g_status_685170.buffers.party_rows[giReviewCharSlot].flag_0f5 = 0;
     g_camp_action_buttons_0069c468[0]->SetEnabled(1);
     g_camp_action_buttons_0069c468[0]->Invalidate(0);
 }
@@ -834,7 +833,7 @@ void SelectItemsRealmTab005BB250(int tab)
    release, 0x10 left down, 0x40 right press, 0x80 right release, 0x100
    double-click/activate, 0x400 enter/leave transition, 0x800 mouse wheel. */
 // FUNCTION: WIZ8 0x005BB350
-unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region* region)
+unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* region)
 {
     int slot;
     W8ItemInstance* item;
@@ -844,15 +843,15 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
     if (item->item_id == -1 && g_status_685170.item_in_cursor == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
-    if (event->reason < 0x81) {
-        if (event->reason == 0x80) {
+    if (event->usEvent < 0x81) {
+        if (event->usEvent == 0x80) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;
         }
-        if (event->reason == 8) {
+        if (event->usEvent == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         } else {
-            if (event->reason != 0x10) {
+            if (event->usEvent != 0x10) {
                 return 0;
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
@@ -868,7 +867,7 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
         DisableRegionHelpFlag004F27E0(region);
         return 1;
     }
-    if (event->reason == 0x100) {
+    if (event->usEvent == 0x100) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->item_id != -1 &&
             g_camp_screen_0069c0f4->entry_mode != 3) {
             g_camp_entry_parameter_0069c0fc = (int)g_value_0069c0f8;
@@ -882,7 +881,7 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
         }
         return 1;
     }
-    if (event->reason == 0x400) {
+    if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
             if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
                 g_camp_screen_0069c0f4->item_redraw_flags |= 2 << (slot & 0x1f);
@@ -905,7 +904,7 @@ unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region
 }
 
 // FUNCTION: WIZ8 0x005BB560
-unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Region* region)
+unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* region)
 {
     int slot;
     int delay;
@@ -921,17 +920,17 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
          CanCharacterUseItem(g_value_0069c0f8, g_status_685170.item_in_hand_235b.item_id) == 0)) {
         PushButtonSoundScheme005587C0(0, 1);
     }
-    if (event->reason < 0x81) {
-        if (event->reason == 0x80) {
+    if (event->usEvent < 0x81) {
+        if (event->usEvent == 0x80) {
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
             return 1;
         }
-        if (event->reason == 8) {
+        if (event->usEvent == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             DisableRegionHelpFlag004F27E0(region);
             return 1;
         }
-        if (event->reason != 0x10) {
+        if (event->usEvent != 0x10) {
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
@@ -956,8 +955,8 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
             return 1;
         }
     } else {
-        if (event->reason != 0x100) {
-            if (event->reason != 0x400) {
+        if (event->usEvent != 0x100) {
+            if (event->usEvent != 0x400) {
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
@@ -1007,7 +1006,7 @@ unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Regio
 }
 
 // FUNCTION: WIZ8 0x005BB900
-unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region* region)
+unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* region)
 {
     unsigned int slot;
     unsigned int pool_index;
@@ -1028,8 +1027,8 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
     if (item->item_id == -1 && g_status_685170.item_in_cursor == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
-    if (event->reason < 0x101) {
-        if (event->reason == 0x100) {
+    if (event->usEvent < 0x101) {
+        if (event->usEvent == 0x100) {
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
                 pool_index < (unsigned int)g_status_685170.party_item_count_1791 &&
                 g_camp_screen_0069c0f4->entry_mode != 3) {
@@ -1044,13 +1043,13 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             }
             return 1;
         }
-        if (event->reason == 8) {
+        if (event->usEvent == 8) {
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             DisableRegionHelpFlag004F27E0(region);
             return 1;
         }
-        if (event->reason != 0x10) {
-            if (event->reason != 0x80) {
+        if (event->usEvent != 0x10) {
+            if (event->usEvent != 0x80) {
                 return 0;
             }
             region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
@@ -1065,7 +1064,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             return 1;
         }
     } else {
-        if (event->reason == 0x400) {
+        if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
                 if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x800000 << (slot & 0x1f);
@@ -1084,10 +1083,10 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
             }
             return 0;
         }
-        if (event->reason != 0x800) {
+        if (event->usEvent != 0x800) {
             return 0;
         }
-        delta = GetMouseWheelDeltaValue(event->param);
+        delta = GetMouseWheelDeltaValue(event->usParam);
         count = delta;
         if (delta > 0) {
             do {
@@ -1121,22 +1120,22 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
 /* Reason 0x40/0x8 press the tab control, 0x10 releases it, and the 0x400
    enter/leave transition forwards the matching mouse events. */
 // FUNCTION: WIZ8 0x005BBBB0
-unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region* region)
+unsigned char RealmTabRegionHandler005BBBB0(const InputAtom* event, W8Region* region)
 {
-    if (event->reason < 0x41) {
-        if (event->reason == 0x40 || event->reason == 8) {
+    if (event->usEvent < 0x41) {
+        if (event->usEvent == 0x40 || event->usEvent == 8) {
             g_camp_realm_tabs_0069c470[region->callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
-        if (event->reason == 0x10) {
+        if (event->usEvent == 0x10) {
             g_camp_realm_tabs_0069c470[region->callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
             return 1;
         }
-    } else if (event->reason == 0x400) {
+    } else if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             g_camp_realm_tabs_0069c470[region->callback_id]->OnMouseLeave(0);
             return 1;
@@ -1150,22 +1149,22 @@ unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region
 }
 
 // FUNCTION: WIZ8 0x005BBC70
-unsigned char PanelTabRegionHandler005BBC70(const W8RegionEvent* event, W8Region* region)
+unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* region)
 {
-    if (event->reason < 0x41) {
-        if (event->reason == 0x40 || event->reason == 8) {
+    if (event->usEvent < 0x41) {
+        if (event->usEvent == 0x40 || event->usEvent == 8) {
             g_camp_action_buttons_0069c468[region->callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
-        if (event->reason == 0x10) {
+        if (event->usEvent == 0x10) {
             g_camp_action_buttons_0069c468[region->callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
             return 1;
         }
-    } else if (event->reason == 0x400) {
+    } else if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
             g_camp_action_buttons_0069c468[region->callback_id]->OnMouseLeave(0);
             return 1;

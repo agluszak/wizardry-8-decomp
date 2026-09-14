@@ -59,6 +59,9 @@
     "include/wiz8/fonts.h": {
       "role": "provisional-interface"
     },
+    "include/wiz8/learned_spells.h": {
+      "role": "provisional-interface"
+    },
     "include/wiz8/local_code/party_encumbrance.h": {
       "role": "provisional-interface"
     },
@@ -219,6 +222,13 @@
       "implementation-tus": [
         "Local Screens\\CGSSpellsPage.cpp",
         "Local Screens\\CGSStatsPage.cpp"
+      ]
+    },
+    "include/wiz8/local_screens/MGSFormation.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": [
+        "Local Screens\\MGSFormation.cpp",
+        "Local Screens\\RCSCommon.cpp"
       ]
     },
     "include/wiz8/local_screens/MainGameScreen.h": {

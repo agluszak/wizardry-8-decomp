@@ -1,6 +1,8 @@
 #ifndef WIZ8_ENGINE_CODE_MONSTER_H
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
+#include <stddef.h>
+
 #include "surrender/srMath.h"
 #include "surrender/srHeap.h"
 #include "surrender/srTypeRegistry.h"
@@ -94,8 +96,8 @@ struct W8MonsterRep : public W8EmitterHost {
     unsigned char flag_601;
     unsigned char unknown_602[2];
     float value_604;
-    int value_608;
-    int value_60c;
+    float random_idle_fps_min;
+    float random_idle_fps_max;
     int value_610;
     W8GrowableVector<stModelInstance*> linked_runtime_objects_614;
     class MonsterLight* monster_light_624;
@@ -112,6 +114,10 @@ struct W8MonsterRep : public W8EmitterHost {
    Asserting it here is what stops a field edit from silently shortening the
    object. */
 static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
+static_assert(offsetof(W8MonsterRep, random_idle_fps_min) == 0x608,
+              "W8MonsterRep_idle_fps_min_offset");
+static_assert(offsetof(W8MonsterRep, random_idle_fps_max) == 0x60c,
+              "W8MonsterRep_idle_fps_max_offset");
 
 static_assert(sizeof(W8GrowableVector<W8AnimObj*>) == 0x10,
               "W8Monster_animation_vector_must_be_0x10");

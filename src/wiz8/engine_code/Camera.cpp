@@ -48,8 +48,8 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
         g_level_runtime_flag_0065ba70 = 1;
         path->active_14 = 1;
         PathAISetValue004A9F60(path->path_18, 0.0f);
-        path->path_18->tick_28 = GetTickCount();
-        path->path_18->value_30 = 0.0f;
+        path->path_18->last_update_tick = GetTickCount();
+        path->path_18->distance_travelled = 0.0f;
         path->path_18->unknown_3b = 1;
         g_saved_environment_flag_60aa64 = Function41AAE0(0);
         return;

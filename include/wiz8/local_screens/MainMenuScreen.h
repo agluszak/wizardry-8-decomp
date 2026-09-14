@@ -16,12 +16,12 @@ extern wchar_t* g_pending_main_menu_message;
 
 unsigned char DrawMainMenuItem(short item, short state);
 void SetMainMenuMessage(const wchar_t* message);
-unsigned char MainMenuIntroduction(const W8RegionEvent* event, W8Region* region);
-unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region);
-unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region);
-unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region);
-unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region);
-unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region);
+unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region);
+unsigned char MainMenuNewGame(const InputAtom* event, W8Region* region);
+unsigned char MainMenuLoadGame(const InputAtom* event, W8Region* region);
+unsigned char MainMenuCredits(const InputAtom* event, W8Region* region);
+unsigned char MainMenuOptions(const InputAtom* event, W8Region* region);
+unsigned char MainMenuExit(const InputAtom* event, W8Region* region);
 unsigned char MainMenuScreenInitialize(void);
 unsigned char MainMenuScreenEnter(void);
 void MainMenuScreenFrame(void);

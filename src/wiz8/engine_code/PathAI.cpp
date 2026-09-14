@@ -74,7 +74,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     path->nodes_0c = new W8GrowableVector<srVector3T<float>*>(5);
 
     success = FileRead(handle, &path->unknown_01[0], 1, 0);
-    success = success && FileRead(handle, &path->value_04, 4, 0);
+    success = success && FileRead(handle, &path->position, 4, 0);
     success = success && FileRead(handle, &path->unknown_08, 4, 0);
     success = success && FileRead(handle, &point_count, 4, 0);
 
@@ -135,7 +135,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
 void PathAIResetRecord004A9720(W8PathAI* path)
 {
     if (path != 0 && path->kind_00 == 0) {
-        path->value_04 = 0;
+        path->position = 0;
     }
 }
 
@@ -236,17 +236,17 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     }
     copy->kind_00 = source->kind_00;
     copy->unknown_01[0] = source->unknown_01[0];
-    copy->value_04 = source->value_04;
+    copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
     copy->value_10 = source->value_10;
     copy->flag_1c = source->flag_1c;
-    copy->value_20 = source->value_20;
-    copy->value_24 = source->value_24;
-    copy->tick_28 = source->tick_28;
-    copy->value_2c = source->value_2c;
-    copy->value_30 = source->value_30;
-    copy->scale_34 = source->scale_34;
-    copy->flag_38 = source->flag_38;
+    copy->point_index = source->point_index;
+    copy->interpolation_fraction = source->interpolation_fraction;
+    copy->last_update_tick = source->last_update_tick;
+    copy->speed = source->speed;
+    copy->distance_travelled = source->distance_travelled;
+    copy->total_length = source->total_length;
+    copy->looping = source->looping;
     copy->flag_39 = source->flag_39;
     copy->flag_3a = source->flag_3a;
     copy->unknown_3b = source->unknown_3b;
@@ -345,14 +345,14 @@ unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* po
     }
     *copy = *point;
     if (path->nodes_0c->count == 0) {
-        path->value_04 = 0;
-        path->value_24 = 0;
-        path->value_30 = 0;
-        path->value_20 = 0;
+        path->position = 0;
+        path->interpolation_fraction = 0;
+        path->distance_travelled = 0;
+        path->point_index = 0;
     }
     path->nodes_0c->Add(copy);
     if (path->nodes_0c->count < 2) {
-        path->scale_34 = 0;
+        path->total_length = 0;
         return 1;
     }
 
@@ -362,9 +362,9 @@ unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* po
         const srVector3T<float>* second = *path->nodes_0c->GetAt(index + 1);
         total_length += (*first - *second).Length();
     }
-    path->scale_34 = total_length;
-    if (path->value_04 > g_float_005ebb34 && total_length > g_float_005ebb34) {
-        PathAISetValue004A9F60(path, path->value_30 / total_length);
+    path->total_length = total_length;
+    if (path->position > g_float_005ebb34 && total_length > g_float_005ebb34) {
+        PathAISetValue004A9F60(path, path->distance_travelled / total_length);
     }
     return 1;
 }
@@ -385,7 +385,7 @@ void PathAIEnableTimedMode004A9BA0(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9c20
 void PathAIResetTick004A9C20(W8PathAI* path)
 {
-    path->tick_28 = GetTickCount();
+    path->last_update_tick = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x004a9e70
@@ -394,7 +394,7 @@ float PathAIGetValue004A9E70(W8PathAI* path)
     if (path == 0) {
         return g_float_005ebb34;
     }
-    return path->value_04;
+    return path->position;
 }
 
 // FUNCTION: WIZ8 0x004a9e90
@@ -410,19 +410,19 @@ unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
     if (path == 0 || path->nodes_0c == 0) {
         return 0;
     }
-    if (path->value_20 >= path->nodes_0c->count) {
-        if (path->flag_38 == 0) {
+    if (path->point_index >= path->nodes_0c->count) {
+        if (path->looping == 0) {
             return 0;
         }
-        path->value_20 = 0;
+        path->point_index = 0;
     }
     srVector3T<float>** slot = path->nodes_0c->data;
-    if (path->value_20 < path->nodes_0c->count) {
-        slot += path->value_20;
+    if (path->point_index < path->nodes_0c->count) {
+        slot += path->point_index;
     }
     source = *slot;
     *point = *source;
-    ++path->value_20;
+    ++path->point_index;
     return 1;
 #pragma clang diagnostic pop
 }
@@ -436,7 +436,7 @@ unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
     if (path != 0 && path->nodes_0c != 0 &&
-        (path->value_20 < path->nodes_0c->count || path->flag_38 != 0)) {
+        (path->point_index < path->nodes_0c->count || path->looping != 0)) {
         return 0;
     }
     return 1;
@@ -459,23 +459,23 @@ void PathAISetValue004A9F60(W8PathAI* path, float value)
         srAssertFail("pPathAI", PATH_AI_CPP, 0x46e, 0);
     }
     if (path->flag_3a != 0) {
-        path->value_04 = 0.0f;
-        path->value_24 = 0;
-        path->value_30 = 0;
-        path->value_20 = 0;
-        if (path->scale_34 <= 0.0f) {
-            path->value_04 = value;
+        path->position = 0.0f;
+        path->interpolation_fraction = 0;
+        path->distance_travelled = 0;
+        path->point_index = 0;
+        if (path->total_length <= 0.0f) {
+            path->position = value;
             return;
         }
-        PathAIAdvanceByDistance004A9FE0(path, value * path->scale_34);
+        PathAIAdvanceByDistance004A9FE0(path, value * path->total_length);
         return;
     }
-    path->value_04 = value;
+    path->position = value;
 }
 
 /* Advance the timed path by `distance` world units: fold it into the elapsed
    accumulator, then walk the node chain past every segment the distance
-   covers, ending with the in-segment fraction in value_24. */
+   covers, ending with the in-segment fraction in interpolation_fraction. */
 // FUNCTION: WIZ8 0x004a9fe0
 void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
 {
@@ -486,49 +486,49 @@ void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
     float remaining;
     float segment;
 
-    if (path->scale_34 <= g_float_005ebb34) {
+    if (path->total_length <= g_float_005ebb34) {
         return;
     }
-    path->value_30 += distance;
-    path->value_04 = path->value_30 / path->scale_34;
-    if (path->value_04 >= g_float_005ebb38) {
-        if (path->flag_38 != 0) {
-            path->value_04 = g_float_005ebb34;
-            path->value_24 = g_float_005ebb34;
-            path->value_30 = g_float_005ebb34;
-            path->value_20 = 0;
+    path->distance_travelled += distance;
+    path->position = path->distance_travelled / path->total_length;
+    if (path->position >= g_float_005ebb38) {
+        if (path->looping != 0) {
+            path->position = g_float_005ebb34;
+            path->interpolation_fraction = g_float_005ebb34;
+            path->distance_travelled = g_float_005ebb34;
+            path->point_index = 0;
             return;
         }
-        path->value_04 = g_float_005ebb38;
-        path->value_24 = g_float_005ebb38;
-        path->value_30 = path->scale_34;
-        path->value_20 = path->nodes_0c->count - 1;
+        path->position = g_float_005ebb38;
+        path->interpolation_fraction = g_float_005ebb38;
+        path->distance_travelled = path->total_length;
+        path->point_index = path->nodes_0c->count - 1;
         return;
     }
     remaining = distance;
     while (true) {
         PathAIPosition004AA370(path, &position);
-        index = path->value_20 + 1;
+        index = path->point_index + 1;
         next = *path->nodes_0c->GetAt(index);
         segment = (position - *next).Length();
         if (remaining < segment) {
             break;
         }
-        path->value_20 = index;
+        path->point_index = index;
         remaining -= segment;
-        path->value_24 = g_float_005ebb34;
+        path->interpolation_fraction = g_float_005ebb34;
         if (path->nodes_0c->count - 1U <= index) {
-            path->value_20 = path->nodes_0c->count - 1;
-            path->value_04 = g_float_005ebb38;
-            path->value_24 = g_float_005ebb38;
+            path->point_index = path->nodes_0c->count - 1;
+            path->position = g_float_005ebb38;
+            path->interpolation_fraction = g_float_005ebb38;
             return;
         }
     }
-    index = path->value_20;
+    index = path->point_index;
     next = *path->nodes_0c->GetAt(index + 1);
     current = *path->nodes_0c->GetAt(index);
     segment = (*current - *next).Length();
-    path->value_24 = (segment * path->value_24 + remaining) / segment;
+    path->interpolation_fraction = (segment * path->interpolation_fraction + remaining) / segment;
 }
 
 // FUNCTION: WIZ8 0x004aa160
@@ -537,25 +537,26 @@ void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount)
     unsigned int index;
     float position;
 
-    position = amount * path->value_2c / path->nodes_0c->count + path->value_04;
-    path->value_04 = position;
+    position = amount * path->speed / path->nodes_0c->count + path->position;
+    path->position = position;
     if (position < g_float_005ebb38) {
-        index = (unsigned int)position;
-        path->value_20 = index;
-        path->value_24 = position - index;
+        position *= path->nodes_0c->count;
+        index = static_cast<unsigned int>(position);
+        path->point_index = index;
+        path->interpolation_fraction = position - index;
         return;
     }
-    if (path->flag_38 == 0) {
-        path->value_04 = g_float_005ebb38;
-        path->value_24 = g_float_005ebb38;
-        path->value_30 = path->scale_34;
-        path->value_20 = path->nodes_0c->count - 1;
+    if (path->looping == 0) {
+        path->position = g_float_005ebb38;
+        path->interpolation_fraction = g_float_005ebb38;
+        path->distance_travelled = path->total_length;
+        path->point_index = path->nodes_0c->count - 1;
         return;
     }
-    path->value_04 = g_float_005ebb34;
-    path->value_24 = g_float_005ebb34;
-    path->value_30 = g_float_005ebb34;
-    path->value_20 = 0;
+    path->position = g_float_005ebb34;
+    path->interpolation_fraction = g_float_005ebb34;
+    path->distance_travelled = g_float_005ebb34;
+    path->point_index = 0;
 }
 
 // FUNCTION: WIZ8 0x004aa1f0
@@ -571,48 +572,47 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
     }
     now = GetTickCount();
     if (path->flag_1c == 0 && path->flag_3a != 0) {
-        elapsed = now - path->tick_28;
-        if (path->tick_28 < now) {
+        elapsed = now - path->last_update_tick;
+        if (path->last_update_tick < now) {
             if (path->flag_3c != 0) {
                 PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
             } else {
                 point_count = (float)path->nodes_0c->count;
-                PathAIAdvanceByDistance004A9FE0(path, path->scale_34 / point_count *
-                                                          path->value_2c * elapsed *
-                                                          g_float_005ec128);
+                PathAIAdvanceByDistance004A9FE0(path, path->total_length / point_count *
+                                                          path->speed * elapsed * g_float_005ec128);
             }
-            path->tick_28 = now;
+            path->last_update_tick = now;
             return 1;
         }
     } else {
         if (path->flag_39 == 0) {
-            amount = (now - path->tick_28) * g_float_005ec128 * direction * path->value_2c;
+            amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
         } else {
             amount = g_negative_one_005ebc38;
             if (direction > 0) {
                 amount = g_float_005ebb38;
             }
         }
-        path->value_04 += amount;
-        if (path->value_04 >= g_float_005ebb34) {
+        path->position += amount;
+        if (path->position >= g_float_005ebb34) {
             point_count = (float)path->nodes_0c->count;
-            if (path->value_04 < point_count) {
-                path->tick_28 = now;
+            if (path->position < point_count) {
+                path->last_update_tick = now;
                 return 1;
             }
-            if (path->flag_38 == 0) {
-                path->tick_28 = now;
-                path->value_04 = point_count - g_float_005ebb38;
+            if (path->looping == 0) {
+                path->last_update_tick = now;
+                path->position = point_count - g_float_005ebb38;
                 return 1;
             }
-        } else if (path->flag_38 != 0) {
-            path->tick_28 = now;
-            path->value_04 = (float)path->nodes_0c->count - g_float_005ebb38;
+        } else if (path->looping != 0) {
+            path->last_update_tick = now;
+            path->position = static_cast<float>(path->nodes_0c->count) - g_float_005ebb38;
             return 1;
         }
-        path->value_04 = g_float_005ebb34;
+        path->position = g_float_005ebb34;
     }
-    path->tick_28 = now;
+    path->last_update_tick = now;
     return 1;
 }
 
@@ -627,14 +627,15 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x5e7, 0);
     }
-    if (path->value_04 < g_float_005ebb34) {
+    if (path->position < g_float_005ebb34) {
         srAssertFail("pPathAI->flPosition>=0.0f", PATH_AI_CPP, 0x5e8, 0);
     }
     if (path->flag_3a == 0) {
         if (path->flag_1c == 0) {
-            index = (int)((path->nodes_0c->count - 1) * path->value_04 + g_double_005ebe80);
+            index =
+                static_cast<int>((path->nodes_0c->count - 1) * path->position + g_double_005ebe80);
         } else {
-            index = (int)(path->value_04 + g_double_005ec3b0);
+            index = static_cast<int>(path->position + g_double_005ec3b0);
         }
         if (index >= path->nodes_0c->count) {
             index = path->nodes_0c->count - 1;
@@ -650,14 +651,14 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
         return;
     }
 
-    index = path->value_20;
+    index = path->point_index;
     if ((unsigned int)index < (unsigned int)(path->nodes_0c->count - 1)) {
         second = *path->nodes_0c->GetAt(index + 1);
         first = *path->nodes_0c->GetAt(index);
-        first_weight = g_float_005ebb38 - path->value_24;
-        value->x = first->x * first_weight + second->x * path->value_24;
-        value->y = first->y * first_weight + second->y * path->value_24;
-        value->z = first->z * first_weight + second->z * path->value_24;
+        first_weight = g_float_005ebb38 - path->interpolation_fraction;
+        value->x = first->x * first_weight + second->x * path->interpolation_fraction;
+        value->y = first->y * first_weight + second->y * path->interpolation_fraction;
+        value->z = first->z * first_weight + second->z * path->interpolation_fraction;
         return;
     }
     first = *path->nodes_0c->GetAt(index);
@@ -730,10 +731,10 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
 
     if (0 < path->nodes_0c->count) {
         if (path->flag_1c == 0) {
-            blend = path->value_24;
-            index = path->value_20;
+            blend = path->interpolation_fraction;
+            index = path->point_index;
         } else {
-            index = static_cast<int>(path->value_04 + g_double_005ec3b0);
+            index = static_cast<int>(path->position + g_double_005ec3b0);
             blend = -1.0f;
         }
         if (path->nodes_0c->count - 1 <= index) {
@@ -828,7 +829,7 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
 // FUNCTION: WIZ8 0x004aa9c0
 void PathAISetScale004AA9C0(W8PathAI* path, float value)
 {
-    path->value_2c = value;
+    path->speed = value;
 }
 
 // FUNCTION: WIZ8 0x004aa9d0
@@ -837,7 +838,7 @@ void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6dc, 0);
     }
-    path->flag_38 = value;
+    path->looping = value;
 }
 
 // FUNCTION: WIZ8 0x004aaa10

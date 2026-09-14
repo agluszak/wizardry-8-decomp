@@ -1,6 +1,8 @@
 #ifndef WIZ8_NPC_SCRIPT_FILE_H
 #define WIZ8_NPC_SCRIPT_FILE_H
 
+#include <stddef.h>
+
 /*
  * The NPC script (.nsf) file format loaded at 0x0055A480 and read one quote
  * record at a time by 0x0055A140. Its owning translation unit is an
@@ -24,7 +26,7 @@
 
 #pragma pack(push, 1)
 
-/* One 8-byte sub-entry. Its leading slot is non-zero on disk to select the
+/* One 8-byte sub-entry. Its text slot at +4 is non-zero on disk to select the
    length-prefixed narrow string that follows, and is then overwritten with the
    pointer to it. */
 struct W8NpcQuoteSubEntry {
@@ -60,6 +62,19 @@ struct W8NpcScriptFile {
 }; /* 0x0e */
 
 #pragma pack(pop)
+
+static_assert(sizeof(W8NpcQuoteSubEntry) == 8, "W8NpcQuoteSubEntry_size");
+static_assert(offsetof(W8NpcQuoteSubEntry, text) == 4, "W8NpcQuoteSubEntry_text");
+static_assert(sizeof(W8NpcQuoteEntry) == 0x12, "W8NpcQuoteEntry_size");
+static_assert(offsetof(W8NpcQuoteEntry, sub_entry_count) == 0x0d, "W8NpcQuoteEntry_count");
+static_assert(offsetof(W8NpcQuoteEntry, sub_entries) == 0x0e, "W8NpcQuoteEntry_sub_entries");
+static_assert(sizeof(W8NpcScriptQuote) == 0x0c, "W8NpcScriptQuote_size");
+static_assert(offsetof(W8NpcScriptQuote, subquotes) == 1, "W8NpcScriptQuote_subquotes");
+static_assert(offsetof(W8NpcScriptQuote, entries) == 5, "W8NpcScriptQuote_entries");
+static_assert(offsetof(W8NpcScriptQuote, entry_count) == 9, "W8NpcScriptQuote_entry_count");
+static_assert(sizeof(W8NpcScriptFile) == 0x0e, "W8NpcScriptFile_size");
+static_assert(offsetof(W8NpcScriptFile, name) == 6, "W8NpcScriptFile_name");
+static_assert(offsetof(W8NpcScriptFile, quotes) == 0x0a, "W8NpcScriptFile_quotes");
 
 void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file);
 unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* quote);

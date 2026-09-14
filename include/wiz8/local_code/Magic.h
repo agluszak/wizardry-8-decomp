@@ -17,7 +17,7 @@ extern int g_learn_sound_0068c510;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
    retail caller pushes only these two arguments. */
-unsigned char SpellUsableNow(int spell_id, int allow_out_of_combat);
+unsigned char SpellUsableNow(int spell_id, unsigned char allow_out_of_combat);
 
 char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
                                      W8TargetingContext context);
@@ -32,7 +32,8 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id);
 unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
 /* 0x00500330: the power level the monster can afford for the spell, out of
    its database base plus its runtime bonus. */
-unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unused, int spell_id);
+unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                          int spell_id);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);

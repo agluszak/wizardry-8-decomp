@@ -14,7 +14,8 @@ class W8AnimRepBase005EC1D8;
 struct W8PathAI {
     unsigned char kind_00; /* 0x00 */
     unsigned char unknown_01[3];
-    float value_04;                                 /* 0x04 */
+    /* Normalized for interpolated movement, point units in discrete mode. */
+    float position;                                 /* 0x04 */
     unsigned int unknown_08;                        /* 0x08 */
     W8GrowableVector<srVector3T<float>*>* nodes_0c; /* 0x0c */
     int value_10;                                   /* 0x10 */
@@ -24,15 +25,15 @@ struct W8PathAI {
     srVector3T<float>* scales_18;    /* 0x18 */
     unsigned char flag_1c;           /* 0x1c */
     unsigned char unknown_1d[3];
-    unsigned int value_20; /* 0x20 */
-    float value_24;        /* 0x24 */
-    unsigned int tick_28;  /* 0x28 */
-    float value_2c;        /* 0x2c */
-    float value_30;        /* 0x30 */
-    float scale_34;        /* 0x34 */
-    unsigned char flag_38; /* 0x38 */
-    unsigned char flag_39; /* 0x39 */
-    unsigned char flag_3a; /* 0x3a */
+    unsigned int point_index;      /* 0x20 */
+    float interpolation_fraction;  /* 0x24 */
+    unsigned int last_update_tick; /* 0x28 */
+    float speed;                   /* 0x2c */
+    float distance_travelled;      /* 0x30 */
+    float total_length;            /* 0x34 */
+    unsigned char looping;         /* 0x38 */
+    unsigned char flag_39;         /* 0x39 */
+    unsigned char flag_3a;         /* 0x3a */
     unsigned char unknown_3b;
     unsigned char flag_3c; /* 0x3c */
     unsigned char unknown_3d[3];

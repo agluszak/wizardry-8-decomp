@@ -137,7 +137,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         RefreshPartySelectionPortrait(party_slot);
         break;
     case W8_SCREEN_CAMP:
-        if (g_rcs_mode_0064cbe8 == static_cast<int>(party_slot) &&
+        if (giReviewCharSlot == static_cast<int>(party_slot) &&
             g_camp_screen_0069c0f4->input_mode == 0) {
             if (g_camp_screen_0069c0f4->unknown_d40[0] != 0) {
                 g_camp_screen_0069c0f4->redraw_flags |= 0x100;

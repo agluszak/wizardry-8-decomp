@@ -690,8 +690,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     if (idle != 0) {
         representation->flag_600 = 1;
         representation->value_604 = idle->playback_scale_08;
-        representation->value_608 = idle_fps_start;
-        representation->value_60c = idle_fps_end;
+        representation->random_idle_fps_min = idle_fps_start;
+        representation->random_idle_fps_max = idle_fps_end;
     }
     if (missile_start > 0)
         (*monster)->value_1f4 = missile_start;
@@ -844,9 +844,9 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 
     if (m_pRep->flag_600 != 0) {
         int subcycle;
-        float playback_scale =
-            (m_pRep->value_60c - m_pRep->value_608) * (float)Random(1000) * g_float_005ec128 +
-            m_pRep->value_608;
+        float playback_scale = (m_pRep->random_idle_fps_max - m_pRep->random_idle_fps_min) *
+                                   static_cast<float>(Random(1000)) * g_float_005ec128 +
+                               m_pRep->random_idle_fps_min;
 
         for (subcycle = 0; subcycle < (signed char)m_pRep->animations[1].GetCount(); ++subcycle) {
             int animation_index = (signed char)subcycle;
@@ -940,7 +940,8 @@ int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
 W8MonsterRep::W8MonsterRep()
     : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), standing_height_5ec(0), scale_5f0(1.0f),
       minimum_scale_5f4(0.0f), maximum_scale_5f8(0.0f), value_5fc(1.0f), flag_600(0), flag_601(0),
-      value_604(10.0f), value_608(0), value_60c(0), value_610(0), monster_light_624(0)
+      value_604(10.0f), random_idle_fps_min(0), random_idle_fps_max(0), value_610(0),
+      monster_light_624(0)
 {
     int index;
 
@@ -1036,8 +1037,9 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
       standing_height_5ec(other.standing_height_5ec), scale_5f0(other.scale_5f0),
       minimum_scale_5f4(other.minimum_scale_5f4), maximum_scale_5f8(other.maximum_scale_5f8),
       value_5fc(other.value_5fc), flag_600(other.flag_600), flag_601(other.flag_601),
-      value_604(other.value_604), value_608(other.value_608), value_60c(other.value_60c),
-      value_610(other.value_610), monster_light_624(0)
+      value_604(other.value_604), random_idle_fps_min(other.random_idle_fps_min),
+      random_idle_fps_max(other.random_idle_fps_max), value_610(other.value_610),
+      monster_light_624(0)
 {
     signed char cycle;
     int index;

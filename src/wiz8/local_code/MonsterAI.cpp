@@ -25,6 +25,7 @@
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
@@ -183,7 +184,7 @@ void UpdateMonsterGroups(char staggered)
     if (AnyCharacterActive() == 0) {
         return;
     }
-    if (ILLength((W8IList*)gXStatus.plsMonsterGroupList) == 0) {
+    if (PLLength(gXStatus.plsMonsterGroupList) == 0) {
         return;
     }
     g_monster_group_tick = g_monster_group_tick + 1;
@@ -199,7 +200,7 @@ void UpdateMonsterGroups(char staggered)
         }
     }
     WorldGetCameraLocation(GetWorld(), &camera_position);
-    for (group_list_index = 0; group_list_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
+    for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_list_index) {
         if (staggered != 0 && group_list_index % 5 != g_monster_group_tick % 5) {
             continue;
@@ -375,9 +376,8 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                     }
                     break;
                 case 1:
-                    decision = (unsigned char)((unsigned int)monster_info->hp_current * 100 /
-                                                   (unsigned int)monster_info->hp_max <=
-                                               0x14) +
+                    decision = static_cast<unsigned char>(
+                                   monster_info->hp_current * 100 / monster_info->hp_max <= 0x14) +
                                1;
                     if (monster_info->monster->movement_stopped_024 != 0) {
                         update = 1;
@@ -452,11 +452,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             GetCameraPosition(&camera);
             position = monster->GetPosition();
             *decision = 0xa;
-            /* Retail literally reads camera.x twice here; the original source
-               indexed .x/.x/.y rather than .x/.y/.z. */
-            monster->move_direction_2bc.x = camera.x - position.x;
-            monster->move_direction_2bc.y = camera.x - position.y;
-            monster->move_direction_2bc.z = camera.y - position.z;
+            monster->move_direction_2bc = camera - position;
             return 1;
         }
     }
@@ -871,7 +867,8 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         (monster_info->condition_turns[0xc] == 0 || record->kind_0cb == 0xc) &&
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
-        hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
+        hp_ratio =
+            static_cast<float>(monster_info->hp_current) / static_cast<float>(monster_info->hp_max);
         backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
         monster_info->action_kind = backs_off ? 7 : 5;
     } else {
@@ -931,7 +928,8 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     monster_info->action_kind = 6;
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
-                    hp_ratio = (float)monster_info->hp_current / (float)monster_info->hp_max;
+                    hp_ratio = static_cast<float>(monster_info->hp_current) /
+                               static_cast<float>(monster_info->hp_max);
                     backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
                     monster_info->action_kind = backs_off ? 7 : 5;
                 }
@@ -1048,8 +1046,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
     int chosen;
     float distance;
 
-    hp_percent =
-        (unsigned int)(monster_info->hp_current * 100) / (unsigned int)monster_info->hp_max;
+    hp_percent = monster_info->hp_current * 100 / monster_info->hp_max;
     if (monster_info->fInCombat == 0) {
         srAssertFail("pMonsterInfo->fInCombat", MONSTER_AI_CPP, 1272, 0);
     }
@@ -1116,7 +1113,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
     if (target_locked == 0 && attack_locked == 0) {
         if (CanMonsterAttack(monster_info) != 0 && Random(100) < monster_info->attributes[1]) {
             monster_info->action_kind = 8;
-            for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 other = MonsterGetScriptPartByLocationIndex(index);
                 if (other != monster_info) {
                     ResetCombatSlot(&monster_info->Target);
@@ -1136,9 +1133,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                     QueueMonsterAction(monster_info, 8, 0, 0, W8_TARGET_KIND_CHARACTER, index);
                 }
             }
-            if (static_cast<int>(ILLength(
-                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share the released list prefix
-                        W8IList*>(monster_info->pCombat->plsCombatActionList))) > 0) {
+            if (static_cast<int>(PLLength(monster_info->pCombat->plsCombatActionList)) > 0) {
                 return;
             }
         }
@@ -1162,7 +1157,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         scan_chars = 1;
         scan_monsters = 1;
         monster_lo = 0;
-        monster_hi = ILLength((W8IList*)gXStatus.plsMonsterList);
+        monster_hi = PLLength(gXStatus.plsMonsterList);
     } else {
         if (IsTargetStillPresent(&monster_info->Target) == 0) {
             return;
@@ -1291,9 +1286,7 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
 
     record = GetMonsterDataForInfo(monster_info);
     BuildMonsterActionQueue(monster_info, arg_2, arg_3);
-    count = ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share the released list prefix
-            W8IList*>(monster_info->pCombat->plsCombatActionList));
+    count = PLLength(monster_info->pCombat->plsCombatActionList);
     if (count == 0) {
         return 0;
     }
@@ -1415,7 +1408,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
 
             SetTargetSourceToMonster(monster_info, &source);
             power_level = ChooseMonsterSpellPowerLevel(
-                monster_info, (int)GetMonsterDataForInfo(monster_info), spell_id);
+                monster_info, GetMonsterDataForInfo(monster_info), spell_id);
             PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot,
                                        &monster_markers, &party_markers, 0);
             for (index = 0; index < (unsigned int)party_markers.GetCount(); ++index) {
@@ -1814,8 +1807,8 @@ unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell
         return 0;
     }
     SetTargetSourceToMonster(monster_info, &source);
-    power_level = ChooseMonsterSpellPowerLevel(monster_info,
-                                               (int)GetMonsterDataForInfo(monster_info), spell_id);
+    power_level =
+        ChooseMonsterSpellPowerLevel(monster_info, GetMonsterDataForInfo(monster_info), spell_id);
     PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot, &monster_markers,
                                &party_markers, 0);
     for (index = 0; index < (unsigned int)monster_markers.GetCount(); ++index) {
@@ -1901,7 +1894,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         targets->Add(slot);
         break;
     case 1:
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
@@ -1934,7 +1927,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         break;
     case 3:
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
@@ -1967,7 +1960,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         break;
     case 4:
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->group_id != monster_info->monster_group_id &&
                 monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
@@ -1993,7 +1986,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         break;
     case 5:
     case 6:
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
                 (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
@@ -2096,8 +2089,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     float minimum;
 
     RefreshOutwardSightForAllMonsters();
-    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
-         ++group_index) {
+    for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->flag_28 == 0 || group->fInCombat == 0 ||
             MonsterGroupAllMembersDying00511850(group) != 0) {
@@ -2160,8 +2152,7 @@ void CheckMonsterGroupsLeaveCombat(void)
     if (engaged != 0) {
         return;
     }
-    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
-         ++group_index) {
+    for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->flag_28 != 0 && group->fInCombat != 0 &&
             MonsterGroupAllMembersDying00511850(group) == 0) {
@@ -2194,7 +2185,7 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
         }
     }
     if (party_only == 0) {
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0 &&
@@ -2274,7 +2265,7 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
         }
     }
     if (party_only == 0) {
-        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             other = MonsterGetScriptPartByLocationIndex(index);
             if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0) {
@@ -2557,8 +2548,7 @@ unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         if (member_distance > GetRangeConstant5EC360()) {
             continue;
         }
-        for (other_index = 0; other_index < ILLength((W8IList*)gXStatus.plsMonsterList);
-             ++other_index) {
+        for (other_index = 0; other_index < PLLength(gXStatus.plsMonsterList); ++other_index) {
             other = MonsterGetScriptPartByLocationIndex(other_index);
             if (other != member && other->party_threat.unknown_05[1] != 0 && other->fActive != 0 &&
                 other->fInCombat != 0 && other->hp_current != 0 &&
@@ -2605,8 +2595,7 @@ void UpdateMonsterGroupEngagement(void)
     if (g_combat_state->combat_update_count <= 2) {
         return;
     }
-    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
-         ++group_index) {
+    for (group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
         group = GetMonsterGroupByListIndex(group_index);
         if (group->flag_28 == 0 || group->fInCombat == 0 || group->ubDisposition != DISP_HOSTILE ||
             group->leader_group_id != 0) {
@@ -2654,8 +2643,8 @@ unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_
     unsigned int power_level;
 
     SetTargetSourceToMonster(monster_info, &source);
-    power_level = ChooseMonsterSpellPowerLevel(monster_info,
-                                               (int)GetMonsterDataForInfo(monster_info), spell_id);
+    power_level =
+        ChooseMonsterSpellPowerLevel(monster_info, GetMonsterDataForInfo(monster_info), spell_id);
     PopulateSpellTargetMarkers(spell_id, power_level, &source, slot, &monster_markers,
                                &party_markers, 0);
     return party_markers.GetCount() > 0;
@@ -2673,13 +2662,13 @@ void CheckMonsterGroupsEnterCombat(void)
     unsigned int index;
 
     RefreshAllSight();
-    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->fInCombat != 0 && group->ubDisposition == DISP_HOSTILE) {
             AlertSameFactionGroups(group);
         }
     }
-    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->fInCombat == 0) {
             if (ShouldMonsterGroupEnterCombat(group) != 0) {

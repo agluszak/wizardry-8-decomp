@@ -16,9 +16,12 @@ command line with a reason; anything else fails.
 
 from __future__ import annotations
 
+import hashlib
+import io
 import re
 import subprocess
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -34,17 +37,76 @@ _MARKER = re.compile(
 _DECLARATOR = re.compile(r"([A-Za-z_]\w*(?:::[A-Za-z_]\w*)*)\s*(?:\(|=|;|\[)")
 
 Identity = tuple[str, str, int]
+AllowedTransition = tuple[str, str, int, str]
+
+
+@lru_cache(maxsize=8)
+def _git_prefix(repo_dir: Path) -> tuple[str, ...]:
+    if (repo_dir / ".jj").is_dir():
+        root = subprocess.run(
+            ["jj", "git", "root"], cwd=repo_dir, capture_output=True, text=True, check=True
+        ).stdout.strip()
+        return ("git", f"--git-dir={root}")
+    return ("git",)
 
 
 def _git(repo_dir: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", *args], cwd=repo_dir, capture_output=True, text=True, check=True, errors="replace"
+        [*_git_prefix(repo_dir), *args],
+        cwd=repo_dir,
+        capture_output=True,
+        text=True,
+        check=True,
+        errors="replace",
     ).stdout
 
 
-def _tree_files(repo_dir: Path, revision: str) -> list[str]:
-    listing = _git(repo_dir, "ls-tree", "-r", "-z", "--name-only", revision, *SOURCE_ROOTS)
-    return [name for name in listing.split("\0") if name.endswith(SOURCE_SUFFIXES)]
+def _tree_sources(repo_dir: Path, revision: str | None) -> dict[str, str]:
+    if revision is None:
+        listing = _git(
+            repo_dir,
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "--",
+            *SOURCE_ROOTS,
+        )
+        return {
+            name: (repo_dir / name).read_text(encoding="utf-8", errors="replace")
+            for name in sorted(set(listing.split("\0")))
+            if name.endswith(SOURCE_SUFFIXES) and (repo_dir / name).is_file()
+        }
+    listing = _git(repo_dir, "ls-tree", "-r", "-z", revision, "--", *SOURCE_ROOTS)
+    files: dict[str, str] = {}
+    for entry in listing.split("\0"):
+        if not entry:
+            continue
+        metadata, name = entry.split("\t", 1)
+        _mode, kind, oid = metadata.split()
+        if kind == "blob" and name.endswith(SOURCE_SUFFIXES):
+            files[name] = oid
+    if not files:
+        return {}
+    oids = sorted(set(files.values()))
+    output = subprocess.run(
+        [*_git_prefix(repo_dir), "cat-file", "--batch"],
+        cwd=repo_dir,
+        input=("\n".join(oids) + "\n").encode(),
+        capture_output=True,
+        check=True,
+    ).stdout
+    stream = io.BytesIO(output)
+    blobs: dict[str, str] = {}
+    for oid in oids:
+        actual, kind, size = stream.readline().split()
+        if actual.decode() != oid or kind != b"blob":
+            raise ValueError(f"unexpected Git blob response for {oid}")
+        blobs[oid] = stream.read(int(size)).decode("utf-8", errors="replace")
+        if stream.read(1) != b"\n":
+            raise ValueError("truncated Git blob batch")
+    return {name: blobs[oid] for name, oid in files.items()}
 
 
 def _entity_form(entity: str, kind: str) -> str:
@@ -92,12 +154,16 @@ def _entity_name(entity: str) -> str:
     return match.group(1).split("::")[-1] if match else ""
 
 
-def collect_identities(repo_dir: Path, revision: str) -> dict[Identity, list[dict[str, str]]]:
+def collect_identities(
+    repo_dir: Path, revision: str | None, *, sources: dict[str, str] | None = None
+) -> dict[Identity, list[dict[str, str]]]:
     """Markers at ``revision`` keyed by (kind, target, address)."""
 
     identities: dict[Identity, list[dict[str, str]]] = defaultdict(list)
-    for name in _tree_files(repo_dir, revision):
-        lines = _git(repo_dir, "show", f"{revision}:{name}").splitlines()
+    for name, content in (
+        sources if sources is not None else _tree_sources(repo_dir, revision)
+    ).items():
+        lines = content.splitlines()
         for index, line in enumerate(lines):
             marker = _MARKER.match(line)
             if marker is None:
@@ -111,13 +177,13 @@ def collect_identities(repo_dir: Path, revision: str) -> dict[Identity, list[dic
     return identities
 
 
-def _references(repo_dir: Path, revision: str, names: set[str]) -> dict[str, int]:
+def _references(sources: dict[str, str], names: set[str]) -> dict[str, int]:
     if not names:
         return {}
     counts = dict.fromkeys(names, 0)
     pattern = re.compile(r"\b(" + "|".join(re.escape(name) for name in sorted(names)) + r")\b")
-    for file_name in _tree_files(repo_dir, revision):
-        for match in pattern.finditer(_git(repo_dir, "show", f"{revision}:{file_name}")):
+    for content in sources.values():
+        for match in pattern.finditer(content):
             counts[match.group(1)] += 1
     return counts
 
@@ -128,13 +194,30 @@ def _format_key(key: Identity) -> str:
 
 
 def merge_preservation_report(
-    repo_dir: Path, base: str, head: str, allowed: dict[int, str] | None = None
+    repo_dir: Path,
+    base: str,
+    head: str | None = None,
+    allowed: dict[AllowedTransition, str] | None = None,
 ) -> dict[str, Any]:
     """Compare marker identities between ``base`` and ``head``."""
 
     allowed = allowed or {}
-    before = collect_identities(repo_dir, base)
-    after = collect_identities(repo_dir, head)
+    requested_head = head
+    if head is None and (repo_dir / ".jj").is_dir():
+        head = subprocess.run(
+            ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
+            cwd=repo_dir,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    base = _git(repo_dir, "rev-parse", "--verify", f"{base}^{{commit}}").strip()
+    if head is not None:
+        head = _git(repo_dir, "rev-parse", "--verify", f"{head}^{{commit}}").strip()
+    base_sources = _tree_sources(repo_dir, base)
+    head_sources = _tree_sources(repo_dir, head)
+    before = collect_identities(repo_dir, base, sources=base_sources)
+    after = collect_identities(repo_dir, head, sources=head_sources)
 
     removed = [key for key in sorted(before) if key not in after]
     added = [key for key in sorted(after) if key not in before]
@@ -146,6 +229,11 @@ def merge_preservation_report(
         != sorted(item["entity"] for item in after[key])
     ]
     duplicates = [key for key in sorted(after) if key[0] in IDENTITY_KINDS and len(after[key]) > 1]
+    conflicts = [
+        {"target": target, "address": f"0x{address:08X}", "kinds": ["FUNCTION", "STUB"]}
+        for kind, target, address in sorted(after)
+        if kind == "FUNCTION" and ("STUB", target, address) in after
+    ]
     demoted = [
         key
         for key in sorted(before.keys() & after.keys())
@@ -161,15 +249,17 @@ def merge_preservation_report(
         for item in before[key]
         if item["name"]
     }
-    still_referenced = _references(repo_dir, head, removed_function_names)
+    still_referenced = _references(head_sources, removed_function_names)
     unresolved = sorted(name for name, count in still_referenced.items() if count)
 
     unexplained_losses = [
-        key for key in removed if key[0] in IDENTITY_KINDS and key[2] not in allowed
+        key for key in removed if key[0] in IDENTITY_KINDS and (*key, "loss") not in allowed
     ]
-    unexplained_duplicates = [key for key in duplicates if key[2] not in allowed]
-    unexplained_demotions = [key for key in demoted if key[2] not in allowed]
-    failed = bool(unexplained_losses or unexplained_duplicates or unexplained_demotions)
+    unexplained_duplicates = [key for key in duplicates if (*key, "duplicate") not in allowed]
+    unexplained_demotions = [key for key in demoted if (*key, "demotion") not in allowed]
+    failed = bool(
+        unexplained_losses or unexplained_duplicates or unexplained_demotions or conflicts
+    )
 
     def describe(
         keys: list[Identity], source: dict[Identity, list[dict[str, str]]]
@@ -186,7 +276,20 @@ def merge_preservation_report(
     return {
         "schema": "wiz8.merge-preservation-v1",
         "base": base,
-        "head": head,
+        "head": head or "working-tree",
+        "source_state": {
+            "mode": "revision" if requested_head is not None else "current",
+            "head_commit": head,
+            "base_tree": _git(repo_dir, "rev-parse", f"{base}^{{tree}}").strip(),
+            "head_tree": _git(repo_dir, "rev-parse", f"{head}^{{tree}}").strip() if head else None,
+            "source_digest": hashlib.sha256(
+                repr(sorted(head_sources.items())).encode("utf-8")
+            ).hexdigest(),
+            "identical_sources": base_sources == head_sources,
+            "warning": "explicit revision mode excludes uncommitted working-tree edits"
+            if requested_head is not None
+            else None,
+        },
         "status": "failed" if failed else "passed",
         "counts": counts,
         "removed": describe(removed, before),
@@ -200,6 +303,7 @@ def merge_preservation_report(
             for key in changed
         ],
         "duplicates": describe(duplicates, after),
+        "conflicts": conflicts,
         "demoted": [
             {
                 "identity": _format_key(key),
@@ -209,20 +313,29 @@ def merge_preservation_report(
             for key in demoted
         ],
         "newly_unresolved": unresolved,
-        "allowed": {f"0x{address:08X}": reason for address, reason in sorted(allowed.items())},
+        "allowed": {
+            f"{target}:{kind}:0x{address:08X}:{transition}": reason
+            for (kind, target, address, transition), reason in sorted(allowed.items())
+        },
         "unexplained_losses": [_format_key(key) for key in unexplained_losses],
         "unexplained_duplicates": [_format_key(key) for key in unexplained_duplicates],
         "unexplained_demotions": [_format_key(key) for key in unexplained_demotions],
     }
 
 
-def parse_allowed(values: list[str]) -> dict[int, str]:
-    """``0xADDRESS=reason`` command-line entries."""
+def parse_allowed(values: list[str]) -> dict[AllowedTransition, str]:
+    """``TARGET:KIND:0xADDRESS:TRANSITION=reason`` command-line entries."""
 
-    allowed: dict[int, str] = {}
+    allowed: dict[AllowedTransition, str] = {}
     for value in values:
-        address, separator, reason = value.partition("=")
-        if not separator or not reason.strip():
-            raise ValueError(f"expected 0xADDRESS=reason, got {value!r}")
-        allowed[int(address, 16)] = reason.strip()
+        selector, separator, reason = value.partition("=")
+        parts = selector.split(":")
+        if not separator or not reason.strip() or len(parts) != 4:
+            raise ValueError(f"expected TARGET:KIND:0xADDRESS:TRANSITION=reason, got {value!r}")
+        target, kind, address, transition = parts
+        if not re.fullmatch(r"[A-Za-z0-9_]+", target) or kind not in IDENTITY_KINDS:
+            raise ValueError(f"invalid target/kind in {value!r}")
+        if transition not in {"loss", "duplicate", "demotion"}:
+            raise ValueError(f"invalid transition in {value!r}")
+        allowed[kind, target, int(address, 16), transition] = reason.strip()
     return allowed

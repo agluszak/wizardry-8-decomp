@@ -73,7 +73,7 @@ def compare_command(
         typer.Option("--file", help="Compare every FUNCTION marker in this source file."),
     ] = None,
     changed: bool = typer.Option(
-        False, "--changed", help="Compare all FUNCTION markers in C/C++ files changed in Jujutsu."
+        False, "--changed", help="Compare changed C/C++ files and consumers of changed headers."
     ),
     since: Annotated[
         str | None,
@@ -87,6 +87,7 @@ def compare_command(
     from ..comparison import (
         changed_source_files,
         compare_selected,
+        header_dependent_files,
         selected_addresses,
     )
     from ..source_index import write_source_index
@@ -102,13 +103,19 @@ def compare_command(
             raise ValueError("raw reccmp options are not accepted by selected comparison")
         if addresses or files or changed:
             selected_files = list(files or [])
+            changed_files: list[Path] = []
+            dependent_files: list[Path] = []
             if changed:
-                selected_files.extend(changed_source_files(settings.repo_dir, since))
+                changed_files = changed_source_files(settings.repo_dir, since)
+                selected_files.extend(changed_files)
                 if not selected_files and not addresses:
                     raise ValueError("no changed C/C++ files; no functions selected")
             # Selection must see this source state, not the snapshot left by
             # an earlier check/test run. The indexer caches unchanged inputs.
             write_source_index(settings)
+            if changed:
+                dependent_files = header_dependent_files(settings, target, changed_files)
+                selected_files.extend(dependent_files)
             selected = selected_addresses(
                 settings.repo_dir, target, addresses or [], selected_files
             )
@@ -122,12 +129,16 @@ def compare_command(
             if changed:
                 baseline = since or "working-copy parent"
                 result["selection"] = {
-                    "mode": "changed-files",
+                    "mode": "changed-and-dependent-files",
                     "baseline": baseline,
-                    "warning": (
-                        f"selected markers in changed files since {baseline}; unchanged callers of "
-                        "changed headers are outside this selection"
-                    ),
+                    "changed_files": [
+                        str(path.relative_to(settings.repo_dir)) for path in changed_files
+                    ],
+                    "dependent_files": [
+                        str(path.relative_to(settings.repo_dir))
+                        for path in dependent_files
+                        if path not in changed_files
+                    ],
                 }
             return result
         raise ValueError("select functions by address, --file, or --changed")
@@ -370,6 +381,8 @@ def debug_command(
     sys.stderr.write(
         f"reason: {result['reason']}\nraw gdb: {result['log']}\nsession: {result['session']}\n"
     )
+    if result["exit_code"]:
+        raise typer.Exit(result["exit_code"])
 
 
 def crash_report_command(

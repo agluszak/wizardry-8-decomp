@@ -100,9 +100,11 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/AnimRep.cpp
     src/wiz8/engine_code/GDProp.cpp
     src/wiz8/engine_code/Prop.cpp
+    src/wiz8/quaternion.cpp
     src/wiz8/engine_code/Navigator.cpp
     src/wiz8/engine_code/GrObject.cpp
     "src/wiz8/local_code/Party Import.cpp"
+    src/wiz8/learned_spells.cpp
     src/wiz8/local_code/Noise.cpp
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp

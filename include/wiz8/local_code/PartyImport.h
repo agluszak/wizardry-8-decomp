@@ -43,18 +43,4 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported); /* 0x00559BC0 */
 void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported);
 
-/* The 0x3dc-byte scratch record BuildLearnedSpellState004F9600 fills: per-realm
-   lists of learned spell ids, a trailing six-int block that is only ever
-   zeroed, and the total learned count. */
-struct W8LearnedSpellScratch {
-    int spell_ids_by_realm[6][40]; /* 0x000: realm-major learned spell ids */
-    int unknown_3c0[6];            /* 0x3c0 */
-    int learned_total;             /* 0x3d8 */
-}; /* 0x3dc */
-
-/* Rebuilds the character's learned-spell buckets through a 0x3dc-byte
-   scratch record after the spell grant. */
-void BuildLearnedSpellState004F9600(W8LearnedSpellScratch* scratch,
-                                    W8Character* character); /* 0x004F9600 */
-
 #endif

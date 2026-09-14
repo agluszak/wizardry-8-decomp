@@ -26,7 +26,7 @@ unsigned int SpellCastFatigueCost(int spell_id, int result);
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                     W8SpellEffectResult* report_to);
-void HealMonster(W8MonsterInfo* monster_info, int amount, char announce);
+void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce);
 void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announce);
 /* 0x0052BB60: the monster-side effect application pass the aging producer
    drives for both sign directions. The result block, when given, collects

@@ -578,7 +578,7 @@ unsigned char W8ListBoxDialog005CBB40::ProcessInput()
                                         gfRightButtonState);
             break;
         case MOUSE_WHEEL:
-            SetCurrentLine005CCB80(m_selected_line_0f4 - GetMouseWheelDeltaValue(input.uiParam));
+            SetCurrentLine005CCB80(m_selected_line_0f4 - GetMouseWheelDeltaValue(input.usParam));
             break;
         default:
             HandleInputEvent005CD2B0(&input);
@@ -1612,7 +1612,7 @@ unsigned char W8TriggerItemPickerDialog::ProcessInput()
                                         gfRightButtonState);
             break;
         case MOUSE_WHEEL: {
-            short delta = GetMouseWheelDeltaValue(input.uiParam);
+            short delta = GetMouseWheelDeltaValue(input.usParam);
             int first_item = m_first_item_0a8 - delta;
             if (items_54.GetCount() < 5) {
                 m_first_item_0a8 = 0;

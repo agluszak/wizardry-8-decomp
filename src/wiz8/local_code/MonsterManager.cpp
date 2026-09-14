@@ -14,6 +14,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
@@ -248,7 +249,8 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         int damage_stage_count = monster_info->monster->GetDamageStageCount004C6A50();
         if (damage_stage_count > 1) {
             int damage_stage =
-                ((monster_info->hp_max - monster_info->hp_current) * damage_stage_count) /
+                ((monster_info->hp_max - static_cast<int>(monster_info->hp_current)) *
+                 damage_stage_count) /
                 monster_info->hp_max;
             if (damage_stage >= damage_stage_count - 1) {
                 damage_stage = damage_stage_count - 1;
@@ -552,7 +554,8 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
         int count = monster->GetDamageStageCount004C6A50();
         if (count > 1) {
             int value =
-                ((monster_info->hp_max - monster_info->hp_current) * count) / monster_info->hp_max;
+                ((monster_info->hp_max - static_cast<int>(monster_info->hp_current)) * count) /
+                monster_info->hp_max;
             if (value >= count - 1) {
                 value = count - 1;
             }
@@ -612,7 +615,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (monster_info->fActive != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
+        if (monster_info->fActive != 0 && monster_info->hp_current > 0 &&
             monster_info->condition_turns[W8_CONDITION_DEAD] == 0 && monster_info->value_2da != 0) {
             if (forced_cleanup == 0) {
                 FormatNotice(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
@@ -709,7 +712,7 @@ void ResetLivingMonstersAfterCombat(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
+        if (monster_info->hp_current > 0) {
             monster_info->monster->ResetMovementAndGroupState00452C90();
             if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
                 monster_info->flag_255 = 0;
@@ -953,7 +956,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e67a0
 void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state)
 {
-    if (monster_info->fActive != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
+    if (monster_info->fActive != 0 && monster_info->hp_current > 0 &&
         monster_info->condition_turns[W8_CONDITION_DEAD] == 0 &&
         monster_info->within_viewing_distance != 0 && query_state == 1) {
         int result = MonsterQuery(monster, 2);

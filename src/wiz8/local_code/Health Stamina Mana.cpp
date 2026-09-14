@@ -449,22 +449,23 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
 /* Heal one monster. A monster that is already dead or already whole is left
    alone; healing it to full says so differently from healing it partway. */
 // FUNCTION: WIZ8 0x0052bfd0
-void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
+void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce)
 {
-    if (monster_info->hp_current == 0 || monster_info->hp_current == monster_info->hp_max ||
+    if (monster_info->hp_current == 0 ||
+        monster_info->hp_current == static_cast<unsigned int>(monster_info->hp_max) ||
         amount == 0) {
         return;
     }
 
     monster_info->hp_current += amount;
-    if (monster_info->hp_current > monster_info->hp_max) {
+    if (monster_info->hp_current > static_cast<unsigned int>(monster_info->hp_max)) {
         monster_info->hp_current = monster_info->hp_max;
     }
     ClearHighlightIfItIs(&monster_info->location_id);
     UpdateMonsterDamageAppearance(monster_info);
 
     if (announce) {
-        if (monster_info->hp_current == monster_info->hp_max) {
+        if (monster_info->hp_current == static_cast<unsigned int>(monster_info->hp_max)) {
             WriteGameLog(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
             WriteGameLog(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
@@ -2483,7 +2484,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             quote->width = width;
             quote->height = height;
             if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-                if (static_cast<int>(party_slot) == g_rcs_mode_0064cbe8) {
+                if (static_cast<int>(party_slot) == giReviewCharSlot) {
                     quote->x = 10;
                     quote->y = 8;
                 } else {

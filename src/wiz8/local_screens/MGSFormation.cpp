@@ -185,11 +185,32 @@ void CreateFormationBoardOverlay(void)
     }
 }
 
-/* Region callback on the board itself: hit-tests the cell markers for the
-   tooltip and swaps in the highlighted board art while hovered. */
-// FUNCTION: WIZ8 0x005b207f
-unsigned char FormationBoardRegionEvent(const W8RegionEvent*, W8Region* region)
+/* Board callback: opens the formation panel on release, hit-tests the cell
+   markers for tooltips, and switches board art on hover transitions. */
+// FUNCTION: WIZ8 0x005b2020
+unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region)
 {
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
+            gXStatus.fReviewCharacterMode == 0) {
+            OpenFormationPanel();
+        }
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_UP:
+        return 1;
+    case MOUSE_POS:
+        break;
+    default:
+        return 0;
+    }
+
     int slot;
     int hit;
 
@@ -239,8 +260,8 @@ static unsigned char CreateFormationPanel(void)
     W8TextControl** button;
     int index;
 
-    g_panel_69c2ec = new Controls(0xd6, 0x3c, 0x1ab, 0x12f, 0x9e, 0, 0);
-    if (g_panel_69c2ec == 0) {
+    g_formation_panel = new Controls(0xd6, 0x3c, 0x1ab, 0x12f, 0x9e, 0, 0);
+    if (g_formation_panel == 0) {
         return 0;
     }
     for (index = 0; index < 15; ++index) {
@@ -248,41 +269,41 @@ static unsigned char CreateFormationPanel(void)
         int top = g_formation_cell_positions_0064db6c[index][1];
         W8TextControl* cell;
 
-        cell = new W8TextControl(g_panel_69c2ec, index + 0xa1, left, top, left + 0x20, top + 0x20,
-                                 0x9f, 0, -1, -1, -1, -1, -1);
-        g_panel_controls_69c344[index] = cell;
+        cell = new W8TextControl(g_formation_panel, index + 0xa1, left, top, left + 0x20,
+                                 top + 0x20, 0x9f, 0, -1, -1, -1, -1, -1);
+        g_formation_cell_controls[index] = cell;
         if (cell == 0) {
-            ReleaseReviewCommonPanels();
+            DestroyFormationPanel();
             return 0;
         }
         cell->AddLayoutFlags(g_W8TextControlMask005ED578);
         cell->m_primaryActivationCallback = SelectFormationCell;
-        cell = new W8TextControl(g_panel_69c2ec, -1, left, top, left + 0x20, top + 0x20, 0xa0, 0,
+        cell = new W8TextControl(g_formation_panel, -1, left, top, left + 0x20, top + 0x20, 0xa0, 0,
                                  -1, -1, -1, -1, -1);
-        g_panel_controls_69c384[index] = cell;
+        g_formation_cell_overlays[index] = cell;
         if (cell == 0) {
-            ReleaseReviewCommonPanels();
+            DestroyFormationPanel();
             return 0;
         }
     }
-    g_panel_controls_69c2f8[0] =
-        new W8TextControl(g_panel_69c2ec, 0xb0, 0x85, 0xcb, 0xa0, 0xe6, 0x8e, 0, 0, -1, 1, 2, 3);
-    g_panel_controls_69c2f8[1] =
-        new W8TextControl(g_panel_69c2ec, 0xb1, 0xa7, 0xcb, 0xc2, 0xe6, 0x8e, 0, 4, -1, 5, 6, 7);
-    g_panel_controls_69c2f8[2] =
-        new W8TextControl(g_panel_69c2ec, 0xb2, 0xf, 0xcd, 0x29, 0xe7, 0x8f, 0, 0, -1, 1, 2, 3);
-    button = g_panel_controls_69c2f8;
+    g_formation_action_buttons[0] =
+        new W8TextControl(g_formation_panel, 0xb0, 0x85, 0xcb, 0xa0, 0xe6, 0x8e, 0, 0, -1, 1, 2, 3);
+    g_formation_action_buttons[1] =
+        new W8TextControl(g_formation_panel, 0xb1, 0xa7, 0xcb, 0xc2, 0xe6, 0x8e, 0, 4, -1, 5, 6, 7);
+    g_formation_action_buttons[2] =
+        new W8TextControl(g_formation_panel, 0xb2, 0xf, 0xcd, 0x29, 0xe7, 0x8f, 0, 0, -1, 1, 2, 3);
+    button = g_formation_action_buttons;
     while (*button != 0) {
         ++button;
-        if (button > &g_panel_controls_69c2f8[2]) {
-            g_panel_controls_69c2f8[0]->m_primaryActivationCallback = AcceptFormationChanges;
-            g_panel_controls_69c2f8[1]->m_primaryActivationCallback = CloseReviewCommonUi;
-            g_panel_controls_69c2f8[2]->m_primaryActivationCallback = ResetFormationPanel;
-            g_panel_69c2ec->SetEnabled(true);
+        if (button > &g_formation_action_buttons[2]) {
+            g_formation_action_buttons[0]->m_primaryActivationCallback = AcceptFormationChanges;
+            g_formation_action_buttons[1]->m_primaryActivationCallback = CloseFormationPanel;
+            g_formation_action_buttons[2]->m_primaryActivationCallback = ResetFormationPanel;
+            g_formation_panel->SetEnabled(true);
             return 1;
         }
     }
-    ReleaseReviewCommonPanels();
+    DestroyFormationPanel();
     return 0;
 }
 
@@ -293,20 +314,20 @@ void OpenFormationPanel(void)
 {
     int index;
 
-    if (g_panel_69c2ec != 0) {
-        g_panel_69c2ec = 0;
+    if (g_formation_panel != 0) {
+        g_formation_panel = 0;
     }
     for (index = 0; index < 15; ++index) {
-        if (g_panel_controls_69c344[index] != 0) {
-            g_panel_controls_69c344[index] = 0;
+        if (g_formation_cell_controls[index] != 0) {
+            g_formation_cell_controls[index] = 0;
         }
-        if (g_panel_controls_69c384[index] != 0) {
-            g_panel_controls_69c384[index] = 0;
+        if (g_formation_cell_overlays[index] != 0) {
+            g_formation_cell_overlays[index] = 0;
         }
     }
     for (index = 0; index < 3; ++index) {
-        if (g_panel_controls_69c2f8[index] != 0) {
-            g_panel_controls_69c2f8[index] = 0;
+        if (g_formation_action_buttons[index] != 0) {
+            g_formation_action_buttons[index] = 0;
         }
     }
     if (CreateFormationPanel() != 0) {
@@ -344,8 +365,8 @@ static void UpdateFormationCells(void)
 
         if (row->occupied != 0 && position->row != -1) {
             cell = position->row * 3 + position->column;
-            primary = g_panel_controls_69c344[cell];
-            overlay = g_panel_controls_69c384[cell];
+            primary = g_formation_cell_controls[cell];
+            overlay = g_formation_cell_overlays[cell];
             if (CanHoldFormationPlace(slot) == 0) {
                 sprite = position->facing * 3 + 2;
                 primary->m_normalSprite = sprite;
@@ -384,7 +405,7 @@ static void UpdateFormationCells(void)
             }
         }
     }
-    g_panel_69c2ec->Invalidate(0);
+    g_formation_panel->Invalidate(0);
 }
 
 /* The cells' activation callback: highlight the active cell and make its
@@ -397,13 +418,13 @@ static void SelectFormationCell(void)
     if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]) !=
         0) {
         for (index = 0; index < 15; ++index) {
-            W8TextControl* control = g_panel_controls_69c344[index];
+            W8TextControl* control = g_formation_cell_controls[index];
 
             if (index == g_formation_active_cell_0069c2f0) {
                 control->EnableSecondaryState(0);
             } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
                 control->DisableSecondaryState(0);
-                g_panel_controls_69c384[index]->Invalidate(0);
+                g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
         Function565740(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
@@ -434,7 +455,7 @@ static void AcceptFormationChanges(void)
     }
     RefreshFormationBoard();
     RefreshRadarMap();
-    ReleaseReviewCommonPanels();
+    DestroyFormationPanel();
     gXStatus.fReviewCharacterMode = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
@@ -452,7 +473,7 @@ static void ResetFormationPanel(void)
     UpdateFormationCells();
 }
 
-static void BeginFormationDrag(const W8RegionEvent* event);
+static void BeginFormationDrag(const InputAtom* event);
 static void DropFormationSlot(int cell);
 
 /* Region callback the fifteen formation cells share: left press arms the
@@ -460,22 +481,22 @@ static void DropFormationSlot(int cell);
    activates the cell or completes the drop, and mouse transitions drive the
    hover art and tooltip. */
 // FUNCTION: WIZ8 0x005b29d0
-unsigned char FormationCellRegionEvent(const W8RegionEvent* event, W8Region* region)
+unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
 {
     if (gXStatus.fReviewCharacterMode == 0) {
         return 0;
     }
     if (g_formation_cell_slots_0069c304[region->callback_id] == -1) {
         PushButtonSoundScheme005587C0(0, 1);
-        if (event->reason != LEFT_BUTTON_UP) {
+        if (event->usEvent != LEFT_BUTTON_UP) {
             return 1;
         }
         if (g_formation_drag_cell_0069c380 == -1) {
             return 1;
         }
     }
-    if (event->reason < 0x41) {
-        if (event->reason == LEFT_BUTTON_REPEAT) {
+    if (event->usEvent < 0x41) {
+        if (event->usEvent == LEFT_BUTTON_REPEAT) {
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
                 ClockIsTicking(g_formation_drag_clock_0069c340) == 0 &&
                 g_formation_drag_cell_0069c380 == -1 && g_formation_active_cell_0069c2f0 != -1) {
@@ -485,24 +506,24 @@ unsigned char FormationCellRegionEvent(const W8RegionEvent* event, W8Region* reg
                     return 1;
                 }
                 BeginFormationDrag(event);
-                g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
                 return 1;
             }
         } else {
-            if (event->reason == LEFT_BUTTON_DOWN) {
-                g_panel_controls_69c344[region->callback_id]->OnLeftButtonDown(0);
-                g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+            if (event->usEvent == LEFT_BUTTON_DOWN) {
+                g_formation_cell_controls[region->callback_id]->OnLeftButtonDown(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
                 region->flags |= W8_REGION_LEFT_BUTTON_HELD;
                 g_formation_drag_clock_0069c340 = SetCountdownClock(0xfa);
                 return 1;
             }
-            if (event->reason != LEFT_BUTTON_UP) {
+            if (event->usEvent != LEFT_BUTTON_UP) {
                 return 0;
             }
             if (g_formation_cell_slots_0069c304[region->callback_id] != -1) {
                 g_formation_active_cell_0069c2f0 = region->callback_id;
-                g_panel_controls_69c344[region->callback_id]->OnLeftButtonUp(0);
-                g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+                g_formation_cell_controls[region->callback_id]->OnLeftButtonUp(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
@@ -513,18 +534,18 @@ unsigned char FormationCellRegionEvent(const W8RegionEvent* event, W8Region* reg
             }
         }
     } else {
-        if (event->reason != MOUSE_POS) {
+        if (event->usEvent != MOUSE_POS) {
             return 0;
         }
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_panel_controls_69c344[region->callback_id]->OnMouseLeave(0);
-            g_panel_controls_69c384[region->callback_id]->OnMouseLeave(0);
-            g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+            g_formation_cell_controls[region->callback_id]->OnMouseLeave(0);
+            g_formation_cell_overlays[region->callback_id]->OnMouseLeave(0);
+            g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             if (gfLeftButtonState != 0 && g_formation_drag_cell_0069c380 == -1 &&
                 CanHoldFormationPlace(g_formation_cell_slots_0069c304[region->callback_id]) != 0) {
                 g_formation_active_cell_0069c2f0 = region->callback_id;
                 BeginFormationDrag(event);
-                g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+                g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             }
             g_formation_active_cell_0069c2f0 = -1;
             SetTooltipSubject(7, -1);
@@ -534,19 +555,76 @@ unsigned char FormationCellRegionEvent(const W8RegionEvent* event, W8Region* reg
             g_formation_active_cell_0069c2f0 != -1) {
             return 0;
         }
-        g_panel_controls_69c344[region->callback_id]->OnMouseEnter(0);
-        g_panel_controls_69c384[region->callback_id]->OnMouseEnter(0);
-        g_panel_controls_69c384[region->callback_id]->Invalidate(0);
+        g_formation_cell_controls[region->callback_id]->OnMouseEnter(0);
+        g_formation_cell_overlays[region->callback_id]->OnMouseEnter(0);
+        g_formation_cell_overlays[region->callback_id]->Invalidate(0);
         g_formation_active_cell_0069c2f0 = region->callback_id;
         SetTooltipSubject(7, g_formation_cell_slots_0069c304[region->callback_id]);
     }
     return 1;
 }
 
+// FUNCTION: WIZ8 0x005b2cb0
+unsigned char FormationActionRegionEvent(const InputAtom* event, W8Region* region)
+{
+    if (gXStatus.fReviewCharacterMode == 0) {
+        return 0;
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        g_formation_action_buttons[region->callback_id]->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        g_formation_action_buttons[region->callback_id]->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_formation_action_buttons[region->callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_formation_action_buttons[region->callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005b2d70
+unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
+{
+    POINT point;
+    if (gXStatus.fReviewCharacterMode == 0) {
+        return 0;
+    }
+    PushButtonSoundScheme005587C0(0, 1);
+    SGPMouseGetPos(&point);
+    switch (event->usEvent) {
+    case LEFT_BUTTON_UP:
+        if (g_formation_drag_cell_0069c380 != -1) {
+            DropFormationSlot(-1);
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((point.x < 234 || point.x > 406 || point.y < 80 || point.y > 252) &&
+            g_formation_drag_cell_0069c380 != -1) {
+            DropFormationSlot(-1);
+        }
+        break;
+    }
+    return 0;
+}
+
 /* Pick up the active cell's character: clear the cell, switch the mouse
    cursor to the dragged chip and blank both controls' sprites. */
 // FUNCTION: WIZ8 0x005b2e10
-static void BeginFormationDrag(const W8RegionEvent*)
+static void BeginFormationDrag(const InputAtom*)
 {
     POINT point;
     unsigned short region;
@@ -557,32 +635,33 @@ static void BeginFormationDrag(const W8RegionEvent*)
     if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]) !=
         0) {
         for (index = 0; index < 15; ++index) {
-            W8TextControl* control = g_panel_controls_69c344[index];
+            W8TextControl* control = g_formation_cell_controls[index];
 
             if (index == g_formation_active_cell_0069c2f0) {
                 control->EnableSecondaryState(0);
             } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
                 control->DisableSecondaryState(0);
-                g_panel_controls_69c384[index]->Invalidate(0);
+                g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
         Function565740(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
     }
-    g_panel_controls_69c344[g_formation_active_cell_0069c2f0]->DisableSecondaryState(0);
+    g_formation_cell_controls[g_formation_active_cell_0069c2f0]->DisableSecondaryState(0);
     g_formation_drag_slot_0069c2f4 =
         g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0];
     g_formation_drag_cell_0069c380 = g_formation_active_cell_0069c2f0;
     g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0] = -1;
     SGPMouseGetPos(&point);
     Function427E70();
-    sprite = g_panel_controls_69c344[g_formation_drag_cell_0069c380]->m_alternatePressedSprite;
+    sprite = g_formation_cell_controls[g_formation_drag_cell_0069c380]->m_alternatePressedSprite;
     region = GetCatalogVideoObjectYOffset(0x9f) + (short)sprite;
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);
     SetMouseCursorFromVideoObject(video_object, region, 0x10, 0x10);
     DrawCatalogImage(
         -0xd, 0xa0, 0,
-        (short)g_panel_controls_69c384[g_formation_drag_cell_0069c380]->m_alternateNormalSprite, 0,
-        0, 2, 0);
+        static_cast<short>(
+            g_formation_cell_overlays[g_formation_drag_cell_0069c380]->m_alternateNormalSprite),
+        0, 0, 2, 0);
     Function4280C0(point.x - 0x10, point.y - 0x10);
     RefreshMouseCursorTexture();
     gXStatus.iCurrentCursor = 7;
@@ -608,9 +687,9 @@ static void DropFormationSlot(int cell)
     }
     UpdateHeldItemCursor();
     UpdateFormationCells();
-    g_panel_controls_69c384[g_formation_drag_cell_0069c380]->SetAlternateTextEnabled(0);
+    g_formation_cell_overlays[g_formation_drag_cell_0069c380]->SetAlternateTextEnabled(0);
     if (cell != -1) {
-        g_panel_controls_69c384[cell]->SetAlternateTextEnabled(1);
+        g_formation_cell_overlays[cell]->SetAlternateTextEnabled(1);
         g_formation_active_cell_0069c2f0 = cell;
         g_level_block->values_170[7] = g_formation_cell_slots_0069c304[cell];
         RequestRedraw(1 << (g_level_block->values_170[7] & 0x1f));
@@ -622,18 +701,18 @@ static void DropFormationSlot(int cell)
 // FUNCTION: WIZ8 0x005b3080
 static void ResetFormationCellControls(int cell)
 {
-    g_panel_controls_69c344[cell]->m_normalSprite = -1;
-    g_panel_controls_69c344[cell]->m_alternateNormalSprite = -1;
-    g_panel_controls_69c344[cell]->m_pressedSprite = -1;
-    g_panel_controls_69c344[cell]->m_alternatePressedSprite = -1;
-    g_panel_controls_69c344[cell]->m_disabledSprite = -1;
-    g_panel_controls_69c344[cell]->Invalidate(1);
-    g_panel_controls_69c384[cell]->m_normalSprite = -1;
-    g_panel_controls_69c384[cell]->m_alternateNormalSprite = -1;
-    g_panel_controls_69c384[cell]->m_pressedSprite = -1;
-    g_panel_controls_69c384[cell]->m_alternatePressedSprite = -1;
-    g_panel_controls_69c384[cell]->m_disabledSprite = -1;
-    g_panel_controls_69c384[cell]->Invalidate(1);
+    g_formation_cell_controls[cell]->m_normalSprite = -1;
+    g_formation_cell_controls[cell]->m_alternateNormalSprite = -1;
+    g_formation_cell_controls[cell]->m_pressedSprite = -1;
+    g_formation_cell_controls[cell]->m_alternatePressedSprite = -1;
+    g_formation_cell_controls[cell]->m_disabledSprite = -1;
+    g_formation_cell_controls[cell]->Invalidate(1);
+    g_formation_cell_overlays[cell]->m_normalSprite = -1;
+    g_formation_cell_overlays[cell]->m_alternateNormalSprite = -1;
+    g_formation_cell_overlays[cell]->m_pressedSprite = -1;
+    g_formation_cell_overlays[cell]->m_alternatePressedSprite = -1;
+    g_formation_cell_overlays[cell]->m_disabledSprite = -1;
+    g_formation_cell_overlays[cell]->Invalidate(1);
 }
 
 /* Highlight the cell holding one party slot and un-highlight the rest. */
@@ -643,14 +722,14 @@ void SelectFormationSlotCell(int party_slot)
     int index;
 
     for (index = 0; index < 15; ++index) {
-        W8TextControl* control = g_panel_controls_69c344[index];
+        W8TextControl* control = g_formation_cell_controls[index];
 
         if (g_formation_cell_slots_0069c304[index] == party_slot) {
             control->EnableSecondaryState(0);
-            g_panel_controls_69c384[index]->Invalidate(0);
+            g_formation_cell_overlays[index]->Invalidate(0);
         } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
             control->DisableSecondaryState(0);
-            g_panel_controls_69c384[index]->Invalidate(0);
+            g_formation_cell_overlays[index]->Invalidate(0);
         }
     }
 }

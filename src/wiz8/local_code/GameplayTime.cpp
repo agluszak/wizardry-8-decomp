@@ -327,7 +327,7 @@ after_early: {
                 ResetTargetSource(&source);
                 ApplyDamageToMonster(monster_info, -amount, &source, 0, 0, 0, 0, 0);
             }
-        } else if (monster_info->hp_current < monster_info->hp_max) {
+        } else if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
             HealMonster(monster_info, amount, 0);
         }
     }
@@ -361,7 +361,7 @@ after_early: {
             heal_scale *= g_navigator_vertical_phase_step_005ebcc8;
         }
         if (heal_scale > g_float_005ebb34) {
-            if (monster_info->hp_current < monster_info->hp_max) {
+            if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
                 monster_info->hp_regen_accumulator_4b =
                     static_cast<float>(minutes) * monster_info->hp_regen_rate_47 * heal_scale +
                     monster_info->hp_regen_accumulator_4b;
@@ -399,7 +399,7 @@ after_early: {
             }
         }
     }
-    if (monster_info->hp_max <= monster_info->hp_current) {
+    if (static_cast<unsigned int>(monster_info->hp_max) <= monster_info->hp_current) {
         monster_info->hp_regen_accumulator_4b = 0.0f;
     }
     if (monster_info->stamina_max <= monster_info->stamina) {

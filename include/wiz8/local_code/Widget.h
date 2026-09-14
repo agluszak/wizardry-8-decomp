@@ -9,7 +9,6 @@
 typedef void (*W8ControlCallback)();
 struct Controls;
 struct W8Region;
-struct W8RegionEvent;
 
 // VTABLE: WIZ8 0x005ed5bc
 class W8Widget {

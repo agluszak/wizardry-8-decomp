@@ -2,13 +2,13 @@
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/vector.h"
+#include "input.h"
 
 /* Panel declaration. Widgets and text/range helpers have separate headers;
    their implementation remains in the original Controls.cpp translation unit.
    Controls is a recovered role name, not a proven original class spelling. */
 
 struct W8Region;
-struct W8RegionEvent;
 
 class W8Widget;
 
@@ -18,7 +18,7 @@ class W8Widget;
 /* The region callback a widget without its own region is given. It answers
    whether the event was consumed; the screen-input dispatcher returns that
    byte to its caller. */
-extern unsigned char DispatchControlRegionEvent(const W8RegionEvent* event,
+extern unsigned char DispatchControlRegionEvent(const InputAtom* event,
                                                 struct W8Region* region); /* 0x004F3140 */
 
 /* Panel/container, not a W8Widget base. Widgets register their pointers in

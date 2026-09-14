@@ -7,11 +7,26 @@ from wiz8decomp.header_architecture import (
     HeaderArchitectureError,
     analyze_header_architecture,
     header_architecture_violations,
+    scan_header_function_declarations,
     validate_header_architecture,
 )
 
 UNIT_A = r"Local Code\Foo.cpp"
 UNIT_B = r"Local Code\Bar.cpp"
+
+
+def test_address_annotations_survive_without_a_definition(tmp_path: Path) -> None:
+    header = tmp_path / "declarations.h"
+    header.write_text(
+        "void First(); /* 0x00509CD0 */\n"
+        "void Second(\n    int value,\n    float other); /* 0x00509D00 */\n",
+        encoding="utf-8",
+    )
+    declarations = scan_header_function_declarations(header, tmp_path)
+    assert [(item["name"], item["address"]) for item in declarations] == [
+        ("First", 0x509CD0),
+        ("Second", 0x509D00),
+    ]
 
 
 def _write_arch(repo: Path, document: str) -> None:
@@ -23,6 +38,38 @@ def _write_arch(repo: Path, document: str) -> None:
         "call_site,kind,containing_function,source_path,line,expression,message\n",
         encoding="utf-8",
     )
+
+
+def test_known_source_filename_does_not_prove_function_owner(tmp_path: Path) -> None:
+    _write_arch(tmp_path, '{"schema":"wiz8.header-architecture-v1","headers":{}}')
+    header = tmp_path / "include/wiz8/foo.h"
+    header.parent.mkdir(parents=True)
+    header.write_text("void Unplaced(); /* 0x00401080 */\n")
+    source = tmp_path / "src/wiz8/local_code/Foo.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text("// FUNCTION: WIZ8 0x00401080\nvoid Unplaced() {}\n")
+    (tmp_path / "evidence/observations/wiz8/source-tree.csv").write_text(
+        "relative_path\nLocal Code\\Foo.cpp\n"
+    )
+    report = analyze_header_architecture(tmp_path, layout=TranslationUnitLayout([]))
+    row = next(item for item in report["headers"] if item["file"] == "include/wiz8/foo.h")
+    assert row["original_units"] == []
+
+
+def test_fragment_report_uses_current_source_classification(tmp_path: Path) -> None:
+    _write_arch(tmp_path, '{"schema":"wiz8.header-architecture-v1","headers":{}}')
+    source = tmp_path / "src/wiz8/new.cpp"
+    source.write_text("// FUNCTION: WIZ8 0x00401080\nvoid Unplaced() {}\n")
+    (tmp_path / "src/wiz8/sources.cmake").write_text(
+        "set(WIZ8_SOURCE_UNITS\n    src/wiz8/new.cpp\n)\n"
+    )
+    (tmp_path / "src/wiz8/source_units.json").write_text(
+        '{"schema":"wiz8.source-units-v1","compiler-emission":[],"unresolved-fragment":["src/wiz8/old.cpp"]}'
+    )
+    report = analyze_header_architecture(tmp_path, layout=TranslationUnitLayout([]))
+    assert [(item["file"], item["suggestion"]) for item in report["unresolved_fragments"]] == [
+        ("src/wiz8/new.cpp", "keep-fragment")
+    ]
 
 
 def test_shared_layout_rejects_behavioral_functions(tmp_path: Path) -> None:

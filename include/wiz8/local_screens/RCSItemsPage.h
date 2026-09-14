@@ -68,11 +68,11 @@ void SelectItemsRealmTab005BB200(void);
 void SelectItemsRealmTab005BB210(void);
 void SortPartyItemPool005BB220(void);
 void SelectItemsRealmTab005BB250(int tab);
-unsigned char BackpackRegionHandler005BB350(const W8RegionEvent* event, W8Region* region);
-unsigned char EquipSlotRegionHandler005BB560(const W8RegionEvent* event, W8Region* region);
-unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region* region);
-unsigned char RealmTabRegionHandler005BBBB0(const W8RegionEvent* event, W8Region* region);
-unsigned char PanelTabRegionHandler005BBC70(const W8RegionEvent* event, W8Region* region);
+unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* region);
+unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* region);
+unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* region);
+unsigned char RealmTabRegionHandler005BBBB0(const InputAtom* event, W8Region* region);
+unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* region);
 void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 
 /* Unresolved gap callees, declared for the call sites in this unit. */

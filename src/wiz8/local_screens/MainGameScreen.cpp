@@ -1,4 +1,5 @@
 #include "line.h"
+#include "wiz8/local_screens/MGSFormation.h"
 #include "soundman.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Sight.h"
@@ -3234,7 +3235,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fItemSelectMode)
         Function59C9C0();
     if (gXStatus.fReviewCharacterMode)
-        CloseReviewCommonUi();
+        CloseFormationPanel();
     if (gXStatus.fNpcDialogueMode)
         Function56E800(0);
     if (g_level_block->flag_314)
@@ -3273,7 +3274,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (g_level_block->formation_board_visible) {
         g_level_block->formation_board_visible = 0;
         RegionSetDisable(0x13);
-        ReleaseRuntimeDialogOwners();
+        ReleaseFormationBoard();
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
             g_level_block->redraw_flags |= 0x8200;
         }
@@ -3712,7 +3713,7 @@ void UpdateScreenOverlays(int frame)
         Function59CAC0();
     }
     if (gXStatus.fReviewCharacterMode != 0) {
-        CloseReviewCommonUi();
+        CloseFormationPanel();
     }
 }
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import selectors
@@ -11,9 +12,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from reccmp.formats import detect_image
+from reccmp.formats.pe import PEImage
+
 from .binary.linker_map import LinkerMap, SymbolResolution
 from .config import Settings
 from .display import runtime_display
+from .paths import atomic_write
 
 
 def _managed_link(source: Path, destination: Path) -> None:
@@ -154,14 +159,29 @@ def stage_game(
             continue
         _managed_link(candidate, stage / candidate.name)
     _materialize_config(settings, stage)
+    from .build import build_lock
+
     staged_executable = stage / executable.name
-    if staged_executable.is_symlink():
-        staged_executable.unlink()
-    shutil.copy2(executable, staged_executable)
-    map_file = executable.with_suffix(".map")
-    staged_map = stage / map_file.name if map_file.is_file() else None
-    if staged_map is not None:
-        shutil.copy2(map_file, staged_map)
+    staged_map = None
+    # The linker writes both files while holding this same lock. Publish the
+    # complete executable only after its MAP snapshot is safely in place.
+    with build_lock(settings):
+        executable_bytes = executable.read_bytes()
+        map_file = executable.with_suffix(".map")
+        if map_file.is_file():
+            map_bytes = map_file.read_bytes()
+            timestamp = LinkerMap.read(map_file).timestamp
+            image = detect_image(executable)
+            if (
+                not isinstance(image, PEImage)
+                or timestamp is None
+                or timestamp != image.header.time_date_stamp
+            ):
+                raise RuntimeError(f"executable/MAP link timestamp mismatch; rebuild {executable}")
+            identity = hashlib.sha256(executable_bytes + map_bytes).hexdigest()
+            staged_map = stage / "diagnostics" / f"{executable.stem}-{identity}.map"
+            atomic_write(staged_map, map_bytes)
+        atomic_write(staged_executable, executable_bytes)
     return StagedGame(stage, staged_executable, staged_map, objects)
 
 
@@ -186,7 +206,7 @@ def run_product(
             executable=settings.product_build_dir / "Wiz8Runtime.exe",
             objects=settings.recovered_objects_dir,
         )
-        map_path = settings.product_build_dir / "Wiz8Runtime.map"
+        map_path = staged.map
     prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
     prefix.mkdir(parents=True, exist_ok=True)
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
@@ -468,6 +488,7 @@ def _runtime_failure(
     stage: Path,
     executable: Path,
     object_root: Path | None = None,
+    map_path: Path | None = None,
 ) -> RuntimeError:
     artifact_dir = stage / "diagnostics"
     artifact_dir.mkdir(exist_ok=True)
@@ -476,7 +497,7 @@ def _runtime_failure(
     combined = stdout + stderr
     crash = _parse_runtime_crash(combined)
     if crash is not None:
-        detail = _crash_detail(executable.with_suffix(".map"), object_root, crash)
+        detail = _crash_detail(map_path, object_root, crash) if map_path is not None else ""
         return RuntimeError(f"{scenario} failed: {crash.record}{detail}\nartifacts={artifact}")
     diagnostic_lines = [line for line in combined.splitlines() if line.strip()]
     last_diagnostic = diagnostic_lines[-1][-500:] if diagnostic_lines else "no diagnostics"
@@ -592,6 +613,7 @@ def _run_runtime_scenario(
     environment: dict[str, str],
     scenario: str,
     object_root: Path | None = None,
+    map_path: Path | None = None,
 ) -> dict[str, str | int]:
     started = time.monotonic()
     output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
@@ -662,6 +684,7 @@ def _run_runtime_scenario(
             stage,
             executable,
             object_root,
+            map_path,
         )
     try:
         observation = _parse_runtime_observation(stdout)
@@ -674,6 +697,7 @@ def _run_runtime_scenario(
             stage,
             executable,
             object_root,
+            map_path,
         ) from error
     if observation.get("scenario") != scenario:
         raise _runtime_failure(
@@ -684,6 +708,7 @@ def _run_runtime_scenario(
             stage,
             executable,
             object_root,
+            map_path,
         )
     print(f"PASS {scenario} {time.monotonic() - started:.1f}s", file=sys.stderr, flush=True)
     return observation
@@ -725,7 +750,7 @@ def run_runtime_suite(
                     _reset_runtime_scenario_state(stage)
                     print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
                     runs[order_name][scenario] = _run_runtime_scenario(
-                        executable, stage, environment, scenario, object_root
+                        executable, stage, environment, scenario, object_root, staged.map
                     )
         finally:
             subprocess.run(
