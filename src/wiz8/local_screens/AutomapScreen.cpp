@@ -40,6 +40,7 @@
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "input.h"
 #include "Types.h"
+#include "FileMan.h"
 #include "mousesystem.h"
 #include "Font.h"
 #include "surrender/srMeshModel.h"
@@ -101,7 +102,6 @@ stModelInstance2D* g_automap_text_marker_0068f2ac;
 /* Leave releases the pointed-to objects and erases their vector entries. */
 // GLOBAL: WIZ8 0x0068F1F4
 W8GrowableVector<srClass*>* g_releasable_68f1f4;
-
 
 // GLOBAL: WIZ8 0x0068f220
 W8GrowableVector<srClipPlane::ClientType*> g_automap_created_layers;
@@ -1679,4 +1679,77 @@ exit_screen:
     gXStatus.iCurrentCursor = 7;
     RefreshMouseCursorTexture();
     return 1;
+}
+
+/* Release the previous level's automap query state, then read the cell size
+   and record count. A level with no records still gets one zero cell so the
+   visited-bit arrays and record table stay valid; otherwise the key list is
+   read whole and every cell key is inserted with its one-based index. */
+// FUNCTION: WIZ8 0x00584DD0
+unsigned char ReadAutomapNodes00584DD0(int hFile)
+{
+    if (g_bits_68f288 != 0) {
+        delete g_bits_68f288;
+        g_bits_68f288 = 0;
+    }
+    if (g_bits_68f28c != 0) {
+        delete g_bits_68f28c;
+        g_bits_68f28c = 0;
+    }
+    if (g_block_68f280 != 0) {
+        free(g_block_68f280);
+        g_block_68f280 = 0;
+    }
+    if (g_record_68f284 != 0) {
+        delete g_record_68f284;
+        g_record_68f284 = 0;
+    }
+
+    FileRead(hFile, &g_float_64b914, 4, 0);
+    unsigned char ok = FileRead(hFile, &g_automap_cell_count_0068f27c, 4, 0);
+    if (g_automap_cell_count_0068f27c == 0) {
+        g_bits_68f288 = new BitArray(1);
+        g_bits_68f28c = new BitArray(1);
+        g_block_68f280 = malloc(4);
+        *static_cast<unsigned int*>(g_block_68f280) = 0;
+        g_automap_cell_count_0068f27c = 1;
+        g_record_68f284 = new W8HashTable<unsigned int, int>();
+        return ok;
+    }
+
+    g_bits_68f288 = new BitArray(g_automap_cell_count_0068f27c);
+    if (g_bits_68f288 == 0) {
+        return 0;
+    }
+    g_bits_68f28c = new BitArray(g_automap_cell_count_0068f27c);
+    if (g_bits_68f28c == 0) {
+        if (g_bits_68f288 != 0) {
+            delete g_bits_68f288;
+        }
+        g_bits_68f288 = 0;
+        return 0;
+    }
+    g_block_68f280 = malloc(g_automap_cell_count_0068f27c * 4);
+    if (g_block_68f280 == 0) {
+        if (g_bits_68f288 != 0) {
+            delete g_bits_68f288;
+        }
+        if (g_bits_68f28c != 0) {
+            delete g_bits_68f28c;
+        }
+        g_bits_68f288 = 0;
+        g_bits_68f28c = 0;
+        return 0;
+    }
+
+    unsigned char success = 0;
+    if (ok != 0) {
+        success = FileRead(hFile, g_block_68f280, g_automap_cell_count_0068f27c * 4, 0);
+    }
+    g_record_68f284 = new W8HashTable<unsigned int, int>();
+    for (int index = 0; index < g_automap_cell_count_0068f27c; ++index) {
+        int value = index + 1;
+        g_record_68f284->Insert(static_cast<unsigned int*>(g_block_68f280) + index, &value);
+    }
+    return success;
 }

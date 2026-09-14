@@ -9,14 +9,24 @@
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srCamera.h"
 #include "surrender/srIlluminator.h"
+#include "surrender/srMaterial.h"
 #include "surrender/srScene.h"
+#include "surrender/srVectorProcessor.h"
 
 #include <new>
+#include <stdlib.h>
+#include <string.h>
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
+
+// GLOBAL: WIZ8 0x005EC428
+double g_double_005ec428 = 0.9980430528375734;
+// GLOBAL: WIZ8 0x005EC430
+double g_double_005ec430 = 0.0019569471624266144;
 
 // FUNCTION: WIZ8 0x0046DD70
 void UpdateWorldMonsters0046DD70(W8World* world)
@@ -105,6 +115,259 @@ void FinalizeStaticScene0046F3A0(srScene* scene)
     if (g_world != 0 && g_world->camera_light != 0) {
         g_world->camera_light->setGroupMask(2);
     }
+}
+
+/* Bake the dynamic scene's non-"Sun" lights into every mesh of the instance's
+   model chain. Each mesh gets a world-space vertex set (translated or fully
+   transformed, or aliased when the transform is identity) and a direction
+   array of vertex-minus-light vectors per overlapping light; a vertex that
+   faces the light accumulates diffuse attenuated by range into its vertex
+   light. "Sun"-prefixed lights bake into the sunlight array instead and are
+   skipped here. `walk_chain` limits the light walk to the first sibling. */
+// FUNCTION: WIZ8 0x0046E8A0
+unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
+                                                 char walk_chain)
+{
+    srVector3T<float>* directions = 0;
+    unsigned char locations_allocated = 0;
+    stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+    srVector3T<float> location;
+    location = instance->getWorldSpaceLocation();
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    mesh->getBoundingBox(minimum, maximum);
+    maximum += location;
+    minimum += location;
+    srMatrix3T<float> rotation;
+    instance->getWorldSpaceRotation(rotation);
+
+    while (mesh != 0) {
+        srVector3T<float>* vertex_lights = mesh->GetVertexLights(1, -1);
+        mesh->GetVertexSunlight(1);
+        srPtr<srMaterialIFace>* vertex_materials =
+            mesh->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 0);
+        srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
+        srVector4T<float> material_diffuse;
+        if (material_iface != 0) {
+            material_diffuse = static_cast<srMaterial*>(material_iface)->parms_18.diffuse;
+        }
+        if (vertex_lights == 0) {
+            srAssertFail("psrDIG", THREE_D_CPP, 0x453, 0);
+        }
+
+        srVector3T<float>* vertices;
+        srVector3T<float>* normals;
+        if ((mesh->flags_3a0 & 4) != 0) {
+            vertices = mesh->GetVertexLocations00471AD0(0, 1, 0.0f);
+            normals = mesh->GetVertexNormals00471CA0(0, 1);
+        } else {
+            vertices = mesh->getVertexLoc();
+            normals = mesh->getVertexNormal();
+        }
+        unsigned long count = mesh->vertex_location_count_22c;
+
+        srVector3T<float>* world_vertices = vertices;
+        if (rotation.vectors[0].x != g_float_005ebb38 ||
+            rotation.vectors[1].y != g_float_005ebb38 ||
+            rotation.vectors[2].z != g_float_005ebb38 ||
+            rotation.vectors[0].y != g_float_005ebb34 ||
+            rotation.vectors[0].z != g_float_005ebb34 ||
+            rotation.vectors[1].x != g_float_005ebb34 ||
+            rotation.vectors[1].z != g_float_005ebb34 ||
+            rotation.vectors[2].x != g_float_005ebb34 ||
+            rotation.vectors[2].y != g_float_005ebb34 || location.x != g_float_005ebb34 ||
+            location.y != g_float_005ebb34 || location.z != g_float_005ebb34) {
+            locations_allocated = 1;
+            world_vertices =
+                static_cast<srVector3T<float>*>(malloc(count * sizeof(srVector3T<float>)));
+            if (world_vertices == 0) {
+                return 0;
+            }
+            if (count != 0 && world_vertices != vertices) {
+                srVectorProcessor::memcopy(world_vertices, vertices,
+                                           count * sizeof(srVector3T<float>));
+            }
+            if (rotation.vectors[0].x == g_float_005ebb38 &&
+                rotation.vectors[1].y == g_float_005ebb38 &&
+                rotation.vectors[2].z == g_float_005ebb38 &&
+                rotation.vectors[0].y == g_float_005ebb34 &&
+                rotation.vectors[0].z == g_float_005ebb34 &&
+                rotation.vectors[1].x == g_float_005ebb34 &&
+                rotation.vectors[1].z == g_float_005ebb34 &&
+                rotation.vectors[2].x == g_float_005ebb34 &&
+                rotation.vectors[2].y == g_float_005ebb34) {
+                if (count != 0 &&
+                    (location.x != g_float_005ebb34 || location.y != g_float_005ebb34 ||
+                     location.z != g_float_005ebb34)) {
+                    srVectorProcessor::add(world_vertices, location, world_vertices,
+                                           static_cast<SRDWORD>(count));
+                }
+            } else if (count != 0) {
+                srMatrix4T<float> transform;
+                transform.Set(rotation, location);
+                srVectorProcessor::transform(world_vertices, world_vertices, transform,
+                                             static_cast<SRDWORD>(count));
+            }
+        }
+
+        srVector3T<float>* world_normals;
+        if (rotation.vectors[0].x == g_float_005ebb38 &&
+            rotation.vectors[1].y == g_float_005ebb38 &&
+            rotation.vectors[2].z == g_float_005ebb38 &&
+            rotation.vectors[0].y == g_float_005ebb34 &&
+            rotation.vectors[0].z == g_float_005ebb34 &&
+            rotation.vectors[1].x == g_float_005ebb34 &&
+            rotation.vectors[1].z == g_float_005ebb34 &&
+            rotation.vectors[2].x == g_float_005ebb34 &&
+            rotation.vectors[2].y == g_float_005ebb34) {
+            world_normals = normals;
+        } else {
+            world_normals =
+                static_cast<srVector3T<float>*>(malloc(count * sizeof(srVector3T<float>)));
+            if (world_normals == 0) {
+                return 0;
+            }
+            srVector3T<float> origin(0.0f, 0.0f, 0.0f);
+            if (count != 0) {
+                srMatrix4T<float> transform;
+                transform.Set(rotation, origin);
+                srVectorProcessor::transform(world_normals, normals, transform,
+                                             static_cast<SRDWORD>(count));
+            }
+        }
+
+        srNode* light_node = lights;
+        while (light_node != 0) {
+            if (light_node->getClassID() == 0x10006 &&
+                _strnicmp(light_node->getName(), "Sun", 3) != 0) {
+                stLight* light = static_cast<stLight*>(light_node);
+                srVector3T<float> attenuation = light->opengl_attenuation_188;
+                float range =
+                    static_cast<float>(g_double_005ec428 / (attenuation.y * g_double_005ec430));
+                srVector3T<float> light_position;
+                light_position = light_node->getWorldSpaceLocation();
+                srVector3T<float> light_min(light_position.x - range, light_position.y - range,
+                                            light_position.z - range);
+                srVector3T<float> light_max(light_position.x + range, light_position.y + range,
+                                            light_position.z + range);
+                if (BoundsOverlap004BE8D0(&light_min, &light_max, &minimum, &maximum)) {
+                    if (directions == 0) {
+                        directions = static_cast<srVector3T<float>*>(
+                            malloc(count * sizeof(srVector3T<float>)));
+                        if (directions == 0) {
+                            return 0;
+                        }
+                    }
+                    if (light_position.x == g_float_005ebb34 &&
+                        light_position.y == g_float_005ebb34 &&
+                        light_position.z == g_float_005ebb34) {
+                        CopyDwordBuffer00470180(directions, world_vertices, count * 3);
+                    } else {
+                        srVector3T<float> offset(-light_position.x, -light_position.y,
+                                                 -light_position.z);
+                        OffsetVertices00470040(directions, world_vertices, &offset, count);
+                    }
+                    srVector3T<float> light_color = light->diffuse_1a4;
+                    float intensity = light->intensity_1d0;
+                    for (unsigned long index = 0; index < count; ++index) {
+                        srVector3T<float> direction = directions[index];
+                        float distance = direction.Length();
+                        if (distance <= range) {
+                            direction.Normalize();
+                            float facing = DotProduct(direction, world_normals[index]);
+                            if (facing < g_zero_005ebb40) {
+                                double contribution =
+                                    -facing * intensity * (g_double_005ebc30 - distance / range);
+                                if (vertex_materials != 0) {
+                                    srMaterialIFace* vertex_material = vertex_materials[index];
+                                    if (vertex_material != 0) {
+                                        material_diffuse = static_cast<srMaterial*>(vertex_material)
+                                                               ->parms_18.diffuse;
+                                    } else {
+                                        srMaterialIFace* base_material = mesh->getMaterial(
+                                            0, static_cast<srMeshModel::e_side>(0));
+                                        if (base_material != 0) {
+                                            material_diffuse =
+                                                static_cast<srMaterial*>(base_material)
+                                                    ->parms_18.diffuse;
+                                        } else {
+                                            material_diffuse.x = 1.0f;
+                                            material_diffuse.y = 1.0f;
+                                            material_diffuse.z = 1.0f;
+                                        }
+                                    }
+                                }
+                                vertex_lights[index].x +=
+                                    material_diffuse.x * light_color.x * contribution;
+                                vertex_lights[index].y +=
+                                    material_diffuse.y * light_color.y * contribution;
+                                vertex_lights[index].z +=
+                                    material_diffuse.z * light_color.z * contribution;
+                            }
+                        }
+                    }
+                }
+            }
+            if (walk_chain == 0) {
+                break;
+            }
+            light_node = light_node->nextSibling();
+        }
+
+        if (locations_allocated != 0) {
+            free(world_vertices);
+        }
+        if (rotation.vectors[0].x != g_float_005ebb38 ||
+            rotation.vectors[1].y != g_float_005ebb38 ||
+            rotation.vectors[2].z != g_float_005ebb38 ||
+            rotation.vectors[0].y != g_float_005ebb34 ||
+            rotation.vectors[0].z != g_float_005ebb34 ||
+            rotation.vectors[1].x != g_float_005ebb34 ||
+            rotation.vectors[1].z != g_float_005ebb34 ||
+            rotation.vectors[2].x != g_float_005ebb34 ||
+            rotation.vectors[2].y != g_float_005ebb34) {
+            free(world_normals);
+        }
+        if (directions != 0) {
+            free(directions);
+            directions = 0;
+            mesh->flags_3a0 |= 2;
+        }
+        mesh = mesh->next;
+    }
+    return 1;
+}
+
+/* Bake the dynamic scene's light children into every not-yet-lit model
+   instance under one static-scene subtree. state_178 bit 1 is the instance's
+   own lit marker; the first-child chain store is the same raw walk
+   SetChainValue15C performs. */
+// FUNCTION: WIZ8 0x0046F410
+unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
+{
+    for (; node != 0; node = node->nextSibling()) {
+        if (node->firstChild() != 0) {
+            FinalizeWorldScenes0046F410(node->firstChild(), dynamic_scene);
+        }
+        if (node->getClassID() == 0x10004) {
+            stModelInstance* instance = static_cast<stModelInstance*>(node);
+            srNode* lights = dynamic_scene->firstChild();
+            if ((instance->state_178 & 2) == 0) {
+                instance->state_178 |= 2;
+                char* chain =
+                    reinterpret_cast< // reinterpret-ok: attachment fields are addressed by byte offset past the object
+                        char*>(instance);
+                for (; chain != 0;
+                     chain = *reinterpret_cast< // reinterpret-ok: next-link field at +0x134
+                             char**>(chain + 0x134)) {
+                    *reinterpret_cast< // reinterpret-ok: flag field at +0x15c
+                        int*>(chain + 0x15c) = 1;
+                }
+                BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
+            }
+        }
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0046F510

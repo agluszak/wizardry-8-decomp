@@ -143,4 +143,8 @@ void RefreshPartyMemberCombatState(int party_slot);
 void RefreshMonsterLocationState(int location_id);
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
+void ReapplyMonsterGroupFormations(void);  /* 0x00510830 */
+void RepairMonsterGroupLeaderLinks(void);  /* 0x00510740 */
+void ApplyDefaultMonsterGroupSounds(void); /* 0x005108C0 */
+
 #endif

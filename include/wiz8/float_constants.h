@@ -43,9 +43,17 @@ extern float g_float_005ec35c;
    and as a range bound by GetRangeConstant5EC360. */
 extern float g_float_005ec360;
 extern double g_double_005ec030;
+/* 0x005EC1E8 / 0x005EC1F0: the quaternion->matrix normalization factor (2.0)
+   and FLT_EPSILON closeness bound shared by the keyframe slerps. */
+extern double g_double_005ec1e8;
+extern double g_double_005ec1f0;
 extern double g_double_005ec318;
 extern double g_double_005ec368;
 extern double g_double_005ec378;
+/* 0x005EC428 / 0x005EC430: the pair BakeInstanceVertexLighting uses to undo
+   srLight::setLinearAttenuation and recover a light's world range. */
+extern double g_double_005ec428;
+extern double g_double_005ec430;
 extern float g_float_005ebc3c;
 extern float g_float_005ebc58;
 extern float g_float_005ebc60;

@@ -27,3 +27,5 @@ void DrawWorldBox0048DF30(W8World* world, srVector3T<float> minimum, srVector3T<
                           unsigned long color);
 void Function48E6D0(int handle);
 void Function48EAD0(int handle);
+unsigned int LoadWorldCursorNodes0048E7B0(int handle);
+unsigned int LoadWorldCursorNodeStates0048E470(int handle);

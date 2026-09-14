@@ -30,8 +30,11 @@ public:
     void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
                                                   float interpolation);
-    srVector3T<float>* GetVertexLights(char initialize, int table); /* 0x00472100 */
-    float* GetVertexSunlight(char initialize);                      /* 0x004721E0 */
+    srVector3T<float>* GetVertexNormals00471CA0(unsigned int frame, char load); /* 0x00471CA0 */
+    unsigned char AllocateFrameBuffers00471720(unsigned int frame,
+                                               unsigned char flags); /* 0x00471720 */
+    srVector3T<float>* GetVertexLights(char initialize, int table);  /* 0x00472100 */
+    float* GetVertexSunlight(char initialize);                       /* 0x004721E0 */
     void NotifyLinkedModel005AA400(stMeshModel* previous_model);
     void InitializeVertexFrames(int frames); /* 0x00473B00 */
     unsigned char AllocateFrameStorage();    /* 0x00471340 */
@@ -76,7 +79,9 @@ public:
     W8GrowableVector<short> mapped_keys;                          /* 0x430 */
     unsigned long last_decompress_release_tick_440;
     float vertex_compression_scale_444;
-    unsigned char unknown_448[4];
+    /* m_pLerpBuffer: interpolation scratch for GetVertexLocations; an srHeap
+       allocation that is not counted in g_decompressed_mesh_bytes. */
+    srVector3T<float>* lerp_buffer_448;
     unsigned int* automap_polygons;      /* 0x44c */
     unsigned int automap_polygon_count;  /* 0x450 */
     unsigned char automap_filter_active; /* 0x454 */
@@ -102,3 +107,10 @@ void CopyDwordBuffer00470180(void* destination, const void* source, int count);
 void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
 /* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
 void AddFloatBuffer00474730(float* destination, const float* source, int count);
+/* dest[i] = source[i] + offset for `count` vectors, or a plain copy when the
+   offset is zero. */
+void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<float>* source,
+                            const srVector3T<float>* offset, int count);
+/* Release least-recently-used decompressed frame caches until `needed` bytes
+   have been freed; 0 when the registry cannot supply them. */
+unsigned char ReclaimDecompressedBytes00473BF0(unsigned int needed);

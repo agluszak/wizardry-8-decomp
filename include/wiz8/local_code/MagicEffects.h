@@ -75,4 +75,8 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value);
 void ProcessSpellEffectTargets(W8SpellEffectEntry* effect); /* 0x0054BA00 */
 void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
 
+/* 0x0060CFFC: eight bytes per effect id; the leading dword names the monster
+   visual resource, -1 means the effect has none. */
+extern const int g_effect_visual_table[149][2];
+
 void ResetCombatEffects(void); /* 0x00552530 */

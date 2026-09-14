@@ -43,7 +43,7 @@ uv run wiz8 debug
 `uv run wiz8 debug` stages the recomp under `build/runtime/debug`, clears stale wineserver state,
 starts Wine's GDB proxy on a free port, and connects system GDB with a deterministic stop policy
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
-The captured frames are symbolized through `Wiz8Runtime.map` and matched against the runtime-stub
+Main-image register and raw-stack candidates are symbolized through `Wiz8Runtime.map` and matched against the runtime-stub
 manifest. The report and raw session are written under `build/debug/`.
 
 For behavioral recovery and visual acceptance, use the

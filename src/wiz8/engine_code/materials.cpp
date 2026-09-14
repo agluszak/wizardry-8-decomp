@@ -25,7 +25,6 @@
 
 #define MATERIALS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\materials.cpp"
 
-
 /* The global at 0x0065BEA8 is a real zero-storage srVertexProcessor subclass:
    its non-template process body establishes the boundary independently of its
    constructor and vtable. No source or export name survives, so the class
@@ -355,6 +354,31 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete->dirty_74 = 1;
     concrete->m_field_78 = 0;
     return 1;
+}
+
+/* Load a texture by full path: split it into folder and file, then take the
+   animated loader for .IFL names and the plain one for everything else. */
+// FUNCTION: WIZ8 0x004B9460
+srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord004B8A70* source,
+                                    unsigned char required)
+{
+    char drive[_MAX_PATH];
+    char directory[_MAX_PATH];
+    char file_name[_MAX_PATH];
+    char extension[_MAX_PATH];
+    char texture_folder[_MAX_PATH];
+    char texture_file[_MAX_PATH];
+
+    _splitpath(path, drive, directory, file_name, extension);
+    strcpy(texture_folder, drive);
+    strcat(texture_folder, directory);
+    strcpy(texture_file, file_name);
+    strcat(texture_file, extension);
+
+    if (strlen(path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
+        return LoadAnimatedTexture004B98F0(texture_folder, texture_file, source, required);
+    }
+    return LoadTexture004B95D0(texture_folder, texture_file, required);
 }
 
 // FUNCTION: WIZ8 0x004B95D0

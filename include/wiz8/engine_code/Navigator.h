@@ -31,7 +31,9 @@ struct W8NavigatorAttachment {
        so the two allocations do not share an owner. */
     unsigned short* path_values_50;
     float separation_54;
-    unsigned int value_058;
+    /* 0x58: source-to-destination segment length; InitializeSegment004563E0
+       stores the float result of a vector Length() here. */
+    float value_058;
     unsigned char unknown_05c[4];
 
     W8NavigatorAttachment(); /* 0x00456210 */
@@ -199,6 +201,7 @@ public:
     void SetHeightRange(float minimum, float maximum);                     /* 0x00453EF0 */
     void SetFlag25(char value);                                            /* 0x004531F0 */
     void SetMovementStopped00453880();                                     /* 0x00453880 */
+    unsigned char LoadMovementState00454AD0(unsigned int hFile);           /* 0x00454AD0 */
     void PropagateGroupPosition();                                         /* 0x00454C80 */
     void UpdateAngles00453990();                                           /* 0x00453990 */
     unsigned char ConfigureMovement00453D20(float minimum, float maximum); /* 0x00453D20 */

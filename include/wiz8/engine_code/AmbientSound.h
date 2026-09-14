@@ -75,6 +75,7 @@ unsigned char AddAmbientSound0047A790(
     const srVector3T<float>* vector_fc, unsigned char flag_c4);
 
 void SaveAmbientSoundList0047B140(HWFILE handle);
+void LoadAmbientSoundList0047B270(HWFILE handle);
 
 bool IsAmbientSoundMuted(void);
 unsigned char GetFlag6850F6(void);

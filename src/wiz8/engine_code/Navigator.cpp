@@ -1,3 +1,4 @@
+#include "FileMan.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -549,6 +550,55 @@ void W8Navigator::SetMovementStopped00453880()
     }
 }
 
+/* Load the movement state saved by 0x004549D0: a presence byte, the height
+   bounds, the position and the movement target. A present state re-primes the
+   attachment for a segment toward the saved target, raises the movement flags,
+   accepts the target through SetMovementTarget and releases the navigator and
+   its group to move again. */
+// FUNCTION: WIZ8 0x00454ad0
+unsigned char W8Navigator::LoadMovementState00454AD0(unsigned int hFile)
+{
+    srVector3T<float> loaded;
+    srVector3T<float> target;
+    unsigned char has_state;
+    unsigned char ok;
+    int index;
+
+    ok = FileRead(hFile, &has_state, 1, 0);
+    if (has_state == 0) {
+        return 0;
+    }
+    ok &= FileRead(hFile, &minimum_height_034, 4, 0);
+    ok &= FileRead(hFile, &maximum_height_038, 4, 0);
+    ok &= FileRead(hFile, &loaded, 0xc, 0);
+    position_03c = loaded;
+    ok &= FileRead(hFile, &loaded, 0xc, 0);
+    target = loaded;
+    if (ok == 0) {
+        return 0;
+    }
+    movement_0c0.attachment_0ac->InitializeSegment004563E0(&movement_0c0.position_040, &target);
+    movement_target_018 = target;
+    flags_00c |= 0x20000000;
+    movement_0c0.attachment_0ac->flags_00 |= 0x800000;
+    movement_0c0.target_position_04c = position_03c;
+    if (SetMovementTarget(&movement_target_018, 1) == 0) {
+        return 0;
+    }
+    flags_00c |= 0x6;
+    movement_stopped_024 = 0;
+    if (g_flag_006081e4 != 0 && linked_navigator_05c == 0) {
+        g_navigator_group_659bf8.Clear();
+        CollectGroupNavigators(&g_navigator_group_659bf8);
+        for (index = 0; index < g_navigator_group_659bf8.GetCount(); ++index) {
+            (*g_navigator_group_659bf8.GetAt(index))->movement_stopped_024 = 0;
+        }
+    }
+    flag_025 = 0;
+    movement_target_018 = movement_0c0.attachment_0ac->position_1c;
+    return 1;
+}
+
 /* Push this navigator's path and position onto every navigator in its group,
    and let the whole group move again if this one may. */
 // FUNCTION: WIZ8 0x00454c80
@@ -938,6 +988,30 @@ void W8Navigator::UpdateFacing(char immediate)
         }
         movement_0c0.target_roll_02c = NormalizeAngle(angle);
     }
+}
+
+/* Re-prime the attachment for a new movement segment: keep only the link flag
+   bits, reseed the path cursors at one, copy source and destination into the
+   position fields and the first two waypoints, clear the recorded path values
+   and store the segment length. */
+// FUNCTION: WIZ8 0x004563e0
+void W8NavigatorAttachment::InitializeSegment004563E0(const srVector3T<float>* source,
+                                                      const srVector3T<float>* destination)
+{
+    flags_00 = (flags_00 & 0xc810000) | 0x2000000;
+    path_position_index_08 = 1;
+    value_04 = 1;
+    value_058 = 0;
+    separation_54 = 0;
+    position_10 = *source;
+    position_4c[0] = *source;
+    position_1c = *destination;
+    position_4c[1] = *destination;
+    position_40 = position_10;
+    position_34 = position_10;
+    value_0c = 0;
+    memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
+    value_058 = (position_1c - position_10).Length();
 }
 
 // FUNCTION: WIZ8 0x004564f0

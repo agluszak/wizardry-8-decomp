@@ -41,7 +41,6 @@
 
 #include "FileMan.h"
 
-
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
     0x274, 0x275, 0x276, 0x277, 0x278, 0x279, 0x27a, 0,     0x27b, 0x27c, 0x27d,
@@ -545,10 +544,10 @@ void W8CharacterScreen::DrawHeader()
 }
 
 // FUNCTION: WIZ8 0x005b0fd0
-unsigned char W8CharacterScreen::CommitCharacter()
+bool W8CharacterScreen::CommitCharacter()
 {
     if (!ValidateName())
-        return 0;
+        return false;
 
     int mode = m_mode_008;
     W8Character backup;
@@ -566,7 +565,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
         if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
             memcpy(&m_character_018, &backup, sizeof(m_character_018));
             ShowMessage(gppStringList[0x350 / 4], 0, 0);
-            return 0;
+            return false;
         }
         m_character_018.in_party = backup.in_party;
     }
@@ -579,7 +578,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
             Function5218C0(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
-    return 1;
+    return true;
 }
 
 /* Skill-availability hooks raised by RefreshCharacterSkillAvailability00553CD0 while this screen is
@@ -671,27 +670,27 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
 }
 
 // FUNCTION: WIZ8 0x005b1670
-unsigned char W8CharacterScreen::ValidateName()
+bool W8CharacterScreen::ValidateName()
 {
     if (m_original_014 != 0 && wcscmp(m_original_014->name, m_character_018.name) == 0) {
-        return 1;
+        return true;
     }
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         char path[260];
         BuildCharacterPath00514EC0(path, m_character_018.name, -1);
         if (FileExists(path)) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
-            return 0;
+            return false;
         }
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
         if (g_status_685170.buffers.party_rows[index].occupied &&
             wcscmp(g_status_685170.buffers.characters[index].name, m_character_018.name) == 0) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005b0120
