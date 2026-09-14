@@ -1,6 +1,6 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/OctBuildTree.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -453,8 +453,8 @@ W8GameData::W8GameData(int handle, void* parent)
     maximum_14 = -1.0e8f;
     if (parent == 0) {
         MoveTimer(4);
-        if (g_object_6598bc == 0) {
-            g_object_6598bc = new W8Object0043A910();
+        if (g_game_time_accumulator_6598bc == 0) {
+            g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910();
         }
     }
     if (handle != 0) {

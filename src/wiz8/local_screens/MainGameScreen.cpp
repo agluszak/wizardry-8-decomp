@@ -2333,8 +2333,8 @@ unsigned char MainGameScreenLeave(int leaving)
         UpdateHeldItemCursor();
     }
 
-    if (g_level_block->flag_156) {
-        g_level_block->flag_156 = 0;
+    if (g_level_block->formation_board_visible) {
+        g_level_block->formation_board_visible = 0;
         RegionSetDisable(0x13);
         ReleaseRuntimeDialogOwners();
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -2342,11 +2342,11 @@ unsigned char MainGameScreenLeave(int leaving)
         }
         if (g_flag_0068edc9) {
             unsigned short mode;
-            if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->flag_156 &&
+            if (!IsScreenInputBlocked() && !g_level_block->flag_155 && g_level_block->formation_board_visible &&
                 g_level_block->flag_157 && g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (!IsScreenInputBlocked() &&
-                       (!g_level_block->flag_156 || !g_level_block->flag_157 ||
+                       (!g_level_block->formation_board_visible || !g_level_block->flag_157 ||
                         !g_level_block->flag_155)) {
                 mode = 0;
             } else if (g_settings_6850c8.field_006 == 1) {

@@ -37,6 +37,12 @@ struct W8Item : public W8GrObject {
     void UpdateAnimation0049F730();
     void SetLocation0049F720(const srVector3T<float>* location);
     srNode* GetMesh();
+    /* 0x0049FB30: copy the rep's cached lower/upper bounds out to the
+       caller. */
+    void GetWorldItemBounds(float* lower, float* upper);
+    /* 0x004A0050: the item's radar-blip eligibility, off its value_01c
+       lookup. */
+    unsigned char Function4A0050();
 };
 
 /* The last proven members plus their widths are not a proven object extent.
@@ -49,5 +55,3 @@ static_assert(offsetof(W8Item, value_01c) == 0x1c, "W8Item_value_01c_offset");
 
 unsigned char Function49F4A0(void* context, const char* name, void* out,
                              int value); /* 0x0049F4A0 */
-
-void GetWorldItemBounds(float* lower, float* upper); /* 0x0049FB30 */

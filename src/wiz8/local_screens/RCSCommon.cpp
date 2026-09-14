@@ -8,7 +8,7 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -16,6 +16,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/regions.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -216,7 +217,7 @@ void ShowDismissCharacterDialog(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
 
-    W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
     W8Character* character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
@@ -296,17 +297,17 @@ W8TextControl* g_panel_controls_69c2f8[3];
 // FUNCTION: WIZ8 0x005B1C00
 void ReleaseRuntimeDialogOwners(void)
 {
-    if (g_level_block->unknown_2a0 != 0) {
-        ReleaseObject004257F0(g_level_block->unknown_2a0);
-        g_level_block->unknown_2a0 = 0;
+    if (g_level_block->formation_board_sprite != 0) {
+        ReleaseObject004257F0(g_level_block->formation_board_sprite);
+        g_level_block->formation_board_sprite = 0;
     }
-    if (g_level_block->unknown_2a4 != 0) {
-        ReleaseObject004257F0(g_level_block->unknown_2a4);
-        g_level_block->unknown_2a4 = 0;
+    if (g_level_block->formation_compass_sprite != 0) {
+        ReleaseObject004257F0(g_level_block->formation_compass_sprite);
+        g_level_block->formation_compass_sprite = 0;
     }
-    if (g_level_block->unknown_2a8 != 0) {
-        ReleaseObject004257F0(g_level_block->unknown_2a8);
-        g_level_block->unknown_2a8 = 0;
+    if (g_level_block->formation_overlay_sprite != 0) {
+        ReleaseObject004257F0(g_level_block->formation_overlay_sprite);
+        g_level_block->formation_overlay_sprite = 0;
     }
 }
 

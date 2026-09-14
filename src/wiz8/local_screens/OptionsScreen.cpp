@@ -2109,7 +2109,7 @@ void OptionsScreenFrame()
         screen = g_options_screen_0069c254;
     }
 
-    W8ModalDialogBase** active_modal = &screen->m_active_modal;
+    W8MessageDialogBase** active_modal = &screen->m_active_modal;
     if (*active_modal != 0) {
         if ((*active_modal)->ProcessInput() == 0) {
             if (screen->m_modal_closing_01d == 0) {

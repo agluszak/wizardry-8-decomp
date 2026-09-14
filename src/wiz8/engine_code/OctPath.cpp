@@ -2214,8 +2214,8 @@ W8PathingService::~W8PathingService()
     if (m_owned_0c8 != 0) {
         delete[] m_owned_0c8;
     }
-    if (path_state_214 != 0) {
-        delete path_state_214;
+    if (owned_214 != 0) {
+        delete owned_214;
     }
     if (g_path_scratch_00659c64 != 0) {
         free(g_path_scratch_00659c64);
@@ -2296,7 +2296,7 @@ W8PathingService::W8PathingService()
     trace_mode_0b8 = 0;
     trace_height_offset_0bc = 0;
     trace_target_yaw_0c4 = 0;
-    path_state_214 = new W8PathState004CAE40();
+    owned_214 = new W8OctPathOwned004CAE40();
     m_positional_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
@@ -4971,9 +4971,8 @@ unsigned int W8PathingService::FindPathHandle(const char* path_name, unsigned sh
                     if (path_bounds[3] < value) {
                         path_bounds[3] = value;
                     }
-                    height =
-                        (float)(m_pulCondNodeValues[key_index] & 0xffff) * span_020 +
-                        level_bounds[1];
+                    height = (float)(m_pulCondNodeValues[key_index] & 0xffff) * span_020 +
+                             level_bounds[1];
                     if (height < path_range[0]) {
                         path_range[0] = height;
                     }
@@ -5013,7 +5012,7 @@ static W8PathParameter g_path_parameters[] = {
     {0, 0}};
 
 // FUNCTION: WIZ8 0x004cae40
-W8PathState004CAE40::W8PathState004CAE40()
+W8OctPathOwned004CAE40::W8OctPathOwned004CAE40()
 {
     LoadPathParameters004CCCB0();
 }

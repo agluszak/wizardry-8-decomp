@@ -38,33 +38,12 @@
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
 
-/* Constructor 0x0055DE40 builds Controls, constructs the dialog member at
-   +0x64, installs vtable 0x005EE920, and is the only value stored into the camp
-   controller's +0x1B0 field. The 0xBC-byte allocation proves the complete
-   extent below. */
-// VTABLE: WIZ8 0x005ee920
-class W8Controls005EE920 : public Controls {
-public:
-    bool HandleScrollDownCommand(unsigned int command);
-    bool HandleScrollUpCommand(unsigned int command);
-
-private:
-    int m_positional_4c;
-    int m_positional_50;
-    int m_positional_54;
-    int m_positional_58;
-    int m_positional_5c;
-    int m_positional_60;
-    W8DialogTextArea m_dialog_64;
-};
-static_assert(sizeof(W8Controls005EE920) == 0xbc, "W8Controls005EE920_size");
-
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
 // FUNCTION: WIZ8 0x0055EBB0
-bool W8Controls005EE920::HandleScrollDownCommand(unsigned int command)
+bool W8NpcDialogueTextController::HandleScrollDownCommand(unsigned int command)
 {
-    if (m_dialog_64.ScrollDown(static_cast<unsigned char>(command)) != 0) {
+    if (text_area.ScrollDown(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
             Invalidate(0);
         }
@@ -75,9 +54,9 @@ bool W8Controls005EE920::HandleScrollDownCommand(unsigned int command)
 
 /* The parallel path using the second command predicate. */
 // FUNCTION: WIZ8 0x0055EBE0
-bool W8Controls005EE920::HandleScrollUpCommand(unsigned int command)
+bool W8NpcDialogueTextController::HandleScrollUpCommand(unsigned int command)
 {
-    if (m_dialog_64.ScrollUp(static_cast<unsigned char>(command)) != 0) {
+    if (text_area.ScrollUp(static_cast<unsigned char>(command)) != 0) {
         if (static_cast<char>(command) == 0) {
             Invalidate(0);
         }
@@ -488,7 +467,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
     g_level_block->flag_324 = 0;
-    g_level_block->flag_325 = 0;
+    g_level_block->formation_board_alternate = 0;
     g_level_block->flag_326 = 0;
     g_level_block->flag_327 = 0;
     g_level_block->countdown_32c = SetCountdownClock(0);

@@ -15,7 +15,7 @@
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
 #include "wiz8/dialog_code/StatInfoDialogs.h"
@@ -190,7 +190,7 @@ void W8CharacterScreen::UpdateDialog()
         if (m_dialog_response_1b20 == 1) {
             gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
-                static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
+                static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;
             }
         }
@@ -201,7 +201,7 @@ void W8CharacterScreen::UpdateDialog()
             m_header_dirty_010 = 1;
             unsigned char accepted = 0;
             if (m_capture_dialog_result_1b24) {
-                accepted = static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result;
+                accepted = static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result;
                 m_capture_dialog_result_1b24 = 0;
             }
             delete m_dialog_1b1c;
@@ -261,7 +261,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8StatInfoDialog005DFC70(attribute);
+    m_dialog_1b1c = new W8AttributeInfoDialog005DFC70(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -270,7 +270,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8StatInfoDialog005E0180(attribute);
+    m_dialog_1b1c = new W8SecondaryAttributeInfoDialog005E0180(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -608,13 +608,13 @@ void RefundCharacterScreenSkill(int skill_id)
 void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int response)
 {
     m_dialog_response_1b20 = response;
-    m_dialog_1b1c = new W8ModalDialogBase;
+    m_dialog_1b1c = new W8MessageDialogBase;
     if (m_dialog_1b1c != 0) {
         m_dialog_1b1c->SetExtent(0xf0, 0xbe);
         m_dialog_1b1c->SetOrigin(0xa0, 100);
         m_dialog_1b1c->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
-        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
-        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)
+        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
+        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)
             ->SetMessage(text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
         ActivateDialogRegion(0x138);
         m_capture_dialog_result_1b24 = 1;

@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/MonsterManager.h"
 
 struct W8CharacterEventQueue;
@@ -71,9 +72,10 @@ struct W8XStatus {
     int current_cursor_frame; /* 0x927 */
     int current_cursor_time;  /* 0x92b */
     int iTargetingMode;       /* 0x92f: 0x00683FE7 */
-    unsigned char unknown_933[0x15];
-    unsigned char party_slot_state[8][0xc]; /* 0x948: 0x00684000 */
-    unsigned char unknown_9a8[0x0f];
+    /* 0x933: the formation screen's edit buffer - MGSFormation snapshots the
+       live formation here on open, edits the copy, and either reconciles it
+       back or diffs it against live on accept. */
+    W8PartyFormationState edited_formation;
     W8GrowableVector<int> target_markers; /* 0x9b7: 0x0068406F */
 };
 #pragma pack(pop)
@@ -100,7 +102,7 @@ static_assert(offsetof(W8XStatus, character_event_queue) == 0x91f,
               "W8XStatus_character_event_queue_offset");
 static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x923, "W8XStatus_cursor_offset");
 static_assert(offsetof(W8XStatus, iTargetingMode) == 0x92f, "W8XStatus_targeting_mode_offset");
-static_assert(offsetof(W8XStatus, party_slot_state) == 0x948, "W8XStatus_party_slot_state_offset");
+static_assert(offsetof(W8XStatus, edited_formation) == 0x933, "W8XStatus_edited_formation_offset");
 static_assert(offsetof(W8XStatus, target_markers) == 0x9b7, "W8XStatus_target_markers_offset");
 static_assert(sizeof(W8XStatus) == 0x9c7, "W8XStatus_size");
 

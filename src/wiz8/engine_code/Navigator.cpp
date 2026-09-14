@@ -14,7 +14,7 @@ double g_double_005ec030 = 2500.0;
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
@@ -804,7 +804,7 @@ void W8Navigator::UpdateLinkedNavigator()
         UpdateLinkedPosition00454FE0();
         return;
     }
-    int tick = (int)g_object_6598bc->GetValue30();
+    int tick = (int)g_game_time_accumulator_6598bc->GetValue30();
     if ((unsigned int)(tick - linked_update_time_0b8) <= 50) {
         return;
     }
@@ -929,15 +929,17 @@ srVector3T<float>* W8Navigator::AdjustPosition00454440(srVector3T<float>* result
         srVector3T<float> falling = *current;
         float distance;
         if (g_flag_006081e4 == 0) {
-            movement_0c0.vertical_velocity_078 += g_object_6598bc->GetValue28() *
+            movement_0c0.vertical_velocity_078 += g_game_time_accumulator_6598bc->GetValue28() *
                                                   g_settings_6850c8.monster_movement_speed *
                                                   g_navigator_gravity_00603acc * acceleration_scale;
-            distance = movement_0c0.vertical_velocity_078 * g_object_6598bc->GetValue28() *
+            distance = movement_0c0.vertical_velocity_078 *
+                       g_game_time_accumulator_6598bc->GetValue28() *
                        g_settings_6850c8.monster_movement_speed;
         } else {
-            movement_0c0.vertical_velocity_078 +=
-                g_object_6598bc->GetValue28() * g_navigator_gravity_00603acc * acceleration_scale;
-            distance = movement_0c0.vertical_velocity_078 * g_object_6598bc->GetValue28();
+            movement_0c0.vertical_velocity_078 += g_game_time_accumulator_6598bc->GetValue28() *
+                                                  g_navigator_gravity_00603acc * acceleration_scale;
+            distance =
+                movement_0c0.vertical_velocity_078 * g_game_time_accumulator_6598bc->GetValue28();
         }
         falling.y -= distance;
         if (falling.y >= ground) {
@@ -1559,7 +1561,7 @@ void W8Navigator::UpdateAngles00453990()
     if (gXStatus.fCombatMode == 0) {
         step = movement_0c0.turn_rate_068;
     }
-    step *= g_rate_006068EC * g_object_6598bc->GetValue28();
+    step *= g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
 
     if (movement_0c0.yaw != movement_0c0.target_yaw) {
         distance = NormalizeAngle(movement_0c0.yaw - movement_0c0.target_yaw);
@@ -1703,9 +1705,9 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         if (g_navigator_vertical_enabled_006081f8 == 0) {
             movement_0c0.vertical_offset_0c0 = movement_0c0.vertical_base_07c;
         } else {
-            float phase =
-                movement_0c0.vertical_phase_084 + g_rate_006068EC * g_object_6598bc->GetValue28() *
-                                                      g_navigator_vertical_phase_step_005ebcc8;
+            float phase = movement_0c0.vertical_phase_084 +
+                          g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28() *
+                              g_navigator_vertical_phase_step_005ebcc8;
             phase -= (float)floor((double)phase);
             movement_0c0.vertical_phase_084 = phase;
             movement_0c0.vertical_offset_0c0 = (float)sin((double)phase * g_double_005ec318) *
@@ -1922,7 +1924,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
                 velocity.z = movement_0c0.velocity_034.z;
             }
             velocity.y = (movement_0c0.position_040.y - previous.y) /
-                         (g_rate_006068EC * g_object_6598bc->GetValue28());
+                         (g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28());
             if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
                 minimum_speed = g_navigator_minimum_speed_mode23_006081f0;
             } else {
@@ -1939,7 +1941,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     UpdateAngles00453990();
     if (movement_stopped_024 == 0 && g_flag_006081e4 == 0 && movement_complete_026 == 0 &&
         flags_00c != 0) {
-        movement_0c0.callback_progress_05c += g_object_6598bc->GetValue28() *
+        movement_0c0.callback_progress_05c += g_game_time_accumulator_6598bc->GetValue28() *
                                               movement_0c0.movement_scale_060 * g_rate_006068EC *
                                               g_world_scale_005ebc40;
         if (movement_0c0.callback_threshold_058 <= movement_0c0.callback_progress_05c) {

@@ -10,7 +10,7 @@
 class Trigger;
 class W8Monster;
 class W8Prop;
-class W8WorldCursorNode0048DB30;
+class W8WorldCursorNode;
 struct W8MonsterGenerator;
 
 struct W8MipeMonsterEntry {

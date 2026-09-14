@@ -20,17 +20,17 @@ struct W8PreProp {
 static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
-   and later releases it with delete. Its storage has no proven
-   semantic fields. */
-class W8PathState004CAE40 {
+   and later releases it with delete. Its storage has no proven semantic
+   fields, so the name only claims ownership by the oct-path machinery. */
+class W8OctPathOwned004CAE40 {
 public:
-    W8PathState004CAE40(); /* 0x004CAE40 */
+    W8OctPathOwned004CAE40(); /* 0x004CAE40 */
 
 private:
     unsigned char positional_00[0x58];
 };
 
-static_assert(sizeof(W8PathState004CAE40) == 0x58, "W8PathState004CAE40_must_be_0x58");
+static_assert(sizeof(W8OctPathOwned004CAE40) == 0x58, "W8OctPathOwned004CAE40_must_be_0x58");
 struct W8NavigatorMovementState;
 struct W8NavigatorAttachment;
 
@@ -382,7 +382,7 @@ public:
     unsigned short value_1d8;
     unsigned char path_direction_valid_1da;
     unsigned char m_positional_1db[0x39];
-    W8PathState004CAE40* path_state_214; /* 0x214 */
+    W8OctPathOwned004CAE40* owned_214; /* 0x214 */
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a

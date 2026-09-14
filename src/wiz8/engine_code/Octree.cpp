@@ -17,7 +17,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
@@ -2891,8 +2891,8 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
-    step = g_object_6598bc->GetValue28() * movement->movement_scale_060 * g_rate_006068EC *
-           g_world_scale_005ebc40;
+    step = g_game_time_accumulator_6598bc->GetValue28() * movement->movement_scale_060 *
+           g_rate_006068EC * g_world_scale_005ebc40;
     if (step >= distance) {
         step = distance;
     } else {

@@ -569,7 +569,7 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
 
     srVector3T<float> delta(position.x - from[0], position.y - from[1], position.z - from[2]);
     if (delta.LengthSquared() < radius * radius) {
-        GetWorldItemBounds(lower, upper);
+        owner->GetWorldItemBounds(lower, upper);
         lower[0] += position.x;
         lower[1] += position.y;
         lower[2] += position.z;

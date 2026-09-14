@@ -4,18 +4,19 @@
 #include "input.h"
 #include "Button System.h"
 
-/* The modal branch at vtable 0x005EF8B0 derives from W8DialogBase.
-   W8NotificationDialog's table is identical except slot 0, which is each
-   class's own scalar deleting destructor, and slot 9, which it overrides.
-   Other dialog families, including monster and spell information dialogs,
-   derive directly from W8DialogBase, not through this class.
+/* The message-dialog branch at vtable 0x005EF8B0 derives from W8DialogBase;
+   its implementation lives in stMessageDialog.cpp. W8NotificationDialog's
+   table is identical except slot 0, which is each class's own scalar deleting
+   destructor, and slot 9, which it overrides. Other dialog families,
+   including monster and spell information dialogs, derive directly from
+   W8DialogBase, not through this class.
 
-   W8ModalDialogBase is a recovered role name, not an original source spelling. */
+   W8MessageDialogBase is a recovered role name, not an original source spelling. */
 // VTABLE: WIZ8 0x005ef8b0
-class W8ModalDialogBase : public W8DialogBase {
+class W8MessageDialogBase : public W8DialogBase {
 public:
-    W8ModalDialogBase();                                       /* 0x005D25B0 */
-    virtual ~W8ModalDialogBase() override;                     /* 0x005D2610 */
+    W8MessageDialogBase();                                       /* 0x005D25B0 */
+    virtual ~W8MessageDialogBase() override;                     /* 0x005D2610 */
     virtual int CreateControls() override;                     /* 0x005D2D00 */
     virtual void DestroyControls() override;                   /* slot 2, 0x005D2F40 */
     virtual void Draw() override;                              /* 0x005D2660 */
@@ -28,14 +29,15 @@ public:
     void SetMessage(wchar_t* message, int line_count, int characters_per_line, int confirmation,
                     int cancel, int size_to_message, int wrap_message, int maximum_width,
                     int maximum_height); /* 0x005D2800 */
-    /* State 5 calls this centering helper on a freshly allocated base dialog,
-       so it is part of the public surface rather than a derived-only helper. */
+    /* The party-selection screen calls this centering helper on a freshly
+       allocated base dialog, so it is part of the public surface rather than
+       a derived-only helper. */
     void SetClientExtent(int width, int height); /* 0x005D2CB0 */
 
     unsigned int WrapMessage(wchar_t* message); /* 0x005D2A50 */
 
-    friend void ModalDialogConfirmCallback(GUI_BUTTON* button, int reason);
-    friend void ModalDialogCancelCallback(GUI_BUTTON* button, int reason);
+    friend void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason);
+    friend void MessageDialogCancelCallback(GUI_BUTTON* button, int reason);
 
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
@@ -58,7 +60,7 @@ protected:
     unsigned char unknown_096[2];
 }; /* 0x98 */
 
-static_assert(sizeof(W8ModalDialogBase) == 0x98, "W8ModalDialogBase_must_be_0x98");
+static_assert(sizeof(W8MessageDialogBase) == 0x98, "W8MessageDialogBase_must_be_0x98");
 
-void ModalDialogConfirmCallback(GUI_BUTTON* button, int reason);
-void ModalDialogCancelCallback(GUI_BUTTON* button, int reason);
+void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason);
+void MessageDialogCancelCallback(GUI_BUTTON* button, int reason);
