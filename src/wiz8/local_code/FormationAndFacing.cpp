@@ -107,7 +107,7 @@ void RestoreCombatFormation(void)
                sizeof(W8PartyFormationState)) != 0) {
         memcpy(&g_status_685170.formation, &g_combat_state->saved_formation,
                sizeof(W8PartyFormationState));
-        Function5B1C80();
+        RefreshFormationBoard();
         Function5A24A0();
         ShowNotice(8, gppStringList[0x92c / 4], 0, -1, 0);
     }
@@ -124,7 +124,7 @@ unsigned int TurnPartyTo(unsigned int degrees)
     previous = g_status_685170.party_heading;
     if (degrees != g_status_685170.party_heading) {
         g_status_685170.party_heading = degrees;
-        Function5B1E70();
+        UpdateFormationCompass();
         previous = (unsigned int)GetCameraYawDegrees() / W8_DEGREES_PER_TURN;
         if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN != degrees) {
             SetCameraYawDegrees((float)degrees);
@@ -142,7 +142,7 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
         return;
     }
     g_status_685170.party_heading = degrees;
-    Function5B1E70();
+    UpdateFormationCompass();
     if ((unsigned int)GetCameraYawDegrees() % W8_DEGREES_PER_TURN == degrees) {
         return;
     }
@@ -162,7 +162,7 @@ void FacePositionAsDecided(int position, int arg_2)
 
     if (facing != W8_FACING_ANY && g_status_685170.formation.positions[position].facing != facing) {
         g_status_685170.formation.positions[position].facing = facing;
-        Function5B1C80();
+        RefreshFormationBoard();
     }
 }
 
@@ -239,7 +239,7 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
     W8PartyFormationPosition* position = &formation->positions[slot];
 
     position->row = 0xff;
-    position->unknown_01[1] = 0xff;
+    position->column = -1;
     for (unsigned int index = 0; index < 3; ++index) {
         unsigned char row = row_order[index];
         signed char occupants = formation->row_occupants[row];
@@ -308,7 +308,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
 {
     W8PartyFormationPosition* position = &formation->positions[slot];
     signed char old_row = position->row;
-    signed char old_column = position->unknown_01[1];
+    signed char old_column = position->column;
 
     if (old_row != -1) {
         signed char* occupant = &formation->rows[old_row].slots[old_column];
@@ -323,7 +323,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
         --formation->row_occupants[old_row];
     }
     position->row = new_row;
-    position->unknown_01[1] = new_column;
+    position->column = new_column;
     if (new_row != -1) {
         signed char* occupant = &formation->rows[new_row].slots[new_column];
         if (*occupant != -1) {
@@ -359,7 +359,7 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
     if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
             formation == &g_status_685170.formation) {
-            Function5B1C80();
+            RefreshFormationBoard();
             Function5A24A0();
         }
         if (announce != 0) {

@@ -33,6 +33,12 @@ void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
                                    int mode, int flags);
 unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
                                             int object, int source_x, int source_y);
+
+/* 0x004048D0: extract one frame's video surface handle from a catalog object
+   handle; the out surface is what DrawCatalogImage targets and the sprite
+   factory consumes. */
+unsigned int Function4048D0(unsigned int video_object, unsigned short frame,
+                            unsigned int* out_surface);
 void EnsureCatalogFrameLoaded(int object, int frame);
 unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
 

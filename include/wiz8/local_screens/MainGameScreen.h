@@ -2,6 +2,7 @@
 
 class Trigger;
 class srClass;
+class stModelInstance2D;
 
 #include "input.h"
 #include "wiz8/vector.h"
@@ -64,7 +65,7 @@ struct W8LevelRuntimeBlock {
     int values_134[8]; /* 0x134 */
     unsigned char pick_changed_154;
     unsigned char flag_155;
-    unsigned char flag_156;
+    unsigned char formation_board_visible; /* 0x156: formation board shown */
     unsigned char flag_157;
     unsigned char unknown_158[0x14];
     int highlight_override;      /* 0x16c */
@@ -121,9 +122,14 @@ struct W8LevelRuntimeBlock {
     int value_288; /* 0x288 */
     int value_28c; /* 0x28c */
     unsigned char unknown_290[0x10];
-    srClass* unknown_2a0;
-    srClass* unknown_2a4;
-    srClass* unknown_2a8;
+    /* 0x2a0..0x2a8: the formation board's three stModelInstance2D-family
+       sprites - the board art with slot markers baked in, the rotating compass
+       needle tracking party_facing against party_heading, and a lazily
+       created overlay.  All are produced by Function4255C0 in MGSFormation.cpp
+       and released through ReleaseObject004257F0. */
+    stModelInstance2D* formation_board_sprite;
+    stModelInstance2D* formation_compass_sprite;
+    stModelInstance2D* formation_overlay_sprite;
     int value_2ac; /* 0x2ac */
     int value_2b0; /* 0x2b0 */
     int value_2b4; /* 0x2b4 */
@@ -161,7 +167,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_31d[3];
     unsigned int countdown_320;
     unsigned char flag_324;
-    unsigned char flag_325;
+    unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
     unsigned char flag_326;
     unsigned char flag_327;
     unsigned char flag_328;
@@ -496,6 +502,7 @@ int IsScreenIdle(void);
 bool IsModalOpen(void);
 
 void RequestRedraw(unsigned int mask);
+void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 void Function577220(void);

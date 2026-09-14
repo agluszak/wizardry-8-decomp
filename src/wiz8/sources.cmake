@@ -36,6 +36,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/ReviewCharacterScreen.cpp
     src/wiz8/local_screens/MGSSpellIcons.cpp
     src/wiz8/local_screens/RCSCommon.cpp
+    src/wiz8/local_screens/MGSFormation.cpp
     src/wiz8/local_screens/RCSItemsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp

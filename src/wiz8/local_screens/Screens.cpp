@@ -467,7 +467,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
     g_level_block->flag_324 = 0;
-    g_level_block->flag_325 = 0;
+    g_level_block->formation_board_alternate = 0;
     g_level_block->flag_326 = 0;
     g_level_block->flag_327 = 0;
     g_level_block->countdown_32c = SetCountdownClock(0);

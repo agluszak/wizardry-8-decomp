@@ -109,6 +109,7 @@ extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
 
 class srColorSurface;
+class srNode;
 class srTextureIFace;
 class stModelInstance2D;
 /* 0x00425190: build a 2D marker model instance over a texture. */
@@ -117,6 +118,25 @@ stModelInstance2D* Function425190(srTextureIFace* texture, double width, double 
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect, char render_secondary);
+
+struct W8ControlsRect;
+/* 0x004255C0: wrap the sprite-surface factory - image is a video surface
+   handle (or a negative target id), rect an optional source rectangle. */
+stModelInstance2D* Function4255C0(unsigned int image, const W8ControlsRect* rect, char mode,
+                                int arg_4, int arg_5);
+/* 0x004257D0: position a 2D node without pixel snapping. */
+void Function4257D0(srNode* node, int x, int y);
+/* 0x004264F0: write the display-state byte of a 2D model instance. */
+void Function4264F0(stModelInstance2D* object, unsigned char state);
+/* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
+void Function425840(srNode* node, int degrees);
+/* 0x00427E70: surface-lock helper used while installing a drag cursor. */
+int Function427E70(void);
+/* 0x004255F0: place a 2D node at a screen position in normalized
+   coordinates; positional snaps to the renderer's pixel grid. */
+void PositionToolTipNode(srNode* node, int x, int y, char positional);
+/* 0x00428AA0: mark both renderer mode words dirty. */
+void SetRendererModePair(void);
 
 #endif
 

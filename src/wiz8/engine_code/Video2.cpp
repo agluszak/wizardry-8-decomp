@@ -2142,10 +2142,10 @@ unsigned char SetFlag603C60(void)
    mode when the +0x160 flag says otherwise. That flag is the first dword
    past sizeof(srModelInstance); both stModelInstance and stModelInstance2D
    store state_160 there. The four recovered callers pass g_level_block
-   slots typed srClass* (dialogue_owner from MainGameScreen, unknown_2a0 /
-   unknown_2a4 / unknown_2a8 from RCSCommon). Recovered code never fills
-   those slots, so the concrete receiver stays unresolved rather than being
-   collapsed to one derived class. */
+   slots (dialogue_owner from MainGameScreen, plus the formation-board
+   sprites released from RCSCommon). The formation slots are produced by
+   Function4255C0 in MGSFormation.cpp; dialogue_owner's producer remains
+   unrecovered, so its concrete class stays unresolved. */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject004257F0(srClass* object)
 {
@@ -2443,6 +2443,18 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     g_dword_6596ec = 2;
     instance->render_state_164.right = (short)x;
     instance->render_state_164.bottom = (short)y;
+}
+
+// FUNCTION: WIZ8 0x004257D0
+void Function4257D0(srNode* node, int x, int y)
+{
+    PositionToolTipNode(node, x, y, 0);
+}
+
+// FUNCTION: WIZ8 0x004264F0
+void Function4264F0(stModelInstance2D* object, unsigned char state)
+{
+    object->render_state_164.display_state = state;
 }
 
 /* Positions every live tooltip object left to right starting at x, advancing
