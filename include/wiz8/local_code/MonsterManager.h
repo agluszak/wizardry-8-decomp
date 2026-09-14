@@ -116,9 +116,8 @@ static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
 void Function509CD0(unsigned char value, int enabled, int location_id);
-void Function50B160(W8NpcState* npc);                         /* 0x0050B160 */
-void Function50B590(int value, int a, int b, int c);          /* 0x0050B590 */
-void Function50AE40(int value, int enabled);                  /* 0x0050AE40 */
+void Function50B160(W8NpcState* npc);                /* 0x0050B160 */
+void Function50B590(int value, int a, int b, int c); /* 0x0050B590 */
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
                                  srVector3T<float>* position);

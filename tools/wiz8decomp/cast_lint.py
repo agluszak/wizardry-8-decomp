@@ -7,6 +7,10 @@ new cast must say so where it is written::
 
     value = reinterpret_cast<Type*>(raw); // reinterpret-ok: SGP userdata slot
 
+The marker may also sit in an immediately preceding comment or on a wrapped
+continuation of that statement. Formatting a cast must not require disabling
+the formatter. A marker on another statement does not apply.
+
 C-style casts are not an acceptable way to bypass that rule. New C-style casts
 in recovered C++ need an equally explicit ``c-style-cast-ok: <reason>`` marker;
 ordinary recovery should instead correct the canonical type or use the specific
@@ -55,6 +59,10 @@ _CAST = re.compile(r"reinterpret_cast")
 _C_STYLE_MARKER = re.compile(r"c-style-cast-ok:\s*\S", re.IGNORECASE)
 _FORMAT_OFF = re.compile(r"clang-format\s+off", re.IGNORECASE)
 _FORMAT_OFF_MARKER = re.compile(r"format-off-ok:\s*\S", re.IGNORECASE)
+_STATEMENT_TOKEN = re.compile(
+    r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[;{}]',
+    re.DOTALL,
+)
 _SGP_NOTICE = re.compile(
     r"(?:Modified for the Wizardry 8 reconstruction|Wizardry[^\n]{0,100}\breconstruct(?:ed|ion)\b)"
     r"[^\n]*\b20\d{2}-\d{2}-\d{2}\b",
@@ -258,17 +266,69 @@ def _render(items: list[dict[str, Any]]) -> str:
     return "\n  ".join(f"{item['file']}:{item['line']}: {item['text']}" for item in items)
 
 
+def _unmarked_statements(
+    repository: Path, items: list[dict[str, Any]], marker: re.Pattern[str]
+) -> list[dict[str, Any]]:
+    """Associate a wrapped cast with its own comment, using current source.
+
+    Diff context may end before a long statement's closing line. Read only the
+    affected files; strings and comments cannot terminate a C++ statement.
+    """
+    sources: dict[str, list[str]] = {}
+    violations = []
+    for item in items:
+        filename = item["file"]
+        if filename not in sources:
+            sources[filename] = (
+                (repository / filename).read_text(encoding="utf-8").splitlines(keepends=True)
+            )
+        lines = sources[filename]
+        index = item["line"] - 1
+        if (
+            index > 0
+            and lines[index - 1].lstrip().startswith("//")
+            and marker.search(lines[index - 1])
+        ):
+            continue
+        statement = "".join(lines[index:])
+        # Skip any function/block opener before the cast on its first line.
+        cast = _CAST.search(lines[index]) or _C_STYLE_CAST.search(lines[index])
+        start = cast.start() if cast else 0
+        marked = False
+        for token in _STATEMENT_TOKEN.finditer(statement, start):
+            value = token.group()
+            if value.startswith(("//", "/*")):
+                if marker.search(value):
+                    marked = True
+                    break
+            elif value in {";", "{", "}"}:
+                # A trailing comment belongs to the statement that just ended,
+                # but never cross a newline or the next statement to find one.
+                trailing = re.match(
+                    r"[ \t]*(//[^\n]*|/\*.*?\*/)", statement[token.end() :], re.DOTALL
+                )
+                marked = trailing is not None and marker.search(trailing.group()) is not None
+                break
+        if not marked:
+            violations.append(item)
+    return violations
+
+
 def validate_cast_markers(repository: Path) -> dict[str, Any]:
     base, diff = baseline_diff(repository)
-    reinterpret_violations = added_lines_without_marker(diff, _CAST, _MARKER)
-    c_style_violations = _added_c_style_casts(diff)
+    reinterpret_violations = _unmarked_statements(
+        repository, added_lines_without_marker(diff, _CAST, _MARKER), _MARKER
+    )
+    c_style_violations = _unmarked_statements(
+        repository, _added_c_style_casts(diff), _C_STYLE_MARKER
+    )
     format_violations = _added_format_off(diff)
     sgp_violations = _sgp_notice_violations(repository, diff)
 
     errors: list[str] = []
     if reinterpret_violations:
         errors.append(
-            "new reinterpret_cast lines need a 'reinterpret-ok: reason' comment "
+            "new reinterpret_cast statements need a 'reinterpret-ok: reason' comment "
             "(or an evidence-backed typed replacement):\n  " + _render(reinterpret_violations)
         )
     if c_style_violations:

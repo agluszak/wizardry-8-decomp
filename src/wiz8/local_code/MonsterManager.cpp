@@ -10,6 +10,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -145,7 +146,6 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 /* The one record id that is displayed as a character's name with a prefix
    rather than out of the monster database. */
 void Function5248D0(W8MonsterInfo* monster_info);
-void Function58AB60(int value_1, int value_2, void* notice, wchar_t* name);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void Function508D70(unsigned int monster_list_index);
@@ -606,8 +606,8 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
         if (monster_info->fActive != 0 && static_cast<unsigned int>(monster_info->hp_current) > 0 &&
             monster_info->condition_turns[W8_CONDITION_DEAD] == 0 && monster_info->value_2da != 0) {
             if (forced_cleanup == 0) {
-                Function58AB60(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
-                               GetMonsterName(monster_info, 0, 0));
+                FormatNotice(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
+                             GetMonsterName(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
             if (forced_cleanup == 0) {

@@ -221,12 +221,6 @@ public:
                    const srVector3T<float>* maximum); /* 0x00452F10 */
     void SetTurnRate(float turn_rate);                /* 0x00453C90 */
 
-    /* Monster.cpp's 0x004C3F00 reads a byte where maximum_078.z sits. */
-    signed char animationIndex() const
-    {
-        return *reinterpret_cast<const signed char*>(&maximum_078.z);
-    }
-
 public:
     /* Monster.cpp reaches this state as a secondary base through
        `lea ecx,[monster+0x18]`. It used to be unioned with an unsigned int[98]
@@ -268,11 +262,7 @@ public:
     unsigned int unknown_060;
     unsigned int unknown_064;
     W8PathAI* path_ai_068;
-    /* 0x00451EC0 fills these as -500 and +500 triples, which is what
-       makes them a pair rather than five loose floats. Note that
-       maximum_078.z overlaps the byte Monster.cpp reads at +0x80 as an
-       animation index; animationIndex() spells that access out rather
-       than declaring a field the constructor contradicts. */
+    /* 0x00451EC0 fills these as -500 and +500 triples. */
     srVector3T<float> minimum_06c;
     srVector3T<float> maximum_078;
     float radius_084;

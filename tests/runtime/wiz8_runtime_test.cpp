@@ -296,12 +296,15 @@ static DWORD FailScenario()
     g_observation.timed_out = 1;
     fprintf(stderr,
             "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
-            "redrawn=%u committed=%u in_party=%u main_game=%u page=%d\n",
+            "redrawn=%u committed=%u in_party=%u main_game=%u page=%d running=%u active=%u\n",
             g_current_screen_state.id, g_pending_screen_state.id, g_observation.transition_observed,
             g_observation.character_entered, g_observation.final_page_entered,
             g_observation.final_page_redrawn, g_observation.character_committed,
             g_observation.character_in_party, g_observation.main_game_entered,
-            g_observation.character_page_after);
+            g_observation.character_page_after, gfProgramIsRunning, gfApplicationActive);
+    if (gzErrorMsg[0] != '\0') {
+        fprintf(stderr, "runtime-test shutdown error: %s\n", gzErrorMsg);
+    }
     fflush(stderr);
     gfProgramIsRunning = 0;
     if (ghWindow != NULL) {
@@ -1073,7 +1076,12 @@ int main(int argc, char** argv)
     }
 
     char command_line[] = "";
-    WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
+    int game_status = WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
+    fprintf(stderr,
+            "WIZ8_RUNTIME_STEP scenario=%s step=winmain-returned state=pass "
+            "elapsed_ms=%lu status=%d\n",
+            g_scenario, GetTickCount() - g_scenario_started, game_status);
+    fflush(stderr);
     /* Python enforces the process deadline while WinMain or this join runs. */
     WaitForSingleObject(driver, kScenarioBudgetMs);
     DWORD driver_status = 2;

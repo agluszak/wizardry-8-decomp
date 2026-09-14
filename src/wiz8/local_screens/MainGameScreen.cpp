@@ -51,6 +51,9 @@
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/PortraitQuote.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
@@ -72,6 +75,7 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/engine_code/Prop.h"
@@ -268,7 +272,6 @@ struct W8LockInteraction00586740;
 W8LockInteraction00586740* g_lock_interaction_68f2c0;
 void __fastcall ProcessLockInteraction(W8LockInteraction00586740* interaction);
 void Function593360(void);
-void Function56C6D0(int, int, int, int, int);
 unsigned char Function57E3C0(void);
 
 // FUNCTION: WIZ8 0x00587960
@@ -1597,7 +1600,7 @@ void ClearMainGameTargetState(void)
 // FUNCTION: WIZ8 0x00577220
 void Function577220(void)
 {
-    Function56C6D0(g_screen_state_00649f1c->value_1d4, 0, -1, 0, 1);
+    Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
     g_screen_state_00649f1c->flag_234 = 1;
 }
@@ -1605,7 +1608,7 @@ void Function577220(void)
 // FUNCTION: WIZ8 0x00577260
 void Function577260(void)
 {
-    Function56C6D0(g_screen_state_00649f1c->value_1d4, 0, -1, 0, 1);
+    Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
 }
 
@@ -2926,6 +2929,182 @@ void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot)
     ActivateDialogRegion(0x138);
 }
 
+// FUNCTION: WIZ8 0x00576030
+void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
+                              int quote_id, unsigned int font_palette)
+{
+    SetNpcQuoteBubbleVisible(visible, text, quote, quote_id, font_palette, 0, 0, -1);
+}
+
+// FUNCTION: WIZ8 0x00576060
+void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
+                              int quote_id, unsigned int font_palette, unsigned char notice_kind,
+                              void* payload, int npc_kind)
+{
+    if (visible == g_screen_state_00649f1c->quote_visible) {
+        return;
+    }
+    if (visible) {
+        wchar_t normalized[2048];
+        wchar_t error_text[200];
+        unsigned short width;
+        unsigned short height;
+
+        if (g_flag_0068edd8) {
+            SetFlag603C60();
+            g_flag_0068edd8 = 0;
+            gfTrackMousePos = 0;
+        }
+        memset(normalized, 0, sizeof(normalized));
+        wchar_t* output = normalized;
+        for (unsigned int index = 0; index < wcslen(text); ++index) {
+            if (text[index] == L'\n' && index > 0 && text[index - 1] != L' ') {
+                *output++ = L' ';
+            }
+            *output++ = text[index];
+        }
+        g_screen_state_00649f1c->quote_bubble = LayoutPortraitQuoteBubble(
+            -1, 0, 0, normalized, 280, 0, 0, 0, &width, &height, font_palette);
+        if (g_screen_state_00649f1c->quote_bubble == -1) {
+            if (g_screen_state_00649f1c->dialogue_npc != 0) {
+                swprintf(error_text,
+                         L"Error creating box - most likely text too large: NPC %s, quote %d",
+                         g_screen_state_00649f1c->dialogue_npc->record->source_name_004, quote_id);
+            } else {
+                swprintf(error_text, L"Error creating box - most likely text too large");
+            }
+            g_screen_state_00649f1c->quote_bubble =
+                LayoutPortraitQuoteBubble(-1, 0, 0, error_text, 300, 0, 0, 0, &width, &height, -1);
+            ShowNotice(0xc, error_text, 0, GetTextBoxScrollRange(), 0);
+        }
+        g_screen_state_00649f1c->quote_width = width;
+        g_screen_state_00649f1c->quote_height = height;
+        g_screen_state_00649f1c->quote_x = 320 - (width >> 1);
+        g_screen_state_00649f1c->quote_y = quote_id < 0 ? 350 - height : 20;
+        SetRegionBounds(0x136, g_screen_state_00649f1c->quote_x, g_screen_state_00649f1c->quote_y,
+                        g_screen_state_00649f1c->quote_x + g_screen_state_00649f1c->quote_width,
+                        g_screen_state_00649f1c->quote_y + g_screen_state_00649f1c->quote_height);
+        RegionSetEnable(0x25);
+        EnableRegionSetInput(0x25);
+        g_screen_state_00649f1c->quote_visible = true;
+        if (notice_kind == 0) {
+            W8PendingNoticeLine* line = new W8PendingNoticeLine;
+            line->text = static_cast<wchar_t*>(malloc((wcslen(normalized) + 1) * sizeof(wchar_t)));
+            line->npc_kind = npc_kind;
+            wcscpy(line->text, normalized);
+            g_screen_state_00649f1c->pending_notice_lines.Add(line);
+        }
+        g_screen_state_00649f1c->quote_notice_kind = notice_kind;
+        g_screen_state_00649f1c->quote_notice_payload = payload;
+        if (g_screen_state_00649f1c->quote_notice_kind == 3) {
+            SoundPlay(reinterpret_cast<STR>(const_cast<char*>( // reinterpret-ok: SGP text ABI
+                          "Data\\Sound\\Misc\\GainLevel.wav")),
+                      0);
+        }
+        return;
+    }
+
+    bool flush_notices =
+        (quote_id == 0x12 || quote_id < 0) && g_screen_state_00649f1c->quote_notice_kind == 0;
+    switch (g_screen_state_00649f1c->quote_notice_kind) {
+    case 1: {
+        W8ExperienceNoticePayload* experience =
+            static_cast<W8ExperienceNoticePayload*>(g_screen_state_00649f1c->quote_notice_payload);
+        FormatNotice(0xc, 0, gppStringList[experience->alternate_message ? 0x231 : 0x232],
+                     experience->amount);
+        delete experience;
+        break;
+    }
+    case 2: {
+        W8SkillNoticePayload* skills =
+            static_cast<W8SkillNoticePayload*>(g_screen_state_00649f1c->quote_notice_payload);
+        for (int index = 0; index < skills->count; ++index) {
+            int slot = skills->party_slots[index];
+            int skill = skills->skills[index];
+            W8Character* character = &g_status_685170.buffers.characters[slot];
+            unsigned int value = character->skills[skill].value_02;
+            if (skill == g_profession_bonus_skills[character->current_profession]) {
+                value = value * 125 / 100;
+            }
+            PostCharacterNotice(slot, gppStringList[0x1d9],
+                                gppStringList[g_character_skill_name_ids_61e454[skill]], value);
+        }
+        delete skills;
+        break;
+    }
+    case 3: {
+        int* slot = static_cast<int*>(g_screen_state_00649f1c->quote_notice_payload);
+        PostCharacterNotice(*slot, gppStringList[0x773]);
+        delete slot;
+        break;
+    }
+    }
+    if (quote != 0) {
+        for (unsigned int index = 0; index < quote->entry_count; ++index) {
+            if (quote->entries[index].kind_00 == 0x13 || quote->entries[index].kind_00 == 5) {
+                flush_notices = true;
+            }
+        }
+    }
+    if (flush_notices) {
+        FlushPendingNoticeLines005766B0();
+    }
+    g_screen_state_00649f1c->quote_visible = false;
+    if (g_screen_state_00649f1c->quote_bubble != -1) {
+        ReleasePortraitQuoteBubble(g_screen_state_00649f1c->quote_bubble);
+    }
+    RegionSetDisable(0x25);
+    DisableRegionSetInput(0x25);
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        if (g_screen_state_00649f1c->quote_bubble != -1) {
+            ClearSurfaceRect(
+                g_screen_state_00649f1c->quote_x, g_screen_state_00649f1c->quote_y,
+                g_screen_state_00649f1c->quote_x + g_screen_state_00649f1c->quote_width,
+                g_screen_state_00649f1c->quote_y + g_screen_state_00649f1c->quote_height);
+            InvalidateRegion(
+                g_screen_state_00649f1c->quote_x, g_screen_state_00649f1c->quote_y,
+                g_screen_state_00649f1c->quote_x + g_screen_state_00649f1c->quote_width,
+                g_screen_state_00649f1c->quote_y + g_screen_state_00649f1c->quote_height, 0);
+        }
+        RequestRedraw(0x200);
+        RequestRedraw(0xff);
+        RequestRedraw(0x8000);
+    } else if (g_current_screen_state.id == W8_SCREEN_CAMP) {
+        g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+    }
+    g_screen_state_00649f1c->quote_bubble = -1;
+}
+
+// FUNCTION: WIZ8 0x00576670
+void DrawNpcQuoteBubble(void)
+{
+    IsModalOpen();
+    if (g_screen_state_00649f1c->quote_visible) {
+        DrawPortraitQuoteBubble(g_screen_state_00649f1c->quote_bubble,
+                                g_screen_state_00649f1c->quote_x, g_screen_state_00649f1c->quote_y,
+                                -14);
+    }
+}
+
+// FUNCTION: WIZ8 0x005767f0
+void LookAtDialogueNpc(void)
+{
+    W8MonsterInfo* info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
+    if (info != 0) {
+        srVector3T<float> position = info->monster->movement_0c0.position_040;
+        position.y += info->monster->movement_0c0.height_offset_0b8;
+        g_gd_camera_65a0f8->LookAt(&position, 0);
+    }
+}
+
+// FUNCTION: WIZ8 0x00576b80
+void CloseNpcDialogueIfActive(void)
+{
+    if (gXStatus.fNpcDialogueMode != 0) {
+        Function56E800(0);
+    }
+}
+
 // FUNCTION: WIZ8 0x005766B0
 void FlushPendingNoticeLines005766B0(void)
 {
@@ -2943,12 +3122,10 @@ void FlushPendingNoticeLines005766B0(void)
                 g_screen_state_00649f1c->last_notice_npc_kind = line->npc_kind;
             }
         }
-        ShowNotice(line->npc_kind == -1 ? 0xb : 0xf, line->text, 3,
-                   GetTextBoxScrollRange(), 0);
+        ShowNotice(line->npc_kind == -1 ? 0xb : 0xf, line->text, 3, GetTextBoxScrollRange(), 0);
     }
     while (g_screen_state_00649f1c->pending_notice_lines.GetCount() > 0) {
-        W8PendingNoticeLine* line =
-            g_screen_state_00649f1c->pending_notice_lines.RemoveAt(0);
+        W8PendingNoticeLine* line = g_screen_state_00649f1c->pending_notice_lines.RemoveAt(0);
         free(line->text);
         delete line;
     }

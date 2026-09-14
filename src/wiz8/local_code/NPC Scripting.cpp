@@ -14,6 +14,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Configuration.h"
@@ -63,7 +64,7 @@ unsigned char g_flag_68c500;
 unsigned char g_message_queue_idle_68c501;
 
 // GLOBAL: WIZ8 0x0068C358
-void* g_message_callback_payload_68c358;
+int g_pending_npc_travel_level;
 
 // GLOBAL: WIZ8 0x0068506f
 unsigned char g_flag_68506f;
@@ -287,7 +288,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
 {
     if (g_npc_scripting.flag_c6 != 0) {
         g_npc_scripting.flag_c6 = 0;
-        Function576030(0, 0, 0, -1, -1);
+        SetNpcQuoteBubbleVisible(0, 0, 0, -1, -1);
         g_npc_scripting.staging_restore.value_498 = g_npc_scripting.staging_restore.value_494;
         return;
     }
@@ -321,15 +322,11 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
                 g_npc_scripting.staging_restore.value_494 <
                     g_npc_scripting.npc->script_file->quote_count) {
                 W8NpcScriptQuote* quotes = g_npc_scripting.npc->script_file->quotes;
-                // clang-format off
-                int record_address = reinterpret_cast<int>(quotes); // reinterpret-ok: retail callback API takes the record address as an integer
-                // clang-format on
-                Function576030(0, 0,
-                               record_address + g_npc_scripting.staging_restore.value_494 * 0xc,
-                               g_npc_scripting.staging_restore.value_494, -1);
+                SetNpcQuoteBubbleVisible(0, 0, &quotes[g_npc_scripting.staging_restore.value_494],
+                                         g_npc_scripting.staging_restore.value_494, -1);
                 return;
             }
-            Function576030(0, 0, 0, -1, -1);
+            SetNpcQuoteBubbleVisible(0, 0, 0, -1, -1);
         }
     }
 }
@@ -411,14 +408,14 @@ void ProcessMessageBoxQueue(void)
                     W8MessageBoxLine* queued = *g_npc_scripting.message_lines.GetAt(index);
                     if (queued->type == 0 && static_cast<char>(queued->unknown_18) == 0) {
                         for (int pending = 0;
-                             pending < g_npc_scripting.pending_script_values.GetCount(); ++pending) {
+                             pending < g_npc_scripting.pending_script_values.GetCount();
+                             ++pending) {
                             if (**g_npc_scripting.pending_script_values.GetAt(pending) ==
                                 queued->unknown_00) {
                                 if (g_npc_scripting.npc->record->unknown_056 == 0 &&
                                     queued->unknown_00 != 0x76) {
-                                    W8NpcScriptQuote* quote =
-                                        &g_npc_scripting.npc->script_file
-                                             ->quotes[queued->unknown_00];
+                                    W8NpcScriptQuote* quote = &g_npc_scripting.npc->script_file
+                                                                   ->quotes[queued->unknown_00];
                                     int entry;
                                     for (entry = 0; entry < quote->entry_count; ++entry) {
                                         if (quote->entries[entry].kind_00 == 0x1d) {
@@ -462,8 +459,8 @@ void ProcessMessageBoxQueue(void)
                     W8MessageBoxLine* continuation = new W8MessageBoxLine;
                     memset(continuation, 0, sizeof(W8MessageBoxLine));
                     continuation->unknown_00 = -1;
-                    continuation->unknown_08 = reinterpret_cast<int>(
-                        &quote->entries[index]); // reinterpret-ok: script event address is a tagged integer payload
+                    continuation->unknown_08 = reinterpret_cast<int>( // reinterpret-ok: tagged data
+                        &quote->entries[index]);
                     continuation->type = 2;
                     continuation->unknown_14 = line->unknown_00;
                     continuation->npc = g_npc_scripting.npc;
@@ -473,6 +470,8 @@ void ProcessMessageBoxQueue(void)
                     return;
                 }
             }
+        }
+        if (script != 0) {
             RunNpcScriptLine(line->unknown_00, 0);
         }
         g_npc_scripting.message_lines.Remove(line);
@@ -482,7 +481,7 @@ void ProcessMessageBoxQueue(void)
 
     switch (line->type) {
     case 1:
-        Function576B80();
+        CloseNpcDialogueIfActive();
         g_flag_6109f0 = 1;
         break;
     case 2:
@@ -496,13 +495,13 @@ void ProcessMessageBoxQueue(void)
         Function528FF0(line->text, 0, -1);
         break;
     case 5:
-        Function576B80();
-        if (g_screen_state_00649f1c->value_1d4 != 0) {
-            Function50AE40(g_screen_state_00649f1c->value_1d4, 1);
+        CloseNpcDialogueIfActive();
+        if (g_screen_state_00649f1c->dialogue_npc != 0) {
+            Function50AE40(g_screen_state_00649f1c->dialogue_npc, 1);
         }
         break;
     case 6: {
-        int npc_kind = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores an NPC kind in the pointer-width payload
+        int npc_kind = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged NPC kind
         npc = GetNpcStateByKind(npc_kind);
         if (npc != 0) {
             Function50B160(npc);
@@ -511,13 +510,11 @@ void ProcessMessageBoxQueue(void)
         W8MessageBoxLine* continuation = new W8MessageBoxLine;
         memset(continuation, 0, sizeof(W8MessageBoxLine));
         continuation->npc = g_npc_scripting.npc;
-        if (g_npc_scripting.message_lines.Add(continuation) < 0) {
-            delete continuation;
-        }
+        g_npc_scripting.message_lines.Add(continuation);
         break;
     }
     case 7: {
-        int group = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a group index in the pointer-width payload
+        int group = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged group index
         ClearMainGameTargetState();
         Function50B590(group, 0, 0, 0);
         if (g_screen_state_00649f1c->value_fc == 3) {
@@ -531,20 +528,19 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case 8:
-        Function576030(1, reinterpret_cast<int>(gppStringList[0x74a]), 0, -1,
-                       0x47); // reinterpret-ok: retail presentation API carries text pointers as integers
+        SetNpcQuoteBubbleVisible(1, gppStringList[0x74a], 0, -1, 0x47);
         g_npc_scripting.flag_71 = 0;
         g_npc_scripting.value_84 = 2000;
         g_npc_scripting.last_tick = GetTickCount();
         g_npc_scripting.value_88 = GetTickCount();
         g_npc_scripting.flag_70 = 1;
-        SoundPlay((STR) "Data\\Sound\\Misc\\Journal Entry.wav", 0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
+        SoundPlay((STR) "Data\\Sound\\Misc\\Journal Entry.wav",
+                  0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
         break;
     case 9: {
-        int string_index = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a string-table index in the pointer-width payload
+        int string_index = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged string index
         g_npc_scripting.flag_c6 = 1;
-        Function576030(1, reinterpret_cast<int>(gppStringList[string_index]), 0, -1,
-                       -1); // reinterpret-ok: retail presentation API carries text pointers as integers
+        SetNpcQuoteBubbleVisible(1, gppStringList[string_index], 0, -1, -1);
         g_npc_scripting.value_84 = ComputePortraitMessageDuration(gppStringList[string_index]);
         g_npc_scripting.value_88 = GetTickCount();
         break;
@@ -578,8 +574,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x916, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x916, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("MoveSavant.msf", 1);
         }
@@ -591,8 +587,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x18c);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xb5e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xb5e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("MoveBela.msf", 1);
         }
@@ -608,8 +604,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x13e);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xb1b, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xb1b, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("MoveGolem.msf", 1);
         }
@@ -619,23 +615,23 @@ void ProcessMessageBoxQueue(void)
         Function4E0430();
         break;
     case 0x14: {
-        char* skill_changes = static_cast<char*>(line->extra);
+        W8SkillNoticePayload* skill_changes = static_cast<W8SkillNoticePayload*>(line->extra);
         if (g_settings_6850c8.skill_increase_messages == 0) {
-            for (index = 0; index < skill_changes[0]; ++index) {
-                int party_slot = skill_changes[index + 1];
-                int skill = skill_changes[index + 9];
+            for (index = 0; index < skill_changes->count; ++index) {
+                int party_slot = skill_changes->party_slots[index];
+                int skill = skill_changes->skills[index];
                 W8Character* character = &g_status_685170.buffers.characters[party_slot];
                 unsigned int value = character->skills[skill].value_02;
                 if (skill == g_profession_bonus_skills[character->current_profession]) {
                     value = value * 125 / 100;
                 }
-                Function590950(party_slot, gppStringList[0x1d9],
-                               gppStringList[g_character_skill_name_ids_61e454[skill]], value);
+                PostCharacterNotice(party_slot, gppStringList[0x1d9],
+                                    gppStringList[g_character_skill_name_ids_61e454[skill]], value);
             }
-            delete[] skill_changes;
+            delete skill_changes;
         } else {
             g_npc_scripting.flag_c6 = 1;
-            Function576060(1, line->text, 0, -1, -1, 2, line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 2, line->extra, -1);
             g_npc_scripting.value_84 = ComputePortraitMessageDuration(line->text);
             g_npc_scripting.value_88 = GetTickCount();
         }
@@ -648,8 +644,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x112);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xa3a, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xa3a, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetCycleCallback004CA340(0x12, NpcScriptCallback0052A080);
             StartMonsterCycle(monster_info, 0x12, 1);
@@ -661,27 +657,25 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0xdc);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x968, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x968, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x12, 1);
-            monster_info->monster->SetCycleCallback004CA340(0x12,
-                                                            NpcScriptCallback0052A150);
+            monster_info->monster->SetCycleCallback004CA340(0x12, NpcScriptCallback0052A150);
         }
         ClearMainGameTargetState();
         break;
     }
     case 0x17:
         g_npc_scripting.flag_c6 = 1;
-        Function576060(1, line->text, 0, -1, -1, 1, line->extra, -1);
+        SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 1, line->extra, -1);
         g_npc_scripting.value_84 = ComputePortraitMessageDuration(line->text);
         g_npc_scripting.value_88 = GetTickCount();
         delete[] line->text;
         break;
     case 0x18:
         g_npc_scripting.flag_c6 = 1;
-        Function576030(1, reinterpret_cast<int>(line->text), 0, -1,
-                       -1); // reinterpret-ok: retail presentation API carries text pointers as integers
+        SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1);
         g_npc_scripting.value_84 = ComputePortraitMessageDuration(line->text);
         g_npc_scripting.value_88 = GetTickCount();
         delete[] line->text;
@@ -690,28 +684,48 @@ void ProcessMessageBoxQueue(void)
         int party_slot = *static_cast<int*>(line->extra);
         g_status_685170.buffers.party_rows[party_slot].flag_103 = 1;
         if (g_settings_6850c8.skill_increase_messages == 0) {
-            SoundPlay((STR) "Data\\Sound\\Misc\\GainLevel.wav", 0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
+            SoundPlay((STR) "Data\\Sound\\Misc\\GainLevel.wav",
+                      0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
             delete[] line->text;
         } else {
             g_npc_scripting.flag_c6 = 1;
-            Function576060(1, line->text, 0, -1, -1, 3, line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 3, line->extra, -1);
             g_npc_scripting.value_84 = ComputePortraitMessageDuration(line->text);
             g_npc_scripting.value_88 = GetTickCount();
             delete[] line->text;
         }
         break;
     }
-    case 0x1a:
-    case 0x1b:
-    case 0x1c: {
-        static const char* triggers[] = {"pillargate05", "pillargate04", "pillargate01"};
-        static const int npc_kinds[] = {0x3f, 0x3e, 0x3d};
-        int choice = line->type - 0x1a;
-        Trigger* trigger = FindTriggerByName(triggers[choice]);
+    case 0x1a: {
+        Trigger* trigger = FindTriggerByName("pillargate05");
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        npc = GetNpcStateByKind(npc_kinds[choice]);
+        npc = GetNpcStateByKind(0x3f);
+        W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
+        if (monster_info != 0) {
+            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+        }
+        break;
+    }
+    case 0x1b: {
+        Trigger* trigger = FindTriggerByName("pillargate04");
+        if (trigger != 0) {
+            trigger->Run(-1);
+        }
+        npc = GetNpcStateByKind(0x3e);
+        W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
+        if (monster_info != 0) {
+            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+        }
+        break;
+    }
+    case 0x1c: {
+        Trigger* trigger = FindTriggerByName("pillargate01");
+        if (trigger != 0) {
+            trigger->Run(-1);
+        }
+        npc = GetNpcStateByKind(0x3d);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             monster_info->monster->BeginFadeOutAndRemove004C5040(0);
@@ -728,7 +742,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case 0x1e: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a party slot in the pointer-width payload
+        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
         g_status_685170.skip_next_condition_reaction = 1;
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
         g_status_685170.flag_2487 = 1;
@@ -744,8 +758,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x1ab);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x983, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x983, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->BeginFadeOutAndRemove004C5040(0);
         }
@@ -801,8 +815,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x162);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x78d, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x78d, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("MoveGari.msf", 1);
         }
@@ -811,16 +825,16 @@ void ProcessMessageBoxQueue(void)
     case 0x25: {
         Trigger* door = FindTriggerByName("RatDoor02");
         if (door == 0) {
-            srAssertFail("pDoor", "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                         0x7b6, 0);
+            srAssertFail("pDoor", "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", 0x7b6,
+                         0);
         }
         door->CompleteItemInteraction004447F0();
         Function56E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0xcf);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x7c1, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x7c1, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("Milano.msf", 1);
         }
@@ -843,8 +857,10 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case 0x27: {
-        unsigned int event_type = reinterpret_cast<unsigned int>(line->text); // reinterpret-ok: queued event stores an event id in the pointer-width payload
-        int party_slot = PickRandomPartySpeaker(event_type, g_status_685170.selected_party_member_2434);
+        unsigned int event_type = reinterpret_cast<unsigned int>( // reinterpret-ok: tagged id
+            line->text);
+        int party_slot =
+            PickRandomPartySpeaker(event_type, g_status_685170.selected_party_member_2434);
         if (party_slot != -1) {
             g_status_685170.selected_party_member_2434 = static_cast<unsigned char>(party_slot);
             QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], event_type,
@@ -858,7 +874,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case 0x28: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a party slot in the pointer-width payload
+        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
         QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee58c,
                             g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -870,8 +886,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x83);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x7a8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x7a8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("MoveRubble.msf", 1);
         }
@@ -941,8 +957,7 @@ void ProcessMessageBoxQueue(void)
                 if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
                     character->race == 10 && character->highest_condition < 0xf) {
                     QueueCharacterEvent(character, g_effect_005ee654, g_event_flag_005ed8e0,
-                                        g_effect_argument_005ed8c8,
-                                        g_effect_argument_005ed914);
+                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                     break;
                 }
             }
@@ -953,12 +968,11 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x1b6);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xb2e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xb2e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x19, 1);
-            monster_info->monster->SetCycleCallback004CA340(0x19,
-                                                            NpcScriptCallback0052A190);
+            monster_info->monster->SetCycleCallback004CA340(0x19, NpcScriptCallback0052A190);
         }
         break;
     }
@@ -967,8 +981,8 @@ void ProcessMessageBoxQueue(void)
         W8MonsterGroup* group = FindFirstMonsterByID(0x1b4);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xa57, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xa57, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetScript004C7F10("belapath1.msf", 1);
         }
@@ -1002,8 +1016,8 @@ void ProcessMessageBoxQueue(void)
             int location_id = IListGetAt(group->monsters, 0);
             if (location_id != 0) {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
-                    0xa9e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                    location_id, 1);
+                    0xa9e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", location_id,
+                    1);
                 W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                 MonsterForwardReferencePosition(monster_info->monster, 0);
             }
@@ -1028,7 +1042,8 @@ void ProcessMessageBoxQueue(void)
                     unsigned int monster_index = MonsterGetIndexByLocationID(
                         0xafc, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                         location_id, 1);
-                    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+                    W8MonsterInfo* monster_info =
+                        MonsterGetScriptPartByLocationIndex(monster_index);
                     if (FindEntityByName("NP_DS1", &position, 0, 0)) {
                         monster_info->monster->AimAtPosition(&position);
                     }
@@ -1047,8 +1062,8 @@ void ProcessMessageBoxQueue(void)
         if (FindEntityByName("NP_PHOONZANGLEE", &position, 0, 0) &&
             (group = FindFirstMonsterByID(0x197)) != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0xacf, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0xacf, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->SetPosition(&position);
             MonsterForwardReferencePosition(monster_info->monster, 0);
@@ -1066,7 +1081,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case 0x36:
         if (g_combat_state != 0) {
-            int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a party slot in the pointer-width payload
+            int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
             if (g_combat_state->iActionChar == party_slot) {
                 g_combat_state->eCombatActionStatus = 0;
                 g_combat_state->iActionChar = -1;
@@ -1074,31 +1089,31 @@ void ProcessMessageBoxQueue(void)
             ClearMainGameTargetState();
             Function50B590(party_slot, 0, 0, 1);
             SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-            reinterpret_cast<unsigned char*>(g_combat_state)[0xa58 + party_slot] =
-                0; // reinterpret-ok: retail character flags overlap the unresolved combat tail
+            g_combat_state->npc_combat_script_pending[party_slot] = false;
         }
         break;
     case 0x37:
         Function56CA90();
         break;
     case 0x38:
-        Function569A50(gppStringList[0x7eb], NpcScriptCallback0052A1B0, 1, 1);
-        g_message_callback_payload_68c358 = line->text;
+        ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, 1, 1);
+        g_pending_npc_travel_level =
+            reinterpret_cast<int>(line->text); // reinterpret-ok: queued level id
         break;
     case 0x39: {
         Function56E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0x1aa);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                0x9a0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->value_9f, 1);
+                0x9a0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", group->value_9f,
+                1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->monster->BeginFadeOutAndRemove004C5040(0);
         }
         break;
     }
     case 0x3a: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: queued event stores a party slot in the pointer-width payload
+        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
         QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], 0x18,
                             g_event_flag_005ed8ec | g_event_flag_005ed8e0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -1113,19 +1128,37 @@ void ProcessMessageBoxQueue(void)
     case 0x3d:
         Function5A6620(0, 0, 500, NpcScriptCallback00526E40, 1, 1);
         break;
-    case 0x3e:
-    case 0x3f:
-    case 0x40: {
-        static const int npc_kinds[] = {0x2e, 0x2d, 0x2f};
-        static const int source_lines[] = {0x8c2, 0x8dd, 0x8f7};
-        int choice = line->type - 0x3e;
+    case 0x3e: {
         Function56E800(0);
-        npc = GetNpcStateByKind(npc_kinds[choice]);
+        npc = GetNpcStateByKind(0x2e);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
-                source_lines[choice],
-                "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
+                0x8c2, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
+                monster_info->location_id, 1);
+            RemoveMonster(monster_index, 1);
+        }
+        break;
+    }
+    case 0x3f: {
+        Function56E800(0);
+        npc = GetNpcStateByKind(0x2d);
+        W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
+        if (monster_info != 0) {
+            unsigned int monster_index = MonsterGetIndexByLocationID(
+                0x8dd, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
+                monster_info->location_id, 1);
+            RemoveMonster(monster_index, 1);
+        }
+        break;
+    }
+    case 0x40: {
+        Function56E800(0);
+        npc = GetNpcStateByKind(0x2f);
+        W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
+        if (monster_info != 0) {
+            unsigned int monster_index = MonsterGetIndexByLocationID(
+                0x8f7, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 monster_info->location_id, 1);
             RemoveMonster(monster_index, 1);
         }
@@ -1141,6 +1174,14 @@ void ProcessMessageBoxQueue(void)
 
     g_npc_scripting.message_lines.Remove(line);
     delete line;
+}
+
+// FUNCTION: WIZ8 0x0052a1b0
+void OnNpcTravelConfirmationClosed(W8DialogBase* dialog)
+{
+    if (GetDialogResult(dialog)) {
+        QueueNpcTravelRefusals(g_pending_npc_travel_level);
+    }
 }
 
 // FUNCTION: WIZ8 0x00528a80

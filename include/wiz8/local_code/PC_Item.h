@@ -7,6 +7,7 @@ void ReleaseGenericItemNames(void);
 #include "wiz8/layouts/game_status.h"
 
 struct W8ItemDatabaseRecord;
+struct W8NpcState;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
@@ -126,7 +127,7 @@ extern unsigned short g_equip_class_name_ids_61e7dc[32];
 /* Unresolved gap, declared for the split-stack dialog's trade-price labels:
    the gold price of a stack in the active trade context. The mode argument
    selects the pricing direction (0 for the buy side, 1 for the sell side). */
-int Function55B5E0(int trade_context, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
+int Function55B5E0(W8NpcState* npc, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
 
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
@@ -153,12 +154,3 @@ char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
 void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
-
-/* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
-   handler. 0x0051E980 scans the merge-kind table for the related
-   unidentified-name kind of an item. 0x0051CDE0 reports whether the held item
-   may occupy an equipment slot given the item in its paired hand slot.
-   0x00521E20 shifts the party pool open and inserts the item at an index. */
-char GetItemMergeKind0051E980(int item_id, short* related_kind);
-char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
-char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);

@@ -4078,27 +4078,16 @@ void W8Monster::SetCurrentAnimationScale(float scale)
         representation->current_subcycle) = scale;
 }
 
-/* Resolve the active cycle/subcycle AnimObj and submit entry zero using the
-   Monster's animation index. */
+/* Resolve the active cycle/subcycle AnimObj at the representation's selected LOD. */
 // FUNCTION: WIZ8 0x004c3f00
 W8AniMesh* W8Monster::GetCurrentAniMesh()
 {
-    int cycle_index = m_pRep->current_cycle;
-    int subcycle_index = m_pRep->current_subcycle;
-    W8GrowableVector<W8AnimObj*>* cycle = &m_pRep->animations[cycle_index];
-    W8AnimObj** animation_slot;
-    W8AnimObj* animation;
-
-    if (subcycle_index < cycle->GetCount()) {
-        animation_slot = cycle->data + subcycle_index;
-    } else {
-        animation_slot = cycle->data;
-    }
-    animation = *animation_slot;
+    W8AnimObj* animation =
+        *m_pRep->animations[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0xc4e, 0);
     }
-    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, animationIndex(), 0));
+    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, m_pRep->m_bLOD, 0));
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then

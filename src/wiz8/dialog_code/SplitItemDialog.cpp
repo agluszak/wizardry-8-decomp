@@ -486,26 +486,26 @@ void W8SplitItemDialog::UpdateCostLabels005DCC00()
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
-            split_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
+            split_price = Function55B5E0(g_screen_state_00649f1c->dialogue_npc, &stack, 0);
         }
         stack.stack_count = (unsigned char)m_remaining_0bc;
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
-            remaining_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0);
+            remaining_price = Function55B5E0(g_screen_state_00649f1c->dialogue_npc, &stack, 0);
         }
     } else if (m_kind_0cc == 2) {
         stack.stack_count = (unsigned char)split_count_0c0;
         if (split_count_0c0 == 0) {
             split_price = 0;
         } else {
-            split_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
+            split_price = Function55B5E0(g_screen_state_00649f1c->dialogue_npc, &stack, 1);
         }
         stack.stack_count = (unsigned char)m_remaining_0bc;
         if (m_remaining_0bc == 0) {
             remaining_price = 0;
         } else {
-            remaining_price = Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1);
+            remaining_price = Function55B5E0(g_screen_state_00649f1c->dialogue_npc, &stack, 1);
         }
     } else {
         remaining_price = GetItemStackValue(m_item_0d0);
@@ -551,14 +551,14 @@ void W8SplitItemDialog::UpdateAcceptButton005DDEE0()
     can_accept = split_count_0c0 != 0;
     switch (m_kind_0cc) {
     case 1:
-        if (g_status_685170.party_gold <
-            (unsigned int)Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 0)) {
+        if (g_status_685170.party_gold < static_cast<unsigned int>(Function55B5E0(
+                                             g_screen_state_00649f1c->dialogue_npc, &stack, 0))) {
             can_accept = 0;
         }
         break;
     case 2:
-        if (g_status_685170.party_gold <
-            (unsigned int)Function55B5E0(g_screen_state_00649f1c->value_1d4, &stack, 1)) {
+        if (g_status_685170.party_gold < static_cast<unsigned int>(Function55B5E0(
+                                             g_screen_state_00649f1c->dialogue_npc, &stack, 1))) {
             can_accept = 0;
         }
         break;

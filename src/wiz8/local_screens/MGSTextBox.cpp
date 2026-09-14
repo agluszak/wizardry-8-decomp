@@ -15,6 +15,8 @@ W8MainGameScreen* g_main_game_screen;
 #include "wiz8/sr_api.h"
 
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -106,6 +108,27 @@ void ClearTextSlot1E8(int index)
 void RedrawTextBox(void)
 {
     RequestRedraw(W8_REDRAW_TEXT_BOX);
+}
+
+// FUNCTION: WIZ8 0x0058ab60
+void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
+{
+    wchar_t text[4096];
+    va_list arguments;
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        } else if (GetFlag68F105()) {
+            text_box = 0;
+        } else {
+            text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
+        }
+    }
+    ShowNotice(channel, text, text_box, -1, 0);
 }
 
 /* The value the screen keeps beside the text. */

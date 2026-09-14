@@ -29,6 +29,7 @@ extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 /* 0x0058AA20: reset one editor status line; -1 selects the current line. */
 void ResetEditorStatusLine0058AA20(short line);
 void WriteGameLogAmount(int color, const wchar_t* format, ...);
+void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
 
 void ReleaseMessageStorage(void);
 void ScrollTextBoxToCursor(void);

@@ -71,11 +71,12 @@ printing and put large disposable output under `build/`. Detailed operational re
   ordinary functions stay unannotated; header visibility/inlining requires cross-TU/call-site evidence.
 - Legitimate `reinterpret_cast` sites express storage the type system cannot: external ABI, raw
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
-  unresolved site. New casts require same-line `reinterpret-ok: <reason>`; a marker never justifies
+  unresolved site. New casts require an attached `reinterpret-ok: <reason>` comment; a marker never justifies
   hiding known type disagreement.
 - New C-style casts in recovered C++ are gated. Prefer the evidence-backed typed model or the specific
   C++ cast that states the proven conversion; a genuinely unavoidable historical C/ABI spelling needs
-  same-line `c-style-cast-ok: <reason>`.
+  attached `c-style-cast-ok: <reason>` comment. Cast comments may immediately precede the statement or
+  remain on its formatter-wrapped continuation; never disable formatting to keep them on one line.
 - `clang-format off` is not a matching technique. A new suppression needs same-line
   `format-off-ok: <reason>` and must cover the smallest construct the formatter genuinely cannot
   preserve; never disable formatting for a whole recovered function just to keep decompiler shape.

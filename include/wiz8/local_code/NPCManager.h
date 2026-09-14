@@ -19,5 +19,7 @@ unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch
 struct W8MonsterInfo;
 struct W8Character;
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);  /* 0x0050A3C0 */
+void Function50AE40(W8NpcState* npc, int enabled);  /* 0x0050AE40 */
+void QueueNpcTravelRefusals(int destination_level); /* 0x0050E230 */
 void MarkNpcOfKind(int kind);                       /* 0x0050CA30 */
 W8Character* GetNpcGroupCharacter(W8NpcState* npc); /* 0x0050B8B0 */
