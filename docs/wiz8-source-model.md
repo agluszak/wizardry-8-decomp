@@ -213,7 +213,7 @@ Controls panel
       contains W8TextBuffer
 
 W8DialogBase
-  modal branch: W8ModalDialogBase -> W8NotificationDialog
+  modal branch: W8MessageDialogBase -> W8NotificationDialog
   other branches: monster, spell, and other dialog families
     contain button / scrollbar / text-area helpers as needed
 

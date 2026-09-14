@@ -223,14 +223,13 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     line->highlight_color = color;
 }
 
-/* Whichever byte the open dialogue exposes at 0x2d, or nothing when no
-   dialogue is open - the flag has to be up before the pointer is read. */
+/* The dirty byte of the dormant typed-dialogue input state, or nothing when
+   no input is open - dialogue_open has to be up before the pointer is read. */
 // FUNCTION: WIZ8 0x0058d7c0
 unsigned char GetOpenDialogueFlag(void)
 {
-    if (g_level_block->dialogue_open != 0 && g_level_block->dialogue_owner != 0) {
-        return reinterpret_cast<unsigned char*>(g_level_block->dialogue_owner)
-            [0x2d]; /* reinterpret-ok: flag byte in the unrecovered renderer-object tail */
+    if (g_level_block->dialogue_open != 0 && g_level_block->dialogue_state != 0) {
+        return g_level_block->dialogue_state->dirty;
     }
     return 0;
 }
