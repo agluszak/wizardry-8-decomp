@@ -370,6 +370,12 @@ srClass* stModelInstance2D::vInstance()
     return new stModelInstance2D(0);
 }
 
+// FUNCTION: WIZ8 0x00481DD0
+srClass* stModelInstance::vInstance()
+{
+    return new stModelInstance(0);
+}
+
 // TEMPLATE: WIZ8 0x00481C80
 // srArray<srNode::TraverseInfo::Entry>::setCapacity
 

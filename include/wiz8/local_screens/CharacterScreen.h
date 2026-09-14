@@ -242,7 +242,12 @@ class W8CharacterSpellList;
    embedded framework object. The range-list callbacks use the +0x70 base. */
 class W8CharacterPage005EF664 : public W8CharacterPage, public W8CharacterSpellListListener {
 public:
-    W8CharacterPage005EF664();
+    W8CharacterPage005EF664() : W8CharacterPage(0x109), m_animation_timer_5e4(0.05f, 1)
+    {
+        for (int realm = 0; realm < 6; ++realm) {
+            m_realms_074[realm] = 0;
+        }
+    }
     virtual ~W8CharacterPage005EF664() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Redraw() override;
