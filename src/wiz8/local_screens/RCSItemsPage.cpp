@@ -1077,11 +1077,7 @@ unsigned char ItemPoolRegionHandler005BB900(const W8RegionEvent* event, W8Region
         if (event->reason != 0x800) {
             return 0;
         }
-        delta = GetMouseWheelDeltaValue(
-            reinterpret_cast< // reinterpret-ok: reason 0x800 carries mouse event payload
-                const W8RegionMouseEvent*>(
-                event)             // reinterpret-ok: reason 0x800 carries mouse event payload
-                ->mouse_position); // reinterpret-ok: reason 0x800 carries the mouse event payload
+        delta = GetMouseWheelDeltaValue(event->param);
         count = delta;
         if (delta > 0) {
             do {

@@ -24,6 +24,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/local_code/PartyImport.h"
 
 /*
  * Local Screens\RCSCommon.cpp.
@@ -49,6 +50,42 @@ W8TextControl* g_dismiss_button_0069c400;
 
 void ShowDismissCharacterDialog(void);
 void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
+
+/* Swap the reviewed party member: rebuild the item list or learned-spell
+   scratch for the new character and repaint whichever page is showing. */
+// FUNCTION: WIZ8 0x005B6B30
+void SelectCampCharacter005B6B30(int slot)
+{
+    g_rcs_mode_0064cbe8 = slot;
+    g_value_0069c0f8 = &g_status_685170.buffers.characters[slot];
+    Function5A4570();
+    switch (g_camp_screen_0069c0f4->page) {
+    case 0:
+        EnableCampActionButtons005B9270();
+        if (g_camp_screen_0069c0f4->realm_flags[0] != 0) {
+            g_camp_screen_0069c0f4->item_scroll = 0;
+            RebuildCampItemList005A4A00();
+        }
+        if (g_camp_screen_0069c0f4->entry_mode != 3 && g_camp_screen_0069c0f4->entry_mode != 2 &&
+            g_camp_screen_0069c0f4->entry_mode != 8) {
+            SetCampItemActionMode005B59B0(0);
+        }
+        break;
+    case 1:
+        g_camp_screen_0069c0f4->skill_selection = 0;
+        Function5C4EE0();
+        g_camp_screen_0069c0f4->character_info->Invalidate(0);
+        break;
+    case 3:
+        BuildLearnedSpellState004F9600(
+            reinterpret_cast< // reinterpret-ok: the state block is laid out as the learned-spell scratch
+                W8LearnedSpellScratch*>(g_camp_screen_0069c0f4->spell_ids_by_realm),
+            g_value_0069c0f8);
+        RefreshCampSpellRanges005B7290();
+        break;
+    }
+    g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
+}
 
 // FUNCTION: WIZ8 0x005b6d20
 bool CanSelectRcsPartySlot(int ui_slot)

@@ -215,10 +215,10 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
 /* Whether the spell may be cast in the situation the party is in now. Two
    spells are always allowed on the shop screen out of combat; otherwise the
    record's usable-when value picks which of camp, combat and the shop admit
-   it. */
+   it. Every retail call site pushes only the two parameters, so the second
+   doubles as the out-of-combat override and the default-case return. */
 // FUNCTION: WIZ8 0x005001e0
-unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
-                             unsigned char fallback)
+unsigned char SpellUsableNow(int spell_id, int allow_out_of_combat)
 {
     W8SpellUsage usable_when;
     bool lock_or_trap;
@@ -266,7 +266,7 @@ unsigned char SpellUsableNow(int spell_id, int unused, char allow_out_of_combat,
         return gXStatus.fTrapInteract != 0;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 4228, "SpellUsableNow: ERROR - Invalid uiSpellUsableWhen");
-        return fallback;
+        return allow_out_of_combat;
     }
 
     if (gXStatus.fCampMode == 0) {
@@ -1267,7 +1267,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         g_status_685170.buffers.characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
         return false;
     }
-    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+    if (!SpellUsableNow(spell_id, 0)) {
         return false;
     }
     if (gXStatus.fCombatMode == 0 &&
@@ -1302,7 +1302,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
         g_spell_records[spell_id].blocks_auto_power_in_combat == 1 && gXStatus.fCombatMode != 0) {
         return 0;
     }
-    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+    if (!SpellUsableNow(spell_id, 0)) {
         return 0;
     }
     if (gXStatus.fCombatMode == 0 &&
@@ -1369,7 +1369,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (GetSpellTargetType(spell_id, normalize) == 0 && row->item_target.iChar != party_slot) {
         return false;
     }
-    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+    if (!SpellUsableNow(spell_id, 0)) {
         return false;
     }
     if (gXStatus.fCombatMode == 0 &&

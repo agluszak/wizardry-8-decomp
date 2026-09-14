@@ -311,8 +311,7 @@ unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* r
         }
         return 1;
     case MOUSE_WHEEL:
-        widget->AdjustValue(
-            GetMouseWheelDeltaValue(((const W8RegionMouseEvent*)event)->mouse_position));
+        widget->AdjustValue(GetMouseWheelDeltaValue(event->param));
         return 1;
     }
     return 0;

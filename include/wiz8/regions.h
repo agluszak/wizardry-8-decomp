@@ -15,16 +15,16 @@ struct W8RegionSet {
     unsigned int last_region;
 }; /* 0x0c */
 
+/* The raw input atom is handed to region callbacks as this shape: 0x08 is the
+   SGP usParam word carrying the wheel rotation in its high half for reason
+   0x800, 0x0c the uiParam word packing the cursor position as y << 16 | x. */
 struct W8RegionEvent {
     unsigned int time;
     unsigned short modifiers;
     unsigned short reason;
-};
-
-struct W8RegionMouseEvent {
-    W8RegionEvent event;
+    unsigned int param;
     unsigned int mouse_position;
-};
+}; /* 0x10 */
 
 enum W8RegionFlags {
     W8_REGION_RECTANGLE = 0x01,
