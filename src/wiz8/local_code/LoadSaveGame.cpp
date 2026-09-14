@@ -591,10 +591,7 @@ unsigned char LoadLevelStatus(const char* path, int level)
 }
 
 /* Walk one status file's top-level chunks and apply the saved section for the
-   requested level. The section's level number is read into the chunk
-   parameter's own stack slot: the pointer is already parked in a register, so
-   the slot is dead scratch, the same reuse LoadMonsterGroup documents. A
-   section at the file's end carries no payload and is skipped; a non-matching
+   requested level. A section at the file's end carries no payload and is skipped; a non-matching
    section is released without walking its children. On a save load the level's
    shipped status is folded in first, so baseline state exists under the saved
    overrides. The chunk ids dispatch as a flat chain; LOCK and LCKS share the
@@ -602,9 +599,7 @@ unsigned char LoadLevelStatus(const char* path, int level)
 // FUNCTION: WIZ8 0x00513650
 unsigned char LoadItemStatus(W8Chunk* chunk, int level)
 {
-    unsigned int* file_level =
-        reinterpret_cast< // reinterpret-ok: the LVLS header dword overlays the record the caller handed in
-            unsigned int*>(&chunk);
+    unsigned int file_level;
     W8Chunk* stream = chunk;
     unsigned char result = 0;
     int outer_count = stream->ChunkCount();
@@ -618,12 +613,12 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
         if (stream->CurrentChunkId() == 0x534c564c) { /* LVLS */
             if (stream->CurrentChunkAtEnd() != 0) {
                 stream->OpenGroup();
-                stream->Read(file_level, 4, 0);
+                stream->Read(&file_level, 4, 0);
                 stream->SkipCurrentChunk();
             } else {
                 stream->OpenGroup();
-                stream->Read(file_level, 4, 0);
-                if (level == static_cast<int>(*file_level)) {
+                stream->Read(&file_level, 4, 0);
+                if (level == static_cast<int>(file_level)) {
                     if (g_flag_00659756 == 0) {
                         LoadDefaultLevelStatus(level);
                     }
@@ -778,24 +773,13 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
 /* Reads one saved monster group and files it under the species or the encounter
    list. The record's own size leads it, and the assertion that bounds it names
    the record: uiSize <= sizeof(*pMonsterGroup), at line 1517 of this unit.
-   The size is read into the incoming parameter's stack slot. That is the same
-   dead-slot reuse SaveFactState documents: the chunk pointer is already in a
-   register by then, so its home slot is free, and the canonical spends exactly
-   four bytes of locals for the encounter flag and nothing more.
    A record whose database entry is marked deleted is read and then dropped: it
    is neither listed nor given a monster list, and the function still reports
    success. */
 // FUNCTION: WIZ8 0x00513c20
 unsigned char LoadMonsterGroup(W8Chunk* chunk)
 {
-    /* The record size lands in the incoming parameter's own stack slot. The
-       chunk pointer is copied into a register first, so the slot is dead
-       scratch, and a separate local would cost four bytes of frame the
-       canonical does not spend: it opens with a one-byte push, not a sub. The
-       copy is taken after the record is cleared, not on entry, because the
-       clear itself wants the register the pointer would otherwise be sitting
-       in. */
-    unsigned int* size = (unsigned int*)&chunk;
+    unsigned int record_size;
     W8MonsterGroup* group;
     W8MonsterRecord* record;
     W8Chunk* stream;
@@ -808,11 +792,11 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
     }
     memset(group, 0, sizeof(W8MonsterGroup));
     stream = chunk;
-    stream->Read(size, 4, 0);
-    if (*size > sizeof(W8MonsterGroup)) {
+    stream->Read(&record_size, 4, 0);
+    if (record_size > sizeof(W8MonsterGroup)) {
         srAssertFail("uiSize <= sizeof(*pMonsterGroup)", LOADSAVEGAME_CPP, 0x5ed, 0);
     }
-    stream->Read(group, *size, 0);
+    stream->Read(group, record_size, 0);
     if (group->version >= 2) {
         stream->Read(&is_encounter, 1, 0);
     }

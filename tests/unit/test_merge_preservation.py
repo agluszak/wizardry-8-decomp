@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from wiz8decomp.merge_preservation import merge_preservation_report
+from wiz8decomp.merge_preservation import merge_preservation_report, parse_allowed
 
 
 def _commit(repo: Path, files: dict[str, str], message: str) -> str:
@@ -113,7 +113,10 @@ def test_demotion_may_be_allowed_with_a_reason(tmp_path: Path) -> None:
     )
 
     report = merge_preservation_report(
-        tmp_path, base, head, allowed={0x401000: "moved to runtime stub"}
+        tmp_path,
+        base,
+        head,
+        allowed={("FUNCTION", "WIZ8", 0x401000, "demotion"): "moved to runtime stub"},
     )
 
     assert report["status"] == "passed"
@@ -137,3 +140,54 @@ def test_global_definition_demoted_to_extern_fails(tmp_path: Path) -> None:
 
     assert report["status"] == "failed"
     assert report["unexplained_demotions"] == ["GLOBAL WIZ8 0x00601000"]
+
+
+def test_current_tree_catches_uncommitted_loss(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path, {"src/foo.cpp": "// FUNCTION: WIZ8 0x00401000\nint Foo() { return 1; }\n"}, "base"
+    )
+    (tmp_path / "src/foo.cpp").write_text("")
+    current = merge_preservation_report(tmp_path, base)
+    assert current["status"] == "failed"
+    assert current["source_state"]["mode"] == "current"
+    revision = merge_preservation_report(tmp_path, base, base)
+    assert revision["status"] == "passed"
+    assert revision["source_state"]["mode"] == "revision"
+    assert revision["source_state"]["identical_sources"]
+    assert revision["source_state"]["warning"]
+
+
+def test_function_stub_conflict_cannot_be_waived_as_loss(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    body = "// FUNCTION: WIZ8 0x00401000\nint Foo() { return 1; }\n"
+    base = _commit(tmp_path, {"src/foo.cpp": body}, "base")
+    head = _commit(
+        tmp_path, {"src/stub.cpp": "// STUB: WIZ8 0x00401000\nint Stub() {}\n"}, "conflict"
+    )
+    report = merge_preservation_report(
+        tmp_path, base, head, parse_allowed(["WIZ8:FUNCTION:0x00401000:loss=withdrawal"])
+    )
+    assert report["status"] == "failed"
+    assert report["conflicts"] == [
+        {"target": "WIZ8", "address": "0x00401000", "kinds": ["FUNCTION", "STUB"]}
+    ]
+
+
+def test_allow_is_scoped_to_target_kind_and_transition(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path, {"src/foo.cpp": "// FUNCTION: DEMO 0x00401000\nint Foo() {}\n"}, "base"
+    )
+    head = _commit(
+        tmp_path, {"src/foo.cpp": "// FUNCTION: DEMO 0x00401000\nint Foo();\n"}, "demotion"
+    )
+    for selector in (
+        "WIZ8:FUNCTION:0x00401000:demotion",
+        "DEMO:GLOBAL:0x00401000:demotion",
+        "DEMO:FUNCTION:0x00401000:loss",
+    ):
+        report = merge_preservation_report(
+            tmp_path, base, head, parse_allowed([selector + "=reviewed"])
+        )
+        assert report["status"] == "failed"

@@ -52,11 +52,17 @@ the base before publishing:
 uv run wiz8 report merge-preservation --base origin/main
 ```
 
-Revisions are Git refs of the colocated repository (`origin/main`, a commit hash).
+The default result is the current Jujutsu change (snapshotted to its commit ID), or the current
+Git working tree. `--head COMMIT` explicitly selects revision-only mode and excludes working edits.
+Git refs (`origin/main`, a commit hash) work with both colocated and non-colocated Jujutsu checkouts.
+The report records resolved commit/tree IDs and flags identical source selections; that is not a
+two-input integration audit.
 
 It fails on removed or duplicated `FUNCTION`/`GLOBAL`/`VTABLE` addresses and lists changed identities
 and removed functions whose names are still referenced. Explain each intentional loss with
-`--allow 0xADDRESS=reason`; a conflict resolution is not a reason.
+`--allow WIZ8:FUNCTION:0xADDRESS:loss=reason`; the transition is `loss`, `duplicate`, or `demotion`.
+Exceptions cover only that target, kind, address, and transition. A conflict resolution is not a
+reason, and a simultaneous FUNCTION/STUB claim cannot be waived as a withdrawal.
 
 ## Publish directly to main
 

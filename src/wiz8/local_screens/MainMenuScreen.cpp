@@ -377,9 +377,9 @@ void SetMainMenuMessage(const wchar_t* message)
 }
 
 // FUNCTION: WIZ8 0x005bd040
-unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuNewGame(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
@@ -406,11 +406,11 @@ unsigned char MainMenuNewGame(const W8RegionEvent* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005bd110
-unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuLoadGame(const InputAtom* event, W8Region* region)
 {
     if (!g_main_menu_has_save_games)
         return 0;
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
@@ -436,9 +436,9 @@ unsigned char MainMenuLoadGame(const W8RegionEvent* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005bd1f0
-unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuExit(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
@@ -465,9 +465,9 @@ unsigned char MainMenuExit(const W8RegionEvent* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005bd2b0
-unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuOptions(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
@@ -495,9 +495,9 @@ unsigned char MainMenuOptions(const W8RegionEvent* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005bd380
-unsigned char MainMenuIntroduction(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);
@@ -527,9 +527,9 @@ unsigned char MainMenuIntroduction(const W8RegionEvent* event, W8Region* region)
 }
 
 // FUNCTION: WIZ8 0x005bd460
-unsigned char MainMenuCredits(const W8RegionEvent* event, W8Region* region)
+unsigned char MainMenuCredits(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         DrawMainMenuItem(g_main_menu_selected_item, 2);

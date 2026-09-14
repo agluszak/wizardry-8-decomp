@@ -46,11 +46,10 @@ from .paths import atomic_json
 from .source_units import (
     CLASSIFICATION_PATH,
     ORIGINAL_TU,
+    UNRESOLVED_FRAGMENT,
     SourceUnitError,
-    cmake_source_units,
     load_source_unit_document,
     mapped_repository_source_file,
-    original_source_paths,
     source_unit_records,
 )
 
@@ -459,13 +458,12 @@ def _original_unit_for_file(repo_dir: Path, source_file: str) -> str | None:
         return None
     try:
         records = source_unit_records(repo_dir)
-    except SourceUnitError:
+    except (SourceUnitError, OSError):
         records = {}
     record = records.get(source_file)
     if record and record.get("class") == ORIGINAL_TU:
         return record.get("original_path")
-    originals = original_source_paths(repo_dir)
-    return originals.get(source_file)
+    return None
 
 
 def _normalize_qualified(name: str) -> str:
@@ -1006,17 +1004,14 @@ def _fragment_ownership(
     if not (repo_dir / CLASSIFICATION_PATH).is_file():
         return []
     try:
-        document = load_source_unit_document(repo_dir)
-    except SourceUnitError:
+        records = source_unit_records(repo_dir)
+    except (SourceUnitError, OSError):
         return []
-    unresolved = {str(item) for item in document.get("unresolved-fragment") or ()}
-    listed = (
-        set(cmake_source_units(repo_dir))
-        if (repo_dir / "src/wiz8/sources.cmake").is_file()
-        else unresolved
-    )
+    unresolved = {
+        path for path, record in records.items() if record["class"] == UNRESOLVED_FRAGMENT
+    }
     rows: list[dict[str, Any]] = []
-    for path in sorted(unresolved & listed):
+    for path in sorted(unresolved):
         owned = [item for item in definitions.values() if item["source_file"] == path]
         units: dict[str, int] = {}
         unknown = 0

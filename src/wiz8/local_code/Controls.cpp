@@ -248,12 +248,12 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
    arms and disarms the 0x40/0x80 region latches their repeat and release
    paths test. */
 // FUNCTION: WIZ8 0x004F3140
-unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* region)
+unsigned char DispatchControlRegionEvent(const InputAtom* event, W8Region* region)
 {
     Controls* owner = region->owner;
     W8Widget* widget;
     unsigned short index = region->callback_id;
-    unsigned short reason = event->reason;
+    unsigned short reason = event->usEvent;
 
     if (index < owner->m_controls.count) {
         widget = owner->m_controls.data[index];
@@ -311,7 +311,7 @@ unsigned char DispatchControlRegionEvent(const W8RegionEvent* event, W8Region* r
         }
         return 1;
     case MOUSE_WHEEL:
-        widget->AdjustValue(GetMouseWheelDeltaValue(event->param));
+        widget->AdjustValue(GetMouseWheelDeltaValue(event->usParam));
         return 1;
     }
     return 0;

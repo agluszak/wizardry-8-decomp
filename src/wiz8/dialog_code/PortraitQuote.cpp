@@ -62,7 +62,7 @@ static unsigned int g_quote_bubble_flags_69c5c8;
 
 int Function5D0050(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font, int colour,
                    const wchar_t* text, int arg_8, int arg_9, int arg_10, unsigned int* out_edge);
-int Function5D0770(int x, int y, unsigned int wrap_width, int arg_4, int font, unsigned int colour,
+int Function5D0770(int x, int y, unsigned int wrap_width, int arg_4, int font, unsigned char colour,
                    const wchar_t* text, int arg_8, int arg_9, int arg_10);
 
 // FUNCTION: WIZ8 0x005cf6c0
@@ -91,14 +91,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     unsigned int height;
     int width_px;
     int height_px;
-    union {
-        unsigned int dword;
-        unsigned char byte;
-    } colour;
-    union {
-        unsigned int dword;
-        unsigned char byte;
-    } foreground;
+    // Retail assigns these only on the background/palette paths below.
+    unsigned char colour;
+    unsigned char foreground;
     unsigned short count;
     unsigned short x;
     unsigned short y;
@@ -287,18 +282,27 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         BltVideoObject(bubble->surface, object, 2, width_px - 0x10, 0, 2, 0);
         BltVideoObject(bubble->surface, object, 5, 0, height_px - 0x10, 2, 0);
         BltVideoObject(bubble->surface, object, 7, width_px - 0x10, height_px - 0x10, 2, 0);
+        // Retail 005CFE5D skips both stores for a nonzero background; 005CFE82
+        // still consumes foreground. Preserve that uninitialized path.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+#endif
         if (background_index == 0) {
-            colour.byte = 0xd0;
-            foreground.byte = 0;
+            colour = 0xd0;
+            foreground = 0;
         }
         if (bubble->palette != 0xffffffff) {
-            colour.byte = static_cast<unsigned char>(bubble->palette);
+            colour = static_cast<unsigned char>(bubble->palette);
         }
         SetFont(g_font12point1_683648);
-        SetFontForeground(foreground.dword);
+        SetFontForeground(foreground);
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
-        Function5D0770(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648,
-                       colour.dword, text, 0, 0, 1);
+        Function5D0770(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648, colour,
+                       text, 0, 0, 1);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         SetFontForeground(2);
         if (quote_handle == -1 && bubble != 0) {

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sys
 from contextlib import nullcontext
 from dataclasses import replace
 from pathlib import Path
@@ -12,6 +13,7 @@ from unittest.mock import ANY, AsyncMock, Mock
 import pytest
 from wiz8decomp.binary.linker_map import LinkerMap
 from wiz8decomp.debug.debugger import find_runtime_stub, format_crash_snapshot
+from wiz8decomp.debug.mi_process import DebuggerTransportError, GdbMiProcess
 from wiz8decomp.debug.mi_protocol import parse_mi_record
 from wiz8decomp.debug.session import (
     CrashSnapshot,
@@ -25,6 +27,95 @@ from wiz8decomp.debug.session import (
 )
 
 
+@pytest.mark.parametrize("stops", [[None, "exit"], ["exit"]])
+def test_exit_during_interrupt_does_not_capture(tmp_path: Path, monkeypatch, stops) -> None:
+    from wiz8decomp.debug.debugger import _debug_result
+
+    event = stop_event_from_record(parse_mi_record('*stopped,reason="exited",exit-code="03"'))
+    session = GdbSession(tmp_path / "runtime.exe", tmp_path, {}, tmp_path)
+    wait = AsyncMock(side_effect=[None, *[event if item == "exit" else None for item in stops]])
+    capture = AsyncMock()
+    monkeypatch.setattr(session, "wait_for_stop", wait)
+    monkeypatch.setattr(session, "capture_stop", capture)
+    monkeypatch.setattr(session, "_command", AsyncMock())
+    result = asyncio.run(
+        _debug_result(
+            session,
+            timeout=1,
+            map_path=tmp_path / "runtime.map",
+            manifest_path=tmp_path / "stubs.json",
+            provenance=tmp_path / "session.json",
+        )
+    )
+    assert result["exit_code"] == 3
+    assert result["reason"] == "exited with code 3"
+    capture.assert_not_called()
+
+
+def test_exit_rejects_interrupt_but_keeps_terminal_status(tmp_path: Path, monkeypatch) -> None:
+    event = stop_event_from_record(parse_mi_record('*stopped,reason="exited-normally"'))
+    session = GdbSession(tmp_path / "runtime.exe", tmp_path, {}, tmp_path)
+    monkeypatch.setattr(session, "wait_for_stop", AsyncMock(side_effect=[None, event]))
+    monkeypatch.setattr(
+        session, "_command", AsyncMock(side_effect=DebuggerTransportError("not running"))
+    )
+    capture = AsyncMock()
+    monkeypatch.setattr(session, "capture_stop", capture)
+    assert asyncio.run(session.interrupt_and_capture("timeout")) == (None, event)
+    capture.assert_not_called()
+
+
+def test_mi_timeout_rejects_later_commands_and_retains_late_output(tmp_path: Path) -> None:
+    async def exercise() -> None:
+        transport = GdbMiProcess(
+            tmp_path,
+            tmp_path / "mi.log",
+            command=(
+                sys.executable,
+                "-u",
+                "-c",
+                (
+                    "import sys,time; sys.stdin.readline(); time.sleep(0.1); "
+                    "print('~\\\"late console\\\\n\\\"'); print('1^done'); "
+                    "print('=late-drained'); sys.stdin.readline()"
+                ),
+            ),
+        )
+        await transport.start(tmp_path / "unused.exe")
+        try:
+            with pytest.raises(DebuggerTransportError, match="timed out"):
+                await transport.command("-first", timeout=0.01)
+            event = await transport.next_event(2)
+            assert event is not None and event.message == "late-drained"
+            with pytest.raises(DebuggerTransportError, match="transport unusable"):
+                await transport.command("-second")
+            assert "late console" in (tmp_path / "mi.log").read_text()
+            assert "> 2-second" not in (tmp_path / "mi.log").read_text()
+        finally:
+            await transport.close()
+
+    asyncio.run(exercise())
+
+
+def test_second_debugger_cannot_enter_destructive_setup(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp.debug.debugger import run_debugger
+
+    settings: Any = SimpleNamespace(repo_dir=tmp_path)
+    entered = 0
+
+    def run_locked(*args, **kwargs):
+        nonlocal entered
+        entered += 1
+        with pytest.raises(DebuggerTransportError, match="already running"):
+            run_debugger(settings)
+        return {}
+
+    monkeypatch.setattr("wiz8decomp.debug.debugger._run_debugger_locked", run_locked)
+    run_debugger(settings)
+    run_debugger(settings)
+    assert entered == 2
+
+
 def test_sigtrap_stop_is_structured() -> None:
     record = parse_mi_record(
         '*stopped,reason="signal-received",signal-name="SIGTRAP",thread-id="1"'
@@ -34,6 +125,7 @@ def test_sigtrap_stop_is_structured() -> None:
     assert event.reason == "signal-received"
     assert event.signal == "SIGTRAP"
     assert event.exit_code is None
+    assert event.thread_id == "1"
     assert not is_terminal_stop(event)
 
 
@@ -176,7 +268,10 @@ def test_stub_recognition_uses_map_not_gdb_names(tmp_path: Path, monkeypatch) ->
     assert stub["symbol"] == "?HandleFactChange@@YAXHE@Z"
 
 
-def test_sigsegv_stack_address_does_not_classify_runtime_stub(tmp_path: Path, monkeypatch) -> None:
+@pytest.mark.parametrize("signal", ["SIGSEGV", "SIGTRAP"])
+def test_incidental_address_does_not_classify_runtime_stub(
+    tmp_path: Path, monkeypatch, signal
+) -> None:
     from wiz8decomp.debug.debugger import _debug_result
 
     map_path = tmp_path / "runtime.map"
@@ -200,12 +295,12 @@ def test_sigsegv_stack_address_does_not_classify_runtime_stub(tmp_path: Path, mo
         encoding="utf-8",
     )
     event = stop_event_from_record(
-        parse_mi_record('*stopped,reason="signal-received",signal-name="SIGSEGV"')
+        parse_mi_record(f'*stopped,reason="signal-received",signal-name="{signal}"')
     )
     assert event is not None
     snapshot = CrashSnapshot(
         event=event,
-        registers={"eip": 0x005F1270},
+        registers={"eip": 0x7BD642FC, "edx": 0x005F1270},
         frame_addresses=(),
         stack_words=(),
         fault_address=None,
@@ -232,7 +327,7 @@ def test_sigsegv_stack_address_does_not_classify_runtime_stub(tmp_path: Path, mo
         )
     )
 
-    assert result["reason"] == "SIGSEGV"
+    assert result["reason"] == signal
     assert "UNRECOVERED FUNCTION" not in result["report"]
 
 
@@ -349,10 +444,11 @@ def test_ordinary_pc_and_modal_assertion_frames_resolve(tmp_path: Path, monkeypa
 def test_capture_is_bounded_and_parses_frames(tmp_path: Path, monkeypatch) -> None:
     session = GdbSession(tmp_path / "runtime.exe", tmp_path, {}, tmp_path)
     outputs = {
-        "thread apply all bt 16": ["#0  0x7bd642fc in ?? ()", "#1  0x00462892 in ?? ()"],
+        "bt 16": ["#0  0x7bd642fc in ?? ()", "#1  0x00462892 in ?? ()"],
         "info registers": ["eip 0x400007", "edx 0x462892"],
         "x/96wx $sp": ["0x67fe00: 0x00479834"],
         "x/24i $pc-24": ["Cannot access memory"],
+        "thread apply all bt 16": ["#0  0x005f1270 in unrelated_thread ()"],
         "p/x $_siginfo._sifields._sigfault.si_addr": ["$1 = 0x0d959330"],
     }
     console = AsyncMock(side_effect=lambda command, **_: outputs[command])

@@ -2483,7 +2483,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             quote->width = width;
             quote->height = height;
             if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-                if (static_cast<int>(party_slot) == g_rcs_mode_0064cbe8) {
+                if (static_cast<int>(party_slot) == giReviewCharSlot) {
                     quote->x = 10;
                     quote->y = 8;
                 } else {

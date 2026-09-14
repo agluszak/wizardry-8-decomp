@@ -42,6 +42,7 @@ class StopEvent:
     signal: str | None
     exit_code: int | None
     raw: str
+    thread_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -88,11 +89,13 @@ def stop_event_from_record(record: MiRecord) -> StopEvent | None:
         return None
     reason = record.payload.get("reason")
     signal_name = record.payload.get("signal-name")
+    thread_id = record.payload.get("thread-id")
     return StopEvent(
         reason=reason if isinstance(reason, str) else "stopped",
         signal=signal_name if isinstance(signal_name, str) else None,
         exit_code=_parse_exit_code(record.payload.get("exit-code")),
         raw=record.raw,
+        thread_id=thread_id if isinstance(thread_id, str) else None,
     )
 
 
@@ -274,14 +277,19 @@ class GdbSession:
                 return event
 
     async def capture_stop(self, label: str, event: StopEvent) -> CrashSnapshot:
+        if is_terminal_stop(event):
+            raise DebuggerTransportError("cannot capture an exited inferior")
+        if event.thread_id is not None:
+            await self._command(f"-thread-select {json.dumps(event.thread_id)}")
         path = self.artifact_dir / f"debugger-stop-{label}.txt"
         sections = [("stop", [event.raw])]
         captured: dict[str, list[str]] = {}
         for heading, command in (
-            ("all threads", "thread apply all bt 16"),
+            ("stopped thread", "bt 16"),
             ("registers", "info registers"),
             ("stack", "x/96wx $sp"),
             ("near pc", "x/24i $pc-24"),
+            ("all threads", "thread apply all bt 16"),
         ):
             try:
                 output = await self._console(command, timeout=30)
@@ -311,7 +319,7 @@ class GdbSession:
         return CrashSnapshot(
             event=event,
             registers=registers,
-            frame_addresses=_parse_frame_addresses(captured.get("all threads", [])),
+            frame_addresses=_parse_frame_addresses(captured.get("stopped thread", [])),
             stack_words=stack_words,
             fault_address=fault_address,
             raw_path=path,
@@ -322,15 +330,29 @@ class GdbSession:
     ) -> tuple[CrashSnapshot | None, StopEvent | None]:
         event = await self.wait_for_stop(0)
         if event is None:
-            await self._command("-exec-interrupt --all", timeout=5)
+            try:
+                await self._command("-exec-interrupt --all", timeout=5)
+            except DebuggerTransportError:
+                event = await self.wait_for_stop(2)
+                if event is not None and is_terminal_stop(event):
+                    return None, event
+                raise
             event = await self.wait_for_stop(2)
         if event is None:
-            await self._console("interrupt", timeout=5)
+            try:
+                await self._console("interrupt", timeout=5)
+            except DebuggerTransportError:
+                event = await self.wait_for_stop(2)
+                if event is not None and is_terminal_stop(event):
+                    return None, event
+                raise
             event = await self.wait_for_stop(10)
         if event is None:
             raise DebuggerTransportError(
                 "GDB accepted interrupt requests but the Wine remote target did not stop"
             )
+        if is_terminal_stop(event):
+            return None, event
         capture_label = label
         if event.signal not in {None, "SIGINT"}:
             capture_label = event.signal.lower()  # type: ignore[union-attr]

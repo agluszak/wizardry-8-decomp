@@ -152,10 +152,17 @@ def header_architecture_command() -> None:
 @app.command("merge-preservation")
 def merge_preservation_command(
     base: Annotated[str, typer.Option("--base", help="Base revision, e.g. origin/main.")],
-    head: str = typer.Option("HEAD", "--head", help="Result revision to compare."),
+    head: str | None = typer.Option(
+        None,
+        "--head",
+        help="Explicit result revision; defaults to the current Jujutsu change or Git working tree.",
+    ),
     allow: Annotated[
         list[str] | None,
-        typer.Option("--allow", help="0xADDRESS=reason for an intentional loss or duplicate."),
+        typer.Option(
+            "--allow",
+            help="TARGET:KIND:0xADDRESS:TRANSITION=reason for an intentional loss, duplicate, or demotion.",
+        ),
     ] = None,
 ) -> None:
     """Compare FUNCTION/GLOBAL/VTABLE marker identities by retail address between two revisions."""

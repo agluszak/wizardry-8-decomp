@@ -39,6 +39,7 @@ class GdbMiProcess:
         self._active_output: list[str] = []
         self._tasks: list[asyncio.Task[None]] = []
         self._transcript = None
+        self._unusable_reason: str | None = None
 
     async def start(self, executable: Path) -> None:
         self._transcript = self.transcript_path.open("w", encoding="utf-8")
@@ -62,6 +63,8 @@ class GdbMiProcess:
         ]
 
     async def command(self, command: str, timeout: float = 30.0) -> MiCommandResult:
+        if self._unusable_reason is not None:
+            raise DebuggerTransportError(self._unusable_reason)
         process = self._require_process()
         if process.returncode is not None or process.stdin is None:
             raise DebuggerTransportError("GDB is not running")
@@ -73,16 +76,21 @@ class GdbMiProcess:
         self._active_result = asyncio.get_running_loop().create_future()
         self._active_output = []
         try:
+            self._log(f"> {token}{command}")
             process.stdin.write(f"{token}{command}\n".encode())
             await process.stdin.drain()
             try:
                 result = await asyncio.wait_for(self._active_result, timeout)
             except TimeoutError as error:
-                raise DebuggerTransportError(f"GDB command timed out: {command}") from error
+                self._unusable_reason = f"GDB command timed out; transport unusable: {command}"
+                raise DebuggerTransportError(self._unusable_reason) from error
             output = tuple(self._active_output)
             if result.message == "error":
                 raise DebuggerTransportError(f"GDB command failed: {command}: {result.raw}")
             return MiCommandResult(result, output)
+        except asyncio.CancelledError:
+            self._unusable_reason = f"GDB command cancelled; transport unusable: {command}"
+            raise
         finally:
             self._active_token = None
             self._active_result = None

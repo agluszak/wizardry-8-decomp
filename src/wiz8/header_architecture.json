@@ -59,6 +59,9 @@
     "include/wiz8/fonts.h": {
       "role": "provisional-interface"
     },
+    "include/wiz8/learned_spells.h": {
+      "role": "provisional-interface"
+    },
     "include/wiz8/local_code/party_encumbrance.h": {
       "role": "provisional-interface"
     },

@@ -174,9 +174,9 @@ unsigned char IntroScreenLeave(int)
 }
 
 // FUNCTION: WIZ8 0x005ae980
-unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* region)
+unsigned char IntroScreenRegionEvent(const InputAtom* event, W8Region* region)
 {
-    switch (event->reason) {
+    switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         break;

@@ -14,10 +14,8 @@
    sub-entries with their own strings. Three levels of dynamic array, each
    allocated from a count that arrives in the slot the pointer then occupies.
 
-   Both arrays are filled by the same idiom: clear the count, allocate, clear the
-   block starting at the element the count points past, then add the count back.
-   With the count cleared first that offset is always the base, which is why the
-   arithmetic looks redundant; it is reproduced as the original spells it.
+   Array counts are cleared before allocation and restored after successful
+   allocation. Allocation failures retain the reader's original partial state.
 
    Record strings arrive as wide characters and are converted through sprintf.
    The format at 0x0061C4B0 is four bytes of data in the reviewed image, which is
@@ -73,10 +71,8 @@ unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
     unsigned int block_size;
     int index;
     int sub_index;
-    int total_sub_entries;
     wchar_t wide[2000];
 
-    total_sub_entries = 0;
     FileRead(handle, record, 0xc, &transferred);
     if (transferred != 0xc) {
         return 0;
@@ -109,8 +105,8 @@ unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
         block_size = disk_entry_count * 0x12;
         record->entries = static_cast<W8NpcQuoteEntry*>(malloc(block_size));
         if (record->entries != 0) {
-            memset(record->entries + record->entry_count, 0, block_size);
-            record->entry_count = record->entry_count + disk_entry_count;
+            memset(record->entries, 0, block_size);
+            record->entry_count = disk_entry_count;
         }
     }
 
@@ -127,10 +123,8 @@ unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
             if (entry->sub_entries == 0) {
                 return 0;
             }
-            entry->sub_entry_count = entry->sub_entry_count + disk_sub_count;
-            memset(entry->sub_entries + (entry->sub_entry_count - disk_sub_count), 0,
-                   disk_sub_count * 8);
-            total_sub_entries = total_sub_entries + entry->sub_entry_count;
+            entry->sub_entry_count = disk_sub_count;
+            memset(entry->sub_entries, 0, disk_sub_count * 8);
             for (sub_index = 0; sub_index < entry->sub_entry_count; ++sub_index) {
                 sub_entry = entry->sub_entries + sub_index;
                 FileRead(handle, sub_entry, 8, &transferred);

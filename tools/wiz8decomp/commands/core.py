@@ -370,6 +370,8 @@ def debug_command(
     sys.stderr.write(
         f"reason: {result['reason']}\nraw gdb: {result['log']}\nsession: {result['session']}\n"
     )
+    if result["exit_code"]:
+        raise typer.Exit(result["exit_code"])
 
 
 def crash_report_command(

@@ -15,16 +15,11 @@ struct W8RegionSet {
     unsigned int last_region;
 }; /* 0x0c */
 
-/* The raw input atom is handed to region callbacks as this shape: 0x08 is the
-   SGP usParam word carrying the wheel rotation in its high half for reason
-   0x800, 0x0c the uiParam word packing the cursor position as y << 16 | x. */
-struct W8RegionEvent {
-    unsigned int time;
-    unsigned short modifiers;
-    unsigned short reason;
-    unsigned int param;
-    unsigned int mouse_position;
-}; /* 0x10 */
+/* Region callbacks receive SGP's input atom unchanged. Wheel rotation uses
+   usParam; uiParam carries the packed cursor position. */
+static_assert(sizeof(InputAtom) == 0x10, "InputAtom_size");
+static_assert(offsetof(InputAtom, usParam) == 0x08, "InputAtom_wheel_payload_offset");
+static_assert(offsetof(InputAtom, uiParam) == 0x0c, "InputAtom_mouse_position_offset");
 
 enum W8RegionFlags {
     W8_REGION_RECTANGLE = 0x01,
@@ -41,7 +36,7 @@ enum W8RegionFlags {
 };
 
 struct W8Region;
-typedef unsigned char (*W8RegionCallback)(const W8RegionEvent* event, struct W8Region* region);
+typedef unsigned char (*W8RegionCallback)(const InputAtom* event, struct W8Region* region);
 
 struct W8Region {
     unsigned int flags;
@@ -63,53 +58,52 @@ void InitializeRegionHelpState(void);
    The region table references these addresses directly, so they keep one
    canonical, address-qualified declaration here until their owning units are
    recovered; none of them is called by recovered code. */
-unsigned char Function0052FD80(const W8RegionEvent*, W8Region*);
-unsigned char Function0055E690(const W8RegionEvent*, W8Region*);
-unsigned char Function00565990(const W8RegionEvent*, W8Region*);
-unsigned char Function005667A0(const W8RegionEvent*, W8Region*);
-unsigned char Function00566AE0(const W8RegionEvent*, W8Region*);
-unsigned char Function00566E20(const W8RegionEvent*, W8Region*);
-unsigned char Function005670C0(const W8RegionEvent*, W8Region*);
-unsigned char Function005673B0(const W8RegionEvent*, W8Region*);
-unsigned char Function00567600(const W8RegionEvent*, W8Region*);
-unsigned char Function00567800(const W8RegionEvent*, W8Region*);
-unsigned char Function00568100(const W8RegionEvent*, W8Region*);
-unsigned char Function005699D0(const W8RegionEvent*, W8Region*);
-unsigned char Function0056F020(const W8RegionEvent*, W8Region*);
-unsigned char Function00576650(const W8RegionEvent*, W8Region*);
-unsigned char Function00581790(const W8RegionEvent*, W8Region*);
-unsigned char Function0058E2A0(const W8RegionEvent*, W8Region*);
-unsigned char Function0058E650(const W8RegionEvent*, W8Region*);
-unsigned char Function0058E9F0(const W8RegionEvent*, W8Region*);
-unsigned char Function0058ED90(const W8RegionEvent*, W8Region*);
-unsigned char Function0058EFD0(const W8RegionEvent*, W8Region*);
-unsigned char Function0058F240(const W8RegionEvent*, W8Region*);
-unsigned char Function00594760(const W8RegionEvent*, W8Region*);
-unsigned char Function005949A0(const W8RegionEvent*, W8Region*);
-unsigned char Function00598CD0(const W8RegionEvent*, W8Region*);
-unsigned char Function00598DB0(const W8RegionEvent*, W8Region*);
-unsigned char Function0059BD20(const W8RegionEvent*, W8Region*);
-unsigned char Function0059C260(const W8RegionEvent*, W8Region*);
-unsigned char Function0059D970(const W8RegionEvent*, W8Region*);
-unsigned char Function0059DA30(const W8RegionEvent*, W8Region*);
-unsigned char Function005A0C80(const W8RegionEvent*, W8Region*);
-unsigned char Function005A0E50(const W8RegionEvent*, W8Region*);
-unsigned char Function005A1DE0(const W8RegionEvent*, W8Region*);
-unsigned char Function005AEEA0(const W8RegionEvent*, W8Region*);
-unsigned char Function005AF530(const W8RegionEvent*, W8Region*);
-unsigned char Function005AF5E0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B2020(const W8RegionEvent*, W8Region*);
-unsigned char Function005B2CB0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B2D70(const W8RegionEvent*, W8Region*);
-unsigned char Function005B5E90(const W8RegionEvent*, W8Region*);
-unsigned char Function005B5F10(const W8RegionEvent*, W8Region*);
-unsigned char Function005B61A0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B6220(const W8RegionEvent*, W8Region*);
-unsigned char Function005B62C0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B6360(const W8RegionEvent*, W8Region*);
-unsigned char Function005B66B0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B6AA0(const W8RegionEvent*, W8Region*);
-unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
+unsigned char Function0052FD80(const InputAtom*, W8Region*);
+unsigned char Function0055E690(const InputAtom*, W8Region*);
+unsigned char Function00565990(const InputAtom*, W8Region*);
+unsigned char Function005667A0(const InputAtom*, W8Region*);
+unsigned char Function00566AE0(const InputAtom*, W8Region*);
+unsigned char Function00566E20(const InputAtom*, W8Region*);
+unsigned char Function005670C0(const InputAtom*, W8Region*);
+unsigned char Function005673B0(const InputAtom*, W8Region*);
+unsigned char Function00567600(const InputAtom*, W8Region*);
+unsigned char Function00567800(const InputAtom*, W8Region*);
+unsigned char Function00568100(const InputAtom*, W8Region*);
+unsigned char Function005699D0(const InputAtom*, W8Region*);
+unsigned char Function0056F020(const InputAtom*, W8Region*);
+unsigned char Function00576650(const InputAtom*, W8Region*);
+unsigned char Function00581790(const InputAtom*, W8Region*);
+unsigned char Function0058E2A0(const InputAtom*, W8Region*);
+unsigned char Function0058E650(const InputAtom*, W8Region*);
+unsigned char Function0058E9F0(const InputAtom*, W8Region*);
+unsigned char Function0058ED90(const InputAtom*, W8Region*);
+unsigned char Function0058EFD0(const InputAtom*, W8Region*);
+unsigned char Function0058F240(const InputAtom*, W8Region*);
+unsigned char Function00594760(const InputAtom*, W8Region*);
+unsigned char Function005949A0(const InputAtom*, W8Region*);
+unsigned char Function00598CD0(const InputAtom*, W8Region*);
+unsigned char Function00598DB0(const InputAtom*, W8Region*);
+unsigned char Function0059BD20(const InputAtom*, W8Region*);
+unsigned char Function0059C260(const InputAtom*, W8Region*);
+unsigned char Function0059D970(const InputAtom*, W8Region*);
+unsigned char Function0059DA30(const InputAtom*, W8Region*);
+unsigned char Function005A0C80(const InputAtom*, W8Region*);
+unsigned char Function005A0E50(const InputAtom*, W8Region*);
+unsigned char Function005A1DE0(const InputAtom*, W8Region*);
+unsigned char Function005AEEA0(const InputAtom*, W8Region*);
+unsigned char Function005AF530(const InputAtom*, W8Region*);
+unsigned char Function005AF5E0(const InputAtom*, W8Region*);
+unsigned char Function005B2CB0(const InputAtom*, W8Region*);
+unsigned char Function005B2D70(const InputAtom*, W8Region*);
+unsigned char Function005B5E90(const InputAtom*, W8Region*);
+unsigned char Function005B5F10(const InputAtom*, W8Region*);
+unsigned char Function005B61A0(const InputAtom*, W8Region*);
+unsigned char Function005B6220(const InputAtom*, W8Region*);
+unsigned char Function005B62C0(const InputAtom*, W8Region*);
+unsigned char Function005B6360(const InputAtom*, W8Region*);
+unsigned char Function005B66B0(const InputAtom*, W8Region*);
+unsigned char Function005B6AA0(const InputAtom*, W8Region*);
+unsigned char Function005BC7A0(const InputAtom*, W8Region*);
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];

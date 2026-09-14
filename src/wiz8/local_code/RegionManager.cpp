@@ -175,7 +175,7 @@ W8Region g_regions[1500] = {
     {0x00000001, 617, 273, 639, 357, Function00565990, 7, 1, 0, -1, 0},
     {0x00000002, 75, 402, 46, 0, Function00567600, 0, 1, 0, 31, 0},
 
-    {0x00000002, 564, 402, 40, 0, Function005B2020, 0, 1, 0, 32, 0},
+    {0x00000002, 564, 402, 40, 0, FormationBoardRegionEvent, 0, 1, 0, 32, 0},
     {0x00000001, 512, 358, 617, 450, Function0058F240, 0, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function0056F020, 9, 0, 0, -1, 0},
 
@@ -523,15 +523,15 @@ void ReleasePointer689B40(void)
 // FUNCTION: WIZ8 0x004f1360
 unsigned int UpdateRegionMousePosition(int x, int y)
 {
-    W8RegionEvent event;
+    InputAtom event;
     unsigned int set_index;
     unsigned int region_index;
 
-    event.time = GetClock();
-    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.reason = MOUSE_POS;
-    event.mouse_position = (static_cast<unsigned int>(static_cast<unsigned short>(y)) << 16) |
-                           static_cast<unsigned short>(x);
+    event.uiTimeStamp = GetClock();
+    event.usKeyState = gfAltState | gfCtrlState | gfShiftState;
+    event.usEvent = MOUSE_POS;
+    event.uiParam = (static_cast<unsigned int>(static_cast<unsigned short>(y)) << 16) |
+                    static_cast<unsigned short>(x);
 
     if (g_captured_region_index != 0) {
         W8Region* forced = &g_regions[g_captured_region_index];
@@ -609,14 +609,14 @@ unsigned int UpdateRegionMousePosition(int x, int y)
 // FUNCTION: WIZ8 0x004f16f0
 unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 {
-    W8RegionEvent event;
+    InputAtom event;
     unsigned int set_index;
     unsigned int region_index;
 
-    event.time = GetClock();
-    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.reason = MOUSE_POS;
-    event.mouse_position = (static_cast<unsigned int>(y) << 16) | x;
+    event.uiTimeStamp = GetClock();
+    event.usKeyState = gfAltState | gfCtrlState | gfShiftState;
+    event.usEvent = MOUSE_POS;
+    event.uiParam = (static_cast<unsigned int>(y) << 16) | x;
 
     if (g_captured_region_index != 0) {
         return g_captured_region_index;
@@ -724,7 +724,7 @@ dispatch:
         break;
     }
 
-    unsigned char handled = region->callback(reinterpret_cast<const W8RegionEvent*>(event), region);
+    unsigned char handled = region->callback(event, region);
     if (sound_id != -1) {
         PlayButtonSound(sound_id);
     }
@@ -804,10 +804,10 @@ void ActivateDialogRegion(unsigned int region_index)
     }
 
     if (g_hover_region_index != 0) {
-        W8RegionEvent event;
-        event.time = GetClock();
-        event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-        event.reason = MOUSE_POS;
+        InputAtom event;
+        event.uiTimeStamp = GetClock();
+        event.usKeyState = gfAltState | gfCtrlState | gfShiftState;
+        event.usEvent = MOUSE_POS;
 
         W8Region* previous = &g_regions[g_hover_region_index];
         previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
@@ -1122,13 +1122,13 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
 void ClearHotRegion004F2A80(void)
 {
     POINT mouse;
-    W8RegionEvent event;
+    InputAtom event;
 
     SGPMouseGetPos(&mouse);
-    event.time = GetClock();
-    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.reason = MOUSE_POS;
-    event.mouse_position =
+    event.uiTimeStamp = GetClock();
+    event.usKeyState = gfAltState | gfCtrlState | gfShiftState;
+    event.usEvent = MOUSE_POS;
+    event.uiParam =
         (static_cast<unsigned int>(mouse.y) << 16) | (static_cast<unsigned int>(mouse.x) & 0xffff);
 
     if (g_current_region_index != 0) {

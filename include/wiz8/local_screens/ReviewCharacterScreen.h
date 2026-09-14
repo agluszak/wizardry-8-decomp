@@ -2,6 +2,8 @@
 
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/layouts/learned_spells.h"
+#include "input.h"
 
 class W8DialogBase;
 class W8HelpTextControl;
@@ -11,7 +13,6 @@ struct W8Character;
 struct W8CombatSlot;
 struct W8ItemInstance;
 struct W8Region;
-struct W8RegionEvent;
 
 /* The three listeners own different range controls. Their callbacks update
    the item, spell-realm and skill scroll positions respectively. */
@@ -89,13 +90,8 @@ struct W8CampScreenState0069C0F4 {
     unsigned int hover_region;
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
-    /* 0x100: the learned-spell lists, handed to BuildLearnedSpellState004F9600
-       as its W8LearnedSpellScratch; the scratch's trailing counters land on
-       spell_scroll and learned_spell_total. */
-    int spell_ids_by_realm[6][40];
-    int spell_scroll[6];          /* 0x4c0 */
-    int learned_spell_total;      /* 0x4d8 */
-    unsigned char realm_flags[6]; /* 0x4dc */
+    W8LearnedSpellState learned_spells; /* 0x100 */
+    unsigned char realm_flags[6];       /* 0x4dc */
     unsigned char unknown_4e2[2];
     unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
@@ -134,9 +130,19 @@ struct W8CampScreenState0069C0F4 {
     unsigned char unknown_d51[3];
 };
 static_assert(sizeof(W8CampScreenState0069C0F4) == 0xd54, "W8CampScreenState_size");
+static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) == 0x100,
+              "W8CampScreenState_learned_spells_offset");
+static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
+                      offsetof(W8LearnedSpellState, scroll) ==
+                  0x4c0,
+              "W8CampScreenState_spell_scroll_offset");
+static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
+                      offsetof(W8LearnedSpellState, learned_total) ==
+                  0x4d8,
+              "W8CampScreenState_learned_total_offset");
 
 extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
-extern int g_rcs_mode_0064cbe8;
+extern int giReviewCharSlot;
 extern W8Character* g_value_0069c0f8;
 extern int g_camp_entry_parameter_0069c0fc;
 extern W8Character* g_camp_character_0069c100;
@@ -165,18 +171,6 @@ void SetCampInputMode005A4BC0(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
 void DismissSelectedPartyCharacter(void);
 
-void CreateRcsLevelUpPanel(void);
-void DestroyRcsLevelUpPanel(void);
-void CreateRcsDismissPanel(void);
-void DestroyRcsDismissPanel(void);
-void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
-void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
-void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
-/* 0x005B6FD0: like DrawRcsText but the box height is caller-provided and the
-   text is rendered through mprintf with the current font. */
-void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
-                          unsigned int layout_mode);
-
 /* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
    gates an item click on the character's remaining action allowance in
    combat; 0x005A6440 programs a pending use-item action aimed at an item. */
@@ -202,7 +196,7 @@ void RefreshCampSpellRanges005B7290(void);
 void EnableCampActionButtons005B9270(void);
 void DrawCampSpellPages005B7300(void);
 void DrawCampResistances005B7790(void);
-unsigned char SpellListRegionHandler005B79F0(const W8RegionEvent* event, W8Region* region);
+unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);
 void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
 void Function5A4570(void);
 void Function5C4EE0(void);

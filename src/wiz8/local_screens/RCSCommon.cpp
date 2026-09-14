@@ -1,5 +1,6 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -33,7 +34,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/local_code/PartyImport.h"
+#include "wiz8/learned_spells.h"
 
 /*
  * Local Screens\RCSCommon.cpp.
@@ -65,7 +66,7 @@ void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 // FUNCTION: WIZ8 0x005B6B30
 void SelectCampCharacter005B6B30(int slot)
 {
-    g_rcs_mode_0064cbe8 = slot;
+    giReviewCharSlot = slot;
     g_value_0069c0f8 = &g_status_685170.buffers.characters[slot];
     Function5A4570();
     switch (g_camp_screen_0069c0f4->page) {
@@ -86,10 +87,7 @@ void SelectCampCharacter005B6B30(int slot)
         g_camp_screen_0069c0f4->character_info->Invalidate(0);
         break;
     case 3:
-        BuildLearnedSpellState004F9600(
-            reinterpret_cast< // reinterpret-ok: the state block is laid out as the learned-spell scratch
-                W8LearnedSpellScratch*>(g_camp_screen_0069c0f4->spell_ids_by_realm),
-            g_value_0069c0f8);
+        BuildLearnedSpellState004F9600(&g_camp_screen_0069c0f4->learned_spells, g_value_0069c0f8);
         RefreshCampSpellRanges005B7290();
         break;
     }
@@ -174,13 +172,13 @@ void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
 {
-    if (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].occupied) {
+    if (!g_status_685170.buffers.party_rows[giReviewCharSlot].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x888, 0);
     }
-    g_current_screen_state.parameter_2 = g_rcs_mode_0064cbe8;
+    g_current_screen_state.parameter_2 = giReviewCharSlot;
     g_current_screen_state.parameter_3 = g_value_0069c0f8;
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[giReviewCharSlot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -243,9 +241,9 @@ void DestroyRcsLevelUpPanel(void)
 // FUNCTION: WIZ8 0x005b65a0
 void UpdateRcsLevelUpPanel(void)
 {
-    bool enabled = IsCharacterReadyToAdvance(g_rcs_mode_0064cbe8);
+    bool enabled = IsCharacterReadyToAdvance(giReviewCharSlot);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].flag_105 &&
+        (!g_status_685170.buffers.party_rows[giReviewCharSlot].flag_105 &&
          g_status_685170.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button_0069c3c0->m_active) {
@@ -284,7 +282,7 @@ void CreateRcsDismissPanel(void)
 // FUNCTION: WIZ8 0x005b6950
 void ShowDismissCharacterDialog(void)
 {
-    if (!g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].occupied) {
+    if (!g_status_685170.buffers.party_rows[giReviewCharSlot].occupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
@@ -292,7 +290,7 @@ void ShowDismissCharacterDialog(void)
     W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
-    W8Character* character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
+    W8Character* character = &g_status_685170.buffers.characters[giReviewCharSlot];
     const wchar_t* format;
     if (character->condition_turns[19] == 0) {
         if (character->condition_turns[W8_CONDITION_DEAD] == 0) {
@@ -312,8 +310,8 @@ void ShowDismissCharacterDialog(void)
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
     if (GetDialogResult(base) &&
-        g_status_685170.buffers.party_rows[g_rcs_mode_0064cbe8].animation_0fa != -1) {
-        g_value_006840be = static_cast<unsigned short>(g_rcs_mode_0064cbe8);
+        g_status_685170.buffers.party_rows[giReviewCharSlot].animation_0fa != -1) {
+        g_value_006840be = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }
 }
@@ -334,13 +332,13 @@ void DestroyRcsDismissPanel(void)
     }
 }
 
-/* Bring the second panel up to date. Its widget is available only in the two
-   leading modes, out of combat and out of camp; enabling it also invalidates the
+/* Bring the second panel up to date. Its widget is available only for the first
+   two party slots, out of combat and out of camp; enabling it also invalidates the
    panel, disabling it does not. Either way the panel is then updated. */
 // FUNCTION: WIZ8 0x005b68e0
 void UpdateRcsDismissPanel(void)
 {
-    if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) && gXStatus.fCombatMode == 0 &&
+    if ((giReviewCharSlot == 0 || giReviewCharSlot == 1) && gXStatus.fCombatMode == 0 &&
         gXStatus.fCampMode == 0) {
         if (!g_dismiss_button_0069c400->m_active) {
             g_dismiss_button_0069c400->SetActive(1);
@@ -352,22 +350,21 @@ void UpdateRcsDismissPanel(void)
     g_dismiss_panel_0069c3c8->Redraw();
 }
 
-/* The camp-screen panel owners: one Controls object and the two fifteen-entry
-   text-control rows and three-control row the teardown walks. */
+/* Formation storage. Physical retail TU attribution remains unresolved;
+   the lifecycle interface is owned by MGSFormation.h. */
 
 // GLOBAL: WIZ8 0x0069c2ec
-Controls* g_panel_69c2ec;
+Controls* g_formation_panel;
 // GLOBAL: WIZ8 0x0069c344
-W8TextControl* g_panel_controls_69c344[15];
+W8TextControl* g_formation_cell_controls[15];
 // GLOBAL: WIZ8 0x0069c384
-W8TextControl* g_panel_controls_69c384[15];
+W8TextControl* g_formation_cell_overlays[15];
 // GLOBAL: WIZ8 0x0069c2f8
-W8TextControl* g_panel_controls_69c2f8[3];
+W8TextControl* g_formation_action_buttons[3];
 
-/* Release the three level-runtime dialogue owners through the shared
-   teardown, then clear the slots. */
+/* Release the formation board, compass and overlay sprites. */
 // FUNCTION: WIZ8 0x005B1C00
-void ReleaseRuntimeDialogOwners(void)
+void ReleaseFormationBoard(void)
 {
     if (g_level_block->formation_board_sprite != 0) {
         ReleaseObject004257F0(g_level_block->formation_board_sprite);
@@ -384,31 +381,31 @@ void ReleaseRuntimeDialogOwners(void)
 }
 
 // FUNCTION: WIZ8 0x005B2580
-void ReleaseReviewCommonPanels(void)
+void DestroyFormationPanel(void)
 {
-    Controls* panel = g_panel_69c2ec;
+    Controls* panel = g_formation_panel;
     if (panel != 0) {
         delete panel;
-        g_panel_69c2ec = 0;
+        g_formation_panel = 0;
     }
     for (int index = 0; index < 15; ++index) {
-        if (g_panel_controls_69c344[index] != 0) {
-            delete g_panel_controls_69c344[index];
-            g_panel_controls_69c344[index] = 0;
+        if (g_formation_cell_controls[index] != 0) {
+            delete g_formation_cell_controls[index];
+            g_formation_cell_controls[index] = 0;
         }
-        if (g_panel_controls_69c384[index] != 0) {
-            delete g_panel_controls_69c384[index];
-            g_panel_controls_69c384[index] = 0;
+        if (g_formation_cell_overlays[index] != 0) {
+            delete g_formation_cell_overlays[index];
+            g_formation_cell_overlays[index] = 0;
         }
     }
-    W8TextControl** control = g_panel_controls_69c2f8;
+    W8TextControl** control = g_formation_action_buttons;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_panel_controls_69c2f8 + 3);
+    } while (control < g_formation_action_buttons + 3);
 }
 
 /* Switch the items-page action mode: every action button's secondary state is
@@ -480,9 +477,9 @@ void SetCampItemActionMode005B59B0(char mode)
 }
 
 // FUNCTION: WIZ8 0x005B2200
-void CloseReviewCommonUi(void)
+void CloseFormationPanel(void)
 {
-    ReleaseReviewCommonPanels();
+    DestroyFormationPanel();
     gXStatus.fReviewCharacterMode = 0;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);

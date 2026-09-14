@@ -13,7 +13,19 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 
 
 @pytest.mark.parametrize("scenario", [None, "main-game-start"])
-def test_debug_builds_selected_product_before_launch(monkeypatch, scenario) -> None:
+@pytest.mark.parametrize(
+    "reason,exit_code",
+    [
+        ("exited normally", 0),
+        ("exited with code 3", 3),
+        ("SIGSEGV", 1),
+        ("debugger timeout", 1),
+        ("breakpoint-hit", 0),
+    ],
+)
+def test_debug_builds_selected_product_before_launch(
+    monkeypatch, scenario, reason, exit_code
+) -> None:
     from wiz8decomp import build
     from wiz8decomp.debug import debugger
 
@@ -31,7 +43,8 @@ def test_debug_builds_selected_product_before_launch(monkeypatch, scenario) -> N
         }
         return {
             "report": "stopped\n",
-            "reason": "SIGTRAP",
+            "reason": reason,
+            "exit_code": exit_code,
             "log": "raw.txt",
             "session": "session.json",
         }
@@ -41,7 +54,7 @@ def test_debug_builds_selected_product_before_launch(monkeypatch, scenario) -> N
     if scenario is not None:
         arguments.extend(["--scenario", scenario])
     result = CliRunner().invoke(app, arguments)
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == exit_code, result.output
     assert events == ["runtime-test" if scenario else "runtime", "launch"]
     assert "session: session.json" in result.output
 
