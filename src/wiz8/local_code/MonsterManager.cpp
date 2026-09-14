@@ -311,7 +311,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         MonsterSetCycle17State(monster_info->monster, monster_info->cycle17_state);
     }
 
-    Function4C5810(monster_info->monster);
+    ApplyMonsterRepresentationScale(monster_info->monster);
     MonsterSetCycle(monster_info->monster, 1);
     Function4C5ED0(monster_info->monster);
 }
@@ -881,7 +881,7 @@ void InitializeMonsterRuntimeStats(void)
         monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
-        Function4C5810(monster_info->monster);
+        ApplyMonsterRepresentationScale(monster_info->monster);
         Function4C5ED0(monster_info->monster);
     }
 
@@ -903,7 +903,7 @@ void InitializeMonsterRuntimeStats(void)
         monster_info->fatigue_band = CalculateMonsterFatigueBand(value, value);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->monster, monster_info->scale_24f);
-        Function4C5810(monster_info->monster);
+        ApplyMonsterRepresentationScale(monster_info->monster);
         Function4C5ED0(monster_info->monster);
     }
 }

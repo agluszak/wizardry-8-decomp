@@ -91,6 +91,19 @@ stParticle* FindRegisteredParticle0049ADB0(const char* name)
     return particle;
 }
 
+// FUNCTION: WIZ8 0x0049AE90
+void stParticle::SetParticleScale(float scale)
+{
+    float inverse_scale = 1.0f / value_278;
+    // Retail uses the extent as its offset, not the midpoint of the bounds.
+    srVector3T<float> offset = maximum_228 - minimum_21c;
+    minimum_21c = (minimum_21c - offset) * inverse_scale + offset;
+    maximum_228 = (maximum_228 - offset) * inverse_scale + offset;
+    value_278 = scale;
+    minimum_21c = (minimum_21c - offset) * scale + offset;
+    maximum_228 = (maximum_228 - offset) * scale + offset;
+}
+
 // FUNCTION: WIZ8 0x0049B150
 void SaveParticleStates0049B150(HWFILE handle)
 {

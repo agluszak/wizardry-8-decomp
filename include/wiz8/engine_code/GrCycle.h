@@ -144,7 +144,7 @@ public:
     void SetBehaviour(signed char bBehaviour);
     void SetLights(W8GrowableVector<stLight*>* lights);
     void AddShakeEffect004A8530(W8CameraShakeEffect* effect);
-    void CreateGroundShadow(int value_140, int value_13c);
+    void CreateGroundShadow(float width, float depth);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
     void DetachRepresentation004A7A70(W8World* world);

@@ -1062,6 +1062,28 @@ void W8NavigatorAttachment::GetNextPosition00456660(srVector3T<float>* position)
     }
 }
 
+// FUNCTION: WIZ8 0x00452560
+void W8Navigator::SetScale(float scale)
+{
+    float ratio = scale / movement_0c0.value_0c4;
+    movement_0c0.value_0c4 = scale;
+    radius_084 *= ratio;
+    movement_0c0.value_0b0 *= ratio;
+    movement_0c0.alternate_radius_0b4 *= ratio;
+    movement_0c0.height_offset_0b8 *= ratio;
+    movement_0c0.secondary_height_offset_0bc *= ratio;
+    movement_0c0.movement_scale_060 *= ratio;
+    if (g_runtime_world_scale_6081e8 < movement_0c0.value_0b0) {
+        g_runtime_world_scale_6081e8 = movement_0c0.value_0b0;
+    }
+    if (g_runtime_world_scale_6081e8 < movement_0c0.alternate_radius_0b4) {
+        g_runtime_world_scale_6081e8 = movement_0c0.alternate_radius_0b4;
+    }
+    if (g_runtime_world_scale_6081e8 < radius_084) {
+        g_runtime_world_scale_6081e8 = radius_084;
+    }
+}
+
 // FUNCTION: WIZ8 0x00452630
 unsigned char W8Navigator::ConfigureMovementToPosition00452630(const srVector3T<float>* position)
 {

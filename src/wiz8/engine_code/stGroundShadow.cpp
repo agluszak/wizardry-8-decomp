@@ -37,8 +37,8 @@ stGroundShadow::stGroundShadow(srNode* parent)
     : srClassSupport<stGroundShadow, srNode, false, 0x10010>(static_cast<srNode*>(0))
 {
     angle_138 = 0;
-    value_13c = 500;
-    value_140 = 500;
+    depth_13c = 500.0f;
+    width_140 = 500.0f;
     setParent(parent, 1);
 
     if (g_ground_shadow_texture_006834cc == 0) {
@@ -65,8 +65,8 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     setParent(other.parentNode(), 1);
     setName(other.getName());
     angle_138 = other.angle_138;
-    value_13c = other.value_13c;
-    value_140 = other.value_140;
+    depth_13c = other.depth_13c;
+    width_140 = other.width_140;
 }
 
 void stGroundShadow::traverse(TraverseInfo& info)

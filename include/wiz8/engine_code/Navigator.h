@@ -138,6 +138,7 @@ public:
     virtual void SetPathAI(W8PathAI* path_ai);
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
+    void SetScale(float scale);
     /* Called with what this navigator ran into: the startup world navigator
        or another mover. True once the collision was consumed. Same folded
        body as W8GrCycle::CanEnterCycle at 0x004A7140; /OPT:NOICF emits this

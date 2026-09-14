@@ -28,6 +28,8 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/MonsterLight.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/ground_shadow.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
@@ -714,8 +716,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         }
         if (shadow_depth == 0.0f)
             shadow_depth = shadow_width;
-        (*monster)->CreateGroundShadow((int)(shadow_width * g_world_scale_005ebc40),
-                                       (int)(shadow_depth * g_world_scale_005ebc40));
+        (*monster)->CreateGroundShadow(shadow_width * g_world_scale_005ebc40,
+                                       shadow_depth * g_world_scale_005ebc40);
     }
     representation->value_610 = left_handed;
     representation->flag_601 = (flies != 0 || swims != 0 || full_transition != 0) ? 1 : 0;
@@ -5046,10 +5048,59 @@ void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
     cycle->UpdateRepresentation(world);
 }
 
-// FUNCTION: WIZ8 0x004C5810
-void Function4C5810(W8Monster* target)
+// FUNCTION: WIZ8 0x004C5290
+void W8Monster::ApplyRepresentationScale()
 {
-    target->Method4C5290();
+    float old_scale = movement_0c0.value_0c4;
+    SetScale(m_pRep->scale_5f0);
+    for (int cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        float scale = m_pRep->scale_5f0;
+        if (cycle == 21) {
+            scale = m_pRep->value_5fc * m_pRep->scale_5f0;
+        }
+        float x_scale = scale;
+        if (unknown_1be != 0) {
+            x_scale = scale * -1.0f;
+        }
+        int animation_count = m_pRep->animations[cycle].GetCount();
+        for (int index = 0; index < animation_count; ++index) {
+            W8AnimObj* animation = *m_pRep->animations[cycle].GetAt(index);
+            // The retail query precedes the null check.
+            int frame_count = AnimObjValue004A15D0(animation, 2);
+            if (animation != 0 && frame_count != 0) {
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    srModelInstance* instance =
+                        AnimObjDispatch004A14D0(animation, 2, static_cast<unsigned char>(frame));
+                    instance->setScale(srVector3T<double>(x_scale, scale, scale));
+                }
+            }
+        }
+    }
+    if (m_plsParticles != 0) {
+        for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
+            stParticle* particle = (*m_plsParticles->GetAt(index))->particle_08;
+            particle->SetParticleScale(m_pRep->scale_5f0);
+            if (unknown_1be != 0) {
+                (*m_plsParticles->GetAt(index))->position_0c.x *= -1.0f;
+                particle->setScale(srVector3T<double>(-1.0, 1.0, 1.0));
+            }
+        }
+    }
+    if (m_ground_shadow != 0) {
+        float ratio = m_pRep->scale_5f0 / old_scale;
+        m_ground_shadow->width_140 *= ratio;
+        m_ground_shadow->depth_13c *= ratio;
+    }
+    if (m_pRep->monster_light_624 != 0) {
+        m_pRep->monster_light_624->SetRange(movement_0c0.value_0b0 * g_float_005ec52c);
+        m_pRep->monster_light_624->m_vertical_offset_228 = movement_0c0.height_offset_0b8;
+    }
+}
+
+// FUNCTION: WIZ8 0x004C5810
+void ApplyMonsterRepresentationScale(W8Monster* target)
+{
+    target->ApplyRepresentationScale();
 }
 // FUNCTION: WIZ8 0x004C5860
 void DeleteMonster004C5860(W8Monster* monster)

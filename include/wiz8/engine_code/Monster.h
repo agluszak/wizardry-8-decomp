@@ -201,7 +201,7 @@ public:
     unsigned char HasLineOfSightFromPoint004C4C40(srVector3T<float> point);
     int IsFacingMonster004C4CA0(W8Monster* monster);
     int IsFacingPlayer004C4D40();
-    void Method4C5290();
+    void ApplyRepresentationScale();
 
 public:
     /* Assertion-backed original spelling. Distinct from GrObject::m_pRep at
@@ -332,7 +332,7 @@ void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alt
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void SetFlag6081E4(unsigned char value);
 void UpdateNearestMonsterGroupMembers004CA570();
-void Function4C5810(W8Monster* monster);
+void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 
