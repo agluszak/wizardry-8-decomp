@@ -99,7 +99,7 @@ async def _debug_result(
     session: GdbSession,
     *,
     timeout: int,
-    map_path: Path,
+    map_path: Path | None,
     manifest_path: Path,
     provenance: Path,
 ) -> dict[str, Any]:
@@ -165,7 +165,7 @@ async def _run_debug_session(
     breakpoints: list[tuple[int, str | None]] | None,
     *,
     timeout: int,
-    map_path: Path,
+    map_path: Path | None,
     manifest_path: Path,
     provenance: Path,
 ) -> dict[str, Any]:
@@ -190,7 +190,11 @@ def _file_identity(path: Path) -> dict[str, str]:
 
 
 def _write_provenance(
-    executable: Path, map_path: Path, prefix: Path, artifact_dir: Path, invocation: dict[str, Any]
+    executable: Path,
+    map_path: Path | None,
+    prefix: Path,
+    artifact_dir: Path,
+    invocation: dict[str, Any],
 ) -> Path:
     path = artifact_dir / "session.json"
     atomic_json(
@@ -198,7 +202,7 @@ def _write_provenance(
         {
             "executable": _file_identity(executable),
             "invocation": invocation,
-            "map": _file_identity(map_path) if map_path.is_file() else None,
+            "map": _file_identity(map_path) if map_path is not None else None,
             "wine_prefix": str(prefix),
         },
     )
@@ -206,12 +210,14 @@ def _write_provenance(
 
 
 def format_crash_snapshot(
-    snapshot: CrashSnapshot, executable: Path, map_path: Path
+    snapshot: CrashSnapshot, executable: Path, map_path: Path | None
 ) -> tuple[str, list[SymbolResolution]]:
     """Add debugger context to the shared candidate-based crash report."""
     candidates = _snapshot_candidates(snapshot)
     detail, resolutions = (
-        format_crash_candidates(map_path, None, candidates) if map_path.is_file() else ("", [])
+        format_crash_candidates(map_path, None, candidates)
+        if map_path is not None and map_path.is_file()
+        else ("", [])
     )
     signal = snapshot.event.signal or snapshot.event.reason
     lines = [
@@ -289,7 +295,7 @@ def _run_debugger_locked(
         reset_saves=scenario is not None,
     )
     executable = staged.executable
-    map_path = executable.with_suffix(".map")
+    map_path = staged.map
     artifact_dir = settings.repo_dir / "build/debug"
     manifest_path = settings.product_build_dir / "generated/runtime-stubs/runtime_stubs.json"
     prefix, environment = _debug_environment(settings, scenario=scenario is not None)

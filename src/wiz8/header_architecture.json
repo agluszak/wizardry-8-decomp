@@ -224,6 +224,13 @@
         "Local Screens\\CGSStatsPage.cpp"
       ]
     },
+    "include/wiz8/local_screens/MGSFormation.h": {
+      "role": "reconstructed-declarations",
+      "implementation-tus": [
+        "Local Screens\\MGSFormation.cpp",
+        "Local Screens\\RCSCommon.cpp"
+      ]
+    },
     "include/wiz8/local_screens/MainGameScreen.h": {
       "role": "reconstructed-declarations",
       "implementation-tus": [

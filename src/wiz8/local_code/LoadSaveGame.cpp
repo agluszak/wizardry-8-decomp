@@ -921,9 +921,9 @@ unsigned char LoadMonster(W8Chunk* chunk)
             return 0;
         }
         IListAdd(monster_group->monsters, monster_info->location_id);
-        if (monster_group->value_9f == (int)0xcdcdcdcd ||
-            monster_group->value_9f <
-                static_cast<int>(static_cast<unsigned int>(monster_info->location_id))) {
+        if (static_cast<unsigned int>(monster_group->value_9f) == 0xcdcdcdcdU ||
+            static_cast<unsigned int>(monster_group->value_9f) <
+                static_cast<unsigned int>(monster_info->location_id)) {
             monster_group->value_9f = monster_info->location_id;
         }
         ++monster_group->member_count;

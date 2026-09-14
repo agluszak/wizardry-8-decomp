@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -11,7 +12,8 @@ from reccmp.compare import Compare
 from reccmp.compare.report import ReccmpComparedEntity
 from reccmp.project.detect import RecCmpProject, RecCmpTarget
 
-from .paths import atomic_json
+from .config import Settings
+from .paths import atomic_json, compile_database_relative
 from .subprocesses import run
 
 
@@ -66,6 +68,67 @@ def selected_addresses(
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
     return sorted(selected)
+
+
+def header_dependent_files(settings: Settings, target: str, changed: Iterable[Path]) -> list[Path]:
+    """Use Clang's current compilation contexts, including transitive headers.
+
+    Scan dependencies without compiling objects. Ninja's saved dependencies may
+    describe an older include graph; the native scanner reads the current one.
+    Include marked inline definitions in affected contexts as well as their TUs.
+    """
+    from .build import VC6_IMAGE, configure_clang
+    from .source_index import indexed_targets, load_source_index
+
+    repository = settings.repo_dir.resolve()
+    headers = {
+        path.resolve().relative_to(repository).as_posix()
+        for path in changed
+        if path.suffix.lower() in {".h", ".hpp", ".hxx"}
+    }
+    if not headers:
+        return []
+    roots = indexed_targets(repository)[target.upper()]
+    _, prefix = configure_clang(settings)
+    result = run(
+        [
+            *prefix,
+            "-e",
+            "TMPDIR=/tmp",
+            "-e",
+            "TMP=/tmp",
+            "-e",
+            "TEMP=/tmp",
+            "--entrypoint",
+            "clang-scan-deps-19",
+            VC6_IMAGE,
+            "-compilation-database=/out/compile_commands.json",
+            "-format=experimental-full",
+        ],
+        cwd=repository,
+        log_path=repository / "build/logs/compare-dependencies.json",
+    )
+    marker_files = {
+        marker["source_file"]
+        for marker in load_source_index(repository)["markers"]
+        if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
+    }
+    affected: set[str] = set()
+    for unit in json.loads(result.stdout)["translation-units"]:
+        for command in unit["commands"]:
+            source = compile_database_relative(command["input-file"], repository)
+            if source is None or not any(
+                source == root or source.startswith(root.rstrip("/") + "/") for root in roots
+            ):
+                continue
+            dependencies = {
+                relative
+                for path in command["file-deps"]
+                if (relative := compile_database_relative(path, repository)) is not None
+            }
+            if headers & dependencies:
+                affected.update((dependencies | {source}) & marker_files)
+    return [repository / path for path in sorted(affected - headers)]
 
 
 def _numeric_range(value: str) -> tuple[int, int] | None:

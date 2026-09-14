@@ -238,7 +238,7 @@ unsigned char W8DialogBase::ProcessInput()
             OnRightButtonUp();
             break;
         case MOUSE_WHEEL:
-            OnMouseWheel(GetMouseWheelDeltaValue(input.uiParam));
+            OnMouseWheel(GetMouseWheelDeltaValue(input.usParam));
             break;
         case KEY_DOWN:
             if (input.usParam == 0x1b) {

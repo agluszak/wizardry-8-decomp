@@ -109,7 +109,8 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
     assert events == ["index", "build", "compare"]
     payload = json.loads(result.stdout)
     assert payload["functions"][0]["address"] == "0x00401000"
-    assert "unchanged callers" in payload["selection"]["warning"]
+    assert payload["selection"]["changed_files"] == ["new.cpp"]
+    assert payload["selection"]["dependent_files"] == []
 
 
 def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch) -> None:

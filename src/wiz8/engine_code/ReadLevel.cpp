@@ -180,7 +180,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                     }
                     path->flag_1c = 1;
                     path->flag_3a = 0;
-                    path->value_2c = definition->path_value_38;
+                    path->speed = definition->path_value_38;
                 }
             }
         }

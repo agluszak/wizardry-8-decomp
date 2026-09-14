@@ -444,7 +444,7 @@ unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* targ
             return 0;
         }
         target_level = GetMonsterDataForInfo(target_info)->missile_value_24f;
-        hp_percent = target_info->hp_current * 100 / (unsigned int)target_info->hp_max;
+        hp_percent = target_info->hp_current * 100 / target_info->hp_max;
         out_of_formation = monster_info->modifiers_1db.out_of_formation;
     } else {
         return 0;

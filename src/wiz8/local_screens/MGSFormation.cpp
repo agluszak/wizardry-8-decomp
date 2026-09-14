@@ -564,6 +564,63 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
     return 1;
 }
 
+// FUNCTION: WIZ8 0x005b2cb0
+unsigned char FormationActionRegionEvent(const InputAtom* event, W8Region* region)
+{
+    if (gXStatus.fReviewCharacterMode == 0) {
+        return 0;
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        g_formation_action_buttons[region->callback_id]->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        g_formation_action_buttons[region->callback_id]->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_formation_action_buttons[region->callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_formation_action_buttons[region->callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005b2d70
+unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
+{
+    POINT point;
+    if (gXStatus.fReviewCharacterMode == 0) {
+        return 0;
+    }
+    PushButtonSoundScheme005587C0(0, 1);
+    SGPMouseGetPos(&point);
+    switch (event->usEvent) {
+    case LEFT_BUTTON_UP:
+        if (g_formation_drag_cell_0069c380 != -1) {
+            DropFormationSlot(-1);
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((point.x < 234 || point.x > 406 || point.y < 80 || point.y > 252) &&
+            g_formation_drag_cell_0069c380 != -1) {
+            DropFormationSlot(-1);
+        }
+        break;
+    }
+    return 0;
+}
+
 /* Pick up the active cell's character: clear the cell, switch the mouse
    cursor to the dragged chip and blank both controls' sprites. */
 // FUNCTION: WIZ8 0x005b2e10

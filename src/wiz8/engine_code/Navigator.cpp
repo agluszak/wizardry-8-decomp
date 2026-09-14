@@ -678,8 +678,8 @@ W8PathAI* W8Navigator::GetPathAI()
 void W8Navigator::ResetPathAI()
 {
     if (path_ai_068 != 0) {
-        path_ai_068->value_04 = 0.0f;
-        path_ai_068->value_24 = 0.0f;
+        path_ai_068->position = 0.0f;
+        path_ai_068->interpolation_fraction = 0.0f;
         PathAIResetTick004A9C20(path_ai_068);
     }
 }
@@ -1451,10 +1451,10 @@ void W8Navigator::SetObject68Flag38(char value)
 {
     if (path_ai_068 != 0) {
         if (value != 0) {
-            path_ai_068->flag_38 = 1;
+            path_ai_068->looping = 1;
             return;
         }
-        path_ai_068->flag_38 = 0;
+        path_ai_068->looping = 0;
     }
 }
 

@@ -504,6 +504,7 @@ def test_launcher_uses_one_proxy_path(
         lambda *a, **kw: SimpleNamespace(
             executable=kw["executable"],
             root=tmp_path,
+            map=None,
         ),
     )
     configure_window = Mock()

@@ -93,8 +93,6 @@ unsigned char Function005A1DE0(const InputAtom*, W8Region*);
 unsigned char Function005AEEA0(const InputAtom*, W8Region*);
 unsigned char Function005AF530(const InputAtom*, W8Region*);
 unsigned char Function005AF5E0(const InputAtom*, W8Region*);
-unsigned char Function005B2CB0(const InputAtom*, W8Region*);
-unsigned char Function005B2D70(const InputAtom*, W8Region*);
 unsigned char Function005B5E90(const InputAtom*, W8Region*);
 unsigned char Function005B5F10(const InputAtom*, W8Region*);
 unsigned char Function005B61A0(const InputAtom*, W8Region*);

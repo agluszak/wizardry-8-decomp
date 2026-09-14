@@ -233,11 +233,11 @@ struct W8MonsterInfo {
        floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
-    float derived_23; /* 0x23: camera-facing yaw over position_17 */
-    int hp_max;       /* 0x27: uiHPMax in the Targeting.cpp assertion */
-    int hp_current;   /* 0x2b: reduced by canonical damage consumers */
-    int stamina_max;  /* 0x02f: initialized from MONSTERS.DBS dice */
-    int stamina;      /* 0x033: initialized to the same roll */
+    float derived_23;        /* 0x23: camera-facing yaw over position_17 */
+    int hp_max;              /* 0x27: signed divisor at 00531657 and 004E5A7A */
+    unsigned int hp_current; /* 0x2b: unsigned conversion at 0053164B */
+    int stamina_max;         /* 0x02f: initialized from MONSTERS.DBS dice */
+    int stamina;             /* 0x033: initialized to the same roll */
     /* 0x37: the position and radius of the last noise this monster heard;
        Noise.cpp writes the heard position and the radius that carried. */
     srVector3T<float> heard_noise_position_37;

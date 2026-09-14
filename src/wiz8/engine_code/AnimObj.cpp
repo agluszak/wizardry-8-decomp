@@ -222,7 +222,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
             }
             path->flag_1c = 1;
             path->flag_3a = 0;
-            path->value_2c = animation->playback_scale_08;
+            path->speed = animation->playback_scale_08;
             animation->path_24 = path;
             animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
         }
@@ -284,7 +284,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 PListInsert(animation->paths_34[channel], entry, path);
                 path->flag_1c = 1;
                 path->flag_3a = 0;
-                path->value_2c = animation->playback_scale_08;
+                path->speed = animation->playback_scale_08;
                 animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
             }
         }

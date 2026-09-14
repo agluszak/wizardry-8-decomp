@@ -767,15 +767,9 @@ void stMeshModel::ComputeFrameNormals(int frame)
 
     for (int poly = 0; poly < polygon_count_230; ++poly) {
         const srVector3T<float>& origin = l[poly_vertex[poly].x];
-        srVector3T<float> edge_0(l[poly_vertex[poly].y].x - origin.x,
-                                 l[poly_vertex[poly].y].y - origin.y,
-                                 l[poly_vertex[poly].y].z - origin.z);
-        srVector3T<float> edge_1(l[poly_vertex[poly].z].x - origin.x,
-                                 l[poly_vertex[poly].z].y - origin.y,
-                                 l[poly_vertex[poly].z].z - origin.z);
-        pnorm[poly] = srVector3T<float>(edge_1.z * edge_0.y - edge_1.y * edge_0.z,
-                                        edge_0.z * edge_1.x - edge_1.z * edge_0.x,
-                                        edge_1.y * edge_0.x - edge_0.y * edge_1.x);
+        srVector3T<float> edge_0 = l[poly_vertex[poly].y] - origin;
+        srVector3T<float> edge_1 = l[poly_vertex[poly].z] - origin;
+        pnorm[poly] = CrossProduct(edge_0, edge_1);
     }
 
     srVector3T<float>* vnorm = new srVector3T<float>[vertex_location_count_22c];

@@ -153,7 +153,7 @@ def test_runtime_suite_selection_and_server_lifetime(
         "wiz8decomp.runtime.subprocess.run", lambda command, **kwargs: shutdowns.append(command)
     )
 
-    def run(executable, stage, environment, scenario, object_root):
+    def run(executable, stage, environment, scenario, object_root, map_path):
         visited.append(scenario)
         return {"scenario": scenario, "teardown": 1}
 
@@ -162,6 +162,83 @@ def test_runtime_suite_selection_and_server_lifetime(
     assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
     assert shutdowns == [["wineserver", "-k"]]
     assert result["deterministic"] is (True if check_order else None)
+
+
+def test_staging_keeps_the_map_for_each_executable_snapshot(
+    tmp_path: Path, synthetic_pe: Path
+) -> None:
+    settings = _settings(tmp_path)
+    executable = settings.product_build_dir / "Wiz8Runtime.exe"
+    executable.write_bytes(synthetic_pe.read_bytes())
+    map_file = executable.with_suffix(".map")
+    first_map = " Timestamp is 12345678\n first build\n"
+    map_file.write_text(first_map)
+    first = stage_game(settings, name="wiz8", executable=executable)
+    assert first.map is not None
+    assert first.map.read_text() == first_map
+
+    second_map = " Timestamp is 12345678\n second build\n"
+    map_file.write_text(second_map)
+    second = stage_game(settings, name="wiz8", executable=executable)
+    assert second.map is not None and second.map != first.map
+    assert second.map.read_text() == second_map
+    assert first.map.read_text() == first_map
+
+
+def test_staging_refuses_mismatched_map_before_replacing_executable(
+    tmp_path: Path, synthetic_pe: Path
+) -> None:
+    settings = _settings(tmp_path)
+    executable = settings.product_build_dir / "Wiz8Runtime.exe"
+    executable.write_bytes(synthetic_pe.read_bytes())
+    map_file = executable.with_suffix(".map")
+    map_file.write_text(" Timestamp is 12345678\n")
+    staged = stage_game(settings, name="wiz8", executable=executable)
+    previous = staged.executable.read_bytes()
+    map_file.write_text(" Timestamp is 87654321\n")
+    with pytest.raises(RuntimeError, match="timestamp mismatch"):
+        stage_game(settings, name="wiz8", executable=executable)
+    assert staged.executable.read_bytes() == previous
+
+
+def test_staging_without_map_never_reuses_a_previous_map(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    stage = settings.runtime_stage("runtime-test")
+    stage.mkdir(parents=True)
+    (stage / "Wiz8RuntimeTest.map").write_text("stale symbols")
+    staged = stage_game(
+        settings, name="runtime-test", executable=settings.product_build_dir / "Wiz8RuntimeTest.exe"
+    )
+    assert staged.map is None
+
+
+def test_interactive_crash_uses_staged_map_after_build_map_changes(
+    tmp_path: Path, synthetic_pe: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = _settings(tmp_path)
+    executable = settings.product_build_dir / "Wiz8Runtime.exe"
+    executable.write_bytes(synthetic_pe.read_bytes())
+    map_file = executable.with_suffix(".map")
+    original_map = " Timestamp is 12345678\n first build\n"
+    map_file.write_text(original_map)
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda _: "/usr/bin/wine")
+    monkeypatch.setattr("wiz8decomp.runtime.runtime_display", lambda *a, **kw: nullcontext(None))
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *a, **kw: None
+    )
+
+    def launch(*args, **kwargs):
+        map_file.write_text("relinked while the game was running")
+        return SimpleNamespace(returncode=1, stdout="WIZ8_RUNTIME_CRASH", stderr="")
+
+    def analyze(log, selected_map, objects):
+        assert selected_map != map_file
+        assert selected_map.read_text() == original_map
+        return {"matched": True}
+
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", launch)
+    monkeypatch.setattr("wiz8decomp.runtime.analyze_runtime_crash", analyze)
+    assert run_product(settings)["crash"] == {"matched": True}
 
 
 def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path: Path) -> None:

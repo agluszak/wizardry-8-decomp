@@ -282,11 +282,11 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 13, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 14, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B2CB0, 0, 1, 0, 1981, 0},
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 0, 1, 0, 1981, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B2CB0, 1, 1, 0, 1982, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B2CB0, 2, 1, 0, 1983, 0},
-    {0x00000001, 214, 60, 427, 303, Function005B2D70, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 1, 1, 0, 1982, 0},
+    {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 2, 1, 0, 1983, 0},
+    {0x00000001, 214, 60, 427, 303, FormationBackgroundRegionEvent, 0, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, Function00594760, 0, 1, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function00594760, 1, 1, 0, -1, 0},
