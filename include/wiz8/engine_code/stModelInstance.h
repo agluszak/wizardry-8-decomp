@@ -25,6 +25,7 @@ public:
 
     explicit stModelInstance(srNode* parent);                 /* 0x0047EC80 */
     stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
+    virtual srClass* vInstance() override;
 
     stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
     int AddDamageStage00480560(const char* name);

@@ -268,3 +268,9 @@ void W8CharacterPage005EF664::ShowSpellInfo(unsigned int entry)
 {
     m_screen_05c->ShowDialog005B0610(m_spell_data_08c[entry].spell);
 }
+
+// FUNCTION: WIZ8 0x005C8DE0
+W8CharacterPage005EF664* CreateCharacterPage005C8DE0()
+{
+    return new W8CharacterPage005EF664();
+}

@@ -52,7 +52,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
       lerp_buffer_448(0), automap_polygons(0), automap_polygon_count(0), automap_filter_active(0),
       skin_blanking_apt_458(0), skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
 {
-    memset(unknown_3a4, 0, sizeof(unknown_3a4));
+    memset(&ambient_color_3a4, 0, sizeof(ambient_color_3a4));
     memset(unknown_3ce, 0, sizeof(unknown_3ce));
     memset(unknown_3ec, 0, sizeof(unknown_3ec));
 
@@ -707,6 +707,31 @@ srVector3T<float>* stMeshModel::GetVertexNormals00471CA0(unsigned int frame, cha
         }
     }
     return frame_vertex_normals[frame];
+}
+
+// FUNCTION: WIZ8 0x00471D00
+srVector3T<float>* stMeshModel::GetPolygonNormals00471D00(unsigned int frame, char load)
+{
+    if (frame_polygon_normals == 0) {
+        return 0;
+    }
+    if (frame_polygon_normals[frame] == 0) {
+        AllocateFrameBuffers00471720(frame, 4);
+        if (load != 0 && frame_polygon_normals[frame] != 0) {
+            DecompressFrame(frame, 4, frame_polygon_normals[frame]);
+        }
+    }
+    return frame_polygon_normals[frame];
+}
+
+// FUNCTION: WIZ8 0x00472990
+void stMeshModel::SetAmbientColor00472990(const srVector3T<float>& color)
+{
+    if (ambient_color_3a4.x != color.x || ambient_color_3a4.y != color.y ||
+        ambient_color_3a4.z != color.z) {
+        ambient_color_3a4 = color;
+        flags_3a0 |= 2;
+    }
 }
 
 /* Build one frame's compressed polygon and vertex normals from its vertex

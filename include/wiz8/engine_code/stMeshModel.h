@@ -31,6 +31,8 @@ public:
     srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
                                                   float interpolation);
     srVector3T<float>* GetVertexNormals00471CA0(unsigned int frame, char load); /* 0x00471CA0 */
+    srVector3T<float>* GetPolygonNormals00471D00(unsigned int frame, char load);
+    void SetAmbientColor00472990(const srVector3T<float>& color);
     unsigned char AllocateFrameBuffers00471720(unsigned int frame,
                                                unsigned char flags); /* 0x00471720 */
     srVector3T<float>* GetVertexLights(char initialize, int table);  /* 0x00472100 */
@@ -50,7 +52,7 @@ public:
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
     unsigned int flags_3a0;
-    unsigned char unknown_3a4[0xc];
+    srVector3T<float> ambient_color_3a4;
     int vertex_light_table_3b0;
     /* m_pVertLights: per-vertex static lighting, zero-filled on demand; table
        -1 selects vertex_light_table_3b0. */
