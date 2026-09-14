@@ -153,6 +153,7 @@ void ReleaseMarkedNpcBindings0050DA00(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
+bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);
 /* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped
    NPC whose member already carries more than one declines. */

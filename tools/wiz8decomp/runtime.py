@@ -188,14 +188,23 @@ def run_product(
             objects=settings.recovered_objects_dir,
         )
         map_path = settings.product_build_dir / "Wiz8Runtime.map"
-    completed = subprocess.run(
-        ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
-        cwd=staged.root,
-        check=False,
-        capture_output=True,
-        text=True,
-        errors="replace",
-    )
+    prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
+    prefix.mkdir(parents=True, exist_ok=True)
+    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
+    with runtime_display(
+        environment, default="host", log_path=staged.root / "xvfb-run.log"
+    ) as display:
+        configure_wine_window_management(environment, private_display=display is not None)
+        completed = subprocess.run(
+            ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
+            cwd=staged.root,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            errors="replace",
+        )
     output = completed.stdout + completed.stderr
     if output:
         sys.stderr.write(output)
@@ -497,7 +506,7 @@ def runtime_test_environment(
 
 
 def configure_wine_window_management(environment: dict[str, str], *, private_display: bool) -> None:
-    """Keep Wine from waiting for a window manager on a private X server."""
+    """Match Wine's window ownership and desktop geometry to the selected display."""
 
     subprocess.run(
         [
@@ -509,6 +518,54 @@ def configure_wine_window_management(environment: dict[str, str], *, private_dis
             "Managed",
             "/d",
             "N" if private_display else "Y",
+            "/f",
+        ],
+        env=environment,
+        check=True,
+        timeout=60,
+    )
+    if private_display:
+        subprocess.run(
+            [
+                "wine",
+                "reg",
+                "delete",
+                r"HKCU\Software\Wine\Explorer",
+                "/v",
+                "Desktop",
+                "/f",
+            ],
+            env=environment,
+            check=False,
+            timeout=60,
+        )
+        return
+    subprocess.run(
+        [
+            "wine",
+            "reg",
+            "add",
+            r"HKCU\Software\Wine\Explorer",
+            "/v",
+            "Desktop",
+            "/d",
+            "Wizardry",
+            "/f",
+        ],
+        env=environment,
+        check=True,
+        timeout=60,
+    )
+    subprocess.run(
+        [
+            "wine",
+            "reg",
+            "add",
+            r"HKCU\Software\Wine\Explorer\Desktops",
+            "/v",
+            "Wizardry",
+            "/d",
+            "640x480",
             "/f",
         ],
         env=environment,

@@ -12,6 +12,7 @@ struct W8ItemInstance;
 struct W8Character;
 struct W8MonsterGroup;
 struct W8WorldItem;
+class W8Monster;
 
 #pragma pack(push, 1)
 struct W8NpcDialogueStagingRestore {
@@ -88,6 +89,15 @@ extern W8NpcScriptingState g_npc_scripting;
 
 void RunNpcScriptLine(int script_line, unsigned char param); /* 0x00525FA0 */
 void ProcessMessageBoxQueue(void);                           /* 0x00526E90 */
+void Function526810(int value, int script_line);             /* 0x00526810 */
+void Function528FF0(wchar_t* text, int value, int selected); /* 0x00528FF0 */
+void Function529F90(void);                                  /* 0x00529F90 */
+void NpcScriptCallback0052A080(W8Monster* monster);          /* 0x0052A080 */
+void NpcScriptCallback0052A150(W8Monster* monster);          /* 0x0052A150 */
+void NpcScriptCallback0052A190(W8Monster* monster);          /* 0x0052A190 */
+void NpcScriptCallback00526E40(void);                        /* 0x00526E40 */
+void NpcScriptCallback00526E70(void);                        /* 0x00526E70 */
+void NpcScriptCallback0052A1B0(void);                        /* 0x0052A1B0 */
 void UpdateNpcDialogueVoiceAndCursor(void);                  /* 0x00524DA0 */
 void ProcessNpcScriptingFrame(void);                         /* 0x00524EB0 */
 void SetFlag68C500(unsigned char value);                     /* 0x0052A1A0 */

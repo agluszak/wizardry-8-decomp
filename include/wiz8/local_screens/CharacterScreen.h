@@ -318,6 +318,7 @@ W8CharacterPage005EF778* CreateCharacterPage005CBA90();
 W8CharacterPage005EF664* CreateCharacterPage005C8DE0();
 W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0();
 W8CharacterPage005EF57C* CreateCharacterPage005C73F0();
+extern unsigned int g_character_page4_region_set_0069c52c;
 
 /* Realm animation records shared by the stats page's resistance icons and the
    spells page's realm list. The stats page reads only initial_frame, through

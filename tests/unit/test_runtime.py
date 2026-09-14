@@ -1,4 +1,6 @@
+from contextlib import nullcontext
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from wiz8decomp.config import Settings
@@ -14,6 +16,7 @@ from wiz8decomp.runtime import (
     _symbolize_addresses,
     analyze_runtime_crash,
     configure_wine_window_management,
+    run_product,
     stage_game,
 )
 
@@ -83,6 +86,30 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
             name="runtime-test",
             executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
         )
+
+
+def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
+    calls = []
+
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run",
+        lambda *args, **kwargs: (
+            calls.append((args, kwargs)) or SimpleNamespace(returncode=0, stdout="", stderr="")
+        ),
+    )
+
+    run_product(settings)
+
+    assert calls[0][0][0][-3:] == ["/d", "Y", "/f"]
+    assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
+    assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
+    assert calls[3][0][0][-2:] == ["./Wiz8Runtime.exe", "/WINDOW"]
+    assert calls[3][1]["env"]["WINEPREFIX"] == str(settings.work_dir / "wine" / "wiz8-runtime")
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:
@@ -336,3 +363,13 @@ def test_wine_window_management_matches_display_mode(
     argv = calls[0][0][0]
     assert argv[-3:] == ["/d", managed, "/f"]
     assert calls[0][1]["env"] is environment
+    if private_display:
+        assert calls[1][0][0][-4:] == [
+            r"HKCU\Software\Wine\Explorer",
+            "/v",
+            "Desktop",
+            "/f",
+        ]
+    else:
+        assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
+        assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]

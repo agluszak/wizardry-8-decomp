@@ -43,6 +43,7 @@ extern const int g_value_005ee6f0;
 
 /* True when no occupied party slot has an active portrait/voice record. */
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
+int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot); /* 0x0052FEE0 */
 W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
                                                    int argument,
                                                    unsigned int flags); /* 0x0052E5C0 */

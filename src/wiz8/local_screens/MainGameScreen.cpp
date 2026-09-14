@@ -1815,7 +1815,7 @@ void ResetMainScreenStateBlock(void)
 {
     int unset = -1;
 
-    memset(g_screen_state_00649f1c, 0, sizeof(W8MainScreenState));
+    memset(static_cast<void*>(g_screen_state_00649f1c), 0, sizeof(W8MainScreenState));
     g_screen_state_00649f1c->flag_1d8 = unset;
     g_screen_state_00649f1c->flag_1ec = 0;
     g_screen_state_00649f1c->flag_234 = 0;
@@ -2924,4 +2924,32 @@ void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot)
     dialog->m_destroy_callback = InvalidateMainGameScreen005670A0;
     g_modal_owner_0068edd0 = dialog;
     ActivateDialogRegion(0x138);
+}
+
+// FUNCTION: WIZ8 0x005766B0
+void FlushPendingNoticeLines005766B0(void)
+{
+    wchar_t npc_name[100];
+    int index;
+
+    for (index = 0; index < g_screen_state_00649f1c->pending_notice_lines.GetCount(); ++index) {
+        W8PendingNoticeLine* line = *g_screen_state_00649f1c->pending_notice_lines.GetAt(index);
+        if (line->npc_kind != -1 &&
+            line->npc_kind != g_screen_state_00649f1c->last_notice_npc_kind) {
+            W8NpcState* npc = GetNpcState(line->npc_kind);
+            if (npc != 0) {
+                swprintf(npc_name, L"%s", npc->record->source_name_004);
+                ShowNotice(1, npc_name, 3, -1, 0);
+                g_screen_state_00649f1c->last_notice_npc_kind = line->npc_kind;
+            }
+        }
+        ShowNotice(line->npc_kind == -1 ? 0xb : 0xf, line->text, 3,
+                   GetTextBoxScrollRange(), 0);
+    }
+    while (g_screen_state_00649f1c->pending_notice_lines.GetCount() > 0) {
+        W8PendingNoticeLine* line =
+            g_screen_state_00649f1c->pending_notice_lines.RemoveAt(0);
+        free(line->text);
+        delete line;
+    }
 }

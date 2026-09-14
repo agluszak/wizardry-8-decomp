@@ -53,6 +53,8 @@ struct RuntimeObservation {
     unsigned char character_returned;
     unsigned char final_page_entered;
     unsigned char final_page_redrawn;
+    unsigned char character_name_typed;
+    unsigned char character_summary_opened;
     unsigned char character_committed;
     unsigned char character_in_party;
     unsigned char main_game_entered;
@@ -762,6 +764,57 @@ static DWORD WINAPI DriveScenario(void*)
             return FailScenario();
         }
 
+        /* Exercise the final page through Wine's real keyboard path.  This
+           scenario intentionally reaches the page with both fields empty, so
+           the product selects field zero; Tab then transfers focus to the
+           second field. */
+        if (strcmp(g_scenario, "main-menu-new-game") == 0) {
+            const WORD first_name_keys[] = {'P', 'R', 'O', 'B', 'E'};
+            const WORD second_name_keys[] = {'N', 'A', 'M', 'E'};
+            for (int first_name_index = 0; first_name_index < 5; ++first_name_index) {
+                SendScenarioKey(first_name_keys[first_name_index]);
+                Sleep(20);
+            }
+            SendScenarioKey(VK_TAB);
+            Sleep(20);
+            for (int second_name_index = 0; second_name_index < 4; ++second_name_index) {
+                SendScenarioKey(second_name_keys[second_name_index]);
+                Sleep(20);
+            }
+            started = GetTickCount();
+            while (GetTickCount() - started < 3000) {
+                if (wcscmp(screen->m_character_018.name_part_2, L"probe") == 0 &&
+                    wcscmp(screen->m_character_018.name, L"name") == 0) {
+                    g_observation.character_name_typed = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            if (!g_observation.character_name_typed) {
+                return FailScenario();
+            }
+
+            int voice_sample_region =
+                RegionWithHelpText(g_character_page4_region_set_0069c52c, 0xf5);
+            if (voice_sample_region < 0) {
+                return FailScenario();
+            }
+            ClickRegion(voice_sample_region);
+            started = GetTickCount();
+            while (GetTickCount() - started < 3000) {
+                if (screen->m_dialog_1b1c != 0) {
+                    g_observation.character_summary_opened = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            if (!g_observation.character_summary_opened) {
+                return FailScenario();
+            }
+            Sleep(1000);
+            SendScenarioKey(VK_SPACE);
+        }
+
         g_observation.character_page_start = 0;
         g_observation.character_page_after = screen->m_page_index_00c;
 
@@ -1047,6 +1100,7 @@ int main(int argc, char** argv)
            "shade_table_ok=%u exit_observed=%u transition_observed=%u "
            "character_entered=%u character_returned=%u "
            "final_page_entered=%u final_page_redrawn=%u "
+           "character_name_typed=%u character_summary_opened=%u "
            "character_committed=%u character_in_party=%u main_game_entered=%u "
            "return_observed=%u teardown=%u timed_out=%u "
            "npc_state_reset_ok=%u "
@@ -1065,7 +1119,8 @@ int main(int argc, char** argv)
            g_observation.shade_table_ok, g_observation.exit_observed,
            g_observation.transition_observed, g_observation.character_entered,
            g_observation.character_returned, g_observation.final_page_entered,
-           g_observation.final_page_redrawn, g_observation.character_committed,
+           g_observation.final_page_redrawn, g_observation.character_name_typed,
+           g_observation.character_summary_opened, g_observation.character_committed,
            g_observation.character_in_party, g_observation.main_game_entered,
            g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
            g_observation.npc_state_reset_ok, g_observation.character_page_start,

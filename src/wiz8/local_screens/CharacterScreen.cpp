@@ -9,6 +9,7 @@
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
+#include "wiz8/dialog_code/CharacterSummaryDialog.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/character_event_queue.h"
@@ -337,7 +338,7 @@ void W8CharacterScreen::ShowDescription(int first, int second)
 void W8CharacterScreen::ShowCharacterSummary()
 {
     m_dialog_response_1b20 = 1;
-    m_dialog_1b1c = Function5CF280(&m_character_018);
+    m_dialog_1b1c = CreateCharacterSummaryDialog(&m_character_018);
     ActivateDialogRegion(0x138);
 }
 
@@ -796,4 +797,14 @@ void CharacterScreenFrame(void)
     if (screen->m_dialog_1b1c != 0)
         screen->m_dialog_1b1c->Draw();
     RenderFrame();
+}
+
+// FUNCTION: WIZ8 0x005b1ad0
+void RefreshCharacterScreenPartySlot(unsigned int)
+{
+    if (g_character_screen_0069c2e8->m_dialog_1b1c != 0 &&
+        g_character_screen_0069c2e8->m_dialog_response_1b20 == 1) {
+        static_cast<W8CharacterSummaryDialog*>(g_character_screen_0069c2e8->m_dialog_1b1c)
+            ->DrawPortraitAnimationFrame();
+    }
 }

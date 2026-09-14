@@ -251,8 +251,7 @@ def run_debugger(
             default="virtual" if scenario is not None else "host",
             log_path=artifact_dir / "display.log",
         ) as display:
-            if scenario is not None:
-                configure_wine_window_management(environment, private_display=display is not None)
+            configure_wine_window_management(environment, private_display=display is not None)
             session = GdbSession(
                 executable,
                 staged.root,
