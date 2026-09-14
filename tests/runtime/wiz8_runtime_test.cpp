@@ -53,6 +53,8 @@ struct RuntimeObservation {
     unsigned char character_returned;
     unsigned char final_page_entered;
     unsigned char final_page_redrawn;
+    unsigned char character_name_typed;
+    unsigned char character_summary_opened;
     unsigned char character_committed;
     unsigned char character_in_party;
     unsigned char main_game_entered;
@@ -85,9 +87,17 @@ static const char* g_scenario;
 static unsigned char g_sight_semantic_ok;
 static unsigned char g_split_semantic_ok;
 
-/* The whole in-process scenario must finish inside this budget; the Python
-   runner's outer kill is larger so this report always wins. */
+/* Bounds the driver join after WinMain returns. Python owns the hard
+   process deadline, including hangs inside WinMain. */
 static const DWORD kScenarioBudgetMs = 120000;
+static DWORD g_scenario_started;
+
+static void ReportStep(const char* step)
+{
+    fprintf(stderr, "WIZ8_RUNTIME_STEP scenario=%s step=%s state=pass elapsed_ms=%lu\n", g_scenario,
+            step, GetTickCount() - g_scenario_started);
+    fflush(stderr);
+}
 
 static void WriteRuntimeTestContext(FILE* stream)
 {
@@ -286,12 +296,15 @@ static DWORD FailScenario()
     g_observation.timed_out = 1;
     fprintf(stderr,
             "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
-            "redrawn=%u committed=%u in_party=%u main_game=%u page=%d\n",
+            "redrawn=%u committed=%u in_party=%u main_game=%u page=%d running=%u active=%u\n",
             g_current_screen_state.id, g_pending_screen_state.id, g_observation.transition_observed,
             g_observation.character_entered, g_observation.final_page_entered,
             g_observation.final_page_redrawn, g_observation.character_committed,
             g_observation.character_in_party, g_observation.main_game_entered,
-            g_observation.character_page_after);
+            g_observation.character_page_after, gfProgramIsRunning, gfApplicationActive);
+    if (gzErrorMsg[0] != '\0') {
+        fprintf(stderr, "runtime-test shutdown error: %s\n", gzErrorMsg);
+    }
     fflush(stderr);
     gfProgramIsRunning = 0;
     if (ghWindow != NULL) {
@@ -442,6 +455,7 @@ static DWORD WINAPI DriveScenario(void*)
     }
 
     g_observation.menu_seen = 1;
+    ReportStep("main-menu-reached");
     g_observation.menu_state = g_current_screen_state.id;
     g_observation.region_set_enabled = g_region_sets[1].enabled;
     g_observation.first_region = g_region_sets[1].first_region;
@@ -557,6 +571,7 @@ static DWORD WINAPI DriveScenario(void*)
                 screen->m_pages_1b0c[0] != 0 && page_region_set != 0 &&
                 *(volatile unsigned int*)&g_region_sets[page_region_set].enabled) {
                 g_observation.character_entered = 1;
+                ReportStep("character-entered");
                 break;
             }
             Sleep(10);
@@ -751,6 +766,7 @@ static DWORD WINAPI DriveScenario(void*)
                 *(W8CharacterPage005EF57C* volatile*)&screen->m_pages_1b0c[3];
             if (*(volatile int*)&screen->m_page_index_00c == 3 && final_page != 0) {
                 g_observation.final_page_entered = 1;
+                ReportStep("character-final-page");
                 if (final_page->m_prepared_06c == 0) {
                     g_observation.final_page_redrawn = 1;
                     break;
@@ -760,6 +776,57 @@ static DWORD WINAPI DriveScenario(void*)
         }
         if (!g_observation.final_page_entered) {
             return FailScenario();
+        }
+
+        /* Exercise the final page through Wine's real keyboard path.  This
+           scenario intentionally reaches the page with both fields empty, so
+           the product selects field zero; Tab then transfers focus to the
+           second field. */
+        if (strcmp(g_scenario, "main-menu-new-game") == 0) {
+            const WORD first_name_keys[] = {'P', 'R', 'O', 'B', 'E'};
+            const WORD second_name_keys[] = {'N', 'A', 'M', 'E'};
+            for (int first_name_index = 0; first_name_index < 5; ++first_name_index) {
+                SendScenarioKey(first_name_keys[first_name_index]);
+                Sleep(20);
+            }
+            SendScenarioKey(VK_TAB);
+            Sleep(20);
+            for (int second_name_index = 0; second_name_index < 4; ++second_name_index) {
+                SendScenarioKey(second_name_keys[second_name_index]);
+                Sleep(20);
+            }
+            started = GetTickCount();
+            while (GetTickCount() - started < 3000) {
+                if (wcscmp(screen->m_character_018.name_part_2, L"probe") == 0 &&
+                    wcscmp(screen->m_character_018.name, L"name") == 0) {
+                    g_observation.character_name_typed = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            if (!g_observation.character_name_typed) {
+                return FailScenario();
+            }
+
+            int voice_sample_region =
+                RegionWithHelpText(g_character_page4_region_set_0069c52c, 0xf5);
+            if (voice_sample_region < 0) {
+                return FailScenario();
+            }
+            ClickRegion(voice_sample_region);
+            started = GetTickCount();
+            while (GetTickCount() - started < 3000) {
+                if (screen->m_dialog_1b1c != 0) {
+                    g_observation.character_summary_opened = 1;
+                    break;
+                }
+                Sleep(10);
+            }
+            if (!g_observation.character_summary_opened) {
+                return FailScenario();
+            }
+            Sleep(1000);
+            SendScenarioKey(VK_SPACE);
         }
 
         g_observation.character_page_start = 0;
@@ -777,6 +844,7 @@ static DWORD WINAPI DriveScenario(void*)
                 if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
                     *(volatile int*)&g_pending_screen_state.id == -1) {
                     g_observation.character_committed = 1;
+                    ReportStep("character-committed");
                     break;
                 }
                 Sleep(10);
@@ -868,6 +936,7 @@ static DWORD WINAPI DriveScenario(void*)
                 if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                     *(volatile int*)&g_pending_screen_state.id == -1) {
                     g_observation.main_game_entered = 1;
+                    ReportStep("main-game-entered");
                     break;
                 }
                 if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
@@ -997,6 +1066,7 @@ int main(int argc, char** argv)
     }
 
     g_scenario = argv[2];
+    g_scenario_started = GetTickCount();
     memset(&g_observation, 0, sizeof(g_observation));
     g_observation.menu_state = -1;
     HANDLE driver = CreateThread(NULL, 0, DriveScenario, NULL, 0, NULL);
@@ -1006,10 +1076,13 @@ int main(int argc, char** argv)
     }
 
     char command_line[] = "";
-    WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
-    /* The in-process driver owns each scenario's budget and reports its own
-       timeout; this wait must stay below the runner's outer subprocess timeout
-       (RUNTIME_SCENARIO_TIMEOUT_SECONDS in tools/wiz8decomp/runtime.py). */
+    int game_status = WinMain(GetModuleHandle(NULL), NULL, command_line, SW_SHOWNORMAL);
+    fprintf(stderr,
+            "WIZ8_RUNTIME_STEP scenario=%s step=winmain-returned state=pass "
+            "elapsed_ms=%lu status=%d\n",
+            g_scenario, GetTickCount() - g_scenario_started, game_status);
+    fflush(stderr);
+    /* Python enforces the process deadline while WinMain or this join runs. */
     WaitForSingleObject(driver, kScenarioBudgetMs);
     DWORD driver_status = 2;
     GetExitCodeThread(driver, &driver_status);
@@ -1047,6 +1120,7 @@ int main(int argc, char** argv)
            "shade_table_ok=%u exit_observed=%u transition_observed=%u "
            "character_entered=%u character_returned=%u "
            "final_page_entered=%u final_page_redrawn=%u "
+           "character_name_typed=%u character_summary_opened=%u "
            "character_committed=%u character_in_party=%u main_game_entered=%u "
            "return_observed=%u teardown=%u timed_out=%u "
            "npc_state_reset_ok=%u "
@@ -1065,7 +1139,8 @@ int main(int argc, char** argv)
            g_observation.shade_table_ok, g_observation.exit_observed,
            g_observation.transition_observed, g_observation.character_entered,
            g_observation.character_returned, g_observation.final_page_entered,
-           g_observation.final_page_redrawn, g_observation.character_committed,
+           g_observation.final_page_redrawn, g_observation.character_name_typed,
+           g_observation.character_summary_opened, g_observation.character_committed,
            g_observation.character_in_party, g_observation.main_game_entered,
            g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
            g_observation.npc_state_reset_ok, g_observation.character_page_start,

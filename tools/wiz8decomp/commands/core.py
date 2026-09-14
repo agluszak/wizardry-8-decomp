@@ -200,15 +200,39 @@ def address_command(
     cli.emit(action())
 
 
-def runtime_test_command() -> None:
+def runtime_test_command(
+    scenario: Annotated[
+        list[str] | None,
+        typer.Option("--scenario", help="Run a named scenario; repeat to select several."),
+    ] = None,
+    check_order: Annotated[
+        bool,
+        typer.Option(
+            "--check-order", "--full", help="Repeat in reverse order and compare observations."
+        ),
+    ] = False,
+    no_build: Annotated[
+        bool,
+        typer.Option("--no-build", help="Use the existing runtime-test binary without building."),
+    ] = False,
+) -> None:
     """Build and run deterministic in-process semantic scenarios."""
     from .. import command_support as cli
     from ..build import build_target
-    from ..runtime import run_runtime_suite
+    from ..runtime import RUNTIME_SCENARIOS, run_runtime_suite
 
+    if scenario and (unknown := set(scenario) - set(RUNTIME_SCENARIOS)):
+        raise typer.BadParameter(f"unknown runtime scenarios: {', '.join(sorted(unknown))}")
     settings = cli.settings()
-    build_target(settings, "runtime-test")
-    cli.emit(run_runtime_suite(settings))
+    if not no_build:
+        build_target(settings, "runtime-test")
+    cli.emit(
+        run_runtime_suite(
+            settings,
+            scenarios=tuple(dict.fromkeys(scenario)) if scenario else RUNTIME_SCENARIOS,
+            check_order=check_order,
+        )
+    )
 
 
 def run_command(

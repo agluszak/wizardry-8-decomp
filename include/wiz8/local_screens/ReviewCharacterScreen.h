@@ -187,16 +187,6 @@ int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
    hand - split one off into the hand, or add one onto the held stack. */
 void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
 
-/* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
-   gates an item click on the character's remaining action allowance in
-   combat; 0x005A6440 programs a pending use-item action aimed at an item. */
-char Function5A6090(int party_slot);
-int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
-
-/* 0x005A5DA0: move a single unit between the clicked stack and the item in
-   hand - split one off into the hand, or add one onto the held stack. */
-void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
-
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);
 unsigned char CampScreenInitialize(void);

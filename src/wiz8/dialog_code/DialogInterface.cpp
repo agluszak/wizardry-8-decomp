@@ -1,4 +1,5 @@
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
+#include "wiz8/dialog_code/CharacterSummaryDialog.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/sr_api.h"
@@ -17,6 +18,15 @@ int g_dialog_font_64fde8;
 BOOLEAN g_dialog_font_enabled_69ca32;
 unsigned char g_dialog_font_foreground_64fdec;
 unsigned char g_dialog_font_background_64fded;
+
+// FUNCTION: WIZ8 0x005cf280
+W8DialogBase* CreateCharacterSummaryDialog(W8Character* character)
+{
+    W8DialogBase* dialog = new W8CharacterSummaryDialog(character);
+    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetOrigin(0x87, 0xc0);
+    return dialog;
+}
 
 // FUNCTION: WIZ8 0x005cf300
 W8DialogBase* CreateDialogByKind(int kind)

@@ -297,3 +297,41 @@ def test_git_checkout_enforces_c_style_and_format_gates(tmp_path: Path) -> None:
         "// clang-format off // format-off-ok: test table\n"
     )
     assert validate_cast_markers(tmp_path)["ok"] is True
+
+
+@pytest.mark.parametrize(
+    ("statement", "accepted"),
+    [
+        (
+            "auto p = reinterpret_cast<char*>(\n    address); // reinterpret-ok: external buffer\n",
+            True,
+        ),
+        ("// reinterpret-ok: external buffer\nauto p = reinterpret_cast<char*>(address);\n", True),
+        ("auto p = (char*)\n    address; // c-style-cast-ok: external ABI\n", True),
+        (
+            "auto p = reinterpret_cast<char*>(\n    address);\nauto q = other; // reinterpret-ok: other buffer\n",
+            False,
+        ),
+        ('auto p = reinterpret_cast<char*>(\n    "reinterpret-ok: not a comment");\n', False),
+        (
+            'auto p = reinterpret_cast<char*>(\n    find(";")); // reinterpret-ok: external buffer\n',
+            True,
+        ),
+    ],
+)
+def test_formatter_wrapped_cast_markers(
+    tmp_path: Path, monkeypatch, statement: str, accepted: bool
+) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(statement)
+    lines = statement.splitlines()
+    diff = _diff(
+        "src/wiz8/example.cpp", f"@@ -0,0 +1,{len(lines)} @@", *("+" + line for line in lines)
+    )
+    monkeypatch.setattr("wiz8decomp.cast_lint.baseline_diff", lambda repository: ("base", diff))
+    if accepted:
+        assert validate_cast_markers(tmp_path)["ok"] is True
+    else:
+        with pytest.raises(CastGateError):
+            validate_cast_markers(tmp_path)

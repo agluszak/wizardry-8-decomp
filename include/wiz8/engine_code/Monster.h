@@ -85,7 +85,7 @@ struct W8MonsterRep : public W8EmitterHost {
     int value_5c4;
     W8Item* objects_5c8[8];      /* 0x5c8 */
     W8PList* linked_objects_5e8; /* 0x5e8 */
-    int value_5ec;
+    float standing_height_5ec;
     float scale_5f0;
     float minimum_scale_5f4;
     float maximum_scale_5f8;
@@ -201,7 +201,8 @@ public:
     unsigned char HasLineOfSightFromPoint004C4C40(srVector3T<float> point);
     int IsFacingMonster004C4CA0(W8Monster* monster);
     int IsFacingPlayer004C4D40();
-    void Method4C5290();
+    void ApplyRepresentationScale();
+    void RefreshStandingHeight();
 
 public:
     /* Assertion-backed original spelling. Distinct from GrObject::m_pRep at
@@ -332,7 +333,7 @@ void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alt
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void SetFlag6081E4(unsigned char value);
 void UpdateNearestMonsterGroupMembers004CA570();
-void Function4C5810(W8Monster* monster);
+void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 
@@ -378,7 +379,7 @@ void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster004C5860(W8Monster* monster);
-void Function4C5ED0(W8Monster* monster);
+void RefreshMonsterStandingHeight(W8Monster* monster);
 void MonsterPropagateValue004C5870(W8Monster* monster, int value);
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
 /* The shared forwarder four call sites use to advance a cycle's
@@ -403,6 +404,5 @@ void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
-void Function4C4EF0(void);
 
 #endif

@@ -7,7 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import ANY, AsyncMock, Mock
 
 import pytest
 from wiz8decomp.binary.linker_map import LinkerMap
@@ -410,7 +410,10 @@ def test_launcher_uses_one_proxy_path(
             root=tmp_path,
         ),
     )
-    monkeypatch.setattr("wiz8decomp.debug.debugger.configure_wine_window_management", Mock())
+    configure_window = Mock()
+    monkeypatch.setattr(
+        "wiz8decomp.debug.debugger.configure_wine_window_management", configure_window
+    )
     monkeypatch.setattr(
         "wiz8decomp.debug.debugger.runtime_display", lambda *a, **kw: nullcontext(None)
     )
@@ -434,6 +437,7 @@ def test_launcher_uses_one_proxy_path(
 
     run_debugger(settings, scenario=scenario)
 
+    configure_window.assert_called_once_with(ANY, private_display=False)
     command = popen.call_args.args[0]
     assert command[:4] == ["winedbg", "--gdb", "--no-start", "--port"]
     assert command[5:] == [str(executable), *arguments]

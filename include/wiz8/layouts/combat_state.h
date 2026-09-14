@@ -129,10 +129,10 @@ struct W8CombatState {
     int iActionChar;                          /* 0x7b4: -1 when nobody's turn */
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
     unsigned char unknown_7bc[5];
-    W8EffectSlot effect_slots[9];           /* 0x7c1, 0x11 stride */
-    W8EffectSlot effect_slots_85a[6];       /* 0x85a..0x8bf */
-    W8Missile* engaged_missile;             /* 0x8c0: live missile that blocks ending combat */
-    unsigned char unknown_8c4;              /* 0x8c4 */
+    W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
+    W8EffectSlot effect_slots_85a[6]; /* 0x85a..0x8bf */
+    W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */
+    unsigned char unknown_8c4;        /* 0x8c4 */
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
     W8CombatSlot TargetHit;
@@ -151,7 +151,12 @@ struct W8CombatState {
     unsigned char flag_a51;
     unsigned char unknown_a52[2];
     unsigned char flag_a54;
-    unsigned char unknown_a55[7];
+    unsigned char unknown_a55[3];
+    /* 0xa58: queued refusal script for NPC party slots 0 and 1. The sweep
+       at 0x004ed710 sets a flag after queuing events 0x3a and 0x36; event
+       0x36 clears it. 0x004ed460 tests exactly these two slots. */
+    bool npc_combat_script_pending[2];
+    unsigned char unknown_a5a[2];
     /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
        third before it touches group states. */
     unsigned int combat_update_count;
@@ -161,6 +166,10 @@ struct W8CombatState {
 }; /* 0xa64 */
 
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
+static_assert(offsetof(W8CombatState, npc_combat_script_pending) == 0xa58,
+              "W8CombatState_npc_combat_script_pending_offset");
+static_assert(offsetof(W8CombatState, combat_update_count) == 0xa5c,
+              "W8CombatState_combat_update_count_offset");
 #pragma pack(pop)
 
 extern W8CombatState* g_combat_state;          /* 0x006836A8 */

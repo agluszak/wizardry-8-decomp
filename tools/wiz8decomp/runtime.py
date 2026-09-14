@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import os
 import re
+import selectors
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -51,10 +53,7 @@ RUNTIME_SCENARIOS = (
     "main-menu-exit-auto-repeat",
     "split-stack",
 )
-# The in-process harness owns each scenario's budget (``kScenarioBudgetMs`` in
-# tests/runtime/wiz8_runtime_test.cpp). This outer kill only exists to reap a
-# wedged Wine process, so it stays above the harness budget rather than
-# pre-empting the harness's own timeout report.
+# Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
 RUNTIME_SCENARIO_STATE_FILES = (
     Path("Saves") / "Characters" / "Probe.CHR",
@@ -188,14 +187,23 @@ def run_product(
             objects=settings.recovered_objects_dir,
         )
         map_path = settings.product_build_dir / "Wiz8Runtime.map"
-    completed = subprocess.run(
-        ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
-        cwd=staged.root,
-        check=False,
-        capture_output=True,
-        text=True,
-        errors="replace",
-    )
+    prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
+    prefix.mkdir(parents=True, exist_ok=True)
+    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
+    with runtime_display(
+        environment, default="host", log_path=staged.root / "xvfb-run.log"
+    ) as display:
+        configure_wine_window_management(environment, private_display=display is not None)
+        completed = subprocess.run(
+            ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
+            cwd=staged.root,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            errors="replace",
+        )
     output = completed.stdout + completed.stderr
     if output:
         sys.stderr.write(output)
@@ -497,7 +505,7 @@ def runtime_test_environment(
 
 
 def configure_wine_window_management(environment: dict[str, str], *, private_display: bool) -> None:
-    """Keep Wine from waiting for a window manager on a private X server."""
+    """Match Wine's window ownership and desktop geometry to the selected display."""
 
     subprocess.run(
         [
@@ -509,6 +517,54 @@ def configure_wine_window_management(environment: dict[str, str], *, private_dis
             "Managed",
             "/d",
             "N" if private_display else "Y",
+            "/f",
+        ],
+        env=environment,
+        check=True,
+        timeout=60,
+    )
+    if private_display:
+        subprocess.run(
+            [
+                "wine",
+                "reg",
+                "delete",
+                r"HKCU\Software\Wine\Explorer",
+                "/v",
+                "Desktop",
+                "/f",
+            ],
+            env=environment,
+            check=False,
+            timeout=60,
+        )
+        return
+    subprocess.run(
+        [
+            "wine",
+            "reg",
+            "add",
+            r"HKCU\Software\Wine\Explorer",
+            "/v",
+            "Desktop",
+            "/d",
+            "Wizardry",
+            "/f",
+        ],
+        env=environment,
+        check=True,
+        timeout=60,
+    )
+    subprocess.run(
+        [
+            "wine",
+            "reg",
+            "add",
+            r"HKCU\Software\Wine\Explorer\Desktops",
+            "/v",
+            "Wizardry",
+            "/d",
+            "640x480",
             "/f",
         ],
         env=environment,
@@ -530,10 +586,6 @@ def _parse_runtime_observation(stdout: str) -> dict[str, str | int]:
     return fields
 
 
-def _timeout_output(value: str | bytes | None) -> str:
-    return value.decode(errors="replace") if isinstance(value, bytes) else value or ""
-
-
 def _run_runtime_scenario(
     executable: Path,
     stage: Path,
@@ -541,40 +593,84 @@ def _run_runtime_scenario(
     scenario: str,
     object_root: Path | None = None,
 ) -> dict[str, str | int]:
-    try:
-        completed = subprocess.run(
-            ["wine", f"./{executable.name}", "--scenario", scenario],
-            cwd=stage,
-            env=environment,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=RUNTIME_SCENARIO_TIMEOUT_SECONDS,
-        )
-    except subprocess.TimeoutExpired as error:
-        stdout = _timeout_output(error.stdout)
-        stderr = _timeout_output(error.stderr)
-        raise _runtime_failure(
-            scenario, None, stdout, stderr, stage, executable, object_root
-        ) from error
-    if completed.returncode:
+    started = time.monotonic()
+    output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
+    timed_out = False
+    pending_stderr = b""
+    last_step = "process-start"
+    with subprocess.Popen(
+        ["wine", f"./{executable.name}", "--scenario", scenario],
+        cwd=stage,
+        env=environment,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ) as process:
+        assert process.stdout is not None and process.stderr is not None
+        with selectors.DefaultSelector() as selector:
+            selector.register(process.stdout, selectors.EVENT_READ, "stdout")
+            selector.register(process.stderr, selectors.EVENT_READ, "stderr")
+            try:
+                while selector.get_map():
+                    remaining = RUNTIME_SCENARIO_TIMEOUT_SECONDS - (time.monotonic() - started)
+                    if remaining <= 0:
+                        timed_out = True
+                        break
+                    for key, _ in selector.select(min(remaining, 0.25)):
+                        chunk = os.read(key.fd, 65536)
+                        if not chunk:
+                            selector.unregister(key.fileobj)
+                            continue
+                        output[key.data].extend(chunk)
+                        if key.data == "stderr":
+                            sys.stderr.write(chunk.decode(errors="replace"))
+                            sys.stderr.flush()
+                            pending_stderr += chunk
+                            while b"\n" in pending_stderr:
+                                line, pending_stderr = pending_stderr.split(b"\n", 1)
+                                if line.startswith(b"WIZ8_RUNTIME_STEP "):
+                                    fields = dict(
+                                        item.split("=", 1)
+                                        for item in line.decode(errors="replace").split()[1:]
+                                        if "=" in item
+                                    )
+                                    if fields.get("scenario") == scenario:
+                                        last_step = fields.get("step", last_step)
+                if not timed_out:
+                    try:
+                        process.wait(
+                            timeout=max(
+                                0.001,
+                                RUNTIME_SCENARIO_TIMEOUT_SECONDS - (time.monotonic() - started),
+                            )
+                        )
+                    except subprocess.TimeoutExpired:
+                        timed_out = True
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                process.wait()
+    stdout = output["stdout"].decode(errors="replace")
+    stderr = output["stderr"].decode(errors="replace")
+    if timed_out:
+        stderr += f"\nruntime-test deadline: last_step={last_step}\n"
+    if timed_out or process.returncode:
         raise _runtime_failure(
             scenario,
-            completed.returncode,
-            completed.stdout,
-            completed.stderr,
+            None if timed_out else process.returncode,
+            stdout,
+            stderr,
             stage,
             executable,
             object_root,
         )
     try:
-        observation = _parse_runtime_observation(completed.stdout)
+        observation = _parse_runtime_observation(stdout)
     except RuntimeError as error:
         raise _runtime_failure(
             scenario,
-            completed.returncode,
-            completed.stdout,
-            completed.stderr,
+            process.returncode,
+            stdout,
+            stderr,
             stage,
             executable,
             object_root,
@@ -582,18 +678,24 @@ def _run_runtime_scenario(
     if observation.get("scenario") != scenario:
         raise _runtime_failure(
             scenario,
-            completed.returncode,
-            completed.stdout,
-            completed.stderr,
+            process.returncode,
+            stdout,
+            stderr,
             stage,
             executable,
             object_root,
         )
+    print(f"PASS {scenario} {time.monotonic() - started:.1f}s", file=sys.stderr, flush=True)
     return observation
 
 
-def run_runtime_suite(settings: Settings) -> dict[str, Any]:
-    """Run named in-process scenarios in both orders and prove determinism."""
+def run_runtime_suite(
+    settings: Settings, *, scenarios: tuple[str, ...] = RUNTIME_SCENARIOS, check_order: bool = False
+) -> dict[str, Any]:
+    """Run selected scenarios, optionally checking reverse-order determinism."""
+
+    if not scenarios or set(scenarios) - set(RUNTIME_SCENARIOS):
+        raise ValueError(f"invalid runtime scenario selection: {scenarios}")
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
@@ -614,25 +716,17 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     ) as display:
         configure_wine_window_management(environment, private_display=display is not None)
         try:
-            for order_name, scenarios in (
-                ("forward", RUNTIME_SCENARIOS),
-                ("reverse", tuple(reversed(RUNTIME_SCENARIOS))),
-            ):
+            orders = [("forward", scenarios)]
+            if check_order:
+                orders.append(("reverse", tuple(reversed(scenarios))))
+            for order_name, ordered_scenarios in orders:
                 runs[order_name] = {}
-                for scenario in scenarios:
+                for scenario in ordered_scenarios:
                     _reset_runtime_scenario_state(stage)
-                    try:
-                        runs[order_name][scenario] = _run_runtime_scenario(
-                            executable, stage, environment, scenario, object_root
-                        )
-                    finally:
-                        subprocess.run(
-                            ["wineserver", "-k"],
-                            cwd=stage,
-                            env=environment,
-                            check=False,
-                            capture_output=True,
-                        )
+                    print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
+                    runs[order_name][scenario] = _run_runtime_scenario(
+                        executable, stage, environment, scenario, object_root
+                    )
         finally:
             subprocess.run(
                 ["wineserver", "-k"],
@@ -641,12 +735,12 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
                 check=False,
                 capture_output=True,
             )
-    if runs["forward"] != runs["reverse"]:
+    if check_order and runs["forward"] != runs["reverse"]:
         raise RuntimeError("runtime observations depend on scenario order")
     return {
         **staged.as_dict(),
         "wine_prefix": str(prefix),
         "display": display or "host",
         "scenarios": runs["forward"],
-        "deterministic": True,
+        "deterministic": True if check_order else None,
     }

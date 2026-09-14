@@ -44,6 +44,14 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
 // FUNCTION: WIZ8 0x0049E0D0
 MonsterLight::~MonsterLight() {}
 
+// FUNCTION: WIZ8 0x0049D940
+void MonsterLight::SetRange(float range)
+{
+    far_start_168 = 0.0;
+    far_end_170 = range;
+    setLinearAttenuation(range, 0.0019569471f);
+}
+
 // FUNCTION: WIZ8 0x0049D970
 void MonsterLight::SetVisible0049D970(char visible)
 {

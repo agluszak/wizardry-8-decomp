@@ -439,6 +439,52 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
     return match_count;
 }
 
+// FUNCTION: WIZ8 0x00430BF0
+unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
+{
+    srVector3T<float> point = *position;
+    for (unsigned int region = 1; region < spatial_000.positional_46; ++region) {
+        if (PointInsideFrustum0046D880(&point, spatial_000.owned_5c[region].planes_88) != 0) {
+            return spatial_000.owned_5c[region].region_bit_0c;
+        }
+    }
+
+    unsigned long levels = m_positional_140;
+    int cell[3];
+    for (int axis = 0; axis < 3; ++axis) {
+        int coordinate = static_cast<int>(
+            ((&position->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) / spatial_000.positional_54);
+        if (coordinate < 0 || coordinate >= spatial_000.positional_50) {
+            return 0;
+        }
+        cell[axis] = coordinate;
+    }
+
+    unsigned long node = 1;
+    for (int mask = 1 << spatial_000.depth_44; mask != 0; mask /= 2) {
+        if (node == 0) {
+            return 0;
+        }
+        if ((levels & mask) != 0) {
+            int child = 0;
+            if ((cell[0] & mask) != 0) {
+                child = 4;
+            }
+            if ((cell[1] & mask) != 0) {
+                child += 2;
+            }
+            if ((cell[2] & mask) != 0) {
+                ++child;
+            }
+            node = m_owned_09c[node].children_04[child];
+        }
+    }
+    if (node == 0) {
+        return 0;
+    }
+    return m_owned_09c[node].positional_02;
+}
+
 // FUNCTION: WIZ8 0x00430d50
 unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* location, int* cells,
                                                       float* depth, unsigned char mode)
@@ -1954,7 +2000,7 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
     info = MonsterGetScriptPartByLocationIndex(monster_list_index);
     if (info != 0 && info->monster != 0) {
         monster = info->monster;
-        sector = GetSectorForPosition00430BF0(position);
+        sector = GetSectorForPosition(position);
         if (sector == 0 || (mesh = g_world->psrMeshes[m_pSubmeshes[sector].mesh_04]) == 0) {
             monster->node_308 = 0;
         } else {

@@ -20,5 +20,4 @@ void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output);
 void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state);
 void FinishNpcVoicePlayback(unsigned char resume_script);
 int ComputePortraitMessageDuration(wchar_t* text);
-void ProcessNpcScriptingIdlePass(void);
 void UpdateNpcDialogueVoiceIdle(void);

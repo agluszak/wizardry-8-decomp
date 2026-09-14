@@ -1476,12 +1476,12 @@ int FindMappedIndexInMeshChain(stMeshModel** mesh, int key)
 }
 
 // FUNCTION: WIZ8 0x004a8d50
-void W8GrCycle::CreateGroundShadow(int value_140, int value_13c)
+void W8GrCycle::CreateGroundShadow(float width, float depth)
 {
     m_ground_shadow = new stGroundShadow(0);
     m_ground_shadow->setName("Ground Shadow");
-    m_ground_shadow->value_140 = value_140;
-    m_ground_shadow->value_13c = value_13c;
+    m_ground_shadow->width_140 = width;
+    m_ground_shadow->depth_13c = depth;
 }
 
 // FUNCTION: WIZ8 0x004a8de0

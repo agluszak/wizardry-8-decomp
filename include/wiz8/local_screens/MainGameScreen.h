@@ -10,6 +10,7 @@ class stModelInstance2D;
 struct W8IList;
 struct W8MipeState;
 struct W8NpcState;
+struct W8NpcScriptQuote;
 
 void RequestRedrawParty(void);
 void RefreshSelectedPartyPortrait(unsigned int party_slot);
@@ -388,6 +389,11 @@ extern W8MainGameScreen* g_main_game_screen;
 
 class W8DialogBase;
 struct W8ItemInstance;
+struct W8PendingNoticeLine {
+    wchar_t* text;
+    int npc_kind;
+};
+
 extern W8DialogBase* g_modal_owner_0068edd0;
 extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
@@ -410,20 +416,34 @@ struct W8MainScreenState {
     W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
     Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
     unsigned char unknown_1b8[0x1c];
-    int value_1d4;
+    W8NpcState* dialogue_npc;
     /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
     unsigned char flag_1d8;
     unsigned char unknown_1d9[0x13];
     unsigned char flag_1ec;
     unsigned char unknown_1ed[0xd];
     unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
-    unsigned char unknown_1fb[0x2d];
-    unsigned char dialogue_cursor_flag; /* 0x228 */
+    unsigned char unknown_1fb[0xd];
+    int quote_bubble;
+    short quote_x;
+    short quote_y;
+    short quote_width;
+    short quote_height;
+    bool quote_visible;
+    unsigned char unknown_215[3];
+    W8GrowableVector<W8PendingNoticeLine*> pending_notice_lines; /* 0x218 */
+    unsigned char dialogue_cursor_flag;                          /* 0x228 */
     unsigned char unknown_229[0xb];
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
-    unsigned char unknown_23c[0x16];
+    unsigned char flag_23c;
+    unsigned char unknown_23d[0xb];
+    unsigned char quote_notice_kind;
+    unsigned char unknown_249[3];
+    void* quote_notice_payload;
+    unsigned char flag_250;
+    unsigned char unknown_251;
     unsigned char flag_252;
     unsigned char unknown_253[5];
     /* 0x258: the screen reset writes -1 here, the no-selection value. */
@@ -433,7 +453,8 @@ struct W8MainScreenState {
     unsigned char flag_260;
     unsigned char unknown_261;
     unsigned char dialogue_panel_hidden; /* 0x262 */
-    unsigned char unknown_263[5];
+    unsigned char unknown_263;
+    int last_notice_npc_kind; /* 0x264 */
 };
 #pragma pack(pop)
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
@@ -446,10 +467,22 @@ static_assert(offsetof(W8MainScreenState, npc_dialogue_controller_1b0) == 0x1b0,
 static_assert(offsetof(W8MainScreenState, npc_dialogue_panel_1b4) == 0x1b4,
               "W8MainScreenState_npc_dialogue_panel_1b4");
 static_assert(offsetof(W8MainScreenState, script_busy) == 0x1fa, "W8MainScreenState_script_busy");
+static_assert(offsetof(W8MainScreenState, dialogue_npc) == 0x1d4, "W8MainScreenState_dialogue_npc");
+static_assert(offsetof(W8MainScreenState, quote_bubble) == 0x208, "W8MainScreenState_quote_bubble");
+static_assert(offsetof(W8MainScreenState, quote_visible) == 0x214,
+              "W8MainScreenState_quote_visible");
+static_assert(offsetof(W8MainScreenState, quote_notice_kind) == 0x248,
+              "W8MainScreenState_quote_notice_kind");
+static_assert(offsetof(W8MainScreenState, quote_notice_payload) == 0x24c,
+              "W8MainScreenState_quote_notice_payload");
+static_assert(offsetof(W8MainScreenState, pending_notice_lines) == 0x218,
+              "W8MainScreenState_pending_notice_lines");
 static_assert(offsetof(W8MainScreenState, dialogue_cursor_flag) == 0x228,
               "W8MainScreenState_dialogue_cursor_flag");
 static_assert(offsetof(W8MainScreenState, dialogue_panel_hidden) == 0x262,
               "W8MainScreenState_dialogue_panel_hidden");
+static_assert(offsetof(W8MainScreenState, last_notice_npc_kind) == 0x264,
+              "W8MainScreenState_last_notice_npc_kind");
 
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
@@ -459,6 +492,7 @@ void ResumeMainGameWorld(void);
 void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress);
 void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg); /* 0x0056C5E0 */
 void ResetMainGameScreenState(void);
+void FlushPendingNoticeLines005766B0(void); /* 0x005766B0 */
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
    keyword lists through the loader below. */
 void ResetMainScreenStateBlock(void);
@@ -489,7 +523,20 @@ void Function577260(void);
    resolves the name against the item and NPC tables when kind is -1 and
    ignores duplicates already pending. */
 void Function5775D0(wchar_t* name, char kind);
-void Function576030(int a, int b, int c, int d, int e);
+void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
+                              int quote_id, unsigned int font_palette); /* 0x00576030 */
+void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
+                              int quote_id, unsigned int font_palette, unsigned char notice_kind,
+                              void* payload, int npc_kind); /* 0x00576060 */
+void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
+void LookAtDialogueNpc(void);                               /* 0x005767F0 */
+void CloseNpcDialogueIfActive(void);                        /* 0x00576B80 */
+void Function56C6D0(W8NpcState* npc, const W8ItemInstance* item, int b, int c,
+                    int d); /* 0x0056C6D0 */
+void Function577520(void);  /* 0x00577520 */
+void Function570A20(void);  /* 0x00570A20 */
+void Function570CF0(void);  /* 0x00570CF0 */
+void Function56CA90(void);  /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */

@@ -1517,8 +1517,12 @@ W8PortraitTables g_portrait_tables_0061cb3c = {
 };
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
+// GLOBAL: WIZ8 0x005ED8E0
+unsigned int g_event_flag_005ed8e0 = 8;
 // GLOBAL: WIZ8 0x005ED8E4
 unsigned char g_character_event_flags_mask_005ed8e4 = 16;
+// GLOBAL: WIZ8 0x005ED8EC
+unsigned int g_event_flag_005ed8ec = 0x40;
 // GLOBAL: WIZ8 0x005ED8F8
 unsigned int g_flee_hp_fraction_005ed8f8 = 50;
 // GLOBAL: WIZ8 0x005ED8FC
@@ -1537,6 +1541,8 @@ int g_effect_005ee594 = 3;
 int g_effect_005ee598 = 4;
 // GLOBAL: WIZ8 0x005ee588
 int g_effect_005ee588 = 0;
+// GLOBAL: WIZ8 0x005EE58C
+int g_effect_005ee58c = 1;
 // GLOBAL: WIZ8 0x005EE5A4
 int g_effect_005ee5a4 = 7;
 // GLOBAL: WIZ8 0x005EE5AC
@@ -1563,6 +1569,8 @@ int g_item_message_005ee644 = 47;
 int g_item_message_005ee648 = 48;
 // GLOBAL: WIZ8 0x005ee64c
 int g_item_message_005ee64c = 49;
+// GLOBAL: WIZ8 0x005EE654
+int g_effect_005ee654 = 51;
 // GLOBAL: WIZ8 0x005ee664
 int g_item_message_005ee664 = 55;
 // GLOBAL: WIZ8 0x005ee68c

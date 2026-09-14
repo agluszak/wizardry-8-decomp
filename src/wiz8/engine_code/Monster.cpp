@@ -28,6 +28,8 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/MonsterLight.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/ground_shadow.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
@@ -714,8 +716,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         }
         if (shadow_depth == 0.0f)
             shadow_depth = shadow_width;
-        (*monster)->CreateGroundShadow((int)(shadow_width * g_world_scale_005ebc40),
-                                       (int)(shadow_depth * g_world_scale_005ebc40));
+        (*monster)->CreateGroundShadow(shadow_width * g_world_scale_005ebc40,
+                                       shadow_depth * g_world_scale_005ebc40);
     }
     representation->value_610 = left_handed;
     representation->flag_601 = (flies != 0 || swims != 0 || full_transition != 0) ? 1 : 0;
@@ -928,7 +930,7 @@ int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
 
 // FUNCTION: WIZ8 0x004bea20
 W8MonsterRep::W8MonsterRep()
-    : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), value_5ec(0), scale_5f0(1.0f),
+    : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), standing_height_5ec(0), scale_5f0(1.0f),
       minimum_scale_5f4(0.0f), maximum_scale_5f8(0.0f), value_5fc(1.0f), flag_600(0), flag_601(0),
       value_604(10.0f), value_608(0), value_60c(0), value_610(0), monster_light_624(0)
 {
@@ -1023,7 +1025,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
 // FUNCTION: WIZ8 0x004bebd0
 W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
     : W8EmitterHost(other), flag_5bc(other.flag_5bc), linked_objects_5e8(0),
-      value_5ec(other.value_5ec), scale_5f0(other.scale_5f0),
+      standing_height_5ec(other.standing_height_5ec), scale_5f0(other.scale_5f0),
       minimum_scale_5f4(other.minimum_scale_5f4), maximum_scale_5f8(other.maximum_scale_5f8),
       value_5fc(other.value_5fc), flag_600(other.flag_600), flag_601(other.flag_601),
       value_604(other.value_604), value_608(other.value_608), value_60c(other.value_60c),
@@ -3637,7 +3639,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 offset = source * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
-                location.y += representation->value_5ec +
+                location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_attachment_vertical_scale_005eca84;
 
                 item->SetLocation0049F720(&location);
@@ -3686,7 +3688,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 offset.y += group_height * distance_scale;
                 srVector3T<float> rotated = camera_rotation.Transform(offset);
                 location = base_position + rotated;
-                location.y += representation->value_5ec +
+                location.y += representation->standing_height_5ec +
                               distance_scale * g_monster_linked_vertical_scale_005ed29c;
 
                 item->SetLocation0049F720(&location);
@@ -4078,27 +4080,16 @@ void W8Monster::SetCurrentAnimationScale(float scale)
         representation->current_subcycle) = scale;
 }
 
-/* Resolve the active cycle/subcycle AnimObj and submit entry zero using the
-   Monster's animation index. */
+/* Resolve the active cycle/subcycle AnimObj at the representation's selected LOD. */
 // FUNCTION: WIZ8 0x004c3f00
 W8AniMesh* W8Monster::GetCurrentAniMesh()
 {
-    int cycle_index = m_pRep->current_cycle;
-    int subcycle_index = m_pRep->current_subcycle;
-    W8GrowableVector<W8AnimObj*>* cycle = &m_pRep->animations[cycle_index];
-    W8AnimObj** animation_slot;
-    W8AnimObj* animation;
-
-    if (subcycle_index < cycle->GetCount()) {
-        animation_slot = cycle->data + subcycle_index;
-    } else {
-        animation_slot = cycle->data;
-    }
-    animation = *animation_slot;
+    W8AnimObj* animation =
+        *m_pRep->animations[m_pRep->current_cycle].GetAt(m_pRep->current_subcycle);
     if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 0xc4e, 0);
     }
-    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, animationIndex(), 0));
+    return static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, m_pRep->m_bLOD, 0));
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then
@@ -5057,10 +5048,78 @@ void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
     cycle->UpdateRepresentation(world);
 }
 
-// FUNCTION: WIZ8 0x004C5810
-void Function4C5810(W8Monster* target)
+// FUNCTION: WIZ8 0x004C4EF0
+void W8Monster::RefreshStandingHeight()
 {
-    target->Method4C5290();
+    W8MonsterRep* representation = m_pRep;
+    signed char previous_cycle = representation->current_cycle;
+    SetCycle(1);
+    SetSubCycle(0);
+    srVector3T<float> camera_location;
+    camera_location = g_world->camera->getLocation();
+    SelectLOD004A7BE0(&camera_location);
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    GetAnimationBounds(&minimum, &maximum);
+    representation->standing_height_5ec = maximum.y;
+    if (previous_cycle != -1) {
+        SetCycle(previous_cycle);
+    }
+}
+
+// FUNCTION: WIZ8 0x004C5290
+void W8Monster::ApplyRepresentationScale()
+{
+    float old_scale = movement_0c0.value_0c4;
+    SetScale(m_pRep->scale_5f0);
+    for (int cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        float scale = m_pRep->scale_5f0;
+        if (cycle == 21) {
+            scale = m_pRep->value_5fc * m_pRep->scale_5f0;
+        }
+        float x_scale = scale;
+        if (unknown_1be != 0) {
+            x_scale = scale * -1.0f;
+        }
+        int animation_count = m_pRep->animations[cycle].GetCount();
+        for (int index = 0; index < animation_count; ++index) {
+            W8AnimObj* animation = *m_pRep->animations[cycle].GetAt(index);
+            // The retail query precedes the null check.
+            int frame_count = AnimObjValue004A15D0(animation, 2);
+            if (animation != 0 && frame_count != 0) {
+                for (int frame = 0; frame < frame_count; ++frame) {
+                    srModelInstance* instance =
+                        AnimObjDispatch004A14D0(animation, 2, static_cast<unsigned char>(frame));
+                    instance->setScale(srVector3T<double>(x_scale, scale, scale));
+                }
+            }
+        }
+    }
+    if (m_plsParticles != 0) {
+        for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
+            stParticle* particle = (*m_plsParticles->GetAt(index))->particle_08;
+            particle->SetParticleScale(m_pRep->scale_5f0);
+            if (unknown_1be != 0) {
+                (*m_plsParticles->GetAt(index))->position_0c.x *= -1.0f;
+                particle->setScale(srVector3T<double>(-1.0, 1.0, 1.0));
+            }
+        }
+    }
+    if (m_ground_shadow != 0) {
+        float ratio = m_pRep->scale_5f0 / old_scale;
+        m_ground_shadow->width_140 *= ratio;
+        m_ground_shadow->depth_13c *= ratio;
+    }
+    if (m_pRep->monster_light_624 != 0) {
+        m_pRep->monster_light_624->SetRange(movement_0c0.value_0b0 * g_float_005ec52c);
+        m_pRep->monster_light_624->m_vertical_offset_228 = movement_0c0.height_offset_0b8;
+    }
+}
+
+// FUNCTION: WIZ8 0x004C5810
+void ApplyMonsterRepresentationScale(W8Monster* target)
+{
+    target->ApplyRepresentationScale();
 }
 // FUNCTION: WIZ8 0x004C5860
 void DeleteMonster004C5860(W8Monster* monster)
@@ -5077,10 +5136,10 @@ void DetachMonsterRepresentation(W8Monster* monster, W8World* world)
     }
 }
 // FUNCTION: WIZ8 0x004C5ED0
-void Function4C5ED0(W8Monster* monster)
+void RefreshMonsterStandingHeight(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4C4EF0();
+        monster->RefreshStandingHeight();
     }
 }
 // FUNCTION: WIZ8 0x004C6220
