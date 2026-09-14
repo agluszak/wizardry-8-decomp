@@ -36,6 +36,7 @@ class Trigger;
 class srCamera;
 class srNode;
 class W8Octree;
+struct W8OctreeTrace;
 
 class BitArray;
 
@@ -78,6 +79,15 @@ struct W8GameData {
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
+    /* Tests the buffered prop-surface objects of the current cell against the
+       trace; answers the hit prop's sector index or a negative miss. */
+    int TestPropSurfaces(unsigned long* objects, W8OctreeTrace* result, int value_3,
+                         int value_4); /* 0x0041c0d0 */
+    /* Tests the buffered trace cells against the level geometry: `objects`
+       carries the octree's GD-object store and `result` the trace record
+       whose end_0c returns the contact point. */
+    char TestTraceResult(int value_1b8, unsigned long* objects, W8OctreeTrace* result,
+                         unsigned char value_134, int mode); /* 0x0041c330 */
     /* Builds the octree trace model and answers its scene node. */
     srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
 
@@ -149,8 +159,6 @@ void EndCameraSway0041A9A0(void);
 unsigned int GetLevelDataFlag6(void);
 
 void Function41C680(int interface_id, int state);
-char TestTraceResult0041C330(int value_1b8, unsigned long* objects, void* result,
-                             unsigned char value_134, int mode);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and

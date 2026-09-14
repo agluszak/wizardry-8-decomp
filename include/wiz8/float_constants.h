@@ -43,6 +43,14 @@ extern float g_float_005ec35c;
    and as a range bound by GetRangeConstant5EC360. */
 extern float g_float_005ec360;
 extern double g_double_005ec030;
+/* 0x005EC038: 5000.0, the absolute vertical-snap ceiling that bounds
+   FindNavigatorPosition's candidate rejection. */
+extern double g_double_005ec038;
+/* 0x005EC048: 15.0, the radius multiplier that sizes the monster-proximity
+   query box in navigator placement. */
+extern float g_float_005ec048;
+/* 0x005EC050: 0.0002, the Random(1000) jitter scale for ring candidates. */
+extern float g_float_005ec050;
 /* 0x005EC1E8 / 0x005EC1F0: the quaternion->matrix normalization factor (2.0)
    and FLT_EPSILON closeness bound shared by the keyframe slerps. */
 extern double g_double_005ec1e8;
@@ -57,6 +65,10 @@ extern double g_double_005ec430;
 extern float g_float_005ebc3c;
 extern float g_float_005ebc58;
 extern float g_float_005ebc60;
+/* 0x005EBC78: 0.15, the along-ray distance discount the trace resolver
+   applies before a sphere-hit candidate counts as closer than the world
+   geometry. */
+extern float g_float_005ebc78;
 extern float g_float_005ebc7c;
 extern float g_float_005ebccc;
 extern float g_float_005ec028;

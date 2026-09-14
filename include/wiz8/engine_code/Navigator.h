@@ -300,6 +300,8 @@ extern unsigned char g_flag_006081e4;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_linked_radius_scale_005ebc98;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
+/* Runtime scale applied to the startup navigator's radius_084 when the trace
+   resolver tests the camera sphere; written during startup, not a constant. */
+extern float g_float_006081f4;
 
-void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
 void SetMonsterTurnSpeed(float speed); /* 0x00453C70 */

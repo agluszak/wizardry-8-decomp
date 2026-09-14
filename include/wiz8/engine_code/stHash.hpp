@@ -52,6 +52,7 @@ public:
     void Insert(const Key* key, const Value* value);
     void Remove(const Key* key, const Value* value);
     void Remove(const Key* key);
+    void RemoveAt(int slot);
     void Grow();
     int AllocateEntry();
 
@@ -159,6 +160,31 @@ void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
         }
         previous = slot;
         slot = entry->next_index;
+    }
+}
+
+/* Remove the entry at a known slot, as 0x0042E650/0x0042E880 do after
+   FindNextEntry. Emitted out of line at 0x00438DD0. */
+template <class Key, class Value> void W8HashTable<Key, Value>::RemoveAt(int slot)
+{
+    Key wanted = entries[slot].key;
+    int* bucket = bucket_heads + (W8HashValue(wanted) & (bucket_count - 1));
+    int current = *bucket;
+    int previous = -1;
+
+    while (current != -1) {
+        if (current == slot) {
+            if (previous == -1) {
+                *bucket = entries[current].next_index;
+            } else {
+                entries[previous].next_index = entries[current].next_index;
+            }
+            entries[current].next_index = free_head;
+            free_head = current;
+            return;
+        }
+        previous = current;
+        current = entries[current].next_index;
     }
 }
 

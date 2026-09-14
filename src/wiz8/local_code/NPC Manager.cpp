@@ -991,15 +991,16 @@ unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>*
     GetCameraPosition(&party_position);
     party_position.y = party_position.y - g_default_world_height_00603ac8;
     yaw = GetCameraYawRadians() + g_float_005ec29c;
-    if (FindNavigatorPosition00437F30(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1, 10, 0) >
-        0) {
+    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1,
+                                               10, 0) > 0) {
         return 1;
     }
-    if (FindNavigatorPosition00437F30(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1, 20, 0) >
-        0) {
+    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1,
+                                               20, 0) > 0) {
         return 1;
     }
-    FindNavigatorPosition00437F30(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1, 30, 0);
+    g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1, 30,
+                                           0);
     return 0;
 }
 

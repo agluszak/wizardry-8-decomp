@@ -81,6 +81,10 @@ public:
     void Method44C030();
     void Method44C670();                       /* 0x0044C670 */
     int BuildOrRefreshPathingRepresentation(); /* 0x0044DEA0 */
+    /* When the animation advanced exactly one frame this writes the current
+       position minus the home position into `out`; otherwise `out` is zeroed.
+       `point` is accepted but never read. */
+    char GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* point); /* 0x0044E130 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void Method44C830(W8World* world);

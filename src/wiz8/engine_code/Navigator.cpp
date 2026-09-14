@@ -461,7 +461,7 @@ W8Navigator::~W8Navigator()
     delete owned_object_0a0;
     owned_object_0a0 = 0;
     if (movement_0c0.location_id_004 != 0 && g_octree_6598a4 != 0) {
-        LeaveLocation0042E880(movement_0c0.location_id_004, 0xd);
+        g_octree_6598a4->UnregisterLocationObject(movement_0c0.location_id_004, 0xd);
     }
     if (node_18c != 0) {
         node_18c->release();
@@ -524,6 +524,12 @@ void W8Navigator::SetBounds(const srVector3T<float>* minimum, const srVector3T<f
 srVector3T<float> W8Navigator::GetPosition()
 {
     return movement_0c0.position_040;
+}
+
+// FUNCTION: WIZ8 0x004534f0
+void W8Navigator::GetVelocity(srVector3T<float>* velocity)
+{
+    *velocity = movement_0c0.velocity_034;
 }
 
 // FUNCTION: WIZ8 0x00454950
@@ -630,11 +636,23 @@ void W8Navigator::PropagateGroupPosition()
     }
 }
 
+// FUNCTION: WIZ8 0x004538d0
+void W8Navigator::SetTargetYaw(float angle)
+{
+    movement_0c0.target_yaw = NormalizeAngle(angle);
+}
+
 // FUNCTION: WIZ8 0x004538f0
 void W8Navigator::SetAngles004538F0(float angle)
 {
     movement_0c0.yaw = NormalizeAngle(angle);
     movement_0c0.target_yaw = NormalizeAngle(angle);
+}
+
+// FUNCTION: WIZ8 0x00453920
+void W8Navigator::SetTargetPitch(float angle)
+{
+    movement_0c0.target_pitch_024 = NormalizeAngle(angle);
 }
 
 // FUNCTION: WIZ8 0x00453940
@@ -660,6 +678,17 @@ float W8Navigator::GetPitch()
 void W8Navigator::SetTurnRate(float turn_rate)
 {
     movement_0c0.turn_rate_068 = turn_rate;
+}
+
+// FUNCTION: WIZ8 0x00453ef0
+void W8Navigator::SetHeightRange(float minimum, float maximum)
+{
+    if (minimum >= g_float_005ebb34) {
+        minimum_height_034 = minimum;
+    }
+    if (maximum >= g_float_005ebb34) {
+        maximum_height_038 = maximum;
+    }
 }
 
 // FUNCTION: WIZ8 0x004538b0
@@ -770,6 +799,10 @@ extern const double g_double_005ec150 = 500.0;
 float g_navigator_minimum_speed_006081ec = 0.5f;
 // GLOBAL: WIZ8 0x006081f0
 float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
+/* Runtime scale for the camera-sphere radius in the octree trace resolver;
+   assigned during startup rather than carrying a link-time constant. */
+// GLOBAL: WIZ8 0x006081f4
+float g_float_006081f4;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 
@@ -858,10 +891,10 @@ unsigned char W8Navigator::UpdateLinkedPosition00454FE0()
     }
     srVector3T<float> position;
     if (linked_navigator_05c->movement_stopped_024 != 0) {
-        if (FindNavigatorPosition00437F30(&linked_navigator_05c->movement_0c0.position_040,
-                                          linked_navigator_05c->movement_0c0.yaw,
-                                          movement_0c0.value_0b0 + movement_0c0.value_0b0, 1,
-                                          &position, 1, 0, 0, 5, 1) == 0) {
+        if (g_octree_6598a4->FindNavigatorPosition(&linked_navigator_05c->movement_0c0.position_040,
+                                                   linked_navigator_05c->movement_0c0.yaw,
+                                                   movement_0c0.value_0b0 + movement_0c0.value_0b0,
+                                                   1, &position, 1, 0, 0, 5, 1) == 0) {
             return 0;
         }
         if (movement_stopped_024 == 0) {
@@ -900,7 +933,7 @@ srVector3T<float>* W8Navigator::AdjustPosition00454440(srVector3T<float>* result
     srVector3T<float> probe = *current;
     probe.y += g_world_scale_005ebc40;
     unsigned char hit;
-    float ground = g_octree_6598a4->SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    float ground = g_octree_6598a4->SettleToGround(&probe, &hit, 1, 500.0f);
     if (hit == 0) {
         movement_0c0.velocity_034.SetZero();
         if (g_flag_006081e4 == 0) {
@@ -2067,4 +2100,49 @@ int W8Navigator::ResolveMovement()
         movement_complete_026 = 1;
     }
     return 0;
+}
+
+/* The W8OctreeTrace methods sit in the link-order gap between Navigator.cpp's
+   last body and OctPath.cpp's first: the two identical Seed emissions at
+   0x00457640 and 0x00457700 feed the Octree/GameData trace callers, and
+   0x004577C0 is the header-defined default constructor's out-of-line copy,
+   emitted for SettleToGround's uninlined call.  A third identical Seed
+   emission at 0x00457580 is pulled by the unrecovered OctPreTree trace walk at
+   0x00467BB0. */
+// FUNCTION: WIZ8 0x00457640
+void W8OctreeTrace::Seed(const srVector3T<float>* from, const srVector3T<float>* to)
+{
+    start_00 = *from;
+    end_0c = *to;
+    step_18.x = end_0c.x - start_00.x;
+    step_18.y = end_0c.y - start_00.y;
+    step_18.z = end_0c.z - start_00.z;
+    float length = step_18.Length();
+    length_28 = length;
+    hit_limit_24 = length;
+    float scale = (float)g_double_005ebc30 / length_28; /* c-style-cast-ok:
+        the retail divisor is a double constant folded onto a float ray */
+    step_18.x *= scale;
+    step_18.y *= scale;
+    step_18.z *= scale;
+    state_2c = 0;
+}
+
+// FUNCTION: WIZ8 0x00457700
+void W8OctreeTrace::Reseed(const srVector3T<float>* from, const srVector3T<float>* to)
+{
+    start_00 = *from;
+    end_0c = *to;
+    step_18.x = end_0c.x - start_00.x;
+    step_18.y = end_0c.y - start_00.y;
+    step_18.z = end_0c.z - start_00.z;
+    float length = step_18.Length();
+    length_28 = length;
+    hit_limit_24 = length;
+    float scale = (float)g_double_005ebc30 / length_28; /* c-style-cast-ok:
+        the retail divisor is a double constant folded onto a float ray */
+    step_18.x *= scale;
+    step_18.y *= scale;
+    step_18.z *= scale;
+    state_2c = 0;
 }

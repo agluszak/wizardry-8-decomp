@@ -8,6 +8,8 @@ class srModelInstance;
 class W8Prop;
 class Trigger;
 struct W8WorldItem;
+class W8Octree;
+struct W8GameData;
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
@@ -16,6 +18,10 @@ struct W8WorldItem;
 class GDProp {
     friend class W8Prop;
     friend class W8PathingService;
+    /* W8Octree's AABB occupancy test and W8GameData's prop-surface trace read
+       the geometry members directly in retail. */
+    friend class W8Octree;
+    friend struct W8GameData;
 
 public:
     GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,

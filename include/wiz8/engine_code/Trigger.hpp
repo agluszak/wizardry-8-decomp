@@ -71,8 +71,7 @@ public:
     srVector3T<float> position_08c;
 };
 
-static_assert(sizeof(W8DoorTriggerActionData) == 0x98,
-              "W8DoorTriggerActionData_must_be_0x98");
+static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
 
 /* Type 6 owns the string stored in the common payload's +8 union. */
 class W8TriggerActionData005EC158 : public W8TriggerActionData {
@@ -278,3 +277,6 @@ Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
 
 stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);
 void DestroyAllWorldTriggers(W8World* world);
+/* Walk the world's triggers for a type-0x34 RunDestination trigger whose
+   annulus contains the position; answers true when one does. */
+unsigned char InsideDestinationTrigger00445940(float x, float y, float z);

@@ -14,10 +14,13 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
@@ -56,8 +59,18 @@ void W8Octree::GetPathSurfaceNormal00433A70(const srVector3T<float>* position,
     normal->z = 0.0f;
 }
 
+// GLOBAL: WIZ8 0x00659760
+int g_octree_query_slot_00659760;
+// GLOBAL: WIZ8 0x00659764
+unsigned short g_octree_query_kind_00659764;
+// GLOBAL: WIZ8 0x00659766
+unsigned short g_octree_query_id_00659766;
+
 // GLOBAL: WIZ8 0x00659770
 unsigned int* g_octree_storage_00659770;
+
+// GLOBAL: WIZ8 0x00659774
+unsigned int g_octree_query_cell_00659774;
 
 // GLOBAL: WIZ8 0x00659778
 GETFILESTRUCT g_octree_file_search_00659778;
@@ -72,7 +85,7 @@ char g_octree_point_extension_00606810[] = ".pts";
 char g_octree_file_search_wildcard_006068a0[] = "*";
 
 // GLOBAL: WIZ8 0x00659890
-unsigned long g_octree_state_00659890;
+int* g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
 srNode* g_octree_trace_node_00659894;
 // GLOBAL: WIZ8 0x00659898
@@ -104,6 +117,24 @@ void NoOct(void)
 // GLOBAL: WIZ8 0x005ec02c
 static const float NAVIGATOR_MINIMUM_HORIZONTAL_DISTANCE = 50.0f;
 
+/* Noise falloff on the trace resolver's sphere-distance penalty: the farther
+   the probe is along the ray, the more the candidate's effective distance is
+   discounted. Shared with CreateTraceModel. */
+// GLOBAL: WIZ8 0x005ebc78
+float g_float_005ebc78 = 0.15000000596046448f;
+/* Vertical snap ceiling for navigator placement: the source may rise or fall
+   at most this many units before a candidate is rejected outright. */
+// GLOBAL: WIZ8 0x005ec038
+double g_double_005ec038 = 5000.0;
+/* Multiplier on the placement radius that gives the monster-proximity query
+   box its extent. */
+// GLOBAL: WIZ8 0x005ec048
+float g_float_005ec048 = 15.0f;
+/* Jitter scale applied to the Random(1000) roll for ring candidates past the
+   first; 0.0002 * 1000 spans 0.2 units. */
+// GLOBAL: WIZ8 0x005ec050
+float g_float_005ec050 = 0.00020000000949949026f;
+
 // FUNCTION: WIZ8 0x0042f7e0
 void W8Octree::UpdateCameraVisibility0042F7E0()
 {
@@ -128,8 +159,8 @@ void W8Octree::UpdateCameraVisibility0042F7E0()
 
     srVector3T<double> dof = world->camera->getWorldSpaceDOF();
     camera_dof_1cc = dof;
-    horizontal_fov_cosine_1f8 = (float)cos(horizontal_fov_1f0);
-    vertical_fov_cosine_1fc = (float)cos(vertical_fov_1f4);
+    horizontal_fov_cosine_1f8 = static_cast<float>(cos(horizontal_fov_1f0));
+    vertical_fov_cosine_1fc = static_cast<float>(cos(vertical_fov_1f4));
     m_owned_190->ClearAll();
     m_projected_regions_15c->ClearAll();
     UpdateVisibility004304A0();
@@ -497,8 +528,10 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
     for (int axis = 0; axis < 3; ++axis) {
         box_min[axis] = (&spatial_000.minimum_0c.x)[axis];
         box_max[axis] = (&spatial_000.maximum_18.x)[axis];
-        cells[axis] = (int)(((&location->x)[axis] - box_min[axis]) / spatial_000.node_extent_70);
-        link_cell[axis] = (int)(((&location->x)[axis] - box_min[axis]) / spatial_000.positional_54);
+        cells[axis] =
+            static_cast<int>((((&location->x)[axis] - box_min[axis]) / spatial_000.node_extent_70));
+        link_cell[axis] =
+            static_cast<int>((((&location->x)[axis] - box_min[axis]) / spatial_000.positional_54));
         if ((&location->x)[axis] < box_min[axis]) {
             --cells[axis];
             inside = 0;
@@ -507,10 +540,11 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
             inside = 0;
         }
         if (depth != 0) {
-            depth[axis] = ((&location->x)[axis] -
-                           ((float)cells[axis] * spatial_000.node_extent_70 + box_min[axis])) /
-                              spatial_000.node_extent_70 -
-                          g_float_005ebc7c;
+            depth[axis] =
+                ((&location->x)[axis] -
+                 (static_cast<float>(cells[axis]) * spatial_000.node_extent_70 + box_min[axis])) /
+                    spatial_000.node_extent_70 -
+                g_float_005ebc7c;
         }
     }
     if (!inside) {
@@ -544,7 +578,7 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
             }
         }
         if (node != 0) {
-            node = (int)m_owned_09c[node].children_04[child_index];
+            node = static_cast<int>(m_owned_09c[node].children_04[child_index]);
         }
         span *= g_float_005ebc7c;
     }
@@ -600,11 +634,11 @@ void W8Octree::BuildFrustumPlanes004302E0()
     float fov = horizontal_fov_1f0 * g_float_005ebc7c;
     float extent = spatial_000.positional_60;
     float far_clip = far_clip_200;
-    float sine = (float)sin(fov);
-    float cosine = (float)cos(fov);
+    float sine = static_cast<float>(sin(fov));
+    float cosine = static_cast<float>(cos(fov));
     float ratio = extent / cosine;
-    float tangent = (float)tan(fov);
-    float tangent_vertical = (float)tan(vertical_fov_1f4 * g_float_005ebc7c);
+    float tangent = static_cast<float>(tan(fov));
+    float tangent_vertical = static_cast<float>(tan(vertical_fov_1f4 * g_float_005ebc7c));
     srVector3T<float> corners[8];
 
     m_frustum_planes_21c[4].w = 0.0f;
@@ -657,13 +691,14 @@ void W8Octree::CollectVisibleCells0042FE90()
 {
     BuildFrustumPlanes004302E0();
     MarkVisibleRegions004301C0();
-    short radius = (short)((int)(far_clip_200 / spatial_000.positional_54) + 1);
+    short radius =
+        static_cast<short>((static_cast<int>((far_clip_200 / spatial_000.positional_54)) + 1));
     short center[3];
 
     for (int axis = 0; axis < 3; ++axis) {
-        center[axis] =
-            (short)(int)(((&camera_location_1c0.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
-                         spatial_000.positional_54);
+        center[axis] = static_cast<short>(
+            static_cast<int>((((&camera_location_1c0.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+                              spatial_000.positional_54)));
     }
     unsigned int region_base = m_positional_140;
     for (short x = -radius; x <= radius; ++x) {
@@ -698,7 +733,7 @@ void W8Octree::CollectVisibleCells0042FE90()
                             if (cell_z & mask) {
                                 ++child;
                             }
-                            node = (int)m_owned_09c[node].children_04[child];
+                            node = static_cast<int>(m_owned_09c[node].children_04[child]);
                         }
                     }
                     if (node != 0) {
@@ -710,12 +745,12 @@ void W8Octree::CollectVisibleCells0042FE90()
                 } else {
                     float offset = spatial_000.positional_54 * g_float_005ebc7c;
                     srVector3T<float> point;
-                    point.x = (float)cell_x * spatial_000.positional_54 + offset +
+                    point.x = static_cast<float>(cell_x) * spatial_000.positional_54 + offset +
                               spatial_000.minimum_0c.x;
-                    point.y = (float)cell_y * spatial_000.positional_54 + spatial_000.minimum_0c.y +
-                              offset;
-                    point.z = (float)cell_z * spatial_000.positional_54 + spatial_000.minimum_0c.z +
-                              offset;
+                    point.y = static_cast<float>(cell_y) * spatial_000.positional_54 +
+                              spatial_000.minimum_0c.y + offset;
+                    point.z = static_cast<float>(cell_z) * spatial_000.positional_54 +
+                              spatial_000.minimum_0c.z + offset;
                     if (PointInsideFrustum0046D880(&point, m_frustum_planes_21c) == 0) {
                         continue;
                     }
@@ -735,7 +770,7 @@ void W8Octree::CollectVisibleCells0042FE90()
                             if (cell_z & mask) {
                                 ++child;
                             }
-                            node = (int)m_owned_09c[node].children_04[child];
+                            node = static_cast<int>(m_owned_09c[node].children_04[child]);
                         }
                     }
                     if (node != 0) {
@@ -1031,12 +1066,12 @@ unsigned char W8Octree::UpdateWorldTrace00433EB0()
 
     GetCameraPosition(&camera);
     for (int axis = 0; axis < 3; ++axis) {
-        cell[axis] = (int)(((&camera.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
-                           spatial_000.node_extent_70);
+        cell[axis] = static_cast<int>(
+            (((&camera.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) / spatial_000.node_extent_70));
     }
-    minimum.x = (float)cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
-    minimum.y = (float)cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
-    minimum.z = (float)cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
+    minimum.x = static_cast<float>(cell[0]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
+    minimum.y = static_cast<float>(cell[1]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+    minimum.z = static_cast<float>(cell[2]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
     maximum.x = minimum.x + spatial_000.node_extent_70;
     maximum.y = minimum.y + spatial_000.node_extent_70;
     maximum.z = minimum.z + spatial_000.node_extent_70;
@@ -1056,10 +1091,10 @@ unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, d
 {
     unsigned char* bytes =
         reinterpret_cast<unsigned char*>(color); // reinterpret-ok: packed colour storage
-    bytes[3] = (unsigned char)(red * g_double_005ebf60);
-    bytes[2] = (unsigned char)(green * g_double_005ebf60);
-    bytes[1] = (unsigned char)(blue * g_double_005ebf60);
-    bytes[0] = (unsigned char)(alpha * g_double_005ebf60);
+    bytes[3] = static_cast<unsigned char>((red * g_double_005ebf60));
+    bytes[2] = static_cast<unsigned char>((green * g_double_005ebf60));
+    bytes[1] = static_cast<unsigned char>((blue * g_double_005ebf60));
+    bytes[0] = static_cast<unsigned char>((alpha * g_double_005ebf60));
     return color;
 }
 
@@ -1222,7 +1257,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
         movement->target_position_04c.y = spatial_000.clipped_maximum_30.y;
     }
     srVector3T<float> probe = movement->target_position_04c;
-    SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    SettleToGround(&probe, &hit, 1, 500.0f);
     if (hit != 0) {
         movement->target_position_04c.y = probe.y;
     }
@@ -1398,7 +1433,7 @@ unsigned long W8Octree::FindLeaf00433660(const int* point)
     unsigned long node = 1;
 
     do {
-        if ((long)level < 1) {
+        if (static_cast<long>(level) < 1) {
             break;
         }
         mask /= 2;
@@ -1421,6 +1456,103 @@ unsigned long W8Octree::FindLeaf00433660(const int* point)
     return node;
 }
 
+/* Settle a point onto the geometry below it: seed a downward trace from the
+   point raised by `limit` and march the cell column downward, optionally
+   testing the cell's props first (a prop hit is remembered in current_sector
+   and forfeits the geometry result) and always testing the level surfaces.
+   The point's y drops to the contact on a hit and keeps its input value on a
+   miss; `out_hit` receives the outcome byte when given. */
+// FUNCTION: WIZ8 0x00433820
+float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_hit, char test_props,
+                               float limit)
+{
+    W8OctreeTrace trace;
+    int cell[3];
+    srVector3T<float> start;
+    srVector3T<float> end;
+    bool prop_hit = false;
+    char hit = 0;
+
+    m_positional_1b8 = 0;
+    if (test_props != 0) {
+        current_sector = -1;
+    }
+    m_owned_194->ClearAll();
+    if (spatial_000.clipped_maximum_30.y < position->y) {
+        position->y = spatial_000.clipped_maximum_30.y;
+    }
+    end.x = position->x;
+    start.y = position->y + limit;
+    end.y = position->y;
+    end.z = position->z;
+    start.x = position->x;
+    start.z = position->z;
+    cell[0] =
+        static_cast<int>(((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    cell[1] =
+        static_cast<int>(((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    cell[2] =
+        static_cast<int>(((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    end.y =
+        static_cast<float>((cell[1] - 1)) * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+    trace.Reseed(&start, &end);
+    if (-1 < cell[1]) {
+        do {
+            if (hit != 0) {
+                goto done;
+            }
+            if (test_props != 0) {
+                g_octree_state_00659890 =
+                    (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
+                        aliases the internal u32 id buffer */
+                m_positional_1b8 = 0;
+                unsigned long before = m_positional_1b8;
+                CollectObjectsInCell(cell, 8);
+                if (m_positional_1b8 != before) {
+                    int prop =
+                        g_octree_game_data_00652db0->TestPropSurfaces(m_aulGDObjs, &trace, 0, 0);
+                    current_sector = prop;
+                    if (prop >= 0) {
+                        prop_hit = true;
+                    }
+                }
+            }
+            g_octree_game_data_00652db0->value_88 = 1;
+            if (ProbeCellForTrace(cell) == 0) {
+                goto descend;
+            }
+            hit = g_octree_game_data_00652db0->TestTraceResult(m_positional_1b8, m_aulGDObjs,
+                                                               &trace, 0, 0);
+            if (hit == 0) {
+            descend:
+                if (prop_hit) {
+                    hit = 1;
+                } else {
+                    float level = static_cast<float>(cell[1]);
+                    --cell[1];
+                    start.y = level * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+                    end.y = end.y - spatial_000.node_extent_70;
+                    trace.Reseed(&start, &end);
+                }
+            } else if (prop_hit) {
+                current_sector = -1;
+            }
+            g_octree_game_data_00652db0->value_88 = 0;
+        } while (-1 < cell[1]);
+        if (hit != 0) {
+        done:
+            position->y = trace.end_0c.y;
+            goto out;
+        }
+    }
+    trace.end_0c.y = position->y;
+out:
+    if (out_hit != 0) {
+        *out_hit = hit;
+    }
+    return trace.end_0c.y;
+}
+
 /* Whether one point can see another, and where the line stops if it cannot.
 
    Both of these walk the same cell line. A line inside one or two cells probes
@@ -1438,33 +1570,35 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
                               char allow_fallback)
 {
     W8OctreeWalk walk;
+    W8OctreeTrace trace;
     int cell[5];
+    int end_cell[3];
     int step[4];
-    unsigned char result[12];
-    srVector3T<float> hit;
     unsigned char blocked = 0;
     int span;
     int error_0;
     int error_1;
-    int index;
 
-    SeedCellProbe00457640(from, to);
+    trace.Seed(from, to);
     m_positional_1b8 = 0;
     m_owned_190->ClearAll();
     m_current_regions_160->ClearAll();
-    cell[0] = (int)((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    step[3] = (int)((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    cell[1] = (int)((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    step[2] = (int)((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    cell[2] = (int)((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
-    step[1] = (int)((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
-    span = abs(cell[2] - step[1]) + abs(cell[1] - step[2]) + abs(cell[0] - step[3]);
+    cell[0] = static_cast<int>(((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    end_cell[0] =
+        static_cast<int>(((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    cell[1] = static_cast<int>(((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    end_cell[1] =
+        static_cast<int>(((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    cell[2] = static_cast<int>(((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    end_cell[2] =
+        static_cast<int>(((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
     if (span < 2) {
-        ProbeCellForBlockers00435C40(cell);
-        blocked = TestProbeResult00435F00(result);
+        ProbeCellForBlockers(cell);
+        blocked = TestProbeResult(&trace);
         if (blocked == 0 && span != 0) {
-            ProbeCellForBlockers00435C40(&step[1]);
-            blocked = TestProbeResult00435F00(result);
+            ProbeCellForBlockers(end_cell);
+            blocked = TestProbeResult(&trace);
         }
     } else {
         BuildCellWalk(from, to, &walk);
@@ -1484,35 +1618,35 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
                 if (blocked != 0) {
                     break;
                 }
-                if (ProbeCellForBlockers00435C40(cell) != 0) {
-                    blocked = TestProbeResult00435F00(result);
+                if (ProbeCellForBlockers(cell) != 0) {
+                    blocked = TestProbeResult(&trace);
                 }
                 if (error_0 < error_1) {
                     if (error_0 < 0 && blocked == 0) {
                         error_0 += walk.error_reset_30;
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
-                        if (ProbeCellForBlockers00435C40(cell) != 0) {
-                            blocked = TestProbeResult00435F00(result);
+                        if (ProbeCellForBlockers(cell) != 0) {
+                            blocked = TestProbeResult(&trace);
                         }
                         if (error_1 < 0 && blocked == 0) {
                             cell[cell[4]] += step[cell[4]];
                             error_1 += walk.error_reset_3c;
-                            if (ProbeCellForBlockers00435C40(cell) != 0) {
-                                blocked = TestProbeResult00435F00(result);
+                            if (ProbeCellForBlockers(cell) != 0) {
+                                blocked = TestProbeResult(&trace);
                             }
                         }
                     }
                 } else if (error_1 < 0 && blocked == 0) {
                     cell[cell[4]] += step[cell[4]];
                     error_1 += walk.error_reset_3c;
-                    if (ProbeCellForBlockers00435C40(cell) != 0) {
-                        blocked = TestProbeResult00435F00(result);
+                    if (ProbeCellForBlockers(cell) != 0) {
+                        blocked = TestProbeResult(&trace);
                     }
                     if (error_0 < 0 && blocked == 0) {
                         error_0 += walk.error_reset_30;
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
-                        if (ProbeCellForBlockers00435C40(cell) != 0) {
-                            blocked = TestProbeResult00435F00(result);
+                        if (ProbeCellForBlockers(cell) != 0) {
+                            blocked = TestProbeResult(&trace);
                         }
                     }
                 }
@@ -1522,31 +1656,27 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
                 ++cell[3];
             } while (cell[3] < step[3]);
         }
-        if (blocked == 0) {
-            if (allow_fallback != 0 && TraceAgainstProps00436510(from, to, 1, 1) != 0) {
-                blocked = 1;
-            }
-            return blocked == 0;
-        }
     }
     if (blocked != 0) {
-        to->x = hit.x;
-        to->y = hit.y;
-        to->z = hit.z;
+        to->x = trace.end_0c.x;
+        to->y = trace.end_0c.y;
+        to->z = trace.end_0c.z;
+    } else if (allow_fallback != 0 && TraceAgainstProps(from, to, 1, 1) != 0) {
+        blocked = 1;
     }
     return blocked == 0;
 }
 
 // FUNCTION: WIZ8 0x00434f20
-short W8Octree::TraceLineOfSight(const srVector3T<float>* from, const srVector3T<float>* to,
+short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float>* to,
                                  char trace_world, int from_location_id, int to_location_id,
                                  char visit_octree, int trace_mode)
 {
     W8OctreeWalk walk;
-    int cell[5];
-    int step[4];
-    unsigned char result[12];
-    srVector3T<float> hit;
+    W8OctreeTrace trace;
+    int cell[3];
+    int end_cell[3];
+    int step[3];
     char blocked = 0;
     char previous = 0;
     int span;
@@ -1554,29 +1684,38 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, const srVector3T
     int error_1;
     int minor_0;
     int minor_1;
+    int major;
     int index;
-    int scratch;
+    int count;
+    int result;
+    int hit_location;
 
-    SeedCellProbe00457640(from, to);
-    cell[3] = 0;
+    trace.Seed(from, to);
+    result = 0;
     if (visit_octree != 0) {
         m_positional_1b8 = 0;
         m_owned_194->ClearAll();
-        cell[0] = (int)((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-        step[3] = (int)((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-        cell[1] = (int)((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-        step[1] = (int)((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-        cell[2] = (int)((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
-        step[0] = (int)((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
-        span = abs(cell[2] - step[0]) + abs(cell[1] - step[1]) + abs(cell[0] - step[3]);
+        cell[0] =
+            static_cast<int>(((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+        end_cell[0] =
+            static_cast<int>(((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+        cell[1] =
+            static_cast<int>(((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+        end_cell[1] =
+            static_cast<int>(((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+        cell[2] =
+            static_cast<int>(((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+        end_cell[2] =
+            static_cast<int>(((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+        span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
         if (span < 2) {
-            ProbeCellForTrace00435B00(cell);
-            blocked =
-                TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs, result, m_positional_134, 0);
+            ProbeCellForTrace(cell);
+            blocked = g_octree_game_data_00652db0->TestTraceResult(m_positional_1b8, m_aulGDObjs,
+                                                                   &trace, m_positional_134, 0);
             if (blocked == 0 && span != 0) {
-                ProbeCellForTrace00435B00(&step[3]);
-                blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs, result,
-                                                  m_positional_134, 0);
+                ProbeCellForTrace(end_cell);
+                blocked = g_octree_game_data_00652db0->TestTraceResult(
+                    m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
             }
         } else {
             BuildCellWalk(from, to, &walk);
@@ -1584,10 +1723,10 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, const srVector3T
             cell[0] = walk.cell_00[0];
             cell[2] = walk.cell_00[2];
             minor_0 = walk.minor_axis_1c;
-            scratch = walk.major_axis_18;
+            major = walk.major_axis_18;
             minor_1 = walk.minor_axis_20;
             step[0] = walk.step_0c[0];
-            cell[4] = walk.count_24;
+            count = walk.count_24;
             step[1] = walk.step_0c[1];
             step[2] = walk.step_0c[2];
             index = 0;
@@ -1600,71 +1739,306 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, const srVector3T
                     if (blocked != 0) {
                         break;
                     }
-                    if (ProbeCellForTrace00435B00(cell) != 0) {
-                        blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs, result,
-                                                          m_positional_134, 0);
+                    if (ProbeCellForTrace(cell) != 0) {
+                        blocked = g_octree_game_data_00652db0->TestTraceResult(
+                            m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
                     }
                     if (error_0 < error_1) {
                         if (error_0 < 0 && blocked == 0) {
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
-                            if (ProbeCellForTrace00435B00(cell) != 0) {
-                                blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs,
-                                                                  result, m_positional_134, 0);
+                            if (ProbeCellForTrace(cell) != 0) {
+                                blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                    m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
                             }
                             if (error_1 < 0 && blocked == 0) {
                                 cell[minor_1] += step[minor_1];
                                 error_1 += walk.error_reset_3c;
-                                if (ProbeCellForTrace00435B00(cell) != 0) {
-                                    blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs,
-                                                                      result, m_positional_134, 0);
+                                if (ProbeCellForTrace(cell) != 0) {
+                                    blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                        m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
                                 }
                             }
                         }
                     } else if (error_1 < 0 && blocked == 0) {
                         cell[minor_1] += step[minor_1];
                         error_1 += walk.error_reset_3c;
-                        if (ProbeCellForTrace00435B00(cell) != 0) {
-                            blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs, result,
-                                                              m_positional_134, 0);
+                        if (ProbeCellForTrace(cell) != 0) {
+                            blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
                         }
                         if (error_0 < 0 && blocked == 0) {
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
-                            if (ProbeCellForTrace00435B00(cell) != 0) {
-                                blocked = TestTraceResult0041C330(m_positional_1b8, m_aulGDObjs,
-                                                                  result, m_positional_134, 0);
+                            if (ProbeCellForTrace(cell) != 0) {
+                                blocked = g_octree_game_data_00652db0->TestTraceResult(
+                                    m_positional_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
                             }
                         }
                     }
-                    cell[scratch] += step[scratch];
+                    cell[major] += step[major];
                     error_1 -= walk.error_delta_34;
                     error_0 -= walk.error_delta_28;
                     ++index;
                     previous = blocked;
-                } while (index < cell[4]);
+                } while (index < count);
             }
         }
-        if (trace_world != 0 && TraceAgainstProps00436510(from, &hit, 0, 0) != 0) {
+        if (trace_world == 0 || TraceAgainstProps(from, &trace.end_0c, 0, 0) == 0) {
+            if (blocked == 0) {
+                goto resolve;
+            }
+        } else {
             blocked = 1;
-        } else if (blocked == 0) {
-            goto resolve;
         }
-        cell[3] = 1;
+        result = 1;
         if (blocked != 0) {
-            to = &hit;
+            to->x = trace.end_0c.x;
+            to->y = trace.end_0c.y;
+            to->z = trace.end_0c.z;
             return 1;
         }
     }
 resolve:
-    if (from_location_id >= -2) {
-        cell[4] = to_location_id;
-        if (ResolveTraceHit004353F0(result, &hit, from_location_id, &cell[4], to_location_id, 0,
-                                    trace_mode) != 0) {
+    if (from_location_id > -3) {
+        hit_location = to_location_id;
+        if (ResolveTraceHit(&trace.start_00, &trace.end_0c, from_location_id, &hit_location,
+                            to_location_id, 0, trace_mode) != 0) {
+            to->x = trace.end_0c.x;
+            to->y = trace.end_0c.y;
+            to->z = trace.end_0c.z;
             return -1;
         }
     }
-    return (short)cell[3];
+    return static_cast<short>(result);
+}
+
+/* Nearest ray-vs-sphere hit across the kind-12 objects in the segment box,
+   then against the camera sphere. `hit_location` carries the target's
+   location id in (a null or negative in-value skips the to-exclusion and the
+   probe set) and receives the winning id, 0 for the camera, or -1 on a miss.
+   `excluded`/`location` skip the two endpoint objects; `flags` masks each
+   monster's navigator unknown_090; `noise_adjust` applies the range-scaled
+   noise penalty. The winning offset is the last colliding candidate's, not
+   necessarily the nearest id's - the retail quirk is preserved. */
+// FUNCTION: WIZ8 0x004353f0
+char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>* to, int excluded,
+                               int* hit_location, int location, unsigned int flags,
+                               char noise_adjust)
+{
+    unsigned int index = 0;
+    int* ids = 0;
+    unsigned int best_index = 0;
+    double best = -1.0;
+    float segment_length = 0.0f;
+    float inflate;
+    int target;
+    W8Navigator* navigator;
+    float radius;
+    unsigned int probe_set = 0;
+    srVector3T<float> low;
+    srVector3T<float> high;
+    srVector3T<float> offset;
+    srVector3T<float> direction;
+    srVector3T<float> center;
+    srVector3T<float> camera;
+
+    if (noise_adjust != 0) {
+        segment_length = static_cast<float>(sqrt((to->x - from->x) * (to->x - from->x) +
+                                                 (to->y - from->y) * (to->y - from->y) +
+                                                 (to->z - from->z) * (to->z - from->z)));
+    }
+    inflate = g_runtime_world_scale_6081e8;
+    if (inflate < g_position_height_epsilon_005ebfdc) {
+        inflate = g_position_height_epsilon_005ebfdc;
+    }
+    if (hit_location == 0) {
+        target = -3;
+    } else {
+        target = *hit_location;
+    }
+    high.x = from->x;
+    high.y = from->y;
+    high.z = from->z;
+    low.x = from->x;
+    low.y = from->y;
+    low.z = from->z;
+    if (low.x <= to->x) {
+        high.x = to->x;
+    } else {
+        low.x = to->x;
+    }
+    if (low.y <= to->y) {
+        high.y = to->y;
+    } else {
+        low.y = to->y;
+    }
+    if (low.z <= to->z) {
+        high.z = to->z;
+    } else {
+        low.z = to->z;
+    }
+    low.x = low.x - inflate;
+    low.y = low.y - inflate;
+    low.z = low.z - inflate;
+    high.x = high.x + inflate;
+    high.y = high.y + inflate;
+    high.z = high.z + inflate;
+    if (target == -1) {
+        radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
+        navigator = g_startup_world_659c0c;
+    } else {
+        if (target < 1) {
+            goto no_probes;
+        }
+        unsigned int monster_index = MonsterGetIndexByLocationID(0x1836, OCTREE_CPP, target, 1);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
+        if (info == 0 || info->monster == 0) {
+            goto no_probes;
+        }
+        navigator = info->monster;
+        radius = navigator->movement_0c0.alternate_radius_0b4;
+    }
+    if (navigator != 0 && pathing_180 != 0) {
+        probe_set = pathing_180->CollectPathProbes004656A0(&navigator->movement_0c0, radius);
+    }
+no_probes:;
+    unsigned int count =
+        static_cast<unsigned int>(QueryObjects(&ids, &low, &high, 0xc, -1)); /* c-style-cast-ok:
+            the shared query count field is stored unsigned */
+    if (count != 0) {
+        do {
+            int id = ids[index];
+            if (((excluded < 0) || (excluded != id)) && ((target < 0) || (location != id)) &&
+                (probe_set == 0 || pathing_180->MatchesPathProbe00465970(id, 0, 0) == 0)) {
+                unsigned int monster_index = MonsterGetIndexByLocationID(0x1851, OCTREE_CPP, id, 1);
+                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
+                if (info != 0) {
+                    W8Monster* monster = info->monster;
+                    if (monster != 0 && monster->state_088 != 0 &&
+                        (monster->unknown_090 & flags) == 0) {
+                        center.x = monster->movement_0c0.position_040.x;
+                        center.z = monster->movement_0c0.position_040.z;
+                        center.y = monster->movement_0c0.position_040.y +
+                                   monster->movement_0c0.height_offset_0b8;
+                        float distance = PointToSegmentDistance00437540(&center, from, to, 1, 0);
+                        if (noise_adjust != 0) {
+                            distance =
+                                distance - (static_cast<float>(
+                                                sqrt((center.x - from->x) * (center.x - from->x) +
+                                                     (center.y - from->y) * (center.y - from->y) +
+                                                     (center.z - from->z) * (center.z - from->z))) /
+                                                segment_length * g_float_005ebc78 +
+                                            g_float_005ebc3c) *
+                                               g_world_scale_005ebc40;
+                            if (distance < g_float_005ebb34) {
+                                distance = g_float_005ebb34;
+                            }
+                        }
+                        float monster_radius = monster->radius_084;
+                        if (distance < monster_radius) {
+                            direction.x = to->x - from->x;
+                            direction.y = to->y - from->y;
+                            direction.z = to->z - from->z;
+                            double length2 = static_cast<double>(
+                                (static_cast<float>(direction.x) * direction.x +
+                                 static_cast<float>(direction.y) * direction.y +
+                                 static_cast<float>(direction.z) * direction.z));
+                            offset = direction;
+                            if (length2 !=
+                                static_cast<double>(static_cast<float>(g_zero_005ebb40))) {
+                                float fraction =
+                                    (static_cast<float>(sqrt(length2)) -
+                                     static_cast<float>(sqrt(static_cast<double>(
+                                         (static_cast<float>(monster_radius) * monster_radius -
+                                          static_cast<float>(distance) * distance))))) /
+                                    static_cast<float>(sqrt(length2));
+                                offset.x = direction.x * fraction;
+                                offset.y = direction.y * fraction;
+                                offset.z = direction.z * fraction;
+                            }
+                            if (0.0 <= best) {
+                                float span = offset.x * offset.x;
+                                if (static_cast<float>(sqrt(static_cast<double>(
+                                        (offset.z * offset.z + offset.y * offset.y + span)))) <
+                                    static_cast<float>(best)) {
+                                    best = static_cast<double>(
+                                        static_cast<float>(sqrt(static_cast<double>(
+                                            (offset.y * offset.y + offset.z * offset.z + span)))));
+                                    best_index = index;
+                                }
+                            } else {
+                                best = static_cast<double>(static_cast<float>(sqrt(
+                                    static_cast<double>((offset.x * offset.x + offset.y * offset.y +
+                                                         offset.z * offset.z)))));
+                                best_index = index;
+                            }
+                        }
+                    }
+                }
+            }
+            ++index;
+        } while (index < count);
+        if (0.0 <= best) {
+            to->x = offset.x + from->x;
+            to->y = offset.y + from->y;
+            to->z = offset.z + from->z;
+            if (hit_location != 0) {
+                *hit_location = ids[best_index];
+            }
+            return 1;
+        }
+    }
+    if (excluded != -1 && location != -1) {
+        GetCameraPosition(&camera);
+        center.x = camera.x;
+        center.y = camera.y;
+        center.z = camera.z;
+        float distance = PointToSegmentDistance00437540(&center, from, to, 1, 0);
+        if (noise_adjust != 0) {
+            distance =
+                distance - (static_cast<float>(sqrt((center.y - from->y) * (center.y - from->y) +
+                                                    (center.z - from->z) * (center.z - from->z) +
+                                                    (center.x - from->x) * (center.x - from->x))) /
+                                segment_length * g_float_005ebc78 +
+                            g_float_005ebc3c) *
+                               g_world_scale_005ebc40;
+            if (distance < g_float_005ebb34) {
+                distance = g_float_005ebb34;
+            }
+        }
+        float camera_radius = g_startup_world_659c0c->radius_084 * g_float_006081f4;
+        if (distance < camera_radius) {
+            offset.x = to->x - from->x;
+            offset.y = to->y - from->y;
+            offset.z = to->z - from->z;
+            double length2 = static_cast<double>((static_cast<float>(offset.y) * offset.y +
+                                                  static_cast<float>(offset.z) * offset.z +
+                                                  static_cast<float>(offset.x) * offset.x));
+            float z_scale;
+            if (length2 == static_cast<double>(static_cast<float>(g_zero_005ebb40))) {
+                z_scale = offset.z;
+            } else {
+                float fraction = (static_cast<float>(sqrt(length2)) -
+                                  static_cast<float>(sqrt(static_cast<double>(
+                                      (static_cast<float>(camera_radius) * camera_radius -
+                                       static_cast<float>(distance) * distance))))) /
+                                 static_cast<float>(sqrt(length2));
+                offset.x = offset.x * fraction;
+                offset.y = offset.y * fraction;
+                z_scale = fraction * offset.z;
+            }
+            to->x = offset.x + from->x;
+            to->y = offset.y + from->y;
+            to->z = z_scale + from->z;
+            if (hit_location != 0) {
+                *hit_location = 0;
+            }
+            return 1;
+        }
+    }
+    *hit_location = -1;
+    return 0;
 }
 
 // TEMPLATE: WIZ8 0x00439290
@@ -1783,15 +2157,15 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(int kind, int id, const
             }
             by_cell = this->by_cell;
             bucket = by_cell->bucket_heads +
-                     ((((unsigned int)occupied >> 10 ^ occupied) >> 10 ^ occupied) &
+                     (((static_cast<unsigned int>(occupied) >> 10 ^ occupied) >> 10 ^ occupied) &
                       (by_cell->bucket_count - 1));
             if (*bucket != -1) {
                 entries = by_cell->entries;
                 slot = *bucket;
                 previous = -1;
                 do {
-                    if (entries[slot].key == (unsigned int)occupied &&
-                        entries[slot].value == (int)object_key) {
+                    if (entries[slot].key == static_cast<unsigned int>(occupied) &&
+                        entries[slot].value == static_cast<int>(object_key)) {
                         if (previous == -1) {
                             *bucket = entries[slot].next_index;
                         } else {
@@ -1809,7 +2183,7 @@ unsigned char W8OctreeObjectRegistry::RegisterObjectCell(int kind, int id, const
         }
         slot = entries[slot].next_index;
     }
-    if ((short)kind == 0xc) {
+    if (static_cast<short>(kind) == 0xc) {
         cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
         tagged_key = (id & 0xffff) + 0xd0000;
         by_object->Remove(&tagged_key, &cell_key);
@@ -1860,15 +2234,21 @@ void W8Octree::AddCollidablePropBounds(int index, const srVector3T<float>* bound
     int z;
 
     for (axis = 0; axis < 3; ++axis) {
-        minimum[axis] =
-            (int)((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+        minimum[axis] = static_cast<int>(
+            ((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     }
-    minimum[0] = (int)((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    minimum[1] = (int)((bounds[0].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    minimum[2] = (int)((bounds[0].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
-    maximum[0] = (int)((bounds[1].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    maximum[1] = (int)((bounds[1].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    maximum[2] = (int)((bounds[1].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+    minimum[0] =
+        static_cast<int>(((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    minimum[1] =
+        static_cast<int>(((bounds[0].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    minimum[2] =
+        static_cast<int>(((bounds[0].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    maximum[0] =
+        static_cast<int>(((bounds[1].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    maximum[1] =
+        static_cast<int>(((bounds[1].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    maximum[2] =
+        static_cast<int>(((bounds[1].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
 
     prop_key = ((index + 1) & 0xffff) + 0x80000;
     for (x = minimum[0]; x <= maximum[0]; ++x) {
@@ -1929,18 +2309,24 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
     int span;
 
     cell_size = spatial_000.node_extent_70 * g_octree_cell_scale_005ebcd0;
-    cell = (int)cell_size;
-    from_cell[0] = (int)((from->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0);
-    to_cell[0] = (int)((to->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0);
-    from_cell[1] = (int)((from->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0);
-    to_cell[1] = (int)((to->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0);
-    from_cell[2] = (int)((from->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0);
-    to_cell[2] = (int)((to->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0);
+    cell = static_cast<int>(cell_size);
+    from_cell[0] =
+        static_cast<int>(((from->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0));
+    to_cell[0] =
+        static_cast<int>(((to->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0));
+    from_cell[1] =
+        static_cast<int>(((from->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0));
+    to_cell[1] =
+        static_cast<int>(((to->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0));
+    from_cell[2] =
+        static_cast<int>(((from->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0));
+    to_cell[2] =
+        static_cast<int>(((to->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0));
 
     for (axis = 0; axis < 3; ++axis) {
         span = to_cell[axis] - from_cell[axis];
-        fraction[axis] = (float)(from_cell[axis] % cell) / cell_size;
-        delta[axis] = (float)span;
+        fraction[axis] = static_cast<float>((from_cell[axis] % cell)) / cell_size;
+        delta[axis] = static_cast<float>(span);
         if (span < 0) {
             step[axis] = -1;
             span = -span;
@@ -1957,12 +2343,14 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
 
     minor_0 = (major + 1) % 3;
     minor_1 = (major + 2) % 3;
-    walk->error_delta_28 = (int)((float)fabs(delta[minor_0] / delta[major]) * cell_size);
-    walk->error_2c =
-        (int)(cell_size * fraction[minor_0] - (float)walk->error_delta_28 * fraction[major]);
-    walk->error_delta_34 = (int)((float)fabs(delta[minor_1] / delta[major]) * cell_size);
-    walk->error_38 =
-        (int)(cell_size * fraction[minor_1] - (float)walk->error_delta_34 * fraction[major]);
+    walk->error_delta_28 =
+        static_cast<int>((static_cast<float>(fabs(delta[minor_0] / delta[major])) * cell_size));
+    walk->error_2c = static_cast<int>((cell_size * fraction[minor_0] -
+                                       static_cast<float>(walk->error_delta_28) * fraction[major]));
+    walk->error_delta_34 =
+        static_cast<int>((static_cast<float>(fabs(delta[minor_1] / delta[major])) * cell_size));
+    walk->error_38 = static_cast<int>((cell_size * fraction[minor_1] -
+                                       static_cast<float>(walk->error_delta_34) * fraction[major]));
     walk->count_24 = longest % cell == 0 ? longest / cell + 1 : longest / cell + 2;
 
     walk->minor_axis_1c = minor_0;
@@ -1978,9 +2366,274 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
     walk->step_0c[2] = step[2];
 }
 
-/* Tell a monster which mesh it now stands on, then queue its move.
+/* The cell probes share one lookup: bounds-check the cell against the grid,
+   resolve its leaf index through the direct leaf grid when one exists else by
+   descending the branch tree one octant per level, then drain the chosen leaf
+   stream into m_aulGDObjs through the m_owned_194 dedupe set. ProbeCellForTrace
+   reads the leaf's gd_polygon_offset_0c into the m_owned_12c surface-id stream;
+   ProbeCellForBlockers reads polygon_offset_08 into the m_owned_0d0 index stream
+   and maps each entry through m_owned_0d4 to a (mesh<<16)|polygon key, marking
+   the mesh in m_current_regions_160. The Append variant skips the result-count
+   reset so successive cells accumulate. */
+// FUNCTION: WIZ8 0x00435b00
+int W8Octree::ProbeCellForTrace(const int* cell)
+{
+    unsigned int leaf_index = 0;
 
-   A location the octree cannot resolve, or one whose submesh has no live model
+    if (cell[0] >= 0 && cell[0] < static_cast<int>(m_positional_0a4) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[1] >= 0 && cell[1] < static_cast<int>(m_positional_0a8) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[2] >= 0 && cell[2] < static_cast<int>(m_positional_0ac) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */) {
+        if (m_owned_0b0 != 0) {
+            leaf_index = m_owned_0b0[spatial_000.positional_64 * cell[0] + cell[2] +
+                                     spatial_000.positional_68 * cell[1]];
+        } else {
+            unsigned int depth = spatial_000.depth_44;
+            unsigned int bit = 1 << (spatial_000.depth_44 & 0x1f);
+            leaf_index = 1;
+            do {
+                if (static_cast<int>(depth) < 1) {
+                    break;
+                }
+                bit = bit / 2;
+                int octant = 0;
+                if ((bit & cell[0]) != 0) {
+                    octant = 4;
+                }
+                if ((cell[1] & bit) != 0) {
+                    octant += 2;
+                }
+                if ((cell[2] & bit) != 0) {
+                    octant += 1;
+                }
+                leaf_index = m_owned_09c[leaf_index].children_04[octant];
+                --depth;
+            } while (leaf_index != 0);
+            if (m_positional_0b8 < leaf_index) {
+                leaf_index = 0;
+            }
+        }
+    }
+    m_positional_1b8 = 0;
+    if (leaf_index != 0 && m_owned_0a0[leaf_index].gd_polygon_offset_0c != 0) {
+        const unsigned long* stream = m_owned_12c + m_owned_0a0[leaf_index].gd_polygon_offset_0c;
+        int remaining = *stream;
+        while (remaining != 0) {
+            ++stream;
+            if (9999 < m_positional_1b8) {
+                break;
+            }
+            if (m_owned_194->Set(*stream) == 0) {
+                m_aulGDObjs[m_positional_1b8] = *stream;
+                ++m_positional_1b8;
+            }
+            --remaining;
+        }
+    }
+    return m_positional_1b8;
+}
+
+// FUNCTION: WIZ8 0x00435c40
+int W8Octree::ProbeCellForBlockers(const int* cell)
+{
+    unsigned int leaf_index = 0;
+
+    if (cell[0] >= 0 && cell[0] < static_cast<int>(m_positional_0a4) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[1] >= 0 && cell[1] < static_cast<int>(m_positional_0a8) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[2] >= 0 && cell[2] < static_cast<int>(m_positional_0ac) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */) {
+        if (m_owned_0b0 != 0) {
+            leaf_index = m_owned_0b0[spatial_000.positional_64 * cell[0] + cell[2] +
+                                     spatial_000.positional_68 * cell[1]];
+        } else {
+            unsigned int depth = spatial_000.depth_44;
+            unsigned int bit = 1 << (spatial_000.depth_44 & 0x1f);
+            leaf_index = 1;
+            do {
+                if (static_cast<int>(depth) < 1) {
+                    break;
+                }
+                bit = bit / 2;
+                int octant = 0;
+                if ((bit & cell[0]) != 0) {
+                    octant = 4;
+                }
+                if ((cell[1] & bit) != 0) {
+                    octant += 2;
+                }
+                if ((cell[2] & bit) != 0) {
+                    octant += 1;
+                }
+                leaf_index = m_owned_09c[leaf_index].children_04[octant];
+                --depth;
+            } while (leaf_index != 0);
+            if (m_positional_0b8 < leaf_index) {
+                leaf_index = 0;
+            }
+        }
+    }
+    m_positional_1b8 = 0;
+    if (leaf_index != 0 && m_owned_0a0[leaf_index].polygon_offset_08 != 0) {
+        const unsigned long* stream = m_owned_0d0 + m_owned_0a0[leaf_index].polygon_offset_08;
+        for (int remaining = *stream; remaining != 0; --remaining) {
+            ++stream;
+            if (m_owned_190->Set(*stream) == 0) {
+                if (9999 < m_positional_1b8) {
+                    break;
+                }
+                unsigned int key = m_owned_0d4[*stream];
+                m_aulGDObjs[m_positional_1b8] = key;
+                ++m_positional_1b8;
+                m_current_regions_160->Set(key >> 0x10);
+            }
+        }
+    }
+    return m_positional_1b8;
+}
+
+// FUNCTION: WIZ8 0x00435da0
+int W8Octree::ProbeCellForBlockersAppend(const int* cell)
+{
+    unsigned int leaf_index = 0;
+
+    if (cell[0] >= 0 && cell[0] < static_cast<int>(m_positional_0a4) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[1] >= 0 && cell[1] < static_cast<int>(m_positional_0a8) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */ &&
+        cell[2] >= 0 && cell[2] < static_cast<int>(m_positional_0ac) /* c-style-cast-ok: cell
+            coordinate vs grid dimension */) {
+        if (m_owned_0b0 == 0) {
+            unsigned int depth = spatial_000.depth_44;
+            unsigned int bit = 1 << (spatial_000.depth_44 & 0x1f);
+            leaf_index = 1;
+            do {
+                if (static_cast<int>(depth) < 1) {
+                    break;
+                }
+                bit = bit / 2;
+                int octant = 0;
+                if ((bit & cell[0]) != 0) {
+                    octant = 4;
+                }
+                if ((cell[1] & bit) != 0) {
+                    octant += 2;
+                }
+                if ((cell[2] & bit) != 0) {
+                    octant += 1;
+                }
+                leaf_index = m_owned_09c[leaf_index].children_04[octant];
+                --depth;
+            } while (leaf_index != 0);
+            if (m_positional_0b8 < leaf_index) {
+                leaf_index = 0;
+            }
+        } else {
+            leaf_index = m_owned_0b0[spatial_000.positional_64 * cell[0] + cell[2] +
+                                     spatial_000.positional_68 * cell[1]];
+        }
+        if (leaf_index != 0 && m_owned_0a0[leaf_index].polygon_offset_08 != 0) {
+            const unsigned long* stream = m_owned_0d0 + m_owned_0a0[leaf_index].polygon_offset_08;
+            for (int remaining = *stream; remaining != 0; --remaining) {
+                ++stream;
+                if (m_owned_190->Set(*stream) == 0) {
+                    if (9999 < m_positional_1b8) {
+                        break;
+                    }
+                    unsigned int key = m_owned_0d4[*stream];
+                    m_aulGDObjs[m_positional_1b8] = key;
+                    ++m_positional_1b8;
+                    m_current_regions_160->Set(key >> 0x10);
+                }
+            }
+        }
+    }
+    return m_positional_1b8;
+}
+
+/* March the buffered (mesh<<16)|polygon keys, ray-test each live mesh
+   instance's triangle against the record and keep the nearest contact: the
+   record's end_0c returns the hit position and hit_limit_24 the distance. */
+// FUNCTION: WIZ8 0x00435f00
+unsigned char W8Octree::TestProbeResult(W8OctreeTrace* trace)
+{
+    bool hit = false;
+    srVector3T<float> contact;
+
+    for (unsigned int index = 0; index < m_positional_1b8; ++index) {
+        unsigned int mesh_index = m_aulGDObjs[index] >> 0x10;
+        if (mesh_index < m_meshCount_1b4 && g_world->psrMeshes[mesh_index] != 0 &&
+            m_pAlphaBits->Test(mesh_index) == 0) {
+            stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh_index]->model());
+            const srVector4T<float>* planes = model->getPolyEq();
+            unsigned int polygon = m_aulGDObjs[index] & 0xffff;
+            const srVector4T<float>* plane = planes + polygon;
+            float t;
+            float distance;
+            srVector3T<float> point;
+            if (plane->x * trace->step_18.x + trace->step_18.y * plane->y +
+                        trace->step_18.z * plane->z <=
+                    g_float_005ebb34 &&
+                (distance = plane->y * trace->start_00.y + plane->x * trace->start_00.x +
+                            plane->z * trace->start_00.z + plane->w,
+                 distance <= trace->hit_limit_24) &&
+                g_float_005ebb34 < distance) {
+                if (g_float_005ebb38 <= distance) {
+                    float back = plane->x * trace->end_0c.x + trace->end_0c.y * plane->y +
+                                 trace->end_0c.z * plane->z + plane->w;
+                    if (g_float_005ebb38 <= back) {
+                        continue;
+                    }
+                    back = -back;
+                    if (g_float_005ebb38 <= back || trace->hit_limit_24 < trace->length_28) {
+                        t = (distance / (back + distance)) * trace->length_28;
+                        point.x = trace->step_18.x * t;
+                        point.y = trace->step_18.y * t;
+                        point.x += trace->start_00.x;
+                        point.y += trace->start_00.y;
+                        point.z = t * trace->step_18.z + trace->start_00.z;
+                    } else {
+                        point = trace->end_0c;
+                        t = trace->length_28;
+                    }
+                } else {
+                    point = trace->start_00;
+                    t = 0.0f;
+                }
+                float abs_x = plane->x < 0.0f ? -plane->x : plane->x;
+                float abs_y = plane->y < 0.0f ? -plane->y : plane->y;
+                float widest = abs_x;
+                unsigned char axis = abs_x < abs_y;
+                if (abs_x < abs_y) {
+                    widest = abs_y;
+                }
+                if (widest < (plane->z < 0.0f ? -plane->z : plane->z)) {
+                    axis = 2;
+                }
+                const srVector3i* poly_vertex = model->getPolyVertex() + polygon;
+                const srVector3T<float>* vertices = model->getVertexLoc();
+                srVector3T<float> triangle[3];
+                triangle[0] = vertices[poly_vertex->x];
+                triangle[1] = vertices[poly_vertex->y];
+                triangle[2] = vertices[poly_vertex->z];
+                if (PointInsideTriangle0046D530(triangle, axis, &point) != 0 &&
+                    t < trace->hit_limit_24) {
+                    trace->hit_limit_24 = t;
+                    hit = true;
+                    contact = point;
+                }
+            }
+        }
+    }
+    if (hit) {
+        trace->end_0c = contact;
+    }
+    return hit;
+}
+/* A location the octree cannot resolve, or one whose submesh has no live model
    instance, clears the monster's cached mesh rather than leaving a stale one. */
 // FUNCTION: WIZ8 0x0042e540
 void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position)
@@ -2007,9 +2660,12 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
             monster->node_308 = mesh;
         }
     }
-    point[0] = (int)((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    point[1] = (int)((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    point[2] = (int)((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+    point[0] =
+        static_cast<int>(((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    point[1] =
+        static_cast<int>(((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    point[2] =
+        static_cast<int>(((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
     object_registry->RegisterObjectCell(0xc, queue_id, point);
 }
 
@@ -2083,7 +2739,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 if (m_owned_0c0 != 0) {
                     strcpy(m_owned_0c0, path);
                     extension = strrchr(m_owned_0c0, '.');
-                    if (extension != 0 && extension - m_owned_0c0 > (int)(name_length - 7)) {
+                    if (extension != 0 &&
+                        extension - m_owned_0c0 > static_cast<int>((name_length - 7))) {
                         *extension = '\0';
                     }
                 }
@@ -2160,7 +2817,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     fSuccess = 0;
     if (fLoaded != 0) {
         block = malloc(ReadHeader<unsigned long>(header, 0x72) * 4 + 8);
-        m_owned_0d4 = block;
+        m_owned_0d4 = static_cast<unsigned long*>(block);
         if (block == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
@@ -2404,7 +3061,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 }
                                                 pathing_180->ConfigureForLevel(
                                                     ReadHeader<unsigned long>(header, 0x7e),
-                                                    (float)ReadHeader<unsigned long>(header, 0xac),
+                                                    static_cast<float>(
+                                                        ReadHeader<unsigned long>(header, 0xac)),
                                                     ReadHeader<unsigned long>(header, 0xb4),
                                                     reinterpret_cast<const float*>(header + 0x0e),
                                                     m_owned_0c0);
@@ -2692,7 +3350,7 @@ void W8Octree::Initialize(const void* raw_header)
 void W8Octree::AddLoadedProp(W8Prop* prop)
 {
     if (m_fAccumulating) {
-        if (m_usNumPropsLoaded >= (unsigned short)m_ulNumProps) {
+        if (m_usNumPropsLoaded >= static_cast<unsigned short>(m_ulNumProps)) {
             srAssertFail("m_usNumPropsLoaded<(UINT16)m_ulNumProps",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x485,
                          "Too many props loaded for Octree");
@@ -2707,7 +3365,7 @@ void W8Octree::AddLoadedProp(W8Prop* prop)
 void W8Octree::AddLoadedParticle(stParticle* particle)
 {
     if (m_fAccumulating) {
-        if (m_usNumParticlesLoaded >= (unsigned short)m_ulNumParticles) {
+        if (m_usNumParticlesLoaded >= static_cast<unsigned short>(m_ulNumParticles)) {
             srAssertFail("m_usNumParticlesLoaded<(UINT16)m_ulNumParticles",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x49d,
                          "Too many particles loaded for Octree");
@@ -2841,18 +3499,424 @@ void W8Octree::VisitPointCopy0042E620(unsigned short location_id, srVector3T<flo
     UpdateMonsterLocation(location_id, &copy);
 }
 
-/* Start a traversal of the twelfth kind. A limit of zero means no limit, which
-   is what the -1 stands for. */
-// FUNCTION: WIZ8 0x0042ef00
-unsigned int __stdcall OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3,
-                                            unsigned short limit)
+/* Remove every kind-12 and kind-13 registry pairing owned by one location
+   id; each by_object hit also drops the mirrored by_cell entry.
+   MonsterManager/NPC Manager drive this during location teardown. */
+// FUNCTION: WIZ8 0x0042e650
+void W8Octree::UnregisterLocationObjects(unsigned int location_id)
 {
-    unsigned int bound = (unsigned int)-1;
-
-    if (limit != 0) {
-        bound = limit;
+    W8OctreeIndex* by_object = object_registry->by_object;
+    W8OctreeIndex* by_cell = object_registry->by_cell;
+    unsigned int id = (location_id + 1) & 0xffff;
+    unsigned int object_key = id + 0x000c0000;
+    int slot = by_object->FindNextEntry(&object_key, -1);
+    while (slot != -1) {
+        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
+        int object_value = static_cast<int>(object_key);
+        by_object->RemoveAt(slot);
+        by_cell->Remove(&cell_key, &object_value);
+        slot = by_object->FindNextEntry(&object_key, slot);
     }
-    return OctreeTraverse(walker, arg_2, arg_3, 0xc, bound);
+    object_key = id + 0x000d0000;
+    slot = by_object->FindNextEntry(&object_key, -1);
+    while (slot != -1) {
+        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
+        int object_value = static_cast<int>(object_key);
+        by_object->RemoveAt(slot);
+        by_cell->Remove(&cell_key, &object_value);
+        slot = by_object->FindNextEntry(&object_key, slot);
+    }
+}
+
+/* Remove the registered pairings for one (location, kind) object key — used
+   by Navigator teardown with kind 0xd. */
+// FUNCTION: WIZ8 0x0042e880
+void W8Octree::UnregisterLocationObject(unsigned int location_id, int kind)
+{
+    W8OctreeIndex* by_object = object_registry->by_object;
+    W8OctreeIndex* by_cell = object_registry->by_cell;
+    unsigned int object_key = ((location_id + 1) & 0xffff) + kind * 0x10000;
+    int slot = by_object->FindNextEntry(&object_key, -1);
+    while (slot != -1) {
+        unsigned int cell_key = static_cast<unsigned int>(by_object->entries[slot].value);
+        int object_value = static_cast<int>(object_key);
+        by_object->RemoveAt(slot);
+        by_cell->Remove(&cell_key, &object_value);
+        slot = by_object->FindNextEntry(&object_key, slot);
+    }
+}
+
+/* Collect object ids of `kind` from every cell under the `origin`-swept
+   `delta` segment grown by `extent`; the extent takes the segment length as a
+   floor. `*results` carries the destination buffer in and out. */
+// FUNCTION: WIZ8 0x0042ed60
+int W8Octree::CollectObjectsAlongSegment(int** results, const srVector3T<float>* origin,
+                                         const srVector3T<float>* delta, float extent,
+                                         unsigned short kind)
+{
+    srVector3T<float> low;
+    srVector3T<float> high;
+    int low_cell[3];
+    int high_cell[3];
+    int cell[3];
+
+    g_octree_state_00659890 = *results;
+    if (g_octree_state_00659890 == 0) {
+        g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the internal
+            query buffer is the same u32 id store the caller buffer aliases */
+        *results = g_octree_state_00659890;
+    }
+    m_positional_1b8 = 0;
+    float radius = delta->Length();
+    if (extent < radius) {
+        extent = radius;
+    }
+    for (int axis = 0; axis < 3; ++axis) {
+        float bound = (&origin->x)[axis] - extent;
+        if ((&delta->x)[axis] <= g_float_005ebb34) {
+            (&low.x)[axis] = bound + (&delta->x)[axis];
+            bound = extent + (&origin->x)[axis];
+        } else {
+            (&low.x)[axis] = bound;
+            bound = extent + (&origin->x)[axis] + (&delta->x)[axis];
+        }
+        (&high.x)[axis] = bound;
+    }
+    m_owned_194->ClearAll();
+    CollectVisibleRegions00430D50(&low, low_cell, 0, 0);
+    CollectVisibleRegions00430D50(&high, high_cell, 0, 0);
+    if (low_cell[0] <= high_cell[0]) {
+        cell[0] = low_cell[0];
+        do {
+            if (cell[0] >= 0 && cell[0] < static_cast<int>(m_positional_0a4) /* c-style-cast-ok:
+                    cell coordinate vs grid dimension */) {
+                cell[1] = low_cell[1];
+                while (cell[1] <= high_cell[1]) {
+                    if (cell[1] >= 0 && cell[1] < static_cast<int>(m_positional_0a8) /* c-style-cast-ok:
+                            cell coordinate vs grid dimension */) {
+                        for (cell[2] = low_cell[2]; cell[2] <= high_cell[2]; ++cell[2]) {
+                            if (cell[2] >= 0 && cell[2] < static_cast<int>(m_positional_0ac)
+                                /* c-style-cast-ok: cell coordinate vs grid dimension */) {
+                                CollectObjectsInCell(cell, kind);
+                            }
+                        }
+                    }
+                    ++cell[1];
+                }
+            }
+            ++cell[0];
+        } while (cell[0] <= high_cell[0]);
+    }
+    g_octree_state_00659890 = 0;
+    return static_cast<int>(m_positional_1b8); /* c-style-cast-ok: the shared count field is
+        stored unsigned */
+}
+
+/* The kind-12 convenience query: a zero exclusion maps to -1 (none). OctPath
+   uses it to list the location ids near a mover. */
+// FUNCTION: WIZ8 0x0042ef00
+unsigned int W8Octree::QueryLocationsInBox(int** results, const srVector3T<float>* lower,
+                                           const srVector3T<float>* upper, unsigned short exclusion)
+{
+    unsigned int excluded = 0xffffffff;
+    if (exclusion != 0) {
+        excluded = exclusion;
+    }
+    return static_cast<unsigned int>(QueryObjects(
+        results, lower, upper, 12, static_cast<int>(excluded))); /* c-style-cast-ok: the
+        exclusion id travels as a signed value so -1 can mean none */
+}
+
+/* AABB occupancy test: GD triangles, kind-12 location objects (each
+   monster's navigator radius inflates the box) and collidable-prop surfaces
+   all answer "occupied". */
+// FUNCTION: WIZ8 0x0042ef30
+unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
+                                        const srVector3T<float>* upper)
+{
+    int* objects = 0;
+    unsigned int count = static_cast<unsigned int>(QueryObjects(&objects, lower, upper, 3, -1));
+    unsigned int index = 0;
+    if (count != 0) {
+        do {
+            W8GDSurface* surface = g_octree_game_data_00652db0->surfaces_38 + objects[index];
+            srVector3T<float> bounds[2];
+            srVector3T<float> triangle[3];
+            for (int axis = 0; axis < 3; ++axis) {
+                (&bounds[0].x)[axis] = (&lower->x)[axis];
+                (&bounds[1].x)[axis] = (&upper->x)[axis];
+                (&triangle[0].x)[axis] =
+                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[0]]
+                          .x)[axis];
+                (&triangle[1].x)[axis] =
+                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[1]]
+                          .x)[axis];
+                (&triangle[2].x)[axis] =
+                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[2]]
+                          .x)[axis];
+            }
+            if (TestSpatialTriangle0046CE60(
+                    bounds, triangle,
+                    reinterpret_cast<const srVector3T<float>*>(
+                        surface->plane_24) /* reinterpret-ok: the GD surface's
+                        4-float plane is the test normal */) != 0) {
+                return 1;
+            }
+            ++index;
+        } while (index < count);
+    }
+    count = static_cast<unsigned int>(QueryObjects(&objects, lower, upper, 12, -1));
+    if (count != 0) {
+        index = 0;
+        do {
+            unsigned int monster_index = MonsterGetIndexByLocationID(
+                0x62d, "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", objects[index], 1);
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
+            if (info != 0 && info->monster != 0) {
+                srVector3T<float> position = info->monster->GetPosition();
+                float radius = info->monster->radius_084;
+                if (lower->x - radius < position.x && position.x < radius + upper->x &&
+                    lower->y - radius < position.y && position.y < radius + upper->y &&
+                    lower->z - radius < position.z && position.z < radius + upper->z) {
+                    return 1;
+                }
+            }
+            ++index;
+        } while (index < count);
+    }
+    count = static_cast<unsigned int>(QueryObjects(&objects, lower, upper, 8, -1));
+    if (count != 0) {
+        index = 0;
+        do {
+            W8Prop* prop = *g_world->collidable_props->GetAt(objects[index]);
+            if (prop->GetSetting6C() != 0 && prop->m_gd_prop != 0) {
+                GDProp* gd_prop = prop->m_gd_prop;
+                for (int surface_index = 0; surface_index < gd_prop->m_surface_count_14;
+                     ++surface_index) {
+                    W8GDSurface* surface = gd_prop->m_pGDSurfaces + surface_index;
+                    srVector3T<float> bounds[2];
+                    srVector3T<float> triangle[3];
+                    for (int axis = 0; axis < 3; ++axis) {
+                        (&bounds[0].x)[axis] = (&lower->x)[axis];
+                        (&bounds[1].x)[axis] = (&upper->x)[axis];
+                        (&triangle[0].x)[axis] =
+                            (&gd_prop->m_pVertices[surface->vertex_indices_18[0]].x)[axis];
+                        (&triangle[1].x)[axis] =
+                            (&gd_prop->m_pVertices[surface->vertex_indices_18[1]].x)[axis];
+                        (&triangle[2].x)[axis] =
+                            (&gd_prop->m_pVertices[surface->vertex_indices_18[2]].x)[axis];
+                    }
+                    if (TestSpatialTriangle0046CE60(
+                            bounds, triangle,
+                            reinterpret_cast<const srVector3T<float>*>(
+                                surface->plane_24) /* reinterpret-ok: the GD surface's
+                                4-float plane is the test normal */) != 0) {
+                        return 1;
+                    }
+                }
+            }
+            ++index;
+        } while (index < count);
+    }
+    return 0;
+}
+
+/* Box query over the shared query buffer: `*objects` carries the destination
+   buffer in and out (null selects m_aulGDObjs), `excluded` is an object id
+   pre-marked in the dedupe set (-1 = none). The world bounds convert to cell
+   coordinates and the inclusive cell box is clipped against the three grid
+   dimensions. Returns the collected entry count. */
+// FUNCTION: WIZ8 0x0042f280
+int W8Octree::QueryObjects(int** objects, const srVector3T<float>* lower,
+                           const srVector3T<float>* upper, unsigned short kind, int excluded)
+{
+    int start[3];
+    int end[3];
+    int cell[3];
+
+    g_octree_state_00659890 = *objects;
+    if (g_octree_state_00659890 == 0) {
+        g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the internal
+            query buffer is the same u32 id store the caller buffer aliases */
+        *objects = g_octree_state_00659890;
+    }
+    m_positional_1b8 = 0;
+    m_owned_194->ClearAll();
+    if (excluded >= 0) {
+        m_owned_194->Set(excluded);
+    }
+    start[0] =
+        static_cast<int>(((lower->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    start[1] =
+        static_cast<int>(((lower->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    start[2] =
+        static_cast<int>(((lower->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    end[0] = static_cast<int>(((upper->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    end[1] = static_cast<int>(((upper->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    end[2] = static_cast<int>(((upper->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    for (cell[0] = start[0]; cell[0] <= end[0]; ++cell[0]) {
+        if (cell[0] < 0 || static_cast<int>(m_positional_0a4) <= cell[0] /* c-style-cast-ok:
+                cell coordinate vs grid dimension */) {
+            continue;
+        }
+        for (cell[1] = start[1]; cell[1] <= end[1]; ++cell[1]) {
+            if (cell[1] < 0 || static_cast<int>(m_positional_0a8) <= cell[1] /* c-style-cast-ok:
+                    cell coordinate vs grid dimension */) {
+                continue;
+            }
+            for (cell[2] = start[2]; cell[2] <= end[2]; ++cell[2]) {
+                if (cell[2] >= 0 && cell[2] < static_cast<int>(m_positional_0ac) /* c-style-cast-ok:
+                        cell coordinate vs grid dimension */) {
+                    CollectObjectsInCell(cell, kind);
+                }
+            }
+        }
+    }
+    g_octree_state_00659890 = 0;
+    return m_positional_1b8;
+}
+
+/* Append the objects of `kind` inside one cell to the shared query buffer.
+   Kind 3 walks the static tree (or the direct leaf grid when one exists) to a
+   leaf whose gd-polygon stream lists surface ids. Kinds 8, 9 and 12 query the
+   object registry's cell hash; kinds above 12 accept both the 12 and 13
+   halfwords packed into each registry value. Every append deduplicates
+   through m_owned_194 and the buffer stops at 10000 entries. */
+// FUNCTION: WIZ8 0x0042f400
+unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind)
+{
+    unsigned int found = 0;
+    unsigned int leaf_index;
+    int slot;
+
+    switch (kind) {
+    case 3:
+        if (m_owned_0b0 == 0) {
+            unsigned int depth = spatial_000.depth_44;
+            unsigned int bit;
+            leaf_index = 1;
+            bit = 1 << (spatial_000.depth_44 & 0x1f);
+            do {
+                if (static_cast<int>(depth) < 1) {
+                    break;
+                }
+                bit = bit / 2;
+                int octant = 0;
+                if ((bit & cell[0]) != 0) {
+                    octant = 4;
+                }
+                if ((cell[1] & bit) != 0) {
+                    octant += 2;
+                }
+                if ((cell[2] & bit) != 0) {
+                    octant += 1;
+                }
+                leaf_index = m_owned_09c[leaf_index].children_04[octant];
+                --depth;
+            } while (leaf_index != 0);
+            if (m_positional_0b8 < leaf_index) {
+                leaf_index = 0;
+            }
+        } else {
+            leaf_index = m_owned_0b0[spatial_000.positional_68 * cell[1] +
+                                     spatial_000.positional_64 * cell[0] + cell[2]];
+        }
+        if (leaf_index != 0 &&
+            ((unsigned long*)m_owned_0a0)[kind + leaf_index * 10] !=
+                0 /* c-style-cast-ok: the leaf record is a ten-dword
+                stream-offset table indexed by object kind */) {
+            const unsigned long* stream =
+                m_owned_12c + ((unsigned long*)m_owned_0a0) /* c-style-cast-ok: the leaf record
+                is a ten-dword stream-offset table indexed by object kind */
+                                  [kind + leaf_index * 10];
+            found = *stream;
+            if (found != 0) {
+                unsigned int index = 0;
+                do {
+                    if (9999 < m_positional_1b8) {
+                        return found;
+                    }
+                    ++stream;
+                    if (m_owned_194->Set(*stream) == 0) {
+                        g_octree_state_00659890[m_positional_1b8] = *stream;
+                        ++m_positional_1b8;
+                    }
+                    ++index;
+                } while (index < found);
+            }
+        }
+        break;
+    default:
+        if (0xc < kind) {
+            if (cell != 0) {
+                g_octree_query_cell_00659774 = (cell[0] * 0x100 + cell[1]) * 0x100 + 1 + cell[2];
+                g_octree_query_slot_00659760 = -1;
+            }
+            slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
+                                                           g_octree_query_slot_00659760);
+            g_octree_query_slot_00659760 = slot;
+            if (slot >= 0) {
+                unsigned int packed =
+                    static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
+                g_octree_query_kind_00659764 = static_cast<unsigned short>((packed >> 0x10));
+                g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+                while (m_positional_1b8 < 10000) {
+                    short entry_kind = static_cast<short>((packed >> 0x10));
+                    if ((entry_kind == 0xc || entry_kind == 0xd) &&
+                        m_owned_194->Set((packed & 0xffff) - 1) == 0) {
+                        g_octree_state_00659890[m_positional_1b8] = g_octree_query_id_00659766 - 1;
+                        ++m_positional_1b8;
+                    }
+                    slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
+                                                                   g_octree_query_slot_00659760);
+                    g_octree_query_slot_00659760 = slot;
+                    if (slot < 0) {
+                        return 0;
+                    }
+                    packed =
+                        static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
+                    g_octree_query_kind_00659764 = static_cast<unsigned short>((packed >> 0x10));
+                    g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+                }
+            }
+            break;
+        }
+        /* fall through */
+    case 8:
+    case 9:
+    case 0xc:
+        if (cell != 0) {
+            g_octree_query_cell_00659774 = (cell[0] * 0x100 + cell[1]) * 0x100 + 1 + cell[2];
+            g_octree_query_slot_00659760 = -1;
+        }
+        slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
+                                                       g_octree_query_slot_00659760);
+        g_octree_query_slot_00659760 = slot;
+        if (slot >= 0) {
+            unsigned int packed =
+                static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
+            g_octree_query_kind_00659764 = static_cast<unsigned short>((packed >> 0x10));
+            g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+            while (m_positional_1b8 < 10000) {
+                if ((static_cast<unsigned short>((packed >> 0x10)) == kind) &&
+                    m_owned_194->Set((packed & 0xffff) - 1) == 0) {
+                    g_octree_state_00659890[m_positional_1b8] = g_octree_query_id_00659766 - 1;
+                    ++m_positional_1b8;
+                }
+                slot = object_registry->by_cell->FindNextEntry(&g_octree_query_cell_00659774,
+                                                               g_octree_query_slot_00659760);
+                g_octree_query_slot_00659760 = slot;
+                if (slot < 0) {
+                    return 0;
+                }
+                packed = static_cast<unsigned int>(object_registry->by_cell->entries[slot].value);
+                g_octree_query_kind_00659764 = static_cast<unsigned short>((packed >> 0x10));
+                g_octree_query_id_00659766 = static_cast<unsigned short>(packed);
+            }
+        }
+        break;
+    }
+    return found;
 }
 
 /* Queue one node of the thirteenth kind, with its three coordinates converted
@@ -2862,9 +3926,12 @@ void W8Octree::QueueOctreeKind130042E810(int id, const srVector3T<float>* positi
 {
     int point[3];
 
-    point[0] = (int)((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
-    point[1] = (int)((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
-    point[2] = (int)((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+    point[0] =
+        static_cast<int>(((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    point[1] =
+        static_cast<int>(((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    point[2] =
+        static_cast<int>(((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
     object_registry->RegisterObjectCell(0xd, id + 1, point);
 }
 
@@ -2872,18 +3939,19 @@ void W8Octree::QueueOctreeKind130042E810(int id, const srVector3T<float>* positi
    inside the spatial minimum/maximum box. Callers only use the coordinates;
    the in-range result the image also computes is not consumed. */
 // FUNCTION: WIZ8 0x00431440
-void W8Octree::WorldPositionToCell00431440(const srVector3T<float>* position, int* point)
+int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point)
 {
     unsigned char inside = 1;
 
     for (int axis = 0; axis < 3; ++axis) {
-        point[axis] = (int)(&position->x)[axis];
+        point[axis] = static_cast<int>((((&position->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+                                        spatial_000.node_extent_70));
         if ((&position->x)[axis] < (&spatial_000.minimum_0c.x)[axis] ||
-            (&spatial_000.minimum_0c.x)[axis + 3] < (&position->x)[axis]) {
+            (&position->x)[axis] > (&spatial_000.maximum_18.x)[axis]) {
             inside = 0;
         }
     }
-    (void)inside;
+    return inside ? point : 0;
 }
 
 /* Clamp a position under the spatial ceiling, settle it to the ground through
@@ -2900,7 +3968,7 @@ void W8Octree::AdjustPosition00431DA0(srVector3T<float>* position, unsigned int 
         position->y = spatial_000.clipped_maximum_30.y;
     }
     adjusted = *position;
-    SettleToGround00433820(&adjusted, &hit, mode, 200.0f);
+    SettleToGround(&adjusted, &hit, mode, 200.0f);
     if (hit != 0) {
         position->y = adjusted.y;
     }
@@ -2945,7 +4013,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     } else {
         reached = 0;
     }
-    if ((double)(vecDir.x * vecDir.x + vecDir.z * vecDir.z) != g_zero_005ebb40) {
+    if (static_cast<double>((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_zero_005ebb40) {
         vecDir.SetLength(step);
     }
     vecPos = vecDir + movement->position_040;
@@ -2984,7 +4052,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
         local_destination.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_destination;
-    SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    SettleToGround(&probe, &hit, 1, 500.0f);
     if (hit != 0) {
         local_destination.y = probe.y;
     }
@@ -2994,7 +4062,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
         local_source.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_source;
-    SettleToGround00433820(&probe, &hit, 1, 500.0f);
+    SettleToGround(&probe, &hit, 1, 500.0f);
     if (hit != 0) {
         local_source.y = probe.y;
     }

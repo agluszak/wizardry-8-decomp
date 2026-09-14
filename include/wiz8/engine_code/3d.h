@@ -43,6 +43,10 @@ void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<flo
 /* Report whether a point satisfies all six frustum planes. */
 unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
                                          const srVector4T<float>* planes);
+/* Point-in-triangle test via dominant-axis projection: `axis` selects the two
+   planar components used. */
+unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
+                                          const srVector3T<float>* point);
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
