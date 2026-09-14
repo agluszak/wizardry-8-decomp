@@ -1,9 +1,9 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/CombatHostility.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/stScript.h"
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/combat_state.h"
@@ -15,7 +15,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/Navigator.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/render_state.h"
 #include "wiz8/regions.h"
 #include "wiz8/3d_code/PList.h"
@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include <stdlib.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 

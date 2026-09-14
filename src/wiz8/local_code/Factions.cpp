@@ -1,4 +1,4 @@
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/sr_api.h"
 
 #include <string.h>

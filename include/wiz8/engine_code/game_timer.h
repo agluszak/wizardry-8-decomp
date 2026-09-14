@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "surrender/srTimer.h"
 
 extern int g_shared_timer_pause_base;

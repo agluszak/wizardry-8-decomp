@@ -3,6 +3,7 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/local_screens/Screens.h"
 #include "wiz8/cursor.h"
 #include "wiz8/utility.h"
 #include "wiz8/fonts.h"

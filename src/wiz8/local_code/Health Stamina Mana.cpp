@@ -19,7 +19,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/sound_man.h"
 #include "random.h"
@@ -45,7 +45,7 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/engine_code/Video2.h"
@@ -59,7 +59,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /* Local Code\Health Stamina Mana.cpp, named by the assertions these bodies
    embed. The party sweeps in here all share one shape: walk the eight party

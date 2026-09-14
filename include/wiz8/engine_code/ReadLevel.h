@@ -78,14 +78,7 @@ struct W8ReadLevelInfo {
 
 unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         const char* bitmap_folder);
-unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance** instance,
-                                          int positional_0, int positional_1, const char* name,
-                                          unsigned char load_materials);
-unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInstance** instances,
-                                              unsigned long count, const char* name);
-unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info);
 unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* info, srNode* scene,
                                          W8GrowableVector<stParticle*>* particles);
-void ReleaseReadMeshScratch004881D0();
-void ReleaseRetainedMaterials00489920();
-unsigned char IsReadMeshMaterial00489AC0(const srClass* material);
+
+#include "wiz8/engine_code/ReadMesh.h"

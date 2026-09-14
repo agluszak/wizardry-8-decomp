@@ -1,5 +1,6 @@
 #include "wiz8/character.h"
 #include "wiz8/local_code/GameplayTime.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -13,7 +14,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/magic.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/xstatus.h"
 
 #define GAMEPLAYTIME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayTime.cpp"

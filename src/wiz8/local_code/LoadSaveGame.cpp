@@ -5,7 +5,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -37,7 +37,8 @@
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/world_cursor.h"
-#include "wiz8/engine_code/stLight.h"
+#include "wiz8/engine_code/stLight.hpp"
+#include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 
@@ -49,7 +50,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/local_screens/MainGameScreen.h"

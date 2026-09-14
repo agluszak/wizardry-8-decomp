@@ -5,24 +5,9 @@ unsigned char GetEnvironmentFlag0060A394(void); /* 0x00482A10 */
 
 #include "Types.h"
 #include "surrender/srVertexProcessor.h"
+#include "wiz8/layouts/world.h"
 
-struct W8World;
-
-struct EnvironmentColour {
-    EnvironmentColour() {}
-    EnvironmentColour(double red_value, double green_value, double blue_value);
-    EnvironmentColour& operator=(double value)
-    {
-        Set(value, value, value);
-        return *this;
-    }
-    void Set(double red_value, double green_value, double blue_value);
-    float red;
-    float green;
-    float blue;
-};
-
-static_assert(sizeof(EnvironmentColour) == 0x0c, "EnvironmentColour_must_be_0x0c");
+class stTextureAnim;
 
 /* Environment.cpp. The vertex processor that scrolls the first texture
    coordinate set of the sky's AnimatedCloudMaterial by a fixed per-frame
@@ -101,6 +86,9 @@ void SetCameraLightIntensity00483E30(float value);
 void RefreshFogRanges004836A0(void);
 
 void SetViewDistance(float distance);
+unsigned char InitializeEnvironmentColours(void);
+extern unsigned int g_frame_tick_65a154;
+extern float g_frame_elapsed_65a158;
 
 extern int g_environment_value_0060a3a8;
 extern bool
@@ -111,5 +99,15 @@ extern float g_environment_value_0065b9b8;
 extern int g_environment_value_0060a3ac;
 extern int g_environment_value_0060a3b0;
 extern unsigned char g_flag_0060a395;
+extern float g_view_distance_0060a390;
+extern unsigned char g_environment_flag_0060a394;
+extern float g_environment_value_0060a3a4;
+extern W8Prop* g_environment_value_0065ad84;
+extern W8Prop* g_environment_value_0065a160;
+extern stTextureAnim* g_environment_value_0065a168;
+extern stTextureAnim* g_environment_value_0065a16c;
+extern stTextureAnim* g_environment_value_0065a170;
+extern srVector3T<float> g_environment_origin_65ad88;
 
 void SetGameTimeDays(int value);
+void SetWorldEnvironmentValue00483AE0(W8World* world, float value);

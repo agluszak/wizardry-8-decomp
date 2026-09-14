@@ -18,10 +18,10 @@
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/notices.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/fact_state.h"
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/item_spawning.h"
@@ -1938,7 +1938,7 @@ void BindEveryPartyItem(void)
     ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
 }
 
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /* Order two pool entries. Both have to hold something - the two assertions say
    so by name - and they are compared by equipment class, then by generic name,

@@ -437,3 +437,6 @@ extern unsigned short g_race_name_message_ids_61e3d0[16];
 
 /* Refresh the character-screen response when a party slot changes. */
 void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */
+unsigned char CharacterScreenEnter(void);
+void CharacterScreenFrame(void);
+unsigned char CharacterScreenLeave(int leaving);

@@ -2,7 +2,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 // GLOBAL: WIZ8 0x0068f2d4
 W8MainGameScreen* g_main_game_screen;
 #include "wiz8/local_code/ButtonSound.h"

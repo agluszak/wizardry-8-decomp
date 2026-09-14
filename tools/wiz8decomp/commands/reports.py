@@ -139,6 +139,38 @@ def context_command(
     )
 
 
+@app.command("header-architecture")
+def header_architecture_command() -> None:
+    """Write the header-role ownership report from recovered TUs and declarations."""
+
+    from .. import command_support as cli
+    from ..header_architecture import write_header_architecture_report
+
+    cli.emit(write_header_architecture_report(cli.settings().repo_dir))
+
+
+@app.command("merge-preservation")
+def merge_preservation_command(
+    base: Annotated[str, typer.Option("--base", help="Base revision, e.g. origin/main.")],
+    head: str = typer.Option("HEAD", "--head", help="Result revision to compare."),
+    allow: Annotated[
+        list[str] | None,
+        typer.Option("--allow", help="0xADDRESS=reason for an intentional loss or duplicate."),
+    ] = None,
+) -> None:
+    """Compare FUNCTION/GLOBAL/VTABLE marker identities by retail address between two revisions."""
+
+    from .. import command_support as cli
+    from ..merge_preservation import merge_preservation_report, parse_allowed
+
+    report = merge_preservation_report(
+        cli.settings().repo_dir, base, head, parse_allowed(allow or [])
+    )
+    cli.emit(report)
+    if report["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
 @app.command("translation-units")
 def translation_units_command() -> None:
     """Generate source ownership and hard-hull projections from the live layout."""

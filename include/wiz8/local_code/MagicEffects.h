@@ -7,6 +7,9 @@ struct W8CombatSlot;
 struct W8MonsterInfo;
 struct W8TargetSource;
 struct W8SpellEffectEntry;
+struct W8Character;
+struct W8EffectSlot;
+struct W8MonsterInfo;
 
 #pragma pack(push, 1)
 
@@ -79,4 +82,10 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
    visual resource, -1 means the effect has none. */
 extern const int g_effect_visual_table[149][2];
 
+void Function5526F0(W8EffectSlot* slots, const int* args); /* 0x005526F0 */
+void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
+void ResetPartyEffectBlock(W8EffectSlot* slot);
+
+
 void ResetCombatEffects(void); /* 0x00552530 */
+void RecalculateCharacterResistances(W8Character* character);

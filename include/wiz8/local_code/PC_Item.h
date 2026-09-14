@@ -4,7 +4,7 @@ void InitializeItemVideoObjects(void);
 void ReleaseGenericItemNames(void);
 
 #include "wiz8/item_instance.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 struct W8ItemDatabaseRecord;
 
@@ -150,3 +150,6 @@ unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
 char GetItemMergeKind0051E980(int item_id, short* related_kind);
 char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
 char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
+int ChooseCharacterEquipSlot(W8Character* character, int item_id);
+void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
+void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */

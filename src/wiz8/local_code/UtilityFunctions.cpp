@@ -22,7 +22,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <stdlib.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x0068c0a4
 int g_message_box_state;

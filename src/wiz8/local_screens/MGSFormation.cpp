@@ -13,7 +13,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/render_state.h"

@@ -20,3 +20,10 @@ void ResetCharacterAttributes005539E0(W8Character* character);
 /* 0x00553A60: rebuild every skill level from its base, the profession bonus
    and the race and profession skill adjustments. */
 void ResetCharacterSkills00553A60(W8Character* character);
+bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+                               const unsigned char* expert_realm_flags);
+void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
+bool CharacterHasTrait00547940(const W8Character* character, int trait);
+void InitializeSkillBaseLevels00553C90(W8Character* character);
+void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
+unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);

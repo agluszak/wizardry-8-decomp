@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wiz8/character.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/vector.h"
 
 class W8SpellVisual;

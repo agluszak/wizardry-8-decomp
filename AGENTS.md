@@ -140,6 +140,8 @@ clone, sibling or baseline checkout unless explicitly requested; each existing c
 `WIZ8_WORK_DIR` and live Ghidra project. Only one agent may switch/rebase/publish a shared checkout.
 
 Keep one mutable change per coherent task by default. Fetch/rebase from `main@origin` only when upstream
-work is needed or immediately before authorized integration. Successful push completes publication;
+work is needed or immediately before authorized integration. After a rebase or merge, run
+`uv run wiz8 report merge-preservation --base origin/main`; every removed or duplicated retail-address
+identity needs an explicit `--allow` reason. Successful push completes publication;
 do not perform routine post-push proofs. Command details live in
 [docs/contributor-workflow.md](docs/contributor-workflow.md).

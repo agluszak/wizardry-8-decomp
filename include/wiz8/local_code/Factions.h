@@ -1,5 +1,5 @@
-#ifndef WIZ8_FACTIONS_H
-#define WIZ8_FACTIONS_H
+#ifndef WIZ8_LOCAL_CODE_FACTIONS_H
+#define WIZ8_LOCAL_CODE_FACTIONS_H
 
 /* The factions, in the order the contiguous 21-name table at 0x0061CE74
    carries them. FindFactionByName indexes that table with these ids and both

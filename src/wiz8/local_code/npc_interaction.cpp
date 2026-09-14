@@ -1,6 +1,6 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/npc_interaction.h"
 #include "wiz8/npc_state.h"

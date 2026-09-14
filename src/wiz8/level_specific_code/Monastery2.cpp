@@ -1,6 +1,6 @@
 #include "wiz8/level_specific_code/Monastery2.h"
 #include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/NPCScripting.h"

@@ -1,7 +1,7 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 
 /* Unresolved fragment: five of the six functions lie in the anchored gap

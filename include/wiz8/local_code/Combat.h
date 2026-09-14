@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/targeting.h"
+#include "wiz8/layouts/targeting.h"
 
 extern const wchar_t g_combat_log_format_00617664[]; /* 0x00617664 */
 
@@ -21,15 +21,29 @@ struct W8TargetSource;
 struct W8CombatSlot;
 union W8ActionDetailBlock;
 struct W8ItemInstance;
+struct W8Character;
+struct W8MonsterInfo;
+struct W8CombatCharacterRow;
 
-void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
-void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
-unsigned char Function4F96F0(W8Character* character);                            /* 0x004F96F0 */
-void Function4ECC80(W8TargetSource* source, W8CombatSlot* target);               /* 0x004ECC80 */
-void Function537540(int party_slot);                                             /* 0x00537540 */
-void Function4EA5C0(int party_slot);                                             /* 0x004EA5C0 */
+void CatchUpCombatActor(W8CombatCharacterRow* row);                /* 0x004ECEB0 */
+unsigned char Function4F96F0(W8Character* character);              /* 0x004F96F0 */
+void Function4ECC80(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80 */
+void Function4EA5C0(int party_slot);                               /* 0x004EA5C0 */
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
-                            int notify);      /* 0x004E7EE0 */
-extern int g_special_event_0068c50c;          /* 0x0068C50C */
-int GetSelectedOrFallbackValue0059E0D0(void); /* 0x0059E0D0 */
-int Function5A1350(void);                     /* 0x005A1350 */
+                            int notify); /* 0x004E7EE0 */
+void RecordCharacterDeath(int party_slot);
+void DropCharacterFromRound(int party_slot);
+/* 0x004E79A0: whether one party slot may switch to the given targeting
+   context, in the two forms the target-refresh pass asks. */
+unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
+                                   int arg_4);
+unsigned char TryCharacterAction(int party_slot, int action, char commit);
+void NotifyNearbyMonsters(int what);
+void CombatLog(const char* format, ...);
+void BeginCombatRound(void);
+void EndMonsterTurn(W8MonsterInfo* monster_info);
+void SetSlotAction(int party_slot, int action_kind, int action_detail);
+unsigned char CanCharReBreathe(int party_slot);
+unsigned char CharacterHasCondition(const W8Character* character, int condition);
+extern int g_special_event_0068c50c;                        /* 0x0068C50C */
+int Function5A1350(void);                                   /* 0x005A1350 */

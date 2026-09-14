@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
@@ -31,7 +32,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/startup_world.h"
-#include "wiz8/targeting.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
@@ -39,7 +40,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "wiz8/game_status.h"
+#include "wiz8/layouts/game_status.h"
 
 /*
  * Local Code\Sight.cpp.
