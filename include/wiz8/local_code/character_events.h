@@ -29,13 +29,13 @@ extern int g_item_message_005ee690;
 extern int g_item_message_005ee6fc;
 
 int UpdateCharacterEventState(void);
-W8CharacterEvent* QueueCharacterEvent(W8Character* character, int effect, int argument, int value_1,
-                                      unsigned int value_2);
+W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, int argument,
+                                      unsigned int flags, unsigned int volume);
 
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no
    quote. */
-unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int type,
+unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
                                        unsigned int* metadata);
 /* 0x005EE6F0: first entry of the -1-terminated .rdata event-id table read at
    0x00509560. */
@@ -43,13 +43,25 @@ extern const int g_value_005ee6f0;
 
 /* True when no occupied party slot has an active portrait/voice record. */
 unsigned char PartyPortraitEventsIdle(void); /* 0x0052E590 */
-int ApplyItemEffectToRandomCharacter0052E5C0(unsigned int item_id, int character_filter,
-                                             int value_3, int value_4);
-void MaybeStartIncapacitationEvent(unsigned int party_slot); /* 0x0052F060 */
-void QueueDamageReactionEvents(W8Character* character);      /* 0x0052F2C0 */
-void Function52F110(int party_slot);
-void Function52F430(W8Character* character);
-void Function52F790(W8Character* character, int condition);
+W8CharacterEvent* ApplyItemEffectToRandomCharacter(unsigned int event_type, int excluded_slot,
+                                                   int argument,
+                                                   unsigned int flags); /* 0x0052E5C0 */
+void MaybeStartIncapacitationEvent(unsigned int party_slot);            /* 0x0052F060 */
+void QueueDamageReactionEvents(W8Character* character);                 /* 0x0052F2C0 */
+/* 0x0052F110: after a character dies, pick one other party member and queue
+   their reaction event with a three-second clock. */
+void QueuePartyDeathReaction(unsigned int party_slot);
+/* 0x0052F1D0: several members still active at turn begin; queue the shared
+   reaction event on one random eligible character. */
+void QueueTurnReactionEvent(void);
+/* 0x0052F240: only one occupied member still standing at turn begin. */
+void QueueLastSurvivorEvent(void);
+/* 0x0052F430: react to a freshly recomputed highest_condition. */
+void QueueConditionChangeReaction(W8Character* character);
+/* 0x0052F790: react to a condition being lifted. */
+void QueueConditionClearedReaction(W8Character* character, int condition);
+/* 0x0052E480: requeue the selected character's stored portrait event. */
+void RequeueSelectedPortraitEvent(void);
 void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);

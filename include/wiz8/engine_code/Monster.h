@@ -39,9 +39,12 @@ extern float g_light_scale_0060bfe0;
    GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
 typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
 
+/* One spell/condition icon attached to a monster: the icon id and the
+   billboard object created for it. Field names come from the
+   DropMonsterVisual asserts "pSpellMI->psrBMO" and its icon compares. */
 struct W8MonsterLinkedItem005E8 {
-    int unknown_00;
-    W8Item* item_04;
+    int icon_00;
+    W8Item* psrBMO;
 };
 
 /* MonsterRep owns three ordinary arrays of growable vectors. The first is
@@ -65,6 +68,13 @@ struct W8MonsterRep : public W8EmitterHost {
                                 signed char other_cycle);
     unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
                                         int value);
+
+    /* The spell-icon list; named by the DropMonsterVisual assert
+       "pMonRep->GetSpellIcons()". */
+    W8PList* GetSpellIcons()
+    {
+        return linked_objects_5e8;
+    }
 
     W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT];                   /* 0x0ac */
     W8GrowableVector<float> animation_scales[W8_MONSTER_CYCLE_COUNT];                  /* 0x25c */
@@ -259,7 +269,9 @@ public:
     float direction_x_2b0;
     float direction_y_2b4;
     float direction_z_2b8;
-    unsigned char unknown_2bc[0x0c];
+    /* 0x2bc: the direction the real-time AI moves the monster along, added to
+       its position to pick the aim point (mode 0xa). */
+    srVector3T<float> move_direction_2bc;
     float look_frequency_2c8;
     float look_duration_2cc;
     int value_2d0;
@@ -374,21 +386,24 @@ void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
    stack. */
 void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world);
 void MonsterSetNavigatorFlag25(W8Monster* monster, char value);
-void* MonsterGetObject0C(W8Monster* monster);                         /* 0x004C5B30 */
-void MonsterSetNavigatorValue120(W8Monster* monster, float value);    /* 0x004C5F50 */
-float MonsterGetNavigatorValue120(W8Monster* monster);                /* 0x004C5F70 */
-void MonsterForward453690(W8Monster* monster, void* argument);        /* 0x004C5FB0 */
-void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value); /* 0x004C5FD0 */
+void* MonsterGetObject0C(W8Monster* monster);                      /* 0x004C5B30 */
+void MonsterSetNavigatorValue120(W8Monster* monster, float value); /* 0x004C5F50 */
+float MonsterGetNavigatorValue120(W8Monster* monster);             /* 0x004C5F70 */
+unsigned char MonsterForward452630(W8Monster* monster,
+                                   const srVector3T<float>* position); /* 0x004C5F90 */
+void MonsterForward453690(W8Monster* monster, void* argument);         /* 0x004C5FB0 */
+void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);  /* 0x004C5FD0 */
 void MonsterForward4531A0(void);
 
 void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);
 void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
 void NotifyMonsterIdle(W8Monster* monster, int arg_2);
 void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
-void Function4ACD80(W8Monster* monster, int slot, int arg_3);
-void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);
+void DropMonsterVisual(W8Monster* monster, int visual, char add);
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
 void PrepareMonsterCycleForDestruction004ACF90(W8Monster* cycle);
 
+void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */
 void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);

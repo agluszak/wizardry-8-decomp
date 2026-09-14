@@ -20,17 +20,17 @@ struct W8PreProp {
 static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
-   and later releases it with delete. Its storage has no proven
-   semantic fields. */
-class W8PathState004CAE40 {
+   and later releases it with delete. Its storage has no proven semantic
+   fields, so the name only claims ownership by the oct-path machinery. */
+class W8OctPathOwned004CAE40 {
 public:
-    W8PathState004CAE40(); /* 0x004CAE40 */
+    W8OctPathOwned004CAE40(); /* 0x004CAE40 */
 
 private:
     unsigned char positional_00[0x58];
 };
 
-static_assert(sizeof(W8PathState004CAE40) == 0x58, "W8PathState004CAE40_must_be_0x58");
+static_assert(sizeof(W8OctPathOwned004CAE40) == 0x58, "W8OctPathOwned004CAE40_must_be_0x58");
 struct W8NavigatorMovementState;
 struct W8NavigatorAttachment;
 
@@ -284,8 +284,10 @@ public:
                                            srVector3T<float>* destination,
                                            unsigned char adjust_destination,
                                            unsigned char diagonal_steps);
-    unsigned char Function4604B0(const srVector3T<float>* from, srVector3T<float>* to,
-                                 srVector3T<float>* out_position, float* range); /* 0x004604B0 */
+    /* `range` carries the walk budget in and the path cost back out; `hops`
+       returns the reached-waypoint count. */
+    unsigned char Function4604B0(const srVector3T<float>* from, srVector3T<float>* to, float* range,
+                                 int* hops); /* 0x004604B0 */
     unsigned int EditWaypointLinkFlags0045F530(const char* title, unsigned int* flags,
                                                unsigned int direction);
     void EditTeleportalLink(const srVector3T<float>* destination,
@@ -380,7 +382,7 @@ public:
     unsigned short value_1d8;
     unsigned char path_direction_valid_1da;
     unsigned char m_positional_1db[0x39];
-    W8PathState004CAE40* path_state_214; /* 0x214 */
+    W8OctPathOwned004CAE40* owned_214; /* 0x214 */
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a

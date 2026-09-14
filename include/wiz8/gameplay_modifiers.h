@@ -27,8 +27,9 @@ struct W8EffectSlot {
     int effect_id;        /* 0x01 */
     signed char amount;   /* 0x05 */
     unsigned char unknown_06[3];
-    unsigned int percent; /* 0x09 */
-    float duration_0d;    /* 0x0d */
+    unsigned int percent;      /* 0x09 */
+    unsigned int duration_0d;  /* 0x0d: remaining lifetime, aged down in whole
+                                  minutes by AgeMonsterSight */
 }; /* 0x11 */
 
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");

@@ -26,11 +26,11 @@ public:
 
     void assignModel(srModel* model)
     {
-        static_cast<srModel::Client*>(this)->setModel(model);
+        setModel(model);
     }
     srModel* model() const
     {
-        return static_cast<const srModel::Client*>(this)->getModel();
+        return getModel();
     }
 
     double getAlignAngle() const;

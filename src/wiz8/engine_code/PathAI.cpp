@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "surrender/srHeap.h"
 
 #include <math.h>
@@ -28,7 +29,6 @@ void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 
 void NoOp(void) {}
 
-
 // FUNCTION: WIZ8 0x004a9260
 unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
 {
@@ -41,8 +41,9 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
     case 1:
         return 0;
     case 3:
-        return UpdateMissileAI004A4CF0(reinterpret_cast<W8AIMissile*>( // reinterpret-ok: the kind byte selects the tagged record type
-            path));
+        return UpdateMissileAI004A4CF0(
+            reinterpret_cast< // reinterpret-ok: the kind byte selects the tagged record type
+                W8AIMissile*>(path));
     default:
         return 0;
     }
@@ -664,6 +665,163 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
         value->x = first->x;
         value->y = first->y;
         value->z = first->z;
+    }
+}
+
+// GLOBAL: WIZ8 0x005EC1E8
+double g_double_005ec1e8 = 2.0;
+
+/* GLOBAL: WIZ8 0x005EC1F0 - FLT_EPSILON; the dot-product closeness bound at
+   which the keyframe slerps fall back to a linear blend. */
+double g_double_005ec1f0 = 1.1920928955078125e-07;
+
+// FUNCTION: WIZ8 0x004aa520
+void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
+{
+    int index;
+    float blend;
+    srNode* node;
+    srVector3T<float>* scale_vector;
+    srVector3T<float> position;
+    srVector3T<double> location;
+    srMatrix3T<float> rotation;
+    srMatrix3T<float> next;
+    W8Quaternion first;
+    W8Quaternion second;
+    W8Quaternion adjusted;
+    double amount;
+    double dot;
+    double angle;
+    double sine;
+    double w;
+    double x;
+    double y;
+    double z;
+    double scale;
+    double sx;
+    double sy;
+    double sz;
+    double xx;
+    double xy;
+    double xz;
+    double yy;
+    double yz;
+    double zz;
+    double xw;
+    double yw;
+    double zw;
+
+    if (instance == 0) {
+        return;
+    }
+    PathAIPosition004AA370(path, &position);
+
+    node = instance->firstChild();
+    if (node == 0) {
+        location.SetFromFloat(&position);
+        instance->setLocation(location);
+    } else {
+        do {
+            location.SetFromFloat(&position);
+            node->setLocation(location);
+            node = node->nextSibling();
+        } while (node != 0);
+    }
+
+    if (0 < path->nodes_0c->count) {
+        if (path->flag_1c == 0) {
+            blend = path->value_24;
+            index = path->value_20;
+        } else {
+            index = static_cast<int>(path->value_04 + g_double_005ec3b0);
+            blend = -1.0f;
+        }
+        if (path->nodes_0c->count - 1 <= index) {
+            index = path->nodes_0c->count - 1;
+            blend = -1.0f;
+        }
+
+        rotation = path->rotations_14[index];
+        if (g_float_005ebb34 < blend) {
+            next = path->rotations_14[index + 1];
+            if (!(rotation == next)) {
+                first.SetFromMatrix(rotation);
+                second.SetFromMatrix(next);
+                amount = blend;
+                adjusted = second;
+                dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
+                      first.v.z * second.v.z;
+                if (dot < g_zero_005ebb40) {
+                    dot = -dot;
+                    adjusted.v = -adjusted.v;
+                    adjusted.w = -adjusted.w;
+                }
+                if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
+                    dot = g_double_005ebc30 - amount;
+                } else {
+                    angle = acos(dot);
+                    sine = sin(angle);
+                    dot = sin((g_double_005ebc30 - amount) * angle) / sine;
+                    amount = sin(angle * amount) / sine;
+                }
+                adjusted.v = dot * first.v + amount * adjusted.v;
+                w = first.w * dot + adjusted.w * amount;
+                x = adjusted.v.x;
+                y = adjusted.v.y;
+                z = adjusted.v.z;
+                scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
+                sx = scale * x;
+                sy = scale * y;
+                sz = scale * z;
+                xw = sx * w;
+                yw = sy * w;
+                zw = sz * w;
+                xx = sx * x;
+                xy = sx * y;
+                xz = sx * z;
+                yy = sy * y;
+                yz = sy * z;
+                zz = sz * z;
+                rotation.vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
+                rotation.vectors[1].x = static_cast<float>(xy + zw);
+                rotation.vectors[2].x = static_cast<float>(xz - yw);
+                rotation.vectors[0].y = static_cast<float>(xy - zw);
+                rotation.vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
+                rotation.vectors[2].y = static_cast<float>(yz + xw);
+                rotation.vectors[0].z = static_cast<float>(xz + yw);
+                rotation.vectors[1].z = static_cast<float>(yz - xw);
+                rotation.vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+            }
+        }
+
+        node = instance->firstChild();
+        if (node == 0) {
+            instance->setRotation(rotation);
+        } else {
+            do {
+                node->setRotation(rotation);
+                node = node->nextSibling();
+            } while (node != 0);
+        }
+
+        if (path->scales_18 != 0) {
+            scale_vector = &path->scales_18[index];
+            node = instance->firstChild();
+            if (node == 0) {
+                location.SetFromFloat(scale_vector);
+                instance->setScale(location);
+            } else {
+                do {
+                    location.SetFromFloat(scale_vector);
+                    node->setScale(location);
+                    node = node->nextSibling();
+                } while (node != 0);
+            }
+        }
+
+        if (path->unknown_3b != 0) {
+            instance->rotateX(1.5707963);
+        }
     }
 }
 

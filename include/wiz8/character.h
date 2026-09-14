@@ -381,6 +381,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                const unsigned char* expert_realm_flags);
 void RecalculateCharacterResistances(W8Character* character);
 int SumCharacterSpellPoints(const W8Character* character);
+int SumCharacterSpellPointsLeft(const W8Character* character);
 
 struct W8PortraitDescriptor {
     int group;

@@ -2,7 +2,7 @@
 
 #include "wiz8/regions.h"
 
-class W8ModalDialogBase;
+class W8MessageDialogBase;
 
 extern unsigned short g_main_menu_selected_item;
 extern unsigned char g_main_menu_has_save_games;
@@ -11,7 +11,7 @@ extern unsigned char g_main_menu_warning_shown;
 extern unsigned char g_main_menu_overlay_enabled;
 extern unsigned int g_main_menu_overlay_surface;
 extern unsigned int g_main_menu_hover_region;
-extern W8ModalDialogBase* g_main_menu_dialog;
+extern W8MessageDialogBase* g_main_menu_dialog;
 extern wchar_t* g_pending_main_menu_message;
 
 unsigned char DrawMainMenuItem(short item, short state);

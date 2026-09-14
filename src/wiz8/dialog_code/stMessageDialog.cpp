@@ -1,4 +1,4 @@
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ButtonUserData.h"
 #include "wiz8/sr_api.h"
@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-
 /* Dialog Code\stMessageDialog.cpp. SetMessage and WrapMessage assert this
    unit (lines 131 and 213); the two button callbacks are proven by their
    call-site strings (lines 615 and 652). The adjacent constructor,
@@ -25,7 +24,7 @@
    bodies are what every derived dialog runs before and after its own. */
 
 // FUNCTION: WIZ8 0x005d25b0
-W8ModalDialogBase::W8ModalDialogBase()
+W8MessageDialogBase::W8MessageDialogBase()
     : close_result(0), is_open(1), m_edge_image(-1), m_message_button(-1), m_confirm_button(-1),
       m_confirm_image(-1), m_cancel_button(-1), m_cancel_image(-1), m_lines(0), m_line_count(0)
 {
@@ -34,16 +33,16 @@ W8ModalDialogBase::W8ModalDialogBase()
 /* A virtual called from a destructor has a fixed dynamic type, so the
    compiler dispatches it directly; that direct call is slot 2. */
 // SYNTHETIC: WIZ8 0x005d25f0
-// W8ModalDialogBase::`scalar deleting destructor'
+// W8MessageDialogBase::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d2610
-W8ModalDialogBase::~W8ModalDialogBase()
+W8MessageDialogBase::~W8MessageDialogBase()
 {
     DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005d2660
-void W8ModalDialogBase::Draw()
+void W8MessageDialogBase::Draw()
 {
     int y;
     unsigned int index;
@@ -79,9 +78,9 @@ void W8ModalDialogBase::Draw()
 }
 
 // FUNCTION: WIZ8 0x005d2800
-void W8ModalDialogBase::SetMessage(wchar_t* message, int line_count, int characters_per_line,
-                                   int confirmation, int cancel, int size_to_message,
-                                   int wrap_message, int maximum_width, int maximum_height)
+void W8MessageDialogBase::SetMessage(wchar_t* message, int line_count, int characters_per_line,
+                                     int confirmation, int cancel, int size_to_message,
+                                     int wrap_message, int maximum_width, int maximum_height)
 {
     unsigned int index;
 
@@ -146,7 +145,7 @@ void W8ModalDialogBase::SetMessage(wchar_t* message, int line_count, int charact
 }
 
 // FUNCTION: WIZ8 0x005d2a50
-unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
+unsigned int W8MessageDialogBase::WrapMessage(wchar_t* message)
 {
     wchar_t lines[32][256];
     wchar_t* remaining;
@@ -217,7 +216,7 @@ unsigned int W8ModalDialogBase::WrapMessage(wchar_t* message)
 }
 
 // FUNCTION: WIZ8 0x005d2cb0
-void W8ModalDialogBase::SetClientExtent(int width, int height)
+void W8MessageDialogBase::SetClientExtent(int width, int height)
 {
     int old_width = m_width;
     int old_height = m_height;
@@ -227,7 +226,7 @@ void W8ModalDialogBase::SetClientExtent(int width, int height)
 }
 
 // FUNCTION: WIZ8 0x005d2d00
-int W8ModalDialogBase::CreateControls()
+int W8MessageDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
     if (m_edge_image == -1) {
@@ -257,16 +256,18 @@ int W8ModalDialogBase::CreateControls()
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
         3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
-        m_confirm_button = QuickCreateButton(
-            m_confirm_image, 0, 0, 4, 0x7f, ModalDialogConfirmCallback, ModalDialogConfirmCallback);
+        m_confirm_button =
+            QuickCreateButton(m_confirm_image, 0, 0, 4, 0x7f, MessageDialogConfirmCallback,
+                              MessageDialogConfirmCallback);
     }
     m_cancel_image = LoadButtonImage(
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
         7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
-        m_cancel_button = QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f,
-                                            ModalDialogCancelCallback, ModalDialogCancelCallback);
+        m_cancel_button =
+            QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f, MessageDialogCancelCallback,
+                              MessageDialogCancelCallback);
     }
     if (m_confirm_button != -1 && m_cancel_button != -1) {
         int button_width;
@@ -292,7 +293,7 @@ int W8ModalDialogBase::CreateControls()
 }
 
 // FUNCTION: WIZ8 0x005d2f40
-void W8ModalDialogBase::DestroyControls()
+void W8MessageDialogBase::DestroyControls()
 {
     unsigned int index;
 
@@ -331,7 +332,7 @@ void W8ModalDialogBase::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005d3020
-unsigned char W8ModalDialogBase::HandleInput(const InputAtom* input)
+unsigned char W8MessageDialogBase::HandleInput(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN) {
         return is_open;
@@ -355,7 +356,7 @@ unsigned char W8ModalDialogBase::HandleInput(const InputAtom* input)
 }
 
 // FUNCTION: WIZ8 0x005d3080
-unsigned char W8ModalDialogBase::ProcessInput()
+unsigned char W8MessageDialogBase::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -392,9 +393,9 @@ unsigned char W8ModalDialogBase::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005d32c0
-void ModalDialogConfirmCallback(GUI_BUTTON* button, int reason)
+void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
+    W8MessageDialogBase* dialog = GetButtonUserDataPointer<W8MessageDialogBase>(button);
     if (!dialog) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x267,
                      0);
@@ -421,9 +422,9 @@ void ModalDialogConfirmCallback(GUI_BUTTON* button, int reason)
 }
 
 // FUNCTION: WIZ8 0x005d3370
-void ModalDialogCancelCallback(GUI_BUTTON* button, int reason)
+void MessageDialogCancelCallback(GUI_BUTTON* button, int reason)
 {
-    W8ModalDialogBase* dialog = GetButtonUserDataPointer<W8ModalDialogBase>(button);
+    W8MessageDialogBase* dialog = GetButtonUserDataPointer<W8MessageDialogBase>(button);
     if (!dialog) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stMessageDialog.cpp", 0x28c,
                      0);

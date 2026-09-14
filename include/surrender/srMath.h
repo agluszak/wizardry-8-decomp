@@ -106,6 +106,7 @@ public:
     srVector3T<T>& operator-=(const srVector3T<T>& other);
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
+    bool operator==(const srVector3T<T>& other) const;
     T Length() const;
     T LengthSquared() const;
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
@@ -300,7 +301,36 @@ template <class T> srVector3T<T> operator-(const srVector3T<T>& first, const srV
     return result;
 }
 
+/* Component negation: the slerp sign fix in PathAIApply 0x004AA520 and Prop
+   0x0044C830. Independent emission at 0x0044EE70. */
+template <class T> srVector3T<T> operator-(const srVector3T<T>& vector)
+{
+    srVector3T<T> result;
+    result.x = -vector.x;
+    result.y = -vector.y;
+    result.z = -vector.z;
+    return result;
+}
+
+/* Element equality: the same slerps gate interpolation on the two keyframe
+   rotations differing. Independent emission at 0x0044EC60. */
+template <class T> bool srVector3T<T>::operator==(const srVector3T<T>& other) const
+{
+    return x == other.x && y == other.y && z == other.z;
+}
+
 template <class T> srVector3T<T> operator*(const srVector3T<T>& vector, double scalar)
+{
+    srVector3T<T> result;
+    result.x = (T)(vector.x * scalar);
+    result.y = (T)(vector.y * scalar);
+    result.z = (T)(vector.z * scalar);
+    return result;
+}
+
+/* Scalar-first form: the slerps in PathAIApply 0x004AA520 and Prop 0x0044C830
+   push scalar then vector, matching the independent emission at 0x0044EEB0. */
+template <class T> srVector3T<T> operator*(double scalar, const srVector3T<T>& vector)
 {
     srVector3T<T> result;
     result.x = (T)(vector.x * scalar);
@@ -384,6 +414,7 @@ public:
     srMatrix3T<T>* RotateAboutY(double angle);
     srMatrix3T<T>* RotateAboutX(double angle);
     srVector3T<T> Transform(const srVector3T<T>& value) const;
+    bool operator==(const srMatrix3T<T>& other) const;
 
     srVector3T<T> vectors[3];
 };
@@ -439,6 +470,15 @@ template <class T> void srMatrix3T<T>::SetIdentity()
     vectors[2].x = (T)0;
     vectors[2].y = (T)0;
     vectors[2].z = (T)1;
+}
+
+/* Row-wise equality: the keyframe slerps compare the current and next
+   rotation records before interpolating. No retail out-of-line copy; every
+   site inlines the three vector compares. */
+template <class T> bool srMatrix3T<T>::operator==(const srMatrix3T<T>& other) const
+{
+    return vectors[0] == other.vectors[0] && vectors[1] == other.vectors[1] &&
+           vectors[2] == other.vectors[2];
 }
 
 // TEMPLATE: WIZ8 0x00438F90
@@ -632,6 +672,7 @@ public:
     srMatrix4T<T>* Invert();
     T* Scale(double scale);
     void AdjugateFrom(T* source);
+    srMatrix4T<T>* Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation);
     T Det() const;
     srVector3T<T> TransformPoint(const srVector3T<T>& point) const;
     srVector3T<T> TransformDirection(const srVector3T<T>& direction) const;
@@ -810,6 +851,25 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
     fVar5 = fVar10 * fVar5 - fVar9 * fVar6;
     param_1[11] = -(fVar5 * fVar4 + (fVar14 * fVar1 - fVar8 * fVar2));
     param_1[15] = fVar5 * fVar3 + (fVar13 * fVar1 - fVar7 * fVar2);
+}
+
+/* Build the homogeneous transform whose upper 3x3 is `rotation` and whose
+   last column is `translation`; the bottom row is (0,0,0,1). Wiz8's
+   BakeInstanceVertexLighting calls this before bulk-transforming vertices. */
+// TEMPLATE: WIZ8 0x00470200
+template <class T>
+srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation)
+{
+    srVector4T<T> target;
+    const T* component = &translation.x;
+    for (int row = 0; row < 3; ++row) {
+        target.Set(rotation.vectors[row].x, rotation.vectors[row].y, rotation.vectors[row].z,
+                   *component++);
+        vectors[row] = target;
+    }
+    target.Set((T)0, (T)0, (T)0, (T)1);
+    vectors[3] = target;
+    return this;
 }
 
 float Det3(float param_1, float param_2, float param_3, float param_4, float param_5, float param_6,

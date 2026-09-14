@@ -36,6 +36,8 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/ReviewCharacterScreen.cpp
     src/wiz8/local_screens/MGSSpellIcons.cpp
     src/wiz8/local_screens/RCSCommon.cpp
+    src/wiz8/local_screens/MGSFormation.cpp
+    src/wiz8/local_screens/MGSRadarMap.cpp
     src/wiz8/local_screens/RCSItemsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
@@ -55,7 +57,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Configuration.cpp
     src/wiz8/local_code/ButtonSound.cpp
     src/wiz8/dialog_code/NotificationDialog.cpp
-    src/wiz8/dialog_code/ModalDialogBase.cpp
+    src/wiz8/dialog_code/MessageDialogBase.cpp
     src/wiz8/dialog_code/stMessageDialog.cpp
     src/wiz8/dialog_code/DialogBase.cpp
     src/wiz8/dialog_code/DialogFactoryDialogs.cpp
@@ -63,7 +65,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/dialog_code/DialogTextEntry.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
-    src/wiz8/engine_code/Object0043A910.cpp
+    src/wiz8/engine_code/GameTimeAccumulator0043A910.cpp
     src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp
@@ -151,7 +153,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/npc_interaction.cpp
     "src/wiz8/local_code/NPC Scripting.cpp"
     "src/wiz8/local_code/NPC Scripting Facts.cpp"
-    src/wiz8/local_code/character_events.cpp
     src/wiz8/local_code/formation_state.cpp
     src/wiz8/local_code/GroupAttacks.cpp
     src/wiz8/local_code/CharGeneration.cpp

@@ -302,14 +302,50 @@ def debug_command(
         list[str] | None,
         typer.Argument(help="Runtime product arguments."),
     ] = None,
+    break_at: Annotated[
+        list[str] | None,
+        typer.Option("--break", help="Recomp address, optionally followed by :GDB_CONDITION."),
+    ] = None,
+    scenario: Annotated[
+        str | None,
+        typer.Option(help="Run one runtime-test scenario under GDB."),
+    ] = None,
+    timeout: Annotated[
+        int,
+        typer.Option(min=1, help="Seconds to wait for a debugger stop."),
+    ] = 180,
 ) -> None:
-    """Debug the runtime product through a deterministic GDB session."""
+    """Build and debug the runtime product through a deterministic GDB session."""
     from .. import command_support as cli
+    from ..build import build_target
     from ..debug.debugger import run_debugger
+    from ..runtime import RUNTIME_SCENARIOS
 
-    result = run_debugger(cli.settings(), list(arguments or []))
+    settings = cli.settings()
+    if scenario is not None and arguments:
+        raise ValueError("runtime product arguments cannot be combined with --scenario")
+    if scenario is not None and scenario not in RUNTIME_SCENARIOS:
+        raise ValueError(f"unknown runtime scenario: {scenario}")
+    build_target(settings, "runtime-test" if scenario is not None else "runtime")
+    breakpoints: list[tuple[int, str | None]] = []
+    for specification in break_at or []:
+        address_text, separator, condition = specification.partition(":")
+        try:
+            address = int(address_text, 0)
+        except ValueError as error:
+            raise ValueError(f"invalid debugger address: {address_text}") from error
+        breakpoints.append((address, condition if separator else None))
+    result = run_debugger(
+        settings,
+        list(arguments or []),
+        breakpoints=breakpoints or None,
+        scenario=scenario,
+        timeout=timeout,
+    )
     sys.stdout.write(result["report"])
-    sys.stderr.write(f"reason: {result['reason']}\nraw gdb: {result['log']}\n")
+    sys.stderr.write(
+        f"reason: {result['reason']}\nraw gdb: {result['log']}\nsession: {result['session']}\n"
+    )
 
 
 def crash_report_command(

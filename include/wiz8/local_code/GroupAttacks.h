@@ -18,6 +18,9 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                                        int arg_6, int* piCharTargets, int arg_8,
                                        int iNumMonsterTargets, int arg_10,
                                        int* piMonsterTargets); /* 0x005560A0 */
+/* Whether the AI kind is one of the seven the casting-blocked condition keeps
+   from fleeing. */
+unsigned char MonsterAIKindHonorsCastingBlock(int ai_kind); /* 0x00556050 */
 
 /* Kind six: look the kind's summoned species up, roll the record's group
    size and bring the new group in as close to the attacker's position as the

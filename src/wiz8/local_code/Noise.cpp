@@ -32,7 +32,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
             continue;
         }
         if (flag == 1) {
-            if (gXStatus.fCombatMode != 0 && group->flag_29 != 0) {
+            if (gXStatus.fCombatMode != 0 && group->fInCombat != 0) {
                 continue;
             }
         } else if (flag == 0 && info->ubDisposition != 1) {
@@ -60,10 +60,9 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
         }
         if (flag == 1 && gXStatus.fCombatMode != 0) {
             float range = (float)radius;
-            srVector3T<float> hit_position;
-            srVector3T<float> tested_position;
-            if (g_octree_6598a4->TestNoiseLineOfSight00434220(position, &monster_position,
-                                                              &tested_position, &range) == 0) {
+            int hops;
+            if (g_octree_6598a4->TestNoiseLineOfSight00434220(&monster_position, &noise_position,
+                                                              &range, &hops) == 0) {
                 continue;
             }
             if ((float)((int)GetMonsterRecordScaledFloat1BA(info) * 1000) < range) {

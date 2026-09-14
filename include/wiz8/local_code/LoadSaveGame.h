@@ -88,6 +88,12 @@ char Function5156C0(const char* path, W8Character* character);
 void Function515B00(void);
 void SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
 
+unsigned char LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */
+unsigned char LoadMonster(W8Chunk* chunk);      /* 0x00513D80 */
+/* 0x005139C0: folds the shipped per-level status file in before a save's
+   section is applied. */
+unsigned char LoadDefaultLevelStatus(unsigned int level);
+
 void ResetLiveSessionForLoad(void); /* 0x00512C40 */
 
 void ReportSaveFailed(char quiet); /* 0x00515AC0 */

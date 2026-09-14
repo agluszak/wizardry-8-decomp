@@ -54,6 +54,14 @@ void FormatDebugMessage(int channel, const char* format, ...);
    GrCycle.cpp for a cycle with no usable LOD, so its name stays neutral. */
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_gender);
+/* 0x00517FB0: fill `selected` with up to `count` distinct party slots that pass
+   the same eligibility gate as GetRandomCharacter, skipping `excluded_slot` and
+   starting the scan at slot two when `skip_first_two` is set. More eligible
+   slots than asked for are sampled at random; too few relaxes the requirements
+   once each before giving up. Returns how many were written. */
+unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
+                                 unsigned int excluded_slot, unsigned int* selected,
+                                 unsigned int count, char skip_first_two);
 
 extern const wchar_t g_format_d_0060aa20[];
 /* Shared "%d/%d" format literal; the definition is the GLOBAL in

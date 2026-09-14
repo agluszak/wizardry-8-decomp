@@ -20,6 +20,8 @@
 #include "wiz8/notices.h"
 #include "wiz8/chunk.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
 #include "wiz8/screen_state.h"
@@ -34,6 +36,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
+#include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/stLight.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/FormationAndFacing.h"
@@ -581,6 +584,191 @@ unsigned char LoadLevelStatus(const char* path, int level)
     return result;
 }
 
+/* Walk one status file's top-level chunks and apply the saved section for the
+   requested level. The section's level number is read into the chunk
+   parameter's own stack slot: the pointer is already parked in a register, so
+   the slot is dead scratch, the same reuse LoadMonsterGroup documents. A
+   section at the file's end carries no payload and is skipped; a non-matching
+   section is released without walking its children. On a save load the level's
+   shipped status is folded in first, so baseline state exists under the saved
+   overrides. The chunk ids dispatch as a flat chain; LOCK and LCKS share the
+   trigger-state loader. */
+// FUNCTION: WIZ8 0x00513650
+unsigned char LoadItemStatus(W8Chunk* chunk, int level)
+{
+    unsigned int* file_level =
+        reinterpret_cast< // reinterpret-ok: the LVLS header dword overlays the record the caller handed in
+            unsigned int*>(&chunk);
+    W8Chunk* stream = chunk;
+    unsigned char result = 0;
+    int outer_count = stream->ChunkCount();
+    unsigned int index;
+
+    for (int outer = 0; outer < outer_count; ++outer) {
+        if (result != 0) {
+            return result;
+        }
+        stream->OpenChunk(0, 0);
+        if (stream->CurrentChunkId() == 0x534c564c) { /* LVLS */
+            if (stream->CurrentChunkAtEnd() != 0) {
+                stream->OpenGroup();
+                stream->Read(file_level, 4, 0);
+                stream->SkipCurrentChunk();
+            } else {
+                stream->OpenGroup();
+                stream->Read(file_level, 4, 0);
+                if (level == static_cast<int>(*file_level)) {
+                    if (g_flag_00659756 == 0) {
+                        LoadDefaultLevelStatus(level);
+                    }
+                    result = 1;
+                    for (int inner = stream->ChunkCount(); inner > 0; --inner) {
+                        stream->OpenChunk(0, 0);
+                        if (stream->CurrentChunkAtEnd() == 0) {
+                            unsigned long chunk_id = stream->CurrentChunkId();
+
+                            if (chunk_id == 0x54415453) { /* STAT */
+                                LoadStatusHeader(stream);
+                            } else if (chunk_id == 0x534e4f4d) { /* MONS */
+                                unsigned int group_count;
+                                unsigned int monster_count;
+
+                                stream->Read(&group_count, 4, 0);
+                                stream->Read(&monster_count, 4, 0);
+                                for (index = 0; index < group_count; ++index) {
+                                    if (LoadMonsterGroup(stream) == 0) {
+                                        goto chunk_done;
+                                    }
+                                }
+                                for (index = 0; index < monster_count; ++index) {
+                                    if (LoadMonster(stream) == 0) {
+                                        goto chunk_done;
+                                    }
+                                }
+                                ReapplyMonsterGroupFormations();
+                                RepairMonsterGroupLeaderLinks();
+                                ApplyDefaultMonsterGroupSounds();
+                            } else if (chunk_id == 0x4d455449) { /* ITEM */
+                                unsigned int item_count;
+
+                                stream->Read(&item_count, 4, 0);
+                                for (index = 0; index < item_count; ++index) {
+                                    if (LoadItem(stream->m_hFile, 1) == 0) {
+                                        break;
+                                    }
+                                }
+                            } else if (chunk_id == 0x45425543) { /* CUBE */
+                                if (g_flag_00659756 == 0) {
+                                    ReleaseWorldCursorNodes0048DB30();
+                                }
+                                LoadWorldCursorNodes0048E7B0(stream->m_hFile);
+                                if (g_flag_00659756 != 0) {
+                                    LoadWorldCursorNodeStates0048E470(stream->m_hFile);
+                                }
+                            } else if (chunk_id == 0x474e4f4d) { /* MONG */
+                                if (g_flag_00659756 == 0) {
+                                    DestroyMonsterGenerators();
+                                }
+                                W8MonsterGenerator::LoadAll(stream->m_hFile);
+                            } else if (chunk_id == 0x4b434f4c || /* LOCK */
+                                       chunk_id == 0x534b434c) { /* LCKS */
+                                LoadTriggerRuntimeStates0043CCF0(stream->m_hFile);
+                            } else if (chunk_id == 0x53455254) { /* TRES */
+                                LoadTriggerActionData0043D1F0(stream->m_hFile);
+                            } else if (chunk_id == 0x4f545541) { /* AUTO */
+                                LoadAutomapNotes00581E60(stream->m_hFile);
+                            } else if (chunk_id == 0x47495254) { /* TRIG */
+                                LoadWorldTriggers0043C860(g_world, stream->m_hFile);
+                            } else if (chunk_id == 0x54535041) { /* APST */
+                                Function44E9A0(g_world, stream->m_hFile);
+                            } else if (chunk_id == 0x53425543) { /* CUBS */
+                                LoadWorldCursorNodeStates0048E470(stream->m_hFile);
+                            } else if (chunk_id == 0x534e474d) { /* MGNS */
+                                LoadMonsterGenerators(stream->m_hFile);
+                            } else if (chunk_id == 0x53424d41) { /* AMBS */
+                                LoadAmbientSoundList0047B270(stream->m_hFile);
+                            } else if (chunk_id == 0x54524150) { /* PART */
+                                LoadParticleStates0049B3B0(stream->m_hFile);
+                            } else if (chunk_id == 0x5448474c) { /* LGHT */
+                                Function49D390(stream->m_hFile);
+                            }
+                        }
+                    chunk_done:
+                        stream->SkipCurrentChunk();
+                        stream->ReleaseCurrentChunk();
+                    }
+                }
+            }
+            stream->ReleaseGroup();
+        }
+        stream->SkipCurrentChunk();
+        stream->ReleaseCurrentChunk();
+    }
+    return result;
+}
+
+/* Fold the shipped per-level status file into the live state - the baseline a
+   save's section is layered over. The path build is the same table walk
+   BuildLevelStatusPath spells out, but the basename search starts four
+   characters into the file name and the file itself is opened and walked here.
+   Only the persistent-state chunks are taken: cursor nodes, generators and
+   both trigger-state records. The level number the LVLS group carries is read
+   and discarded; the file is already level-specific. */
+// FUNCTION: WIZ8 0x005139c0
+unsigned char LoadDefaultLevelStatus(unsigned int level)
+{
+    W8Chunk chunk;
+    W8LevelInfo info;
+    char path[256];
+    int file_level;
+    int count;
+
+    if (LevelBuildInfoByID(level, &info) == 0) {
+        srAssertFail("LevelFilesExist(ulLevel, &LevelName)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp", 0x366, 0);
+    }
+    *strchr(info.level_file_name + 4, '.') = '\0';
+    if (level < 0x39) {
+        if (level == 0x38) {
+            sprintf(path, "%s\\Test\\DefaultLevel.%s", "Levels", "STS");
+        } else {
+            sprintf(path, "%s\\%s\\%s.%s", "Levels", g_level_folders[level].folder_name,
+                    g_level_folders[level].level_name, "STS");
+        }
+    } else {
+        sprintf(path, "%s\\Test\\Level%c.%s", "Levels", level - 0x38, "STS");
+    }
+    if (chunk.OpenRead(path) != 0) {
+        chunk.OpenChunk(0, 0);
+        chunk.OpenGroup();
+        chunk.Read(&file_level, 4, 0);
+        for (count = chunk.ChunkCount(); count > 0; --count) {
+            chunk.OpenChunk(0, 0);
+            if (chunk.CurrentChunkAtEnd() == 0) {
+                unsigned long chunk_id = chunk.CurrentChunkId();
+
+                if (chunk_id == 0x4b434f4c) { /* LOCK */
+                    LoadTriggerRuntimeStates0043CCF0(chunk.m_hFile);
+                } else if (chunk_id == 0x45425543) { /* CUBE */
+                    LoadWorldCursorNodes0048E7B0(chunk.m_hFile);
+                } else if (chunk_id == 0x474e4f4d) { /* MONG */
+                    W8MonsterGenerator::LoadAll(chunk.m_hFile);
+                } else if (chunk_id == 0x53455254) { /* TRES */
+                    LoadTriggerActionData0043D1F0(chunk.m_hFile);
+                }
+            }
+            chunk.SkipCurrentChunk();
+            chunk.ReleaseCurrentChunk();
+        }
+        chunk.ReleaseGroup();
+        chunk.SkipCurrentChunk();
+        chunk.ReleaseCurrentChunk();
+        chunk.Close();
+        return 1;
+    }
+    return 0;
+}
+
 /* Reads one saved monster group and files it under the species or the encounter
    list. The record's own size leads it, and the assertion that bounds it names
    the record: uiSize <= sizeof(*pMonsterGroup), at line 1517 of this unit.
@@ -639,7 +827,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         group->member_count = 0;
         group->active_member_count = 0;
         group->flag_28 = 0;
-        group->flag_29 = 0;
+        group->fInCombat = 0;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
         } else {
@@ -653,6 +841,194 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         if (group->flag_c3 != 0 && group->leader_group_id == 0) {
             ReleaseMonsterGroup(group);
         }
+    }
+    return 1;
+}
+
+/* One saved monster entry: a version dword, the uiSize-prefixed
+   W8MonsterInfo record, then the script block, the unborn-list flag, the
+   navigator movement state and - for newer records - the order, patrol and
+   facing fields. The monster is adopted into the live or unborn list,
+   rejoined to its group, activated, given back its condition and effect
+   visuals and its script, then dropped again if its database record was
+   deleted and started dying when the record says it is dead. */
+// FUNCTION: WIZ8 0x00513d80
+unsigned char LoadMonster(W8Chunk* chunk)
+{
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* record;
+    W8MonsterGroup* monster_group;
+    W8Monster* monster;
+    W8PList* plist;
+    W8GrowableVector<unsigned char> script_conditions;
+    srVector3T<float> read_point;
+    srVector3T<float> point;
+    char script_name[0x40];
+    unsigned int record_version;
+    unsigned int record_size;
+    unsigned int transferred;
+    int script_wait;
+    int script_line;
+    int queue_count;
+    int point_count;
+    int list_index;
+    int index;
+    int component;
+    unsigned char unborn = 0;
+    unsigned char has_script;
+    unsigned char value;
+    float patrol_value;
+
+    sprintf(script_name, "");
+    chunk->Read(&record_version, 4, 0);
+    monster_info = static_cast<W8MonsterInfo*>(malloc(sizeof(W8MonsterInfo)));
+    if (monster_info == 0) {
+        return 0;
+    }
+    memset(monster_info, 0, sizeof(W8MonsterInfo));
+    chunk->Read(&record_size, 4, 0);
+    if (record_size > sizeof(W8MonsterInfo)) {
+        srAssertFail("uiSize <= sizeof(*pMonsterInfo)", LOADSAVEGAME_CPP, 0x65e, 0);
+    }
+    chunk->Read(monster_info, record_size, 0);
+    chunk->Read(&has_script, 1, 0);
+    if (has_script != 0) {
+        chunk->Read(script_name, 0x40, &transferred);
+        chunk->Read(&script_wait, 4, &transferred);
+        chunk->Read(&script_line, 4, &transferred);
+        chunk->Read(&queue_count, 4, 0);
+        for (index = 0; index < queue_count; ++index) {
+            chunk->Read(&value, 1, 0);
+            script_conditions.Add(value);
+        }
+    }
+    monster_info->flag_14 = 0;
+    monster_info->monster = 0;
+    monster_info->fInCombat = 0;
+    monster_info->pCombat = 0;
+    if (record_version >= 5) {
+        chunk->Read(&unborn, 1, 0);
+    }
+    plist = gXStatus.plsMonsterList;
+    if (unborn != 0) {
+        plist = gXStatus.plsUnbornMonsterList;
+    }
+    list_index = PLAdoptAppend(plist, monster_info);
+    if (list_index == -1) {
+        free(monster_info);
+        return 0;
+    }
+    record = MonsterDBFromSpecies(monster_info->monster_species);
+    if (record == 0) {
+        free(monster_info);
+        return 0;
+    }
+    if (record->deleted == 0) {
+        monster_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(0x698, LOADSAVEGAME_CPP, monster_info->monster_group_id, 1));
+        if (monster_group == 0) {
+            free(monster_info);
+            return 0;
+        }
+        IListAdd(monster_group->monsters, monster_info->location_id);
+        if (monster_group->value_9f == (int)0xcdcdcdcd ||
+            monster_group->value_9f <
+                static_cast<int>(static_cast<unsigned int>(monster_info->location_id))) {
+            monster_group->value_9f = monster_info->location_id;
+        }
+        ++monster_group->member_count;
+        RequestRedrawParty();
+        if (monster_info->highest_condition < 0xd) {
+            ++monster_group->active_member_count;
+        }
+    }
+    ActivateMonster(monster_info, 0);
+    ActivateMonsterInWorld(monster_info);
+    monster = monster_info->monster;
+    if (monster_info->highest_condition != 0) {
+        for (index = 0; index < W8_CONDITION_COUNT; ++index) {
+            if (monster_info->condition_turns[index] != 0) {
+                DropMonsterVisual(monster, index - 1, 1);
+            }
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (monster_info->enchantments[index].value_08 != 0) {
+            DropMonsterVisual(monster, index + 0x10, 1);
+        }
+    }
+    for (index = 0; index < 12; ++index) {
+        if (monster_info->effect_slots_10f[index].duration_0d != 0) {
+            DropMonsterVisual(
+                monster, g_effect_visual_table[monster_info->effect_slots_10f[index].effect_id][0],
+                1);
+        }
+    }
+    if (monster_info->effect_2de > 0) {
+        DropMonsterVisual(monster, 0x26, 1);
+    }
+    if (monster_info->value_2da != 0) {
+        DropMonsterVisual(monster, 0x27, 1);
+    }
+    if (record_version >= 2) {
+        monster->LoadMovementState00454AD0(chunk->m_hFile);
+    }
+    if (record_version >= 3) {
+        chunk->Read(&value, 1, 0);
+        monster->defining_orders_28c = value;
+        chunk->Read(&value, 1, 0);
+        monster->order_mode_28e = value;
+        chunk->Read(&value, 1, 0);
+        monster->orders_finished_28d = value;
+        chunk->Read(&value, 1, 0);
+        monster->deaf_28f = value;
+        chunk->Read(&patrol_value, 4, 0);
+        monster->patrol_distance_294 = patrol_value;
+        chunk->Read(&patrol_value, 4, 0);
+        monster->patrol_variation_298 = patrol_value;
+        chunk->Read(&value, 1, 0);
+        monster->patrol_index_2ac = value;
+        chunk->Read(&point_count, 4, 0);
+        for (index = 0; index < point_count; ++index) {
+            for (component = 0; component < 3; ++component) {
+                chunk->Read(&read_point.x + component, 4, 0);
+            }
+            point = read_point;
+            monster->vector_29c.Add(point);
+        }
+        if (record_version >= 4) {
+            for (component = 0; component < 3; ++component) {
+                chunk->Read(&read_point.x + component, 4, 0);
+            }
+            point = read_point;
+            monster->direction_x_2b0 = point.x;
+            monster->direction_y_2b4 = point.y;
+            monster->direction_z_2b8 = point.z;
+        }
+        if (record_version >= 6) {
+            chunk->Read(&value, 1, 0);
+            monster->face_party_290 = value;
+        }
+        if (record_version >= 7) {
+            chunk->Read(&value, 1, 0);
+            monster->stay_home_291 = value;
+        }
+        monster_info->flag_255 |= 0x80;
+    }
+    if (script_name[0] != '\0') {
+        monster_info->flag_255 |= 0x10;
+        monster->SetScript004C7F10(script_name, 0);
+        monster->script_wait_240 = script_wait;
+        monster->script_line_23c = script_line;
+        while (script_conditions.GetCount() != 0) {
+            monster->script_conditions_244.Add(*script_conditions.GetAt(0));
+            script_conditions.RemoveAt(0);
+        }
+    }
+    if (record->deleted != 0) {
+        RemoveMonster(list_index, 1);
+    } else if (monster_info->hp_current == 0) {
+        MonsterStartsDying(monster_info, 1);
     }
     return 1;
 }
@@ -671,7 +1047,7 @@ void ResetLiveSessionForLoad(void)
         SoundEmptyCache();
     }
     if (gXStatus.character_event_queue != 0) {
-        gXStatus.character_event_queue->ClearOwnedEntries();
+        gXStatus.character_event_queue->DestroyAllEvents();
     }
     ResetMainGameScreenState();
     ClearNpcMessageQueue();

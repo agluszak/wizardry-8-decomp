@@ -42,3 +42,17 @@ unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
     }
     return 0;
 }
+
+// FUNCTION: WIZ8 0x004BE8D0
+unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
+                                    const srVector3T<float>* first_maximum,
+                                    const srVector3T<float>* second_minimum,
+                                    const srVector3T<float>* second_maximum)
+{
+    if (first_maximum->x >= second_minimum->x && second_maximum->x >= first_minimum->x &&
+        first_maximum->y >= second_minimum->y && second_maximum->y >= first_minimum->y &&
+        first_maximum->z >= second_minimum->z && second_maximum->z >= first_minimum->z) {
+        return 1;
+    }
+    return 0;
+}

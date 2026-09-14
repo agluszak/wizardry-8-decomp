@@ -1,6 +1,6 @@
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/sr_api.h"
 
 /*
@@ -31,13 +31,13 @@ W8DialogBase* CreateDialogByKind(int kind)
         dialog->SetExtent(320, 240);
         break;
     case 1:
-        dialog = new W8ModalDialogBase;
+        dialog = new W8MessageDialogBase;
         dialog->SetOrigin(240, 190);
         dialog->SetExtent(160, 100);
         dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         return dialog;
     case 3:
-        dialog = new W8Dialog005CBB40;
+        dialog = new W8ListBoxDialog005CBB40;
         dialog->SetText(L"ListBox Dialog");
         dialog->SetOrigin(200, 100);
         dialog->SetExtent(240, 280);
@@ -69,7 +69,7 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
 // FUNCTION: WIZ8 0x005cf510
 unsigned char GetDialogResult(W8DialogBase* dialog)
 {
-    return static_cast<W8ModalDialogBase*>(dialog)->close_result;
+    return static_cast<W8MessageDialogBase*>(dialog)->close_result;
 }
 
 // FUNCTION: WIZ8 0x005cf520

@@ -218,13 +218,13 @@ void OpenSecondaryStatInfoDialog005BA2A0(void)
 // FUNCTION: WIZ8 0x005BA2B0
 void OpenStatInfoDialog005BA2B0(unsigned int uiIndex)
 {
-    DisplayCampDialog(new W8StatInfoDialog005DFC70(uiIndex));
+    DisplayCampDialog(new W8AttributeInfoDialog005DFC70(uiIndex));
 }
 
 // FUNCTION: WIZ8 0x005BA310
 void OpenSecondaryStatInfoDialog005BA310(unsigned int uiIndex)
 {
-    DisplayCampDialog(new W8StatInfoDialog005E0180(uiIndex));
+    DisplayCampDialog(new W8SecondaryAttributeInfoDialog005E0180(uiIndex));
 }
 
 // FUNCTION: WIZ8 0x005BA370

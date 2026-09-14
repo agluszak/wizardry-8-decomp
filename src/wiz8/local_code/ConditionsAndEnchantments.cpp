@@ -130,7 +130,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         }
         RebuildConditionsAndDerivedStats(party_slot);
-        Function52F790(character, condition);
+        QueueConditionClearedReaction(character, condition);
         if (!can_rest && party_slot > -1 && party_slot < 8 && row->occupied != 0 &&
             character->hp_current != 0 && character->highest_condition < 0xd &&
             gXStatus.fCombatMode != 0 &&
@@ -292,7 +292,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
                                      (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (old_duration == 0 && condition != 0 && condition <= 0x12) {
-            Function4ACD80(monster_info->monster, condition - 1, 1);
+            DropMonsterVisual(monster_info->monster, condition - 1, 1);
         }
         if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
             target->iChar != -1) {
@@ -358,7 +358,7 @@ void ClearMonsterCondition(int location_id, int condition)
                 0x2e0, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
                 monster_info->monster_group_id, 1);
             monster_group = GetMonsterGroupByListIndex(list_index);
-            Function5477D0(monster_info, monster_group->flag_2a);
+            Function5477D0(monster_info, monster_group->ubDisposition);
         }
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
             WriteGameLog(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
@@ -383,12 +383,12 @@ void ClearMonsterCondition(int location_id, int condition)
                                      (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (condition != 0 && condition < 0x13) {
-            Function4ACD80(monster_info->monster, condition - 1, 0);
+            DropMonsterVisual(monster_info->monster, condition - 1, 0);
         }
         switch (condition) {
         case 6:
             if (monster_info->fInCombat != 0) {
-                monster_info->pCombat->unknown_13d[0xE] = 0;
+                monster_info->pCombat->advancing_14b = 0;
             }
             break;
         case 7:
@@ -516,7 +516,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
     }
     if (old_highest != character->highest_condition) {
-        Function52F430(character);
+        QueueConditionChangeReaction(character);
     }
     if (value_6 != 0) {
         if (condition == 0x13 && value_5 != 0) {
@@ -660,7 +660,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
 
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
-    Function4ACD80(monster_info->monster, slot + 0x10, 0);
+    DropMonsterVisual(monster_info->monster, slot + 0x10, 0);
     RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
@@ -685,7 +685,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
-    Function4ACD80(monster_info->monster, slot + 0x10, 0);
+    DropMonsterVisual(monster_info->monster, slot + 0x10, 0);
     RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);

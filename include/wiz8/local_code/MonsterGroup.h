@@ -8,6 +8,10 @@ struct W8IList;
 struct W8MonsterRecord;
 struct W8MonsterGroup;
 
+/* The dispositions a group or member carries, spelled by the MONSTERS.SLF
+   parser and the 0x00530f10 assertion. */
+enum { DISP_NEUTRAL = 0, DISP_HOSTILE = 1, DISP_FRIENDLY = 2 };
+
 unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value);
 
 #pragma pack(push, 1)
@@ -26,12 +30,15 @@ struct W8MonsterGroup {
     /* 0x1c: the mean of the live members' positions, recomputed on demand. */
     srVector3T<float> centre;
     unsigned char flag_28; /* 0x28: cleared after the record loads */
-    /* 0x29: fInCombat, named by the MonsterGroup.cpp:492 assertion. Cleared
-       after the record loads and again when the group leaves combat. */
-    unsigned char flag_29;
-    /* 0x2a: at one the group is live regardless of the global gate at
-       0x00547510; anything else has to pass that gate as well. */
-    W8Disposition flag_2a;
+    /* 0x29: in-combat flag, named by the MonsterGroup.cpp:492 assertion.
+       Cleared after the record loads and again when the group leaves
+       combat. */
+    unsigned char fInCombat;
+    /* 0x2a: the group's disposition, the value SetMonsterGroupDisposition
+       writes and each member's ubDisposition copies. At DISP_HOSTILE the group
+       is live regardless of the global gate at 0x00547510; anything else has
+       to pass that gate as well. */
+    W8Disposition ubDisposition;
     unsigned char unknown_2b;
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. GetMonsterName reads it and nothing recovered yet writes it. */
@@ -77,6 +84,14 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 /* The group's flag at 0xc8, looked up by group id. */
 unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
+/* Whether the group has a member placed and rendered in the world; a nonzero
+   second argument also demands the member's party-threat flag. */
+unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
+                                              char require_threat); /* 0x00511B40 */
+/* Write `state` into the group's engagement byte and propagate it to its four
+   allied groups; while the byte is set, each call ticks the counter beside
+   it. The record kinds the special encounter ids carry ignore a set. */
+void SetMonsterGroupEngagementState(int group_id, unsigned char state); /* 0x00511BE0 */
 unsigned char MoveMonsterGroupToPosition(W8MonsterGroup* group, srVector3T<float>* position,
                                          float yaw, int a, int b, int c, int d); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the
@@ -115,7 +130,20 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
+unsigned char MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);                      /* 0x0050F630 */
+void Function5113A0(W8MonsterGroup* monster_group);                               /* 0x005113A0 */
+void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);                      /* 0x0050F720 */
+/* Marks every live member of the group and of its allied groups for removal. */
+void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
+/* Nonzero when the group - or one of its allied groups - has a member whose
+   highest condition is in the 0x0d..0x11 incapacitated band. */
+char Function511D40(int group_id); /* 0x00511D40 */
 
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
+
+void ReapplyMonsterGroupFormations(void);  /* 0x00510830 */
+void RepairMonsterGroupLeaderLinks(void);  /* 0x00510740 */
+void ApplyDefaultMonsterGroupSounds(void); /* 0x005108C0 */
 
 #endif

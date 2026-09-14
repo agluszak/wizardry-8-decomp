@@ -396,9 +396,8 @@ after_early: {
 
         for (int owned_index = 0; owned_index < 0xc; ++owned_index) {
             if (slot->active != 0) {
-                if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d =
-                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                if (minutes < slot->duration_0d) {
+                    slot->duration_0d -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {
@@ -413,9 +412,8 @@ after_early: {
             W8EffectSlot* slot = &monster_info->pCombat->effect_slots_3e[combat_index];
 
             if (slot->active != 0) {
-                if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d =
-                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                if (minutes < slot->duration_0d) {
+                    slot->duration_0d -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {
@@ -427,9 +425,8 @@ after_early: {
             W8EffectSlot* slot = &monster_info->pCombat->effect_slots_d7[d7_index];
 
             if (slot->active != 0) {
-                if (minutes < static_cast<unsigned int>(slot->duration_0d)) {
-                    slot->duration_0d =
-                        static_cast<int>(slot->duration_0d) - static_cast<int>(minutes);
+                if (minutes < slot->duration_0d) {
+                    slot->duration_0d -= minutes;
                 } else if (monster_info == 0) {
                     ResetPartyEffectBlock(slot);
                 } else {

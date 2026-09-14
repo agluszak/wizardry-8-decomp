@@ -46,7 +46,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
 /* Names of the seven bitmap cycles in each of the four spell-visual groups,
@@ -1114,6 +1113,98 @@ void ReleaseSpellDatabase(void)
     }
 }
 
+/* The forty icon resource names under Data\Icons\MonsterSpells. Entries 8 and
+   9 share the pooled "Hexed" literal in retail. */
+// GLOBAL: WIZ8 0x0060d50c
+const char* g_monster_spell_icon_names_0060d50c[40] = {
+    "Hexed",           "Diseased",     "Irritated",      "Nauseated",      "Slowed",
+    "Afraid",          "Poisoned",     "Silenced",       "Hexed",          "Hexed",
+    "Insane",          "Blind",        "Turncoat",       "Webbed",         "Asleep",
+    "Paralyzed",       "Unconscious",  "Dracon_Breath",  "Guardian_Angel", "Razor_Cloak",
+    "Eye4Eye",         "Haste",        "Super_Man",      "Body_Stone",     "Armor_Plate",
+    "Enchanted_Blade", "Magic_Screen", "Missile_Shield", "Armor_Melt",     "Acid_Cloud",
+    "Toxic_Cloud",     "Fire_Storm",   "Death_Cloud",    "Draining_Cloud", "Bless",
+    "Element_Shield",  "Soul_Shield",  "Ring_Of_Fire",   "Charmed",        "Summoned",
+};
+
+/* Attach or remove a spell/condition icon on a monster's representation. The
+   add path builds the billboard's texture path, creates the icon item and
+   adopts the link record; the remove path finds the record by icon id, pulls
+   the item out of the world list, deletes it and frees the record. */
+// FUNCTION: WIZ8 0x004acd80
+void DropMonsterVisual(W8Monster* pMonster, int iIcon, char add)
+{
+    W8MonsterRep* pMonRep;
+    W8MonsterLinkedItem005E8* pSpellMI;
+    W8PList* ppl;
+    char path[260];
+    int count;
+    int index;
+
+    if (pMonster == 0) {
+        srAssertFail("pMonster", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x829, 0);
+    }
+    pMonRep = pMonster->m_pRep;
+    if (pMonRep == 0) {
+        srAssertFail("pMonRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x82b, 0);
+    }
+    if (pMonRep->GetSpellIcons() == 0) {
+        srAssertFail("pMonRep->GetSpellIcons()",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x82c, 0);
+    }
+    ppl = pMonRep->GetSpellIcons();
+    if (iIcon == -1) {
+        srAssertFail("iIcon != SPELL_ICON_NONE",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x82f, 0);
+    }
+    if (add == 0) {
+        if (ppl == 0) {
+            return;
+        }
+        count = PLLength(ppl);
+        for (index = 0; index < count; ++index) {
+            pSpellMI = static_cast<W8MonsterLinkedItem005E8*>(PLGet(ppl, index));
+            if (pSpellMI->icon_00 == iIcon) {
+                PListRemove(ppl, pSpellMI);
+                if (pSpellMI == 0) {
+                    srAssertFail("pSpellMI", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                                 0x81b, 0);
+                }
+                if (pSpellMI->psrBMO != 0) {
+                    pSpellMI->psrBMO->DetachMesh0049FA30(g_world);
+                    PListRemove(g_world->plsItems, pSpellMI->psrBMO);
+                    if (pSpellMI->psrBMO != 0) {
+                        delete pSpellMI->psrBMO;
+                    }
+                }
+                free(pSpellMI);
+                index = 0;
+                --count;
+            }
+        }
+    } else {
+        if (iIcon >= 0x28) {
+            srAssertFail("uiIcon < SPELL_NUM_ICONS",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x80a, 0);
+        }
+        pSpellMI = static_cast<W8MonsterLinkedItem005E8*>(malloc(8));
+        pSpellMI->icon_00 = 0;
+        pSpellMI->psrBMO = 0;
+        sprintf(path, "%s\\%s_A.TGA", "Data\\Icons\\MonsterSpells",
+                g_monster_spell_icon_names_0060d50c[iIcon]);
+        pSpellMI->icon_00 = iIcon;
+        pSpellMI->psrBMO = CreateMonsterIconItem004C5500(g_world, path, 1);
+        if (pSpellMI->psrBMO == 0) {
+            srAssertFail("pSpellMI->psrBMO", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                         0x814, 0);
+        }
+        if (pSpellMI == 0) {
+            srAssertFail("pSpellMI", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x84a, 0);
+        }
+        PLAdoptAppend(ppl, pSpellMI);
+    }
+}
+
 // SYNTHETIC: WIZ8 0x004abce0
 // W8SpellVisual::`scalar deleting destructor'
 
@@ -1348,10 +1439,10 @@ void PrepareMonsterCycleForDestruction004ACF90(W8Monster* monster)
                 srAssertFail("pSpellMI", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x81b,
                              0);
             }
-            if (entry->item_04 != 0) {
-                entry->item_04->DetachMesh0049FA30(g_world);
-                PListRemove(g_world->plsItems, entry->item_04);
-                delete entry->item_04;
+            if (entry->psrBMO != 0) {
+                entry->psrBMO->DetachMesh0049FA30(g_world);
+                PListRemove(g_world->plsItems, entry->psrBMO);
+                delete entry->psrBMO;
             }
             free(entry);
         }

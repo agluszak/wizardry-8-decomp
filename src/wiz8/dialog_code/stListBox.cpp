@@ -7,7 +7,7 @@
 #include "mousesystem.h"
 
 /* Retail Dialog Code\stListBox.cpp - the SGP button callbacks that give
-   W8Dialog005CBB40 its scrolling text-list behaviour. The list state lives on
+   W8ListBoxDialog005CBB40 its scrolling text-list behaviour. The list state lives on
    the dialog (first visible line 0x0f0, selected line 0x0f4) and each button's
    userdata slot carries the dialog pointer. The gap helpers it calls -
    GetVisibleLineCount 0x005CC650, SetCurrentLine 0x005CCB80 and the keyboard
@@ -15,11 +15,11 @@
    DialogFactoryDialogs.h for these call sites. */
 
 // FUNCTION: WIZ8 0x005cce70
-void W8Dialog005CBB40::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x2f5,
@@ -47,9 +47,9 @@ void W8Dialog005CBB40::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
 #pragma clang diagnostic pop
 
 // FUNCTION: WIZ8 0x005ccf30
-void W8Dialog005CBB40::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x305, 0);
     }
@@ -74,9 +74,9 @@ void W8Dialog005CBB40::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
 }
 
 // FUNCTION: WIZ8 0x005ccfe0
-void W8Dialog005CBB40::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x32a, 0);
     }
@@ -101,9 +101,9 @@ void W8Dialog005CBB40::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
 }
 
 // FUNCTION: WIZ8 0x005cd090
-void W8Dialog005CBB40::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x34c, 0);
     }
@@ -128,9 +128,9 @@ void W8Dialog005CBB40::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
 }
 
 // FUNCTION: WIZ8 0x005cd130
-void W8Dialog005CBB40::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (dialog == 0) {
         srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x36f, 0);
     }
@@ -156,11 +156,11 @@ void W8Dialog005CBB40::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
 }
 
 // FUNCTION: WIZ8 0x005cd1e0
-void W8Dialog005CBB40::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason)
+void W8ListBoxDialog005CBB40::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    W8Dialog005CBB40* dialog = GetButtonUserDataPointer<W8Dialog005CBB40>(button);
+    W8ListBoxDialog005CBB40* dialog = GetButtonUserDataPointer<W8ListBoxDialog005CBB40>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x398,

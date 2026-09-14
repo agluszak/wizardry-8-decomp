@@ -442,7 +442,7 @@ void ResetPartySlotRow(int slot)
 void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
-    gXStatus.character_event_queue->ClearOwnedEntries();
+    gXStatus.character_event_queue->DestroyAllEvents();
     g_party_moving_006850b5 = 0;
     gXStatus.fSurprisePossible = 0;
 }

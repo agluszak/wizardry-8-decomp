@@ -21,6 +21,8 @@ W8EncounterTableRuntime* GetEncounterTable(int index);      /* 0x0048AD00 */
 
 void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);
+void DestroyMonsterGenerators(void);
+void LoadMonsterGenerators(int handle);
 void RunMonsterGenerators(void);
 void DespawnAllActiveMonsterGroups0048C9F0(void);
 void ResetMonsterGeneratorTimers0048CBE0(void);

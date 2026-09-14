@@ -36,7 +36,7 @@
    unproven rather than their bodies unrecovered. */
 
 // FUNCTION: WIZ8 0x005cbb40
-W8Dialog005CBB40::W8Dialog005CBB40()
+W8ListBoxDialog005CBB40::W8ListBoxDialog005CBB40()
 {
     int index;
 
@@ -79,10 +79,10 @@ W8Dialog005CBB40::W8Dialog005CBB40()
 }
 
 // SYNTHETIC: WIZ8 0x005cbcc0
-// W8Dialog005CBB40::`scalar deleting destructor'
+// W8ListBoxDialog005CBB40::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005cbce0
-W8Dialog005CBB40::~W8Dialog005CBB40()
+W8ListBoxDialog005CBB40::~W8ListBoxDialog005CBB40()
 {
     if (m_destroy_callback != 0) {
         m_destroy_callback(this);
@@ -92,7 +92,7 @@ W8Dialog005CBB40::~W8Dialog005CBB40()
 }
 
 // FUNCTION: WIZ8 0x005cbd70
-void W8Dialog005CBB40::SetText(const wchar_t* text)
+void W8ListBoxDialog005CBB40::SetText(const wchar_t* text)
 {
     if (m_text_button_08c != -1) {
         SpecifyButtonText(m_text_button_08c, const_cast<wchar_t*>(text));
@@ -103,7 +103,7 @@ void W8Dialog005CBB40::SetText(const wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x005CC650
-int W8Dialog005CBB40::GetVisibleLineCount005CC650()
+int W8ListBoxDialog005CBB40::GetVisibleLineCount005CC650()
 {
     if (m_area_button_098 == -1) {
         return 0;
@@ -113,7 +113,7 @@ int W8Dialog005CBB40::GetVisibleLineCount005CC650()
 }
 
 // FUNCTION: WIZ8 0x005CCB80
-void W8Dialog005CBB40::SetCurrentLine005CCB80(int line)
+void W8ListBoxDialog005CBB40::SetCurrentLine005CCB80(int line)
 {
     int visible_lines = GetVisibleLineCount005CC650();
     int line_count = m_lines_054.GetCount();
@@ -149,7 +149,7 @@ void W8Dialog005CBB40::SetCurrentLine005CCB80(int line)
 }
 
 // FUNCTION: WIZ8 0x005CD2B0
-unsigned char W8Dialog005CBB40::HandleInputEvent005CD2B0(const InputAtom* input)
+unsigned char W8ListBoxDialog005CBB40::HandleInputEvent005CD2B0(const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) {
         return m_keep_open;
@@ -192,7 +192,7 @@ unsigned char W8Dialog005CBB40::HandleInputEvent005CD2B0(const InputAtom* input)
    at 0x54 and builds two text buttons, the scrolling text area, the up and
    down arrows, a slider and the confirmation pair. */
 // FUNCTION: WIZ8 0x005cbdb0
-int W8Dialog005CBB40::CreateControls()
+int W8ListBoxDialog005CBB40::CreateControls()
 {
     if (W8DialogBase::CreateControls() != 0) {
         return m_error;
@@ -355,7 +355,7 @@ int W8Dialog005CBB40::CreateControls()
 }
 
 // FUNCTION: WIZ8 0x005cc430
-void W8Dialog005CBB40::DestroyControls()
+void W8ListBoxDialog005CBB40::DestroyControls()
 {
     int index;
 
@@ -446,7 +446,7 @@ void W8Dialog005CBB40::DestroyControls()
 /* The scrolling text area. Rows shrink by the scroll arrow when the list does
    not fit; the slider position tracks the selected line. */
 // FUNCTION: WIZ8 0x005cc690
-void W8Dialog005CBB40::Draw()
+void W8ListBoxDialog005CBB40::Draw()
 {
     SGPRect rect;
     int index;
@@ -536,7 +536,7 @@ void W8Dialog005CBB40::Draw()
 }
 
 // FUNCTION: WIZ8 0x005cd470
-unsigned char W8Dialog005CBB40::ProcessInput()
+unsigned char W8ListBoxDialog005CBB40::ProcessInput()
 {
     POINT mouse;
     InputAtom input;
@@ -588,7 +588,7 @@ unsigned char W8Dialog005CBB40::ProcessInput()
 }
 
 // FUNCTION: WIZ8 0x005cd700
-int W8Dialog005CBB40::GetDialogType()
+int W8ListBoxDialog005CBB40::GetDialogType()
 {
     return 3;
 }

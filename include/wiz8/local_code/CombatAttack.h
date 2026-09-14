@@ -60,8 +60,8 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
 struct W8MonsterRecord;
 struct W8MonsterAttack;
 
-int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info,
-                                    const W8MonsterAttack* attack, int attack_mode, int flags);
+int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
+                                    int attack_mode, int flags);
 
 /* Whether a character could attack what `target` names - a party member who
    is in play and not screened by the front rank, or a monster who is engaged,
@@ -75,6 +75,10 @@ unsigned char CanCharacterKnockOut(int party_slot); /* 0x005458A0 */
    out of formation. */
 unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info,
                                  W8CombatSlot* target); /* 0x00545CF0 */
+/* Whether the monster is in a state to attack at all: in the world, in combat,
+   alive, below the deactivation threshold, flagged as attacking by its record
+   and carrying a first attack. */
+bool CanMonsterAttack(W8MonsterInfo* monster_info); /* 0x00545BD0 */
 
 /* What RateMonsterAttack reports for one of a monster's three attacks: zero
    when the attack can be made, otherwise why not. */

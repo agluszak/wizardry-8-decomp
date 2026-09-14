@@ -82,6 +82,29 @@ public:
         vp->_add(destination, vector_source, float_source, count);
     }
 
+    /* dest[i] = source[i] + constant for `count` vectors; retail callers reach
+       the srVector3 constant overload at vtable +0xD4. */
+    static inline void add(srVector3* destination, const srVector3& constant,
+                           const srVector3* vector_source, SRDWORD count)
+    {
+        vp->_add(destination, constant, vector_source, count);
+    }
+
+    /* dest[i] = source[i] + (target[i] - source[i]) * constant; the Wiz8 mesh
+       code lerps raw float triples through vtable +0x178. */
+    static inline void lerp(float* destination, const float* target, const float* source,
+                            float constant, SRDWORD count)
+    {
+        vp->_lerp(destination, target, source, constant, count);
+    }
+
+    /* dest[i] = matrix * vectors[i] for `count` vectors through vtable +0x224. */
+    static inline void transform(srVector3* destination, const srVector3* vectors,
+                                 const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transform(destination, vectors, matrix, count);
+    }
+
     static inline void mul(float* destination, float constant, const float* source, SRDWORD count)
     {
         vp->_mul(destination, constant, source, count);

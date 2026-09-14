@@ -382,11 +382,11 @@ public:
     void AdvancePage(unsigned char forward);                         /* 0x005B0B50 */
     void SelectPage(int index);                                      /* 0x005B0D50 */
     void SyncCharacterForPage(int index);                            /* 0x005B0F30 */
-    unsigned char CommitCharacter();                                 /* 0x005B0FD0 */
+    bool CommitCharacter();                                          /* 0x005B0FD0 */
     void DrawHeader();                                               /* 0x005B1110 */
     void ShowMessage(wchar_t* text, int confirmation, int response); /* 0x005B1430 */
     void HandleDialogResult(int response, unsigned char accepted);   /* 0x005B1520 */
-    unsigned char ValidateName();                                    /* 0x005B1670 */
+    bool ValidateName();                                             /* 0x005B1670 */
 
     virtual void UpdateNavigation(W8CharacterPage* page) override;
     virtual void ShowDialog005B0610(int value) override;

@@ -293,7 +293,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
             if (entry->active_character_event == 0) {
                 SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 0, -1, 0, 1);
             } else {
-                gXStatus.character_event_queue->ProcessOwnedEntry(entry->active_character_event);
+                gXStatus.character_event_queue->CompleteActiveEvent(entry->active_character_event);
             }
         }
         g_npc_scripting.flag_70 = 0;

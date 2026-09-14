@@ -3672,7 +3672,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
             for (chunk_index = 0; chunk_index < chunk_count; ++chunk_index, ++index) {
                 W8MonsterLinkedItem005E8* entry = static_cast<W8MonsterLinkedItem005E8*>(
                     PLGet(representation->linked_objects_5e8, index));
-                W8Item* item = entry->item_04;
+                W8Item* item = entry->psrBMO;
                 const srVector3T<float>& source =
                     g_monster_attachment_offsets_0060e618[chunk_count - 1][chunk_index];
                 srVector3T<float> offset;

@@ -16,7 +16,7 @@
 #include "wiz8/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/RangeControl.h"
@@ -1619,7 +1619,7 @@ unsigned char CampScreenEnter(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\ReviewCharacterScreen.cpp", 0x16f,
                      0);
     show_equip_message:
-        W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(g_camp_screen_0069c0f4->caption, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -1674,8 +1674,8 @@ void CampScreenFrame(void)
                         if (!IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8)) {
                             wchar_t* text = FormatWideString(gppStringList[0x24c4 / 4],
                                                              g_camp_character_0069c100->name);
-                            W8ModalDialogBase* dialog =
-                                static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                            W8MessageDialogBase* dialog =
+                                static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
@@ -1696,7 +1696,8 @@ void CampScreenFrame(void)
                 }
             } else if (input.usParam == 'X' && gfKeyState[0x12] && !gfKeyState[0x11] &&
                        !gfKeyState[0x10]) {
-                W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                W8MessageDialogBase* dialog =
+                    static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                 dialog->SetClientExtent(250, 200);
                 dialog->SetMessage(gppStringList[0x20c8 / 4], 1, 50, 1, 1, 1, 1, 0, 350);
                 SetDialogDestroyCallback(dialog, OnQuitGameDialogClosed);

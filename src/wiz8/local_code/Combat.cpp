@@ -513,7 +513,7 @@ void EndCombat004EA310(int mode)
     unsigned int group_count = PLLength(gXStatus.plsMonsterGroupList);
     for (unsigned int group_index = 0; group_index < group_count; ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-        if (group->flag_29 != 0) {
+        if (group->fInCombat != 0) {
             MonsterGroupLeaveCombat(group);
         }
         group_count = PLLength(gXStatus.plsMonsterGroupList);
@@ -545,7 +545,7 @@ void EndCombat004EA310(int mode)
     RestoreCombatFormation();
     ReconcilePartyEquipmentAfterCombat0053CD60();
     gXStatus.fCombatMode = 0;
-    if (g_combat_state->unknown_a55[0xc] != 0) {
+    if (g_combat_state->unknown_a60[1] != 0) {
         Function517780();
     }
     Function5A3470();
@@ -632,7 +632,8 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
         return;
     case 10:
     case 0xb:
-        Function52E5C0(g_special_event_0068c50c, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_special_event_0068c50c, -1, 0,
+                                         g_effect_argument_005ed8c8);
         break;
     }
 }

@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/game_status.h"
@@ -36,25 +36,28 @@ void PauseSharedGameTimers00439BC0(void)
     g_shared_timer_pause_time =
         g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_base;
 
-    if (g_object_6598bc != 0 && (g_object_6598bc->m_flags & 8) == 0) {
-        unsigned short flags = g_object_6598bc->m_flags;
-        g_object_6598bc->m_flags = flags | 8;
-        if (g_object_6598bc->m_clock_mode != 1) {
+    if (g_game_time_accumulator_6598bc != 0 && (g_game_time_accumulator_6598bc->m_flags & 8) == 0) {
+        unsigned short flags = g_game_time_accumulator_6598bc->m_flags;
+        g_game_time_accumulator_6598bc->m_flags = flags | 8;
+        if (g_game_time_accumulator_6598bc->m_clock_mode != 1) {
             if ((flags & 1) != 0) {
-                g_object_6598bc->m_start =
-                    g_object_6598bc->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-                    g_object_6598bc->m_start;
+                g_game_time_accumulator_6598bc->m_start =
+                    g_game_time_accumulator_6598bc->m_shared->getUTime(
+                        srTimer::TIMER_READ_DEFAULT) -
+                    g_game_time_accumulator_6598bc->m_start;
             } else if (g_shared_timer_paused != 0) {
-                g_object_6598bc->m_start = g_shared_timer_pause_time - g_object_6598bc->m_start;
+                g_game_time_accumulator_6598bc->m_start =
+                    g_shared_timer_pause_time - g_game_time_accumulator_6598bc->m_start;
             } else {
-                g_object_6598bc->m_start =
-                    g_object_6598bc->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-                    g_shared_timer_pause_base - g_object_6598bc->m_start;
+                g_game_time_accumulator_6598bc->m_start =
+                    g_game_time_accumulator_6598bc->m_shared->getUTime(
+                        srTimer::TIMER_READ_DEFAULT) -
+                    g_shared_timer_pause_base - g_game_time_accumulator_6598bc->m_start;
             }
         } else {
-            g_object_6598bc->m_start =
+            g_game_time_accumulator_6598bc->m_start =
                 (g_status_685170.game_time_days * 86400000 + g_status_685170.game_time_ms) * 10 -
-                g_object_6598bc->m_start;
+                g_game_time_accumulator_6598bc->m_start;
         }
     }
 }
@@ -70,7 +73,7 @@ void ResumeSharedGameTimers00439CA0(void)
         g_shared_timer_pause_time = 0;
     }
 
-    W8Object0043A910* timer = g_object_6598bc;
+    W8GameTimeAccumulator0043A910* timer = g_game_time_accumulator_6598bc;
     if (timer != 0) {
         timer->m_flags &= ~8;
         int sample = timer->ReadClock();

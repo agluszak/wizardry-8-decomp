@@ -32,6 +32,7 @@ unsigned char CanUseCurrentAutomapTool(void);
 
 void ResetAutomapView005817D0(void);
 bool SaveAutomapNotes00581CE0(int handle);
+bool LoadAutomapNotes00581E60(int handle);
 unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
 W8AutomapNote* FindAutomapNoteUnderCursor00582180(void);

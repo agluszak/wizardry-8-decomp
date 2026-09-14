@@ -25,17 +25,17 @@
 
 #define MATERIALS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\materials.cpp"
 
-
 /* The global at 0x0065BEA8 is a real zero-storage srVertexProcessor subclass:
    its non-template process body establishes the boundary independently of its
-   constructor and vtable. No source or export name survives, so the class
-   remains address-qualified. */
+   constructor and vtable, and that body maps eye-space normals into the first
+   texture-coordinate set. No source or export name survives, so the class
+   keeps a descriptive name anchored at its constructor address. */
 // VTABLE: WIZ8 0x005ED0D0
-// class W8MaterialMapper004B89A0
-class W8MaterialMapper004B89A0 : public srVertexProcessor {
+// class W8NormalTexcoordMapper004B89A0
+class W8NormalTexcoordMapper004B89A0 : public srVertexProcessor {
 public:
-    W8MaterialMapper004B89A0();
-    virtual ~W8MaterialMapper004B89A0() override {}
+    W8NormalTexcoordMapper004B89A0();
+    virtual ~W8NormalTexcoordMapper004B89A0() override {}
     // FUNCTION: WIZ8 0x004D6190
     virtual int isActive(srVertexPipe&) override
     {
@@ -44,10 +44,11 @@ public:
     virtual void process(srVertexPipe& pipe) override;
 };
 
-static_assert(sizeof(W8MaterialMapper004B89A0) == 4, "W8MaterialMapper004B89A0_must_be_4");
+static_assert(sizeof(W8NormalTexcoordMapper004B89A0) == 4,
+              "W8NormalTexcoordMapper004B89A0_must_be_4");
 
 // GLOBAL: WIZ8 0x0065BEA8
-W8MaterialMapper004B89A0 g_material_mapper_0065bea8;
+W8NormalTexcoordMapper004B89A0 g_normal_texcoord_mapper_0065bea8;
 
 // GLOBAL: WIZ8 0x0065BA9E
 unsigned char g_material_diffuse_scale_enabled_0065ba9e;
@@ -59,13 +60,13 @@ unsigned char g_material_emissive_override_enabled_0065baa4;
 float g_material_emissive_override_0065baa8;
 
 // FUNCTION: WIZ8 0x004B89A0
-W8MaterialMapper004B89A0::W8MaterialMapper004B89A0() {}
+W8NormalTexcoordMapper004B89A0::W8NormalTexcoordMapper004B89A0() {}
 
 /* Convert eye-space normals to the material's first texture-coordinate set.
    The exported srVertexPipe queries preserve the closed renderer's ownership
    of its internal workspace while expressing every operation in this body. */
 // FUNCTION: WIZ8 0x004B89B0
-void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
+void W8NormalTexcoordMapper004B89A0::process(srVertexPipe& pipe)
 {
     const srVector3T<float>* normals;
     srVector2T<float>* coordinates;
@@ -86,7 +87,7 @@ void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
 }
 
 // SYNTHETIC: WIZ8 0x004B8A50
-// W8MaterialMapper004B89A0::`scalar deleting destructor'
+// W8NormalTexcoordMapper004B89A0::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004925B0
 stMaterial::stMaterial()
@@ -299,7 +300,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;
             if ((source->shader_flags_116 & 0x1fe) != 0) {
-                concrete->setMapper(&g_material_mapper_0065bea8);
+                concrete->setMapper(&g_normal_texcoord_mapper_0065bea8);
             }
         }
     }
@@ -355,6 +356,31 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete->dirty_74 = 1;
     concrete->m_field_78 = 0;
     return 1;
+}
+
+/* Load a texture by full path: split it into folder and file, then take the
+   animated loader for .IFL names and the plain one for everything else. */
+// FUNCTION: WIZ8 0x004B9460
+srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord004B8A70* source,
+                                    unsigned char required)
+{
+    char drive[_MAX_PATH];
+    char directory[_MAX_PATH];
+    char file_name[_MAX_PATH];
+    char extension[_MAX_PATH];
+    char texture_folder[_MAX_PATH];
+    char texture_file[_MAX_PATH];
+
+    _splitpath(path, drive, directory, file_name, extension);
+    strcpy(texture_folder, drive);
+    strcat(texture_folder, directory);
+    strcpy(texture_file, file_name);
+    strcat(texture_file, extension);
+
+    if (strlen(path) > 3 && _strnicmp(extension, ".IFL", 4) == 0) {
+        return LoadAnimatedTexture004B98F0(texture_folder, texture_file, source, required);
+    }
+    return LoadTexture004B95D0(texture_folder, texture_file, required);
 }
 
 // FUNCTION: WIZ8 0x004B95D0

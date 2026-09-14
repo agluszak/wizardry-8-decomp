@@ -28,7 +28,9 @@ void ForwardThroughMember3C_46E640(W8World* owner, int argument);
 void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 
-void FinalizeWorldScenes0046F410(srScene* static_scene, srNode* dynamic_scene);
+unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene);
+unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
+                                                 char walk_chain);
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument);
 void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument);
 

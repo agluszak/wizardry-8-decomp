@@ -27,6 +27,11 @@
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
+/* 0x005ED7B0: 1/360, the half-degree step random item angles are built
+   from. */
+// GLOBAL: WIZ8 0x005ed7b0
+extern const double g_double_005ed7b0 = 1.0 / 360.0;
+
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
@@ -564,7 +569,7 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
 
     srVector3T<float> delta(position.x - from[0], position.y - from[1], position.z - from[2]);
     if (delta.LengthSquared() < radius * radius) {
-        GetWorldItemBounds(lower, upper);
+        owner->GetWorldItemBounds(lower, upper);
         lower[0] += position.x;
         lower[1] += position.y;
         lower[2] += position.z;

@@ -22,8 +22,8 @@ void InitializePartyFormation(W8PartyFormationState* formation)
     }
     for (index = 0; index < 8; ++index) {
         formation->positions[index].row = 0xff;
-        formation->positions[index].unknown_01[0] = 0xff;
-        formation->positions[index].unknown_01[1] = 0xff;
+        formation->positions[index].unknown_01 = 0xff;
+        formation->positions[index].column = -1;
         formation->positions[index].facing = 4;
     }
 }

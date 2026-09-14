@@ -206,10 +206,10 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
     if (Function4D9080(monster_info, 4, 0)) {
         return false;
     }
-    if (!Function5327E0(monster_info, spell_id, combat_slot)) {
+    if (!MonsterSpellTargetOK(monster_info, spell_id, combat_slot)) {
         return false;
     }
-    return !Function5330E0(monster_info, spell_id, combat_slot);
+    return !SpellAreaHitsNeutralMonster(monster_info, spell_id, combat_slot);
 }
 
 /* Whether the spell may be cast in the situation the party is in now. Two

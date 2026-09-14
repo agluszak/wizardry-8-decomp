@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 
 struct W8MonsterInfo;
+struct W8MonsterGroup;
 struct W8VisibilityRecord;
 
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
@@ -36,6 +37,10 @@ bool GetSightCondition37A(const W8MonsterInfo* monster);
 extern float g_sight_default_005ec254;
 
 bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRecord* row,
-                              int kind); /* 0x00504B00 */
+                              int kind); /* 0x00505DD0 */
+/* Whether one group's leader member can see the other's: far-clip distance
+   first, then the outward sight record and a line-of-sight trace. */
+unsigned char MonsterGroupCanSeeGroup(W8MonsterGroup* source,
+                                      W8MonsterGroup* target); /* 0x00505F30 */
 W8VisibilityRecord* FindMonToMonVisibility(W8MonsterInfo* source,
-                                           W8MonsterInfo* target); /* 0x00504C20 */
+                                           W8MonsterInfo* target); /* 0x00505D20 */

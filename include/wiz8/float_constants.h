@@ -16,6 +16,15 @@
 
 extern float g_float_005ebb38;
 extern float g_float_005ebb34;
+/* 0x005EE774: scales the record float into the group-engagement probe
+   distance. */
+extern const float g_float_005ee774;
+/* 0x005EE77C: 7500.0, the floor added to the engagement range bound the
+   group combat checks compare nearest-member distances against. */
+extern const float g_float_005ee77c;
+/* 0x005EE780: 1.15, the slack the reinforcement check gives a hostile
+   monster's distance to the player before it counts as near the group. */
+extern const float g_float_005ee780;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
 extern float g_float_005ebc64;
 extern double g_double_005ebc70;
@@ -34,9 +43,17 @@ extern float g_float_005ec35c;
    and as a range bound by GetRangeConstant5EC360. */
 extern float g_float_005ec360;
 extern double g_double_005ec030;
+/* 0x005EC1E8 / 0x005EC1F0: the quaternion->matrix normalization factor (2.0)
+   and FLT_EPSILON closeness bound shared by the keyframe slerps. */
+extern double g_double_005ec1e8;
+extern double g_double_005ec1f0;
 extern double g_double_005ec318;
 extern double g_double_005ec368;
 extern double g_double_005ec378;
+/* 0x005EC428 / 0x005EC430: the pair BakeInstanceVertexLighting uses to undo
+   srLight::setLinearAttenuation and recover a light's world range. */
+extern double g_double_005ec428;
+extern double g_double_005ec430;
 extern float g_float_005ebc3c;
 extern float g_float_005ebc58;
 extern float g_float_005ebc60;
@@ -98,5 +115,11 @@ extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
+/* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
+   from. */
+extern const double g_double_005ed7b0;
+/* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
+   noises. */
+extern const double g_double_005ee768;
 
 #endif

@@ -1,6 +1,7 @@
 #pragma once
 
 int GetEnvironmentValue0060A3A8(void);
+unsigned char GetEnvironmentFlag0060A394(void); /* 0x00482A10 */
 
 #include "Types.h"
 #include "surrender/srVertexProcessor.h"

@@ -130,14 +130,46 @@ struct W8MessageBoxLine;
 // VTABLE: WIZ8 0x005ed890
 // class W8GrowableVector<W8MessageBoxLine*>
 
+// TEMPLATE: WIZ8 0x0052a1d0
+// W8GrowableVector<W8MessageBoxLine*>::~W8GrowableVector<W8MessageBoxLine*>
+
 // VTABLE: WIZ8 0x005ed894
 // class W8GrowableVector<int*>
+
+/* Emitted for the NPC-state line queue at 0x0068C4BC (Ghidra types it
+   W8GrowableVector<int*>); the only caller is 0x00525FA0 in the NPC
+   Scripting.cpp span, which is where this InsertAt was emitted. */
+// TEMPLATE: WIZ8 0x0052a1f0
+// W8GrowableVector<int*>::InsertAt
 
 // SYNTHETIC: WIZ8 0x0052a290
 // W8GrowableVector<W8MessageBoxLine*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0052a2c0
 // W8GrowableVector<int*>::`scalar deleting destructor'
+
+/* Local Code\Health Stamina Mana.cpp's W8CharacterEventQueue members: the
+   queue constructor writes each vector's table in two stages, first
+   0x005EE74C - this specialization's construction-phase table - then the
+   final 0x005EE748. The deleting destructor at 0x0052E570 chains to the
+   destructor body at 0x0052E520, which reinstalls the construction-phase
+   table before freeing data. */
+class W8CharacterEvent;
+
+// VTABLE: WIZ8 0x005ee748
+// class W8GrowableVector<W8CharacterEvent*>
+
+// SYNTHETIC: WIZ8 0x0052e570
+// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0052e540
+// W8GrowableVector<W8CharacterEvent*>::`scalar deleting destructor' (construction-phase copy)
+
+// TEMPLATE: WIZ8 0x0052e520
+// W8GrowableVector<W8CharacterEvent*>::~W8GrowableVector<W8CharacterEvent*>
+
+// TEMPLATE: WIZ8 0x0052e4d0
+// W8GrowableVector<W8CharacterEvent*>::Remove
 
 // VTABLE: WIZ8 0x005ed810
 // class W8GrowableVector<W8NpcState*>
@@ -178,6 +210,14 @@ class stModelInstance;
 
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
+
+/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools_0069bf68 emission: the
+   static initializer constructs the eighteen-pool array through this ctor. */
+
+class stModelInstance2D;
+
+// TEMPLATE: WIZ8 0x005a20d0
+// W8GrowableVector<stModelInstance2D*>::W8GrowableVector
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -316,22 +356,22 @@ class W8Navigator;
 
 /* Engine Code\stCube.cpp's g_world_cursor_nodes_65ba58: the static
    initializer at 0x0048D020 constructs it with capacity five; the table
-   holds the world's W8WorldCursorNode0048DB30* cursor nodes.
+   holds the world's W8WorldCursorNode* cursor nodes.
    0x005ECAD4 is this specialization's construction-phase table. */
 // VTABLE: WIZ8 0x005ecad0
-// class W8GrowableVector<W8WorldCursorNode0048DB30*>
+// class W8GrowableVector<W8WorldCursorNode*>
 
 // TEMPLATE: WIZ8 0x0048f190
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::W8GrowableVector
+// W8GrowableVector<W8WorldCursorNode*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x0048f240
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor'
+// W8GrowableVector<W8WorldCursorNode*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0048f210
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<W8WorldCursorNode*>::`scalar deleting destructor' (construction-phase copy)
 
 // TEMPLATE: WIZ8 0x0048f1f0
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::~W8GrowableVector<W8WorldCursorNode0048DB30*>
+// W8GrowableVector<W8WorldCursorNode*>::~W8GrowableVector<W8WorldCursorNode*>
 
 /* 0x005ED43C is the W8MasterFunction (void (*)(int)) pointer-vector
    specialization emitted by MasterFunctionList.cpp: ctor 0x004D9A70 (its only

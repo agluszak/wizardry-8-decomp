@@ -181,7 +181,7 @@ void BeginFreeTurnPhase(void)
     ResetLevelDataVectors0041F0D0();
     g_combat_state->uiCurrentPartyActionStatus = W8_ACTION_STATUS_FINISHED;
     gXStatus.fPartyMovementMode = 0;
-    Function5354E0();
+    CheckMonsterGroupsEnterCombat();
     Function4F06B0();
     NotifyNearbyMonsters(0);
     /* The tail is UpdatePartyMovementControl written out again rather than

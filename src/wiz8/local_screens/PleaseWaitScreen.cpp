@@ -8,7 +8,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/game_status.h"
 #include "wiz8/screen_state.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/LoadSaveGame.h"
@@ -61,7 +61,7 @@ int g_value_69b7c4;
 // GLOBAL: WIZ8 0x0069B7C8
 W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
 // GLOBAL: WIZ8 0x0069B7CC
-W8ModalDialogBase* g_swap_disc_dialog_69b7cc;
+W8MessageDialogBase* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
 
@@ -174,7 +174,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             g_load_descriptor_69b7c8->parameter = level;
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
             if (!g_swap_disc_dialog_69b7cc) {
-                g_swap_disc_dialog_69b7cc = new W8ModalDialogBase;
+                g_swap_disc_dialog_69b7cc = new W8MessageDialogBase;
                 g_swap_disc_dialog_69b7cc->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
                 g_swap_disc_dialog_69b7cc->SetOrigin(0xf0, 0xbe);
                 g_swap_disc_dialog_69b7cc->SetExtent(0xa0, 100);

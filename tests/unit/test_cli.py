@@ -3,12 +3,47 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.extract import variants
 
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("scenario", [None, "main-game-start"])
+def test_debug_builds_selected_product_before_launch(monkeypatch, scenario) -> None:
+    from wiz8decomp import build
+    from wiz8decomp.debug import debugger
+
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace())
+    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(target))
+
+    def launch(_, arguments, **options):
+        events.append("launch")
+        assert arguments == []
+        assert options == {
+            "scenario": scenario,
+            "timeout": 7,
+            "breakpoints": [(0x401000, "$eax == 1")],
+        }
+        return {
+            "report": "stopped\n",
+            "reason": "SIGTRAP",
+            "log": "raw.txt",
+            "session": "session.json",
+        }
+
+    monkeypatch.setattr(debugger, "run_debugger", launch)
+    arguments = ["debug", "--timeout", "7", "--break", "0x401000:$eax == 1"]
+    if scenario is not None:
+        arguments.extend(["--scenario", scenario])
+    result = CliRunner().invoke(app, arguments)
+    assert result.exit_code == 0, result.output
+    assert events == ["runtime-test" if scenario else "runtime", "launch"]
+    assert "session: session.json" in result.output
 
 
 def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeypatch) -> None:

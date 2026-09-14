@@ -71,7 +71,7 @@ int g_mipe_table_base_0068f120;
 W8PList* g_mipe_monster_entries_0068f124;
 
 // GLOBAL: WIZ8 0x0068f12c
-W8WorldCursorNode0048DB30* g_mipe_cube_0068f12c;
+W8WorldCursorNode* g_mipe_cube_0068f12c;
 
 /* The MIPE toggle: leaving the panel restores the level flags and combat
    state and tears the editor state down; entering it clears combat flags,
@@ -167,7 +167,7 @@ void ToggleMipePanel0057D740(void)
 
     for (int cursor_index = 0, count = GetWorldCursorNodeCount0048ED00(); cursor_index < count;
          ++cursor_index) {
-        W8WorldCursorNode0048DB30* node = GetWorldCursorNode0048ED10(cursor_index);
+        W8WorldCursorNode* node = GetWorldCursorNode0048ED10(cursor_index);
         SetWorldCursorNodeColorComponents0048E420(node, 0.0f, 0.0f, 0.5f);
         RefreshWorldCursorNodeLabel0048DCA0(node);
     }

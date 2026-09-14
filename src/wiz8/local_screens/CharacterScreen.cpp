@@ -15,7 +15,7 @@
 
 #include "wiz8/cursor.h"
 #include "wiz8/combat_state.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
 #include "wiz8/dialog_code/StatInfoDialogs.h"
@@ -40,7 +40,6 @@
 #include <wchar.h>
 
 #include "FileMan.h"
-
 
 // GLOBAL: WIZ8 0x0061e3a4
 unsigned short g_character_description_first_ids_61e3a4[22] = {
@@ -191,7 +190,7 @@ void W8CharacterScreen::UpdateDialog()
         if (m_dialog_response_1b20 == 1) {
             gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
-                static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result) {
+                static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result) {
                 m_dialog_1b1c->m_keep_open = 0;
             }
         }
@@ -202,7 +201,7 @@ void W8CharacterScreen::UpdateDialog()
             m_header_dirty_010 = 1;
             unsigned char accepted = 0;
             if (m_capture_dialog_result_1b24) {
-                accepted = static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->close_result;
+                accepted = static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result;
                 m_capture_dialog_result_1b24 = 0;
             }
             delete m_dialog_1b1c;
@@ -262,7 +261,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8StatInfoDialog005DFC70(attribute);
+    m_dialog_1b1c = new W8AttributeInfoDialog005DFC70(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -271,7 +270,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8StatInfoDialog005E0180(attribute);
+    m_dialog_1b1c = new W8SecondaryAttributeInfoDialog005E0180(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -545,10 +544,10 @@ void W8CharacterScreen::DrawHeader()
 }
 
 // FUNCTION: WIZ8 0x005b0fd0
-unsigned char W8CharacterScreen::CommitCharacter()
+bool W8CharacterScreen::CommitCharacter()
 {
     if (!ValidateName())
-        return 0;
+        return false;
 
     int mode = m_mode_008;
     W8Character backup;
@@ -566,7 +565,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
         if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
             memcpy(&m_character_018, &backup, sizeof(m_character_018));
             ShowMessage(gppStringList[0x350 / 4], 0, 0);
-            return 0;
+            return false;
         }
         m_character_018.in_party = backup.in_party;
     }
@@ -579,7 +578,7 @@ unsigned char W8CharacterScreen::CommitCharacter()
             Function5218C0(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
-    return 1;
+    return true;
 }
 
 /* Skill-availability hooks raised by RefreshCharacterSkillAvailability00553CD0 while this screen is
@@ -609,13 +608,13 @@ void RefundCharacterScreenSkill(int skill_id)
 void W8CharacterScreen::ShowMessage(wchar_t* text, int confirmation, int response)
 {
     m_dialog_response_1b20 = response;
-    m_dialog_1b1c = new W8ModalDialogBase;
+    m_dialog_1b1c = new W8MessageDialogBase;
     if (m_dialog_1b1c != 0) {
         m_dialog_1b1c->SetExtent(0xf0, 0xbe);
         m_dialog_1b1c->SetOrigin(0xa0, 100);
         m_dialog_1b1c->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
-        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
-        static_cast<W8ModalDialogBase*>(m_dialog_1b1c)
+        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->SetClientExtent(0xfa, 200);
+        static_cast<W8MessageDialogBase*>(m_dialog_1b1c)
             ->SetMessage(text, 1, 0x32, 1, confirmation, 1, 1, 0, 0x15e);
         ActivateDialogRegion(0x138);
         m_capture_dialog_result_1b24 = 1;
@@ -671,27 +670,27 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
 }
 
 // FUNCTION: WIZ8 0x005b1670
-unsigned char W8CharacterScreen::ValidateName()
+bool W8CharacterScreen::ValidateName()
 {
     if (m_original_014 != 0 && wcscmp(m_original_014->name, m_character_018.name) == 0) {
-        return 1;
+        return true;
     }
     if (!g_status_685170.game_started && !g_status_685170.skip_loose_character_check_2444) {
         char path[260];
         BuildCharacterPath00514EC0(path, m_character_018.name, -1);
         if (FileExists(path)) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
-            return 0;
+            return false;
         }
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
         if (g_status_685170.buffers.party_rows[index].occupied &&
             wcscmp(g_status_685170.buffers.characters[index].name, m_character_018.name) == 0) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005b0120

@@ -34,20 +34,20 @@ protected:
 };
 
 // VTABLE: WIZ8 0x005efcc8
-class W8StatInfoDialog005DFC70 : public W8StatInfoDialogBase005DF880 {
+class W8AttributeInfoDialog005DFC70 : public W8StatInfoDialogBase005DF880 {
 public:
-    W8StatInfoDialog005DFC70(unsigned int uiIndex);
-    virtual ~W8StatInfoDialog005DFC70() override;
+    W8AttributeInfoDialog005DFC70(unsigned int uiIndex);
+    virtual ~W8AttributeInfoDialog005DFC70() override;
 
 private:
     unsigned int m_uiIndex; /* 0x148 */
 };
 
 // VTABLE: WIZ8 0x005efd48
-class W8StatInfoDialog005E0180 : public W8StatInfoDialogBase005DF880 {
+class W8SecondaryAttributeInfoDialog005E0180 : public W8StatInfoDialogBase005DF880 {
 public:
-    W8StatInfoDialog005E0180(unsigned int uiIndex);
-    virtual ~W8StatInfoDialog005E0180() override;
+    W8SecondaryAttributeInfoDialog005E0180(unsigned int uiIndex);
+    virtual ~W8SecondaryAttributeInfoDialog005E0180() override;
 
 private:
     unsigned int m_uiIndex; /* 0x148 */
@@ -73,7 +73,9 @@ private:
 
 static_assert(sizeof(W8StatInfoDialogBase005DF880) == 0x148,
               "W8StatInfoDialogBase005DF880_must_be_0x148");
-static_assert(sizeof(W8StatInfoDialog005DFC70) == 0x14c, "W8StatInfoDialog005DFC70_must_be_0x14c");
-static_assert(sizeof(W8StatInfoDialog005E0180) == 0x14c, "W8StatInfoDialog005E0180_must_be_0x14c");
+static_assert(sizeof(W8AttributeInfoDialog005DFC70) == 0x14c,
+              "W8AttributeInfoDialog005DFC70_must_be_0x14c");
+static_assert(sizeof(W8SecondaryAttributeInfoDialog005E0180) == 0x14c,
+              "W8SecondaryAttributeInfoDialog005E0180_must_be_0x14c");
 static_assert(sizeof(W8SkillInfoDialog005EFD08) == 0x150,
               "W8SkillInfoDialog005EFD08_must_be_0x150");

@@ -143,7 +143,9 @@ struct W8MonsterCombatState {
        has finished acting. */
     unsigned int phase;
     unsigned char active; /* 0x004 */
-    unsigned char unknown_005[4];
+    /* 0x005: the round's attack count staged beside attacks_per_round when a
+       chosen attack is committed; a four-byte store. */
+    unsigned int unknown_005;
     /* 0x009: how many attacks it gets this round, which is what divides the
        remaining phases between them. */
     int attacks_per_round;
@@ -155,11 +157,15 @@ struct W8MonsterCombatState {
     unsigned char unknown_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
-    W8PList* plsCombatActionList;
+    W8PList* pending_actions;
     int character_hate[9];
     W8EffectSlot effect_slots_3e[9]; /* 0x03e .. 0x0d7 */
     W8EffectSlot effect_slots_d7[6]; /* 0x0d7 .. 0x13d */
-    unsigned char unknown_13d[0xf];
+    unsigned char unknown_13d[0xe];
+    /* 0x14b: the monster is committed to advancing on the party. Set when the
+       action executor starts the advance and cleared when an enemy is inside
+       short range or when the forcing condition is removed. */
+    unsigned char advancing_14b;
     int value_14c; /* 0x14c */
     /* 0x150: the monster's turn has been set up already, so the setup runs
        once per turn however often it is asked for. */
@@ -220,7 +226,10 @@ struct W8MonsterInfo {
        "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
        the pair that allocates and releases pCombat. */
     unsigned char fInCombat;
-    W8Disposition ubDisposition; /* 0x16: copied from the group's +0x2a */
+    /* 0x16: the monster's disposition, named by the 0x00530f10 assertion
+       "pMonsterInfo->ubDisposition != DISP_HOSTILE". Copied from the group's
+       ubDisposition when the entry is created. */
+    W8Disposition ubDisposition;
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
        floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */

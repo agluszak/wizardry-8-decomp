@@ -2,7 +2,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/OctBuildTree.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -66,13 +66,13 @@ unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* 
 // FUNCTION: WIZ8 0x0041F1F0
 void UpdateSharedGameDataObject0041F1F0()
 {
-    if (g_object_6598bc == 0) {
-        g_object_6598bc = new W8Object0043A910;
-        if (g_object_6598bc == 0) {
+    if (g_game_time_accumulator_6598bc == 0) {
+        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910;
+        if (g_game_time_accumulator_6598bc == 0) {
             return;
         }
     }
-    g_object_6598bc->Update();
+    g_game_time_accumulator_6598bc->Update();
 }
 
 // FUNCTION: WIZ8 0x0041F260
@@ -85,10 +85,10 @@ void UpdateGameDataRuntime0041F260()
                          0);
         }
     }
-    if (g_object_6598bc == 0) {
-        g_object_6598bc = new W8Object0043A910;
-        if (g_object_6598bc == 0) {
-            g_object_6598bc->Update();
+    if (g_game_time_accumulator_6598bc == 0) {
+        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910;
+        if (g_game_time_accumulator_6598bc == 0) {
+            g_game_time_accumulator_6598bc->Update();
             return;
         }
     }
@@ -96,7 +96,7 @@ void UpdateGameDataRuntime0041F260()
         ResumeSharedGameTimers00439CA0();
         g_flag_00652dce = 0;
     }
-    g_object_6598bc->Update();
+    g_game_time_accumulator_6598bc->Update();
 }
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is
@@ -320,9 +320,9 @@ srVector3T<float> g_origin_652940;
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)
 {
-    if (g_object_6598bc == 0) {
-        g_object_6598bc = new W8Object0043A910;
-        if (g_object_6598bc == 0) {
+    if (g_game_time_accumulator_6598bc == 0) {
+        g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910;
+        if (g_game_time_accumulator_6598bc == 0) {
             return g_float_005ebb34;
         }
     }
@@ -338,7 +338,7 @@ float MoveTimer(int value)
         PauseSharedGameTimers00439BC0();
         g_flag_00652dce = 1;
     }
-    return g_object_6598bc->GetValue28();
+    return g_game_time_accumulator_6598bc->GetValue28();
 }
 
 // FUNCTION: WIZ8 0x00420D40

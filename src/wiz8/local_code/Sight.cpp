@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/fact_state.h"
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/OctPath.h"
@@ -61,7 +61,7 @@ void ResetSight(void)
 {
     SetViewDistance(12.0f);
     SetNavigatorLinkMode00452F50(0);
-    g_object_6598bc->ResetDurationScale();
+    g_game_time_accumulator_6598bc->ResetDurationScale();
     ResetMonsterGeneratorTimers0048CBE0();
 }
 
@@ -806,8 +806,8 @@ after_sight:
                         if (record == 0 ||
                             (SetFactionFlag(static_cast<char>(record->faction_id_25f), 1),
                              (record->flags_0d0 & 1) == 0)) {
-                            unsigned int now =
-                                static_cast<unsigned int>(g_object_6598bc->GetValue30());
+                            unsigned int now = static_cast<unsigned int>(
+                                g_game_time_accumulator_6598bc->GetValue30());
 
                             if ((((monster_info->party_threat.last_seen_clock_08 == 0) ||
                                   (0x78U < static_cast<unsigned int>(
@@ -832,8 +832,8 @@ after_sight:
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
                                     if (notice != 0) {
-                                        notice->value_30 = 0x5dc;
-                                        notice->clock_34 = GetTickCount();
+                                        notice->dispatch_delay_ms = 0x5dc;
+                                        notice->dispatch_delay_start = GetTickCount();
                                     }
                                 }
                             }
@@ -863,8 +863,8 @@ after_sight:
                                             g_effect_argument_005ed914);
 
                                         if (notice != 0) {
-                                            notice->value_30 = 0x5dc;
-                                            notice->clock_34 = GetTickCount();
+                                            notice->dispatch_delay_ms = 0x5dc;
+                                            notice->dispatch_delay_start = GetTickCount();
                                         }
                                     }
                                 }
@@ -872,7 +872,8 @@ after_sight:
                         }
                     }
                     if (monster_info->party_threat.state_04 != 1 && record->flag_248 != 0) {
-                        unsigned int now = static_cast<unsigned int>(g_object_6598bc->GetValue30());
+                        unsigned int now =
+                            static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
 
                         monster->BeginFadeIn004C4F80(5.0f);
                         if (gXStatus.fSurprisePossible == 0 &&
@@ -892,7 +893,8 @@ after_sight:
             (void)seen_by_party;
         }
         if (monster_info->party_threat.state_04 == 1 && record->flag_248 != 0) {
-            unsigned int now = static_cast<unsigned int>(g_object_6598bc->GetValue30());
+            unsigned int now =
+                static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
 
             monster->BeginFadeOut004C5150(5.0f);
             if (gXStatus.fSurprisePossible == 0 && (g_sight_fade_out_tick_00689b74 == 0 ||
