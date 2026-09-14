@@ -24,7 +24,7 @@
 #include "wiz8/location_variables.h"
 #include "wiz8/magic.h"
 #include "wiz8/npc_state.h"
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Targeting.h"
@@ -178,7 +178,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value != 0) {
             npc = GetNpcStateByKind(0x20);
             if (npc != 0) {
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
                     SetFlag68C4F4();

@@ -14,15 +14,20 @@
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/message_box.h"
 #include "wiz8/magic.h"
+#include "wiz8/notices.h"
 #include "wiz8/npc_interaction.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/npc_state.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/xstatus.h"
+
+#include "FileMan.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -37,7 +42,7 @@ short g_staged_short_68c3ce;
 // GLOBAL: WIZ8 0x0068c3d0
 unsigned char g_staged_flag_68c3d0;
 // GLOBAL: WIZ8 0x0068c3d8
-W8RecordFile0055A480* g_staged_value_68c3d8;
+W8NpcScriptFile* g_staged_value_68c3d8;
 // GLOBAL: WIZ8 0x0068c3dc
 W8NpcState* g_staged_npc_68c3dc;
 
@@ -89,8 +94,8 @@ void ReloadNpcScriptResources(W8NpcState* npc)
     }
     sprintf(script_name, prefix, name);
     sprintf(resource_name, "Data\\NPC Scripts\\%s.nsf", script_name);
-    npc->record_file = LoadRecordFile0055A480(resource_name);
-    if (npc->record_file != 0) {
+    npc->script_file = LoadNpcScriptFile0055A480(resource_name);
+    if (npc->script_file != 0) {
         W8Monster* monster = GetNpcMonster(npc);
         if (monster != 0) {
             sprintf(resource_name, "%s.msf", script_name);
@@ -219,7 +224,7 @@ void ProcessNpcScriptingFrame(void)
                 g_npc_scripting.staging_restore.staged_short_49e = g_staged_short_68c3ce;
                 g_npc_scripting.flag_70 = g_staged_flag_68c3d0;
                 g_npc_scripting.staging_restore.value_498 = g_staged_value_68c3c8;
-                g_npc_scripting.record_file = g_staged_value_68c3d8;
+                g_npc_scripting.script_file = g_staged_value_68c3d8;
                 g_npc_scripting.npc = g_staged_npc_68c3dc;
                 g_npc_scripting.staging_restore.value_494 = g_staged_value_68c3c4;
                 g_npc_scripting.flag_c5 = 0;
@@ -247,7 +252,7 @@ void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
         g_staged_short_68c3ce = g_npc_scripting.staging_restore.staged_short_49e;
         g_staged_flag_68c3d0 = g_npc_scripting.flag_70;
         g_staged_value_68c3c8 = g_npc_scripting.staging_restore.value_498;
-        g_staged_value_68c3d8 = g_npc_scripting.record_file;
+        g_staged_value_68c3d8 = g_npc_scripting.script_file;
         g_staged_npc_68c3dc = g_npc_scripting.npc;
         g_staged_value_68c3c4 = g_npc_scripting.staging_restore.value_494;
     }
@@ -258,7 +263,7 @@ void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
     g_npc_scripting.flag_70 = 0;
     g_npc_scripting.staging_restore.value_498 = -1;
     g_npc_scripting.npc = npc;
-    g_npc_scripting.record_file = npc->record_file;
+    g_npc_scripting.script_file = npc->script_file;
 }
 
 // FUNCTION: WIZ8 0x00525C50
@@ -296,12 +301,12 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
         g_npc_scripting.voice_handle = -1;
         g_npc_scripting.staging_restore.value_498 = g_npc_scripting.staging_restore.value_494;
         if (g_screen_state_00649f1c->script_busy == 0 && resume_script != 0) {
-            if (g_npc_scripting.npc != 0 && g_npc_scripting.npc->record_file != 0 &&
+            if (g_npc_scripting.npc != 0 && g_npc_scripting.npc->script_file != 0 &&
                 g_npc_scripting.staging_restore.value_494 <
-                    g_npc_scripting.npc->record_file->record_count) {
-                W8FileRecord0055A140* records = g_npc_scripting.npc->record_file->records;
+                    g_npc_scripting.npc->script_file->quote_count) {
+                W8NpcScriptQuote* quotes = g_npc_scripting.npc->script_file->quotes;
                 // clang-format off
-                int record_address = reinterpret_cast<int>(records); // reinterpret-ok: retail callback API takes the record address as an integer
+                int record_address = reinterpret_cast<int>(quotes); // reinterpret-ok: retail callback API takes the record address as an integer
                 // clang-format on
                 Function576030(0, 0,
                                record_address + g_npc_scripting.staging_restore.value_494 * 0xc,
@@ -370,6 +375,99 @@ void AddMessageBoxLine(int type, wchar_t* text, void* extra)
 void SetFlag68C4F4(void)
 {
     g_npc_scripting.flag_c4 = 1;
+}
+/* QA audit over every `Data\NPC Scripts\*.nsf`: load each script file, print
+   every quote line that is not a placeholder sentinel through ShowNotice, log
+   each notice that wraps past seven lines to data\longquotes.txt, and write
+   per-script plus grand totals to data\quotereport.txt. Raising
+   g_status_685170.quote_audit_2431 makes ShowNotice maintain
+   g_notice_line_count_0069b7bc and g_status_685170.long_quote_2432. The
+   report handle is used unchecked after the appending fopen, which is the
+   original's own error handling. */
+// FUNCTION: WIZ8 0x00529660
+void AuditNpcScriptQuotes00529660(void)
+{
+    FILE* file;
+    FILE* log_file;
+    W8NpcScriptFile* script;
+    W8NpcScriptQuote* quote;
+    GETFILESTRUCT find;
+    char date[128];
+    char line[200];
+    char path[512];
+    char pattern[512];
+    wchar_t display[2048];
+    char* text;
+    int file_lines;
+    int file_quotes;
+    int total_lines;
+    int total_quotes;
+    int total_scripts;
+    int record_index;
+    int sub_index;
+    BOOLEAN found;
+
+    total_lines = 0;
+    total_quotes = 0;
+    total_scripts = 0;
+    file = fopen("data\\longquotes.txt", "w");
+    if (file != 0) {
+        fclose(file);
+    }
+    file = fopen("data\\quotereport.txt", "w");
+    if (file != 0) {
+        fclose(file);
+    }
+    GetDateFormatA(LOCALE_SYSTEM_DEFAULT, 0, 0, "dddd',' MMMM dd',' yyyy", date, 0x80);
+    file = fopen("data\\quotereport.txt", "a+t");
+    g_status_685170.quote_audit_2431 = 1;
+    sprintf(pattern, "Data\\NPC Scripts\\*.nsf");
+    fprintf(file, "Script Report File: %s\n", date);
+    fprintf(file, "-------------------------------------------------\n");
+    found = GetFileFirst(pattern, &find);
+    while (found != 0) {
+        sprintf(path, "Data\\NPC Scripts\\%s", find.zFileName);
+        script = LoadNpcScriptFile0055A480(path);
+        if (script != 0) {
+            file_lines = 0;
+            file_quotes = 0;
+            for (record_index = 0; record_index < script->quote_count; ++record_index) {
+                quote = &script->quotes[record_index];
+                for (sub_index = 0; sub_index < quote->subquote_count; ++sub_index) {
+                    text = quote->subquotes[sub_index];
+                    if (strlen(text) != 0 && _stricmp(text, "EMPTY") != 0 &&
+                        _stricmp(text, "BLANK") != 0 && _stricmp(text, "UNKNOWN") != 0 &&
+                        _stricmp(text, "CLASSIFIED") != 0) {
+                        swprintf(display, L" \"%S\"", text);
+                        ShowNotice(0, display, 0, GetTextBoxScrollRange(), 0);
+                        if (g_status_685170.long_quote_2432 != 0) {
+                            sprintf(line, "Long Quote: #%d, subquote: #%d, script file: %s \n",
+                                    record_index, sub_index, find.zFileName);
+                            log_file = fopen("data\\longquotes.txt", "a+t");
+                            if (log_file != 0) {
+                                fprintf(log_file, "%s\n", line);
+                                fclose(log_file);
+                            }
+                        }
+                        file_lines += g_notice_line_count_0069b7bc;
+                        total_lines += g_notice_line_count_0069b7bc;
+                        ++total_quotes;
+                        ++file_quotes;
+                    }
+                }
+            }
+            fprintf(file, "Script: %s\n", find.zFileName);
+            fprintf(file, "  #quotes: %d\n  #lines: %d\n", file_quotes, file_lines);
+            ReleaseNpcScriptFile0055A0A0(script);
+            ++total_scripts;
+        }
+        found = GetFileNext(&find);
+    }
+    ShowNotice(0, L"Quote test complete. See log file for results", -1, GetTextBoxScrollRange(), 0);
+    fprintf(file, "Total lines: %d\nTotal Quotes: %d\nTotal Scripts: %d", total_lines, total_quotes,
+            total_scripts);
+    fclose(file);
+    g_status_685170.quote_audit_2431 = 0;
 }
 // FUNCTION: WIZ8 0x00529BC0
 void SetFlag68C4F7(void)

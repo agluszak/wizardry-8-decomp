@@ -1,4 +1,4 @@
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "FileMan.h"
@@ -28,43 +28,43 @@
    null check. That is the original's own error handling, not an omission. */
 
 /* Free each record's string table and the first entry's sub-entry array. The
-   header, name, records array, and remaining entry allocations are left for
+   header, name, quotes array, and remaining entry allocations are left for
    the caller; NPC rebinding overwrites the pointer without releasing them. */
 // FUNCTION: WIZ8 0x0055a0a0
-void ReleaseRecordFile0055A0A0(W8RecordFile0055A480* file)
+void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file)
 {
-    W8FileRecord0055A140* record;
+    W8NpcScriptQuote* record;
     unsigned int index;
     unsigned int string_index;
 
     if (file == 0) {
         return;
     }
-    if (file->record_count == 0) {
+    if (file->quote_count == 0) {
         return;
     }
-    for (index = 0; index < file->record_count; ++index) {
-        record = file->records + index;
+    for (index = 0; index < file->quote_count; ++index) {
+        record = file->quotes + index;
         if (record == 0) {
             continue;
         }
         if (record->entries != 0 && record->entries->sub_entries != 0) {
             free(record->entries->sub_entries);
         }
-        if (record->strings != 0) {
-            for (string_index = 0; string_index < record->string_count; ++string_index) {
-                free(record->strings[string_index]);
+        if (record->subquotes != 0) {
+            for (string_index = 0; string_index < record->subquote_count; ++string_index) {
+                free(record->subquotes[string_index]);
             }
-            free(record->strings);
+            free(record->subquotes);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x0055a140
-unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
+unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
 {
-    W8FileEntry0055A140* entry;
-    W8FileSubEntry0055A140* sub_entry;
+    W8NpcQuoteEntry* entry;
+    W8NpcQuoteSubEntry* sub_entry;
     char* text;
     unsigned int transferred;
     unsigned short length;
@@ -82,22 +82,22 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         return 0;
     }
 
-    if (record->strings != 0) {
+    if (record->subquotes != 0) {
         FileRead(handle, record, 1, &transferred);
-        record->strings = static_cast<char**>(malloc(record->string_count * 4));
-        for (index = 0; index < record->string_count; ++index) {
+        record->subquotes = static_cast<char**>(malloc(record->subquote_count * 4));
+        for (index = 0; index < record->subquote_count; ++index) {
             FileRead(handle, &length, 2, &transferred);
             if (transferred != 2) {
                 return 0;
             }
             if (length != 0) {
-                record->strings[index] = static_cast<char*>(malloc(length + 1));
-                if (record->strings[index] == 0) {
+                record->subquotes[index] = static_cast<char*>(malloc(length + 1));
+                if (record->subquotes[index] == 0) {
                     return 0;
                 }
                 FileRead(handle, wide, length * 2, &transferred);
                 wide[length] = 0;
-                sprintf(record->strings[index], "%S", wide);
+                sprintf(record->subquotes[index], "%S", wide);
             }
         }
     }
@@ -107,7 +107,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         record->entries = 0;
         record->entry_count = 0;
         block_size = disk_entry_count * 0x12;
-        record->entries = static_cast<W8FileEntry0055A140*>(malloc(block_size));
+        record->entries = static_cast<W8NpcQuoteEntry*>(malloc(block_size));
         if (record->entries != 0) {
             memset(record->entries + record->entry_count, 0, block_size);
             record->entry_count = record->entry_count + disk_entry_count;
@@ -123,7 +123,7 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
         disk_sub_count = entry->sub_entry_count;
         if (disk_sub_count != 0) {
             entry->sub_entry_count = 0;
-            entry->sub_entries = static_cast<W8FileSubEntry0055A140*>(malloc(disk_sub_count * 8));
+            entry->sub_entries = static_cast<W8NpcQuoteSubEntry*>(malloc(disk_sub_count * 8));
             if (entry->sub_entries == 0) {
                 return 0;
             }
@@ -164,12 +164,12 @@ unsigned char ReadFileRecord0055A140(int handle, W8FileRecord0055A140* record)
    what it already allocated, which is the original's behaviour and not an
    omission here. */
 // FUNCTION: WIZ8 0x0055a480
-W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
+W8NpcScriptFile* LoadNpcScriptFile0055A480(char* path)
 {
     int handle;
-    W8RecordFile0055A480* file;
+    W8NpcScriptFile* file;
     char* name;
-    W8FileRecord0055A140* records;
+    W8NpcScriptQuote* quotes;
     unsigned int transferred;
     unsigned short length;
     unsigned int index;
@@ -178,7 +178,7 @@ W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
     if (handle == 0) {
         return 0;
     }
-    file = static_cast<W8RecordFile0055A480*>(malloc(0xe));
+    file = static_cast<W8NpcScriptFile*>(malloc(0xe));
     if (file == 0) {
         return 0;
     }
@@ -204,13 +204,13 @@ W8RecordFile0055A480* LoadRecordFile0055A480(char* path)
             file->name[length] = 0;
         }
     }
-    records = static_cast<W8FileRecord0055A140*>(malloc(file->record_count * 0xc));
-    file->records = records;
-    if (records == 0) {
+    quotes = static_cast<W8NpcScriptQuote*>(malloc(file->quote_count * 0xc));
+    file->quotes = quotes;
+    if (quotes == 0) {
         return 0;
     }
-    for (index = 0; index < file->record_count; ++index) {
-        if (!ReadFileRecord0055A140(handle, &file->records[index])) {
+    for (index = 0; index < file->quote_count; ++index) {
+        if (!ReadNpcScriptQuote0055A140(handle, &file->quotes[index])) {
             return 0;
         }
     }

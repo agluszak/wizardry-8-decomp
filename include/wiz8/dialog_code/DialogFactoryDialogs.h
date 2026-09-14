@@ -201,31 +201,36 @@ private:
     /* Sync the four scroll buttons' pressed/visible state with the scroll
        offset and the per-item enable flags. */
     void RefreshScrollButtons005CE420();
+    /* Move every flagged item to the destination: -1 copies it into the shared
+       party pool, any other value gives it to that party slot's character.
+       Each successful transfer unlinks the item and its flag; a failure plays
+       the beep. An emptied picker closes itself. */
+    void TransferSelectedItems005CE4C0(int destination);
     /* Handle one event the picker owns: keyboard list navigation and clicks. */
     unsigned char HandleInputEvent005CEC20(const InputAtom* input);
 
-    /* Per-button callbacks stored through W8DialogButton::Configure. Bodies
-       are not recovered, except CloseOwningDialog005CE6E0 which AssayDialog
-       also stores on its close button. */
-    static void Function5CE5F0(W8DialogButton* button);
-    static void Function5CE6A0(W8DialogButton* button);
-    static void Function5CE6C0(W8DialogButton* button);
+    /* Per-button callbacks stored through W8DialogButton::Configure.
+       CloseOwningDialog005CE6E0 is public because AssayDialog also stores it
+       on its close button. */
+    static void ToggleAllItems005CE5F0(W8DialogButton* button);          /* 0x005CE5F0 */
+    static void TakeSelectedToParty005CE6A0(W8DialogButton* button);     /* 0x005CE6A0 */
+    static void TakeSelectedToCharacter005CE6C0(W8DialogButton* button); /* 0x005CE6C0 */
 
 public:
     static void CloseOwningDialog005CE6E0(W8DialogButton* button); /* 0x005CE6E0 */
 
 private:
-    static void Function5CE6F0(W8DialogButton* button);
-    static void Function5CE790(W8DialogButton* button);
-    static void Function5CE830(W8DialogButton* button);
-    static void Function5CE8D0(W8DialogButton* button);
-    static void Function5CE970(W8DialogButton* button);
-    static void Function5CE9B0(W8DialogButton* button);
-    static void Function5CE9F0(W8DialogButton* button);
-    static void Function5CEA30(W8DialogButton* button);
-    static void Function5CEA70(W8DialogButton* button);
-    static void Function5CEAB0(W8DialogButton* button);
-    static void Function5CEAF0(W8DialogButton* button);
+    static void ToggleVisibleItem005CE6F0(W8DialogButton* button);   /* 0x005CE6F0 */
+    static void ToggleVisibleItem005CE790(W8DialogButton* button);   /* 0x005CE790 */
+    static void ToggleVisibleItem005CE830(W8DialogButton* button);   /* 0x005CE830 */
+    static void ToggleVisibleItem005CE8D0(W8DialogButton* button);   /* 0x005CE8D0 */
+    static void ShowVisibleItemInfo005CE970(W8DialogButton* button); /* 0x005CE970 */
+    static void ShowVisibleItemInfo005CE9B0(W8DialogButton* button); /* 0x005CE9B0 */
+    static void ShowVisibleItemInfo005CE9F0(W8DialogButton* button); /* 0x005CE9F0 */
+    static void ShowVisibleItemInfo005CEA30(W8DialogButton* button); /* 0x005CEA30 */
+    static void ScrollItemsUp005CEA70(W8DialogButton* button);       /* 0x005CEA70 */
+    static void ScrollItemsDown005CEAB0(W8DialogButton* button);     /* 0x005CEAB0 */
+    static void ScrollItemsToMouse005CEAF0(W8DialogButton* button);  /* 0x005CEAF0 */
 
 public:
     W8GrowableVector<W8WorldItem*> items_54;

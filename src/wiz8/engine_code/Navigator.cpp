@@ -169,7 +169,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0x4fe, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
                         navigator->movement_0c0.location_id_004, 1));
-                if (monster_info->flag_14 != 0 && monster_info->monster_group_id != 0) {
+                if (monster_info->fActive != 0 && monster_info->monster_group_id != 0) {
                     W8MonsterGroup* group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                         0x508, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp",
                         monster_info->monster_group_id, 1));

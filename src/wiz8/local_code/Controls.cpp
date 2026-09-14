@@ -2115,11 +2115,6 @@ void W8HorizontalRangeThumb::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x004f69d0
 W8HorizontalRangeThumb::~W8HorizontalRangeThumb() {}
 
-// SYNTHETIC: WIZ8 0x004f6030
-// W8TextControl::`scalar deleting destructor'
-// FUNCTION: WIZ8 0x004f6640
-W8TextControl::~W8TextControl() {}
-
 /* Enables or disables the whole panel: the panel's own flag, then every child's,
    and each child's region follows - mode 4 restores the disabled region and
    clearing the mode bits re-arms it. */

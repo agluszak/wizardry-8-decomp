@@ -251,10 +251,10 @@ struct W8Character {
     unsigned char unknown_0b75[4];
     float spell_regen_rates_0b79[12];
     unsigned char unknown_0ba9[0x10];
-    int inventory_weight;     /* 0x0bb9 */
-    int party_weight_share;   /* 0x0bbd */
-    int total_carried_weight; /* 0x0bc1 */
-    int carrying_capacity;    /* 0x0bc5; displayed divided by 10 */
+    unsigned int inventory_weight;     /* 0x0bb9 */
+    unsigned int party_weight_share;   /* 0x0bbd */
+    unsigned int total_carried_weight; /* 0x0bc1 */
+    unsigned int carrying_capacity;    /* 0x0bc5; displayed divided by 10 */
     /* 0x0bc9: the load category, zero through four, which scales what an
        action costs in fatigue. FatigueCharacter's error text calls it that. */
     int load_category;

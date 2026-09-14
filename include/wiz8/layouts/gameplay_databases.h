@@ -140,7 +140,7 @@ struct W8SpellRuntimeRecord {
     unsigned char divinity_spell; /* 0x11f */
     unsigned char psionics_spell; /* 0x120 */
     float effect_radius;          /* 0x121 */
-    unsigned char unknown_125;
+    unsigned char blocks_auto_power_in_combat;
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
@@ -157,8 +157,8 @@ struct W8SpellRuntimeRecord {
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
     unsigned char unknown_140[4];
-    /* 0x144: gates the effect's activation message in the per-frame spell
-       update. */
+    /* 0x144: participates in the effect liveness/suppression condition together
+       with the effect flags at 0x121 and 0x122. */
     unsigned char field_144;
     unsigned char unknown_145[2];
     /* 0x147: SpellInfoDialog prints the effect-dice line when this is set. */

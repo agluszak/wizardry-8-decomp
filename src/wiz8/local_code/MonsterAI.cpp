@@ -102,14 +102,14 @@ static const int g_being_effect_slot_spells_00616d84[12] = {
 };
 
 /* The combat-state spell per effect slot, walked against
-   W8CombatState::effect_slots and the monster's entries_3e. */
+   W8CombatState::effect_slots and the monster's effect_slots_3e. */
 // GLOBAL: WIZ8 0x00616DB4
 static const int g_combat_effect_slot_spells_00616db4[9] = {
     0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
 };
 
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's entries_d7. */
+   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
 // GLOBAL: WIZ8 0x00616DD8
 static const int g_combat_effect_slot_spells_00616dd8[9] = {
     0x2, 0x35, 0x3b, 0x3e, 0, 0, 0x1e, 0x28, 0x32,
@@ -1495,7 +1495,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->entries_d7[index].duration_0d;
+                    duration = target->pCombat->effect_slots_d7[index].duration_0d;
                 }
                 if (duration != 0) {
                     return 0;
@@ -1659,7 +1659,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->entries_3e[index].duration_0d;
+                    duration = target->pCombat->effect_slots_3e[index].duration_0d;
                 }
                 if (duration != 0) {
                     return 0;
@@ -1704,7 +1704,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
                     if (target->fInCombat == 0) {
                         continue;
                     }
-                    duration = target->pCombat->entries_3e[index].duration_0d;
+                    duration = target->pCombat->effect_slots_3e[index].duration_0d;
                 }
                 if (duration != 0) {
                     return 1;

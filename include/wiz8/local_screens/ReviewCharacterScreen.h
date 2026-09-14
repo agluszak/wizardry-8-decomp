@@ -1,11 +1,15 @@
 #pragma once
 
 #include "wiz8/local_code/RangeControl.h"
+#include "wiz8/dialog_code/DialogBase.h"
 
 class W8DialogBase;
+class W8HelpTextControl;
 class W8TextControl;
 class W8Widget;
 struct W8Character;
+struct W8CombatSlot;
+struct W8ItemInstance;
 
 /* The three listeners own different range controls. Their callbacks update
    the item, spell-realm and skill scroll positions respectively. */
@@ -18,6 +22,9 @@ public:
         delete m_range;
     }
     virtual void OnRangeChanged(W8RangeControl* control) override;
+    /* 0x005C4510: re-invalidates the scrollbar when the visible pool changed
+       and always repaints it. */
+    void UpdateItems(unsigned char items_changed);
     W8RangeControl* m_range;
 };
 
@@ -85,11 +92,11 @@ struct W8CampScreenState0069C0F4 {
     unsigned char unknown_4d8[4];
     unsigned char realm_flags[6]; /* 0x4dc */
     unsigned char unknown_4e2[2];
-    int item_scroll;
+    unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
-       slots RCSItemsPage.cpp renders. Function5A4A00 rebuilds it; the pool
+       slots RCSItemsPage.cpp renders. RebuildCampItemList005A4A00 rebuilds it; the pool
        handler reads it through item_scroll. */
-    int item_list_count;
+    unsigned int item_list_count;
     int item_list_4ec[500];
     W8CampItemRange* item_range; /* 0xcbc */
     W8CampSpellRange* spell_ranges[6];
@@ -131,19 +138,26 @@ extern unsigned int g_camp_item_region_set_0069c108;
 extern unsigned int g_camp_spell_region_sets_0069c40c[6];
 extern unsigned int g_camp_skill_region_set_0069c51c;
 
-/* Panel controls owned by the camp screen; the 0x69c42c..0x69c464 sets are
-   created by the unrecovered 0x005B9900/0x005B7E00 creators and read here and
-   in RCSItemsPage.cpp. */
-extern W8Widget* g_panel_controls_69c42c[4];
-extern W8TextControl* g_panel_controls_69c43c[2];
-extern W8Widget* g_panel_control_69c444;
-extern W8Widget* g_panel_controls_69c448[7];
-extern W8TextControl* g_panel_controls_69c468[2];
-extern W8TextControl* g_panel_controls_69c470[7];
+/* Panel controls owned by the camp screen, created by
+   CreateCampSecondaryPanel005B9900, CreateCampActionPanel005B9070 and
+   CreateItemsTabPanel005B9350 and read here and in RCSItemsPage.cpp. The
+   secondary panel owns the Items/Character info page tabs, the character-info
+   help text, the seven attribute rows and the four secondary value labels. */
+extern W8Widget* g_camp_info_labels_0069c42c[4];
+extern W8TextControl* g_camp_page_tabs_0069c43c[2];
+extern W8HelpTextControl* g_camp_help_text_0069c444;
+extern W8Widget* g_camp_stat_labels_0069c448[7];
+extern W8TextControl* g_camp_action_buttons_0069c468[2];
+extern W8TextControl* g_camp_realm_tabs_0069c470[7];
 
-/* Camp-screen gap functions (0x005A4BE0/0x005A41B0): unrecovered bodies,
-   declared here for the call sites in RCSCommon.cpp and RCSItemsPage.cpp. */
+/* Camp-screen gap functions, declared here for the call sites in
+   RCSCommon.cpp and RCSItemsPage.cpp. */
+void ClearOtherRealmFilters005A49D0(unsigned int realm);
+void RebuildCampItemList005A4A00(void);
+void SetCampInputMode005A4BC0(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
+void OpenCampMessageDialog005A4C00(wchar_t* text, W8DialogDestroyCallback callback,
+                                   int confirmation, int cancel);
 void DismissSelectedPartyCharacter(void);
 
 void CreateRcsLevelUpPanel(void);
@@ -151,6 +165,22 @@ void DestroyRcsLevelUpPanel(void);
 void CreateRcsDismissPanel(void);
 void DestroyRcsDismissPanel(void);
 void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode);
+/* 0x005B6FD0: like DrawRcsText but the box height is caller-provided and the
+   text is rendered through mprintf with the current font. */
+void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
+                          unsigned int layout_mode);
+
+/* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
+   gates an item click on the character's remaining action allowance in
+   combat; 0x005A6440 programs a pending use-item action aimed at an item. */
+char Function5A6090(int party_slot);
+int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
+
+/* 0x005A5DA0: move a single unit between the clicked stack and the item in
+   hand - split one off into the hand, or add one onto the held stack. */
+void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
 
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);

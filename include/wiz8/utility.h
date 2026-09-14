@@ -64,6 +64,9 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
                                  unsigned int count, char skip_first_two);
 
 extern const wchar_t g_format_d_0060aa20[];
+/* Shared "%d/%d" format literal; the definition is the GLOBAL in
+   CGSStatsPage.cpp. */
+extern const wchar_t g_format_d_slash_d_00614b58[];
 /* Shared "%.1f" format literal; the definition is the GLOBAL in
    Dialog Code\AssayDialog.cpp. */
 extern const wchar_t g_assay_format_1f_0064fbb4[];

@@ -277,7 +277,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
         for (unsigned int index = 0; index < count; ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
-            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+            if (other != monster_info && other->fActive != 0 && other->hp_current != 0 &&
                 other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {

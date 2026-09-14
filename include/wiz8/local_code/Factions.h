@@ -48,6 +48,8 @@ typedef unsigned char W8FactionDisposition;
 
 enum { W8_FACTION_HOSTILE = 0, W8_FACTION_NEUTRAL = 1, W8_FACTION_FRIENDLY = 2 };
 
+typedef unsigned char W8Disposition;
+
 enum { W8_DISPOSITION_NEUTRAL = 0, W8_DISPOSITION_HOSTILE = 1, W8_DISPOSITION_FRIENDLY = 2 };
 
 extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];

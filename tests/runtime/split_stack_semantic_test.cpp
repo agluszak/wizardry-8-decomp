@@ -3,9 +3,11 @@
    the driver thread once the main menu is live so the item database is real.
 
    The destroy callback's accept path is not driven: its tail calls
-   (Function50E5C0, Function5A4A00, Function5B59B0) are still unrecovered gap
-   functions and would hit the generated stub traps. The cancel path is
-   exercised because it returns before touching them. */
+   (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList005A4A00,
+   SetCampItemActionMode005B59B0) are recovered, but they assume the camp
+   state and the items-page action controls are live, which only holds while
+   the review screen is open. The cancel path is exercised because it returns
+   before touching them. */
 
 #include "split_stack_semantic_test.h"
 

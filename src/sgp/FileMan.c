@@ -349,6 +349,7 @@ BOOLEAN FileDelete( STR strFilename )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404C80
 HWFILE FileOpen( STR strFilename, UINT32 uiOptions, BOOLEAN fDeleteOnClose )
 {
 	HWFILE	hFile;
@@ -664,6 +665,7 @@ BOOLEAN FileRead( HWFILE hFile, PTR pDest, UINT32 uiBytesToRead, UINT32 *puiByte
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404FB0
 BOOLEAN FileWrite( HWFILE hFile, PTR pDest, UINT32 uiBytesToWrite, UINT32 *puiBytesWritten )
 {
 	HANDLE	hRealFile;

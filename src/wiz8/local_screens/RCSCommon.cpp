@@ -20,6 +20,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
@@ -36,6 +37,11 @@
 Controls* g_level_up_panel_0069c3c4;
 // GLOBAL: WIZ8 0x0069c3c8
 Controls* g_dismiss_panel_0069c3c8;
+
+/* The eight item-page action buttons, indexed by the mode SetCampItemActionMode
+   arms: one control per actionable entry-mode, cleared before each reselection. */
+// GLOBAL: WIZ8 0x0069c3cc
+W8TextControl* g_item_action_controls_69c3cc[8];
 // GLOBAL: WIZ8 0x0069c3c0
 W8TextControl* g_level_up_button_0069c3c0;
 // GLOBAL: WIZ8 0x0069c400
@@ -98,6 +104,25 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
     W8ControlsRect bounds = {left, top, left + width, top + 18};
     W8TextBuffer buffer(&bounds, text, g_font_683660, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
+}
+
+/* Draws text honoring the same layout mask pairs as the buffered variants
+   above, but through mprintf with the current font: the centered and right
+   masks shift the start by the measured string length and the baseline is
+   centered on the caller-provided height. */
+// FUNCTION: WIZ8 0x005b6fd0
+void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int height,
+                          unsigned int layout_mode)
+{
+    if (layout_mode == (g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C)) {
+        left += (width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660)) / 2;
+    } else if (layout_mode ==
+               (g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554)) {
+        left += width - StringPixLength(const_cast<wchar_t*>(text), g_font_683660);
+    }
+    top += (height - GetFontHeight(g_font_683660)) / 2;
+    SetFont(g_font_683660);
+    mprintf(left, top, L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005b6630
@@ -338,6 +363,72 @@ void ReleaseReviewCommonPanels(void)
         }
         ++control;
     } while (control < g_panel_controls_69c2f8 + 3);
+}
+
+/* Switch the items-page action mode: every action button's secondary state is
+   cleared, the mode maps onto the targeting mode and the button it highlights,
+   and mode zero also drops a held item cursor back into the pool. */
+// FUNCTION: WIZ8 0x005b59b0
+void SetCampItemActionMode005B59B0(char mode)
+{
+    int index;
+    short selected = -1;
+    int targeting;
+    W8TextControl** control;
+
+    for (control = g_item_action_controls_69c3cc, index = 8; index != 0; ++control, --index) {
+        if ((unsigned char)((*control)->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+            (*control)->DisableSecondaryState(0);
+        }
+    }
+    g_camp_screen_0069c0f4->entry_mode = mode;
+    switch (mode) {
+    case 1:
+        targeting = 6;
+        selected = 1;
+        break;
+    case 2:
+    case 8:
+        targeting = 6;
+        selected = 6;
+        break;
+    case 3:
+        targeting = 6;
+        selected = 0;
+        break;
+    case 4:
+        targeting = 6;
+        selected = 2;
+        break;
+    case 5:
+        targeting = 6;
+        selected = 3;
+        break;
+    case 6:
+        targeting = 6;
+        selected = 4;
+        break;
+    case 7:
+        targeting = 1;
+        selected = 5;
+        break;
+    case 9:
+        targeting = 1;
+        selected = 7;
+        break;
+    default:
+        targeting = 0;
+        break;
+    }
+    SetTargetingMode(targeting);
+    if (mode == 0 && g_status_685170.item_in_cursor != 0) {
+        SetItemCursor(0);
+    }
+    if (selected != -1 && (unsigned char)(g_item_action_controls_69c3cc[selected]->m_stateFlags &
+                                          g_W8TextControlMask005ED570) == 0) {
+        g_item_action_controls_69c3cc[selected]->EnableSecondaryState(0);
+    }
+    g_camp_screen_0069c0f4->redraw_flags |= 0x1000;
 }
 
 // FUNCTION: WIZ8 0x005B2200

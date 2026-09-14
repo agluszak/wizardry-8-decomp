@@ -2994,7 +2994,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         return 0;
     }
     if (m_pRep->flag_06d == 0) {
-        if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->motionless != 0) {
+        if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->fMotionless != 0) {
             if (g_flag_689b32 == 0) {
                 return 0;
             }
@@ -3863,7 +3863,7 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
             MonsterGetIndexByLocationID(0x1804, MONSTER_CPP, propagated_value_1e4, 1));
         action_kind = monster_info->action_kind;
         action_detail = monster_info->action_detail;
-        power_level = *(unsigned int*)monster_info->unknown_2e9;
+        power_level = monster_info->spell_power_level;
         if (action_kind == 2 && action_detail != 0 && power_level != 0) {
             fatigue = MonsterCastsSpell(monster_info, action_detail, power_level);
             FatigueMonster(monster_info, fatigue, 0);
@@ -5018,7 +5018,7 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
     if (alternate != 0) {
         return monster_info->party_threat.flag_25;
     }
-    return monster_info->flag_24d;
+    return monster_info->within_viewing_distance;
 }
 
 /* Discover animated material state once, cache it in flags_1dc, and restart

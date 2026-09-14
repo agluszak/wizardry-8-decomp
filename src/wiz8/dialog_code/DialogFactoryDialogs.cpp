@@ -11,6 +11,7 @@
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/ItemManager.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -22,6 +23,7 @@
 #include "himage.h"
 #include "input.h"
 #include "mousesystem_macros.h"
+#include "soundman.h"
 #include "vsurface.h"
 
 #include <ctype.h>
@@ -30,8 +32,9 @@
 
 /* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
    dialog (kind 3) and the trigger-owned item picker; the split-item dialog
-   owns its own translation unit. The small positioning helpers are declared
-   but not recovered; the calls still match the retail sites. */
+   owns its own translation unit. The list-box helpers' bodies are recovered
+   below; their addresses sit in an attribution gap, so their original TU is
+   unproven rather than their bodies unrecovered. */
 
 // FUNCTION: WIZ8 0x005cbb40
 W8ListBoxDialog005CBB40::W8ListBoxDialog005CBB40()
@@ -985,31 +988,35 @@ unsigned char W8TriggerItemPickerDialog::CreateButtons005CD8D0()
         m_buttons_74[index]->m_owner_040 = this;
     }
     m_buttons_74[0]->Configure("Data\\Dialogs\\popup_chest_selectionbuttons.sti", 3, 0, 1, 2, 2,
-                               Function5CE5F0, 0, 0, 0x7f, 0x15, 0, 0);
+                               ToggleAllItems005CE5F0, 0, 0, 0x7f, 0x15, 0, 0);
     m_buttons_74[1]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 0xd, 10, 0xb, 0xc,
-                               0xc, Function5CE6A0, 0, 0, 0x7f, 0x13, 0, 0);
+                               0xc, TakeSelectedToParty005CE6A0, 0, 0, 0x7f, 0x13, 0, 0);
     m_buttons_74[2]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                               Function5CE6C0, 0, 0, 0x7f, 0x14, 0, 0);
+                               TakeSelectedToCharacter005CE6C0, 0, 0, 0x7f, 0x14, 0, 0);
     m_buttons_74[3]->Configure("Data\\Dialogs\\chest_confirmationbuttons.sti", 8, 5, 6, 7, 7,
                                CloseOwningDialog005CE6E0, 0, 0, 0x7f, 0x16, 0, 0);
     m_buttons_74[4]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 0, -1, -1, -1, 0, 0, 0, 0, -1,
                                0, 0);
-    m_buttons_74[5]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE6F0,
-                               0, 1, 0x7e, -1, Function5CE970, 0);
-    m_buttons_74[6]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE790,
-                               0, 1, 0x7e, -1, Function5CE9B0, 0);
-    m_buttons_74[7]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE830,
-                               0, 1, 0x7e, -1, Function5CE9F0, 0);
-    m_buttons_74[8]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1, Function5CE8D0,
-                               0, 1, 0x7e, -1, Function5CEA30, 0);
+    m_buttons_74[5]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
+                               ToggleVisibleItem005CE6F0, 0, 1, 0x7e, -1,
+                               ShowVisibleItemInfo005CE970, 0);
+    m_buttons_74[6]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
+                               ToggleVisibleItem005CE790, 0, 1, 0x7e, -1,
+                               ShowVisibleItemInfo005CE9B0, 0);
+    m_buttons_74[7]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
+                               ToggleVisibleItem005CE830, 0, 1, 0x7e, -1,
+                               ShowVisibleItemInfo005CE9F0, 0);
+    m_buttons_74[8]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 1, -1, 2, -1,
+                               ToggleVisibleItem005CE8D0, 0, 1, 0x7e, -1,
+                               ShowVisibleItemInfo005CEA30, 0);
     m_buttons_74[9]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 3, 0, 1, 2, 2,
-                               Function5CEA70, 0, 0, 0x7f, -1, 0, 0);
+                               ScrollItemsUp005CEA70, 0, 0, 0x7f, -1, 0, 0);
     m_buttons_74[10]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 0xb, 8, 9, 10, 10,
-                                Function5CEAB0, 0, 0, 0x7f, -1, 0, 0);
+                                ScrollItemsDown005CEAB0, 0, 0, 0x7f, -1, 0, 0);
     m_buttons_74[11]->Configure("Data\\Dialogs\\maininterface_scroll.STI", 7, 4, 5, 6, 6, 0, 0, 0,
                                 0, -1, 0, 0);
     m_buttons_74[12]->Configure("Data\\Dialogs\\popup_chest2.sti", -1, 3, 3, 3, 3, 0,
-                                Function5CEAF0, 0, 0x7e, -1, 0, 0);
+                                ScrollItemsToMouse005CEAF0, 0, 0x7e, -1, 0, 0);
     m_buttons_74[5]->m_right_toggles = 1;
     m_buttons_74[6]->m_right_toggles = 1;
     m_buttons_74[7]->m_right_toggles = 1;
@@ -1066,9 +1073,9 @@ void W8TriggerItemPickerDialog::RefreshScrollButtons005CE420()
     }
 }
 
-/* Inlined into HandleInputEvent005CEC20 in this unit; no out-of-line emission
-   survives, so this definition stays in the owning unit rather than the header. */
-void W8TriggerItemPickerDialog::SetFirstVisible(int index)
+/* Inlined into every caller in this unit; no out-of-line emission survives, so
+   this definition stays in the owning unit rather than the header. */
+inline void W8TriggerItemPickerDialog::SetFirstVisible(int index)
 {
     if (items_54.GetCount() <= 4) {
         m_first_item_0a8 = 0;
@@ -1079,6 +1086,339 @@ void W8TriggerItemPickerDialog::SetFirstVisible(int index)
     }
     m_first_item_0a8 = index;
     m_dirty_flags |= 1;
+}
+
+/* Move every selected item to the destination: -1 hands a copy to the shared
+   party pool, any other value gives it to that party slot's character. A
+   successful transfer unlinks the item entry and its flag and retries the same
+   row; any failure raises the beep flag. Afterwards the scroll state refreshes
+   and an emptied picker closes itself. */
+// FUNCTION: WIZ8 0x005ce4c0
+void W8TriggerItemPickerDialog::TransferSelectedItems005CE4C0(int destination)
+{
+    int index;
+    unsigned char failed = 0;
+
+    for (index = 0; index < items_54.GetCount(); ++index) {
+        if (*flags_64.GetAt(index) != 0) {
+            W8ItemInstance* instance = CopyWorldItemInstance(*items_54.GetAt(index));
+            bool added;
+            if (destination == -1) {
+                added = AddItemToParty(instance, 1, 0);
+            } else {
+                added = AddItemToCharacter(&g_status_685170.buffers.characters[destination],
+                                           instance, 0, 1, 0);
+            }
+            if (added != 0) {
+                items_54.RemoveAt(index);
+                flags_64.RemoveAt(index);
+                --index;
+                m_dirty_flags |= 1;
+            } else {
+                failed = 1;
+            }
+        }
+    }
+    if (failed != 0) {
+        SoundPlay("Data\\Sound\\Misc\\beep2.wav", 0);
+    }
+    RefreshScrollButtons005CE420();
+    if (items_54.GetCount() == 0) {
+        m_keep_open = 0;
+    }
+}
+
+/* The select-all button: clear every flag when all are set, otherwise set them
+   all. The four visible row buttons are synced with the flags. */
+// FUNCTION: WIZ8 0x005ce5f0
+void W8TriggerItemPickerDialog::ToggleAllItems005CE5F0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        int index;
+        unsigned char all_selected = 1;
+
+        for (index = 0; index < dialog->items_54.GetCount(); ++index) {
+            if (all_selected == 0) {
+                break;
+            }
+            if (*dialog->flags_64.GetAt(index) == 0) {
+                all_selected = 0;
+            }
+        }
+        bool selected = all_selected == 0;
+        for (index = 0; index < dialog->items_54.GetCount(); ++index) {
+            if (index >= 0 && index < dialog->items_54.GetCount()) {
+                dialog->flags_64.SetAt(index, selected);
+                if (index >= dialog->m_first_item_0a8 && index <= dialog->m_first_item_0a8 + 3) {
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->SetPressed(
+                        selected);
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->m_dirty = 1;
+                }
+            }
+        }
+    }
+}
+
+/* Hand the selected items to the shared party pool. */
+// FUNCTION: WIZ8 0x005ce6a0
+void W8TriggerItemPickerDialog::TakeSelectedToParty005CE6A0(W8DialogButton* button)
+{
+    if (button != 0) {
+        static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040)
+            ->TransferSelectedItems005CE4C0(-1);
+    }
+}
+
+/* Hand the selected items to the currently selected party member. */
+// FUNCTION: WIZ8 0x005ce6c0
+void W8TriggerItemPickerDialog::TakeSelectedToCharacter005CE6C0(W8DialogButton* button)
+{
+    if (button != 0) {
+        static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040)
+            ->TransferSelectedItems005CE4C0(g_status_685170.selected_character);
+    }
+}
+
+/* Toggle the flag on the first visible row and press its button to match. An
+   out-of-range row just unpresses the clicked button. */
+// FUNCTION: WIZ8 0x005ce6f0
+void W8TriggerItemPickerDialog::ToggleVisibleItem005CE6F0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        int index = dialog->m_first_item_0a8;
+        unsigned char flag;
+        bool selected;
+
+        if (index < 0 || index >= dialog->items_54.GetCount()) {
+            flag = 0;
+        } else {
+            flag = *dialog->flags_64.GetAt(index);
+        }
+        selected = flag == 0;
+        if (index < 0 || index >= dialog->items_54.GetCount()) {
+            button->SetPressed(0);
+        } else {
+            dialog->flags_64.SetAt(index, selected);
+            if (index >= dialog->m_first_item_0a8 && index <= dialog->m_first_item_0a8 + 3) {
+                dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->SetPressed(selected);
+                dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->m_dirty = 1;
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005ce790
+void W8TriggerItemPickerDialog::ToggleVisibleItem005CE790(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 1) {
+            int index = dialog->m_first_item_0a8 + 1;
+            unsigned char flag;
+            bool selected;
+
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                flag = 0;
+            } else {
+                flag = *dialog->flags_64.GetAt(index);
+            }
+            selected = flag == 0;
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                button->SetPressed(0);
+            } else {
+                dialog->flags_64.SetAt(index, selected);
+                if (index >= dialog->m_first_item_0a8 && index <= dialog->m_first_item_0a8 + 3) {
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->SetPressed(
+                        selected);
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->m_dirty = 1;
+                }
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005ce830
+void W8TriggerItemPickerDialog::ToggleVisibleItem005CE830(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 2) {
+            int index = dialog->m_first_item_0a8 + 2;
+            unsigned char flag;
+            bool selected;
+
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                flag = 0;
+            } else {
+                flag = *dialog->flags_64.GetAt(index);
+            }
+            selected = flag == 0;
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                button->SetPressed(0);
+            } else {
+                dialog->flags_64.SetAt(index, selected);
+                if (index >= dialog->m_first_item_0a8 && index <= dialog->m_first_item_0a8 + 3) {
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->SetPressed(
+                        selected);
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->m_dirty = 1;
+                }
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005ce8d0
+void W8TriggerItemPickerDialog::ToggleVisibleItem005CE8D0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 3) {
+            int index = dialog->m_first_item_0a8 + 3;
+            unsigned char flag;
+            bool selected;
+
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                flag = 0;
+            } else {
+                flag = *dialog->flags_64.GetAt(index);
+            }
+            selected = flag == 0;
+            if (index < 0 || index >= dialog->items_54.GetCount()) {
+                button->SetPressed(0);
+            } else {
+                dialog->flags_64.SetAt(index, selected);
+                if (index >= dialog->m_first_item_0a8 && index <= dialog->m_first_item_0a8 + 3) {
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->SetPressed(
+                        selected);
+                    dialog->m_buttons_74[5 + index - dialog->m_first_item_0a8]->m_dirty = 1;
+                }
+            }
+        }
+    }
+}
+
+/* The four right-click callbacks copy the visible row's world item and open
+   the assay dialog on it. */
+// FUNCTION: WIZ8 0x005ce970
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo005CE970(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount()) {
+            W8ItemInstance* instance =
+                CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8));
+            OpenAssayDialog0056AE20(instance, -1);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005ce9b0
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo005CE9B0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 1) {
+            W8ItemInstance* instance =
+                CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 1));
+            OpenAssayDialog0056AE20(instance, -1);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005ce9f0
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo005CE9F0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 2) {
+            W8ItemInstance* instance =
+                CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 2));
+            OpenAssayDialog0056AE20(instance, -1);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005cea30
+void W8TriggerItemPickerDialog::ShowVisibleItemInfo005CEA30(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        if (dialog->m_first_item_0a8 < dialog->items_54.GetCount() + 3) {
+            W8ItemInstance* instance =
+                CopyWorldItemInstance(*dialog->items_54.GetAt(dialog->m_first_item_0a8 + 3));
+            OpenAssayDialog0056AE20(instance, -1);
+        }
+    }
+}
+
+/* The two scroll arrows step the first visible row through SetFirstVisible. */
+// FUNCTION: WIZ8 0x005cea70
+void W8TriggerItemPickerDialog::ScrollItemsUp005CEA70(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        dialog->SetFirstVisible(dialog->m_first_item_0a8 - 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x005ceab0
+void W8TriggerItemPickerDialog::ScrollItemsDown005CEAB0(W8DialogButton* button)
+{
+    if (button != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        dialog->SetFirstVisible(dialog->m_first_item_0a8 + 1);
+    }
+}
+
+/* Thumb drag callback: while the left button is held, map the live cursor
+   position between the scroll buttons' top and bottom bounds onto the item
+   list, then clamp through SetFirstVisible. */
+// FUNCTION: WIZ8 0x005ceaf0
+void W8TriggerItemPickerDialog::ScrollItemsToMouse005CEAF0(W8DialogButton* button)
+{
+    POINT point;
+    int top;
+    int bottom;
+    int index;
+
+    if (button != 0 && g_left_button_down_6f04ed != 0) {
+        W8TriggerItemPickerDialog* dialog =
+            static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
+        SGPMouseGetPos(&point);
+        if (dialog->m_buttons_74[12] != 0) {
+            dialog->m_buttons_74[12]->GetX();
+            dialog->m_buttons_74[12]->GetWidth();
+            bottom = dialog->m_buttons_74[9]->GetHeight() + dialog->m_buttons_74[12]->GetY();
+            top = bottom - dialog->m_buttons_74[10]->GetHeight() +
+                  dialog->m_buttons_74[12]->GetHeight();
+        } else {
+            bottom = top = (int)button;
+        }
+        bottom += dialog->m_buttons_74[9] != 0 ? dialog->m_buttons_74[9]->GetHeight() : -1;
+        top -= (dialog->m_buttons_74[10] != 0 ? dialog->m_buttons_74[10]->GetHeight() : -1) +
+               (dialog->m_buttons_74[11] != 0 ? dialog->m_buttons_74[11]->GetHeight() : -1);
+        if (point.y > bottom) {
+            point.y = bottom;
+        }
+        if (point.y < top) {
+            point.y = top;
+        }
+        index = (point.y - bottom) * dialog->items_54.GetCount() / (top - bottom);
+        dialog->SetFirstVisible(index);
+    }
 }
 
 /* Keyboard list navigation. The up/down keys move the first visible row, the

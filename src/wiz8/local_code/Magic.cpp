@@ -1256,7 +1256,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].blocks_auto_power_in_combat == 1 && gXStatus.fCombatMode != 0) {
         return false;
     }
 
@@ -1299,7 +1299,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
-        g_spell_records[spell_id].unknown_125 == 1 && gXStatus.fCombatMode != 0) {
+        g_spell_records[spell_id].blocks_auto_power_in_combat == 1 && gXStatus.fCombatMode != 0) {
         return 0;
     }
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {

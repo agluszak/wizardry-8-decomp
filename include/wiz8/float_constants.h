@@ -101,6 +101,9 @@ extern const float g_float_005ec2a8;
 extern const float g_float_005ed1e8;
 
 extern float g_navigator_gravity_00603acc;
+/* 0x005EBCA4: Navigator's mode-3 step scale; the regeneration passes also read
+   it as the pool-ceiling share. */
+extern float g_navigator_mode3_scale_005ebca4;
 extern float g_float_00603ab8;
 extern float g_float_00603abc;
 extern const float g_camera_snap_epsilon_005ebc2c;

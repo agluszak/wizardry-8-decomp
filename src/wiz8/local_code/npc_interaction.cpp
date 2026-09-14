@@ -64,16 +64,15 @@ void ClearNpcMessageQueue(void)
 // FUNCTION: WIZ8 0x005294c0
 unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output)
 {
-    if (npc == 0 || npc->record_file == 0 || output == 0 ||
-        type >= npc->record_file->record_count) {
+    if (npc == 0 || npc->script_file == 0 || output == 0 || type >= npc->script_file->quote_count) {
         return 0;
     }
 
-    W8FileRecord0055A140* record = &npc->record_file->records[type];
-    if (record->strings == 0) {
+    W8NpcScriptQuote* record = &npc->script_file->quotes[type];
+    if (record->subquotes == 0) {
         return 0;
     }
 
-    swprintf(output, L"%S", record->strings[0]);
+    swprintf(output, L"%S", record->subquotes[0]);
     return 1;
 }

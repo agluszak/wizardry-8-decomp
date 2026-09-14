@@ -8,6 +8,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/magic.h"
@@ -715,8 +716,8 @@ void ResetNpcStates(void)
         for (index = 0; index < g_npc_states->count; ++index) {
             W8NpcState* npc = *g_npc_states->GetAt(index);
 
-            ReleaseRecordFile0055A0A0(npc->record_file);
-            npc->record_file = 0;
+            ReleaseNpcScriptFile0055A0A0(npc->script_file);
+            npc->script_file = 0;
             if (npc->record != 0 && npc->record->flag_055 != 0) {
                 ClearNpcItems(npc);
             }
@@ -893,7 +894,7 @@ void ReleaseNpcBinding(int value)
     W8NpcState* npc;
     W8NpcDatabaseRecord* record;
     unsigned char flag;
-    W8RecordFile0055A480* file;
+    W8NpcScriptFile* file;
 
     if (value == -1) {
         return;
@@ -909,12 +910,12 @@ void ReleaseNpcBinding(int value)
     } else {
         npc = g_npc_states->data[0];
     }
-    file = npc->record_file;
+    file = npc->script_file;
     npc->has_monster = 0;
     record = npc->record;
-    npc->record_file = 0;
+    npc->script_file = 0;
     flag = record->unknown_054;
-    ReleaseRecordFile0055A0A0(file);
+    ReleaseNpcScriptFile0055A0A0(file);
     if (flag != 0) {
         npc->binding_unavailable = 1;
     }
@@ -1090,8 +1091,8 @@ void UpdateNpcEvents0050D530(void)
             if (partner_index != -1 && partner_index <= g_npc_states->GetCount()) {
                 W8NpcState* released = *g_npc_states->GetAt(partner_index);
                 released->has_monster = 0;
-                ReleaseRecordFile0055A0A0(released->record_file);
-                released->record_file = 0;
+                ReleaseNpcScriptFile0055A0A0(released->script_file);
+                released->script_file = 0;
                 if (released->record->unknown_054 != 0) {
                     released->binding_unavailable = 1;
                 }
@@ -1187,8 +1188,27 @@ void ResetNpcBindingsForParty0050DB50(void)
         if (row->occupied != 0 && character->hp_current != 0) {
             GetNpcState(row->animation_0fa)->flag_e8 = 0;
             row->flag_fe = 0;
-            Function50E650(party_slot);
+            RebuildConditionsAndDerivedStats(party_slot);
         }
+    }
+}
+
+/* Subtract 0x14 from every attribute adjustment and the 0x13 byte run of the
+   character's modifier block while the slot's bound-NPC flag is set. The
+   condition/enchantment rebuild at 0x0050E650 runs it as the last source. */
+// FUNCTION: WIZ8 0x0050dbf0
+void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBlock* target)
+{
+    unsigned int index;
+
+    if (g_status_685170.buffers.party_rows[CharacterPointerToPartySlot(character)].flag_fe == 0) {
+        return;
+    }
+    for (index = 0; index < 7; ++index) {
+        target->attribute_adjustments[index] -= 0x14;
+    }
+    for (index = 0; index < 0x29; ++index) {
+        target->unknown_13[index] -= 0x14;
     }
 }
 
@@ -1294,8 +1314,8 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
                         W8NpcState* target = *target_slot;
 
                         target->has_monster = 0;
-                        ReleaseRecordFile0055A0A0(target->record_file);
-                        target->record_file = 0;
+                        ReleaseNpcScriptFile0055A0A0(target->script_file);
+                        target->script_file = 0;
                         if (target->record->unknown_054 != 0) {
                             target->binding_unavailable = 1;
                         }
@@ -1439,8 +1459,8 @@ void ReleaseMarkedNpcBindings0050DA00(void)
                             W8NpcState* target = *target_slot;
 
                             target->has_monster = 0;
-                            ReleaseRecordFile0055A0A0(target->record_file);
-                            target->record_file = 0;
+                            ReleaseNpcScriptFile0055A0A0(target->script_file);
+                            target->script_file = 0;
                             if (target->record->unknown_054 != 0) {
                                 target->binding_unavailable = 1;
                             }
@@ -1475,8 +1495,8 @@ void RebindNpcLevelTriggers0050AC60(void)
             if (npc->has_monster && (npc->record->unknown_056 != 0 ||
                                      (npc->record->flag_2ea != 0 && !npc->is_present))) {
                 npc->has_monster = 0;
-                ReleaseRecordFile0055A0A0(npc->record_file);
-                npc->record_file = 0;
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                npc->script_file = 0;
                 if (npc->record->unknown_054 != 0) {
                     npc->binding_unavailable = 1;
                 }

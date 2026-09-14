@@ -20,8 +20,8 @@
 
 /* One 0x11-byte effect slot. The id at +0x01 is both the condition id the
    HasCondition predicates compare and the index into the effect-visual table
-   the clear path drops. Function50EDC0 scales the amount at +0x05 by the
-   percentage at +0x09 before accumulating it. */
+   the clear path drops. ApplyPartyEffectSlots scales the amount at +0x05 by
+   the percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
     unsigned char active; /* 0x00 */
     int effect_id;        /* 0x01 */

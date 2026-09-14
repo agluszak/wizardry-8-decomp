@@ -2,6 +2,7 @@
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
 #include "wiz8/geometry.h"
+#include "wiz8/factions.h"
 
 struct W8IList;
 struct W8MonsterRecord;
@@ -37,7 +38,7 @@ struct W8MonsterGroup {
        writes and each member's ubDisposition copies. At DISP_HOSTILE the group
        is live regardless of the global gate at 0x00547510; anything else has
        to pass that gate as well. */
-    unsigned char ubDisposition;
+    W8Disposition ubDisposition;
     unsigned char unknown_2b;
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. GetMonsterName reads it and nothing recovered yet writes it. */
@@ -139,8 +140,6 @@ void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
    highest condition is in the 0x0d..0x11 incapacitated band. */
 char Function511D40(int group_id); /* 0x00511D40 */
 
-void RefreshPartyMemberCombatState(int party_slot);
-void RefreshMonsterLocationState(int location_id);
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
 void ReapplyMonsterGroupFormations(void);  /* 0x00510830 */

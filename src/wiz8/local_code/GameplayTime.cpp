@@ -12,6 +12,7 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/monster_runtime.h"
 #include "wiz8/magic.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/xstatus.h"
@@ -61,6 +62,33 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
     }
 }
 
+/* The monster counterpart of the character regen rebuild: the same pool-share
+   rates plus the modifier block's two regen channels, raised by half while the
+   conditioned-rate flags are set. */
+// FUNCTION: WIZ8 0x00502c50
+void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
+{
+    float rate;
+
+    rate = ((float)(unsigned int)monster_info->hp_max * g_navigator_mode3_scale_005ebca4 +
+            g_monster_record_float_scale) *
+               0.0041666669f +
+           (float)(signed char)monster_info->modifiers_1db.unknown_08[1];
+    monster_info->hp_regen_rate_47 = rate;
+    if (monster_info->modifiers_1db.flag_42 != 0) {
+        monster_info->hp_regen_rate_47 = rate * g_float_005ec3b8;
+    }
+
+    rate = ((float)(unsigned int)monster_info->stamina_max * g_float_005ec390 +
+            g_monster_record_float_scale) *
+               0.0041666669f +
+           (float)(signed char)monster_info->modifiers_1db.unknown_08[2];
+    monster_info->stamina_regen_rate_4f = rate;
+    if (monster_info->modifiers_1db.flag_43 != 0) {
+        monster_info->stamina_regen_rate_4f = rate * g_float_005ec3b8;
+    }
+}
+
 /* Advance one monster's whole aging cycle by the elapsed minutes: the
    look-around timers, the sight bookkeeping around its last-seen position,
    the per-turn regeneration and fatigue bookkeeping, condition, enchantment
@@ -78,7 +106,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
         args[0] = 3;
         args[1] = monster_info->location_id;
-        Function5526F0(monster_info->pCombat->entries_3e, args);
+        Function5526F0(monster_info->pCombat->effect_slots_3e, args);
         goto after_early;
     }
     monster = monster_info->monster;
@@ -132,9 +160,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         unsigned char cycle;
 
         MonsterGetLocation(monster, &location);
-        previous.x = static_cast<float>(monster_info->runtime_values_338[0]);
-        previous.y = static_cast<float>(monster_info->runtime_values_338[1]);
-        previous.z = static_cast<float>(monster_info->runtime_values_338[2]);
+        previous.x = static_cast<float>(monster_info->movement_watch_position[0]);
+        previous.y = static_cast<float>(monster_info->movement_watch_position[1]);
+        previous.z = static_cast<float>(monster_info->movement_watch_position[2]);
         monster_info->position_17.y = location.y;
         cycle = monster_info->unknown_254;
         delta = location - previous;
@@ -250,9 +278,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         if ((signed char)monster_info->unknown_254 > 0) {
             ++monster_info->unknown_254;
         }
-        monster_info->runtime_values_338[0] = static_cast<int>(monster_info->position_17.x);
-        monster_info->runtime_values_338[1] = static_cast<int>(monster_info->position_17.y);
-        monster_info->runtime_values_338[2] = static_cast<int>(monster_info->position_17.z);
+        monster_info->movement_watch_position[0] = static_cast<int>(monster_info->position_17.x);
+        monster_info->movement_watch_position[1] = static_cast<int>(monster_info->position_17.y);
+        monster_info->movement_watch_position[2] = static_cast<int>(monster_info->position_17.z);
     }
 
 after_early: {
@@ -300,7 +328,7 @@ after_early: {
             if (amount < 0) {
                 FatigueMonster(monster_info, -amount, 0);
             }
-        } else if (monster_info->runtime_stat_current_33 < monster_info->runtime_stat_max_2f) {
+        } else if (monster_info->stamina < monster_info->stamina_max) {
             RestoreMonsterStamina(monster_info, amount, 0);
         }
     }
@@ -329,7 +357,7 @@ after_early: {
                 HealMonster(monster_info, healed, 0);
                 monster_info->hp_regen_accumulator_4b -= static_cast<float>(healed);
             }
-            if (monster_info->runtime_stat_current_33 < monster_info->runtime_stat_max_2f) {
+            if (monster_info->stamina < monster_info->stamina_max) {
                 monster_info->stamina_regen_accumulator_53 =
                     static_cast<float>(minutes) * monster_info->stamina_regen_rate_4f * heal_scale +
                     monster_info->stamina_regen_accumulator_53;
@@ -361,7 +389,7 @@ after_early: {
     if (monster_info->hp_max <= monster_info->hp_current) {
         monster_info->hp_regen_accumulator_4b = 0.0f;
     }
-    if (monster_info->runtime_stat_max_2f <= monster_info->runtime_stat_current_33) {
+    if (monster_info->stamina_max <= monster_info->stamina) {
         monster_info->stamina_regen_accumulator_53 = 0.0f;
     }
     {
@@ -382,7 +410,7 @@ after_early: {
     }
     if (monster_info->fInCombat != 0) {
         for (int combat_index = 0; combat_index < 9; ++combat_index) {
-            W8EffectSlot* slot = &monster_info->pCombat->entries_3e[combat_index];
+            W8EffectSlot* slot = &monster_info->pCombat->effect_slots_3e[combat_index];
 
             if (slot->active != 0) {
                 if (minutes < slot->duration_0d) {
@@ -395,7 +423,7 @@ after_early: {
             }
         }
         for (int d7_index = 0; d7_index < 6; ++d7_index) {
-            W8EffectSlot* slot = &monster_info->pCombat->entries_d7[d7_index];
+            W8EffectSlot* slot = &monster_info->pCombat->effect_slots_d7[d7_index];
 
             if (slot->active != 0) {
                 if (minutes < slot->duration_0d) {

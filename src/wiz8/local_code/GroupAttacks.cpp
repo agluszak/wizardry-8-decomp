@@ -103,15 +103,14 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
         } else {
             value = 0xf;
         }
-        uiMinRoll = ((unsigned int)monster_info->runtime_stat_current_33 *
-                     (record->missile_value_24f + value)) /
-                    (unsigned int)monster_info->runtime_stat_max_2f;
+        uiMinRoll = ((unsigned int)monster_info->stamina * (record->missile_value_24f + value)) /
+                    (unsigned int)monster_info->stamina_max;
         if (uiMinRoll == 0) {
             uiMinRoll = 1;
         }
-        uiBounds[0] = ((unsigned int)monster_info->runtime_stat_current_33 *
-                       (record->missile_value_24f + value + 5)) /
-                      (unsigned int)monster_info->runtime_stat_max_2f;
+        uiBounds[0] =
+            ((unsigned int)monster_info->stamina * (record->missile_value_24f + value + 5)) /
+            (unsigned int)monster_info->stamina_max;
         if (uiBounds[0] == 0) {
             uiBounds[0] = 1;
         }

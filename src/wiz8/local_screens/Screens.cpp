@@ -149,7 +149,8 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         }
         break;
     case W8_SCREEN_MAIN_GAME:
-        if (g_level_block->value_0fc == 0 || g_level_block->party_bytes_109[party_slot] != 0) {
+        if (g_level_block->value_0fc == 0 ||
+            g_level_block->portrait_refresh_pending[party_slot] != 0) {
             switch (party_slot) {
             case 0:
             case 1:
@@ -180,7 +181,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
                 highlighted = 1;
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
-                                       g_level_block->party_bytes_109[party_slot] == 0);
+                                       g_level_block->portrait_refresh_pending[party_slot] == 0);
             gXStatus.monster_manager_entries[party_slot].field_0d1 = 1;
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
@@ -410,7 +411,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->clock_214 = GetClock();
     g_level_block->flag_218 = 0;
     for (slot = 0; slot < 8; ++slot) {
-        g_level_block->party_bytes_109[slot] = 0;
+        g_level_block->portrait_refresh_pending[slot] = 0;
         g_level_block->values_114[slot] = 0;
         g_level_block->values_134[slot] = 0;
     }

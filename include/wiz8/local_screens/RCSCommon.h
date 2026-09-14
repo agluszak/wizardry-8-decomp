@@ -18,7 +18,7 @@ extern W8TextControl* g_panel_controls_69c2f8[3];
 
 void Function5B4EB0(void);
 void Function5B55F0(void);
-void Function5B59B0(int page);
+void SetCampItemActionMode005B59B0(char mode);
 void Function5B6B30(unsigned int slot);
 
 void RedrawRcsLevelUpPanel(void); /* 0x005B6590 */
