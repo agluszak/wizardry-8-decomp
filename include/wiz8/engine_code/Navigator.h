@@ -168,8 +168,12 @@ public:
     void SetPitch(float pitch);                               /* 0x00453940 */
     float GetYaw();                                           /* 0x00453970 */
     float GetPitch();                                         /* 0x00453980 */
-    void SetValue120(float value);                            /* 0x00453C50 */
-    float GetValue120();                                      /* 0x00453C60 */
+    /* The world-path reachability probe the group engagement check runs:
+       fills `out_distance` with the route length and returns nonzero when a
+       route inside `max_range` exists. */
+    int FindNavigatorPathDistance(float max_range, float* out_distance); /* 0x00453480 */
+    void SetValue120(float value);                                       /* 0x00453C50 */
+    float GetValue120();                                                 /* 0x00453C60 */
     unsigned char
     ConfigureMovementToPosition00452630(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the

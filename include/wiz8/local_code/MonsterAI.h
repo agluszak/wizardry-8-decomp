@@ -4,6 +4,7 @@ struct W8MonsterInfo;
 struct W8MonsterRecord;
 struct W8CombatSlot;
 struct W8MonsterGroup;
+template <class T> class W8GrowableVector;
 
 /* The timed sight service: clears the sight-dirty flag, refreshes what
    monsters can see, and reruns group detection in combat when allowed. */
@@ -39,11 +40,32 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest); /* 0x00532
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per AI kind. */
 extern const int g_ai_kind_table[32][2];
 
-unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id);
-unsigned char Function5327E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
-unsigned char Function5330E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
-unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
-void Function5354E0(void);
+unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id); /* 0x005326F0 */
+/* Whether the combat slot accepts `spell_id` from this caster; the original
+   name is proven by the "WARNING: MonsterSpellTargetOK" debug message. */
+unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
+                                   W8CombatSlot* combat_slot); /* 0x005327E0 */
+/* Whether the spell's area effect would catch a disposition-neutral monster,
+   which vetoes it - the AI does not turn neutrals hostile by accident. */
+unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
+                                          W8CombatSlot* combat_slot); /* 0x005330E0 */
+/* Whether the spell's markers catch at least one party member when cast at
+   `slot`. */
+unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
+                                         W8CombatSlot* slot); /* 0x005353E0 */
+/* Whether any live member of the group has a visible target; the arguments
+   forward to MonsterHasVisibleTarget. */
+unsigned char MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+                                           int hostility, int within_reach); /* 0x005347A0 */
+/* The out-of-combat sweep: refreshes sight, alerts same-faction groups of
+   groups already fighting, and enters combat for the groups that should. */
+void CheckMonsterGroupsEnterCombat(void); /* 0x005354E0 */
+/* The in-combat sweep: drops combat for groups with nothing left to fight,
+   and for every group at once once nobody is still engaged. */
+void CheckMonsterGroupsLeaveCombat(void); /* 0x00534300 */
+/* Whether a group's members still count as fighting; propagates the answer
+   to the group and its allies through the engagement-state pair. */
+void UpdateMonsterGroupEngagement(void);                          /* 0x00535200 */
 unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info); /* 0x00535150 */
 /* Decide what one monster does this round: give up, hold, flee, cast, attack
    or move, then fall back to holding when the choice cannot be carried out. */
@@ -61,6 +83,32 @@ unsigned char IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
                                      char needs_target); /* 0x00532550 */
 /* Which of the monster's ten spells to cast, weighted by the spell table. */
 int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x00533260 */
+/* Whether the monster sees no living enemy: a set threat flag answers at
+   once, a hostile party member in play counts, and `party_only` zero also
+   scans the monsters it is hostile to that it can see. */
+unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info,
+                                       int party_only); /* 0x00534690 */
+/* Fill `targets` with the combat slots `spell_id` may be cast at by this
+   monster; the monster's action fields carry the spell while the probe runs
+   and are restored after. */
+void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
+                                W8GrowableVector<W8CombatSlot>* targets); /* 0x00533320 */
+/* Whether at least half of the group's live in-combat members the caster is
+   hostile to accept the spell. */
+unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
+                                                W8MonsterGroup* target_group); /* 0x00534DD0 */
+/* Whether at least half of the party members the caster is hostile to accept
+   the spell. */
+unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info,
+                                         int spell_id); /* 0x00534EF0 */
+/* Whether a live hostile monster already fighting stands nearer to one of the
+   group's members than to the party - reinforcement keeps the group in or
+   brings it into combat. */
+unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group); /* 0x00534FC0 */
+/* Whether a group outside combat should join it: neutral groups need a
+   reinforcement, hostile ones a member with a visible target inside the
+   leader's reach or a rendered member near the party. */
+unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group); /* 0x005355D0 */
 /* Refill the monster's pending-action queue with everything it may do this
    round: cooperative and special actions first, then one attack entry per
    attack-mode bit for every target the attack can reach. `target_locked`

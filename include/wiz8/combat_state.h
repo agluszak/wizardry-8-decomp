@@ -155,7 +155,11 @@ struct W8CombatState {
     unsigned char flag_a51;
     unsigned char unknown_a52[2];
     unsigned char flag_a54;
-    unsigned char unknown_a55[0xd];
+    unsigned char unknown_a55[7];
+    /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
+       third before it touches group states. */
+    unsigned int combat_update_count;
+    unsigned char unknown_a60[2];
     unsigned char flag_a62;    /* 0xa62: party combat-ready bit */
     unsigned char unknown_a63; /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */

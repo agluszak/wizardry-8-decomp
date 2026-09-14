@@ -11,6 +11,8 @@
 #include "wiz8/character_skills.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/World.h"
@@ -28,7 +30,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "random.h"
+#include "wiz8/local_code/GroupAttacks.h"
 #include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 
 #include "sgp.h"
 
@@ -87,6 +91,38 @@ extern const int g_ai_kind_table[32][2] = {
     {1, 1}, {1, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
 };
 
+/* The spell that fills each being effect slot, walked by
+   MonsterSpellTargetOK to tell whether a buff is already running; the
+   monster side indexes effect_slots_10f, the party side the matching rows
+   in g_status_685170. */
+// GLOBAL: WIZ8 0x00616D84
+static const int g_being_effect_slot_spells_00616d84[12] = {
+    0x20, 0x21, 0x11, 0x14, 0x8, 0x28, 0x1a, 0x2d, 0x40, 0, 0, 0,
+};
+
+/* The combat-state spell per effect slot, walked against
+   W8CombatState::effect_slots and the monster's entries_3e. */
+// GLOBAL: WIZ8 0x00616DB4
+static const int g_combat_effect_slot_spells_00616db4[9] = {
+    0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
+};
+
+/* The same mapping for the second combat effect block, indexed against
+   W8CombatState::effect_slots_85a and the monster's entries_d7. */
+// GLOBAL: WIZ8 0x00616DD8
+static const int g_combat_effect_slot_spells_00616dd8[9] = {
+    0x2, 0x35, 0x3b, 0x3e, 0, 0, 0x1e, 0x28, 0x32,
+};
+
+/* The per-slot weights ChooseMonsterSpell rolls against. */
+// GLOBAL: WIZ8 0x0061CC14
+static const int g_spell_cast_weights_0061cc14[10] = {5, 5, 5, 10, 10, 10, 10, 15, 15, 15};
+
+/* Reported once, so a monster missing its special-attack cycle does not flood
+   the log. */
+// GLOBAL: WIZ8 0x0068D525
+static unsigned char g_special_attack_cycle_error_reported;
+
 /* The timed sight service. The dirty flag is raised by the condition and
    enchantment writers whenever what monsters can see of the party may have
    changed; out of combat sight is refreshed unconditionally, in combat only
@@ -100,7 +136,7 @@ void UpdateMonsterSight(void)
         }
         RefreshOutwardSightForAllMonsters();
         if (gXStatus.fCombatMode != 0 && g_combat_state->value_004 == 0) {
-            Function5354E0();
+            CheckMonsterGroupsEnterCombat();
         }
     }
 }
@@ -133,7 +169,7 @@ void UpdateMonsterGroups(char staggered)
             }
             RefreshOutwardSightForAllMonsters();
             if (gXStatus.fCombatMode != 0 && g_combat_state->value_004 == 0) {
-                Function5354E0();
+                CheckMonsterGroupsEnterCombat();
             }
         }
     }
@@ -1255,6 +1291,742 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
     return 1;
 }
 
+/* Whether the monster may cast the spell now: the record allows monsters to
+   cast it, nothing is blocking the cast, the special cases for spell 0x3c
+   and fire spells under camera sway pass, and `needs_target` also demands a
+   target to aim at. */
+// FUNCTION: WIZ8 0x00532550
+unsigned char IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char needs_target)
+{
+    if (spell_id == 0) {
+        return 0;
+    }
+    if (g_spell_records[spell_id].monster_castable == 0) {
+        return 0;
+    }
+    if (IsSpellBlockedForMonster(monster_info, spell_id)) {
+        return 0;
+    }
+    if (Function4D9080(monster_info, 4, 0) != 0) {
+        return 0;
+    }
+    if (spell_id == 0x3c && monster_info->value_344 != -1) {
+        return 0;
+    }
+    if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE &&
+        g_camera_sway_active_652da4 != 0) {
+        return 0;
+    }
+    if (needs_target != 0) {
+        W8GrowableVector<W8CombatSlot> targets;
+        CollectMonsterSpellTargets(monster_info, spell_id, &targets);
+        if (targets.GetCount() == 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* Pick where the spell lands: collect every slot the spell may be cast at
+   and take one at random into the monster's stored target. */
+// FUNCTION: WIZ8 0x005326F0
+unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
+{
+    W8GrowableVector<W8CombatSlot> targets;
+
+    CollectMonsterSpellTargets(monster_info, spell_id, &targets);
+    if (targets.GetCount() == 0) {
+        return 0;
+    }
+    monster_info->Target = *targets.GetAt(Random(targets.GetCount()));
+    return 1;
+}
+
+/* Whether `combat_slot` accepts `spell_id` from this caster. Target type
+   eight needs no checking at all; a character or monster slot is checked
+   against its own record, and anything else is resolved into its markers
+   and accepted when at least half of them take the spell. The per-spell
+   switch then vetoes targets the spell would not help or cannot affect. */
+// FUNCTION: WIZ8 0x005327E0
+unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
+                                   W8CombatSlot* combat_slot)
+{
+    W8MonsterInfo* target = 0;
+    W8Character* character = 0;
+    W8MonsterRecord* record = 0;
+    int hp = 0;
+    int hp_max = 0;
+    int stat = 0;
+    int stat_max = 0;
+    int* condition_turns = 0;
+    W8Enchantment* enchantments = 0;
+    unsigned int index;
+    unsigned int duration;
+
+    if (GetSpellTargetType(spell_id, 0) == 8) {
+        return 1;
+    }
+    if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+        character = &g_status_685170.buffers.characters[combat_slot->iChar];
+        hp_max = character->hp_max;
+        hp = character->hp_current;
+        stat = character->stamina;
+        stat_max = character->stamina_max;
+        condition_turns = character->condition_turns;
+        enchantments = character->enchantments;
+    } else {
+        if (combat_slot->iType != W8_TARGET_KIND_MONSTER) {
+            W8GrowableVector<int> monster_markers;
+            W8GrowableVector<int> party_markers;
+            W8TargetSource source;
+            W8CombatSlot probe;
+            unsigned int valid = 0;
+            int total = 0;
+            unsigned int power_level;
+
+            SetTargetSourceToMonster(monster_info, &source);
+            power_level = ChooseMonsterSpellPowerLevel(
+                monster_info, (int)GetMonsterDataForInfo(monster_info), spell_id);
+            PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot,
+                                       &monster_markers, &party_markers, 0);
+            for (index = 0; index < (unsigned int)party_markers.GetCount(); ++index) {
+                ++total;
+                ResetCombatSlot(&probe);
+                probe.iType = W8_TARGET_KIND_CHARACTER;
+                probe.iChar = *party_markers.GetAt(index);
+                if (MonsterSpellTargetOK(monster_info, spell_id, &probe) != 0) {
+                    ++valid;
+                }
+            }
+            for (index = 0; index < (unsigned int)monster_markers.GetCount(); ++index) {
+                ++total;
+                ResetCombatSlot(&probe);
+                probe.iType = W8_TARGET_KIND_MONSTER;
+                probe.iMonsterID = *monster_markers.GetAt(index);
+                if (MonsterSpellTargetOK(monster_info, spell_id, &probe) != 0) {
+                    ++valid;
+                }
+            }
+            return valid != 0 && ((total + 1U) >> 1) <= valid;
+        }
+        target = MonsterInfoFromID(0x7e5, MONSTER_AI_CPP, combat_slot->iMonsterID, 1);
+        record = GetMonsterDataForInfo(target);
+        stat_max = target->runtime_stat_max_2f;
+        stat = target->runtime_stat_current_33;
+        hp = target->hp_current;
+        hp_max = target->hp_max;
+        condition_turns = target->condition_turns;
+        enchantments = target->enchantments;
+        if (monster_info->ubDisposition == DISP_HOSTILE && target->ubDisposition == DISP_FRIENDLY &&
+            monster_info->fInCombat != 0 && monster_info->pCombat->unknown_151[1] != 0) {
+            return 0;
+        }
+    }
+    switch (spell_id) {
+    case 1:
+    case 4:
+    case 5:
+    case 9:
+    case 10:
+    case 0x19:
+    case 0x1c:
+    case 0x24:
+    case 0x2a:
+    case 0x2b:
+    case 0x2f:
+    case 0x32:
+    case 0x34:
+    case 0x37:
+    case 0x39:
+    case 0x3c:
+    case 0x3f:
+    case 0x42:
+    case 0x46:
+    case 0x47:
+    case 0x4e:
+    case 0x4f:
+    case 0x53:
+    case 0x56:
+    case 0x57:
+    case 0x5a:
+    case 0x5b:
+    case 0x5c:
+    case 0x5e:
+    case 0x5f:
+    case 0x60:
+    case 0x61:
+    case 0x62:
+    case 0x63:
+    case 0x65:
+    case 0x77:
+        break;
+    case 2:
+    case 0x35:
+    case 0x3b:
+        if (gXStatus.fCombatMode == 0) {
+            return 1;
+        }
+        for (index = 0; index < 9; ++index) {
+            if (spell_id == g_combat_effect_slot_spells_00616dd8[index]) {
+                if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+                    duration = g_combat_state->effect_slots_85a[index].duration_0d;
+                } else {
+                    if (target->fInCombat == 0) {
+                        continue;
+                    }
+                    duration = target->pCombat->entries_d7[index].duration_0d;
+                }
+                if (duration != 0) {
+                    return 0;
+                }
+            }
+        }
+        return 1;
+    case 6:
+    case 0x44:
+        if (hp == hp_max) {
+            return 0;
+        }
+        break;
+    case 7:
+        if (condition_turns[3] != 0) {
+            return 0;
+        }
+        break;
+    case 0xb:
+    case 0x25:
+    case 0x43:
+        if (condition_turns[0x10] != 0) {
+            return 0;
+        }
+        break;
+    case 0xc:
+        if (condition_turns[W8_CONDITION_ASLEEP] != 0) {
+            return 0;
+        }
+        break;
+    case 0xd:
+    case 0x2c:
+        if (stat == stat_max) {
+            return 0;
+        }
+        break;
+    case 0xe:
+        if (condition_turns[6] != 0) {
+            return 0;
+        }
+        break;
+    case 0xf:
+        if (condition_turns[0xc] != 0) {
+            return 0;
+        }
+        break;
+    case 0x10:
+        if (condition_turns[3] == 0 && condition_turns[4] == 0 && condition_turns[6] == 0 &&
+            condition_turns[W8_CONDITION_ASLEEP] == 0 && condition_turns[0xc] == 0) {
+            return 0;
+        }
+        break;
+    case 0x14:
+    case 0x1a:
+    case 0x20:
+    case 0x28:
+        for (index = 0; index < 12; ++index) {
+            if (spell_id == g_being_effect_slot_spells_00616d84[index]) {
+                if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+                    duration = g_status_685170.effect_slots_17af[index].duration_0d;
+                } else {
+                    duration = target->effect_slots_10f[index].duration_0d;
+                }
+                if (duration != 0) {
+                    return 0;
+                }
+            }
+        }
+        if (spell_id == 0x14 && combat_slot->iType == W8_TARGET_KIND_MONSTER &&
+            0x3b < record->spell_chance_0e0) {
+            return 0;
+        }
+        break;
+    case 0x15:
+        if (enchantments[2].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x1b:
+        if (enchantments[3].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x1d:
+        if (condition_turns[W8_CONDITION_LOAD_EASED] != 0) {
+            return 0;
+        }
+        break;
+    case 0x1f:
+        if (condition_turns[0xe] != 0) {
+            return 0;
+        }
+        break;
+    case 0x22:
+        if (condition_turns[0x10] == 0) {
+            return 0;
+        }
+        break;
+    case 0x23:
+        if (condition_turns[W8_CONDITION_POISONED] == 0) {
+            return 0;
+        }
+        break;
+    case 0x2e:
+        if (condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+            return 0;
+        }
+        if (combat_slot->iType != W8_TARGET_KIND_CHARACTER) {
+            if (combat_slot->iType == W8_TARGET_KIND_MONSTER) {
+                if (3 < record->kind_0cb && (record->kind_0cb < 6 || record->kind_0cb == 0xd)) {
+                    return 0;
+                }
+                if (record->spell_chance_0e0 != 0) {
+                    if (MonsterIsCycleSupported(target->monster, W8_MONSTER_CYCLE_SPELL) == 0) {
+                        if (g_spell_cycle_error_reported == 0) {
+                            FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
+                                               record);
+                            g_spell_cycle_error_reported = 1;
+                            return 0;
+                        }
+                    } else {
+                        for (index = 0; index < 10; ++index) {
+                            if (IsSpellUsableByMonster(target, record->spells_14d[index], 0) != 0) {
+                                return 1;
+                            }
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if (character->skills[0xc].level != 0) {
+            return 1;
+        }
+        for (index = 0; index < 0x72; ++index) {
+            if (character->spell_learned[index] == 1) {
+                break;
+            }
+        }
+        if (index > 0x71) {
+            return 0;
+        }
+        if (g_spell_records[spell_id].alchemy_spell != 0 && character->skills[0x1a].level != 0) {
+            return 0;
+        }
+        break;
+    case 0x30:
+    case 0x31:
+    case 0x4c:
+    case 0x50:
+    case 0x51:
+    case 0x5d:
+        if (gXStatus.fCombatMode == 0) {
+            return 1;
+        }
+        for (index = 0; index < 9; ++index) {
+            if (spell_id == g_combat_effect_slot_spells_00616db4[index]) {
+                if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+                    duration = g_combat_state->effect_slots[index].duration_0d;
+                } else {
+                    if (target->fInCombat == 0) {
+                        continue;
+                    }
+                    duration = target->pCombat->entries_3e[index].duration_0d;
+                }
+                if (duration != 0) {
+                    return 0;
+                }
+            }
+        }
+        return 1;
+    case 0x36:
+        if (enchantments[4].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x38:
+        if (enchantments[5].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x3d:
+        if (enchantments[6].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x41:
+        if (enchantments[7].value_08 != 0) {
+            return 0;
+        }
+        break;
+    case 0x45:
+        if (condition_turns[9] != 0) {
+            return 0;
+        }
+        break;
+    case 0x48:
+        if (gXStatus.fCombatMode == 0) {
+            return 0;
+        }
+        for (index = 0; index < 9; ++index) {
+            if (g_combat_effect_slot_spells_00616db4[index] != 0x31) {
+                if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+                    duration = g_combat_state->effect_slots[index].duration_0d;
+                } else {
+                    if (target->fInCombat == 0) {
+                        continue;
+                    }
+                    duration = target->pCombat->entries_3e[index].duration_0d;
+                }
+                if (duration != 0) {
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    case 0x4a:
+        if (condition_turns[0xb] == 0 && condition_turns[W8_CONDITION_HOSTILE] == 0) {
+            return 0;
+        }
+        break;
+    case 0x4d:
+        if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
+            return 0;
+        }
+        if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15 && record->kind_0cb != 0x1c &&
+            target->value_2da == 0) {
+            return 0;
+        }
+        break;
+    case 0x55:
+        if (condition_turns[6] == 0) {
+            return 1;
+        }
+    case 0x18:
+        if (condition_turns[0xb] != 0) {
+            return 0;
+        }
+        break;
+    case 0x59:
+        if (condition_turns[W8_CONDITION_HOSTILE] != 0) {
+            return 0;
+        }
+        break;
+    case 3:
+    case 8:
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x16:
+    case 0x17:
+    case 0x1e:
+    case 0x21:
+    case 0x26:
+    case 0x27:
+    case 0x29:
+    case 0x2d:
+    case 0x33:
+    case 0x3a:
+    case 0x3e:
+    case 0x40:
+    case 0x49:
+    case 0x4b:
+    case 0x52:
+    case 0x54:
+    case 0x58:
+    case 0x64:
+    case 0x66:
+    case 0x67:
+    case 0x68:
+    case 0x69:
+    case 0x6a:
+    case 0x6b:
+    case 0x6c:
+    case 0x6d:
+    case 0x6e:
+    case 0x6f:
+    case 0x70:
+    case 0x71:
+    case 0x72:
+    case 0x73:
+    case 0x74:
+    case 0x75:
+    case 0x76:
+    default:
+        FormatDebugMessage(0, "WARNING: MonsterSpellTargetOK - unlisted spell %d(%ls)", spell_id,
+                           g_spell_records[spell_id].display_name);
+        break;
+    }
+    return 1;
+}
+
+/* Whether the spell's area effect would catch a disposition-neutral monster;
+   a true return vetoes the cast, since the AI does not turn neutrals hostile
+   by accident. */
+// FUNCTION: WIZ8 0x005330E0
+unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell_id,
+                                          W8CombatSlot* combat_slot)
+{
+    W8GrowableVector<int> monster_markers;
+    W8GrowableVector<int> party_markers;
+    W8TargetSource source;
+    unsigned int index;
+    W8MonsterInfo* target;
+    unsigned int power_level;
+
+    if (MonsterCanAimSpell005474B0(spell_id) == 0) {
+        return 0;
+    }
+    SetTargetSourceToMonster(monster_info, &source);
+    power_level = ChooseMonsterSpellPowerLevel(monster_info,
+                                               (int)GetMonsterDataForInfo(monster_info), spell_id);
+    PopulateSpellTargetMarkers(spell_id, power_level, &source, combat_slot, &monster_markers,
+                               &party_markers, 0);
+    for (index = 0; index < (unsigned int)monster_markers.GetCount(); ++index) {
+        target = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x9de, MONSTER_AI_CPP, *monster_markers.GetAt(index), 1));
+        if (target->ubDisposition == DISP_NEUTRAL) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Which of the record's ten spells the monster casts: each usable slot adds
+   its weight from the fixed table, then a roll under the total walks them
+   down. The assertion names the original local, uiCastableSpellCnt. */
+// FUNCTION: WIZ8 0x00533260
+int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record)
+{
+    int weights[10] = {0};
+    int spell_ids[10];
+    unsigned int count = 0;
+    int total = 0;
+    int slot;
+    int roll;
+    unsigned int index;
+
+    for (slot = 0; slot < 10; ++slot) {
+        int spell_id = record->spells_14d[slot];
+        if (IsSpellUsableByMonster(monster_info, spell_id, 1) != 0) {
+            weights[count] = g_spell_cast_weights_0061cc14[slot];
+            spell_ids[count] = spell_id;
+            total += g_spell_cast_weights_0061cc14[slot];
+            ++count;
+        }
+    }
+    if (count == 0) {
+        srAssertFail("uiCastableSpellCnt > 0", MONSTER_AI_CPP, 0xa03, 0);
+    }
+    roll = Random(total);
+    index = 0;
+    while (index < count && roll >= weights[index]) {
+        roll -= weights[index];
+        ++index;
+    }
+    return spell_ids[index];
+}
+
+/* Fill `targets` with the combat slots `spell_id` may be cast at by this
+   monster. The monster's action fields carry the action being probed while
+   the reachability helpers run and are restored afterwards; spell 0x77 asks
+   for a place to flee to, everything else is a cast. */
+// FUNCTION: WIZ8 0x00533320
+void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
+                                W8GrowableVector<W8CombatSlot>* targets)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    int saved_detail = monster_info->action_detail;
+    int saved_kind = monster_info->action_kind;
+    int sight_kind;
+    int target_type;
+    W8CombatSlot slot;
+    W8MonsterGroup* monster_group;
+    W8MonsterInfo* member;
+    unsigned int index;
+
+    if (spell_id == W8_AI_SPELL_PLACE) {
+        sight_kind = 3;
+        monster_info->action_kind = W8_MONSTER_ACTION_FLEE;
+    } else {
+        sight_kind = 5;
+        monster_info->action_kind = W8_MONSTER_ACTION_SPELL;
+        monster_info->action_detail = spell_id;
+    }
+    target_type = GetSpellTargetType(spell_id, 0);
+    switch (target_type) {
+    case 0:
+        ResetCombatSlot(&slot);
+        slot.iMonsterID = monster_info->location_id;
+        slot.iType = W8_TARGET_KIND_MONSTER;
+        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0) {
+            break;
+        }
+        targets->Add(slot);
+        break;
+    case 1:
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            member = MonsterGetScriptPartByLocationIndex(index);
+            if (member->flag_14 != 0 && member->hp_current != 0 &&
+                (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
+                MonsterHostility00546F80(monster_info, member) == 2 &&
+                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                ResetCombatSlot(&slot);
+                slot.iType = W8_TARGET_KIND_MONSTER;
+                slot.iMonsterID = member->location_id;
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                    targets->Add(slot);
+                }
+            }
+        }
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
+            0) {
+            for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+                if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                    g_status_685170.buffers.characters[index].hp_current != 0 &&
+                    g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                    MonsterVsCharDisposition(index, monster_info) == 2 &&
+                    MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                    ResetCombatSlot(&slot);
+                    slot.iType = W8_TARGET_KIND_CHARACTER;
+                    slot.iChar = index;
+                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                        targets->Add(slot);
+                    }
+                }
+            }
+        }
+        break;
+    case 3:
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            member = MonsterGetScriptPartByLocationIndex(index);
+            if (member != monster_info && member->flag_14 != 0 && member->hp_current != 0 &&
+                (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
+                MonsterHostility00546F80(monster_info, member) == 1 &&
+                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                ResetCombatSlot(&slot);
+                slot.iType = W8_TARGET_KIND_MONSTER;
+                slot.iMonsterID = member->location_id;
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                    targets->Add(slot);
+                }
+            }
+        }
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
+            0) {
+            for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+                if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                    g_status_685170.buffers.characters[index].hp_current != 0 &&
+                    g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                    MonsterVsCharDisposition(index, monster_info) == 1 &&
+                    MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                    ResetCombatSlot(&slot);
+                    slot.iType = W8_TARGET_KIND_CHARACTER;
+                    slot.iChar = index;
+                    if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                        targets->Add(slot);
+                    }
+                }
+            }
+        }
+        break;
+    case 4:
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+            monster_group = GetMonsterGroupByListIndex(index);
+            if (monster_group->group_id != monster_info->monster_group_id &&
+                monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
+                MonsterGroupAllMembersDying00511850(monster_group) == 0 &&
+                MonsterGroupHalfSpellTargetsValid(monster_info, spell_id, monster_group) != 0) {
+                ResetCombatSlot(&slot);
+                slot.iType = W8_TARGET_KIND_GROUP;
+                slot.iGroupID = monster_group->group_id;
+                if (Function519F80(monster_info, record, 0, &slot) != 0) {
+                    targets->Add(slot);
+                }
+            }
+        }
+        if (PartyHalfSpellTargetsValid(monster_info, spell_id) == 0) {
+            break;
+        }
+        ResetCombatSlot(&slot);
+        slot.iType = W8_TARGET_KIND_PARTY;
+        if (Function519F80(monster_info, record, 0, &slot) == 0) {
+            break;
+        }
+        targets->Add(slot);
+        break;
+    case 5:
+    case 6:
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            member = MonsterGetScriptPartByLocationIndex(index);
+            if (member != monster_info && member->flag_14 != 0 && member->hp_current != 0 &&
+                (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
+                MonsterHostility00546F80(monster_info, member) == 1 &&
+                MonsterAttackReachesMonster(monster_info, record, 0, member) != 0) {
+                ResetCombatSlot(&slot);
+                slot.iType = W8_TARGET_KIND_MONSTER;
+                slot.iMonsterID = member->location_id;
+                ResolveTargetPoint(&slot, target_type == 6);
+                slot.iType = W8_TARGET_KIND_PLACE;
+                if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
+                    SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
+                    targets->Add(slot);
+                }
+            }
+        }
+        if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
+            0) {
+            ResetCombatSlot(&slot);
+            slot.iType = W8_TARGET_KIND_PARTY;
+            ResolveTargetPoint(&slot, target_type == 6);
+            slot.iType = W8_TARGET_KIND_PLACE;
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
+                SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
+                for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+                    if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                        g_status_685170.buffers.characters[index].hp_current != 0 &&
+                        g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                        MonsterVsCharDisposition(index, monster_info) == 1 &&
+                        MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
+                        targets->Add(slot);
+                    }
+                }
+            }
+        }
+        break;
+    case 7:
+        ResetCombatSlot(&slot);
+        slot.iType = W8_TARGET_KIND_FIVE;
+        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0 ||
+            SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) != 0) {
+            break;
+        }
+        targets->Add(slot);
+        break;
+    case 8:
+        ResetCombatSlot(&slot);
+        slot.point = monster_info->monster->GetPosition();
+        targets->Add(slot);
+        break;
+    default:
+        ResetCombatSlot(&slot);
+        if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0) {
+            break;
+        }
+        targets->Add(slot);
+        break;
+    }
+    monster_info->action_kind = saved_kind;
+    monster_info->action_detail = saved_detail;
+}
+
 /* Whether a monster can aim the spell it wants to cast. The two area target
    types aim at the world; anything else either needs no aim at all or has to
    pass the slot check. */
@@ -1268,6 +2040,283 @@ unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
     }
     if (g_spell_records[spell_id].needs_aim_13f != 0) {
         return ResolveTargetPoint(&monster_info->Target, 0);
+    }
+    return 1;
+}
+
+/* The in-combat sweep: refreshes what each monster can see, then drops combat
+   for groups that have nothing left to fight. A neutral group stays only
+   while a reinforcement is near; a hostile group leaves when no live member
+   has a visible enemy, and - when the leader cannot reach - when the nearest
+   member sits outside the leader's reach with nothing the group can engage.
+   Once no group still has a member fighting, every group leaves at once. */
+// FUNCTION: WIZ8 0x00534300
+void CheckMonsterGroupsLeaveCombat(void)
+{
+    W8MonsterGroup* group;
+    W8MonsterInfo* member;
+    W8MonsterInfo* leader;
+    W8MonsterInfo* other;
+    unsigned int group_index;
+    unsigned int index;
+    unsigned int member_index;
+    int engaged = 0;
+    int sight;
+    float nearest;
+    float reach;
+    float minimum;
+
+    RefreshOutwardSightForAllMonsters();
+    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
+         ++group_index) {
+        group = GetMonsterGroupByListIndex(group_index);
+        if (group->flag_28 == 0 || group->fInCombat == 0 ||
+            MonsterGroupAllMembersDying00511850(group) != 0) {
+            continue;
+        }
+        if (group->ubDisposition == DISP_NEUTRAL) {
+            if (MonsterGroupHasReinforcement(group) == 0) {
+                MonsterGroupLeaveCombat(group);
+            }
+            continue;
+        }
+        if (group == 0) {
+            srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 0xc06, 0);
+        }
+        for (index = 0; index < ILLength(group->monsters); ++index) {
+            member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
+            if (member->flag_14 == 0 || member->hp_current == 0 ||
+                (unsigned int)member->highest_condition >= 0x12 ||
+                MonsterHasNoVisibleEnemy(member, 0) != 0) {
+                continue;
+            }
+            if (group->ubDisposition != DISP_HOSTILE) {
+                break;
+            }
+            leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->value_9f, 1);
+            if (GetMonsterGroupFlagC8(group->group_id) != 0 && leader != 0 &&
+                leader->flag_14 != 0) {
+                nearest = GetGroupNearestDistance(group, 999999.0f);
+                reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
+                        GetMonsterRecordScaledFloat1BA(leader) * g_float_005ebc64;
+                minimum = GetRangeConstant5EC360() + g_float_005ee77c;
+                if (reach <= minimum) {
+                    reach = minimum;
+                }
+                if (reach < nearest && MonsterGroupCanEngage(group) == 0) {
+                    MonsterGroupLeaveCombat(group);
+                    break;
+                }
+            }
+            if (group == 0) {
+                srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 0xc06, 0);
+            }
+            for (member_index = 0; member_index < ILLength(group->monsters); ++member_index) {
+                other = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                    0xc0b, MONSTER_AI_CPP, IListGetAt(group->monsters, member_index), 1));
+                if (other->flag_14 != 0 && other->hp_current != 0 &&
+                    (unsigned int)other->highest_condition < 0x12 &&
+                    MonsterHasNoVisibleEnemy(other, 1) == 0) {
+                    ++engaged;
+                    break;
+                }
+            }
+            break;
+        }
+        if (index >= ILLength(group->monsters)) {
+            MonsterGroupLeaveCombat(group);
+        }
+    }
+    if (engaged != 0) {
+        return;
+    }
+    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
+         ++group_index) {
+        group = GetMonsterGroupByListIndex(group_index);
+        if (group->flag_28 != 0 && group->fInCombat != 0 &&
+            MonsterGroupAllMembersDying00511850(group) == 0) {
+            MonsterGroupLeaveCombat(group);
+        }
+    }
+}
+
+/* Whether the monster sees no living enemy. A raised party-threat flag
+   answers at once; a visible hostile party member counts, and `party_only`
+   zero also scans the monsters it is hostile to that it can see. */
+// FUNCTION: WIZ8 0x00534690
+unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
+{
+    unsigned int index;
+    W8MonsterInfo* other;
+    W8VisibilityRecord* record;
+
+    if (monster_info->party_threat.state_04 != 0) {
+        return 0;
+    }
+    if (monster_info->player_visibility.state_04 != 0) {
+        for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                g_status_685170.buffers.characters[index].hp_current > 0 &&
+                g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                MonsterVsCharDisposition(index, monster_info) == 1) {
+                return 0;
+            }
+        }
+    }
+    if (party_only == 0) {
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            other = MonsterGetScriptPartByLocationIndex(index);
+            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+                (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0 &&
+                MonsterHostility00546F80(monster_info, other) == 1 &&
+                (record = FindMonToMonVisibility(monster_info, other)) != 0 &&
+                record->state_04 != 0) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+/* Whether any live member of the group has a visible target; the arguments
+   forward to MonsterHasVisibleTarget. */
+// FUNCTION: WIZ8 0x005347A0
+unsigned char MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+                                           int hostility, int within_reach)
+{
+    unsigned int index;
+    W8MonsterInfo* member;
+
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 0xc7f, 0);
+    }
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
+        member = GetGroupMemberInfo(monster_group, index);
+        if (member->flag_14 != 0 && member->hp_current > 0 &&
+            (unsigned int)member->highest_condition < 0x12 &&
+            MonsterHasVisibleTarget(member, party_only, hostility, within_reach) != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Whether the monster has a living target it can see. `party_only` skips the
+   monster scan, `hostility` selects the class - three accepts anything and
+   four anything non-neutral - and `within_reach` also requires the target
+   inside the engagement range computed from the monster's best attack. */
+// FUNCTION: WIZ8 0x00534850
+unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
+                                      int within_reach)
+{
+    float reach;
+    int sight;
+    unsigned int index;
+    W8MonsterInfo* other;
+    W8VisibilityRecord* record;
+    char disposition;
+
+    if (within_reach != 0) {
+        reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, 1, &sight)) +
+                GetMonsterRecordScaledFloat1BA(monster_info) * g_float_005ebc64;
+        if (reach <= GetRangeConstant5EC360() + g_float_005ee77c) {
+            reach = GetRangeConstant5EC360() + g_float_005ee77c;
+        }
+    }
+    if (monster_info->player_visibility.state_04 == 1 &&
+        monster_info->player_visibility.sight_flags_05[2] != 0 &&
+        (within_reach == 0 || monster_info->monster->GetDistanceToPlayer004C7CB0() <= reach)) {
+        for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                g_status_685170.buffers.characters[index].hp_current > 0 &&
+                g_status_685170.buffers.characters[index].highest_condition < 0x12) {
+                disposition = MonsterVsCharDisposition(index, monster_info);
+                if (hostility == 3) {
+                    return 1;
+                }
+                if (disposition == hostility) {
+                    return 1;
+                }
+                if (hostility == 4 && disposition != 0) {
+                    return 1;
+                }
+            }
+        }
+    }
+    if (party_only == 0) {
+        for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+            other = MonsterGetScriptPartByLocationIndex(index);
+            if (other != monster_info && other->flag_14 != 0 && other->hp_current != 0 &&
+                (unsigned int)other->highest_condition < 0x12 && other->fInCombat != 0) {
+                disposition = MonsterHostility00546F80(monster_info, other);
+                if (hostility == 3 || disposition == hostility ||
+                    (hostility == 4 && disposition != 0)) {
+                    record = FindMonToMonVisibility(monster_info, other);
+                    if (record != 0 && record->state_04 == 1 && record->sight_flags_05[2] != 0) {
+                        if (within_reach == 0 ||
+                            monster_info->monster->GetDistanceToMonster004C7DD0(other->monster) <=
+                                reach) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/* Whether the monster can flee at all: it has a flee chance, an AI kind row,
+   the special-attack cycle the flee uses, enough of its stat left, and - for
+   the ordinary kinds - somewhere to run. The singled-out AI kind flees at the
+   party instead and may not be offered as a special action. */
+// FUNCTION: WIZ8 0x00534A40
+unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                             char exclude_special)
+{
+    W8GrowableVector<W8CombatSlot> targets;
+
+    if (record->flee_chance_0e1 == 0) {
+        return 0;
+    }
+    if (record->ai_kind == 0) {
+        return 0;
+    }
+    if (MonsterIsCycleSupported(monster_info->monster, 0x12) == 0) {
+        if (g_special_attack_cycle_error_reported == 0) {
+            FormatDebugMessage(0, "ERROR: %ls is missing a SPECIAL ATTACK animation cycle", record);
+            g_special_attack_cycle_error_reported = 1;
+        }
+        return 0;
+    }
+    if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_13d[9] != 0) {
+        return 0;
+    }
+    if ((unsigned int)monster_info->runtime_stat_current_33 <
+        (unsigned int)monster_info->runtime_stat_max_2f / 10) {
+        return 0;
+    }
+    if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+        MonsterAIKindHonorsCastingBlock(record->ai_kind) != 0) {
+        return 0;
+    }
+    if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
+        if (CalcRangeDistance(W8_RANGE_LONG) <
+            monster_info->monster->GetDistanceToPlayer004C7CB0()) {
+            return 0;
+        }
+        if (monster_info->ubDisposition == DISP_FRIENDLY) {
+            return 0;
+        }
+        if (exclude_special != 0) {
+            return 0;
+        }
+    } else {
+        CollectMonsterSpellTargets(monster_info, W8_AI_SPELL_PLACE, &targets);
+        if (targets.GetCount() == 0) {
+            return 0;
+        }
     }
     return 1;
 }
@@ -1327,7 +2376,7 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
     default:
         return 0;
     }
-    return Function5353E0(monster_info, spell_id, &monster_info->Target) != 0;
+    return MonsterSpellHasPartyTarget(monster_info, spell_id, &monster_info->Target) != 0;
 }
 
 /* How near the nearest member of a group has come. */
@@ -1387,6 +2436,116 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
     return in_range;
 }
 
+/* Whether at least half of the group's live in-combat members the caster is
+   hostile to accept the spell; the probe is the same MonsterSpellTargetOK
+   the cast itself would face. */
+// FUNCTION: WIZ8 0x00534DD0
+unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
+                                                W8MonsterGroup* target_group)
+{
+    unsigned int valid = 0;
+    int eligible = 0;
+    unsigned int index;
+    W8MonsterInfo* member;
+    W8CombatSlot slot;
+
+    if (target_group == 0) {
+        srAssertFail("pTargetMonsterGroup", MONSTER_AI_CPP, 0xdc4, 0);
+    }
+    for (index = 0; index < ILLength(target_group->monsters); ++index) {
+        int location_id = IListGetAt(target_group->monsters, index);
+        member = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0xdc9, MONSTER_AI_CPP, location_id, 1));
+        if (member->flag_14 != 0 && member->hp_current != 0 &&
+            (unsigned int)member->highest_condition < 0x12 && member->fInCombat != 0 &&
+            MonsterHostility00546F80(monster_info, member) == 1) {
+            ++eligible;
+            ResetCombatSlot(&slot);
+            slot.iType = W8_TARGET_KIND_MONSTER;
+            slot.iMonsterID = location_id;
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                ++valid;
+            }
+        }
+    }
+    return valid != 0 && ((eligible + 1U) >> 1) <= valid;
+}
+
+/* Whether at least half of the party members the caster is hostile to accept
+   the spell. */
+// FUNCTION: WIZ8 0x00534EF0
+unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id)
+{
+    unsigned int valid = 0;
+    int eligible = 0;
+    unsigned int index;
+    W8CombatSlot slot;
+
+    for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+        if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+            g_status_685170.buffers.characters[index].hp_current != 0 &&
+            g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+            MonsterVsCharDisposition(index, monster_info) == 1) {
+            ++eligible;
+            ResetCombatSlot(&slot);
+            slot.iType = W8_TARGET_KIND_CHARACTER;
+            slot.iChar = index;
+            if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0) {
+                ++valid;
+            }
+        }
+    }
+    return valid != 0 && ((eligible + 1U) >> 1) <= valid;
+}
+
+/* Whether a live hostile monster already fighting stands nearer to one of
+   the group's members than to the party: such a reinforcement keeps a
+   neutral group out of the leave sweep and brings it into combat. The group
+   only counts members already flagged or whose record cannot idle, and only
+   while an encounter list exists. */
+// FUNCTION: WIZ8 0x00534FC0
+unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    unsigned int other_index;
+    W8MonsterInfo* member;
+    W8MonsterInfo* other;
+    float member_distance;
+    float other_distance;
+    float monster_distance;
+
+    if (gXStatus.plsMonsterGroupEncounterList == 0) {
+        return 0;
+    }
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
+        member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0xe1d, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
+        if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->unknown_249 != 0) ||
+            member->party_threat.unknown_05[1] == 0) {
+            continue;
+        }
+        member_distance = member->monster->GetDistanceToPlayer004C7CB0();
+        if (member_distance > GetRangeConstant5EC360()) {
+            continue;
+        }
+        for (other_index = 0; other_index < ILLength((W8IList*)gXStatus.plsMonsterList);
+             ++other_index) {
+            other = MonsterGetScriptPartByLocationIndex(other_index);
+            if (other != member && other->party_threat.unknown_05[1] != 0 && other->flag_14 != 0 &&
+                other->fInCombat != 0 && other->hp_current != 0 &&
+                other->ubDisposition == DISP_HOSTILE) {
+                other_distance = other->monster->GetDistanceToPlayer004C7CB0();
+                monster_distance = member->monster->GetDistanceToMonster004C7DD0(other->monster);
+                if (monster_distance + member_distance < other_distance * g_float_005ee780 &&
+                    (member_distance < other_distance || monster_distance < other_distance)) {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 /* Member info by group list position: entry id at the index, resolved through
    the location index to the script part. Assert lines 3199/3204 pin it late
    in the original file. */
@@ -1398,3 +2557,183 @@ static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned 
     return MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(3204, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
 }
+
+/* Recompute each unled hostile group's engagement byte once the combat state
+   has settled: a member still finding its feet (value_14c under three) in the
+   group or an allied group drops it, and past that the group's own counter
+   decides. */
+// FUNCTION: WIZ8 0x00535200
+void UpdateMonsterGroupEngagement(void)
+{
+    W8MonsterGroup* group;
+    W8MonsterGroup* allied;
+    W8MonsterInfo* member;
+    unsigned int group_index;
+    unsigned int index;
+    int allied_index;
+    int member_starting;
+
+    if (g_combat_state->combat_update_count <= 2) {
+        return;
+    }
+    for (group_index = 0; group_index < ILLength((W8IList*)gXStatus.plsMonsterGroupList);
+         ++group_index) {
+        group = GetMonsterGroupByListIndex(group_index);
+        if (group->flag_28 == 0 || group->fInCombat == 0 || group->ubDisposition != DISP_HOSTILE ||
+            group->leader_group_id != 0) {
+            continue;
+        }
+        member_starting = 0;
+        for (index = 0; index < ILLength(group->monsters); ++index) {
+            member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0xee7, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
+            if (member->flag_14 != 0 && member->fInCombat != 0 &&
+                (unsigned int)member->pCombat->value_14c < 3) {
+                member_starting = 1;
+                break;
+            }
+        }
+        for (allied_index = 0; member_starting == 0 && allied_index < 4; ++allied_index) {
+            if (group->allied_group_ids[allied_index] != 0) {
+                allied = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                    0xed1, MONSTER_AI_CPP, group->allied_group_ids[allied_index], 1));
+                for (index = 0; index < ILLength(allied->monsters); ++index) {
+                    member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                        0xee7, MONSTER_AI_CPP, IListGetAt(allied->monsters, index), 1));
+                    if (member->flag_14 != 0 && member->fInCombat != 0 &&
+                        (unsigned int)member->pCombat->value_14c < 3) {
+                        member_starting = 1;
+                        break;
+                    }
+                }
+            }
+        }
+        SetMonsterGroupEngagementState(group->group_id,
+                                       member_starting == 0 ? group->unknown_c8[1] < 3 : 0);
+    }
+}
+
+/* Whether the spell's markers catch at least one party member when cast at
+   `slot`. */
+// FUNCTION: WIZ8 0x005353E0
+unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
+                                         W8CombatSlot* slot)
+{
+    W8GrowableVector<int> monster_markers;
+    W8GrowableVector<int> party_markers;
+    W8TargetSource source;
+    unsigned int power_level;
+
+    SetTargetSourceToMonster(monster_info, &source);
+    power_level = ChooseMonsterSpellPowerLevel(monster_info,
+                                               (int)GetMonsterDataForInfo(monster_info), spell_id);
+    PopulateSpellTargetMarkers(spell_id, power_level, &source, slot, &monster_markers,
+                               &party_markers, 0);
+    return party_markers.GetCount() > 0;
+}
+
+/* The out-of-combat sweep: refreshes sight, alerts the faction groups of
+   every group already fighting, then enters combat for the groups that
+   should - promoting a neutral group's disposition when its record says the
+   encounter turns it hostile. */
+// FUNCTION: WIZ8 0x005354E0
+void CheckMonsterGroupsEnterCombat(void)
+{
+    W8MonsterGroup* group;
+    W8MonsterRecord* record;
+    unsigned int index;
+
+    RefreshAllSight();
+    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex(index);
+        if (group->fInCombat != 0 && group->ubDisposition == DISP_HOSTILE) {
+            AlertSameFactionGroups(group);
+        }
+    }
+    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex(index);
+        if (group->fInCombat == 0) {
+            if (ShouldMonsterGroupEnterCombat(group) != 0) {
+                MonsterGroupEnterCombat(group);
+                if (group->ubDisposition == DISP_NEUTRAL) {
+                    record = GetMonsterGroupRecord(group);
+                    if ((record->flags_0d0 & 1) == 0 && record->faction_id_25f == 0 &&
+                        record->hostility_range_25b != 0 && record->hostility_range_25b != -1) {
+                        SetMonsterGroupDisposition(group, 1, 0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Whether a group outside combat should join it. Neutral groups need a
+   reinforcement; hostile ones need a member with a visible non-neutral
+   target inside the leader's reach, the leader itself close enough to walk
+   to the party, or a rendered member already near the party. */
+// FUNCTION: WIZ8 0x005355D0
+unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
+{
+    W8MonsterInfo* leader;
+    W8MonsterInfo* member;
+    unsigned int index;
+    int sight;
+    float reach;
+    float minimum;
+    float path_distance;
+    srVector3T<float> party;
+
+    if (MonsterGroupAllMembersDying00511850(monster_group) != 0 || monster_group->flag_28 == 0) {
+        return 0;
+    }
+    if (monster_group->value_9f == -0x32323233 ||
+        (leader = MonsterInfoFromID(0xf53, MONSTER_AI_CPP, monster_group->value_9f, 1)) == 0 ||
+        leader->monster == 0) {
+        FormatDebugMessage(1, "ERROR: Group %d is without an active leader",
+                           monster_group->group_id);
+        return 0;
+    }
+    if (gXStatus.fCombatMode == 0) {
+        return 0;
+    }
+    if (monster_group->ubDisposition == DISP_NEUTRAL) {
+        if (MonsterGroupHasReinforcement(monster_group) != 0) {
+            return 1;
+        }
+    } else {
+        for (index = 0; index < ILLength(monster_group->monsters); ++index) {
+            member = GetGroupMemberInfo(monster_group, index);
+            if (member->flag_14 != 0 && member->hp_current != 0 &&
+                (unsigned int)member->highest_condition < 0x12 &&
+                MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
+                reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
+                        GetMonsterRecordScaledFloat1BA(leader) * g_float_005ebc64;
+                minimum = GetRangeConstant5EC360() + g_float_005ee77c;
+                if (reach <= minimum) {
+                    reach = minimum;
+                }
+                party = g_startup_world_659c0c->GetPosition();
+                if ((leader->monster->movement_0c0.position_040 - party).Length() <= reach &&
+                    leader->monster->FindNavigatorPathDistance(750.0f, &path_distance) &&
+                    path_distance <= reach) {
+                    return 1;
+                }
+                break;
+            }
+        }
+        if (monster_group->ubDisposition == DISP_HOSTILE &&
+            MonsterGroupHasRenderableMember(monster_group, 1) != 0) {
+            if (GetGroupNearestDistance(monster_group, 999999.0f) <=
+                CalcRangeDistance(W8_RANGE_EXTREME)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// TEMPLATE: WIZ8 0x005358D0
+// W8GrowableVector<W8CombatSlot>::~W8GrowableVector<W8CombatSlot>
+
+// SYNTHETIC: WIZ8 0x005358F0
+// W8GrowableVector<W8CombatSlot>::`scalar deleting destructor'

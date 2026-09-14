@@ -83,6 +83,14 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 /* The group's flag at 0xc8, looked up by group id. */
 unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
+/* Whether the group has a member placed and rendered in the world; a nonzero
+   second argument also demands the member's party-threat flag. */
+unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
+                                              char require_threat); /* 0x00511B40 */
+/* Write `state` into the group's engagement byte and propagate it to its four
+   allied groups; while the byte is set, each call ticks the counter beside
+   it. The record kinds the special encounter ids carry ignore a set. */
+void SetMonsterGroupEngagementState(int group_id, unsigned char state); /* 0x00511BE0 */
 unsigned char MoveMonsterGroupToPosition(W8MonsterGroup* group, srVector3T<float>* position,
                                          float yaw, int a, int b, int c, int d); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the

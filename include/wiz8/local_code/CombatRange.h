@@ -37,7 +37,13 @@ unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
                                               W8RangeCategory range_category); /* 0x00519BE0 */
 unsigned char Function519F80(W8MonsterInfo* monster_info, W8MonsterRecord* record, int arg_3,
                              W8CombatSlot* combat_slot);
+/* The furthest range band the monster can act at: its attacks first, then its
+   castable spells when the AI kind reaches for them. `out_sight` receives the
+   sight-condition slot the band's target needs to be seen under. */
+W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info, char arg_2,
+                                            int* out_sight); /* 0x0051A840 */
 unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
                                    int arg_4); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind);
 float GetRangeConstant5EC35C(void);
+float GetRangeConstant5EC360(void); /* 0x0051B300 */

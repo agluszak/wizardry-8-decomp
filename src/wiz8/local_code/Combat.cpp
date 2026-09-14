@@ -545,7 +545,7 @@ void EndCombat004EA310(int mode)
     RestoreCombatFormation();
     ReconcilePartyEquipmentAfterCombat0053CD60();
     gXStatus.fCombatMode = 0;
-    if (g_combat_state->unknown_a55[0xc] != 0) {
+    if (g_combat_state->unknown_a60[1] != 0) {
         Function517780();
     }
     Function5A3470();

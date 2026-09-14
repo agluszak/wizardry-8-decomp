@@ -1,6 +1,7 @@
 #pragma once
 
 struct W8MonsterInfo;
+struct W8MonsterGroup;
 struct W8TargetSource;
 template <class T> class W8GrowableVector;
 
@@ -14,3 +15,6 @@ void CollectHostileMonsters00547120(W8TargetSource* source,
                                     W8GrowableVector<int>* monsters); /* 0x00547120 */
 unsigned char MonsterIsHostileTo(int party_slot, W8MonsterInfo* monster_info);
 char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
+/* Give every other same-faction group that can see this one its disposition -
+   one group going hostile brings the rest of its faction with it. */
+void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */
