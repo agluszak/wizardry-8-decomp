@@ -46,12 +46,21 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 - Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored circa-2000
   C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub or approximate retail behavior.
+- Compiler-owned storage reuse is not source evidence. Never alias a parameter/local or add overlapping
+  source variables merely to reproduce stack-slot, register, spill or temporary reuse. Introduce the
+  logical source variables even when that lowers comparison score.
+- Search for the authored abstraction before spelling out a lowered sequence. Existing container/math/
+  traversal helpers should be used when their semantics fit; repeated equivalent sequences across
+  independently owned TUs trigger an inline/helper investigation rather than copy-pasted lowering.
 - Establish behavior, then name it. `FunctionXXXXXX`, `FUN_...` and `unknown_...` are placeholders,
   not identities. Rename the definition, declaration, callers and ownership/provenance references in
   the same coherent change. When original spelling is unknown, use a behavior-descriptive name.
 - Preserve ordinary counted `for` loops instead of reproducing guarded `do`/`while` lowering. Do not
   add redundant counters, artificial scopes, duplicate cleanup, return temporaries or rearranged
   expressions merely to change registers, CFG or comparison score.
+- Preserve retail bugs/UB when evidence establishes them. Do not initialize, clamp, guard or otherwise
+  normalize recovered code merely to make the recomp safer or deterministic. An explicitly requested
+  compatibility deviation must be isolated and documented, never disguised as the recovered body.
 - A vtable, lifecycle body, deleting destructor, address or template emission alone does not prove an
   authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors are
   marker-only `SYNTHETIC`, never handwritten bodies or hidden-flags helpers.
@@ -64,6 +73,12 @@ printing and put large disposable output under `build/`. Detailed operational re
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require same-line `reinterpret-ok: <reason>`; a marker never justifies
   hiding known type disagreement.
+- New C-style casts in recovered C++ are gated. Prefer the evidence-backed typed model or the specific
+  C++ cast that states the proven conversion; a genuinely unavoidable historical C/ABI spelling needs
+  same-line `c-style-cast-ok: <reason>`.
+- `clang-format off` is not a matching technique. A new suppression needs same-line
+  `format-off-ok: <reason>` and must cover the smallest construct the formatter genuinely cannot
+  preserve; never disable formatting for a whole recovered function just to keep decompiler shape.
 - SGP's released source spells textual filenames and format strings as `UINT8*` (`LoadButtonImage`
   and related APIs); preserve those declarations as historical ABI/API spelling rather than
   pretending `STR8`/`char*` was original. Wizardry text declarations use `char*`/`wchar_t*`;
@@ -76,6 +91,10 @@ Complete the requested coherent task. Do not turn focused recovery into reposito
 because a pattern exists elsewhere. Expand only when a shared owner/ABI/layout requires it, the source
 model would otherwise become inconsistent, or the task explicitly requests an audit. Keep exploratory
 scripts disposable.
+
+Do not incidentally edit `src/sgp` while recovering Wizardry/SurRender code. An SGP source change needs
+its own accepted-source/retail evidence and required modification notice; a generated-code mismatch by
+itself is not evidence that the released SGP source changed.
 
 Stop when the requested bodies, ABI bundle or behavior meet acceptance criteria. Exact/effective bodies
 need no independent rediscovery. If no evidence-backed correction remains, retain faithful source and
@@ -95,6 +114,11 @@ not each textual edit, and reuse a successful result until a relevant input chan
 - runtime behavior: relevant existing scenario and the requested observable result;
 - Python/tooling: focused tests/lint/type checks appropriate to the changed owner;
 - prose/skill-only changes: inspect the diff.
+
+For a substantial recovery batch, focused compares run during development are not the final audit. After
+the last source edit run `uv run wiz8 compare --changed` and account for every new or materially changed
+`FUNCTION`: exact/effective, an explained compiler-lowering mismatch, or explicitly inconclusive with
+retail CFG/call/branch review.
 
 `uv run wiz8 check` is the fast repository lane; `uv run wiz8 lint` is the clang-cl/tidy lane. Do not
 dismiss a gating failure as baseline/pre-existing. If one environment alone reports a diagnostic, fix

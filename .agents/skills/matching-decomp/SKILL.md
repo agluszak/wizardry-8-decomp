@@ -26,18 +26,51 @@ source use [source oracles](references/source-oracles.md). Read only the referen
    oracles before recovering anything new. Reuse reviewed evidence unless missing, stale or contradictory.
 2. Consult `uv run wiz8 report context ADDRESS...` when TU/source/provenance context helps. Uncertain
    placement blocks insertion, not investigation.
-3. Inspect only unanswered retail facts. Use the Ghidra-analysis skill rather than rediscovering or
+3. Before writing a nontrivial body, do the source-model audit below: establish parameter contracts,
+   search for existing abstractions/inlined helpers, and settle touched ownership/lifetime/type facts.
+4. Inspect only unanswered retail facts. Use the Ghidra-analysis skill rather than rediscovering or
    wrapping native APIs.
-4. Correct established analysis facts before relying on them. For type/layout changes follow
+5. Correct established analysis facts before relying on them. For type/layout changes follow
    type-modeling and update the canonical declarations/consumers as one coherent batch.
-5. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
+6. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
    spelling merely to manipulate registers/CFG/score.
-6. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
-7. If final linkage obscures the question, select the appropriate object/data/vtable modality from the
+7. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
+8. If final linkage obscures the question, select the appropriate object/data/vtable modality from the
    comparison reference. Stop when no evidence-backed source correction remains.
 
 `uv run wiz8 recover function ADDRESS...` is an optional candidate generator. It writes disposable
 artifacts; it does not edit source, build or compare and is never a prerequisite.
+
+## Before writing source
+
+For a substantial body, reconstruct the source contract before transcribing control flow:
+
+- **Parameters:** inspect representative callers and the callee's uses. Record which arguments are
+  inputs, outputs, in/out values, flags and optional pointers. Do not overwrite an input before its
+  first semantic use merely because VC6 reused its stack slot later.
+- **Compiler storage:** stack-slot/register/spill/temporary reuse belongs to VC6 lowering. Never alias a
+  parameter or local to reproduce it; use the logical source variables even if the score gets worse.
+- **Abstractions:** search existing source and accepted oracles for matching container methods, math
+  operations, traversals, conversions and lifecycle helpers. A repeated nontrivial sequence in
+  independently proven TUs is a reason to investigate a header/inline helper, not to duplicate it.
+- **Inlining:** an inlined instruction sequence does not authorize manual inlining. Recover the likely
+  helper/source abstraction first, then let the compiler decide where to inline it.
+- **Types and raw offsets:** if a touched repository-owned object already has a canonical owner, model
+  the field/subobject there instead of adding byte-pointer arithmetic or an overlay cast. Leave raw
+  storage only when the fact genuinely remains unresolved and say why.
+- **Lifetime:** for code that allocates, adopts, inserts, removes, completes, destroys or releases
+  pointers, inspect sibling operations as a family. Trace allocation -> ownership transfer -> removal
+  -> destruction before deciding between `new/delete`, `malloc/free`, container ownership, or no free.
+- **Retail oddities:** preserve established bugs and UB. Do not add initialization, bounds checks,
+  clamping, guards or deterministic defaults unless retail/source evidence says they existed.
+
+Comments should record non-obvious evidence, intentional retail oddities and unresolved facts. Do not
+narrate obvious control flow. Re-read comments after renames/TU moves and delete stale provenance or
+claims that no longer agree mechanically with the body.
+
+Do not incidentally edit `src/sgp` during ordinary Wizardry/SurRender recovery. If the evidence points
+to an SGP source difference, treat that as an SGP/source-oracle task and preserve its modification
+notice requirements.
 
 ## Compare the recovered function
 
@@ -66,10 +99,16 @@ A large dispatcher/multi-branch body is accepted only when:
 - structural/identity/cast gates for the affected tree are green;
 - typed objects do not escape through unexplained byte-pointer arithmetic;
 - existing address identities agree on one name, normalized prototype and calling convention;
+- parameter contracts and ownership/lifetime transitions have been checked against callers/siblings;
 - comparison is meaningful, or inconclusive regions received explicit retail CFG/call/branch review.
 
 Inconclusive matching evidence never excuses a wrong branch, field read, assertion path, call target or
 side effect. Small straightforward bodies do not need a ritual manual CFG pass.
+
+For a multi-function/batch recovery, focused compares done while coding are not enough. After the last
+source edit run `uv run wiz8 compare --changed` and account for every new or materially changed
+`FUNCTION`: exact/effective, explained compiler-lowering mismatch, or explicitly inconclusive with the
+retail review that justifies accepting it. Do not publish a batch with an unaccounted changed body.
 
 ## Markers and placement
 
