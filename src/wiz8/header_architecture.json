@@ -1,304 +1,90 @@
 {
-  "schema": "wiz8.header-architecture-v1",
-  "forbidden-includes": [
-    "include/wiz8/character.h",
-    "include/wiz8/combat_state.h",
-    "include/wiz8/magic.h",
-    "include/wiz8/render_state.h",
-    "include/wiz8/item_instance.h",
-    "include/wiz8/npc_state.h",
-    "include/wiz8/screen_state.h",
-    "include/wiz8/spell_effect.h"
-  ],
+  "schema": "wiz8.header-architecture-v2",
   "proven-original-headers": {
     "include/wiz8/engine_code/AnimRep.hpp": "Engine Code\\Include\\AnimRep.hpp",
     "include/wiz8/engine_code/Trigger.hpp": "Engine Code\\Include\\Trigger.hpp",
     "include/wiz8/engine_code/stHeap.hpp": "Engine Code\\Include\\stHeap.hpp",
     "include/wiz8/engine_code/stLight.hpp": "Engine Code\\Include\\stLight.hpp"
   },
-  "headers": {
-    "include/wiz8/character_skills.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/dialog_code/DialogScrollBar.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/dialog_code/DialogTextArea.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/dialog_code/DialogTextEntry.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/dialog_code/NotificationDialog.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/dialog_code/PortraitQuote.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/GameTimeAccumulator0043A910.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/IntervalGate.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/MonGen.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/MonsterLight.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/game_timer.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/stTextureAnim.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/engine_code/stTextureFile.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/fonts.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/learned_spells.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/local_code/party_encumbrance.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/local_screens/CreditsScreen.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/local_screens/JournalScreen.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/local_screens/PartySelectionScreen.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/mouth_gap.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/npc_items.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/npc_script_file.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/runtime_unrecovered.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/sound_man.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/sr_api.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/startup_world.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/surface2d.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/version.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/virtual_file_stream.h": {
-      "role": "provisional-interface"
-    },
-    "include/wiz8/cursor.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Video2.cpp",
-        "Local Screens\\Screens.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/GameData.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\GameData.cpp",
-        "Engine Code\\GDFileIO.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/OctBuildTree.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\OctBuildPreTree.cpp",
-        "Engine Code\\OctBuildTree.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/OctPath.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\OctPath.cpp",
-        "Engine Code\\OctPrePath.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/Octree.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Octree.cpp",
-        "Engine Code\\OctPreTree.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/Prop.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Prop.cpp",
-        "Local Screens\\MainGameScreen.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/SpellVisual.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Spells.cpp",
-        "Local Code\\Magic.cpp"
-      ]
-    },
-    "include/wiz8/engine_code/stLight.hpp": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\AnimObj.cpp",
-        "Local Code\\LoadSaveGame.cpp"
-      ]
-    },
-    "include/wiz8/environment_colour.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\PC Item.cpp",
-        "Local Screens\\AutomapScreen.cpp"
-      ]
-    },
-    "include/wiz8/float_constants.h": {
-      "role": "reconstructed-declarations"
-    },
-    "include/wiz8/geometry.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\GDFileIO.cpp",
-        "Local Code\\PC Item.cpp"
-      ]
-    },
-    "include/wiz8/ground_shadow.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\GrCycle.cpp"
-      ]
-    },
-    "include/wiz8/regions.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\RegionManager.cpp",
-        "Local Screens\\MGSPartyMovement.cpp",
-        "Local Screens\\MGSPortraits.cpp",
-        "Local Screens\\MGSSpellCasting.cpp",
-        "Local Screens\\MGSTextBox.cpp",
-        "Local Screens\\MGSUseItemSelect.cpp",
-        "Local Screens\\MainGameScreen.cpp",
-        "Local Screens\\RCSCommon.cpp"
-      ]
-    },
-    "include/wiz8/world_cursor.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Cursor3d.cpp",
-        "Engine Code\\stCube.cpp"
-      ]
-    },
-    "include/wiz8/xstatus.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\GameplayDatabase.cpp",
-        "Local Code\\MonsterManager.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/MGSKeyboard.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\InputMapper.cpp",
-        "Local Screens\\MGSKeyboard.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/CharacterScreen.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Screens\\CGSSpellsPage.cpp",
-        "Local Screens\\CGSStatsPage.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/MGSFormation.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Screens\\MGSFormation.cpp",
-        "Local Screens\\RCSCommon.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/MainGameScreen.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Screens\\MGSTextBox.cpp",
-        "Local Screens\\MainGameScreen.cpp",
-        "Local Screens\\Screens.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/ReviewCharacterScreen.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Screens\\RCSCommon.cpp",
-        "Local Screens\\ReviewCharacterScreen.cpp"
-      ]
-    },
-    "include/wiz8/local_screens/Screens.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Engine Code\\Bink.cpp",
-        "Engine Code\\Levels.cpp",
-        "Engine Code\\PathAI.CPP",
-        "Local Screens\\Screens.cpp"
-      ]
-    },
-    "include/wiz8/local_code/Controls.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/ControlsRect.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/Widget.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/TextBuffer.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/TextControl.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/RangeControl.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/local_code/ControlSelection.h": {
-      "role": "reconstructed-declarations",
-      "implementation-tus": [
-        "Local Code\\Controls.cpp"
-      ]
-    },
-    "include/wiz8/dialog_code/CharacterSummaryDialog.h": {
-      "role": "provisional-interface"
-    }
+  "allowed-multi-tu-headers": {
+    "include/wiz8/cursor.h": [
+      "Engine Code\\Video2.cpp",
+      "Local Screens\\Screens.cpp"
+    ],
+    "include/wiz8/engine_code/GameData.h": [
+      "Engine Code\\GDFileIO.cpp",
+      "Engine Code\\GameData.cpp"
+    ],
+    "include/wiz8/engine_code/OctBuildTree.h": [
+      "Engine Code\\OctBuildPreTree.cpp",
+      "Engine Code\\OctBuildTree.cpp"
+    ],
+    "include/wiz8/engine_code/OctPath.h": [
+      "Engine Code\\OctPath.cpp",
+      "Engine Code\\OctPrePath.cpp"
+    ],
+    "include/wiz8/engine_code/Octree.h": [
+      "Engine Code\\OctPreTree.cpp",
+      "Engine Code\\Octree.cpp"
+    ],
+    "include/wiz8/float_constants.h": [
+      "Engine Code\\3d.cpp",
+      "Engine Code\\AniMesh.cpp",
+      "Engine Code\\GDCamera.cpp",
+      "Engine Code\\GDFileIO.cpp",
+      "Engine Code\\GDProp.cpp",
+      "Engine Code\\GameData.cpp",
+      "Engine Code\\GrCycle.cpp",
+      "Engine Code\\Missile.cpp",
+      "Engine Code\\Monster.cpp",
+      "Engine Code\\Navigator.cpp",
+      "Engine Code\\OctPath.cpp",
+      "Engine Code\\OctPreTree.cpp",
+      "Engine Code\\Octree.cpp",
+      "Engine Code\\PathAI.CPP",
+      "Engine Code\\ReadLevel.cpp",
+      "Engine Code\\Video2.cpp",
+      "Engine Code\\quad.cpp",
+      "Engine Code\\stParticle.cpp",
+      "Local Code\\Combat Range.cpp",
+      "Local Code\\Combat.cpp",
+      "Local Code\\Controls.cpp",
+      "Local Code\\Health Stamina Mana.cpp",
+      "Local Code\\ItemManager.cpp",
+      "Local Code\\MonsterAI.cpp"
+    ],
+    "include/wiz8/local_screens/CharacterScreen.h": [
+      "Local Screens\\CGSSpellsPage.cpp",
+      "Local Screens\\CGSStatsPage.cpp"
+    ],
+    "include/wiz8/local_screens/MGSFormation.h": [
+      "Local Screens\\MGSFormation.cpp",
+      "Local Screens\\RCSCommon.cpp"
+    ],
+    "include/wiz8/local_screens/MGSKeyboard.h": [
+      "Local Code\\InputMapper.cpp",
+      "Local Screens\\MGSKeyboard.cpp"
+    ],
+    "include/wiz8/local_screens/MainGameScreen.h": [
+      "Local Screens\\MGSTextBox.cpp",
+      "Local Screens\\MainGameScreen.cpp",
+      "Local Screens\\Screens.cpp"
+    ],
+    "include/wiz8/local_screens/Screens.h": [
+      "Engine Code\\PathAI.CPP",
+      "Local Screens\\Screens.cpp"
+    ],
+    "include/wiz8/regions.h": [
+      "Local Code\\RegionManager.cpp",
+      "Local Screens\\MainGameScreen.cpp"
+    ],
+    "include/wiz8/world_cursor.h": [
+      "Engine Code\\Cursor3d.cpp",
+      "Engine Code\\stCube.cpp"
+    ],
+    "include/wiz8/xstatus.h": [
+      "Local Code\\GameplayDatabase.cpp",
+      "Local Code\\MonsterManager.cpp"
+    ]
   }
 }

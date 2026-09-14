@@ -56,53 +56,51 @@ TU ranges place out-of-line functions. They do not by themselves prove original 
 filenames. Only `AnimRep.hpp`, `Trigger.hpp`, `stHeap.hpp` and `stLight.hpp` occur as
 actual source paths in assertion evidence.
 
-Every recovered header resolves to an explicit role, enforced by `wiz8 check`:
+Every recovered header resolves to an inferred role, enforced by `wiz8 check`.
+Ownership comes entirely from the compiler-backed source index: its
+`header_declarations` projection names each entity a header declares by
+`semantic_id`, the merged declaration/variable records provide the defining
+file, and markers bind `semantic_id` to a retail address the assertion layout
+places. No textual C++ declaration parsing participates — `#include`
+directives are the only line-level fact the checker reads.
 
 - **shared-layout** (`include/wiz8/layouts/…`, plus leaf records such as
   `gameplay_modifiers.h`): packed records, enums and the globals that *are* that
-  storage. No behavioral API — no out-of-line or member function declarations,
-  no in-header definitions, and no includes of headers that declare
-  namespace-scope functions.
-- **tu-interface**: declarations whose implementations belong to one original TU.
-  This is the default: it is inferred from the compiler-backed source index
-  whenever every resolved declaration belongs to a single original unit, so
-  `header_architecture.json` does not list ordinary interfaces.
-- **reconstructed-declarations**: a header that genuinely serves several
-  original TUs — a deliberate declaration split (Controls `Widget.h` /
-  `TextBuffer.h`), a class whose methods are defined in two implementation
-  files, or a mixed globals surface such as `float_constants.h`.
-  `implementation-tus` names the allowed owners when the set is pinned.
-- **provisional-interface**: ownership genuinely unresolved because the
-  implementing source file is an `unresolved-fragment` entry in
-  `source_units.json` (`npc_items.h`, `character_skills.h`, the unmapped dialog
-  helpers, …). The role fails as soon as a declaration resolves to a known
-  original TU.
-- **header-implementation**: a header that emits code itself — template
-  implementations or inline members — such as the proven `stHeap.hpp`.
-- **compat-aggregate**: a temporary include-only migration façade. It may not
-  declare anything and nothing may include it.
+  storage. No behavioral API — no function declarations, no in-header
+  definitions, and no includes of headers that declare namespace-scope
+  functions.
+- **tu-interface**: declarations whose implementations belong to one original
+  TU. This is the default inference whenever every resolved declaration
+  belongs to a single original unit; nothing is configured for it.
+- **multi-tu**: declarations genuinely resolve to several original TUs — a
+  deliberate declaration split, a class whose methods are defined in two
+  implementation files, or a mixed globals surface such as
+  `float_constants.h`. Fails `wiz8 check` unless the resolved set is covered
+  by `allowed-multi-tu-headers`, which is the human decision being persisted.
+- **provisional-interface**: inferred when every resolved declaration is
+  implemented by an `unresolved-fragment` source file (`npc_items.h`,
+  `character_skills.h`, the unmapped dialog helpers, …). Report-only — the
+  checker derives it from `source_units.json` rather than persisting it, and
+  it disappears automatically as fragments are rehomed.
+- **header-implementation**: a header that emits code itself — inline members
+  or template implementations such as the proven `stHeap.hpp` and
+  `vector.h`. Template-instantiation member declarations belong to the
+  template body in the header.
 - **bridge**: `sgp_bridge.h`, the C linkage SGP C sources consume.
+- **unresolved**: declarations that resolve to no implementation and no retail
+  placement. Reported, never hidden behind a configured role.
 
-Member declarations are checked with qualified names (`Class::method`), and
-globals by their `extern` declarations. Declaration *enumeration* is textual;
-*ownership* comes from the compiler-backed source index — a definition records
-its defining TU, while a declaration never defined joins through the marker
-stream's `declaration_key` to a retail address the assertion layout places.
-Definitions the index saw inside a header (`static __inline` or template
-emissions recorded per using TU) count as header-implemented, not TU-owned.
-Placeholder names that encode an address (`Function50ABF0`,
-`UpdateNpcEvents0050D530`) and `// FUNCTION:`/`// GLOBAL:` markers or trailing
-`/* 0x… */` comments also bind a declaration to its original TU directly.
-
-A header that cannot be classified — typically one whose declarations resolve
-to several original units — fails `wiz8 check` as `unclassified-header`; the
-JSON exists to describe exceptions, not ordinary interfaces.
-`forbidden-includes` names deleted compatibility umbrellas so they cannot be
-reintroduced.
+A header whose declarations resolve to several original units fails
+`wiz8 check` as `multi-tu-header` unless `allowed-multi-tu-headers` covers
+them. Every project-local `#include "wiz8/…"` must resolve to an existing
+header, which catches stale includes of deleted compatibility umbrellas; the
+removed umbrella filenames themselves are a fixed policy list in the checker,
+not configurable data.
 
 Provenance is independent of role: `proven-original-headers` records the
-assertion-evidenced filename while `headers` still assigns the architectural
-role.
+assertion-evidenced filename. `header_architecture.json` therefore contains
+only human decisions — proven original filenames and allowed multi-TU
+interfaces — never generated state.
 
 `wiz8 report header-architecture` writes
 `build/reports/header-architecture/report.json`.
