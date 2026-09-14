@@ -34,10 +34,9 @@ class GdbMiProcess:
         self.process: asyncio.subprocess.Process | None = None
         self.events: asyncio.Queue[MiRecord] = asyncio.Queue()
         self._next_token = 1
-        self._pending: dict[int, asyncio.Future[MiRecord]] = {}
-        self._command_output: dict[int, list[str]] = {}
         self._active_token: int | None = None
-        self._command_lock = asyncio.Lock()
+        self._active_result: asyncio.Future[MiRecord] | None = None
+        self._active_output: list[str] = []
         self._tasks: list[asyncio.Task[None]] = []
         self._transcript = None
 
@@ -62,51 +61,40 @@ class GdbMiProcess:
             asyncio.create_task(self._watch_exit()),
         ]
 
-    @property
-    def pid(self) -> int | None:
-        return self.process.pid if self.process is not None else None
-
-    @property
-    def returncode(self) -> int | None:
-        return self.process.returncode if self.process is not None else None
-
     async def command(self, command: str, timeout: float = 30.0) -> MiCommandResult:
         process = self._require_process()
         if process.returncode is not None or process.stdin is None:
             raise DebuggerTransportError("GDB is not running")
-        async with self._command_lock:
-            token = self._next_token
-            self._next_token += 1
-            future = asyncio.get_running_loop().create_future()
-            self._pending[token] = future
-            self._command_output[token] = []
-            self._active_token = token
+        if self._active_token is not None:
+            raise DebuggerTransportError("another GDB command is already active")
+        token = self._next_token
+        self._next_token += 1
+        self._active_token = token
+        self._active_result = asyncio.get_running_loop().create_future()
+        self._active_output = []
+        try:
+            process.stdin.write(f"{token}{command}\n".encode())
+            await process.stdin.drain()
             try:
-                process.stdin.write(f"{token}{command}\n".encode())
-                await process.stdin.drain()
-                try:
-                    result = await asyncio.wait_for(future, timeout)
-                except TimeoutError as error:
-                    raise DebuggerTransportError(f"GDB command timed out: {command}") from error
-                output = tuple(self._command_output[token])
-                if result.message == "error":
-                    raise DebuggerTransportError(f"GDB command failed: {command}: {result.raw}")
-                return MiCommandResult(result, output)
-            finally:
-                self._pending.pop(token, None)
-                self._command_output.pop(token, None)
-                if self._active_token == token:
-                    self._active_token = None
-
-    async def drain_events(self) -> list[MiRecord]:
-        records: list[MiRecord] = []
-        while True:
-            try:
-                records.append(self.events.get_nowait())
-            except asyncio.QueueEmpty:
-                return records
+                result = await asyncio.wait_for(self._active_result, timeout)
+            except TimeoutError as error:
+                raise DebuggerTransportError(f"GDB command timed out: {command}") from error
+            output = tuple(self._active_output)
+            if result.message == "error":
+                raise DebuggerTransportError(f"GDB command failed: {command}: {result.raw}")
+            return MiCommandResult(result, output)
+        finally:
+            self._active_token = None
+            self._active_result = None
+            self._active_output = []
 
     async def next_event(self, timeout: float) -> MiRecord | None:
+        if timeout <= 0:
+            await asyncio.sleep(0)
+            try:
+                return self.events.get_nowait()
+            except asyncio.QueueEmpty:
+                return None
         try:
             return await asyncio.wait_for(self.events.get(), timeout)
         except TimeoutError:
@@ -143,14 +131,17 @@ class GdbMiProcess:
                 continue
             self._log(line)
             record = parse_mi_record(line)
-            if record.record_type == "result" and record.token is not None:
-                future = self._pending.get(record.token)
-                if future is not None and not future.done():
-                    future.set_result(record)
-                    continue
+            if (
+                record.record_type == "result"
+                and record.token == self._active_token
+                and self._active_result is not None
+                and not self._active_result.done()
+            ):
+                self._active_result.set_result(record)
+                continue
             text = stream_text(record)
             if text is not None and self._active_token is not None:
-                self._command_output[self._active_token].append(text)
+                self._active_output.append(text)
             elif record.record_type in {"notify", "exec", "status", "unparsed"}:
                 await self.events.put(record)
 
@@ -162,7 +153,7 @@ class GdbMiProcess:
             self._log(f"&stderr {line}")
             record = MiRecord(line, "gdb-stderr", None, line, None)
             if self._active_token is not None:
-                self._command_output[self._active_token].append(line)
+                self._active_output.append(line)
             else:
                 await self.events.put(record)
 
@@ -170,9 +161,8 @@ class GdbMiProcess:
         process = self._require_process()
         returncode = await process.wait()
         error = DebuggerTransportError(f"GDB exited with {returncode}")
-        for future in self._pending.values():
-            if not future.done():
-                future.set_exception(error)
+        if self._active_result is not None and not self._active_result.done():
+            self._active_result.set_exception(error)
         await self.events.put(
             MiRecord(
                 raw=f"GDB exited with {returncode}",

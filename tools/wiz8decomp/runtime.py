@@ -339,9 +339,10 @@ def format_crash_candidates(
     """Symbolize candidates and correlate unresolved references at their object owners."""
     resolved = _resolve_addresses(map_path, [address for _, address in candidates])
     lines: list[str] = []
-    for index, (candidate, item) in enumerate(list(zip(candidates, resolved))[:8]):
-        if item is None:
-            continue
+    resolved_pairs = [
+        (candidate, item) for candidate, item in zip(candidates, resolved) if item is not None
+    ]
+    for index, (candidate, item) in enumerate(resolved_pairs[:8]):
         lines.append(f"#{index} {candidate[0]}: {item.format()}")
     owners = [item.owner for item in resolved if item is not None]
     for owner, symbols in _unresolved_for_owners(object_root, map_path, owners).items():

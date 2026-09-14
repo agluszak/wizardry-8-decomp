@@ -15,15 +15,14 @@ class MiRecord:
     message: str | None
     payload: Any
     token: int | None
-    parser_error: str | None = None
 
 
 def parse_mi_record(line: str) -> MiRecord:
     """Parse one MI line without exposing pygdbmi's dictionary schema."""
     try:
         parsed = parse_response(line)
-    except Exception as error:  # noqa: BLE001 - pygdbmi raises untyped parse errors
-        return MiRecord(line, "unparsed", None, None, None, str(error))
+    except Exception:  # noqa: BLE001 - pygdbmi raises untyped parse errors
+        return MiRecord(line, "unparsed", None, None, None)
     token = parsed.get("token")
     return MiRecord(
         raw=line,

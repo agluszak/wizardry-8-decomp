@@ -2,27 +2,27 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
 
 from ..binary.linker_map import SymbolResolution
+from ..binary.pe import image_layout
 from ..config import Settings
 from ..display import runtime_display
 from ..paths import atomic_json, sha256_file
-from ..runtime import format_crash_candidates, runtime_test_environment
-from ..subprocesses import tool_version
+from ..runtime import (
+    configure_wine_window_management,
+    format_crash_candidates,
+    runtime_test_environment,
+    stage_game,
+)
 from .mi_process import DebuggerTransportError
 from .session import CrashSnapshot, GdbSession, is_terminal_stop, terminal_stop_summary
-
-DEBUG_ARTIFACT_PATTERNS = ("debugger-stop-*.txt",)
-DEBUG_ARTIFACT_FILES = (
-    "display.log",
-    "gdb.log",
-    "winedbg.log",
-)
 
 
 def _load_manifest(manifest_path: Path) -> dict[str, dict[str, Any]]:
@@ -51,58 +51,35 @@ def find_runtime_stub(
     return None
 
 
-def _in_image(snapshot: CrashSnapshot, address: int) -> bool:
-    return snapshot.image.base <= address < snapshot.image.base + snapshot.image.size
-
-
 def _snapshot_candidates(snapshot: CrashSnapshot) -> list[tuple[str, int]]:
-    """Collect only main-image candidates; foreign GDB frames never reach the MAP."""
+    """Collect plausible code addresses for section-aware MAP resolution."""
 
     candidates: list[tuple[str, int]] = []
     seen: set[int] = set()
 
     def add(source: str, address: int) -> None:
-        if address not in seen and _in_image(snapshot, address):
+        if address not in seen:
             seen.add(address)
             candidates.append((source, address))
 
     pc = snapshot.registers.get("eip")
-    headers_end = snapshot.image.base + snapshot.image.headers_size
-    pc_in_headers = pc is not None and snapshot.image.base <= pc < headers_end
-    if pc is not None and not pc_in_headers:
+    if pc is not None:
         add("pc", pc)
-    # x86 MZ starts with dec ebp; pop edx. After those bytes EDX may hold
-    # the return address consumed from the stack, regardless of the original EBP.
-    if (
-        pc_in_headers
-        and pc is not None
-        and pc >= snapshot.image.base + 2
-        and (address := snapshot.registers.get("edx")) is not None
-    ):
-        add("probable consumed return (edx)", address)
     for address in snapshot.frame_addresses:
         add("frame", address)
-    for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
+    for name in ("edx", "ecx", "eax", "ebx", "esi", "edi", "ebp"):
         if (address := snapshot.registers.get(name)) is not None:
             add(f"reg:{name}", address)
     esp = snapshot.registers.get("esp")
     for location, value in snapshot.stack_words:
         offset = location - esp if esp is not None else location
         add(f"stack+0x{offset:x}", value)
-        if len(candidates) >= 32:
-            break
     return candidates
 
 
 def _prepare_artifact_dir(artifact_dir: Path) -> None:
-    """Remove only debugger-owned projections from the previous session."""
-
+    shutil.rmtree(artifact_dir, ignore_errors=True)
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    for name in DEBUG_ARTIFACT_FILES:
-        (artifact_dir / name).unlink(missing_ok=True)
-    for pattern in DEBUG_ARTIFACT_PATTERNS:
-        for path in artifact_dir.glob(pattern):
-            path.unlink()
 
 
 def _stop_debug_wineserver(environment: dict[str, str]) -> None:
@@ -117,51 +94,35 @@ def _stop_debug_wineserver(environment: dict[str, str]) -> None:
     )
 
 
-def _start_session(
-    session: GdbSession,
-    breakpoints: list[tuple[int, str | None]] | None,
-) -> None:
-    session.start(auto_continue=False)
-    for address, condition in breakpoints or []:
-        session.set_breakpoint(address, condition)
-    session.continue_inferior()
-
-
-def _debug_result(
+async def _debug_result(
     session: GdbSession,
     *,
     timeout: int,
     map_path: Path,
     manifest_path: Path,
-    object_root: Path,
-    display: str | None,
     provenance: Path,
 ) -> dict[str, Any]:
-    event = session.wait_for_stop(timeout)
+    event = await session.wait_for_stop(timeout)
     timed_out = event is None
     if event is None:
-        snapshot, event = session.interrupt_and_capture("timeout")
+        snapshot, event = await session.interrupt_and_capture("timeout")
         if snapshot is None or event is None:
             raise DebuggerTransportError("runtime timed out and no debugger snapshot was captured")
     elif is_terminal_stop(event):
-        reason, report = terminal_stop_summary(event, session.lifecycle())
+        reason, report = terminal_stop_summary(event)
         return {
             "report": report + "\n",
-            "stopped": False,
             "reason": reason,
-            "candidates": [],
-            "unrecovered": None,
-            "display": display or "host",
             "log": str(session.artifact_dir / "winedbg.log"),
             "session": str(provenance),
         }
     else:
-        label = event.signal_name.lower() if event.signal_name else event.reason
-        snapshot = session.capture_stop(label, event)
+        label = event.signal.lower() if event.signal else event.reason
+        snapshot = await session.capture_stop(label, event)
 
-    report, resolutions = format_crash_snapshot(snapshot, map_path, object_root)
-    stub = find_runtime_stub(resolutions, manifest_path)
-    reason = "debugger timeout" if timed_out else event.signal_name or event.reason
+    report, resolutions = format_crash_snapshot(snapshot, session.executable, map_path)
+    stub = find_runtime_stub(resolutions, manifest_path) if event.signal == "SIGTRAP" else None
+    reason = "debugger timeout" if timed_out else event.signal or event.reason
     if stub is not None:
         report = (
             "UNRECOVERED FUNCTION\n"
@@ -172,18 +133,39 @@ def _debug_result(
         reason = f"unrecovered {stub.get('address') or 'unmapped'}"
     return {
         "report": report,
-        "stopped": True,
         "reason": reason,
-        "candidates": [f"0x{item.address:08x}" for item in resolutions],
-        "unrecovered": stub,
-        "display": display or "host",
         "log": str(snapshot.raw_path),
         "session": str(provenance),
     }
 
 
-def _file_identity(path: Path) -> dict[str, str | int]:
-    return {"path": str(path), "size": path.stat().st_size, "sha256": sha256_file(path)}
+async def _run_debug_session(
+    session: GdbSession,
+    breakpoints: list[tuple[int, str | None]] | None,
+    *,
+    timeout: int,
+    map_path: Path,
+    manifest_path: Path,
+    provenance: Path,
+) -> dict[str, Any]:
+    try:
+        await session.start()
+        for address, condition in breakpoints or []:
+            await session.set_breakpoint(address, condition)
+        await session.continue_inferior()
+        return await _debug_result(
+            session,
+            timeout=timeout,
+            map_path=map_path,
+            manifest_path=manifest_path,
+            provenance=provenance,
+        )
+    finally:
+        await session.close()
+
+
+def _file_identity(path: Path) -> dict[str, str]:
+    return {"path": str(path), "sha256": sha256_file(path)}
 
 
 def _write_provenance(executable: Path, map_path: Path, prefix: Path, artifact_dir: Path) -> Path:
@@ -191,38 +173,30 @@ def _write_provenance(executable: Path, map_path: Path, prefix: Path, artifact_d
     atomic_json(
         path,
         {
-            "schema": "wiz8.debug-session",
             "executable": _file_identity(executable),
             "map": _file_identity(map_path) if map_path.is_file() else None,
             "wine_prefix": str(prefix),
-            "wine": tool_version("wine"),
-            "gdb": tool_version("gdb"),
         },
     )
     return path
 
 
 def format_crash_snapshot(
-    snapshot: CrashSnapshot, map_path: Path, object_root: Path | None = None
+    snapshot: CrashSnapshot, executable: Path, map_path: Path
 ) -> tuple[str, list[SymbolResolution]]:
     """Add debugger context to the shared candidate-based crash report."""
     candidates = _snapshot_candidates(snapshot)
     detail, resolutions = (
-        format_crash_candidates(map_path, object_root, candidates)
-        if map_path.is_file()
-        else ("", [])
+        format_crash_candidates(map_path, None, candidates) if map_path.is_file() else ("", [])
     )
-    signal = snapshot.event.signal_name or snapshot.event.reason
+    signal = snapshot.event.signal or snapshot.event.reason
     lines = [
         signal if snapshot.fault_address is None else f"{signal} at 0x{snapshot.fault_address:08x}"
     ]
     pc = snapshot.registers.get("eip")
     if pc is not None:
-        context = (
-            "  PE image headers"
-            if snapshot.image.base <= pc < snapshot.image.base + snapshot.image.headers_size
-            else ""
-        )
+        image_base, _, headers_size = image_layout(executable)
+        context = "  PE image headers" if image_base <= pc < image_base + headers_size else ""
         lines.append(f"PC  0x{pc:08x}{context}")
     if detail:
         lines.extend(["", detail])
@@ -254,8 +228,6 @@ def run_debugger(
 ) -> dict[str, Any]:
     """Run one persistent GDB/MI session and return its concise report."""
 
-    from ..runtime import configure_wine_window_management, stage_game
-
     product_name = "Wiz8RuntimeTest.exe" if scenario is not None else "Wiz8Runtime.exe"
     staged = stage_game(
         settings,
@@ -267,10 +239,10 @@ def run_debugger(
     executable = staged.executable
     map_path = executable.with_suffix(".map")
     artifact_dir = settings.repo_dir / "build/debug"
-    _prepare_artifact_dir(artifact_dir)
     manifest_path = settings.product_build_dir / "generated/runtime-stubs/runtime_stubs.json"
     prefix, environment = _debug_environment(settings, scenario=scenario is not None)
     _stop_debug_wineserver(environment)
+    _prepare_artifact_dir(artifact_dir)
     provenance = _write_provenance(executable, map_path, prefix, artifact_dir)
 
     try:
@@ -292,18 +264,15 @@ def run_debugger(
                     else ("/WINDOW", *(arguments or []))
                 ),
             )
-            try:
-                _start_session(session, breakpoints)
-                return _debug_result(
+            return asyncio.run(
+                _run_debug_session(
                     session,
+                    breakpoints,
                     timeout=timeout,
                     map_path=map_path,
                     manifest_path=manifest_path,
-                    object_root=settings.recovered_objects_dir,
-                    display=display,
                     provenance=provenance,
                 )
-            finally:
-                session.close()
+            )
     finally:
         _stop_debug_wineserver(environment)
