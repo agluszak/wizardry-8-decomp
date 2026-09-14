@@ -5,7 +5,17 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/gameplay_modifiers.h"
@@ -24,16 +34,6 @@ struct W8PortraitQuoteState {
     unsigned short width;
     unsigned short height;
 };
-
-/* One eight-byte row per animation cycle at 0x0060EA08. The parser at
-   0x004C2010 compares exactly prefix_length characters and then uses the same
-   offset to read an optional numeric subcycle suffix. */
-struct W8CycleNameRow {
-    const char* name;
-    int prefix_length;
-};
-
-extern W8CycleNameRow g_cycle_names[];
 
 /* One party-slot record. The element constructor and destructor at
    0x004E6A30 and 0x004E6A10 exist because each record owns the ordinary
@@ -115,9 +115,6 @@ static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
               "W8MonsterManagerEntry_quote_height_offset");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
-void Function509CD0(unsigned char value, int enabled, int location_id);
-void Function50B160(W8NpcState* npc);                /* 0x0050B160 */
-void Function50B590(int value, int a, int b, int c); /* 0x0050B590 */
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
                                  srVector3T<float>* position);

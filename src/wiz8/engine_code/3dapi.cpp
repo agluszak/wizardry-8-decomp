@@ -4,20 +4,20 @@
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_generators.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Video2.h"
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrCycle.h"
-#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/Video2.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sgp_bridge.h"
 #include "wiz8/engine_code/Monster.h"
@@ -37,8 +37,9 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/startup_world.h"
-#include "wiz8/spell_effect.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/local_code/SpellEffect.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
@@ -51,7 +52,6 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
-#include "wiz8/engine_code/AmbientSound.h"
 
 /*
  * Engine Code\3dapi.cpp.

@@ -1,6 +1,6 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/Targeting.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -35,6 +35,7 @@
 
 #include <new>
 #include <stdlib.h>
+#include "wiz8/local_screens/OptionsScreen.h"
 
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;

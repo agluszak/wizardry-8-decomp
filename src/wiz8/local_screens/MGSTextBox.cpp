@@ -3,22 +3,22 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/layouts/game_status.h"
-// GLOBAL: WIZ8 0x0068f2d4
-W8MainGameScreen* g_main_game_screen;
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/notices.h"
 #include "wiz8/xstatus.h"
 #include "timer.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/AutomapScreen.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/sr_api.h"
-
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+// GLOBAL: WIZ8 0x0068f2d4
+W8MainGameScreen* g_main_game_screen;
 
 /*
  * Local Screens\MGSTextBox.cpp.

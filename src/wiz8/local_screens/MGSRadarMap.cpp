@@ -5,7 +5,10 @@
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/Item.h"
@@ -21,12 +24,14 @@
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/magic.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/vector.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/engine_code/GameData.h"
 
 /* 0x0064CA90: the blip palette, six classes of three distance rings. Items
    take class 4 and missiles class 5; monsters take their disposition-mapped

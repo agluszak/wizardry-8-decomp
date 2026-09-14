@@ -1,6 +1,8 @@
-#include "wiz8/combat_state.h"
-#include "wiz8/engine_code/3d.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Octree.h"
@@ -13,6 +15,22 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/regions.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
+#include "wiz8/virtual_file.h"
+#include "surrender/srNode.h"
+#include "surrender/srModelInstance.h"
+#include "FileMan.h"
+#include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/GDFileIO.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/engine_code/OctPreTree.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // GLOBAL: WIZ8 0x005ebc30
 double g_double_005ebc30 = 1.0;
 // GLOBAL: WIZ8 0x005ec020
@@ -37,24 +55,6 @@ float g_float_005ec3c0 = 1000000.0f;
 float g_float_005ec3c8 = -107374184.0f;
 // GLOBAL: WIZ8 0x005ec3d0
 float g_float_005ec3d0 = -107374184.0f;
-#include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/engine_code/stMeshModel.h"
-#include "wiz8/sr_api.h"
-#include "wiz8/utility.h"
-#include "wiz8/virtual_file.h"
-
-#include "surrender/srNode.h"
-#include "surrender/srModelInstance.h"
-#include "FileMan.h"
-#include "wiz8/engine_code/GDProp.h"
-#include "wiz8/engine_code/GDFileIO.h"
-#include "wiz8/engine_code/quad.h"
-#include "wiz8/engine_code/OctPreTree.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // GLOBAL: WIZ8 0x00659c60
 W8PathingService* g_pathing_00659c60;

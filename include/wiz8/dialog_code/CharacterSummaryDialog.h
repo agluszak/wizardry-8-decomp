@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/layouts/combat_state.h"

@@ -1,6 +1,7 @@
 #include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/engine_code/Video2.h"
 
 /* Local Screens\MGSSpellIcons.cpp. The vector destructor emission at

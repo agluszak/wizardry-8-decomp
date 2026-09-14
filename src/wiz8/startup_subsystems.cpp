@@ -1,4 +1,4 @@
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -6,7 +6,7 @@
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/regions.h"
 #include "wiz8/video_object_catalog.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "Font.h"
 #include "FileMan.h"
 #include "vobject.h"
@@ -102,7 +102,8 @@ unsigned char InitializeMenuFonts(void)
 
 #define LOAD_FONT(destination, filename)                                                           \
     strcpy(path, filename);                                                                        \
-    destination = LoadFontFile(reinterpret_cast<UINT8*>(path) /* reinterpret-ok: SGP API declared UINT8* for text */) \
+    destination = LoadFontFile(                                                                    \
+        reinterpret_cast<UINT8*>(path) /* reinterpret-ok: SGP API declared UINT8* for text */)
 
     LOAD_FONT(g_large_font_683674, "Data\\Fonts\\LargeFont.sti");
     LOAD_FONT(g_small_font_683678, "Data\\Fonts\\SmallFont.sti");

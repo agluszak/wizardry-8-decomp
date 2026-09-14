@@ -7,9 +7,12 @@
  */
 
 #include "wiz8/float_constants.h"
-#include "wiz8/magic.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AmbientSound.h"
@@ -33,19 +36,21 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
 #include "surrender/srCamera.h"
 #include "surrender/srTimer.h"
 #include "soundman.h"
-#include "wiz8/engine_code/Spells.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 

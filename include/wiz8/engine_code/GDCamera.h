@@ -72,21 +72,8 @@ public:
 extern GDCamera* g_gd_camera_65a0f8;
 extern srCamera* g_game_camera_65a0fc;
 
-srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);
-float GetCameraYawInDegrees();
-float GetCameraYawRadians();
-float GetCameraPitchInDegrees();
-float GetCameraPitchRadians();
-void GetCameraOrientation(float* angle, float* pitch);
-void BeginManualCameraControl();
-void LevelCamera();
-void TurnCameraToDegrees(float degrees);
-void SetCameraYawDegrees(float degrees);
-void ApplyCameraRotation(srMatrix3T<float>* rotation);
 void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
-void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
-void GetCameraPosition(srVector3T<float>* position);
 /* Elevation/heading of the direction from `position` to the camera, in
    radians; the homing missile tick faces its representation with them. */
 float GetElevationToCamera004BE520(const srVector3T<float>* position);
@@ -94,8 +81,6 @@ float GetHeadingToCamera004BE650(const srVector3T<float>* position);
 /* 0x004BE940: project one point through the camera and report whether it is
    in front of it. */
 unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
-int GetCameraYawDegrees(void);
-void PlacePartyAtPoint(const srVector3T<float>* point);
 
 extern float g_camera_level_forward_scale_603aac;
 extern const float g_negative_one_005ebc38;

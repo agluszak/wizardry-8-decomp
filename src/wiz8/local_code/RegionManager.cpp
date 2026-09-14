@@ -5,7 +5,7 @@
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -17,6 +17,7 @@
 
 #include <new>
 #include <wchar.h>
+#include "wiz8/local_screens/IntroScreen.h"
 
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
 enum { W8_REGION_MODE_MASK = 0xf };

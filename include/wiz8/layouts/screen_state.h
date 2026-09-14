@@ -1,8 +1,5 @@
-#pragma once
-
-#include "vobject.h"
-#include "Types.h"
-#include "gameloop.h"
+#ifndef WIZ8_LAYOUTS_SCREEN_STATE_H
+#define WIZ8_LAYOUTS_SCREEN_STATE_H
 
 enum {
     W8_SCREEN_INTRO = 0,
@@ -29,7 +26,6 @@ struct W8ScreenStateHandlers {
     unsigned char (*finalize)(void);     /* +0x10, shutdown ownership */
 };
 
-extern W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT];
 static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size");
 
 /* The current and pending screen records begin at the two globals whose first
@@ -50,13 +46,6 @@ struct W8ScreenStateRuntime {
     char name[0x80];   /* 0x18 */
 };
 
-extern W8ScreenStateRuntime g_current_screen_state;
-extern W8ScreenStateRuntime g_pending_screen_state;
-extern unsigned char g_screen_return_requested;
-extern void* g_screen_return_stack;
-extern int g_previous_screen_id;
-extern int g_suspended_screen_id;
-/* Retail 0x006F0628: WinMain's loop flag, set with 0x006F0630 at startup and
-   cleared by the exit screen, the state machine's stop paths, and shutdown. */
-
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
+
+#endif

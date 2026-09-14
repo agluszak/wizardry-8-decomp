@@ -4,7 +4,6 @@
 
 /* The NPC-scripting gates NPC Scripting.cpp sets and npc_interaction.cpp
    reads. */
-const char* GetNpcDisplayName(W8NpcState* npc);
 
 unsigned char IsNpcScriptSessionActive(void);
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);

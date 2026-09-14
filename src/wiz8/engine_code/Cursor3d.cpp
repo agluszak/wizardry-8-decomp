@@ -5,13 +5,14 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/Targeting.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "surrender/srNode.h"
 
 #include <math.h>
 #include <stdlib.h>
+#include "wiz8/engine_code/GameData.h"
 
 /* Engine Code\Cursor3d.cpp. The cursor state, its visibility query and the
    range reset the update path calls. */

@@ -5,6 +5,7 @@ class srClass;
 class stModelInstance2D;
 
 #include "input.h"
+#include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/vector.h"
 
 struct W8IList;
@@ -34,7 +35,7 @@ extern const wchar_t g_format_s_006068e4[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -627,3 +628,7 @@ unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
 void MainGameScreenFrame(void);
 unsigned char MainGameScreenLeave(int leaving);
+void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font);
+extern W8MipeState* g_mipe_state_0068f100;
+void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+                            int cancel); /* 0x00569A50 */

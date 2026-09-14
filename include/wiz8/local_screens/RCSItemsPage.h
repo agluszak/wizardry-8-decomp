@@ -1,7 +1,8 @@
 #pragma once
 
 #include "wiz8/dialog_code/DialogBase.h"
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/regions.h"
 
 struct W8Character;
@@ -79,10 +80,6 @@ char Function522A00(W8ItemInstance* item);
 char Function522B80(int character_index, W8ItemInstance* item, int arg_3);
 int Function548E20(int party_slot, unsigned int arg_2);
 char Function4DA0F0(W8ItemInstance* item);
-unsigned int Function51D3B0(int party_slot, char arg_2, int arg_3);
-char Function53C2C0(int party_slot);
-void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index,
-                                 unsigned int origin);
 char Function5A5F30(char arg_1);
 void Function5A6020(W8ItemInstance* item);
 char Function5A6310(W8ItemInstance* item);

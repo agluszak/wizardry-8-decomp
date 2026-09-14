@@ -4,7 +4,8 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogScrollBar.h"
 #include "wiz8/dialog_code/DialogTextArea.h"
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/TextBuffer.h"
 
 struct W8Character;
@@ -48,3 +49,5 @@ private:
     W8Character* m_character;     /* 0x1a8 */
 };
 static_assert(sizeof(W8AssayDialog) == 0x1ac, "W8AssayDialog_size");
+extern unsigned short g_equip_class_name_ids_61e7dc[32];
+extern const wchar_t g_assay_format_1f_0064fbb4[];

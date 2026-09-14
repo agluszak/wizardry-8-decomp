@@ -1,28 +1,38 @@
 #include "soundman.h"
-#include "wiz8/magic.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/npc_interaction.h"
-#include "wiz8/render_state.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
-#include "wiz8/character.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
-#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/RangeControl.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Strings.h"
@@ -44,6 +54,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "line.h"
+#include "wiz8/local_screens/RCSCommon.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/layouts/item_tables.h"
+#include "wiz8/item_video_object_vector.h"
+#include "wiz8/video_object_catalog.h"
+#include "vobject_blitters.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 
 /* Local Screens\ReviewCharacterScreen.cpp, named by entry's
    fFoundEquipChar assertion. This is state 6, reached both from the party
@@ -78,20 +104,6 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-#include "line.h"
-#include "wiz8/local_code/GameplayCode.h"
-#include "wiz8/local_screens/RCSCommon.h"
-#include "wiz8/layouts/game_status.h"
-#include "wiz8/npc_state.h"
-#include "wiz8/local_screens/RCSItemsPage.h"
-#include "wiz8/engine_code/3dapi.h"
-#include "wiz8/local_code/HealthStaminaMana.h"
-#include "wiz8/local_code/GameplayMods.h"
-#include "wiz8/local_code/party_encumbrance.h"
-#include "wiz8/layouts/item_tables.h"
-#include "wiz8/item_video_object_vector.h"
-#include "wiz8/video_object_catalog.h"
-#include "vobject_blitters.h"
 int CreateCampActionPanel005B9070(void);
 int CreateItemsTabPanel005B9350(void);
 int CreateCampSecondaryPanel005B9900(void);
@@ -2643,7 +2655,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                                 .animation_0fa),
                                         paired) != 0) {
                                     text = gppStringList[0x2430 / 4];
-                                    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+                                    dialog =
+                                        static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                                     dialog->SetClientExtent(250, 200);
                                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                                     SetDialogDestroyCallback(dialog, 0);

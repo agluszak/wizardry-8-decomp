@@ -220,3 +220,8 @@ void Function5A6620(int fade_to_black, int arg_2, int fade_code, void (*callback
 void Function5A6B90(void); /* 0x005A6B90 */
 /* 0x005A6580 */
 void BeginEndgameSequence005A6580(void);
+/* Camp and main-game notice dialogs ShowNoticeLine forwards into. */
+void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+                        int cancel); /* 0x005A4C00 */
+void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index,
+                                 unsigned int origin);

@@ -2,7 +2,8 @@
 
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Item.h"
-#include "wiz8/item_instance.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/xstatus.h"
 #include "surrender/srMath.h"
 

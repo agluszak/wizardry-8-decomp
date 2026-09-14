@@ -28,6 +28,7 @@ static_assert(sizeof(W8MipeMonsterEntry) == 0x32, "W8MipeMonsterEntry_size");
 #pragma pack(push, 1)
 struct W8MipeState {
     W8IList monster_ids; /* 0x00 */
+
     unsigned char unknown_0c[4];
     unsigned char selecting; /* 0x10 */
     unsigned char unknown_11[0x13];
@@ -53,8 +54,6 @@ static_assert(sizeof(W8MipeState) == 0x64, "W8MipeState_size");
 static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anchor");
 static_assert(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
 static_assert(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
-
-extern W8MipeState* g_mipe_state_0068f100;
 
 void ShowMonsterSpeedStatus00577F10(void);
 void ShowCubeParameters005780F0(void);

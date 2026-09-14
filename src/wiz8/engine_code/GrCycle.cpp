@@ -5,14 +5,6 @@
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
 #include "random.h"
-// GLOBAL: WIZ8 0x005ebc3c
-float g_float_005ebc3c = 0.10000000149011612f;
-// GLOBAL: WIZ8 0x005ec390
-float g_float_005ec390 = 0.8999999761581421f;
-// GLOBAL: WIZ8 0x005ec5c0
-float g_float_005ec5c0 = 0.30000001192092896f;
-// GLOBAL: WIZ8 0x005ec5c4
-float g_float_005ec5c4 = 0.699999988079071f;
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/stLight.hpp"
@@ -28,7 +20,9 @@ float g_float_005ec5c4 = 0.699999988079071f;
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
@@ -40,6 +34,15 @@ float g_float_005ec5c4 = 0.699999988079071f;
 #include <new>
 #include <stdio.h>
 #include <string.h>
+#include "wiz8/engine_code/GameData.h"
+// GLOBAL: WIZ8 0x005ebc3c
+float g_float_005ebc3c = 0.10000000149011612f;
+// GLOBAL: WIZ8 0x005ec390
+float g_float_005ec390 = 0.8999999761581421f;
+// GLOBAL: WIZ8 0x005ec5c0
+float g_float_005ec5c0 = 0.30000001192092896f;
+// GLOBAL: WIZ8 0x005ec5c4
+float g_float_005ec5c4 = 0.699999988079071f;
 
 template <> srVector3T<double>* srVector3T<double>::SetFromFloat(const srVector3T<float>* source);
 

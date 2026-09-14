@@ -6,7 +6,10 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -14,6 +17,7 @@
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 /*
  * Local Code\Combat Party Movement.cpp.

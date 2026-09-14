@@ -98,7 +98,6 @@ extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 /* Bytes currently held by decompressed per-frame float caches. */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 
-int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */
 /* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3
    arrays. */
 void CopyDwordBuffer00470180(void* destination, const void* source, int count);

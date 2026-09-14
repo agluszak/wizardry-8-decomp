@@ -11,17 +11,17 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/stModelInstance.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
-#include "wiz8/render_state.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
 
 #include "input.h"
 #include "timer.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 #include <string.h>
 

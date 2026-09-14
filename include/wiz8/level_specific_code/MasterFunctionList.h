@@ -10,6 +10,8 @@ void Function4E0430(void);      /* 0x004E0430 */
 #include "wiz8/vector.h"
 
 struct W8MonsterInfo;
+struct W8MonsterGroup;
+template <class T> class srVector3T;
 
 /* One level-specific per-frame entry point, registered by the level's own
    master function and run every world update. */
@@ -28,3 +30,5 @@ void RunMasterFunctions004D8E40(void);
 
 void InitializeLevelMasterFunctions004D6C50(int level);
 unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
+W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
+                              int settle, int a, int b); /* 0x004D8F00 */

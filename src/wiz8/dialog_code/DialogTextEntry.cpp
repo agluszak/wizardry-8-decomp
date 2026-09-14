@@ -2,10 +2,11 @@
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/dialog_code/DialogTextEntry.h"
 #include "wiz8/engine_code/Video2.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "Font.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 
 /* Retail initializer 0x005D1010 copies the Controls layout constant. */
 // GLOBAL: WIZ8 0x0069c5d0

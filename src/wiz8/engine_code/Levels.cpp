@@ -6,15 +6,16 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/monster_generators.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Video2.h"
 #include <cmath>
 #include "wiz8/xstatus.h"
 #include <cstdio>
 #include <cstring>
 
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
 #include "surrender/srClipPlane.h"
-#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/Levels.h"
@@ -29,17 +30,16 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/LoadSaveGame.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/music_playlist.h"
-#include "wiz8/spell_effect.h"
+#include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/Targeting.h"
 #include "surrender/srCamera.h"
@@ -51,9 +51,7 @@
 
 #include "FileMan.h"
 #include "wiz8/local_screens/AutomapScreen.h"
-#include "wiz8/local_code/Combat.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/GameplayMods.h"
 
 #define LEVELS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp"
@@ -390,7 +388,6 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     g_loaded_sky_index_00604470 = sky_index;
     return 1;
 }
-
 
 // GLOBAL: WIZ8 0x00605820
 unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {

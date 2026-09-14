@@ -32,3 +32,5 @@ extern unsigned char g_value_0068f0fd;
 unsigned char Function42AF60(int level, int entrance);
 
 void Function42B770(int, int);
+class W8MaterialMapper00482010;
+extern W8MaterialMapper00482010 g_material_mapper_00659738;

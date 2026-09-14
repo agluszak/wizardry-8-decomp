@@ -1,5 +1,14 @@
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/sr_api.h"
+#include "surrender/srHeap.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // GLOBAL: WIZ8 0x0065be60
 int g_value_65be60;
 // GLOBAL: WIZ8 0x0065be58
@@ -12,17 +21,6 @@ W8GDSurface** g_pointer_65be68;
 unsigned short* g_pointer_65be5c;
 // GLOBAL: WIZ8 0x0065be6c
 unsigned short g_value_65be6c;
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/ReadLevel.h"
-#include "wiz8/float_constants.h"
-#include "wiz8/sr_api.h"
-
-#include "surrender/srHeap.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // GLOBAL: WIZ8 0x005ed034
 float g_float_005ed034 = -0.009999999776482582f;

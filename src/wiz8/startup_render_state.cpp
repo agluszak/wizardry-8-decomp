@@ -1,7 +1,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stTextureAnim.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 
 #include <stdlib.h>

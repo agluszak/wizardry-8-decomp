@@ -1,4 +1,5 @@
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/3d_code/PList.h"
@@ -14,6 +15,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "wiz8/engine_code/GameData.h"
 
 // FUNCTION: WIZ8 0x00479040
 W8AmbientSound::W8AmbientSound()

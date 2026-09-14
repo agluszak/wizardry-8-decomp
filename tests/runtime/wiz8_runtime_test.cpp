@@ -2,7 +2,7 @@
 #define _WIN32_WINNT 0x0500
 
 #include "wiz8/regions.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/CharacterScreen.h"
@@ -14,7 +14,8 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/music_playlist.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"

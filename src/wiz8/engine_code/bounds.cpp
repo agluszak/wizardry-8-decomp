@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 
 #include <float.h>
+#include "wiz8/engine_code/GameData.h"
 
 /* Unresolved fragment in the gap between the proved Engine Code\quad.cpp
    (upper 0x004BE200) and Engine Code\Monster.cpp (lower 0x004BF0F0)

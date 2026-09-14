@@ -1,5 +1,5 @@
 #pragma once
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -445,3 +445,4 @@ unsigned char OptionsScreenEnter(void);
 void OptionsScreenFrame(void);
 unsigned char OptionsScreenLeave(int leaving);
 unsigned char OptionsScreenFinalize(void);
+extern wchar_t g_wchar_00689b34;

@@ -8,13 +8,31 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/cursor.h"
 #include "wiz8/local_code/party_encumbrance.h"
-#include "wiz8/character.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
-#include "wiz8/magic.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/notices.h"
@@ -22,7 +40,10 @@
 #include "wiz8/utility.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Factions.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/layouts/item_instance.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
@@ -36,6 +57,11 @@
 
 #include <stdio.h>
 #include "wiz8/character_skills.h"
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/local_screens/Screens.h"
 
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
    an equipment class onto one of these, and GetPairedEquipSlot swaps a hand
@@ -182,10 +208,6 @@ enum { W8_WEAPON_SKILL_NONE = 0xff };
 /* Everything below equipment class four is a weapon; four and five are the
    off-hand pair, and the rest are worn rather than held. */
 enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
-
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
 
 /* 0x0068C108: one lazily built generic name per unidentified-name index, and
    0x0061E810: the notice each index formats from. The table's extent is the
@@ -1937,8 +1959,6 @@ void BindEveryPartyItem(void)
     }
     ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
 }
-
-#include "wiz8/layouts/game_status.h"
 
 /* Order two pool entries. Both have to hold something - the two assertions say
    so by name - and they are compared by equipment class, then by generic name,

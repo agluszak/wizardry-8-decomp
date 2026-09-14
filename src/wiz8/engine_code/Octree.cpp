@@ -36,7 +36,7 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stCube.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 
 #include <math.h>
 #include "surrender/srModelInstance.h"

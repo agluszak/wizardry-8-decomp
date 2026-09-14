@@ -1,6 +1,7 @@
 #include "wiz8/dialog_code/ProfRaceInfoDialog.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/sr_api.h"
 
 // GLOBAL: WIZ8 0x00614cf0
 W8AttributeMinimums g_race_attribute_minimums[11] = {
@@ -18,7 +19,6 @@ W8AttributeMinimums g_profession_attribute_minimums[W8_PROFESSION_COUNT] = {
     {{45, 50, 0, 0, 55, 0, 55}},  {{0, 0, 60, 55, 0, 0, 0}},    {{0, 55, 0, 0, 60, 0, 0}},
     {{0, 55, 55, 0, 55, 0, 55}},  {{0, 55, 0, 0, 0, 0, 60}},    {{0, 60, 0, 0, 55, 0, 0}},
 };
-#include "wiz8/sr_api.h"
 
 /* Dialog Code\ProfRaceInfoDialog.cpp. The profession and race information
    dialogs, whose constructors are the same body twice over: they differ in

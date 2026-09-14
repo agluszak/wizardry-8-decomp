@@ -1,5 +1,5 @@
 #pragma once
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -7,11 +7,21 @@
 #include "wiz8/local_code/ControlSelection.h"
 #include <stddef.h>
 
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/compat/compiler.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/local_code/Controls.h"
-#include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/vector.h"
 
 #include "input.h"
@@ -441,3 +451,6 @@ void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */
 unsigned char CharacterScreenEnter(void);
 void CharacterScreenFrame(void);
 unsigned char CharacterScreenLeave(int leaving);
+extern const wchar_t g_dash_0064789c[];
+extern const wchar_t g_format_d_0060aa20[];
+extern const wchar_t g_format_d_slash_d_00614b58[];

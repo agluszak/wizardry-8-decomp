@@ -63,7 +63,6 @@ void InitializeRegionHelpState(void);
    The region table references these addresses directly, so they keep one
    canonical, address-qualified declaration here until their owning units are
    recovered; none of them is called by recovered code. */
-unsigned char IntroScreenRegionEvent(const W8RegionEvent*, W8Region*);
 unsigned char Function0052FD80(const W8RegionEvent*, W8Region*);
 unsigned char Function0055E690(const W8RegionEvent*, W8Region*);
 unsigned char Function00565990(const W8RegionEvent*, W8Region*);

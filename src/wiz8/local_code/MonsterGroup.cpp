@@ -6,25 +6,35 @@
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/monster_runtime.h"
-#include "wiz8/npc_state.h"
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/utility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/regions.h"
-#include "wiz8/3d_code/PList.h"
 
 #include <wchar.h>
 #include <string.h>
 
 #include <stdlib.h>
-#include "wiz8/layouts/game_status.h"
 
 static const char MONSTER_GROUP_CPP[] = "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 

@@ -77,4 +77,11 @@ void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
 int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
-void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */
+
+extern unsigned int g_event_flag_005ed8e0;
+
+extern unsigned int g_event_flag_005ed8ec;
+
+extern int g_effect_005ee58c;
+
+extern int g_effect_005ee654;

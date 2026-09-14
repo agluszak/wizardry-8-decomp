@@ -101,15 +101,16 @@ void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
 W8TargetingContext GetCombatActionContext0053BC90(int party_slot); /* 0x0053BC90 */
-void ReconcilePartyEquipmentAfterCombat0053CD60(void); /* 0x0053CD60 */
+void ReconcilePartyEquipmentAfterCombat0053CD60(void);             /* 0x0053CD60 */
 unsigned char
 TargetIsInPlay(int party_slot, int value,
                W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
 
 void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 /* Combat action-selection helpers used across the combat units. */
-bool CanPartySlotParticipate(int party_slot);      /* 0x0053C270 */
+bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
 void Function537540(int party_slot);                                         /* 0x00537540 */
+char Function53C2C0(int party_slot);

@@ -6,11 +6,6 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
-// GLOBAL: WIZ8 0x005ec2f8
-float g_float_005ec2f8 = 5000.0f;
-// GLOBAL: WIZ8 0x005ec030
-double g_double_005ec030 = 2500.0;
-
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"
 #include "wiz8/3d_code/IList.h"
@@ -26,10 +21,14 @@ double g_double_005ec030 = 2500.0;
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "wiz8/engine_code/GameData.h"
+// GLOBAL: WIZ8 0x005ec2f8
+float g_float_005ec2f8 = 5000.0f;
+// GLOBAL: WIZ8 0x005ec030
+double g_double_005ec030 = 2500.0;
 
 /* The world object the navigator notifies when it leaves a location, and
    the notification itself. 0x0042E880 sits outside every assertion-backed

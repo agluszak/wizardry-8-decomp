@@ -30,8 +30,6 @@ public:
 
 static_assert(sizeof(W8MaterialMapper00482010) == 0x1c, "W8MaterialMapper00482010_must_be_0x1c");
 
-extern W8MaterialMapper00482010 g_material_mapper_00659738;
-
 /* ABS 0x0065AD78: the three light-direction words as one colour triple.
    Produced from the day-phase colour table and consumed as fog-vector
    floats; the word copies below move it without reinterpreting it. */

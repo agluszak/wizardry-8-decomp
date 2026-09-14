@@ -1,8 +1,9 @@
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/render_state.h"
+#include "wiz8/engine_code/Quality.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -14,21 +15,34 @@
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/Factions.h"
-#include "wiz8/npc_state.h"
-// GLOBAL: WIZ8 0x006850b5
-unsigned char g_party_moving_006850b5;
-// GLOBAL: WIZ8 0x00685078
-unsigned char g_status_block_685078[56];
+#include "wiz8/layouts/npc_state.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
-#include "wiz8/character.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
-#include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/virtual_file.h"
@@ -36,10 +50,13 @@ unsigned char g_status_block_685078[56];
 #include "random.h"
 #include "timer.h"
 #include "wiz8/local_code/character_events.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+// GLOBAL: WIZ8 0x006850b5
+unsigned char g_party_moving_006850b5;
+// GLOBAL: WIZ8 0x00685078
+unsigned char g_status_block_685078[56];
 
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */

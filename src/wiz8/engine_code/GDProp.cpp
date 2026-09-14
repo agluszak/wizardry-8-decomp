@@ -6,17 +6,15 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
-// GLOBAL: WIZ8 0x005ebccc
-float g_float_005ebccc = 0.75f;
 #include "wiz8/item_spawning.h"
 #include "wiz8/engine_code/stMeshModel.h"
-
 #include "surrender/srHeap.h"
 #include "surrender/srModelInstance.h"
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+// GLOBAL: WIZ8 0x005ebccc
+float g_float_005ebccc = 0.75f;
 
 // FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,

@@ -1,7 +1,5 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
-// GLOBAL: WIZ8 0x005ebb34
-float g_float_005ebb34 = 0.0f;
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -9,14 +7,14 @@ float g_float_005ebb34 = 0.0f;
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/3d_code/PList.h"
-
 #include "DEBUG.H"
 #include "FileMan.h"
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// GLOBAL: WIZ8 0x005ebb34
+float g_float_005ebb34 = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"
 

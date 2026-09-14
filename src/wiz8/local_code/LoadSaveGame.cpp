@@ -14,7 +14,10 @@
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/combat_state.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/notices.h"
@@ -24,7 +27,8 @@
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
@@ -51,12 +55,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/spell_effect.h"
+#include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/npc_interaction.h"
 #include "soundman.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and

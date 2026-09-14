@@ -3,6 +3,7 @@
 class Trigger;
 
 #include <wchar.h>
+#include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/3d_code/PList.h"
 
@@ -59,3 +60,4 @@ bool CurrentDialogueLineHasContent(void);                              /* 0x0058
 int FindStoppedTextLine(void);                                         /* 0x0058D760 */
 void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
+void ShowNotice(int channel, const wchar_t* text, int a = -1, int b = -1, int c = 0);

@@ -9,8 +9,6 @@ class srCamera;
 struct W8World;
 class srScene;
 
-void DestroyAllWorldTriggers(W8World* world);
-
 extern unsigned char g_renderer_ready_00607d7c;
 extern unsigned char g_world_cleanup_flag_00659757;
 extern unsigned char g_flag_006f0530;

@@ -20,6 +20,7 @@
 #include <string.h>
 #include <windows.h>
 #include <new>
+#include "wiz8/engine_code/3d.h"
 
 /* Engine Code\GDFileIO.cpp. The game-data file reader and trigger-plane
    integration, plus the level record's constructor, destructor and

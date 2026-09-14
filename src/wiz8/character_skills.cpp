@@ -1,10 +1,20 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/PC_Item.h"
-#include "wiz8/character.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/local_code/CharGeneration.h"
+#include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
+#include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/magic.h"
-#include "wiz8/screen_state.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 
 /* Unresolved fragment in two clusters: 0x00547940/0x005479B0 lie in the
    Combat Hostility.cpp (ends 0x00547570) to VideoObjectManager.cpp
@@ -331,8 +341,6 @@ unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
    the per-channel one, and only the total is clamped - the base is left as
    computed, which is why a subsequent pass over the same character produces the
    same answer rather than compounding. */
-#include "wiz8/character.h"
-#include "wiz8/layouts/gameplay_databases.h"
 /* The profession databases and per-skill attribute records. Contents are the
    retail tables at 0x00615570..0x0061634c; the five profession arrays share
    one contiguous block with the skill-attribute records. -1 in a skill slot
