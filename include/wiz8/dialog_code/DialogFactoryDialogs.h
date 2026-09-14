@@ -48,10 +48,10 @@ static_assert(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size")
 /* Factory kinds 3 and 5 each have a distinct primary vtable and complete
    lifecycle family. Their original names are not exposed by retail evidence. */
 // VTABLE: WIZ8 0x005ef7c8
-class W8Dialog005CBB40 : public W8DialogBase {
+class W8ListBoxDialog005CBB40 : public W8DialogBase {
 public:
-    W8Dialog005CBB40(); /* 0x005CBB40 */
-    virtual ~W8Dialog005CBB40() override;
+    W8ListBoxDialog005CBB40(); /* 0x005CBB40 */
+    virtual ~W8ListBoxDialog005CBB40() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
@@ -170,7 +170,7 @@ private:
     int m_result_08c;    /* 0x08c: 1 confirms, 2 cancels */
 }; /* 0x90 */
 
-static_assert(sizeof(W8Dialog005CBB40) == 0xfc, "W8Dialog005CBB40_must_be_0xfc");
+static_assert(sizeof(W8ListBoxDialog005CBB40) == 0xfc, "W8ListBoxDialog005CBB40_must_be_0xfc");
 static_assert(sizeof(W8SplitAmountDialog) == 0x90, "W8SplitAmountDialog_must_be_0x90");
 
 /* The trigger-owned item picker. Its constructor is 0x005CD710, its primary

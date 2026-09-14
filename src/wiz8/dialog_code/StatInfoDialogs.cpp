@@ -174,7 +174,7 @@ unsigned char W8StatInfoDialogBase005DF880::PopulateText()
 }
 
 // FUNCTION: WIZ8 0x005dfc70
-W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
+W8AttributeInfoDialog005DFC70::W8AttributeInfoDialog005DFC70(unsigned int uiIndex)
 {
     if (uiIndex >= ATTR_COUNT) {
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 204, 0);
@@ -185,10 +185,10 @@ W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
 }
 
 // SYNTHETIC: WIZ8 0x005dfd00
-// W8StatInfoDialog005DFC70::`scalar deleting destructor'
+// W8AttributeInfoDialog005DFC70::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005dfd20
-W8StatInfoDialog005DFC70::~W8StatInfoDialog005DFC70()
+W8AttributeInfoDialog005DFC70::~W8AttributeInfoDialog005DFC70()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();
@@ -256,7 +256,7 @@ unsigned char W8SkillInfoDialog005EFD08::PopulateText()
 }
 
 // FUNCTION: WIZ8 0x005e0180
-W8StatInfoDialog005E0180::W8StatInfoDialog005E0180(unsigned int uiIndex)
+W8SecondaryAttributeInfoDialog005E0180::W8SecondaryAttributeInfoDialog005E0180(unsigned int uiIndex)
 {
     if (uiIndex >= ATTR_COUNT) {
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 278, 0);
@@ -267,10 +267,10 @@ W8StatInfoDialog005E0180::W8StatInfoDialog005E0180(unsigned int uiIndex)
 }
 
 // SYNTHETIC: WIZ8 0x005e0210
-// W8StatInfoDialog005E0180::`scalar deleting destructor'
+// W8SecondaryAttributeInfoDialog005E0180::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005e0230
-W8StatInfoDialog005E0180::~W8StatInfoDialog005E0180()
+W8SecondaryAttributeInfoDialog005E0180::~W8SecondaryAttributeInfoDialog005E0180()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 
 struct W8DialogCloseListener {
     virtual void OnDialogClosed(unsigned char reason, int value) = 0;
@@ -9,7 +9,7 @@ struct W8DialogCloseListener {
 /* Modal Dialog Code class identified by its constructor. The base owns the
    first 0x98 bytes; this class adds the notification payload and target. */
 // VTABLE: WIZ8 0x005eef6c
-class W8NotificationDialog : public W8ModalDialogBase {
+class W8NotificationDialog : public W8MessageDialogBase {
 public:
     W8NotificationDialog(int message_index, int caption_id, int notify_value);
     virtual ~W8NotificationDialog() override;      /* 0x005A8190 */

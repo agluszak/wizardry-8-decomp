@@ -16,7 +16,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/utility.h"
 #include "wiz8/version.h"
 
@@ -56,7 +56,7 @@ unsigned int g_main_menu_hover_region;
 // GLOBAL: WIZ8 0x0069c4bc
 wchar_t* g_pending_main_menu_message;
 // GLOBAL: WIZ8 0x0069c4c0
-W8ModalDialogBase* g_main_menu_dialog;
+W8MessageDialogBase* g_main_menu_dialog;
 
 /* Draws one of the six menu items. The first switch turns the item index into
    its sprite slot and its top and bottom rows; the second turns the requested
@@ -148,7 +148,7 @@ unsigned char MainMenuScreenEnter(void)
     char text[64];
     wchar_t wide[64];
     unsigned short colour;
-    W8ModalDialogBase* dialog;
+    W8MessageDialogBase* dialog;
     wchar_t* pending;
     short measured;
 
@@ -195,7 +195,7 @@ unsigned char MainMenuScreenEnter(void)
 
     pending = g_pending_main_menu_message;
     if (pending != 0) {
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage(pending, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
@@ -205,7 +205,7 @@ unsigned char MainMenuScreenEnter(void)
         return 1;
     }
     if (!HasEnoughFreeDiskSpace() && !g_main_menu_warning_shown) {
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage(gppStringList[0x1fb8 / 4], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);

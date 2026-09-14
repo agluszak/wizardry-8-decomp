@@ -42,17 +42,19 @@
    scratch buffer at +0x18 and its length at +0x1c. The three numbers at
    +0x0c/+0x10/+0x14 are the cube labels; +0x20 is the packed fill colour.
    The 0x0048E6D0 save body writes the 0x20 bytes at +0x24 and then that
-   buffer and length. No authored name survives, so the release body's
-   address names the class. Retail writes the two zeros before the vptr;
-   the C++ constructor installs the vptr first. */
-class W8WorldCursorNode0048DB30 {
+   buffer and length. The TU name stCube.cpp and the runtime model name
+   "stCube" are suggestive but do not prove the class spelling, so the name
+   is a recovered descriptive name. Retail writes the two zeros before the
+   vptr; the C++ constructor installs the vptr first. */
+// VTABLE: WIZ8 0x005ecab8
+class W8WorldCursorNode {
 public:
-    W8WorldCursorNode0048DB30()
+    W8WorldCursorNode()
     {
         buffer_18 = 0;
         size_1c = 0;
     }
-    virtual ~W8WorldCursorNode0048DB30() {}
+    virtual ~W8WorldCursorNode() {}
     srNode* node_04; /* 0x04 */
     unsigned char unknown_08[4];
     int numbers_0c[3];              /* 0x0c, 0x10, 0x14 */
@@ -62,13 +64,13 @@ public:
     unsigned char flag_24;          /* 0x24 */
     unsigned char unknown_25[0x1f]; /* 0x25 */
 };
-static_assert(sizeof(W8WorldCursorNode0048DB30) == 0x44, "W8WorldCursorNode0048DB30_size");
+static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
 
 /* The cursor's node table is a real W8GrowableVector object: its static
    initializer at 0x0048D020 constructs it with capacity five and its
    destructor is run through atexit. */
 // GLOBAL: WIZ8 0x0065ba58
-W8GrowableVector<W8WorldCursorNode0048DB30*> g_world_cursor_nodes_65ba58(5);
+W8GrowableVector<W8WorldCursorNode*> g_world_cursor_nodes_65ba58(5);
 
 /* The double selection range at 0x005ECAC8: node distances below it select the
    node. Read as 75000.0, not the zero a float view would give. */
@@ -82,13 +84,13 @@ int g_cursor_node_index_0060a9b0 = -1;
    cube, a translucent white material, and a 32x32 texture the label painter
    later fills. */
 // FUNCTION: WIZ8 0x0048d080
-W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
+W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
 {
     srModeler modeller;
     srModeler::Polygon polygon(4);
     stMeshModel* model = new stMeshModel(0, 0);
     stModelInstance* instance = new stModelInstance(0);
-    W8WorldCursorNode0048DB30* entry = new W8WorldCursorNode0048DB30;
+    W8WorldCursorNode* entry = new W8WorldCursorNode;
     /* Polygon(4) already heap-allocates the modelled vertices; these four
        stack Vertices are constructed and unused, matching retail. */
     srModeler::Vertex unused[4];
@@ -256,7 +258,7 @@ W8WorldCursorNode0048DB30* CreateWorldCursorCube0048D080(void)
 /* Paint the three cube numbers onto the model's first texture using the menu
    small font. */
 // FUNCTION: WIZ8 0x0048dcb0
-void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode0048DB30* entry)
+void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
 {
     if (entry != 0) {
         stModelInstance* instance = static_cast<stModelInstance*>(entry->node_04);
@@ -296,7 +298,7 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode0048DB30* entry)
 
 /* Store the packed fill colour and repaint the cube numbers. */
 // FUNCTION: WIZ8 0x0048e400
-void SetWorldCursorNodeColor0048E400(W8WorldCursorNode0048DB30* entry, unsigned long color)
+void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long color)
 {
     entry->color_20 = color;
     DrawWorldCursorNodeLabel0048DCB0(entry);
@@ -317,7 +319,7 @@ void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
     unsigned int count = g_world_cursor_nodes_65ba58.count;
 
     for (unsigned int index = 0; index < count; ++index) {
-        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[index];
+        W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[index];
 
         if (entry != 0) {
             srNode* parent = 0;
@@ -345,7 +347,7 @@ bool SelectWorldCursorNode0048EFC0(void)
         camera_location.SetFromFloat(&camera_position);
         int selected = g_cursor_node_index_0060a9b0;
         if (selected >= 0 && selected < g_world_cursor_nodes_65ba58.count) {
-            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[selected];
+            W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[selected];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -359,7 +361,7 @@ bool SelectWorldCursorNode0048EFC0(void)
         }
         int count = g_world_cursor_nodes_65ba58.count;
         for (int index = 0; index < count; ++index) {
-            W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[index];
+            W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[index];
             srVector3T<double> target = entry->node_04->getLocation();
 
             if (entry != 0) {
@@ -383,7 +385,7 @@ bool SelectWorldCursorNode0048EFC0(void)
 void ReleaseWorldCursorNodes0048DB30(void)
 {
     while (g_world_cursor_nodes_65ba58.count != 0) {
-        W8WorldCursorNode0048DB30* entry = g_world_cursor_nodes_65ba58.data[0];
+        W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[0];
 
         if (entry != 0) {
             if (entry->buffer_18 != 0) {

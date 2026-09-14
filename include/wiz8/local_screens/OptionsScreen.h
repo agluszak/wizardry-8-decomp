@@ -426,7 +426,7 @@ public:
     W8ControlSelection* m_menu_selection;
     unsigned char unknown_030[8];
     W8OptionsPanelSet* m_panel_038[8];
-    W8ModalDialogBase* m_active_modal; /* 0x58: frame/leave own and clear it */
+    W8MessageDialogBase* m_active_modal; /* 0x58: frame/leave own and clear it */
     W8OptionsTextEditor* m_text_editor;
     W8OptionsKeyCapture* m_key_capture;
 };

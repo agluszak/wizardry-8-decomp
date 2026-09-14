@@ -1,6 +1,6 @@
 #include "wiz8/engine_code/MonsterLight.h"
 
-#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srCore.h"
 
@@ -36,7 +36,7 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
     specular_1b0.SetZero();
     diffuse_1a4 = *first_color;
     setFlag(srNode::FLAG_DISABLE);
-    m_start_time_244 = g_object_6598bc->GetValue30();
+    m_start_time_244 = g_game_time_accumulator_6598bc->GetValue30();
 }
 
 /* The concrete class owns no allocation beyond its regular srLight base.
@@ -57,7 +57,7 @@ void MonsterLight::SetVisible0049D970(char visible)
 // FUNCTION: WIZ8 0x0049D990
 void MonsterLight::Update0049D990(const srVector3T<float>* position)
 {
-    float elapsed = g_object_6598bc->GetValue30() - m_start_time_244;
+    float elapsed = g_game_time_accumulator_6598bc->GetValue30() - m_start_time_244;
 
     if (m_fade_out_249 != 0) {
         float fade = elapsed * g_float_005ebc3c;
@@ -89,7 +89,7 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
 void MonsterLight::StartFadeOut0049DAF0()
 {
     m_fade_out_249 = 1;
-    m_start_time_244 = g_object_6598bc->GetValue30();
+    m_start_time_244 = g_game_time_accumulator_6598bc->GetValue30();
 }
 
 // TEMPLATE: WIZ8 0x0049DC20

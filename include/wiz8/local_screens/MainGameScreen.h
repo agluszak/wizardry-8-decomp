@@ -301,10 +301,15 @@ public:
 };
 static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPanel005EEBC0_size");
 
-/* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller.
-   W8MainScreenState stores the live instance at +0x1b0. */
+/* 0x0055DE40 constructs this Controls-derived NPC dialogue text controller:
+   Controls base, six dwords, then the W8DialogTextArea at +0x64 for a 0xBC
+   total. W8MainScreenState stores the live instance at +0x1b0. */
+// VTABLE: WIZ8 0x005ee920
 class W8NpcDialogueTextController : public Controls {
 public:
+    bool HandleScrollDownCommand(unsigned int command);
+    bool HandleScrollUpCommand(unsigned int command);
+
     int unknown_4c;
     int unknown_50;
     int visible;                /* 0x54 */
@@ -333,13 +338,14 @@ static_assert(offsetof(W8NpcDialogueTextController, text_area) == 0x64,
    it into Listener-only inheritance would move Listener to +0 and shrink the
    object. */
 // VTABLE: WIZ8 0x005eebdc
-class W8MainGameScreenBase005EEBDC {
+class W8MainGameTextSelectionListener005EEBDC {
 public:
     virtual void SelectTextEntry(int index) = 0;
 };
 
 // VTABLE: WIZ8 0x005eebd8
-class W8MainGameScreen : public W8MainGameScreenBase005EEBDC, public W8TextControl::Listener {
+class W8MainGameScreen : public W8MainGameTextSelectionListener005EEBDC,
+                         public W8TextControl::Listener {
 public:
     W8MainGameScreen(Trigger* owner); /* 0x00589160 */
     ~W8MainGameScreen();              /* 0x005894B0 */

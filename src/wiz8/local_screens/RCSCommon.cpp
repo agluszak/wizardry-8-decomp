@@ -8,7 +8,7 @@
 #include "wiz8/character.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_code/DialogInterface.h"
-#include "wiz8/dialog_code/ModalDialogBase.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/fonts.h"
@@ -216,7 +216,7 @@ void ShowDismissCharacterDialog(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
 
-    W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
     W8Character* character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];

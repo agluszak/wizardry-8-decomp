@@ -348,22 +348,22 @@ class W8Navigator;
 
 /* Engine Code\stCube.cpp's g_world_cursor_nodes_65ba58: the static
    initializer at 0x0048D020 constructs it with capacity five; the table
-   holds the world's W8WorldCursorNode0048DB30* cursor nodes.
+   holds the world's W8WorldCursorNode* cursor nodes.
    0x005ECAD4 is this specialization's construction-phase table. */
 // VTABLE: WIZ8 0x005ecad0
-// class W8GrowableVector<W8WorldCursorNode0048DB30*>
+// class W8GrowableVector<W8WorldCursorNode*>
 
 // TEMPLATE: WIZ8 0x0048f190
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::W8GrowableVector
+// W8GrowableVector<W8WorldCursorNode*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x0048f240
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor'
+// W8GrowableVector<W8WorldCursorNode*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0048f210
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::`scalar deleting destructor' (construction-phase copy)
+// W8GrowableVector<W8WorldCursorNode*>::`scalar deleting destructor' (construction-phase copy)
 
 // TEMPLATE: WIZ8 0x0048f1f0
-// W8GrowableVector<W8WorldCursorNode0048DB30*>::~W8GrowableVector<W8WorldCursorNode0048DB30*>
+// W8GrowableVector<W8WorldCursorNode*>::~W8GrowableVector<W8WorldCursorNode*>
 
 /* 0x005ED43C is the W8MasterFunction (void (*)(int)) pointer-vector
    specialization emitted by MasterFunctionList.cpp: ctor 0x004D9A70 (its only
