@@ -45,6 +45,7 @@ struct W8FactionRuntimeRecord {
 #pragma pack(pop)
 
 typedef unsigned char W8FactionDisposition;
+typedef unsigned char W8Disposition;
 
 enum { W8_FACTION_HOSTILE = 0, W8_FACTION_NEUTRAL = 1, W8_FACTION_FRIENDLY = 2 };
 

@@ -20,10 +20,10 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
-#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/local_code/PartyImport.h"
 
 /*
  * Local Screens\RCSCommon.cpp.
@@ -49,6 +49,42 @@ W8TextControl* g_dismiss_button_0069c400;
 
 void ShowDismissCharacterDialog(void);
 void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
+
+/* Swap the reviewed party member: rebuild the item list or learned-spell
+   scratch for the new character and repaint whichever page is showing. */
+// FUNCTION: WIZ8 0x005B6B30
+void SelectCampCharacter005B6B30(int slot)
+{
+    g_rcs_mode_0064cbe8 = slot;
+    g_value_0069c0f8 = &g_status_685170.buffers.characters[slot];
+    Function5A4570();
+    switch (g_camp_screen_0069c0f4->page) {
+    case 0:
+        EnableCampActionButtons005B9270();
+        if (g_camp_screen_0069c0f4->realm_flags[0] != 0) {
+            g_camp_screen_0069c0f4->item_scroll = 0;
+            RebuildCampItemList005A4A00();
+        }
+        if (g_camp_screen_0069c0f4->entry_mode != 3 && g_camp_screen_0069c0f4->entry_mode != 2 &&
+            g_camp_screen_0069c0f4->entry_mode != 8) {
+            SetCampItemActionMode005B59B0(0);
+        }
+        break;
+    case 1:
+        g_camp_screen_0069c0f4->skill_selection = 0;
+        Function5C4EE0();
+        g_camp_screen_0069c0f4->character_info->Invalidate(0);
+        break;
+    case 3:
+        BuildLearnedSpellState004F9600(
+            reinterpret_cast< // reinterpret-ok: the state block is laid out as the learned-spell scratch
+                W8LearnedSpellScratch*>(g_camp_screen_0069c0f4->spell_ids_by_realm),
+            g_value_0069c0f8);
+        RefreshCampSpellRanges005B7290();
+        break;
+    }
+    g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
+}
 
 // FUNCTION: WIZ8 0x005b6d20
 bool CanSelectRcsPartySlot(int ui_slot)
@@ -377,7 +413,8 @@ void SetCampItemActionMode005B59B0(char mode)
     W8TextControl** control;
 
     for (control = g_item_action_controls_69c3cc, index = 8; index != 0; ++control, --index) {
-        if ((unsigned char)((*control)->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>((*control)->m_stateFlags & g_W8TextControlMask005ED570) !=
+            0) {
             (*control)->DisableSecondaryState(0);
         }
     }
@@ -424,8 +461,9 @@ void SetCampItemActionMode005B59B0(char mode)
     if (mode == 0 && g_status_685170.item_in_cursor != 0) {
         SetItemCursor(0);
     }
-    if (selected != -1 && (unsigned char)(g_item_action_controls_69c3cc[selected]->m_stateFlags &
-                                          g_W8TextControlMask005ED570) == 0) {
+    if (selected != -1 &&
+        static_cast<unsigned char>(g_item_action_controls_69c3cc[selected]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) == 0) {
         g_item_action_controls_69c3cc[selected]->EnableSecondaryState(0);
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0x1000;

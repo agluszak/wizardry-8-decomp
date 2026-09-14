@@ -2,6 +2,7 @@
 #define WIZ8_CURSOR_H
 
 #include "Types.h"
+#include "input.h"
 #include "wiz8/engine_code/Video2.h"
 #include "surrender/srMath.h"
 
@@ -39,9 +40,10 @@ extern int g_cursor_height_654ad4;
 extern int g_cursor_hotspot_x_6596bc;
 extern int g_cursor_hotspot_y_6596c0;
 
-/* Set by the low-level mouse hook on WM_LBUTTONDOWN/UP; drag callbacks gate
-   their tracking on it. */
-extern unsigned char g_left_button_down_6f04ed;
+/* 0x00428580 and 0x004285A0: the packed atom mouse position projected into
+   screen space by the current cursor hotspot. */
+int GetAtomCursorX00428580(const InputAtom* atom);
+int GetAtomCursorY004285A0(const InputAtom* atom);
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 /* 0x00428520: whether the current cursor hotspot is inside the inclusive

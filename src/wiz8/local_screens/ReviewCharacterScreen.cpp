@@ -18,10 +18,12 @@
 #include "wiz8/cursor.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
+#include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
@@ -296,6 +298,331 @@ void W8CampInfoLabel005EF2B0::OnLeftButtonDoubleClick(int event)
     W8TextControl::OnLeftButtonDoubleClick(event);
 }
 
+/* 0x0064DD14, 0x0064DD20, 0x0064DD28, 0x00648164: the spell page's small
+   formats - zero-padded cost, plain number, plain string and the realm label
+   prefix. */
+// GLOBAL: WIZ8 0x0064DD14
+const wchar_t g_format_3d_0064dd14[] = L"%3.3d";
+// GLOBAL: WIZ8 0x0064DD20
+const wchar_t g_format_d_0064dd20[] = L"%d";
+// GLOBAL: WIZ8 0x0064DD28
+const wchar_t g_format_s_0064dd28[] = L"%s";
+// GLOBAL: WIZ8 0x00648164
+const wchar_t g_format_s_colon_00648164[] = L"%s: ";
+
+/* Enable or disable the six spell-realm scrollbars together. While enabling, a
+   realm whose learned spells fit the eight visible rows keeps its bar off. */
+// FUNCTION: WIZ8 0x005B71C0
+void SetCampSpellRangesEnabled005B71C0(unsigned char enable)
+{
+    W8CampSpellRange* spell_range;
+    int realm;
+    int second;
+
+    for (realm = 0; realm < 6; ++realm) {
+        spell_range = g_camp_screen_0069c0f4->spell_ranges[realm];
+        spell_range->m_range->EnableRegionSet(enable);
+        if (enable != 0) {
+            second = g_value_0069c0f8->skill_unlocks[0x1c + spell_range->m_realm] - 8;
+            if (second < 1) {
+                spell_range->m_range->SetRangeEnabled(0);
+            } else {
+                spell_range->m_range->SetRangeEnabled(1);
+                spell_range->m_range->SetRange(0, second);
+            }
+        }
+    }
+}
+
+/* Re-enable all six spell-realm scrollbars after the learned-spell lists were
+   rebuilt for a new character. */
+// FUNCTION: WIZ8 0x005B7290
+void RefreshCampSpellRanges005B7290(void)
+{
+    W8CampSpellRange* spell_range;
+    int realm;
+    int second;
+
+    for (realm = 0; realm < 6; ++realm) {
+        spell_range = g_camp_screen_0069c0f4->spell_ranges[realm];
+        spell_range->m_range->EnableRegionSet(1);
+        second = g_value_0069c0f8->skill_unlocks[0x1c + spell_range->m_realm] - 8;
+        if (second < 1) {
+            spell_range->m_range->SetRangeEnabled(0);
+        } else {
+            spell_range->m_range->SetRangeEnabled(1);
+            spell_range->m_range->SetRange(0, second);
+        }
+    }
+}
+
+/* The spell page proper: one panel per realm, each showing the realm name and
+   skill level, the spell-point pool and up to eight learned spell rows; the
+   row under the cursor gets the highlight palette and unaffordable or
+   unusable spells dim. */
+// FUNCTION: WIZ8 0x005B7300
+void DrawCampSpellPages005B7300(void)
+{
+    W8CampScreenState0069C0F4* state;
+    W8Character* character = g_value_0069c0f8;
+    const W8SpellRealmAnimation* animation;
+    int realm;
+    int row;
+    int left;
+    int top;
+    int row_top;
+    int spell_id;
+    int width;
+    unsigned int visible;
+    unsigned short* palette;
+
+    SetFont(g_font_683660);
+    if ((g_camp_screen_0069c0f4->redraw_flags & 0x100000) != 0 && gXStatus.fSpellCastMode == 0) {
+        DrawCampResistances005B7790();
+    }
+    if (g_camp_screen_0069c0f4->redraw_flags == 0xfffffff) {
+        DrawCatalogImageAndInvalidate(-14, 0x140, 0, 2, 0, 0xa5, 2, 0);
+    }
+    for (realm = 0; realm < 6; ++realm) {
+        if ((g_camp_screen_0069c0f4->redraw_flags & (0x200000 << realm)) == 0) {
+            continue;
+        }
+        left = (realm % 3) * 0xd5 + 3;
+        top = (realm / 3) * 0x8c + 0xaa;
+        if (character->skill_unlocks[0x1c + realm] != 0) {
+            DrawCatalogImageAndInvalidate(-14, 0x140, 0, 3, left, top, 2, 0);
+            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
+            mprintf(left + 0x1b, top + 8, const_cast<wchar_t*>(g_format_s_0064dd28),
+                    gppStringList[0x231c / 4]);
+            mprintf(left + 0x72, top + 8, gppStringList[0x2324 / 4]);
+            SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+            width = StringPixLengthArg(g_font_683660, wcslen(gppStringList[0x231c / 4]) + 2,
+                                       const_cast<UINT16*>(g_format_s_colon_00648164),
+                                       gppStringList[0x231c / 4]);
+            mprintf(left + 0x1b + width, top + 8, const_cast<wchar_t*>(g_format_d_0064dd20),
+                    character->skills[0x1c + realm].level);
+            width = StringPixLengthArg(
+                g_font_683660, 7, const_cast<UINT16*>(g_format_d_slash_d_00614b58),
+                GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+            mprintf(left + 0xc8 - width, top + 8, const_cast<wchar_t*>(g_format_d_slash_d_00614b58),
+                    GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+            visible = character->skill_unlocks[0x1c + realm];
+            if (visible >= 8) {
+                visible = 8;
+            }
+            row_top = top + 0x19;
+            for (row = 0; static_cast<unsigned int>(row) < visible; ++row) {
+                spell_id =
+                    g_camp_screen_0069c0f4
+                        ->spell_ids_by_realm[realm]
+                                            [g_camp_screen_0069c0f4->spell_scroll[realm] + row];
+                if (g_camp_screen_0069c0f4->hover_region ==
+                        static_cast<unsigned int>(realm + 0x119) &&
+                    g_camp_screen_0069c0f4->selected_spell_row == row) {
+                    palette = g_font_state_palettes_68ee1c[5];
+                } else if (g_spell_records[spell_id].spell_point_cost <=
+                               character->sp_left[realm] &&
+                           SpellUsableNow(spell_id, 0)) {
+                    palette = g_colour_68ee08;
+                } else {
+                    palette = g_font_state_palettes_68ee1c[0];
+                }
+                SetFontObjectPalette16BPP(g_font_683660, palette);
+                width =
+                    StringPixLengthArg(g_font_683660, 3, const_cast<UINT16*>(g_format_3d_0064dd14),
+                                       g_spell_records[spell_id].spell_point_cost);
+                mprintf(left + 0x1c, row_top, const_cast<wchar_t*>(g_format_s_006068e4),
+                        g_spell_records[spell_id].display_name);
+                mprintf(left + 0xb1 - width, row_top, const_cast<wchar_t*>(g_format_d_0064dd20),
+                        g_spell_records[spell_id].spell_point_cost);
+                row_top += 0xd;
+            }
+            SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+        }
+        state = g_camp_screen_0069c0f4;
+        state->spell_ranges[realm]->m_range->Invalidate(0);
+        state->spell_ranges[realm]->m_range->Redraw();
+    }
+    for (realm = 0; realm < 6; ++realm) {
+        if (g_camp_screen_0069c0f4->dialog != 0 && realm != 0 && realm != 3) {
+            continue;
+        }
+        if ((g_camp_screen_0069c0f4->redraw_flags & ((0x200000 << realm) | 0x10000)) == 0) {
+            continue;
+        }
+        animation = &g_spell_realm_animations_00648c90[realm];
+        if (character->sp_max[realm] != 0) {
+            DrawCatalogImageAndInvalidate(-14, animation->image, 0,
+                                          g_camp_screen_0069c0f4->animation_frames[realm],
+                                          (realm % 3) * 71 + 5, (realm / 3) * 140 + 0xac, 2, 0);
+        } else {
+            DrawCatalogImageAndInvalidate(-14, animation->image, 0, animation->initial_frame,
+                                          (realm % 3) * 71 + 5, (realm / 3) * 140 + 0xac, 2, 0);
+        }
+    }
+}
+
+/* The six resistance bars along the spell page's top strip: each bar clips its
+   fill to the learned portion, the overflow to the bonus band or the shortfall
+   to the gap, then right-aligns the value inside the bar. */
+// FUNCTION: WIZ8 0x005B7790
+void DrawCampResistances005B7790(void)
+{
+    SGPRect saved_clip;
+    SGPRect clip;
+    W8Character* character = g_value_0069c0f8;
+    const W8SpellRealmAnimation* animation;
+    wchar_t* text;
+    int index;
+    int left;
+    int top;
+    unsigned int filled;
+    unsigned int extra;
+    unsigned int missing;
+    int width;
+
+    DrawCatalogImageAndInvalidate(-14, 0x140, 0, 0, 0x136, 0, 2, 0);
+    text = gppStringList[0x2328 / 4];
+    width = StringPixLengthArg(
+        g_font_683660, wcslen(text),
+        reinterpret_cast< // reinterpret-ok: SGP's historical UINT16 text ABI stores wchar_t data
+            UINT16*>(text));
+    mprintf((0x134 - width) / 2 + 0x144, 0x1e, text);
+    for (index = 0; index < 6; ++index) {
+        animation = &g_spell_realm_animations_00648c90[index];
+        left = (index & 1) * 156 + 0x144;
+        top = (index >> 1) * 28 + 0x35;
+        DrawCatalogImage(-14, animation->image, 0, animation->initial_frame, left, top, 2, 0);
+        if (character->resistances[index].total >= character->resistances[index].base) {
+            filled = character->resistances[index].base;
+            extra = character->resistances[index].total - filled;
+            missing = 0;
+        } else {
+            filled = character->resistances[index].total;
+            extra = 0;
+            missing = character->resistances[index].base - filled;
+        }
+        GetClippingRect(&saved_clip);
+        clip.iTop = 0;
+        clip.iBottom = 0x1e0;
+        if (filled != 0) {
+            clip.iLeft = left + 0x18;
+            clip.iRight = left + 0x18 + filled;
+            SetClippingRect(&clip);
+            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 0, left + 0x18, top + 4, 2, 0);
+        }
+        if (extra != 0) {
+            clip.iLeft = left + 0x18 + filled;
+            clip.iRight = left + 0x18 + filled + extra;
+            SetClippingRect(&clip);
+            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 1, left + 0x18, top + 4, 2, 0);
+        } else if (missing != 0) {
+            clip.iLeft = left + 0x18 + filled;
+            clip.iRight = left + 0x18 + filled + missing;
+            SetClippingRect(&clip);
+            DrawCatalogImageAndInvalidate(-14, 0x143, 0, 2, left + 0x18, top + 4, 2, 0);
+        }
+        SetClippingRect(&saved_clip);
+        width = StringPixLengthArg(g_font_683660, 5, const_cast<UINT16*>(g_format_d_0060aa20),
+                                   character->resistances[index].total);
+        mprintf(left + 0x93 - width, top + 3, const_cast<wchar_t*>(g_format_d_0060aa20),
+                character->resistances[index].total);
+    }
+}
+
+/* The spell-list region callback: the callback id is the realm index, the
+   event's cursor position picks the highlighted row within the eight visible
+   ones, wheel input scrolls the realm's range control, and activating a valid
+   row opens its spell info dialog. */
+// FUNCTION: WIZ8 0x005B79F0
+unsigned char SpellListRegionHandler005B79F0(const W8RegionEvent* event, W8Region* region)
+{
+    unsigned short realm;
+    int row;
+    unsigned int visible;
+    int delta;
+    int count;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    realm = region->callback_id;
+    row = (GetAtomCursorY004285A0(
+               reinterpret_cast< // reinterpret-ok: region callbacks receive the raw input atom
+                   const InputAtom*>(event)) -
+           region->y1 - 1) /
+          0xd;
+    visible =
+        g_value_0069c0f8->skill_unlocks[0x1c + realm] - g_camp_screen_0069c0f4->spell_scroll[realm];
+    if (visible >= 8) {
+        visible = 8;
+    }
+    if (row >= static_cast<int>(visible)) {
+        row = -1;
+    }
+    if (row != g_camp_screen_0069c0f4->selected_spell_row) {
+        g_camp_screen_0069c0f4->selected_spell_row = row;
+        g_camp_screen_0069c0f4->redraw_flags |= 0x200000 << realm;
+    }
+    if (event->reason > 0x100) {
+        if (event->reason == 0x400) {
+            if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
+                g_camp_screen_0069c0f4->redraw_flags |= 0x200000 << realm;
+            }
+            return 0;
+        }
+        if (event->reason == 0x800) {
+            delta = GetMouseWheelDeltaValue(event->param);
+            if (delta > 0) {
+                for (count = delta; count != 0; --count) {
+                    g_camp_screen_0069c0f4->spell_ranges[realm]->m_range->Decrement();
+                }
+                delta = 0;
+            }
+            if (delta < 0) {
+                for (count = -delta; count != 0; --count) {
+                    g_camp_screen_0069c0f4->spell_ranges[realm]->m_range->Increment();
+                }
+            }
+            return 1;
+        }
+        return 0;
+    }
+    if (event->reason == 0x100) {
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && row != -1) {
+            OpenSpellInfoDialog005B7BB0(
+                g_camp_screen_0069c0f4
+                    ->spell_ids_by_realm[realm][g_camp_screen_0069c0f4->spell_scroll[realm] + row]);
+        }
+        return 1;
+    }
+    if (event->reason == 8) {
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    }
+    if (event->reason != 0x10) {
+        if (event->reason != 0x80) {
+            return 0;
+        }
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    }
+    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 && row != -1) {
+        OpenSpellInfoDialog005B7BB0(
+            g_camp_screen_0069c0f4
+                ->spell_ids_by_realm[realm][g_camp_screen_0069c0f4->spell_scroll[realm] + row]);
+        return 1;
+    }
+    return 1;
+}
+
+/* Open the spell info dialog for one spell id off the camp spell lists. */
+// FUNCTION: WIZ8 0x005B7BB0
+void OpenSpellInfoDialog005B7BB0(unsigned int spell_id)
+{
+    W8SpellInfoDialog* dialog = new W8SpellInfoDialog(spell_id);
+    dialog->SetText(&g_wchar_00689b34);
+    DisplayCampDialog(dialog);
+}
+
 /* The items-page redraw driver, run once per update: each pending group of
    redraw flags is cleared by repainting that block, and the two bottom/right
    panels repaint when their own bits are raised. */
@@ -547,8 +874,8 @@ void DrawCampEquipmentItems005B8690(void)
             DrawCampItemQuantity005B8EC0(&character->equipment[slot], region->x + 2,
                                          region->y + region->height - 0xd, region->width - 4);
             if (character->equipment[slot].identified == 0) {
-                DrawCatalogImage(-14, 0x11b, 0, (short)region->unknown_14, region->x, region->y, 2,
-                                 0);
+                DrawCatalogImage(-14, 0x11b, 0, static_cast<short>(region->unknown_14), region->x,
+                                 region->y, 2, 0);
             }
         }
         switch (slot) {
@@ -589,7 +916,7 @@ void DrawCampEquipmentItems005B8690(void)
                 }
             } else if (state->entry_mode == 1 ||
                        !CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.item_id,
-                                           (unsigned char)slot, 1) ||
+                                           static_cast<unsigned char>(slot), 1) ||
                        !CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.item_id)) {
                 if (g_status_685170.item_in_cursor == 0 || state->entry_mode != 1) {
                     continue;
@@ -603,7 +930,7 @@ void DrawCampEquipmentItems005B8690(void)
             if (g_status_685170.item_in_cursor == 0 || state->entry_mode == 1 ||
                 !IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) ||
                 !CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.item_id,
-                                    (unsigned char)slot, 1) ||
+                                    static_cast<unsigned char>(slot), 1) ||
                 !CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.item_id)) {
                 continue;
             }
@@ -1312,8 +1639,7 @@ unsigned char CampSkillMouseWheel(const W8RegionEvent* event, W8Region*)
     if (event->reason != 0x800) {
         return 0;
     }
-    int delta =
-        GetMouseWheelDeltaValue(reinterpret_cast<const W8RegionMouseEvent*>(event)->mouse_position);
+    int delta = GetMouseWheelDeltaValue(event->param);
     int step;
     for (step = 0; step < delta; ++step) {
         g_camp_screen_0069c0f4->skill_range->m_range->Decrement();
@@ -1671,7 +1997,8 @@ void CampScreenFrame(void)
                         BeginCombatRound();
                         RequestScreenTransition();
                     } else {
-                        Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                        SelectCampCharacter005B6B30(
+                            CharacterPointerToPartySlot(g_camp_character_0069c100));
                         if (!IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8)) {
                             wchar_t* text = FormatWideString(gppStringList[0x24c4 / 4],
                                                              g_camp_character_0069c100->name);
@@ -1776,7 +2103,7 @@ unsigned char CampScreenLeave(int)
 void DismissSelectedPartyCharacter(void)
 {
     if (g_camp_character_pending_0069c104 != 0) {
-        Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+        SelectCampCharacter005B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
         if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                 g_effect_argument_005ed8cc, g_effect_argument_005ed914);
@@ -1784,7 +2111,7 @@ void DismissSelectedPartyCharacter(void)
         }
         wchar_t* text =
             FormatWideString(gppStringList[0x24c4 / 4], g_camp_character_0069c100->name);
-        W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -1838,13 +2165,14 @@ void RebuildCampItemList005A4A00(void)
         }
     }
     pool = g_status_685170.party_item_pool_0021;
-    for (index = 0; index < (unsigned int)g_status_685170.party_item_count_1791; ++index, ++pool) {
+    for (index = 0; index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
+         ++index, ++pool) {
         if (pool->item_id != -1 &&
             (g_camp_screen_0069c0f4->realm_flags[0] == 0 ||
              CanCharacterUseItem(g_value_0069c0f8, pool->item_id) != 0) &&
             (g_camp_screen_0069c0f4->realm_flags[1] == 0 || pool->identified == 0) &&
-            (filter == 0 ||
-             (filter & (unsigned char)(1 << GetItemEquipSlotGroup(pool->item_id))) != 0)) {
+            (filter == 0 || (filter & static_cast<unsigned char>(
+                                          1 << GetItemEquipSlotGroup(pool->item_id))) != 0)) {
             g_camp_screen_0069c0f4->item_list_4ec[g_camp_screen_0069c0f4->item_list_count] = index;
             ++g_camp_screen_0069c0f4->item_list_count;
         }
@@ -1882,10 +2210,10 @@ void DisplayCampDialog(W8DialogBase* dialog)
 }
 
 // FUNCTION: WIZ8 0x005a4c00
-void OpenCampMessageDialog005A4C00(wchar_t* text, W8DialogDestroyCallback callback,
-                                   int confirmation, int cancel)
+void ShowCampNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+                        int cancel)
 {
-    W8ModalDialogBase* dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+    W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
 
     dialog->SetClientExtent(0xfa, 200);
     dialog->SetMessage(text, 1, 0x32, confirmation, cancel, 1, 1, 0, 0x15e);
@@ -1919,7 +2247,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     W8ItemInstance* paired;
     W8Character* character;
     W8NpcState* npc;
-    W8ModalDialogBase* dialog;
+    W8MessageDialogBase* dialog;
     wchar_t* text;
 
     if (item == 0) {
@@ -1960,7 +2288,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     }
     if (g_status_685170.game_started == 0) {
         text = gppStringList[0x2400 / 4];
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -1971,7 +2299,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     character = &g_status_685170.buffers.characters[g_rcs_mode_0064cbe8];
     if (character->condition_turns[0x13] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x241c / 4];
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -1981,7 +2309,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     }
     if (character->condition_turns[0xe] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x2420 / 4];
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -1991,7 +2319,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     }
     if (character->condition_turns[W8_CONDITION_HOSTILE] != 0 && (origin == 1 || origin == 0)) {
         text = gppStringList[0x2424 / 4];
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -2002,7 +2330,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
         g_status_685170.item_in_cursor != 0 && g_held_item_source_006840c0 != g_rcs_mode_0064cbe8) {
         text = gppStringList[0x2404 / 4];
-        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
         SetDialogDestroyCallback(dialog, 0);
@@ -2037,7 +2365,9 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 2) {
-        party_slot = CharacterPointerToPartySlot((W8Character*)g_camp_entry_parameter_0069c0fc);
+        party_slot = CharacterPointerToPartySlot(
+            reinterpret_cast< // reinterpret-ok: camp entry parameter is tagged pointer-or-mode storage
+                W8Character*>(g_camp_entry_parameter_0069c0fc));
         if (CanItemLeaveItsSlot(item) == 0) {
             QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
                                 g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
@@ -2111,14 +2441,14 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 return;
             }
             if (g_camp_character_pending_0069c104 != 0) {
-                Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                SelectCampCharacter005B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
                 if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
                     QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                         g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                 } else {
                     text = FormatWideString(gppStringList[0x24c4 / 4],
                                             g_camp_character_0069c100->name);
-                    dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                     dialog->SetClientExtent(250, 200);
                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                     SetDialogDestroyCallback(dialog, 0);
@@ -2141,7 +2471,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     if (item->item_id != -1 && origin == 1) {
         if (CanUnequipSlotItem(g_value_0069c0f8, slot_index) == 0) {
             text = gppStringList[0x242c / 4];
-            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
             dialog->SetClientExtent(250, 200);
             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
             SetDialogDestroyCallback(dialog, 0);
@@ -2184,7 +2514,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 merge_tried = 1;
             }
             if (merged == 0 && origin == 2) {
-                for (index = 0; index < (unsigned int)g_status_685170.party_item_count_1791;
+                for (index = 0;
+                     index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
                      ++index) {
                     if (MergeItemStacks(&g_status_685170.party_item_pool_0021[index],
                                         &g_status_685170.item_in_hand_235b,
@@ -2199,7 +2530,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             if (merged == 0) {
                 if (g_status_685170.item_in_cursor != 0) {
                     if (g_camp_character_pending_0069c104 != 0) {
-                        Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                        SelectCampCharacter005B6B30(
+                            CharacterPointerToPartySlot(g_camp_character_0069c100));
                         if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
                             QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                                 g_effect_argument_005ed8cc,
@@ -2207,7 +2539,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         } else {
                             text = FormatWideString(gppStringList[0x24c4 / 4],
                                                     g_camp_character_0069c100->name);
-                            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
@@ -2220,14 +2552,15 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         RebuildCampItemList005A4A00();
                     } else {
                         text = gppStringList[0x2430 / 4];
-                        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                         SetDialogDestroyCallback(dialog, 0);
                         g_camp_screen_0069c0f4->dialog = dialog;
                         ActivateDialogRegion(0x138);
                     }
-                } else if (slot_index < (unsigned int)g_status_685170.party_item_count_1791) {
+                } else if (slot_index <
+                           static_cast<unsigned int>(g_status_685170.party_item_count_1791)) {
                     /* An empty hand picks the clicked pool row up. */
                     CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
                     changed = 1;
@@ -2268,7 +2601,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         paired = &g_value_0069c0f8->equipment[paired_slot];
                         if (CanUnequipSlotItem(g_value_0069c0f8, paired_slot) == 0) {
                             text = gppStringList[0x2458 / 4];
-                            dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                            dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                             dialog->SetClientExtent(250, 200);
                             dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                             SetDialogDestroyCallback(dialog, 0);
@@ -2310,7 +2643,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                                 .animation_0fa),
                                         paired) != 0) {
                                     text = gppStringList[0x2430 / 4];
-                                    dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                                    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                                     dialog->SetClientExtent(250, 200);
                                     dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                                     SetDialogDestroyCallback(dialog, 0);
@@ -2321,7 +2654,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                             }
                             if (AddItemToParty(paired, 0, 1) == 0) {
                                 text = gppStringList[0x2430 / 4];
-                                dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                                dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                                 dialog->SetClientExtent(250, 200);
                                 dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                                 SetDialogDestroyCallback(dialog, 0);
@@ -2345,14 +2678,15 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         }
                     }
                 } else {
-                    Function5B6B30(CharacterPointerToPartySlot(g_camp_character_0069c100));
+                    SelectCampCharacter005B6B30(
+                        CharacterPointerToPartySlot(g_camp_character_0069c100));
                     if (IsPartySlotEligible00524A10(g_rcs_mode_0064cbe8) != 0) {
                         QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
                                             g_effect_argument_005ed8cc, g_effect_argument_005ed914);
                     } else {
                         text = FormatWideString(gppStringList[0x24c4 / 4],
                                                 g_camp_character_0069c100->name);
-                        dialog = static_cast<W8ModalDialogBase*>(CreateDialogByKind(1));
+                        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
                         dialog->SetClientExtent(250, 200);
                         dialog->SetMessage(text, 1, 50, 1, 0, 1, 1, 0, 350);
                         SetDialogDestroyCallback(dialog, 0);

@@ -220,7 +220,7 @@ void RedistributePartyEncumbrance(void)
         int carried = character->inventory_weight + character->party_weight_share;
         character->total_carried_weight = carried;
         unsigned int percent =
-            (unsigned int)(carried * 100) / (unsigned int)character->carrying_capacity;
+            static_cast<unsigned int>(carried * 100) / character->carrying_capacity;
         int old_band = character->load_category;
         if (percent < 50) {
             character->load_category = 0;

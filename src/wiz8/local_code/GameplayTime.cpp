@@ -70,19 +70,21 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
 {
     float rate;
 
-    rate = ((float)(unsigned int)monster_info->hp_max * g_navigator_mode3_scale_005ebca4 +
+    rate = (static_cast<float>(static_cast<unsigned int>(monster_info->hp_max)) *
+                g_navigator_mode3_scale_005ebca4 +
             g_monster_record_float_scale) *
                0.0041666669f +
-           (float)(signed char)monster_info->modifiers_1db.unknown_08[1];
+           static_cast<float>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]));
     monster_info->hp_regen_rate_47 = rate;
     if (monster_info->modifiers_1db.flag_42 != 0) {
         monster_info->hp_regen_rate_47 = rate * g_float_005ec3b8;
     }
 
-    rate = ((float)(unsigned int)monster_info->stamina_max * g_float_005ec390 +
+    rate = (static_cast<float>(static_cast<unsigned int>(monster_info->stamina_max)) *
+                g_float_005ec390 +
             g_monster_record_float_scale) *
                0.0041666669f +
-           (float)(signed char)monster_info->modifiers_1db.unknown_08[2];
+           static_cast<float>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[2]));
     monster_info->stamina_regen_rate_4f = rate;
     if (monster_info->modifiers_1db.flag_43 != 0) {
         monster_info->stamina_regen_rate_4f = rate * g_float_005ec3b8;

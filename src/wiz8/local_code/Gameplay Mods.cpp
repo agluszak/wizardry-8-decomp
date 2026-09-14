@@ -438,7 +438,9 @@ void ApplyConditionModifiers(W8Character* character, const int* condition_turns,
                 target->out_of_formation = 1;
             } else {
                 target->attribute_adjustments[6] +=
-                    (signed char)ScaleValueByProfessionLevel005479B0(character, 7, 50.0f) - 0x32;
+                    static_cast<signed char>(
+                        ScaleValueByProfessionLevel005479B0(character, 7, 50.0f)) -
+                    0x32;
             }
             break;
         case 0xe:
@@ -483,22 +485,22 @@ void ApplyEnchantmentModifiers(const W8Enchantment* enchantments, W8GameplayModi
         }
         switch (index) {
         case 5:
-            amount = (unsigned char)(slot->value_00 * 10);
+            amount = static_cast<unsigned char>(slot->value_00 * 10);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->attribute_adjustments[5] += amount;
             break;
         case 6:
-            amount = (unsigned char)(slot->value_00 * 5);
+            amount = static_cast<unsigned char>(slot->value_00 * 5);
             AdjustByteByPercent(&amount, slot->percent_04);
             for (i = 0; i < 7; ++i) {
                 target->attribute_adjustments[i] += amount;
             }
             break;
         case 7:
-            amount = (unsigned char)(slot->value_00 << 3);
+            amount = static_cast<unsigned char>(slot->value_00 << 3);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->damage_reduction_adjustment += amount;
-            amount = (unsigned char)slot->value_00;
+            amount = static_cast<unsigned char>(slot->value_00);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->armor_bonus_05 += amount;
             break;

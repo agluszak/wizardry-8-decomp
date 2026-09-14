@@ -34,6 +34,8 @@ enum { W8_REDRAW_TEXT_BOX = 0x800 };
 
 // GLOBAL: WIZ8 0x0069b7b8
 unsigned char g_text_box_mode_0069b7b8;
+// GLOBAL: WIZ8 0x0069b7bc
+int g_notice_line_count_0069b7bc;
 // GLOBAL: WIZ8 0x0064bd54
 int g_text_box_value_0064bd54 = 12;
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c

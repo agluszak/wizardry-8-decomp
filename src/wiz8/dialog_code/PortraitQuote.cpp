@@ -111,10 +111,10 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     HVSURFACE source_surface;
     SGPRect rect;
 
-    if ((unsigned short)max_width >= 0x280) {
+    if (static_cast<unsigned short>(max_width) >= 0x280) {
         return -1;
     }
-    if ((unsigned short)max_width <= 0xa) {
+    if (static_cast<unsigned short>(max_width) <= 0xa) {
         max_width = 10;
     }
     if (quote_handle == -1) {
@@ -160,7 +160,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             g_current_portrait_quote->object_index_09 = edge_index;
         }
     }
-    g_current_portrait_quote->text = (wchar_t*)malloc(wcslen(text) * 2 + 2);
+    g_current_portrait_quote->text = static_cast<wchar_t*>(malloc(wcslen(text) * 2 + 2));
     wcscpy(g_current_portrait_quote->text, text);
     g_current_portrait_quote->flags = g_quote_bubble_flags_69c5c8;
     position = 0;
@@ -177,18 +177,19 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             } else {
                 line_width = 0;
                 length = wcslen(line);
-                if ((int)length > 0) {
+                if (static_cast<int>(length) > 0) {
                     write = line;
                     do {
                         wchar_t ch = *write;
-                        if (((unsigned short)ch < 0xb2 || (unsigned short)ch > 0xb5) &&
-                            (unsigned short)ch > 10) {
+                        if ((static_cast<unsigned short>(ch) < 0xb2 ||
+                             static_cast<unsigned short>(ch) > 0xb5) &&
+                            static_cast<unsigned short>(ch) > 10) {
                             line_width += StringPixLengthArg(g_font12point1_683648, 1, write);
                         }
                         ++write;
                     } while (--length != 0);
                 }
-                if (line_width > (int)max_line) {
+                if (line_width > static_cast<int>(max_line)) {
                     max_line = line_width;
                 }
                 position = 0;
@@ -199,28 +200,29 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     }
     line_width = 0;
     length = wcslen(line);
-    if ((int)length > 0) {
+    if (static_cast<int>(length) > 0) {
         write = line;
         do {
             wchar_t ch = *write;
-            if (((unsigned short)ch < 0xb2 || (unsigned short)ch > 0xb5) &&
-                (unsigned short)ch > 10) {
+            if ((static_cast<unsigned short>(ch) < 0xb2 ||
+                 static_cast<unsigned short>(ch) > 0xb5) &&
+                static_cast<unsigned short>(ch) > 10) {
                 line_width += StringPixLengthArg(g_font12point1_683648, 1, write);
             }
             ++write;
         } while (--length != 0);
     }
-    if (line_width > (int)max_line) {
+    if (line_width > static_cast<int>(max_line)) {
         max_line = line_width;
     }
-    if ((int)(max_line & 0xffff) < (int)((max_width & 0xffff) - 0x18)) {
+    if (static_cast<int>(max_line & 0xffff) < static_cast<int>((max_width & 0xffff) - 0x18)) {
         max_width = max_line + 0x18;
         max_line = max_line + 1;
     } else {
         max_line = (max_width - margin_x) - 0x17;
         right_edge = 0xffffffff;
         Function5D0050(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, &right_edge);
-        if (right_edge != 0xffffffff && (int)(right_edge - (max_line & 0xffff)) < 0x14) {
+        if (right_edge != 0xffffffff && static_cast<int>(right_edge - (max_line & 0xffff)) < 0x14) {
             max_line = right_edge;
             max_width = right_edge + 0x18;
         }
@@ -228,28 +230,28 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     text_height = Function5D0050(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, 0);
     height = text_height + margin_top + 0x18 + margin_bottom;
     max_width = max_width + margin_x * 2;
-    if ((unsigned short)max_width >= 0x15e) {
+    if (static_cast<unsigned short>(max_width) >= 0x15e) {
         max_width = 0x15d;
     }
-    if ((unsigned short)height < 200) {
+    if (static_cast<unsigned short>(height) < 200) {
         memset(&text_desc, 0, sizeof(text_desc));
         text_desc.fCreateFlags = VSURFACE_CREATE_DEFAULT | VSURFACE_SYSTEM_MEM_USAGE;
-        text_desc.usWidth = (unsigned short)max_width;
-        text_desc.usHeight = (unsigned short)height;
+        text_desc.usWidth = static_cast<unsigned short>(max_width);
+        text_desc.usHeight = static_cast<unsigned short>(height);
         text_desc.ubBitDepth = 0x10;
         if (!AddVideoSurface(&text_desc, &bubble->surface)) {
             return 0;
         }
         bubble->palette = font_palette;
         bubble->created_15 = 1;
-        bubble->width = (unsigned short)max_width;
-        bubble->height = (unsigned short)height;
+        bubble->width = static_cast<unsigned short>(max_width);
+        bubble->height = static_cast<unsigned short>(height);
         rect.iLeft = 0;
         rect.iTop = 0;
         width_px = max_width & 0xffff;
         height_px = height & 0xffff;
-        *out_width = (unsigned short)max_width;
-        *out_height = (unsigned short)height;
+        *out_width = static_cast<unsigned short>(max_width);
+        *out_height = static_cast<unsigned short>(height);
         rect.iRight = width_px;
         rect.iBottom = height_px;
         if (bubble->flags & 1) {
@@ -257,7 +259,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             pixels = reinterpret_cast<UINT16*>( // reinterpret-ok: raw locked pixel memory
                 LockVideoSurface(bubble->surface, &pitch));
             fill = Get16BPPColor(0xffff);
-            count = (unsigned short)(height * max_width);
+            count = static_cast<unsigned short>(height * max_width);
             for (x = 0; x < count; ++x) {
                 pixels[x] = fill;
             }
@@ -273,11 +275,11 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             UnLockVideoSurface(bubble->surface);
         }
         GetVideoObject(&object, bubble->object);
-        for (x = 0x10; (int)x < width_px - 0x10; x = x + 0x10) {
+        for (x = 0x10; static_cast<int>(x) < width_px - 0x10; x = x + 0x10) {
             BltVideoObject(bubble->surface, object, 1, x, 0, 2, 0);
             BltVideoObject(bubble->surface, object, 6, x, height_px - 0x10, 2, 0);
         }
-        for (y = 0x10; (int)y < height_px - 0x10; y = y + 0x10) {
+        for (y = 0x10; static_cast<int>(y) < height_px - 0x10; y = y + 0x10) {
             BltVideoObject(bubble->surface, object, 3, 0, y, 2, 0);
             BltVideoObject(bubble->surface, object, 4, width_px - 8, y, 2, 0);
         }
@@ -290,7 +292,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             foreground.byte = 0;
         }
         if (bubble->palette != 0xffffffff) {
-            colour.byte = (unsigned char)bubble->palette;
+            colour.byte = static_cast<unsigned char>(bubble->palette);
         }
         SetFont(g_font12point1_683648);
         SetFontForeground(foreground.dword);

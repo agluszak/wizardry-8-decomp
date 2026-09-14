@@ -15,16 +15,16 @@ struct W8RegionSet {
     unsigned int last_region;
 }; /* 0x0c */
 
+/* The raw input atom is handed to region callbacks as this shape: 0x08 is the
+   SGP usParam word carrying the wheel rotation in its high half for reason
+   0x800, 0x0c the uiParam word packing the cursor position as y << 16 | x. */
 struct W8RegionEvent {
     unsigned int time;
     unsigned short modifiers;
     unsigned short reason;
-};
-
-struct W8RegionMouseEvent {
-    W8RegionEvent event;
+    unsigned int param;
     unsigned int mouse_position;
-};
+}; /* 0x10 */
 
 enum W8RegionFlags {
     W8_REGION_RECTANGLE = 0x01,
@@ -100,7 +100,6 @@ unsigned char Function005AEEA0(const W8RegionEvent*, W8Region*);
 unsigned char Function005AF530(const W8RegionEvent*, W8Region*);
 unsigned char Function005AF5E0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2020(const W8RegionEvent*, W8Region*);
-unsigned char Function005B29D0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2CB0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B2D70(const W8RegionEvent*, W8Region*);
 unsigned char Function005B5E90(const W8RegionEvent*, W8Region*);
@@ -111,7 +110,6 @@ unsigned char Function005B62C0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B6360(const W8RegionEvent*, W8Region*);
 unsigned char Function005B66B0(const W8RegionEvent*, W8Region*);
 unsigned char Function005B6AA0(const W8RegionEvent*, W8Region*);
-unsigned char Function005B79F0(const W8RegionEvent*, W8Region*);
 unsigned char Function005BC7A0(const W8RegionEvent*, W8Region*);
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */

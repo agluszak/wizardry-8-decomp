@@ -255,13 +255,15 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
         if (monster_info->fActive == 0) {
             continue;
         }
-        for (index = 0; index < (int)PLLength(monster_info->plsVisMonToMon); ++index) {
-            visibility = (W8VisibilityRecord*)PLGet(monster_info->plsVisMonToMon, index);
+        for (index = 0; index < static_cast<int>(PLLength(monster_info->plsVisMonToMon)); ++index) {
+            visibility =
+                static_cast<W8VisibilityRecord*>(PLGet(monster_info->plsVisMonToMon, index));
             if (visibility == 0) {
                 return;
             }
             if (visibility->about_location_id == location_id) {
-                visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->plsVisMonToMon, index);
+                visibility = static_cast<W8VisibilityRecord*>(
+                    PLRemoveAt(monster_info->plsVisMonToMon, index));
                 if (visibility == 0) {
                     srAssertFail("pVisibility != NULL", SIGHT_CPP, 968,
                                  FormatString("ReleaseMonToMonVisibilityInfoAbout: ERROR - "
@@ -282,8 +284,8 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 {
     W8VisibilityRecord* visibility;
 
-    while ((int)PLLength(monster_info->plsVisMonToMon) > 0) {
-        visibility = (W8VisibilityRecord*)PLRemoveAt(monster_info->plsVisMonToMon, 0);
+    while (static_cast<int>(PLLength(monster_info->plsVisMonToMon)) > 0) {
+        visibility = static_cast<W8VisibilityRecord*>(PLRemoveAt(monster_info->plsVisMonToMon, 0));
         if (visibility == 0) {
             srAssertFail("pVisibility != NULL", SIGHT_CPP, 990,
                          FormatString("ReleaseMonToMonVisibilityList: ERROR - PLRemoveAt failed"));
@@ -399,8 +401,8 @@ W8VisibilityRecord* FindMonToMonVisibility(W8MonsterInfo* source, W8MonsterInfo*
         srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 1021, 0);
     }
 
-    for (index = 0; index < (int)PLLength(source->plsVisMonToMon); ++index) {
-        visibility = (W8VisibilityRecord*)PLGet(source->plsVisMonToMon, index);
+    for (index = 0; index < static_cast<int>(PLLength(source->plsVisMonToMon)); ++index) {
+        visibility = static_cast<W8VisibilityRecord*>(PLGet(source->plsVisMonToMon, index));
         if (visibility == 0) {
             srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
         } else if (visibility->about_location_id == target->location_id) {

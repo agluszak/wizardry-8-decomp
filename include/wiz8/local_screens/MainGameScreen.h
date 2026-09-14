@@ -537,7 +537,6 @@ extern unsigned char g_flag_0068edd9;
 extern unsigned char g_debug_monster_cycle_0068f0fc;
 extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
-
 void BeginLevelTransition(void); /* 0x005611A0 */
 void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a change to the main-game mode flag at 0x006850CE. */

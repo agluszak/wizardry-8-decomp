@@ -30,6 +30,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/3d_code/PList.h"
@@ -549,7 +550,7 @@ void EndCombat004EA310(int mode)
     if (g_combat_state->unknown_a60[1] != 0) {
         Function517780();
     }
-    Function5A3470();
+    ZoomRadarMapOut();
     EnablePortraitAdvanceRegions0059BB70();
     DisableMainRegionSet();
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0) {

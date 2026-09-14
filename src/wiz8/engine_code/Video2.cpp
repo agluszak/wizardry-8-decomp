@@ -1517,6 +1517,20 @@ void SGPMouseGetPos(POINT* point)
     }
 }
 
+/* The atom's packed mouse position plus the cursor hotspot, split into the
+   screen-space x and y region input works in. */
+// FUNCTION: WIZ8 0x00428580
+int GetAtomCursorX00428580(const InputAtom* atom)
+{
+    return static_cast<unsigned short>(atom->uiParam) + g_cursor_hotspot_x_6596bc;
+}
+
+// FUNCTION: WIZ8 0x004285a0
+int GetAtomCursorY004285A0(const InputAtom* atom)
+{
+    return static_cast<int>(atom->uiParam >> 16) + g_cursor_hotspot_y_6596c0;
+}
+
 /* Creates the shipped 128x128 mouse polygon inside its dedicated scene. */
 // FUNCTION: WIZ8 0x004285c0
 unsigned char InitializeMouseCursorScene(void)

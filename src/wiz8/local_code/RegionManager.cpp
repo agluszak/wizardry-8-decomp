@@ -1,7 +1,9 @@
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
@@ -259,26 +261,26 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, Function0059DA30, 3, 1, 0, 99, 0},
     {0x00000001, 0, 0, 0, 0, Function0059DA30, 8, 1, 0, 17, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 6, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 6, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 8, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 9, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 7, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 8, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 9, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 10, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 11, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 12, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 10, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 11, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 12, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 13, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B29D0, 14, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 13, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 14, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function005B2CB0, 0, 1, 0, 1981, 0},
 
     {0x00000001, 0, 0, 0, 0, Function005B2CB0, 1, 1, 0, 1982, 0},
@@ -419,14 +421,14 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 0, 1, 0, 2385, 0},
     {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 1, 1, 0, 2386, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, Function005B79F0, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 5, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, Function005B62C0, 0, 1, 0, 2364, 0},
 
     {0x00000001, 0, 0, 0, 0, Function005B62C0, 1, 1, 0, 2367, 0},
@@ -520,19 +522,19 @@ void ReleasePointer689B40(void)
 // FUNCTION: WIZ8 0x004f1360
 unsigned int UpdateRegionMousePosition(int x, int y)
 {
-    W8RegionMouseEvent event;
+    W8RegionEvent event;
     unsigned int set_index;
     unsigned int region_index;
 
-    event.event.time = GetClock();
-    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.event.reason = MOUSE_POS;
+    event.time = GetClock();
+    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.reason = MOUSE_POS;
     event.mouse_position = (static_cast<unsigned int>(static_cast<unsigned short>(y)) << 16) |
                            static_cast<unsigned short>(x);
 
     if (g_captured_region_index != 0) {
         W8Region* forced = &g_regions[g_captured_region_index];
-        forced->callback(&event.event, forced);
+        forced->callback(&event, forced);
         return g_current_region_index;
     }
 
@@ -553,7 +555,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             if (previous_index != 0 && previous_index != region_index) {
                 W8Region* previous = &g_regions[previous_index];
                 previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-                previous->callback(&event.event, previous);
+                previous->callback(&event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
                     VideoRemoveToolTip();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
@@ -567,7 +569,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                 region->flags |= W8_REGION_MOUSE_ENTER;
                 SetRegionHelpText(FormatWideString(L"Region %d", region_index));
             }
-            region->callback(&event.event, region);
+            region->callback(&event, region);
             if (g_current_region_index != previous_index) {
                 if (region->help_enabled != 0 &&
                     (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
@@ -586,7 +588,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
         unsigned int previous_index = g_hover_region_index;
         W8Region* previous = &g_regions[previous_index];
         previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-        previous->callback(&event.event, previous);
+        previous->callback(&event, previous);
         if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
             VideoRemoveToolTip();
             previous->flags &= ~W8_REGION_HELP_SHOWN;
@@ -606,13 +608,13 @@ unsigned int UpdateRegionMousePosition(int x, int y)
 // FUNCTION: WIZ8 0x004f16f0
 unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
 {
-    W8RegionMouseEvent event;
+    W8RegionEvent event;
     unsigned int set_index;
     unsigned int region_index;
 
-    event.event.time = GetClock();
-    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.event.reason = MOUSE_POS;
+    event.time = GetClock();
+    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.reason = MOUSE_POS;
     event.mouse_position = (static_cast<unsigned int>(y) << 16) | x;
 
     if (g_captured_region_index != 0) {
@@ -631,7 +633,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
             if (g_hover_region_index != 0 && g_hover_region_index != region_index) {
                 W8Region* previous = &g_regions[g_hover_region_index];
                 previous->flags = (previous->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-                previous->callback(&event.event, previous);
+                previous->callback(&event, previous);
                 if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
                     VideoRemoveToolTip();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
@@ -1119,12 +1121,12 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
 void ClearHotRegion004F2A80(void)
 {
     POINT mouse;
-    W8RegionMouseEvent event;
+    W8RegionEvent event;
 
     SGPMouseGetPos(&mouse);
-    event.event.time = GetClock();
-    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
-    event.event.reason = MOUSE_POS;
+    event.time = GetClock();
+    event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.reason = MOUSE_POS;
     event.mouse_position =
         (static_cast<unsigned int>(mouse.y) << 16) | (static_cast<unsigned int>(mouse.x) & 0xffff);
 
@@ -1133,7 +1135,7 @@ void ClearHotRegion004F2A80(void)
         unsigned int mode = region->flags & W8_REGION_MODE_MASK;
         if (mode == 1 || mode == 2) {
             region->flags = (region->flags & 0xff0f) | W8_REGION_MOUSE_LEAVE;
-            region->callback(&event.event, region);
+            region->callback(&event, region);
             unsigned int region_index = g_current_region_index;
             if ((g_regions[region_index].flags & W8_REGION_HELP_SHOWN) != 0) {
                 VideoRemoveToolTip();

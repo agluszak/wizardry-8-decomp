@@ -2,7 +2,7 @@
 #define WIZ8_LOCAL_CODE_MONSTER_GROUP_H
 
 #include "wiz8/geometry.h"
-#include "wiz8/factions.h"
+#include "wiz8/local_code/Factions.h"
 
 struct W8IList;
 struct W8MonsterRecord;

@@ -10,6 +10,8 @@ class W8Widget;
 struct W8Character;
 struct W8CombatSlot;
 struct W8ItemInstance;
+struct W8Region;
+struct W8RegionEvent;
 
 /* The three listeners own different range controls. Their callbacks update
    the item, spell-realm and skill scroll positions respectively. */
@@ -87,9 +89,12 @@ struct W8CampScreenState0069C0F4 {
     unsigned int hover_region;
     unsigned int redraw_flags;
     unsigned int item_redraw_flags;
-    unsigned char unknown_100[0x3c0];
-    int spell_scroll[6]; /* 0x4c0 */
-    unsigned char unknown_4d8[4];
+    /* 0x100: the learned-spell lists, handed to BuildLearnedSpellState004F9600
+       as its W8LearnedSpellScratch; the scratch's trailing counters land on
+       spell_scroll and learned_spell_total. */
+    int spell_ids_by_realm[6][40];
+    int spell_scroll[6];          /* 0x4c0 */
+    int learned_spell_total;      /* 0x4d8 */
     unsigned char realm_flags[6]; /* 0x4dc */
     unsigned char unknown_4e2[2];
     unsigned int item_scroll;
@@ -112,10 +117,12 @@ struct W8CampScreenState0069C0F4 {
     unsigned char skill_flag;
     unsigned char unknown_d09[3];
     int skill_scroll;
-    unsigned char unknown_d10[0x1c];
+    unsigned char unknown_d10[8];
+    int skill_selection; /* 0xd18: cleared when the reviewed character changes */
+    unsigned char unknown_d1c[0x10];
     int skill_list_scroll;
     void* skill_stack;
-    int field_d34;
+    int selected_spell_row; /* 0xd34 */
     unsigned char unknown_d38[7];
     unsigned char entry_mode;
     unsigned char unknown_d40[4];
@@ -156,8 +163,6 @@ void ClearOtherRealmFilters005A49D0(unsigned int realm);
 void RebuildCampItemList005A4A00(void);
 void SetCampInputMode005A4BC0(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
-void OpenCampMessageDialog005A4C00(wchar_t* text, W8DialogDestroyCallback callback,
-                                   int confirmation, int cancel);
 void DismissSelectedPartyCharacter(void);
 
 void CreateRcsLevelUpPanel(void);
@@ -182,6 +187,16 @@ int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
    hand - split one off into the hand, or add one onto the held stack. */
 void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
 
+/* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
+   gates an item click on the character's remaining action allowance in
+   combat; 0x005A6440 programs a pending use-item action aimed at an item. */
+char Function5A6090(int party_slot);
+int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
+
+/* 0x005A5DA0: move a single unit between the clicked stack and the item in
+   hand - split one off into the hand, or add one onto the held stack. */
+void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin);
+
 void CampScreenInitializeRegions(void);
 void LayoutCampSecondaryRegions(void);
 unsigned char CampScreenInitialize(void);
@@ -189,11 +204,22 @@ unsigned char CampScreenEnter(void);
 void CampScreenFrame(void);
 unsigned char CampScreenLeave(int leaving);
 
+/* Camp spell-page pieces in ReviewCharacterScreen.cpp: the character switch,
+   the six realm scrollbars, the page renderer, the resistance bars and the
+   spell-list region callback that opens per-spell info dialogs. */
+void SetCampSpellRangesEnabled005B71C0(unsigned char enable);
+void RefreshCampSpellRanges005B7290(void);
+void EnableCampActionButtons005B9270(void);
+void DrawCampSpellPages005B7300(void);
+void DrawCampResistances005B7790(void);
+unsigned char SpellListRegionHandler005B79F0(const W8RegionEvent* event, W8Region* region);
+void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
+void Function5A4570(void);
+void Function5C4EE0(void);
+
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;
 
-void Function5A20E0(int);
-void Function5A23E0(void);
 void Function5187E0(void);
 
 /* 0x005A6620: begin the timed screen fade and run `callback` when it

@@ -32,7 +32,7 @@
 #include "wiz8/music_playlist.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/record_file_0055a480.h"
+#include "wiz8/npc_script_file.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/screen_state.h"
@@ -319,7 +319,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
 
     for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info->flag_14 != 0) {
+        if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);
             offset = srVector3T<float>(center.x - location.x, center.y - location.y,
                                        center.z - location.z);
@@ -394,7 +394,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
             monster_info->condition_target_304 = *source;
             if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) != 0 &&
                 source->iChar != -1) {
-                *(int*)&monster_info->pCombat->unknown_01a[source->iChar * 4] += amount;
+                monster_info->pCombat->character_hate[source->iChar] += amount;
             }
         }
         applied = monster_info->hp_current;
@@ -799,7 +799,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
     }
     if (amount != 0) {
         GetMonsterDataForInfo(monster_info);
-        if (amount < (unsigned int)monster_info->stamina) {
+        if (amount < static_cast<unsigned int>(monster_info->stamina)) {
             monster_info->stamina -= amount;
         } else {
             monster_info->stamina = 0;
@@ -807,10 +807,11 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
     }
 
     monster_info->fatigue_band = FatigueBandFromMissing(
-        100 - (int)((monster_info->stamina * 100) / (unsigned int)monster_info->stamina_max));
+        100 - static_cast<int>((monster_info->stamina * 100) /
+                               static_cast<unsigned int>(monster_info->stamina_max)));
 
     if (monster_info->stamina == 0 &&
-        (unsigned int)monster_info->condition_turns[W8_CONDITION_EXHAUSTED] <
+        static_cast<unsigned int>(monster_info->condition_turns[W8_CONDITION_EXHAUSTED]) <
             W8_CONDITION_INDEFINITE) {
         ResetTargetSource(&target_block);
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
@@ -840,21 +841,21 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
 {
     unsigned int stamina_max;
 
-    if ((unsigned int)monster_info->highest_condition >= W8_CONDITION_DEAD ||
+    if (static_cast<unsigned int>(monster_info->highest_condition) >= W8_CONDITION_DEAD ||
         monster_info->hp_current == 0) {
         return;
     }
     stamina_max = monster_info->stamina_max;
-    if ((unsigned int)monster_info->stamina == stamina_max) {
+    if (static_cast<unsigned int>(monster_info->stamina) == stamina_max) {
         return;
     }
 
     monster_info->stamina += amount;
-    if ((unsigned int)monster_info->stamina > stamina_max) {
+    if (static_cast<unsigned int>(monster_info->stamina) > stamina_max) {
         monster_info->stamina = stamina_max;
     }
     if (announce) {
-        if ((unsigned int)monster_info->stamina == stamina_max) {
+        if (static_cast<unsigned int>(monster_info->stamina) == stamina_max) {
             WriteGameLog(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
             WriteGameLog(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
@@ -862,10 +863,11 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
     }
 
     monster_info->fatigue_band = FatigueBandFromMissing(
-        100 - (int)((monster_info->stamina * 100) / (unsigned int)monster_info->stamina_max));
+        100 - static_cast<int>((monster_info->stamina * 100) /
+                               static_cast<unsigned int>(monster_info->stamina_max)));
 
     if (monster_info->condition_turns[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
-        (unsigned int)monster_info->stamina > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
+        static_cast<unsigned int>(monster_info->stamina) > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED);
     }
 }
@@ -881,7 +883,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     StartMonsterCycle(monster_info, 0x14, 1);
 
     if (monster_info->condition_turns[15] != 0 && quiet == 0 &&
-        Random(100) < (unsigned int)((monster_info->attributes[4] >> 1) + 0x32)) {
+        Random(100) < static_cast<unsigned int>((monster_info->attributes[4] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
     if (monster_info->control_state == 1) {
@@ -1719,6 +1721,8 @@ int g_special_event_0068c540;
 int g_special_event_0068c550;
 // GLOBAL: WIZ8 0x0068C558
 int g_special_event_0068c558;
+// GLOBAL: WIZ8 0x0068C55C
+int g_special_event_0068c55c;
 // GLOBAL: WIZ8 0x0068C564
 int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
@@ -2227,14 +2231,14 @@ unsigned char W8CharacterEvent::Dispatch()
             }
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetFlag68C500(1);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             BeginNpcScriptDialogue(npc, 1);
             RunNpcScriptLine(event_type, (flags & W8_EVENT_NPC_SCRIPT) != 0);
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
                 SetFlag68C500(0);
-                ReleaseRecordFile0055A0A0(npc->record_file);
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             slot->active_character_event = this;
@@ -2476,7 +2480,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         }
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 0 &&
-        g_level_block->party_bytes_109[party_slot] == 0 &&
+        g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);
         record->field_0cf = 1;

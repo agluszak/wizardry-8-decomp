@@ -1394,7 +1394,7 @@ void W8TriggerItemPickerDialog::ScrollItemsToMouse005CEAF0(W8DialogButton* butto
     int bottom;
     int index;
 
-    if (button != 0 && g_left_button_down_6f04ed != 0) {
+    if (button != 0 && gfLeftButtonState != 0) {
         W8TriggerItemPickerDialog* dialog =
             static_cast<W8TriggerItemPickerDialog*>(button->m_owner_040);
         SGPMouseGetPos(&point);
@@ -1405,7 +1405,9 @@ void W8TriggerItemPickerDialog::ScrollItemsToMouse005CEAF0(W8DialogButton* butto
             top = bottom - dialog->m_buttons_74[10]->GetHeight() +
                   dialog->m_buttons_74[12]->GetHeight();
         } else {
-            bottom = top = (int)button;
+            bottom = top =
+                reinterpret_cast< // reinterpret-ok: retail uses the button address as the fallback coordinate
+                    int>(button);
         }
         bottom += dialog->m_buttons_74[9] != 0 ? dialog->m_buttons_74[9]->GetHeight() : -1;
         top -= (dialog->m_buttons_74[10] != 0 ? dialog->m_buttons_74[10]->GetHeight() : -1) +
