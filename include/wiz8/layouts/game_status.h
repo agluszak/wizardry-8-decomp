@@ -3,10 +3,10 @@
 
 #include "Types.h"
 
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/gameplay_modifiers.h"
-#include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/item_instance.h"
+#include "wiz8/layouts/levels.h"
 #include "wiz8/layouts/party_formation.h"
 #include "wiz8/layouts/world.h"
 

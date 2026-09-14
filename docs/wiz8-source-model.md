@@ -61,12 +61,24 @@ Recovered headers therefore have an explicit role, recorded in
 
 - **shared-layout** (`include/wiz8/layouts/…`, plus leaf records such as
   `gameplay_modifiers.h`): packed records, enums and the globals that *are* that
-  storage. No behavioral API.
+  storage. No behavioral API — no out-of-line or member function declarations,
+  no in-header definitions, and no includes of headers that declare
+  namespace-scope functions.
 - **tu-interface**: declarations whose implementations belong to one original TU.
+  A header that genuinely serves several TUs (for example a class whose methods
+  are defined in two implementation files) names them in `implementation-tus`.
 - **reconstructed-declarations**: a deliberate header split (Controls `Widget.h` /
   `TextBuffer.h`, and similar) that names one or more implementation TUs and does not
   claim original header filenames.
+- **header-implementation**: a header that emits code itself — template
+  implementations or inline members — such as the proven `stHeap.hpp`.
 - **bridge**: `sgp_bridge.h`, the C linkage SGP C sources consume.
+
+Member declarations are checked with qualified names (`Class::method`), so a
+class interface split across TUs is detected the same way free declarations
+are. Provenance is independent of role: `proven-original-headers` records the
+assertion-evidenced filename while `headers` still assigns the architectural
+role.
 
 `wiz8 report header-architecture` writes
 `build/reports/header-architecture/report.json`. Unclassified mixed headers stay in
