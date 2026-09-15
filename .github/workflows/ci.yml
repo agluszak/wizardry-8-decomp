@@ -61,6 +61,7 @@ jobs:
 
       - name: Install host tools
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             cabextract \
@@ -69,7 +70,9 @@ jobs:
             p7zip-full \
             unshield \
             unzip \
-            wine
+            wine \
+            wine32:i386 \
+            wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
           command -v wine
