@@ -199,6 +199,12 @@ jobs:
             echo '__RECCMP_STATUS__'
           } >> "$GITHUB_OUTPUT"
 
+      - name: Audit specialized reccmp comparisons
+        if: env.LICENSED_INPUTS == 'true'
+        run: |
+          uv run wiz8 vtable
+          uv run wiz8 datacmp
+
       - name: Run licensed comparison tests
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: uv run pytest -q tests/licensed
