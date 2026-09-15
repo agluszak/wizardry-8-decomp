@@ -98,9 +98,7 @@ def test_same_rva_in_one_binary_still_collides(tmp_path: Path) -> None:
 
 
 def test_address_derived_name_is_allowed_for_declaration_only(tmp_path: Path) -> None:
-    repository = _repository(
-        tmp_path, [], [_declaration("Function41AAE0", is_definition=False)]
-    )
+    repository = _repository(tmp_path, [], [_declaration("Function41AAE0", is_definition=False)])
 
     assert identity_violations(repository) == []
     assert validate_identity(repository)["ok"]
