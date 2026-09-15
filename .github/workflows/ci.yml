@@ -68,9 +68,11 @@ jobs:
             llvm \
             p7zip-full \
             unshield \
-            unzip
+            unzip \
+            wine
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
+          command -v wine
 
       - name: Install pinned Ghidra
         run: |
