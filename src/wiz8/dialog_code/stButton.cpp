@@ -127,6 +127,20 @@ void W8DialogButton::SetVisible(bool visible)
     }
 }
 
+// FUNCTION: WIZ8 0x005dba70
+void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
+{
+    if (enabled) {
+        if (m_tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
+            SetButtonFastHelpText(m_button_01c,
+                                  reinterpret_cast<UINT16*>(
+                                      gppStringList[m_tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+        }
+    } else {
+        SetButtonFastHelpText(m_button_01c, 0);
+    }
+}
+
 // FUNCTION: WIZ8 0x005dbaf0
 int W8DialogButton::GetUserData()
 {

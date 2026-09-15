@@ -813,7 +813,7 @@ after_sight:
                             static_cast<int>(monster_info->party_threat.state_04),
                             g_status_685170.party_modifiers_22e3.flag_4a, distance);
 
-                        if (g_status_685170.flag_238f != 0) {
+                        if (g_status_685170.search_mode != 0) {
                             threshold *= g_sight_threat_scale_005ed7f8;
                         }
                         if (threshold >= distance) {
@@ -860,7 +860,7 @@ after_sight:
                                 }
                             }
                         } else {
-                            W8NpcState* npc = GetNpcStateByKind(record->unknown_0cd[0]);
+                            W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
 
                             if (npc == 0) {
                                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0xe9, 0);
@@ -876,7 +876,8 @@ after_sight:
                                     if (party_slot != -1) {
                                         int effect = g_sight_effect_005ee620;
 
-                                        if (npc->name_style == 0x18 && GetFact(0x2ee) != 0) {
+                                        if (npc->name_style == W8_NPC_VI_DOMINA &&
+                                            GetFact(W8_FACT_PARTY_MET_VI) != 0) {
                                             effect = g_sight_effect_005ee66c;
                                         }
                                         W8CharacterEvent* notice = QueueCharacterEvent(
@@ -935,7 +936,7 @@ after_sight:
                     : 2);
         }
         if (record != 0 && (record->flags_0d0 & 1) != 0) {
-            W8NpcState* npc = GetNpcStateByKind(record->unknown_0cd[0]);
+            W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
 
             if (npc == 0) {
                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0x15b, 0);

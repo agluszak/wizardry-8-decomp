@@ -19,6 +19,8 @@ public:
 
 private:
     friend class W8DialogTextArea;
+    /* The controller reads m_category when it snapshots the transcript. */
+    friend class W8NpcDialogueTextController;
     unsigned int m_prefix_palette; /* 0x50 */
     unsigned int m_text_palette;   /* 0x54 */
     int m_prefix_length;           /* 0x58: includes ": " */

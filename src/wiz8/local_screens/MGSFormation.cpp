@@ -111,7 +111,7 @@ void RefreshFormationBoard(void)
     unsigned int video_object;
 
     if (g_status_685170.selected_character != -1) {
-        Function5554A0(g_status_685170.selected_character);
+        FaceCameraToSelection(g_status_685170.selected_character);
     }
     if (g_level_block->formation_board_visible == 0) {
         return;
@@ -427,7 +427,7 @@ static void SelectFormationCell(void)
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
-        Function565740(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
+        SelectPartyCharacter(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
     }
 }
 
@@ -644,7 +644,7 @@ static void BeginFormationDrag(const InputAtom*)
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
-        Function565740(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
+        SelectPartyCharacter(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
     }
     g_formation_cell_controls[g_formation_active_cell_0069c2f0]->DisableSecondaryState(0);
     g_formation_drag_slot_0069c2f4 =

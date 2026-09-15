@@ -96,6 +96,7 @@ static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
 static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
+extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
 
 void RunNpcScriptLine(int script_line, unsigned char param);        /* 0x00525FA0 */
 void ProcessMessageBoxQueue(void);                                  /* 0x00526E90 */
@@ -105,32 +106,37 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int script_line); /* 0x0052681
 void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id);
 /* 0x00528CD0: look the item's fact up; both out-pointers are optional. */
 int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item);
-void Function529F90(void);                                           /* 0x00529F90 */
-void NpcScriptCallback0052A080(W8Monster* monster);                  /* 0x0052A080 */
-void NpcScriptCallback0052A150(W8Monster* monster);                  /* 0x0052A150 */
-void NpcScriptCallback0052A190(W8Monster* monster);                  /* 0x0052A190 */
-void NpcScriptCallback00526E40(void);                                /* 0x00526E40 */
-void NpcScriptCallback00526E70(void);                                /* 0x00526E70 */
-void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);            /* 0x0052A1B0 */
-void UpdateNpcDialogueVoiceAndCursor(void);                          /* 0x00524DA0 */
-void ProcessNpcScriptingFrame(void);                                 /* 0x00524EB0 */
-void SetFlag68C500(unsigned char value);                             /* 0x0052A1A0 */
-unsigned char GetFlag68C4FA(void);                                   /* 0x0052A070 */
-void QueueNpcMessageLine(int kind, int argument);                    /* 0x005289B0 */
-void RestoreCurrentNpcQuoteBubble(void);                             /* 0x00529510 */
-void QueueNpcScriptLine(int line, int value, int prepend, int flag); /* 0x00528830 */
-void BeginNpcScriptedScene(void);                                    /* 0x00529BE0 */
-void BeginSedexusCapture(void);                                      /* 0x00529EF0 */
+void ResolveSedexusCapture(void);                         /* 0x00529F90 */
+void NpcScriptHenchmanArrives(W8Monster* monster);        /* 0x0052A080 */
+void NpcScriptHenchmanDeparted(W8Monster* monster);       /* 0x0052A150 */
+void NpcScriptSavantHackDone(W8Monster* monster);         /* 0x0052A190 */
+void NpcScriptTurnToBook(void);                           /* 0x00526E40 */
+void NpcScriptQueueEndgame(void);                         /* 0x00526DF0 */
+void NpcScriptEndgameScreen(void);                        /* 0x00526E70 */
+void OnNpcTravelConfirmationClosed(W8DialogBase* dialog); /* 0x0052A1B0 */
+void UpdateNpcDialogueVoiceAndCursor(void);               /* 0x00524DA0 */
+void ProcessNpcScriptingFrame(void);                      /* 0x00524EB0 */
+/* 0x0052A1A0: while a scripted NPC event dispatches the grouped NPC's RPC_
+   script prefix is suppressed so the event runs the NPC's own script. */
+void SetNpcScriptEventActive(unsigned char value);
+/* 0x0052A070: gates the condition-reaction pass while the Sedexus capture
+   cutscene runs. */
+unsigned char IsSedexusCaptureActive(void);
+void QueueNpcMessageLine(int kind, int argument);         /* 0x005289B0 */
+void RestoreCurrentNpcQuoteBubble(void);                  /* 0x00529510 */
+void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char prepend,
+                        unsigned char suppress_entries); /* 0x00528830 */
+void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
+void BeginSedexusCapture(void);                          /* 0x00529EF0 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
-void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
-void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
+
 void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */
 void AuditNpcScriptQuotes00529660(void);
-void SetFlag68C4F7(void);   /* 0x00529BC0 */
-void ClearFlag68C4F7(void); /* 0x00529BD0 */
+void SetScriptedSceneActive(void);   /* 0x00529BC0 */
+void ClearScriptedSceneActive(void); /* 0x00529BD0 */
 /* 0x00524CA0: the NPC-side rebinding pass; reloads the NPC's .nsf script
    file and rebuilds its runtime bindings. */
 void ReloadNpcScriptResources(W8NpcState* npc);

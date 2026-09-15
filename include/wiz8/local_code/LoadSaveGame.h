@@ -96,4 +96,6 @@ unsigned char LoadDefaultLevelStatus(unsigned int level);
 
 void ResetLiveSessionForLoad(void); /* 0x00512C40 */
 
+unsigned char SelectQuickSaveSlotForWrite(char* slot_name); /* 0x00516670 */
+
 void ReportSaveFailed(char quiet); /* 0x00515AC0 */

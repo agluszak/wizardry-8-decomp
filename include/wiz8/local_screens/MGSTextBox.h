@@ -34,14 +34,11 @@ void WriteGameLogAmount(int color, const wchar_t* format, ...);
 void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
 
 void ReleaseMessageStorage(void);
-bool GrowDialogueTextBuffer(void);                             /* 0x0058D7E0 */
-bool GrowDialogueLineOffsets(void);                            /* 0x0058D890 */
-void ReleaseDialogueTextInput(void);                           /* 0x0058D940 */
-void InsertDialogueTextCharacter(wchar_t character);           /* 0x0058D9C0 */
-void RewrapDialogueTextFromLine(unsigned int line);            /* 0x0058DCA0 */
-void InvalidateDialogueTextCursor(void);                       /* 0x0058DF60 */
-void DeleteDialogueTextCharacter(unsigned int key);            /* 0x0058E010 */
+/* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
+   translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
+int GetTextSlot1E8(int index);                                 /* 0x0058FA60 */
+void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
@@ -57,6 +54,8 @@ int GetTextBoxScrollRange(void);
 void PostCharacterNotice(int party_slot, const wchar_t* format, ...);            /* 0x00590950 */
 void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...); /* 0x00590B40 */
 void ScrollTextBoxTo(int line);                                                  /* 0x0058BBC0 */
+void ScrollTextBoxUp(int lines);                                                 /* 0x0058BF00 */
+void ScrollTextBoxDown(int lines);                                               /* 0x0058C060 */
 /* 0x0058B410: recolour the character span [start, stop) of the most recent
    line in one text box; -1 picks the box the current game mode writes to. */
 void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,

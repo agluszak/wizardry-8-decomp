@@ -397,7 +397,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->party_slots_170[6] = 0;
     g_level_block->formation_highlight_party_slot = -1;
     g_level_block->held_item_display_190 = -1;
-    g_level_block->value_23c = -1;
+    g_level_block->highlight_row = -1;
     g_level_block->highlight_graphic = 0;
     g_level_block->value_198 = 0x35;
     g_level_block->portrait_overlay_party_slot = -1;
@@ -465,7 +465,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->tooltip_kind = -1;
     g_level_block->countdown_30c = SetCountdownClock(0);
     g_level_block->combat_slot = -1;
-    g_level_block->flag_314 = 0;
+    g_level_block->keyboard_menu_open = 0;
     g_level_block->hover_combat_slot = -1;
     g_level_block->flag_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);

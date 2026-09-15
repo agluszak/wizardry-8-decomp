@@ -17,10 +17,9 @@ public:
     W8ConditionButton(Controls* panel, unsigned int region, int left, int top, int right,
                       int bottom, int text_40, int text_44, int text_48, int text_4c, int text_54,
                       int text_50, int text_58, int ui_slot)
-        : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48,
-                        text_4c, text_54, text_50, text_58),
-          m_condition_b8(0xff),
-          m_ui_slot_c0(ui_slot)
+        : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
+                        text_54, text_50, text_58),
+          m_condition_b8(0xff), m_ui_slot_c0(ui_slot)
     {
     }
     virtual ~W8ConditionButton() override;
@@ -43,13 +42,13 @@ static_assert(offsetof(W8ConditionButton, m_condition_b8) == 0xb8,
               "W8ConditionButton_condition_b8");
 static_assert(offsetof(W8ConditionButton, m_image_object_bc) == 0xbc,
               "W8ConditionButton_image_object_bc");
-static_assert(offsetof(W8ConditionButton, m_ui_slot_c0) == 0xc0,
-              "W8ConditionButton_ui_slot_c0");
+static_assert(offsetof(W8ConditionButton, m_ui_slot_c0) == 0xc0, "W8ConditionButton_ui_slot_c0");
 
 void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);
 void Function59B940(void);
-void CreateConditionButtons(void);                                          /* 0x0059BDB0 */
+void ToggleNumericHitPoints(void);                               /* 0x0059AA30 */
+void CreateConditionButtons(void);                               /* 0x0059BDB0 */
 void EnablePortraitAdvanceRegions0059BB70(void);                 /* 0x0059BB70 */
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 */
 
@@ -58,3 +57,9 @@ unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int 
                                           unsigned int top); /* 0x005993A0 */
 void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char overlay_ready,
                                 char slot_enabled); /* 0x005994C0 */
+
+/* 0x0059AA60: the slot's menu/portrait anchor table - the keyboard-menu
+   panel's origin, the portrait band's two x edges, the grid row and the
+   column pixel; the adjust flag applies the compact-display shift. */
+void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_menu_edge,
+                            int* band_portrait_edge, int* grid_row, int* column_x, int adjust);

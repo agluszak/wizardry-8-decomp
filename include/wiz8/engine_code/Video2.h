@@ -263,6 +263,7 @@ void SetValue65962C(srModelInstance* value);
 #endif
 
 extern unsigned char* g_render_options_65a118;
+void SetRendererMode6596EC(void); /* 0x00428A90 */
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);
 int GetRendererFamily(void);

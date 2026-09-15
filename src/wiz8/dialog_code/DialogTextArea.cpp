@@ -15,6 +15,16 @@
    0x005EF898 (marked in the header) holds 0x005D2590, so only that copy
    pairs to the recompiled sdd. */
 
+/* The NPC-dialogue translation unit's own copies of the 1/2/4 text-buffer
+   layout masks; they sit immediately ahead of this file's vector vtable at
+   0x005EF898 in retail data. */
+// GLOBAL: WIZ8 0x005EF888
+extern const unsigned int g_W8TextBufferLayoutMask005EF888 = 0x01;
+// GLOBAL: WIZ8 0x005EF88C
+extern const unsigned int g_W8TextBufferLayoutMask005EF88C = 0x02;
+// GLOBAL: WIZ8 0x005EF890
+extern const unsigned int g_W8TextBufferLayoutMask005EF890 = 0x04;
+
 // SYNTHETIC: WIZ8 0x005d2560
 // W8GrowableVector<W8DialogTextEntry*>::`scalar deleting destructor' (second emission)
 

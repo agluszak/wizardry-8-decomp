@@ -1056,7 +1056,7 @@ void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
 
 /* Learned, and the remaining points in the spell's realm cover its cost. */
 // FUNCTION: WIZ8 0x004f9750
-char CanCharacterCastSpell(W8Character* character, int spell_id)
+bool CanCharacterCastSpell(W8Character* character, int spell_id)
 {
     if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
         g_spell_records[spell_id].spell_point_cost <=
@@ -1334,14 +1334,11 @@ int GetAffordableSpellPowerLevel(int party_slot)
     return 0;
 }
 
-/* The origin that means the item is worn or held rather than carried; in
-   combat an equipped item is not re-fetched. */
-enum { W8_ITEM_ORIGIN_EQUIPPED = 2 };
-
 /* Whether the slot could go through with the item use it has recorded. The
    item is looked up again from where it was taken rather than trusted, and the
    re-read pointer is stored back, so a stale record is caught here and not at
-   the point of use.
+   the point of use. A record pointing into the shared party pool is refused
+   in combat, where only what a character personally carries is reachable.
 
    A spell whose target type is not the self-only one may be aimed anywhere; the
    self-only one has to be aimed at the user. */
@@ -1360,7 +1357,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
     row->item_detail.item_use.item = item;
 
-    if (row->item_origin == W8_ITEM_ORIGIN_EQUIPPED && gXStatus.fCombatMode != 0) {
+    if (row->item_origin == W8_ITEM_ORIGIN_PARTY_POOL && gXStatus.fCombatMode != 0) {
         return false;
     }
     if (item == 0 || item->item_id == -1 || item->item_id != row->item_id_0c9) {

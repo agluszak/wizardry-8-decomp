@@ -267,7 +267,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     if (record->unknown_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
-    Function509CD0(record->unknown_0cd[0], 1, monster_info->location_id);
+    Function509CD0(record->npc_kind_0cd, 1, monster_info->location_id);
 }
 
 /* Activate the representation lazily. The mode selects whether all available
@@ -752,7 +752,7 @@ void DestroyUngroupedMonsters(void)
             }
             g_octree_6598a4->UnregisterLocationObjects(
                 static_cast<unsigned short>(monster_info->location_id));
-            ReleaseNpcBinding(monster_info->runtime_value_2f1);
+            ReleaseNpcBinding(monster_info->bound_npc_index);
             void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
             if (removed != 0) {
                 free(removed);
@@ -1145,7 +1145,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
         }
         g_octree_6598a4->UnregisterLocationObjects(
             static_cast<unsigned short>(monster_info->location_id));
-        ReleaseNpcBinding(monster_info->runtime_value_2f1);
+        ReleaseNpcBinding(monster_info->bound_npc_index);
         void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
         if (removed != 0) {
             free(removed);
@@ -1479,7 +1479,7 @@ void ProcessMonsterManagerFrame(void)
                 }
                 g_octree_6598a4->UnregisterLocationObjects(
                     static_cast<unsigned short>(monster_info->location_id));
-                ReleaseNpcBinding(monster_info->runtime_value_2f1);
+                ReleaseNpcBinding(monster_info->bound_npc_index);
                 void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
                 if (removed != 0) {
                     free(removed);
@@ -1638,7 +1638,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         if ((record->flags_0d0 & 1) != 0) {
-            npc = GetNpcStateByKind(record->unknown_0cd[0]);
+            npc = GetNpcStateByKind(record->npc_kind_0cd);
             if (npc != 0 && npc->record->has_group != 0) {
                 suppress_exact_health = 1;
             }

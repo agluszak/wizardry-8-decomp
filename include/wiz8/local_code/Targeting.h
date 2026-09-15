@@ -39,6 +39,7 @@ unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_i
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
 void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
+void Function53B050(int party_slot); /* 0x0053B050 */
 void RefreshAllPartyTargets(void);
 unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int arg);
 /* 0x005387F0 */
@@ -118,6 +119,8 @@ void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
+unsigned char SlotHasAnyValidTarget(int party_slot);                         /* 0x0053CDF0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
 void Function537540(int party_slot);                                         /* 0x00537540 */
+void Function537D20(int party_slot);                                         /* 0x00537D20 */
 char Function53C2C0(int party_slot);

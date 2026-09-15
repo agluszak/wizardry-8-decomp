@@ -295,7 +295,9 @@ struct W8MonsterInfo {
     int action_detail;
     unsigned int spell_power_level;
     unsigned char unknown_2ed[4];
-    int runtime_value_2f1; /* 0x2f1: released when an entry is destroyed */
+    /* 0x2f1: this script part's bound NPC slot in g_npc_states, released when
+       the entry is destroyed. */
+    int bound_npc_index;
     /* 0x2f5: the monster's own contribution to the spell-point budget its
        database record sets a base for; the power-level chooser adds the two
        and reports a DATA ERROR when the base is zero. */
@@ -372,6 +374,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
+void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
 
 #endif

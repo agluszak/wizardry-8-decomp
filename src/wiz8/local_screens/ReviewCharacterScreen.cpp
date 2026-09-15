@@ -2825,5 +2825,5 @@ void BeginEndgameSequence005A6580(void)
     VideoRemoveToolTip();
     g_level_block->transition_pending = 1;
     g_level_block->flag_327 = 1;
-    Function5A6620(fade_to_black, 0, fade_code, Function5A6B90, 1, endgame_variant);
+    BeginScreenFade(fade_to_black, 0, fade_code, Function5A6B90, 1, endgame_variant);
 }

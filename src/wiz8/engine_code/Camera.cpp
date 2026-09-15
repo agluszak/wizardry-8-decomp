@@ -68,8 +68,8 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
     Function41AAE0(g_saved_environment_flag_60aa64);
     if (g_status_685170.current_level == 1) {
         if (_stricmp(path->name_00, "Camera01") == 0) {
-            QueueNpcMessageLine(9, 0x721);
-            QueueNpcMessageLine(0xe, 0);
+            QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x721);
+            QueueNpcMessageLine(W8_NPC_MSG_PATH2_TRIGGER, 0);
             return;
         }
         if (_stricmp(path->name_00, "Camera02") == 0) {

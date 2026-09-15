@@ -154,7 +154,7 @@ static_assert(sizeof(W8MainGameStatusPanel005EEBC0) == 0x6c, "W8MainGameStatusPa
 /* The 0x50-byte panel stored at W8MainScreenState+0x1a8 (bounds
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
    Its SetEnabled keeps those six inactive unless the expanded NPC dialogue
-   layout (value_fc == 4) is up, and its Redraw substitutes m_value_4c for
+   layout (value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) is up, and its Redraw substitutes m_value_4c for
    m_renderArg_20 in that mode. The constructor is inlined into 0x0056D1D0 as
    the Controls base call plus m_value_4c = 0x11; no standalone derived body
    exists. */
@@ -170,7 +170,7 @@ public:
     virtual void SetEnabled(bool enable) override; /* 0x0056BC50 */
     virtual void Redraw() override;                /* 0x0056BD30 */
 
-    int m_value_4c; /* 0x4c: catalog image used while value_fc == 4 */
+    int m_value_4c; /* 0x4c: catalog image used while value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX */
 };
 static_assert(sizeof(W8MainGamePanel005EE9F0) == 0x50, "W8MainGamePanel005EE9F0_size");
 
@@ -198,14 +198,41 @@ static_assert(sizeof(W8MainGamePanel005EE9E4) == 0x4c, "W8MainGamePanel005EE9E4_
 // VTABLE: WIZ8 0x005ee920
 class W8NpcDialogueTextController : public Controls {
 public:
-    W8NpcDialogueTextController(int left, int top, int right, int bottom, int render_target,
-                                int render_arg_1c, int render_arg_20, int field_4c,
-                                int field_50); /* 0x0055DE40 */
+    W8NpcDialogueTextController(int panel_left, int panel_top, int panel_right, int panel_bottom,
+                                int render_target, int render_arg_1c, int render_arg_20,
+                                int margin_image, int line_image); /* 0x0055DE40 */
     bool HandleScrollDownCommand(unsigned int command);
     bool HandleScrollUpCommand(unsigned int command);
+    /* Add one keyword line to the transcript unless the text is already
+       present; a nonzero mark puts the new entry in state 0x60, and any
+       leftover "[No Keywords]" placeholder is removed afterwards. */
+    unsigned char AddTranscriptEntry(const wchar_t* text, signed char category,
+                                     char mark); /* 0x0055E0C0 */
+    /* Whether the expanded transcript's top edge reaches above the portrait
+       band for an odd party slot (1 -> 0x67, 3 -> 0xbc, 5 -> 0x111, 7 ->
+       always covered). Callers use it to skip portrait work on rows the
+       open transcript covers. */
+    unsigned char IsSlotPortraitTranscriptCovered(unsigned int party_slot); /* 0x0055E410 */
+    /* Re-apply the category filter, rebuild the expansion and restate the
+       scroll widgets. */
+    void SetTranscriptCategoryFilter(signed char category); /* 0x0055E7C0 */
+    /* Replay every saved dialogue_transcript record into the text area,
+       adding the "[No Keywords]" placeholder and forcing the all filter
+       when nothing was saved. */
+    void RestoreTranscriptEntries(); /* 0x0055E840 */
+    /* Snapshot the transcript lines into the screen state's
+       dialogue_transcript records (text plus category byte). */
+    void SaveTranscriptEntries(); /* 0x0055E940 */
+    /* Drop every transcript line from the text area and invalidate. */
+    void ClearTranscriptEntries();                  /* 0x0055EA40 */
+    int GetSelectedTranscriptEntryIndex();          /* 0x0055EAB0 */
+    void SetTranscriptSorted(unsigned char sorted); /* 0x0055EAC0 */
+    void RemoveSelectedTranscriptEntry();           /* 0x0055EA70 */
 
-    int unknown_4c;
-    int unknown_50;
+    /* 0x4c/0x50: catalog image ids whose measured heights seed margin and
+       line_height/scroll_height in the constructor; never read again. */
+    int margin_image;
+    int line_image;
     int visible;                /* 0x54 */
     int line_height;            /* 0x58 */
     int margin;                 /* 0x5c */
@@ -462,21 +489,17 @@ struct W8PendingNoticeLine {
 
 #pragma pack(push, 1)
 /* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
-   DispatchPendingNpcScriptNotice dispatch. The flag pair at +0x14 is stored as two bytes but
-   DispatchPendingNpcScriptNotice reloads it as one dword for the BeginNpcDialogueInternal call, so the
-   union keeps both spellings honest. */
+   DispatchPendingNpcScriptNotice dispatch. flag and force are stored as
+   independent bytes at +0x14/+0x15; the dispatch reloads +0x14 as one dword
+   for the BeginNpcDialogueInternal flags argument and takes force back out of
+   its high byte, leaving +0x16/+0x17 as dead tail bytes. */
 struct W8PendingNotice {
     W8NpcState* npc;
     W8ItemInstance item;
     int line;
-    union {
-        int flags;
-        struct {
-            unsigned char flag;
-            unsigned char force;
-            unsigned char unused_16[2];
-        } bytes;
-    };
+    unsigned char flag;
+    unsigned char force;
+    unsigned char unused_16[2];
 };
 #pragma pack(pop)
 extern W8PendingNotice g_pending_notice_68ee60;
@@ -489,6 +512,41 @@ extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
    moves to the pending slot. */
 void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
+/* W8MainScreenState::value_fc - which NPC dialogue layout is up. Layout 1 is
+   not evidenced. */
+enum W8NpcDialogueLayout {
+    W8_DIALOGUE_LAYOUT_NONE = 0,
+    W8_DIALOGUE_LAYOUT_TOPIC_MENU = 2,
+    W8_DIALOGUE_LAYOUT_TRANSCRIPT = 3,
+    W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX = 4
+};
+
+/* Transcript keyword categories stored in
+   W8MainScreenState::dialogue_category_filter and on each
+   W8DialogTextEntry::m_category. The five filter buttons spell them
+   "Items", "People", "Places", "Misc" and "All"; 0x00571660 classifies a
+   keyword by scanning the item records, the NPC records plus the
+   named-monster table and the fixed place-name string table, in that
+   order. -1 shows every category. */
+enum W8DialogueCategory {
+    W8_DIALOGUE_CATEGORY_ALL = -1,
+    W8_DIALOGUE_CATEGORY_ITEMS = 0,
+    W8_DIALOGUE_CATEGORY_PEOPLE = 1,
+    W8_DIALOGUE_CATEGORY_PLACES = 2,
+    W8_DIALOGUE_CATEGORY_MISC = 3
+};
+
+/* One saved transcript keyword, malloc'd/freed as a 0xca-byte record:
+   100 wide characters of text, then the W8DialogueCategory byte. Save-game
+   serialization writes the length-prefixed text and the trailing category
+   byte; it never persists the pad. */
+struct W8DialogueTranscriptRecord {
+    wchar_t text[100];
+    signed char category;
+    unsigned char pad_0c9;
+};
+static_assert(sizeof(W8DialogueTranscriptRecord) == 0xca, "W8DialogueTranscriptRecord_size");
+
 #pragma pack(push, 1)
 struct W8MainScreenState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
@@ -499,10 +557,10 @@ struct W8MainScreenState {
        speaker - the occupied row whose character leads skill 0x16. */
     int dialogue_speaker;
     int target_location_id_f8;
-    int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
+    int value_fc;
     int value_100;
     int value_104;
-    int value_108;
+    W8ItemInstance* value_108;
     W8TextControl* dialogue_text_10c; /* 0x10c: the NPC-name caption */
     W8TextControl* dialogue_text_110;
     W8TextControl* dialogue_text_114;
@@ -513,23 +571,29 @@ struct W8MainScreenState {
     W8TextControl* dialogue_text_128;
     W8Widget* dialogue_widget_12c;
     W8NpcDialogueScrollWidget* dialogue_scroll_130; /* 0x130 */
-    W8Widget* dialogue_widget_134;                  /* 0x134 */
-    W8Widget* dialogue_widget_138;                  /* 0x138 */
+    /* 0x134/0x138: the transcript scroll arrows, wired to
+       ScrollNpcDialogueUp/ScrollNpcDialogueDown and enabled only while the
+       text area is fully expanded. */
+    W8Widget* dialogue_scroll_up_button;   /* 0x134 */
+    W8Widget* dialogue_scroll_down_button; /* 0x138 */
     W8TextControl* dialogue_text_13c;
     W8TextControl* dialogue_text_140;
     unsigned char unknown_144[4];
-    W8TextControl* dialogue_text_148;
+    /* 0x148: the "Sort Alphabetically" toggle. 0x150..0x160: the five
+       transcript category buttons in People/Places/Items/Misc/All label
+       order, each wired to its SelectNpcDialogueCategory* callback. */
+    W8TextControl* dialogue_sort_button;
     unsigned char unknown_14c[4];
-    W8TextControl* dialogue_text_150;
-    W8TextControl* dialogue_text_154;
-    W8TextControl* dialogue_text_158;
-    W8TextControl* dialogue_text_15c;
-    W8TextControl* dialogue_text_160;
+    W8TextControl* dialogue_people_button;
+    W8TextControl* dialogue_places_button;
+    W8TextControl* dialogue_items_button;
+    W8TextControl* dialogue_misc_button;
+    W8TextControl* dialogue_all_button;
     W8TextControl* dialogue_text_164;
     W8TextControl* dialogue_text_168;
     W8TextControl* dialogue_text_16c;
     /* The six option buttons hosted by panel_1a8; they activate only while
-       value_fc == 4. Created as plain W8TextControls (regions 0x75..0x7a) by
+       value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX. Created as plain W8TextControls (regions 0x75..0x7a) by
        0x0056D1D0. */
     W8TextControl* option_buttons_170[6];
     W8TextControl* dialogue_text_188;
@@ -552,16 +616,17 @@ struct W8MainScreenState {
     int value_1cc;
     int value_1d0;
     W8NpcState* dialogue_npc;
-    /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
-    unsigned char flag_1d8;
+    /* 0x1d8: the active transcript category filter, a W8DialogueCategory
+       value; the screen reset writes -1 (all). 0x1ec: the transcript
+       "Sort Alphabetically" toggle, reset to 0. */
+    signed char dialogue_category_filter;
     unsigned char flag_1d9;
     unsigned char unknown_1da[2];
-    /* 0x1dc: the running NPC-dialogue transcript. Each element is a malloc'd
-       0xca-byte record - wchar_t text[100] plus a trailing category byte at
-       +0xc8 - that 0x00575070 clears, 0x005750D0/0x00575290 load and save,
-       and 0x0055E840 replays. */
-    W8GrowableVector<wchar_t*> dialogue_transcript;
-    unsigned char flag_1ec;
+    /* 0x1dc: the running NPC-dialogue transcript - the records that
+       0x00575070 clears, 0x005750D0/0x00575290 load and save, and
+       0x0055E840 replays. */
+    W8GrowableVector<W8DialogueTranscriptRecord*> dialogue_transcript;
+    unsigned char transcript_sorted;
     /* 0x1ed: the item a pending NPC notice carries; the queued-notice block
        at 0x0068EE60 copies it here when the dialogue opens. */
     W8ItemInstance pending_item_1ed;
@@ -598,9 +663,10 @@ struct W8MainScreenState {
     unsigned char unknown_249[3];
     void* quote_notice_payload;
     unsigned char flag_250;
-    unsigned char unknown_251;
+    unsigned char flag_251;
     unsigned char flag_252;
-    unsigned char unknown_253[5];
+    unsigned char unknown_253;
+    int value_254;
     /* 0x258: the screen reset writes -1 here, the no-selection value. */
     int value_258;
     int value_25c;
@@ -613,10 +679,10 @@ struct W8MainScreenState {
 };
 #pragma pack(pop)
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
-static_assert(offsetof(W8MainScreenState, dialogue_widget_134) == 0x134,
-              "W8MainScreenState_dialogue_widget_134");
-static_assert(offsetof(W8MainScreenState, dialogue_widget_138) == 0x138,
-              "W8MainScreenState_dialogue_widget_138");
+static_assert(offsetof(W8MainScreenState, dialogue_scroll_up_button) == 0x134,
+              "W8MainScreenState_dialogue_scroll_up_button");
+static_assert(offsetof(W8MainScreenState, dialogue_scroll_down_button) == 0x138,
+              "W8MainScreenState_dialogue_scroll_down_button");
 static_assert(offsetof(W8MainScreenState, npc_dialogue_controller_1b0) == 0x1b0,
               "W8MainScreenState_npc_dialogue_controller_1b0");
 static_assert(offsetof(W8MainScreenState, npc_dialogue_panel_1b4) == 0x1b4,
@@ -641,6 +707,7 @@ static_assert(offsetof(W8MainScreenState, last_notice_npc_kind) == 0x264,
 
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
+void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -691,12 +758,13 @@ void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
 void LookAtDialogueNpc(void);                               /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void);                        /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                              int force);  /* 0x0056C6D0 */
-void BeginScriptedWorldAction(void);       /* 0x00577520 */
-void Function570A20(void);                 /* 0x00570A20 */
-void Function570CF0(void);                 /* 0x00570CF0 */
-void DispatchPendingNpcScriptNotice(void); /* 0x0056CA90 */
+                              int force);   /* 0x0056C6D0 */
+void BeginScriptedWorldAction(void);        /* 0x00577520 */
+void Function570A20(void);                  /* 0x00570A20 */
+void OpenNpcDialogueTranscriptLayout(void); /* 0x00570CF0 */
+void DispatchPendingNpcScriptNotice(void);  /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
+bool IsNpcDialogueTextBoxActive577830(void);         /* 0x00577830 */
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 unsigned char Function577A40(void);
@@ -731,11 +799,14 @@ extern unsigned char g_flag_00685070;
 void HandleManualCameraHotkeys(void);
 void ApplyWorldRenderHotkeys(void);
 extern unsigned char g_flag_0068edbc;
+extern unsigned char g_flag_68f0f9; /* 0x0068F0F9: a script notice is staged in
+                                       g_pending_notice_68ee60 */
 extern unsigned char g_flag_0068edc8;
 extern unsigned char g_flag_0068edc9;
 extern unsigned char g_flag_0068edd8;
 extern int g_main_game_mode_0068eddc;
 extern int g_value_64c1c8;
+int GetValue64C1C8(void); /* 0x00593320 */
 void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
@@ -748,12 +819,53 @@ void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a change to the main-game mode flag at 0x006850CE. */
 void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
 unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
-/* 0x00561EC0: the region-mode pass the party-add entry runs while the
-   main-game screen is current. */
-void Function561EC0(void);
+/* 0x00561EC0: re-sync the eight party slots' region sets and portrait hit
+   regions with occupancy, the monster-entry flag and the display mode; the
+   party add/remove entries and the keyboard menu's close run it. */
+void RefreshPartySlotRegions(void);
 void ClearHighlightOverlayRegion(void); /* 0x00563DD0 */
 void DismissHighlightOverlay(void);     /* 0x00563EB0 */
-void Function565740(int slot);
+/* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
+   points hand it the slot, a content row count and a minimum plate width. */
+void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width);
+void SelectPartyCharacter(int party_slot); /* 0x00565740 */
+void Function56EE20(int party_slot);       /* 0x0056EE20 */
+void Function587A30(void);                 /* 0x00587A30 */
+void Function58A860(void);                 /* 0x0058A860 */
+void OpenAutomapScreen(void);              /* 0x00561480 */
+void Function561DB0(int slot);             /* 0x00561DB0 */
+void ClearScreenWait(void);                /* 0x00565970 */
+void Function568390(int value);            /* 0x00568390 */
+void ToggleMainGamePause(void);            /* 0x0056ABE0 */
+/* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
+   TryMGSActionKey share: the interface commands map to views and recorded
+   actions, the combat commands map to ChooseAction selections, and
+   W8_MGS_ACTION_REPEAT re-dispatches the slot's queued action. */
+enum W8MGSAction {
+    W8_MGS_ACTION_JOURNAL = 0,
+    W8_MGS_ACTION_USE_ITEM_VIEW = 1,
+    W8_MGS_ACTION_USE_RECORDED_ITEM = 2,
+    W8_MGS_ACTION_SPELL_VIEW = 3,
+    W8_MGS_ACTION_CAST_RECORDED_SPELL = 4,
+    W8_MGS_ACTION_BREATHE = 5,
+    W8_MGS_ACTION_BREATH_ATTACK = 6,
+    W8_MGS_ACTION_ATTACK = 7,
+    W8_MGS_ACTION_BERSERK = 8,
+    W8_MGS_ACTION_TURN_UNDEAD = 9,
+    W8_MGS_ACTION_PRAY = 0xa,
+    W8_MGS_ACTION_DEFEND = 0xb,
+    W8_MGS_ACTION_PROTECT = 0xc,
+    W8_MGS_ACTION_EQUIP = 0xd,
+    W8_MGS_ACTION_WALK = 0xe,
+    W8_MGS_ACTION_RUN = 0xf,
+    W8_MGS_ACTION_REPEAT = 0x10
+};
+
+void TryMGSActionKey(int command); /* 0x0056B4C0 */
+/* The action-key command gate and executor the dispatcher's 0x131..0x141
+   cases and TryMGSActionKey share. */
+unsigned char IsMGSActionKeyEnabled(short command); /* 0x0056AF80 */
+void RunMGSActionKey(short command);                /* 0x0056B270 */
 void Function568E10(void);
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
@@ -775,29 +887,36 @@ void ShowNpcDialogueTopicMenu(void);                                            
 void HandleNpcDialogueDeparture(int value);                                         /* 0x00577290 */
 unsigned char HandleNpcDialogueItem(W8ItemInstance* item);                          /* 0x00575810 */
 void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
-void Function56FED0(void);                                                          /* 0x0056FED0 */
+void ResetNpcDialogueItemEditor(void);                                              /* 0x0056FED0 */
 void Function576850(int value);                                                     /* 0x00576850 */
 void Function5ADB10(int value);                                                     /* 0x005ADB10 */
 void Function58BA60(void);                                                          /* 0x0058BA60 */
-void Function55DE50(void);                                                          /* 0x0055DE50 */
-void ClearNpcDialogueTranscript(void);                                              /* 0x00575070 */
 void Function575710(void);                                                          /* 0x00575710 */
-void Function571660(wchar_t* name, int value, int arg);                             /* 0x00571660 */
-void CloseNpcDialogueForCamp(void);                                                 /* 0x00577020 */
-void __fastcall Function55E940(W8NpcDialogueTextController* controller);            /* 0x0055E940 */
-void __fastcall Function55EA40(W8NpcDialogueTextController* controller);            /* 0x0055EA40 */
-void Function571AA0(void);                                                          /* 0x00571AA0 */
-void Function573AE0(void);                                                          /* 0x00573AE0 */
-void Function5732A0(void);                                                          /* 0x005732A0 */
+/* 0x00571660: learn one keyword into the dialogue transcript. category -1
+   auto-classifies the text against items, NPC/named-monster names and the
+   place-name table; a nonzero play_chime rings the keyword chime. */
+void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime);
+void ClearNpcDialogueTranscript(void);  /* 0x00575070 */
+void CloseNpcDialogueForCamp(void);     /* 0x00577020 */
+void OpenNpcDialogueOptionLayout(void); /* 0x00571AA0 */
+void OpenNpcDialogueMode1Layout(void);  /* 0x00573AE0 */
+void OpenNpcDialogueMode5Layout(void);  /* 0x005732A0 */
+void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
+/* 0x00575390: restate the five transcript category buttons so only the
+   active dialogue_category_filter's button shows its secondary state. */
+void SyncDialogueCategoryButtons(void);
 void Function56E800(int);
-unsigned char Function56EC90(unsigned int party_slot);
+/* Whether an open NPC dialogue transcript covers the party slot's portrait:
+   dialogue mode up, flag_252 clear, the controller enabled, and its top
+   edge above the slot's band. Portrait and character-update paths skip the
+   covered rows through this. */
+unsigned char IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
 void Function5777C0(void);
 void Function587510(int value);
 void Function5879A0(int);
 void Function58A470(int value);
 void UpdateMainGameScreen(void); /* 0x0058A750 */
 void Function58A790(int);
-void Function595600(void);
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -808,11 +927,13 @@ void SetCombatAction(int value);    /* 0x0056A480 */
 void SetCombatSelection(int value); /* 0x00569F70 */
 void SetCombatTarget(int value);    /* 0x0056A2D0 */
 
-void RequestRedrawCombatBar(void);    /* 0x005699B0 */
-void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
-void DisableMainRegionSet(void);      /* 0x00561FB0 */
+void RequestRedrawCombatBar(void);             /* 0x005699B0 */
+void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
+void DisableMainRegionSet(void);               /* 0x00561FB0 */
+void EnableMainRegionSet(void);                /* 0x00561FA0 */
+unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
 void Function598AB0(void);
-void Function59C930(int slot);
+void OpenUseItemSelectView(int slot); /* 0x0059C930 */
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);

@@ -1020,8 +1020,8 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
     int weight_bands;
 
     switch (action_kind) {
-    case 0:
-    case 1:
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
         attack_mode =
             g_status_685170.buffers.party_rows[party_slot].attack_mode[combat_row->current_hand];
         if (attack_mode == 5) {
@@ -1039,26 +1039,26 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
                 cost = Random(weight_bands) + 1 + weight_bands;
             }
         }
-        if (action_kind == 1) {
+        if (action_kind == W8_ACTION_BERSERK) {
             cost *= 2;
         }
         break;
-    case 2:
-    case 4:
-    case 5:
-    case 7:
+    case W8_ACTION_BREATHE:
+    case W8_ACTION_DEFEND:
+    case W8_ACTION_PROTECT:
+    case W8_ACTION_CAST_SPELL:
         break;
-    case 3:
-    case 6:
+    case W8_ACTION_TURN_UNDEAD:
+    case W8_ACTION_PRAY:
         cost = g_status_685170.buffers.characters[party_slot].stamina_max / 5;
         if (cost < 0x14) {
             cost = 0x14;
         }
         break;
-    case 8:
+    case W8_ACTION_USE_ITEM:
         cost = Random(2) + 1;
         break;
-    case 9:
+    case W8_ACTION_EQUIP:
         cost = Random(4) + 3;
         break;
     default:
@@ -2253,19 +2253,19 @@ unsigned char W8CharacterEvent::Dispatch()
             if (npc == 0) {
                 return 1;
             }
-            if (npc->name_style == 0x18 && event_type > 0x8b && event_type < 0x92 &&
-                g_status_685170.current_level != 0) {
+            if (npc->name_style == W8_NPC_VI_DOMINA && event_type > 0x8b &&
+                event_type < 0x92 && g_status_685170.current_level != 0) {
                 return 0;
             }
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
-                SetFlag68C500(1);
+                SetNpcScriptEventActive(1);
                 ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
             BeginNpcScriptDialogue(npc, 1);
             RunNpcScriptLine(event_type, (flags & W8_EVENT_NPC_SCRIPT) != 0);
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {
-                SetFlag68C500(0);
+                SetNpcScriptEventActive(0);
                 ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
             }
@@ -3080,7 +3080,7 @@ void QueueConditionChangeReaction(W8Character* character)
     int attempts;
     unsigned int reaction;
 
-    if (GetFlag68C4FA() != 0) {
+    if (IsSedexusCaptureActive() != 0) {
         return;
     }
     if (g_status_685170.skip_next_condition_reaction != 0) {
@@ -3173,7 +3173,7 @@ void QueueConditionChangeReaction(W8Character* character)
 // FUNCTION: WIZ8 0x0052F790
 void QueueConditionClearedReaction(W8Character* character, int condition)
 {
-    if (GetFlag68C4FA() != 0) {
+    if (IsSedexusCaptureActive() != 0) {
         return;
     }
     if (g_status_685170.skip_next_condition_reaction != 0) {
@@ -3340,7 +3340,7 @@ int UpdateCharacterEventState(void)
         }
 
         if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
-            Function56EC90(party_slot) != 0) {
+            IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
             continue;
         }
         if (record->portrait_frame_dirty == 0 && record->field_0bd == 0 &&

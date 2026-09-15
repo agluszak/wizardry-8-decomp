@@ -167,6 +167,37 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
     }
 }
 
+/* While the camera is not being rotated by hand, re-aim the party heading at
+   the selected slot's formation facing and swing the camera to match -
+   snapping or gliding per the rotation style. */
+// FUNCTION: WIZ8 0x005554a0
+void FaceCameraToSelection(int party_slot)
+{
+    unsigned int heading;
+
+    if (g_settings_6850c8.camera_rotation_mode != 0 ||
+        g_status_685170.selected_character != party_slot) {
+        return;
+    }
+    heading = g_status_685170.party_facing +
+              static_cast<unsigned char>(
+                  g_status_685170.formation.positions[party_slot].facing) *
+                  W8_DEGREES_PER_QUADRANT;
+    if (heading == g_status_685170.party_heading) {
+        return;
+    }
+    g_status_685170.party_heading = heading;
+    UpdateFormationCompass();
+    if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN == heading) {
+        return;
+    }
+    if (g_settings_6850c8.camera_rotation_style) {
+        TurnCameraToDegrees(static_cast<float>(heading));
+    } else {
+        SetCameraYawDegrees(static_cast<float>(heading));
+    }
+}
+
 /* Face one position the way the rules say it should, unless the rules have no
    preference or it already faces that way. */
 // FUNCTION: WIZ8 0x005557e0

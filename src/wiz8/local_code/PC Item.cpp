@@ -26,6 +26,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/Spells.h"
@@ -54,6 +55,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 
 #include <stdio.h>
 #include "wiz8/character_skills.h"
@@ -773,6 +775,58 @@ bool AnyPartyMemberCanUseItem(int item_id)
     return false;
 }
 
+/* Whether this character may activate this item right now. Anything with an
+   equip home - flagged on the record or assigned a default slot - must
+   actually be worn in a body slot rather than held, then the category gates:
+   spell sources are refused here because they go through the cast path,
+   category zero is dead weight, spell-less records fail unless they are the
+   one exempt item, and an empty charge stack fails. */
+// FUNCTION: WIZ8 0x0051d800
+unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item)
+{
+    const W8ItemDatabaseRecord* record;
+
+    if (character == 0) {
+        srAssertFail("pPC", PC_ITEM_CPP, 0x769, 0);
+    }
+    if (item == 0) {
+        srAssertFail("pPCItem", PC_ITEM_CPP, 0x76a, 0);
+    }
+    if (item->item_id < -1) {
+        srAssertFail("pPCItem->iItemNo >= -1", PC_ITEM_CPP, 0x76b, 0);
+    }
+    if (item->item_id >= static_cast<int>(gXStatus.uiItemsInDatabase)) {
+        // c-style-cast-ok: verbatim retail assert string
+        srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x76c,
+                     0);
+    }
+    if (item->item_id == -1) {
+        return 0;
+    }
+    if (!CanCharacterUseItem(character, item->item_id)) {
+        return 0;
+    }
+
+    record = &g_item_records[item->item_id];
+    if ((record->flags_041 & 0x40) != 0 ||
+        GetItemDefaultEquipSlot(item->item_id) != W8_EQUIP_SLOT_NONE) {
+        if (!IsItemWornByCharacter(character, item)) {
+            return 0;
+        }
+    }
+
+    if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE || record->category == 0) {
+        return 0;
+    }
+    if (item->item_id != 0x29f && record->spell_id == 0) {
+        return 0;
+    }
+    if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
+        return 0;
+    }
+    return 1;
+}
+
 /* Whether both weapon sets are entirely empty. */
 // FUNCTION: WIZ8 0x0051f8d0
 bool AreAllHandSlotsEmpty(const W8Character* character)
@@ -1098,6 +1152,43 @@ void SpendPartyGold(unsigned int amount)
     } else {
         g_status_685170.party_gold -= amount;
     }
+}
+
+/* Resolve a recorded (origin, slot) pair back to the item instance it names:
+   the carrier's backpack, their worn equipment or the shared party pool. */
+// FUNCTION: WIZ8 0x00522180
+W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin, unsigned short slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    if (static_cast<signed char>(origin) < 0) {
+        srAssertFail("bSlotType >= 0", PC_ITEM_CPP, 0x14fd, 0);
+    }
+    if (origin >= W8_ITEM_ORIGIN_COUNT) {
+        srAssertFail("bSlotType < SLOT_TYPE_COUNT", PC_ITEM_CPP, 0x14fe, 0);
+    }
+    if (static_cast<short>(slot) < 0) {
+        srAssertFail("sSlotIndex >= 0", PC_ITEM_CPP, 0x1500, 0);
+    }
+
+    switch (origin) {
+    case W8_ITEM_ORIGIN_BACKPACK:
+        if (slot >= 8) {
+            srAssertFail("sSlotIndex < MAX_CARRY_ITEM_SLOTS", PC_ITEM_CPP, 0x1505, 0);
+        }
+        return &character->backpack[slot];
+    case W8_ITEM_ORIGIN_EQUIPPED:
+        if (slot >= 12) {
+            srAssertFail("sSlotIndex < SLOT_COUNT", PC_ITEM_CPP, 0x1509, 0);
+        }
+        return &character->equipment[slot];
+    case W8_ITEM_ORIGIN_PARTY_POOL:
+        if (slot >= 500) {
+            srAssertFail("sSlotIndex < MAX_PARTY_ITEM_SLOTS", PC_ITEM_CPP, 0x150d, 0);
+        }
+        return &g_status_685170.party_item_pool_0021[slot];
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x005222d0
@@ -2363,29 +2454,30 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     RebuildEquipmentAndDerivedStatsForSlot(party_slot);
 
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    if (row->action_03d == 8 && row->action_detail_045.item_use.item == item) {
+    if (row->action_03d == W8_ACTION_USE_ITEM && row->action_detail_045.item_use.item == item) {
         DropCharacterFromRound(party_slot);
     }
 
     if (primary_right || primary_left) {
         int hand_state = row->action_kind;
-        if (hand_state == 1) {
-            if (!CanCharacterKnockOut(party_slot)) {
-                row->action_kind = 0;
-                if (row->action_03d == 1) {
-                    row->action_03d = 0;
+        if (hand_state == W8_ACTION_BERSERK) {
+            if (!CanCharacterBerserk(party_slot)) {
+                row->action_kind = W8_ACTION_ATTACK;
+                if (row->action_03d == W8_ACTION_BERSERK) {
+                    row->action_03d = W8_ACTION_ATTACK;
                 }
             }
-        } else if (hand_state == 0 && row->action_is_kind_one && CanCharacterKnockOut(party_slot)) {
-            row->action_kind = 1;
-            if (row->action_03d == 0) {
-                row->action_03d = 1;
+        } else if (hand_state == W8_ACTION_ATTACK && row->action_is_berserk &&
+                   CanCharacterBerserk(party_slot)) {
+            row->action_kind = W8_ACTION_BERSERK;
+            if (row->action_03d == W8_ACTION_ATTACK) {
+                row->action_03d = W8_ACTION_BERSERK;
             }
         }
 
         if (gXStatus.fCombatMode) {
             int action = row->action_03d;
-            if (action == 0 || action == 1) {
+            if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
                 } else if (!TargetIsInPlay(party_slot, 2)) {
@@ -2402,7 +2494,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
         if (g_level_block->combat_end_notification != -1) {
-            Function595600();
+            ReopenSubMenuPanel();
         }
         RefreshFlaggedMainGameState00593330();
     }
@@ -2643,6 +2735,41 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
     QueueCharacterEvent(character, message, 0, g_effect_argument_005ed8c8,
                         g_effect_argument_005ed914);
     item->unknown_07[2] |= 1;
+}
+
+/* Whether the party slot may go through with using this item right now.
+   Class-0x17 and -0x19 items and anything the character can cast from answer
+   with the out-of-combat gate alone; everything else is refused while the
+   character's spellcasting is blocked and the item is a class-0x0d casting
+   aid, and otherwise needs a living target for the record's spell plus a
+   spell the moment admits. The use-item view's context slot is parked on the
+   instance while the target check runs. */
+// FUNCTION: WIZ8 0x00522a30
+unsigned char CanUseItemForAction(int party_slot, const W8ItemInstance* item)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned char usable;
+
+    if (record->equip_class == 0x17 || record->equip_class == 0x19 ||
+        CanCastFromItem(character, item)) {
+        return gXStatus.fCombatMode == 0 && gXStatus.fCampMode == 0 &&
+               gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0;
+    }
+    if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+        record->equip_class == 0xd) {
+        return 0;
+    }
+
+    // reinterpret-ok: the int context slot carries the item pointer the use-item view reads back
+    SetValue69B9A4(reinterpret_cast<int>(const_cast<W8ItemInstance*>(item)));
+    usable =
+        SpellHasAnyValidTarget(party_slot, record->spell_id, ItemClassNormalizesTarget(record));
+    SetValue69B9A4(0);
+    if (usable == 0) {
+        return 0;
+    }
+    return SpellUsableNow(record->spell_id, 0);
 }
 
 /* Insert one item into the packed party pool, first coalescing compatible

@@ -18,8 +18,12 @@ struct W8Searchable {
 static_assert(sizeof(W8Searchable) == 0x0c, "W8Searchable_must_be_0x0c");
 
 extern W8GrowableVector<W8Searchable*> g_searchables_00689fa8;
+/* 500ms pulse clock arming the search-mode sweep. */
+extern unsigned int g_search_pulse_clock_00689fcc;
 
 void RegisterSearchableWorldItem00516E20(W8WorldItem* item);
 void RegisterSearchableTrigger00516F00(Trigger* trigger);
 void UnregisterSearchableTrigger00516FE0(Trigger* trigger);
 void ClearSearchables005171B0();
+/* Toggle the party's search mode; blocked outright in combat. */
+void ToggleSearchMode(void); /* 0x00517780 */
