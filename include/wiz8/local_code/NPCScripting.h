@@ -92,7 +92,11 @@ extern W8NpcScriptingState g_npc_scripting;
 void RunNpcScriptLine(int script_line, unsigned char param); /* 0x00525FA0 */
 void ProcessMessageBoxQueue(void);                           /* 0x00526E90 */
 void Function526810(int value, int script_line);             /* 0x00526810 */
-void Function528FF0(wchar_t* text, int value, int selected); /* 0x00528FF0 */
+/* 0x00528FF0: the first argument is a pointer into a character or party item
+   slot - the slot whose address matches is the one removed. */
+void Function528FF0(W8ItemInstance* item, int flag, int item_id);
+/* 0x00528CD0: look the item's fact up; both out-pointers are optional. */
+int Function528CD0(int item_id, short* index, unsigned char* flag);
 void Function529F90(void);                                   /* 0x00529F90 */
 void NpcScriptCallback0052A080(W8Monster* monster);          /* 0x0052A080 */
 void NpcScriptCallback0052A150(W8Monster* monster);          /* 0x0052A150 */

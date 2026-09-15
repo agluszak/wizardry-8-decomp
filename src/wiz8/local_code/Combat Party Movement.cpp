@@ -171,7 +171,7 @@ void EndPartyMovementPhase(void)
         ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
     }
     ResetLevelDataVectors0041F0D0();
-    RedrawPanel69BF40();
+    DisablePanel69BF40005A1E90();
     RedrawPanel69BF4C();
     RefreshOutwardSightForAllMonsters();
     g_combat_state->uiCurrentPartyActionStatus = 2;

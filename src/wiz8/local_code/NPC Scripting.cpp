@@ -506,7 +506,8 @@ void ProcessMessageBoxQueue(void)
         Function570CF0();
         break;
     case 4:
-        Function528FF0(line->text, 0, -1);
+        Function528FF0(reinterpret_cast<W8ItemInstance*>(line->text), 0,
+                       -1); // reinterpret-ok: tagged item-slot pointer
         break;
     case 5:
         CloseNpcDialogueIfActive();

@@ -30,6 +30,7 @@ void Function4ECC80(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80
 void Function4EA5C0(int party_slot);                               /* 0x004EA5C0 */
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
                             int notify); /* 0x004E7EE0 */
+int IsPartyEngaged(void);                                             /* 0x004E7E70 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
@@ -44,4 +45,3 @@ void EndMonsterTurn(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 unsigned char CanCharReBreathe(int party_slot);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
-int Function5A1350(void); /* 0x005A1350 */

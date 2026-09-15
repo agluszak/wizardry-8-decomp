@@ -167,6 +167,7 @@ void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
+unsigned int Function41F170(float* real_elapsed, float* frame_elapsed); /* 0x0041F170 */
 
 void Function41C680(int interface_id, int state);
 

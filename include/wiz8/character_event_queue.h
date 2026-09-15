@@ -26,6 +26,10 @@ enum W8CharacterEventFlag {
     W8_EVENT_NPC_SCRIPT = 0x40
 };
 
+/* 0x005ED8E4: mask gating the portrait quote/subtitle flag; dispatch tests
+   W8_EVENT_SUPPRESS_QUOTE through it. */
+extern unsigned char g_character_event_flags_mask_005ed8e4;
+
 /* One queued character-event entry. The ctor, quote formatter, and process
    method live with QueueCharacterEvent in Health Stamina Mana.cpp; the
    original type name is unknown. */

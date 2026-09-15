@@ -49,7 +49,9 @@ struct W8PartySlotRow {
        in g_status_685170.party_order_slots. */
     int party_order_index;
     unsigned char flag_0f5;
-    unsigned char unknown_0f6[4];
+    /* 0x0f6: distance-scaled fatigue accumulator; every 2500 units convert
+       into real fatigue via FatigueCharacter. */
+    float movement_fatigue;
     int animation_0fa;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_fe;

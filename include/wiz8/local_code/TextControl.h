@@ -8,6 +8,9 @@
 extern const unsigned int g_W8TextControlMask005ED56C;
 extern const unsigned int g_W8TextControlMask005ED570;
 extern const unsigned int g_W8TextControlMask005ED578;
+extern const unsigned int g_W8TextControlMask005ED57C;
+extern const unsigned int g_W8TextControlMask005ED580;
+extern const unsigned int g_W8TextControlMask005ED584;
 extern const unsigned int g_W8TextControlMask005ED588;
 extern const unsigned int g_W8TextControlMask005ED594;
 
