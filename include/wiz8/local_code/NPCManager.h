@@ -74,14 +74,9 @@ void ReleaseNpcBinding(int value);
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
-void Function509CD0(unsigned char value, int enabled, int location_id);
 const char* GetNpcDisplayName(W8NpcState* npc);
 void Function50C440(W8NpcState* npc, int value);                          /* 0x0050C440 */
 void Function50C1C0(char name_style, int value, const char* entity_name); /* 0x0050C1C0 */
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
                                     W8ItemInstance* out); /* 0x0050BA80 */
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
-
-void Function50B160(W8NpcState* npc); /* 0x0050B160 */
-
-void Function50B590(int value, int a, int b, int c); /* 0x0050B590 */
