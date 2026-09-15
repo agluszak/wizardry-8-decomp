@@ -2,10 +2,16 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/geometry.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
@@ -15,18 +21,351 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "wiz8/engine_code/GameData.h"
+
+// GLOBAL: WIZ8 0x005ec5a8
+float g_float_005ec5a8 = 0.6000000238418579f;
+
+// FUNCTION: WIZ8 0x00479030
+void StopAllAmbientSounds()
+{
+    SoundStopAllRandom();
+    SoundStopGroup(-16);
+}
 
 // FUNCTION: WIZ8 0x00479040
 W8AmbientSound::W8AmbientSound()
-    : value_94(0), value_98(0), value_a0(0), value_a4(0), value_a8(0), value_ac(0), value_b0(0),
-      value_b4(0), flag_b8(0), flag_b9(0), sound_handle_bc(-1), sound_handle_c0(-1), flag_c4(0),
-      flag_c5(0), value_ec(0)
+    : volume_min(0), volume_max(0), current_volume(0), speed_min(0), speed_max(0), time_min(0),
+      time_max(0), radius(0), in_range(0), looping(0), sound_handle(-1), sample_handle(-1),
+      shared(0), bounded(0), region_angle(0)
 {
-    config_004.match_name[0] = 0;
-    vector_88.SetZero();
+    config_004.wave_name[0] = 0;
+    position.SetZero();
     pacSoundName = 0;
-    flag_84 = 0;
+    stopped = 0;
+}
+
+/* Region test used by UpdatePosition and the group handoff: translate the
+   listener into region-center space, un-apply the per-axis scale, rotate back
+   around the configured axis, then test against the min/max bounds. */
+// FUNCTION: WIZ8 0x004790d0
+unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
+{
+    srVector3T<float> relative;
+    float scale_x;
+    float scale_y;
+    float scale_z;
+
+    relative.x = listener->x - region_center.x;
+    relative.y = listener->y - region_center.y;
+    relative.z = listener->z - region_center.z;
+    scale_x = g_float_005ebb38 / region_scale.x;
+    scale_y = g_float_005ebb38 / region_scale.y;
+    scale_z = g_float_005ebb38 / region_scale.z;
+    if (scale_x != g_float_005ebb38 || scale_y != g_float_005ebb38 || scale_z != g_float_005ebb38) {
+        relative.x = scale_x * relative.x;
+        relative.y = relative.y * scale_y;
+        relative.z = relative.z * scale_z;
+    }
+    if (region_angle != g_float_005ebb34 &&
+        (region_axis.x != g_float_005ebb34 || region_axis.y != g_float_005ebb34 ||
+         region_axis.z != g_float_005ebb34)) {
+        srMatrix3T<float> rotation;
+        double angle = -region_angle;
+
+        rotation.SetIdentity();
+        if (angle != g_zero_005ebb40) {
+            rotation.RotateAroundAxis(sin(angle), cos(angle), region_axis);
+        }
+        relative.Transform(rotation);
+    }
+    return PointInsideBounds004BE870(&relative, &region_min, &region_max);
+}
+
+/* Listener-relative servicing. Out of range: shared sounds try to hand their
+   live voice to a matching group member that is in range, otherwise fade to
+   zero; positional sounds stop immediately. In range: mark the entry, restart
+   one-shot scheduling, re-aim a live 3D voice around the camera, and nudge its
+   volume up inside the inner 40% of the radius. Shared sounds retarget the
+   fade at the bus-scaled maximum. */
+// FUNCTION: WIZ8 0x00479350
+void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
+{
+    unsigned char handed_off = 0;
+
+    if (stopped != 0) {
+        return;
+    }
+    {
+        srVector3T<float> to_listener = *listener - position;
+        float distance = to_listener.Length();
+        unsigned char inside = IsInsideRegion(listener);
+
+        if (radius <= distance || (bounded != 0 && inside == 0)) {
+            if (in_range != 0) {
+                in_range = 0;
+                if (shared != 0) {
+                    W8AmbientSound* match = FindNextMatching0047A260(config_004.wave_name, 0);
+                    while (match != 0) {
+                        if (handed_off != 0) {
+                            return;
+                        }
+                        {
+                            srVector3T<float> to_match = *listener - match->position;
+                            unsigned char match_inside = match->IsInsideRegion(listener);
+                            if (to_match.Length() < match->radius &&
+                                (match->bounded == 0 || match_inside != 0) &&
+                                match->sound_handle == -1) {
+                                match->in_range = 1;
+                                match->sound_handle = sound_handle;
+                                match->target_volume =
+                                    (match->volume_max * g_settings_6850c8.sound_effects_volume) /
+                                    0x7f;
+                                match->current_volume = SoundGetVolume(sound_handle);
+                                match->fade_timer.SetDuration(
+                                    g_float_005ec3b8 / static_cast<float>(match->target_volume));
+                                match->fade_timer.Restart();
+                                match->fade_timer.m_flags &= ~8;
+                                match->fade_timer.m_start =
+                                    match->fade_timer.Method00439A60() - match->fade_timer.m_start;
+                                match->fade_timer.SetDuration(-1.0f);
+                                sound_handle = -1;
+                                handed_off = 1;
+                            }
+                        }
+                        match = FindNextMatching0047A260(config_004.wave_name, match);
+                    }
+                    if (handed_off != 0) {
+                        return;
+                    }
+                    target_volume = 0;
+                    {
+                        unsigned int full_volume =
+                            (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                        fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
+                        fade_timer.Restart();
+                        fade_timer.m_flags &= ~8;
+                        fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+                        fade_timer.SetDuration(-1.0f);
+                    }
+                    return;
+                }
+                if (sound_handle != -1) {
+                    SoundStop(sound_handle);
+                    sound_handle = -1;
+                }
+            }
+            return;
+        }
+        if (in_range == 0) {
+            in_range = 1;
+            Service(1);
+        }
+        if (shared == 0) {
+            if (sound_handle != -1) {
+                float angle = -GetCameraYawRadians();
+                srMatrix3T<float> rotation;
+                srVector3T<float> transformed;
+                unsigned int volume;
+
+                rotation.SetIdentity();
+                if (static_cast<double>(angle) != g_zero_005ebb40) {
+                    rotation.RotateAboutY(sin(static_cast<double>(angle)),
+                                          cos(static_cast<double>(angle)));
+                }
+                srVector3T<float> offset(position.x - listener->x, position.y - listener->y,
+                                         position.z - listener->z);
+                transformed = rotation.Transform(offset);
+                Sound3DSetPosition(sound_handle, transformed.x, transformed.y, transformed.z);
+                Sound3DSetDirection(sound_handle, -transformed.x, -transformed.y, -transformed.z,
+                                    0.0f, g_float_005ebb38, 0.0f);
+                if (radius * g_navigator_mode3_scale_005ebca4 <= distance) {
+                    volume = current_volume;
+                } else {
+                    volume = static_cast<unsigned int>(
+                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale_005ebca4) /
+                                                (radius * g_float_005ec5a8)) *
+                        current_volume);
+                }
+                SoundSetVolume(sound_handle, volume);
+            }
+            return;
+        }
+        {
+            unsigned int full_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+            if (target_volume != full_volume) {
+                target_volume = full_volume;
+                fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
+                fade_timer.Restart();
+                fade_timer.m_flags &= ~8;
+                fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+                fade_timer.SetDuration(-1.0f);
+            }
+        }
+    }
+}
+
+/* Per-frame service while in range. Non-looping sounds are registered once as
+   an SGP random sample; each call asks the scheduler (or a 2/3 roll on range
+   entry) whether to fire a 3D one-shot at the emitter. Looping sounds start
+   once: positional emitters go through Sound3DPlay, shared group sounds go
+   through SoundPlay at zero volume so UpdateFade can ramp them up. */
+// FUNCTION: WIZ8 0x00479970
+void W8AmbientSound::Service(unsigned char entered)
+{
+    if (stopped != 0 || in_range == 0) {
+        return;
+    }
+    if (looping == 0) {
+        if (sample_handle == -1) {
+            RANDOMPARMS parms;
+
+            memset(&parms, -1, sizeof(parms));
+            parms.uiMaxInstances = 1;
+            parms.uiPriority = -16;
+            parms.uiVolMin = (volume_min * g_settings_6850c8.sound_effects_volume) / 0x7f;
+            parms.uiVolMax = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+            parms.uiPanMin = 0x40;
+            parms.uiPanMax = 0x40;
+            parms.uiTimeMin = time_min;
+            parms.uiTimeMax = time_max;
+            parms.uiSpeedMin = speed_min;
+            parms.uiSpeedMax = speed_max;
+            sample_handle = SoundPlayRandom(config_004.wave_name, &parms);
+            if (sample_handle != -1) {
+                SoundSetSampleFlags(sample_handle, 8);
+            }
+        }
+        if (sample_handle != -1) {
+            unsigned char should_play;
+
+            if (entered == 0) {
+                should_play = SoundRandomShouldPlay(sample_handle);
+            } else {
+                should_play = Random(3);
+            }
+            if (gXStatus.fCombatMode == 0 && should_play != 0 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                float angle = -GetCameraYawRadians();
+                srVector3T<float> camera;
+                srMatrix3T<float> rotation;
+                srVector3T<float> offset;
+                srVector3T<float> transformed;
+                srVector3T<float> to_listener;
+                float distance;
+                unsigned int volume;
+                SOUND3DPOS pos;
+
+                GetCameraPosition(&camera);
+                rotation.SetIdentity();
+                if (static_cast<double>(angle) != g_zero_005ebb40) {
+                    rotation.RotateAboutY(sin(static_cast<double>(angle)),
+                                          cos(static_cast<double>(angle)));
+                }
+                offset.x = position.x - camera.x;
+                offset.y = position.y - camera.y;
+                offset.z = position.z - camera.z;
+                transformed = rotation.Transform(offset);
+                memset(&pos, 0, sizeof(pos));
+                pos.flX = transformed.x;
+                pos.flY = transformed.y;
+                pos.flZ = transformed.z;
+                pos.flVelX = 0.0f;
+                pos.flVelY = 0.0f;
+                pos.flVelZ = 0.0f;
+                pos.flFaceX = -transformed.x;
+                pos.flFaceY = -transformed.y;
+                pos.flFaceZ = -transformed.z;
+                pos.flUpX = 0.0f;
+                pos.flUpY = g_float_005ebb38;
+                pos.flUpZ = 0.0f;
+                pos.flFalloffMin = radius;
+                pos.flFalloffMax = radius;
+                to_listener.x = camera.x - position.x;
+                to_listener.y = camera.y - position.y;
+                to_listener.z = camera.z - position.z;
+                distance = to_listener.Length();
+                volume = static_cast<unsigned int>(((Random(volume_max - volume_min) + volume_min) *
+                                                    g_settings_6850c8.sound_effects_volume) /
+                                                   0x7f);
+                current_volume = volume;
+                if (distance < radius * g_navigator_mode3_scale_005ebca4) {
+                    pos.uiVolume = current_volume;
+                } else {
+                    pos.uiVolume = static_cast<unsigned int>(
+                        (g_float_005ebb38 - (distance - radius * g_navigator_mode3_scale_005ebca4) /
+                                                (radius * g_float_005ec5a8)) *
+                        current_volume);
+                }
+                sound_handle = Sound3DStartRandom(sample_handle, &pos);
+            }
+        }
+        return;
+    }
+    if (sound_handle != -1) {
+        return;
+    }
+    if (shared == 0) {
+        float angle = -GetCameraYawRadians();
+        srVector3T<float> camera;
+        srMatrix3T<float> rotation;
+        srVector3T<float> offset;
+        srVector3T<float> transformed;
+        SOUND3DPARMS parms;
+
+        GetCameraPosition(&camera);
+        current_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+        rotation.SetIdentity();
+        if (static_cast<double>(angle) != g_zero_005ebb40) {
+            rotation.RotateAboutY(sin(static_cast<double>(angle)), cos(static_cast<double>(angle)));
+        }
+        offset.x = position.x - camera.x;
+        offset.y = position.y - camera.y;
+        offset.z = position.z - camera.z;
+        transformed = rotation.Transform(offset);
+        memset(&parms, -1, sizeof(parms));
+        parms.uiVolume = current_volume;
+        parms.Pos.flFaceX = -transformed.x;
+        parms.Pos.flX = transformed.x;
+        parms.Pos.flFaceY = -transformed.y;
+        parms.Pos.flY = transformed.y;
+        parms.Pos.flFalloffMin = radius;
+        parms.Pos.flZ = transformed.z;
+        parms.Pos.flFaceZ = -transformed.z;
+        parms.uiLoop = 0;
+        parms.Pos.flVelX = 0.0f;
+        parms.Pos.flVelY = 0.0f;
+        parms.Pos.flVelZ = 0.0f;
+        parms.Pos.flUpX = 0.0f;
+        parms.Pos.flUpY = g_float_005ebb38;
+        parms.Pos.flUpZ = 0.0f;
+        parms.Pos.flFalloffMax = parms.Pos.flFalloffMin;
+        parms.Pos.uiVolume = parms.uiVolume;
+        sound_handle = Sound3DPlay(config_004.wave_name, &parms);
+        if (sound_handle == -1) {
+            in_range = 0;
+        }
+        return;
+    }
+    if (SoundFileIsPlaying(config_004.wave_name) != 0) {
+        return;
+    }
+    {
+        SOUNDPARMS parms;
+
+        memset(&parms, -1, sizeof(parms));
+        parms.uiVolume = 0;
+        parms.uiLoop = 0;
+        current_volume = 0;
+        target_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+        sound_handle = SoundPlay(config_004.wave_name, &parms);
+        fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(target_volume));
+        fade_timer.Restart();
+        fade_timer.m_flags &= ~8;
+        fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+        fade_timer.SetDuration(-1.0f);
+    }
 }
 
 /* The contiguous class lifecycle and shared world-list accesses identify these
@@ -41,7 +380,9 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
     if (g_world == 0) {
         return 0;
     }
-    count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+    count = static_cast<int>(ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            W8IList*>(g_world->plsAmbientSounds)));
     if (previous == 0) {
         index = 0;
     } else {
@@ -56,8 +397,8 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
     do {
         W8AmbientSound* candidate =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
-        if (candidate != 0 && candidate != this && candidate->flag_c4 != 0 &&
-            _stricmp(candidate->config_004.match_name, match_name) == 0) {
+        if (candidate != 0 && candidate != this && candidate->shared != 0 &&
+            _stricmp(candidate->config_004.wave_name, match_name) == 0) {
             return candidate;
         }
         ++index;
@@ -66,27 +407,27 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
 }
 
 // FUNCTION: WIZ8 0x0047a310
-void W8AmbientSound::Update0047A310()
+void W8AmbientSound::UpdateFade()
 {
-    if (flag_c4 != 0) {
-        if (sound_handle_bc != -1) {
-            W8GameTimer* timer = &timer_108;
+    if (shared != 0) {
+        if (sound_handle != -1) {
+            W8GameTimer* timer = &fade_timer;
 
             if (timer->GetProgress() >= 1.0f) {
-                if (value_9c > value_a0) {
-                    ++value_a0;
-                } else if (value_9c < value_a0) {
-                    --value_a0;
+                if (target_volume > current_volume) {
+                    ++current_volume;
+                } else if (target_volume < current_volume) {
+                    --current_volume;
                 } else if ((timer->m_flags & 8) == 0) {
                     timer->m_flags |= 8;
                     timer->m_start = timer->Method00439A60() - timer->m_start;
                 }
-                SoundSetVolume(sound_handle_bc, value_a0);
+                SoundSetVolume(sound_handle, current_volume);
             }
         }
-        if (flag_b8 == 0 && value_9c == value_a0 && sound_handle_bc != -1) {
-            SoundStop(sound_handle_bc);
-            sound_handle_bc = -1;
+        if (in_range == 0 && target_volume == current_volume && sound_handle != -1) {
+            SoundStop(sound_handle);
+            sound_handle = -1;
         }
     }
 }
@@ -100,16 +441,18 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
 
         SoundServiceRandom();
         SoundServiceStreams();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
+        count = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(world->plsAmbientSounds)));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
-                sound->SetState00479970(0);
-                sound->Update0047A310();
+                sound->Service(0);
+                sound->UpdateFade();
             }
         }
-        AudioUpdateFinish004AEFD0();
+        Update3DSounds();
     }
 }
 
@@ -148,7 +491,7 @@ const char* g_footstep_scuff_name_609f48 = "Scuff";
 /* Surface and material ids are recovered as char and range-checked against
    1..9 / 1..25 before indexing the name tables. */
 // FUNCTION: WIZ8 0x0047a440
-int PlayFootstep0047A440(char surface, char material, int argument)
+int PlayFootstep0047A440(char surface, char material, int kind)
 {
     char selected_surface;
     char selected_material;
@@ -161,14 +504,16 @@ int PlayFootstep0047A440(char surface, char material, int argument)
         return -1;
     }
     selected_surface = surface;
-    if (selected_surface < 1 || selected_surface > 9) {
+    if (selected_surface < W8_FOOTSTEP_SURFACE_SMALL_CAVE ||
+        selected_surface > W8_FOOTSTEP_SURFACE_MAX) {
         selected_surface = g_default_footstep_surface_65a108;
     }
     selected_material = material;
-    if (selected_material < 1 || selected_material > 25) {
+    if (selected_material < W8_FOOTSTEP_MATERIAL_GRITTY ||
+        selected_material > W8_FOOTSTEP_MATERIAL_MAX) {
         selected_material = g_default_footstep_material_65a109;
     }
-    if (selected_material >= 18) {
+    if (selected_material >= W8_FOOTSTEP_MATERIAL_CLIMB_LADDER) {
         sprintf(path, "Data\\Sound\\Footsteps\\Step_%s.WAV",
                 g_footstep_names_609edc[selected_material]);
     } else {
@@ -177,7 +522,7 @@ int PlayFootstep0047A440(char surface, char material, int argument)
             variant = Random(4) + 1;
             ++attempts;
         } while (variant == g_previous_footstep_variant_65a10c && attempts < 100);
-        BuildFootstepPath0047A540(path, selected_surface, selected_material, argument, variant);
+        BuildFootstepPath0047A540(path, selected_surface, selected_material, kind, variant);
         g_previous_footstep_variant_65a10c = variant;
     }
     memset(&options, -1, sizeof(options));
@@ -189,19 +534,19 @@ int PlayFootstep0047A440(char surface, char material, int argument)
 // FUNCTION: WIZ8 0x0047a540
 void BuildFootstepPath0047A540(char* path, char surface, char material, char kind, int variant)
 {
-    if (kind == 0) {
+    if (kind == W8_FOOTSTEP_KIND_STEP) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%.2d.WAV",
                 g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
                 g_footstep_names_609edc[material], variant);
         return;
     }
-    if (kind == 1) {
+    if (kind == W8_FOOTSTEP_KIND_JUMP) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s.WAV",
                 g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
                 g_footstep_names_609edc[material], g_footstep_fixed_name_609f44);
         return;
     }
-    if (kind == 2) {
+    if (kind == W8_FOOTSTEP_KIND_SCUFF) {
         sprintf(path, "Data\\Sound\\Footsteps\\%s\\Step_%s_%s_%s_%.2d.WAV",
                 g_footstep_names_609edc[material], g_footstep_surfaces_609eb8[surface],
                 g_footstep_names_609edc[material], g_footstep_scuff_name_609f48, variant);
@@ -217,14 +562,16 @@ void RepositionAmbientSounds0047A600(W8World* world)
         int index;
 
         SoundServiceRandom();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
+        count = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(world->plsAmbientSounds)));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
-                sound->ApplyPosition00479350(&position);
+                sound->UpdatePosition(&position);
             }
         }
     }
@@ -238,7 +585,7 @@ W8AmbientSound* CreateAmbientSound0047A670()
     if (sound == 0) {
         srAssertFail("pSound", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2f5, 0);
     }
-    sound->value_9c = 0;
+    sound->target_volume = 0;
     return sound;
 }
 
@@ -249,11 +596,11 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
         srAssertFail("pAmbient", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2fd,
                      0);
     }
-    if (ambient->sound_handle_bc != -1) {
-        SoundStop(ambient->sound_handle_bc);
+    if (ambient->sound_handle != -1) {
+        SoundStop(ambient->sound_handle);
     }
-    if (ambient->sound_handle_c0 != -1) {
-        SoundRemoveSampleFlags(ambient->sound_handle_c0, 6);
+    if (ambient->sample_handle != -1) {
+        SoundRemoveSampleFlags(ambient->sample_handle, 6);
     }
     if (ambient->pacSoundName != 0) {
         delete[] ambient->pacSoundName;
@@ -267,13 +614,16 @@ W8AmbientSound::~W8AmbientSound() {}
 /* Build a complete ambient-sound row and attach it to the world's list. The
    twenty parameters and their widths come directly from the stack reads. */
 // FUNCTION: WIZ8 0x0047a790
-unsigned char AddAmbientSound0047A790(
-    W8World* world, const char* name, const W8AmbientSoundConfig0047A790* config,
-    const srVector3T<float>* vector_88, const srVector3T<float>* vector_c8,
-    const srVector3T<float>* vector_d4, int value_94, int value_98, int value_ac, int value_b0,
-    int value_a4, int value_a8, int value_b4, unsigned char flag_b9, unsigned char flag_c5,
-    const srVector3T<float>* vector_e0, int value_ec, const srVector3T<float>* vector_f0,
-    const srVector3T<float>* vector_fc, unsigned char flag_c4)
+unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
+                                      const W8AmbientSoundConfig* config,
+                                      const srVector3T<float>* position,
+                                      const srVector3T<float>* region_min,
+                                      const srVector3T<float>* region_max, int volume_min,
+                                      int volume_max, int time_min, int time_max, int speed_min,
+                                      int speed_max, float radius, unsigned char looping,
+                                      unsigned char bounded, const srVector3T<float>* region_center,
+                                      float region_angle, const srVector3T<float>* region_axis,
+                                      const srVector3T<float>* region_scale, unsigned char shared)
 {
     W8AmbientSound* sound = CreateAmbientSound0047A670();
 
@@ -287,23 +637,23 @@ unsigned char AddAmbientSound0047A790(
         strcpy(sound->pacSoundName, name);
     }
     sound->config_004 = *config;
-    sound->vector_88 = *vector_88;
-    sound->vector_c8 = *vector_c8;
-    sound->vector_d4 = *vector_d4;
-    sound->vector_e0 = *vector_e0;
-    sound->value_ec = value_ec;
-    sound->vector_f0 = *vector_f0;
-    sound->vector_fc = *vector_fc;
-    sound->value_94 = value_94 == -1 ? 0x7f : value_94;
-    sound->value_98 = value_98 == -1 ? 0x7f : value_98;
-    sound->value_ac = value_ac == -1 ? 5000 : value_ac;
-    sound->value_b0 = value_b0 == -1 ? 20000 : value_b0;
-    sound->value_a4 = value_a4;
-    sound->value_a8 = value_a8;
-    sound->value_b4 = value_b4;
-    sound->flag_b9 = flag_b9;
-    sound->flag_c5 = flag_c5;
-    sound->flag_c4 = flag_c4;
+    sound->position = *position;
+    sound->region_min = *region_min;
+    sound->region_max = *region_max;
+    sound->region_center = *region_center;
+    sound->region_angle = region_angle;
+    sound->region_axis = *region_axis;
+    sound->region_scale = *region_scale;
+    sound->volume_min = volume_min == -1 ? 0x7f : volume_min;
+    sound->volume_max = volume_max == -1 ? 0x7f : volume_max;
+    sound->time_min = time_min == -1 ? 5000 : time_min;
+    sound->time_max = time_max == -1 ? 20000 : time_max;
+    sound->speed_min = speed_min;
+    sound->speed_max = speed_max;
+    sound->radius = radius;
+    sound->looping = looping;
+    sound->bounded = bounded;
+    sound->shared = shared;
     PLAdoptAppend(world->plsAmbientSounds, sound);
     return 1;
 }
@@ -311,7 +661,9 @@ unsigned char AddAmbientSound0047A790(
 // FUNCTION: WIZ8 0x0047a950
 void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+    int count = static_cast<int>(ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            W8IList*>(g_world->plsAmbientSounds)));
     int index;
 
     for (index = 0; index < count; ++index) {
@@ -320,8 +672,8 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             srVector3T<float> position;
             GetCameraPosition(&position);
-            sound->flag_84 = 0;
-            sound->ApplyPosition00479350(&position);
+            sound->stopped = 0;
+            sound->UpdatePosition(&position);
             return;
         }
     }
@@ -330,17 +682,19 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047a9e0
 void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+    int count = static_cast<int>(ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            W8IList*>(g_world->plsAmbientSounds)));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            SoundStop(sound->sound_handle_bc);
-            sound->flag_b8 = 0;
-            sound->flag_84 = 1;
-            sound->sound_handle_bc = -1;
+            SoundStop(sound->sound_handle);
+            sound->in_range = 0;
+            sound->stopped = 1;
+            sound->sound_handle = -1;
             return;
         }
     }
@@ -349,24 +703,26 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047aa70
 void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+    int count = static_cast<int>(ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            W8IList*>(g_world->plsAmbientSounds)));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound =
             static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            if (sound->flag_84 != 0) {
+            if (sound->stopped != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
-                sound->flag_84 = 0;
-                sound->ApplyPosition00479350(&position);
+                sound->stopped = 0;
+                sound->UpdatePosition(&position);
                 return;
             }
-            SoundStop(sound->sound_handle_bc);
-            sound->flag_b8 = 0;
-            sound->flag_84 = 1;
-            sound->sound_handle_bc = -1;
+            SoundStop(sound->sound_handle);
+            sound->in_range = 0;
+            sound->stopped = 1;
+            sound->sound_handle = -1;
             return;
         }
     }
@@ -422,8 +778,12 @@ unsigned char LoadAmbientSoundList0047AB40(char* filename)
     return 1;
 }
 
+/* The volume/mute helpers operate on the whole sound-effects bus, not just the
+   ambient list: each writes the configured effects volume through the SGP
+   default, then re-drives every live ambient voice and 3D instance so the new
+   level is heard immediately. */
 // FUNCTION: WIZ8 0x0047ad00
-void SetAmbientSoundVolume0047AD00(unsigned char volume)
+void SetSoundEffectsVolume0047AD00(unsigned char volume)
 {
     W8World* world;
     int count;
@@ -432,65 +792,71 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     g_settings_6850c8.sound_effects_volume = volume;
     SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-        count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+        count = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(g_world->plsAmbientSounds)));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
             if (sound != 0) {
-                if (sound->sound_handle_bc != -1) {
+                if (sound->sound_handle != -1) {
                     unsigned int adjusted =
-                        (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
-                    sound->value_9c = adjusted;
-                    sound->value_a0 = adjusted;
-                    SoundSetVolume(sound->sound_handle_bc, adjusted);
+                        (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                    sound->target_volume = adjusted;
+                    sound->current_volume = adjusted;
+                    SoundSetVolume(sound->sound_handle, adjusted);
                 }
-                sound->flag_b8 = 0;
+                sound->in_range = 0;
             }
         }
-        AudioUpdateFinish004AEFD0();
+        Update3DSounds();
     }
     world = GetWorld();
     if (world != 0) {
         SoundServiceRandom();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
+        count = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(world->plsAmbientSounds)));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetCameraPosition(&position);
-                sound->ApplyPosition00479350(&position);
+                sound->UpdatePosition(&position);
             }
         }
         SoundServiceRandom();
         SoundServiceStreams();
-        count = static_cast<int>(PLLength(world->plsAmbientSounds));
+        count = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(world->plsAmbientSounds)));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
-                sound->SetState00479970(0);
-                sound->Update0047A310();
+                sound->Service(0);
+                sound->UpdateFade();
             }
         }
-        AudioUpdateFinish004AEFD0();
+        Update3DSounds();
     }
 }
 
 // FUNCTION: WIZ8 0x0047ae70
-unsigned char GetFlag6850F6(void)
+unsigned char GetSoundEffectsVolume(void)
 {
     return g_settings_6850c8.sound_effects_volume;
 }
 
 // FUNCTION: WIZ8 0x0047ae80
-bool IsAmbientSoundMuted(void)
+bool IsSoundEffectsMuted(void)
 {
     return g_settings_6850c8.muted_sound_effects_volume != 0xff;
 }
 
 // FUNCTION: WIZ8 0x0047ae90
-void SetAmbientSoundMuted(unsigned char muted)
+void SetSoundEffectsMuted(unsigned char muted)
 {
     W8World* world;
     int count;
@@ -502,34 +868,38 @@ void SetAmbientSoundMuted(unsigned char muted)
             g_settings_6850c8.sound_effects_volume = 0;
             SoundSetDefaultVolume(0);
             if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-                count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+                count = static_cast<int>(ILLength(
+                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                        W8IList*>(g_world->plsAmbientSounds)));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound =
                         static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
                     if (sound != 0) {
-                        if (sound->sound_handle_bc != -1) {
+                        if (sound->sound_handle != -1) {
                             unsigned int adjusted =
-                                (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
-                            sound->value_9c = adjusted;
-                            sound->value_a0 = adjusted;
-                            SoundSetVolume(sound->sound_handle_bc, adjusted);
+                                (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                            sound->target_volume = adjusted;
+                            sound->current_volume = adjusted;
+                            SoundSetVolume(sound->sound_handle, adjusted);
                         }
-                        sound->flag_b8 = 0;
+                        sound->in_range = 0;
                     }
                 }
-                AudioUpdateFinish004AEFD0();
+                Update3DSounds();
             }
             world = GetWorld();
             if (world != 0) {
                 SoundServiceRandom();
-                count = static_cast<int>(PLLength(world->plsAmbientSounds));
+                count = static_cast<int>(ILLength(
+                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                        W8IList*>(world->plsAmbientSounds)));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound =
                         static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
                     if (sound != 0) {
                         srVector3T<float> position;
                         GetCameraPosition(&position);
-                        sound->ApplyPosition00479350(&position);
+                        sound->UpdatePosition(&position);
                     }
                 }
                 UpdateAmbientSounds0047A3E0(world);
@@ -540,48 +910,54 @@ void SetAmbientSoundMuted(unsigned char muted)
         g_settings_6850c8.sound_effects_volume = g_settings_6850c8.muted_sound_effects_volume;
         SoundSetDefaultVolume(g_settings_6850c8.muted_sound_effects_volume);
         if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-            count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
+            count = static_cast<int>(ILLength(
+                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                    W8IList*>(g_world->plsAmbientSounds)));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
                 if (sound != 0) {
-                    if (sound->sound_handle_bc != -1) {
+                    if (sound->sound_handle != -1) {
                         unsigned int adjusted =
-                            (sound->value_98 * g_settings_6850c8.sound_effects_volume) / 0x7f;
-                        sound->value_9c = adjusted;
-                        sound->value_a0 = adjusted;
-                        SoundSetVolume(sound->sound_handle_bc, adjusted);
+                            (sound->volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                        sound->target_volume = adjusted;
+                        sound->current_volume = adjusted;
+                        SoundSetVolume(sound->sound_handle, adjusted);
                     }
-                    sound->flag_b8 = 0;
+                    sound->in_range = 0;
                 }
             }
-            AudioUpdateFinish004AEFD0();
+            Update3DSounds();
         }
         world = GetWorld();
         if (world != 0) {
             SoundServiceRandom();
-            count = static_cast<int>(PLLength(world->plsAmbientSounds));
+            count = static_cast<int>(ILLength(
+                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                    W8IList*>(world->plsAmbientSounds)));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
                 if (sound != 0) {
                     srVector3T<float> position;
                     GetCameraPosition(&position);
-                    sound->ApplyPosition00479350(&position);
+                    sound->UpdatePosition(&position);
                 }
             }
             SoundServiceRandom();
             SoundServiceStreams();
-            count = static_cast<int>(PLLength(world->plsAmbientSounds));
+            count = static_cast<int>(ILLength(
+                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                    W8IList*>(world->plsAmbientSounds)));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
                 if (sound != 0) {
-                    sound->SetState00479970(0);
-                    sound->Update0047A310();
+                    sound->Service(0);
+                    sound->UpdateFade();
                 }
             }
-            AudioUpdateFinish004AEFD0();
+            Update3DSounds();
         }
         g_settings_6850c8.muted_sound_effects_volume = 0xff;
     }
@@ -604,7 +980,9 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
         FileWrite(handle, &count, 4, 0);
         return;
     }
-    count = PLLength(g_world->plsAmbientSounds);
+    count = ILLength(
+        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+            W8IList*>(g_world->plsAmbientSounds));
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8AmbientSound* sound =
@@ -618,7 +996,57 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
                 ok = FileWrite(handle, sound->pacSoundName, 0x80, 0);
             }
             if (ok) {
-                ok = FileWrite(handle, &sound->flag_84, 1, 0);
+                ok = FileWrite(handle, &sound->stopped, 1, 0);
+            }
+        }
+    }
+}
+
+/* The serialized per-record payload is just the 0x80-byte name and the stopped
+   byte; on load each name is matched against the live list and the matching
+   script commands are replayed — the helpers rescan the list themselves, and
+   VC6 inlines that rescan twice here. */
+// FUNCTION: WIZ8 0x0047b270
+void LoadAmbientSoundList0047B270(HWFILE handle)
+{
+    unsigned char version;
+    unsigned char ok;
+    int count = 0;
+    int index;
+    char name[0x80];
+    unsigned char stopped_flag;
+
+    if (g_world->plsAmbientSounds == 0) {
+        return;
+    }
+    ok = FileRead(handle, &version, 1, 0);
+    if (ok != 0) {
+        ok = FileRead(handle, &count, 4, 0);
+    }
+    for (index = 0; index < count; ++index) {
+        int length;
+        int scan;
+
+        if (ok != 0 && FileRead(handle, name, 0x80, 0) != 0) {
+            ok = FileRead(handle, &stopped_flag, 1, 0);
+        } else {
+            ok = 0;
+        }
+        length = static_cast<int>(ILLength(
+            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
+                W8IList*>(g_world->plsAmbientSounds)));
+        for (scan = 0; scan < length; ++scan) {
+            W8AmbientSound* sound =
+                static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, scan));
+            if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
+                if (sound != 0) {
+                    if (stopped_flag == 0) {
+                        PositionAmbientSoundByName0047A950(0, name);
+                    } else {
+                        StopAmbientSoundByName0047A9E0(0, name);
+                    }
+                }
+                break;
             }
         }
     }

@@ -683,8 +683,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
             }
             if (*visual != 0 && (*visual)->IsCycleSupported((signed char)index)) {
                 sprintf(wave_path, "Data\\Spells\\Sounds\\%s.WAV", pac_value);
-                event = CreateSoundEvent004D57A0(sound_type, index, frame, 0, wave_path,
-                                                 _stricmp(loop_name, "LOOP") == 0);
+                event = CreateSoundEvent(sound_type, index, frame, 0, wave_path,
+                                         _stricmp(loop_name, "LOOP") == 0);
                 if (event != 0) {
                     (*visual)->AddSoundEvent(event);
                 }
@@ -1251,14 +1251,14 @@ void DropMonsterVisual(W8Monster* pMonster, int iIcon, char add)
 // FUNCTION: WIZ8 0x004AE6D0
 stSound3D::stSound3D(const char* name, srNode* parent)
     : srClassSupport<stSound3D, srNode, 0, 0x1000b>(static_cast<srNode*>(0)), unknown_138(0),
-      sound_handle_13c(-1), value_140(0x7f), value_144(25000.0f), sound_name_148(0), flag_14c(0)
+      sound_handle(-1), volume(0x7f), falloff(25000.0f), wave_name(0), auto_release(0)
 {
     if (parent != 0) {
         setParent(parent, 0);
     }
     if (name != 0) {
-        sound_name_148 = static_cast<char*>(malloc(strlen(name) + 1));
-        strcpy(sound_name_148, name);
+        wave_name = static_cast<char*>(malloc(strlen(name) + 1));
+        strcpy(wave_name, name);
     }
     g_sound3d_instances_65be40.Add(this);
 }
@@ -1266,11 +1266,11 @@ stSound3D::stSound3D(const char* name, srNode* parent)
 // FUNCTION: WIZ8 0x004AEAA0
 stSound3D::~stSound3D()
 {
-    if (sound_name_148 != 0) {
-        free(sound_name_148);
+    if (wave_name != 0) {
+        free(wave_name);
     }
-    if (sound_handle_13c != -1) {
-        SoundStop(sound_handle_13c);
+    if (sound_handle != -1) {
+        SoundStop(sound_handle);
     }
     int index = g_sound3d_instances_65be40.IndexOf(this);
     if (index != -1) {
@@ -1285,29 +1285,29 @@ srClass* stSound3D::vInstance()
 }
 
 // FUNCTION: WIZ8 0x004AEBF0
-unsigned char stSound3D::Play004AEBF0(unsigned char flatten, unsigned char flag)
+unsigned char stSound3D::Play(unsigned char loop, unsigned char release_when_done)
 {
     SOUND3DPARMS options;
     srVector3T<float> listener;
 
-    if (sound_name_148 == 0) {
+    if (wave_name == 0) {
         return 0;
     }
     GetCameraPosition(&listener);
-    BuildSoundOptions004AECC0(&listener, &options);
-    if (flatten != 0) {
+    BuildSoundOptions(&listener, &options);
+    if (loop != 0) {
         options.uiLoop = 0;
     }
-    sound_handle_13c = Sound3DPlay(sound_name_148, &options);
-    flag_14c = flag;
-    return sound_handle_13c != -1;
+    sound_handle = Sound3DPlay(wave_name, &options);
+    auto_release = release_when_done;
+    return sound_handle != -1;
 }
 
 // FUNCTION: WIZ8 0x004AECC0
-void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOUND3DPARMS* options)
+void stSound3D::BuildSoundOptions(const srVector3T<float>* listener, SOUND3DPARMS* options)
 {
     float angle = -GetCameraYawRadians();
-    unsigned int volume = (value_140 * g_settings_6850c8.sound_effects_volume) / 0x7f;
+    unsigned int scaled_volume = (volume * g_settings_6850c8.sound_effects_volume) / 0x7f;
     srMatrix3T<float> rotation;
     srVector3T<float> node_position;
     srVector3T<float> offset;
@@ -1328,7 +1328,7 @@ void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOU
     srVector3T<float> listener_offset(listener->x - node_position.x, listener->y - node_position.y,
                                       listener->z - node_position.z);
     options->uiVolume = static_cast<unsigned int>(
-        (g_float_005ebb38 - listener_offset.Length() / value_144) * volume);
+        (g_float_005ebb38 - listener_offset.Length() / falloff) * scaled_volume);
     options->uiLoop = 1;
     options->Pos.flX = x;
     options->Pos.flY = y;
@@ -1342,15 +1342,15 @@ void stSound3D::BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOU
     options->Pos.flUpX = 0.0f;
     options->Pos.flUpY = g_float_005ebb38;
     options->Pos.flUpZ = 0.0f;
-    options->Pos.flFalloffMin = value_144;
-    options->Pos.flFalloffMax = value_144;
+    options->Pos.flFalloffMin = falloff;
+    options->Pos.flFalloffMax = falloff;
     options->Pos.uiVolume = options->uiVolume;
 }
 
 // FUNCTION: WIZ8 0x004AEC70
-bool stSound3D::IsPlaying004AEC70()
+bool stSound3D::IsPlaying()
 {
-    if (sound_handle_13c != -1 && SoundIsPlaying(sound_handle_13c) != 0) {
+    if (sound_handle != -1 && SoundIsPlaying(sound_handle) != 0) {
         return true;
     }
     return false;
@@ -1362,7 +1362,7 @@ bool stSound3D::IsPlaying004AEC70()
    relative to the camera and re-volumed by distance and the configured
    effects-volume. */
 // FUNCTION: WIZ8 0x004aefd0
-void AudioUpdateFinish004AEFD0()
+void Update3DSounds()
 {
     srVector3T<float> listener;
 
@@ -1372,11 +1372,11 @@ void AudioUpdateFinish004AEFD0()
     if (count > 0) {
         do {
             stSound3D* sound = *g_sound3d_instances_65be40.GetAt(index);
-            if (sound->sound_handle_13c != -1) {
+            if (sound->sound_handle != -1) {
                 srVector3T<double> world = sound->getWorldSpaceLocation();
-                if (SoundIsPlaying(sound->sound_handle_13c) == 0) {
-                    unsigned char dead = sound->flag_14c;
-                    sound->sound_handle_13c = -1;
+                if (SoundIsPlaying(sound->sound_handle) == 0) {
+                    unsigned char dead = sound->auto_release;
+                    sound->sound_handle = -1;
                     if (dead != 0) {
                         sound->release();
                         --count;
@@ -1394,8 +1394,8 @@ void AudioUpdateFinish004AEFD0()
                     to_listener.Set(listener.x - (float)world.x, listener.y - (float)world.y,
                                     listener.z - (float)world.z);
                     distance = (float)sqrt(DotProduct(to_listener, to_listener));
-                    if (sound->value_144 <= distance) {
-                        SoundSetVolume(sound->sound_handle_13c, 0);
+                    if (sound->falloff <= distance) {
+                        SoundSetVolume(sound->sound_handle, 0);
                     } else {
                         angle = -GetCameraYawRadians();
                         rotation.SetIdentity();
@@ -1406,14 +1406,15 @@ void AudioUpdateFinish004AEFD0()
                         offset.y = (float)world.y - listener.y;
                         offset.z = (float)world.z - listener.z;
                         transformed = rotation.Transform(offset);
-                        Sound3DSetPosition(sound->sound_handle_13c, transformed.x, transformed.y,
+                        Sound3DSetPosition(sound->sound_handle, transformed.x, transformed.y,
                                            transformed.z);
-                        Sound3DSetDirection(sound->sound_handle_13c, -transformed.x, -transformed.y,
+                        Sound3DSetDirection(sound->sound_handle, -transformed.x, -transformed.y,
                                             -transformed.z, 0.0f, g_float_005ebb38, 0.0f);
-                        volume = (sound->value_140 * g_settings_6850c8.sound_effects_volume) / 0x7f;
+                        volume = (sound->volume * g_settings_6850c8.sound_effects_volume) / 0x7f;
                         SoundSetVolume(
-                            sound->sound_handle_13c,
-                            (UINT32)((g_float_005ebb38 - distance / sound->value_144) * volume));
+                            sound->sound_handle,
+                            static_cast<UINT32>((g_float_005ebb38 - distance / sound->falloff) *
+                                                volume));
                     }
                 }
             }

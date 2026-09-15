@@ -11,6 +11,12 @@
 class stSound3D;
 extern W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
+/* General positional-audio node, recovered in src/wiz8/engine_code/Spells.cpp.
+   That placement is provisional: the original-TU evidence has a gap over its
+   0x004AE6D0..0x004AEFD0 span, bounded by Spells.cpp (up to 0x004ADB20) below
+   and OctBuildPreTree.cpp (from 0x004B19F0) above, so a dedicated audio
+   translation unit is at least as likely; no body carries a source-path
+   string to settle it. Move the bodies when the gap is attributed. */
 class stSound3D : public srClassSupport<stSound3D, srNode, 0, 0x1000b> {
 public:
     static const char* sGetClassName()
@@ -20,16 +26,19 @@ public:
     stSound3D(const char* sound_name, srNode* parent); /* 0x004AE6D0 */
     virtual ~stSound3D() override;
     virtual srClass* vInstance() override;
-    bool IsPlaying004AEC70(); /* 0x004AEC70 */
-    unsigned char Play004AEBF0(unsigned char value_1, unsigned char value_2);
-    void BuildSoundOptions004AECC0(const srVector3T<float>* listener, SOUND3DPARMS* options);
+    bool IsPlaying(); /* 0x004AEC70 */
+    /* loop forces the SGP voice to loop forever (AIL count 0); auto_release
+       makes the update pass release the node once playback ends. */
+    unsigned char Play(unsigned char loop, unsigned char auto_release); /* 0x004AEBF0 */
+    void BuildSoundOptions(const srVector3T<float>* listener,
+                           SOUND3DPARMS* options); /* 0x004AECC0 */
 
-    int unknown_138;
-    int sound_handle_13c;
-    int value_140;
-    float value_144;
-    char* sound_name_148;
-    unsigned char flag_14c;
+    int unknown_138;            /* 0x138: ctor zeroes it; no retail reader found */
+    int sound_handle;           /* 0x13c: live SGP voice id, -1 when silent */
+    int volume;                 /* 0x140: base volume before distance/effects scale */
+    float falloff;              /* 0x144: audible range in world units */
+    char* wave_name;            /* 0x148: owned copy of the wave filename */
+    unsigned char auto_release; /* 0x14c: release the node when playback ends */
     unsigned char unknown_14d[3];
 
     /* srClassSupport::clone expands this class-specific assignment in the
@@ -39,20 +48,20 @@ public:
     {
         srNode::operator=(other);
 
-        const char* source_name = other.sound_name_148;
-        if (sound_name_148 != 0) {
-            free(sound_name_148);
-            sound_name_148 = 0;
+        const char* source_name = other.wave_name;
+        if (wave_name != 0) {
+            free(wave_name);
+            wave_name = 0;
         }
         if (source_name != 0) {
-            sound_name_148 = static_cast<char*>(malloc(strlen(source_name) + 1));
-            strcpy(sound_name_148, source_name);
+            wave_name = static_cast<char*>(malloc(strlen(source_name) + 1));
+            strcpy(wave_name, source_name);
         }
 
-        sound_handle_13c = -1;
-        value_144 = other.value_144;
-        value_140 = other.value_140;
-        flag_14c = other.flag_14c;
+        sound_handle = -1;
+        falloff = other.falloff;
+        volume = other.volume;
+        auto_release = other.auto_release;
         g_sound3d_instances_65be40.Add(this);
         return *this;
     }

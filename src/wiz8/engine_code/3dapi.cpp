@@ -512,7 +512,7 @@ void DestroyWorldCollections(W8World* world)
         world->plsCameras = 0;
     }
 
-    Function479030();
+    StopAllAmbientSounds();
     if (world->plsAmbientSounds != 0) {
         while (PLLength(world->plsAmbientSounds) != 0) {
             void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
