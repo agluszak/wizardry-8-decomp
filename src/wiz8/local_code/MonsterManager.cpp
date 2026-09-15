@@ -750,8 +750,8 @@ void DestroyUngroupedMonsters(void)
                 DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
             }
-            (void)g_octree_6598a4;
-            Function42E650(static_cast<unsigned short>(monster_info->location_id));
+            g_octree_6598a4->UnregisterLocationObjects(
+                static_cast<unsigned short>(monster_info->location_id));
             ReleaseNpcBinding(monster_info->runtime_value_2f1);
             void* removed = PLRemoveAt(gXStatus.plsMonsterList, index);
             if (removed != 0) {
@@ -1143,8 +1143,8 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
             DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
         }
-        (void)g_octree_6598a4;
-        Function42E650(static_cast<unsigned short>(monster_info->location_id));
+        g_octree_6598a4->UnregisterLocationObjects(
+            static_cast<unsigned short>(monster_info->location_id));
         ReleaseNpcBinding(monster_info->runtime_value_2f1);
         void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
         if (removed != 0) {
@@ -1477,7 +1477,8 @@ void ProcessMonsterManagerFrame(void)
                     DeleteMonster004C5860(monster_info->monster);
                     monster_info->monster = 0;
                 }
-                Function42E650(static_cast<unsigned short>(monster_info->location_id));
+                g_octree_6598a4->UnregisterLocationObjects(
+                    static_cast<unsigned short>(monster_info->location_id));
                 ReleaseNpcBinding(monster_info->runtime_value_2f1);
                 void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
                 if (removed != 0) {

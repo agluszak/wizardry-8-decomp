@@ -14,6 +14,7 @@ class stMeshModel;
 class stModelInstance;
 struct W8Item;
 struct W8GameData;
+struct W8OctRegionVolume0049E460;
 
 void SetSceneAmbientLightWhite(srScene* scene);
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
@@ -43,6 +44,24 @@ void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<flo
 /* Report whether a point satisfies all six frustum planes. */
 unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
                                          const srVector4T<float>* planes);
+/* Report whether a sphere of `radius` at `point` reaches all six frustum
+   planes (each plane distance may be as low as -radius). */
+unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
+                                          const srVector4T<float>* planes);
+/* Point-in-triangle test via dominant-axis projection: `axis` selects the two
+   planar components used. */
+unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
+                                          const srVector3T<float>* point);
+/* Build the six frustum planes from the eight sorted corner points. */
+void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, srVector4T<float>* planes);
+/* Order a volume's eight corner points into the canonical (y,z,x)-sorted
+   sequence the frustum plane builder expects. */
+void SortFrustumCorners0046DA20(srVector3T<float>* points);
+/* Report whether the six-float bounds box (min xyz, max xyz) intersects the
+   region volume's frustum: true when a bounds corner satisfies all six
+   planes or a volume corner lands inside the bounds. */
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume0049E460* volume,
+                                          const float* bounds);
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);

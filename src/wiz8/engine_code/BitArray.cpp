@@ -127,10 +127,10 @@ unsigned char BitArray::Load(int handle)
     if (FileRead(handle, &packed_size, 4, 0) == 0) {
         return 0;
     }
-    packed = ::operator new(packed_size);
+    packed = operator new(packed_size);
     if (packed != 0) {
         if (FileRead(handle, packed, packed_size, 0) == 0) {
-            ::operator delete(packed);
+            operator delete(packed);
             return 0;
         }
 
@@ -142,7 +142,7 @@ unsigned char BitArray::Load(int handle)
                 srHuffman::Decompressor decoder(bits);
                 remaining = decoder.getDataCount();
                 if (remaining != 0) {
-                    decoded = static_cast<unsigned long*>(::operator new(remaining * 4));
+                    decoded = static_cast<unsigned long*>(operator new(remaining * 4));
                     if (remaining > 0)
                         cursor = decoded;
                     while (remaining > 0) {
@@ -153,8 +153,8 @@ unsigned char BitArray::Load(int handle)
                 }
             }
             memcpy(puiIndex, decoded, word_count * sizeof(unsigned int));
-            ::operator delete(decoded);
-            ::operator delete(packed);
+            delete decoded;
+            operator delete(packed);
             magic = 0;
             if (FileRead(handle, &magic, 4, 0) == 0 || magic != 0xdeadd00d) {
                 return 0;

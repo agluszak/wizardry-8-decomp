@@ -24,6 +24,7 @@
       "Engine Code\\OctPrePath.cpp"
     ],
     "include/wiz8/engine_code/Octree.h": [
+      "Engine Code\\Navigator.cpp",
       "Engine Code\\OctPreTree.cpp",
       "Engine Code\\Octree.cpp"
     ],

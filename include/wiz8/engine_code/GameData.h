@@ -36,6 +36,7 @@ class Trigger;
 class srCamera;
 class srNode;
 class W8Octree;
+struct W8OctreeTrace;
 
 class BitArray;
 
@@ -119,6 +120,25 @@ struct W8GameData {
 
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
+
+    /* Loop the buffered prop ids through TestProp and return the id of the
+       last prop that reported a hit, or -1. */
+    int TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* trace, char skip_flag,
+                         char gate); /* 0x0041C0D0 */
+    /* Ray-test one collidable prop: swaps the prop's surface/vertex arrays
+       into this context, traces in prop-local space through the prop's
+       position delta when no pre-tree exists (reseeding the caller's record
+       to the world-space hit), and restores the arrays. `gate` skips flag-4
+       props when set. */
+    unsigned char TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag,
+                           char gate); /* 0x0041C140 */
+    /* Ray-test `count` surfaces - all of surfaces_38 when `surface_ids` is
+       null, else the listed surface indexes - against the trace record.
+       value_88, flag and mode filters apply; a closer hit stores index_04
+       into value_54, the contact into the record's end_0c and the distance
+       into hit_limit_24. */
+    char TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+                         char skip_flag, int mode); /* 0x0041C330 */
 };
 
 static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
@@ -149,8 +169,6 @@ void EndCameraSway0041A9A0(void);
 unsigned int GetLevelDataFlag6(void);
 
 void Function41C680(int interface_id, int state);
-char TestTraceResult0041C330(int value_1b8, unsigned long* objects, void* result,
-                             unsigned char value_134, int mode);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and

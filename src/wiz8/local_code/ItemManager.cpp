@@ -604,7 +604,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     item->flags &= ~2u;
     item->unknown_35 = 0;
 
-    g_octree_6598a4->SettleToGround00433820(&start, &hit, 1, 250.0f);
+    g_octree_6598a4->SettleToGround(&start, &hit, 1, 250.0f);
     if (hit == 0) {
         return 0;
     }

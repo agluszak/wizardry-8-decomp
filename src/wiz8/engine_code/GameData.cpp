@@ -10,8 +10,13 @@
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "random.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -103,6 +108,182 @@ void UpdateGameDataRuntime0041F260()
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is
    proven, so it keeps its address. */
+/* Run the buffered prop id list through TestProp and report the id of the
+   last prop that hit; an empty list reports -1. */
+// FUNCTION: WIZ8 0x0041c0d0
+int W8GameData::TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* trace,
+                                 char skip_flag, char gate)
+{
+    int last_hit = -1;
+    if (count == 0) {
+        return -1;
+    }
+    do {
+        if (TestProp(*ids, trace, skip_flag, gate) != 0) {
+            last_hit = *ids;
+        }
+        ++ids;
+        --count;
+    } while (count != 0);
+    return last_hit;
+}
+
+/* Point the shared surface/vertex arrays at one collidable prop's GDProp
+   tables, ray-test them and put the arrays back. Without a pre-tree the prop
+   comes out of the world's collidable list, its pathing representation is
+   built on demand, and the ray is moved into prop space through the prop's
+   position delta; on a hit the caller's record is reseeded from the start to
+   the world-space contact. `gate` skips flag-4 props when set. */
+// FUNCTION: WIZ8 0x0041c140
+unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate)
+{
+    W8GDSurface* saved_surfaces = surfaces_38;
+    srVector3T<float>* saved_vertices = vertices_24;
+    unsigned char hit = 0;
+    GDProp* gd_prop;
+    W8Prop* prop;
+
+    if (g_oct_pre_tree_659c74 == 0) {
+        prop = *g_world->collidable_props->GetAt(prop_id);
+        gd_prop = prop->m_gd_prop;
+        prop->flags_1c |= 0x10;
+        if (gd_prop == 0) {
+            prop->BuildOrRefreshPathingRepresentation();
+            gd_prop = prop->m_gd_prop;
+        }
+    } else {
+        gd_prop = static_cast<GDProp*>(*g_oct_pre_tree_659c74->positional_3b8->GetAt(prop_id));
+    }
+    surfaces_38 = gd_prop->m_pGDSurfaces;
+    vertices_24 = gd_prop->m_pVertices;
+    if (g_oct_pre_tree_659c74 == 0) {
+        if (gate == 0 || (gd_prop->m_flags_00 & 4) == 0) {
+            srVector3T<float> start = trace->start_00;
+            srVector3T<float> end = trace->end_0c;
+            srVector3T<float> delta;
+            prop->GetDelta0044E130(&delta, &start);
+            end.x -= delta.x;
+            end.y -= delta.y;
+            end.z -= delta.z;
+            W8OctreeTrace prop_trace(&start, &end);
+            hit = TestTraceResult(gd_prop->m_surface_count_14, 0, &prop_trace, skip_flag, 0);
+            if (hit != 0) {
+                end.x = prop_trace.end_0c.x + delta.x;
+                end.y = prop_trace.end_0c.y + delta.y;
+                end.z = prop_trace.end_0c.z + delta.z;
+                trace->Reseed(&start, &end);
+            }
+        }
+    } else {
+        hit = TestTraceResult(gd_prop->m_surface_count_14, 0, trace, skip_flag, 0);
+    }
+    surfaces_38 = saved_surfaces;
+    vertices_24 = saved_vertices;
+    return hit;
+}
+
+/* Ray the trace record against `count` surfaces: all of surfaces_38 in order
+   when `surface_ids` is null, else just the listed indexes. The value_88 flag
+   admits flag-4 surfaces only, 0x1080-marked surfaces are skipped outright,
+   `skip_flag` drops 0x8000-marked ones, and a nonzero positional_44 needs a
+   passing `mode` roll. Each accepted surface's plane is tested both sides of
+   the segment; a point-in-triangle pass on the contact keeps the closest hit,
+   storing index_04 into value_54, the contact into end_0c and the hit
+   distance into hit_limit_24/length_28. */
+// FUNCTION: WIZ8 0x0041c330
+char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+                                 char skip_flag, int mode)
+{
+    char hit = 0;
+    float best_x;
+    float best_y;
+    float best_z;
+
+    value_54 = 0;
+    if (count != 0) {
+        unsigned long* id = surface_ids;
+        int index = 0;
+        int remaining = count;
+        do {
+            W8GDSurface* surface;
+            if (surface_ids == 0) {
+                surface = surfaces_38 + index;
+            } else {
+                surface = surfaces_38 + *id;
+            }
+            if (((value_88 == 0 || (surface->flags_00 & 4) != 0) &&
+                 (surface->flags_00 & 0x1080) == 0 &&
+                 (skip_flag == 0 || (surface->flags_00 & 0x8000) == 0)) &&
+                (surface->positional_44 == 0 ||
+                 (mode != -1 && (mode < 2 || static_cast<int>(surface->positional_44) < mode) &&
+                  (mode != 1 ||
+                   (static_cast<int>(surface->positional_44) < 100 &&
+                    static_cast<int>(surface->positional_44) < static_cast<int>(Random(100)))))) &&
+                surface->plane_24[0] * trace->step_18.x + surface->plane_24[1] * trace->step_18.y +
+                        surface->plane_24[2] * trace->step_18.z <=
+                    g_float_005ebb34) {
+                float hit_distance = surface->plane_24[0] * trace->start_00.x +
+                                     surface->plane_24[1] * trace->start_00.y +
+                                     surface->plane_24[2] * trace->start_00.z +
+                                     surface->plane_24[3];
+                if (hit_distance <= trace->hit_limit_24 && g_float_005ebb34 < hit_distance) {
+                    srVector3T<float> contact;
+                    if (g_float_005ebb38 <= hit_distance) {
+                        float back = surface->plane_24[0] * trace->end_0c.x +
+                                     surface->plane_24[1] * trace->end_0c.y +
+                                     surface->plane_24[2] * trace->end_0c.z + surface->plane_24[3];
+                        if (g_float_005ebb38 <= back) {
+                            goto next;
+                        }
+                        back = -back;
+                        if (g_float_005ebb38 <= back || trace->hit_limit_24 < trace->length_28) {
+                            hit_distance =
+                                (hit_distance / (back + hit_distance)) * trace->length_28;
+                            contact.x = trace->step_18.x * hit_distance + trace->start_00.x;
+                            contact.y = trace->step_18.y * hit_distance + trace->start_00.y;
+                            contact.z = trace->step_18.z * hit_distance + trace->start_00.z;
+                        } else {
+                            contact = trace->end_0c;
+                            hit_distance = trace->length_28;
+                        }
+                    } else {
+                        contact = trace->start_00;
+                    }
+                    srVector3T<float> vertices[3];
+                    vertices[0] = vertices_24[surface->vertex_indices_18[0]];
+                    vertices[1] = vertices_24[surface->vertex_indices_18[1]];
+                    vertices[2] = vertices_24[surface->vertex_indices_18[2]];
+                    if (PointInsideTriangle0046D530(vertices, surface->flags_00 & 3, &contact) !=
+                            0 &&
+                        hit_distance < trace->hit_limit_24) {
+                        value_54 = surface->index_04;
+                        hit = 1;
+                        trace->hit_limit_24 = hit_distance;
+                        best_y = contact.y;
+                        best_z = contact.z;
+                        best_x = contact.x;
+                    }
+                }
+            }
+        next:
+            /* Retail verified at 0x0041C627: the cursor advances
+               unconditionally even when `surface_ids` is null, so `++id` on a
+               null pointer is the retail behavior rather than a defect. */
+            ++id;
+            ++index;
+            --remaining;
+        } while (remaining != 0);
+        if (hit != 0) {
+            trace->end_0c.x = best_x;
+            trace->end_0c.y = best_y;
+            trace->end_0c.z = best_z;
+            trace->length_28 = trace->hit_limit_24;
+            return hit;
+        }
+    }
+    return 0;
+}
+
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041cf80
 void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)

@@ -153,6 +153,12 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional);
 void SetRendererModePair(void);
 /* 0x004215E0: point-visibility query the radar item loop consults. */
 unsigned char Function4215E0(const srVector3T<float>* position);
+/* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
+   link builder uses to count a mesh's drawn faces — begin the probe pass,
+   draw the node and return its covered-face count, then end the pass. */
+void BeginRenderProbe00428910(void);
+unsigned int MeasureNodeRender004289E0(srNode* node);
+void EndRenderProbe004289C0(void);
 
 #endif
 
@@ -225,6 +231,9 @@ void SetTextureCacheSize00426740(unsigned long bytes);
 void SetSwapInterval00426710(unsigned char enabled);
 unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
+/* Scale a 640x480 design-space rect onto the GERD surface and remember it;
+   no-ops when the stored bounds already match. */
+void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
 void ResetVideoFrameState00422B10(void);

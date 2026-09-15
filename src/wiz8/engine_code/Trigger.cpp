@@ -988,7 +988,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
         upper = center + extent;
 
         unsigned int count =
-            FindMonsterLocationsInBox0042F280(&locations, &lower, &upper, 0x0c, -1);
+            g_octree_6598a4->QueryObjects(&locations, &lower, &upper, W8_OCTREE_KIND_LOCATION, -1);
         for (unsigned int index = 0; index < count; ++index) {
             int location_id = locations[index];
             if (location_id == 0) {
@@ -3656,8 +3656,7 @@ bool Trigger::SelectAction()
             }
         }
     } else {
-        W8DoorTriggerActionData* action_data =
-            static_cast<W8DoorTriggerActionData*>(m_pActionData);
+        W8DoorTriggerActionData* action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
         bool linked_trigger_blocked = false;
 
         if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {

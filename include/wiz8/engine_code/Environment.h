@@ -81,6 +81,9 @@ void UpdateEnvironmentLighting00484300(void);
 float GetWorldValue24(const W8World* world);
 void SetSkyNodeVisible(bool visible);
 void SetCameraLightIntensity00483E30(float value);
+/* Mode 0 raises the camera light's intensity, 1 lowers it, 2 disables the
+   node, 3 re-enables it. */
+void SetCameraLightMode00483E80(int mode);
 void RefreshFogRanges004836A0(void);
 
 void SetViewDistance(float distance);

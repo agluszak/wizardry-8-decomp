@@ -210,7 +210,8 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsi
     out->x = position.x + direction.x * advance;
     out->y = position.y + direction.y * advance;
     out->z = position.z + direction.z * advance;
-    if (g_world->octree != 0 && (entity = TraceAgainstProps00436510(&position, out, 0, 0)) != 0) {
+    if (g_world->octree != 0 &&
+        (entity = g_world->octree->TraceAgainstProps(&position, out, 0, 0)) != 0) {
         record->limit_18 = 1.0f;
         prop = *g_world->collidable_props->GetAt(entity - 1);
         prop->RunMissileTrigger0044E230(record);

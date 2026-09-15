@@ -375,9 +375,10 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         destination->index_02 = (unsigned short)surface;
         destination->first_edge_24 = source->first_edge_02;
         destination->position_04 = source->position_04;
-        int point[2];
-        g_octree_6598a4->WorldPositionToCell00431440(&destination->position_04, point);
-        g_octree_6598a4->object_registry->MoveObjectToCell(9, surface + 1, point);
+        int point[3];
+        g_octree_6598a4->WorldPositionToCell(&destination->position_04, point);
+        g_octree_6598a4->object_registry->MoveObjectToCell(W8_OCTREE_KIND_WAYPOINT, surface + 1,
+                                                           point);
         if ((destination->flags_00 & 0xf000) == 0)
             destination->flags_00 |= 0x2000;
     }
@@ -435,7 +436,8 @@ void W8PathingService::BuildWaypointFileData0045E440()
     for (old_surface = 1; old_surface < m_ulNumSurfaces; ++old_surface) {
         W8PathSurface* surface = &m_pSurfaces_048[old_surface];
         if (surface->index_02 == 0 || surface->first_edge_24 == 0) {
-            g_octree_6598a4->object_registry->UnregisterObject(9, old_surface + 1);
+            g_octree_6598a4->object_registry->UnregisterObject(W8_OCTREE_KIND_WAYPOINT,
+                                                               old_surface + 1);
             if (surface->first_edge_24 == 0) {
                 unsigned short removed = 0;
                 unsigned int edge;
@@ -457,11 +459,13 @@ void W8PathingService::BuildWaypointFileData0045E440()
             if (old_surface != next_surface) {
                 m_pSurfaces_048[next_surface] = *surface;
                 m_pSurfaces_048[next_surface].index_02 = next_surface;
-                g_octree_6598a4->object_registry->UnregisterObject(9, old_surface + 1);
-                int point[2];
-                g_octree_6598a4->WorldPositionToCell00431440(
-                    &m_pSurfaces_048[next_surface].position_04, point);
-                g_octree_6598a4->object_registry->MoveObjectToCell(9, next_surface + 1, point);
+                g_octree_6598a4->object_registry->UnregisterObject(W8_OCTREE_KIND_WAYPOINT,
+                                                                   old_surface + 1);
+                int point[3];
+                g_octree_6598a4->WorldPositionToCell(&m_pSurfaces_048[next_surface].position_04,
+                                                     point);
+                g_octree_6598a4->object_registry->MoveObjectToCell(W8_OCTREE_KIND_WAYPOINT,
+                                                                   next_surface + 1, point);
             }
             ++next_surface;
         }
@@ -620,7 +624,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
 void W8PathingService::LinkSurfaces00460020()
 {
     unsigned int index = 1;
-    int point[2];
+    int point[3];
     W8PathSurface* surface;
     int converted;
 
@@ -1276,7 +1280,8 @@ int W8PathingService::ProcessSearchNodeProps004663D0(unsigned int node_index,
     upper = node->position_20 + upper_extent;
 
     int* candidates = 0;
-    unsigned int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 8, -1);
+    unsigned int count =
+        g_octree_6598a4->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
     for (unsigned int index = 0; index < count; ++index) {
         W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
         prop->CanBeUsedFrom(node->cell_x_04, node->cell_z_06, 1);
@@ -1307,8 +1312,8 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
     upper = movement->position_040 + half_extent;
 
     path_candidates_098 = 0;
-    path_candidate_count_094 =
-        OctreeTraverseKind12(&path_candidates_098, &lower, &upper, movement->location_id_004);
+    path_candidate_count_094 = g_octree_6598a4->QueryLocationsInBox(
+        &path_candidates_098, &lower, &upper, movement->location_id_004);
 
     srVector3T<float> player_position = g_startup_world_659c0c->GetPosition();
     srVector3T<float> delta = player_position - movement->position_040;
@@ -1428,8 +1433,8 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         upper = start + half_extent;
         CollectPathProbes004656A0(movement, radius);
         path_candidates_098 = 0;
-        path_candidate_count_094 =
-            OctreeTraverseKind12(&path_candidates_098, &lower, &upper, movement->location_id_004);
+        path_candidate_count_094 = g_octree_6598a4->QueryLocationsInBox(
+            &path_candidates_098, &lower, &upper, movement->location_id_004);
     } else {
         path_probe_count_0d4 = 0;
         if (movement->value_010 < 1) {
@@ -3391,7 +3396,8 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
     upper = query + half_extent;
 
     int* candidates = 0;
-    int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 9, -1);
+    int count =
+        g_octree_6598a4->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
     if (count == 0) {
         return result;
     }
@@ -3626,7 +3632,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
     }
 
     int* candidates = 0;
-    int count = g_octree_6598a4->QueryObjects0042F280(&candidates, &lower, &upper, 8, -1);
+    int count = g_octree_6598a4->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
     if (count <= 0) {
         return;
     }
@@ -4394,7 +4400,8 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
     upper.x = position->x + g_float_005ec35c;
     upper.y = position->y + g_float_005ec2f8;
     upper.z = position->z + g_float_005ec35c;
-    query_count = g_octree_6598a4->QueryObjects0042F280(&query_results, &lower, &upper, 9, -1);
+    query_count =
+        g_octree_6598a4->QueryObjects(&query_results, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
 
     for (index = 0; index < query_count; ++index) {
         unsigned short waypoint = (unsigned short)query_results[index];
@@ -4422,7 +4429,8 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
     upper.x = position->x + g_float_005ec384;
     upper.y = position->y + g_float_005ec35c;
     upper.z = position->z + g_float_005ec384;
-    query_count = g_octree_6598a4->QueryObjects0042F280(&query_results, &lower, &upper, 9, -1);
+    query_count =
+        g_octree_6598a4->QueryObjects(&query_results, &lower, &upper, W8_OCTREE_KIND_WAYPOINT, -1);
 
     for (index = 0; index < query_count; ++index) {
         unsigned short waypoint = (unsigned short)query_results[index];
@@ -4514,17 +4522,17 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
     }
 
     W8PathSurface* surface = &m_pSurfaces_048[m_ulNumSurfaces];
-    int point[2];
+    int point[3];
 
     surface->flags_00 = 0x2000;
-    surface->index_02 = (unsigned short)m_ulNumSurfaces;
+    surface->index_02 = static_cast<unsigned short>(m_ulNumSurfaces);
     surface->position_04 = *position;
     if ((ClassifyWaypoint00459C00(&surface->position_04) & 0x04000000) != 0) {
         surface->flags_00 |= 0x40;
     }
-    g_octree_6598a4->WorldPositionToCell00431440(position, point);
-    g_octree_6598a4->object_registry->MoveObjectToCell(9, (unsigned short)m_ulNumSurfaces + 1,
-                                                       point);
+    g_octree_6598a4->WorldPositionToCell(position, point);
+    g_octree_6598a4->object_registry->MoveObjectToCell(
+        W8_OCTREE_KIND_WAYPOINT, static_cast<unsigned short>(m_ulNumSurfaces) + 1, point);
     ++m_ulNumSurfaces;
 }
 

@@ -2775,6 +2775,55 @@ void SetDisplayGamma(float value)
     g_gerd_659634->setGamma(gamma);
 }
 
+/* Open the render-probe pass: force renderer option 4 off, reset the frame
+   to a solid blue clear and prime the scissor before the measured draw. */
+// FUNCTION: WIZ8 0x00428910
+void BeginRenderProbe00428910(void)
+{
+    if (g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    }
+    g_gerd_659634->setClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    g_gerd_659634->setAmbientLight(1.0f, 1.0f, 1.0f, 1.0f);
+    g_gerd_659634->beginFrame();
+    g_gerd_659634->setScissor(0, 0, g_gerd_659634->getWidth(), g_gerd_659634->getHeight());
+    g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
+    g_gerd_659634->endFrame();
+}
+
+/* Draw the node between the dynamic scene's bracketing passes and return the
+   renderer statistic the probe samples. */
+// FUNCTION: WIZ8 0x004289e0
+unsigned int MeasureNodeRender004289E0(srNode* node)
+{
+    srGERD::Statistics statistics;
+    srNode::ProcessInfo process;
+
+    g_gerd_659634->flushRenderers();
+    g_gerd_659634->resetStatistics();
+    g_gerd_659634->beginFrame();
+    srNode::lockSceneGraph();
+    process.renderer = g_gerd_659634;
+    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
+    node->process(process, static_cast<srNode::e_processType>(0));
+    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
+    srNode::unlockSceneGraph();
+    g_gerd_659634->endFrame();
+    g_gerd_659634->flushRenderers();
+    g_gerd_659634->getStatistics(statistics);
+    return static_cast<unsigned int>(statistics.value_10);
+}
+
+/* Close the render-probe pass: restore renderer option 4 and present. */
+// FUNCTION: WIZ8 0x004289c0
+void EndRenderProbe004289C0(void)
+{
+    if (!g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    }
+    g_gerd_659634->flipFrame();
+}
+
 /* Compiler-generated vtable and template emissions, grouped here as emission
    provenance. They are instantiation output from the SurRender headers, not
    authored Video2 bodies. */

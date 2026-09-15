@@ -638,7 +638,7 @@ void W8SplitAmountDialog::DestroyControls()
     }
     if (m_split_input_078 != 0) {
         NoOp();
-        ::operator delete(m_split_input_078);
+        delete m_split_input_078;
         m_split_input_078 = 0;
     }
 }
@@ -666,7 +666,7 @@ W8SplitAmountDialog::~W8SplitAmountDialog()
     }
     if (m_split_input_078 != 0) {
         NoOp();
-        ::operator delete(m_split_input_078);
+        delete m_split_input_078;
         m_split_input_078 = 0;
     }
 }
