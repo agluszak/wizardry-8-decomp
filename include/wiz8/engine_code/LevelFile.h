@@ -408,29 +408,28 @@ static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
-unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
-unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
-unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
-unsigned char ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
-unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
-unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
-unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
-unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
-unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
-unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
-unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
-unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor);
-unsigned char WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor);
-unsigned char ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
-unsigned char WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
-unsigned char ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj,
-                                      unsigned char fSuccess = 1);
-unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
+bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
+bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
+bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
+bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
+bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
+bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
+bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
+bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
+bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
+bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
+bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
+bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor);
+bool WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor);
+bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
+bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
+bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess = 1);
+bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
 W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count);
-unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
-unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
-unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
-unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
-unsigned char WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
+bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
+bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
+bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
+bool ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
+bool WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
 
 #endif

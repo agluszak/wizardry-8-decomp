@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/stHash.hpp"
@@ -829,13 +830,164 @@ void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<flo
     SetPlaneFromThreePoints(&plane->x, first, second, third);
 }
 
+/* Point-in-triangle test by even-odd crossing on the plane perpendicular to
+   `axis`: the two remaining components (axis+1, axis+2 mod 3) project the
+   triangle and query point, and each edge straddling the point's second
+   coordinate toggles the inside flag when its interpolation crosses the
+   first. */
+// FUNCTION: WIZ8 0x0046d530
+unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
+                                          const srVector3T<float>* point)
+{
+    const float* p = &point->x;
+    short u = static_cast<short>(axis + 1) % 3;
+    short v = static_cast<short>(axis + 2) % 3;
+    char inside = 0;
+
+    for (int i = 0; i < 3; ++i) {
+        const float* first = &vertices[i].x;
+        const float* second = &vertices[(i + 1) % 3].x;
+        if ((first[v] < p[v] && p[v] < second[v]) || (second[v] < p[v] && p[v] < first[v])) {
+            if (p[u] <=
+                (p[v] - first[v]) * (second[u] - first[u]) / (second[v] - first[v]) + first[u]) {
+                inside = inside == 0;
+            }
+        }
+    }
+    return inside;
+}
+
+/* Build the six face planes of the frustum described by `points` in the
+   canonical corner order SortFrustumCorners produces. */
+// FUNCTION: WIZ8 0x0046d7e0
+void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, srVector4T<float>* planes)
+{
+    BuildPlaneFromPoints0046D660(&planes[0], &points[1], &points[5], &points[4]);
+    BuildPlaneFromPoints0046D660(&planes[1], &points[6], &points[7], &points[3]);
+    BuildPlaneFromPoints0046D660(&planes[2], &points[0], &points[2], &points[3]);
+    BuildPlaneFromPoints0046D660(&planes[3], &points[4], &points[5], &points[7]);
+    BuildPlaneFromPoints0046D660(&planes[4], &points[4], &points[6], &points[2]);
+    BuildPlaneFromPoints0046D660(&planes[5], &points[1], &points[3], &points[7]);
+}
+
+/* Sort `points` in place into the canonical corner order: an index array is
+   insertion-sorted by y, then each four-entry run is re-sorted by z and each
+   two-entry run by x, and the points are permuted through a temporary copy. */
+// FUNCTION: WIZ8 0x0046da20
+void SortFrustumCorners0046DA20(srVector3T<float>* points)
+{
+    short order[8];
+    srVector3T<float> sorted[8];
+
+    for (short i = 0; i < 8; ++i) {
+        short index = i;
+        short slot = 0;
+        if (i > 0) {
+            for (short j = 0; j < i; ++j) {
+                slot = order[j];
+                if (points[index].y < points[slot].y) {
+                    order[j] = index;
+                    index = slot;
+                }
+            }
+            slot = i;
+        }
+        order[slot] = index;
+    }
+    short axis = 2;
+    short run = 4;
+    short start = 0;
+    short end = run;
+    do {
+        if (start < end) {
+            for (short at = start; at < end; ++at) {
+                short value = order[at];
+                for (short k = start; k < at; ++k) {
+                    if ((&points[value].x)[axis] < (&points[order[k]].x)[axis]) {
+                        order[k] = value;
+                        value = order[k];
+                    }
+                }
+                order[at] = value;
+            }
+        }
+        if (end < 8) {
+            start += run;
+            end += run;
+        } else {
+            run /= 2;
+            axis = (axis + 1) % 3;
+            start = 0;
+            end = run;
+        }
+    } while (run > 1);
+    short point;
+    for (point = 0; point < 8; ++point) {
+        sorted[point] = points[order[point]];
+    }
+    for (point = 0; point < 8; ++point) {
+        points[point] = sorted[point];
+    }
+}
+
+/* Sphere test generalised to a bounds box: accept when any box corner is
+   inside every frustum plane or any volume corner sits inside the box. */
+// FUNCTION: WIZ8 0x0046d8d0
+unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
+                                          const srVector4T<float>* planes)
+{
+    char inside = 1;
+
+    for (short plane = 0; plane < 6 && inside != 0; ++plane) {
+        if (point->x * planes[plane].x + point->y * planes[plane].y + point->z * planes[plane].z +
+                planes[plane].w <
+            -radius) {
+            inside = 0;
+        }
+    }
+    return inside;
+}
+
+// FUNCTION: WIZ8 0x0046d920
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume0049E460* volume,
+                                          const float* bounds)
+{
+    for (short x = 0; x < 2; ++x) {
+        for (short y = 0; y < 2; ++y) {
+            for (short z = 0; z < 2; ++z) {
+                short plane = 0;
+                while (true) {
+                    if (bounds[x * 3] * volume->planes_88[plane].x +
+                            bounds[y * 3 + 1] * volume->planes_88[plane].y +
+                            bounds[z * 3 + 2] * volume->planes_88[plane].z +
+                            volume->planes_88[plane].w <
+                        g_float_005ebb34) {
+                        break;
+                    }
+                    if (++plane > 5) {
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    for (short corner = 0; corner < 8; ++corner) {
+        const srVector3T<float>* point = &volume->points_1c[corner + 1];
+        if (bounds[0] <= point->x && point->x < bounds[3] && bounds[1] <= point->y &&
+            point->y < bounds[4] && bounds[2] <= point->z && point->z < bounds[5]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* Pointer-plus-capacity cleanup used by BitArray::Save's Sampler and by later
    mesh helpers. Retail emits this out of line between 3d.cpp and
    stMeshModel.cpp rather than as a Sampler import. */
 // FUNCTION: WIZ8 0x004701b0
 W8OwnedPtr::~W8OwnedPtr()
 {
-    ::operator delete(data);
+    operator delete(data);
     data = 0;
     size = 0;
 }

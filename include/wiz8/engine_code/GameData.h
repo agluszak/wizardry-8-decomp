@@ -79,15 +79,6 @@ struct W8GameData {
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
-    /* Tests the buffered prop-surface objects of the current cell against the
-       trace; answers the hit prop's sector index or a negative miss. */
-    int TestPropSurfaces(unsigned long* objects, W8OctreeTrace* result, int value_3,
-                         int value_4); /* 0x0041c0d0 */
-    /* Tests the buffered trace cells against the level geometry: `objects`
-       carries the octree's GD-object store and `result` the trace record
-       whose end_0c returns the contact point. */
-    char TestTraceResult(int value_1b8, unsigned long* objects, W8OctreeTrace* result,
-                         unsigned char value_134, int mode); /* 0x0041c330 */
     /* Builds the octree trace model and answers its scene node. */
     srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
 
@@ -129,6 +120,25 @@ struct W8GameData {
 
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
+
+    /* Loop the buffered prop ids through TestProp and return the id of the
+       last prop that reported a hit, or -1. */
+    int TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* trace, char skip_flag,
+                         char gate); /* 0x0041C0D0 */
+    /* Ray-test one collidable prop: swaps the prop's surface/vertex arrays
+       into this context, traces in prop-local space through the prop's
+       position delta when no pre-tree exists (reseeding the caller's record
+       to the world-space hit), and restores the arrays. `gate` skips flag-4
+       props when set. */
+    unsigned char TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag,
+                           char gate); /* 0x0041C140 */
+    /* Ray-test `count` surfaces - all of surfaces_38 when `surface_ids` is
+       null, else the listed surface indexes - against the trace record.
+       value_88, flag and mode filters apply; a closer hit stores index_04
+       into value_54, the contact into the record's end_0c and the distance
+       into hit_limit_24. */
+    char TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
+                         char skip_flag, int mode); /* 0x0041C330 */
 };
 
 static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");

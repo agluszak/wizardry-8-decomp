@@ -263,7 +263,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004D07C0
-unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
+bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
 {
     unsigned int uiBytes;
     unsigned char fSuccess;
@@ -493,7 +493,7 @@ unsigned char WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel
 }
 
 // FUNCTION: WIZ8 0x004D1110
-unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
+bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
 {
     int i;
     memset(pMesh, 0, sizeof(W8LevelFileMesh));
@@ -599,7 +599,7 @@ unsigned char ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
 }
 
 // FUNCTION: WIZ8 0x004D1510
-unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
+bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
 {
     unsigned char fSuccess = FileWrite(hFile, &pMesh->version_00, 4, 0);
     fSuccess &= FileWrite(hFile, &pMesh->num_vertices_04, 4, 0);
@@ -688,7 +688,7 @@ unsigned char WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
 }
 
 // FUNCTION: WIZ8 0x004D1820
-unsigned char ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
+bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->flags_02, 4, 0);
@@ -730,7 +730,7 @@ unsigned char ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1960
-unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
+bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->flags_02, 4, 0);
@@ -765,7 +765,7 @@ unsigned char WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1A90
-unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
+bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 1, 0);
     fSuccess &= FileRead(hFile, pLight->unknown_01, 0xc, 0);
@@ -790,7 +790,7 @@ unsigned char ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
 }
 
 // FUNCTION: WIZ8 0x004D1B50
-unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
+bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 {
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, pLight->unknown_01, 0xc, 0);
@@ -812,7 +812,7 @@ unsigned char WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight
 }
 
 // FUNCTION: WIZ8 0x004D1C10
-unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
+bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess = 0;
     unsigned char ok;
@@ -1008,7 +1008,7 @@ unsigned char ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D23F0
-unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
+bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
     unsigned char fSuccess;
     unsigned char ok;
@@ -1161,7 +1161,7 @@ unsigned char WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D2A30
-unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
+bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(malloc(0x867));
     if (pSuper == 0) {
@@ -1321,7 +1321,7 @@ unsigned char ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigg
 }
 
 // FUNCTION: WIZ8 0x004D3000
-unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
+bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
@@ -1422,7 +1422,7 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
 }
 
 // FUNCTION: WIZ8 0x004D3540
-unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
+bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec != 0) {
@@ -1443,7 +1443,7 @@ unsigned char ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
 }
 
 // FUNCTION: WIZ8 0x004D3660
-unsigned char WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor)
+bool WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor)
 {
     W8LevelFileDoor* pDoorRec = *(W8LevelFileDoor**)(pDoor + 1);
     unsigned char fSuccess = FileWrite(hFile, pDoorRec->unknown_00, 10, 0);
@@ -1456,7 +1456,7 @@ unsigned char WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor)
 }
 
 // FUNCTION: WIZ8 0x004D3770
-unsigned char ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
+bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileRead(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileRead(hFile, &pPathAI->scaled_01, 1, 0);
@@ -1482,7 +1482,7 @@ unsigned char ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
 }
 
 // FUNCTION: WIZ8 0x004D38E0
-unsigned char WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
+bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 {
     unsigned char fSuccess = FileWrite(hFile, &pPathAI->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, &pPathAI->scaled_01, 1, 0);
@@ -1512,8 +1512,7 @@ unsigned char WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI)
 /* fSuccess arrives in a stack slot the caller never initializes; the authored
    signature carried a default argument. */
 // FUNCTION: WIZ8 0x004D3A10
-unsigned char ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj,
-                                      unsigned char fSuccess)
+bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess)
 {
     unsigned char ok;
     unsigned short usFrame;
@@ -1746,7 +1745,7 @@ header_done:
 }
 
 // FUNCTION: WIZ8 0x004D4480
-unsigned char WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
+bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj)
 {
     unsigned char ok;
     unsigned short usFrame;
@@ -2038,7 +2037,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
 }
 
 // FUNCTION: WIZ8 0x004D4FC0
-unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
+bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
 {
     unsigned char fSuccess = 1;
     if (count == 0) {
@@ -2103,7 +2102,7 @@ unsigned char WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pPro
 }
 
 // FUNCTION: WIZ8 0x004D5240
-unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem)
+bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     char* pRecord = reinterpret_cast<char*>(pSystem); /* reinterpret-ok: raw serialized memory */
     unsigned char fSuccess = FileRead(hFile, pSystem, 0x217, 0) & 1;
@@ -2145,7 +2144,7 @@ unsigned char ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSyste
 }
 
 // FUNCTION: WIZ8 0x004D5370
-unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem)
+bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem)
 {
     unsigned char fSuccess = FileWrite(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 > 1) {
@@ -2166,7 +2165,7 @@ unsigned char WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSyst
 }
 
 // FUNCTION: WIZ8 0x004D5430
-unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
+bool ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
 {
     unsigned char fSuccess = FileRead(hFile, &pBlock->flag_00, 1, 0) & 1;
     fSuccess &= FileRead(hFile, &pBlock->field_01, 4, 0);
@@ -2194,7 +2193,7 @@ unsigned char ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock)
 }
 
 // FUNCTION: WIZ8 0x004D5580
-unsigned char WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock)
+bool WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock)
 {
     unsigned char fSuccess = FileWrite(hFile, &pBlock->flag_00, 1, 0) & 1;
     fSuccess &= FileWrite(hFile, &pBlock->field_01, 4, 0);

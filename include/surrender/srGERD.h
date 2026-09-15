@@ -97,9 +97,19 @@ public:
     long getHeight() const;
     long getWidth() const;
     void resetStatistics();
+    /* getStatistics buffer; the only proven field is the double at +0x10
+       that the 0x004289e0 render probe returns through ftol. */
+    struct Statistics {
+        unsigned char unknown_00[0x10];
+        double value_10;
+        unsigned char unknown_18[0x64];
+    };
+    void getStatistics(Statistics& statistics);
     void setClearColor(float red, float green, float blue, float alpha);
+    void setAmbientLight(float red, float green, float blue, float alpha);
     void setFogColor(const srVector3T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
+    void flipFrame();
     void setTextureReduction(long reduction);
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);

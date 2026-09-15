@@ -32,6 +32,7 @@ struct W8OctSpatialState0046CCC0 {
 
     void Reset0046CDC0();
     void GetClippedBounds0046CE30(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void GetWorkingBounds0046CDF0(srVector3T<float>* minimum, srVector3T<float>* maximum);
 
     unsigned long flags_00;
     float extent_04;

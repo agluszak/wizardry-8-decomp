@@ -194,6 +194,16 @@ W8Prop* FindPropByName(W8World* world, const char* name)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x0044e2c0
+void W8Prop::GetPosition0044E2C0(srVector3T<float>* out)
+{
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        *out = position_02c;
+        return;
+    }
+    m_pRep->GetLocation004B8890(out);
+}
+
 // FUNCTION: WIZ8 0x0044e270
 void W8Prop::SetAnimationSpeed(float speed)
 {

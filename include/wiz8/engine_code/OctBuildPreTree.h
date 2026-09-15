@@ -15,7 +15,9 @@ struct W8OctRegionVertex004B2A20 {
 };
 
 struct W8OctRegionPolygon {
-    unsigned char positional_00[0x18];
+    unsigned long flags_00; /* & 3 selects the axis the plane test uses */
+    unsigned char positional_04[0x04];
+    float plane_08[4]; /* normal xyz and offset d */
     srVector3T<float> position_18;
     unsigned char positional_24[0x0e];
     unsigned short region_32;

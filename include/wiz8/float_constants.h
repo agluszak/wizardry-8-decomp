@@ -46,6 +46,15 @@ extern double g_double_005ec030;
 /* 0x005EC038: 5000.0, the absolute vertical-snap ceiling that bounds
    FindNavigatorPosition's candidate rejection. */
 extern double g_double_005ec038;
+/* 0x005EC008: -pi/12, the fixed downward tilt applied to the sample camera by
+   the region-link projector. */
+extern double g_double_005ec008;
+/* 0x005EC010: 6.282185, just under 2*pi — the circle-coverage bound the
+   projector compares samples*fov against before adding one more direction. */
+extern float g_float_005ec010;
+/* 0x005EC044: 0.0004, the Random(1000) jitter scale used by the scatter-ring
+   position search. */
+extern float g_float_005ec044;
 /* 0x005EC048: 15.0, the radius multiplier that sizes the monster-proximity
    query box in navigator placement. */
 extern float g_float_005ec048;
