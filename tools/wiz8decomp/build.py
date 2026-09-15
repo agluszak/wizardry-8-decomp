@@ -387,7 +387,7 @@ def configure_clang(
 def _clang_target(settings: Settings, target: str, *, full_diagnostics: bool = False) -> dict[str, Any]:
     output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
     log_name = "clang-diagnostics-build.json" if full_diagnostics else "clang-lint-build.json"
-    result = run(
+    run(
         [*prefix, "cmake", "--build", "/out", "--target", target, "--", "-j2"],
         cwd=settings.repo_dir,
         log_path=settings.repo_dir / "build/logs" / log_name,
@@ -433,14 +433,13 @@ def _compile_database_files(settings: Settings, target: str) -> list[str]:
 
 def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
     """Compile recovered C++ with clang-cl diagnostics and project source gates."""
-    output, _ = configure_clang(settings, full_diagnostics=full_diagnostics)
+    configure_clang(settings, full_diagnostics=full_diagnostics)
     return _clang_target(settings, "wiz8-clang-lint", full_diagnostics=full_diagnostics)
 
 
-def build_toolchain(settings: Settings, toolchains: list[str] | None = None) -> dict[str, Any]:
+def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
     from .ghidra.fid_seeds import build_toolchain_images
 
-    toolchain_ids = toolchains or ["vc6-sp5"]
     return build_toolchain_images(settings, toolchain_ids)
 
 
@@ -448,60 +447,46 @@ def check(repository: Path) -> dict[str, Any]:
     """Fast public validation: Python/repository gates, no compiler lane."""
 
     from .cast_lint import validate_cast_markers
-    from .c_linkage_lint import validate_c_linkage
+    from .global_model import validate_type_consistency
     from .header_architecture import validate_header_architecture
     from .identity_lint import validate_identity
-    from .linkage_lint import validate_c_linkage as validate_linkage
+    from .linkage_lint import validate_c_linkage
     from .placement import validate_source_placement
     from .reccmp_lint import validate_reccmp_annotations
     from .source_index import write_source_index
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
-    from .type_consistency import validate_types
 
-    gates = [
-        ("source-units", validate_source_units),
-        ("header-architecture", validate_header_architecture),
-        ("type-consistency", validate_types),
-        ("reccmp", validate_reccmp_annotations),
-        ("casts", validate_cast_markers),
-        ("c-linkage", validate_c_linkage),
-        ("placement", validate_source_placement),
-        ("identities", validate_identity),
-        ("structures", validate_structures),
-    ]
-    source_index = write_source_index(load_settings(repository))
-    for name, validate in gates:
-        validate(repository)
-    logs = repository / "build/logs"
-    format_result = run(
-        ["uv", "run", "ruff", "format", "--check", "tools", "tests"],
-        cwd=repository,
-        log_path=logs / "check-format.json",
+    settings = load_settings()
+    assert settings is not None
+    source_index = write_source_index(settings)
+    validators = (
+        ("source-units", lambda: validate_source_units(repository)),
+        ("header-architecture", lambda: validate_header_architecture(repository)),
+        ("type-consistency", lambda: validate_type_consistency(repository)),
+        ("reccmp", lambda: validate_reccmp_annotations(repository)),
+        ("casts", lambda: validate_cast_markers(repository)),
+        ("c-linkage", lambda: validate_c_linkage(repository)),
+        ("placement", lambda: validate_source_placement(settings)),
+        ("identities", lambda: validate_identity(repository)),
+        ("structures", lambda: validate_structures(repository)),
     )
-    ruff_result = run(
-        ["uv", "run", "ruff", "check", "tools", "tests"],
-        cwd=repository,
-        log_path=logs / "check-ruff.json",
+    commands = (
+        ("format", ["ruff", "format", "--check", "."]),
+        ("ruff", ["ruff", "check", "."]),
+        ("types", ["pyright"]),
+        ("tests", ["pytest", "tests/unit", "tests/repository"]),
     )
-    types_result = run(
-        ["uv", "run", "pyright", "tools"],
-        cwd=repository,
-        log_path=logs / "check-types.json",
-    )
-    tests_result = run(
-        ["uv", "run", "pytest", "-q", "tests/unit"],
-        cwd=repository,
-        log_path=logs / "check-tests.json",
-    )
+    gates: list[dict[str, str]] = []
+    for name, action in validators:
+        action()
+        gates.append({"name": name, "status": "passed"})
+    for name, command in commands:
+        log = Path("build/logs") / f"check-{name}.json"
+        run(command, cwd=repository, log_path=repository / log)
+        gates.append({"name": name, "status": "passed", "log": str(log)})
     return {
         "status": "passed",
-        "source_index": str(source_index.relative_to(repository)),
-        "gates": [
-            *({"name": name, "status": "passed"} for name, _ in gates),
-            {"name": "format", "status": "passed", "log": str(format_result.log_path.relative_to(repository)) if hasattr(format_result, "log_path") and format_result.log_path else "build/logs/check-format.json"},
-            {"name": "ruff", "status": "passed", "log": str(ruff_result.log_path.relative_to(repository)) if hasattr(ruff_result, "log_path") and ruff_result.log_path else "build/logs/check-ruff.json"},
-            {"name": "types", "status": "passed", "log": str(types_result.log_path.relative_to(repository)) if hasattr(types_result, "log_path") and types_result.log_path else "build/logs/check-types.json"},
-            {"name": "tests", "status": "passed", "log": str(tests_result.log_path.relative_to(repository)) if hasattr(tests_result, "log_path") and tests_result.log_path else "build/logs/check-tests.json"},
-        ],
+        "source_index": source_index["path"],
+        "gates": gates,
     }
