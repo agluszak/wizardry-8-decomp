@@ -790,6 +790,7 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 struct W8NpcScriptQuote;
 
+void Function563890(void); /* 0x00563890 */
 void SyncDialogueNpcState00577260(void);
 /* 0x005775D0: queue a named scripted action (kind 0 item, 1 NPC, 2/3 other);
    resolves the name against the item and NPC tables when kind is -1 and
@@ -868,6 +869,10 @@ void DismissHighlightOverlay(void); /* 0x00563EB0 */
 void Function565740(int slot);
 void Function568E10(void);
 short Function5698C0(void);
+void Function569570(void);                                   /* 0x00569570 */
+void Function560E10(unsigned int party_slot, int flag);      /* 0x00560E10 */
+void Function570120(int interact_id);                        /* 0x00570120 */
+void Function595570(void);                                   /* 0x00595570 */
 void Function56CA60(W8NpcState* npc, int, int, int, int); /* 0x0056CA60 */
 void Function56E800(int);
 unsigned char Function56EC90(unsigned int party_slot);

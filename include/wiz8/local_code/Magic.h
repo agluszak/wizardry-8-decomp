@@ -71,6 +71,21 @@ int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int 
 int MissileSpellId(int missile_type);
 /* Whether the party as a whole is under one particular condition. */
 bool PartyHasCondition(int condition_id); /* 0x005012B0 */
+
+/* 0x004FAE70: whether a spellcasting-blocked condition stops this character
+   casting this spell. */
+bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id);
+/* 0x004F9A20: records the character's chosen spell and power level for the
+   pending action. */
+void SetCharacterSpell(const W8Character* character, int spell_id, int power_level);
+/* 0x00501400: the power level the party slot's chosen spell can actually be
+   cast at; zero means the cast cannot happen at all. */
+int GetAffordableSpellPowerLevel(int party_slot);
+/* 0x004FF4B0: the failure chance for one cast at a power level. Retail call
+   sites push three arguments. */
+unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
+                                        unsigned int power_level);
+char Function501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences005019A0(W8Missile* missile);

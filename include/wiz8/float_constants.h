@@ -121,5 +121,8 @@ extern const double g_double_005ed7b0;
 /* 0x005EE768: 1500.0, the "close enough" distance for patrol points and heard
    noises. */
 extern const double g_double_005ee768;
+/* 0x005EECD0: 1/2500, the party-movement fatigue accumulator's
+   accumulator-to-tick conversion. */
+extern const float g_float_005eecd0;
 
 #endif

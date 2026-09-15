@@ -33,3 +33,6 @@ private:
     unsigned int m_animation_frame;     /* 0x168 */
 };
 static_assert(sizeof(W8SpellInfoDialog) == 0x16c, "W8SpellInfoDialog_size");
+
+/* 0x0060D4E0: the "(on ...)" parenthetical per spell target type. */
+extern const wchar_t* g_spell_target_parentheticals_60d4e0[11];

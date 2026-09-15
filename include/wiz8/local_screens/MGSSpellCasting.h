@@ -2,10 +2,16 @@
 
 #include "input.h"
 
-unsigned char IgnoreSpellCastingInput(const InputAtom* input);
-void Function5A0110(int spell_id, int, int); /* 0x005A0110 */
-void DisableRegionSet1C(void);
-
-void Function5A0BC0(void);
-
-void Function5A1950(void);
+unsigned char IgnoreSpellCastingInput(const InputAtom* input);               /* 0x005A1140 */
+unsigned char OpenSpellCastingView0059F0E0(int party_slot);                  /* 0x0059F0E0 */
+void CloseSpellCastingView0059F2B0(void);                                    /* 0x0059F2B0 */
+void RestoreSpellCastingRegions0059F440(void);                               /* 0x0059F440 */
+void SelectSpellCastingCharacter0059F490(int party_slot);                    /* 0x0059F490 */
+void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
+void SetSpellCastingPanelsActive005A0270(unsigned char active);              /* 0x005A0270 */
+void InvalidateSpellCastingDescription005A0300(void);                        /* 0x005A0300 */
+void SelectSpellPowerLevel005A06F0(int power_level);                         /* 0x005A06F0 */
+void ResetSpellCastingSelection005A0B90(void);                               /* 0x005A0B90 */
+void CommitSpellCastingSelection005A0BC0(void);                              /* 0x005A0BC0 */
+void SetSpellCastingMode005A1330(int value);                                 /* 0x005A1330 */
+int GetSpellCastingSelection005A1350(void);                                  /* 0x005A1350 */

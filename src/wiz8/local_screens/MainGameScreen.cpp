@@ -794,7 +794,7 @@ void W8LockInteraction::Process()
             CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x27)) {
             m_spell_button_20->SetAlternateTextEnabled(0);
             Function5879A0(1);
-            Function5A0110(0x27, -1, -1);
+            BeginSpellCast005A0110(0x27, -1, -1);
             return;
         }
         break;
@@ -2200,7 +2200,7 @@ void W8MainGameScreen::CastTrapSpell()
     RequestRedraw(0x200);
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
-    Function5A0110(spell, -1, -1);
+    BeginSpellCast005A0110(spell, -1, -1);
 }
 
 // FUNCTION: WIZ8 0x0058a3e0
@@ -3108,7 +3108,9 @@ render_world:
             }
         }
         if (!gXStatus.fCombatMode) {
-            Function5A1EB0(&current, &value);
+            float real_elapsed;
+            float frame_elapsed;
+            HandlePartyMovement005A1EB0(&real_elapsed, &frame_elapsed);
             Function5171C0();
         } else if (!g_level_block->transition_active && !gXStatus.fSpellCastMode &&
                    !gXStatus.fNpcDialogueMode && !gXStatus.fItemSelectMode) {
@@ -3160,7 +3162,7 @@ render_world:
             g_level_block->world_update_timer = SetCountdownClock(50);
         }
         if (gXStatus.fSpellCastMode)
-            Function5A0BC0();
+            CommitSpellCastingSelection005A0BC0();
         if (gXStatus.fItemSelectMode)
             Function59D180();
         if (gXStatus.fNpcDialogueMode)
@@ -3231,7 +3233,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fTrapInteractMode)
         Function58A790(0);
     if (gXStatus.fSpellCastMode)
-        Function59F2B0();
+        CloseSpellCastingView0059F2B0();
     if (gXStatus.fItemSelectMode)
         Function59C9C0();
     if (gXStatus.fReviewCharacterMode)
@@ -3707,7 +3709,7 @@ void UpdateScreenOverlays(int frame)
         Function58A790(frame);
     }
     if (gXStatus.fSpellCastMode != 0) {
-        Function59F2B0();
+        CloseSpellCastingView0059F2B0();
     }
     if (gXStatus.fItemSelectMode != 0) {
         Function59CAC0();
@@ -3848,7 +3850,7 @@ void ResumeMainGameWorld(void)
         g_flag_006840bd = 0;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0) {
             if (gXStatus.fPartyMovementUi != 0) {
-                Function5A1950();
+                UpdatePartyMovementPanel005A1950();
             }
             ClearSurfaceRect(0xb1, 0x13f, 0x1cf, 0x153);
             InvalidateRegion(0xb1, 0x13f, 0x1cf, 0x153, 0);

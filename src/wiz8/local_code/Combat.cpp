@@ -39,6 +39,7 @@
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/layouts/screen_state.h"
@@ -685,7 +686,7 @@ void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* 
     }
 finish_move_ui:
     if (gXStatus.fPartyMovementUi == 0) {
-        Function5A1640();
+        CreatePartyMovementPanel005A1640();
         SetTargetingMode(0);
         return;
     }
@@ -797,7 +798,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
             detail = &g_shared_action_detail_006840ab;
         } else {
             kind = 7;
-            value_a = Function5A1350();
+            value_a = GetSpellCastingSelection005A1350();
             target = &g_shared_target_0068408b;
             detail = &g_shared_action_detail_006840ab;
         }

@@ -1647,7 +1647,7 @@ done:
    carry this whole body inline rather than calling it. */
 // FUNCTION: WIZ8 0x004ff4b0
 unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
-                                          unsigned int power_level, int level_bonus)
+                                          unsigned int power_level)
 {
     int skill;
     int party_slot;
@@ -1669,7 +1669,7 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                 GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id), 1) - 1 +
-                level_bonus;
+                power_level;
     if (shortfall > 0) {
         chance = g_spell_records[spell_id].spell_level * shortfall + power_level;
     }
@@ -1732,7 +1732,7 @@ unsigned int ChoosePowerLevelForDuration(W8Character* character, int spell_id,
             return best_power;
         }
 
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level, (int)power_level);
+        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
 
         /* What one cast at this level really delivers: the square of the power
            level, less the share of it the failure chance takes away. */
@@ -1789,7 +1789,7 @@ unsigned int ChoosePowerLevelToRestore(W8Character* character, int spell_id,
     }
 
     for (power_level = 1; power_level < 8; ++power_level) {
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level, (int)power_level);
+        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
         if (failure > W8_SPELL_FAILURE_ACCEPTABLE) {
             if (power_level > 1) {
                 --power_level;

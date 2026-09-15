@@ -86,6 +86,15 @@ void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                                int reason); /* 0x00536AD0 */
 void ClearTargetingMode0053B050(int party_slot);
+/* 0x00537270: whether the slot's current target satisfies the spell's
+   needed-target kind. */
+unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id);
+/* 0x0053AF40: select the party slot the spell-casting view is casting for. */
+void Function53AF40(int party_slot);
+/* 0x0053A440: set the targeting filter for the spell being aimed. */
+void Function53A440(int target_type, unsigned int needed_kind);
+/* 0x0053A830: commit the chosen spell target. */
+void Function53A830(void);
 unsigned char Function536F60(int party_slot, int value,
                              W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
 void RefreshMonsterTargetCounts005398D0(void);
