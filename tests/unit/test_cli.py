@@ -300,6 +300,31 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
     assert "--original" in re.sub(r"\x1b\[[0-9;]*m", "", run.stdout)
 
 
+@pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])
+def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects_lint) -> None:
+    from wiz8decomp import build, config, subprocesses
+
+    events = []
+    repository = Path("/repo")
+    monkeypatch.setattr(config, "repository_root", lambda: repository)
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+    monkeypatch.setattr(build, "check", lambda actual: events.append(("check", actual)) or {})
+    monkeypatch.setattr(build, "lint", lambda _settings: events.append(("lint",)) or {})
+    monkeypatch.setattr(
+        subprocesses,
+        "run",
+        lambda command, *, cwd: SimpleNamespace(stdout=f"{changed}\n"),
+    )
+
+    result = CliRunner().invoke(app, ["pr-check"])
+
+    assert result.exit_code == 0, result.output
+    expected = [("check", repository)]
+    if expects_lint:
+        expected.append(("lint",))
+    assert events == expected
+
+
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
     settings = object()
     seen: list[tuple[object, str]] = []

@@ -58,7 +58,7 @@ unsigned char g_submenu_flag_69b8d4;
 /* The name is proven by this file's own assertion. */
 // GLOBAL: WIZ8 0x0069B8E8
 Controls* gpSubMenuPanel;
-/* The five caption rows; the gap builder at 0x00595850 news 0xb8-byte objects
+/* The five caption rows; RebuildCombatSubMenu news 0xb8-byte objects
    through the W8TextControl constructor. */
 // GLOBAL: WIZ8 0x0069B8EC
 W8TextControl* g_submenu_rows_69b8ec[5];
@@ -71,7 +71,7 @@ void DestroySubMenuControls(void)
 {
     int i;
 
-    Function5990F0(1);
+    SetCombatSubMenuRebuildMode(1);
     g_level_block->combat_end_notification = -1;
     g_submenu_entry_count_69b87e = 0;
     RegionSetDisable(0x27);
@@ -90,7 +90,7 @@ void DestroySubMenuControls(void)
 }
 
 // FUNCTION: WIZ8 0x005963E0
-void RefreshSubMenuPanel005963E0(char invalidate)
+void RefreshSubMenuPanel(char invalidate)
 {
     if (gpSubMenuPanel == 0) {
         srAssertFail("gpSubMenuPanel", MGSBUTTONS_CPP, 0x64f, 0);
@@ -102,7 +102,7 @@ void RefreshSubMenuPanel005963E0(char invalidate)
 }
 
 // FUNCTION: WIZ8 0x00596CF0
-void ResetSubMenuPanel00596CF0(void)
+void ResetSubMenuPanel(void)
 {
     short saved_notification;
     char rebuilt;
@@ -113,18 +113,18 @@ void ResetSubMenuPanel00596CF0(void)
         DestroySubMenuControls();
     }
     UpdateScreenOverlays(0);
-    rebuilt = Function595850(saved_notification);
+    rebuilt = RebuildCombatSubMenu(saved_notification);
     if (rebuilt == 0) {
         DestroySubMenuControls();
     }
-    Function5990F0(0);
+    SetCombatSubMenuRebuildMode(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
     g_submenu_flag_69b8d4 = 0;
     RequestRedraw(0x200);
 }
 
 // FUNCTION: WIZ8 0x00596EC0
-unsigned char CreateSubMenuScrollButtons00596EC0(void)
+unsigned char CreateSubMenuScrollButtons(void)
 {
     int i;
 
@@ -155,7 +155,7 @@ unsigned char CreateSubMenuScrollButtons00596EC0(void)
 }
 
 // FUNCTION: WIZ8 0x00596FE0
-void DrawSubMenuCharacterAction00596FE0(void)
+void DrawSubMenuCharacterAction(void)
 {
     unsigned short slot;
     W8Character* character;

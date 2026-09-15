@@ -648,7 +648,7 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         }
         g_flag_68f104 = 0;
         ShowWorldCursor00490B10();
-        Function4280C0(0x140, 0xf0);
+        WarpSystemCursor(0x140, 0xf0);
         GetWorldCursorAnchor00490C20(&anchor);
         MoveWorldCursorNode0048DBF0(g_mipe_cube_0068f12c, &anchor);
         g_mipe_state_0068f100->dragging = 1;

@@ -43,6 +43,35 @@ def lint_command() -> None:
     cli.emit(lint(cli.settings()))
 
 
+def pr_check_command(
+    base: Annotated[str, typer.Option("--base", help="PR base revision.")] = "main@origin",
+) -> None:
+    """Run every validation lane required by the files changed in a PR."""
+    from .. import command_support as cli
+    from ..build import check, lint
+    from ..config import repository_root
+    from ..subprocesses import run
+
+    repository = repository_root()
+    changed = run(
+        ["jj", "diff", "--from", base, "--name-only", "--color=never"], cwd=repository
+    ).stdout.splitlines()
+    product_changed = any(
+        Path(path).suffix.casefold() in {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"}
+        for path in changed
+    )
+    result: dict[str, Any] = {
+        "status": "passed",
+        "base": base,
+        "changed_files": changed,
+        "check": check(repository),
+        "lint": None,
+    }
+    if product_changed:
+        result["lint"] = lint(cli.settings())
+    cli.emit(result)
+
+
 def diagnostics_command() -> None:
     """Emit non-gating recovery-relevant clang diagnostics."""
     from .. import command_support as cli
@@ -145,6 +174,7 @@ def compare_command(
                 target,
                 selected,
                 include_windows=True,
+                classify_header_emissions=needs_index,
             )
             if changed:
                 baseline = since or "working-copy parent"
@@ -315,6 +345,7 @@ def register(app: typer.Typer) -> None:
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
+    app.command("pr-check")(pr_check_command)
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)

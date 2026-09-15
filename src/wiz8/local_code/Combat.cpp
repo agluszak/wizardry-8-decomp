@@ -516,7 +516,7 @@ void EndCombat004EA310(int mode)
     SetTargetingMode(0);
     RemoveConditionFromEveryone(5);
     RemoveConditionFromParty(0xd);
-    Function524540();
+    RemoveAllEnchantments();
     ResetCombatEffects();
     ProcessMonstersAtCombatEnd(mode);
     unsigned int group_count = PLLength(gXStatus.plsMonsterGroupList);
@@ -548,7 +548,7 @@ void EndCombat004EA310(int mode)
     }
     g_combat_countdown_6850b0 = SetCountdownClock(120000);
     if (g_combat_state->uiNextPartyAction != 0) {
-        Function4F0560(-1);
+        ClearPendingPartyMovement(-1);
     }
     UpdateScreenOverlays(0);
     RestoreCombatFormation();
@@ -682,15 +682,15 @@ void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* 
             g_combat_state->eCombatActionStatus = 0;
             g_combat_state->iActionChar = -1;
         }
-        Function4F0AF0((action != 10) + 1);
+        StartPartyMovementAction((action != 10) + 1);
     }
 finish_move_ui:
     if (gXStatus.fPartyMovementUi == 0) {
-        CreatePartyMovementPanel005A1640();
+        CreatePartyMovementPanel();
         SetTargetingMode(0);
         return;
     }
-    RedrawPanel69BF4C();
+    InvalidatePartyMovementPanel();
     SetTargetingMode(0);
 }
 
@@ -726,8 +726,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else if (TargetIsInPlay(party_slot, 2) == 0 &&
-                   RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) ==
-                       1) {
+                   RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
             Function4ECC80(&source,
                            &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
         }
@@ -902,10 +901,10 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
             }
             if (character->equipment[6].item_id != -1) {
                 if (character->equipment[7].item_id == -1) {
-                    Function51EB90(character, &character->equipment[6], -1, 7);
+                    EquipMatchingPartnerItem(character, &character->equipment[6], -1, 7);
                 }
                 if (character->equipment[6].uses_or_charges == 0) {
-                    Function51EA90(character, &character->equipment[6]);
+                    MergeMatchingPartnerItem(character, &character->equipment[6]);
                 }
             }
             if (CanAnyHandReachTarget(party_slot) == 0) {
@@ -920,10 +919,10 @@ unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, i
             }
             if (character->equipment[6].item_id != -1) {
                 if (character->equipment[7].item_id == -1) {
-                    Function51EB90(character, &character->equipment[6], -1, 7);
+                    EquipMatchingPartnerItem(character, &character->equipment[6], -1, 7);
                 }
                 if (character->equipment[6].uses_or_charges == 0) {
-                    Function51EA90(character, &character->equipment[6]);
+                    MergeMatchingPartnerItem(character, &character->equipment[6]);
                 }
             }
             if (CanCharacterKnockOut(party_slot) == 0) {

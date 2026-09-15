@@ -66,8 +66,8 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
                                   unsigned char refresh);
 void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximum_quantity,
                          unsigned char force_identified, unsigned char mark_special);
-void Function51FD20(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
-                    unsigned char flag); /* 0x0051FD20 */
+void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
+                       unsigned char refresh); /* 0x0051FD20 */
 void NormalizeItemStack(W8ItemInstance* item);
 unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
                               unsigned char* partially_merged);
@@ -126,7 +126,7 @@ extern const unsigned short g_generic_item_name_notice[147];
 /* Unresolved gap, declared for the split-stack dialog's trade-price labels:
    the gold price of a stack in the active trade context. The mode argument
    selects the pricing direction (0 for the buy side, 1 for the sell side). */
-int Function55B5E0(W8NpcState* npc, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
+int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
 
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
@@ -140,7 +140,7 @@ void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot)
 void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
-unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
+unsigned char CanUseItemForAction(int party_slot, const W8ItemInstance* item);
 
 /* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
    handler. 0x0051E980 scans the merge-kind table for the related
@@ -151,9 +151,10 @@ char GetItemMergeKind0051E980(int item_id, short* related_kind);
 char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
 char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
-void Function51EB90(W8Character* character, W8ItemInstance* item, int a, int b); /* 0x0051EB90 */
-void Function51EA90(W8Character* character, W8ItemInstance* item);               /* 0x0051EA90 */
+void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int item_id,
+                              int equip_slot);                               /* 0x0051EB90 */
+void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 0x0051EA90 */
 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
-void Function5218C0(W8Character*);
-unsigned int Function51D3B0(int party_slot, char arg_2, int arg_3);
+void UpdateGadgeteerOmnigun(W8Character* character);
+unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);

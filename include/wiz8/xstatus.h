@@ -64,7 +64,9 @@ struct W8XStatus {
     unsigned char fPartyMovementUi;   /* 0x915: 0x00683FCD; region set 0x1c / panels */
     unsigned char fPartyMovementMode; /* 0x916: 0x00683FCE */
     float flPartyMoveDistLimit;       /* 0x917 */
-    float field_05b;
+    /* 0x91b: accumulated party movement distance; the combat movement update
+       converts it into the remaining percentage displayed by the panel. */
+    float party_move_distance;
     /* 0x91f: 0x00683FD7. InitializeGameplayRuntimeObjects stores the queue
        here; a standalone BSS pointer at this address is the same member. */
     W8CharacterEventQueue* character_event_queue;

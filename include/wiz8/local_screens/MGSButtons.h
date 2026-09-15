@@ -20,24 +20,23 @@ extern const int g_scroll_button_positions_64c330[2][2];
 extern const unsigned short g_action_kind_message_ids_61e988[12];
 
 /* Drop the combat-end notification and tear down the panel and its rows. */
-void DestroySubMenuControls(void);                 /* 0x00595570 */
+void DestroySubMenuControls(void); /* 0x00595570 */
 /* Invalidate (when asked) then redraw the sub-menu panel. */
-void RefreshSubMenuPanel005963E0(char invalidate); /* 0x005963E0 */
+void RefreshSubMenuPanel(char invalidate); /* 0x005963E0 */
 /* Close and rebuild the sub menu around the saved combat-end notification. */
-void ResetSubMenuPanel00596CF0(void); /* 0x00596CF0 */
+void ResetSubMenuPanel(void); /* 0x00596CF0 */
 /* Create and lay out the two scroll-arrow buttons. */
-unsigned char CreateSubMenuScrollButtons00596EC0(void); /* 0x00596EC0 */
+unsigned char CreateSubMenuScrollButtons(void); /* 0x00596EC0 */
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */
-void DrawSubMenuCharacterAction00596FE0(void); /* 0x00596FE0 */
+void DrawSubMenuCharacterAction(void); /* 0x00596FE0 */
 
 /* 0x00597550 / 0x00597560: the one-byte scroll-arrow callbacks, thin thunks
    over the scroll handler at 0x00597570. Unresolved gap, declared for the
    Configure call sites. */
 void SubMenuScrollArrowUp00597550(W8DialogButton* button);
 void SubMenuScrollArrowDown00597560(W8DialogButton* button);
-/* 0x00595850: rebuilds gpSubMenuPanel and the five text rows.
-   0x005990F0: the mode switch around a rebuild. Both unresolved gaps in this
-   neighbourhood, declared for the call sites. */
-unsigned char Function595850(int arg);
-void Function5990F0(int arg);
+/* Unrecovered bodies whose behavior is established by the surrounding
+   rebuild/teardown callers. */
+unsigned char RebuildCombatSubMenu(int notification);
+void SetCombatSubMenuRebuildMode(int rebuilding);

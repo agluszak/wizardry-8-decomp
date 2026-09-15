@@ -152,8 +152,8 @@ void W8ConditionButton::Redraw(int full_redraw)
 void W8ConditionButton::OnMouseLeave(int event)
 {
     W8TextControl::OnMouseLeave(event);
-    if (g_level_block->values_200[3] != -1) {
-        g_level_block->values_200[3] = -1;
+    if (g_level_block->condition_highlight_party_slot != -1) {
+        g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
         RequestRedraw(0x8000);
         RequestRedraw(0xff);
@@ -164,7 +164,7 @@ void W8ConditionButton::OnMouseLeave(int event)
 void W8ConditionButton::OnLeftButtonDown(int event)
 {
     W8TextControl::OnLeftButtonDown(event);
-    g_level_block->values_200[3] = m_ui_slot_c0;
+    g_level_block->condition_highlight_party_slot = m_ui_slot_c0;
     RequestRedraw(0x8000);
 }
 
@@ -172,7 +172,7 @@ void W8ConditionButton::OnLeftButtonDown(int event)
 void W8ConditionButton::OnLeftButtonUp(int event)
 {
     W8TextControl::OnLeftButtonUp(event);
-    g_level_block->values_200[3] = -1;
+    g_level_block->condition_highlight_party_slot = -1;
     DismissHighlightOverlay();
     RequestRedraw(0x8000);
     RequestRedraw(0xff);
@@ -208,10 +208,9 @@ void CreateConditionButtons(void)
     do {
         column_x = (uiSlot & 1) != 0 ? 0x23f : 0;
         row_y = (uiSlot >> 1) * 0x55;
-        W8ConditionButton* button =
-            new W8ConditionButton(g_condition_buttons_panel_0069b944, uiSlot + 0x1a,
-                                  column_x + 0x17, row_y + 0x13, column_x + 0x2a, row_y + 0x26,
-                                  0xa8, 0, 0, 0, 1, 1, -1, uiSlot);
+        W8ConditionButton* button = new W8ConditionButton(
+            g_condition_buttons_panel_0069b944, uiSlot + 0x1a, column_x + 0x17, row_y + 0x13,
+            column_x + 0x2a, row_y + 0x26, 0xa8, 0, 0, 0, 1, 1, -1, uiSlot);
         *control = button;
         if (button == 0) {
             srAssertFail("gpConditionButtons[uiSlot]",
@@ -223,8 +222,8 @@ void CreateConditionButtons(void)
 
     RegionSetDisable(6);
     g_condition_buttons_panel_0069b944->SetEnabled(false);
-    if (g_level_block->values_200[3] != -1) {
-        g_level_block->values_200[3] = -1;
+    if (g_level_block->condition_highlight_party_slot != -1) {
+        g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
         RequestRedraw(0x8000);
         RequestRedraw(0xff);

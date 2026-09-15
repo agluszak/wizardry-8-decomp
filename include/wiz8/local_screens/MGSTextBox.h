@@ -3,6 +3,7 @@
 class Trigger;
 
 #include <wchar.h>
+#include "input.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
 #include "wiz8/3d_code/PList.h"
@@ -33,6 +34,14 @@ void WriteGameLogAmount(int color, const wchar_t* format, ...);
 void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
 
 void ReleaseMessageStorage(void);
+bool GrowDialogueTextBuffer(void);                             /* 0x0058D7E0 */
+bool GrowDialogueLineOffsets(void);                            /* 0x0058D890 */
+void ReleaseDialogueTextInput(void);                           /* 0x0058D940 */
+void InsertDialogueTextCharacter(wchar_t character);           /* 0x0058D9C0 */
+void RewrapDialogueTextFromLine(unsigned int line);            /* 0x0058DCA0 */
+void InvalidateDialogueTextCursor(void);                       /* 0x0058DF60 */
+void DeleteDialogueTextCharacter(unsigned int key);            /* 0x0058E010 */
+unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);

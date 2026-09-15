@@ -589,7 +589,7 @@ bool W8CharacterScreen::CommitCharacter()
         if (was_in_party)
             m_original_014->in_party = 1;
         if (m_original_014->current_profession == 8)
-            Function5218C0(m_original_014);
+            UpdateGadgeteerOmnigun(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
     return true;

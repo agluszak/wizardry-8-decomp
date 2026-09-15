@@ -383,8 +383,8 @@ after_early: {
     }
     for (int condition = 0; condition < 0x14; ++condition) {
         if (monster_info->condition_turns[condition] != 0 &&
-            static_cast<unsigned int>(monster_info->condition_turns[condition]) < 9999) {
-            Function524110(monster_info->location_id, condition, minutes);
+            monster_info->condition_turns[condition] < 9999) {
+            TickMonsterCondition(monster_info->location_id, condition, minutes);
         }
     }
     for (int enchant = 0; enchant < 8; ++enchant) {

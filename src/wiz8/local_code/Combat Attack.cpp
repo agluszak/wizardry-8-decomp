@@ -387,8 +387,9 @@ unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
         if (GetMonsterDataForInfo(monster_info)->untargetable_24a != 0) {
             return 0;
         }
-        if (Function5194E0(party_slot, 0, monster_info,
-                           g_combat_state->characters[party_slot].flag_34 == 0, 0) == 0) {
+        if (CanPartyMemberAimAtMonster(party_slot, 0, monster_info,
+                                       g_combat_state->characters[party_slot].flag_34 == 0,
+                                       0) == 0) {
             return 0;
         }
     } else {

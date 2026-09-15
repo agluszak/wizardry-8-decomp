@@ -125,6 +125,10 @@ retail CFG/call/branch review.
 dismiss a gating failure as baseline/pre-existing. If one environment alone reports a diagnostic, fix
 the path/mount/compile-database disagreement rather than suppressing the finding.
 
+Before publishing a pull request, run `uv run wiz8 pr-check`. It always runs `wiz8 check` and also
+runs `wiz8 lint` when the PR changes C/C++ source or headers; a C/C++ PR is not validated without both
+lanes.
+
 Format manually owned C/C++ files you changed with `uv run clang-format --style=file -i <paths>` and
 check them with `--dry-run --Werror --fail-on-incomplete-format`. Do not reformat imported/vendor source
 such as `src/sgp`. Formatting alone does not require another build/comparison.

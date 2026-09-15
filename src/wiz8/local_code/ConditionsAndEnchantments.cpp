@@ -120,7 +120,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
                                 gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
         character->condition_turns[condition] = 0;
-        Function5237E0(party_slot);
+        RecomputeCharacterHighestCondition(party_slot);
         switch (condition) {
         case 1:
             character->hp_adjustment = 0;
@@ -140,8 +140,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         case 0xd:
             SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
-            RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
-            RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+            RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
+            RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
             break;
         }
         RebuildConditionsAndDerivedStats(party_slot);
@@ -416,6 +416,38 @@ void ClearMonsterCondition(int location_id, int condition)
         }
         RebuildMonsterDerivedStats(location_id);
     }
+}
+
+/* Age one live monster condition. Poison loses its carried strength in the
+   same proportion as its remaining duration, with a probabilistic one-point
+   correction when integer division rounds the loss to zero. */
+// FUNCTION: WIZ8 0x00524110
+void TickMonsterCondition(int location_id, int condition, unsigned int minutes)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x313, CONDITIONS_CPP, location_id, 1));
+
+    if (monster_info->hp_current == 0) {
+        return;
+    }
+    if (monster_info->condition_turns[condition] == 0) {
+        srAssertFail("pMonsterInfo->uiCondition[uiCondition] > 0", CONDITIONS_CPP, 0x31b, 0);
+    }
+    if (monster_info->condition_turns[condition] <= minutes) {
+        ClearMonsterCondition(location_id, condition);
+        return;
+    }
+    if (condition == W8_CONDITION_POISONED) {
+        int strength = monster_info->condition_argument;
+        unsigned int lost = strength * minutes / monster_info->condition_turns[condition];
+
+        if (lost == 0 &&
+            Random(100) < strength * minutes * 100 / monster_info->condition_turns[condition]) {
+            lost = 1;
+        }
+        monster_info->condition_argument = strength - lost;
+    }
+    monster_info->condition_turns[condition] -= minutes;
 }
 
 /* Setting a character's condition runs poison/immunity gates, the duration

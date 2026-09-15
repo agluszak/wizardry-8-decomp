@@ -97,6 +97,43 @@ def test_same_rva_in_one_binary_still_collides(tmp_path: Path) -> None:
     assert "SREXT_UNZIP" in violations["detail"]
 
 
+def test_two_address_qualified_declarations_cannot_claim_one_identity(tmp_path: Path) -> None:
+    declarations = [
+        {**_declaration("Function536F60", is_definition=False), "line": 1, "end_line": 1},
+        {**_declaration("TargetIsInPlay", is_definition=False), "line": 2, "end_line": 2},
+    ]
+    repository = _repository(tmp_path, [], declarations)
+    source = repository / "src/srext_unzip/test.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "void Function536F60(); /* 0x00536F60 */\nvoid TargetIsInPlay(); /* 0x00536F60 */\n",
+        encoding="utf-8",
+    )
+
+    (violation,) = identity_violations(repository)
+    assert violation["kind"] == "address-identity"
+    assert violation["reason"] == "multiple names"
+    assert violation["names"] == ["Function536F60", "TargetIsInPlay"]
+
+
+def test_documented_address_alias_does_not_create_a_second_owner(tmp_path: Path) -> None:
+    declarations = [
+        {**_declaration("CanonicalName", is_definition=False), "line": 1, "end_line": 1},
+        {**_declaration("FoldedName", is_definition=False), "line": 3, "end_line": 3},
+    ]
+    repository = _repository(tmp_path, [], declarations)
+    source = repository / "src/srext_unzip/test.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "void CanonicalName(); /* 0x10001000 */\n"
+        "// identity-alias: compiler fold onto CanonicalName\n"
+        "void FoldedName(); /* 0x10001000 */\n",
+        encoding="utf-8",
+    )
+
+    assert identity_violations(repository) == []
+
+
 def test_address_derived_name_is_allowed_for_declaration_only(tmp_path: Path) -> None:
     repository = _repository(tmp_path, [], [_declaration("Function41AAE0", is_definition=False)])
 

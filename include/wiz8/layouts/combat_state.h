@@ -119,8 +119,8 @@ struct W8CombatState {
     unsigned char flag_000; /* 0x000: blocks ending combat while set */
     unsigned char flag_001;
     unsigned char unknown_002[2];
-    unsigned int value_004; /* 0x004: blocks ending combat while non-zero */
-    int round_counter;      /* 0x008 */
+    unsigned int value_004;     /* 0x004: blocks ending combat while non-zero */
+    unsigned int round_counter; /* 0x008: bounded combat phase, 1..100 */
     unsigned char unknown_00c[4];
     int value_010;
     int value_014;
@@ -146,7 +146,9 @@ struct W8CombatState {
     unsigned int uiCurrentPartyAction;       /* 0x910 */
     unsigned int uiPartyActionPhase;         /* 0x914 */
     unsigned int uiCurrentPartyActionStatus; /* 0x918 */
-    unsigned char unknown_91c[4];
+    /* 0x91c: countdown used to pace synthetic movement progress when
+       continuous combat is enabled and the world did not advance this frame. */
+    unsigned int party_movement_clock;
     W8PartyFormationState saved_formation; /* 0x920 */
     unsigned char unknown_9a4[0xac];
     unsigned char flag_a50;

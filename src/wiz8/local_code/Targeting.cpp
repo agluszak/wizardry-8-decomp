@@ -267,7 +267,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, context), needed)) {
         return false;
     }
-    return Function519180(party_slot, 0, context) != 0;
+    return IsCurrentTargetInRange(party_slot, 0, context) != 0;
 }
 
 /* The same check without the range half, and with one target kind that a
@@ -1363,6 +1363,43 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
     }
 }
 
+/* Select the party member whose spell-targeting state is being edited. Any
+   monster highlights owned by that slot and its shared targeting record are
+   cleared before the ordinary targeting UI is restored. */
+// FUNCTION: WIZ8 0x0053AF40
+void SelectSpellCastingPartySlot(int party_slot)
+{
+    W8CombatSlot target;
+
+    ClearPartySlotMonsterHighlights(party_slot);
+    ResetCombatSlot(&target);
+    AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_SHARED);
+    SetTargetingMode(0);
+    gXStatus.target_markers.Clear();
+    RequestRefreshPartyState();
+}
+
+/* Commit the shared spell target into the selected character's active action
+   target and restart that portrait's breathing cycle. */
+// FUNCTION: WIZ8 0x0053A830
+void CommitSelectedSpellTarget(void)
+{
+    int action;
+    int detail;
+    W8ActionDetailBlock* detail_block;
+    int party_slot = g_status_685170.selected_character;
+    W8TargetingContext context = gXStatus.fCombatMode != 0 ? W8_TARGETING_CONTEXT_IN_COMBAT
+                                                           : W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
+
+    ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
+                       &detail_block);
+    if (action == 8) {
+        GetItemSpell(detail_block->item_use.item);
+    }
+    *GetTargetBlockForContext(party_slot, context) = g_shared_target_0068408b;
+    StartBreathCycle(party_slot, 1);
+}
+
 /* Recompute one party slot's combat-target highlights from its current action.
    Spell actions repopulate the slot's highlighted-monster list through the
    magic helper; other actions set or clear direct monster and group highlights. */
@@ -1700,7 +1737,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
    the slot's stored combat target is re-validated once against the in-combat
    action before being aimed at again. */
 // FUNCTION: WIZ8 0x00536570
-unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext context, int arg)
+unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
 {
     W8ActionDetailBlock* detail_block;
     W8ActionDetailBlock* detail_block_2;
@@ -1856,7 +1893,8 @@ unsigned char RepickActionTarget00536570(int party_slot, W8TargetingContext cont
                         &kind_2, &action_2, &target_2, &detail_block_2);
                     needed = GetTargetNeededForAction(kind_2, action_2, detail_block_2);
                     if (TargetMatchesNeeded(target_2, needed) == 0 ||
-                        Function519180(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) == 0) {
+                        IsCurrentTargetInRange(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) ==
+                            0) {
                         AimAtTarget(party_slot, target, W8_TARGETING_CONTEXT_IN_COMBAT);
                     }
                 }
@@ -1961,7 +1999,7 @@ unsigned char TargetIsInPlay(int party_slot, int value, W8TargetingContext conte
     if (TargetMatchesNeeded(target, needed) == 0) {
         return 0;
     }
-    return Function519180(party_slot, action, context) != 0;
+    return IsCurrentTargetInRange(party_slot, action, context) != 0;
 }
 
 /* Whether a party slot's chosen action can be aimed at one monster. The
@@ -2388,7 +2426,7 @@ int PickNextTargetableGroup(int party_slot)
    re-run the two context switches, keep the current target block when neither
    applies, and choose the fallback action when the slot is eligible. */
 // FUNCTION: WIZ8 0x0053bf80
-void RefreshAllPartyTargets0053BF80(void)
+void RefreshAllPartyTargets(void)
 {
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
@@ -2406,7 +2444,7 @@ void RefreshAllPartyTargets0053BF80(void)
             } else {
                 can_switch = CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0);
                 if (can_switch != 0) {
-                    RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0);
+                    RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0);
                 } else if (target->iType != W8_TARGET_KIND_NONE) {
                     W8CombatSlot action;
 
@@ -2490,7 +2528,8 @@ void RefreshMonsterTargetCounts005398D0(void)
                 on_screen_count += 1;
             }
             if (g_status_685170.selected_character == -1 ||
-                Function5194E0(g_status_685170.selected_character, 2, monster_info, 6, 0) != 0) {
+                CanPartyMemberAimAtMonster(g_status_685170.selected_character, 2, monster_info, 6,
+                                           0) != 0) {
                 selectable_count += 1;
             }
         }

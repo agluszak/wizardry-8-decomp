@@ -9,6 +9,7 @@
 
 struct W8NpcState;
 struct W8NpcScriptFile;
+struct W8NpcQuoteEntry;
 struct W8ItemInstance;
 struct W8Character;
 struct W8MonsterGroup;
@@ -18,8 +19,8 @@ class W8DialogBase;
 
 #pragma pack(push, 1)
 struct W8NpcDialogueStagingRestore {
-    int value_494;
-    int value_498;
+    int current_quote_index;
+    int finished_quote_index;
     unsigned short unknown_49c;
     short staged_short_49e;
 };
@@ -36,20 +37,20 @@ struct W8NpcScriptingState {
     W8NpcScriptFile* script_file;
     W8NpcState* npc;
     int voice_handle;
-    unsigned int value_84;
-    unsigned int value_88;
+    unsigned int message_duration_ms;
+    unsigned int message_started_at;
     W8GrowableVector<W8MessageBoxLine*> message_lines;
     W8GrowableVector<int*> pending_script_values;
     W8MouthGapTrack gap_track;
     unsigned int last_tick;
     unsigned char flag_c4;
-    unsigned char flag_c5;
-    unsigned char flag_c6;
-    unsigned char flag_c7;
-    unsigned char flag_c8;
-    unsigned char flag_c9;
-    unsigned char flag_ca;
-    unsigned char flag_cb;
+    unsigned char restore_staged_session;
+    unsigned char portrait_message_active;
+    unsigned char scripted_scene_active;
+    unsigned char sedexus_release_pending;
+    unsigned char sedexus_capture_pending;
+    unsigned char sedexus_capture_active;
+    unsigned char stopping_voice_playback;
 };
 
 static_assert(offsetof(W8NpcScriptingState, staging_restore) == 0x64,
@@ -65,10 +66,10 @@ static_assert(offsetof(W8NpcScriptingState, script_file) == 0x78,
 static_assert(offsetof(W8NpcScriptingState, npc) == 0x7c, "W8NpcScriptingState_npc_offset");
 static_assert(offsetof(W8NpcScriptingState, voice_handle) == 0x80,
               "W8NpcScriptingState_voice_handle_offset");
-static_assert(offsetof(W8NpcScriptingState, value_84) == 0x84,
-              "W8NpcScriptingState_value_84_offset");
-static_assert(offsetof(W8NpcScriptingState, value_88) == 0x88,
-              "W8NpcScriptingState_value_88_offset");
+static_assert(offsetof(W8NpcScriptingState, message_duration_ms) == 0x84,
+              "W8NpcScriptingState_message_duration_ms_offset");
+static_assert(offsetof(W8NpcScriptingState, message_started_at) == 0x88,
+              "W8NpcScriptingState_message_started_at_offset");
 static_assert(offsetof(W8NpcScriptingState, message_lines) == 0x8c,
               "W8NpcScriptingState_message_lines_offset");
 static_assert(offsetof(W8NpcScriptingState, pending_script_values) == 0x9c,
@@ -78,41 +79,48 @@ static_assert(offsetof(W8NpcScriptingState, gap_track) == 0xac,
 static_assert(offsetof(W8NpcScriptingState, last_tick) == 0xc0,
               "W8NpcScriptingState_last_tick_offset");
 static_assert(offsetof(W8NpcScriptingState, flag_c4) == 0xc4, "W8NpcScriptingState_flag_c4_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c5) == 0xc5, "W8NpcScriptingState_flag_c5_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c6) == 0xc6, "W8NpcScriptingState_flag_c6_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c7) == 0xc7, "W8NpcScriptingState_flag_c7_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c8) == 0xc8, "W8NpcScriptingState_flag_c8_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c9) == 0xc9, "W8NpcScriptingState_flag_c9_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_ca) == 0xca, "W8NpcScriptingState_flag_ca_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_cb) == 0xcb, "W8NpcScriptingState_flag_cb_offset");
+static_assert(offsetof(W8NpcScriptingState, restore_staged_session) == 0xc5,
+              "W8NpcScriptingState_restore_staged_session_offset");
+static_assert(offsetof(W8NpcScriptingState, portrait_message_active) == 0xc6,
+              "W8NpcScriptingState_portrait_message_active_offset");
+static_assert(offsetof(W8NpcScriptingState, scripted_scene_active) == 0xc7,
+              "W8NpcScriptingState_scripted_scene_active_offset");
+static_assert(offsetof(W8NpcScriptingState, sedexus_release_pending) == 0xc8,
+              "W8NpcScriptingState_sedexus_release_pending_offset");
+static_assert(offsetof(W8NpcScriptingState, sedexus_capture_pending) == 0xc9,
+              "W8NpcScriptingState_sedexus_capture_pending_offset");
+static_assert(offsetof(W8NpcScriptingState, sedexus_capture_active) == 0xca,
+              "W8NpcScriptingState_sedexus_capture_active_offset");
+static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
+              "W8NpcScriptingState_stopping_voice_playback_offset");
 static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
 
-void RunNpcScriptLine(int script_line, unsigned char param); /* 0x00525FA0 */
-void ProcessMessageBoxQueue(void);                           /* 0x00526E90 */
-void Function526810(int value, int script_line);             /* 0x00526810 */
+void RunNpcScriptLine(int script_line, unsigned char param);        /* 0x00525FA0 */
+void ProcessMessageBoxQueue(void);                                  /* 0x00526E90 */
+void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int script_line); /* 0x00526810 */
 /* 0x00528FF0: the first argument is a pointer into a character or party item
    slot - the slot whose address matches is the one removed. */
-void Function528FF0(W8ItemInstance* item, int flag, int item_id);
+void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id);
 /* 0x00528CD0: look the item's fact up; both out-pointers are optional. */
-int Function528CD0(int item_id, short* index, unsigned char* flag);
-void Function529F90(void);                                   /* 0x00529F90 */
-void NpcScriptCallback0052A080(W8Monster* monster);          /* 0x0052A080 */
-void NpcScriptCallback0052A150(W8Monster* monster);          /* 0x0052A150 */
-void NpcScriptCallback0052A190(W8Monster* monster);          /* 0x0052A190 */
-void NpcScriptCallback00526E40(void);                        /* 0x00526E40 */
-void NpcScriptCallback00526E70(void);                        /* 0x00526E70 */
-void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);    /* 0x0052A1B0 */
-void UpdateNpcDialogueVoiceAndCursor(void);                  /* 0x00524DA0 */
-void ProcessNpcScriptingFrame(void);                         /* 0x00524EB0 */
-void SetFlag68C500(unsigned char value);                     /* 0x0052A1A0 */
-unsigned char GetFlag68C4FA(void);                           /* 0x0052A070 */
-void Function5289B0(int kind, int argument);                 /* 0x005289B0 */
-void Function529510(void);
-void Function528830(int a, int b, int c, int d); /* 0x00528830 */
-void BeginNpcScriptedScene(void);                /* 0x00529BE0 */
-void Function529EF0(void);                       /* 0x00529EF0 */
+int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item);
+void Function529F90(void);                                           /* 0x00529F90 */
+void NpcScriptCallback0052A080(W8Monster* monster);                  /* 0x0052A080 */
+void NpcScriptCallback0052A150(W8Monster* monster);                  /* 0x0052A150 */
+void NpcScriptCallback0052A190(W8Monster* monster);                  /* 0x0052A190 */
+void NpcScriptCallback00526E40(void);                                /* 0x00526E40 */
+void NpcScriptCallback00526E70(void);                                /* 0x00526E70 */
+void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);            /* 0x0052A1B0 */
+void UpdateNpcDialogueVoiceAndCursor(void);                          /* 0x00524DA0 */
+void ProcessNpcScriptingFrame(void);                                 /* 0x00524EB0 */
+void SetFlag68C500(unsigned char value);                             /* 0x0052A1A0 */
+unsigned char GetFlag68C4FA(void);                                   /* 0x0052A070 */
+void QueueNpcMessageLine(int kind, int argument);                    /* 0x005289B0 */
+void RestoreCurrentNpcQuoteBubble(void);                             /* 0x00529510 */
+void QueueNpcScriptLine(int line, int value, int prepend, int flag); /* 0x00528830 */
+void BeginNpcScriptedScene(void);                                    /* 0x00529BE0 */
+void BeginSedexusCapture(void);                                      /* 0x00529EF0 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
 void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */

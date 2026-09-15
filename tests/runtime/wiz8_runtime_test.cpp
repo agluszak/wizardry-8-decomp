@@ -22,6 +22,7 @@
 #include "wiz8_crash_report.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
+#include "party_movement_semantic_test.h"
 
 #include "english.h"
 #include "FileMan.h"
@@ -87,6 +88,7 @@ static RuntimeObservation g_observation;
 static const char* g_scenario;
 static unsigned char g_sight_semantic_ok;
 static unsigned char g_split_semantic_ok;
+static unsigned char g_party_movement_semantic_ok;
 
 /* Bounds the driver join after WinMain returns. Python owns the hard
    process deadline, including hangs inside WinMain. */
@@ -513,6 +515,14 @@ static DWORD WINAPI DriveScenario(void*)
         PrintSplitStackSemanticResults(&split_result);
         gfProgramIsRunning = 0;
         return g_split_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "party-movement") == 0) {
+        PartyMovementSemanticResult movement_result;
+        g_party_movement_semantic_ok = RunPartyMovementSemanticTest(&movement_result);
+        PrintPartyMovementSemanticResults(&movement_result);
+        gfProgramIsRunning = 0;
+        return g_party_movement_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -957,9 +967,9 @@ static DWORD WINAPI DriveScenario(void*)
                     delete line;
                     return FailScenario();
                 }
-                g_npc_scripting.flag_c5 = 1;
+                g_npc_scripting.restore_staged_session = 1;
                 g_npc_scripting.voice_handle = 7;
-                g_npc_scripting.staging_restore.value_494 = 0x1234;
+                g_npc_scripting.staging_restore.current_quote_index = 0x1234;
                 g_npc_scripting.gap_track.mouth_open = 1;
                 g_npc_scripting.last_tick = 99;
                 ResetLiveSessionForLoad();
@@ -1050,7 +1060,7 @@ int main(int argc, char** argv)
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
         return 64;
     }
 
@@ -1058,11 +1068,12 @@ int main(int argc, char** argv)
         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
         strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
-        strcmp(argv[2], "sight-threshold") != 0 && strcmp(argv[2], "split-stack") != 0) {
+        strcmp(argv[2], "sight-threshold") != 0 && strcmp(argv[2], "split-stack") != 0 &&
+        strcmp(argv[2], "party-movement") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
         return 64;
     }
 
@@ -1161,9 +1172,11 @@ int main(int argc, char** argv)
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool sight_flow = strcmp(g_scenario, "sight-threshold") == 0;
     const bool split_flow = strcmp(g_scenario, "split-stack") == 0;
-    const bool semantic_flow = sight_flow || split_flow;
-    const bool semantic_ok =
-        (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok);
+    const bool movement_flow = strcmp(g_scenario, "party-movement") == 0;
+    const bool semantic_flow = sight_flow || split_flow || movement_flow;
+    const bool semantic_ok = (sight_flow && g_sight_semantic_ok) ||
+                             (split_flow && g_split_semantic_ok) ||
+                             (movement_flow && g_party_movement_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||

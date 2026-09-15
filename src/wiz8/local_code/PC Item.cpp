@@ -2206,6 +2206,37 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     }
 }
 
+/* Move an item into an empty peer slot, or exchange two occupied slots through
+   a temporary empty record. The party-row guard prevents observers from
+   reacting to the intermediate empty states. */
+// FUNCTION: WIZ8 0x0051FD20
+void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
+                       unsigned char refresh)
+{
+    W8ItemInstance temporary;
+    unsigned int party_slot;
+
+    if (item->item_id == -1 && destination->item_id == -1) {
+        srAssertFail("(pPCItem1->iItemNo != -1) || (pPCItem2->iItemNo != -1)", PC_ITEM_CPP, 0xdbc,
+                     0);
+    }
+    party_slot = CharacterPointerToPartySlot(character);
+    gXStatus.monster_manager_entries[party_slot].field_113 = 1;
+    if (item->item_id == -1) {
+        CopyItemInstance(item, destination, character, refresh);
+    } else if (destination->item_id == -1) {
+        CopyItemInstance(destination, item, character, refresh);
+    } else {
+        memset(&temporary, 0, sizeof(temporary));
+        temporary.item_id = -1;
+        RefreshAfterItemRecordChange(&temporary, 0, refresh);
+        CopyItemInstance(&temporary, item, character, refresh);
+        CopyItemInstance(item, destination, character, refresh);
+        CopyItemInstance(destination, &temporary, character, refresh);
+    }
+    gXStatus.monster_manager_entries[party_slot].field_113 = 0;
+}
+
 /* Set the wield kind for one primary hand from the item it holds. An empty
    hand wields nothing; otherwise the item's equipment class selects the kind,
    with class two in the off hand deferring to the primary hand's item unless
@@ -2358,7 +2389,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
                 } else if (!TargetIsInPlay(party_slot, 2)) {
-                    RepickActionTarget00536570(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+                    RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
                 }
             }
             g_combat_state->characters[party_slot].flag_81 ^= 1;
@@ -2734,7 +2765,7 @@ void UnequipUnusableItems(W8Character* character)
         destination.uses_or_charges = 0;
         destination.identified = 0;
         RefreshAfterItemRecordChange(&destination, 0, 1);
-        Function51FD20(item, &destination, character, 1);
+        SwapItemInstances(item, &destination, character, 1);
         if (!AddItemToCharacter(character, &destination, 0, 0, 0)) {
             AddItemToParty(&destination, 0, 0);
         }

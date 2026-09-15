@@ -14,10 +14,10 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
                              W8TargetingContext context, int arg_5);
 char CountRowsBetween(int from_position, int to_position); /* 0x0051AEC0 */
-unsigned char Function519180(int party_slot, int arg_2, W8TargetingContext context);
+unsigned char IsCurrentTargetInRange(int party_slot, int action, W8TargetingContext context);
 /* 0x005194E0: whether `party_slot` may aim at `monster_info` under mode `arg_2`. */
-unsigned char Function5194E0(int party_slot, int arg_2, W8MonsterInfo* monster_info, int arg_4,
-                             int arg_5);
+unsigned char CanPartyMemberAimAtMonster(int party_slot, int action, W8MonsterInfo* monster_info,
+                                         int failure_event, int notify_failure);
 /* Whether the front rank stands between two formation positions. */
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position); /* 0x0051B000 */
 /* Whether the monster's attack `attack` reaches the character in `party_slot`,
@@ -35,8 +35,8 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
    checked under: zero inside long range, the current condition beyond it. */
 unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
                                               W8RangeCategory range_category); /* 0x00519BE0 */
-unsigned char Function519F80(W8MonsterInfo* monster_info, W8MonsterRecord* record, int arg_3,
-                             W8CombatSlot* combat_slot);
+unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                         int attack, W8CombatSlot* target);
 /* The furthest range band the monster can act at: its attacks first, then its
    castable spells when the AI kind reaches for them. `out_sight` receives the
    sight-condition slot the band's target needs to be seen under. */

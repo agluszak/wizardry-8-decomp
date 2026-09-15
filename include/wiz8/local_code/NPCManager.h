@@ -80,8 +80,8 @@ char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 *
 void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 const char* GetNpcDisplayName(W8NpcState* npc);
-void Function50C440(W8NpcState* npc, int value);                          /* 0x0050C440 */
-void Function50C1C0(char name_style, int value, const char* entity_name); /* 0x0050C1C0 */
+void Function50C440(W8NpcState* npc, int value);                                   /* 0x0050C440 */
+void Function50C1C0(unsigned char name_style, int value, const char* entity_name); /* 0x0050C1C0 */
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
                                     W8ItemInstance* out); /* 0x0050BA80 */
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */

@@ -62,6 +62,7 @@
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Octree.h"
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
@@ -2162,7 +2163,7 @@ unsigned char SetFlag603C60(void)
    store state_160 there. The four recovered callers pass g_level_block
    slots (highlight_graphic from MainGameScreen, plus the formation-board
    sprites released from RCSCommon). All are stModelInstance2D-family
-   sprites produced by Function4255C0 - the formation slots in
+   sprites produced by CreateSpriteFromSurface - the formation slots in
    MGSFormation.cpp, the highlight in the unrecovered dialogue-box draw at
    0x00563FC0. */
 // FUNCTION: WIZ8 0x004257F0
@@ -2943,3 +2944,39 @@ void EndRenderProbe004289C0(void)
 
 // SYNTHETIC: WIZ8 0x00423f00
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
+// FUNCTION: WIZ8 0x004215e0
+bool HasCameraLineOfSight(const srVector3T<float>* position)
+{
+    srVector3T<float> to = *position;
+    if (g_world == 0) {
+        return false;
+    }
+    srVector3T<float> from = g_gd_camera_65a0f8->m_position_08c;
+    if (g_world->octree != 0) {
+        return g_world->octree->HasLineOfSight(&from, &to, 1);
+    }
+    return true;
+}
+
+// FUNCTION: WIZ8 0x004255c0
+stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
+                                           int arg_4, int arg_5)
+{
+    return Function4253F0(image, rect, mode, arg_4, arg_5);
+}
+
+// FUNCTION: WIZ8 0x004280c0
+void WarpSystemCursor(int x, int y)
+{
+    if (g_fullscreen_603c39) {
+        SetCursorPos(x, y);
+        return;
+    }
+    RECT client;
+    GetClientRect(ghWindow, &client);
+    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
+    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client));
+    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
+    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client.right));
+    SetCursorPos(client.left + x, client.top + y);
+}

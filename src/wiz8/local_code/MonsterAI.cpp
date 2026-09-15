@@ -1379,7 +1379,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
     int hp_max = 0;
     int stat = 0;
     int stat_max = 0;
-    int* condition_turns = 0;
+    unsigned int* condition_turns = 0;
     W8Enchantment* enchantments = 0;
     unsigned int index;
     unsigned int duration;
@@ -1968,7 +1968,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_GROUP;
                 slot.iGroupID = monster_group->group_id;
-                if (Function519F80(monster_info, record, 0, &slot) != 0) {
+                if (MonsterActionReachesTarget(monster_info, record, 0, &slot) != 0) {
                     targets->Add(slot);
                 }
             }
@@ -1978,7 +1978,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         ResetCombatSlot(&slot);
         slot.iType = W8_TARGET_KIND_PARTY;
-        if (Function519F80(monster_info, record, 0, &slot) == 0) {
+        if (MonsterActionReachesTarget(monster_info, record, 0, &slot) == 0) {
             break;
         }
         targets->Add(slot);

@@ -152,7 +152,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        Function5289B0(0x2b, 0);
+        QueueNpcMessageLine(0x2b, 0);
         return;
     case 0x33:
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0) != 0) {
@@ -202,7 +202,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                 ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
                     SetFlag68C4F4();
-                    Function528830(0, 0, 0, 0);
+                    QueueNpcScriptLine(0, 0, 0, 0);
                     return;
                 }
                 character = GetNpcGroupCharacter(npc);
@@ -305,7 +305,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0xb7:
         if (value != 0) {
-            Function5289B0(0x2e, 0);
+            QueueNpcMessageLine(0x2e, 0);
         }
         return;
     case 0xba:
@@ -421,7 +421,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         SetFactionDispositionBand(5, 2);
         return;
     case 0x14f:
-        Function5289B0(0x12, 0);
+        QueueNpcMessageLine(0x12, 0);
         return;
     case 0x151:
         trigger = FindTriggerByName("ChaosBTrigger");
@@ -432,7 +432,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        Function5289B0(0x3e, 0);
+        QueueNpcMessageLine(0x3e, 0);
         return;
     case 0x153:
         trigger = FindTriggerByName("KnowBTrigger");
@@ -443,7 +443,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        Function5289B0(0x40, 0);
+        QueueNpcMessageLine(0x40, 0);
         return;
     case 0x155:
         trigger = FindTriggerByName("LifeBTrigger");
@@ -454,10 +454,10 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        Function5289B0(0x3f, 0);
+        QueueNpcMessageLine(0x3f, 0);
         return;
     case 0x157:
-        Function5289B0(0xf, 0);
+        QueueNpcMessageLine(0xf, 0);
         return;
     case 0x15f:
         if (value == 0) {
@@ -476,13 +476,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        Function5289B0(0x22, 0);
+        QueueNpcMessageLine(0x22, 0);
         return;
     case 0x173:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x23, 0);
+        QueueNpcMessageLine(0x23, 0);
         return;
     case 0x179:
         if (value == 0) {
@@ -534,7 +534,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         trigger->flags_0a0 &= ~0x100u;
         return;
     case 0x197:
-        Function5289B0(0x25, 0);
+        QueueNpcMessageLine(0x25, 0);
         return;
     case 0x19b:
         if (value == 0) {
@@ -543,7 +543,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         SetFact(0x273, 1, 0);
         return;
     case 0x19c:
-        Function5289B0(0x24, 0);
+        QueueNpcMessageLine(0x24, 0);
         return;
     case 0x19e:
         if (value == 0) {
@@ -552,13 +552,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         AddNpcItemWithDelay(GetNpcStateByKind(0x49), 0x1b0, 1, 0x15180);
         return;
     case 0x1a0:
-        Function5289B0(0x10, 0);
+        QueueNpcMessageLine(0x10, 0);
         return;
     case 0x1a5:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x26, 0);
+        QueueNpcMessageLine(0x26, 0);
         return;
     case 0x1a8:
         if (value == 0) {
@@ -571,19 +571,19 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        Function5289B0(0x1c, 0);
+        QueueNpcMessageLine(0x1c, 0);
         return;
     case 0x1b4:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x1a, 0);
+        QueueNpcMessageLine(0x1a, 0);
         return;
     case 0x1b5:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x1b, 0);
+        QueueNpcMessageLine(0x1b, 0);
         return;
     case 0x1b8:
         if (value == 0) {
@@ -613,10 +613,10 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0x1c2:
         if (value == 0) {
-            Function5289B0(0x41, 0);
+            QueueNpcMessageLine(0x41, 0);
             return;
         }
-        Function529EF0();
+        BeginSedexusCapture();
         return;
     case 0x1c9:
         if (value == 0) {
@@ -643,7 +643,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         AddNpcItemWithDelay(GetNpcStateByKind(0x39), 0x1f8, 1, 0x15180);
         return;
     case 0x1e7:
-        Function5289B0(0x13, 0);
+        QueueNpcMessageLine(0x13, 0);
         return;
     case 0x1ec:
         if (value == 0) {
@@ -656,10 +656,10 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         ReleaseNpcMonsterByKind(0x55);
-        Function5289B0(0x39, 0);
+        QueueNpcMessageLine(0x39, 0);
         return;
     case 0x1f2:
-        Function5289B0(0x20, 0);
+        QueueNpcMessageLine(0x20, 0);
         return;
     case 0x203:
         if (value == 0) {
@@ -696,31 +696,31 @@ void HandleFactChange(int fact_id, unsigned char value)
         MarkNpcOfKind(0x52);
         return;
     case 0x206:
-        Function5289B0(0x16, 0);
+        QueueNpcMessageLine(0x16, 0);
         return;
     case 0x208:
-        Function5289B0(0x15, 0);
+        QueueNpcMessageLine(0x15, 0);
         return;
     case 0x20f:
-        Function5289B0(0x30, 0);
+        QueueNpcMessageLine(0x30, 0);
         return;
     case 0x213:
-        Function5289B0(0x3d, 0);
+        QueueNpcMessageLine(0x3d, 0);
         return;
     case 0x214:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x2f, 0);
+        QueueNpcMessageLine(0x2f, 0);
         return;
     case 0x215:
-        Function5289B0(0x32, 0);
+        QueueNpcMessageLine(0x32, 0);
         return;
     case 0x219:
         g_status_685170.value_498f = 1;
         return;
     case 0x21b:
-        Function5289B0(0x34, 0);
+        QueueNpcMessageLine(0x34, 0);
         return;
     case 0x21c:
         g_status_685170.value_4993 = 1;
@@ -817,7 +817,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x22a:
-        Function5289B0(0x21, 0);
+        QueueNpcMessageLine(0x21, 0);
         return;
     case 0x22b:
         if (value == 0) {
@@ -869,34 +869,34 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        Function5289B0(0x2d, 0);
+        QueueNpcMessageLine(0x2d, 0);
         return;
     case 0x2a5:
-        Function5289B0(0x29, 0);
+        QueueNpcMessageLine(0x29, 0);
         return;
     case 0x2a6:
         if (value != 0) {
             return;
         }
-        Function5289B0(0x3b, 0);
+        QueueNpcMessageLine(0x3b, 0);
         return;
     case 0x2ed:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x2a, 0);
+        QueueNpcMessageLine(0x2a, 0);
         return;
     case 0x2ef:
         if (value == 0) {
             return;
         }
-        Function5289B0(0x2c, 0);
+        QueueNpcMessageLine(0x2c, 0);
         return;
     case 0x2f0:
-        Function5289B0(0x31, 0);
+        QueueNpcMessageLine(0x31, 0);
         return;
     case 0x2f3:
-        Function5289B0(0x33, 0);
+        QueueNpcMessageLine(0x33, 0);
         return;
     case 0x2f4:
         if (value == 0) {
@@ -928,7 +928,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0x320:
     case 0x321:
-        Function5289B0(0x35, 0);
+        QueueNpcMessageLine(0x35, 0);
         return;
     case 0x322:
         Function56E800(0);

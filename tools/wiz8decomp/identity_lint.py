@@ -171,6 +171,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 "semantic_id": declaration.get("semantic_id") or "",
                 "kind": "marker",
                 "source": marker["source_file"],
+                "alias": bool(marker.get("folded")),
             }
         )
 
@@ -190,14 +191,19 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 "semantic_id": entry.get("semantic_id") or "",
                 "kind": "declaration",
                 "source": entry["source_file"],
+                "alias": any(
+                    _IDENTITY_ALIAS.search(line)
+                    for line in lines[max(0, entry["line"] - 6) : entry["end_line"]]
+                ),
             }
         )
         address_declaration_keys.add((entry["source_file"], entry["line"], entry["end_line"]))
 
     violations = _unnamed_definition_violations(index)
     for (ns, address), entries in sorted(claims.items()):
-        names = {entry["name"] for entry in entries}
-        prototypes = {entry["prototype"] for entry in entries if entry["prototype"]}
+        owning_entries = [entry for entry in entries if not entry["alias"]]
+        names = {entry["name"] for entry in owning_entries}
+        prototypes = {entry["prototype"] for entry in owning_entries if entry["prototype"]}
         if len(names) == 1 and len(prototypes) <= 1:
             continue
         details = sorted(

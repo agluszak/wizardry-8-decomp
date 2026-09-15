@@ -652,3 +652,23 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
         g_gd_camera_65a0f8->m_position_08c.z = point->z;
     }
 }
+/* Hand the level's pending real/frame elapsed times to the caller, fold them
+   into the session accumulators, clear the pending pair, and report whether
+   either was above the camera-transition epsilon. */
+// FUNCTION: WIZ8 0x0041f170
+unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed)
+{
+    W8LevelDataRecord* record = g_level_data_00652dac;
+    unsigned char elapsed = 0;
+    if (record != 0) {
+        *real_elapsed = record->real_elapsed_24;
+        *frame_elapsed = record->frame_elapsed_28;
+        elapsed = record->real_elapsed_24 > g_camera_transition_epsilon_005ebc84 ||
+                  record->frame_elapsed_28 > g_camera_transition_epsilon_005ebc84;
+        record->frame_elapsed_28 = 0.0f;
+        record->real_elapsed_24 = 0.0f;
+        g_status_685170.real_elapsed_2391 += *real_elapsed;
+        g_status_685170.frame_elapsed_2395 += *frame_elapsed;
+    }
+    return elapsed;
+}

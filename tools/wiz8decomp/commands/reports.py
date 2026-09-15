@@ -158,6 +158,35 @@ def header_architecture_command() -> None:
     cli.emit(write_header_architecture_report(cli.settings().repo_dir))
 
 
+@app.command("semantic-debt")
+def semantic_debt_command(
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Rank provisional recovery work without turning it into a gate."""
+
+    from .. import command_support as cli
+    from ..reports.semantic_debt import semantic_debt_report
+    from ..source_index import target_for_program, warn_if_source_index_may_be_stale
+
+    settings = cli.settings()
+    target = target_for_program(settings.repo_dir, program)
+    warn_if_source_index_may_be_stale(settings.repo_dir, target)
+    cli.emit(semantic_debt_report(settings.repo_dir, target))
+
+
+@app.command("semantic-names")
+def semantic_names_command() -> None:
+    """Rank frequently referenced FunctionXXXXXXXX declarations for recovery."""
+
+    from .. import command_support as cli
+    from ..reports.semantic_debt import semantic_name_opportunity_report
+    from ..source_index import warn_if_source_index_may_be_stale
+
+    settings = cli.settings()
+    warn_if_source_index_may_be_stale(settings.repo_dir, "WIZ8")
+    cli.emit(semantic_name_opportunity_report(settings.repo_dir))
+
+
 @app.command("merge-preservation")
 def merge_preservation_command(
     base: Annotated[str, typer.Option("--base", help="Base revision, e.g. origin/main.")],

@@ -86,26 +86,7 @@ public:
         return "stModelInstance2D";
     }
 
-    // FUNCTION: WIZ8 0x0047F0F0
-    explicit stModelInstance2D(srNode* parent)
-        : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(
-              static_cast<srNode*>(0))
-    {
-        render_state_164.display_state = 0;
-        render_state_164.left = 0;
-        render_state_164.top = 0;
-        render_state_164.right = 0;
-        render_state_164.bottom = 0;
-        state_160 = 0;
-        render_state_164.state_0d = 0;
-        render_state_164.render_depth = 2000;
-        vector_174 = 0;
-        vector_178 = 0;
-        m_pGlowMaterial_17c = 0;
-        if (parent != 0) {
-            setParent(parent, 1);
-        }
-    }
+    explicit stModelInstance2D(srNode* parent); /* 0x0047F0F0 */
 
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
     void SetModel0047F3A0(srModel* model);                        /* 0x0047F3A0 */

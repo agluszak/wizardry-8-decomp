@@ -409,7 +409,7 @@ void RebuildMonsterDerivedStats(int location_id)
    scales its hit adjustment off the bound monster when the record still
    resolves on the saved level. */
 // FUNCTION: WIZ8 0x0050eac0
-void ApplyConditionModifiers(W8Character* character, const int* condition_turns,
+void ApplyConditionModifiers(W8Character* character, const unsigned int* condition_turns,
                              int condition_argument, W8GameplayModifierBlock* target)
 {
     unsigned int i;
