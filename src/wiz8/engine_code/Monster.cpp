@@ -2223,7 +2223,7 @@ void W8Monster::ProcessScript004C80E0()
                     } else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
                         W8NpcState* npc = GetNpcStateByKind(0x8d);
                         if (npc != 0)
-                            Function56C5E0(npc, 0, 6, 0, 0);
+                            QueueNpcScriptNotice(npc, 0, 6, 0, 0);
                         monster_info =
                             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                                 0x14b3, MONSTER_CPP, propagated_value_1e4, 1));

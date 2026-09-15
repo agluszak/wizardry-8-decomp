@@ -2716,9 +2716,9 @@ no_probes:;
                                 static_cast<double>(static_cast<float>(g_zero_005ebb40))) {
                                 float fraction =
                                     (static_cast<float>(sqrt(length2)) -
-                                     static_cast<float>(sqrt(static_cast<double>(
-                                         (static_cast<float>(monster_radius) * monster_radius -
-                                          static_cast<float>(distance) * distance))))) /
+                                     static_cast<float>(
+                                         sqrt(static_cast<double>((monster_radius * monster_radius -
+                                                                   distance * distance))))) /
                                     static_cast<float>(sqrt(length2));
                                 offset.x = direction.x * fraction;
                                 offset.y = direction.y * fraction;
@@ -2792,8 +2792,7 @@ no_probes:;
             } else {
                 float fraction = (static_cast<float>(sqrt(length2)) -
                                   static_cast<float>(sqrt(static_cast<double>(
-                                      (static_cast<float>(camera_radius) * camera_radius -
-                                       static_cast<float>(distance) * distance))))) /
+                                      (camera_radius * camera_radius - distance * distance))))) /
                                  static_cast<float>(sqrt(length2));
                 offset.x = offset.x * fraction;
                 offset.y = offset.y * fraction;

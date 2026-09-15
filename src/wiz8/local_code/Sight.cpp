@@ -328,7 +328,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
     for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
         if (monster_info->fActive != 0 && !monster_info->monster->IsDying() &&
-            monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
+            monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
             monster_info->party_threat.state_04 == 1) {
             return true;
         }
@@ -397,7 +397,7 @@ unsigned int AgeAllMonsterSight(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if ((unsigned int)monster_info->highest_condition < 0x12) {
+        if (monster_info->highest_condition < 0x12) {
             AgeMonsterSight(monster_info, steps, 1);
         }
     }

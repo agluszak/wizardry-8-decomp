@@ -242,8 +242,8 @@ void NotifyNearbyMonsters(int what)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            (unsigned int)monster_info->highest_condition < 0xe &&
-            monster_info->condition_turns[12] == 0 && monster_info->ubDisposition == 1) {
+            monster_info->highest_condition < 0xe && monster_info->condition_turns[12] == 0 &&
+            monster_info->ubDisposition == 1) {
             if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(W8_RANGE_SHORT)) {
                 NotifyMonsterOfSound(monster_info->monster, what);
@@ -355,7 +355,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     monster_info->pCombat->value_14c = 0;
     RequestRedraw(0x100000);
 
-    if (monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xe &&
+    if (monster_info->hp_current != 0 && monster_info->highest_condition < 0xe &&
         monster_info->condition_turns[12] == 0) {
         MonsterChooseTarget(monster_info, chosen, 3);
         if (chosen[0] == 2) {

@@ -2538,7 +2538,7 @@ void ClearMainGameTargetState(void)
 // FUNCTION: WIZ8 0x00577220
 void SyncDialogueNpcStateAndMarkPending00577220(void)
 {
-    Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
+    BeginNpcDialogueInternal(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
     g_screen_state_00649f1c->flag_234 = 1;
 }
@@ -2546,7 +2546,7 @@ void SyncDialogueNpcStateAndMarkPending00577220(void)
 // FUNCTION: WIZ8 0x00577260
 void SyncDialogueNpcState00577260(void)
 {
-    Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
+    BeginNpcDialogueInternal(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
 }
 
@@ -3350,7 +3350,7 @@ unsigned char MainGameScreenLeave(int leaving)
             g_level_block->redraw_flags |= 0x8200;
         }
         if (g_flag_0068edbc) {
-            SetViewportMode(Function5698C0());
+            SetViewportMode(GetMainGameViewportMode());
         }
         g_flag_0068edbc = 0;
     }
@@ -3362,7 +3362,7 @@ unsigned char MainGameScreenLeave(int leaving)
             g_level_block->redraw_flags |= 0x8200;
         }
         if (g_flag_0068edc8) {
-            SetViewportMode(Function5698C0());
+            SetViewportMode(GetMainGameViewportMode());
         }
         g_flag_0068edc8 = 0;
     }
@@ -3818,7 +3818,7 @@ void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int
 {
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
-        Function56C5E0(npc, item, line, suppress, 0);
+        QueueNpcScriptNotice(npc, item, line, suppress, 0);
     }
 }
 
@@ -3829,7 +3829,7 @@ void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int
    0x10/0x11 NPCs with fact 0xbf substitute their own notice line and raise
    the flag byte. */
 // FUNCTION: WIZ8 0x0056C5E0
-void Function56C5E0(W8NpcState* npc, W8ItemInstance* item, int line, int suppress, int arg)
+void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress, int arg)
 {
     W8MonsterInfo* info;
     unsigned char flag;
@@ -3872,7 +3872,8 @@ void Function56C5E0(W8NpcState* npc, W8ItemInstance* item, int line, int suppres
    pausing the world, raising the dialogue flags and pointing the camera at
    the NPC's monster. */
 // FUNCTION: WIZ8 0x0056C6D0
-void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
+void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
+                              int force)
 {
     W8MainScreenState* state;
     W8MonsterInfo* info;
@@ -3908,10 +3909,10 @@ void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
         gXStatus.character_event_queue->CompleteFirstActiveEvent();
     }
     if (gXStatus.fCampMode == 0) {
-        Function56D030(npc, flags);
+        SelectNpcDialogueSpeaker(npc, flags);
     }
     if (force != 0) {
-        Function56CAD0(npc, item, 1);
+        OpenNpcDialoguePanel(npc, item, 1);
         return;
     }
     if (npc->record->unknown_054 == 0 && npc->record->flag_2ea == 0) {
@@ -3920,7 +3921,7 @@ void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
             return;
         }
         if (flags == 0) {
-            Function56CAD0(npc, item, 0);
+            OpenNpcDialoguePanel(npc, item, 0);
             return;
         }
     }
@@ -3931,9 +3932,9 @@ void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
             if (g_status_685170.item_in_cursor != 0) {
                 state->flag_1f9 = 1;
             }
-            Function575810(&state->pending_item_1ed);
+            HandleNpcDialogueItem(&state->pending_item_1ed);
         } else if (quote == -1) {
-            Function577290(1);
+            HandleNpcDialogueDeparture(1);
         } else {
             Function528830(quote, 0, 0, 0);
         }
@@ -3965,15 +3966,15 @@ void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
 }
 
 // FUNCTION: WIZ8 0x0056CA60
-void Function56CA60(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
+void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
 {
-    Function56C6D0(npc, item, quote, flags, force);
+    BeginNpcDialogueInternal(npc, item, quote, flags, force);
 }
 
 /* Dispatch the queued NPC script notice: the item goes across only while it
    still carries an id, and the flag pair at +0x14 travels as one dword. */
 // FUNCTION: WIZ8 0x0056CA90
-void Function56CA90(void)
+void DispatchPendingNpcScriptNotice(void)
 {
     W8ItemInstance* item;
 
@@ -3981,8 +3982,8 @@ void Function56CA90(void)
     if (g_pending_notice_68ee60.item.item_id != -1) {
         item = &g_pending_notice_68ee60.item;
     }
-    Function56C6D0(g_pending_notice_68ee60.npc, item, g_pending_notice_68ee60.line,
-                   g_pending_notice_68ee60.flags, g_pending_notice_68ee60.bytes.force);
+    BeginNpcDialogueInternal(g_pending_notice_68ee60.npc, item, g_pending_notice_68ee60.line,
+                             g_pending_notice_68ee60.flags, g_pending_notice_68ee60.bytes.force);
 }
 
 /* Open the NPC dialogue panel. After the shared screen reset and the
@@ -3992,7 +3993,7 @@ void Function56CA90(void)
    dispatch: a record-0x056 NPC takes the plain quote, otherwise the
    disposition band picks the hostile or friendly entry. */
 // FUNCTION: WIZ8 0x0056CAD0
-unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned char force)
+unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsigned char force)
 {
     W8MainScreenState* state;
     W8MonsterInfo* info;
@@ -4003,7 +4004,7 @@ unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned cha
 
     UpdateScreenOverlays(0);
     gXStatus.fNpcDialogueMode = 1;
-    Function569570();
+    CloseMainGameOverlays();
     if (npc->record->flag_055 != 0) {
         Function55BCC0(npc);
     }
@@ -4038,12 +4039,12 @@ unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned cha
     if (g_settings_6850c8.field_006 != 0) {
         ApplyMainGameModeFlag(0, 0);
     } else {
-        SetViewportMode(Function5698C0());
+        SetViewportMode(GetMainGameViewportMode());
     }
     if (gXStatus.fCampMode == 0) {
         g_screen_state_00649f1c->value_f0 = g_settings_6850c8.field_006;
     }
-    Function56D1D0();
+    CreateNpcDialogueControls();
     SetRegionBounds(0x8a, 0x17, 0x166, 0x269, 0x1c2);
     g_level_block->flag_271 = 0;
     RegionSetEnable(0x15);
@@ -4061,14 +4062,14 @@ unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned cha
             ClearHeldItemDisplay();
         }
         if (npc->record->unknown_056 != 0) {
-            if (Function575810(&state->pending_item_1ed) == 0) {
+            if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
                 Function570CF0();
                 goto dispatch;
             }
-        } else if (Function575810(&state->pending_item_1ed) == 0) {
+        } else if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
             switch (g_screen_state_00649f1c->value_fc) {
             case 1:
-                Function573DD0();
+                CloseNpcDialogueMode1Layout();
                 break;
             case 2:
                 RegionSetDisable(0x18);
@@ -4080,22 +4081,22 @@ unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned cha
                     &g_wchar_00689b34, g_wiz_text_bold_font_683664);
             /* fall through */
             case 6:
-                Function56EDD0(0);
+                SetNpcDialogueLayoutMode(0);
                 break;
             case 3:
-                Function571370();
+                CloseNpcDialogueTranscriptLayout();
                 break;
             case 4:
-                Function572320();
+                CloseNpcDialogueOptionLayout();
                 break;
             case 5:
-                Function573570();
+                CloseNpcDialogueMode5Layout();
                 break;
             }
             if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0) {
                 Function570CF0();
             } else {
-                Function570760();
+                ShowNpcDialogueTopicMenu();
             }
             goto dispatch;
         }
@@ -4114,11 +4115,11 @@ dispatch:
             SetFact(0x2f1, 0, 0);
         }
         if (band == 0) {
-            Function577290(1);
+            HandleNpcDialogueDeparture(1);
             Function570CF0();
         } else if (band == 1) {
             Function528830(2, 0, 0, 0);
-            Function570760();
+            ShowNpcDialogueTopicMenu();
         }
     }
 tail:
@@ -4157,7 +4158,7 @@ tail:
    (communication) level. Every occupied portrait then takes target pose 1.
    A stale disposition snapshot on the NPC drops its 0x1c flag. */
 // FUNCTION: WIZ8 0x0056D030
-void Function56D030(W8NpcState* npc, int flags)
+void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
 {
     W8MainScreenState* state;
     W8MonsterInfo* info;
@@ -4234,7 +4235,7 @@ void Function575520(W8DialogBase* dialog);
    of them hosts. Buttons get their option masks, help ids and activation
    callbacks as they are created. */
 // FUNCTION: WIZ8 0x0056D1D0
-void Function56D1D0(void)
+void CreateNpcDialogueControls(void)
 {
     Controls* panel;
     W8MainScreenState* state;
@@ -4716,10 +4717,10 @@ void FlushPendingNoticeLines005766B0(void)
    before handing off. The flag decides whether the pending payload carries
    the slot's character pointer. */
 // FUNCTION: WIZ8 0x00560E10
-void Function560E10(unsigned int party_slot, int flag)
+void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
-        Function577020();
+        CloseNpcDialogueForCamp();
     }
     g_pending_screen_state.parameter_2 = party_slot;
     g_pending_screen_state.parameter_3 = g_status_685170.buffers.characters + party_slot;
@@ -4783,7 +4784,7 @@ done:
    set, the plain mode when any of the board, radar or combat latches is still
    down, and otherwise the override field's own mapping. */
 // FUNCTION: WIZ8 0x005698C0
-short Function5698C0(void)
+short GetMainGameViewportMode(void)
 {
     if (gXStatus.fSpellCastMode == 0 &&
         (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
@@ -4813,7 +4814,7 @@ short Function5698C0(void)
 /* Drop whichever of the formation board, the radar map and the combat bar is
    up, restoring the viewport mode that was in effect when each was raised. */
 // FUNCTION: WIZ8 0x00569570
-void Function569570(void)
+void CloseMainGameOverlays(void)
 {
     if (g_level_block->formation_board_visible != 0) {
         g_level_block->formation_board_visible = 0;
@@ -4828,8 +4829,8 @@ void Function569570(void)
                 (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
                 gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
                 gXStatus.fItemSelectMode == 0 && g_level_block->flag_155 == 0 &&
-                g_level_block->formation_board_visible != 0 &&
-                g_level_block->flag_157 != 0 && g_settings_6850c8.field_006 == 0) {
+                g_level_block->formation_board_visible != 0 && g_level_block->flag_157 != 0 &&
+                g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (gXStatus.fSpellCastMode == 0 &&
                        (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
@@ -4864,8 +4865,8 @@ void Function569570(void)
                 (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
                 gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
                 gXStatus.fItemSelectMode == 0 && g_level_block->flag_155 == 0 &&
-                g_level_block->formation_board_visible != 0 &&
-                g_level_block->flag_157 != 0 && g_settings_6850c8.field_006 == 0) {
+                g_level_block->formation_board_visible != 0 && g_level_block->flag_157 != 0 &&
+                g_settings_6850c8.field_006 == 0) {
                 mode = 4;
             } else if (gXStatus.fSpellCastMode == 0 &&
                        (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
@@ -4902,7 +4903,7 @@ void Function569570(void)
             g_level_block->redraw_flags |= 0x8200;
         }
         if (g_flag_0068edc8 != 0) {
-            SetViewportMode(Function5698C0());
+            SetViewportMode(GetMainGameViewportMode());
         }
         g_flag_0068edc8 = 0;
     }
@@ -4912,7 +4913,7 @@ void Function569570(void)
    install `value` as the new one; either way the dialogue cursor helper gets
    re-run while the flag is set. */
 // FUNCTION: WIZ8 0x0056EDD0
-void Function56EDD0(int value)
+void SetNpcDialogueLayoutMode(int value)
 {
     if (value == 0) {
         g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
@@ -4928,7 +4929,7 @@ void Function56EDD0(int value)
 /* Bring up the mode-2 dialogue layout: the option panels come up, the caption
    takes the NPC's name, and the five topics get their strings and callbacks. */
 // FUNCTION: WIZ8 0x00570760
-void Function570760(void)
+void ShowNpcDialogueTopicMenu(void)
 {
     g_screen_state_00649f1c->value_fc = 2;
     if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
@@ -4944,24 +4945,24 @@ void Function570760(void)
         g_wiz_text_bold_font_683664);
     g_screen_state_00649f1c->dialogue_text_10c->Invalidate(1);
     g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(gppStringList[0x1c98 / 4],
-                                                                   g_wiz_text_bold_font_683664);
+                                                                     g_wiz_text_bold_font_683664);
     g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1c9c / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback = Function570AD0;
     g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ca0 / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = Function570B80;
     g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1ca4 / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = Function570C20;
     g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback = Function570530;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = Function5705B0;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
-                                                                   g_font_683660);
+                                                                     g_font_683660);
     g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback = Function570310;
     g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
     g_screen_state_00649f1c->dialogue_text_114->SetEnabled(
@@ -4979,7 +4980,7 @@ void Function570760(void)
    back up, drop the panels, then re-enable whichever occupied party rows
    still own region slots. */
 // FUNCTION: WIZ8 0x00571370
-void Function571370(void)
+void CloseNpcDialogueTranscriptLayout(void)
 {
     int index;
 
@@ -5013,7 +5014,7 @@ void Function571370(void)
 /* Tear down the mode-4 option layout: the six option controls lose their
    secondary state and layout flags before everything is disabled. */
 // FUNCTION: WIZ8 0x00572320
-void Function572320(void)
+void CloseNpcDialogueOptionLayout(void)
 {
     W8TextControl* text;
 
@@ -5063,7 +5064,7 @@ void Function572320(void)
 
 /* Tear down the mode-5 dialogue layout and retire the current mode. */
 // FUNCTION: WIZ8 0x00573570
-void Function573570(void)
+void CloseNpcDialogueMode5Layout(void)
 {
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
@@ -5083,7 +5084,7 @@ void Function573570(void)
 /* Tear down the mode-1 dialogue layout; outside camp the mode is retired as
    well. */
 // FUNCTION: WIZ8 0x00573DD0
-void Function573DD0(void)
+void CloseNpcDialogueMode1Layout(void)
 {
     RegionSetDisable(0x18);
     RegionSetDisable(0x17);
@@ -5106,7 +5107,7 @@ void Function573DD0(void)
 }
 
 // FUNCTION: WIZ8 0x00575810
-unsigned char Function575810(W8ItemInstance* item)
+unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
 {
     W8MessageDialogBase* dialog;
     wchar_t* message;
@@ -5155,7 +5156,7 @@ unsigned char Function575810(W8ItemInstance* item)
                 Function528830(fact_result, 0, 0, 0);
                 result = 0;
                 if (flag != 0) {
-remove:
+                remove:
                     Function528FF0(item, 0, -1);
                     return result;
                 }
@@ -5179,8 +5180,8 @@ remove:
                 Function50A570(g_screen_state_00649f1c->dialogue_npc, 3,
                                g_screen_state_00649f1c->dialogue_speaker, item);
                 Function528830(
-                    GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7,
-                    0, 0, 0);
+                    GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0,
+                    0, 0);
             } else {
                 Function528830(fact_result, 0, 0, 0);
                 result = 0;
@@ -5198,11 +5199,11 @@ remove:
 /* Retire the current dialogue layout, then open the layout `interact_id`
    selects. */
 // FUNCTION: WIZ8 0x00570120
-void Function570120(int interact_id)
+void SwitchNpcDialogueLayout(int interact_id)
 {
     switch (g_screen_state_00649f1c->value_fc) {
     case 1:
-        Function573DD0();
+        CloseNpcDialogueMode1Layout();
         break;
     case 2:
         RegionSetDisable(0x18);
@@ -5219,10 +5220,10 @@ void Function570120(int interact_id)
         }
         break;
     case 3:
-        Function571370();
+        CloseNpcDialogueTranscriptLayout();
         break;
     case 4:
-        Function572320();
+        CloseNpcDialogueOptionLayout();
         break;
     case 5:
         RegionSetDisable(0x18);
@@ -5252,7 +5253,7 @@ void Function570120(int interact_id)
         Function573AE0();
         return;
     case 2:
-        Function570760();
+        ShowNpcDialogueTopicMenu();
         return;
     case 3:
         Function570CF0();
@@ -5266,16 +5267,16 @@ void Function570120(int interact_id)
     }
 }
 
-/* The camp-side mirror of Function570120: camp mode is raised, the current
+/* The camp-side mirror of SwitchNpcDialogueLayout: camp mode is raised, the current
    dialogue layout is retired, and a still-pending item goes back onto the
    item cursor. */
 // FUNCTION: WIZ8 0x00577020
-void Function577020(void)
+void CloseNpcDialogueForCamp(void)
 {
     gXStatus.fCampMode = 1;
     switch (g_screen_state_00649f1c->value_fc) {
     case 1:
-        Function573DD0();
+        CloseNpcDialogueMode1Layout();
         break;
     case 2:
         RegionSetDisable(0x18);
@@ -5292,10 +5293,10 @@ void Function577020(void)
         }
         break;
     case 3:
-        Function571370();
+        CloseNpcDialogueTranscriptLayout();
         break;
     case 4:
-        Function572320();
+        CloseNpcDialogueOptionLayout();
         break;
     case 5:
         RegionSetDisable(0x18);
@@ -5336,7 +5337,7 @@ void Function577020(void)
    Every occupied living character without a maxed condition practices
    communication (skill 0x16). */
 // FUNCTION: WIZ8 0x00577290
-void Function577290(int value)
+void HandleNpcDialogueDeparture(int value)
 {
     W8MonsterInfo* info;
     W8Character* character;
@@ -5366,15 +5367,14 @@ void Function577290(int value)
                 }
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 == 0) {
-                Function571660(g_screen_state_00649f1c->dialogue_npc->record->source_name_004,
-                               -1, 1);
+                Function571660(g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1,
+                               1);
                 return;
             }
             if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
                 (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 ||
                  g_screen_state_00649f1c->dialogue_npc->is_present != 0)) {
-                Function5775D0(g_screen_state_00649f1c->dialogue_npc->record->source_name_004,
-                               -1);
+                Function5775D0(g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1);
             }
         }
     }

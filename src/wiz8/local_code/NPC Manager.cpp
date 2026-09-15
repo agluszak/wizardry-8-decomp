@@ -303,7 +303,7 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc)
    refuses outright, one particular item is always taken, and everything else
    has to be worth enough. */
 // FUNCTION: WIZ8 0x0050a9c0
-char WillNpcTradeForItem(W8NpcState* npc, const W8ItemInstance* item)
+char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
 {
     if (npc->record->kind == W8_NPC_KIND_NO_TRADE) {
         return 0;
@@ -644,7 +644,7 @@ void SelectStartNpcGreeting00509560(void)
             if (npc == 0) {
                 return;
             }
-            Function56C5E0(npc, 0, 0, 0, 0);
+            QueueNpcScriptNotice(npc, 0, 0, 0, 0);
             monster_info = GetNpcMonsterInfo(npc);
             if (monster_info == 0) {
                 return;
@@ -659,7 +659,7 @@ void SelectStartNpcGreeting00509560(void)
         npc = GetNpcStateByKind(0x18);
     }
     if (npc != 0) {
-        Function56C5E0(npc, 0, -1, 0, 0);
+        QueueNpcScriptNotice(npc, 0, -1, 0, 0);
     }
 }
 
@@ -1026,7 +1026,7 @@ void TriggerBelaVoice0050D480(W8Monster* monster)
         }
     }
     if (npc != 0) {
-        Function56C5E0(npc, 0, -1, 0, 0);
+        QueueNpcScriptNotice(npc, 0, -1, 0, 0);
         return;
     }
     srAssertFail("pNPC", NPC_MANAGER_CPP, 0xbec, "Cannot find VOC_BELA_CC");
@@ -1086,7 +1086,7 @@ void UpdateNpcEvents0050D530(void)
                 g_status_685170.flag_2430 = 0;
                 continue;
             }
-            unsigned int kind = (unsigned char)npc->name_style;
+            unsigned int kind = npc->name_style;
 
             partner = 0;
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
@@ -1144,7 +1144,7 @@ void UpdateNpcEvents0050D530(void)
                 W8NpcState* candidate = *g_npc_states->GetAt(search);
                 if (candidate->record->kind == 0x8d) {
                     if (candidate != 0) {
-                        Function56CA60(candidate, 0, 0, 0, 0);
+                        BeginNpcDialogue(candidate, 0, 0, 0, 0);
                     }
                     break;
                 }
@@ -1301,8 +1301,7 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
                     candidate_slot += index;
                 }
                 companion = *candidate_slot;
-                if (static_cast<unsigned int>(companion->record->kind) ==
-                    static_cast<unsigned char>(npc->name_style)) {
+                if (static_cast<unsigned int>(companion->record->kind) == npc->name_style) {
                     found = true;
                     break;
                 }
@@ -1370,7 +1369,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
         if (gXStatus.uiMonstersInDatabase != 0) {
             for (; index < gXStatus.uiMonstersInDatabase; ++index) {
                 if ((records[index].flags_0d0 & 1) != 0 &&
-                    records[index].unknown_0cd[0] == static_cast<unsigned char>(npc->name_style)) {
+                    records[index].unknown_0cd[0] == npc->name_style) {
                     break;
                 }
             }
@@ -1445,8 +1444,7 @@ void ReleaseMarkedNpcBindings0050DA00(void)
                         candidate_slot += index;
                     }
                     companion = *candidate_slot;
-                    if (static_cast<unsigned int>(companion->record->kind) ==
-                        static_cast<unsigned char>(npc->name_style)) {
+                    if (static_cast<unsigned int>(companion->record->kind) == npc->name_style) {
                         found = true;
                         break;
                     }

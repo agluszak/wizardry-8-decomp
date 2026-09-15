@@ -303,8 +303,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->fActive != 0) {
-            MonsterInfoSetMotionless(monster_info,
-                                     (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
+            MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (old_duration == 0 && condition != 0 && condition <= 0x12) {
             DropMonsterVisual(monster_info->monster, condition - 1, 1);
@@ -394,8 +393,7 @@ void ClearMonsterCondition(int location_id, int condition)
         monster_group = GetMonsterGroupByListIndex(list_index);
         RecountActiveMonsterGroupMembers(monster_group);
         if (monster_info->fActive != 0) {
-            MonsterInfoSetMotionless(monster_info,
-                                     (unsigned int)monster_info->highest_condition < 0xE ? 0 : 1);
+            MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (condition != 0 && condition < 0x13) {
             DropMonsterVisual(monster_info->monster, condition - 1, 0);

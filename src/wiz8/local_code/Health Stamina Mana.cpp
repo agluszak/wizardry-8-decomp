@@ -864,8 +864,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
 {
     unsigned int stamina_max;
 
-    if (static_cast<unsigned int>(monster_info->highest_condition) >= W8_CONDITION_DEAD ||
-        monster_info->hp_current == 0) {
+    if (monster_info->highest_condition >= W8_CONDITION_DEAD || monster_info->hp_current == 0) {
         return;
     }
     stamina_max = monster_info->stamina_max;

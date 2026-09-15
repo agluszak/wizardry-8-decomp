@@ -172,7 +172,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
-        monster_info->hp_current == 0 || (unsigned int)monster_info->highest_condition >= 0xc ||
+        monster_info->hp_current == 0 || monster_info->highest_condition >= 0xc ||
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) == 0) {
         return false;
     }
@@ -463,7 +463,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
 
     if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
-        monster_info->hp_current != 0 && (unsigned int)monster_info->highest_condition < 0xc &&
+        monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
         (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 && record->attacks[0].fHasAttack != 0) {
         return MonsterHasAttackOn(monster_info, &monster_info->Target) != 0;
     }

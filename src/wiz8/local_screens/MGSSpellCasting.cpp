@@ -316,12 +316,12 @@ unsigned char OpenSpellCastingView0059F0E0(int party_slot)
     gpSCSV->field_574 = 1;
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
-    Function569570();
+    CloseMainGameOverlays();
     mode = g_settings_6850c8.field_006;
     if (mode == 2) {
         ApplyMainGameModeFlag(1, 0);
     } else {
-        SetViewportMode(Function5698C0());
+        SetViewportMode(GetMainGameViewportMode());
     }
     gpSCSV->saved_game_mode = mode;
     CreateSpellCastingViewControls0059E1F0();
@@ -400,8 +400,8 @@ void CloseSpellCastingView0059F2B0(void)
         if (interact_id != -1 && IsScreenTransitionPending() == 0) {
             monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, 1);
             npc = FindNpcBindingForMonster(monster_index);
-            Function56CA60(npc, 0, -1, 0, 1);
-            Function570120(interact_id);
+            BeginNpcDialogue(npc, 0, -1, 0, 1);
+            SwitchNpcDialogueLayout(interact_id);
         }
     }
 }
@@ -1259,7 +1259,7 @@ static void TryCommitSpellCast005A1370(void)
             CloseSpellCastingView0059F2B0();
             return;
         }
-        Function560E10(CharacterPointerToPartySlot(gpSCSV->caster), 1);
+        OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(gpSCSV->caster), 1);
     }
 }
 

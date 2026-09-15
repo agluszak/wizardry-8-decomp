@@ -105,7 +105,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
             npc = GetNpcStateByKind(0x34);
         }
         if (npc != 0) {
-            Function56C5E0(npc, 0, 0, 1, 0);
+            QueueNpcScriptNotice(npc, 0, 0, 1, 0);
         }
         return;
     }

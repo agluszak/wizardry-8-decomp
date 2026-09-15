@@ -1020,7 +1020,7 @@ void ProcessMessageBoxQueue(void)
         }
         npc = GetNpcStateByKind(0x8d);
         if (npc != 0) {
-            Function56C5E0(npc, 0, 7, 0, 0);
+            QueueNpcScriptNotice(npc, 0, 7, 0, 0);
         }
         break;
     }
@@ -1038,7 +1038,7 @@ void ProcessMessageBoxQueue(void)
             }
             npc = GetNpcStateByKind(0x84);
             if (npc != 0) {
-                Function56C5E0(npc, 0, -1, 0, 0);
+                QueueNpcScriptNotice(npc, 0, -1, 0, 0);
             }
         }
         break;
@@ -1086,7 +1086,7 @@ void ProcessMessageBoxQueue(void)
         }
         npc = GetNpcStateByKind(0x8d);
         if (npc != 0) {
-            Function56C5E0(npc, 0, 0x12, 0, 0);
+            QueueNpcScriptNotice(npc, 0, 0x12, 0, 0);
         }
         break;
     }
@@ -1108,7 +1108,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case 0x37:
-        Function56CA90();
+        DispatchPendingNpcScriptNotice();
         break;
     case 0x38:
         ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, 1, 1);
@@ -1137,7 +1137,7 @@ void ProcessMessageBoxQueue(void)
     case 0x3c:
         npc = GetNpcStateByKind(0x87);
         if (npc != 0) {
-            Function56C5E0(npc, 0, -1, 0, 0);
+            QueueNpcScriptNotice(npc, 0, -1, 0, 0);
         }
         break;
     case 0x3d:
