@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -26,6 +25,8 @@ jobs:
     name: Checks, lints, and tests
     runs-on: ubuntu-24.04
     timeout-minutes: 150
+    outputs:
+      reccmp-comment: ${{ steps.reccmp-status.outputs.comment }}
     env:
       GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.2_PUBLIC
       WIZ8_INPUT_DIR: /tmp/wiz8-inputs
@@ -142,6 +143,7 @@ jobs:
           uv run wiz8 corpus verify
 
       - name: Generate reccmp PR status
+        id: reccmp-status
         if: env.TRUSTED_PR == 'true'
         run: |
           status_json="$RUNNER_TEMP/reccmp-status.json"
@@ -191,31 +193,11 @@ jobs:
             ) | join("\n")
           ' "$status_json" > "$comment"
           printf '\n\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
-
-      - name: Post reccmp status comment
-        if: env.TRUSTED_PR == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          marker='<!-- wiz8-reccmp-status -->'
-          comment="$RUNNER_TEMP/reccmp-status.md"
-          payload="$RUNNER_TEMP/reccmp-status-comment.json"
-          comment_id="$(
-            gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --jq ".[] | select(.body | contains(\"$marker\")) | .id" \
-              | head -n1
-          )"
-          jq -Rs '{body: .}' < "$comment" > "$payload"
-          if [ -n "$comment_id" ]; then
-            gh api --method PATCH \
-              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
-              --input "$payload" >/dev/null
-          else
-            gh api --method POST \
-              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --input "$payload" >/dev/null
-          fi
+          {
+            echo 'comment<<__RECCMP_STATUS__'
+            cat "$comment"
+            echo '__RECCMP_STATUS__'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Run licensed comparison tests
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -230,3 +212,37 @@ jobs:
         run: |
           wineserver -k || true
           rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" config/local-inputs.yml
+
+  comment-reccmp-status:
+    name: Comment reccmp status
+    needs: ci
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner && needs.ci.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Update PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMENT_BODY: ${{ needs.ci.outputs.reccmp-comment }}
+        run: |
+          test -n "$COMMENT_BODY"
+          marker='<!-- wiz8-reccmp-status -->'
+          payload="$RUNNER_TEMP/reccmp-status-comment.json"
+          comment_id="$(
+            gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq ".[] | select(.body | contains(\"$marker\")) | .id" \
+              | head -n1
+          )"
+          printf '%s' "$COMMENT_BODY" | jq -Rs '{body: .}' > "$payload"
+          if [ -n "$comment_id" ]; then
+            gh api --method PATCH \
+              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
+              --input "$payload" >/dev/null
+          else
+            gh api --method POST \
+              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              --input "$payload" >/dev/null
+          fi
