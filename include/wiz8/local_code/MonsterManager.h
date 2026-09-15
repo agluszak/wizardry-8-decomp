@@ -371,6 +371,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
+void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
 
 #endif

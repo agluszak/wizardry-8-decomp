@@ -10,6 +10,7 @@ struct W8ItemDatabaseRecord;
 struct W8NpcState;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
+int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
 
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
@@ -158,3 +159,5 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);
 unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
+void BindEveryPartyItem(void);               /* 0x0051D230 */
+bool Function522D40(W8Character* character); /* 0x00522D40 */

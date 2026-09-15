@@ -118,6 +118,8 @@ void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
+unsigned char SlotHasAnyValidTarget(int party_slot);                         /* 0x0053CDF0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
 void Function537540(int party_slot);                                         /* 0x00537540 */
+void Function537D20(int party_slot);                                         /* 0x00537D20 */
 char Function53C2C0(int party_slot);

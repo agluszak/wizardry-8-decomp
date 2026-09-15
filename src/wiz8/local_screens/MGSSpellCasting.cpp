@@ -430,7 +430,7 @@ void SelectSpellCastingCharacter(int party_slot)
 {
     int realm;
 
-    if (Function4F96F0(&g_status_685170.buffers.characters[party_slot]) == 0 ||
+    if (CharacterHasCastableSpell(&g_status_685170.buffers.characters[party_slot]) == 0 ||
         IsPartySlotEligible00524A10(party_slot) == 0) {
         ResetEditorStatusLine0058AA20(-1);
         CloseSpellCastingView();

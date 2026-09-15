@@ -58,7 +58,7 @@ struct W8PartySlotRow {
     unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
     unsigned char flag_103;
-    unsigned char action_is_kind_one;
+    unsigned char action_is_berserk;
     unsigned char flag_105;
 };
 

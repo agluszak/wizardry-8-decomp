@@ -52,7 +52,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     unsigned char unknown_0f8[4];
-    int value_0fc;                             /* 0x0fc */
+    unsigned int value_0fc;                    /* 0x0fc */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
     unsigned char flag_108;                    /* 0x108 */

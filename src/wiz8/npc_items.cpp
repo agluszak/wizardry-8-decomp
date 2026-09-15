@@ -1,5 +1,6 @@
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/npc_items.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/item_instance.h"
@@ -735,4 +736,12 @@ void DecayNpcInventory(W8NpcState* npc)
             ++item_index;
         } while (item_index < item_count);
     }
+}
+
+/* Restock the NPC's trade inventory, then refresh the derived stock state. */
+// FUNCTION: WIZ8 0x0055BCC0
+void RestockNpcInventory(W8NpcState* npc)
+{
+    MaintainNpcStock(npc, 0);
+    Function55BB10(npc);
 }
