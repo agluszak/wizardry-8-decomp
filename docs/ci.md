@@ -28,8 +28,13 @@ VC6 image are reused instead of downloaded and built again.
 
 On trusted pushes to `main`, the same job continues by downloading the canonical GOG installer from
 the repository secret `WIZ8_GOG_URL`, verifying the reviewed installer SHA-256, running the normal
-`wiz8 prepare` path, verifying the resulting corpus, running the licensed comparison tests, and then
-running `uv run wiz8 runtime-test --check-order`.
+`wiz8 prepare` path, running the licensed comparison tests, and then running
+`uv run wiz8 runtime-test --check-order`.
+
+`wiz8 prepare` intentionally materializes only the primary `gog-base` corpus needed for ordinary
+matching and runtime work. CI does not run the global `wiz8 corpus verify` command here because that
+command verifies every configured optional corpus role as well, including patch and demo inputs that
+are not required for CI.
 
 A same-repository pull request authored by the repository owner also downloads and verifies the
 installer and prepares the corpus. It then runs `uv run wiz8 report status --build`, formats the
