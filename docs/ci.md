@@ -33,16 +33,22 @@ running `uv run wiz8 runtime-test --check-order`.
 
 A same-repository pull request authored by the repository owner also downloads and verifies the
 installer and prepares the corpus. It then runs `uv run wiz8 report status --build`, formats the
-existing structured reccmp statistics into Markdown, and creates or updates one `reccmp status`
-comment on the pull request. The comment reports project totals and a collapsible per-target table;
-subsequent CI runs update the same comment instead of adding another one. PRs do not run the licensed
-runtime suite.
+existing structured reccmp statistics into Markdown, and exports that Markdown as a job output. A
+separate comment-only job creates or updates one `reccmp status` comment on the pull request. The
+comment reports project totals and a collapsible per-target table; subsequent CI runs update the same
+comment instead of adding another one. PRs do not run the licensed runtime suite.
 
 The owner-and-same-repository guard is deliberate. reccmp needs the original licensed binaries, so a
 PR that computes live matching statistics necessarily has access to those files while it runs. Fork
 PRs, Dependabot PRs, and same-repository PRs authored by anyone other than the repository owner stay on
 the public-only path and never receive `WIZ8_GOG_URL` or the game files. Do not replace this with
 `pull_request_target`: that would give privileged workflow context to untrusted pull-request code.
+
+The main CI job retains only `contents: read`. The `pull-requests: write` permission exists only on the
+small `comment-reccmp-status` job, which is skipped before dispatch unless the PR is an owner-authored
+same-repository PR and the main CI job succeeded. That job does not check out or execute repository
+code; it only receives the rendered Markdown and upserts the PR comment. Checkout credentials on the
+main job remain disabled.
 
 The download uses pinned `gdown==5.2.1` through `uvx`. For Google Drive, it passes `--fuzzy` so an
 ordinary share URL such as `https://drive.google.com/file/d/.../view?usp=sharing` is resolved to the
@@ -54,9 +60,6 @@ The installer is simpler than storing a pre-extracted tree: it is one known inpu
 and the normal project code remains responsible for extraction and materialization. CI does not upload
 the installer, extracted tree, work directory, or runtime stages to Actions artifacts or caches. The
 licensed files are removed in the final step and the GitHub-hosted runner is disposable.
-
-The workflow token has `pull-requests: write` only so the trusted PR path can upsert the status comment.
-Checkout credentials remain disabled.
 
 ## Setup
 
