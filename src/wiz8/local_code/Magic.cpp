@@ -208,7 +208,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
     }
 
     combat_slot = &monster_info->Target;
-    if (!Function519F80(monster_info, record, 0, combat_slot) &&
+    if (!MonsterActionReachesTarget(monster_info, record, 0, combat_slot) &&
         !ClearMonsterCombatSlot(monster_info)) {
         return false;
     }
@@ -527,7 +527,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
                              needed)) {
         return false;
     }
-    return Function519180(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
+    return IsCurrentTargetInRange(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
 }
 
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
@@ -1366,7 +1366,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (item == 0 || item->item_id == -1 || item->item_id != row->item_id_0c9) {
         return false;
     }
-    if (!Function522A30(party_slot, item)) {
+    if (!CanUseItemForAction(party_slot, item)) {
         return false;
     }
     if (!CanCharacterActivateItem(&g_status_685170.buffers.characters[party_slot], item)) {
@@ -1831,7 +1831,7 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 {
     W8Character* caster = &g_status_685170.buffers.characters[party_slot];
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    const int* conditions = 0;
+    const unsigned int* conditions = 0;
     const W8Character* target_character = 0;
     unsigned int power_level;
     unsigned int worst;

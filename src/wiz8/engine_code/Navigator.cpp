@@ -2104,9 +2104,9 @@ int W8Navigator::ResolveMovement()
 }
 
 /* The W8OctreeTrace methods sit in the link-order gap between Navigator.cpp's
-   last body and OctPath.cpp's first: the three identical seed bodies at
-   0x00457580, 0x00457640 and 0x00457700 feed the OctPreTree/Octree/GameData
-   trace callers, and 0x004577C0 is the record's default constructor. */
+   last body and OctPath.cpp's first. Their identical seed instructions serve
+   three source-level roles proven by the callers: initialize a default trace,
+   construct a trace over a segment, and reseed an existing trace. */
 // FUNCTION: WIZ8 0x00457580
 void W8OctreeTrace::Seed(const srVector3T<float>* from, const srVector3T<float>* to)
 {

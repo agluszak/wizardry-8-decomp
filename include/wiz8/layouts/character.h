@@ -212,7 +212,7 @@ struct W8Character {
        same things. Several entries were read individually before this array
        explained them: two doubles the fatigue an action costs, eight blocks
        spellcasting, eighteen is death (and unlocks bound equipment). */
-    int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
+    unsigned int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
     unsigned char unknown_0a51[0x14];
     W8Enchantment enchantments[8]; /* 0x0a65 */
     unsigned char unknown_0ac5[0x3c];

@@ -146,7 +146,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     applied = character->hp_current;
     if (applied <= amount) {
         if (CharacterHasTrait00547940(character, 2) != 0 &&
-            static_cast<unsigned int>(character->condition_turns[W8_CONDITION_EXHAUSTED]) < 7) {
+            character->condition_turns[W8_CONDITION_EXHAUSTED] < 7) {
             Function547A50(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
@@ -834,8 +834,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                                static_cast<unsigned int>(monster_info->stamina_max)));
 
     if (monster_info->stamina == 0 &&
-        static_cast<unsigned int>(monster_info->condition_turns[W8_CONDITION_EXHAUSTED]) <
-            W8_CONDITION_INDEFINITE) {
+        monster_info->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
         ResetTargetSource(&target_block);
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
                             W8_CONDITION_INDEFINITE, 0, &target_block, report_to == 0);
@@ -987,8 +986,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
     }
 
     if (character->stamina < 1) {
-        if ((unsigned int)character->condition_turns[W8_CONDITION_EXHAUSTED] <
-            W8_CONDITION_INDEFINITE) {
+        if (character->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
             SetCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, W8_CONDITION_INDEFINITE, 0, 0,
                                   report_to == 0);
             if (report_to != 0) {

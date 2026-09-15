@@ -57,6 +57,7 @@ RUNTIME_SCENARIOS = (
     "npc-state-reset",
     "main-menu-exit-auto-repeat",
     "split-stack",
+    "party-movement",
 )
 # Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135

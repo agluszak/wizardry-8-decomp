@@ -25,7 +25,7 @@ void RebuildMonsterDerivedStats(int location_id);
 
 /* The unit's block-fold helpers. Each folds its source into the shared
    modifier block; the party-wide block is their usual target. */
-void ApplyConditionModifiers(W8Character* character, const int* condition_turns,
+void ApplyConditionModifiers(W8Character* character, const unsigned int* condition_turns,
                              int condition_argument,
                              W8GameplayModifierBlock* target); /* 0x0050EAC0 */
 void ApplyEnchantmentModifiers(const W8Enchantment* enchantments,

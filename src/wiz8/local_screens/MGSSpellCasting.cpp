@@ -94,8 +94,8 @@ static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;
 
-static void CreateSpellCastingViewControls0059E1F0(void);
-static void ReleaseSpellCastingViewControls0059F060(void);
+static void CreateSpellCastingViewControls(void);
+static void ReleaseSpellCastingViewControls(void);
 void SelectSpellRealm005A0320(void);
 void SelectSpellRealm005A0330(void);
 void SelectSpellRealm005A0340(void);
@@ -113,22 +113,22 @@ void SelectSpellPowerLevel005A0570(void);
 void SelectSpellPowerLevel005A0660(void);
 void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog);
-static void UpdateSpellRealmPointDisplays0059F660(void);
-static void UpdateSpellPowerPips0059F710(void);
-static void RefreshSpellPowerPip0059F9D0(int pip);
-static void RebuildSpellCastingList0059FAD0(int spell_id);
-static void SetSpellListLineColor0059FFA0(int index, char color);
-static void SelectSpellCastingRow005A0040(int index);
+static void UpdateSpellRealmPointDisplays(void);
+static void UpdateSpellPowerPips(void);
+static void RefreshSpellPowerPip(int pip);
+static void RebuildSpellCastingList(int spell_id);
+static void SetSpellListLineColor(int index, char color);
+static void SelectSpellCastingRow(int index);
 static void SelectSpellCastingRealm005A0380(int realm);
 static void SelectSpellCastingListRow005A1150(int index);
-static void TryCommitSpellCast005A1370(void);
-static void ShowSpellCastingError005A14D0(int spell_id);
+static void TryCommitSpellCast(void);
+static void ShowSpellCastingError(int spell_id);
 
 /* Builds the three spell-casting panels and all of their controls: the six
    realm buttons with their animated icons, the nine power-level pips, the
    spell-name label and the cancel button. */
 // FUNCTION: WIZ8 0x0059E1F0
-static void CreateSpellCastingViewControls0059E1F0(void)
+static void CreateSpellCastingViewControls(void)
 {
     Controls* panel;
     unsigned int index;
@@ -259,7 +259,7 @@ static void CreateSpellCastingViewControls0059E1F0(void)
 
 /* Releases the three panels and every text control the view owns. */
 // FUNCTION: WIZ8 0x0059F060
-static void ReleaseSpellCastingViewControls0059F060(void)
+static void ReleaseSpellCastingViewControls(void)
 {
     int index;
 
@@ -293,7 +293,7 @@ static void ReleaseSpellCastingViewControls0059F060(void)
    view state, swaps the game mode, builds the panels and redirects the region
    sets the view takes over. */
 // FUNCTION: WIZ8 0x0059F0E0
-unsigned char OpenSpellCastingView0059F0E0(int party_slot)
+unsigned char OpenSpellCastingView(int party_slot)
 {
     int mode;
 
@@ -324,13 +324,13 @@ unsigned char OpenSpellCastingView0059F0E0(int party_slot)
         SetViewportMode(GetMainGameViewportMode());
     }
     gpSCSV->saved_game_mode = mode;
-    CreateSpellCastingViewControls0059E1F0();
+    CreateSpellCastingViewControls();
     RegionSetEnable(0x14);
     EnableRegionInput(0x52);
     EnableRegionInput(0x53);
     EnableRegionInput(0x54);
     EnableRegionInput(0x55);
-    g_level_block->flag_155 = 1;
+    g_level_block->action_panel_visible = 1;
     DisableRegionInput(0x59);
     DisableRegionInput(0x56);
     DisableRegionInput(0x57);
@@ -341,9 +341,9 @@ unsigned char OpenSpellCastingView0059F0E0(int party_slot)
     g_level_block->flag_271 = 0;
     SetTextBoxRegionBounds(0xea, 0x16e, 0x18c, 0x1ba);
     gpSCSV->iSpellRealm = -1;
-    Function53AF40(party_slot);
+    SelectSpellCastingPartySlot(party_slot);
     gpSCSV->selected_spell_index = -1;
-    SelectSpellCastingCharacter0059F490(party_slot);
+    SelectSpellCastingCharacter(party_slot);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
@@ -356,7 +356,7 @@ unsigned char OpenSpellCastingView0059F0E0(int party_slot)
    frees the view state, and resumes the world. A pending interact id picks
    its NPC interaction back up. */
 // FUNCTION: WIZ8 0x0059F2B0
-void CloseSpellCastingView0059F2B0(void)
+void CloseSpellCastingView(void)
 {
     int location_id;
     int interact_id;
@@ -369,14 +369,14 @@ void CloseSpellCastingView0059F2B0(void)
         DisableRegionInput(0x53);
         DisableRegionInput(0x54);
         DisableRegionInput(0x55);
-        g_level_block->flag_155 = 0;
+        g_level_block->action_panel_visible = 0;
         SetTargetingMode(0);
         if (gXStatus.fCampMode == 0) {
             ResetEditorStatusLine0058AA20(-1);
         }
         g_level_block->flag_271 = 1;
         Function58F6B0(gXStatus.fCombatMode != 0);
-        ReleaseSpellCastingViewControls0059F060();
+        ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
         gXStatus.fSpellCastMode = 0;
         ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
@@ -408,14 +408,14 @@ void CloseSpellCastingView0059F2B0(void)
 
 /* Re-enables the region set and inputs the spell-casting view owns. */
 // FUNCTION: WIZ8 0x0059F440
-void RestoreSpellCastingRegions0059F440(void)
+void RestoreSpellCastingRegions(void)
 {
     RegionSetEnable(0x14);
     EnableRegionInput(0x52);
     EnableRegionInput(0x53);
     EnableRegionInput(0x54);
     EnableRegionInput(0x55);
-    g_level_block->flag_155 = 1;
+    g_level_block->action_panel_visible = 1;
     DisableRegionInput(0x59);
     DisableRegionInput(0x56);
     DisableRegionInput(0x57);
@@ -426,28 +426,28 @@ void RestoreSpellCastingRegions0059F440(void)
    realm/power displays, then either restores the pending cast's realm and
    list or clears a realm the new caster has no spell points in. */
 // FUNCTION: WIZ8 0x0059F490
-void SelectSpellCastingCharacter0059F490(int party_slot)
+void SelectSpellCastingCharacter(int party_slot)
 {
     int realm;
 
     if (Function4F96F0(&g_status_685170.buffers.characters[party_slot]) == 0 ||
         IsPartySlotEligible00524A10(party_slot) == 0) {
         ResetEditorStatusLine0058AA20(-1);
-        CloseSpellCastingView0059F2B0();
+        CloseSpellCastingView();
         return;
     }
     gpSCSV->caster = &g_status_685170.buffers.characters[party_slot];
     BuildLearnedSpellState004F9600(&gpSCSV->learned, gpSCSV->caster);
-    UpdateSpellRealmPointDisplays0059F660();
+    UpdateSpellRealmPointDisplays();
     gpSCSV->uiSpellToCast = 0;
     gpSCSV->iSpellPowerClass = -1;
     gpSCSV->uiSpellIndex = -1;
-    SelectSpellCastingRow005A0040(-1);
+    SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
     SelectSpellPowerLevel005A06F0(-1);
     gpSCSV->dialog_confirmed = 0;
-    UpdateSpellPowerPips0059F710();
-    Function53AF40(g_status_685170.selected_character);
+    UpdateSpellPowerPips();
+    SelectSpellCastingPartySlot(g_status_685170.selected_character);
     RequestRedraw(0x200);
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
         int spell_id = g_status_685170.buffers.party_rows[party_slot].spell_id;
@@ -456,7 +456,7 @@ void SelectSpellCastingCharacter0059F490(int party_slot)
             gpSCSV->uiSpellIndex = -1;
             return;
         }
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     }
     realm = gpSCSV->iSpellRealm;
@@ -471,13 +471,13 @@ void SelectSpellCastingCharacter0059F490(int party_slot)
         ResetEditorStatusLine0058AA20(-1);
         return;
     }
-    RebuildSpellCastingList0059FAD0(0);
+    RebuildSpellCastingList(0);
 }
 
 /* Writes each realm's "current/max" spell-point caption and enables the realm
    button and icon for the pools the caster actually has. */
 // FUNCTION: WIZ8 0x0059F660
-static void UpdateSpellRealmPointDisplays0059F660(void)
+static void UpdateSpellRealmPointDisplays(void)
 {
     int realm;
 
@@ -497,7 +497,7 @@ static void UpdateSpellRealmPointDisplays0059F660(void)
    class zero shows one pip per affordable level, class one keeps the
    seventh pip live out of combat and class two shows the max pip alone. */
 // FUNCTION: WIZ8 0x0059F710
-static void UpdateSpellPowerPips0059F710(void)
+static void UpdateSpellPowerPips(void)
 {
     unsigned int pip;
     unsigned int failure;
@@ -507,11 +507,11 @@ static void UpdateSpellPowerPips0059F710(void)
             gpSCSV->power_pips[pip]->SetEnabled(0);
         }
     } else {
-        RefreshSpellPowerPip0059F9D0(7);
-        RefreshSpellPowerPip0059F9D0(8);
+        RefreshSpellPowerPip(7);
+        RefreshSpellPowerPip(8);
         if (gpSCSV->iSpellPowerClass == 0) {
             for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
-                RefreshSpellPowerPip0059F9D0(pip);
+                RefreshSpellPowerPip(pip);
             }
             if (gpSCSV->uiPowerLevels < 7) {
                 for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
@@ -523,7 +523,7 @@ static void UpdateSpellPowerPips0059F710(void)
         } else if (gpSCSV->iSpellPowerClass == 1) {
             gpSCSV->power_pips[7]->SetActive(gXStatus.fCombatMode == 0);
             for (pip = 0; pip < gpSCSV->uiPowerLevels; ++pip) {
-                RefreshSpellPowerPip0059F9D0(pip);
+                RefreshSpellPowerPip(pip);
             }
             if (gpSCSV->uiPowerLevels < 7) {
                 for (pip = gpSCSV->uiPowerLevels; pip < 7; ++pip) {
@@ -567,7 +567,7 @@ static void UpdateSpellPowerPips0059F710(void)
 /* Recomputes one pip's four sprite frames from the spell's failure chance at
    the level the pip stands for; pips seven and eight price the max cast. */
 // FUNCTION: WIZ8 0x0059F9D0
-static void RefreshSpellPowerPip0059F9D0(int pip)
+static void RefreshSpellPowerPip(int pip)
 {
     unsigned int failure;
     int level;
@@ -604,7 +604,7 @@ static void RefreshSpellPowerPip0059F9D0(int pip)
    pass one appends the unaffordable and blocked ones with their own colors.
    A nonzero spell id scrolls the list to and selects that spell's row. */
 // FUNCTION: WIZ8 0x0059FAD0
-static void RebuildSpellCastingList0059FAD0(int spell_id)
+static void RebuildSpellCastingList(int spell_id)
 {
     wchar_t line[120];
     int index;
@@ -653,7 +653,7 @@ static void RebuildSpellCastingList0059FAD0(int spell_id)
                             ShowNotice(0xf, line, 2, -1, 0);
                             AppendTextBoxLine0058B300(
                                 FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
-                            SetSpellListLineColor0059FFA0(gpSCSV->uiSpellsInList - 1, 4);
+                            SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 4);
                         }
                     } else if (pass == 0) {
                         if (gpSCSV->uiSpellsInList + 1 <= 0x15e) {
@@ -686,7 +686,7 @@ static void RebuildSpellCastingList0059FAD0(int spell_id)
                     ShowNotice(0xf, line, 2, -1, 0);
                     AppendTextBoxLine0058B300(
                         FormatWideString(g_format_d_0060aa20, spell->spell_point_cost), 2);
-                    SetSpellListLineColor0059FFA0(gpSCSV->uiSpellsInList - 1, 0);
+                    SetSpellListLineColor(gpSCSV->uiSpellsInList - 1, 0);
                 }
                 ++index;
             }
@@ -706,7 +706,7 @@ static void RebuildSpellCastingList0059FAD0(int spell_id)
 /* Recolours one spell-list line; -1 keeps the row's own color, or the
    selected-row color when the row is the selected spell. */
 // FUNCTION: WIZ8 0x0059FFA0
-static void SetSpellListLineColor0059FFA0(int index, char color)
+static void SetSpellListLineColor(int index, char color)
 {
     W8MessageStorageRecord* line;
     size_t length;
@@ -734,13 +734,13 @@ static void SetSpellListLineColor0059FFA0(int index, char color)
 /* Marks one spell-list row as selected, restoring the previous row's own
    color first; -1 just clears the selection. */
 // FUNCTION: WIZ8 0x005A0040
-static void SelectSpellCastingRow005A0040(int index)
+static void SelectSpellCastingRow(int index)
 {
     int previous;
 
     if (index == -1) {
         if (gpSCSV->selected_spell_index != -1) {
-            SetSpellListLineColor0059FFA0(gpSCSV->selected_spell_index, -1);
+            SetSpellListLineColor(gpSCSV->selected_spell_index, -1);
             gpSCSV->selected_spell_index = -1;
             RequestRedraw(0x800);
             return;
@@ -756,9 +756,9 @@ static void SelectSpellCastingRow005A0040(int index)
         }
         previous = gpSCSV->selected_spell_index;
         if (index != previous && previous != -1) {
-            SetSpellListLineColor0059FFA0(previous, -1);
+            SetSpellListLineColor(previous, -1);
         }
-        SetSpellListLineColor0059FFA0(index, 5);
+        SetSpellListLineColor(index, 5);
         gpSCSV->selected_spell_index = index;
     }
     RequestRedraw(0x800);
@@ -780,7 +780,7 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
         Function56E800(0);
     }
     if (gXStatus.fSpellCastMode == 0) {
-        OpenSpellCastingView0059F0E0(g_status_685170.selected_character);
+        OpenSpellCastingView(g_status_685170.selected_character);
     }
     gpSCSV->interact_id = interact_id;
     gpSCSV->location_id = location_id;
@@ -793,23 +793,23 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
     switch (g_spell_records[spell_id].realm) {
     case W8_SPELL_REALM_FIRE:
         SelectSpellCastingRealm005A0380(W8_SPELL_REALM_FIRE);
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     case W8_SPELL_REALM_WATER:
         SelectSpellCastingRealm005A0380(W8_SPELL_REALM_WATER);
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     case W8_SPELL_REALM_AIR:
         SelectSpellCastingRealm005A0380(W8_SPELL_REALM_AIR);
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     case W8_SPELL_REALM_EARTH:
         SelectSpellCastingRealm005A0380(W8_SPELL_REALM_EARTH);
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     case W8_SPELL_REALM_MENTAL:
         SelectSpellCastingRealm005A0380(W8_SPELL_REALM_MENTAL);
-        RebuildSpellCastingList0059FAD0(spell_id);
+        RebuildSpellCastingList(spell_id);
         return;
     case W8_SPELL_REALM_DIVINE:
         realm = W8_SPELL_REALM_DIVINE;
@@ -818,7 +818,7 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
         break;
     }
     SelectSpellCastingRealm005A0380(realm);
-    RebuildSpellCastingList0059FAD0(spell_id);
+    RebuildSpellCastingList(spell_id);
 }
 
 /* Redraws every live spell-casting panel; the middle panel's pending text
@@ -919,16 +919,16 @@ static void SelectSpellCastingRealm005A0380(int realm)
             g_spell_realm_animations_00648c90[gpSCSV->iSpellRealm].initial_frame;
         gpSCSV->realm_icons[gpSCSV->iSpellRealm]->Invalidate(0);
         gpSCSV->realm_anim_timer = SetCountdownClock(0x32);
-        RebuildSpellCastingList0059FAD0(0);
+        RebuildSpellCastingList(0);
         gpSCSV->uiSpellToCast = 0;
         gpSCSV->iSpellPowerClass = -1;
         gpSCSV->uiSpellIndex = -1;
-        SelectSpellCastingRow005A0040(-1);
+        SelectSpellCastingRow(-1);
         gpSCSV->uiPowerLevels = 0;
         SelectSpellPowerLevel005A06F0(-1);
         gpSCSV->dialog_confirmed = 0;
-        UpdateSpellPowerPips0059F710();
-        Function53AF40(g_status_685170.selected_character);
+        UpdateSpellPowerPips();
+        SelectSpellCastingPartySlot(g_status_685170.selected_character);
         RequestRedraw(0x200);
     }
     if (realm != -1) {
@@ -1096,14 +1096,14 @@ void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog)
     gpSCSV->uiSpellToCast = 0;
     gpSCSV->iSpellPowerClass = -1;
     gpSCSV->uiSpellIndex = -1;
-    SelectSpellCastingRow005A0040(-1);
+    SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
     SelectSpellPowerLevel005A06F0(-1);
     gpSCSV->dialog_confirmed = 0;
-    UpdateSpellPowerPips0059F710();
-    Function53AF40(g_status_685170.selected_character);
+    UpdateSpellPowerPips();
+    SelectSpellCastingPartySlot(g_status_685170.selected_character);
     RequestRedraw(0x200);
-    SetSpellListLineColor0059FFA0(index, -1);
+    SetSpellListLineColor(index, -1);
 }
 
 // FUNCTION: WIZ8 0x005A0B90
@@ -1112,8 +1112,8 @@ void ResetSpellCastingSelection005A0B90(void)
     if (gXStatus.fCampMode != 0) {
         ResetEditorStatusLine0058AA20(-1);
     }
-    CloseSpellCastingView0059F2B0();
-    ClearTargetingMode0053B050(g_status_685170.selected_character);
+    CloseSpellCastingView();
+    ClearTargetingMode(g_status_685170.selected_character);
 }
 
 /* Per-frame spell-casting pump: advances the selected realm's icon animation
@@ -1134,7 +1134,7 @@ void CommitSpellCastingSelection005A0BC0(void)
             RequestRedraw(0x80000000);
         }
     }
-    TryCommitSpellCast005A1370();
+    TryCommitSpellCast();
 }
 
 // FUNCTION: WIZ8 0x005A1140
@@ -1163,7 +1163,7 @@ static void SelectSpellCastingListRow005A1150(int index)
     }
     gpSCSV->uiSpellIndex = index;
     if (previous != -1) {
-        SetSpellListLineColor0059FFA0(previous, -1);
+        SetSpellListLineColor(previous, -1);
     }
     spell_id = gpSCSV->uiSpells[gpSCSV->uiSpellIndex];
     if (spell_id == 0) {
@@ -1172,15 +1172,15 @@ static void SelectSpellCastingListRow005A1150(int index)
     color = gpSCSV->alt_colors[index];
     if (color == 0 || color == 4) {
         gpSCSV->uiSpellIndex = -1;
-        Function53A440(-1, 0);
-        ShowSpellCastingError005A14D0(spell_id);
+        ConfigureSpellTargetFilter(-1, 0);
+        ShowSpellCastingError(spell_id);
         QueueCharacterEvent(&g_status_685170.buffers.characters[g_status_685170.selected_character],
                             g_character_event_kind_005ee65c, 0,
                             g_character_event_flags_mask_005ed8e4 | g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
         return;
     }
-    SetSpellListLineColor0059FFA0(gpSCSV->uiSpellIndex, 3);
+    SetSpellListLineColor(gpSCSV->uiSpellIndex, 3);
     power_class = g_spell_records[spell_id].field_12b;
     if (power_class == -1) {
         srAssertFail("iSpellPowerClass != BAD_INDEX", SPELLCASTING_CPP, 0x834, 0);
@@ -1200,9 +1200,9 @@ static void SelectSpellCastingListRow005A1150(int index)
     gpSCSV->uiSpellToCast = spell_id;
     needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
     target_type = GetSpellTargetType(spell_id, 0);
-    Function53A440(target_type, needed);
+    ConfigureSpellTargetFilter(target_type, needed);
     SelectSpellPowerLevel005A06F0(-1);
-    UpdateSpellPowerPips0059F710();
+    UpdateSpellPowerPips();
     RequestRedraw(0x200);
 }
 
@@ -1227,7 +1227,7 @@ int GetSpellCastingSelection005A1350(void)
 /* Lets a fully priced spell commit once its target is valid; spells 0x49 and
    0x4b first raise a confirmation notice unless one was already answered. */
 // FUNCTION: WIZ8 0x005A1370
-static void TryCommitSpellCast005A1370(void)
+static void TryCommitSpellCast(void)
 {
     bool ready;
 
@@ -1249,14 +1249,14 @@ static void TryCommitSpellCast005A1370(void)
     }
     if (ready && IsModalOpen() == 0) {
         gpSCSV->closing = 1;
-        Function53A830();
+        CommitSelectedSpellTarget();
         gpSCSV->closing = 0;
         if (gpSCSV->uiSpellToCast != 0x17) {
             if (gXStatus.fCampMode != 0) {
                 ResetEditorStatusLine0058AA20(-1);
             }
             SetCharacterSpell(gpSCSV->caster, gpSCSV->uiSpellToCast, gpSCSV->iSpellPower + 1);
-            CloseSpellCastingView0059F2B0();
+            CloseSpellCastingView();
             return;
         }
         OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(gpSCSV->caster), 1);
@@ -1266,7 +1266,7 @@ static void TryCommitSpellCast005A1370(void)
 /* Shows the notice line naming why a spell cannot be cast, then clears the
    detail spell. */
 // FUNCTION: WIZ8 0x005A14D0
-static void ShowSpellCastingError005A14D0(int spell_id)
+static void ShowSpellCastingError(int spell_id)
 {
     gpSCSV->override_spell_104 = spell_id;
     if (SpellUsableNow(spell_id, 0) == 0) {

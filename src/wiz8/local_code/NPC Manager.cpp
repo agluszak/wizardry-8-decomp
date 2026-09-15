@@ -771,7 +771,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
 
     npc = new W8NpcState;
     memset(npc, 0, sizeof(*npc));
-    npc->name_style = (char)npc_id;
+    npc->name_style = npc_id;
     npc->record = &g_npc_records[npc_id];
     if (npc->record->has_group != 0) {
         npc->character = new W8Character;
@@ -1149,7 +1149,7 @@ void UpdateNpcEvents0050D530(void)
                     break;
                 }
             }
-            Function5289B0(0x42, 0);
+            QueueNpcMessageLine(0x42, 0);
         }
     }
 

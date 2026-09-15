@@ -246,6 +246,77 @@ def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch
     assert result["functions"] == [{"address": "0x00401000", "status": "missing"}]
 
 
+def test_compare_selected_classifies_unlinked_header_body_as_emission(tmp_path, monkeypatch):
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+
+    class Engine:
+        def compare_addresses(self, **_kwargs):
+            return iter(())
+
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
+    )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
+    marker = SimpleNamespace(
+        name="Widget::Widget",
+        source_file="include/wiz8/Widget.h",
+        declaration=SimpleNamespace(is_definition=True),
+    )
+    monkeypatch.setattr(
+        comparison,
+        "_project",
+        lambda _repository: SimpleNamespace(get=lambda _target: target),
+    )
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_functions", lambda *_args: {0x401000: marker}
+    )
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000], classify_header_emissions=True)
+
+    assert result["ok"] is True
+    assert result["missing"] == 0
+    assert result["header_emissions"] == 1
+    assert result["functions"][0]["status"] == "header-emission"
+
+
+def test_numeric_missing_comparison_does_not_load_source_index(tmp_path, monkeypatch):
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+
+    class Engine:
+        def compare_addresses(self, **_kwargs):
+            return iter(())
+
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
+    )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
+    monkeypatch.setattr(
+        comparison,
+        "_project",
+        lambda _repository: SimpleNamespace(get=lambda _target: target),
+    )
+    monkeypatch.setattr(comparison.Compare, "from_target", lambda *_args, **_kwargs: Engine())
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_functions",
+        lambda *_args: pytest.fail("numeric comparison must not load the source index"),
+    )
+
+    result = compare_selected(tmp_path, "WIZ8", [0x401000])
+
+    assert result["missing"] == 1
+
+
 def test_missing_comparison_products_fail_without_creating_a_build(tmp_path, monkeypatch):
     (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
     target = SimpleNamespace(

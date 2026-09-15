@@ -49,6 +49,12 @@ extern const unsigned int g_W8TextControlMask005ED56C = 0x01;
 extern const unsigned int g_W8TextControlMask005ED570 = 0x02;
 // GLOBAL: WIZ8 0x005ED578
 extern const unsigned int g_W8TextControlMask005ED578 = 0x01;
+// GLOBAL: WIZ8 0x005ED57C
+extern const unsigned int g_W8TextControlMask005ED57C = 0x02;
+// GLOBAL: WIZ8 0x005ED580
+extern const unsigned int g_W8TextControlMask005ED580 = 0x04;
+// GLOBAL: WIZ8 0x005ED584
+extern const unsigned int g_W8TextControlMask005ED584 = 0x08;
 // GLOBAL: WIZ8 0x005ED588
 extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
 // GLOBAL: WIZ8 0x005ed594

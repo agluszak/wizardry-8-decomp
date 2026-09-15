@@ -26,8 +26,12 @@ struct W8OctRegionGameData;
    g_double_005ebc30 / length), the closest accepted hit distance at +0x24,
    the segment length at +0x28 and a per-probe flag word at +0x2c.
    The default constructor at 0x004577C0 seeds +0x24 with the 0x60AD78EC
-   "no hit" sentinel; the same seed body is emitted three times, at
-   0x00457580, 0x00457640 and 0x00457700. */
+   "no hit" sentinel. The three segment-seeding bodies are distinct source
+   operations despite identical instructions: SegmentClear constructs first
+   and then calls Seed (0x00457580), ordinary trace sites call the two-argument
+   constructor (0x00457640), and existing traces call Reseed (0x00457700).
+   Their call sites distinguish construction from mutation; they are not
+   duplicate header emissions of one constructor. */
 struct W8OctreeTrace {
     srVector3T<float> start_00;
     srVector3T<float> end_0c;
@@ -268,7 +272,7 @@ public:
     unsigned long FindLeaf00433660(const int* point);
     void UpdateMonsterLocation(unsigned short location_id, const srVector3T<float>* position);
     /* Object-kind values the query machinery dispatches on: 3 = GD triangle,
-       8 = collidable-prop polygon reference, 9 = prop, 12 = location entry,
+       8 = collidable-prop polygon reference, 9 = path waypoint, 12 = location entry,
        13 = secondary location entry. Registry values pack kind into the high
        half and id+1 into the low half; cell keys pack x/y/z bytes with a +1
        sentinel. */

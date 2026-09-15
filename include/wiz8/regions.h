@@ -75,7 +75,7 @@ unsigned char Function00576650(const InputAtom*, W8Region*);
 unsigned char Function00581790(const InputAtom*, W8Region*);
 unsigned char Function0058E2A0(const InputAtom*, W8Region*);
 unsigned char Function0058E650(const InputAtom*, W8Region*);
-unsigned char Function0058E9F0(const InputAtom*, W8Region*);
+unsigned char TextBoxScrollThumbRegionEvent(const InputAtom*, W8Region*); /* 0x0058E9F0 */
 unsigned char Function0058ED90(const InputAtom*, W8Region*);
 unsigned char Function0058EFD0(const InputAtom*, W8Region*);
 unsigned char Function0058F240(const InputAtom*, W8Region*);

@@ -92,7 +92,7 @@ static void DrawFormationSlotMarkers(int target)
         top = g_formation_marker_offsets_0064daf4[position->row * 3 + position->column][1];
         image = position->facing * 3;
         order_image = row->party_order_index * 3;
-        if (slot == g_level_block->values_170[7]) {
+        if (slot == g_level_block->formation_highlight_party_slot) {
             image += 1;
             order_image += 1;
         }
@@ -143,10 +143,10 @@ void RefreshFormationBoard(void)
     }
     Function4048D0(video_object, 0, &compass_image);
     DrawFormationSlotMarkers(board_image);
-    g_level_block->formation_compass_sprite = Function4255C0(compass_image, 0, 1, 0, 1);
+    g_level_block->formation_compass_sprite = CreateSpriteFromSurface(compass_image, 0, 1, 0, 1);
     PositionToolTipNode(g_level_block->formation_compass_sprite, 0x207, 0x167, 0);
     g_level_block->formation_compass_sprite->render_state_164.display_state = 4;
-    g_level_block->formation_board_sprite = Function4255C0(board_image, 0, 1, 0, 1);
+    g_level_block->formation_board_sprite = CreateSpriteFromSurface(board_image, 0, 1, 0, 1);
     PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
     g_level_block->formation_board_sprite->render_state_164.display_state = 4;
     if (g_level_block->formation_compass_sprite != 0) {
@@ -179,7 +179,7 @@ void CreateFormationBoardOverlay(void)
         bounds.top = 0x166;
         bounds.right = 0x269;
         bounds.bottom = 0x1c2;
-        g_level_block->formation_overlay_sprite = Function4255C0(-14, &bounds, 0, 0, 1);
+        g_level_block->formation_overlay_sprite = CreateSpriteFromSurface(-14, &bounds, 0, 0, 1);
         Position2DNodeUnsnapped004257D0(g_level_block->formation_overlay_sprite, 0x200, 0x166);
         SetModelInstance2DDisplayState004264F0(g_level_block->formation_overlay_sprite, 4);
     }
@@ -232,7 +232,7 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
             break;
         }
     }
-    if (hit != g_level_block->values_170[7]) {
+    if (hit != g_level_block->formation_highlight_party_slot) {
         SetTooltipSubject(6, hit);
     }
     if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
@@ -662,7 +662,7 @@ static void BeginFormationDrag(const InputAtom*)
         static_cast<short>(
             g_formation_cell_overlays[g_formation_drag_cell_0069c380]->m_alternateNormalSprite),
         0, 0, 2, 0);
-    Function4280C0(point.x - 0x10, point.y - 0x10);
+    WarpSystemCursor(point.x - 0x10, point.y - 0x10);
     RefreshMouseCursorTexture();
     gXStatus.iCurrentCursor = 7;
     ResetFormationCellControls(g_formation_drag_cell_0069c380);
@@ -691,8 +691,8 @@ static void DropFormationSlot(int cell)
     if (cell != -1) {
         g_formation_cell_overlays[cell]->SetAlternateTextEnabled(1);
         g_formation_active_cell_0069c2f0 = cell;
-        g_level_block->values_170[7] = g_formation_cell_slots_0069c304[cell];
-        RequestRedraw(1 << (g_level_block->values_170[7] & 0x1f));
+        g_level_block->formation_highlight_party_slot = g_formation_cell_slots_0069c304[cell];
+        RequestRedraw(1 << (g_level_block->formation_highlight_party_slot & 0x1f));
     }
     g_formation_drag_cell_0069c380 = -1;
 }

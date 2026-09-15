@@ -284,13 +284,13 @@ void RefreshRadarMap(void)
     unsigned int compass_surface;
     Function4048D0(handle, 0, &compass_surface);
 
-    g_radar_compass_0069bf60 = Function4255C0(compass_surface, 0, 1, 0, 1);
+    g_radar_compass_0069bf60 = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
     PositionToolTipNode(g_radar_compass_0069bf60, 0x1e, 0x167, 0);
     g_radar_compass_0069bf60->render_state_164.display_state = 4;
-    g_radar_frame_0069c088 = Function4255C0(frame_surface, 0, 1, 0, 1);
+    g_radar_frame_0069c088 = CreateSpriteFromSurface(frame_surface, 0, 1, 0, 1);
     PositionToolTipNode(g_radar_frame_0069c088, 0x1e, 0x167, 0);
     g_radar_frame_0069c088->render_state_164.display_state = 4;
-    g_radar_map_0069c0dc = Function4255C0(map_surface, 0, 1, 0, 1);
+    g_radar_map_0069c0dc = CreateSpriteFromSurface(map_surface, 0, 1, 0, 1);
     PositionToolTipNode(g_radar_map_0069c0dc, 0x1e, 0x167, 0);
     g_radar_map_0069c0dc->render_state_164.display_state = 4;
 
@@ -363,7 +363,7 @@ void UpdateRadarBlips(void)
                 delta.y = position.y - party.y;
                 delta.z = position.z - party.z;
                 if ((detect_all != 0 || ((rep->flags >> 3) & 1) != 0 ||
-                     Function4215E0(&position) != 0) &&
+                     HasCameraLineOfSight(&position)) &&
                     sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) <=
                         g_radar_outer_radius_0069c0d4) {
                     if (PlaceRadarBlip(&delta, 4, item->Function4A0050()) != 0) {

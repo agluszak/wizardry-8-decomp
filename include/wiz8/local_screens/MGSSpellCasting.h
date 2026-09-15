@@ -3,10 +3,10 @@
 #include "input.h"
 
 unsigned char IgnoreSpellCastingInput(const InputAtom* input);               /* 0x005A1140 */
-unsigned char OpenSpellCastingView0059F0E0(int party_slot);                  /* 0x0059F0E0 */
-void CloseSpellCastingView0059F2B0(void);                                    /* 0x0059F2B0 */
-void RestoreSpellCastingRegions0059F440(void);                               /* 0x0059F440 */
-void SelectSpellCastingCharacter0059F490(int party_slot);                    /* 0x0059F490 */
+unsigned char OpenSpellCastingView(int party_slot);                          /* 0x0059F0E0 */
+void CloseSpellCastingView(void);                                            /* 0x0059F2B0 */
+void RestoreSpellCastingRegions(void);                                       /* 0x0059F440 */
+void SelectSpellCastingCharacter(int party_slot);                            /* 0x0059F490 */
 void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id); /* 0x005A0110 */
 void SetSpellCastingPanelsActive005A0270(unsigned char active);              /* 0x005A0270 */
 void InvalidateSpellCastingDescription005A0300(void);                        /* 0x005A0300 */

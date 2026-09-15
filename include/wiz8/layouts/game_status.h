@@ -80,7 +80,9 @@ struct W8GlobalStatus {
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
     unsigned char value_2390;
-    unsigned char unknown_2391[0x10];
+    float real_elapsed_2391;
+    float frame_elapsed_2395;
+    unsigned char unknown_2399[8];
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;

@@ -113,7 +113,7 @@ void RefreshOutwardSightForAllMonsters(void)
     }
     if (gXStatus.fCombatMode != 0) {
         RefreshFlaggedMainGameState00593330();
-        RefreshAllPartyTargets0053BF80();
+        RefreshAllPartyTargets();
     }
 }
 
@@ -141,7 +141,7 @@ void RefreshAllSight(void)
     }
     if (gXStatus.fCombatMode != 0) {
         RefreshFlaggedMainGameState00593330();
-        RefreshAllPartyTargets0053BF80();
+        RefreshAllPartyTargets();
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
@@ -450,7 +450,7 @@ void ResetAndRefreshAllSight005060C0(void)
     }
     if (gXStatus.fCombatMode != 0) {
         RefreshFlaggedMainGameState00593330();
-        RefreshAllPartyTargets0053BF80();
+        RefreshAllPartyTargets();
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);

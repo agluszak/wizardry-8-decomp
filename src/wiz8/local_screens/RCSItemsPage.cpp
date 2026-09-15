@@ -707,7 +707,7 @@ void UnequipBothHands005BB010(void)
     BindEquippedItem(character, 6);
     BindEquippedItem(character, 7);
     if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
-        Function51D3B0(giReviewCharSlot, 0, 1);
+        SwapCharacterWeaponSets(giReviewCharSlot, 0, 1);
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffe00;
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;
         g_camp_screen_0069c0f4->redraw_flags |= 0x2000;

@@ -89,6 +89,13 @@ validation, or perform routine bookmark/tree-equivalence proofs.
 Leave `main` alone and let jj create a publication bookmark:
 
 ```sh
+uv run wiz8 pr-check
+```
+
+This is the required PR validation boundary. It always runs the fast repository lane and cannot omit
+the clang-cl/tidy lane when the change includes C/C++ source or headers.
+
+```sh
 jj git push --remote origin --change @
 ```
 

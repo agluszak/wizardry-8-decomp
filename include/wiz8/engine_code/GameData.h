@@ -7,6 +7,7 @@
 extern unsigned char g_flag_00652dce;
 
 void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source);
+void Function41EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
 
@@ -19,7 +20,10 @@ struct W8LevelDataRecord {
     unsigned int flags; /* 0x00 */
     unsigned char unknown_04[0x10];
     float camera_scale_14; /* 0x14 */
-    unsigned char unknown_18[0x28];
+    unsigned char unknown_18[0x0c];
+    float real_elapsed_24;
+    float frame_elapsed_28;
+    unsigned char unknown_2c[0x14];
     srVector3T<float> vector_40;         /* 0x40 */
     srVector3T<float> camera_forward_4c; /* 0x4c */
     unsigned char unknown_58[0x0c];
@@ -167,7 +171,7 @@ void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
-unsigned int Function41F170(float* real_elapsed, float* frame_elapsed); /* 0x0041F170 */
+unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
 
 void Function41C680(int interface_id, int state);
 

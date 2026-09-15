@@ -195,6 +195,29 @@ unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(int stage, cons
 // TEMPLATE: WIZ8 0x00481940
 // srClassSupport<stModelInstance,srModelInstance,0,65540>::~srClassSupport<stModelInstance,srModelInstance,0,65540>
 
+/* Retail's Video2, dialogue and radar callers all call this one emitted body,
+   which precedes the rest of the stModelInstance2D lifecycle family. It is an
+   ordinary stModelInstance.cpp definition, not a header/template emission. */
+// FUNCTION: WIZ8 0x0047F0F0
+stModelInstance2D::stModelInstance2D(srNode* parent)
+    : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(static_cast<srNode*>(0))
+{
+    render_state_164.display_state = 0;
+    render_state_164.left = 0;
+    render_state_164.top = 0;
+    render_state_164.right = 0;
+    render_state_164.bottom = 0;
+    state_160 = 0;
+    render_state_164.state_0d = 0;
+    render_state_164.render_depth = 2000;
+    vector_174 = 0;
+    vector_178 = 0;
+    m_pGlowMaterial_17c = 0;
+    if (parent != 0) {
+        setParent(parent, 1);
+    }
+}
+
 // FUNCTION: WIZ8 0x0047F410
 stModelInstance2D::~stModelInstance2D()
 {

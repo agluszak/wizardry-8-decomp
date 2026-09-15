@@ -130,14 +130,14 @@ struct W8ControlsRect;
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
 stModelInstance2D* Function424790(int width, int height, const srVector4T<float>* color, char a4);
-/* 0x004253F0: the render-target sprite factory Function4255C0 wraps; the
+/* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
    radar overlay is created through it directly. */
 stModelInstance2D* Function4253F0(int target, const W8ControlsRect* bounds, int a3, int a4,
                                   char a5);
 /* 0x004255C0: wrap the sprite-surface factory - image is a video surface
    handle (or a negative target id), rect an optional source rectangle. */
-stModelInstance2D* Function4255C0(unsigned int image, const W8ControlsRect* rect, char mode,
-                                  int arg_4, int arg_5);
+stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
+                                           int arg_4, int arg_5);
 /* 0x004257D0: position a 2D node without pixel snapping. */
 void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
@@ -152,7 +152,7 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x004215E0: point-visibility query the radar item loop consults. */
-unsigned char Function4215E0(const srVector3T<float>* position);
+bool HasCameraLineOfSight(const srVector3T<float>* position);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
    link builder uses to count a mesh's drawn faces — begin the probe pass,
    draw the node and return its covered-face count, then end the pass. */
@@ -162,7 +162,7 @@ void EndRenderProbe004289C0(void);
 
 #endif
 
-void Function4280C0(int x, int y); /* 0x004280C0: warp the system cursor, fullscreen-safe */
+void WarpSystemCursor(int x, int y); /* 0x004280C0: fullscreen-safe */
 
 #ifdef __cplusplus
 

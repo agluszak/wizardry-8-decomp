@@ -2619,8 +2619,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         }
                         paired->bound = 1;
                         if (item->item_id == -1) {
-                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
-                                           g_value_0069c0f8, 1);
+                            SwapItemInstances(item, &g_status_685170.item_in_hand_235b,
+                                              g_value_0069c0f8, 1);
                             g_camp_character_pending_0069c104 = 0;
                             if (paired->item_id != -1 &&
                                 (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
@@ -2632,12 +2632,12 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                     g_camp_character_0069c100 = g_value_0069c0f8;
                                 }
                             }
-                            Function51FD20(paired, &g_status_685170.item_in_hand_235b,
-                                           g_value_0069c0f8, 1);
+                            SwapItemInstances(paired, &g_status_685170.item_in_hand_235b,
+                                              g_value_0069c0f8, 1);
                             changed = 1;
                         } else if (AddItemToCharacter(g_value_0069c0f8, paired, 0, 0, 1) != 0) {
-                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
-                                           g_value_0069c0f8, 1);
+                            SwapItemInstances(item, &g_status_685170.item_in_hand_235b,
+                                              g_value_0069c0f8, 1);
                             changed = 1;
                         } else {
                             if (giReviewCharSlot == 0 || giReviewCharSlot == 1) {
@@ -2667,13 +2667,13 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                                 ActivateDialogRegion(0x138);
                                 return;
                             }
-                            Function51FD20(item, &g_status_685170.item_in_hand_235b,
-                                           g_value_0069c0f8, 1);
+                            SwapItemInstances(item, &g_status_685170.item_in_hand_235b,
+                                              g_value_0069c0f8, 1);
                             changed = 1;
                         }
                     } else {
-                        Function51FD20(item, &g_status_685170.item_in_hand_235b, g_value_0069c0f8,
-                                       1);
+                        SwapItemInstances(item, &g_status_685170.item_in_hand_235b,
+                                          g_value_0069c0f8, 1);
                         changed = 1;
                         if (origin == 0 && g_value_0069c0f8->backpack[slot_index].item_id != -1 &&
                             Random(100) < 5) {

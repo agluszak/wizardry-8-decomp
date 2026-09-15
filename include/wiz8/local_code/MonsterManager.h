@@ -252,8 +252,8 @@ struct W8MonsterInfo {
        entry - condition two doubles its action fatigue at 0x05f, eight blocks
        its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
        at 0x093 and seventeen is exhaustion at 0x09b. */
-    int condition_turns[W8_CONDITION_COUNT]; /* 0x057 */
-    W8Enchantment enchantments[8];           /* 0x0a7 */
+    unsigned int condition_turns[W8_CONDITION_COUNT]; /* 0x057 */
+    W8Enchantment enchantments[8];                    /* 0x0a7 */
     /* 0x107: highest set condition_turns index; 0x12 when deactivated. The
        0x0056C5E0 gate compares it unsigned. */
     unsigned int highest_condition;

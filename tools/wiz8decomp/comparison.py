@@ -271,24 +271,72 @@ def _function_result(entity: ReccmpComparedEntity) -> dict[str, Any]:
 
 
 def compare_selected(
-    repository: Path, target: str, addresses: list[int], *, include_windows: bool = True
+    repository: Path,
+    target: str,
+    addresses: list[int],
+    *,
+    include_windows: bool = True,
+    classify_header_emissions: bool = False,
 ) -> dict[str, Any]:
     recmp_target = comparison_target(repository, target)
     warn_if_build_may_be_stale(repository, target, recmp_target)
-    engine = Compare.from_target(recmp_target, orig_addrs=addresses)
-    matches = {
-        entity.orig_addr: entity
-        for entity in engine.compare_addresses(
-            orig_addrs=addresses,
-            include_diff=False,
-            include_exact_diff=False,
-        )
-    }
+    pairing_logger = logging.getLogger("reccmp.compare.lines")
+    previous_level = pairing_logger.level
+    # Selected comparison reports unresolved requested addresses itself. The
+    # reccmp pairing pass also logs every unrelated unlinked inline body while
+    # constructing the engine, which made the known header emissions look like
+    # failures even when they were not selected.
+    pairing_logger.setLevel(logging.CRITICAL)
+    try:
+        engine = Compare.from_target(recmp_target, orig_addrs=addresses)
+        matches = {
+            entity.orig_addr: entity
+            for entity in engine.compare_addresses(
+                orig_addrs=addresses,
+                include_diff=False,
+                include_exact_diff=False,
+            )
+        }
+    finally:
+        pairing_logger.setLevel(previous_level)
     window_images: dict[str, Any] = {}
+    header_emissions: dict[int, Any] = {}
+    missing_addresses = set(addresses) - matches.keys()
+    if classify_header_emissions and missing_addresses:
+        from .source_index import source_functions
+
+        model = source_functions(repository, target)
+
+        def is_header_definition(address: int) -> bool:
+            marker = model[address]
+            declaration = marker.declaration
+            return (
+                Path(marker.source_file).suffix.casefold() in {".h", ".hpp", ".hxx", ".inl"}
+                and declaration is not None
+                and declaration.is_definition
+            )
+
+        header_emissions = {
+            address: model[address]
+            for address in missing_addresses & model.keys()
+            if is_header_definition(address)
+        }
     functions: list[dict[str, Any]] = []
     for address in sorted(set(addresses)):
         entity = matches.get(address)
         if entity is None:
+            if address in header_emissions:
+                marker = header_emissions[address]
+                functions.append(
+                    {
+                        "address": f"0x{address:08x}",
+                        "name": marker.name,
+                        "status": "header-emission",
+                        "reason": "inline header body has no standalone linked symbol",
+                        "source_file": marker.source_file,
+                    }
+                )
+                continue
             functions.append({"address": f"0x{address:08x}", "status": "missing"})
             continue
         row = _function_result(entity)
@@ -305,13 +353,15 @@ def compare_selected(
     exact = sum(row["status"] == "exact" for row in functions)
     effective = sum(row["status"] == "effective" for row in functions)
     missing = sum(row["status"] == "missing" for row in functions)
+    emitted = sum(row["status"] == "header-emission" for row in functions)
     return {
-        "ok": exact + effective == len(functions),
+        "ok": exact + effective + emitted == len(functions),
         "selected": len(functions),
         "exact": exact,
         "effective": effective,
-        "below_exact": len(functions) - exact - effective - missing,
+        "below_exact": len(functions) - exact - effective - missing - emitted,
         "missing": missing,
+        "header_emissions": emitted,
         "functions": functions,
     }
 

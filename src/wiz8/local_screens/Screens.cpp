@@ -177,7 +177,8 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
                 PreparePartyPortraitOverlay(party_slot, (party_slot & 1) << 9 | 0x14, top);
             highlighted = 0;
             if (party_slot == static_cast<unsigned int>(g_level_block->highlight_override) ||
-                party_slot == static_cast<unsigned int>(g_level_block->values_170[7]) ||
+                party_slot ==
+                    static_cast<unsigned int>(g_level_block->formation_highlight_party_slot) ||
                 party_slot == static_cast<unsigned int>(g_level_block->held_item_display_190)) {
                 highlighted = 1;
             }
@@ -385,26 +386,26 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_0f0 = IsMessageBoxActive();
     g_level_block->flag_108 = 0;
     g_level_block->flag_210 = 0;
-    g_level_block->values_194[0] = -1;
+    g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
-    g_level_block->values_170[0] = -1;
-    g_level_block->values_170[1] = -1;
-    g_level_block->values_170[2] = -1;
-    g_level_block->values_170[3] = -1;
-    g_level_block->values_170[5] = -1;
-    g_level_block->values_170[4] = -1;
-    g_level_block->values_170[6] = 0;
-    g_level_block->values_170[7] = -1;
+    g_level_block->party_slots_170[0] = -1;
+    g_level_block->party_slots_170[1] = -1;
+    g_level_block->party_slots_170[2] = -1;
+    g_level_block->party_slots_170[3] = -1;
+    g_level_block->party_slots_170[5] = -1;
+    g_level_block->party_slots_170[4] = -1;
+    g_level_block->party_slots_170[6] = 0;
+    g_level_block->formation_highlight_party_slot = -1;
     g_level_block->held_item_display_190 = -1;
     g_level_block->value_23c = -1;
     g_level_block->highlight_graphic = 0;
-    g_level_block->values_194[1] = 0x35;
-    g_level_block->values_200[0] = -1;
-    g_level_block->values_200[1] = -1;
-    g_level_block->values_200[2] = -1;
-    g_level_block->values_200[3] = -1;
-    g_level_block->values_194[3] = CurrentTextLineHasContent() ? 0x57 : -1;
-    g_level_block->values_194[4] = CurrentDialogueLineHasContent() ? 0x5a : -1;
+    g_level_block->value_198 = 0x35;
+    g_level_block->portrait_overlay_party_slot = -1;
+    g_level_block->party_slot_204 = -1;
+    g_level_block->party_slot_208 = -1;
+    g_level_block->condition_highlight_party_slot = -1;
+    g_level_block->text_content_region = CurrentTextLineHasContent() ? 0x57 : -1;
+    g_level_block->dialogue_content_region = CurrentDialogueLineHasContent() ? 0x5a : -1;
     g_level_block->world_update_flags = 0;
     g_level_block->world_render_flags = 0;
     g_level_block->highlighted_item = -1;
@@ -413,8 +414,8 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_218 = 0;
     for (slot = 0; slot < 8; ++slot) {
         g_level_block->portrait_refresh_pending[slot] = 0;
-        g_level_block->values_114[slot] = 0;
-        g_level_block->values_134[slot] = 0;
+        g_level_block->portrait_refresh_image[slot] = 0;
+        g_level_block->portrait_refresh_mode[slot] = 0;
     }
     g_level_block->combat_end_notification = -1;
     previous_mode = g_settings_6850c8.field_006;
@@ -427,9 +428,9 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown_26c = SetCountdownClock(0xfa);
     g_level_block->flag_270 = 1;
     g_level_block->flag_271 = 1;
-    g_level_block->dialogue_open = 0;
+    g_level_block->dialogue_text_input_open = 0;
     g_level_block->flag_272 = 0;
-    g_level_block->dialogue_state = 0;
+    g_level_block->dialogue_text_input = 0;
     g_level_block->value_278 = 0;
     g_level_block->tick_274 = GetTickCount();
     g_level_block->value_284 = 0;
@@ -443,7 +444,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;
-    g_level_block->unknown_158[1] = 1;
+    g_level_block->text_scroll_drag_idle = 1;
     SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
     for (int line = 0; line < 12; ++line) {
         g_level_block->text_lines[line] = 0;
