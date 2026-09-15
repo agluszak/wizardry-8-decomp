@@ -25,10 +25,11 @@ installer from the repository secret `WIZ8_GOG_URL`, verifies the already-review
 runs the normal `wiz8 prepare` path, verifies the resulting corpus, and runs
 `uv run wiz8 runtime-test --check-order`.
 
-The download uses pinned `gdown==5.2.1` through `uvx`. `gdown` accepts an ordinary Google Drive share
-URL such as `https://drive.google.com/file/d/.../view?usp=sharing` and handles Drive's confirmation
-flow for large files. It runs quietly so the secret URL is not printed. A normal direct HTTP/HTTPS URL
-also works.
+The download uses pinned `gdown==5.2.1` through `uvx`. For Google Drive, it passes `--fuzzy` so an
+ordinary share URL such as `https://drive.google.com/file/d/.../view?usp=sharing` is resolved to the
+actual file instead of downloading the HTML share page. `gdown` handles Drive's confirmation flow for
+large files. It runs quietly so the secret URL is not printed. A normal direct HTTP/HTTPS URL also
+works.
 
 The installer is simpler than storing a pre-extracted tree: it is one known input with one known hash,
 and the normal project code remains responsible for extraction and materialization. CI does not upload
