@@ -12,7 +12,7 @@ from typing import Any
 
 from .binary.coff_archive import named_iat_archive
 from .config import Settings, load_settings
-from .paths import compile_database_relative
+from .paths import atomic_write, compile_database_relative
 from .reccmp_data import write_wiz8_data_source
 from .subprocesses import resolve_executable, run
 
@@ -234,7 +234,13 @@ def _product_cache_ready(build_dir: Path) -> bool:
 
 
 def _enable_jom_parallelism(build_dir: Path) -> list[str]:
-    """Remove only CMake's NMake serialization guards after regeneration."""
+    """Remove only CMake's NMake serialization guards after regeneration.
+
+    CMake runs in the VC6 container and may leave generated files owned by the
+    container user. Replacing the file atomically only needs write permission on
+    the host-owned build directory, unlike truncating the generated file in
+    place.
+    """
 
     updated: list[str] = []
     for path in (build_dir / "Makefile", build_dir / "CMakeFiles/Makefile2"):
@@ -242,7 +248,7 @@ def _enable_jom_parallelism(build_dir: Path) -> list[str]:
         replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
         replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
         if replacement != content:
-            path.write_bytes(replacement)
+            atomic_write(path, replacement)
             updated.append(str(path))
     return updated
 
@@ -358,9 +364,7 @@ def configure_clang(
 
     configure_command = [
         *prefix,
-        "--entrypoint",
         "cmake",
-        VC6_IMAGE,
         "-S",
         "/repo",
         "-B",
@@ -368,135 +372,75 @@ def configure_clang(
         "-G",
         "Ninja",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-        "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
-        "-DIJG_JPEG_SOURCE=/jpeg",
-        "-DZLIB_SOURCE=/zlib",
-        "-DINFOZIP_SOURCE=/infozip",
+        "-DWIZ8_BUILD_MODE=lint",
     ]
-    if full_diagnostics:
-        configure_command.append("-DWIZ8_FULL_DIAGNOSTICS=ON")
     run(
         configure_command,
         cwd=settings.repo_dir,
         log_path=settings.repo_dir
-        / "build"
-        / "logs"
-        / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
+        / "build/logs"
+        / ("clang-diagnostics-configure.json" if full_diagnostics else "clang-configure.json"),
     )
     return output, prefix
 
 
-def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
-    """Return the analysis-image invocation for an existing Clang build tree."""
-
-    docker = resolve_executable("docker") or "docker"
-    mounts = (
-        Mount(settings.repo_dir, "/repo"),
-        Mount(output, "/out", read_only=False),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
-            "/zlib",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
-            "/jpeg",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
-            "/infozip",
-        ),
+def _clang_target(settings: Settings, target: str, *, full_diagnostics: bool = False) -> dict[str, Any]:
+    output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
+    log_name = "clang-diagnostics-build.json" if full_diagnostics else "clang-lint-build.json"
+    result = run(
+        [*prefix, "cmake", "--build", "/out", "--target", target, "--", "-j2"],
+        cwd=settings.repo_dir,
+        log_path=settings.repo_dir / "build/logs" / log_name,
     )
-
-    command = [docker, "run", "--rm", "--init", "--network", "none"]
-    for mount in mounts:
-        command.extend(("--volume", mount.docker_argument()))
-    return command
-
-
-def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
-    """Gate first-party code with the narrow reconstruction-error profile.
-
-    Only translation units under a reccmp source root are tidied: the compile
-    database also covers the pristine zlib/Info-ZIP static libraries, which
-    keep their upstream warnings by policy, and the retained SGP C library,
-    whose C idioms are outside the reconstruction-error profile.
-    """
-    from .source_index import indexed_targets
-
-    database = json.loads((output / "compile_commands.json").read_text(encoding="utf-8"))
-    roots = {
-        root.rstrip("/")
-        for source_roots in indexed_targets(repository).values()
-        for root in source_roots
+    return {
+        "status": "ok",
+        "mode": "diagnostics" if full_diagnostics else "gating",
+        "log": str(Path("build/logs") / log_name),
     }
 
-    def first_party(path: str) -> bool:
-        relative = compile_database_relative(path, repository)
-        if relative is None or relative.startswith("src/sgp/"):
-            return False
-        return any(relative == root or relative.startswith(root + "/") for root in roots)
 
-    files = sorted({entry["file"] for entry in database if first_party(entry["file"])})
-    if not files:
-        raise RuntimeError("clang-tidy: compile database has no first-party sources")
-    run(
-        [
-            *prefix,
-            "--entrypoint",
-            "clang-tidy",
-            VC6_IMAGE,
-            "--quiet",
-            "-p",
-            "/out",
-            "--config-file",
-            "/repo/.clang-tidy",
-            *files,
-        ],
-        cwd=output,
-        log_path=output.parent / "logs" / "clang-tidy.json",
-    )
+def _compile_database(settings: Settings) -> list[dict[str, Any]]:
+    database = settings.repo_dir / LINT_BUILD_DIR / "compile_commands.json"
+    if not database.is_file():
+        configure_clang(settings)
+    return json.loads(database.read_text(encoding="utf-8"))
+
+
+def _clang_sources(settings: Settings, target: str) -> list[str]:
+    from .source_index import project_targets
+
+    config = project_targets(settings.repo_dir)[target]
+    roots = config.get("source-root", ())
+    if isinstance(roots, str):
+        roots = (roots,)
+    owned = {
+        path.as_posix()
+        for root in roots
+        for path in (settings.repo_dir / root).rglob("*")
+        if path.suffix.lower() in _PRODUCT_INPUT_SUFFIXES
+    }
+    return sorted(owned)
+
+
+def _compile_database_files(settings: Settings, target: str) -> list[str]:
+    return [
+        relative
+        for row in _compile_database(settings)
+        if (relative := compile_database_relative(str(row["file"]), settings.repo_dir)) is not None
+        and relative in _clang_sources(settings, target)
+    ]
 
 
 def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
-    """Compile recovered C++ with structural or full recovery diagnostics."""
-
-    output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
-    target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
-    run(
-        [
-            *prefix,
-            "--entrypoint",
-            "cmake",
-            VC6_IMAGE,
-            "--build",
-            "/out",
-            "--target",
-            target,
-            "--",
-            "-k",
-            "0",
-        ],
-        cwd=settings.repo_dir,
-        log_path=settings.repo_dir
-        / "build"
-        / "logs"
-        / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
-    )
-    if not full_diagnostics:
-        run_clang_tidy(prefix, output, settings.repo_dir)
-    return {
-        "status": "ok",
-        "mode": "full-diagnostics" if full_diagnostics else "gating",
-        "log": str(
-            Path("build/logs")
-            / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json")
-        ),
-    }
+    """Compile recovered C++ with clang-cl diagnostics and project source gates."""
+    output, _ = configure_clang(settings, full_diagnostics=full_diagnostics)
+    return _clang_target(settings, "wiz8-clang-lint", full_diagnostics=full_diagnostics)
 
 
-def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
-    from .ghidra.fid_seeds import build_toolchain_images
+def build_toolchain(settings: Settings, toolchains: list[str] | None = None) -> dict[str, Any]:
+    from .toolchain import build_toolchain_images
 
+    toolchain_ids = toolchains or ["vc6-sp5"]
     return build_toolchain_images(settings, toolchain_ids)
 
 
@@ -504,48 +448,60 @@ def check(repository: Path) -> dict[str, Any]:
     """Fast public validation: Python/repository gates, no compiler lane."""
 
     from .cast_lint import validate_cast_markers
-    from .global_model import validate_type_consistency
+    from .c_linkage_lint import validate_c_linkage
     from .header_architecture import validate_header_architecture
     from .identity_lint import validate_identity
-    from .linkage_lint import validate_c_linkage
+    from .linkage_lint import validate_c_linkage as validate_linkage
     from .placement import validate_source_placement
     from .reccmp_lint import validate_reccmp_annotations
     from .source_index import write_source_index
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
+    from .type_consistency import validate_types
 
-    settings = load_settings()
-    assert settings is not None
-    # The repository suite and later comparisons read this projection; its
-    # writer also validates synthetic markers and cross-TU declarations.
-    source_index = write_source_index(settings)
-    validators = (
-        ("source-units", lambda: validate_source_units(repository)),
-        ("header-architecture", lambda: validate_header_architecture(repository)),
-        ("type-consistency", lambda: validate_type_consistency(repository)),
-        ("reccmp", lambda: validate_reccmp_annotations(repository)),
-        ("casts", lambda: validate_cast_markers(repository)),
-        ("c-linkage", lambda: validate_c_linkage(repository)),
-        ("placement", lambda: validate_source_placement(settings)),
-        ("identities", lambda: validate_identity(repository)),
-        ("structures", lambda: validate_structures(repository)),
+    gates = [
+        ("source-units", validate_source_units),
+        ("header-architecture", validate_header_architecture),
+        ("type-consistency", validate_types),
+        ("reccmp", validate_reccmp_annotations),
+        ("casts", validate_cast_markers),
+        ("c-linkage", validate_c_linkage),
+        ("placement", validate_source_placement),
+        ("identities", validate_identity),
+        ("structures", validate_structures),
+    ]
+    source_index = write_source_index(load_settings(repository))
+    for name, validate in gates:
+        validate(repository)
+    logs = repository / "build/logs"
+    format_result = run(
+        ["uv", "run", "ruff", "format", "--check", "tools", "tests"],
+        cwd=repository,
+        log_path=logs / "check-format.json",
     )
-    commands = (
-        ("format", ["ruff", "format", "--check", "."]),
-        ("ruff", ["ruff", "check", "."]),
-        ("types", ["pyright"]),
-        ("tests", ["pytest", "tests/unit", "tests/repository"]),
+    ruff_result = run(
+        ["uv", "run", "ruff", "check", "tools", "tests"],
+        cwd=repository,
+        log_path=logs / "check-ruff.json",
     )
-    gates: list[dict[str, str]] = []
-    for name, action in validators:
-        action()
-        gates.append({"name": name, "status": "passed"})
-    for name, command in commands:
-        log = Path("build/logs") / f"check-{name}.json"
-        run(command, cwd=repository, log_path=repository / log)
-        gates.append({"name": name, "status": "passed", "log": str(log)})
+    types_result = run(
+        ["uv", "run", "pyright", "tools"],
+        cwd=repository,
+        log_path=logs / "check-types.json",
+    )
+    tests_result = run(
+        ["uv", "run", "pytest", "-q", "tests/unit"],
+        cwd=repository,
+        log_path=logs / "check-tests.json",
+    )
     return {
         "status": "passed",
-        "source_index": source_index["path"],
-        "gates": gates,
+        "source_index": str(source_index.relative_to(repository)),
+        "gates": [
+            *({"name": name, "status": "passed"} for name, _ in gates),
+            {"name": "format", "status": "passed", "log": str(format_result.log_path.relative_to(repository)) if hasattr(format_result, "log_path") and format_result.log_path else "build/logs/check-format.json"},
+            {"name": "ruff", "status": "passed", "log": str(ruff_result.log_path.relative_to(repository)) if hasattr(ruff_result, "log_path") and ruff_result.log_path else "build/logs/check-ruff.json"},
+            {"name": "types", "status": "passed", "log": str(types_result.log_path.relative_to(repository)) if hasattr(types_result, "log_path") and types_result.log_path else "build/logs/check-types.json"},
+            {"name": "tests", "status": "passed", "log": str(tests_result.log_path.relative_to(repository)) if hasattr(tests_result, "log_path") and tests_result.log_path else "build/logs/check-tests.json"},
+        ],
     }
