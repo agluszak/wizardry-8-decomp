@@ -1,4 +1,4 @@
-"""Semantic checks for the recovered sight threshold producers."""
+"""Checks that require the prepared licensed Wizardry 8 corpus."""
 
 from __future__ import annotations
 
