@@ -10,7 +10,7 @@ from reccmp.compare import Compare
 from reccmp.parser.marker import MarkerType
 from reccmp.project.detect import RecCmpPartialTarget, RecCmpProject
 
-from ..build import build_target
+from ..comparison import warn_if_build_may_be_stale
 from ..ghidra.workspace import seed_records
 
 # Only FUNCTION markers are recovered authored source. The remaining kinds
@@ -149,8 +149,6 @@ def _totals(targets: Mapping[str, dict[str, Any]], scores: Mapping[str, float]) 
 
 
 def status_report(settings: Any) -> dict[str, Any]:
-    build_target(settings, "reccmp-products")
-
     project = RecCmpProject.from_directory(settings.repo_dir / "build" / "decomp")
     known_functions_by_hash = {
         record["binary_sha256"]: record["function_count"] for record in seed_records(settings)
@@ -158,6 +156,9 @@ def status_report(settings: Any) -> dict[str, Any]:
     targets: dict[str, dict[str, Any]] = {}
     scores: dict[str, float] = {}
     for target_id in project.targets:
+        partial = project.targets[target_id]
+        if partial.recompiled_path is not None and partial.recompiled_pdb is not None:
+            warn_if_build_may_be_stale(settings.repo_dir, target_id, project.get(target_id))
         row, score = _target_status(project, target_id, known_functions_by_hash)
         targets[target_id] = row
         scores[target_id] = score

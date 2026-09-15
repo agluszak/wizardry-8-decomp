@@ -23,11 +23,16 @@ rename an API, duplicate source inventories, parallel validation graphs, generic
 string-command query protocols, replay databases, or separate human/JSON modes. A small typed helper is
 worth keeping only when it contains project-specific analysis or removes repeated logic.
 
+A command named after an observation (`compare`, `status`, `addr`, `vtable`, `datacmp`, `debug`,
+`runtime-test`, or `run`) must not compile, regenerate analysis metadata, or repair state unless the
+caller requests an explicit build operation (`--build` where supported). Read existing artifacts,
+warn when they may be stale, and fail with the exact build/metadata command when required state is
+absent.
+
 ## Source index
 
-`uv run wiz8 check` and selected `uv run wiz8 compare ...` refresh the compiler-backed index when they
-need it. `uv run wiz8 analyze source-index` is for inspecting/debugging that projection, not a generic
-preflight.
+`uv run wiz8 check` and `uv run wiz8 analyze source-index` refresh the compiler-backed index.
+Inspection commands consume the existing projection and never refresh it implicitly.
 
 The project may adapt the lint compile database to the host/analysis-image boundary, but collection and
 cache semantics belong to reccmp. Keep one native collection across configured link namespaces; do not

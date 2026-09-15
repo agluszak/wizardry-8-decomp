@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import re
 import shlex
@@ -16,7 +17,7 @@ from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 from .config import Settings
 from .paths import compile_database_relative
 
-_SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
+_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
@@ -36,6 +37,7 @@ _ATTACHED_INCLUDE_FLAGS = (
 # indexer binary treat those as the process temp directory, so docker runs that
 # are not Wine jobs have to point them at a real Unix path.
 _ANALYSIS_LINUX_TEMP = ("-e", "TMPDIR=/tmp", "-e", "TMP=/tmp", "-e", "TEMP=/tmp")
+LOGGER = logging.getLogger(__name__)
 
 
 def validate_synthetic_marker_blocks(repository: Path) -> int:
@@ -86,13 +88,35 @@ def _source_roots(config: dict[str, Any]) -> tuple[str, ...]:
 def load_source_index(repository: Path) -> dict[str, Any]:
     path = repository / "build/source-index.json"
     if not path.is_file():
-        raise SourceIndexError(
-            f"{path} is missing; run `wiz8 lint` then `wiz8 analyze source-index`"
-        )
+        raise SourceIndexError(f"{path} is missing; run `uv run wiz8 analyze source-index`")
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
         raise SourceIndexError(f"{path} has an unsupported source-index schema")
     return document
+
+
+def warn_if_source_index_may_be_stale(repository: Path, target: str) -> bool:
+    """Warn when source/configuration inputs postdate the existing index."""
+
+    path = repository / "build/source-index.json"
+    load_source_index(repository)
+    indexed_at = path.stat().st_mtime_ns
+    roots = indexed_targets(repository).get(target.upper(), ())
+    inputs = list(_cmake_configure_inputs(repository))
+    inputs.extend(
+        candidate
+        for root in roots
+        for candidate in (repository / root).rglob("*")
+        if candidate.suffix.lower() in _SOURCE_SUFFIXES
+    )
+    stale = any(item.is_file() and item.stat().st_mtime_ns > indexed_at for item in inputs)
+    if stale:
+        LOGGER.warning(
+            "source index may be stale; source or build inputs are newer than "
+            "build/source-index.json\n"
+            "         run `uv run wiz8 analyze source-index` to refresh selector metadata"
+        )
+    return stale
 
 
 def target_for_program(repository: Path, program_name: str) -> str:
@@ -190,6 +214,49 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
             if filtered:
                 return filtered
     return candidates
+
+
+def _translation_unit_dependencies(
+    settings: Settings, prefix: list[str], roots: dict[str, tuple[str, ...]]
+) -> list[dict[str, Any]]:
+    """Persist Clang's dependency projection for later read-only selection."""
+
+    from .build import VC6_IMAGE
+    from .subprocesses import run
+
+    repository = settings.repo_dir.resolve()
+    result = run(
+        [
+            *prefix,
+            *_ANALYSIS_LINUX_TEMP,
+            "--entrypoint",
+            "clang-scan-deps-19",
+            VC6_IMAGE,
+            "-compilation-database=/out/compile_commands.json",
+            "-format=experimental-full",
+        ],
+        cwd=repository,
+        log_path=repository / "build/logs/source-index-dependencies.json",
+    )
+    source_roots = tuple(root for target_roots in roots.values() for root in target_roots)
+    projected: dict[str, set[str]] = {}
+    for unit in json.loads(result.stdout)["translation-units"]:
+        for command in unit["commands"]:
+            source = compile_database_relative(command["input-file"], repository)
+            if source is None or not any(
+                source == root or source.startswith(root.rstrip("/") + "/") for root in source_roots
+            ):
+                continue
+            dependencies = projected.setdefault(source, set())
+            dependencies.update(
+                relative
+                for path in command["file-deps"]
+                if (relative := compile_database_relative(path, repository)) is not None
+            )
+    return [
+        {"source_file": source, "file_dependencies": sorted(dependencies)}
+        for source, dependencies in sorted(projected.items())
+    ]
 
 
 def validate_source_index(repository: Path) -> dict[str, int]:
@@ -660,7 +727,7 @@ def _header_declaration_projection(
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
-    from .build import LINT_BUILD_DIR, configure_clang
+    from .build import LINT_BUILD_DIR, clang_container_prefix, configure_clang
 
     repository = settings.repo_dir.resolve()
     validate_synthetic_marker_blocks(repository)
@@ -669,7 +736,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
     if not database.is_file() or any(
         path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
     ):
-        configure_clang(settings)
+        configure_clang(settings, force=True)
     if not database.is_file():
         raise FileNotFoundError(f"clang configuration did not produce {database}")
     roots = indexed_targets(repository, database)
@@ -694,10 +761,17 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         targets,
         repository / "build" / "reccmp-source",
     )
+    document["translation_unit_dependencies"] = _translation_unit_dependencies(
+        settings, clang_container_prefix(settings, database.parent), roots
+    )
     index_path = repository / "build/source-index.json"
     content = json.dumps(document, separators=(",", ":")) + "\n"
     if not index_path.is_file() or index_path.read_bytes() != content.encode("utf-8"):
         index_path.write_bytes(content.encode("utf-8"))
+    else:
+        # Its mtime records a successful explicit refresh even when the
+        # compiler-backed projection is byte-for-byte unchanged.
+        index_path.touch()
     validate_cross_tu_declarations(repository)
     return {
         "path": "build/source-index.json",

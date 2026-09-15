@@ -99,7 +99,8 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
     configured: list[bool] = []
 
-    def configure(_settings: Settings) -> None:
+    def configure(_settings: Settings, *, force: bool = False) -> None:
+        assert force is True
         configured.append(True)
         database.parent.mkdir(parents=True, exist_ok=True)
         database.write_text("[]\n", encoding="utf-8")
@@ -132,6 +133,7 @@ def test_source_index_configures_missing_or_stale_compile_database(
     monkeypatch.setattr(build_module, "configure_clang", configure)
     monkeypatch.setattr(source_index, "_collect_source_index", collect)
     monkeypatch.setattr(source_index, "_header_declaration_projection", lambda *args, **kwargs: [])
+    monkeypatch.setattr(source_index, "_translation_unit_dependencies", lambda *args: [])
 
     source_index.write_source_index(settings)
 

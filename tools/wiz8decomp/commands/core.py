@@ -80,8 +80,11 @@ def compare_command(
         typer.Option("--since", help="With --changed, compare files changed since this revision."),
     ] = None,
     program: Annotated[str, typer.Option("--program")] = "wiz8",
+    build: Annotated[
+        bool, typer.Option("--build", help="Build fresh products and metadata before comparing.")
+    ] = False,
 ) -> None:
-    """Build current inputs and compare a selected function set."""
+    """Compare existing products; optionally build fresh products first."""
     from .. import command_support as cli
     from ..build import build_target
     from ..comparison import (
@@ -89,8 +92,8 @@ def compare_command(
         compare_selected,
         header_dependent_files,
         selected_addresses,
+        selectors_require_source_index,
     )
-    from ..source_index import write_source_index
 
     def action() -> Any:
         settings = cli.settings()
@@ -102,6 +105,13 @@ def compare_command(
         if ctx.args:
             raise ValueError("raw reccmp options are not accepted by selected comparison")
         if addresses or files or changed:
+            if build:
+                # Building owns source-index refresh and product generation. Keep
+                # the comparison path below identical for both modes.
+                from ..source_index import write_source_index
+
+                write_source_index(settings)
+                build_target(settings, target)
             selected_files = list(files or [])
             changed_files: list[Path] = []
             dependent_files: list[Path] = []
@@ -110,16 +120,26 @@ def compare_command(
                 selected_files.extend(changed_files)
                 if not selected_files and not addresses:
                     raise ValueError("no changed C/C++ files; no functions selected")
-            # Selection must see this source state, not the snapshot left by
-            # an earlier check/test run. The indexer caches unchanged inputs.
-            write_source_index(settings)
+            needs_index = bool(selected_files) or selectors_require_source_index(addresses or [])
+            index_stale = False
+            if needs_index:
+                from ..source_index import warn_if_source_index_may_be_stale
+
+                index_stale = warn_if_source_index_may_be_stale(settings.repo_dir, target)
             if changed:
+                changed_headers = [
+                    path for path in changed_files if path.suffix.lower() in {".h", ".hpp", ".hxx"}
+                ]
+                if changed_headers and index_stale:
+                    raise ValueError(
+                        "source index is stale for changed-header selection; "
+                        "run `uv run wiz8 analyze source-index`"
+                    )
                 dependent_files = header_dependent_files(settings, target, changed_files)
                 selected_files.extend(dependent_files)
             selected = selected_addresses(
                 settings.repo_dir, target, addresses or [], selected_files
             )
-            build_target(settings, target)
             result = compare_selected(
                 settings.repo_dir,
                 target,
@@ -149,6 +169,7 @@ def compare_command(
 def vtable_command(
     class_filter: Annotated[str | None, typer.Argument(help="Class-name substring.")] = None,
     program: Annotated[str, typer.Option("--program")] = "wiz8",
+    build: Annotated[bool, typer.Option("--build", help="Build before comparing.")] = False,
 ) -> None:
     """Compare vtables and refuse a vacuous zero-entity success."""
     from .. import command_support as cli
@@ -160,7 +181,8 @@ def vtable_command(
         from ..source_index import target_for_program
 
         target = target_for_program(settings.repo_dir, program)
-        build_target(settings, target)
+        if build:
+            build_target(settings, target)
         result = compare_vtables(settings.repo_dir, target, class_filter)
         return result
 
@@ -169,6 +191,7 @@ def vtable_command(
 
 def datacmp_command(
     program: Annotated[str, typer.Option("--program")] = "wiz8",
+    build: Annotated[bool, typer.Option("--build", help="Build before comparing.")] = False,
 ) -> None:
     """Compare reviewed global data through reccmp."""
     from .. import command_support as cli
@@ -180,7 +203,8 @@ def datacmp_command(
         from ..source_index import target_for_program
 
         target = target_for_program(settings.repo_dir, program)
-        build_target(settings, target)
+        if build:
+            build_target(settings, target)
         result = compare_data(settings.repo_dir, target)
         return result
 
@@ -190,6 +214,7 @@ def datacmp_command(
 def address_command(
     addresses: Annotated[list[str], typer.Argument(help="Original or recompiled addresses.")],
     program: Annotated[str, typer.Option("--program")] = "wiz8",
+    build: Annotated[bool, typer.Option("--build", help="Build before translating.")] = False,
 ) -> None:
     """Translate paired original and recompiled addresses in one process."""
     from .. import command_support as cli
@@ -201,10 +226,11 @@ def address_command(
         from ..source_index import target_for_program
 
         target = target_for_program(settings.repo_dir, program)
-        build_target(settings, target)
         queries = sorted({parse_address(address) for address in addresses})
         if not queries:
             raise ValueError("pass one or more addresses")
+        if build:
+            build_target(settings, target)
         result = translate_addresses(settings.repo_dir, target, queries)
         return result
 
@@ -222,21 +248,22 @@ def runtime_test_command(
             "--check-order", "--full", help="Repeat in reverse order and compare observations."
         ),
     ] = False,
-    no_build: Annotated[
+    build: Annotated[
         bool,
-        typer.Option("--no-build", help="Use the existing runtime-test binary without building."),
+        typer.Option("--build", help="Build a fresh runtime-test product before running."),
     ] = False,
 ) -> None:
-    """Build and run deterministic in-process semantic scenarios."""
+    """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
-    from ..build import build_target
+    from ..build import build_target, warn_if_product_may_be_stale
     from ..runtime import RUNTIME_SCENARIOS, run_runtime_suite
 
     if scenario and (unknown := set(scenario) - set(RUNTIME_SCENARIOS)):
         raise typer.BadParameter(f"unknown runtime scenarios: {', '.join(sorted(unknown))}")
     settings = cli.settings()
-    if not no_build:
+    if build:
         build_target(settings, "runtime-test")
+    warn_if_product_may_be_stale(settings, "runtime-test")
     cli.emit(
         run_runtime_suite(
             settings,
@@ -349,10 +376,13 @@ def debug_command(
         int,
         typer.Option(min=1, help="Seconds to wait for a debugger stop."),
     ] = 180,
+    build: Annotated[
+        bool, typer.Option("--build", help="Build a fresh runtime product before debugging.")
+    ] = False,
 ) -> None:
-    """Build and debug the runtime product through a deterministic GDB session."""
+    """Debug an existing runtime product through a deterministic GDB session."""
     from .. import command_support as cli
-    from ..build import build_target
+    from ..build import build_target, warn_if_product_may_be_stale
     from ..debug.debugger import run_debugger
     from ..runtime import RUNTIME_SCENARIOS
 
@@ -361,7 +391,10 @@ def debug_command(
         raise ValueError("runtime product arguments cannot be combined with --scenario")
     if scenario is not None and scenario not in RUNTIME_SCENARIOS:
         raise ValueError(f"unknown runtime scenario: {scenario}")
-    build_target(settings, "runtime-test" if scenario is not None else "runtime")
+    target = "runtime-test" if scenario is not None else "runtime"
+    if build:
+        build_target(settings, target)
+    warn_if_product_may_be_stale(settings, target)
     breakpoints: list[tuple[int, str | None]] = []
     for specification in break_at or []:
         address_text, separator, condition = specification.partition(":")

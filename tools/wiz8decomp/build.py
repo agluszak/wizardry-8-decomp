@@ -24,7 +24,16 @@ TARGET_ALIASES = {
     "runtime": "WIZ8_RUNTIME",
     "runtime-test": "WIZ8_RUNTIME_TEST",
 }
+_PRODUCT_OUTPUTS = {
+    "WIZ8": "Wiz8",
+    "WIZ8_RUNTIME": "Wiz8Runtime",
+    "WIZ8_RUNTIME_TEST": "Wiz8RuntimeTest",
+}
+_PRODUCT_INPUT_SUFFIXES = frozenset(
+    {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inc", ".rc", ".def", ".asm"}
+)
 PRODUCT_GENERATOR = "NMake Makefiles"
+JOM_PROGRAM = r"C:\jom\jom.exe"
 
 
 @dataclass(frozen=True)
@@ -97,18 +106,23 @@ class ContainerBuild:
     def build_command(self, target: str, jobs: int) -> list[str]:
         return [
             *self.docker_prefix(),
-            r"C:\cmake\bin\cmake.exe",
-            "-E",
-            "env",
-            r"TEMP=Z:\out\tmp",
-            r"TMP=Z:\out\tmp",
-            r"C:\cmake\bin\cmake.exe",
-            "--build",
-            "Z:/out",
-            "--target",
-            target,
-            "--parallel",
-            str(jobs),
+            "cmd",
+            "/c",
+            (
+                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
+                rf"cd /d Z:\out&& {JOM_PROGRAM} -j {jobs} {target}"
+            ),
+        ]
+
+    def check_build_system_command(self) -> list[str]:
+        return [
+            *self.docker_prefix(),
+            "cmd",
+            "/c",
+            (
+                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
+                rf"cd /d Z:\out&& {JOM_PROGRAM} cmake_check_build_system"
+            ),
         ]
 
 
@@ -211,6 +225,76 @@ def _configure(settings: Settings) -> None:
     )
 
 
+def _product_cache_ready(build_dir: Path) -> bool:
+    cache = build_dir / "CMakeCache.txt"
+    if not cache.is_file():
+        return False
+    content = cache.read_text(encoding="utf-8", errors="replace").replace("\r", "")
+    return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in content
+
+
+def _enable_jom_parallelism(build_dir: Path) -> list[str]:
+    """Remove only CMake's NMake serialization guards after regeneration."""
+
+    updated: list[str] = []
+    for path in (build_dir / "Makefile", build_dir / "CMakeFiles/Makefile2"):
+        content = path.read_bytes()
+        replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
+        replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
+        if replacement != content:
+            path.write_bytes(replacement)
+            updated.append(str(path))
+    return updated
+
+
+def require_product(settings: Settings, target: str) -> tuple[Path, Path]:
+    """Require an existing executable/PDB pair without repairing it."""
+
+    resolved = TARGET_ALIASES.get(target, target)
+    stem = _PRODUCT_OUTPUTS[resolved]
+    artifacts = (
+        settings.product_build_dir / f"{stem}.exe",
+        settings.product_build_dir / f"{stem}.pdb",
+    )
+    if any(not path.is_file() for path in artifacts):
+        raise FileNotFoundError(
+            f"{stem} build artifacts are missing; run `uv run wiz8 build {target}`"
+        )
+    return artifacts
+
+
+def warn_if_product_may_be_stale(settings: Settings, target: str) -> None:
+    """Warn when a runnable product predates relevant checked-in inputs."""
+
+    import logging
+
+    artifacts = require_product(settings, target)
+    built_at = min(path.stat().st_mtime_ns for path in artifacts)
+    repository = settings.repo_dir
+    candidates = [repository / "CMakeLists.txt"]
+    candidates.extend((repository / "cmake").rglob("*.cmake"))
+    candidates.extend(repository.glob("src/*/CMakeLists.txt"))
+    candidates.extend(repository.glob("src/*/sources.cmake"))
+    for root in ("src/wiz8", "src/sgp", "include/wiz8"):
+        candidates.extend(
+            path
+            for path in (repository / root).rglob("*")
+            if path.suffix.lower() in _PRODUCT_INPUT_SUFFIXES
+        )
+    if TARGET_ALIASES.get(target, target) == "WIZ8_RUNTIME_TEST":
+        candidates.extend(
+            path
+            for path in (repository / "tests/runtime").rglob("*")
+            if path.suffix.lower() in _PRODUCT_INPUT_SUFFIXES
+        )
+    if any(path.is_file() and path.stat().st_mtime_ns > built_at for path in candidates):
+        logging.getLogger(__name__).warning(
+            "runtime build may be stale; relevant inputs are newer than the current build\n"
+            "         run `uv run wiz8 build %s` for fresh runtime results",
+            target,
+        )
+
+
 def build_target(
     settings: Settings, target: str = "match", jobs: int | None = None
 ) -> dict[str, Any]:
@@ -228,8 +312,14 @@ def build_target(
                 f"prepared build inputs are missing ({rendered}); run `wiz8 prepare`"
             )
         _ensure_sr_assert_import(settings)
-        if not (build.build_dir / "CMakeCache.txt").is_file():
+        if not _product_cache_ready(build.build_dir):
             _configure(settings)
+        run(
+            build.check_build_system_command(),
+            cwd=settings.repo_dir,
+            log_path=settings.repo_dir / "build/logs/product-regenerate.json",
+        )
+        _enable_jom_parallelism(build.build_dir)
         if resolved_target in {"WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"}:
             # The runnable products must link without /FORCE:UNRESOLVED, so the
             # comparison MAP and the generated trap thunks must be current
@@ -257,41 +347,20 @@ def build_target(
 
 
 def configure_clang(
-    settings: Settings, *, full_diagnostics: bool = False
+    settings: Settings, *, full_diagnostics: bool = False, force: bool = False
 ) -> tuple[Path, list[str]]:
-    """Configure the compiler-backed source projection and return its runner."""
-    docker = resolve_executable("docker") or "docker"
+    """Configure the compiler-backed source projection when it is missing."""
     output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
     output.mkdir(parents=True, exist_ok=True)
-    mounts = (
-        Mount(settings.repo_dir, "/repo"),
-        Mount(output, "/out", read_only=False),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
-            "/zlib",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
-            "/jpeg",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
-            "/infozip",
-        ),
-    )
-
-    def prefix() -> list[str]:
-        command = [docker, "run", "--rm", "--init", "--network", "none"]
-        for mount in mounts:
-            command.extend(("--volume", mount.docker_argument()))
-        return command
+    prefix = clang_container_prefix(settings, output)
+    if not force and (output / "CMakeCache.txt").is_file() and (output / "build.ninja").is_file():
+        return output, prefix
 
     configure_command = [
-        *prefix(),
+        *prefix,
         "--entrypoint",
         "cmake",
         VC6_IMAGE,
-        "--fresh",
         "-S",
         "/repo",
         "-B",
@@ -314,7 +383,34 @@ def configure_clang(
         / "logs"
         / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
     )
-    return output, prefix()
+    return output, prefix
+
+
+def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
+    """Return the analysis-image invocation for an existing Clang build tree."""
+
+    docker = resolve_executable("docker") or "docker"
+    mounts = (
+        Mount(settings.repo_dir, "/repo"),
+        Mount(output, "/out", read_only=False),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+            "/zlib",
+        ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+            "/jpeg",
+        ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
+            "/infozip",
+        ),
+    )
+
+    command = [docker, "run", "--rm", "--init", "--network", "none"]
+    for mount in mounts:
+        command.extend(("--volume", mount.docker_argument()))
+    return command
 
 
 def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:

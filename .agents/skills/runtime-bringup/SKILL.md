@@ -12,13 +12,14 @@ description: Recover or debug Wizardry runtime behavior, UI flows, input, persis
 | Recomp | `uv run wiz8 run` |
 | Retail behavioral oracle | `uv run wiz8 run --original` |
 | Recomp under Wine debugger | `uv run wiz8 debug` |
-| Deterministic semantic scenarios (builds itself) | `uv run wiz8 runtime-test` |
+| Deterministic semantic scenarios | `uv run wiz8 runtime-test` |
 
 Launchers stage one writable tree under `build/runtime/<product>` from the immutable `gog-base`
 variant, seed the reviewed CFG files, and pass `/WINDOW`; do not reinvent Wine staging or launch
-commands. They launch an already-built product: use `uv run wiz8 build runtime` when that product is
-missing or stale. `run --original` stages retail; `run` and `debug` stage the recomp; `runtime-test`
-stages and builds its own semantic-test image. `debug` drives Wine's GDB proxy with a deterministic
+commands. They launch an already-built product: pass `--build` to `debug` or `runtime-test` when that
+product is missing or stale, or use `uv run wiz8 build runtime`/`runtime-test` directly. `run
+--original` stages retail; `run` and `debug` stage the recomp; `runtime-test` stages its semantic-test
+image. `debug` drives Wine's GDB proxy with a deterministic
 stop policy and symbolizes the captured frames. For visual harness debugging use
 `WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
 
