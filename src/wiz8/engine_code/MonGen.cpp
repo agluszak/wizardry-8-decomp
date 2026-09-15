@@ -9,6 +9,13 @@
 #include "wiz8/monster_runtime.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/regions.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/utility.h"
 #include "random.h"
 #include <math.h>
@@ -16,6 +23,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
+#include "sgp.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/MonGen.h"
 
@@ -28,6 +36,44 @@
    it. W8MonsterGenerator's destructor and helper before the hull and the
    encounter/timer bodies after it are attribution gaps placed here
    provisionally; no assertion names their unit. */
+
+/* These are recovered in their owning Local Code units. Retail MonGen calls
+   them out of line, so keep the cross-TU seams rather than cloning their logic. */
+float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
+W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* monster_group); /* 0x00510180 */
+void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
+                              const srVector3T<float>* formation); /* 0x0050FF40 */
+unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
+                                       W8MonsterGroup* monster_group); /* 0x0050FC20 */
+
+#pragma pack(push, 1)
+struct W8EncounterCompanionRecord {
+    short species;
+    unsigned char chance;
+};
+#pragma pack(pop)
+static_assert(sizeof(W8EncounterCompanionRecord) == 3, "W8EncounterCompanionRecord_size");
+
+static W8EncounterCompanionRecord GetEncounterCompanion(const W8MonsterRecord* record, int index)
+{
+    W8EncounterCompanionRecord companion;
+    memcpy(&companion, record->unknown_0c5 + index * sizeof(companion), sizeof(companion));
+    return companion;
+}
+
+// FUNCTION: WIZ8 0x0048A680
+W8MonsterGenerator::W8MonsterGenerator()
+{
+    flags = 0;
+    flag_04 = 100;
+    value_06 = 100;
+    value_08 = 0xffff;
+    node_18 = 0;
+    value_1c = -1;
+    m_pTimer = 0;
+    memset(name, 0, sizeof(name));
+    flag_44 = 1;
+}
 
 // FUNCTION: WIZ8 0x0048bdc0
 W8MonsterGenerator* FindMonGenByName(const char* name)
@@ -185,13 +231,317 @@ W8EncounterTableRuntime::~W8EncounterTableRuntime()
 
 static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
 
-/* Flag bits on a generator: bit 2 is armed, bit 3 selects the shared default
-   interval over the generator's own. */
-enum { W8_MONGEN_ARMED = 4, W8_MONGEN_USE_DEFAULT_INTERVAL = 8 };
+/* Flag bits on a generator: bit 0 suppresses spawning, bit 2 is armed, bit 3
+   selects shared interval values, and bit 5 adds the story/faction gate. */
+enum {
+    W8_MONGEN_DISABLED = 1,
+    W8_MONGEN_ARMED = 4,
+    W8_MONGEN_USE_DEFAULT_INTERVAL = 8,
+    W8_MONGEN_STORY_GATED = 0x20
+};
 
 /* Ten hours of game time. Past that the elapsed span is not distributed over
    the live groups at all - a fresh roll replaces them instead. */
 enum { W8_ENCOUNTER_STALE_SECONDS = 36000 };
+
+/* Pick the encounter entries compatible with this moment. The rarity draw uses
+   the four stored rarity classes (3/7/20/70). The first pass also requires the
+   entry's challenge to stay within half the party's rounded average level and
+   scales rarity down as that mismatch grows; when that leaves no candidate,
+   retail falls back to raw rarity plus the day/night condition. A random
+   candidate is moved to slot zero because GenerateEncounter consumes slot zero. */
+// FUNCTION: WIZ8 0x0048B9A0
+int W8MonsterGenerator::SelectEncounterCandidates(W8EncounterTableRuntime* table,
+                                                  W8GrowableVector<int>* candidates)
+{
+    int rarity_roll;
+    int rarity_class;
+    int night;
+    int index;
+    float party_level;
+
+    candidates->Clear();
+    night = !(g_status_685170.game_time_ms > 18000000 &&
+              g_status_685170.game_time_ms <= 79200000);
+
+    rarity_roll = Random(100);
+    if (rarity_roll <= 3) {
+        rarity_class = 3;
+    } else if (rarity_roll <= 10) {
+        rarity_class = 7;
+    } else if (rarity_roll <= 30) {
+        rarity_class = 20;
+    } else {
+        rarity_class = 70;
+    }
+
+    party_level = static_cast<float>(floor(GetAveragePartyMemberLevel() + 0.49f));
+    for (index = 0; index < table->species_ids.GetCount(); ++index) {
+        float challenge = static_cast<float>(*table->challenge_level.GetAt(index));
+        float difference = static_cast<float>(fabs(1.0f - challenge / party_level));
+
+        if (difference < 0.5f) {
+            float adjusted =
+                static_cast<float>(*table->rarity_class.GetAt(index)) * (1.0f - difference * 1.8f);
+            int adjusted_class;
+
+            if (adjusted <= 3.0f) {
+                adjusted_class = 3;
+            } else if (adjusted <= 10.0f) {
+                adjusted_class = 7;
+            } else if (adjusted <= 30.0f) {
+                adjusted_class = 20;
+            } else {
+                adjusted_class = 70;
+            }
+
+            unsigned char time = *table->time_condition.GetAt(index);
+            if (adjusted_class == rarity_class && (time == 2 || time == night)) {
+                candidates->Add(index);
+            }
+        }
+    }
+
+    if (candidates->GetCount() == 0) {
+        for (index = 0; index < table->species_ids.GetCount(); ++index) {
+            unsigned char time = *table->time_condition.GetAt(index);
+            if (*table->rarity_class.GetAt(index) == rarity_class && (time == 2 || time == night)) {
+                candidates->Add(index);
+            }
+        }
+    }
+
+    if (candidates->GetCount() > 1) {
+        int selected = candidates->RemoveAt(Random(candidates->GetCount()));
+        candidates->InsertAt(0, selected);
+    }
+    return candidates->GetCount();
+}
+
+/* Bias the database's group-size dice by party-relative monster level and the
+   configured difficulty. Strong encounters are pushed toward the lower half on
+   normal difficulty and weak tiny encounters toward the upper half; novice and
+   expert take the corresponding fixed extremes in those branches. */
+// FUNCTION: WIZ8 0x0048BC30
+int W8MonsterGenerator::RollEncounterGroupSize(W8MonsterRecord* record)
+{
+    W8Dice* dice = &record->group_size_dice_0c1;
+    float relative_level =
+        static_cast<float>(record->unknown_250[1]) / GetAveragePartyMemberLevel();
+    int minimum = dice->base + dice->count;
+    int maximum = dice->base + dice->count * dice->sides;
+    float midpoint = (minimum + maximum) * 0.5f;
+    int rolled = RollDice(dice);
+
+    if (relative_level >= 1.2f) {
+        if (g_settings_6850c8.difficulty == 0) {
+            return minimum;
+        }
+        if (g_settings_6850c8.difficulty == 2) {
+            return rolled;
+        }
+        while (static_cast<float>(rolled) > midpoint) {
+            rolled = RollDice(dice);
+        }
+        return rolled;
+    }
+
+    if (midpoint > 0.8f) {
+        return rolled;
+    }
+    if (g_settings_6850c8.difficulty == 2) {
+        return maximum;
+    }
+    if (g_settings_6850c8.difficulty == 0) {
+        return rolled;
+    }
+    while (static_cast<float>(rolled) < midpoint) {
+        rolled = RollDice(dice);
+    }
+    return rolled;
+}
+
+/* Select one table entry, spawn its main group and up to two database-defined
+   companion groups, attach scripts and formation state, and register the main
+   group as a live random encounter. The bit-5 form is only valid for neutral
+   factions while one of the three story facts is set. */
+// FUNCTION: WIZ8 0x0048AD20
+unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* position)
+{
+    W8GrowableVector<int> candidates;
+    W8EncounterCompanionRecord companion_records[2];
+    unsigned char companion_active[2] = {0, 0};
+    srVector3T<float> spawn_position;
+    W8EncounterTableRuntime* table;
+    W8MonsterRecord* record;
+    W8MonsterGroup* group;
+    int selected_index;
+    unsigned int species;
+    const char* script;
+    int encounter_weight;
+    int companion_count = 0;
+
+    if ((flags & W8_MONGEN_DISABLED) != 0 || value_1c == -1) {
+        return 0;
+    }
+
+    table = *g_encounter_tables.GetAt(value_1c);
+    if (SelectEncounterCandidates(table, &candidates) == 0) {
+        return 0;
+    }
+
+    selected_index = *candidates.GetAt(0);
+    species = *table->species_ids.GetAt(selected_index);
+    script = (*table->script_names.GetAt(selected_index))->value;
+    spawn_position = *position;
+    record = MonsterDBFromSpecies(species);
+    if (record == 0) {
+        srAssertFail("pMonsterDB", MON_GEN_CPP, 0x146,
+                     FormatString("MonsterDBFromSpecies failed for species %d", species));
+    }
+    if (record->deleted != 0) {
+        FormatDebugMessage(1,
+                           "MonGen::GenerateEncounter: WARNING - DBS record for monster species %d "
+                           "has been DELETED!",
+                           species);
+        return 0;
+    }
+
+    /* Retail computes this total even though the surviving release path never
+       reads it afterwards; the external calls can still populate cycle data. */
+    encounter_weight = GetMonsterCycleFallbackValue004E5B50(species);
+    for (int index = 0; index < 2; ++index) {
+        companion_records[index] = GetEncounterCompanion(record, index);
+        if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
+            companion_active[index] = 1;
+            encounter_weight +=
+                GetMonsterCycleFallbackValue004E5B50(companion_records[index].species);
+        }
+    }
+    (void)encounter_weight;
+
+    if ((flags & W8_MONGEN_STORY_GATED) != 0) {
+        if (GetFactionDisposition(record->faction_id_25f) != DISP_NEUTRAL ||
+            (!GetFact(0x30) && !GetFact(0x22) && !GetFact(0x31))) {
+            return 0;
+        }
+    }
+
+    int count = RollEncounterGroupSize(record);
+    if (count == 0) {
+        srAssertFail("ulNumMonsters", MON_GEN_CPP, 0x17b,
+                     FormatString("Error in Monster DB: zero group size (%S)", record->name_00));
+    }
+
+    group = CreateGroup(species, count, &spawn_position, 0, 0, 1);
+    group->flag_c3 = 1;
+    SetMonsterGroupFormation(group, &state_0c);
+    if (group != 0 && group->flag_c3 != 0 && g_active_groups.IndexOf(group) == -1) {
+        g_active_groups.Add(group);
+    }
+
+    W8Monster* monster = GetMonsterByLocationID(group->value_9f);
+    if (monster != 0) {
+        monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
+    }
+
+    for (int index = 0; index < 2; ++index) {
+        if (companion_active[index] == 0) {
+            continue;
+        }
+
+        unsigned int companion_species = static_cast<unsigned short>(companion_records[index].species);
+        W8MonsterRecord* companion_record = MonsterDBFromSpecies(companion_species);
+        if (companion_record == 0) {
+            srAssertFail("pMonsterDB", MON_GEN_CPP, 0x193,
+                         FormatString("MonsterDBFromSpecies failed for species %d",
+                                      companion_species));
+        }
+        if (companion_record->deleted != 0) {
+            FormatDebugMessage(
+                1,
+                "MonGen::GenerateEncounter: WARNING - DBS record for monster species %d has been "
+                "DELETED, chum of species %d!",
+                companion_species, species);
+            return 0;
+        }
+
+        int companion_group_count = RollDice(&companion_record->group_size_dice_0c1);
+        companion_count += companion_group_count;
+        W8MonsterGroup* companion_group =
+            CreateGroup(companion_species, companion_group_count, &spawn_position, 0, 0, 1);
+        companion_group->flag_c3 = 1;
+        SetMonsterGroupFormation(companion_group, &state_0c);
+        LinkMonsterGroupToLeader(group, companion_group);
+    }
+
+    if (g_flag_689b32 != 0 && gfCapturingVideo == 0 &&
+        g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
+        W8MonsterRecord* group_record = MonsterGroupGetRecord(group);
+        const wchar_t* group_name = group->member_count == 1 ? group_record->name_00 : group_record->name_30;
+        const wchar_t* companion_word = companion_count == 1 ? L"chum" : L"chums";
+        WriteGameLog(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name,
+                     group->member_count, group_name, companion_count, companion_word,
+                     *table->challenge_level.GetAt(selected_index));
+    }
+    return 1;
+}
+
+/* Refuse generation while global gameplay modes block it, while the generator
+   is disabled, or while its candidate point is too close/far, visible, occupied
+   or over the active-encounter budget. A forced roll bypasses the spatial and
+   chance tests but not the global-mode and budget gates. */
+// FUNCTION: WIZ8 0x0048B200
+unsigned char W8MonsterGenerator::CanGenerateEncounter(int force)
+{
+    srVector3T<float> camera;
+    float distance;
+
+    if (g_generator_save_flag != 0 || g_flag_006840bc != 0 || gXStatus.fCombatMode != 0 ||
+        gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 || flag_44 == 0) {
+        return 0;
+    }
+
+    GetCameraPosition(&camera);
+    srVector3T<float> delta = state_0c - camera;
+    distance = delta.Length();
+
+    if (force == 0 && g_status_685170.value_2390 == 0) {
+        if (distance > 200000.0f || distance < 35000.0f) {
+            return 0;
+        }
+        if (g_octree_6598a4 != 0 && g_octree_6598a4->HasLineOfSight(&camera, &state_0c, 1) != 0) {
+            return 0;
+        }
+    }
+
+    if (g_active_groups.GetCount() >= g_random_encounter_limit) {
+        CullExpiredEncounters();
+        if (g_active_groups.GetCount() >= g_random_encounter_limit) {
+            return 0;
+        }
+    }
+
+    if (force != 0) {
+        return 1;
+    }
+
+    if (g_encounter_culling_scale_fast == 1.0f) {
+        srVector3T<float> lower(state_0c.x - 5000.0f, state_0c.y - 5000.0f,
+                                state_0c.z - 5000.0f);
+        srVector3T<float> upper(state_0c.x + 5000.0f, state_0c.y + 5000.0f,
+                                state_0c.z + 5000.0f);
+        int* locations = 0;
+        if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
+            return 0;
+        }
+    }
+
+    int chance = (flags & W8_MONGEN_USE_DEFAULT_INTERVAL) != 0
+                     ? g_generator_interval_min
+                     : static_cast<signed char>(flag_04);
+    return Chance(chance) != 0;
+}
 
 /* Advances the random-encounter budget for the current level.
  
@@ -388,7 +738,7 @@ void RunMonsterGenerators(void)
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
         if (generator->m_pTimer != 0 && generator->m_pTimer->PollElapsedIntervals() != 0) {
-            if (generator->Function48B200(0) != 0) {
+            if (generator->CanGenerateEncounter(0) != 0) {
                 generator->GenerateEncounter(&generator->state_0c);
             }
             generator->Reset();
