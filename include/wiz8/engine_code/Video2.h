@@ -139,9 +139,9 @@ stModelInstance2D* Function4253F0(int target, const W8ControlsRect* bounds, int 
 stModelInstance2D* Function4255C0(unsigned int image, const W8ControlsRect* rect, char mode,
                                   int arg_4, int arg_5);
 /* 0x004257D0: position a 2D node without pixel snapping. */
-void Function4257D0(srNode* node, int x, int y);
+void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
-void Function4264F0(stModelInstance2D* object, unsigned char state);
+void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
 void Function425840(srNode* node, int degrees);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */
@@ -227,7 +227,7 @@ unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
-void Function422B10(void);
+void ResetVideoFrameState00422B10(void);
 void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled);
 unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);

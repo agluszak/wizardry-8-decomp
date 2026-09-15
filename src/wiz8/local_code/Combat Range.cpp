@@ -259,7 +259,7 @@ float GetRangeConstant5EC35C(void)
 }
 
 // FUNCTION: WIZ8 0x0051b3f0
-unsigned char Function51B3F0(int mode)
+unsigned char TraceModeRejectsNoHit0051B3F0(int mode)
 {
     switch (mode) {
     case 0:

@@ -790,7 +790,7 @@ wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 struct W8NpcScriptQuote;
 
-void Function577260(void);
+void SyncDialogueNpcState00577260(void);
 /* 0x005775D0: queue a named scripted action (kind 0 item, 1 NPC, 2/3 other);
    resolves the name against the item and NPC tables when kind is -1 and
    ignores duplicates already pending. */
@@ -822,7 +822,7 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
-void Function593330(void);
+void RefreshFlaggedMainGameState00593330(void);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
 
@@ -830,7 +830,7 @@ void RequestRedraw(unsigned int mask);
 void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
-void Function577220(void);
+void SyncDialogueNpcStateAndMarkPending00577220(void);
 void ClearMainGameTargetState(void);
 
 extern unsigned short g_value_006840be;

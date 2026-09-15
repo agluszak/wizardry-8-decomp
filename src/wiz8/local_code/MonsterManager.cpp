@@ -263,7 +263,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo->plsVisMonToMon != NULL", MONSTER_MANAGER_CPP, 0x1de, 0);
     }
     RequestRefreshPartyState();
-    Function593330();
+    RefreshFlaggedMainGameState00593330();
     if (record->unknown_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
@@ -590,7 +590,7 @@ int GetMonsterQuadrant(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004e5b50
-int Function4E5B50(unsigned int monster_species)
+int GetMonsterCycleFallbackValue004E5B50(unsigned int monster_species)
 {
     W8MonsterRecord* record;
 
@@ -1187,7 +1187,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         if (gXStatus.fCombatMode != 0) {
             RefreshAllSight();
             SetTargetToMonster(monster_info->location_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-            Function593330();
+            RefreshFlaggedMainGameState00593330();
             Function546E70();
             if (g_combat_state->pActionMonsterInfo == monster_info) {
                 g_combat_state->eCombatActionStatus = 0;

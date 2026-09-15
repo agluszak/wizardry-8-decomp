@@ -2055,7 +2055,7 @@ W8PathingService::TestSearchPositionVisibility00464CC0(const srVector3T<float>* 
     short trace = g_octree_6598a4->TraceLineOfSight(&trace_source, &trace_target, 1,
                                                     movement->location_id_004,
                                                     trace_target_location_0c0, 1, range_mode);
-    if (trace != 1 && (trace != -1 || Function51B3F0(trace_mode_0b8) != 0)) {
+    if (trace != 1 && (trace != -1 || TraceModeRejectsNoHit0051B3F0(trace_mode_0b8) != 0)) {
         return 1;
     }
     return 0;

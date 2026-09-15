@@ -428,7 +428,7 @@ unsigned char JournalScreenLeave(int)
     delete g_journal_entries_0069c4e4;
     g_journal_entries_0069c4e4 = 0;
     if (gXStatus.fCampMode) {
-        Function577260();
+        SyncDialogueNpcState00577260();
     }
     return 1;
 }

@@ -291,7 +291,7 @@ PTR LockPrimarySurface(UINT32* pitch)
    The four scene walks are the same typed operation used during renderer
    bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
    the menu call site. */
-void Function422B10(void)
+void ResetVideoFrameState00422B10(void)
 {
     DDSURFACEDESC description;
     unsigned int active;
@@ -2465,13 +2465,13 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
 }
 
 // FUNCTION: WIZ8 0x004257D0
-void Function4257D0(srNode* node, int x, int y)
+void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y)
 {
     PositionToolTipNode(node, x, y, 0);
 }
 
 // FUNCTION: WIZ8 0x004264F0
-void Function4264F0(stModelInstance2D* object, unsigned char state)
+void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state)
 {
     object->render_state_164.display_state = state;
 }
