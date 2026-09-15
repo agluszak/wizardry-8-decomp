@@ -29,6 +29,7 @@
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/npc_script_file.h"
 #include "wiz8/layouts/item_instance.h"
+#include "wiz8/layouts/item_tables.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
@@ -39,6 +40,7 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Octree.h"
@@ -202,6 +204,12 @@ unsigned char g_keyword_lists_loaded_68f0f8;
    screen reset and by the keyword panel helpers. */
 // GLOBAL: WIZ8 0x0068F0F9
 unsigned char g_flag_68f0f9;
+/* 0x0068EE60: the queued NPC script notice; see the type comment in the
+   header. */
+// GLOBAL: WIZ8 0x0068EE60
+W8PendingNotice g_pending_notice_68ee60;
+// GLOBAL: WIZ8 0x006F04EC
+unsigned char g_flag_006f04ec;
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle_0068f0fc;
 
@@ -2742,6 +2750,37 @@ void ReloadKeywordLists(void)
     g_keyword_lists_loaded_68f0f8 = 1;
 }
 
+/* Translate a typed dialogue keyword through the loaded tables. With no
+   tables loaded the input passes through verbatim; otherwise the active
+   language's list is scanned and the matching English field is copied out.
+   Element one holds the translated file when two loaded, falling back to the
+   English list through GetAt's clamped read. */
+// FUNCTION: WIZ8 0x0056c440
+void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination)
+{
+    W8GrowableVector<W8GrowableVector<wchar_t*>*>* file;
+    W8GrowableVector<wchar_t*>* entry;
+    W8GrowableVector<wchar_t*>* english;
+    int entry_index;
+    int word_index;
+
+    if (g_keyword_lists_loaded_68f0f8 == 0) {
+        wcscpy(destination, source);
+        return;
+    }
+    file = *g_keyword_lists.GetAt(1);
+    for (entry_index = 0; entry_index < file->count; ++entry_index) {
+        entry = *file->GetAt(entry_index);
+        for (word_index = 0; word_index < entry->count; ++word_index) {
+            if (CompareWideTextIgnoreAsciiCase00402920(source, *entry->GetAt(word_index)) == 0) {
+                english = *(*g_keyword_lists.GetAt(0))->GetAt(entry_index);
+                wcscpy(destination, *english->GetAt(word_index));
+                return;
+            }
+        }
+    }
+}
+
 /* Reset the screen state block: zero its 0x268 bytes, write its reset values,
    clear the keyword status byte, and reload the keyword lists. */
 // FUNCTION: WIZ8 0x0056c520
@@ -3776,12 +3815,589 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
    busy or this NPC kind suppresses it. The suppress flag travels as an int:
    the body forwards the whole dword without masking. */
 // FUNCTION: WIZ8 0x0056C590
-void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress)
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress)
 {
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCombatMode == 0 &&
         (npc->record->kind != 7 || GetFact(0x1c) != 1)) {
-        Function56C5E0(npc, value, line, suppress, 0);
+        Function56C5E0(npc, item, line, suppress, 0);
     }
+}
+
+/* Queue one NPC script notice for the dispatch pass. A second NPC of the same
+   kind already in the world suppresses the notice unless the record carries
+   the 0x054 binding flag, a live monster with a condition at or above 0xf
+   takes none, and a pending notice blocks the next until it drains. Kind
+   0x10/0x11 NPCs with fact 0xbf substitute their own notice line and raise
+   the flag byte. */
+// FUNCTION: WIZ8 0x0056C5E0
+void Function56C5E0(W8NpcState* npc, W8ItemInstance* item, int line, int suppress, int arg)
+{
+    W8MonsterInfo* info;
+    unsigned char flag;
+
+    if (FindNpcOfKind(npc->name_style) != 0 && npc->record->unknown_054 == 0) {
+        return;
+    }
+    info = GetNpcMonsterInfo(npc);
+    if (info != 0 && info->highest_condition >= 0xf) {
+        return;
+    }
+    flag = static_cast<unsigned char>(suppress);
+    if ((npc->name_style == 0x10 || npc->name_style == 0x11) && GetFact(0xbf) != 0) {
+        flag = 1;
+        line = npc->name_style == 0x10 ? 0x23 : 0x1d;
+    }
+    if (g_flag_68f0f9 != 0) {
+        return;
+    }
+    g_pending_notice_68ee60.bytes.flag = flag;
+    g_pending_notice_68ee60.npc = npc;
+    g_pending_notice_68ee60.line = line;
+    g_pending_notice_68ee60.bytes.force = static_cast<unsigned char>(arg);
+    if (item != 0) {
+        g_pending_notice_68ee60.item = *item;
+    } else {
+        EmptyItemRecord(&g_pending_notice_68ee60.item, 0, 1);
+    }
+    Function5289B0(0x37, 0);
+    g_flag_68f0f9 = 1;
+}
+
+/* The NPC notice and dialogue dispatcher. Talking to a healer NPC (name
+   styles 0x0f and 0x12) first lifts every active condition off the two party
+   rows bound to RPC NPCs (name styles 0x10 and 0x11) whose condition set has
+   reached 0x0f; clearing condition 0x12 - death - leaves them on ten hit
+   points. A completed character event is finished off, the dialogue NPC is
+   staged outside camp mode, and then the record's 0x054/0x2ea flags choose
+   between the item/quote branch and the plain quote branch; both end by
+   pausing the world, raising the dialogue flags and pointing the camera at
+   the NPC's monster. */
+// FUNCTION: WIZ8 0x0056C6D0
+void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
+{
+    W8MainScreenState* state;
+    W8MonsterInfo* info;
+    W8NpcState* bound;
+    W8NpcState* selected;
+    W8Character* characters;
+    int slot;
+    int condition;
+    srVector3T<float> position;
+
+    g_flag_68f0f9 = 0;
+    g_screen_state_00649f1c->value_25c = 0;
+    if (npc->name_style == 0xf || npc->name_style == 0x12) {
+        characters = g_status_685170.buffers.characters;
+        for (slot = 0; slot < 2; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+                bound = GetNpcState(g_status_685170.buffers.party_rows[slot].animation_0fa);
+                if ((bound->name_style == 0x11 || bound->name_style == 0x10) &&
+                    characters[slot].highest_condition >= 0xf) {
+                    for (condition = 0; condition <= 0x12; ++condition) {
+                        if (characters[slot].condition_turns[condition] != 0) {
+                            RemoveCharacterCondition(slot, condition, 0);
+                            if (condition == 0x12) {
+                                characters[slot].hp_current = 10;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (gXStatus.character_event_queue->HasActiveEvents() != 0) {
+        gXStatus.character_event_queue->CompleteFirstActiveEvent();
+    }
+    if (gXStatus.fCampMode == 0) {
+        Function56D030(npc, flags);
+    }
+    if (force != 0) {
+        Function56CAD0(npc, item, 1);
+        return;
+    }
+    if (npc->record->unknown_054 == 0 && npc->record->flag_2ea == 0) {
+        if (GetNpcDispositionBand(npc) == 2 && npc->record->unknown_056 == 0) {
+            Function528830(0x18, 0, 0, 0);
+            return;
+        }
+        if (flags == 0) {
+            Function56CAD0(npc, item, 0);
+            return;
+        }
+    }
+    if (npc->record->flag_2ea != 0) {
+        if (item != 0) {
+            state = g_screen_state_00649f1c;
+            state->pending_item_1ed = *item;
+            if (g_status_685170.item_in_cursor != 0) {
+                state->flag_1f9 = 1;
+            }
+            Function575810(&state->pending_item_1ed);
+        } else if (quote == -1) {
+            Function577290(1);
+        } else {
+            Function528830(quote, 0, 0, 0);
+        }
+    } else {
+        if (quote == -1) {
+            quote = 0;
+        }
+        Function528830(quote, 0, 0, 0);
+    }
+    selected = g_screen_state_00649f1c->dialogue_npc;
+    if (selected->name_style != 0x84 && selected->name_style != 0x85) {
+        info = GetNpcMonsterInfo(selected);
+        if (info != 0) {
+            MonsterForwardReferencePosition(info->monster, 0);
+        }
+    }
+    PauseMainGameWorld();
+    state = g_screen_state_00649f1c;
+    state->flag_252 = 1;
+    gXStatus.fNpcDialogueMode = 1;
+    state->value_25c = 0;
+    info = GetNpcMonsterInfo(state->dialogue_npc);
+    if (info == 0) {
+        return;
+    }
+    position = info->monster->movement_0c0.position_040;
+    position.y += info->monster->movement_0c0.height_offset_0b8;
+    g_gd_camera_65a0f8->LookAt(&position, 0);
+}
+
+// FUNCTION: WIZ8 0x0056CA60
+void Function56CA60(W8NpcState* npc, W8ItemInstance* item, int quote, int flags, int force)
+{
+    Function56C6D0(npc, item, quote, flags, force);
+}
+
+/* Dispatch the queued NPC script notice: the item goes across only while it
+   still carries an id, and the flag pair at +0x14 travels as one dword. */
+// FUNCTION: WIZ8 0x0056CA90
+void Function56CA90(void)
+{
+    W8ItemInstance* item;
+
+    item = 0;
+    if (g_pending_notice_68ee60.item.item_id != -1) {
+        item = &g_pending_notice_68ee60.item;
+    }
+    Function56C6D0(g_pending_notice_68ee60.npc, item, g_pending_notice_68ee60.line,
+                   g_pending_notice_68ee60.flags, g_pending_notice_68ee60.bytes.force);
+}
+
+/* Open the NPC dialogue panel. After the shared screen reset and the
+   dialogue-UI build, a carried item goes through the pending-item path -
+   inspecting it decides between the trade switch and a disposition check -
+   while everything else falls to the force gate and then the
+   dispatch: a record-0x056 NPC takes the plain quote, otherwise the
+   disposition band picks the hostile or friendly entry. */
+// FUNCTION: WIZ8 0x0056CAD0
+unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item, unsigned char force)
+{
+    W8MainScreenState* state;
+    W8MonsterInfo* info;
+    W8MonsterInfo* dialogue_info;
+    unsigned char band;
+    wchar_t space[2];
+    srVector3T<float> position;
+
+    UpdateScreenOverlays(0);
+    gXStatus.fNpcDialogueMode = 1;
+    Function569570();
+    if (npc->record->flag_055 != 0) {
+        Function55BCC0(npc);
+    }
+    state = g_screen_state_00649f1c;
+    state->value_fc = 0;
+    if (gXStatus.fCampMode == 0) {
+        state->value_104 = 0;
+        state->value_100 = 0;
+    }
+    state->dialogue_panel_hidden = 0;
+    state->flag_252 = 0;
+    state->value_108 = 0;
+    state->value_1c4 = -1;
+    state->value_1c8 = -1;
+    state->value_1cc = -1;
+    state->value_1d0 = 0;
+    state->value_000 = 0;
+    state->flag_1d9 = 0;
+    state->flag_1f9 = 0;
+    state->script_busy = 0;
+    state->flag_200 = 0;
+    state->flag_201 = 0;
+    state->dialogue_cursor_flag = 0;
+    state->flag_250 = 0;
+    state->unknown_251 = 0;
+    state->flag_229 = 0;
+    state->value_22c = 0;
+    state->value_238 = 0;
+    state->flag_23c = 1;
+    state->value_258 = -1;
+    state->value_25c = 0;
+    if (g_settings_6850c8.field_006 != 0) {
+        ApplyMainGameModeFlag(0, 0);
+    } else {
+        SetViewportMode(Function5698C0());
+    }
+    if (gXStatus.fCampMode == 0) {
+        g_screen_state_00649f1c->value_f0 = g_settings_6850c8.field_006;
+    }
+    Function56D1D0();
+    SetRegionBounds(0x8a, 0x17, 0x166, 0x269, 0x1c2);
+    g_level_block->flag_271 = 0;
+    RegionSetEnable(0x15);
+    EnableRegionInput(0x52);
+    EnableRegionInput(0x53);
+    EnableRegionInput(0x54);
+    EnableRegionInput(0x55);
+    g_level_block->flag_155 = 1;
+    gXStatus.fCampMode = 0;
+    if (item != 0) {
+        state = g_screen_state_00649f1c;
+        state->pending_item_1ed = *item;
+        if (g_status_685170.item_in_cursor != 0) {
+            state->flag_1f9 = 1;
+            ClearHeldItemDisplay();
+        }
+        if (npc->record->unknown_056 != 0) {
+            if (Function575810(&state->pending_item_1ed) == 0) {
+                Function570CF0();
+                goto dispatch;
+            }
+        } else if (Function575810(&state->pending_item_1ed) == 0) {
+            switch (g_screen_state_00649f1c->value_fc) {
+            case 1:
+                Function573DD0();
+                break;
+            case 2:
+                RegionSetDisable(0x18);
+                g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+                g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+                g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
+                g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
+                g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(
+                    &g_wchar_00689b34, g_wiz_text_bold_font_683664);
+            /* fall through */
+            case 6:
+                Function56EDD0(0);
+                break;
+            case 3:
+                Function571370();
+                break;
+            case 4:
+                Function572320();
+                break;
+            case 5:
+                Function573570();
+                break;
+            }
+            if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0) {
+                Function570CF0();
+            } else {
+                Function570760();
+            }
+            goto dispatch;
+        }
+    }
+    if (force != 0) {
+        goto tail;
+    }
+dispatch:
+    if (g_screen_state_00649f1c->dialogue_npc->record->unknown_056 != 0) {
+        Function528830(0, 0, 0, 0);
+        Function570CF0();
+    } else {
+        band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
+        if (g_screen_state_00649f1c->dialogue_npc->name_style == 0xf && GetFact(0x2f1) != 0 &&
+            GetFact(0x3c) == 0) {
+            SetFact(0x2f1, 0, 0);
+        }
+        if (band == 0) {
+            Function577290(1);
+            Function570CF0();
+        } else if (band == 1) {
+            Function528830(2, 0, 0, 0);
+            Function570760();
+        }
+    }
+tail:
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    if (g_flag_0068edd8 != 0) {
+        SetFlag603C60();
+        g_flag_0068edd8 = 0;
+        g_flag_006f04ec = 0;
+    }
+    info = GetNpcMonsterInfo(npc);
+    if (info != 0) {
+        g_screen_state_00649f1c->flag_23d = 1;
+        g_screen_state_00649f1c->saved_camera_pitch_240 = g_gd_camera_65a0f8->m_pitch;
+        g_screen_state_00649f1c->saved_camera_yaw_244 = g_gd_camera_65a0f8->m_yaw;
+        dialogue_info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
+        if (dialogue_info != 0) {
+            position = dialogue_info->monster->movement_0c0.position_040;
+            position.y += dialogue_info->monster->movement_0c0.height_offset_0b8;
+            g_gd_camera_65a0f8->LookAt(&position, 0);
+        }
+        MonsterForwardReferencePosition(info->monster, 0);
+    }
+    PauseMainGameWorld();
+    RequestRedraw(0x200);
+    g_screen_state_00649f1c->flag_261 = 1;
+    swprintf(space, L" ");
+    Function58AC00(5, space, 3, -1, 0);
+    return 1;
+}
+
+/* Stage `npc` as the dialogue NPC: bind its monster's location, clear its
+   transient flags, kick the script dialogue, refresh the name caption while
+   the dialogue UI is already up, and pick the speaking character - the first
+   occupied row, overtaken by any occupied row with a higher skill-0x16
+   (communication) level. Every occupied portrait then takes target pose 1.
+   A stale disposition snapshot on the NPC drops its 0x1c flag. */
+// FUNCTION: WIZ8 0x0056D030
+void Function56D030(W8NpcState* npc, int flags)
+{
+    W8MainScreenState* state;
+    W8MonsterInfo* info;
+    W8NpcState* selected;
+    int slot;
+    int speaker;
+    unsigned int best;
+
+    state = g_screen_state_00649f1c;
+    speaker = -1;
+    state->target_location_id_f8 = -1;
+    best = 0xffffffff;
+    state->dialogue_npc = 0;
+    info = GetNpcMonsterInfo(npc);
+    if (info != 0) {
+        state->target_location_id_f8 = info->location_id;
+    }
+    state->dialogue_npc = npc;
+    state->dialogue_npc->flag_22 = 0;
+    state->dialogue_npc->flag_23 = 0;
+    if (state->dialogue_npc->unknown_1d != 0) {
+        state->dialogue_npc->flag_84 = 0;
+    }
+    BeginNpcScriptDialogue(state->dialogue_npc, 0);
+    if ((state->value_fc == 3 || state->value_fc == 2) && gXStatus.fNpcDialogueMode != 0) {
+        state->dialogue_text_10c->m_textBuffer.SetText(state->dialogue_npc->record->source_name_004,
+                                                       g_wiz_text_bold_font_683664);
+        state->dialogue_text_10c->Invalidate(1);
+    }
+    state->flag_23d = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            if (speaker == -1) {
+                speaker = slot;
+            }
+            if (g_status_685170.buffers.characters[slot].skills[0x16].level > best) {
+                best = g_status_685170.buffers.characters[slot].skills[0x16].level;
+                speaker = slot;
+            }
+        }
+    }
+    g_screen_state_00649f1c->dialogue_speaker = speaker;
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 1);
+        }
+    }
+    selected = g_screen_state_00649f1c->dialogue_npc;
+    if (selected->unknown_1c != 0 && selected->unknown_ef[0] != GetNpcDispositionBand(selected)) {
+        selected->unknown_1c = 0;
+    }
+}
+
+void Function573660(void);
+void Function573730(void);
+void Function573800(void);
+void Function5738D0(void);
+void Function5739A0(void);
+void Function573A10(void);
+void Function570000(void);
+void Function575B00(void);
+void Function575B40(void);
+void Function570AD0(void);
+void Function570B80(void);
+void Function570C20(void);
+void Function570530(void);
+void Function5705B0(void);
+void Function570310(void);
+void Function575520(W8DialogBase* dialog);
+
+/* Build the NPC dialogue UI: the option-button panel on the left, the
+   secondary panel beside it, the scrolling text controller, the three
+   right-hand panels and the text-input panel, then every text control each
+   of them hosts. Buttons get their option masks, help ids and activation
+   callbacks as they are created. */
+// FUNCTION: WIZ8 0x0056D1D0
+void Function56D1D0(void)
+{
+    Controls* panel;
+    W8MainScreenState* state;
+
+    state = g_screen_state_00649f1c;
+    state->panel_1a8 = new W8MainGamePanel005EE9F0(0x17, 0x166, 0xa4, 0x1c2, 0x1a9, 0, 0);
+    state->panel_1ac = new Controls(0xa4, 0x166, 0x1dc, 0x1c2, 0x1a9, 0, 1);
+    state->npc_dialogue_controller_1b0 =
+        new W8NpcDialogueTextController(0x1dc, 0x11b, 0x269, 0x140, 0x1a9, 0, 2, 4, 3);
+    state->npc_dialogue_panel_1b4 = new Controls(0x1dc, 0x12f, 0x269, 0x1c2, 0x1a9, 0, 5);
+    state->panel_1b8 = new Controls(0x1dc, 0x166, 0x269, 0x1c2, 0x1a9, 0, 7);
+    state->panel_1bc = new Controls(0x1dc, 0x166, 0x238, 499, 0x1a9, 0, 6);
+    state->text_input_panel_1c0 =
+        new W8MainGamePanel005EE9E4(0x1dc, 0x166, 0x269, 0x1c0, 0x1a9, 0, 0xd);
+
+    panel = state->panel_1a8;
+    state->dialogue_text_10c =
+        new W8TextControl(panel, 0xffffffff, 5, 2, 0x89, 0x12, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_10c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
+                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_1a4 =
+        new W8TextControl(panel, 0xffffffff, 5, 0x47, 0x89, 0x57, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_1a4->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
+                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_110 =
+        new W8TextControl(panel, 0x82, 2, 0x11, 0x45, 0x21, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_114 =
+        new W8TextControl(panel, 0x83, 0x44, 0x11, 0x87, 0x21, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_118 =
+        new W8TextControl(panel, 0x84, 2, 0x21, 0x45, 0x31, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_11c =
+        new W8TextControl(panel, 0x85, 0x44, 0x21, 0x87, 0x31, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_120 =
+        new W8TextControl(panel, 0x86, 2, 0x31, 0x45, 0x41, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_124 =
+        new W8TextControl(panel, 0x87, 0x44, 0x31, 0x87, 0x41, 0x1a9, 0, -1, 0xc, 10, 0xb, -1);
+    state->dialogue_text_124->UpdateTextBounds(0x46, 0x31, 0x89, 0x41);
+    state->dialogue_text_128 =
+        new W8TextControl(panel, 0x88, 0x72, 0x47, 0x89, 0x57, 0x1aa, 0, 0, 4, 1, 2, 3);
+    state->option_buttons_170[0] =
+        new W8TextControl(panel, 0x75, 7, 0x46, 0x17, 0x56, 0x1ab, 0, 0, 1, 2, 4, 3);
+    state->option_buttons_170[1] =
+        new W8TextControl(panel, 0x76, 0x19, 0x46, 0x29, 0x56, 0x1ab, 0, 5, 6, 7, 9, 8);
+    state->option_buttons_170[2] =
+        new W8TextControl(panel, 0x77, 0x2b, 0x46, 0x3b, 0x56, 0x1ab, 0, 10, 0xb, 0xc, 0xe, 0xd);
+    state->option_buttons_170[3] = new W8TextControl(panel, 0x78, 0x3e, 0x46, 0x4e, 0x56, 0x1ab, 0,
+                                                     0xf, 0x10, 0x11, 0x13, 0x12);
+    state->option_buttons_170[4] = new W8TextControl(panel, 0x79, 0x50, 0x46, 0x60, 0x56, 0x1ab, 0,
+                                                     0x14, 0x15, 0x16, 0x18, 0x17);
+    state->option_buttons_170[5] = new W8TextControl(panel, 0x7a, 0x62, 0x46, 0x72, 0x56, 0x1ab, 0,
+                                                     0x19, 0x1a, 0x1b, 0x1d, 0x1c);
+    state->option_buttons_170[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[0]->EnableRegionHelp(0x7c2);
+    state->option_buttons_170[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[1]->EnableRegionHelp(0x7c3);
+    state->option_buttons_170[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[2]->EnableRegionHelp(0x7c4);
+    state->option_buttons_170[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[3]->EnableRegionHelp(0x7c5);
+    state->option_buttons_170[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[4]->EnableRegionHelp(0x7c6);
+    state->option_buttons_170[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    state->option_buttons_170[5]->EnableRegionHelp(0x7c7);
+    state->option_buttons_170[0]->m_primaryActivationCallback = Function573660;
+    state->option_buttons_170[1]->m_primaryActivationCallback = Function573730;
+    state->option_buttons_170[2]->m_primaryActivationCallback = Function5739A0;
+    state->option_buttons_170[3]->m_primaryActivationCallback = Function573800;
+    state->option_buttons_170[4]->m_primaryActivationCallback = Function5738D0;
+    state->option_buttons_170[5]->m_primaryActivationCallback = Function573A10;
+
+    panel = state->panel_1ac;
+    state->dialogue_widget_12c = new W8Widget(panel, 0x89, 2, 4, 0x136, 0x57);
+
+    panel = state->npc_dialogue_controller_1b0;
+    state->dialogue_scroll_130 = new W8NpcDialogueScrollWidget(panel, 0x65, 6, 6, 0x7c, 0x11);
+    state->dialogue_widget_134 =
+        new W8TextControl(panel, 0x66, 0x7e, 3, 0x88, 0xb, 0x1aa, 0, 0x14, 0x18, 0x15, 0x16, 0x17);
+    state->dialogue_widget_138 = new W8TextControl(panel, 0x67, 0x7e, 0xc, 0x88, 0x14, 0x1aa, 0,
+                                                   0x19, 0x1d, 0x1a, 0x1b, 0x1c);
+
+    panel = state->text_input_panel_1c0;
+    state->dialogue_text_13c =
+        new W8TextControl(panel, 0x68, 0x11, 0x23, 0x22, 0x30, 0x1aa, 0, 5, 9, 6, 7, 8);
+    state->dialogue_text_13c->EnableRegionHelp(100);
+    state->dialogue_text_140 =
+        new W8TextControl(panel, 0x69, 0x26, 0x23, 0x37, 0x30, 0x1aa, 0, 10, 0xe, 0xb, 0xc, 0xd);
+    state->dialogue_text_140->EnableRegionHelp(0x65);
+    state->dialogue_text_168 =
+        new W8TextControl(panel, 0x73, 9, 0x33, 0x84, 0x44, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
+    state->dialogue_text_168->m_textBuffer.SetText(gppStringList[0x741], g_font_683660);
+    state->dialogue_text_168->m_primaryActivationCallback = Function575B40;
+    state->dialogue_text_168->EnableRegionHelp(0x66);
+    state->dialogue_text_164 =
+        new W8TextControl(panel, 0x72, 9, 0x43, 0x84, 0x52, 0x1a9, 0, -1, -1, 0xe, 0xf, -1);
+    state->dialogue_text_164->m_textBuffer.SetText(gppStringList[0x742], g_font_683660);
+    state->dialogue_text_164->m_primaryActivationCallback = Function575B00;
+    state->dialogue_text_164->EnableRegionHelp(0x67);
+
+    panel = state->npc_dialogue_panel_1b4;
+    state->dialogue_text_148 =
+        new W8TextControl(panel, 0x6b, 6, 2, 0x89, 0xe, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_148->AddLayoutFlags(
+        g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C | g_W8TextControlMask005ED578);
+    state->dialogue_text_150 =
+        new W8TextControl(panel, 0x6d, 6, 0xf, 0x41, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_150->AddLayoutFlags(
+        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
+        g_W8TextControlMask005ED578);
+    state->dialogue_text_154 =
+        new W8TextControl(panel, 0x6e, 0x43, 0xf, 0x89, 0x1b, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_154->AddLayoutFlags(
+        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
+        g_W8TextControlMask005ED578);
+    state->dialogue_text_158 =
+        new W8TextControl(panel, 0x6f, 6, 0x1b, 0x41, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_158->AddLayoutFlags(
+        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
+        g_W8TextControlMask005ED578);
+    state->dialogue_text_15c =
+        new W8TextControl(panel, 0x70, 0x43, 0x1b, 0x89, 0x27, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_15c->AddLayoutFlags(
+        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
+        g_W8TextControlMask005ED578);
+    state->dialogue_text_160 =
+        new W8TextControl(panel, 0x71, 6, 0x27, 0x41, 0x33, 0x1a9, 0, 8, 9, -1, -1, -1);
+    state->dialogue_text_160->AddLayoutFlags(
+        g_W8TextControlMask005ED584 | g_W8TextControlMask005ED580 | g_W8TextControlMask005ED57C |
+        g_W8TextControlMask005ED578);
+
+    panel = state->panel_1bc;
+    state->dialogue_text_16c =
+        new W8TextControl(panel, 0x74, 5, 0x14, 0x32, 0x49, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_16c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
+                                                         g_W8TextBufferLayoutMask005ED550);
+    state->dialogue_text_16c->AddLayoutFlags(g_W8TextControlMask005ED594);
+    state->dialogue_text_188 = new W8TextControl(panel, 0x7b, 0x35, 0x36, 0x51, 0x46, 0x1aa, 0,
+                                                 0x1e, 0x22, 0x1f, 0x20, 0x21);
+    state->dialogue_text_188->EnableRegionHelp(0x7c9);
+    state->dialogue_text_190 =
+        new W8TextControl(panel, 0x7d, 0x53, 0x4d, 0x86, 0x58, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_190->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
+                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_190->SetEnabled(0);
+    state->dialogue_text_194 =
+        new W8TextControl(panel, 0x7e, 5, 0x4d, 0x51, 0x58, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_194->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
+                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_194->SetEnabled(0);
+    state->dialogue_text_198 =
+        new W8TextControl(panel, 0x7f, 0x53, 0x3a, 0x86, 0x45, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_198->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 |
+                                                         g_W8TextBufferLayoutMask005ED554);
+    state->dialogue_text_198->SetEnabled(0);
+    state->dialogue_text_19c =
+        new W8TextControl(panel, 0x80, 4, 4, 0x88, 0x11, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_19c->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 |
+                                                         g_W8TextBufferLayoutMask005ED54C);
+    state->dialogue_text_19c->SetEnabled(0);
+    state->dialogue_text_1a0 =
+        new W8TextControl(panel, 0x81, 0x38, 0x22, 0x88, 0x34, -1, -1, -1, -1, -1, -1, -1);
+    state->dialogue_text_128->m_primaryActivationCallback = Function570000;
+    state->dialogue_text_128->EnableRegionHelp(0x7c8);
 }
 
 /* The panel flags and the modal-dialog frame hooks. The g_flag_006840bc state
@@ -4093,5 +4709,674 @@ void FlushPendingNoticeLines005766B0(void)
         W8PendingNoticeLine* line = g_screen_state_00649f1c->pending_notice_lines.RemoveAt(0);
         free(line->text);
         delete line;
+    }
+}
+
+/* Queue `party_slot` for the pending screen and unwind whichever main-game
+   mode is live - dialogue, review screen or the mode-6 highlight overlay -
+   before handing off. The flag decides whether the pending payload carries
+   the slot's character pointer. */
+// FUNCTION: WIZ8 0x00560E10
+void Function560E10(unsigned int party_slot, int flag)
+{
+    if (gXStatus.fNpcDialogueMode != 0) {
+        Function577020();
+    }
+    g_pending_screen_state.parameter_2 = party_slot;
+    g_pending_screen_state.parameter_3 = g_status_685170.buffers.characters + party_slot;
+    g_pending_screen_state.parameter_4 =
+        flag != 0 ? reinterpret_cast<int>(g_pending_screen_state.parameter_3)
+                  : 0; // reinterpret-ok: the pending slot stores the pointer as an int
+    if (g_main_game_mode_0068eddc == 3) {
+        if (gXStatus.fNpcDialogueMode != 0) {
+            Function56E800(0);
+        }
+    } else if (g_main_game_mode_0068eddc == 5) {
+        Function5187E0();
+    } else if (g_main_game_mode_0068eddc == 6) {
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto done;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+    }
+done:
+    g_main_game_mode_0068eddc = 0;
+    SetPendingScreenState(6);
+    if (gXStatus.fLockInteractMode != 0) {
+        Function5879A0(1);
+    }
+    if (gXStatus.fTrapInteractMode != 0) {
+        Function58A790(1);
+    }
+    if (gXStatus.fSpellCastMode != 0) {
+        CloseSpellCastingView0059F2B0();
+    }
+    if (gXStatus.fItemSelectMode != 0) {
+        Function59CAC0();
+    }
+    if (gXStatus.fReviewCharacterMode != 0) {
+        CloseFormationPanel();
+    }
+    SetPrimarySurfaceTextureHint2Enabled(0);
+}
+
+/* The viewport mode the screen falls back to after a raised overlay drops:
+   full-3d while every overlay flag is clear and no main-game mode override is
+   set, the plain mode when any of the board, radar or combat latches is still
+   down, and otherwise the override field's own mapping. */
+// FUNCTION: WIZ8 0x005698C0
+short Function5698C0(void)
+{
+    if (gXStatus.fSpellCastMode == 0 &&
+        (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+        gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && g_level_block->flag_155 == 0 &&
+        g_level_block->formation_board_visible != 0 && g_level_block->flag_157 != 0 &&
+        g_settings_6850c8.field_006 == 0) {
+        return 4;
+    }
+    if (gXStatus.fSpellCastMode == 0 &&
+        (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+        gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+        gXStatus.fItemSelectMode == 0 &&
+        (g_level_block->formation_board_visible == 0 || g_level_block->flag_157 == 0 ||
+         g_level_block->flag_155 == 0)) {
+        return 0;
+    }
+    if (g_settings_6850c8.field_006 == 1) {
+        return 1;
+    }
+    if (g_settings_6850c8.field_006 == 2) {
+        return 0;
+    }
+    return 2;
+}
+
+/* Drop whichever of the formation board, the radar map and the combat bar is
+   up, restoring the viewport mode that was in effect when each was raised. */
+// FUNCTION: WIZ8 0x00569570
+void Function569570(void)
+{
+    if (g_level_block->formation_board_visible != 0) {
+        g_level_block->formation_board_visible = 0;
+        RegionSetDisable(0x13);
+        ReleaseFormationBoard();
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edc9 != 0) {
+            unsigned short mode;
+            if (gXStatus.fSpellCastMode == 0 &&
+                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && g_level_block->flag_155 == 0 &&
+                g_level_block->formation_board_visible != 0 &&
+                g_level_block->flag_157 != 0 && g_settings_6850c8.field_006 == 0) {
+                mode = 4;
+            } else if (gXStatus.fSpellCastMode == 0 &&
+                       (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                       gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                       gXStatus.fItemSelectMode == 0 &&
+                       (g_level_block->formation_board_visible == 0 ||
+                        g_level_block->flag_157 == 0 || g_level_block->flag_155 == 0)) {
+                mode = 0;
+            } else if (g_settings_6850c8.field_006 == 1) {
+                mode = 1;
+            } else if (g_settings_6850c8.field_006 == 2) {
+                mode = 0;
+            } else {
+                mode = 2;
+            }
+            SetViewportMode(mode);
+        }
+        g_flag_0068edc9 = 0;
+    }
+    if (g_level_block->flag_157 != 0) {
+        g_level_block->flag_157 = 0;
+        DisableRegionInput(0x62);
+        RegionSetDisable(0x12);
+        EnableRadarMap(0);
+        ReleaseRadarMap();
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edbc != 0) {
+            unsigned short mode;
+            if (gXStatus.fSpellCastMode == 0 &&
+                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && g_level_block->flag_155 == 0 &&
+                g_level_block->formation_board_visible != 0 &&
+                g_level_block->flag_157 != 0 && g_settings_6850c8.field_006 == 0) {
+                mode = 4;
+            } else if (gXStatus.fSpellCastMode == 0 &&
+                       (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                       gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                       gXStatus.fItemSelectMode == 0 &&
+                       (g_level_block->formation_board_visible == 0 ||
+                        g_level_block->flag_157 == 0 || g_level_block->flag_155 == 0)) {
+                mode = 0;
+            } else if (g_settings_6850c8.field_006 == 1) {
+                mode = 1;
+            } else if (g_settings_6850c8.field_006 == 2) {
+                mode = 0;
+            } else {
+                mode = 2;
+            }
+            SetViewportMode(mode);
+        }
+        g_flag_0068edbc = 0;
+    }
+    if (g_level_block->flag_155 != 0) {
+        g_level_block->flag_155 = 0;
+        DisableRegionInput(0x52);
+        DisableRegionInput(0x53);
+        DisableRegionInput(0x54);
+        DisableRegionInput(0x55);
+        DisableRegionInput(0x56);
+        DisableRegionInput(0x57);
+        DisableRegionInput(0x58);
+        if (g_level_block->flag_155 == 0) {
+            DisableRegionInput(0x59);
+            RegionSetDisable(0x14);
+        }
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8200;
+        }
+        if (g_flag_0068edc8 != 0) {
+            SetViewportMode(Function5698C0());
+        }
+        g_flag_0068edc8 = 0;
+    }
+}
+
+/* Retire the current dialogue layout mode into value_104 and, when nonzero,
+   install `value` as the new one; either way the dialogue cursor helper gets
+   re-run while the flag is set. */
+// FUNCTION: WIZ8 0x0056EDD0
+void Function56EDD0(int value)
+{
+    if (value == 0) {
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+    } else {
+        g_screen_state_00649f1c->value_fc = value;
+    }
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        Function576850(0);
+    }
+}
+
+/* Bring up the mode-2 dialogue layout: the option panels come up, the caption
+   takes the NPC's name, and the five topics get their strings and callbacks. */
+// FUNCTION: WIZ8 0x00570760
+void Function570760(void)
+{
+    g_screen_state_00649f1c->value_fc = 2;
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        Function576850(0);
+    }
+    g_screen_state_00649f1c->panel_1a8->SetEnabled(1);
+    g_screen_state_00649f1c->panel_1ac->SetEnabled(1);
+    g_screen_state_00649f1c->panel_1b8->SetEnabled(1);
+    RegionSetEnable(0x18);
+    g_screen_state_00649f1c->dialogue_text_1a4->SetActive(1);
+    g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(
+        g_screen_state_00649f1c->dialogue_npc->record->source_name_004,
+        g_wiz_text_bold_font_683664);
+    g_screen_state_00649f1c->dialogue_text_10c->Invalidate(1);
+    g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(gppStringList[0x1c98 / 4],
+                                                                   g_wiz_text_bold_font_683664);
+    g_screen_state_00649f1c->dialogue_text_110->m_textBuffer.SetText(gppStringList[0x1c9c / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_110->m_primaryActivationCallback = Function570AD0;
+    g_screen_state_00649f1c->dialogue_text_114->m_textBuffer.SetText(gppStringList[0x1ca0 / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_114->m_primaryActivationCallback = Function570B80;
+    g_screen_state_00649f1c->dialogue_text_118->m_textBuffer.SetText(gppStringList[0x1ca4 / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_118->m_primaryActivationCallback = Function570C20;
+    g_screen_state_00649f1c->dialogue_text_11c->m_textBuffer.SetText(gppStringList[0x1c8c / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_11c->m_primaryActivationCallback = Function570530;
+    g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.SetText(gppStringList[0x1c90 / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_120->m_primaryActivationCallback = Function5705B0;
+    g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.SetText(gppStringList[0x1c94 / 4],
+                                                                   g_font_683660);
+    g_screen_state_00649f1c->dialogue_text_124->m_primaryActivationCallback = Function570310;
+    g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
+    g_screen_state_00649f1c->dialogue_text_114->SetEnabled(
+        g_screen_state_00649f1c->dialogue_npc->unknown_c8[0] == 0);
+    if (g_screen_state_00649f1c->dialogue_npc->unknown_c8[1] == 0) {
+        g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+    } else {
+        g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
+    }
+    RequestRedraw(0x200);
+    Function58F6B0(3);
+}
+
+/* Tear down the mode-3 transcript layout: fold the dialogue text controller
+   back up, drop the panels, then re-enable whichever occupied party rows
+   still own region slots. */
+// FUNCTION: WIZ8 0x00571370
+void Function571370(void)
+{
+    int index;
+
+    Function55E940(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
+    CollapseNpcDialogueTextArea(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
+    Function55EA40(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
+    RegionSetDisable(0x18);
+    RegionSetDisable(0x16);
+    g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+    g_screen_state_00649f1c->npc_dialogue_controller_1b0->SetEnabled(0);
+    g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
+    g_screen_state_00649f1c->text_input_panel_1c0->SetEnabled(0);
+    g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+    g_screen_state_00649f1c->value_fc = 0;
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        Function576850(0);
+    }
+    ClearNpcDialogueTextBackground(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
+    ClearSurfaceRect(0x1dc, 0x11b, 0x269, 0x1c2);
+    InvalidateRegion(0x1dc, 0x11b, 0x269, 0x1c2, 0);
+    for (index = 0; index < 8; ++index) {
+        if (g_status_685170.buffers.party_rows[index].occupied != 0) {
+            RegionSetEnable(7 + index);
+            EnableRegionSetInput(7 + index);
+            EnableRegionInput(0x5a + index);
+        }
+    }
+}
+
+/* Tear down the mode-4 option layout: the six option controls lose their
+   secondary state and layout flags before everything is disabled. */
+// FUNCTION: WIZ8 0x00572320
+void Function572320(void)
+{
+    W8TextControl* text;
+
+    Function56FED0();
+    if (gXStatus.fCampMode == 0) {
+        g_screen_state_00649f1c->value_100 = 0;
+    }
+    RegionSetDisable(0x18);
+    RegionSetDisable(0x17);
+    g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_110->DisableSecondaryState(1);
+    g_screen_state_00649f1c->dialogue_text_114->DisableSecondaryState(1);
+    g_screen_state_00649f1c->dialogue_text_118->DisableSecondaryState(1);
+    g_screen_state_00649f1c->dialogue_text_11c->DisableSecondaryState(1);
+    g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
+    text = g_screen_state_00649f1c->dialogue_text_120;
+    text->m_textBuffer.SetFontStateIndex(-1);
+    text->m_textBuffer.SetGeometryDirty();
+    g_screen_state_00649f1c->dialogue_text_124->DisableSecondaryState(1);
+    text = g_screen_state_00649f1c->dialogue_text_124;
+    text->m_textBuffer.SetFontStateIndex(-1);
+    text->m_textBuffer.SetGeometryDirty();
+    g_screen_state_00649f1c->dialogue_text_110->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_114->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_118->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_120->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_124->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_120->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_124->SetEnabled(1);
+    g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1bc->SetEnabled(0);
+    g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+    g_screen_state_00649f1c->value_fc = 0;
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        Function576850(0);
+    }
+    g_screen_state_00649f1c->flag_229 = 0;
+    Function58F6B0(3);
+    Function58BA60();
+}
+
+/* Tear down the mode-5 dialogue layout and retire the current mode. */
+// FUNCTION: WIZ8 0x00573570
+void Function573570(void)
+{
+    RegionSetDisable(0x18);
+    RegionSetDisable(0x17);
+    g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
+    g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1bc->SetEnabled(0);
+    g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+    g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+    g_screen_state_00649f1c->value_fc = 0;
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        Function576850(0);
+    }
+}
+
+/* Tear down the mode-1 dialogue layout; outside camp the mode is retired as
+   well. */
+// FUNCTION: WIZ8 0x00573DD0
+void Function573DD0(void)
+{
+    RegionSetDisable(0x18);
+    RegionSetDisable(0x17);
+    g_screen_state_00649f1c->dialogue_text_11c->RemoveLayoutFlags(g_W8TextControlMask005ED578);
+    g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+    g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
+    g_screen_state_00649f1c->dialogue_text_11c->DisableRegionHelp();
+    g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
+    g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(1);
+    if (gXStatus.fCampMode == 0) {
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00575810
+unsigned char Function575810(W8ItemInstance* item)
+{
+    W8MessageDialogBase* dialog;
+    wchar_t* message;
+    unsigned char result;
+    unsigned char flag;
+    int fact_result;
+
+    result = 1;
+    if (g_screen_state_00649f1c->value_22c != 0 && item == 0) {
+        if (g_screen_state_00649f1c->value_22c != (int)g_status_685170.party_gold) {
+            Function575710();
+            return 1;
+        }
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(0xfa, 200);
+        message = FormatWideString(gppStringList[0x1f58 / 4]);
+        dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
+        SetDialogDestroyCallback(dialog, Function575520);
+        OpenModal(dialog);
+        return 1;
+    }
+    if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ||
+        g_screen_state_00649f1c->dialogue_npc->record->flag_2ea != 0) {
+        if (item != 0) {
+            fact_result = Function528CD0(item->item_id, 0, &flag);
+            if (fact_result == -1) {
+                if (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea != 0) {
+                    return 1;
+                }
+                if ((g_item_records[item->item_id].flags_041 & 2) != 0) {
+                    goto unavailable;
+                }
+                /* 0x005B1740 is the folded return-one sentinel; this site
+                   calls it through a three-argument predicate spelling. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+                if (reinterpret_cast<unsigned char (*)(W8NpcState*, W8ItemInstance*, int)>(
+                        ScreenLifecycleSuccess)(g_screen_state_00649f1c->dialogue_npc, item,
+                                                1) != 0) { // reinterpret-ok: see above
+#pragma clang diagnostic pop
+                    Function528830(0x10, 0, 0, 0);
+                    goto remove;
+                }
+                Function528830(0x11, 0, 0, 0);
+            } else {
+                Function528830(fact_result, 0, 0, 0);
+                result = 0;
+                if (flag != 0) {
+remove:
+                    Function528FF0(item, 0, -1);
+                    return result;
+                }
+                if (g_screen_state_00649f1c->flag_1f9 != 0 &&
+                    g_screen_state_00649f1c->pending_item_1ed.item_id == item->item_id) {
+                    g_screen_state_00649f1c->flag_1f9 = 0;
+                    AddItemToParty(&g_screen_state_00649f1c->pending_item_1ed, 1, 0);
+                    ClearHeldItemDisplay();
+                    return 0;
+                }
+            }
+        }
+    } else if (item != 0) {
+        if ((g_item_records[item->item_id].flags_041 & 2) == 0) {
+            if (WillNpcTradeForItem(g_screen_state_00649f1c->dialogue_npc, item) == 0) {
+                Function528830(7, 0, 0, 0);
+                return 1;
+            }
+            fact_result = Function528CD0(item->item_id, 0, &flag);
+            if (fact_result == -1) {
+                Function50A570(g_screen_state_00649f1c->dialogue_npc, 3,
+                               g_screen_state_00649f1c->dialogue_speaker, item);
+                Function528830(
+                    GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7,
+                    0, 0, 0);
+            } else {
+                Function528830(fact_result, 0, 0, 0);
+                result = 0;
+            }
+            Function528FF0(item, 0, -1);
+            return result;
+        }
+    unavailable:
+        Function528830(0x11, 0, 0, 0);
+        return 1;
+    }
+    return result;
+}
+
+/* Retire the current dialogue layout, then open the layout `interact_id`
+   selects. */
+// FUNCTION: WIZ8 0x00570120
+void Function570120(int interact_id)
+{
+    switch (g_screen_state_00649f1c->value_fc) {
+    case 1:
+        Function573DD0();
+        break;
+    case 2:
+        RegionSetDisable(0x18);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(
+            &g_wchar_00689b34, g_wiz_text_bold_font_683664);
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    case 3:
+        Function571370();
+        break;
+    case 4:
+        Function572320();
+        break;
+    case 5:
+        RegionSetDisable(0x18);
+        RegionSetDisable(0x17);
+        g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1bc->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+        g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    case 6:
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    }
+    switch (interact_id) {
+    case 1:
+        Function573AE0();
+        return;
+    case 2:
+        Function570760();
+        return;
+    case 3:
+        Function570CF0();
+        return;
+    case 4:
+        Function571AA0();
+        return;
+    case 5:
+        Function5732A0();
+        return;
+    }
+}
+
+/* The camp-side mirror of Function570120: camp mode is raised, the current
+   dialogue layout is retired, and a still-pending item goes back onto the
+   item cursor. */
+// FUNCTION: WIZ8 0x00577020
+void Function577020(void)
+{
+    gXStatus.fCampMode = 1;
+    switch (g_screen_state_00649f1c->value_fc) {
+    case 1:
+        Function573DD0();
+        break;
+    case 2:
+        RegionSetDisable(0x18);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(
+            &g_wchar_00689b34, g_wiz_text_bold_font_683664);
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    case 3:
+        Function571370();
+        break;
+    case 4:
+        Function572320();
+        break;
+    case 5:
+        RegionSetDisable(0x18);
+        RegionSetDisable(0x17);
+        g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1bc->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+        g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    case 6:
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = 0;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            Function576850(0);
+        }
+        break;
+    }
+    Function56E800(0);
+    if (g_screen_state_00649f1c->flag_1f9 != 0) {
+        g_status_685170.item_in_hand_235b = g_screen_state_00649f1c->pending_item_1ed;
+        SetItemCursor(0);
+        return;
+    }
+    SetTargetCursor(-1);
+}
+
+/* The dialogue NPC takes the guard script when it is '*' styled and the party
+   walks away; otherwise its record flags drive either a combat notice or the
+   queued scripted action named by the record. While the dialogue is still up
+   the named-action queue hands the speaker's name to 0x00571660 instead.
+   Every occupied living character without a maxed condition practices
+   communication (skill 0x16). */
+// FUNCTION: WIZ8 0x00577290
+void Function577290(int value)
+{
+    W8MonsterInfo* info;
+    W8Character* character;
+    int index;
+
+    if (g_screen_state_00649f1c->dialogue_npc->name_style == 0x2a &&
+        (info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc)) != 0) {
+        info->monster->SetScript004C7F10("Guard.msf", 1);
+    }
+    if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->unknown_1c == 0 ||
+         g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&
+        g_screen_state_00649f1c->value_25c < 1) {
+        if (g_screen_state_00649f1c->dialogue_npc->unknown_1d == 0) {
+            Function528830(1, 0, 0, 0);
+        } else {
+            Function528830(0, 0, 0, 0);
+            g_screen_state_00649f1c->dialogue_npc->unknown_1d = 0;
+            if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
+                g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 &&
+                g_screen_state_00649f1c->dialogue_npc->record->unknown_056 == 0) {
+                for (index = 0; index < 8; ++index) {
+                    character = &g_status_685170.buffers.characters[index];
+                    if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                        character->hp_current != 0 && character->highest_condition < 0xf) {
+                        PracticeCharacterSkill(character, 0x16, 0xf, 0);
+                    }
+                }
+            }
+            if (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_252 == 0) {
+                Function571660(g_screen_state_00649f1c->dialogue_npc->record->source_name_004,
+                               -1, 1);
+                return;
+            }
+            if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
+                (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 ||
+                 g_screen_state_00649f1c->dialogue_npc->is_present != 0)) {
+                Function5775D0(g_screen_state_00649f1c->dialogue_npc->record->source_name_004,
+                               -1);
+            }
+        }
     }
 }

@@ -48,7 +48,11 @@ struct W8NpcState {
     unsigned char unknown_1c;
     /* 0x1d: set by CreateNpcRuntimeNode when the node is built. */
     unsigned char unknown_1d;
-    unsigned char unknown_1e[6];
+    unsigned char unknown_1e[4];
+    /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
+       staged. */
+    unsigned char flag_22;
+    unsigned char flag_23;
     /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
     unsigned char level_band;
     bool is_present; /* 0x25 */
@@ -63,9 +67,9 @@ struct W8NpcState {
        names. */
     unsigned char partner_index_2c;
     unsigned char unknown_2d;
-    /* 0x2e: the space character selects the naming style whose name a fact can
-       substitute. */
-    char name_style;
+    /* 0x2e: the naming-style id a fact can substitute; values run to 0x85,
+       past the signed-char range. */
+    unsigned char name_style;
     /* 0x2f: the loaded level id the binding is stamped for. */
     unsigned char bound_level;
     /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
@@ -74,7 +78,10 @@ struct W8NpcState {
     /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
        gold field. */
     int gold_80;
-    unsigned char unknown_84[5];
+    /* 0x84: cleared by 0x0056D030 when the runtime-node flag at 0x1d is
+       set. */
+    unsigned char flag_84;
+    unsigned char unknown_85[4];
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */

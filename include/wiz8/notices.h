@@ -19,3 +19,4 @@ enum W8NoticeId {
    0x0058AC00. The short form is source-level default arguments: the retail
    AddPartyGold caller leaves -1, -1 and 0 from its preceding formatter call
    on the stack and supplies only the channel and formatted line afterward. */
+void Function58AC00(int channel, const wchar_t* text, int x, int y, int flags);

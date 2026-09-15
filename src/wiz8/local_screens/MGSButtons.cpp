@@ -66,7 +66,8 @@ W8TextControl* g_submenu_rows_69b8ec[5];
 /* Drop the combat-end notification and tear down the panel and its rows.
    The reset body compiles this three times - before the rebuild, again while
    the notification is still live, and once more when the rebuild fails. */
-static __forceinline void DestroySubMenuControls(void)
+// FUNCTION: WIZ8 0x00595570
+void DestroySubMenuControls(void)
 {
     int i;
 

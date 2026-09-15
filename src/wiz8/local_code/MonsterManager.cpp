@@ -15,6 +15,7 @@
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
@@ -161,7 +162,6 @@ void Function5248D0(W8MonsterInfo* monster_info);
 void Function508D70(unsigned int monster_list_index);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
-void Function595570(void);
 void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
@@ -1384,7 +1384,7 @@ void ToggleCombatMode(void)
     EndCombat(0);
     ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_ENDED], -1, -1, 0);
     if (g_level_block->combat_end_notification != -1) {
-        Function595570();
+        DestroySubMenuControls();
     }
 }
 

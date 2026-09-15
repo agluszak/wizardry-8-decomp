@@ -11,9 +11,9 @@ struct W8MonsterManagerEntry;
 
 W8Monster* GetNpcMonster(W8NpcState* npc);
 
-void ChooseNewGameStartLocation(int* level, int* entrance); /* 0x005092F0 */
-void SelectStartNpcGreeting00509560(void);                  /* 0x00509560 */
-int SelectNewGameStartLevel(void);                          /* 0x00509750 */
+void ChooseNewGameStartLocation(int* level, int* entrance);             /* 0x005092F0 */
+void SelectStartNpcGreeting00509560(void);                              /* 0x00509560 */
+int SelectNewGameStartLevel(void);                                      /* 0x00509750 */
 void Function509CD0(unsigned char value, int enabled, int location_id); /* 0x00509CD0 */
 void Function50B160(W8NpcState* npc);                                   /* 0x0050B160 */
 void Function50B590(int value, int a, int b, int c);                    /* 0x0050B590 */
@@ -21,6 +21,9 @@ void Function50B590(int value, int a, int b, int c);                    /* 0x005
 unsigned char CountLeadingPartySlots(void);
 char GetNpcDisposition(W8NpcState* npc);                                           /* 0x0050A280 */
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                             /* 0x0050DD10 */
+unsigned char FindNpcOfKind(int kind);                                             /* 0x0050DD80 */
+void Function55BB10(W8NpcState* npc);                                              /* 0x0055BB10 */
+void Function55BCC0(W8NpcState* npc);                                              /* 0x0055BCC0 */
 unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                 /* 0x0050A3C0 */
 void Function50AE40(W8NpcState* npc, int enabled);                                 /* 0x0050AE40 */
@@ -73,6 +76,8 @@ void ReleaseNpcBinding(int value);
 /* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
+char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
+void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 void Function509CD0(unsigned char value, int enabled, int location_id);
 const char* GetNpcDisplayName(W8NpcState* npc);

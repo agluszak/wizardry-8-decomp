@@ -19,6 +19,8 @@ extern const int g_scroll_button_positions_64c330[2][2];
 /* The action-kind message indexes the caption draw maps through. */
 extern const unsigned short g_action_kind_message_ids_61e988[12];
 
+/* Drop the combat-end notification and tear down the panel and its rows. */
+void DestroySubMenuControls(void);                 /* 0x00595570 */
 /* Invalidate (when asked) then redraw the sub-menu panel. */
 void RefreshSubMenuPanel005963E0(char invalidate); /* 0x005963E0 */
 /* Close and rebuild the sub menu around the saved combat-end notification. */

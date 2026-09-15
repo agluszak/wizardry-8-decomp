@@ -6,6 +6,7 @@ class stModelInstance2D;
 
 #include "input.h"
 #include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/layouts/item_instance.h"
 #include "wiz8/vector.h"
 
 struct W8IList;
@@ -394,6 +395,9 @@ static_assert(sizeof(W8MainGamePanel005EE9E4) == 0x4c, "W8MainGamePanel005EE9E4_
 // VTABLE: WIZ8 0x005ee920
 class W8NpcDialogueTextController : public Controls {
 public:
+    W8NpcDialogueTextController(int left, int top, int right, int bottom, int render_target,
+                                int render_arg_1c, int render_arg_20, int field_4c,
+                                int field_50); /* 0x0055DE40 */
     bool HandleScrollDownCommand(unsigned int command);
     bool HandleScrollUpCommand(unsigned int command);
 
@@ -653,6 +657,27 @@ struct W8PendingNoticeLine {
     int npc_kind;
 };
 
+#pragma pack(push, 1)
+/* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
+   Function56CA90 dispatch. The flag pair at +0x14 is stored as two bytes but
+   Function56CA90 reloads it as one dword for the Function56C6D0 call, so the
+   union keeps both spellings honest. */
+struct W8PendingNotice {
+    W8NpcState* npc;
+    W8ItemInstance item;
+    int line;
+    union {
+        int flags;
+        struct {
+            unsigned char flag;
+            unsigned char force;
+            unsigned char unused_16[2];
+        } bytes;
+    };
+};
+#pragma pack(pop)
+extern W8PendingNotice g_pending_notice_68ee60;
+
 extern W8DialogBase* g_modal_owner_0068edd0;
 extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
@@ -663,37 +688,86 @@ void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x005
 
 #pragma pack(push, 1)
 struct W8MainScreenState {
-    unsigned char unknown_000[0xf8];
+    /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
+    short value_000;
+    unsigned char unknown_002[0xee];
+    int value_f0; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
+    /* 0x0f4: the party slot 0x0056D030 picks as the dialogue's leading
+       speaker - the occupied row whose character leads skill 0x16. */
+    int dialogue_speaker;
     int target_location_id_f8;
     int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
-    unsigned char unknown_100[4];
+    int value_100;
     int value_104;
-    unsigned char unknown_108[0x28];
+    int value_108;
+    W8TextControl* dialogue_text_10c; /* 0x10c: the NPC-name caption */
+    W8TextControl* dialogue_text_110;
+    W8TextControl* dialogue_text_114;
+    W8TextControl* dialogue_text_118;
+    W8TextControl* dialogue_text_11c;
+    W8TextControl* dialogue_text_120;
+    W8TextControl* dialogue_text_124;
+    W8TextControl* dialogue_text_128;
+    W8Widget* dialogue_widget_12c;
     W8NpcDialogueScrollWidget* dialogue_scroll_130; /* 0x130 */
     W8Widget* dialogue_widget_134;                  /* 0x134 */
     W8Widget* dialogue_widget_138;                  /* 0x138 */
-    unsigned char unknown_13c[0x34];
+    W8TextControl* dialogue_text_13c;
+    W8TextControl* dialogue_text_140;
+    unsigned char unknown_144[4];
+    W8TextControl* dialogue_text_148;
+    unsigned char unknown_14c[4];
+    W8TextControl* dialogue_text_150;
+    W8TextControl* dialogue_text_154;
+    W8TextControl* dialogue_text_158;
+    W8TextControl* dialogue_text_15c;
+    W8TextControl* dialogue_text_160;
+    W8TextControl* dialogue_text_164;
+    W8TextControl* dialogue_text_168;
+    W8TextControl* dialogue_text_16c;
     /* The six option buttons hosted by panel_1a8; they activate only while
        value_fc == 4. Created as plain W8TextControls (regions 0x75..0x7a) by
        0x0056D1D0. */
     W8TextControl* option_buttons_170[6];
-    unsigned char unknown_188[0x20];
-    W8MainGamePanel005EE9F0* panel_1a8; /* 0x1a8 */
-    unsigned char unknown_1ac[4];
+    W8TextControl* dialogue_text_188;
+    unsigned char unknown_18c[4];
+    W8TextControl* dialogue_text_190;
+    W8TextControl* dialogue_text_194;
+    W8TextControl* dialogue_text_198;
+    W8TextControl* dialogue_text_19c;
+    W8TextControl* dialogue_text_1a0;
+    W8TextControl* dialogue_text_1a4;
+    W8MainGamePanel005EE9F0* panel_1a8;                       /* 0x1a8 */
+    Controls* panel_1ac;                                      /* 0x1ac */
     W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
     Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
-    unsigned char unknown_1b8[8];
-    W8MainGamePanel005EE9E4* text_input_panel_1c0; /* 0x1c0 */
-    unsigned char unknown_1c4[0x10];
+    Controls* panel_1b8;                                      /* 0x1b8 */
+    Controls* panel_1bc;                                      /* 0x1bc */
+    W8MainGamePanel005EE9E4* text_input_panel_1c0;            /* 0x1c0 */
+    int value_1c4;
+    int value_1c8;
+    int value_1cc;
+    int value_1d0;
     W8NpcState* dialogue_npc;
     /* 0x1d8 and 0x1ec: two bytes the screen reset writes 0xff and 0. */
     unsigned char flag_1d8;
     unsigned char flag_1d9;
-    unsigned char unknown_1da[0x12];
+    unsigned char unknown_1da[2];
+    /* 0x1dc: the running NPC-dialogue transcript. Each element is a malloc'd
+       0xca-byte record - wchar_t text[100] plus a trailing category byte at
+       +0xc8 - that 0x00575070 clears, 0x005750D0/0x00575290 load and save,
+       and 0x0055E840 replays. */
+    W8GrowableVector<wchar_t*> dialogue_transcript;
     unsigned char flag_1ec;
-    unsigned char unknown_1ed[0xd];
+    /* 0x1ed: the item a pending NPC notice carries; the queued-notice block
+       at 0x0068EE60 copies it here when the dialogue opens. */
+    W8ItemInstance pending_item_1ed;
+    unsigned char flag_1f9;
     unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
-    unsigned char unknown_1fb[0xd];
+    unsigned char unknown_1fb[5];
+    unsigned char flag_200;
+    unsigned char flag_201;
+    unsigned char unknown_202[6];
     int quote_bubble;
     short quote_x;
     short quote_y;
@@ -703,12 +777,20 @@ struct W8MainScreenState {
     unsigned char unknown_215[3];
     W8GrowableVector<W8PendingNoticeLine*> pending_notice_lines; /* 0x218 */
     unsigned char dialogue_cursor_flag;                          /* 0x228 */
-    unsigned char unknown_229[0xb];
+    unsigned char flag_229;
+    unsigned char unknown_22a[2];
+    int value_22c;
+    unsigned char unknown_230[4];
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
     unsigned char flag_23c;
-    unsigned char unknown_23d[0xb];
+    unsigned char flag_23d;
+    unsigned char unknown_23e[2];
+    /* 0x240/0x244: the camera pitch and yaw saved while the dialogue opens so
+       its close can restore them. */
+    float saved_camera_pitch_240;
+    float saved_camera_yaw_244;
     unsigned char quote_notice_kind;
     unsigned char unknown_249[3];
     void* quote_notice_payload;
@@ -718,10 +800,10 @@ struct W8MainScreenState {
     unsigned char unknown_253[5];
     /* 0x258: the screen reset writes -1 here, the no-selection value. */
     int value_258;
-    unsigned char unknown_25c[4];
+    int value_25c;
     /* 0x260: raised by the screen reset. */
     unsigned char flag_260;
-    unsigned char unknown_261;
+    unsigned char flag_261;
     unsigned char dialogue_panel_hidden; /* 0x262 */
     unsigned char unknown_263;
     int last_notice_npc_kind; /* 0x264 */
@@ -759,8 +841,9 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog);
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
-void ForwardNpcScriptNotice(W8NpcState* npc, int value, int line, int suppress);
-void Function56C5E0(W8NpcState* npc, int value, int line, int suppress, int arg); /* 0x0056C5E0 */
+void ForwardNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int suppress);
+void Function56C5E0(W8NpcState* npc, W8ItemInstance* item, int line, int suppress,
+                    int arg); /* 0x0056C5E0 */
 void ResetMainGameScreenState(void);
 void FlushPendingNoticeLines005766B0(void); /* 0x005766B0 */
 /* 0x0056C520: zero W8MainScreenState, write its reset values, and reload the
@@ -804,12 +887,12 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
 void LookAtDialogueNpc(void);                               /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void);                        /* 0x00576B80 */
-void Function56C6D0(W8NpcState* npc, const W8ItemInstance* item, int b, int c,
-                    int d); /* 0x0056C6D0 */
-void Function577520(void);  /* 0x00577520 */
-void Function570A20(void);  /* 0x00570A20 */
-void Function570CF0(void);  /* 0x00570CF0 */
-void Function56CA90(void);  /* 0x0056CA90 */
+void Function56C6D0(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
+                    int force); /* 0x0056C6D0 */
+void Function577520(void);      /* 0x00577520 */
+void Function570A20(void);      /* 0x00570A20 */
+void Function570CF0(void);      /* 0x00570CF0 */
+void Function56CA90(void);      /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
@@ -869,11 +952,39 @@ void DismissHighlightOverlay(void); /* 0x00563EB0 */
 void Function565740(int slot);
 void Function568E10(void);
 short Function5698C0(void);
-void Function569570(void);                                   /* 0x00569570 */
-void Function560E10(unsigned int party_slot, int flag);      /* 0x00560E10 */
-void Function570120(int interact_id);                        /* 0x00570120 */
-void Function595570(void);                                   /* 0x00595570 */
-void Function56CA60(W8NpcState* npc, int, int, int, int); /* 0x0056CA60 */
+void Function569570(void);                              /* 0x00569570 */
+void Function560E10(unsigned int party_slot, int flag); /* 0x00560E10 */
+void Function570120(int interact_id);                   /* 0x00570120 */
+void Function56CA60(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
+                    int force); /* 0x0056CA60 */
+unsigned char Function56CAD0(W8NpcState* npc, W8ItemInstance* item,
+                             unsigned char force);                                  /* 0x0056CAD0 */
+void Function56D030(W8NpcState* npc, int flags);                                    /* 0x0056D030 */
+void Function56D1D0(void);                                                          /* 0x0056D1D0 */
+void Function56EDD0(int value);                                                     /* 0x0056EDD0 */
+void Function573DD0(void);                                                          /* 0x00573DD0 */
+void Function571370(void);                                                          /* 0x00571370 */
+void Function572320(void);                                                          /* 0x00572320 */
+void Function573570(void);                                                          /* 0x00573570 */
+void Function570760(void);                                                          /* 0x00570760 */
+void Function577290(int value);                                                     /* 0x00577290 */
+unsigned char Function575810(W8ItemInstance* item);                                 /* 0x00575810 */
+void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
+void Function56FED0(void);                                                          /* 0x0056FED0 */
+void Function576850(int value);                                                     /* 0x00576850 */
+void Function5ADB10(int value);                                                     /* 0x005ADB10 */
+void Function58BA60(void);                                                          /* 0x0058BA60 */
+void Function55DE50(void);                                                          /* 0x0055DE50 */
+void Function575070(void);                                                          /* 0x00575070 */
+void Function575710(void);                                                          /* 0x00575710 */
+void Function571660(wchar_t* name, int value, int arg);                             /* 0x00571660 */
+void Function577020(void);                                                          /* 0x00577020 */
+void __fastcall Function55E940(W8NpcDialogueTextController* controller);              /* 0x0055E940 */
+void __fastcall Function55EA40(W8NpcDialogueTextController* controller);              /* 0x0055EA40 */
+void Function571AA0(void);                                                          /* 0x00571AA0 */
+void Function573AE0(void);                                                          /* 0x00573AE0 */
+void Function5732A0(void);                                                          /* 0x005732A0 */
+extern unsigned char g_flag_006f04ec;
 void Function56E800(int);
 unsigned char Function56EC90(unsigned int party_slot);
 void Function5777C0(void);

@@ -34,6 +34,7 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
@@ -309,7 +310,7 @@ unsigned char OpenSpellCastingView0059F0E0(int party_slot)
     UpdateScreenOverlays(0);
     gXStatus.fSpellCastMode = 1;
     if (g_level_block->combat_end_notification != -1) {
-        Function595570();
+        DestroySubMenuControls();
     }
     gpSCSV->flag_570 = 0;
     gpSCSV->field_574 = 1;
