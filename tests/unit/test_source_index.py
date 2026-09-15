@@ -99,7 +99,8 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
     configured: list[bool] = []
 
-    def configure(_settings: Settings) -> None:
+    def configure(_settings: Settings, *, force: bool = False) -> None:
+        assert force is True
         configured.append(True)
         database.parent.mkdir(parents=True, exist_ok=True)
         database.write_text("[]\n", encoding="utf-8")

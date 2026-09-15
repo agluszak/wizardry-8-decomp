@@ -378,7 +378,8 @@ def _instruction_windows(
 
 
 def translate_addresses(repository: Path, target: str, queries: list[int]) -> dict[str, Any]:
-    recmp_target = _project(repository).get(target)
+    recmp_target = comparison_target(repository, target)
+    warn_if_build_may_be_stale(repository, target, recmp_target)
     engine = Compare.from_target(recmp_target)
     entities = list(
         engine.compare_addresses(
@@ -442,7 +443,9 @@ def compare_linked_image(repository: Path, target: str) -> dict[str, Any]:
 def compare_vtables(repository: Path, target: str, class_filter: str | None) -> dict[str, Any]:
     from reccmp.compare.report import get_udiff_for_entity
 
-    engine = Compare.from_target(_project(repository).get(target))
+    recmp_target = comparison_target(repository, target)
+    warn_if_build_may_be_stale(repository, target, recmp_target)
+    engine = Compare.from_target(recmp_target)
     name_filter = class_filter.casefold() if class_filter else None
     rows = []
     for item in engine.compare_vtables(include_diff=True):
@@ -476,7 +479,9 @@ def compare_vtables(repository: Path, target: str, class_filter: str | None) -> 
 def compare_data(repository: Path, target: str) -> dict[str, Any]:
     from reccmp.tools.datacmp import do_the_comparison
 
-    items = list(do_the_comparison(_project(repository).get(target)))
+    recmp_target = comparison_target(repository, target)
+    warn_if_build_may_be_stale(repository, target, recmp_target)
+    items = list(do_the_comparison(recmp_target))
     problems = []
     artifact_dir = repository / "build" / "reports" / "datacmp"
     for item in items:

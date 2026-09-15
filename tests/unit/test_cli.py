@@ -23,7 +23,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
         ("breakpoint-hit", 0),
     ],
 )
-def test_debug_builds_selected_product_before_launch(
+def test_debug_uses_existing_selected_product_before_launch(
     monkeypatch, scenario, reason, exit_code
 ) -> None:
     from wiz8decomp import build
@@ -31,7 +31,10 @@ def test_debug_builds_selected_product_before_launch(
 
     events = []
     monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace())
-    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(target))
+    monkeypatch.setattr(build, "build_target", lambda *_: pytest.fail("must not build by default"))
+    monkeypatch.setattr(
+        build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
+    )
 
     def launch(_, arguments, **options):
         events.append("launch")
@@ -55,8 +58,36 @@ def test_debug_builds_selected_product_before_launch(
         arguments.extend(["--scenario", scenario])
     result = CliRunner().invoke(app, arguments)
     assert result.exit_code == exit_code, result.output
-    assert events == ["runtime-test" if scenario else "runtime", "launch"]
+    assert events == [("check", "runtime-test" if scenario else "runtime"), "launch"]
     assert "session: session.json" in result.output
+
+
+def test_debug_build_option_builds_before_launch(monkeypatch) -> None:
+    from wiz8decomp import build
+    from wiz8decomp.debug import debugger
+
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(("build", target)))
+    monkeypatch.setattr(
+        build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
+    )
+    monkeypatch.setattr(
+        debugger,
+        "run_debugger",
+        lambda *_args, **_kwargs: {
+            "report": "",
+            "reason": "exited normally",
+            "exit_code": 0,
+            "log": "raw.txt",
+            "session": "session.json",
+        },
+    )
+
+    result = CliRunner().invoke(app, ["debug", "--build"])
+
+    assert result.exit_code == 0, result.output
+    assert events == [("build", "runtime"), ("check", "runtime")]
 
 
 def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypatch) -> None:
@@ -173,6 +204,67 @@ def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) ->
 
     assert result.exit_code == 0, result.output
     assert events == ["index", ("build", "WIZ8"), "compare"]
+
+
+@pytest.mark.parametrize(
+    "arguments,function_name",
+    [
+        (["vtable", "Widget"], "compare_vtables"),
+        (["datacmp"], "compare_data"),
+        (["addr", "0x401000"], "translate_addresses"),
+    ],
+)
+def test_inspection_commands_do_not_build_by_default(
+    tmp_path, monkeypatch, arguments, function_name
+) -> None:
+    from wiz8decomp import build, comparison
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    calls = []
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(build, "build_target", lambda *_args: pytest.fail("must not build"))
+    monkeypatch.setattr(
+        comparison, function_name, lambda *_args: calls.append(function_name) or {"ok": True}
+    )
+
+    result = CliRunner().invoke(app, arguments)
+
+    assert result.exit_code == 0, result.output
+    assert calls == [function_name]
+
+
+def test_runtime_test_build_is_explicit(monkeypatch) -> None:
+    from wiz8decomp import build, runtime
+
+    settings = object()
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(("build", target)))
+    monkeypatch.setattr(
+        build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
+    )
+    monkeypatch.setattr(runtime, "RUNTIME_SCENARIOS", ("probe",))
+    monkeypatch.setattr(
+        runtime,
+        "run_runtime_suite",
+        lambda *_args, **_kwargs: events.append("run") or {"ok": True},
+    )
+
+    default = CliRunner().invoke(app, ["runtime-test", "--scenario", "probe"])
+    explicit = CliRunner().invoke(app, ["runtime-test", "--build", "--scenario", "probe"])
+
+    assert default.exit_code == 0, default.output
+    assert explicit.exit_code == 0, explicit.output
+    assert events == [
+        ("check", "runtime-test"),
+        "run",
+        ("build", "runtime-test"),
+        ("check", "runtime-test"),
+        "run",
+    ]
 
 
 def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:

@@ -736,7 +736,7 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
     if not database.is_file() or any(
         path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
     ):
-        configure_clang(settings)
+        configure_clang(settings, force=True)
     if not database.is_file():
         raise FileNotFoundError(f"clang configuration did not produce {database}")
     roots = indexed_targets(repository, database)

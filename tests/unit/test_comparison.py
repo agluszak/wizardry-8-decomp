@@ -18,7 +18,6 @@ def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accurac
     from reccmp.compare import Compare
     from reccmp.compare.diff import RawDiffOutput
     from reccmp.compare.report import ReccmpComparedEntity
-    from reccmp.project.detect import RecCmpProject
     from reccmp.types import EntityType
 
     slot = ("vtable0x00", "Widget::Draw")
@@ -41,9 +40,8 @@ def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accurac
             ),
         )
 
-    monkeypatch.setattr(
-        RecCmpProject, "from_directory", lambda *_: SimpleNamespace(get=lambda _: object())
-    )
+    monkeypatch.setattr(comparison, "comparison_target", lambda *_args: object())
+    monkeypatch.setattr(comparison, "warn_if_build_may_be_stale", lambda *_args: None)
     monkeypatch.setattr(
         Compare, "from_target", lambda *_: SimpleNamespace(compare_vtables=compare_vtables)
     )

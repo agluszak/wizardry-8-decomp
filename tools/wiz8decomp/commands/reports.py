@@ -112,12 +112,21 @@ def data_command(
 
 
 @app.command("status")
-def status_command() -> None:
+def status_command(
+    build: Annotated[
+        bool, typer.Option("--build", help="Build products before reporting.")
+    ] = False,
+) -> None:
     """Report project-wide decomp and matching progress."""
     from .. import command_support as cli
     from ..reports.status import status_report
 
-    cli.emit(status_report(cli.settings()))
+    settings = cli.settings()
+    if build:
+        from ..build import build_target
+
+        build_target(settings, "reccmp-products")
+    cli.emit(status_report(settings))
 
 
 @app.command("context")

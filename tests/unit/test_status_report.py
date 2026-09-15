@@ -17,6 +17,9 @@ from reccmp.compare.diagnosis import (
 from reccmp.compare.report import ReccmpComparedEntity
 from reccmp.parser.marker import MarkerType
 from reccmp.types import EntityType
+from typer.testing import CliRunner
+from wiz8decomp import command_support
+from wiz8decomp.cli import app
 from wiz8decomp.reports import status
 
 
@@ -203,8 +206,7 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
         },
         get=lambda target: SimpleNamespace(target_id=target),
     )
-    built = []
-    monkeypatch.setattr(status, "build_target", lambda _settings, target: built.append(target))
+    monkeypatch.setattr(status, "warn_if_build_may_be_stale", lambda *_args: None)
     monkeypatch.setattr(status.RecCmpProject, "from_directory", lambda _path: project)
     monkeypatch.setattr(status.Compare, "from_target", lambda *_args, **_kwargs: engine)
     monkeypatch.setattr(
@@ -215,7 +217,6 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
 
     report = status.status_report(SimpleNamespace(repo_dir=tmp_path))
 
-    assert built == ["reccmp-products"]
     assert set(report["targets"]) == {"WIZ8", "SREXT_UNZIP", "SRDD_OPENGL"}
     assert report["targets"]["SRDD_OPENGL"] == {
         "binary": "srDD_OpenGL.dll",
@@ -233,7 +234,6 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
     assert unzip["original_functions"] is None
     assert unzip["source_coverage"] is None
     assert unzip["progress"] is None
-
     assert report["totals"]["known_original_scope"] == {
         "targets": 1,
         "original_functions": 7701,
@@ -241,3 +241,19 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
         "source_coverage": pytest.approx(1 / 7701),
         "progress": pytest.approx(1 / 7701),
     }
+
+
+def test_status_build_is_explicit(monkeypatch) -> None:
+    from wiz8decomp import build
+
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+    monkeypatch.setattr(build, "build_target", lambda _, target: events.append(target))
+    monkeypatch.setattr(status, "status_report", lambda _settings: {"ok": True})
+
+    default = CliRunner().invoke(app, ["report", "status"])
+    explicit = CliRunner().invoke(app, ["report", "status", "--build"])
+
+    assert default.exit_code == 0, default.output
+    assert explicit.exit_code == 0, explicit.output
+    assert events == ["reccmp-products"]
