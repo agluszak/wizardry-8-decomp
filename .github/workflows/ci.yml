@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -31,6 +32,8 @@ jobs:
       WIZ8_WORK_DIR: /tmp/wiz8-work
       WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
       WIZ8_RUNTIME_DISPLAY: virtual
+      TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner }}
+      LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner) }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -115,7 +118,7 @@ jobs:
         run: uv run wiz8 ghidra restore
 
       - name: Download and verify licensed GOG input
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: env.LICENSED_INPUTS == 'true'
         env:
           WIZ8_GOG_URL: ${{ secrets.WIZ8_GOG_URL }}
         run: |
@@ -133,10 +136,86 @@ jobs:
           EOF
 
       - name: Prepare and verify licensed corpus
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: env.LICENSED_INPUTS == 'true'
         run: |
           uv run wiz8 prepare
           uv run wiz8 corpus verify
+
+      - name: Generate reccmp PR status
+        if: env.TRUSTED_PR == 'true'
+        run: |
+          status_json="$RUNNER_TEMP/reccmp-status.json"
+          comment="$RUNNER_TEMP/reccmp-status.md"
+          uv run wiz8 report status --build > "$status_json"
+          jq -r '
+            def pct:
+              if . == null then "n/a"
+              else (((. * 10000 | round) / 100) | tostring) + "%"
+              end;
+            .totals as $t |
+            $t.known_original_scope as $k |
+            (
+              [
+                "<!-- wiz8-reccmp-status -->",
+                "### reccmp status",
+                "",
+                "| Metric | Value |",
+                "| --- | ---: |",
+                "| Source functions | \($t.source_functions) |",
+                "| Source coverage (known scope) | \($k.source_functions) / \($k.original_functions) (\($k.source_coverage | pct)) |",
+                "| Effective progress (known scope) | \($k.progress | pct) |",
+                "| Paired source functions | \($t.paired) |",
+                "| Exact | \($t.exact) |",
+                "| Effective | \($t.effective) |",
+                "| Mismatch | \($t.mismatch) |",
+                "| Inconclusive | \($t.inconclusive) |",
+                "| Unpaired | \($t.unpaired) |",
+                "| Ignored | \($t.ignored) |",
+                "| Pair accuracy | \($t.accuracy | pct) |",
+                "",
+                "<details><summary>Per target</summary>",
+                "",
+                "| Target | Source | Coverage | Progress | Exact | Effective | Mismatch | Inconclusive | Unpaired | Accuracy |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
+              ]
+              + (
+                  .targets
+                  | to_entries
+                  | map(select(.value.state == "comparison"))
+                  | map(
+                      .value as $v
+                      | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.progress | pct) | \($v.comparison.exact) | \($v.comparison.effective) | \($v.comparison.mismatch) | \($v.comparison.inconclusive) | \($v.comparison.unpaired) | \($v.comparison.accuracy | pct) |"
+                    )
+                )
+              + ["", "</details>"]
+            ) | join("\n")
+          ' "$status_json" > "$comment"
+          printf '\n\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
+
+      - name: Post reccmp status comment
+        if: env.TRUSTED_PR == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          marker='<!-- wiz8-reccmp-status -->'
+          comment="$RUNNER_TEMP/reccmp-status.md"
+          payload="$RUNNER_TEMP/reccmp-status-comment.json"
+          comment_id="$(
+            gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq ".[] | select(.body | contains(\"$marker\")) | .id" \
+              | head -n1
+          )"
+          jq -Rs '{body: .}' < "$comment" > "$payload"
+          if [ -n "$comment_id" ]; then
+            gh api --method PATCH \
+              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
+              --input "$payload" >/dev/null
+          else
+            gh api --method POST \
+              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              --input "$payload" >/dev/null
+          fi
 
       - name: Run licensed comparison tests
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -147,7 +226,7 @@ jobs:
         run: uv run wiz8 runtime-test --check-order
 
       - name: Remove licensed inputs and derived trees
-        if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: always() && env.LICENSED_INPUTS == 'true'
         run: |
           wineserver -k || true
           rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" config/local-inputs.yml
