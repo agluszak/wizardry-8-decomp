@@ -438,7 +438,7 @@ def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any
 
 
 def build_toolchain(settings: Settings, toolchains: list[str] | None = None) -> dict[str, Any]:
-    from .toolchain import build_toolchain_images
+    from .ghidra.fid_seeds import build_toolchain_images
 
     toolchain_ids = toolchains or ["vc6-sp5"]
     return build_toolchain_images(settings, toolchain_ids)
