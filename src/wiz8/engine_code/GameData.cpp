@@ -152,7 +152,7 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
             gd_prop = prop->m_gd_prop;
         }
     } else {
-        gd_prop = static_cast<GDProp*>(*g_oct_pre_tree_659c74->positional_3b8->GetAt(prop_id));
+        gd_prop = static_cast<GDProp*>(*g_oct_pre_tree_659c74->props_3b8->GetAt(prop_id));
     }
     surfaces_38 = gd_prop->m_pGDSurfaces;
     vertices_24 = gd_prop->m_pVertices;

@@ -361,6 +361,7 @@ void ProcessMonsterManagerFrame(void);
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
+float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
 
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);

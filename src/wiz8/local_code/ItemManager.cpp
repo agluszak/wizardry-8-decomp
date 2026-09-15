@@ -609,7 +609,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
         return 0;
     }
 
-    sector = g_octree_6598a4->current_sector;
+    sector = g_octree_6598a4->current_prop;
     if (sector != item->sector_id) {
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);

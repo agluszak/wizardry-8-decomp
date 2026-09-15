@@ -1586,7 +1586,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 }
 
 // FUNCTION: WIZ8 0x004EFB60
-static float GetAveragePartyMemberLevel(void)
+float GetAveragePartyMemberLevel(void)
 {
     float total = 0.0f;
     float count = 0.0f;

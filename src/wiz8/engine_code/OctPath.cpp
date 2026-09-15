@@ -189,7 +189,7 @@ unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
     }
 
     if ((unsigned int)m_ulNumCondFrames > 1 && (unsigned int)m_ulNumCondNodes > 1) {
-        success = FileWrite(handle, m_pCondPaths, m_ulNumCondPaths * sizeof(W8ConditionalPath), 0);
+        success = FileWrite(handle, m_pCondPaths, m_ulNumCondPaths * sizeof(GDPropCondPaths), 0);
         if (success == 0) {
             srAssertFail("fSuccess", OCTPATH_CPP, 0x8b7,
                          "WritePathNodes: Couldn't write Conditional Prop array.\n");
@@ -232,28 +232,28 @@ unsigned char W8PathingService::SaveWaypointSnapshot00459400(unsigned char force
     }
 
     BuildWaypointFileData0045E440();
-    if (file_waypoints_050 != 0) {
-        free(file_waypoints_050);
+    if (m_pFileWayPoints != 0) {
+        free(m_pFileWayPoints);
     }
-    file_waypoints_050 =
-        static_cast<W8FileWaypoint*>(malloc(m_ulNumSurfaces * sizeof(W8FileWaypoint)));
-    if (file_waypoints_050 == 0) {
+    m_pFileWayPoints =
+        static_cast<W8FileWaypoint*>(malloc(m_ulNumWayPoints * sizeof(W8FileWaypoint)));
+    if (m_pFileWayPoints == 0) {
         srAssertFail("m_pFileWayPoints", OCTPATH_CPP, 0x968, 0);
     }
 
     unsigned int index;
-    for (index = 0; index < m_ulNumSurfaces; ++index) {
-        file_waypoints_050[index].flags_00 = m_pSurfaces_048[index].flags_00 & 0xffdf;
-        file_waypoints_050[index].first_edge_02 = m_pSurfaces_048[index].first_edge_24;
-        file_waypoints_050[index].position_04 = m_pSurfaces_048[index].position_04;
+    for (index = 0; index < m_ulNumWayPoints; ++index) {
+        m_pFileWayPoints[index].flags_00 = m_pSurfaces_048[index].flags_00 & 0xffdf;
+        m_pFileWayPoints[index].first_edge_02 = m_pSurfaces_048[index].first_edge_24;
+        m_pFileWayPoints[index].position_04 = m_pSurfaces_048[index].position_04;
     }
-    for (index = 0; index < m_ulNumEdges; ++index) {
+    for (index = 0; index < m_ulNumWayPtLinks; ++index) {
         m_pEdges_04c[index].flags_00 &= 0x7fffffff;
     }
 
     unsigned char result = WriteWaypointFile00459540();
-    free(file_waypoints_050);
-    file_waypoints_050 = 0;
+    free(m_pFileWayPoints);
+    m_pFileWayPoints = 0;
     return result;
 }
 
@@ -268,21 +268,20 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
     char path[256];
     sprintf(path, "%s.WPT", level_name);
 
-    if (m_ulNumSurfaces > 0xffff) {
+    if (m_ulNumWayPoints > 0xffff) {
         return 0;
     }
     unsigned int handle = FileOpen(path, 2, 0);
     if (handle == 0) {
         return 0;
     }
-    if (m_ulNumSurfaces != 0 && file_waypoints_050 != 0) {
-        result =
-            FileWrite(handle, &version, sizeof(version), 0) |
-            FileWrite(handle, &m_positional_008, sizeof(m_positional_008), 0) |
-            FileWrite(handle, &m_ulNumSurfaces, sizeof(m_ulNumSurfaces), 0) |
-            FileWrite(handle, &m_ulNumEdges, sizeof(m_ulNumEdges), 0) |
-            FileWrite(handle, file_waypoints_050, m_ulNumSurfaces * sizeof(W8FileWaypoint), 0) |
-            FileWrite(handle, m_pEdges_04c, m_ulNumEdges * sizeof(W8PathEdge), 0);
+    if (m_ulNumWayPoints != 0 && m_pFileWayPoints != 0) {
+        result = FileWrite(handle, &version, sizeof(version), 0) |
+                 FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0) |
+                 FileWrite(handle, &m_ulNumWayPoints, sizeof(m_ulNumWayPoints), 0) |
+                 FileWrite(handle, &m_ulNumWayPtLinks, sizeof(m_ulNumWayPtLinks), 0) |
+                 FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0) |
+                 FileWrite(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
     }
     FileClose(handle);
     return result;
@@ -304,25 +303,26 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     if (handle == 0)
         return 0;
 
-    success = FileRead(handle, &version, 4, 0) | FileRead(handle, &m_positional_008, 4, 0) |
-              FileRead(handle, &m_ulNumSurfaces, 4, 0) | FileRead(handle, &m_ulNumEdges, 4, 0);
+    success = FileRead(handle, &version, 4, 0) | FileRead(handle, &edge_node_count_008, 4, 0) |
+              FileRead(handle, &m_ulNumWayPoints, 4, 0) |
+              FileRead(handle, &m_ulNumWayPtLinks, 4, 0);
     if (success == 0) {
         FileClose(handle);
         return 0;
     }
-    unsigned int surface_capacity = (m_ulNumSurfaces / 100 + 1) * 100;
-    unsigned int edge_capacity = (m_ulNumEdges / 100 + 1) * 100;
-    file_waypoints_050 =
-        static_cast<W8FileWaypoint*>(malloc(m_ulNumSurfaces * sizeof(W8FileWaypoint)));
+    unsigned int surface_capacity = (m_ulNumWayPoints / 100 + 1) * 100;
+    unsigned int edge_capacity = (m_ulNumWayPtLinks / 100 + 1) * 100;
+    m_pFileWayPoints =
+        static_cast<W8FileWaypoint*>(malloc(m_ulNumWayPoints * sizeof(W8FileWaypoint)));
     m_pSurfaces_048 = static_cast<W8PathSurface*>(malloc(surface_capacity * sizeof(W8PathSurface)));
     m_pEdges_04c = static_cast<W8PathEdge*>(malloc(edge_capacity * sizeof(W8PathEdge)));
     if (m_pSurfaces_048 != 0)
         memset(m_pSurfaces_048, 0, surface_capacity * sizeof(W8PathSurface));
     if (m_pEdges_04c != 0)
         memset(m_pEdges_04c, 0, edge_capacity * sizeof(W8PathEdge));
-    if (file_waypoints_050 == 0 || m_pSurfaces_048 == 0 || m_pEdges_04c == 0) {
-        if (file_waypoints_050 != 0)
-            free(file_waypoints_050);
+    if (m_pFileWayPoints == 0 || m_pSurfaces_048 == 0 || m_pEdges_04c == 0) {
+        if (m_pFileWayPoints != 0)
+            free(m_pFileWayPoints);
         if (m_pSurfaces_048 != 0)
             free(m_pSurfaces_048);
         if (m_pEdges_04c != 0)
@@ -331,10 +331,10 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         return 0;
     }
 
-    success = FileRead(handle, file_waypoints_050, m_ulNumSurfaces * sizeof(W8FileWaypoint), 0);
+    success = FileRead(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
     if (success != 0) {
         if (version == 1) {
-            for (unsigned int edge = 0; edge < m_ulNumEdges; ++edge) {
+            for (unsigned int edge = 0; edge < m_ulNumWayPtLinks; ++edge) {
                 W8PathEdge* item = &m_pEdges_04c[edge];
                 success &= FileRead(handle, &item->flags_00, 4, 0);
                 success &= FileRead(handle, &item->destination_06, 2, 0);
@@ -343,11 +343,11 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
                 item->source_04 = 0;
             }
         } else {
-            success &= FileRead(handle, m_pEdges_04c, m_ulNumEdges * sizeof(W8PathEdge), 0);
+            success &= FileRead(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
         }
     }
     if (success == 0) {
-        free(file_waypoints_050);
+        free(m_pFileWayPoints);
         free(m_pSurfaces_048);
         free(m_pEdges_04c);
         FileClose(handle);
@@ -367,9 +367,9 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     path_heap_06c->heap_00->capacity_08 = heap_capacity;
     path_heap_06c->heap_00->size_0c = 0;
 
-    memset(m_pSurfaces_048, 0, m_ulNumSurfaces * sizeof(W8PathSurface));
-    for (unsigned int surface = 1; surface < m_ulNumSurfaces; ++surface) {
-        W8FileWaypoint* source = &file_waypoints_050[surface];
+    memset(m_pSurfaces_048, 0, m_ulNumWayPoints * sizeof(W8PathSurface));
+    for (unsigned int surface = 1; surface < m_ulNumWayPoints; ++surface) {
+        W8FileWaypoint* source = &m_pFileWayPoints[surface];
         W8PathSurface* destination = &m_pSurfaces_048[surface];
         destination->flags_00 = source->flags_00;
         destination->index_02 = (unsigned short)surface;
@@ -390,11 +390,11 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
 
     if (version <= 2) {
         unsigned int surface;
-        for (surface = 1; surface < m_ulNumSurfaces; ++surface) {
+        for (surface = 1; surface < m_ulNumWayPoints; ++surface) {
             if ((ClassifyWaypoint00459C00(&m_pSurfaces_048[surface].position_04) & 0x04000000) != 0)
                 m_pSurfaces_048[surface].flags_00 |= 0x40;
         }
-        for (surface = 1; surface < m_ulNumSurfaces; ++surface) {
+        for (surface = 1; surface < m_ulNumWayPoints; ++surface) {
             unsigned short edge_index = m_pSurfaces_048[surface].first_edge_24;
             while (edge_index != 0) {
                 W8PathEdge* edge = &m_pEdges_04c[edge_index];
@@ -426,14 +426,14 @@ void W8PathingService::BuildWaypointFileData0045E440()
     unsigned short next_surface = 1;
     unsigned short next_edge = 1;
     unsigned short* surface_map =
-        static_cast<unsigned short*>(malloc((m_ulNumSurfaces + 1) * sizeof(unsigned short)));
-    memset(surface_map, 0, (m_ulNumSurfaces + 1) * sizeof(unsigned short));
+        static_cast<unsigned short*>(malloc((m_ulNumWayPoints + 1) * sizeof(unsigned short)));
+    memset(surface_map, 0, (m_ulNumWayPoints + 1) * sizeof(unsigned short));
     unsigned short* edge_map =
-        static_cast<unsigned short*>(malloc((m_ulNumEdges + 1) * sizeof(unsigned short)));
-    memset(edge_map, 0, (m_ulNumEdges + 1) * sizeof(unsigned short));
+        static_cast<unsigned short*>(malloc((m_ulNumWayPtLinks + 1) * sizeof(unsigned short)));
+    memset(edge_map, 0, (m_ulNumWayPtLinks + 1) * sizeof(unsigned short));
 
     unsigned int old_surface;
-    for (old_surface = 1; old_surface < m_ulNumSurfaces; ++old_surface) {
+    for (old_surface = 1; old_surface < m_ulNumWayPoints; ++old_surface) {
         W8PathSurface* surface = &m_pSurfaces_048[old_surface];
         if (surface->index_02 == 0 || surface->first_edge_24 == 0) {
             g_octree_6598a4->object_registry->UnregisterObject(W8_OCTREE_KIND_WAYPOINT,
@@ -441,7 +441,7 @@ void W8PathingService::BuildWaypointFileData0045E440()
             if (surface->first_edge_24 == 0) {
                 unsigned short removed = 0;
                 unsigned int edge;
-                for (edge = 1; edge < m_ulNumEdges; ++edge) {
+                for (edge = 1; edge < m_ulNumWayPtLinks; ++edge) {
                     if (m_pEdges_04c[edge].destination_06 == old_surface) {
                         RemoveWaypointLink0045E360((unsigned short)edge);
                         ++removed;
@@ -472,7 +472,7 @@ void W8PathingService::BuildWaypointFileData0045E440()
     }
 
     unsigned int old_edge;
-    for (old_edge = 1; old_edge < m_ulNumEdges; ++old_edge) {
+    for (old_edge = 1; old_edge < m_ulNumWayPtLinks; ++old_edge) {
         W8PathEdge* edge = &m_pEdges_04c[old_edge];
         if (edge->destination_06 != 0) {
             edge->destination_06 = surface_map[edge->destination_06];
@@ -485,17 +485,17 @@ void W8PathingService::BuildWaypointFileData0045E440()
         }
     }
 
-    memset(&m_pEdges_04c[next_edge], 0, (m_ulNumEdges - next_edge) * sizeof(W8PathEdge));
+    memset(&m_pEdges_04c[next_edge], 0, (m_ulNumWayPtLinks - next_edge) * sizeof(W8PathEdge));
     memset(&m_pSurfaces_048[next_surface], 0,
-           (m_ulNumSurfaces - next_surface) * sizeof(W8PathSurface));
-    m_ulNumSurfaces = next_surface;
-    m_ulNumEdges = next_edge;
+           (m_ulNumWayPoints - next_surface) * sizeof(W8PathSurface));
+    m_ulNumWayPoints = next_surface;
+    m_ulNumWayPtLinks = next_edge;
 
-    for (old_surface = 1; old_surface < m_ulNumSurfaces; ++old_surface) {
+    for (old_surface = 1; old_surface < m_ulNumWayPoints; ++old_surface) {
         m_pSurfaces_048[old_surface].first_edge_24 =
             edge_map[m_pSurfaces_048[old_surface].first_edge_24];
     }
-    for (old_edge = 1; old_edge < m_ulNumEdges; ++old_edge) {
+    for (old_edge = 1; old_edge < m_ulNumWayPtLinks; ++old_edge) {
         m_pEdges_04c[old_edge].next_0c = edge_map[m_pEdges_04c[old_edge].next_0c];
     }
     value_1d8 = surface_map[value_1d8];
@@ -559,7 +559,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         m_ulNumCondNodes = 0;
         return fSuccess;
     }
-    m_pCondPaths = static_cast<W8ConditionalPath*>(malloc(block[0] * sizeof(W8ConditionalPath)));
+    m_pCondPaths = static_cast<GDPropCondPaths*>(malloc(block[0] * sizeof(GDPropCondPaths)));
     if (m_pCondPaths == 0) {
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x903,
                      "ReadPathNodes: Couldn't allocate Conditional Prop array.\n");
@@ -584,8 +584,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
         srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x90b,
                      "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
     }
-    fSuccess =
-        FileRead(handle, m_pCondPaths, m_ulNumCondPaths * sizeof(W8ConditionalPath), &uiRead);
+    fSuccess = FileRead(handle, m_pCondPaths, m_ulNumCondPaths * sizeof(GDPropCondPaths), &uiRead);
     if (fSuccess == 0) {
         srAssertFail("fSuccess", OCTPATH_CPP, 0x90e,
                      "ReadPathNodes: Couldn't write Conditional Prop array.\n");
@@ -628,7 +627,7 @@ void W8PathingService::LinkSurfaces00460020()
     W8PathSurface* surface;
     int converted;
 
-    if (m_ulNumSurfaces <= index) {
+    if (m_ulNumWayPoints <= index) {
         return;
     }
     do {
@@ -640,7 +639,7 @@ void W8PathingService::LinkSurfaces00460020()
             RegisterPathSurface004B7730(index, point);
         }
         ++index;
-    } while (index < m_ulNumSurfaces);
+    } while (index < m_ulNumWayPoints);
 }
 
 /* The same for the edges, which are 0xe bytes apart, gated by a different flag,
@@ -657,7 +656,7 @@ void W8PathingService::LinkEdges004600B0()
     W8PathSurface* surface;
     int converted;
 
-    if (m_ulNumEdges <= index) {
+    if (m_ulNumWayPtLinks <= index) {
         return;
     }
     do {
@@ -675,7 +674,7 @@ void W8PathingService::LinkEdges004600B0()
             RegisterPathVertex004B7830(index, first, second);
         }
         ++index;
-    } while (index < m_ulNumEdges);
+    } while (index < m_ulNumWayPtLinks);
 }
 
 /* Apply one GD prop frame to every conditional path cell in its serialized
@@ -839,12 +838,12 @@ unsigned int W8PathingService::FindConditionalPathValue00458970(unsigned int key
 
 /* Refresh the disabled bit for a conditional list of waypoints. */
 // FUNCTION: WIZ8 0x004601b0
-void W8PathingService::CheckConditionalWaypointStatus004601B0(unsigned short count,
-                                                              unsigned short* waypoints)
+void W8PathingService::CheckConditionalWayPtStatus004601B0(unsigned short count,
+                                                           unsigned short* waypoints)
 {
     while (count != 0) {
         unsigned short waypoint = *waypoints;
-        if (waypoint >= (unsigned short)m_ulNumSurfaces) {
+        if (waypoint >= static_cast<unsigned short>(m_ulNumWayPoints)) {
             srAssertFail("pusWayPts[i] < (UINT16)m_ulNumWayPoints", OCTPATH_CPP, 0x1a4e,
                          "Pathing::CheckConditionalWayPtStatus: WayPt Index out of range.");
         }
@@ -869,7 +868,7 @@ void W8PathingService::CheckConditionalLinkStatus00460250(unsigned short count,
 {
     while (count != 0) {
         unsigned short edge_index = *edges;
-        if (edge_index >= (unsigned short)m_ulNumEdges) {
+        if (edge_index >= static_cast<unsigned short>(m_ulNumWayPtLinks)) {
             srAssertFail("pusLinks[i] < (UINT16)m_ulNumWayPtLinks", OCTPATH_CPP, 0x1a6c,
                          "Pathing::CheckConditionalLinkStatus: Link Index out of range.");
         }
@@ -937,6 +936,132 @@ unsigned char W8PathingService::HandlePathEdgeTransition00460350(W8NavigatorMove
         attachment->flags_00 &= 0xfeffffff;
     }
     return 2;
+}
+
+/* Measure the route between two points for the noise line-of-sight query. A
+   throwaway attachment is built over (from, to); a positive `range` budget is
+   parked in m_positional_070 as raw float bits while the path builds, and both
+   exits restore the 0x501502f9 sentinel. On success `range` receives the
+   measured path length and `hops` the count of hop segments whose link is
+   gated by a door. */
+// FUNCTION: WIZ8 0x004604B0
+unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<float>* from,
+                                                              srVector3T<float>* to, float* range,
+                                                              int* hops)
+{
+    W8NavigatorAttachment attachment(from, to);
+    if (*range > g_float_005ebb34) {
+        m_positional_070 = *reinterpret_cast<unsigned int*>(range); /* reinterpret-ok: the field
+            parks the in-range float's raw bits beside its integer sentinels */
+    }
+    if (BuildAttachmentPath00460950(&attachment, 0) == 0) {
+        m_positional_070 = 0x501502f9;
+        return 0;
+    }
+
+    unsigned short cursor = attachment.value_04;
+    if ((attachment.flags_00 & 0x00080000) != 0) {
+        --cursor;
+    }
+    attachment.unknown_06 = cursor;
+    ++attachment.unknown_06;
+
+    srVector3T<float> next;
+    if (attachment.unknown_06 < attachment.path_position_index_08) {
+        next = attachment.position_4c[attachment.unknown_06];
+        TestWaypointSpan0045A1B0(from, &next, 0, 0);
+    } else {
+        next = attachment.position_1c;
+    }
+
+    *range = attachment.MeasurePathLength00456B00();
+    *hops = 0;
+    while (attachment.value_04 < attachment.path_position_index_08) {
+        if (TestAttachmentHopDoor00460680(&attachment) != 0) {
+            ++*hops;
+        }
+        ++attachment.value_04;
+    }
+    m_positional_070 = 0x501502f9;
+    return 1;
+}
+
+/* Whether the hop at the attachment's current index runs over a disabled
+   conditional edge guarded by a closed door. The current path value pair names
+   the two surfaces; when their link carries both the conditional and disabled
+   bits, the props inside the segment's bounds box are queried and the one
+   nearest the midpoint supplies the trigger. The hop counts when that
+   trigger's action record is a type-10 door record whose flag bit is clear. */
+// FUNCTION: WIZ8 0x00460680
+unsigned char W8PathingService::TestAttachmentHopDoor00460680(W8NavigatorAttachment* attachment)
+{
+    unsigned short current = attachment->value_04;
+    if (current < attachment->path_position_index_08) {
+        unsigned short* pairs = attachment->path_values_50;
+        unsigned short source = pairs[current];
+        unsigned short destination = pairs[current + 1];
+        W8PathSurface* source_surface = &m_pSurfaces_048[source];
+        unsigned short edge_index = source_surface->first_edge_24;
+        unsigned char found = 0;
+        while (edge_index != 0) {
+            if (found != 0) {
+                break;
+            }
+            if (m_pEdges_04c[edge_index].destination_06 == destination) {
+                found = 1;
+            } else {
+                edge_index = m_pEdges_04c[edge_index].next_0c;
+            }
+        }
+        if (edge_index != 0 && (m_pEdges_04c[edge_index].flags_00 & 0x10000000) != 0 &&
+            (m_pEdges_04c[edge_index].flags_00 & 0x80000000) != 0) {
+            srVector3T<float> lower = source_surface->position_04;
+            srVector3T<float> upper = source_surface->position_04;
+            GrowBoundsByPoint(&m_pSurfaces_048[destination].position_04.x, &lower.x, &upper.x);
+            int* candidates = 0;
+            Trigger* selected = 0;
+            int count =
+                g_octree_6598a4->QueryObjects(&candidates, &lower, &upper, W8_OCTREE_KIND_PROP, -1);
+            if (count > 0) {
+                if (count == 1) {
+                    W8Prop* prop = *g_world->collidable_props->GetAt(candidates[0]);
+                    selected = prop->GetGDPropValue24();
+                    if (selected == 0) {
+                        return 0;
+                    }
+                } else {
+                    double nearest_distance = 1e32;
+                    float half_y = (upper.y - lower.y) * g_double_005ebe80;
+                    float half_z = (upper.z - lower.z) * g_double_005ebe80;
+                    srVector3T<float> center;
+                    center.x = (upper.x - lower.x) * g_double_005ebe80 + lower.x;
+                    center.y = half_y + lower.y;
+                    center.z = half_z + lower.z;
+                    for (int index = 0; index < count; ++index) {
+                        W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
+                        Trigger* trigger = prop->GetGDPropValue24();
+                        if (trigger != 0) {
+                            srVector3T<float> position;
+                            prop->GetPosition0044E2C0(&position);
+                            float distance = (position - center).LengthSquared();
+                            if (distance < nearest_distance) {
+                                nearest_distance = distance;
+                                selected = trigger;
+                            }
+                        }
+                    }
+                }
+                W8TriggerActionData* action_data = selected->m_pActionData;
+                if (action_data == 0 || action_data->type_004 != 10) {
+                    action_data = 0;
+                }
+                if ((action_data->flags_008 & 1) == 0) {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 /* Reduce both accumulated costs for one accepted waypoint and continue down
@@ -1734,7 +1859,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         g_startup_world_659c0c->radius_084 =
             g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
         attachment->flags_00 &= 0xfffffff0;
-        if (flag_1cb != 0 && m_owned_054 != 0) {
+        if (flag_1cb != 0 && waypoint_mesh_054 != 0) {
             BuildSearchVisualization0045CFD0();
         }
         return 0;
@@ -1758,7 +1883,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
     }
     m_owned_0c8[selected].parent_node_0a = 0;
 
-    if (flag_1cb != 0 && m_owned_054 != 0) {
+    if (flag_1cb != 0 && waypoint_mesh_054 != 0) {
         BuildSearchVisualization0045CFD0();
     }
 
@@ -2198,11 +2323,11 @@ W8PathingService::~W8PathingService()
     if (m_pEdges_04c != 0) {
         free(m_pEdges_04c);
     }
-    if (file_waypoints_050 != 0) {
-        free(file_waypoints_050);
+    if (m_pFileWayPoints != 0) {
+        free(m_pFileWayPoints);
     }
-    if (m_owned_054 != 0) {
-        delete m_owned_054;
+    if (waypoint_mesh_054 != 0) {
+        delete waypoint_mesh_054;
     }
     if (visible_waypoints_058 != 0) {
         delete visible_waypoints_058;
@@ -2219,8 +2344,8 @@ W8PathingService::~W8PathingService()
     if (m_owned_0c8 != 0) {
         delete[] m_owned_0c8;
     }
-    if (owned_214 != 0) {
-        delete owned_214;
+    if (path_parameters_214 != 0) {
+        delete path_parameters_214;
     }
     if (g_path_scratch_00659c64 != 0) {
         free(g_path_scratch_00659c64);
@@ -2262,15 +2387,15 @@ W8PathingService::W8PathingService()
     }
     path_nodes_044 = 0;
     size_004 = 0;
-    m_positional_008 = 0;
-    m_ulNumSurfaces = 0;
-    m_ulNumEdges = 0;
+    edge_node_count_008 = 0;
+    m_ulNumWayPoints = 0;
+    m_ulNumWayPtLinks = 0;
     m_positional_014 = 0;
     m_positional_018 = 0;
     m_pSurfaces_048 = 0;
     m_pEdges_04c = 0;
-    file_waypoints_050 = 0;
-    m_owned_054 = 0;
+    m_pFileWayPoints = 0;
+    waypoint_mesh_054 = 0;
     visible_waypoints_058 = new BitArray(100);
     rendered_waypoints_05c = new BitArray(100);
     collected_waypoints_060 = new BitArray(100);
@@ -2301,7 +2426,7 @@ W8PathingService::W8PathingService()
     trace_mode_0b8 = 0;
     trace_height_offset_0bc = 0;
     trace_target_yaw_0c4 = 0;
-    owned_214 = new W8OctPathOwned004CAE40();
+    path_parameters_214 = new W8PathParameters();
     m_positional_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
@@ -2318,12 +2443,12 @@ W8PathingService::W8PathingService()
 /* Take the octree's own bounds and level name. The span is the vertical extent
    of that box scaled, and the cell count is that span plus one. */
 // FUNCTION: WIZ8 0x00458a50
-void W8PathingService::ConfigureForLevel(int size, float grid_scale, int value_28,
+void W8PathingService::ConfigureForLevel(int size, float grid_scale, int path_clearance,
                                          const float* bounds, const char* name)
 {
     size_004 = size;
     grid_scale_01c = grid_scale;
-    value_028 = value_28;
+    path_clearance_028 = path_clearance;
     level_bounds[0] = bounds[0];
     level_bounds[1] = bounds[1];
     level_bounds[2] = bounds[2];
@@ -3683,7 +3808,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
                                                        const srVector3T<float>* destination)
 {
     W8World* world = GetWorld();
-    srNode* node = m_owned_054;
+    srNode* node = waypoint_mesh_054;
 
     if (flag_1c8 != 0) {
         srVector3T<float> adjusted = *source;
@@ -3692,14 +3817,14 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         PreparePathVisualization0045E840(&adjusted, &endpoint);
 
         if (CollectPathVisualization0045D880(&adjusted) != 0) {
-            if (m_owned_054 != 0) {
+            if (waypoint_mesh_054 != 0) {
                 BuildPathVisualization0045BE30();
-                m_owned_054->clearFlag(srNode::FLAG_DISABLE);
+                waypoint_mesh_054->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
 
-            m_owned_054 = BuildPathVisualization0045BE30();
-            node = m_owned_054;
+            waypoint_mesh_054 = BuildPathVisualization0045BE30();
+            node = waypoint_mesh_054;
             if (node != 0) {
                 node->setParent(world->dynamic_scene, 1);
                 node->clearFlag(srNode::FLAG_DISABLE);
@@ -3709,7 +3834,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             return;
         }
 
-        node = m_owned_054;
+        node = waypoint_mesh_054;
         if (node != 0) {
             node->setFlag(srNode::FLAG_DISABLE);
             node->setFlag(srNode::FLAG_TERMINATE);
@@ -3719,7 +3844,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
 
     if (flag_1c9 == 0 && flag_1cb == 0) {
         DrawPathPosition0045C9A0(*source, 0);
-        node = m_owned_054;
+        node = waypoint_mesh_054;
         if (node != 0) {
             node->setFlag(srNode::FLAG_DISABLE);
             node->setFlag(srNode::FLAG_TERMINATE);
@@ -3728,12 +3853,12 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
     }
 
     if (flag_1cb != 0) {
-        if (m_owned_054 == 0) {
+        if (waypoint_mesh_054 == 0) {
             EnsurePathVisualization0045D530();
-            node = m_owned_054;
+            node = waypoint_mesh_054;
             node->setParent(world->dynamic_scene, 1);
             node->setFlag(srNode::FLAG_TERMINATE);
-            if (m_owned_054 == 0) {
+            if (waypoint_mesh_054 == 0) {
                 node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
@@ -3744,7 +3869,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(adjusted, 1);
     }
 
-    m_owned_054->clearFlag(srNode::FLAG_DISABLE);
+    waypoint_mesh_054->clearFlag(srNode::FLAG_DISABLE);
 }
 
 /* Populate the editor mesh from the currently visible waypoint set. Marker
@@ -3769,11 +3894,11 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
         }
         marker_offsets_scaled = 1;
     }
-    if (m_owned_054 == 0) {
+    if (waypoint_mesh_054 == 0) {
         EnsurePathVisualization0045D530();
     }
 
-    stMeshModel* model = static_cast<stMeshModel*>(m_owned_054->model());
+    stMeshModel* model = static_cast<stMeshModel*>(waypoint_mesh_054->model());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     srVector3i* polygons = model->getPolyVertex();
@@ -3958,7 +4083,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
     }
     model->control_state_390 |= 8;
     model->flags_3a0 &= ~2U;
-    return m_owned_054;
+    return waypoint_mesh_054;
 }
 
 /* Rebuild the editor's bounded grid search when the cursor enters a new path
@@ -4140,7 +4265,7 @@ void W8PathingService::BuildSearchVisualization0045CFD0()
         srVector3T<float>(0.0f, 125.0f, 0.0f), srVector3T<float>(-62.5f, 0.0f, -62.5f),
         srVector3T<float>(-62.5f, 0.0f, 62.5f), srVector3T<float>(62.5f, 0.0f, 62.5f),
         srVector3T<float>(62.5f, 0.0f, -62.5f)};
-    stMeshModel* model = static_cast<stMeshModel*>(m_owned_054->model());
+    stMeshModel* model = static_cast<stMeshModel*>(waypoint_mesh_054->model());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     model->getActivePolygonTable(1);
@@ -4356,15 +4481,15 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
         colors[index].z = 1.0f;
     }
 
-    m_owned_054 = CreateModelInstance0046F5C0(model);
-    if (m_owned_054 == 0) {
+    waypoint_mesh_054 = CreateModelInstance0046F5C0(model);
+    if (waypoint_mesh_054 == 0) {
         srAssertFail("m_pPathModelInstance", OCTPATH_CPP, 0x1226,
                      "CreateWayPointMesh -- Could not create pstModelInstance.");
     }
-    m_owned_054->setName("WayPoint Mesh");
-    m_owned_054->setExclusionMask(3);
-    m_owned_054->setFlag(srNode::FLAG_DISABLE);
-    return m_owned_054;
+    waypoint_mesh_054->setName("WayPoint Mesh");
+    waypoint_mesh_054->setExclusionMask(3);
+    waypoint_mesh_054->setFlag(srNode::FLAG_DISABLE);
+    return waypoint_mesh_054;
 }
 
 /* Collect nearby waypoint surfaces and mark the subset directly visible from
@@ -4375,7 +4500,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
 short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>* position)
 {
     unsigned short waypoints[500];
-    unsigned int distances[500];
+    unsigned long distances[500];
     unsigned int waypoint_count = 0;
     int* query_results = 0;
     int query_count;
@@ -4463,7 +4588,7 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
                 waypoints[insertion] = waypoint;
             }
         } else {
-            SortPathCandidates004677A0(waypoints, distances, 0, (int)waypoint_count - 1);
+            QuickSortByKey(waypoints, distances, 0, static_cast<int>(waypoint_count) - 1);
         }
     }
 
@@ -4487,8 +4612,8 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
 // FUNCTION: WIZ8 0x0045ddb0
 void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
 {
-    if (m_ulNumSurfaces % 100 == 0) {
-        unsigned int capacity = (m_ulNumSurfaces / 100 + 1) * 100;
+    if (m_ulNumWayPoints % 100 == 0) {
+        unsigned int capacity = (m_ulNumWayPoints / 100 + 1) * 100;
         W8PathSurface* new_surfaces =
             static_cast<W8PathSurface*>(malloc(capacity * sizeof(W8PathSurface)));
 
@@ -4496,10 +4621,10 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
             srAssertFail("pNewWayPoints", OCTPATH_CPP, 0x12ec, 0);
         }
         memset(new_surfaces, 0, capacity * sizeof(W8PathSurface));
-        if (m_ulNumSurfaces == 0) {
-            m_ulNumSurfaces = 1;
+        if (m_ulNumWayPoints == 0) {
+            m_ulNumWayPoints = 1;
         } else {
-            memcpy(new_surfaces, m_pSurfaces_048, m_ulNumSurfaces * sizeof(W8PathSurface));
+            memcpy(new_surfaces, m_pSurfaces_048, m_ulNumWayPoints * sizeof(W8PathSurface));
             free(m_pSurfaces_048);
         }
         m_pSurfaces_048 = new_surfaces;
@@ -4521,19 +4646,19 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
         g_path_scratch_00659c64 = malloc(capacity * sizeof(unsigned short));
     }
 
-    W8PathSurface* surface = &m_pSurfaces_048[m_ulNumSurfaces];
+    W8PathSurface* surface = &m_pSurfaces_048[m_ulNumWayPoints];
     int point[3];
 
     surface->flags_00 = 0x2000;
-    surface->index_02 = static_cast<unsigned short>(m_ulNumSurfaces);
+    surface->index_02 = static_cast<unsigned short>(m_ulNumWayPoints);
     surface->position_04 = *position;
     if ((ClassifyWaypoint00459C00(&surface->position_04) & 0x04000000) != 0) {
         surface->flags_00 |= 0x40;
     }
     g_octree_6598a4->WorldPositionToCell(position, point);
     g_octree_6598a4->object_registry->MoveObjectToCell(
-        W8_OCTREE_KIND_WAYPOINT, static_cast<unsigned short>(m_ulNumSurfaces) + 1, point);
-    ++m_ulNumSurfaces;
+        W8_OCTREE_KIND_WAYPOINT, static_cast<unsigned short>(m_ulNumWayPoints) + 1, point);
+    ++m_ulNumWayPoints;
 }
 
 /* Unlink and clear one edge record.
@@ -4544,17 +4669,17 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0045e360
 void W8PathingService::RemoveWaypointLink0045E360(unsigned short edge_index)
 {
-    if (m_ulNumSurfaces > 2) {
+    if (m_ulNumWayPoints > 2) {
         unsigned char found = 0;
         unsigned int index;
-        for (index = 1; index < m_ulNumSurfaces && found == 0; ++index) {
+        for (index = 1; index < m_ulNumWayPoints && found == 0; ++index) {
             if (m_pSurfaces_048[index].first_edge_24 == edge_index) {
                 m_pSurfaces_048[index].first_edge_24 = m_pEdges_04c[edge_index].next_0c;
                 found = 1;
             }
         }
 
-        for (index = 1; index < m_ulNumEdges && found == 0; ++index) {
+        for (index = 1; index < m_ulNumWayPtLinks && found == 0; ++index) {
             if (m_pEdges_04c[index].next_0c == edge_index) {
                 m_pEdges_04c[index].next_0c = m_pEdges_04c[edge_index].next_0c;
                 found = 1;
@@ -4698,8 +4823,8 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
 
     distance = (source_surface->position_04 - destination_surface->position_04).Length();
 
-    if (m_ulNumEdges % 100 == 0) {
-        unsigned int capacity = m_ulNumEdges / 100 + 1;
+    if (m_ulNumWayPtLinks % 100 == 0) {
+        unsigned int capacity = m_ulNumWayPtLinks / 100 + 1;
         W8PathEdge* new_edges =
             static_cast<W8PathEdge*>(malloc(capacity * 100 * sizeof(W8PathEdge)));
 
@@ -4707,16 +4832,16 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
             srAssertFail("pNewWayPtLinks", OCTPATH_CPP, 0x1526, 0);
         }
         memset(new_edges, 0, capacity * 100 * sizeof(W8PathEdge));
-        if (m_ulNumEdges == 0) {
-            m_ulNumEdges = 1;
+        if (m_ulNumWayPtLinks == 0) {
+            m_ulNumWayPtLinks = 1;
         } else {
-            memcpy(new_edges, m_pEdges_04c, m_ulNumEdges * sizeof(W8PathEdge));
+            memcpy(new_edges, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge));
             free(m_pEdges_04c);
         }
         m_pEdges_04c = new_edges;
     }
 
-    edge = &m_pEdges_04c[m_ulNumEdges];
+    edge = &m_pEdges_04c[m_ulNumWayPtLinks];
     edge->flags_00 = flags;
     edge->destination_06 = destination;
     edge->source_04 = source;
@@ -4724,14 +4849,14 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
     edge->next_0c = 0;
 
     if (source_surface->first_edge_24 == 0) {
-        source_surface->first_edge_24 = (unsigned short)m_ulNumEdges;
+        source_surface->first_edge_24 = static_cast<unsigned short>(m_ulNumWayPtLinks);
     } else {
         unsigned short previous = source_surface->first_edge_24;
 
         while (m_pEdges_04c[previous].next_0c != 0) {
             previous = m_pEdges_04c[previous].next_0c;
         }
-        m_pEdges_04c[previous].next_0c = (unsigned short)m_ulNumEdges;
+        m_pEdges_04c[previous].next_0c = static_cast<unsigned short>(m_ulNumWayPtLinks);
     }
 
     if ((source_surface->flags_00 & 0x40) != 0 || (destination_surface->flags_00 & 0x40) != 0 ||
@@ -4740,7 +4865,7 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
          flag_23c != 0)) {
         edge->flags_00 |= 0x20000000;
     }
-    ++m_ulNumEdges;
+    ++m_ulNumWayPtLinks;
 }
 
 /* Decide whether a new directed edge would duplicate the graph already leading
@@ -4837,7 +4962,7 @@ unsigned char W8PathingService::UpdateWaypointLink0045F200(unsigned short source
                 (TestWaypointSpan0045A1B0(&m_pSurfaces_048[source].position_04,
                                           &m_pSurfaces_048[destination].position_04, 0, 0),
                  flag_23c != 0)) {
-                m_pEdges_04c[m_ulNumEdges].flags_00 |= 0x20000000;
+                m_pEdges_04c[m_ulNumWayPtLinks].flags_00 |= 0x20000000;
             }
             return 1;
         }
@@ -4884,14 +5009,14 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     }
 
     if (destination_index == 0) {
-        destination_index = (unsigned short)m_ulNumSurfaces;
+        destination_index = static_cast<unsigned short>(m_ulNumWayPoints);
         AddWaypoint0045DDB0(destination);
         m_pSurfaces_048[destination_index].flags_00 = 2;
         SetWaypointLinkFlags0045E030(destination_index, 6);
         both_existing = 0;
     }
     if (source_index == 0) {
-        source_index = (unsigned short)m_ulNumSurfaces;
+        source_index = static_cast<unsigned short>(m_ulNumWayPoints);
         AddWaypoint0045DDB0(source);
         m_pSurfaces_048[source_index].flags_00 = 2;
         SetWaypointLinkFlags0045E030(source_index, 5);
@@ -4920,7 +5045,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     EditWaypointLinkFlags0045F530(title, link_flags, 5);
 
     if (edge_index == 0) {
-        edge_index = (unsigned short)m_ulNumEdges;
+        edge_index = static_cast<unsigned short>(m_ulNumWayPtLinks);
         AddWaypointLink0045EC30(destination_index, source_index, link_flags[0]);
     } else {
         m_pEdges_04c[edge_index].flags_00 = link_flags[0];
@@ -4942,7 +5067,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
 unsigned int W8PathingService::FindPathHandle(const char* path_name, unsigned short* path_bounds,
                                               float* path_range)
 {
-    W8ConditionalPath* path;
+    GDPropCondPaths* path;
     unsigned int index;
     unsigned int lookup_index;
     unsigned short value;
@@ -5020,7 +5145,7 @@ static W8PathParameter g_path_parameters[] = {
     {0, 0}};
 
 // FUNCTION: WIZ8 0x004cae40
-W8OctPathOwned004CAE40::W8OctPathOwned004CAE40()
+W8PathParameters::W8PathParameters()
 {
     LoadPathParameters004CCCB0();
 }

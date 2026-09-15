@@ -39,7 +39,6 @@
 
 /* These are recovered in their owning Local Code units. Retail MonGen calls
    them out of line, so keep the cross-TU seams rather than cloning their logic. */
-float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
 W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* monster_group); /* 0x00510180 */
 void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
                               const srVector3T<float>* formation); /* 0x0050FF40 */
@@ -262,8 +261,7 @@ int W8MonsterGenerator::SelectEncounterCandidates(W8EncounterTableRuntime* table
     float party_level;
 
     candidates->Clear();
-    night = !(g_status_685170.game_time_ms > 18000000 &&
-              g_status_685170.game_time_ms <= 79200000);
+    night = !(g_status_685170.game_time_ms > 18000000 && g_status_685170.game_time_ms <= 79200000);
 
     rarity_roll = Random(100);
     if (rarity_roll <= 3) {
@@ -453,12 +451,13 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
             continue;
         }
 
-        unsigned int companion_species = static_cast<unsigned short>(companion_records[index].species);
+        unsigned int companion_species =
+            static_cast<unsigned short>(companion_records[index].species);
         W8MonsterRecord* companion_record = MonsterDBFromSpecies(companion_species);
         if (companion_record == 0) {
-            srAssertFail("pMonsterDB", MON_GEN_CPP, 0x193,
-                         FormatString("MonsterDBFromSpecies failed for species %d",
-                                      companion_species));
+            srAssertFail(
+                "pMonsterDB", MON_GEN_CPP, 0x193,
+                FormatString("MonsterDBFromSpecies failed for species %d", companion_species));
         }
         if (companion_record->deleted != 0) {
             FormatDebugMessage(
@@ -484,8 +483,8 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
         const wchar_t* group_name =
             group->member_count == 1 ? group_record->name_00 : group_record->name_30;
         const wchar_t* companion_word = companion_count == 1 ? L"chum" : L"chums";
-        WriteGameLog(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name,
-                     group->member_count, group_name, companion_count, companion_word,
+        WriteGameLog(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name, group->member_count,
+                     group_name, companion_count, companion_word,
                      *table->challenge_level.GetAt(selected_index));
     }
     return 1;
@@ -531,19 +530,16 @@ unsigned char W8MonsterGenerator::CanGenerateEncounter(unsigned char force)
     }
 
     if (g_encounter_culling_scale_fast == 1.0f) {
-        srVector3T<float> lower(state_0c.x - 5000.0f, state_0c.y - 5000.0f,
-                                state_0c.z - 5000.0f);
-        srVector3T<float> upper(state_0c.x + 5000.0f, state_0c.y + 5000.0f,
-                                state_0c.z + 5000.0f);
+        srVector3T<float> lower(state_0c.x - 5000.0f, state_0c.y - 5000.0f, state_0c.z - 5000.0f);
+        srVector3T<float> upper(state_0c.x + 5000.0f, state_0c.y + 5000.0f, state_0c.z + 5000.0f);
         int* locations = 0;
         if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return 0;
         }
     }
 
-    int chance = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0
-                     ? g_generator_interval_min
-                     : static_cast<signed char>(flag_04);
+    int chance = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_interval_min
+                                                               : static_cast<signed char>(flag_04);
     return Chance(chance) != 0;
 }
 
@@ -1018,8 +1014,8 @@ void W8MonsterGenerator::Reset()
         }
         m_pTimer->m_flags &= 0xfffd;
     }
-    interval = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval
-                                                             : value_06;
+    interval =
+        (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval : value_06;
     jitter = interval * g_generator_jitter_fraction;
     m_pTimer->SetDuration(static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval -
                           jitter);
