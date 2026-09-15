@@ -101,3 +101,13 @@ short GetSubMenuEntryState(short menu, short item, int party_slot); /* 0x00595FE
 /* 0x005990F0: the mode switch around a rebuild. An unresolved gap in this
    neighbourhood, declared for the call sites. */
 void SetCombatSubMenuRebuildMode(int rebuilding);
+/* The six main-game button factories the screen init aggregates through
+   CreateMainGameButtons00598AB0 alongside CreateSubMenuButtons. All
+   unresolved gap neighbours. */
+unsigned int Function597670(void);
+unsigned int Function597A30(void);
+unsigned int Function597B90(void);
+unsigned int Function597EE0(void);
+unsigned int Function5982D0(void);
+/* Create every main-game interface button set. */
+void CreateMainGameButtons00598AB0(void); /* 0x00598AB0 */

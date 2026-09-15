@@ -1465,3 +1465,15 @@ void DrawSubMenuCharacterAction(void)
     gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1d1,
             (UINT16*)text);
 }
+
+// FUNCTION: WIZ8 0x00598AB0
+void CreateMainGameButtons00598AB0(void)
+{
+    CreateSubMenuButtons();
+    CreateSubMenuScrollButtons();
+    Function597670();
+    Function597A30();
+    Function597B90();
+    Function597EE0();
+    Function5982D0();
+}

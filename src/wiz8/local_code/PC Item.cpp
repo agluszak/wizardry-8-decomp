@@ -1148,6 +1148,18 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     *slot = 0xffff;
 }
 
+/* Equip classes 0x17 and 0x19 are the directly usable item kinds: the use-item
+   path treats them as activatable even when nothing else applies. */
+// FUNCTION: WIZ8 0x00522A00
+char IsUsableItemClass00522A00(W8ItemInstance* item)
+{
+    char equip_class = g_item_records[item->item_id].equip_class;
+    if (equip_class != 0x17 && equip_class != 0x19) {
+        return 0;
+    }
+    return 1;
+}
+
 /* Initialize the fixed item-video-object vector to one entry per item record. */
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)

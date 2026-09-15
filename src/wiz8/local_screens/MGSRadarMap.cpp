@@ -151,13 +151,13 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
         icon->setParent(g_scene_square_65965c, 1);
         icon->state_160 |= 1;
         if (lit == 0) {
-            icon->Function480EB0(0);
+            icon->SetGlowEnabled00480EB0(0);
         } else {
             srVector4T<float> first;
             srVector4T<float> second;
             int group = sector - sector % 3;
 
-            icon->Function480EB0(1);
+            icon->SetGlowEnabled00480EB0(1);
             second.w = 1.0f;
             first.w = 1.0f;
             second.x = g_radar_blip_colors_0064ca90[group + 2][0];
@@ -166,7 +166,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
             first.x = g_radar_blip_colors_0064ca90[group][0];
             first.y = g_radar_blip_colors_0064ca90[group][1];
             first.z = g_radar_blip_colors_0064ca90[group][2];
-            icon->Function480FF0(&first, &second);
+            icon->SetGlowColors00480FF0(&first, &second);
             icon->render_state_164.render_depth = 1000;
         }
     }
@@ -334,11 +334,12 @@ void UpdateRadarBlips(void)
         return;
     }
     if (g_radar_compass_0069bf60 != 0) {
-        Function425840(g_radar_compass_0069bf60,
-                       g_status_685170.party_facing - (int)g_status_685170.party_heading + 0x168);
+        RotateNodeInDegrees00425840(g_radar_compass_0069bf60,
+                                    g_status_685170.party_facing -
+                                        static_cast<int>(g_status_685170.party_heading) + 0x168);
     }
     if (g_radar_frame_0069c088 != 0) {
-        Function425840(g_radar_frame_0069c088, g_status_685170.party_facing);
+        RotateNodeInDegrees00425840(g_radar_frame_0069c088, g_status_685170.party_facing);
     }
     GetCameraPosition(&camera);
     detect_all = PartyHasCondition(0x40);
@@ -366,7 +367,7 @@ void UpdateRadarBlips(void)
                      HasCameraLineOfSight(&position)) &&
                     sqrtf(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) <=
                         g_radar_outer_radius_0069c0d4) {
-                    if (PlaceRadarBlip(&delta, 4, item->Function4A0050()) != 0) {
+                    if (PlaceRadarBlip(&delta, 4, item->IsRadarBlipLit()) != 0) {
                         rep->flags |= 8;
                     }
                 }

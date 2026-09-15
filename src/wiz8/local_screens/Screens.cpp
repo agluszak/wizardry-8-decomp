@@ -39,6 +39,15 @@
  * cursor ids are the numbers the original uses, and nothing here names them.
  */
 
+// FUNCTION: WIZ8 0x0055EA40
+void W8NpcDialogueTextController::ClearEntries0055EA40()
+{
+    while (static_cast<unsigned int>(text_area.m_all_lines_01c.count) > 0) {
+        text_area.RemoveEntry(0);
+    }
+    Invalidate(0);
+}
+
 /* Run the first screen command predicate and reset this target through its
    second virtual slot when command zero succeeds. */
 // FUNCTION: WIZ8 0x0055EBB0

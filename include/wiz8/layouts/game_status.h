@@ -80,6 +80,9 @@ struct W8GlobalStatus {
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
     unsigned char value_2390;
+    /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime0041F170
+       folds the level's pending elapsed times into; the 0x00502D00 wait
+       pass sums them against zero. */
     float real_elapsed_2391;
     float frame_elapsed_2395;
     unsigned char unknown_2399[8];

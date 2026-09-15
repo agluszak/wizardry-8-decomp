@@ -57,7 +57,7 @@ extern const int g_keyboard_row_positions_64c1cc[13][2];
 
 void ResetMGSKeyboardBindings();
 
-void Function55D3C0(void);
+void DrainInputEventQueue0055D3C0(void);
 /* Reset the slot's combat selection and tear down the menu panel and rows. */
 void CloseKeyboardMenu(void); /* 0x00592E60 */
 /* Build the panel and one row per selectable menu entry. */

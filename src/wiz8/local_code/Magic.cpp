@@ -803,6 +803,17 @@ int MissileSpellId(int missile_type)
     }
 }
 
+/* The 0x49 teleport lands on the character's saved anchor, so without an
+   anchor set it cannot run. Every other spell id clears this block. */
+// FUNCTION: WIZ8 0x00501D00
+char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
+{
+    if (spell_id != 0x49) {
+        return 0;
+    }
+    return character->has_saved_location == 0;
+}
+
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
    is cast at the target's last position and the matching notice is posted:
    the monster's own notice for a monster that has died, or the targeted

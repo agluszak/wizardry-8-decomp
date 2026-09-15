@@ -150,8 +150,9 @@ void RefreshFormationBoard(void)
     PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
     g_level_block->formation_board_sprite->render_state_164.display_state = 4;
     if (g_level_block->formation_compass_sprite != 0) {
-        Function425840(g_level_block->formation_compass_sprite,
-                       g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
+        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
+                                    g_status_685170.party_facing - g_status_685170.party_heading +
+                                        0x168);
     }
     SetRendererModePair();
 }
@@ -161,8 +162,9 @@ void RefreshFormationBoard(void)
 void UpdateFormationCompass(void)
 {
     if (g_level_block->formation_compass_sprite != 0) {
-        Function425840(g_level_block->formation_compass_sprite,
-                       g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
+        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
+                                    g_status_685170.party_facing - g_status_685170.party_heading +
+                                        0x168);
     }
     SetRendererModePair();
 }
@@ -338,7 +340,7 @@ void OpenFormationPanel(void)
         gXStatus.fReviewCharacterMode = 1;
         RegionSetEnable(0x1b);
         RequestRedraw(0x1000);
-        Function5545D0(&gXStatus.edited_formation, &g_status_685170.formation);
+        CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
         PauseMainGameWorld();
         UpdateFormationCells();
     }
@@ -469,7 +471,7 @@ static void AcceptFormationChanges(void)
 // FUNCTION: WIZ8 0x005b2960
 static void ResetFormationPanel(void)
 {
-    Function5545D0(&gXStatus.edited_formation, &g_status_685170.formation);
+    CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
     UpdateFormationCells();
 }
 
@@ -652,7 +654,7 @@ static void BeginFormationDrag(const InputAtom*)
     g_formation_drag_cell_0069c380 = g_formation_active_cell_0069c2f0;
     g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0] = -1;
     SGPMouseGetPos(&point);
-    Function427E70();
+    ClearMouseSurface();
     sprite = g_formation_cell_controls[g_formation_drag_cell_0069c380]->m_alternatePressedSprite;
     region = GetCatalogVideoObjectYOffset(0x9f) + (short)sprite;
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);

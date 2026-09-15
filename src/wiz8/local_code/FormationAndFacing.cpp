@@ -45,6 +45,14 @@
    quadrant is centred on its facing rather than starting at it. */
 enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
 
+/* Copy a party formation state. The 0x84-byte structure is copied as 33
+   dwords via REP MOVSD. */
+// FUNCTION: WIZ8 0x005545d0
+void CopyPartyFormationState(W8PartyFormationState* dst, const W8PartyFormationState* src)
+{
+    *dst = *src;
+}
+
 /* Which of the four quadrants around the party a world position falls in.
    The bearing to the position is taken relative to the party's facing, wrapped
    into a single turn, then biased by half a quadrant before the divide - so

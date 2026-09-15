@@ -38,6 +38,7 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/level_specific_code/Ascension.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/message_box.h"
 #include "wiz8/engine_code/Spells.h"
@@ -572,10 +573,10 @@ void ProcessMessageBoxQueue(void)
         Function4DFAE0(0);
         break;
     case 0xb:
-        Function4DFB40(0);
+        SpawnAlfieLife004DFB40(0);
         break;
     case 0xc:
-        Function4DFB80(0);
+        SpawnAlfieKnow004DFB80(0);
         break;
     case 0xd:
         if (line->text == 0) {

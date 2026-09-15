@@ -832,6 +832,21 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
     return total;
 }
 
+/* Back out the in-progress spell picks before the pool is rebuilt: every
+   tentative selection (state two) returns to unlearned, the point pool is
+   topped back up and the page is marked incomplete. */
+// FUNCTION: WIZ8 0x005585D0
+void ResetSpellSelections005585D0(W8Character* character, W8CharacterCreationState* creation_state)
+{
+    for (int index = 0; index < 0x72; ++index) {
+        if (character->spell_learned[index] == 2) {
+            character->spell_learned[index] = -1;
+        }
+    }
+    creation_state->spell_points_remaining = creation_state->spell_points_total;
+    creation_state->spells_complete = 0;
+}
+
 /* Recompute the level-up pools after a profession change, refunding every
    baseline the previous profession's assignment had granted. */
 // FUNCTION: WIZ8 0x00557060

@@ -84,6 +84,9 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 /* The group's flag at 0xc8, looked up by group id. */
 unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
+unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
+                                        const srVector3T<float>* position,
+                                        char follow_leader); /* 0x0050FBA0 */
 /* Whether the group has a member placed and rendered in the world; a nonzero
    second argument also demands the member's party-threat flag. */
 unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,

@@ -337,14 +337,14 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
 void AimAtPlace(int actor)
 {
     W8CombatSlot target;
-    unsigned char scratch[16];
+    srVector3T<float> position;
 
     memset(&target, 0, sizeof(target));
     target.iMonsterID = BAD_INDEX;
     target.iChar = BAD_INDEX;
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_PLACE;
-    Function492500(scratch);
+    GetWorldCursorTargetPosition00492500(&position);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
     gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
@@ -1626,7 +1626,7 @@ void RefreshTargetMarker(void)
 {
     srVector3T<float> position;
 
-    Function492500(&position);
+    GetWorldCursorTargetPosition00492500(&position);
     if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;

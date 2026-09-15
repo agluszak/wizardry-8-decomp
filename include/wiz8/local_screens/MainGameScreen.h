@@ -207,6 +207,7 @@ public:
     void Function55E7C0(char filter);          /* 0x0055E7C0 */
     void Function55EAC0(unsigned char sorted); /* 0x0055EAC0 */
     void RemoveSelectedTranscriptEntry();      /* 0x0055EA70 */
+    void ClearEntries0055EA40();               /* 0x0055EA40 */
 
     int unknown_4c;
     int unknown_50;
@@ -701,7 +702,7 @@ void DispatchPendingNpcScriptNotice(void);  /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
-unsigned char Function577A40(void);
+unsigned char ProcessPendingEvent00577A40(void);
 void __fastcall
 CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
 void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
@@ -711,6 +712,7 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
+void ClearCombatSelection(void); /* 0x0056A5A0 */
 void RefreshFlaggedMainGameState00593330(void);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
@@ -796,7 +798,6 @@ void Function575710(void);                                                      
 void Function571660(wchar_t* name, int value, int arg);                             /* 0x00571660 */
 void CloseNpcDialogueForCamp(void);                                                 /* 0x00577020 */
 void __fastcall Function55E940(W8NpcDialogueTextController* controller);            /* 0x0055E940 */
-void __fastcall Function55EA40(W8NpcDialogueTextController* controller);            /* 0x0055EA40 */
 void OpenNpcDialogueOptionLayout(void);                                             /* 0x00571AA0 */
 void OpenNpcDialogueMode1Layout(void);                                              /* 0x00573AE0 */
 void OpenNpcDialogueMode5Layout(void);                                              /* 0x005732A0 */
@@ -826,7 +827,6 @@ void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
 void DisableMainRegionSet(void);      /* 0x00561FB0 */
 void EnableMainRegionSet(void);       /* 0x00561FA0 */
 unsigned char Function56EFB0(void);
-void Function598AB0(void);
 void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);

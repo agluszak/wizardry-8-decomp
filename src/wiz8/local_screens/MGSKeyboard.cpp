@@ -122,6 +122,16 @@ unsigned char MGSKeyboard::IsCommandPressed(unsigned int command) const
     return 0;
 }
 
+/* Drop every queued input event; the main-game enter path calls it so stale
+   keypresses do not leak into the fresh screen. */
+// FUNCTION: WIZ8 0x0055D3C0
+void DrainInputEventQueue0055D3C0(void)
+{
+    InputAtom input;
+    while (DequeueEvent(&input) != 0) {
+    }
+}
+
 // FUNCTION: WIZ8 0x0055D3F0
 void MGSKeyboard::Clear()
 {
@@ -188,7 +198,7 @@ void DispatchMGSCommand(int command)
     switch (command) {
     case 0x0:
         if (IsWorldCursorVisible() != 0) {
-            Function490AF0();
+            ToggleWorldCursor();
         } else if (gXStatus.fSurprisePossible != 0) {
             Function502790();
         } else if (gXStatus.fSpellCastMode != 0) {
@@ -307,7 +317,7 @@ void DispatchMGSCommand(int command)
     }
     case 0xd6:
         if (IsWorldCursorVisible() != 0) {
-            Function491EC0();
+            UpdateWorldCursorPlacement00491EC0();
         } else {
             LevelCamera();
         }

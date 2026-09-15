@@ -1,6 +1,7 @@
 #include "line.h"
 #include "wiz8/local_screens/MGSFormation.h"
 #include "soundman.h"
+#include "vsurface.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Monster.h"
@@ -32,6 +33,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Video2.h"
@@ -348,8 +350,8 @@ void W8LockTumbler::Redraw(int full_redraw)
     top = m_top + m_pPanel->origin_y;
     bottom = m_bottom + m_pPanel->origin_y;
     InvalidateRegion(left - 3, top, right + 3, bottom, 0);
-    Function402FA0(-0xe, left, top, right, top + 0x24, 0x8000);
-    Function402FA0(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
+    ColorFillVideoSurfaceArea(-0xe, left, top, right, top + 0x24, 0x8000);
+    ColorFillVideoSurfaceArea(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
     DrawCatalogImage(-0xe, 0x1ae, 0, 0, left + 3, top, 2, 0);
     frame = m_pin_index_3c * 4 + 1;
     if (m_pin_set_34) {
@@ -2540,6 +2542,20 @@ void ClearMainGameTargetState(void)
     SetTargetCursor(W8_CURSOR_NONE);
 }
 
+// FUNCTION: WIZ8 0x00577A40
+unsigned char ProcessPendingEvent00577A40(void)
+{
+    if (IsNpcScriptSessionActive() != 0) {
+        Function525D90(1);
+        return 1;
+    }
+    if (gXStatus.character_event_queue->HasActiveEvents() != 0) {
+        gXStatus.character_event_queue->CompleteFirstActiveEvent();
+        return 1;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00577220
 void SyncDialogueNpcStateAndMarkPending00577220(void)
 {
@@ -2823,7 +2839,7 @@ unsigned char MainGameScreenEnter(void)
     gXStatus.unknown_026[1] = 1;
     MSYS_Init();
     ResetRegions();
-    Function598AB0();
+    CreateMainGameButtons00598AB0();
     Function5AE9D0();
     Function59B940();
     CreateConditionButtons();
@@ -2871,7 +2887,7 @@ unsigned char MainGameScreenEnter(void)
             timer->SetDuration(-1.0f);
         }
     }
-    Function55D3C0();
+    DrainInputEventQueue0055D3C0();
     if (g_status_685170.item_in_hand_235b.item_id != -1) {
         SetItemCursor(0);
     } else {
@@ -2898,7 +2914,7 @@ unsigned char MainGameScreenEnter(void)
         }
     }
     if (!gXStatus.fCombatMode) {
-        Function42B770(1, 1);
+        StartLevelMusic(1, 1);
     }
     return 1;
 }
@@ -3331,7 +3347,7 @@ unsigned char MainGameScreenLeave(int leaving)
         gfTrackMousePos = 0;
     }
     if (IsWorldCursorVisible()) {
-        Function490AF0();
+        ToggleWorldCursor();
     }
     Function59B270();
     if (gXStatus.fLockInteractMode)
@@ -5102,7 +5118,7 @@ void CloseNpcDialogueTranscriptLayout(void)
 
     Function55E940(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
     CollapseNpcDialogueTextArea(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
-    Function55EA40(g_screen_state_00649f1c->npc_dialogue_controller_1b0);
+    g_screen_state_00649f1c->npc_dialogue_controller_1b0->ClearEntries0055EA40();
     RegionSetDisable(0x18);
     RegionSetDisable(0x16);
     g_screen_state_00649f1c->panel_1a8->SetEnabled(0);

@@ -49,7 +49,6 @@ void PositionMouseCursor(int x, int y, unsigned char reset_tick);
 /* 0x00428520: whether the current cursor hotspot is inside the inclusive
    rectangle (left, top, right, bottom). */
 bool IsCursorInRectangle(int left, int top, int right, int bottom);
-bool IsCursorInsideViewport(void);
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);

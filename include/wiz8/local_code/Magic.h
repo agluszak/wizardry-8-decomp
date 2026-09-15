@@ -94,7 +94,7 @@ void Function502460(void);                  /* 0x00502460 */
    sites push three arguments. */
 unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
                                           unsigned int power_level);
-char Function501D00(W8Character* character, int spell_id); /* 0x00501D00 */
+char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences005019A0(W8Missile* missile);
