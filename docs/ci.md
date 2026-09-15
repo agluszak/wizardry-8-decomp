@@ -12,8 +12,8 @@ Every pull request and push to `main` uses only public or tracked repository inp
 - builds the pinned VC6 analysis image and fetches the pinned public zlib/JPEG/Info-ZIP sources;
 - runs `uv run wiz8 doctor`, `uv run wiz8 check`, and `uv run wiz8 lint`;
 - runs the VC6/Ghidra recovery lifecycle self-test;
-- restores the reviewed tracked Ghidra checkpoint and runs `tests/integration` against live
-  PyGhidra.
+- restores the reviewed tracked Ghidra checkpoint through the normal live PyGhidra project-opening
+  path.
 
 The public lane never receives the GOG URL or game files. It intentionally uses `pull_request`, not
 `pull_request_target`.
