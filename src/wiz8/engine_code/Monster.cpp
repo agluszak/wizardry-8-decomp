@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
@@ -2126,9 +2127,10 @@ void W8Monster::ProcessScript004C80E0()
                 flags_1dc |= 0x40;
                 break;
             case MONSCR_LOOKHERE:
-                Function48F650(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                                   0x1ba0, MONSTER_CPP, propagated_value_1e4, 1)),
-                               1, 1);
+                PointCameraAtMonster(
+                    MonsterGetScriptPartByLocationIndex(
+                        MonsterGetIndexByLocationID(0x1ba0, MONSTER_CPP, propagated_value_1e4, 1)),
+                    1, 1);
                 token = strtok(0, " \t");
                 if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
                     script_wait_240 = MONSCR_LOOKHERE;

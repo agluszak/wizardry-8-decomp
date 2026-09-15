@@ -88,6 +88,9 @@ public:
     /* The prop's position for external queries: position_02c when the rep
        node reports itself current, else the rep node's own position. */
     void GetPosition0044E2C0(srVector3T<float>* out); /* 0x0044E2C0 */
+    /* Mirror of GetPosition0044E2C0: writes `position` back to the rep node's
+       position when the rep is current, else through SetLocation004B8850. */
+    void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void Method44C830(W8World* world);

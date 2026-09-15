@@ -3,6 +3,7 @@
 
 struct W8World;
 struct W8PathAI;
+struct W8MonsterInfo;
 template <class T> class srVector3T;
 
 /* One entry of a W8World camera-path list (the W8PList at W8World+0x0c).
@@ -19,12 +20,10 @@ struct W8CameraPath {
 /* Engine Code\Camera.cpp. The TU's only anchor; turns a camera path on and
    off for the world and dispatches the per-path end actions. */
 void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime);
-
-/* Unresolved gap callees, declared for the call sites in this unit. */
-/* 0x0041AAE0: stashes and returns the environment load flag while a camera
-   path runs. */
-unsigned char Function41AAE0(unsigned char flag);
-/* 0x00420FB0: re-aims something at the tracked point when tracking fails. */
-void Function420FB0(const srVector3T<float>* target);
+/* 0x0048F650: face the camera at a monster's head; force overrides the
+   tracking-mode gate, animate chooses the eased transition over the snap. */
+void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsigned char animate);
+/* 0x0048F800: the position-taking variant of the camera orientation helper. */
+void PointCameraAtTarget(srVector3T<float>* position, unsigned char force, unsigned char animate);
 
 #endif

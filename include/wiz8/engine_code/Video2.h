@@ -136,16 +136,14 @@ void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
 void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
-void Function425840(srNode* node, int degrees);
+void RotateNodeInDegrees00425840(srNode* node, int degrees);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */
-int Function427E70(void);
+bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
    coordinates; positional snaps to the renderer's pixel grid. */
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
-/* 0x004215E0: point-visibility query the radar item loop consults. */
-bool HasCameraLineOfSight(const srVector3T<float>* position);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
    link builder uses to count a mesh's drawn faces — begin the probe pass,
    draw the node and return its covered-face count, then end the pass. */
@@ -257,6 +255,7 @@ unsigned char HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
 srModelInstance* GetValue65962C(void);
 void SetValue65962C(srModelInstance* value);
+bool IsCursorInsideViewport(void); /* 0x00428070 */
 
 #endif
 

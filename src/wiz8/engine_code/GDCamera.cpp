@@ -108,6 +108,52 @@ void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output)
     g_gd_camera_65a0f8->GetForwardPoint(distance, output);
 }
 
+/* 0x00421170: accumulate a forward offset of `distance`, rotated by yaw and
+   pitch, into `position`; pathing and monster-leap callers project a
+   destination with it. Retail builds each axis rotation with explicit
+   Set/SetRows/MultiplyBy calls rather than the RotateAbout helpers. */
+// FUNCTION: WIZ8 0x00421170
+void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* position, float yaw,
+                                      float pitch)
+{
+    srVector3T<float> forward;
+    srVector3T<float> first;
+    srVector3T<float> second;
+    srVector3T<float> third;
+    srVector3T<float> step;
+    srMatrix3T<float> rotation;
+    srMatrix3T<float> axis;
+    float cosine;
+    float sine;
+
+    forward.z = distance;
+    forward.x = 0.0f;
+    forward.y = 0.0f;
+    rotation.SetIdentity();
+    if (static_cast<double>(yaw) != g_zero_005ebb40) {
+        cosine = static_cast<float>(cos(yaw));
+        sine = static_cast<float>(sin(yaw));
+        first.Set(cosine, 0.0, sine);
+        second.Set(0.0, 1.0, 0.0);
+        third.Set(-sine, 0.0, cosine);
+        axis.SetRows(first, second, third);
+        rotation.MultiplyBy(axis);
+    }
+    if (static_cast<double>(pitch) != g_zero_005ebb40) {
+        cosine = static_cast<float>(cos(pitch));
+        sine = static_cast<float>(sin(pitch));
+        first.Set(1.0, 0.0, 0.0);
+        second.Set(0.0, cosine, -sine);
+        third.Set(0.0, sine, cosine);
+        axis.SetRows(first, second, third);
+        rotation.MultiplyBy(axis);
+    }
+    step = rotation.Transform(forward);
+    position->x += step.x;
+    position->y += step.y;
+    position->z += step.z;
+}
+
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
 {

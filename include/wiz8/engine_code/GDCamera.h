@@ -74,6 +74,10 @@ extern srCamera* g_game_camera_65a0fc;
 
 void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
+/* 0x00421170: accumulate `distance` along +Z, rotated by yaw and pitch, into
+   `position`. */
+void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* position, float yaw,
+                                      float pitch);
 /* Elevation/heading of the direction from `position` to the camera, in
    radians; the homing missile tick faces its representation with them. */
 float GetElevationToCamera004BE520(const srVector3T<float>* position);

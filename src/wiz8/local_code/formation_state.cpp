@@ -15,15 +15,15 @@ void InitializePartyFormation(W8PartyFormationState* formation)
 
     memset(formation, 0, sizeof(*formation));
     for (index = 0; index < 5; ++index) {
-        formation->rows[index].slots[0] = -1;
-        formation->rows[index].slots[1] = -1;
-        formation->rows[index].slots[2] = -1;
-        formation->row_occupants[index] = 0;
+        formation->bOccupantChar[index][0] = -1;
+        formation->bOccupantChar[index][1] = -1;
+        formation->bOccupantChar[index][2] = -1;
+        formation->ubQuadrantOccupants[index] = 0;
     }
     for (index = 0; index < 8; ++index) {
-        formation->positions[index].row = 0xff;
-        formation->positions[index].unknown_01 = 0xff;
-        formation->positions[index].column = -1;
+        formation->positions[index].bQuadrant = 0xff;
+        formation->positions[index].bOldQuadrant = 0xff;
+        formation->positions[index].bQuadrantSlot = -1;
         formation->positions[index].facing = 4;
     }
 }

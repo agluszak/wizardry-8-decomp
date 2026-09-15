@@ -12,9 +12,11 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, int arg_4,
                               const void* data, int notify); /* 0x004E8000 */
 void EndCombat004EA310(int mode);                            /* 0x004EA310 */
+void Function4E8370(void);                                   /* 0x004E8370 */
 unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
 void Function4EA1F0(void);                          /* 0x004EA1F0 */
+void Function517780(void);                          /* 0x00517780 */
 struct W8TargetSource;
 struct W8CombatSlot;
 union W8ActionDetailBlock;
@@ -24,11 +26,12 @@ struct W8MonsterInfo;
 struct W8CombatCharacterRow;
 
 void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
+unsigned char AnyCharacterEngaged(void);            /* 0x004E7CA0 */
 /* 0x004F96F0: whether the character knows any spell whose realm's sp_left
    still covers its spell_point_cost. */
 unsigned char CharacterHasCastableSpell(W8Character* character);
-void Function4ECC80(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80 */
-void Function4EA5C0(int party_slot);                               /* 0x004EA5C0 */
+void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80 */
+void Function4EA5C0(int party_slot);                                          /* 0x004EA5C0 */
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
                             int notify); /* 0x004E7EE0 */
 int IsPartyEngaged(void);                /* 0x004E7E70 */
@@ -45,6 +48,4 @@ void BeginCombatRound(void);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 unsigned char CanCharReBreathe(int party_slot);
-unsigned char AnyCharacterEngaged(void); /* 0x004E7CA0 */
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
-void Function4E8370(void); /* 0x004E8370 */

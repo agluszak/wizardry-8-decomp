@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 
 class W8Monster;
+struct W8MonsterInfo;
 class stParticle;
 class srNode;
 class stLight;
@@ -14,19 +15,70 @@ struct W8WorldCursorState {
     /* 0x04: deactivated with a zero when the cursor hides. */
     stParticle* particle_04;
     unsigned char unknown_08;
-    unsigned char flag_09;
-    unsigned char unknown_0a[0x1a];
+    /* 0x09: set by the right-button path while light_24 exists; the group
+       bind consumes and clears it. */
+    unsigned char group_bind_pending_09;
+    unsigned char unknown_0a[2];
+    /* 0x0c: accumulated cursor input - screen dx, right-drag dy and screen
+       dy - scaled by g_float_005ebc88 into the movement vector each update,
+       then cleared. The group-bind paths also bump [2]. */
+    int input_delta_0c[3];
+    /* 0x18: camera-relative offset the placement update derives from
+       position_28. */
+    srVector3T<float> offset_18;
     /* 0x24: the light node the complete teardown removes from the world. */
     stLight* light_24;
     /* 0x28: read back by the path-visualization update as a world point. */
     srVector3T<float> position_28;
-    unsigned char unknown_34[0xc];
-    bool visible_40;
-    unsigned char unknown_41[0x0b];
+    /* 0x34: the last position published to the cursor's nodes and monster;
+       the update compares it against position_28 to detect a move. Seeded
+       to the -1e7 sentinel by the placement update. */
+    srVector3T<float> last_published_34;
+    /* 0x40: authored name fEnabled - the cursor update asserts it. */
+    unsigned char enabled_40;
+    /* 0x41: ground tracking. Set by the initializer and the placement
+       update; the target march lifts each step to the settled ground height
+       while set and re-arms it when the result lands near the ground, and
+       the cursor update settles position_28 to the terrain while set. */
+    unsigned char track_ground_41;
+    unsigned char unknown_42[2];
+    /* 0x44: the cursor's march range, initialized to 50000; both movement
+       paths clamp the step/offset length to it. */
+    float range_44;
+    /* 0x48: left-button latch - releasing the button while set is the
+       placement click. */
+    unsigned char left_held_48;
+    unsigned char unknown_49[3];
     /* 0x4c: seeded from and restored to g_cursor_saved_value_60ab44; both
        ends only copy the whole word. */
     int value_4c;
-    unsigned char unknown_50[0x90];
+    /* 0x50: when set the cursor is detached from the camera - input moves
+       position_28 directly and the placement update skips the
+       camera-relative offset_18 store. */
+    unsigned char detached_50;
+    /* 0x51: while detached, run the ground/sight march on the moved
+       point. */
+    unsigned char march_enabled_51;
+    unsigned char unknown_52[2];
+    /* 0x54: midpoint of the probe box; the target march traces its sight fan
+       from this offset. */
+    srVector3T<float> probe_center_54;
+    /* 0x60: eight probe offsets forming a box around the cursor point. The
+       target march sight-traces all eight and ground-settles the last four;
+       the target resolver ground-probes the same last four. */
+    srVector3T<float> probe_offsets_60[8];
+    /* 0xc0: footprint-placement mode - the target resolver uses the two
+       fixed probe offsets and the click path requires the occupied-box
+       test before placing. */
+    unsigned char footprint_mode_c0;
+    unsigned char unknown_c1[3];
+    /* 0xc4: first fixed probe offset used when footprint_mode_c0 is set. */
+    srVector3T<float> offset_c4;
+    /* 0xd0: second fixed probe offset used when footprint_mode_c0 is set. */
+    srVector3T<float> offset_d0;
+    /* 0xdc: the monster info latched by the shift-drag; the update drags
+       it to the cursor position and releases it when shift lifts. */
+    W8MonsterInfo* dragged_info_dc;
 };
 #pragma pack(pop)
 

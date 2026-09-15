@@ -474,8 +474,8 @@ void ResetTargetingState(void)
     for (slot = 0; slot < 8; ++slot) {
         ResetGameplaySlot(slot);
     }
-    g_target_state_6840b3 = -1;
-    g_picked_group_006840b7 = -1;
+    g_picked_monster = -1;
+    g_picked_group = -1;
 }
 
 /* The counterpart to InitializeItemTables: the category names first, then the

@@ -2,6 +2,7 @@
 
 #include "wiz8/dialog_code/DialogBase.h"
 
+class W8MessageDialogBase;
 struct W8Character;
 class W8MessageDialogBase;
 

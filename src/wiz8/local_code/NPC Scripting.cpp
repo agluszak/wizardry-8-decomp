@@ -21,6 +21,7 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -40,6 +41,7 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/level_specific_code/Ascension.h"
 #include "wiz8/message_box.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/notices.h"
@@ -553,7 +555,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_CLOSE_RESUME_NPC:
         CloseNpcDialogueIfActive();
         if (g_screen_state_00649f1c->dialogue_npc != 0) {
-            Function50AE40(g_screen_state_00649f1c->dialogue_npc, 1);
+            ResumeNpc(g_screen_state_00649f1c->dialogue_npc, 1);
         }
         break;
     case W8_NPC_MSG_FOCUS_NPC: {
@@ -606,10 +608,10 @@ void ProcessMessageBoxQueue(void)
         Function4DFAE0(0);
         break;
     case W8_NPC_MSG_CALL_4DFB40:
-        Function4DFB40(0);
+        SpawnAlfieLife004DFB40(0);
         break;
     case W8_NPC_MSG_CALL_4DFB80:
-        Function4DFB80(0);
+        SpawnAlfieKnow004DFB80(0);
         break;
     case W8_NPC_MSG_FINISH_ACTION:
         if (line->text == 0) {
@@ -651,7 +653,7 @@ void ProcessMessageBoxQueue(void)
         }
         srVector3T<float> position;
         if (FindEntityByName("NP_DSExit", &position, 0, 0)) {
-            Function48F800(&position, 0, 1);
+            PointCameraAtTarget(&position, 0, 1);
         }
         break;
     }
@@ -1435,12 +1437,12 @@ void NpcScriptHenchmanArrives(W8Monster* monster)
     srVector3T<float> origin;
 
     if (FindEntityByName("NP_HENCHMEN", &position, 0, 0)) {
-        Function48F800(&position, 0, 1);
+        PointCameraAtTarget(&position, 0, 1);
         W8MonsterGroup* group = SpawnMonsters(0xdc, 1, &position, 2, 1, 0, 0);
         int location_id = IListGetAt(group->monsters, 0);
         if (location_id != 0) {
-            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(
+            W8MonsterInfo* monster_info =
+                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                     0x111f, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", location_id,
                     1));
             if (monster_info != 0) {

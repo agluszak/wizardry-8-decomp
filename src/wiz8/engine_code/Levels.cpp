@@ -190,6 +190,24 @@ char GetLevelBand(int saved_level)
     return 0;
 }
 
+/* Start the saved level's music playlist. Formats a path from the level's
+   name, falls back to Adventure.MPL when no level-specific playlist exists. */
+// FUNCTION: WIZ8 0x0042b770
+void StartLevelMusic(int fade, int replace_current)
+{
+    char path[260];
+    const char* level_name = g_level_folders[g_status_685170.current_level].level_name;
+
+    sprintf(path, "Data\\Music\\%s.MPL", level_name);
+    if (FileExists(path)) {
+        sprintf(path, "%s.MPL", level_name);
+        StartMusicResource0048FC10(path, fade, replace_current);
+    } else {
+        StartMusicResource0048FC10("Adventure.MPL", fade, replace_current);
+    }
+    ServiceMusicPlaylist0048F9E0();
+}
+
 // FUNCTION: WIZ8 0x0042b3e0
 void UnloadSkyWorld(void)
 {
@@ -740,6 +758,38 @@ unsigned char UnloadLevel(const char* save_directory)
                            0, clip_plane));
         clip_plane->release();
         clip_plane = next;
+    }
+    return 1;
+}
+
+/* Unload the current level and load `level` at `entrance`. When the request
+   re-enters the current level through the -1 entrance sentinel, the camera's
+   saved yaw/pitch records and position are put back after the load; every
+   other request is a plain unload+load. */
+// FUNCTION: WIZ8 0x0042AF60
+unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
+{
+    float saved_angle[6];
+    float saved_pitch[6];
+    srVector3T<float> saved_position;
+    unsigned char restore = 0;
+
+    if (entrance == -1 && level == g_status_685170.current_level) {
+        GetCameraOrientation(saved_angle, saved_pitch);
+        WorldGetCameraLocation00451160(GetWorld(), &saved_position);
+        restore = 1;
+    }
+    if (g_status_685170.current_level != -1) {
+        if (UnloadLevel("Saves") == 0) {
+            return 0;
+        }
+    }
+    if (LoadLevel(level, entrance, 0) == 0) {
+        return 0;
+    }
+    if (restore != 0) {
+        RestoreWorldCameraOrientation00421570(saved_angle, saved_pitch, GetWorld());
+        SetWorldScenePosition004511D0(GetWorld(), &saved_position);
     }
     return 1;
 }

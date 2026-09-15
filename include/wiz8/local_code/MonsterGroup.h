@@ -84,6 +84,9 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 /* The group's flag at 0xc8, looked up by group id. */
 unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
+unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
+                                        const srVector3T<float>* position,
+                                        char follow_leader); /* 0x0050FBA0 */
 /* Whether the group has a member placed and rendered in the world; a nonzero
    second argument also demands the member's party-threat flag. */
 unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
@@ -105,6 +108,7 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
+int GiveBirthToMonster(W8MonsterGroup* monster_group); /* 0x00511990 */
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
                             const srVector3T<float>* position, unsigned char flag_1,
                             unsigned char flag_2, unsigned char flag_3);

@@ -367,6 +367,18 @@ render_mesh:
 /* Scaled 2D extent used by the tooltip and cursor placement code. A unit
    scale returns the stored screen extent directly; otherwise the matching
    axis scale from the node is applied and truncated. */
+/* Disabling the glow releases the retained glow material; the render-state
+   byte at 0x0d is the glow pass's enable flag. */
+// FUNCTION: WIZ8 0x00480EB0
+void stModelInstance2D::SetGlowEnabled00480EB0(unsigned char enable)
+{
+    if (enable == 0 && m_pGlowMaterial_17c != 0) {
+        m_pGlowMaterial_17c->release();
+        m_pGlowMaterial_17c = 0;
+    }
+    render_state_164.state_0d = enable;
+}
+
 // FUNCTION: WIZ8 0x00480EF0
 int stModelInstance2D::GetWidth00480EF0()
 {
@@ -385,6 +397,21 @@ int stModelInstance2D::GetHeight00480F70()
         return render_state_164.top;
     }
     return (int)(render_state_164.top * scale.y);
+}
+
+/* Lazily allocate the two glow-color vectors and copy the supplied pair; the
+   process pass blends between them into the material's emissive term. */
+// FUNCTION: WIZ8 0x00480FF0
+void stModelInstance2D::SetGlowColors00480FF0(srVector4T<float>* first, srVector4T<float>* second)
+{
+    if (vector_174 == 0) {
+        vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+    }
+    *vector_174 = *first;
+    if (vector_178 == 0) {
+        vector_178 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
+    }
+    *vector_178 = *second;
 }
 
 // FUNCTION: WIZ8 0x00481E30

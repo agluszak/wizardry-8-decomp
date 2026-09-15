@@ -29,8 +29,10 @@ extern float g_position_height_epsilon_005ebfdc;
 extern unsigned char g_environment_load_flag_00603ad0;
 extern unsigned char g_value_0068f0fd;
 
-unsigned char Function42AF60(int level, int entrance);
+unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance);
 
-void Function42B770(int, int);
+/* 0x0042B770: start the saved level's music playlist, falling back to
+   Adventure.MPL when the level-specific playlist does not exist. */
+void StartLevelMusic(int fade, int replace_current);
 class W8MaterialMapper00482010;
 extern W8MaterialMapper00482010 g_material_mapper_00659738;

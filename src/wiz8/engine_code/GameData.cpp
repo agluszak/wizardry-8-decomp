@@ -16,6 +16,7 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srCamera.h"
 #include "random.h"
 
 #include <math.h>
@@ -25,6 +26,8 @@
 #include <new>
 #include "wiz8/engine_code/3d.h"
 
+// GLOBAL: WIZ8 0x00652da8
+unsigned int* g_level_data_sibling_00652da8;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
 
@@ -284,6 +287,116 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
     return 0;
 }
 
+/* Selects a switch interface's state: the matching state group's conditional
+   polygons clear surface flag 0x10 while every other state's polygons set
+   it. Asserts the interface id and the state slice bounds. */
+// FUNCTION: WIZ8 0x0041c680
+char W8GameData::SetInterfaceState(int interface_id, int state)
+{
+    int state_count;
+    int poly_count;
+    W8GDInterface* interface_rec;
+    W8GDInterfaceState* states;
+    int* polys;
+
+    if (interface_id == 0 || interface_count_60 <= interface_id) {
+        srAssertFail("iID && iID < m_iNumInterfaces",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x4e0, 0);
+    }
+    interface_rec = interfaces_64 + interface_id;
+    state_count = interface_rec->state_count_04;
+    if (interface_state_count_68 < interface_rec->state_first_08 + state_count) {
+        srAssertFail("(m_pInterfaces[iID].iStates + iStates) <= m_iNumStates",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x4e2, 0);
+    }
+    states = interface_states_6c + interface_rec->state_first_08;
+    for (; state_count != 0; --state_count) {
+        poly_count = states->poly_count_04;
+        polys = cond_polys_74 + states->poly_first_08;
+        if (states->group_00 == state) {
+            for (; poly_count != 0; --poly_count) {
+                surfaces_38[*polys].flags_00 &= ~0x10;
+                ++polys;
+            }
+        } else {
+            for (; poly_count != 0; --poly_count) {
+                surfaces_38[*polys].flags_00 |= 0x10;
+                ++polys;
+            }
+        }
+        ++states;
+    }
+    return 1;
+}
+
+/* Apply one surface the mover's trace crossed, nearest first: an environment
+   boundary (flag 0x1000) swaps the active environment record, carrying the
+   live blend fields across; a trigger surface runs its trigger in the
+   crossing direction unless the bit sets already hold it. */
+// FUNCTION: WIZ8 0x0041c770
+void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
+{
+    W8EnvironRecord* record;
+    W8EnvironRecord* current;
+    Trigger* trigger;
+    int direction;
+
+    if ((surface->flags_00 & 0x1000) != 0) {
+        if (surface->distance_34 > 0.0f) {
+            current = g_environ_00652DB4;
+            record = environs_84[surface->trigger_index_08];
+            record->value_04 = current->value_04;
+            record->value_05 = current->value_05;
+            record->value_08 = current->value_08;
+            record->unknown_0c = current->unknown_0c;
+            record->value_20 = current->value_20;
+            record->value_24 = current->value_24;
+            record->value_28 = current->value_28;
+            record->value_2c = current->value_2c;
+            g_environ_00652DB4 = record;
+            return;
+        }
+        current = g_environ_00652DB4;
+        if (current == environs_84[surface->trigger_index_08]) {
+            record = environs_84[0];
+            record->value_04 = current->value_04;
+            record->value_05 = current->value_05;
+            record->value_08 = current->value_08;
+            record->unknown_0c = current->unknown_0c;
+            record->value_20 = current->value_20;
+            record->value_24 = current->value_24;
+            record->value_28 = current->value_28;
+            record->value_2c = current->value_2c;
+            g_environ_00652DB4 = record;
+        }
+        return;
+    }
+    direction = 1;
+    if (surface->distance_34 < 0.0f) {
+        direction = -1;
+    }
+    if (trigger_table_50 == 0 || bits_5c->Set(surface->trigger_index_08) != 0 ||
+        bits_58->Set(surface->trigger_index_08) != 0) {
+        return;
+    }
+    trigger = trigger_table_50[surface->trigger_index_08];
+    if (trigger->initial_action_22a == 0x10 && surface->value_40 > 0.0f) {
+        surface->value_40 = 0.0f;
+        if (direction == 1) {
+            bits_5c->Clear(surface->trigger_index_08);
+            bits_58->Clear(surface->trigger_index_08);
+            return;
+        }
+    }
+    if (direction != 0) {
+        trigger->Run(direction);
+        if (trigger->action_state_232 == 1 || trigger->action_state_232 == 4) {
+            bits_5c->Clear(surface->trigger_index_08);
+            bits_58->Clear(surface->trigger_index_08);
+        }
+    }
+}
+
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041cf80
 void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)
@@ -382,6 +495,27 @@ void ClearLevelDataFlag6(void)
     }
 }
 
+/* Hand the level's pending real/frame elapsed times to the caller, fold them
+   into the session accumulators, clear the pending pair, and report whether
+   either was above the camera-transition epsilon. */
+// FUNCTION: WIZ8 0x0041f170
+unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed)
+{
+    W8LevelDataRecord* record = g_level_data_00652dac;
+    unsigned char elapsed = 0;
+    if (record != 0) {
+        *real_elapsed = record->real_elapsed_24;
+        *frame_elapsed = record->frame_elapsed_28;
+        elapsed = record->real_elapsed_24 > g_camera_transition_epsilon_005ebc84 ||
+                  record->frame_elapsed_28 > g_camera_transition_epsilon_005ebc84;
+        record->frame_elapsed_28 = 0.0f;
+        record->real_elapsed_24 = 0.0f;
+        g_status_685170.real_elapsed_2391 += *real_elapsed;
+        g_status_685170.frame_elapsed_2395 += *frame_elapsed;
+    }
+    return elapsed;
+}
+
 /* Bit four again, but with a global override: with the bit down, the override
    being set is what withholds the answer. */
 // FUNCTION: WIZ8 0x0041f090
@@ -415,6 +549,8 @@ unsigned char HasLevelDataVector(void)
 
 // GLOBAL: WIZ8 0x00652db4
 W8EnvironRecord* g_environ_00652DB4;
+// GLOBAL: WIZ8 0x00652dcc
+unsigned char g_flag_00652dcc;
 
 /* The camera-sway mode halves navigator gravity, mirrors it into the active
    environment record and swaps the camera forward scale; the flag guards both
@@ -447,6 +583,30 @@ void EndCameraSway0041A9A0(void)
     g_camera_sway_active_652da4 = 0;
 }
 
+/* Release the level-data record and its companion globals: free the 0xf4-byte
+   record (whose destructor only tears down the +0xc4 interval gate), drop the
+   shared game-time accumulator through its deleting destructor, and clear the
+   environ, octree-data and secondary record pointers plus the teardown flag.
+   ~W8GameData runs this first. */
+// FUNCTION: WIZ8 0x0041a9e0
+void W8GameData::ReleaseLevelData0041A9E0()
+{
+    g_environ_00652DB4 = 0;
+    if (g_level_data_00652dac != 0) {
+        delete g_level_data_00652dac;
+    }
+    g_level_data_00652dac = 0;
+    g_level_data_sibling_00652da8 = 0;
+    if (g_game_time_accumulator_6598bc != 0) {
+        delete g_game_time_accumulator_6598bc;
+    }
+    g_game_time_accumulator_6598bc = 0;
+    g_octree_game_data_00652db0 = 0;
+    if (g_flag_00652dcc != 0) {
+        g_flag_00652dcc = 0;
+    }
+}
+
 // FUNCTION: WIZ8 0x0041AA40
 void ResetCurrentEnvironment0041AA40(void)
 {
@@ -468,6 +628,22 @@ void ResetCurrentEnvironment0041AA40(void)
     }
     g_environment_load_flag_00603ad0 = 0;
     g_level_override_00652dba = 0;
+}
+
+// FUNCTION: WIZ8 0x0041AAE0
+unsigned char SetEnvironmentLoadFlag(unsigned char flag)
+{
+    unsigned char previous = g_environment_load_flag_00603ad0;
+    if (g_environ_00652DB4 != 0) {
+        g_environ_00652DB4->value_24 = 0;
+        g_environ_00652DB4->value_28 = 0;
+        g_environ_00652DB4->value_2c = 0;
+        if (flag == 0) {
+            g_environ_00652DB4->value_20 = 1.0f;
+        }
+        g_environment_load_flag_00603ad0 = flag;
+    }
+    return previous;
 }
 
 // FUNCTION: WIZ8 0x0041F0D0
@@ -563,11 +739,36 @@ void BeginManualCameraControl()
     g_gd_camera_65a0f8->SetManualControlActive(1);
 }
 
+/* 0x00420F40: camera yaw in whole degrees, plus an optional copy of the
+   yaw-rotation matrix. The diagnostics dump passes null and uses only the
+   yaw. */
+// FUNCTION: WIZ8 0x00420F40
+int GetCameraYawAndRotation00420F40(srMatrix3T<float>* rotation)
+{
+    float degrees = g_gd_camera_65a0f8->m_yaw * g_float_005ebcf0;
+    if (rotation != 0) {
+        *rotation = g_gd_camera_65a0f8->m_yaw_rotation;
+    }
+    return static_cast<int>(degrees);
+}
+
 // FUNCTION: WIZ8 0x00420F70
 void LevelCamera()
 {
     g_gd_camera_65a0f8->BeginLeveling();
     g_flag_00652da7 = 0;
+}
+
+// FUNCTION: WIZ8 0x00420F90
+void CameraLookAt(const srVector3T<float>* position)
+{
+    g_gd_camera_65a0f8->LookAt(position, 0);
+}
+
+// FUNCTION: WIZ8 0x00420FB0
+void CameraSnapToTarget(const srVector3T<float>* target)
+{
+    g_gd_camera_65a0f8->SnapToTarget(target);
 }
 
 // FUNCTION: WIZ8 0x00420FD0
@@ -633,10 +834,53 @@ void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotatio
     }
 }
 
+/* 0x00421440: project `vector` onto `onto` in place; fails when the target
+   direction is degenerate. */
+// FUNCTION: WIZ8 0x00421440
+unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
+                                              const srVector3T<float>* onto)
+{
+    float length_squared = DotProduct(*onto, *onto);
+    if (length_squared <= g_float_005ebc58) {
+        return 0;
+    }
+    *vector = *onto * (DotProduct(*vector, *onto) / length_squared);
+    return 1;
+}
+
+/* Apply a saved yaw/pitch pair to the game camera for the world reload path.
+   Retail reads the world camera node's rotation into the local first, then
+   SetCameraOrientation (inlined) overwrites the same local with the updated
+   matrix; the local is dead after the call. */
+// FUNCTION: WIZ8 0x00421570
+void RestoreWorldCameraOrientation00421570(float* angle, float* pitch, W8World* world)
+{
+    srMatrix3T<float> rotation;
+    world->camera->getRotation(rotation);
+    SetCameraOrientation(angle, pitch, &rotation);
+}
+
 // FUNCTION: WIZ8 0x00421550
 int GetCameraYawDegrees(void)
 {
     return (int)(g_gd_camera_65a0f8->m_yaw * 57.295784f);
+}
+
+/* Point-visibility query: returns whether the camera has line of sight to the
+   given position through the world octree. Fails with no world loaded; with a
+   world but no octree there is nothing to occlude, so it returns true. */
+// FUNCTION: WIZ8 0x004215e0
+bool HasCameraLineOfSight(const srVector3T<float>* position)
+{
+    srVector3T<float> to = *position;
+    if (g_world == 0) {
+        return false;
+    }
+    srVector3T<float> from = g_gd_camera_65a0f8->m_position_08c;
+    if (g_world->octree != 0) {
+        return g_world->octree->HasLineOfSight(&from, &to, 1);
+    }
+    return true;
 }
 
 /* Mark the renderer ready and copy the point into the game camera when it
@@ -652,23 +896,9 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
         g_gd_camera_65a0f8->m_position_08c.z = point->z;
     }
 }
-/* Hand the level's pending real/frame elapsed times to the caller, fold them
-   into the session accumulators, clear the pending pair, and report whether
-   either was above the camera-transition epsilon. */
-// FUNCTION: WIZ8 0x0041f170
-unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed)
-{
-    W8LevelDataRecord* record = g_level_data_00652dac;
-    unsigned char elapsed = 0;
-    if (record != 0) {
-        *real_elapsed = record->real_elapsed_24;
-        *frame_elapsed = record->frame_elapsed_28;
-        elapsed = record->real_elapsed_24 > g_camera_transition_epsilon_005ebc84 ||
-                  record->frame_elapsed_28 > g_camera_transition_epsilon_005ebc84;
-        record->frame_elapsed_28 = 0.0f;
-        record->real_elapsed_24 = 0.0f;
-        g_status_685170.real_elapsed_2391 += *real_elapsed;
-        g_status_685170.frame_elapsed_2395 += *frame_elapsed;
-    }
-    return elapsed;
-}
+
+/* The record's only non-trivial member is the interval gate at +0xc4, so the
+   whole destructor is that member's teardown - retail emits it as the
+   `add ecx,0xc4` body previously read as an adjustor thunk. */
+// FUNCTION: WIZ8 0x00421890
+W8LevelDataRecord::~W8LevelDataRecord() {}

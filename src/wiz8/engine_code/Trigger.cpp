@@ -2700,7 +2700,7 @@ void Trigger::Run(int source)
             m_pProp->SetRepresentationActive(1, 1);
             value_0b1 = 1;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                Function41C680(value_0b8, 1);
+                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, 1);
             }
             flag_0a0_06 = 1;
             if (action_data != 0) {
@@ -2740,7 +2740,7 @@ void Trigger::Run(int source)
             value_0b1 = value_0b1 == 1 ? 0 : 1;
             m_pProp->SetRepresentationActive(value_0b1, 1);
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                Function41C680(value_0b8, value_0b1);
+                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
             flag_0a0_06 = 1;
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
@@ -2816,7 +2816,7 @@ void Trigger::Run(int source)
             m_pProp->SetRepresentationActive(!was_active, 1);
             value_0b1 = value_0b1 == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                Function41C680(value_0b8, value_0b1);
+                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
             if (!was_active) {
                 flag_0a0_06 = 1;
@@ -2937,7 +2937,7 @@ void Trigger::Run(int source)
         m_pProp->SetRepresentationActive(!was_active, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            Function41C680(value_0b8, value_0b1);
+            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (!was_active) {
             flag_0a0_06 = 1;
@@ -3212,7 +3212,7 @@ void Trigger::Run(int source)
         m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            Function41C680(value_0b8, value_0b1);
+            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (action_230 == 0x32) {
             flag_0a0_06 = 1;
@@ -3294,7 +3294,7 @@ void Trigger::Run(int source)
         m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            Function41C680(value_0b8, value_0b1);
+            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         break;
 
@@ -3305,7 +3305,7 @@ void Trigger::Run(int source)
         m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            Function41C680(value_0b8, value_0b1);
+            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         break;
 

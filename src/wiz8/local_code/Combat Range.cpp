@@ -13,8 +13,13 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/layouts/item_tables.h"
+#include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
@@ -52,6 +57,107 @@ float g_float_005ec35c = 12500.0f;
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
    an empty place. Both live inside the block Formation & Facing.cpp saves and
    restores whole. */
+
+/* Whether `party_slot`'s action can reach any member of `group_id` at all.
+   The character becomes the source for the shared range test; a miss can
+   queue the character's complaint event when `notify` asks for it. */
+// FUNCTION: WIZ8 0x00519920
+unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
+                                   char notify)
+{
+    W8TargetSource source;
+    W8MonsterGroup* group;
+    unsigned int index;
+
+    index = GetMonsterGroupIndexByID(0x197, COMBAT_RANGE_CPP, group_id, 0);
+    if (index == 0xffffffff) {
+        return 0;
+    }
+    group = GetMonsterGroupByListIndex(index);
+    if (group == 0) {
+        srAssertFail("pMonsterGroup != NULL", COMBAT_RANGE_CPP, 0x1a0, 0);
+    }
+    SetTargetSourceToCharacter(party_slot, &source);
+    if (IsTargetSourceInRangeOfGroup(&source, group, context) == 0) {
+        if (notify != 0) {
+            QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                                g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
+                                g_effect_argument_005ed914);
+        }
+        return 0;
+    }
+    return 1;
+}
+
+/* The range category the slot's chosen action works at. Attacks take the
+   weapon's reach for the asked hand, a move acts at long range, spells and
+   item uses ask their spell record, and anything unknown has no range. */
+// FUNCTION: WIZ8 0x005199f0
+int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8ActionDetailBlock* detail_block;
+    int action;
+    int detail;
+
+    ChooseCombatAction(party_slot, context, &action, &detail, 0, &detail_block);
+    switch (action) {
+    case 0:
+    case 1:
+        return GetCharAttackRange(character, hand);
+    case 7:
+        if (detail != 0) {
+            return g_spell_records[detail].range_category;
+        }
+        break;
+    case 8:
+        return GetItemSpellRange(detail_block->item_use.item);
+    case 5:
+        return W8_RANGE_TOUCH;
+    case 2:
+        return W8_RANGE_LONG;
+    }
+    return W8_RANGE_NONE;
+}
+
+/* The range category the weapon in one of the character's hands attacks at.
+   `hand` of HAND_ANY asks both hands and keeps the better answer; only a
+   hand actually in play carrying a melee or thrown wield kind has a range to
+   report at all. */
+// FUNCTION: WIZ8 0x00519ac0
+int GetCharAttackRange(W8Character* character, unsigned int hand)
+{
+    unsigned int index;
+    int best;
+    int range;
+
+    if (hand >= 2) {
+        if (hand != 2) {
+            srAssertFail("uiHand == HAND_ANY", COMBAT_RANGE_CPP, 0x1f2, 0);
+        }
+        best = -1;
+        for (index = 0; index < 2; ++index) {
+            if (character->hand_attacks[index].in_play != 0) {
+                range = GetCharAttackRange(character, index);
+                if (best < range) {
+                    best = range;
+                }
+            }
+        }
+        return best;
+    }
+    if (character->hand_attacks[hand].in_play == 0) {
+        FormatDebugMessage(1,
+                           "ERROR: GetCharAttackRange for hand %d which can't attack, uiChar = %d",
+                           hand, CharacterPointerToPartySlot(character));
+        return -1;
+    }
+    if (character->hand_attacks[hand].wield_kind != 1 &&
+        character->hand_attacks[hand].wield_kind != 3) {
+        return 0;
+    }
+    return g_item_records[character->equipment[6 + (hand != 0)].item_id].wield_group;
+}
 
 /* The furthest range category any of this character's hands can reach at. */
 // FUNCTION: WIZ8 0x00519ba0
@@ -199,7 +305,7 @@ bool AnyoneStandsAhead(unsigned char position)
     signed char slot;
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_status_685170.formation.rows[position].slots[index];
+        slot = g_status_685170.formation.bOccupantChar[position][index];
         if (slot != -1 &&
             g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
             ++found;
@@ -213,8 +319,8 @@ bool AnyoneStandsAhead(unsigned char position)
 // FUNCTION: WIZ8 0x0051b000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
-    unsigned char from_row = g_status_685170.formation.positions[from_position].row;
-    unsigned char to_row = g_status_685170.formation.positions[to_position].row;
+    unsigned char from_row = g_status_685170.formation.positions[from_position].bQuadrant;
+    unsigned char to_row = g_status_685170.formation.positions[to_position].bQuadrant;
     int rows_apart;
     int found;
     unsigned int index;
@@ -236,7 +342,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_status_685170.formation.rows[4].slots[index];
+        slot = g_status_685170.formation.bOccupantChar[4][index];
         if (slot != -1 &&
             g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
             ++found;

@@ -289,8 +289,8 @@ unsigned char SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
    the selection owner only needs a pick when there is nothing selected already
    and the caller is not in one of the two contexts that supply it. */
 // FUNCTION: WIZ8 0x005010f0
-char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
-                                     W8TargetingContext context)
+int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
+                                    W8TargetingContext context)
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
@@ -356,13 +356,16 @@ int GetTargetNeededForSpellHostile(int spell_id)
     return 0;
 }
 
-/* One-line forwarder that narrows CanCharReBreathe's answer to a flag. Its
-   argument is a party slot, not a spell - which is only visible once the
-   underlying predicate is named. */
+/* Forwarder that narrows CanCharReBreathe's answer to a flag. Its argument is
+   a party slot, not a spell - which is only visible once the underlying
+   predicate is named. */
 // FUNCTION: WIZ8 0x00501860
 bool CanPartySlotReBreathe(int party_slot)
 {
-    return CanCharReBreathe(party_slot) != 0;
+    if (CanCharReBreathe(party_slot) == 0) {
+        return 0;
+    }
+    return 1;
 }
 
 /* One queued spell effect. Each entry counts down a turn at a time and is
@@ -801,6 +804,17 @@ int MissileSpellId(int missile_type)
     default:
         return W8_SPELL_NONE;
     }
+}
+
+/* The 0x49 teleport lands on the character's saved anchor, so without an
+   anchor set it cannot run. Every other spell id clears this block. */
+// FUNCTION: WIZ8 0x00501D00
+char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
+{
+    if (spell_id != 0x49) {
+        return 0;
+    }
+    return character->has_saved_location == 0;
 }
 
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76

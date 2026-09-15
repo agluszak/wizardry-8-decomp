@@ -201,7 +201,7 @@ void DispatchMGSCommand(int command)
     switch (command) {
     case W8_MGS_COMMAND_CANCEL:
         if (IsWorldCursorVisible() != 0) {
-            Function490AF0();
+            ToggleWorldCursor();
         } else if (gXStatus.fSurprisePossible != 0) {
             Function502790();
         } else if (gXStatus.fSpellCastMode != 0) {
@@ -320,7 +320,7 @@ void DispatchMGSCommand(int command)
     }
     case W8_MGS_COMMAND_LOOK_LEVEL:
         if (IsWorldCursorVisible() != 0) {
-            Function491EC0();
+            UpdateWorldCursorPlacement00491EC0();
         } else {
             LevelCamera();
         }
@@ -528,7 +528,7 @@ void DispatchMGSCommand(int command)
         break;
     case W8_MGS_COMMAND_CYCLE_TARGET:
         if (g_status_685170.selected_character != -1) {
-            Function537D20(g_status_685170.selected_character);
+            CycleToNextTarget(g_status_685170.selected_character);
         }
         break;
     case W8_MGS_COMMAND_ATTACK:

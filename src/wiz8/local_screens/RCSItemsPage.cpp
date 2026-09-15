@@ -285,14 +285,14 @@ void UseItem005BA4F0(W8ItemInstance* item)
 {
     unsigned short slot;
 
-    if (Function522B80(giReviewCharSlot, item, 0) != 0) {
+    if (ValidateItemSpellUse(giReviewCharSlot, item, 0) != 0) {
         SetCampItemActionMode005B59B0(0);
         return;
     }
     if (CanCastFromItem(g_value_0069c0f8, item) != 0) {
         LearnSpellFromItem(g_value_0069c0f8, item);
     } else {
-        if (Function522A00(item) == 0 || Function4DA0F0(item) != 0) {
+        if (IsUsableItemClass00522A00(item) == 0 || IsSpecialItemId004DA0F0(item) != 0) {
             g_flag_00685071 = 1;
             g_value_00685072 = (int)item;
             g_value_00685077 = static_cast<char>(giReviewCharSlot);
@@ -430,7 +430,7 @@ unsigned char CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemIns
 {
     if (CanCharacterActivateItem(character, item) == 0) {
         if (CanCastFromItem(character, item) == 0) {
-            if (Function522A00(item) == 0) {
+            if (IsUsableItemClass00522A00(item) == 0) {
                 return 0;
             }
         }
@@ -584,7 +584,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             if (gXStatus.iTargetingMode != 7) {
                 return;
             }
-            if (Function53C2C0(slot) == 0) {
+            if (IsDeadCharacterTargetable(slot) == 0) {
                 return;
             }
             goto set_cursor;
@@ -615,7 +615,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
                 return;
             }
             if (gXStatus.fCombatMode != 0) {
-                if (Function5A6310(item) == 0) {
+                if (IsEquippableItemClass005A6310(item) == 0) {
                     if (g_combat_state->flag_a50 == 0) {
                         return;
                     }
@@ -653,7 +653,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
         }
         if (CanCharacterActivateItem(g_value_0069c0f8, item) == 0 &&
             CanCastFromItem(g_value_0069c0f8, item) == 0) {
-            allowed = Function522A00(item);
+            allowed = IsUsableItemClass00522A00(item);
         } else {
             goto set_cursor_item;
         }

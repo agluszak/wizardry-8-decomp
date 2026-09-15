@@ -518,7 +518,8 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         position = monster->GetPosition();
         if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position, &range,
                                                           &hops) != 0 &&
-            Function4F0E50(monster_info->heard_noise_radius_43, (int)range, hops) > 0) {
+            NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43, static_cast<int>(range),
+                                       hops) > 0) {
             mode = 4;
             changed = 1;
             goto commit;

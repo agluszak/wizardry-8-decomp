@@ -5,12 +5,12 @@ void ReleaseGenericItemNames(void);
 
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/dialog_code/DialogBase.h"
 
 struct W8ItemDatabaseRecord;
 struct W8NpcState;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
-int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
 
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
@@ -34,6 +34,7 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
 void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
+int GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
 wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity);
 unsigned int GetItemStackValue(const W8ItemInstance* item);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
@@ -134,10 +135,6 @@ extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 extern unsigned char g_byte_652da6;
 
-/* The (origin, slot) addressing FindCharacterItemAt resolves and
-   GetOriginOfCharacterItem reports: zero is the carrier's backpack array,
-   one the worn equipment array and two the shared party pool. The
-   ReviewCharacterScreen camp handler reads the same numbering. */
 enum W8ItemOrigin {
     W8_ITEM_ORIGIN_BACKPACK = 0,
     W8_ITEM_ORIGIN_EQUIPPED = 1,
@@ -170,5 +167,12 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);
 unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
-void BindEveryPartyItem(void);               /* 0x0051D230 */
-bool Function522D40(W8Character* character); /* 0x00522D40 */
+void BindEveryPartyItem(void); /* 0x0051D230 */
+/* 0x00522A00: whether the item's equip class is directly usable (0x17/0x19). */
+char IsUsableItemClass00522A00(W8ItemInstance* item);
+/* 0x00522B80: validate an item's embedded spell for use now; nonzero reports
+   use blocked with the reason notice queued through the callback. */
+char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
+                          W8DialogDestroyCallback callback);
+bool CharacterHasServiceItem(W8Character* character);  /* 0x00522D40 */
+int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */

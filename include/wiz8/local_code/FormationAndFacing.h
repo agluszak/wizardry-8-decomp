@@ -10,7 +10,6 @@ extern float g_facing_tolerance_005ebcf4;
 
 signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
 
-
 void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
 
 /* 0x005549E0: whether the character can hold a formation place at all: alive
@@ -31,15 +30,20 @@ void CompactFormationRow(W8PartyFormationState* formation, unsigned char row);
 /* 0x00554580 sits in the attribution gap between Magic Effects.cpp and this
    file. The pointer ABI is the formation record, not a byte buffer. */
 void InitializePartyFormation(W8PartyFormationState* state);
-/* Unrecovered neighbours in the same attribution area; declared so the
-   formation screen can call them. 0x005545D0 copies a whole 0x84-byte
-   formation record, 0x005545F0 reconciles an edited formation against the
-   live one, 0x00555080 re-seats one slot's row, and 0x00555160 swaps two
-   slots' positions. */
-void Function5545D0(W8PartyFormationState* dst, const W8PartyFormationState* src);
-void Function5545F0(W8PartyFormationState* edited, W8PartyFormationState* live);
-void Function555080(W8PartyFormationState* formation, int slot, int row);
-void Function555160(W8PartyFormationState* formation, int slot_a, int slot_b);
+void CopyPartyFormationState(W8PartyFormationState* dst, const W8PartyFormationState* src);
+/* 0x005545F0: reconcile an edited formation against the live one, re-seating
+   characters that can no longer hold their edited place and writing the
+   result back into both formations. */
+void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationState* live);
+/* 0x00554E70: keep one slot's seat in step with its liveness - death stashes
+   its quadrant in bOldQuadrant and unseats it, revival re-seats it there or
+   in a fallback row. */
+void UpdateFormationSlotState(W8PartyFormationState* formation, int slot);
+/* 0x00555080: seat one party slot in a formation row, shuffling its occupants
+   to make room, or refuse a full row with a notice. */
+void SeatFormationSlotInRow(W8PartyFormationState* formation, int slot, int row);
+/* 0x00555160: swap two party slots' formation positions. */
+void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b);
 /* 0x005554A0: re-aim party_heading at the selected character's formation
    facing and swing the camera to match, while the camera is not being
    rotated by hand. */
