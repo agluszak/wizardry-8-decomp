@@ -526,6 +526,12 @@ srVector3T<float> W8Navigator::GetPosition()
     return movement_0c0.position_040;
 }
 
+// FUNCTION: WIZ8 0x004534f0
+void W8Navigator::GetVelocity(srVector3T<float>* velocity)
+{
+    *velocity = movement_0c0.velocity_034;
+}
+
 // FUNCTION: WIZ8 0x00454950
 unsigned char W8Navigator::UpdateTrackedPosition00454950()
 {
@@ -630,11 +636,23 @@ void W8Navigator::PropagateGroupPosition()
     }
 }
 
+// FUNCTION: WIZ8 0x004538d0
+void W8Navigator::SetTargetYaw(float angle)
+{
+    movement_0c0.target_yaw = NormalizeAngle(angle);
+}
+
 // FUNCTION: WIZ8 0x004538f0
 void W8Navigator::SetAngles004538F0(float angle)
 {
     movement_0c0.yaw = NormalizeAngle(angle);
     movement_0c0.target_yaw = NormalizeAngle(angle);
+}
+
+// FUNCTION: WIZ8 0x00453920
+void W8Navigator::SetTargetPitch(float angle)
+{
+    movement_0c0.target_pitch_024 = NormalizeAngle(angle);
 }
 
 // FUNCTION: WIZ8 0x00453940
@@ -660,6 +678,17 @@ float W8Navigator::GetPitch()
 void W8Navigator::SetTurnRate(float turn_rate)
 {
     movement_0c0.turn_rate_068 = turn_rate;
+}
+
+// FUNCTION: WIZ8 0x00453ef0
+void W8Navigator::SetHeightRange(float minimum, float maximum)
+{
+    if (minimum >= g_float_005ebb34) {
+        minimum_height_034 = minimum;
+    }
+    if (maximum >= g_float_005ebb34) {
+        maximum_height_038 = maximum;
+    }
 }
 
 // FUNCTION: WIZ8 0x004538b0
