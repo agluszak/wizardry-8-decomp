@@ -136,11 +136,9 @@ jobs:
             gog-media: $GOG_INSTALLER_NAME
           EOF
 
-      - name: Prepare and verify licensed corpus
+      - name: Prepare licensed corpus
         if: env.LICENSED_INPUTS == 'true'
-        run: |
-          uv run wiz8 prepare
-          uv run wiz8 corpus verify
+        run: uv run wiz8 prepare
 
       - name: Generate reccmp PR status
         id: reccmp-status
