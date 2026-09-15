@@ -260,34 +260,11 @@ def configure_clang(
     settings: Settings, *, full_diagnostics: bool = False
 ) -> tuple[Path, list[str]]:
     """Configure the compiler-backed source projection and return its runner."""
-    docker = resolve_executable("docker") or "docker"
     output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
     output.mkdir(parents=True, exist_ok=True)
-    mounts = (
-        Mount(settings.repo_dir, "/repo"),
-        Mount(output, "/out", read_only=False),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
-            "/zlib",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
-            "/jpeg",
-        ),
-        Mount(
-            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
-            "/infozip",
-        ),
-    )
-
-    def prefix() -> list[str]:
-        command = [docker, "run", "--rm", "--init", "--network", "none"]
-        for mount in mounts:
-            command.extend(("--volume", mount.docker_argument()))
-        return command
 
     configure_command = [
-        *prefix(),
+        *clang_container_prefix(settings, output),
         "--entrypoint",
         "cmake",
         VC6_IMAGE,
@@ -314,7 +291,34 @@ def configure_clang(
         / "logs"
         / ("clang-full-configure.json" if full_diagnostics else "clang-lint-configure.json"),
     )
-    return output, prefix()
+    return output, clang_container_prefix(settings, output)
+
+
+def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
+    """Return the analysis-image invocation for an existing Clang build tree."""
+
+    docker = resolve_executable("docker") or "docker"
+    mounts = (
+        Mount(settings.repo_dir, "/repo"),
+        Mount(output, "/out", read_only=False),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+            "/zlib",
+        ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6",
+            "/jpeg",
+        ),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/infozip-unzip-5.4",
+            "/infozip",
+        ),
+    )
+
+    command = [docker, "run", "--rm", "--init", "--network", "none"]
+    for mount in mounts:
+        command.extend(("--volume", mount.docker_argument()))
+    return command
 
 
 def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:

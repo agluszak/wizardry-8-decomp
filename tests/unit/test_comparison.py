@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -170,15 +171,22 @@ def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
         ),
     )
     seen = []
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
 
     class Engine:
         def compare_addresses(self, **kwargs):
             seen.append(kwargs)
             return iter([entity])
 
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
     target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe", recompiled_path=tmp_path / "recomp.exe"
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
     )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
     monkeypatch.setattr(
         comparison,
         "_project",
@@ -211,13 +219,21 @@ def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
 
 
 def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch):
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+
     class Engine:
         def compare_addresses(self, **_kwargs):
             return iter(())
 
+    products = tmp_path / "build/decomp"
+    products.mkdir(parents=True)
     target = SimpleNamespace(
-        original_path=tmp_path / "orig.exe", recompiled_path=tmp_path / "recomp.exe"
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=products / "Wiz8.exe",
+        recompiled_pdb=products / "Wiz8.pdb",
     )
+    target.recompiled_path.write_bytes(b"exe")
+    target.recompiled_pdb.write_bytes(b"pdb")
     monkeypatch.setattr(
         comparison,
         "_project",
@@ -230,3 +246,45 @@ def test_compare_selected_marks_unpaired_addresses_missing(tmp_path, monkeypatch
     assert result["ok"] is False
     assert result["missing"] == 1
     assert result["functions"] == [{"address": "0x00401000", "status": "missing"}]
+
+
+def test_missing_comparison_products_fail_without_creating_a_build(tmp_path, monkeypatch):
+    (tmp_path / "reccmp-project.yml").write_text("targets:\n  WIZ8:\n    filename: Wiz8.exe\n")
+    target = SimpleNamespace(
+        original_path=tmp_path / "orig.exe",
+        recompiled_path=tmp_path / "Wiz8.exe",
+        recompiled_pdb=tmp_path / "Wiz8.pdb",
+    )
+    monkeypatch.setattr(
+        comparison, "_project", lambda _repository: SimpleNamespace(get=lambda _target: target)
+    )
+
+    with pytest.raises(FileNotFoundError, match=r"uv run wiz8 build"):
+        compare_selected(tmp_path, "WIZ8", [0x401000])
+
+
+@pytest.mark.parametrize("input_newer, warns", [(True, True), (False, False)])
+def test_build_freshness_warning_uses_input_mtimes(
+    tmp_path, caplog, input_newer: bool, warns: bool
+):
+    source = tmp_path / "src/wiz8/unit.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text("void f() {}")
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
+    )
+    executable = tmp_path / "Wiz8.exe"
+    pdb = tmp_path / "Wiz8.pdb"
+    executable.write_bytes(b"exe")
+    pdb.write_bytes(b"pdb")
+    old, new = 1_000_000_000, 2_000_000_000
+    artifact_time, source_time = (old, new) if input_newer else (new, old)
+    os.utime(executable, ns=(artifact_time, artifact_time))
+    os.utime(pdb, ns=(artifact_time, artifact_time))
+    os.utime(source, ns=(source_time, source_time))
+    os.utime(tmp_path / "reccmp-project.yml", ns=(source_time, source_time))
+    target = SimpleNamespace(recompiled_path=executable, recompiled_pdb=pdb)
+
+    comparison.warn_if_build_may_be_stale(tmp_path, "WIZ8", target)
+
+    assert ("comparison build may be stale" in caplog.text) is warns

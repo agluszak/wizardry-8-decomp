@@ -59,7 +59,7 @@ def test_debug_builds_selected_product_before_launch(
     assert "session: session.json" in result.output
 
 
-def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeypatch) -> None:
+def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypatch) -> None:
     from wiz8decomp import build, comparison, source_index
 
     settings = SimpleNamespace(repo_dir=tmp_path)
@@ -74,24 +74,21 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
     index.write_text(json.dumps(stale))
     events = []
 
-    def refresh(actual):
-        assert actual is settings
-        events.append("index")
-        index.write_text(
-            json.dumps(
-                {
-                    **stale,
-                    "markers": [
-                        {
-                            "marker_kind": "FUNCTION",
-                            "address": 0x401000,
-                            "source_file": "new.cpp",
-                            "target": "WIZ8",
-                        }
-                    ],
-                }
-            )
+    index.write_text(
+        json.dumps(
+            {
+                **stale,
+                "markers": [
+                    {
+                        "marker_kind": "FUNCTION",
+                        "address": 0x401000,
+                        "source_file": "new.cpp",
+                        "target": "WIZ8",
+                    }
+                ],
+            }
         )
+    )
 
     def compare(_repo, _target, selected, **_kwargs):
         assert selected == [0x401000]
@@ -100,13 +97,17 @@ def test_compare_refreshes_changed_file_selection_before_build(tmp_path, monkeyp
 
     monkeypatch.setattr(command_support, "settings", lambda: settings)
     monkeypatch.setattr(comparison, "changed_source_files", lambda *_args: [source])
-    monkeypatch.setattr(source_index, "write_source_index", refresh)
-    monkeypatch.setattr(build, "build_target", lambda *_args: events.append("build"))
+    monkeypatch.setattr(
+        source_index, "write_source_index", lambda *_args: pytest.fail("must not refresh index")
+    )
+    monkeypatch.setattr(
+        build, "build_target", lambda *_args: pytest.fail("must not build products")
+    )
     monkeypatch.setattr(comparison, "compare_selected", compare)
 
     result = CliRunner().invoke(app, ["compare", "--changed"])
     assert result.exit_code == 0, result.output
-    assert events == ["index", "build", "compare"]
+    assert events == ["compare"]
     payload = json.loads(result.stdout)
     assert payload["functions"][0]["address"] == "0x00401000"
     assert payload["selection"]["changed_files"] == ["new.cpp"]
@@ -125,6 +126,53 @@ def test_compare_changed_does_not_fall_back_to_whole_image(tmp_path, monkeypatch
     assert result.exit_code != 0
     assert isinstance(result.exception, ValueError)
     assert "no functions selected" in str(result.exception)
+
+
+def test_numeric_compare_is_read_only_and_passes_exact_addresses(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import build, comparison, source_index
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    seen = []
+    monkeypatch.setattr(command_support, "settings", lambda: SimpleNamespace(repo_dir=tmp_path))
+    monkeypatch.setattr(
+        source_index, "write_source_index", lambda *_args: pytest.fail("must not write index")
+    )
+    monkeypatch.setattr(build, "build_target", lambda *_args: pytest.fail("must not build"))
+    monkeypatch.setattr(
+        comparison,
+        "compare_selected",
+        lambda _repo, _target, addresses, **_kwargs: seen.append(addresses) or {"ok": True},
+    )
+
+    result = CliRunner().invoke(app, ["compare", "0x4538d0"])
+
+    assert result.exit_code == 0, result.output
+    assert seen == [[0x4538D0]]
+
+
+def test_compare_build_explicitly_refreshes_and_builds(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import build, comparison, source_index
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(source_index, "write_source_index", lambda actual: events.append("index"))
+    monkeypatch.setattr(
+        build, "build_target", lambda actual, target: events.append(("build", target))
+    )
+    monkeypatch.setattr(
+        comparison, "compare_selected", lambda *_args, **_kwargs: events.append("compare") or {}
+    )
+
+    result = CliRunner().invoke(app, ["compare", "--build", "0x4538d0"])
+
+    assert result.exit_code == 0, result.output
+    assert events == ["index", ("build", "WIZ8"), "compare"]
 
 
 def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:

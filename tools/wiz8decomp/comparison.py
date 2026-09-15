@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+import logging
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -11,10 +11,16 @@ from typing import Any
 from reccmp.compare import Compare
 from reccmp.compare.report import ReccmpComparedEntity
 from reccmp.project.detect import RecCmpProject, RecCmpTarget
+from reccmp.source import SourceIndexError
 
 from .config import Settings
-from .paths import atomic_json, compile_database_relative
+from .paths import atomic_json
 from .subprocesses import run
+
+LOGGER = logging.getLogger(__name__)
+_PRODUCT_INPUT_SUFFIXES = frozenset(
+    {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inc", ".rc", ".def", ".asm"}
+)
 
 
 def parse_address(value: str) -> int:
@@ -64,20 +70,16 @@ def selected_addresses(
     repository: Path, target: str, raw: Iterable[str], paths: Iterable[Path]
 ) -> list[int]:
     selected = set(_resolve_source_selectors(repository, target, raw)) if raw else set()
-    selected.update(addresses_from_files(repository, target, paths))
+    paths = list(paths)
+    if paths:
+        selected.update(addresses_from_files(repository, target, paths))
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
     return sorted(selected)
 
 
 def header_dependent_files(settings: Settings, target: str, changed: Iterable[Path]) -> list[Path]:
-    """Use Clang's current compilation contexts, including transitive headers.
-
-    Scan dependencies without compiling objects. Ninja's saved dependencies may
-    describe an older include graph; the native scanner reads the current one.
-    Include marked inline definitions in affected contexts as well as their TUs.
-    """
-    from .build import VC6_IMAGE, configure_clang
+    """Select header consumers from the existing compiler-backed source index."""
     from .source_index import indexed_targets, load_source_index
 
     repository = settings.repo_dir.resolve()
@@ -88,54 +90,34 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
     }
     if not headers:
         return []
+    index = load_source_index(repository)
+    dependencies = index.get("translation_unit_dependencies")
+    if not isinstance(dependencies, list):
+        raise SourceIndexError(
+            "source index lacks header dependency metadata; run `uv run wiz8 analyze source-index`"
+        )
     roots = indexed_targets(repository)[target.upper()]
-    _, prefix = configure_clang(settings)
-    result = run(
-        [
-            *prefix,
-            "-e",
-            "TMPDIR=/tmp",
-            "-e",
-            "TMP=/tmp",
-            "-e",
-            "TEMP=/tmp",
-            "--entrypoint",
-            "clang-scan-deps-19",
-            VC6_IMAGE,
-            "-compilation-database=/out/compile_commands.json",
-            "-format=experimental-full",
-        ],
-        cwd=repository,
-        log_path=repository / "build/logs/compare-dependencies.json",
-    )
     marker_files = {
         marker["source_file"]
-        for marker in load_source_index(repository)["markers"]
+        for marker in index["markers"]
         if marker["target"].upper() == target.upper() and marker["marker_kind"] == "FUNCTION"
     }
     affected: set[str] = set()
-    for unit in json.loads(result.stdout)["translation-units"]:
-        for command in unit["commands"]:
-            source = compile_database_relative(command["input-file"], repository)
-            if source is None or not any(
-                source == root or source.startswith(root.rstrip("/") + "/") for root in roots
-            ):
-                continue
-            dependencies = {
-                relative
-                for path in command["file-deps"]
-                if (relative := compile_database_relative(path, repository)) is not None
-            }
-            if headers & dependencies:
-                affected.update((dependencies | {source}) & marker_files)
+    for unit in dependencies:
+        source = str(unit.get("source_file") or "")
+        if not any(source == root or source.startswith(root.rstrip("/") + "/") for root in roots):
+            continue
+        file_dependencies = {str(path) for path in unit.get("file_dependencies", [])}
+        if headers & file_dependencies:
+            affected.update((file_dependencies | {source}) & marker_files)
     return [repository / path for path in sorted(affected - headers)]
 
 
 def _numeric_range(value: str) -> tuple[int, int] | None:
     start_text, separator, end_text = value.strip().partition(":")
     try:
-        start = int(start_text, 0)
-        end = int(end_text, 0) if separator else start
+        start = int(start_text, 16)
+        end = int(end_text, 16) if separator else start
     except ValueError:
         return None
     if start < 0 or end < start:
@@ -143,16 +125,33 @@ def _numeric_range(value: str) -> tuple[int, int] | None:
     return start, end
 
 
+def selectors_require_source_index(values: Iterable[str]) -> bool:
+    """Return whether any selector needs semantic source metadata."""
+
+    for value in values:
+        numeric = _numeric_range(value)
+        if numeric is None or numeric[0] != numeric[1]:
+            return True
+    return False
+
+
 def _resolve_source_selectors(repository: Path, target: str, values: Iterable[str]) -> list[int]:
     """Resolve addresses, ranges, and exact source-owned identities for compare."""
 
-    from .source_index import source_functions
-
-    model = source_functions(repository, target)
     selected: set[int] = set()
-    by_name: dict[str, list[int]] = {}
-    for address, function in model.items():
-        by_name.setdefault(function.name, []).append(address)
+    model = None
+    by_name = None
+
+    def source_model():
+        nonlocal model, by_name
+        if model is None:
+            from .source_index import source_functions
+
+            model = source_functions(repository, target)
+            by_name = {}
+            for address, function in model.items():
+                by_name.setdefault(function.name, []).append(address)
+        return model, by_name
 
     for value in values:
         numeric = _numeric_range(value)
@@ -161,11 +160,14 @@ def _resolve_source_selectors(repository: Path, target: str, values: Iterable[st
             if start == end:
                 selected.add(start)
             else:
+                model, _ = source_model()
                 matches = [address for address in model if start <= address <= end]
                 if not matches:
                     raise ValueError(f"no source-owned functions in selector range {value}")
                 selected.update(matches)
             continue
+        _, by_name = source_model()
+        assert by_name is not None
         matches = by_name.get(value, [])
         if not matches:
             # Ghidra's stable default names encode the reviewed entry directly.
@@ -194,6 +196,57 @@ def _project(repository: Path) -> RecCmpProject:
     return RecCmpProject.from_directory(repository / "build" / "decomp")
 
 
+def comparison_target(repository: Path, target: str) -> RecCmpTarget:
+    """Load a configured target and require both comparison products."""
+
+    from .source_index import project_targets
+
+    filename = Path(project_targets(repository)[target.upper()]["filename"])
+    expected = (
+        repository / "build/decomp" / filename,
+        repository / "build/decomp" / filename.with_suffix(".pdb"),
+    )
+    if any(not path.is_file() for path in expected):
+        raise FileNotFoundError("comparison build artifacts are missing; run `uv run wiz8 build`")
+    recmp_target = _project(repository).get(target)
+    missing = [
+        path
+        for path in (recmp_target.recompiled_path, recmp_target.recompiled_pdb)
+        if path is None or not Path(path).is_file()
+    ]
+    if missing:
+        raise FileNotFoundError("comparison build artifacts are missing; run `uv run wiz8 build`")
+    return recmp_target
+
+
+def warn_if_build_may_be_stale(repository: Path, target: str, recmp_target: RecCmpTarget) -> None:
+    """Cheaply compare product mtimes with checked-in product inputs."""
+
+    from .source_index import project_targets
+
+    artifacts = (Path(recmp_target.recompiled_path), Path(recmp_target.recompiled_pdb))
+    built_at = min(path.stat().st_mtime_ns for path in artifacts)
+    config = project_targets(repository)[target.upper()]
+    candidates = [repository / "CMakeLists.txt", repository / "reccmp-project.yml"]
+    candidates.extend((repository / "cmake").rglob("*.cmake"))
+    candidates.extend(repository.glob("src/*/CMakeLists.txt"))
+    candidates.extend(repository.glob("src/*/sources.cmake"))
+    roots = config.get("source-root", ())
+    if isinstance(roots, str):
+        roots = (roots,)
+    candidates.extend(
+        path
+        for root in roots
+        for path in (repository / root).rglob("*")
+        if path.suffix.lower() in _PRODUCT_INPUT_SUFFIXES
+    )
+    if any(path.is_file() and path.stat().st_mtime_ns > built_at for path in candidates):
+        LOGGER.warning(
+            "comparison build may be stale; relevant inputs are newer than the current build\n"
+            "         run `uv run wiz8 build` for fresh comparison results"
+        )
+
+
 def _function_result(entity: ReccmpComparedEntity) -> dict[str, Any]:
     """Convert one reccmp comparison into the external JSON row."""
 
@@ -220,7 +273,8 @@ def _function_result(entity: ReccmpComparedEntity) -> dict[str, Any]:
 def compare_selected(
     repository: Path, target: str, addresses: list[int], *, include_windows: bool = True
 ) -> dict[str, Any]:
-    recmp_target = _project(repository).get(target)
+    recmp_target = comparison_target(repository, target)
+    warn_if_build_may_be_stale(repository, target, recmp_target)
     engine = Compare.from_target(recmp_target, orig_addrs=addresses)
     matches = {
         entity.orig_addr: entity
@@ -230,6 +284,7 @@ def compare_selected(
             include_exact_diff=False,
         )
     }
+    window_images: dict[str, Any] = {}
     functions: list[dict[str, Any]] = []
     for address in sorted(set(addresses)):
         entity = matches.get(address)
@@ -238,7 +293,7 @@ def compare_selected(
             continue
         row = _function_result(entity)
         if include_windows and row["status"] == "mismatch":
-            window = _instruction_windows(recmp_target, entity)
+            window = _instruction_windows(recmp_target, entity, images=window_images)
             if window:
                 row["instruction_window"] = window
                 difference = row.get("difference") or {}
@@ -277,6 +332,7 @@ def _instruction_windows(
     entity: ReccmpComparedEntity,
     *,
     radius: int = 3,
+    images: dict[str, Any] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Decode a bounded window around reccmp's structured first divergence."""
 
@@ -299,7 +355,13 @@ def _instruction_windows(
         if start is None or not isinstance(index, int):
             continue
         try:
-            image = PeImage(paths[side])
+            if images is None:
+                image = PeImage(paths[side])
+            else:
+                image = images.get(side)
+                if image is None:
+                    image = PeImage(paths[side])
+                    images[side] = image
             instructions = list(disassembler().disasm(image.read(start, 0x4000), start))
         except (OSError, ValueError):
             continue

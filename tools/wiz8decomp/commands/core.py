@@ -80,8 +80,11 @@ def compare_command(
         typer.Option("--since", help="With --changed, compare files changed since this revision."),
     ] = None,
     program: Annotated[str, typer.Option("--program")] = "wiz8",
+    build: Annotated[
+        bool, typer.Option("--build", help="Build fresh products and metadata before comparing.")
+    ] = False,
 ) -> None:
-    """Build current inputs and compare a selected function set."""
+    """Compare existing products; optionally build fresh products first."""
     from .. import command_support as cli
     from ..build import build_target
     from ..comparison import (
@@ -89,8 +92,8 @@ def compare_command(
         compare_selected,
         header_dependent_files,
         selected_addresses,
+        selectors_require_source_index,
     )
-    from ..source_index import write_source_index
 
     def action() -> Any:
         settings = cli.settings()
@@ -102,6 +105,13 @@ def compare_command(
         if ctx.args:
             raise ValueError("raw reccmp options are not accepted by selected comparison")
         if addresses or files or changed:
+            if build:
+                # Building owns source-index refresh and product generation. Keep
+                # the comparison path below identical for both modes.
+                from ..source_index import write_source_index
+
+                write_source_index(settings)
+                build_target(settings, target)
             selected_files = list(files or [])
             changed_files: list[Path] = []
             dependent_files: list[Path] = []
@@ -110,16 +120,26 @@ def compare_command(
                 selected_files.extend(changed_files)
                 if not selected_files and not addresses:
                     raise ValueError("no changed C/C++ files; no functions selected")
-            # Selection must see this source state, not the snapshot left by
-            # an earlier check/test run. The indexer caches unchanged inputs.
-            write_source_index(settings)
+            needs_index = bool(selected_files) or selectors_require_source_index(addresses or [])
+            index_stale = False
+            if needs_index:
+                from ..source_index import warn_if_source_index_may_be_stale
+
+                index_stale = warn_if_source_index_may_be_stale(settings.repo_dir, target)
             if changed:
+                changed_headers = [
+                    path for path in changed_files if path.suffix.lower() in {".h", ".hpp", ".hxx"}
+                ]
+                if changed_headers and index_stale:
+                    raise ValueError(
+                        "source index is stale for changed-header selection; "
+                        "run `uv run wiz8 analyze source-index`"
+                    )
                 dependent_files = header_dependent_files(settings, target, changed_files)
                 selected_files.extend(dependent_files)
             selected = selected_addresses(
                 settings.repo_dir, target, addresses or [], selected_files
             )
-            build_target(settings, target)
             result = compare_selected(
                 settings.repo_dir,
                 target,
