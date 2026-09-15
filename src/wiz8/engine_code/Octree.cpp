@@ -409,7 +409,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                                      const srVector3T<float>* point, float radius,
                                      unsigned int flags, char only_accumulated)
 {
-    unsigned int level_mask = m_positional_140;
+    unsigned int level_mask = m_region_mask_140;
     unsigned int limit = spatial_000.positional_50 - 1;
 
     int first[3];
@@ -456,7 +456,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                     bit = bit / 2;
                 }
                 if (bit == 0 && node != 0) {
-                    unsigned int region = m_owned_09c[node].positional_02;
+                    unsigned int region = m_owned_09c[node].region_02;
                     if (region != 0) {
                         m_current_regions_160->Set(region);
                     }
@@ -466,7 +466,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
     }
 
     unsigned int region = 1;
-    if (1 < spatial_000.positional_46) {
+    if (1 < spatial_000.region_count_46) {
         do {
             if (SphereInsideFrustum0046D8D0(point, radius,
                                             spatial_000.owned_5c[region].planes_88) != 0 &&
@@ -474,7 +474,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                 m_current_regions_160->Set(spatial_000.owned_5c[region].region_bit_0c);
             }
             ++region;
-        } while (region < spatial_000.positional_46);
+        } while (region < spatial_000.region_count_46);
     }
 
     if (m_ulNumProps == 0) {
@@ -611,7 +611,7 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
             sprintf(region_label, "%d  ", region_index);
             strcat(expected_regions, region_label);
 
-            W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[region_index];
+            W8OctRegionVolume* volume = &spatial_000.owned_5c[region_index];
             if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
                 continue;
             }
@@ -636,17 +636,17 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
     char point_region_label[128];
     strcpy(point_region_label, expected_regions);
 
-    if (spatial_000.positional_46 < 2) {
+    if (spatial_000.region_count_46 < 2) {
         return 0;
     }
 
     unsigned short reported_region = 0;
-    for (unsigned short region_index = 1; region_index < spatial_000.positional_46;
+    for (unsigned short region_index = 1; region_index < spatial_000.region_count_46;
          ++region_index) {
         if (match_count != 0) {
             break;
         }
-        W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[region_index];
+        W8OctRegionVolume* volume = &spatial_000.owned_5c[region_index];
         if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
             continue;
         }
@@ -679,13 +679,13 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
 unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
 {
     srVector3T<float> point = *position;
-    for (unsigned int region = 1; region < spatial_000.positional_46; ++region) {
+    for (unsigned int region = 1; region < spatial_000.region_count_46; ++region) {
         if (PointInsideFrustum0046D880(&point, spatial_000.owned_5c[region].planes_88) != 0) {
             return spatial_000.owned_5c[region].region_bit_0c;
         }
     }
 
-    unsigned long levels = m_positional_140;
+    unsigned long levels = m_region_mask_140;
     int cell[3];
     for (int axis = 0; axis < 3; ++axis) {
         int coordinate = static_cast<int>(
@@ -718,7 +718,7 @@ unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
     if (node == 0) {
         return 0;
     }
-    return m_owned_09c[node].positional_02;
+    return m_owned_09c[node].region_02;
 }
 
 // FUNCTION: WIZ8 0x00430d50
@@ -771,9 +771,9 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
                 child_index |= 1 << (2 - axis);
             }
         }
-        if (level == spatial_000.positional_52) {
+        if (level == spatial_000.leaf_level_52) {
             unsigned int key =
-                ((m_positional_140 * 0x100 + link_cell[0]) * 0x100 + link_cell[1]) * 0x100 +
+                ((m_region_mask_140 * 0x100 + link_cell[0]) * 0x100 + link_cell[1]) * 0x100 +
                 link_cell[2];
             int slot = m_pRegionLinks_150->FindNextEntry(&key, -1);
             while (slot != -1) {
@@ -807,8 +807,8 @@ void W8Octree::MarkVisibleRegions004301C0()
     float radius = far_clip_200;
     float radius_squared = radius * radius;
 
-    for (int index = 1; index < spatial_000.positional_46; ++index) {
-        W8OctRegionVolume0049E460* volume = &spatial_000.owned_5c[index];
+    for (int index = 1; index < spatial_000.region_count_46; ++index) {
+        W8OctRegionVolume* volume = &spatial_000.owned_5c[index];
 
         if (m_projected_regions_valid_16a != 0 &&
             !m_projected_regions_15c->Test(volume->region_bit_0c)) {
@@ -905,7 +905,7 @@ void W8Octree::CollectVisibleCells0042FE90()
             static_cast<int>((((&camera_location_1c0.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
                               spatial_000.positional_54)));
     }
-    unsigned int region_base = m_positional_140;
+    unsigned int region_base = m_region_mask_140;
     for (short x = -radius; x <= radius; ++x) {
         short cell_x = center[0] + x;
         if (cell_x < 0 || cell_x >= spatial_000.positional_50) {
@@ -942,7 +942,7 @@ void W8Octree::CollectVisibleCells0042FE90()
                         }
                     }
                     if (node != 0) {
-                        unsigned short region = m_owned_09c[node].positional_02;
+                        unsigned short region = m_owned_09c[node].region_02;
                         if (region != 0) {
                             m_current_regions_160->Set(region);
                         }
@@ -979,7 +979,7 @@ void W8Octree::CollectVisibleCells0042FE90()
                         }
                     }
                     if (node != 0) {
-                        unsigned short region = m_owned_09c[node].positional_02;
+                        unsigned short region = m_owned_09c[node].region_02;
                         if (region != 0) {
                             m_current_regions_160->Set(region);
                         }
@@ -1176,7 +1176,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
 unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
 {
     unsigned int region = 0;
-    if (1 < spatial_000.positional_46) {
+    if (1 < spatial_000.region_count_46) {
         unsigned int index = 1;
         do {
             if (region != 0) {
@@ -1186,7 +1186,7 @@ unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
                 region = index;
             }
             ++index;
-        } while (index < spatial_000.positional_46);
+        } while (index < spatial_000.region_count_46);
         if (region != 0) {
             return region;
         }
@@ -1196,7 +1196,7 @@ unsigned int W8Octree::RegionKeyForPoint(const srVector3T<float>* point)
         cell[axis] = static_cast<int>(((&point->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
                                       spatial_000.positional_54);
     }
-    return (cell[0] * 0x100 + cell[1]) * 0x100 + cell[2] + m_positional_140 * 0x1000000;
+    return (cell[0] * 0x100 + cell[1]) * 0x100 + cell[2] + m_region_mask_140 * 0x1000000;
 }
 
 /* Record `region_key` against every mesh marked in m_projected_regions_15c:
@@ -1222,7 +1222,7 @@ void W8Octree::RecordRegionMeshLinks(unsigned int region_key)
         }
         if (slot == -1) {
             if (!reported) {
-                if (region_key < spatial_000.positional_46) {
+                if (region_key < spatial_000.region_count_46) {
                     sprintf(text, "Pre-generated Region %d linked to meshes: ", region_key);
                 } else {
                     sprintf(text, "Auto Region (%d, %d, %d) linked to meshes: ",
@@ -1687,7 +1687,7 @@ bool W8Octree::SaveRegionLinks004331F0(char* path)
     }
     {
         unsigned int count = 0;
-        for (unsigned int key = 1; key < spatial_000.positional_46; ++key) {
+        for (unsigned int key = 1; key < spatial_000.region_count_46; ++key) {
             for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1); slot != -1;
                  slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
                 keys[count] = key;
@@ -1695,8 +1695,8 @@ bool W8Octree::SaveRegionLinks004331F0(char* path)
                 ++count;
             }
         }
-        unsigned int extent = 1 << spatial_000.positional_52;
-        unsigned int base = m_positional_140 * 0x1000000;
+        unsigned int extent = 1 << spatial_000.leaf_level_52;
+        unsigned int base = m_region_mask_140 * 0x1000000;
         for (unsigned int x = 0; x < extent; ++x) {
             for (unsigned int y = 0; y < extent; ++y) {
                 for (unsigned int z = 0; z < extent; ++z) {
@@ -1781,7 +1781,7 @@ unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, d
 // FUNCTION: WIZ8 0x00433ab0
 unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
 {
-    W8OctSpatialState0046CCC0 spatial(&spatial_000);
+    W8OctSpatialState spatial(&spatial_000);
     spatial.depth_44 = 0;
     spatial.level_kind_6c = 1;
     spatial.positional_94 = 1;
@@ -1800,13 +1800,13 @@ unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
    accumulate their counts.  Depths past the record limit count as one bad
    link. */
 // FUNCTION: WIZ8 0x00433B90
-int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial)
+int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial)
 {
-    W8OctSpatialState0046CCC0 local(spatial);
+    W8OctSpatialState local(spatial);
     int bad_links = 0;
     if (spatial->depth_44 < 0x10) {
-        if (spatial->depth_44 == spatial_000.positional_52) {
-            unsigned short link = m_owned_09c[spatial->positional_94].positional_02;
+        if (spatial->depth_44 == spatial_000.leaf_level_52) {
+            unsigned short link = m_owned_09c[spatial->positional_94].region_02;
             if (link != 0) {
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[link].mesh_04]);
@@ -2302,7 +2302,7 @@ out:
    height on a hit. The path builders and navigator placement use it to drop
    points onto terrain. */
 // FUNCTION: WIZ8 0x00431d20
-void W8Octree::SnapToGround(srVector3T<float>* position, char mode)
+bool W8Octree::SnapToGround(srVector3T<float>* position, char mode)
 {
     unsigned char hit = 0;
     if (position->y > spatial_000.clipped_maximum_30.y) {
@@ -2314,6 +2314,7 @@ void W8Octree::SnapToGround(srVector3T<float>* position, char mode)
     if (hit != 0) {
         position->y = probe.y;
     }
+    return hit != 0;
 }
 
 /* Whether one point can see another, and where the line stops if it cannot.
@@ -3910,8 +3911,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                             if (ReadHeader<unsigned short>(header, 0x96) > 1) {
                                 block =
                                     malloc((ReadHeader<unsigned short>(header, 0x96) + 2) * 0xe8);
-                                spatial_000.owned_5c =
-                                    static_cast<W8OctRegionVolume0049E460*>(block);
+                                spatial_000.owned_5c = static_cast<W8OctRegionVolume*>(block);
                                 if (block == 0) {
                                     fSuccess = 0;
                                     strcpy(acMessage,

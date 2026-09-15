@@ -228,7 +228,7 @@ srClass* stLight::vInstance()
 
 /* Test a point against the six inward-facing planes of one region volume. */
 // FUNCTION: WIZ8 0x0049e460
-unsigned char W8OctRegionVolume0049E460::ContainsPoint0049E460(const srVector3T<float>* point) const
+unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* point) const
 {
     for (short plane = 0; plane < 6; ++plane) {
         float distance = SignedPlaneDistance(planes_88[plane], *point);

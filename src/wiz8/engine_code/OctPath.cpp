@@ -278,7 +278,7 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
     if (m_ulNumSurfaces != 0 && file_waypoints_050 != 0) {
         result =
             FileWrite(handle, &version, sizeof(version), 0) |
-            FileWrite(handle, &m_positional_008, sizeof(m_positional_008), 0) |
+            FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0) |
             FileWrite(handle, &m_ulNumSurfaces, sizeof(m_ulNumSurfaces), 0) |
             FileWrite(handle, &m_ulNumEdges, sizeof(m_ulNumEdges), 0) |
             FileWrite(handle, file_waypoints_050, m_ulNumSurfaces * sizeof(W8FileWaypoint), 0) |
@@ -304,7 +304,7 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     if (handle == 0)
         return 0;
 
-    success = FileRead(handle, &version, 4, 0) | FileRead(handle, &m_positional_008, 4, 0) |
+    success = FileRead(handle, &version, 4, 0) | FileRead(handle, &edge_node_count_008, 4, 0) |
               FileRead(handle, &m_ulNumSurfaces, 4, 0) | FileRead(handle, &m_ulNumEdges, 4, 0);
     if (success == 0) {
         FileClose(handle);
@@ -2262,7 +2262,7 @@ W8PathingService::W8PathingService()
     }
     path_nodes_044 = 0;
     size_004 = 0;
-    m_positional_008 = 0;
+    edge_node_count_008 = 0;
     m_ulNumSurfaces = 0;
     m_ulNumEdges = 0;
     m_positional_014 = 0;
@@ -4375,7 +4375,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
 short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>* position)
 {
     unsigned short waypoints[500];
-    unsigned int distances[500];
+    unsigned long distances[500];
     unsigned int waypoint_count = 0;
     int* query_results = 0;
     int query_count;
@@ -4463,7 +4463,7 @@ short W8PathingService::CollectPathVisualization0045D880(const srVector3T<float>
                 waypoints[insertion] = waypoint;
             }
         } else {
-            SortPathCandidates004677A0(waypoints, distances, 0, (int)waypoint_count - 1);
+            QuickSortByKey(waypoints, distances, 0, static_cast<int>(waypoint_count) - 1);
         }
     }
 

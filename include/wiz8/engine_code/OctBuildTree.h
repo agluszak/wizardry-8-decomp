@@ -9,7 +9,7 @@ struct W8OctBuildLink {
     W8OctBuildLink* next_04;
 };
 
-class W8OctPreTree004679E0;
+class OctPreTree;
 
 struct W8OctBuildLinkLists {
     W8OctBuildLinkLists();
@@ -28,7 +28,7 @@ struct W8OctBuildNode00446330 {
     unsigned char RearrangeNodePolys004AF7B0(short current_depth, short target_depth);
     int CollectLinkedSurfaces004AF8F0(short current_depth, short target_depth, short mode);
     int CollectSurfaceArray004AF9B0(short mode);
-    unsigned long ConvertToOctPreTree004AFA30(unsigned short depth, W8OctPreTree004679E0* tree);
+    unsigned long ConvertToOctPreTree004AFA30(unsigned short depth, OctPreTree* tree);
 
     union {
         W8OctBuildNode00446330* children_00[8];
@@ -65,12 +65,12 @@ struct W8OctBuildTree00446390 {
     ~W8OctBuildTree00446390();
 
     unsigned char InsertSurface00446820(W8GDSurface* surface, unsigned long mode);
-    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState0046CCC0* working,
+    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
                                                  W8GDSurface* surface,
                                                  srVector3T<float>* plane_point,
                                                  unsigned long mode);
 
-    W8OctSpatialState0046CCC0 spatial_00;
+    W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists_9c;
     unsigned long positional_a0;
     unsigned long positional_a4;

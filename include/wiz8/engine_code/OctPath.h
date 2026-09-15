@@ -5,19 +5,30 @@
 #include "wiz8/engine_code/stHeap.hpp"
 #include "wiz8/engine_code/stHash.hpp"
 
+#include <stddef.h>
+
 class stModelInstance;
 class GDPreProp;
+class OctPrePathLog;
+class OctPreTree;
+struct W8LevelFile;
+struct W8LevelFileNamedPosition;
 
 /* One pre-path prop record handed to LinkCollideableProps: the prop's path
    name plus the GDPreProp array OctPreTree.cpp builds for it (stride 0x48). */
 struct W8PreProp {
     char name[0x40];
     unsigned short num_stop_meshes_40;
-    unsigned short padding_42;
+    /* The running base prop number this record's pStopMeshes indices are
+       relative to; InsertConditionalNodes matches a GDProp m_prop_number_02
+       into [first_prop_number, first_prop_number + num_stop_meshes). */
+    unsigned short first_prop_number_42;
     GDPreProp* pStopMeshes;
 };
 
 static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
+static_assert(offsetof(W8PreProp, num_stop_meshes_40) == 0x40, "W8PreProp_num_stop_meshes_40");
+static_assert(offsetof(W8PreProp, pStopMeshes) == 0x44, "W8PreProp_pStopMeshes");
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
    and later releases it with delete. Its storage has no proven semantic
@@ -308,7 +319,9 @@ public:
 
     unsigned int m_positional_000;
     int size_004; /* 0x04 */
-    int m_positional_008;
+    /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
+       one, and WriteOctFile serializes it beside the node count. */
+    int edge_node_count_008;
     /* ReadOctFile tests this beside flag_1c8 before settling a portal. */
     unsigned int m_ulNumSurfaces; /* 0x0c */
     unsigned int m_ulNumEdges;    /* 0x10 */
@@ -401,6 +414,70 @@ public:
 };
 
 static_assert(sizeof(W8PathingService) == 0x240, "W8PathingService_must_be_0x240");
+
+/* The 0x10-byte build-time path-node record PrePathing::GetPathNode hands out
+   of its 1000-record chunks: floor index in the low bits plus link, clearance
+   and state flags; the packed cell; world height; and the same-cell chain. */
+struct W8PrePathNode {
+    unsigned int level_flags; /* 0x00 */
+    unsigned int cell;        /* 0x04: z << 16 | x */
+    float y;                  /* 0x08 */
+    W8PrePathNode* next;      /* 0x0c: allocation order, same-cell runs */
+};
+
+static_assert(sizeof(W8PrePathNode) == 0x10, "W8PrePathNode_must_be_0x10");
+
+/* OctPrePath.cpp's 0x1204-byte build-time pathing service ("PrePathing" in its
+   own assertions): its constructor runs the W8PathingService constructor then
+   initialises scratch state through +0x1200, and the pre-tree stores it at
+   +0x2a0. */
+class PrePathing : public W8PathingService {
+public:
+    PrePathing();  /* 0x004CCFD0 */
+    ~PrePathing(); /* 0x004CD030 */
+
+    /* Copies each named position (scaled to world units) into +0x250 and
+       snaps it to the ground through `octree`. */
+    int SnapNamedPositions004CD130(W8LevelFileNamedPosition* positions, int count,
+                                   unsigned int min_component_percent, OctPreTree* octree);
+    /* Hands out the next 0x10-byte path-node record, allocating a new
+       0x3e80-byte chunk (1000 records) when the current one fills. */
+    W8PrePathNode* GetPathNode();
+    unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
+    unsigned char LinkPathNodes004CD390();
+    void PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigned int depth);
+    unsigned int DeleteUnreachableAreas004CD7C0();
+    int CreatePathNodeArray();
+    unsigned char CreateAutomapNodes004CE070(W8LevelFile* level);
+
+    W8PrePathNode** path_node_list_240; /* size_004 entries */
+    OctPrePathLog* path_log_244;
+    /* A malloc'd buffer the destructor `free`s; no surviving writer. */
+    void* owned_248;
+    int named_position_count_24c;
+    srVector3T<float>* named_positions_250;
+    W8HashTable<unsigned int, int>* cell_map_254;
+    /* Embedded chunk table: each slot is a malloc'd 0x3e80-byte run of
+       0x10-byte path-node records. The constructor fills slot 0, and the
+       destructor frees every slot through chunk_index_11f8 inclusive. */
+    W8PrePathNode* node_chunks_258[0x3e8];
+    int chunk_index_11f8;
+    int chunk_node_count_11fc;
+    /* Components smaller than this percent of the node count get deleted
+       while linking; capped at 50. */
+    unsigned int min_component_percent_1200;
+};
+
+static_assert(sizeof(PrePathing) == 0x1204, "PrePathing_must_be_0x1204");
+static_assert(offsetof(PrePathing, path_node_list_240) == 0x240, "PrePathing_path_node_list_240");
+static_assert(offsetof(PrePathing, node_chunks_258) == 0x258, "PrePathing_node_chunks_258");
+static_assert(offsetof(PrePathing, chunk_index_11f8) == 0x11f8, "PrePathing_chunk_index_11f8");
+static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
+              "PrePathing_min_component_percent_1200");
+
+/* Move an integer path cell one compass step; directions outside the
+   eight-value range wrap once. */
+void __stdcall StepPathCell004622D0(int* x, int* z, int direction);
 
 extern W8PathingService* g_pathing_00659c60;
 extern unsigned short g_path_reserve_0060827a;

@@ -277,7 +277,8 @@ struct W8LevelFileAnimObj { /* 0x5f */
 
 struct W8LevelFileProp { /* 0xbf */
     char version_00;
-    unsigned char unknown_01;
+    unsigned char bNumFrames;      /* 0x01: original name from the
+       CreatePathProps assertion text (frame-count upper bound) */
     unsigned char unknown_02;      /* version_00 > 4 */
     unsigned char unknown_03[0xc]; /* version_00 > 4 */
     unsigned char unknown_0f[4];   /* version_00 > 5 */
@@ -286,7 +287,9 @@ struct W8LevelFileProp { /* 0xbf */
     char has_trigger_b2;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
     char num_frame_pos_b7;        /* version_00 > 7 */
-    unsigned int* usFrame_Pos;    /* 0xb8: num_frame_pos_b7 * 4 */
+    unsigned short* usFrame_Pos;  /* 0xb8: serialized as num_frame_pos_b7 * 4
+                                     bytes; CreatePathProps reads frames as
+                                     usFrame_Pos[j*2] */
     char flag_bc;                 /* version_00 > 8 */
     unsigned char unknown_bd;
     unsigned char unknown_be;
@@ -368,8 +371,10 @@ struct W8LevelFile {
     W8LevelFileParticleSystem* pParticleSystems; /* 0x6a5: nParticleSystems * 0x226 */
     int nNamedPositions;                         /* 0x6a9 */
     W8LevelFileNamedPosition* pNamedPositions;   /* 0x6ad: nNamedPositions * 0x9d */
-    int field_6b1;
-    int* pIntTable_6b5; /* field_6b1 * 4 */
+    /* PrePathing::CreateAutomapNodes fills these with the sorted automap
+       cell keys; LevelFile.cpp writes them after the named positions. */
+    int num_automap_nodes_6b1;
+    unsigned long* automap_nodes_6b5; /* num_automap_nodes_6b1 * 4 */
     unsigned char unknown_6b9[4];
     int field_6bd; /* FileGetPos result on read */
     int num_switch_triggers_6c1;
