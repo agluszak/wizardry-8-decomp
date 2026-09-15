@@ -10,16 +10,18 @@ from pathlib import Path
 import pytest
 from wiz8decomp.config import load_settings
 
+CLI = ["uv", "run", "wiz8"]
+
 
 @pytest.mark.integration
 def test_context_recovery_and_class_report_use_short_lived_owners() -> None:
     settings = load_settings()
     assert settings is not None
     commands = [
-        ["just", "context", "0x005CF300"],
-        ["just", "recover-explain", "0x005CF250:0x005CF5FF"],
-        ["just", "context", "0x005CF580"],
-        ["just", "report", "class", "W8DialogInterface"],
+        [*CLI, "report", "context", "0x005CF300"],
+        [*CLI, "recover", "explain", "0x005CF250:0x005CF5FF"],
+        [*CLI, "report", "context", "0x005CF580"],
+        [*CLI, "report", "class", "W8DialogInterface"],
     ]
     observed_headless: list[str] = []
     stop = threading.Event()
@@ -72,7 +74,7 @@ def test_concurrent_commands_serialize_project_ownership() -> None:
     assert settings is not None
     processes = [
         subprocess.Popen(
-            ["just", "context", address],
+            [*CLI, "report", "context", address],
             cwd=settings.repo_dir,
             text=True,
             stdout=subprocess.PIPE,

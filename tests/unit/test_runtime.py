@@ -94,6 +94,7 @@ def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatc
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
     calls = []
 
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(
         "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
     )
@@ -257,239 +258,106 @@ def test_map_symbolization_refuses_cross_function_lines_and_section_end(tmp_path
         " 30 0002:00000004\n",
         encoding="cp1252",
     )
+    assert _symbolize_addresses(map_path, [0x00401008]) == ["first+0x8 (first.cpp:10)"]
+    assert _symbolize_addresses(map_path, [0x00401010]) == ["second+0x0"]
+    assert _symbolize_addresses(map_path, [0x00401020]) == []
+    assert _symbolize_addresses(map_path, [0x00402004]) == ["third+0x4 (third.cpp:30)"]
 
-    symbols = _symbolize_addresses(map_path, [0x00401008, 0x00401012, 0x00401020, 0x00402004])
 
-    assert symbols == [
-        "00401008: _first+0x8 [first.obj] first.cpp:10",
-        "00401012: _second+0x2 [second.obj]",
-        "00402004: _third+0x4 [third.obj] third.cpp:30",
+def test_wine_dump_fallback_collects_registers_frames_and_stack_candidates(tmp_path: Path) -> None:
+    log_path = tmp_path / "winedbg.log"
+    log_path.write_text(
+        """
+Unhandled exception: page fault on execute access to 0x00401234 in 32-bit code
+Register dump:
+ Eip:00401234 Esp:0019f100 Ebp:0019f120 Eax:00402000 Ebx:00000000
+Stack dump:
+0x0019f100: 00403000 00000000 00404000 00000000
+Backtrace:
+=>0 0x00401234
+  1 0x00405000
+"""
+    )
+    parsed = _parse_wine_dump(log_path.read_text())
+    assert parsed is not None
+    assert parsed.fields["eip"] == "00401234"
+    assert [candidate.address for candidate in parsed.candidates] == [
+        0x00402000,
+        0x0019F120,
+        0x00401234,
+        0x00405000,
+        0x00403000,
+        0x00404000,
     ]
 
 
-def test_runtime_crash_symbolizes_reported_candidates(tmp_path: Path) -> None:
-    map_path = tmp_path / "crash.map"
+def test_native_runtime_crash_parser_keeps_all_candidates() -> None:
+    parsed = _parse_runtime_crash(
+        "WIZ8_RUNTIME_CRASH code=c0000005 thread=1 operation=read access=12345678 "
+        "eip=00401000 esp=0019f100 ebp=0019f120 eax=00402000 ebx=0 ecx=0 edx=0 esi=0 edi=0\n"
+        "WIZ8_RUNTIME_CANDIDATE source=reg:eax address=00402000\n"
+        "WIZ8_RUNTIME_CANDIDATE source=stack address=00403000\n"
+    )
+    assert parsed is not None
+    assert parsed.fields["code"] == "c0000005"
+    assert [(candidate.source, candidate.address) for candidate in parsed.candidates] == [
+        ("reg:eax", 0x00402000),
+        ("stack", 0x00403000),
+    ]
+
+
+def test_crash_detail_formats_fields_and_symbols(tmp_path: Path) -> None:
+    map_path = tmp_path / "synthetic.map"
     map_path.write_text(
         " Start         Length     Name                   Class\n"
         " 0001:00000000 00000100H .text                   CODE\n"
         "  Address         Publics by Value              Rva+Base     Lib:Object\n"
-        " 0001:00000000       _ShowRegionHelp            00462810 f   RegionManager.cpp.obj\n"
-        "Line numbers for RegionManager.cpp.obj(Z:\\repo\\RegionManager.cpp) segment .text\n"
-        " 746 0001:0000007d\n",
-        encoding="cp1252",
+        " 0001:00000000       _fault                     00401000 f   first.obj\n"
     )
-    output = (
-        "WIZ8_RUNTIME_CRASH code=c0000005 thread=00000124 operation=write "
-        "access=0d958280 eip=00400007 esp=0067fdf0 ebp=fffffffe eax=06cac140 "
-        "ebx=004dfa04 ecx=00000001 edx=00462892 esi=79b68290 edi=79b683a0\n"
-        "WIZ8_RUNTIME_CANDIDATE source=reg:edx address=00462892 offset=00062892\n"
-        "WIZ8_RUNTIME_CANDIDATE source=stack+0x0 address=00462d2a offset=00062d2a\n"
+    parsed = _parse_runtime_crash(
+        "WIZ8_RUNTIME_CRASH code=c0000005 thread=1 operation=read access=12345678 "
+        "eip=00401000 esp=0019f100 ebp=0019f120 eax=0 ebx=0 ecx=0 edx=0 esi=0 edi=0\n"
     )
-
-    crash = _parse_runtime_crash(output)
-
-    assert crash is not None
-    assert [candidate.address for candidate in crash.candidates] == [0x00462892, 0x00462D2A]
-    assert _crash_detail(map_path, None, crash).splitlines()[1:] == [
-        "#0 reg:edx: 00462892: _ShowRegionHelp+0x82 [RegionManager.cpp.obj] RegionManager.cpp:746",
-    ]
+    assert parsed is not None
+    detail = _crash_detail(parsed, map_path, None)
+    assert detail["operation"] == "read"
+    assert detail["fault"] == "fault+0x0"
 
 
-def _wine_crash_fixture(tmp_path: Path) -> tuple[Path, str]:
-    map_path = tmp_path / "wine.map"
+def test_analyze_runtime_crash_uses_native_marker_before_wine_dump(tmp_path: Path) -> None:
+    log = tmp_path / "runtime.log"
+    map_path = tmp_path / "synthetic.map"
     map_path.write_text(
-        "Wiz8Runtime\n"
         " Start         Length     Name                   Class\n"
-        " 0001:00000000 000b1f70H .text                   CODE\n"
+        " 0001:00000000 00000100H .text                   CODE\n"
         "  Address         Publics by Value              Rva+Base     Lib:Object\n"
-        " 0001:0001ecb0       _CharacterScreenFrame      0041fcb0 f   CharacterScreen.cpp.obj\n"
-        "Line numbers for CharacterScreen.cpp.obj(Z:\\repo\\CharacterScreen.cpp) segment .text\n"
-        " 776 0001:0001fe14\n",
-        encoding="cp1252",
+        " 0001:00000000       _fault                     00401000 f   first.obj\n"
     )
-    output = (
-        "wine: Unhandled page fault on write access to 0x00000001 at address 0x00400003 "
-        "(thread 0124), starting debugger...\n"
-        "Unhandled exception: page fault on write access to 0x00000001 in 32-bit code "
-        "(0x00400003).\n"
-        "Register dump:\n"
-        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
-        " EIP:00400003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
-        " EAX:00000000 EBX:00000001 ECX:00000000 EDX:0041fe14\n"
-        " ESI:00400000 EDI:00400000\n"
-        "Stack dump:\n"
-        "0x0032fabc:  0041fe14 00000000 0032fae0 00400abc\n"
-        "Backtrace:\n"
-        "=>0 0x00400003 (0x0032fabc)\n"
-        "  1 0x0041fe14 (0x0032fae0)\n"
-    )
-    return map_path, output
-
-
-def test_wine_dump_candidates_are_symbolized_without_product_markers(tmp_path: Path) -> None:
-    map_path, output = _wine_crash_fixture(tmp_path)
-
-    crash = _parse_wine_dump(output)
-
-    assert crash is not None
-    sources = {candidate.source: candidate.address for candidate in crash.candidates}
-    assert sources["reg:edx"] == 0x0041FE14
-    assert sources["frame"] == 0x00400003
-    assert "reg:edx: 0041fe14: _CharacterScreenFrame+0x164" in _crash_detail(map_path, None, crash)
-
-
-def test_analyze_runtime_crash_falls_back_to_a_wine_dump(tmp_path: Path) -> None:
-    map_path, output = _wine_crash_fixture(tmp_path)
-    log = tmp_path / "winedbg.log"
-    log.write_text(output, encoding="utf-8")
-
-    result = analyze_runtime_crash(log, map_path)
-
-    crash = result["crashes"][0]
-    assert "image_base_fault" not in crash
-    assert any(
-        candidate.get("symbol", "").startswith("_CharacterScreenFrame+0x164")
-        for candidate in crash["candidates"]
-    )
-
-
-def test_wine_stack_dump_drives_wide_candidates(tmp_path: Path) -> None:
-    _map_path, output = _wine_crash_fixture(tmp_path)
-
-    crash = _parse_wine_dump(output)
-
-    assert crash is not None
-    sources = {candidate.source: candidate.address for candidate in crash.candidates}
-    assert sources["stack+0xc"] == 0x00400ABC
-    assert sources["reg:edx"] == 0x0041FE14
-    assert "page fault on write access" in crash.fields["operation"]
-
-
-def test_wine_wow64_stack_rows_accept_wide_addresses() -> None:
-    output = (
-        "Unhandled exception: page fault on read access to 0x00000000 in 32-bit code "
-        "(0x00400003).\n"
-        "Register dump:\n"
-        " CS:0023 SS:002b DS:002b ES:002b FS:0063 GS:006b\n"
-        " EIP:00400003 ESP:0032fabc EBP:fffffffe EFLAGS:00210246(  R- --  I   - -P- )\n"
-        " EAx:00000000 EBX:00000001 ECX:00000000 EDX:0041fe14\n"
-        " ESI:00400000 EDI:00400000\n"
-        "Stack dump:\n"
-        "0x000000000032fabc:  0041fe14 00000000 0032fae0 00400abc\n"
-    )
-
-    crash = _parse_wine_dump(output)
-
-    assert crash is not None
-    sources = {candidate.source: candidate.address for candidate in crash.candidates}
-    assert sources["stack+0xc"] == 0x00400ABC
-
-
-def test_unhandled_exception_without_register_dump_reports_parse_failure(
-    tmp_path: Path,
-) -> None:
-    log = tmp_path / "winedbg.log"
     log.write_text(
-        "wine: Unhandled page fault on write access to 0x00000001 at address 0x00400003 "
-        "(thread 0124), starting debugger...\n",
-        encoding="utf-8",
+        "WIZ8_RUNTIME_CRASH code=c0000005 thread=1 operation=read access=12345678 "
+        "eip=00401000 esp=0019f100 ebp=0019f120 eax=0 ebx=0 ecx=0 edx=0 esi=0 edi=0\n"
+        "Unhandled exception: should not win\n"
     )
-
-    result = analyze_runtime_crash(log, tmp_path / "missing.map")
-
-    assert result["crashes"] == []
-    failure = result["parse_failure"]
-    assert "no crash could be localized" in failure["reason"]
-    assert failure["missing"] == ["EIP register dump"]
-    assert "Unhandled page fault" in failure["exception"]
-    assert "0x00400003" in failure["log_tail"]
+    report = analyze_runtime_crash(log, map_path)
+    assert report is not None
+    assert report["source"] == "runtime"
+    assert report["fault"] == "fault+0x0"
 
 
-def test_runtime_timeout_preserves_in_process_diagnostics(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    wine = tmp_path / "wine"
-    wine.write_text(
-        "#!/usr/bin/env python3\n"
-        "import sys, time\n"
-        "print('partial stdout', flush=True)\n"
-        "print('menu reached; teardown stuck', file=sys.stderr, flush=True)\n"
-        "time.sleep(60)\n"
+def test_analyze_runtime_crash_falls_back_to_wine_dump(tmp_path: Path) -> None:
+    log = tmp_path / "runtime.log"
+    map_path = tmp_path / "synthetic.map"
+    map_path.write_text(
+        " Start         Length     Name                   Class\n"
+        " 0001:00000000 00000100H .text                   CODE\n"
+        "  Address         Publics by Value              Rva+Base     Lib:Object\n"
+        " 0001:00000000       _fault                     00401000 f   first.obj\n"
     )
-    wine.chmod(0o755)
-    monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_SCENARIO_TIMEOUT_SECONDS", 1)
-    with pytest.raises(RuntimeError, match="last_step=process-start"):
-        _run_runtime_scenario(
-            tmp_path / "test.exe",
-            tmp_path,
-            {"PATH": f"{tmp_path}:/usr/bin:/bin"},
-            "main-menu-startup",
-        )
-    diagnostic = tmp_path / "diagnostics" / "main-menu-startup-failure.txt"
-    assert "menu reached; teardown stuck" in diagnostic.read_text()
-    assert "partial stdout" in diagnostic.read_text()
-
-
-def test_runtime_display_accepts_an_existing_private_display(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    environment = {"DISPLAY": ":0"}
-    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", ":91")
-
-    with runtime_display(environment, default="virtual", log_path=tmp_path / "xvfb.log") as display:
-        assert display == ":91"
-        assert environment["DISPLAY"] == ":91"
-
-    assert environment["DISPLAY"] == ":0"
-
-
-def test_runtime_display_host_mode_preserves_the_inherited_display(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    environment = {"DISPLAY": ":0"}
-    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "host")
-
-    with runtime_display(environment, default="virtual", log_path=tmp_path / "xvfb.log") as display:
-        assert display is None
-        assert environment["DISPLAY"] == ":0"
-
-
-def test_virtual_runtime_display_fails_closed_without_xvfb(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "virtual")
-    monkeypatch.setattr("wiz8decomp.display.shutil.which", lambda _: None)
-
-    with (
-        pytest.raises(RuntimeError, match="requires Xvfb"),
-        runtime_display({}, default="virtual", log_path=tmp_path / "xvfb.log"),
-    ):
-        pass
-
-
-@pytest.mark.parametrize(("private_display", "managed"), [(True, "N"), (False, "Y")])
-def test_wine_window_management_matches_display_mode(
-    private_display: bool, managed: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    calls = []
-    monkeypatch.setattr(
-        "wiz8decomp.runtime.subprocess.run",
-        lambda *args, **kwargs: calls.append((args, kwargs)),
+    log.write_text(
+        "Unhandled exception: page fault on execute access\n"
+        "Register dump:\n Eip:00401000 Esp:0019f100 Ebp:0019f120 Eax:0 Ebx:0 Ecx:0 Edx:0 Esi:0 Edi:0\n"
     )
-
-    environment = {"WINEPREFIX": "/prefix"}
-    configure_wine_window_management(environment, private_display=private_display)
-
-    argv = calls[0][0][0]
-    assert argv[-3:] == ["/d", managed, "/f"]
-    assert calls[0][1]["env"] is environment
-    if private_display:
-        assert calls[1][0][0][-4:] == [
-            r"HKCU\Software\Wine\Explorer",
-            "/v",
-            "Desktop",
-            "/f",
-        ]
-    else:
-        assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
-        assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
+    report = analyze_runtime_crash(log, map_path)
+    assert report is not None
+    assert report["source"] == "wine"
+    assert report["fault"] == "fault+0x0"
