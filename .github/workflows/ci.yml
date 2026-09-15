@@ -140,13 +140,17 @@ jobs:
         if: env.LICENSED_INPUTS == 'true'
         run: uv run wiz8 prepare
 
+      - name: Build reccmp products
+        if: env.LICENSED_INPUTS == 'true'
+        run: uv run wiz8 build reccmp-products
+
       - name: Generate reccmp PR status
         id: reccmp-status
         if: env.TRUSTED_PR == 'true'
         run: |
           status_json="$RUNNER_TEMP/reccmp-status.json"
           comment="$RUNNER_TEMP/reccmp-status.md"
-          uv run wiz8 report status --build > "$status_json"
+          uv run wiz8 report status > "$status_json"
           jq -r '
             def pct:
               if . == null then "n/a"
