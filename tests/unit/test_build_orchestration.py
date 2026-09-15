@@ -30,6 +30,8 @@ def test_jom_parallelism_removes_only_generated_guards(tmp_path: Path) -> None:
     nested.parent.mkdir()
     makefile.write_text(".NOTPARALLEL:\nall:\n\t@echo ok\n")
     nested.write_text(".NOTPARALLEL:\nrule:\n")
+    makefile.chmod(0o444)
+    nested.chmod(0o444)
 
     updated = build._enable_jom_parallelism(tmp_path)
 
