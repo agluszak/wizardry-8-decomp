@@ -33,27 +33,30 @@ uv run wiz8 runtime-test
 `prepare` idempotently materializes the primary game's extraction and `gog-base` variant plus pinned
 source dependencies, then writes the source index and reccmp data source, so it needs the built
 toolchain image; optional corpus variants stay behind explicit `wiz8 corpus` operations. `build`
-configures automatically. `compare` is reccmp's live linked-image and exact-body diagnostic. Run
+configures automatically and runs the generated NMake graph through parallel JOM. Inspection commands
+use existing artifacts and accept `--build` when a fresh product is required. `compare` is reccmp's
+live linked-image and exact-body diagnostic. Run
 Python tests directly with `uv run pytest -q PATH`.
 
-`lint` compile-checks the recovered C++ with clang-cl diagnostics, over the same component object
+`lint` incrementally compile-checks the recovered C++ with clang-cl diagnostics, reusing its existing
+Ninja configuration and the same component object
 targets the VC6 product build links; `diagnostics` is its non-gating variant. `check` is the fast
 public lane: ruff, pyright, repository validators and Python tests, with no product build. Its
 compiler-backed source-index writer also validates synthetic-marker shape and cross-TU external
 declarations. The lint compile database is adapted to host paths and reccmp performs one cached native
-source-index collection; selected `compare` refreshes that same projection before function selection.
-`uv run wiz8 analyze source-index` is therefore an inspection/debug command, not a prerequisite for
-`check` or `compare`.
+source-index collection; inspection commands consume that existing projection without refreshing it.
+`uv run wiz8 analyze source-index` explicitly regenerates selector metadata when needed.
 
 `uv run wiz8 run` stages the prepared game under `build/runtime/wiz8`, copies the already-built
 `Wiz8Runtime.exe` into it, and launches it with `/WINDOW`. Source variants stay immutable. The process
 output is forwarded, and when a crash marker appears the MAP-symbolized report is included in the
 command result. `uv run wiz8 run --original` stages and launches the retail `Wiz8.exe` the same way;
 `run` does not build the product.
-`uv run wiz8 debug` stages the recomp under `build/runtime/debug` and drives it through Wine's GDB
+`uv run wiz8 debug` stages the existing recomp under `build/runtime/debug` and drives it through Wine's GDB
 proxy with a deterministic stop policy, then symbolizes the captured frames.
 
-`uv run wiz8 runtime-test` runs the canonical deterministic semantic-scenario suite in the optimized
+`uv run wiz8 runtime-test` runs the existing optimized semantic-test executable; pass `--build` for a
+fresh product. It executes the canonical deterministic semantic-scenario suite,
 semantic-test executable, including the real new-game-to-main-game transition. The real menu handlers
 execute on the UI thread; the host reruns the scenarios in reverse order and requires identical
 normalized observations. Its same-process exception handler records every general-purpose register

@@ -40,7 +40,8 @@ same recovered image under Wine's debugger with:
 uv run wiz8 debug
 ```
 
-`uv run wiz8 debug` stages the recomp under `build/runtime/debug`, clears stale wineserver state,
+`uv run wiz8 debug` uses the existing recomp; pass `--build` when a fresh runtime image is required.
+It stages the recomp under `build/runtime/debug`, clears stale wineserver state,
 starts Wine's GDB proxy on a free port, and connects system GDB with a deterministic stop policy
 (`SIGTRAP` stop/print, `SIGSEGV` pass, full backtrace, registers, shared libraries, code and stack).
 Main-image register and raw-stack candidates are symbolized through `Wiz8Runtime.map` and matched against the runtime-stub
@@ -58,7 +59,8 @@ extracted retail `Data`, `Dll`, `Levels`, Miles, Bink, and SurRender files throu
 while every writable path stays under `build/`. The prepared `gog-base` variant is never modified.
 `run --original` stages the retail executable the same way under `build/runtime/original`.
 
-`uv run wiz8 runtime-test` defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
+`uv run wiz8 runtime-test` uses the existing semantic-test image; pass `--build` to refresh it. It
+defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set
 `WIZ8_RUNTIME_DISPLAY=host` for visual debugging. Its controlled staging directory owns test config,
 saves, display, and audio policy. The native exception filter records every general-purpose register
 in-process and scans registers as well as stack words for recovered-image candidates; Python
@@ -71,8 +73,8 @@ attached to the game and returns its status instead of guessing its lifetime fro
 helper.
 
 `uv run wiz8 build <target> --jobs <count>` drives the pinned VC6 container through the Python build
-driver. It configures when `build/decomp/CMakeCache.txt` is absent and lets CMake's generated
-dependency check handle later build-graph changes. `uv run wiz8 prepare` separately owns idempotent
+driver. It configures stable NMake files when the product cache is absent, lets CMake refresh the
+generated graph, and then runs that graph through parallel JOM. `uv run wiz8 prepare` separately owns idempotent
 primary source/input preparation; optional corpus variants stay explicit.
 
 The comparison image remains intentionally link-incomplete and uses `/FORCE:UNRESOLVED`. The two
