@@ -170,7 +170,7 @@ jobs:
             exit 1
           fi
           installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
-          uvx --from gdown==5.2.1 gdown "$WIZ8_GOG_URL" -O "$installer" --quiet
+          uvx --from gdown==5.2.1 gdown --fuzzy "$WIZ8_GOG_URL" -O "$installer" --quiet
           echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
           cat > config/local-inputs.yml <<EOF
           schema: wiz8.local-inputs
