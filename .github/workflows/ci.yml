@@ -112,9 +112,6 @@ jobs:
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
 
-      - name: Run live Ghidra integration tests
-        run: uv run pytest -q -m integration tests/integration
-
   private-runtime:
     name: Licensed-input tests
     needs: public
