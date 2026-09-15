@@ -2373,7 +2373,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
         if (g_level_block->combat_end_notification != -1) {
             Function595600();
         }
-        Function593330();
+        RefreshFlaggedMainGameState00593330();
     }
 }
 

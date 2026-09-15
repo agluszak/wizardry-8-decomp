@@ -306,7 +306,7 @@ W8LockInteraction* g_lock_interaction_68f2c0;
    decrements the charge count at its +0x1c and reports whether one remained. */
 int __fastcall Function4457A0(int* lock_state);
 /* 0x00586A70: the selected slot's effective power with spell 0x27. */
-int Function586A70(int slot);
+int GetKnockKnockSpellPower00586A70(int slot);
 void Function593360(void);
 unsigned char Function57E3C0(void);
 
@@ -790,7 +790,7 @@ void W8LockInteraction::Process()
     case 4:
         m_state_34 = 0;
         slot = g_status_685170.selected_character;
-        if (Function586A70(g_status_685170.selected_character) > -1 &&
+        if (GetKnockKnockSpellPower00586A70(g_status_685170.selected_character) > -1 &&
             CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x27)) {
             m_spell_button_20->SetAlternateTextEnabled(0);
             Function5879A0(1);
@@ -826,7 +826,7 @@ void W8LockInteraction::Process()
 }
 
 // FUNCTION: WIZ8 0x00586A70
-int Function586A70(int slot)
+int GetKnockKnockSpellPower00586A70(int slot)
 {
     W8Character* character = &g_status_685170.buffers.characters[slot];
     unsigned int book;
@@ -2512,7 +2512,7 @@ void ApplyWorldRenderHotkeys(void)
 }
 
 // FUNCTION: WIZ8 0x00593330
-void Function593330(void)
+void RefreshFlaggedMainGameState00593330(void)
 {
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->flag_314 != 0) {
@@ -2529,7 +2529,7 @@ void ClearMainGameTargetState(void)
 }
 
 // FUNCTION: WIZ8 0x00577220
-void Function577220(void)
+void SyncDialogueNpcStateAndMarkPending00577220(void)
 {
     Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
@@ -2537,7 +2537,7 @@ void Function577220(void)
 }
 
 // FUNCTION: WIZ8 0x00577260
-void Function577260(void)
+void SyncDialogueNpcState00577260(void)
 {
     Function56C6D0(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->value_238 = g_screen_state_00649f1c->value_104;
@@ -2927,7 +2927,7 @@ update_screen:
     }
     if (gXStatus.unknown_026[0]) {
         gXStatus.unknown_026[0] = 0;
-        Function577220();
+        SyncDialogueNpcStateAndMarkPending00577220();
     }
     if (!IsScreenBusy()) {
         Function5542E0();

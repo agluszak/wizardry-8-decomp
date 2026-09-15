@@ -180,8 +180,8 @@ void CreateFormationBoardOverlay(void)
         bounds.right = 0x269;
         bounds.bottom = 0x1c2;
         g_level_block->formation_overlay_sprite = Function4255C0(-14, &bounds, 0, 0, 1);
-        Function4257D0(g_level_block->formation_overlay_sprite, 0x200, 0x166);
-        Function4264F0(g_level_block->formation_overlay_sprite, 4);
+        Position2DNodeUnsnapped004257D0(g_level_block->formation_overlay_sprite, 0x200, 0x166);
+        SetModelInstance2DDisplayState004264F0(g_level_block->formation_overlay_sprite, 4);
     }
 }
 

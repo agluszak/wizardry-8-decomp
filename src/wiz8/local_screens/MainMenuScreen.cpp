@@ -154,7 +154,7 @@ unsigned char MainMenuScreenEnter(void)
     wchar_t* pending;
     short measured;
 
-    Function422B10();
+    ResetVideoFrameState00422B10();
     MSYS_Init();
     g_status_685170.game_started = 0;
     g_main_menu_has_save_games = SaveGameExists();

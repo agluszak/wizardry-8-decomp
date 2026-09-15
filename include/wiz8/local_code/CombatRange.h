@@ -9,7 +9,7 @@ struct W8CombatSlot;
 
 /* Local Code\Combat Range.cpp: the party's own world position and the trace
    wrapper that decides whether a line of sight counts as unobstructed. */
-unsigned char Function51B3F0(int mode);
+unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 
 unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
                              W8TargetingContext context, int arg_5);
