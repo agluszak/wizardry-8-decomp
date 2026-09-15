@@ -1,9 +1,13 @@
-"""Reject multiple C++ identities for one original address.
+"""Reject conflicting or placeholder C++ identities for recovered functions.
 
 The canonical model is one address, one function identity per binary: one
 name, one normalized prototype and one calling convention. A duplicate appears
 when an address-qualified declaration and a FUNCTION marker (or two
 declarations) name the same address differently.
+
+A recovered function body is also an identity claim. Once a body exists it
+must no longer use the address-derived ``Function123ABC`` placeholder form.
+Declaration-only placeholders remain valid for unresolved callees.
 
 Each reccmp target links its own image, so claims are grouped by
 (target, address): `0x10001000` in srEXT_JPEGImporter.dll and the same RVA in
@@ -34,6 +38,7 @@ from typing import Any
 _ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\s*\*/")
 _BARE_ADDRESS = re.compile(r"^\s*/\*\s*0x[0-9a-fA-F]{6,8}\s*\*/\s*$")
 _IDENTITY_ALIAS = re.compile(r"identity-alias\s*:")
+_UNNAMED_FUNCTION = re.compile(r"^Function[0-9a-f]{6,8}$", re.IGNORECASE)
 
 
 def _last_component(name: str) -> str:
@@ -85,17 +90,42 @@ def _declaration_lines(repo_dir: Path, entry: dict[str, Any]) -> list[str] | Non
     return path.read_text(encoding="utf-8", errors="ignore").splitlines()
 
 
+def _unnamed_definition_violations(index: dict[str, Any]) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    for declaration in index["declarations"]:
+        if not declaration.get("is_definition"):
+            continue
+        qualified_name = str(declaration.get("qualified_name") or "")
+        name = _last_component(qualified_name)
+        if not _UNNAMED_FUNCTION.fullmatch(name):
+            continue
+        source = str(declaration.get("source_file") or "")
+        line = int(declaration.get("line") or 0)
+        violations.append(
+            {
+                "kind": "unnamed-function-definition",
+                "reason": "recovered body keeps address-derived name",
+                "names": [qualified_name],
+                "source": source,
+                "line": line,
+                "detail": (
+                    f"{source}:{line}: {qualified_name} has a recovered body but still uses "
+                    "an address-derived Function... name"
+                ),
+            }
+        )
+    return violations
+
+
 class IdentityGateError(RuntimeError):
-    """One address carries more than one function identity."""
+    """A recovered function identity is ambiguous or still unnamed."""
 
 
 def validate_identity(repo_dir: Path) -> dict[str, Any]:
     violations = identity_violations(repo_dir)
     if violations:
         rendered = [item["detail"] for item in violations]
-        raise IdentityGateError(
-            "one address carries multiple function identities:\n  " + "\n  ".join(rendered)
-        )
+        raise IdentityGateError("function identity gate failed:\n  " + "\n  ".join(rendered))
     return {
         "ok": True,
         "gate": "address-identity",
@@ -164,7 +194,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
         )
         address_declaration_keys.add((entry["source_file"], entry["line"], entry["end_line"]))
 
-    violations: list[dict[str, Any]] = []
+    violations = _unnamed_definition_violations(index)
     for (ns, address), entries in sorted(claims.items()):
         names = {entry["name"] for entry in entries}
         prototypes = {entry["prototype"] for entry in entries if entry["prototype"]}
