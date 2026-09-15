@@ -38,7 +38,7 @@ unsigned char ExitScreenEnter(void)
 {
     unsigned short colour;
 
-    Function422B10();
+    ResetVideoFrameState00422B10();
     UpdateHeldItemCursor();
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
