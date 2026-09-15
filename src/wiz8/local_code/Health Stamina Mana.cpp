@@ -1020,8 +1020,8 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
     int weight_bands;
 
     switch (action_kind) {
-    case 0:
-    case 1:
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
         attack_mode =
             g_status_685170.buffers.party_rows[party_slot].attack_mode[combat_row->current_hand];
         if (attack_mode == 5) {
@@ -1039,26 +1039,26 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
                 cost = Random(weight_bands) + 1 + weight_bands;
             }
         }
-        if (action_kind == 1) {
+        if (action_kind == W8_ACTION_BERSERK) {
             cost *= 2;
         }
         break;
-    case 2:
-    case 4:
-    case 5:
-    case 7:
+    case W8_ACTION_BREATHE:
+    case W8_ACTION_DEFEND:
+    case W8_ACTION_PROTECT:
+    case W8_ACTION_CAST_SPELL:
         break;
-    case 3:
-    case 6:
+    case W8_ACTION_TURN_UNDEAD:
+    case W8_ACTION_PRAY:
         cost = g_status_685170.buffers.characters[party_slot].stamina_max / 5;
         if (cost < 0x14) {
             cost = 0x14;
         }
         break;
-    case 8:
+    case W8_ACTION_USE_ITEM:
         cost = Random(2) + 1;
         break;
-    case 9:
+    case W8_ACTION_EQUIP:
         cost = Random(4) + 3;
         break;
     default:

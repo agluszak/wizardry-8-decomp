@@ -443,6 +443,70 @@ void MarkNpcOfKind(int kind)
     }
 }
 
+// FUNCTION: WIZ8 0x0050C870
+unsigned char CanNpcJoinParty(W8NpcState* npc)
+{
+    int band;
+    int row;
+    int index;
+    unsigned int count;
+    unsigned int total;
+    unsigned int average;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+    if (npc->record->has_group == 0) {
+        return 0;
+    }
+    band = GetLevelBand(g_status_685170.current_level);
+    row = 0;
+    while (g_npc_services[row].service_id != 0xffffffff) {
+        if (g_npc_services[row].service_id == band) {
+            if ((npc->record->service_flags & g_npc_services[row].bit) != 0) {
+                return 0;
+            }
+            break;
+        }
+        ++row;
+    }
+    if (npc->name_style == 0x2b && GetFact(0x8b) != 0) {
+        return 0;
+    }
+    if (npc->name_style == 0x4f && GetFact(0x20d) == 0) {
+        return 0;
+    }
+    if (npc->name_style == 0x4a && GetFact(0x1a7) == 0) {
+        return 0;
+    }
+    if (npc->name_style == 0x4a && GetFact(0x1a7) == 0) {
+        return 0;
+    }
+    if ((npc->name_style == 0x10 || npc->name_style == 0x11) && GetFact(0xbf) != 0) {
+        return 0;
+    }
+    if (npc->record->min_party_level_6f > 0) {
+        total = 0;
+        count = 0;
+        average = 0;
+        for (index = 0; index < 8; ++index) {
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                g_status_685170.buffers.characters[index].hp_current > 0 &&
+                g_status_685170.buffers.characters[index].highest_condition < 0xf) {
+                ++count;
+                total += g_status_685170.buffers.characters[index].level;
+            }
+        }
+        if (count > 0) {
+            average = total / count;
+        }
+        if (average < npc->record->min_party_level_6f) {
+            return 0;
+        }
+    }
+    return 1;
+#pragma clang diagnostic pop
+}
+
 /* Whether the NPC offers one service. The service id is looked up in a table
    that pairs it with its bit, so the ids need not be contiguous. */
 // FUNCTION: WIZ8 0x0050c9e0

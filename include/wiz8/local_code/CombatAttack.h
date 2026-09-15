@@ -69,9 +69,10 @@ int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info, const W8Monster
    is in play and not screened by the front rank, or a monster who is engaged,
    alive, targetable and within the character's reach. */
 unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target); /* 0x00545C20 */
-/* Whether the character can knock out - has the ability, a hand that can
-   reach, and a primary hand that fights at short range or closer. */
-unsigned char CanCharacterKnockOut(int party_slot); /* 0x005458A0 */
+/* Whether the character can berserk - has the fighter's ability (trait
+   W8_TRAIT_BERSERK), a hand that can reach, and a primary hand that fights at
+   short range or closer. The attack sub-menu entry it gates is "Berserk". */
+unsigned char CanCharacterBerserk(int party_slot); /* 0x005458A0 */
 /* Whether a monster would press an attack on what `target` names: a hostile it
    can reach that outranks it, and that is either below forty percent health or
    out of formation. */

@@ -3,6 +3,7 @@
 #include "wiz8/dialog_code/DialogBase.h"
 
 struct W8Character;
+class W8MessageDialogBase;
 
 /* ConfigureDialogFont writes these four; every dialog draw/text path reads
    them. Declared here because this unit owns their definitions. */
@@ -15,6 +16,7 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character);
 W8DialogBase* CreateDialogByKind(int kind);
 unsigned char GetDialogResult(W8DialogBase* dialog);
+void SetDialogPrompt(W8MessageDialogBase* dialog, wchar_t* text, int, int);
 void DrawDialog(W8DialogBase* dialog);
 unsigned char ProcessDialogInput(W8DialogBase* dialog);
 void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);

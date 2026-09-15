@@ -101,6 +101,27 @@ union W8ActionDetailBlock {
     } item_use;
 }; /* 0x08 */
 
+/* The combat actions a party slot row's action_03d and the level block's
+   selection_kind carry; ChooseCombatAction picks one and ChooseAction applies
+   it. The names are the submenu help captions (string ids 0x52-0x5f): a menu-0
+   entry's caption is the action its row selects. 10 and 11 are the two party
+   move kinds, which ApplyPartyCombatAction routes away from the action
+   record. */
+enum W8ActionKind {
+    W8_ACTION_ATTACK = 0,
+    W8_ACTION_BERSERK = 1,
+    W8_ACTION_BREATHE = 2,
+    W8_ACTION_TURN_UNDEAD = 3,
+    W8_ACTION_DEFEND = 4,
+    W8_ACTION_PROTECT = 5,
+    W8_ACTION_PRAY = 6,
+    W8_ACTION_CAST_SPELL = 7,
+    W8_ACTION_USE_ITEM = 8,
+    W8_ACTION_EQUIP = 9,
+    W8_ACTION_WALK = 10,
+    W8_ACTION_RUN = 11
+};
+
 /* The targeting contexts. Six of them name a block the slot carries; the
    seventh, "current", is not a context at all but the request to work out
    which of the others applies right now. Value five is unobserved and keeps

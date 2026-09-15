@@ -265,9 +265,6 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord
 /* HAND_COUNT, named by the assertion that bounds every hand argument here. */
 enum { W8_HAND_COUNT = 2 };
 
-/* The ability that lets a character choose the knock-out action. */
-enum { W8_TRAIT_KNOCK_OUT = 0x14 };
-
 /* The skill practised whenever the character's own damage reduction is used. */
 enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
 
@@ -336,15 +333,15 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
     return damage;
 }
 
-/* Whether a character can knock out: the ability itself, a hand that can reach
+/* Whether a character can berserk: the ability itself, a hand that can reach
    the target, and a primary hand fighting at short range or closer. */
 // FUNCTION: WIZ8 0x005458a0
-unsigned char CanCharacterKnockOut(int party_slot)
+unsigned char CanCharacterBerserk(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int hand;
 
-    if (CharacterHasTrait00547940(character, W8_TRAIT_KNOCK_OUT) == 0) {
+    if (CharacterHasTrait00547940(character, W8_TRAIT_BERSERK) == 0) {
         return 0;
     }
     for (hand = 0; hand < W8_HAND_COUNT; ++hand) {

@@ -24,13 +24,15 @@ struct W8Character;
 struct W8MonsterInfo;
 struct W8CombatCharacterRow;
 
-void CatchUpCombatActor(W8CombatCharacterRow* row);                /* 0x004ECEB0 */
-unsigned char Function4F96F0(W8Character* character);              /* 0x004F96F0 */
+void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
+/* 0x004F96F0: whether the character knows any spell whose realm's sp_left
+   still covers its spell_point_cost. */
+unsigned char CharacterHasCastableSpell(W8Character* character);
 void Function4ECC80(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80 */
 void Function4EA5C0(int party_slot);                               /* 0x004EA5C0 */
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
                             int notify); /* 0x004E7EE0 */
-int IsPartyEngaged(void);                                             /* 0x004E7E70 */
+int IsPartyEngaged(void);                /* 0x004E7E70 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
@@ -44,4 +46,6 @@ void BeginCombatRound(void);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 unsigned char CanCharReBreathe(int party_slot);
+unsigned char AnyCharacterEngaged(void); /* 0x004E7CA0 */
 unsigned char CharacterHasCondition(const W8Character* character, int condition);
+void Function4E8370(void); /* 0x004E8370 */
