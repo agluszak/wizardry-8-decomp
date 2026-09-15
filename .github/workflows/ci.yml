@@ -21,15 +21,16 @@ env:
   GOG_INSTALLER_SHA256: 48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
 
 jobs:
-  public:
-    name: Public checks, lints, and tests
+  ci:
+    name: Checks, lints, and tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 150
     env:
       GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.2_PUBLIC
       WIZ8_INPUT_DIR: /tmp/wiz8-inputs
       WIZ8_WORK_DIR: /tmp/wiz8-work
       WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
+      WIZ8_RUNTIME_DISPLAY: virtual
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -72,7 +73,8 @@ jobs:
             unzip \
             wine \
             wine32:i386 \
-            wine64
+            wine64 \
+            xvfb
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
           command -v wine
@@ -112,61 +114,13 @@ jobs:
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
 
-  private-runtime:
-    name: Licensed-input tests
-    needs: public
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    env:
-      GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/unused-ghidra
-      WIZ8_INPUT_DIR: /tmp/wiz8-inputs
-      WIZ8_WORK_DIR: /tmp/wiz8-work
-      WIZ8_RUNTIME_DISPLAY: virtual
-    steps:
-      - name: Check out source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.13"
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        with:
-          version: "0.12.13"
-          enable-cache: false
-
-      - name: Install build and runtime tools
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            cabextract \
-            innoextract \
-            llvm \
-            p7zip-full \
-            unshield \
-            wine \
-            wine32:i386 \
-            wine64 \
-            xvfb
-          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
-          command -v llvm-undname
-          command -v wine
-
-      - name: Install Python dependencies
-        run: uv sync --frozen
-
       - name: Download and verify licensed GOG input
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
           WIZ8_GOG_URL: ${{ secrets.WIZ8_GOG_URL }}
         run: |
           if [ -z "$WIZ8_GOG_URL" ]; then
-            echo "WIZ8_GOG_URL repository secret is required for the licensed CI lane" >&2
+            echo "WIZ8_GOG_URL repository secret is required for licensed CI" >&2
             exit 1
           fi
           installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
@@ -178,34 +132,22 @@ jobs:
             gog-media: $GOG_INSTALLER_NAME
           EOF
 
-      - name: Build pinned VC6 analysis image
-        run: uv run wiz8 toolchain build vc6-sp5
-
-      - name: Fetch pinned public library sources
-        run: |
-          for attempt in 1 2 3; do
-            if uv run wiz8 ghidra fid fetch-sources; then
-              break
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              exit 1
-            fi
-            sleep $((attempt * 10))
-          done
-
       - name: Prepare and verify licensed corpus
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           uv run wiz8 prepare
           uv run wiz8 corpus verify
 
       - name: Run licensed comparison tests
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: uv run pytest -q tests/licensed
 
       - name: Run full runtime suite
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: uv run wiz8 runtime-test --check-order
 
       - name: Remove licensed inputs and derived trees
-        if: always()
+        if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           wineserver -k || true
           rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" config/local-inputs.yml
