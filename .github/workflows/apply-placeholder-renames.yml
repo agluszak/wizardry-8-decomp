@@ -1,0 +1,76 @@
+name: Apply recovered placeholder renames
+
+on:
+  push:
+    branches:
+      - fix/recovered-placeholder-names
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Rename recovered functions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          renames = {
+              "Function422B10": "ResetVideoFrameState00422B10",
+              "Function4257D0": "Position2DNodeUnsnapped004257D0",
+              "Function4264F0": "SetModelInstance2DDisplayState004264F0",
+              "Function4E5B50": "GetMonsterCycleFallbackValue004E5B50",
+              "Function51B3F0": "TraceModeRejectsNoHit0051B3F0",
+              "Function577220": "SyncDialogueNpcStateAndMarkPending00577220",
+              "Function577260": "SyncDialogueNpcState00577260",
+              "Function586A70": "GetKnockKnockSpellPower00586A70",
+              "Function593330": "RefreshFlaggedMainGameState00593330",
+          }
+
+          changed = set()
+          for old, new in renames.items():
+              result = subprocess.run(
+                  ["git", "grep", "-l", "--fixed-strings", old, "--", "src", "include"],
+                  text=True,
+                  capture_output=True,
+              )
+              paths = [Path(line) for line in result.stdout.splitlines() if line]
+              if not paths and old not in {"Function422B10", "Function4257D0", "Function4264F0"}:
+                  raise SystemExit(f"no source occurrence found for {old}")
+              for path in paths:
+                  text = path.read_text(encoding="utf-8")
+                  if old in text:
+                      path.write_text(text.replace(old, new), encoding="utf-8")
+                      changed.add(path)
+
+          leftovers = []
+          for old in renames:
+              result = subprocess.run(
+                  ["git", "grep", "-n", "--fixed-strings", old, "--", "src", "include"],
+                  text=True,
+                  capture_output=True,
+              )
+              if result.stdout:
+                  leftovers.append(result.stdout)
+          if leftovers:
+              raise SystemExit("placeholder references remain:\n" + "\n".join(leftovers))
+          print("updated", len(changed), "files")
+          PY
+
+      - name: Commit clean source diff
+        run: |
+          rm .github/workflows/apply-placeholder-renames.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Rename recovered placeholder functions'
+          git push
