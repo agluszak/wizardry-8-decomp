@@ -55,7 +55,10 @@ struct W8CountedOctBuildNode004AF760 : W8OctBuildNode00446330 {
 
 /* Original owner: Engine Code\OctBuildTree.cpp.  The source path proves the
    build-tree unit, while the address suffix keeps the still-unrecovered class
-   spelling explicit. */
+   spelling explicit.  Non-polymorphic like runtime W8Octree: neither the
+   constructor at 0x00446390 nor the destructor at 0x004466D0 stores a vptr;
+   the vtables emitted near this TU belong to vector/template material, not to
+   this type. */
 struct W8OctBuildTree00446390 {
     W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
                            unsigned short item_limit, short extent_mode);

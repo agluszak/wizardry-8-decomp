@@ -1321,7 +1321,7 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
     tree->spatial_000.extent_04 = spatial_00.extent_04;
     tree->spatial_000.cell_size_08 = spatial_00.cell_size_08;
     tree->spatial_000.owned_5c = spatial_00.owned_5c;
-    tree->positional_3a4 = game_data_134;
+    tree->game_data_3a4 = game_data_134;
     tree->positional_3a8 = positional_138;
     tree->positional_3ac = positional_13c;
     tree->positional_3b0 = positional_b8;

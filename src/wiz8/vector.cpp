@@ -43,6 +43,9 @@
 // SYNTHETIC: WIZ8 0x0042bb70
 // W8GrowableVector<int>::`scalar deleting destructor'
 
+// TEMPLATE: WIZ8 0x00438c50
+// W8GrowableVector<int>::~W8GrowableVector<int> (Octree.cpp emission)
+
 // SYNTHETIC: WIZ8 0x00474e30
 // W8GrowableVector<unsigned char>::`scalar deleting destructor'
 
@@ -199,14 +202,25 @@ class W8CharacterEvent;
 
 class stModelInstance;
 
+/* 0x005EC004 is the construction-phase table of this specialization: the
+   complete-object ctor 0x004CAD80 writes it during setup and 0x005EC018 when
+   the object is finished, and the member-construction emission 0x004390F0
+   leaves it in place for the enclosing ctor to overwrite. Like the other
+   construction-phase tables in this file it carries no marker of its own. */
 // VTABLE: WIZ8 0x005ec018
 // class W8GrowableVector<stModelInstance*>
 
 // TEMPLATE: WIZ8 0x004cad80
 // W8GrowableVector<stModelInstance*>::W8GrowableVector
 
+// TEMPLATE: WIZ8 0x004390f0
+// W8GrowableVector<stModelInstance*>::W8GrowableVector (member-construction emission)
+
 // SYNTHETIC: WIZ8 0x00438f70
 // W8GrowableVector<stModelInstance*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00438f40
+// W8GrowableVector<stModelInstance*>::`scalar deleting destructor' (construction-phase copy)
 
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>

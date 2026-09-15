@@ -438,7 +438,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
         } else {
             success = 1;
             if (g_octree_6598a4 != 0) {
-                if (!g_octree_6598a4->MarkVisited0042E400(index)) {
+                if (!g_octree_6598a4->TestPropSunBit(index)) {
                     prop->flags_1c |= 0x40;
                 }
                 g_octree_6598a4->AddLoadedProp(prop);
@@ -465,7 +465,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
         }
     }
     if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->MarkVisited0042E400(-1);
+        g_octree_6598a4->TestPropSunBit(-1);
     }
     return success;
 }

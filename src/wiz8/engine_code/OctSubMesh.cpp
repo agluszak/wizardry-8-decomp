@@ -84,7 +84,7 @@ OctMeshModel::~OctMeshModel()
 }
 
 // FUNCTION: WIZ8 0x0049E5D0
-unsigned char OctMeshModel::Write0049E5D0(int hFile)
+bool OctMeshModel::Write0049E5D0(int hFile)
 {
     unsigned char success;
     unsigned char write_result;

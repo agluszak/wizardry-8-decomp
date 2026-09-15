@@ -14,6 +14,58 @@ inline unsigned int W8HashValue(unsigned short key)
     return W8HashValue(static_cast<unsigned int>(key));
 }
 
+/* Single-array sibling of the QuickSortByKey idiom: partition while the range
+   is wide, then finish with an insertion pass. Call sites inline the outer
+   frame, so the Octree.cpp emission only ever serves the recursion. */
+inline void InsertionSort(unsigned long* values, int first, int last)
+{
+    for (int index = first + 1; index < last; ++index) {
+        unsigned long value = values[index];
+        int position = index;
+        while (value < values[position - 1]) {
+            values[position] = values[position - 1];
+            --position;
+            if (position == first) {
+                break;
+            }
+        }
+        values[position] = value;
+    }
+}
+
+// FUNCTION: WIZ8 0x00438e60
+inline void QuickSort(unsigned long* values, int first, int last)
+{
+    if (last - first <= 8) {
+        InsertionSort(values, first, last + 1);
+        return;
+    }
+    unsigned long pivot = values[last];
+    int low = first - 1;
+    int high = last;
+    unsigned long value;
+    do {
+        do {
+            ++low;
+        } while (low < last && values[low] < pivot);
+        do {
+            --high;
+        } while (0 < high && pivot < values[high]);
+        value = values[low];
+        values[low] = values[high];
+        values[high] = value;
+    } while (low < high);
+    values[high] = values[low];
+    values[low] = values[last];
+    values[last] = value;
+    if (first < low - 1) {
+        QuickSort(values, first, low - 1);
+    }
+    if (low + 1 < last) {
+        QuickSort(values, low + 1, last);
+    }
+}
+
 template <class Key, class Value> struct W8HashEntry {
     int next_index;
     Key key;
@@ -58,8 +110,10 @@ public:
 
     void Clear()
     {
-        delete[] bucket_heads;
-        delete[] entries;
+        if (bucket_count != 0) {
+            delete[] bucket_heads;
+            delete[] entries;
+        }
         bucket_heads = 0;
         entries = 0;
         free_head = -1;
@@ -164,7 +218,9 @@ void W8HashTable<Key, Value>::Remove(const Key* key, const Value* value)
 }
 
 /* Remove the entry at a known slot, as 0x0042E650/0x0042E880 do after
-   FindNextEntry. Emitted out of line at 0x00438DD0. */
+   FindNextEntry. */
+// TEMPLATE: WIZ8 0x00438dd0
+// W8HashTable<unsigned int,int>::RemoveAt
 template <class Key, class Value> void W8HashTable<Key, Value>::RemoveAt(int slot)
 {
     Key wanted = entries[slot].key;

@@ -85,6 +85,9 @@ public:
        position minus the home position into `out`; otherwise `out` is zeroed.
        `point` is accepted but never read. */
     char GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* point); /* 0x0044E130 */
+    /* The prop's position for external queries: position_02c when the rep
+       node reports itself current, else the rep node's own position. */
+    void GetPosition0044E2C0(srVector3T<float>* out); /* 0x0044E2C0 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void Method44C830(W8World* world);

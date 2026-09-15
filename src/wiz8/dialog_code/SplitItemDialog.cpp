@@ -135,7 +135,7 @@ W8SplitItemDialog::~W8SplitItemDialog()
     }
     if (m_count_input_0b4 != 0) {
         NoOp();
-        ::operator delete(m_count_input_0b4);
+        delete m_count_input_0b4;
         m_count_input_0b4 = 0;
     }
 }
@@ -255,7 +255,7 @@ void W8SplitItemDialog::DestroyControls()
     }
     if (m_count_input_0b4 != 0) {
         NoOp();
-        ::operator delete(m_count_input_0b4);
+        delete m_count_input_0b4;
         m_count_input_0b4 = 0;
     }
 }
@@ -405,7 +405,7 @@ unsigned char W8SplitItemDialog::CreateNumericInput005DDA60()
                                                  m_buttons_054[3]);
     if (m_count_input_0b4 == 0) {
         NoOp();
-        ::operator delete(m_count_input_0b4);
+        delete m_count_input_0b4;
         m_count_input_0b4 = 0;
         return 0;
     }

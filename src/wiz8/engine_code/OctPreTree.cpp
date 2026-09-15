@@ -1,8 +1,12 @@
 #include "wiz8/engine_code/OctPreTree.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/float_constants.h"
 #include <math.h>
 #include <string.h>
+// GLOBAL: WIZ8 0x005ebc28
+float g_float_005ebc28 = 5.0f;
 // GLOBAL: WIZ8 0x005ebc70
 double g_double_005ebc70 = 0.0001;
 // GLOBAL: WIZ8 0x005ebc90
@@ -21,16 +25,181 @@ W8OctPreTree004679E0* g_oct_pre_tree_659c74 = 0;
 // FUNCTION: WIZ8 0x004679e0
 W8OctPreTree004679E0::W8OctPreTree004679E0() : W8Octree(0, 0)
 {
-    positional_3a4 = 0;
+    game_data_3a4 = 0;
     positional_3a8 = 0;
     positional_3ac = 0;
     positional_3b0 = 0;
-    m_positional_178 = 0;
+    m_region_cell_178 = 0.0f;
     positional_3b4 = 0;
     positional_29c = 0;
     positional_2a0 = 0;
     positional_3b8 = new W8GrowableVector<void*>;
     g_oct_pre_tree_659c74 = this;
+}
+
+/* Resets the collected-id run and appends every not-yet-seen polygon id the
+   leaf under `cell` lists.  The trace walk inlines this sequence at each of
+   the six cells it probes. */
+__forceinline void W8OctPreTree004679E0::CollectLeafPolygons(const int* cell)
+{
+    m_positional_1b8 = 0;
+    unsigned int leaf_index = LeafIndexForCell(cell);
+    if (leaf_index != 0 && m_owned_0a0[leaf_index].polygon_offset_08 != 0) {
+        const unsigned long* stream = m_owned_0d0 + m_owned_0a0[leaf_index].polygon_offset_08;
+        for (int remaining = *stream; remaining != 0; --remaining) {
+            ++stream;
+            if (m_owned_190->Set(*stream) == 0) {
+                m_aulGDObjs[m_positional_1b8] = *stream;
+                ++m_positional_1b8;
+            }
+        }
+    }
+}
+
+/* Walks the `from`-`to` segment through the leaf grid, collecting each
+   visited leaf's region-polygon ids and plane/slab-testing them.  Answers
+   whether the segment is unobstructed; the light-visibility callers
+   accumulate its result. */
+// FUNCTION: WIZ8 0x00467bb0
+bool W8OctPreTree004679E0::SegmentClear00467BB0(const srVector3T<float>* from,
+                                                const srVector3T<float>* to)
+{
+    W8OctreeTrace trace;
+    W8OctreeWalk walk;
+    int cell[3];
+    int end_cell[3];
+    int span = 0;
+    unsigned char blocked = 0;
+
+    trace.Seed(from, to);
+    m_positional_1b8 = 0;
+    m_owned_190->ClearAll();
+    for (int axis = 0; axis < 3; ++axis) {
+        cell[axis] = static_cast<int>(((&from->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+                                      spatial_000.node_extent_70);
+        end_cell[axis] = static_cast<int>(((&to->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+                                          spatial_000.node_extent_70);
+        int difference = cell[axis] - end_cell[axis];
+        if (difference < 0) {
+            span -= difference;
+        } else {
+            span += difference;
+        }
+    }
+    if (span < 2) {
+        CollectLeafPolygons(cell);
+        blocked = TestCollectedPolygons004681E0(&trace);
+        if (!blocked && span != 0) {
+            CollectLeafPolygons(end_cell);
+            blocked = TestCollectedPolygons004681E0(&trace);
+        }
+    } else {
+        BuildCellWalk(*from, *to, &walk);
+        int error_a = walk.error_2c;
+        int error_b = walk.error_38;
+        for (int index = 0; index < walk.count_24; ++index) {
+            if (blocked != 0) {
+                break;
+            }
+            CollectLeafPolygons(cell);
+            if (m_positional_1b8 != 0) {
+                blocked = TestCollectedPolygons004681E0(&trace);
+            }
+            if (error_a < error_b) {
+                if (error_a < 0 && !blocked) {
+                    cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                    error_a += walk.error_reset_30;
+                    CollectLeafPolygons(cell);
+                    if (m_positional_1b8 != 0) {
+                        blocked = TestCollectedPolygons004681E0(&trace);
+                    }
+                    if (error_b < 0 && !blocked) {
+                        cell[walk.minor_axis_20] += walk.step_0c[walk.minor_axis_20];
+                        error_b += walk.error_reset_3c;
+                        CollectLeafPolygons(cell);
+                        if (m_positional_1b8 != 0) {
+                            blocked = TestCollectedPolygons004681E0(&trace);
+                        }
+                    }
+                }
+            } else {
+                if (error_b < 0 && !blocked) {
+                    cell[walk.minor_axis_20] += walk.step_0c[walk.minor_axis_20];
+                    error_b += walk.error_reset_3c;
+                    CollectLeafPolygons(cell);
+                    if (m_positional_1b8 != 0) {
+                        blocked = TestCollectedPolygons004681E0(&trace);
+                    }
+                    if (error_a < 0 && !blocked) {
+                        cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+                        error_a += walk.error_reset_30;
+                        CollectLeafPolygons(cell);
+                        if (m_positional_1b8 != 0) {
+                            blocked = TestCollectedPolygons004681E0(&trace);
+                        }
+                    }
+                }
+            }
+            cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+            error_a -= walk.error_delta_28;
+            error_b -= walk.error_delta_34;
+        }
+    }
+    return blocked == 0;
+}
+
+/* Tests the collected region polygons' planes against the trace segment.  A
+   polygon blocks only when its plane faces the ray, the crossing lies inside
+   the segment's `length_28 - 1.0f` window, and either the start point sits
+   within 1.0f of the plane or the ray exits at least 5.0f behind it, with the
+   resulting contact point landing inside the polygon. */
+// FUNCTION: WIZ8 0x004681e0
+bool W8OctPreTree004679E0::TestCollectedPolygons004681E0(W8OctreeTrace* trace)
+{
+    float limit = trace->length_28 - g_float_005ebb38;
+    unsigned char blocked = 0;
+
+    for (unsigned long index = 0; index < m_positional_1b8; ++index) {
+        if (blocked != 0) {
+            break;
+        }
+        W8OctRegionPolygon* polygon = &game_data_3a4->polygons_0c[m_aulGDObjs[index]];
+        const float* plane = polygon->plane_08;
+        if (plane[0] * trace->step_18.x + trace->step_18.y * plane[1] +
+                trace->step_18.z * plane[2] <=
+            g_float_005ebb34) {
+            float front = trace->start_00.x * plane[0] + trace->start_00.y * plane[1] +
+                          trace->start_00.z * plane[2] + plane[3];
+            if (front <= limit && g_float_005ebb34 < front) {
+                srVector3T<float> contact;
+                if (g_float_005ebb38 <= front) {
+                    float back = trace->end_0c.x * plane[0] + trace->end_0c.y * plane[1] +
+                                 trace->end_0c.z * plane[2] + plane[3];
+                    if (g_float_005ebc28 <= back) {
+                        continue;
+                    }
+                    back = -back;
+                    if (back < g_float_005ebc28) {
+                        continue;
+                    }
+                    front = front / (back + front) * trace->length_28;
+                    contact.x = trace->step_18.x * front + trace->start_00.x;
+                    contact.y = trace->step_18.y * front + trace->start_00.y;
+                    contact.z = trace->step_18.z * front + trace->start_00.z;
+                } else {
+                    contact = trace->start_00;
+                }
+                srVector3T<float> vertices[3];
+                vertices[0] = polygon->vertices_34[0]->position_0c;
+                vertices[1] = polygon->vertices_34[1]->position_0c;
+                vertices[2] = polygon->vertices_34[2]->position_0c;
+                if (PointInsideTriangle0046D530(vertices, polygon->flags_00 & 3, &contact) != 0) {
+                    blocked = 1;
+                }
+            }
+        }
+    }
+    return blocked != 0;
 }
 
 /* Construct the spatial value used by both the runtime octree and the level
@@ -79,6 +248,18 @@ W8OctSpatialState0046CCC0::W8OctSpatialState0046CCC0(const W8OctSpatialState0046
 void W8OctSpatialState0046CCC0::Reset0046CDC0()
 {
     memset(this, 0, sizeof(*this));
+}
+
+// FUNCTION: WIZ8 0x0046cdf0
+void W8OctSpatialState0046CCC0::GetWorkingBounds0046CDF0(srVector3T<float>* minimum,
+                                                         srVector3T<float>* maximum)
+{
+    minimum->x = working_minimum_78.x;
+    minimum->y = working_minimum_78.y;
+    minimum->z = working_minimum_78.z;
+    maximum->x = working_maximum_84.x;
+    maximum->y = working_maximum_84.y;
+    maximum->z = working_maximum_84.z;
 }
 
 // FUNCTION: WIZ8 0x0046ce30

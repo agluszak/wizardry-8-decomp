@@ -461,7 +461,8 @@ W8Navigator::~W8Navigator()
     delete owned_object_0a0;
     owned_object_0a0 = 0;
     if (movement_0c0.location_id_004 != 0 && g_octree_6598a4 != 0) {
-        g_octree_6598a4->UnregisterLocationObject(movement_0c0.location_id_004, 0xd);
+        g_octree_6598a4->UnregisterLocationObject(movement_0c0.location_id_004,
+                                                  W8_OCTREE_KIND_NAVIGATOR);
     }
     if (node_18c != 0) {
         node_18c->release();
@@ -2103,14 +2104,30 @@ int W8Navigator::ResolveMovement()
 }
 
 /* The W8OctreeTrace methods sit in the link-order gap between Navigator.cpp's
-   last body and OctPath.cpp's first: the two identical Seed emissions at
-   0x00457640 and 0x00457700 feed the Octree/GameData trace callers, and
-   0x004577C0 is the header-defined default constructor's out-of-line copy,
-   emitted for SettleToGround's uninlined call.  A third identical Seed
-   emission at 0x00457580 is pulled by the unrecovered OctPreTree trace walk at
-   0x00467BB0. */
-// FUNCTION: WIZ8 0x00457640
+   last body and OctPath.cpp's first: the three identical seed bodies at
+   0x00457580, 0x00457640 and 0x00457700 feed the OctPreTree/Octree/GameData
+   trace callers, and 0x004577C0 is the record's default constructor. */
+// FUNCTION: WIZ8 0x00457580
 void W8OctreeTrace::Seed(const srVector3T<float>* from, const srVector3T<float>* to)
+{
+    start_00 = *from;
+    end_0c = *to;
+    step_18.x = end_0c.x - start_00.x;
+    step_18.y = end_0c.y - start_00.y;
+    step_18.z = end_0c.z - start_00.z;
+    float length = step_18.Length();
+    length_28 = length;
+    hit_limit_24 = length;
+    float scale = (float)g_double_005ebc30 / length_28; /* c-style-cast-ok:
+        the retail divisor is a double constant folded onto a float ray */
+    step_18.x *= scale;
+    step_18.y *= scale;
+    step_18.z *= scale;
+    state_2c = 0;
+}
+
+// FUNCTION: WIZ8 0x00457640
+W8OctreeTrace::W8OctreeTrace(const srVector3T<float>* from, const srVector3T<float>* to)
 {
     start_00 = *from;
     end_0c = *to;
@@ -2145,4 +2162,17 @@ void W8OctreeTrace::Reseed(const srVector3T<float>* from, const srVector3T<float
     step_18.y *= scale;
     step_18.z *= scale;
     state_2c = 0;
+}
+
+// FUNCTION: WIZ8 0x004577c0
+W8OctreeTrace::W8OctreeTrace()
+{
+    start_00.SetZero();
+    end_0c.SetZero();
+    step_18.z = 0.0f;
+    step_18.y = 0.0f;
+    step_18.x = 0.0f;
+    length_28 = 0.0f;
+    state_2c = 0;
+    hit_limit_24 = 1.0e20f;
 }

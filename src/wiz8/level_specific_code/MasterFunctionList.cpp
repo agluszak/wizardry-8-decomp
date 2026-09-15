@@ -234,7 +234,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
     for (int index = g_master_functions_006834d8->GetCount() - 1; index >= 0; --index) {
         void* entry = reinterpret_cast<void*>(g_master_functions_006834d8->RemoveAt(
             index)); /* reinterpret-ok: function entry stored as data */
-        ::operator delete(entry);
+        operator delete(entry);
     }
     g_flag_006834dd = 0;
     g_flag_6109f0 = 1;

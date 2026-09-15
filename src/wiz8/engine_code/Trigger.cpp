@@ -987,7 +987,8 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
         lower = center - extent;
         upper = center + extent;
 
-        unsigned int count = g_octree_6598a4->QueryObjects(&locations, &lower, &upper, 0x0c, -1);
+        unsigned int count =
+            g_octree_6598a4->QueryObjects(&locations, &lower, &upper, W8_OCTREE_KIND_LOCATION, -1);
         for (unsigned int index = 0; index < count; ++index) {
             int location_id = locations[index];
             if (location_id == 0) {

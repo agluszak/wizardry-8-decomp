@@ -256,7 +256,6 @@ unsigned char g_navigator_position_changed_659c11;
 // GLOBAL: WIZ8 0x006840BB
 unsigned char g_flag_006840bb;
 
-void Function4314C0(int save);
 void Function568C40(void);
 void Function569CC0(void);
 void Function5A6970(void);
@@ -2882,7 +2881,7 @@ void MainGameScreenFrame(void)
         }
         strcat(path, ".rlk");
         if (!FileExists(path)) {
-            Function4314C0(1);
+            g_world->octree->BuildRegionLinks(1);
         }
         for (; g_next_link_level_0068ede8 < W8_LEVEL_COUNT; ++g_next_link_level_0068ede8) {
             if (LevelBuildInfoByID(g_next_link_level_0068ede8, &info)) {
