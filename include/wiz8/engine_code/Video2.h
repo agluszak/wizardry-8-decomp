@@ -100,12 +100,6 @@ extern unsigned char g_camera_sway_active_652da4;
 extern int g_screenshot_index_659724;
 extern int g_screenshot_page_659728;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
-/* 0x004048A0: fill one rectangle of the target surface through the
-   locked primary-surface blitter. */
-void Function4048A0(int target, int left, int top, int right, int bottom);
-/* 0x00402FA0: fill one rectangle of the target surface with the given
-   color/flags word (the lock tumbler well passes 0x8000). */
-void Function402FA0(int target, int left, int top, int right, int bottom, int flags);
 
 #ifdef __cplusplus
 
@@ -130,8 +124,8 @@ struct W8ControlsRect;
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
 stModelInstance2D* Function424790(int width, int height, const srVector4T<float>* color, char a4);
-/* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
-   radar overlay is created through it directly. */
+/* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface
+   wraps; the radar overlay is created through it directly. */
 stModelInstance2D* Function4253F0(int target, const W8ControlsRect* bounds, int a3, int a4,
                                   char a5);
 /* 0x004255C0: wrap the sprite-surface factory - image is a video surface
@@ -143,16 +137,15 @@ void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
 void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
-void Function425840(srNode* node, int degrees);
-/* 0x00427E70: surface-lock helper used while installing a drag cursor. */
-int Function427E70(void);
+void RotateNodeInDegrees00425840(srNode* node, int degrees);
+/* 0x00427E70: clear the mouse cursor surface to black before installing
+   a new cursor image. */
+bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
    coordinates; positional snaps to the renderer's pixel grid. */
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
-/* 0x004215E0: point-visibility query the radar item loop consults. */
-bool HasCameraLineOfSight(const srVector3T<float>* position);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
    link builder uses to count a mesh's drawn faces — begin the probe pass,
    draw the node and return its covered-face count, then end the pass. */
@@ -162,7 +155,7 @@ void EndRenderProbe004289C0(void);
 
 #endif
 
-void WarpSystemCursor(int x, int y); /* 0x004280C0: fullscreen-safe */
+void WarpSystemCursor(int x, int y); /* 0x004280C0: warp the system cursor, fullscreen-safe */
 
 #ifdef __cplusplus
 
@@ -254,6 +247,7 @@ unsigned char InitializeVideoDevice(void);
 unsigned char OpenRendererWindow(void);
 void InvalidateRendererTextureCache(void);
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);
+void Function427F00(short x, short y); /* 0x00427F00 */
 unsigned char ClearFlag603C60(void);
 unsigned char SetFlag603C60(void);
 void SetValue659668(const int* value);
@@ -264,12 +258,14 @@ unsigned char HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
 srModelInstance* GetValue65962C(void);
 void SetValue65962C(srModelInstance* value);
+bool IsCursorInsideViewport(void); /* 0x00428070 */
 
 #endif
 
 #endif
 
 extern unsigned char* g_render_options_65a118;
+void SetRendererMode6596EC(void); /* 0x00428A90 */
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);
 int GetRendererFamily(void);

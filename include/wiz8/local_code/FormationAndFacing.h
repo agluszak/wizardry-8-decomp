@@ -10,7 +10,6 @@ extern float g_facing_tolerance_005ebcf4;
 
 signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
 
-
 void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
 
 /* 0x005549E0: whether the character can hold a formation place at all: alive
@@ -36,7 +35,7 @@ void InitializePartyFormation(W8PartyFormationState* state);
    formation record, 0x005545F0 reconciles an edited formation against the
    live one, 0x00555080 re-seats one slot's row, and 0x00555160 swaps two
    slots' positions. */
-void Function5545D0(W8PartyFormationState* dst, const W8PartyFormationState* src);
+void CopyPartyFormationState(W8PartyFormationState* dst, const W8PartyFormationState* src);
 void Function5545F0(W8PartyFormationState* edited, W8PartyFormationState* live);
 void Function555080(W8PartyFormationState* formation, int slot, int row);
 void Function555160(W8PartyFormationState* formation, int slot_a, int slot_b);

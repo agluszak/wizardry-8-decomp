@@ -20,11 +20,4 @@ struct W8CameraPath {
    off for the world and dispatches the per-path end actions. */
 void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime);
 
-/* Unresolved gap callees, declared for the call sites in this unit. */
-/* 0x0041AAE0: stashes and returns the environment load flag while a camera
-   path runs. */
-unsigned char Function41AAE0(unsigned char flag);
-/* 0x00420FB0: re-aims something at the tracked point when tracking fails. */
-void Function420FB0(const srVector3T<float>* target);
-
 #endif

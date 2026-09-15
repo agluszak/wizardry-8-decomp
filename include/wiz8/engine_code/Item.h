@@ -40,9 +40,9 @@ struct W8Item : public W8GrObject {
     /* 0x0049FB30: copy the rep's cached lower/upper bounds out to the
        caller. */
     void GetWorldItemBounds(float* lower, float* upper);
-    /* 0x004A0050: the item's radar-blip eligibility, off its value_01c
-       lookup. */
-    unsigned char Function4A0050();
+    /* 0x004A0050: whether the item's radar-blip timer is still ticking, off
+       its value_01c lookup; feeds the `lit` argument of PlaceRadarBlip. */
+    unsigned char IsRadarBlipLit();
 };
 
 /* The last proven members plus their widths are not a proven object extent.

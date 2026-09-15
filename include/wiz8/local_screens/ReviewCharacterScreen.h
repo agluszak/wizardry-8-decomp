@@ -198,7 +198,8 @@ void DrawCampSpellPages005B7300(void);
 void DrawCampResistances005B7790(void);
 unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);
 void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
-void Function5A4570(void);
+void SyncReviewCharInputRegion005A4570(void);
+char IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
 void Function5C4EE0(void);
 
 extern int g_effect_005ee6ec;

@@ -23,7 +23,8 @@ char GetNpcDisposition(W8NpcState* npc);                                        
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                             /* 0x0050DD10 */
 unsigned char FindNpcOfKind(int kind);                                             /* 0x0050DD80 */
 void Function55BB10(W8NpcState* npc);                                              /* 0x0055BB10 */
-void Function55BCC0(W8NpcState* npc);                                              /* 0x0055BCC0 */
+unsigned char CanNpcJoinParty(W8NpcState* npc);                                  /* 0x0050C870 */
+void RestockNpcInventory(W8NpcState* npc);                                         /* 0x0055BCC0 */
 unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                 /* 0x0050A3C0 */
 void Function50AE40(W8NpcState* npc, int enabled);                                 /* 0x0050AE40 */
@@ -76,6 +77,7 @@ void ReleaseNpcBinding(int value);
 /* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
+void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
 char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
 void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);

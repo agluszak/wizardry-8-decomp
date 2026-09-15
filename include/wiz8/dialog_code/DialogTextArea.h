@@ -14,6 +14,7 @@
    the entries. visible_lines references entries selected/ordered from it. */
 class W8DialogTextArea {
     friend class W8NpcDialogueScrollWidget;
+    friend class W8NpcDialogueTextController;
 
 public:
     W8DialogTextArea();  /* 0x005D14D0 */

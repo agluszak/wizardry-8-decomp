@@ -610,7 +610,7 @@ W8GameData::~W8GameData()
 {
     int index;
 
-    Function41A9E0();
+    ReleaseLevelData0041A9E0();
     if (geometry_index_00 != 0) {
         delete geometry_index_00;
     }

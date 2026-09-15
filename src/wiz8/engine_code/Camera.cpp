@@ -51,7 +51,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
         path->path_18->last_update_tick = GetTickCount();
         path->path_18->distance_travelled = 0.0f;
         path->path_18->unknown_3b = 1;
-        g_saved_environment_flag_60aa64 = Function41AAE0(0);
+        g_saved_environment_flag_60aa64 = SetEnvironmentLoadFlag(0);
         return;
     }
     if (path->active_14 == 0 || fTime != 0.0f) {
@@ -65,7 +65,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
     path->active_14 = 0;
-    Function41AAE0(g_saved_environment_flag_60aa64);
+    SetEnvironmentLoadFlag(g_saved_environment_flag_60aa64);
     if (g_status_685170.current_level == 1) {
         if (_stricmp(path->name_00, "Camera01") == 0) {
             QueueNpcMessageLine(9, 0x721);
@@ -92,7 +92,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
                     if (g_settings_6850c8.camera_rotation_style == 0) {
                         if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,
                                                                            &pitch) == 0) {
-                            Function420FB0(&target);
+                            CameraSnapToTarget(&target);
                         }
                     } else if (g_settings_6850c8.camera_rotation_style == 1 &&
                                g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,

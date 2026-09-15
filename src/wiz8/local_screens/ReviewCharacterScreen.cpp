@@ -2133,6 +2133,17 @@ void DismissSelectedPartyCharacter(void)
     RequestScreenTransition();
 }
 
+// FUNCTION: WIZ8 0x005A4570
+void SyncReviewCharInputRegion005A4570(void)
+{
+    if (giReviewCharSlot != -1 &&
+        g_status_685170.buffers.party_rows[giReviewCharSlot].animation_0fa != -1) {
+        DisableRegionInput(0xf2);
+        return;
+    }
+    EnableRegionInput(0xf2);
+}
+
 /* Kicked off by the post-quake camera-shake callback: latches the endgame
    flags, resets input regions, then starts the fade whose completion runs
    Function5A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
@@ -2802,6 +2813,16 @@ void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsig
     RecalculateCarriedWeight(g_value_0069c0f8);
     RedistributePartyEncumbrance();
     g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
+}
+
+// FUNCTION: WIZ8 0x005A6310
+char IsEquippableItemClass005A6310(W8ItemInstance* item)
+{
+    char equip_class = g_item_records[item->item_id].equip_class;
+    if (equip_class != 2 && equip_class != 4) {
+        return 0;
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x005A6580

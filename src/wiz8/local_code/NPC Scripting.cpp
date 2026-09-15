@@ -38,6 +38,7 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
+#include "wiz8/level_specific_code/Ascension.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/message_box.h"
 #include "wiz8/engine_code/Spells.h"
@@ -510,7 +511,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case 3:
         Function570A20();
-        Function570CF0();
+        OpenNpcDialogueTranscriptLayout();
         break;
     case 4:
         RemoveNpcScriptItem(reinterpret_cast<W8ItemInstance*>(line->text), 0,
@@ -572,10 +573,10 @@ void ProcessMessageBoxQueue(void)
         Function4DFAE0(0);
         break;
     case 0xb:
-        Function4DFB40(0);
+        SpawnAlfieLife004DFB40(0);
         break;
     case 0xc:
-        Function4DFB80(0);
+        SpawnAlfieKnow004DFB80(0);
         break;
     case 0xd:
         if (line->text == 0) {
@@ -1205,6 +1206,39 @@ void OnNpcTravelConfirmationClosed(W8DialogBase* dialog)
     if (GetDialogResult(dialog)) {
         QueueNpcTravelRefusals(g_pending_npc_travel_level);
     }
+}
+
+// FUNCTION: WIZ8 0x00528830
+void QueueNpcScriptLine(int line, int value, int prepend, int flag)
+{
+    W8MessageBoxLine* msg_line = new W8MessageBoxLine;
+
+    memset(msg_line, 0, sizeof(W8MessageBoxLine));
+    msg_line->unknown_00 = line;
+    msg_line->unknown_04 = value;
+    msg_line->unknown_18 = flag;
+    msg_line->npc = g_npc_scripting.npc;
+
+    if (prepend == 0) {
+        g_npc_scripting.message_lines.Add(msg_line);
+    } else {
+        g_npc_scripting.message_lines.InsertAt(0, msg_line);
+    }
+}
+
+// FUNCTION: WIZ8 0x005289B0
+void QueueNpcMessageLine(int kind, int argument)
+{
+    W8MessageBoxLine* line = new W8MessageBoxLine;
+
+    memset(line, 0, sizeof(W8MessageBoxLine));
+    line->unknown_00 = -1;
+    line->type = kind;
+    line->text = reinterpret_cast<wchar_t*>(argument); // reinterpret-ok: tagged storage
+    line->extra = 0;
+    line->npc = g_npc_scripting.npc;
+
+    g_npc_scripting.message_lines.Add(line);
 }
 
 // FUNCTION: WIZ8 0x00528a80

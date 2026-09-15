@@ -26,6 +26,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/Spells.h"
@@ -1145,6 +1146,18 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
 
     *origin = 0xff;
     *slot = 0xffff;
+}
+
+/* Equip classes 0x17 and 0x19 are the directly usable item kinds: the use-item
+   path treats them as activatable even when nothing else applies. */
+// FUNCTION: WIZ8 0x00522A00
+char IsUsableItemClass00522A00(W8ItemInstance* item)
+{
+    char equip_class = g_item_records[item->item_id].equip_class;
+    if (equip_class != 0x17 && equip_class != 0x19) {
+        return 0;
+    }
+    return 1;
 }
 
 /* Initialize the fixed item-video-object vector to one entry per item record. */
@@ -2363,29 +2376,30 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
     RebuildEquipmentAndDerivedStatsForSlot(party_slot);
 
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    if (row->action_03d == 8 && row->action_detail_045.item_use.item == item) {
+    if (row->action_03d == W8_ACTION_USE_ITEM && row->action_detail_045.item_use.item == item) {
         DropCharacterFromRound(party_slot);
     }
 
     if (primary_right || primary_left) {
         int hand_state = row->action_kind;
-        if (hand_state == 1) {
-            if (!CanCharacterKnockOut(party_slot)) {
-                row->action_kind = 0;
-                if (row->action_03d == 1) {
-                    row->action_03d = 0;
+        if (hand_state == W8_ACTION_BERSERK) {
+            if (!CanCharacterBerserk(party_slot)) {
+                row->action_kind = W8_ACTION_ATTACK;
+                if (row->action_03d == W8_ACTION_BERSERK) {
+                    row->action_03d = W8_ACTION_ATTACK;
                 }
             }
-        } else if (hand_state == 0 && row->action_is_kind_one && CanCharacterKnockOut(party_slot)) {
-            row->action_kind = 1;
-            if (row->action_03d == 0) {
-                row->action_03d = 1;
+        } else if (hand_state == W8_ACTION_ATTACK && row->action_is_berserk &&
+                   CanCharacterBerserk(party_slot)) {
+            row->action_kind = W8_ACTION_BERSERK;
+            if (row->action_03d == W8_ACTION_ATTACK) {
+                row->action_03d = W8_ACTION_BERSERK;
             }
         }
 
         if (gXStatus.fCombatMode) {
             int action = row->action_03d;
-            if (action == 0 || action == 1) {
+            if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 if (!CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
                     AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
                 } else if (!TargetIsInPlay(party_slot, 2)) {
@@ -2402,7 +2416,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block) {
         if (g_level_block->combat_end_notification != -1) {
-            Function595600();
+            ReopenSubMenuPanel();
         }
         RefreshFlaggedMainGameState00593330();
     }

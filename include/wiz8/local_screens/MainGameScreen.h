@@ -203,6 +203,11 @@ public:
                                 int field_50); /* 0x0055DE40 */
     bool HandleScrollDownCommand(unsigned int command);
     bool HandleScrollUpCommand(unsigned int command);
+    void Function55E840();                     /* 0x0055E840 */
+    void Function55E7C0(char filter);          /* 0x0055E7C0 */
+    void Function55EAC0(unsigned char sorted); /* 0x0055EAC0 */
+    void RemoveSelectedTranscriptEntry();      /* 0x0055EA70 */
+    void ClearEntries0055EA40();               /* 0x0055EA40 */
 
     int unknown_4c;
     int unknown_50;
@@ -462,21 +467,17 @@ struct W8PendingNoticeLine {
 
 #pragma pack(push, 1)
 /* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
-   DispatchPendingNpcScriptNotice dispatch. The flag pair at +0x14 is stored as two bytes but
-   DispatchPendingNpcScriptNotice reloads it as one dword for the BeginNpcDialogueInternal call, so the
-   union keeps both spellings honest. */
+   DispatchPendingNpcScriptNotice dispatch. flag and force are stored as
+   independent bytes at +0x14/+0x15; the dispatch reloads +0x14 as one dword
+   for the BeginNpcDialogueInternal flags argument and takes force back out of
+   its high byte, leaving +0x16/+0x17 as dead tail bytes. */
 struct W8PendingNotice {
     W8NpcState* npc;
     W8ItemInstance item;
     int line;
-    union {
-        int flags;
-        struct {
-            unsigned char flag;
-            unsigned char force;
-            unsigned char unused_16[2];
-        } bytes;
-    };
+    unsigned char flag;
+    unsigned char force;
+    unsigned char unused_16[2];
 };
 #pragma pack(pop)
 extern W8PendingNotice g_pending_notice_68ee60;
@@ -502,7 +503,7 @@ struct W8MainScreenState {
     int value_fc; /* 0xfc: dialogue layout mode; 577880 requires 3 */
     int value_100;
     int value_104;
-    int value_108;
+    W8ItemInstance* value_108;
     W8TextControl* dialogue_text_10c; /* 0x10c: the NPC-name caption */
     W8TextControl* dialogue_text_110;
     W8TextControl* dialogue_text_114;
@@ -598,9 +599,10 @@ struct W8MainScreenState {
     unsigned char unknown_249[3];
     void* quote_notice_payload;
     unsigned char flag_250;
-    unsigned char unknown_251;
+    unsigned char flag_251;
     unsigned char flag_252;
-    unsigned char unknown_253[5];
+    unsigned char unknown_253;
+    int value_254;
     /* 0x258: the screen reset writes -1 here, the no-selection value. */
     int value_258;
     int value_25c;
@@ -641,6 +643,7 @@ static_assert(offsetof(W8MainScreenState, last_notice_npc_kind) == 0x264,
 
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
+void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -691,15 +694,15 @@ void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
 void LookAtDialogueNpc(void);                               /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void);                        /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                              int force);  /* 0x0056C6D0 */
-void BeginScriptedWorldAction(void);       /* 0x00577520 */
-void Function570A20(void);                 /* 0x00570A20 */
-void Function570CF0(void);                 /* 0x00570CF0 */
-void DispatchPendingNpcScriptNotice(void); /* 0x0056CA90 */
+                              int force);   /* 0x0056C6D0 */
+void BeginScriptedWorldAction(void);        /* 0x00577520 */
+void Function570A20(void);                  /* 0x00570A20 */
+void OpenNpcDialogueTranscriptLayout(void); /* 0x00570CF0 */
+void DispatchPendingNpcScriptNotice(void);  /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
-unsigned char Function577A40(void);
+unsigned char ProcessPendingEvent00577A40(void);
 void __fastcall
 CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
 void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
@@ -709,6 +712,7 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
 void RequestRefreshPartyState(void);
+void ClearCombatSelection(void); /* 0x0056A5A0 */
 void RefreshFlaggedMainGameState00593330(void);
 int IsScreenIdle(void);
 bool IsModalOpen(void);
@@ -753,7 +757,16 @@ unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
 void Function561EC0(void);
 void ClearHighlightOverlayRegion(void); /* 0x00563DD0 */
 void DismissHighlightOverlay(void);     /* 0x00563EB0 */
+void Function59AA60(int party_slot, int* out_1, int* out_2, int* out_3, int* out_4, int* out_5,
+                    int* out_6, int flag); /* 0x0059AA60 */
 void Function565740(int slot);
+void Function561480(void);      /* 0x00561480 */
+void Function561DB0(int slot);  /* 0x00561DB0 */
+void ClearScreenWait(void);     /* 0x00565970 */
+void Function568390(int value); /* 0x00568390 */
+void Function56ABE0(void);      /* 0x0056ABE0 */
+void Function56B4C0(int value); /* 0x0056B4C0 */
+void Function59AA30(void);      /* 0x0059AA30 */
 void Function568E10(void);
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
@@ -775,7 +788,7 @@ void ShowNpcDialogueTopicMenu(void);                                            
 void HandleNpcDialogueDeparture(int value);                                         /* 0x00577290 */
 unsigned char HandleNpcDialogueItem(W8ItemInstance* item);                          /* 0x00575810 */
 void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
-void Function56FED0(void);                                                          /* 0x0056FED0 */
+void ResetNpcDialogueItemEditor(void);                                              /* 0x0056FED0 */
 void Function576850(int value);                                                     /* 0x00576850 */
 void Function5ADB10(int value);                                                     /* 0x005ADB10 */
 void Function58BA60(void);                                                          /* 0x0058BA60 */
@@ -785,10 +798,11 @@ void Function575710(void);                                                      
 void Function571660(wchar_t* name, int value, int arg);                             /* 0x00571660 */
 void CloseNpcDialogueForCamp(void);                                                 /* 0x00577020 */
 void __fastcall Function55E940(W8NpcDialogueTextController* controller);            /* 0x0055E940 */
-void __fastcall Function55EA40(W8NpcDialogueTextController* controller);            /* 0x0055EA40 */
-void Function571AA0(void);                                                          /* 0x00571AA0 */
-void Function573AE0(void);                                                          /* 0x00573AE0 */
-void Function5732A0(void);                                                          /* 0x005732A0 */
+void OpenNpcDialogueOptionLayout(void);                                             /* 0x00571AA0 */
+void OpenNpcDialogueMode1Layout(void);                                              /* 0x00573AE0 */
+void OpenNpcDialogueMode5Layout(void);                                              /* 0x005732A0 */
+void UpdateNpcDialogueSubMode(void);                                                /* 0x00571F60 */
+void Function575390(void);                                                          /* 0x00575390 */
 extern unsigned char g_flag_006f04ec;
 void Function56E800(int);
 unsigned char Function56EC90(unsigned int party_slot);
@@ -798,7 +812,6 @@ void Function5879A0(int);
 void Function58A470(int value);
 void UpdateMainGameScreen(void); /* 0x0058A750 */
 void Function58A790(int);
-void Function595600(void);
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -812,7 +825,8 @@ void SetCombatTarget(int value);    /* 0x0056A2D0 */
 void RequestRedrawCombatBar(void);    /* 0x005699B0 */
 void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
 void DisableMainRegionSet(void);      /* 0x00561FB0 */
-void Function598AB0(void);
+void EnableMainRegionSet(void);       /* 0x00561FA0 */
+unsigned char Function56EFB0(void);
 void Function59C930(int slot);
 void Function598AE0(void);
 void Function59B270(void);

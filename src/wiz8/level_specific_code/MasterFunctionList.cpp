@@ -1,5 +1,9 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/level_specific_code/Monastery1.h"
 #include "wiz8/level_specific_code/Monastery2.h"
+#include "wiz8/level_specific_code/Trynnie1.h"
+#include "wiz8/level_specific_code/Ascension.h"
+#include "wiz8/level_specific_code/MtGigasOuter.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/sr_api.h"
@@ -79,16 +83,12 @@ unsigned char g_flag_652da5;
    are declared here rather than in the published header. */
 void Function4D9740(void);
 void Function4D9B40(void);
-void Function4D9D30(void);
 void Function4DA670(void);
 void Function4DB200(void);
 void Function4DBAB0(void);
-void Function4DBE70(void);
-void Function4DC8D0(void);
 void Function4DCB50(void);
 void Function4DEB40(void);
 void Function4DF870(void);
-void Function4E0510(void);
 void Function4E06D0(void);
 bool Function4D9AC0(Trigger* trigger);
 bool Function4D9AD0(Trigger* trigger);
@@ -633,7 +633,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4DDEB0;
         return;
     case 8:
-        Function4DC8D0();
+        ClearTextForBarTrigger004DC8D0();
         pTrigger = FindTriggerByName("roach_trigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c0,
@@ -791,7 +791,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4DBA70;
         return;
     case 0xe:
-        Function4DBE70();
+        ProcessFlagPosition004DBE70();
         pTrigger = FindTriggerByName("_VOC_EWAXXLIFT1");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ff,
@@ -1209,7 +1209,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_04")));
         }
         pTrigger->activation_callback_360 = Function4DA060;
-        Function4D9D30();
+        EnsureTrynnie2KilledVar004D9D30();
         return;
     case 0x1b:
         pTrigger = FindTriggerByName("Liche");
@@ -1220,7 +1220,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4E05F0;
         return;
     case 0x24:
-        Function4E0510();
+        SyncButtonBlockerFromFact004E0510();
         pTrigger = FindTriggerByName("Triangle");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf2,

@@ -77,6 +77,12 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
+// FUNCTION: WIZ8 0x005CF4F0
+void SetDialogPrompt(W8MessageDialogBase* dialog, wchar_t* text, int, int)
+{
+    dialog->SetMessage(text, 1, 0x32, 1, 1, 1, 0, 0, 0);
+}
+
 // FUNCTION: WIZ8 0x005cf510
 unsigned char GetDialogResult(W8DialogBase* dialog)
 {

@@ -337,14 +337,14 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
 void AimAtPlace(int actor)
 {
     W8CombatSlot target;
-    unsigned char scratch[16];
+    srVector3T<float> position;
 
     memset(&target, 0, sizeof(target));
     target.iMonsterID = BAD_INDEX;
     target.iChar = BAD_INDEX;
     target.iGroupID = BAD_INDEX;
     target.iType = W8_TARGET_KIND_PLACE;
-    Function492500(scratch);
+    GetWorldCursorTargetPosition00492500(&position);
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
     gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
@@ -1103,7 +1103,6 @@ W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
-enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
 
 /* Which targeting context is in force. A dialogue that is up and has settled on
    casting or on using an item owns the choice; failing that, the active slot
@@ -1117,11 +1116,11 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot)
 {
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selection_kind != -1) {
-        if (g_level_block->selection_kind == W8_SELECTION_SPELL &&
+        if (g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
             g_level_block->selection_settled != 0) {
             return W8_TARGETING_CONTEXT_SPELL;
         }
-        if (g_level_block->selection_kind == W8_SELECTION_ITEM &&
+        if (g_level_block->selection_kind == W8_ACTION_USE_ITEM &&
             g_level_block->selection_settled != 0) {
             return W8_TARGETING_CONTEXT_ITEM;
         }
@@ -1627,7 +1626,7 @@ void RefreshTargetMarker(void)
 {
     srVector3T<float> position;
 
-    Function492500(&position);
+    GetWorldCursorTargetPosition00492500(&position);
     if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
         position.z != g_target_position_0068407f.z) {
         g_target_position_0068407f = position;
@@ -1771,9 +1770,10 @@ unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
         if (g_current_screen_state.id == 7 && g_level_block != 0 &&
             g_level_block->selection_kind != -1) {
-            if (g_level_block->selection_kind == 7 && g_level_block->selection_settled != 0) {
+            if (g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
+                g_level_block->selection_settled != 0) {
                 resolved = W8_TARGETING_CONTEXT_SPELL;
-            } else if (g_level_block->selection_kind == 8 &&
+            } else if (g_level_block->selection_kind == W8_ACTION_USE_ITEM &&
                        g_level_block->selection_settled != 0) {
                 resolved = W8_TARGETING_CONTEXT_ITEM;
             } else {
@@ -1940,9 +1940,10 @@ unsigned char TargetIsInPlay(int party_slot, int value, W8TargetingContext conte
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
         if (g_current_screen_state.id == 7 && g_level_block != 0 &&
             g_level_block->selection_kind != -1) {
-            if (g_level_block->selection_kind == 7 && g_level_block->selection_settled != 0) {
+            if (g_level_block->selection_kind == W8_ACTION_CAST_SPELL &&
+                g_level_block->selection_settled != 0) {
                 resolved = W8_TARGETING_CONTEXT_SPELL;
-            } else if (g_level_block->selection_kind == 8 &&
+            } else if (g_level_block->selection_kind == W8_ACTION_USE_ITEM &&
                        g_level_block->selection_settled != 0) {
                 resolved = W8_TARGETING_CONTEXT_ITEM;
             } else {
@@ -2457,7 +2458,7 @@ void RefreshAllPartyTargets(void)
             }
 
             if (IsPartySlotEligible00524A10(party_slot) != 0 &&
-                (row->action_03d == 0 || row->action_03d == 1) &&
+                (row->action_03d == W8_ACTION_ATTACK || row->action_03d == W8_ACTION_BERSERK) &&
                 (row->flag_105 != 0 ||
                  CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0)) {
                 int group_id = -1;

@@ -8,7 +8,9 @@
    timer destructor.
 
    The image also holds an adjustor form at 0x00421890 - the same body behind
-   `add ecx, 0xc4` - so this class is embedded at +0xc4 of some larger object.
+   `add ecx, 0xc4`. That body is W8LevelDataRecord's destructor: the record
+   embeds this class at +0xc4, and tearing the member down is the record
+   destructor's only work.
    GDCamera's constructor is now the direct allocation witness for its 0x28
    extent and the three-argument constructor below.
 

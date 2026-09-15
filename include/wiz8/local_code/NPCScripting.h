@@ -125,7 +125,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
 void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
 void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
-void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
+/* in GameData.h: CameraLookAt (0x00420F90) */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */
 void AuditNpcScriptQuotes00529660(void);

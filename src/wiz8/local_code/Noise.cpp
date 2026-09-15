@@ -16,6 +16,14 @@
 
 /* Retail Local Code\Noise.cpp. */
 
+/* The remaining audibility of a noise after distance and the per-hop region
+   penalty: positive means the monster group still hears it. */
+// FUNCTION: WIZ8 0x004F0E50
+int NoiseHearingMargin004F0E50(int radius, int range, int hops)
+{
+    return radius + hops * -25000 - range;
+}
+
 // FUNCTION: WIZ8 0x004F0E80
 void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int radius, int flag)
 {

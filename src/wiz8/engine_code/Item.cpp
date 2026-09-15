@@ -3,6 +3,7 @@
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
+#include "timer.h"
 
 // VTABLE: WIZ8 0x005ECD78 W8Item
 // class W8Item
@@ -122,4 +123,11 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, bool enabled)
 void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 {
     m_pRep->SetLocation004B8850(location);
+}
+
+/* Whether the item's radar-blip timer is still ticking. */
+// FUNCTION: WIZ8 0x004A0050
+unsigned char W8Item::IsRadarBlipLit()
+{
+    return ClockIsTicking(value_01c) != 0;
 }
