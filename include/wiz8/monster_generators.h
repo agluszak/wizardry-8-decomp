@@ -38,14 +38,20 @@ W8MonsterGenerator* GetMonsterGenerator(int index);         /* 0x0048BD90 */
 void AddMonsterGenerator(W8MonsterGenerator* generator);    /* 0x0048BE30 */
 void RemoveMonsterGenerator(W8MonsterGenerator* generator); /* 0x0048BEB0 */
 W8EncounterTableRuntime* GetEncounterTable(int index);      /* 0x0048AD00 */
+int FindEncounterTableByName(const char* name);              /* 0x0048CCA0 */
 
 void SaveEncounterState(int handle);
 void SaveMonsterGenerators(int handle);
 void DestroyMonsterGenerators(void);
-void LoadMonsterGenerators(int handle);
+void LoadMonsterGenerators(int handle); /* 0x0048C470 */
 void RunMonsterGenerators(void);
 void DespawnAllActiveMonsterGroups0048C9F0(void);
 void ResetMonsterGeneratorTimers0048CBE0(void);
+void SetMonsterGeneratorDurationScale(float scale); /* 0x0048CB80 */
+
+/* The encounter-budget registry used by random groups. */
+void UnregisterActiveEncounterGroup(W8MonsterGroup* group); /* 0x0048C670 */
+void RegisterActiveEncounterGroup(W8MonsterGroup* group);   /* 0x0048C750 */
 
 void UpdateRandomEncounterBudget(unsigned char reset_budget);
 
