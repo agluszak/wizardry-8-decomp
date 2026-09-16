@@ -675,3 +675,68 @@ W8GameData::~W8GameData()
     }
     g_octree_game_data_00652db0 = 0;
 }
+
+/* Serializes the processed game-data block WriteOctFile appends after the
+   octree sections: the 0x68-byte versioned header, the vertex and surface
+   banks, the optional switch interface/state and conditional-poly lists, then
+   each environment record.  Every failure returns 0 after logging; the open
+   handle is never closed here. */
+// FUNCTION: WIZ8 0x0044aa40
+unsigned char W8GameData::WriteGameData0044AA40(int handle)
+{
+    W8ProcessedGameDataHeader header;
+    int index;
+
+    header.version_00 = 1;
+    header.minimum_04 = minimum_08;
+    header.maximum_10 = maximum_14;
+    header.vertex_count_1c = vertex_count_20;
+    header.surface_count_20 = surface_count_28;
+    header.positional_24 = positional_2c_00;
+    header.positional_28 = positional_2c_04;
+    header.integrated_surface_count_2c = integrated_surface_count_34;
+    header.value_30 = value_60;
+    header.value_34 = value_68;
+    header.total_surface_count_38 = total_surface_count_44;
+    header.value_3c = value_70;
+    header.environ_count_40 = environ_count_80;
+    memset(header.unknown_44, 0, sizeof(header.unknown_44));
+
+    if (handle == 0) {
+        Function497690(7, "WriteGameData: File not open.\n");
+        return 0;
+    }
+    if (FileWrite(handle, &header, 0x68, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write GameData info.\n");
+        return 0;
+    }
+    if (FileWrite(handle, vertices_24, vertex_count_20 * 0xc, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write vertex info.\n");
+        return 0;
+    }
+    if (FileWrite(handle, surfaces_38, surface_count_28 * 0x4c, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write Surface info.\n");
+        return 0;
+    }
+    if (value_60 != 0 && FileWrite(handle, block_64, value_60 * 0xc, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write switch interface info.\n");
+        return 0;
+    }
+    if (value_68 != 0 && FileWrite(handle, block_6c, value_68 * 0xc, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write switch state info.\n");
+        return 0;
+    }
+    if (value_70 != 0 && FileWrite(handle, block_74, value_70 * 4, 0) == 0) {
+        Function497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
+        return 0;
+    }
+    if (environ_count_80 != 0) {
+        for (index = 0; index < environ_count_80; ++index) {
+            if (FileWrite(handle, environs_84[index], 0x44, 0) == 0) {
+                Function497690(7, "WriteGameData: Couldn't write GD_Environ.\n");
+                return 0;
+            }
+        }
+    }
+    return 1;
+}

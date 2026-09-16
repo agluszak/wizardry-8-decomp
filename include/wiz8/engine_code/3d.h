@@ -14,7 +14,7 @@ class stMeshModel;
 class stModelInstance;
 struct W8Item;
 struct W8GameData;
-struct W8OctRegionVolume0049E460;
+struct W8OctRegionVolume;
 
 void SetSceneAmbientLightWhite(srScene* scene);
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
@@ -60,7 +60,7 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points);
 /* Report whether the six-float bounds box (min xyz, max xyz) intersects the
    region volume's frustum: true when a bounds corner satisfies all six
    planes or a volume corner lands inside the bounds. */
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume0049E460* volume,
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume,
                                           const float* bounds);
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,

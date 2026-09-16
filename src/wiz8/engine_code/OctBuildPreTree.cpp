@@ -142,7 +142,7 @@ int W8OctBuildNode00446330::CollectSurfaceArray004AF9B0(short mode)
    destroyed as soon as their compact indices have been recorded. */
 // FUNCTION: WIZ8 0x004afa30
 unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short depth,
-                                                                  W8OctPreTree004679E0* tree)
+                                                                  OctPreTree* tree)
 {
     unsigned long node_index;
 
@@ -223,7 +223,7 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
                 children_00[child] = 0;
             }
         }
-        tree->m_owned_09c[node_index].positional_02 = positional_28;
+        tree->m_owned_09c[node_index].region_02 = positional_28;
         tree->m_owned_09c[node_index].positional_00 = positional_2c;
     }
     return node_index;
@@ -274,13 +274,13 @@ unsigned char
 W8OctBuildPreTree004AFDA0::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
                                                            short value, short mode)
 {
-    W8OctSpatialState0046CCC0 working(&spatial_00);
+    W8OctSpatialState working(&spatial_00);
     if (spatial_00.root_90 == 0) {
         working.root_90 = new W8CountedOctBuildNode004AF760;
         spatial_00.root_90 = working.root_90;
     }
     if (mode == 2) {
-        ++spatial_00.state_3c;
+        ++spatial_00.polygon_count_3c;
     } else if (mode == 3) {
         ++spatial_00.item_count_40;
     }
@@ -295,7 +295,7 @@ W8OctBuildPreTree004AFDA0::UpdateRegionForGeometry004B06E0(const srVector3T<floa
    recursive call. */
 // FUNCTION: WIZ8 0x004b07e0
 unsigned char
-W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpatialState0046CCC0* spatial,
+W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
                                                    const srVector3T<float>* geometry, short value,
                                                    short mode)
 {
@@ -304,7 +304,7 @@ W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpatialState0046CC
     /* The decompiled body reads this storage only after the same short-circuit
    chain that clang's flow analysis cannot see through; retail leaves it
    uninitialised on the failed-read path. Suppress only this diagnostic. */
-    W8OctSpatialState0046CCC0 child(spatial);
+    W8OctSpatialState child(spatial);
     unsigned char changed = 0;
 
     if (child.depth_44 >= 16) {
@@ -378,12 +378,12 @@ W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpatialState0046CC
 // FUNCTION: WIZ8 0x004b19f0
 unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
 {
-    W8OctSpatialState0046CCC0 working(&spatial_00);
+    W8OctSpatialState working(&spatial_00);
 
     if (spatial_00.positional_58 == 0) {
         spatial_00.positional_58 = 1;
     }
-    spatial_00.positional_46 = spatial_00.positional_58;
+    spatial_00.region_count_46 = spatial_00.positional_58;
     selected_depth_c0 = spatial_00.depth_44;
     region_path_count_f0 = 0;
 
@@ -391,20 +391,20 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
         --selected_depth_c0;
     }
 
-    spatial_00.positional_52 = 0;
+    spatial_00.leaf_level_52 = 0;
     int last_level = selected_depth_c0 - 1;
     float extent = spatial_00.extent_04;
-    while ((int)spatial_00.positional_52 < last_level) {
+    while (static_cast<int>(spatial_00.leaf_level_52) < last_level) {
         float next_extent = extent * g_float_005ebc7c;
         if (fabs(spatial_00.positional_54 - extent) <
             fabs(spatial_00.positional_54 - next_extent)) {
             break;
         }
-        ++spatial_00.positional_52;
+        ++spatial_00.leaf_level_52;
         extent = next_extent;
     }
 
-    unsigned long level_count = level_counts_c4[spatial_00.positional_52];
+    unsigned long level_count = level_counts_c4[spatial_00.leaf_level_52];
     region_paths_ec = static_cast<unsigned long*>(malloc(level_count * sizeof(unsigned long) + 8));
     if (region_paths_ec == 0) {
         srAssertFail("m_pulRegPaths", OCT_BUILD_PRE_TREE_CPP, 0x6f1, 0);
@@ -449,8 +449,8 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
     }
     region_bits_f8 = 0;
 
-    if (spatial_00.positional_46 == 1) {
-        spatial_00.positional_46 = 0;
+    if (spatial_00.region_count_46 == 1) {
+        spatial_00.region_count_46 = 0;
     }
     return spatial_00.positional_58;
 }
@@ -461,17 +461,17 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
    used by that merge. */
 // FUNCTION: WIZ8 0x004b1d90
 void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(
-    const W8OctSpatialState0046CCC0* spatial)
+    const W8OctSpatialState* spatial)
 {
-    W8OctSpatialState0046CCC0 child(spatial);
+    W8OctSpatialState child(spatial);
     if (spatial->depth_44 >= 16) {
         return;
     }
 
-    if (spatial->depth_44 == spatial_00.positional_52) {
+    if (spatial->depth_44 == spatial_00.leaf_level_52) {
         g_value_65be58 = 0;
         W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(spatial->root_90);
-        node->CollectLinkedSurfaces004AF8F0(spatial_00.positional_52, spatial_00.depth_44, 2);
+        node->CollectLinkedSurfaces004AF8F0(spatial_00.leaf_level_52, spatial_00.depth_44, 2);
 
         unsigned long unique_count = 0;
         for (unsigned long source = 0; source < g_value_65be58; ++source) {
@@ -606,7 +606,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeAdjacentRegion004B2450(W8OctBuildN
         ++cell[1];
     }
     ++cell[1];
-    if ((cell[1] & (1 << (spatial_00.positional_52 + 1))) == 0 &&
+    if ((cell[1] & (1 << (spatial_00.leaf_level_52 + 1))) == 0 &&
         MergeRegion004B25C0(node, cell) != 0) {
         return 1;
     }
@@ -620,7 +620,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeAdjacentRegion004B2450(W8OctBuildN
         ++cell[2];
     }
     ++cell[2];
-    if ((cell[2] & (1 << (spatial_00.positional_52 + 1))) == 0 &&
+    if ((cell[2] & (1 << (spatial_00.leaf_level_52 + 1))) == 0 &&
         MergeRegion004B25C0(node, cell) != 0) {
         return 1;
     }
@@ -634,7 +634,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeAdjacentRegion004B2450(W8OctBuildN
         ++cell[3];
     }
     ++cell[3];
-    if ((cell[3] & (1 << (spatial_00.positional_52 + 1))) == 0 &&
+    if ((cell[3] & (1 << (spatial_00.leaf_level_52 + 1))) == 0 &&
         MergeRegion004B25C0(node, cell) != 0) {
         return 1;
     }
@@ -706,7 +706,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
         static_cast<unsigned short*>(malloc(spatial_00.positional_58 * sizeof(unsigned short)));
     memset(region_map, 0, spatial_00.positional_58 * sizeof(unsigned short));
 
-    unsigned short next_region = spatial_00.positional_46;
+    unsigned short next_region = spatial_00.region_count_46;
     for (unsigned short mapping_index = 0; mapping_index < region_path_count_f0; ++mapping_index) {
         W8OctBuildNode00446330* node = FindNode004B23F0(region_paths_ec[mapping_index]);
         if (node->leaf_kind_2a != 0) {
@@ -735,7 +735,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
          ++polygon_index) {
         W8OctRegionPolygon& polygon = game_data_134->polygons_0c[polygon_index];
         unsigned short region = polygon.region_32;
-        if (region >= spatial_00.positional_46) {
+        if (region >= spatial_00.region_count_46) {
             if (positional_124->Lookup(&region) != 0) {
                 polygon.region_32 = region_map[region];
             } else {
@@ -789,14 +789,14 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
    unassigned node, and choose the most frequent nonzero surface region. */
 // FUNCTION: WIZ8 0x004b3050
 void W8OctBuildPreTree004AFDA0::AssignRegionFromSurfaces004B3050(
-    const W8OctSpatialState0046CCC0* spatial)
+    const W8OctSpatialState* spatial)
 {
-    W8OctSpatialState0046CCC0 child(spatial);
+    W8OctSpatialState child(spatial);
     if (spatial->depth_44 > 15) {
         return;
     }
 
-    if (spatial->depth_44 != spatial_00.positional_52) {
+    if (spatial->depth_44 != spatial_00.leaf_level_52) {
         short child_index = 0;
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
@@ -826,7 +826,7 @@ void W8OctBuildPreTree004AFDA0::AssignRegionFromSurfaces004B3050(
     }
 
     g_value_65be58 = 0;
-    node->CollectLinkedSurfaces004AF8F0(spatial_00.positional_52, spatial_00.depth_44, 2);
+    node->CollectLinkedSurfaces004AF8F0(spatial_00.leaf_level_52, spatial_00.depth_44, 2);
 
     unsigned long unique_count = 0;
     for (unsigned long source = 0; source < g_value_65be58; ++source) {
@@ -873,14 +873,14 @@ void W8OctBuildPreTree004AFDA0::AssignRegionFromSurfaces004B3050(
 void W8OctBuildPreTree004AFDA0::ValidatePolygonRegions004B3330()
 {
     unsigned int active_levels = 0;
-    for (unsigned int depth = 0; depth < spatial_00.positional_52; ++depth) {
+    for (unsigned int depth = 0; depth < spatial_00.leaf_level_52; ++depth) {
         active_levels |= 1 << (depth + 24);
     }
 
     for (unsigned long polygon_index = 1; polygon_index < game_data_134->polygon_count_08;
          ++polygon_index) {
         W8OctRegionPolygon& polygon = game_data_134->polygons_0c[polygon_index];
-        if (polygon.region_32 < spatial_00.positional_46) {
+        if (polygon.region_32 < spatial_00.region_count_46) {
             continue;
         }
 
@@ -999,9 +999,9 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
         position = particle.location * g_world_scale_005ebc40;
 
         bool mapped = false;
-        for (unsigned short region_index = 1; region_index < spatial_00.positional_46;
+        for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
              ++region_index) {
-            W8OctRegionVolume0049E460* volume = spatial_00.owned_5c + region_index;
+            W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
             if (volume->ContainsPoint0049E460(&position) != 0) {
                 unsigned short region = volume->region_04;
                 bool present = false;
@@ -1049,8 +1049,8 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
 
                             bool corner_mapped = false;
                             for (unsigned short region_index = 1;
-                                 region_index < spatial_00.positional_46; ++region_index) {
-                                W8OctRegionVolume0049E460* volume =
+                                 region_index < spatial_00.region_count_46; ++region_index) {
+                                W8OctRegionVolume* volume =
                                     spatial_00.owned_5c + region_index;
                                 if (volume->ContainsPoint0049E460(&corner) != 0) {
                                     unsigned short region = volume->region_04;
@@ -1141,9 +1141,9 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
         short value = (short)(base_index + 1 + record_index);
         bool mapped = false;
 
-        for (unsigned short region_index = 1; region_index < spatial_00.positional_46;
+        for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
              ++region_index) {
-            W8OctRegionVolume0049E460* volume = spatial_00.owned_5c + region_index;
+            W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
             for (unsigned char bounds_index = 0; bounds_index < record.bounds_count_09a;
                  ++bounds_index) {
                 const srVector3T<float>* bounds = record.bounds_09b + bounds_index * 2;
@@ -1249,9 +1249,9 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
    already has runtime form, consume the counted build-node hierarchy, and
    populate the dense cell-to-leaf lookup. */
 // FUNCTION: WIZ8 0x004b4640
-W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
+OctPreTree* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
 {
-    W8OctPreTree004679E0* tree = new W8OctPreTree004679E0;
+    OctPreTree* tree = new OctPreTree;
     if (tree == 0) {
         return 0;
     }
@@ -1290,8 +1290,8 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
     }
     memset(tree->m_owned_12c, 0, positional_a4 * 2 * sizeof(unsigned long));
 
-    tree->spatial_000.positional_46 = spatial_00.positional_46;
-    tree->spatial_000.positional_52 = spatial_00.positional_52;
+    tree->spatial_000.region_count_46 = spatial_00.region_count_46;
+    tree->spatial_000.leaf_level_52 = spatial_00.leaf_level_52;
     tree->spatial_000.positional_74 = spatial_00.positional_74;
     tree->spatial_000.positional_58 = spatial_00.positional_58;
 
@@ -1326,11 +1326,11 @@ W8OctPreTree004679E0* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
     tree->positional_3ac = positional_13c;
     tree->positional_3b0 = positional_b8;
     tree->spatial_000.item_count_40 = spatial_00.item_count_40;
-    tree->spatial_000.state_3c = spatial_00.state_3c;
-    tree->m_owned_190 = new BitArray(spatial_00.state_3c);
+    tree->spatial_000.polygon_count_3c = spatial_00.polygon_count_3c;
+    tree->m_owned_190 = new BitArray(spatial_00.polygon_count_3c);
     tree->spatial_000.positional_54 = spatial_00.positional_54;
     tree->spatial_000.positional_50 = spatial_00.positional_50;
-    tree->positional_29c = positional_124;
+    tree->automesh_cells_29c = positional_124;
     positional_124 = 0;
 
     for (int axis = 0; axis != 3; ++axis) {

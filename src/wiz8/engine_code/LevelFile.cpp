@@ -460,10 +460,10 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     FileWrite(hFile, &iCount, 4, 0);
     float level_scale = GetFloat64B914();
     fSuccess = FileWrite(hFile, &level_scale, 4, 0) & fSuccess;
-    fSuccess = FileWrite(hFile, &pLevel->field_6b1, 4, 0) & fSuccess;
-    if (pLevel->field_6b1 != 0) {
-        fSuccess &= FileWrite(hFile, pLevel->pIntTable_6b5, pLevel->field_6b1 * 4, 0);
-        free(pLevel->pIntTable_6b5);
+    fSuccess = FileWrite(hFile, &pLevel->num_automap_nodes_6b1, 4, 0) & fSuccess;
+    if (pLevel->num_automap_nodes_6b1 != 0) {
+        fSuccess &= FileWrite(hFile, pLevel->automap_nodes_6b5, pLevel->num_automap_nodes_6b1 * 4, 0);
+        free(pLevel->automap_nodes_6b5);
         if (fSuccess == 0) {
             return 0;
         }
@@ -1965,7 +1965,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->unknown_01, 1, 0);
+            FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version_00 > 4) {
             fSuccess &= FileRead(hFile, &pProp->unknown_02, 1, 0) &
                         FileRead(hFile, pProp->unknown_03, 0xc, 0);
@@ -1988,7 +1988,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
             fSuccess &= FileRead(hFile, &pProp->num_frame_pos_b7, 1, 0);
             if (pProp->num_frame_pos_b7 != 0) {
                 pProp->usFrame_Pos =
-                    static_cast<unsigned int*>(malloc(pProp->num_frame_pos_b7 << 2));
+                    static_cast<unsigned short*>(malloc(pProp->num_frame_pos_b7 << 2));
                 if (pProp->usFrame_Pos == 0) {
                     srAssertFail(
                         "pProps[i1].usFrame_Pos", LEVELFILE_CPP, 0x91f,
@@ -2049,7 +2049,7 @@ bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
     for (int i = 0; i < count; ++i) {
         W8LevelFileProp* pProp = pProps + i;
         fSuccess &=
-            FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->unknown_01, 1, 0);
+            FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version_00 > 4) {
             fSuccess &= FileWrite(hFile, &pProp->unknown_02, 1, 0) &
                         FileWrite(hFile, pProp->unknown_03, 0xc, 0);

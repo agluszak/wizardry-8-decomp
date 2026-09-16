@@ -949,7 +949,7 @@ unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float 
 }
 
 // FUNCTION: WIZ8 0x0046d920
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume0049E460* volume,
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume,
                                           const float* bounds)
 {
     for (short x = 0; x < 2; ++x) {

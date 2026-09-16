@@ -20,6 +20,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
+#include "oct_file_semantic_test.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
@@ -500,6 +501,14 @@ static DWORD WINAPI DriveScenario(void*)
             g_observation.patch_catalog_count, g_observation.patch_precedence_ok,
             g_observation.physical_fallback_ok);
     fflush(stderr);
+
+    if (strcmp(g_scenario, "oct-file") == 0) {
+        OctFileSemanticResult oct_result;
+        bool oct_ok = RunOctFileSemanticTests(&oct_result);
+        PrintOctFileSemanticResults(&oct_result);
+        gfProgramIsRunning = 0;
+        return oct_ok ? 0 : 1;
+    }
 
     if (strcmp(g_scenario, "sight-threshold") == 0) {
         SightSemanticResult sight_result;
@@ -1060,7 +1069,7 @@ int main(int argc, char** argv)
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
+                "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement\n");
         return 64;
     }
 
@@ -1068,12 +1077,12 @@ int main(int argc, char** argv)
         strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
         strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
-        strcmp(argv[2], "sight-threshold") != 0 && strcmp(argv[2], "split-stack") != 0 &&
-        strcmp(argv[2], "party-movement") != 0) {
+        strcmp(argv[2], "oct-file") != 0 && strcmp(argv[2], "sight-threshold") != 0 &&
+        strcmp(argv[2], "split-stack") != 0 && strcmp(argv[2], "party-movement") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
+                "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement\n");
         return 64;
     }
 
@@ -1100,7 +1109,7 @@ int main(int argc, char** argv)
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
 
-    if (strcmp(g_scenario, "sight-threshold") == 0) {
+    if (strcmp(g_scenario, "sight-threshold") == 0 || strcmp(g_scenario, "oct-file") == 0) {
         SGPExit();
         return driver_status;
     }
