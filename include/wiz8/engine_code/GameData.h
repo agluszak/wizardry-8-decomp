@@ -8,7 +8,7 @@
 extern unsigned char g_flag_00652dce;
 
 void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source);
-void Function41EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
+void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
 
@@ -23,14 +23,19 @@ void Function41EEE0(float movement_limit, char reset, char fast_move); /* 0x0041
    (it is the body previously read as a bare `add ecx,0xc4` adjustor). */
 struct W8LevelDataRecord {
     unsigned int flags; /* 0x00 */
-    unsigned char unknown_04[0x10];
+    unsigned char unknown_04[8];
+    signed char sound_environment_0c;
+    signed char sound_environment_alt_0d;
+    unsigned char unknown_0e[6];
     float camera_scale_14; /* 0x14 */
     unsigned char unknown_18[0x0c];
     /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime0041F170 hands
        to the movement/fatigue pass, then clears. */
     float real_elapsed_24;
     float frame_elapsed_28;
-    unsigned char unknown_2c[0x14];
+    float movement_limit_2c;
+    float movement_progress_30;
+    unsigned char unknown_34[0x0c];
     srVector3T<float> vector_40;         /* 0x40 */
     srVector3T<float> camera_forward_4c; /* 0x4c */
     unsigned char unknown_58[0x0c];
@@ -73,9 +78,7 @@ struct W8EnvironRecord {
     float value_18;
     float value_1c;
     float value_20;
-    int value_24;
-    float value_28;
-    int value_2c;
+    srVector3T<float> vector_24;
     float value_30;
     float value_34;
     float value_38;
@@ -203,7 +206,7 @@ static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4
 extern W8LevelDataRecord* g_level_data_00652dac;
 /* Companion pointer cleared alongside g_level_data_00652dac on level
    transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
-extern unsigned int* g_level_data_sibling_00652da8;
+extern unsigned int* g_level_flags_00652da8;
 /* Teardown flag tested and cleared by ReleaseLevelData0041A9E0. */
 extern unsigned char g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor, which
@@ -227,6 +230,8 @@ void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
 unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
+/* Retail tests level flag 0x008; when set both outputs are -1. */
+void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and

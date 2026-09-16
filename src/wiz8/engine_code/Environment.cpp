@@ -29,16 +29,17 @@
 /*
  * Engine Code\Environment.cpp.
  *
- * The world's ambient settings: view distance, the fog and sky flags, the
- * light direction, and the render node the sky is hung from. The globals here
- * keep their addresses in their names where nothing establishes what they are
- * for; the reset that clears six of them together is what groups them.
+ * The world's ambient settings: the game-clock multiplier, the fog and sky
+ * flags, the light direction, and the camera light the world setup creates. The
+ * globals here keep their addresses in their names where nothing establishes
+ * what they are for; the reset that clears six of them together is what groups
+ * them.
  */
 
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
 // GLOBAL: WIZ8 0x0060a3a8
-int g_environment_value_0060a3a8 = 2;
+int g_environment_lighting_mode_0060a3a8 = 2;
 
 // GLOBAL: WIZ8 0x0065b9ad
 bool g_fog_enabled_0065b9ad;
@@ -59,15 +60,18 @@ srFog* g_environment_object_0065b9b4;
 // `dynamic initializer for 'g_environment_lights_0065b998''
 // SYNTHETIC: WIZ8 0x00482270
 // `dynamic atexit destructor for 'g_environment_lights_0065b998''
-
+// GLOBAL: WIZ8 0x0065B998
 W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
 
+/* 1/duration while the transition body at 0x00484300 runs, zero when idle.
+   Its only writer in the image is 0x00483FD0, which stores 1/duration and sets
+   the lighting mode to 1; 0x00484300 stores zero again once it completes. */
 // GLOBAL: WIZ8 0x0065b9b8
-float g_environment_value_0065b9b8;
+float g_environment_transition_rate_0065b9b8;
 // GLOBAL: WIZ8 0x0060a3ac
-int g_environment_value_0060a3ac = -1;
+int g_last_light_phase_0060a3ac = -1;
 // GLOBAL: WIZ8 0x0060a395
-unsigned char g_flag_0060a395 = 1;
+unsigned char g_environment_colour_refresh_0060a395 = 1;
 
 /* The mapper starts its scroll rate at 0.002 texture units per second on x
    only and reseeds the shared frame clock, so the first scrolled frame uses
@@ -113,9 +117,11 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
 }
 
 /* Advance the authoritative game clock and place the two celestial props on
-   opposite sides of the world's recovered sky origin. The three animated sky
-   gradients consume the same 8-bit day phase, so the clock, prop placement,
-   and gradient animation remain one update rather than parallel timers. */
+   opposite sides of the world's recovered sky origin: the day's prop sits one
+   orbit radius away in the rotated direction, the other rests on the origin.
+   The three animated sky gradients consume the same 8-bit day phase, so the
+   clock, prop placement, and gradient animation remain one update rather than
+   parallel timers. */
 // FUNCTION: WIZ8 0x00482a20
 void AdvanceEnvironmentTime00482A20(int elapsed)
 {
@@ -145,7 +151,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     }
 
     srVector3T<float> direction;
-    direction.Set(0.0, g_environment_value_0060a3a4, 0.0);
+    direction.Set(0.0, g_celestial_orbit_radius_0060a3a4, 0.0);
 
     srMatrix3T<float> rotation;
     rotation.SetIdentity();
@@ -155,30 +161,30 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
-    srVector3T<float> position = rotation.Transform(direction) + g_environment_origin_65ad88;
+    srVector3T<float> position = rotation.Transform(direction) + g_celestial_origin_65ad88;
 
-    W8Prop* moving = day ? g_environment_value_0065a160 : g_environment_value_0065ad84;
-    W8Prop* opposite = day ? g_environment_value_0065ad84 : g_environment_value_0065a160;
+    W8Prop* moving = day ? g_sun_prop_0065a160 : g_moon_prop_0065ad84;
+    W8Prop* opposite = day ? g_moon_prop_0065ad84 : g_sun_prop_0065a160;
     if (moving != 0) {
         moving->Rep()->SetLocation004B8850(&position);
     }
     if (opposite != 0) {
-        opposite->Rep()->SetLocation004B8850(&g_environment_origin_65ad88);
+        opposite->Rep()->SetLocation004B8850(&g_celestial_origin_65ad88);
     }
 
     unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    stTextureAnim* animations[3] = {g_environment_value_0065a168, g_environment_value_0065a16c,
-                                    g_environment_value_0065a170};
-    for (int index = 0; index != 3; ++index) {
-        if (animations[index] != 0) {
-            animations[index]->frame_58 = (int)phase;
+    stTextureAnim** animation = g_sky_gradient_animations_0065a168;
+
+    for (int index = 0; index != 3; ++index, ++animation) {
+        if (*animation != 0) {
+            (*animation)->frame_58 = static_cast<int>(phase);
         }
     }
 }
 
-/* Turn environment time progression on or off. Enabling it resets the
-   elapsed-tick baseline and moves the world clock on by the current view
-   distance's share of the time since that baseline. */
+/* Turn environment time progression on or off. Enabling it resets its
+   elapsed-tick baseline and moves the world clock on by the game-clock
+   multiplier's share of the time since that baseline. */
 // FUNCTION: WIZ8 0x00482990
 void SetEnvironmentTimeEnabled00482990(bool enabled)
 {
@@ -198,23 +204,23 @@ void SetEnvironmentTimeEnabled00482990(bool enabled)
     }
 }
 
-/* The environment's per-frame update. A bypass value short-circuits to the
-   alternate body. Otherwise, in day/night mode the sky consumes the day phase
-   to pick the light direction, and the world colour table is refreshed from
-   the same phase whenever that flag is set; any other mode just advances the
-   clock. Every path that advances the clock converts the elapsed ticks with
-   the current view distance. */
+/* The environment's per-frame update. A running transition short-circuits to
+   the transition body. Otherwise, in day/night mode the sky consumes the day
+   phase to pick the light direction, and the world colour table is refreshed
+   from the same phase whenever the colour-refresh flag is set; any other mode
+   just advances the clock. Every path that advances the clock scales the
+   elapsed ticks by the game-clock multiplier. */
 // FUNCTION: WIZ8 0x00482770
 void UpdateEnvironment482770(void)
 {
-    if (g_environment_value_0065b9b8 != g_float_005ebb34) {
+    if (g_environment_transition_rate_0065b9b8 != g_float_005ebb34) {
         UpdateEnvironmentLighting00484300();
         return;
     }
     if (g_environment_flag_0060a394 == 0) {
         return;
     }
-    if (g_environment_value_0060a3a8 == 2) {
+    if (g_environment_lighting_mode_0060a3a8 == 2) {
         if (g_sky_enabled_0065b9ae != 0) {
             unsigned long now = GetTickCount();
             unsigned long elapsed =
@@ -224,13 +230,13 @@ void UpdateEnvironment482770(void)
             }
             unsigned int phase =
                 (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-            if (phase != (unsigned int)g_environment_value_0060a3ac) {
+            if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
                 g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
-                PublishLightDirection(&g_light_direction_0065ad78);
-                g_environment_value_0060a3ac = (int)phase;
+                PublishLightDirection(&g_environment_colours_65ad98[phase]);
+                g_last_light_phase_0060a3ac = static_cast<int>(phase);
             }
         }
-        if (g_flag_0060a395 != 0) {
+        if (g_environment_colour_refresh_0060a395 != 0) {
             if (g_environment_flag_0060a394 != 0) {
                 unsigned long now = GetTickCount();
                 unsigned long elapsed =
@@ -242,7 +248,7 @@ void UpdateEnvironment482770(void)
             }
             unsigned int phase =
                 (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-            if (phase != (unsigned int)g_environment_value_0060a3b0) {
+            if (phase != static_cast<unsigned int>(g_last_environment_colour_phase_0060a3b0)) {
                 EnvironmentColour colour = g_environment_colours_65a178[phase];
                 if (g_world == 0) {
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
@@ -250,7 +256,7 @@ void UpdateEnvironment482770(void)
                 }
                 ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024,
                                                &colour);
-                g_environment_value_0060a3b0 = (int)phase;
+                g_last_environment_colour_phase_0060a3b0 = static_cast<int>(phase);
                 return;
             }
         }
@@ -384,10 +390,10 @@ void UpdateEnvironmentLight004834B0(void)
     }
     unsigned int phase =
         ((static_cast<unsigned int>(g_status_685170.game_time_ms) / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_environment_value_0060a3ac)) {
+    if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
         g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
         PublishLightDirection(&g_environment_colours_65ad98[phase]);
-        g_environment_value_0060a3ac = static_cast<int>(phase);
+        g_last_light_phase_0060a3ac = static_cast<int>(phase);
     }
 }
 
@@ -483,7 +489,7 @@ unsigned char GetEnvironmentFlag0060A394(void)
 // FUNCTION: WIZ8 0x004842f0
 int GetEnvironmentValue0060A3A8(void)
 {
-    return g_environment_value_0060a3a8;
+    return g_environment_lighting_mode_0060a3a8;
 }
 
 /* Fog, which is a plain flag with a matched pair of accessors. */
@@ -499,8 +505,10 @@ bool IsFogEnabled(void)
     return g_fog_enabled_0065b9ad;
 }
 
-/* The sky, whose flag has to be cleared alongside the work of turning it off,
-   so the read and the clear are not symmetric. */
+/* Turn the sky on, then catch the light direction up: advance the clock by the
+   elapsed ticks' share and publish the day phase's light direction if it moved
+   on. The phase tracker is the same one the per-frame update keeps, so enabling
+   the sky does not restart the cycle. */
 // FUNCTION: WIZ8 0x00482EA0
 void EnableSky(void)
 {
@@ -514,15 +522,15 @@ void EnableSky(void)
         }
     }
     unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    if (phase != (unsigned int)g_environment_value_0060a3a8) {
+    if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
         g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
-        PublishLightDirection(&g_light_direction_0065ad78);
-        g_environment_value_0060a3a8 = (int)phase;
+        PublishLightDirection(&g_environment_colours_65ad98[phase]);
+        g_last_light_phase_0060a3ac = static_cast<int>(phase);
     }
 }
 
 // GLOBAL: WIZ8 0x0060a3b0
-int g_environment_value_0060a3b0 = -1;
+int g_last_environment_colour_phase_0060a3b0 = -1;
 
 /* Advance the clock-driven sky and refresh the world's environment colour
    from the day-phase table when the phase turns over. */
@@ -537,14 +545,14 @@ void RefreshEnvironment00483560(void)
         }
     }
     unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    if (phase != (unsigned int)g_environment_value_0060a3b0) {
+    if (phase != static_cast<unsigned int>(g_last_environment_colour_phase_0060a3b0)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
         if (g_world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
         }
         ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
-        g_environment_value_0060a3b0 = (int)phase;
+        g_last_environment_colour_phase_0060a3b0 = static_cast<int>(phase);
     }
 }
 
@@ -603,17 +611,18 @@ void RefreshFogRanges004836A0(void)
     }
 }
 
-/* Clear the whole ambient block. The six globals reset together are what makes
-   them one group; the last is set to minus one rather than zero. */
+/* Clear the whole ambient block. The six stores together are what makes them one
+   group; the orbit radius last, at minus one, which is the "not measured yet"
+   value InitializeLevelEnvironment tests before re-deriving the sky. */
 // FUNCTION: WIZ8 0x004826b0
 void ResetEnvironment(void)
 {
-    g_environment_value_0065a168 = 0;
-    g_environment_value_0065a16c = 0;
-    g_environment_value_0065a170 = 0;
-    g_environment_value_0065a160 = 0;
-    g_environment_value_0065ad84 = 0;
-    g_environment_value_0060a3a4 = -1.0f;
+    g_sky_gradient_animations_0065a168[0] = 0;
+    g_sky_gradient_animations_0065a168[1] = 0;
+    g_sky_gradient_animations_0065a168[2] = 0;
+    g_sun_prop_0065a160 = 0;
+    g_moon_prop_0065ad84 = 0;
+    g_celestial_orbit_radius_0060a3a4 = -1.0f;
 }
 
 /* The direction light comes from. Setting it also hands the new direction to
@@ -797,18 +806,20 @@ void SetCameraLightIntensity00483E30(float value)
     }
 }
 
-/* Show or hide the sky node, which is the renderer's flag zero the other way
-   round: showing it clears the flag. */
+/* Show or hide the world's camera light, which is the renderer's flag zero the
+   other way round: showing it clears the flag. 0x00483E50 loads the light from
+   g_world at offset 0x54 and reaches the same two imported flag thunks, so the
+   node here is the camera light the world setup creates, never a sky node. */
 // FUNCTION: WIZ8 0x00483e50
 void SetSkyNodeVisible(bool visible)
 {
-    srNode* sky = (srNode*)g_world->camera_light;
+    stLight* camera_light = g_world->camera_light;
 
-    if (sky != 0) {
+    if (camera_light != 0) {
         if (visible) {
-            sky->clearFlag(srNode::FLAG_DISABLE);
+            camera_light->clearFlag(srNode::FLAG_DISABLE);
         } else {
-            sky->setFlag(srNode::FLAG_DISABLE);
+            camera_light->setFlag(srNode::FLAG_DISABLE);
         }
     }
 }
@@ -834,33 +845,30 @@ const char* g_sky_gradient_names_0060a398[3] = {"SkyGrad0000.ifl", "Skytop0000.i
                                                 "Horizon0000.ifl"};
 
 /* Level-entry environment setup: locate the level's Sun and Moon props, derive
-   the environment origin and range from the distance between them, register
-   the three sky gradient textures, advance the day clock and publish the
-   current day phase's colour and light direction. */
+   the celestial origin and orbit radius from the distance between them, register
+   the three sky gradient textures, advance the day clock and publish the current
+   day phase's colour and light direction. */
 // FUNCTION: WIZ8 0x00482410
 void InitializeLevelEnvironment00482410(void)
 {
     if (g_world_659ab8 != 0) {
-        g_environment_value_0065a160 = FindPropByName(g_world_659ab8, "Sun");
-        g_environment_value_0065ad84 = FindPropByName(g_world_659ab8, "Moon");
+        g_sun_prop_0065a160 = FindPropByName(g_world_659ab8, "Sun");
+        g_moon_prop_0065ad84 = FindPropByName(g_world_659ab8, "Moon");
     }
-    if (g_environment_value_0060a3a4 < g_float_005ebb34) {
-        if (g_environment_value_0065a160 == 0 || g_environment_value_0065ad84 == 0) {
-            g_environment_value_0065a160 = 0;
-            g_environment_value_0065ad84 = 0;
+    if (g_celestial_orbit_radius_0060a3a4 < g_float_005ebb34) {
+        if (g_sun_prop_0065a160 == 0 || g_moon_prop_0065ad84 == 0) {
+            g_sun_prop_0065a160 = 0;
+            g_moon_prop_0065ad84 = 0;
         } else {
             srVector3T<float> sun;
             srVector3T<float> moon;
-            stTextureAnim** sky_gradient_slots[3] = {&g_environment_value_0065a168,
-                                                     &g_environment_value_0065a16c,
-                                                     &g_environment_value_0065a170};
 
-            g_environment_value_0065a160->m_pRep->GetLocation004B8890(&sun);
-            g_environment_value_0065ad84->m_pRep->GetLocation004B8890(&moon);
+            g_sun_prop_0065a160->m_pRep->GetLocation004B8890(&sun);
+            g_moon_prop_0065ad84->m_pRep->GetLocation004B8890(&moon);
             srVector3T<float> delta = sun - moon;
             srVector3T<float> midpoint = (sun + moon) * 0.5;
-            g_environment_value_0060a3a4 = delta.Length() * 0.5f;
-            g_environment_origin_65ad88 = midpoint;
+            g_celestial_orbit_radius_0060a3a4 = delta.Length() * 0.5f;
+            g_celestial_origin_65ad88 = midpoint;
             for (int index = 0; index < 3; ++index) {
                 const char* name = g_sky_gradient_names_0060a398[index];
                 srRegistry* registry = srCore.getRegistry();
@@ -873,7 +881,7 @@ void InitializeLevelEnvironment00482410(void)
                 stTextureAnim* animation = static_cast<stTextureAnim*>(
                     registry->find(node, name, static_cast<const srRuntimeClass*>(0)));
 
-                *sky_gradient_slots[index] = animation;
+                g_sky_gradient_animations_0065a168[index] = animation;
                 if (animation != 0) {
                     animation->flag_60 = 3;
                 }
@@ -890,7 +898,8 @@ void InitializeLevelEnvironment00482410(void)
             elapsed = now - g_tick_65b9a8;
         }
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20(static_cast<int>(elapsed));
+            AdvanceEnvironmentTime00482A20(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
         }
     }
     {
@@ -904,7 +913,7 @@ void InitializeLevelEnvironment00482410(void)
         ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
         {
             g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
-            PublishLightDirection(&g_light_direction_0065ad78);
+            PublishLightDirection(&g_environment_colours_65ad98[phase]);
         }
     }
 }
