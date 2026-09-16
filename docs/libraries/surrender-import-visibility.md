@@ -14,6 +14,8 @@ Check the decorated symbol's **owner**, not merely whether a type name occurs in
 
 A virtual reached only through an object's vtable does not need `SR_DLL_IMPORT` merely because the implementation lives in SR.DLL.
 
+Older recovery notes sometimes use phrases such as "stays imported" to mean only that a provider implementation is still unrecovered. That wording is not visibility evidence. For `SR_DLL_IMPORT` decisions, this document and the consumer import tables are authoritative; "unrecovered" and "imported by a consumer" are independent facts.
+
 ## Rules
 
 - Prefer no import attribute until consumer evidence requires one.
