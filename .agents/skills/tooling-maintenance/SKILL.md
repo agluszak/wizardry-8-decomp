@@ -29,6 +29,23 @@ caller requests an explicit build operation (`--build` where supported). Read ex
 warn when they may be stale, and fail with the exact build/metadata command when required state is
 absent.
 
+## Doctor and recovery preflight
+
+`uv run wiz8 doctor` is the machine/recovery preflight, not a repair command. Keep it cheap enough to
+run after adopting a new task base: it may inspect manifests and checkout-local metadata, but it should
+not start a long analysis pass, mutate Ghidra, rebuild products, or replace user state.
+
+Doctor owns checks that can invalidate essentially every recovery conclusion before work starts:
+pinned tool/runtime versions, required inputs/work directory, repository hygiene, live Ghidra project
+ownership, and whether the live canonical Wiz8 program is provably based on the reviewed GZF tracked by
+the current revision. A live program with the same retail binary hash can still be stale analysis.
+
+Restoring a reviewed GZF records its archive hash in the checkout-owned project marker. A later manifest
+change therefore makes the previous live project detectably stale. Legacy/untracked live projects have
+unknown provenance and must fail the freshness check rather than being silently blessed from weak
+heuristics such as function count, timestamps, or matching binary hashes. Doctor reports the problem;
+checkpoint reconciliation/replacement remains an explicit Ghidra state-management operation.
+
 ## Source index
 
 `uv run wiz8 check` and `uv run wiz8 analyze source-index` refresh the compiler-backed index.
@@ -52,7 +69,7 @@ weakening the global profile.
 
 Do not add tests by default. Add a test for a concrete correctness bug or stable public behavior that
 existing checks missed. Avoid tests of source spelling, documentation text, inventory counts, generated
-snapshots, deleted files, or implementation-private helper order. Delete obsolete tests/helpers with
+snapshots, deleted files or implementation-private helper order. Delete obsolete tests/helpers with
 the machinery they protected.
 
 ## Commands and output

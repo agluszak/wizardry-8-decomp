@@ -10,7 +10,7 @@ from ..config import (
     REQUIRED_PYGHIDRA_VERSION,
     Settings,
 )
-from ..paths import sha256_file
+from ..paths import atomic_json, sha256_file
 from .import_programs import HASH_OPTION
 
 SEED_SCHEMA = "wiz8.ghidra-seeds"
@@ -100,6 +100,21 @@ def _program_hash(project: Any, program_name: str) -> str | None:
 
 
 OWNER_MARKER = "checkout-owner.json"
+OWNER_SCHEMA = "wiz8.ghidra-owner"
+REVIEWED_SEEDS_KEY = "reviewed_seeds"
+
+
+def _project_owner_record(settings: Settings) -> dict[str, Any]:
+    marker = settings.project_dir / OWNER_MARKER
+    if not marker.is_file():
+        return {}
+    record = json.loads(marker.read_text(encoding="utf-8"))
+    if not isinstance(record, dict):
+        raise RuntimeError(f"invalid Ghidra project owner marker: {marker}")
+    schema = record.get("schema")
+    if schema not in {None, OWNER_SCHEMA}:
+        raise RuntimeError(f"unsupported Ghidra project owner marker schema: {schema!r}")
+    return record
 
 
 def check_project_owner(settings: Settings) -> None:
@@ -111,10 +126,8 @@ def check_project_owner(settings: Settings) -> None:
     checkout's live project.
     """
 
-    marker = settings.project_dir / OWNER_MARKER
-    if not marker.is_file():
-        return
-    recorded = json.loads(marker.read_text(encoding="utf-8")).get("repo_dir")
+    record = _project_owner_record(settings)
+    recorded = record.get("repo_dir")
     if recorded and Path(recorded).resolve() != settings.repo_dir.resolve():
         raise RuntimeError(
             f"{settings.project_dir} was restored by a different checkout ({recorded}). "
@@ -127,10 +140,93 @@ def check_project_owner(settings: Settings) -> None:
 def _write_project_owner(settings: Settings) -> None:
     marker = settings.project_dir / OWNER_MARKER
     if not marker.is_file():
-        marker.write_text(
-            json.dumps({"schema": "wiz8.ghidra-owner", "repo_dir": str(settings.repo_dir)}) + "\n",
-            encoding="utf-8",
-        )
+        atomic_json(marker, {"schema": OWNER_SCHEMA, "repo_dir": str(settings.repo_dir)})
+
+
+def record_project_seed(settings: Settings, seed: dict[str, Any]) -> None:
+    """Record which reviewed GZF initialized one live project program."""
+
+    check_project_owner(settings)
+    _write_project_owner(settings)
+    marker = settings.project_dir / OWNER_MARKER
+    record = _project_owner_record(settings)
+    reviewed = dict(record.get(REVIEWED_SEEDS_KEY) or {})
+    reviewed[str(seed["program"])] = str(seed["sha256"])
+    record.update(
+        {
+            "schema": OWNER_SCHEMA,
+            "repo_dir": str(settings.repo_dir),
+            REVIEWED_SEEDS_KEY: reviewed,
+        }
+    )
+    atomic_json(marker, record)
+
+
+def project_seed_freshness(settings: Settings, seed: dict[str, Any]) -> dict[str, Any]:
+    """Compare a live project's recorded reviewed seed with the current manifest.
+
+    This is deliberately metadata-only: doctor can reject stale or unprovable
+    analysis without opening Ghidra or mutating the live project.
+    """
+
+    project_file = settings.project_dir / f"{settings.project_name}.gpr"
+    if not project_file.is_file():
+        return {
+            "ok": True,
+            "status": "not-restored",
+            "expected_seed_sha256": str(seed["sha256"]),
+            "recorded_seed_sha256": None,
+            "detail": (
+                "no live Ghidra project exists; the canonical opener will restore the current seed"
+            ),
+        }
+
+    marker = settings.project_dir / OWNER_MARKER
+    if not marker.is_file():
+        return {
+            "ok": False,
+            "status": "untracked",
+            "expected_seed_sha256": str(seed["sha256"]),
+            "recorded_seed_sha256": None,
+            "detail": "live Ghidra project has no checkout owner/freshness marker",
+        }
+
+    check_project_owner(settings)
+    record = _project_owner_record(settings)
+    reviewed = record.get(REVIEWED_SEEDS_KEY)
+    if not isinstance(reviewed, dict):
+        return {
+            "ok": False,
+            "status": "unknown",
+            "expected_seed_sha256": str(seed["sha256"]),
+            "recorded_seed_sha256": None,
+            "detail": "live Ghidra project predates reviewed-seed freshness tracking",
+        }
+
+    recorded = reviewed.get(str(seed["program"]))
+    if not recorded:
+        return {
+            "ok": False,
+            "status": "unknown",
+            "expected_seed_sha256": str(seed["sha256"]),
+            "recorded_seed_sha256": None,
+            "detail": f"live Ghidra project has no reviewed seed provenance for {seed['program']}",
+        }
+    if recorded != seed["sha256"]:
+        return {
+            "ok": False,
+            "status": "stale",
+            "expected_seed_sha256": str(seed["sha256"]),
+            "recorded_seed_sha256": str(recorded),
+            "detail": "tracked reviewed GZF changed after this live project was restored",
+        }
+    return {
+        "ok": True,
+        "status": "current",
+        "expected_seed_sha256": str(seed["sha256"]),
+        "recorded_seed_sha256": str(recorded),
+        "detail": "live Ghidra project was initialized from the current reviewed GZF",
+    }
 
 
 def restore_seed(settings: Settings, project: Any, selector: str | None = None) -> dict[str, Any]:
@@ -153,6 +249,14 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
                 f"{seed['binary_sha256']}; use a different Ghidra project directory "
                 "(WIZ8_GHIDRA_PROJECT_DIR)"
             )
+        freshness = project_seed_freshness(settings, seed)
+        if freshness["status"] == "stale":
+            raise RuntimeError(
+                f"existing {program_name} uses reviewed GZF {freshness['recorded_seed_sha256']}, "
+                f"but this checkout requires {freshness['expected_seed_sha256']}; "
+                "run `uv run wiz8 doctor` and reconcile or explicitly refresh the checkout-owned "
+                "Ghidra project before using retail analysis"
+            )
         status = "already-restored"
     else:
         _validate_seed_archive(seed)
@@ -165,7 +269,9 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
         restored_hash = _program_hash(project, program_name)
         if restored_hash != seed["binary_sha256"]:
             raise RuntimeError(f"restored program hash metadata mismatch for {program_name}")
+        record_project_seed(settings, seed)
         status = "restored"
+    freshness = project_seed_freshness(settings, seed)
     return {
         "schema": "wiz8.ghidra-workspace",
         "program": program_name,
@@ -173,6 +279,7 @@ def restore_seed(settings: Settings, project: Any, selector: str | None = None) 
         "project_dir": str(settings.project_dir),
         "seed": str(seed["archive"]),
         "binary_sha256": seed["binary_sha256"],
+        "seed_freshness": freshness["status"],
     }
 
 

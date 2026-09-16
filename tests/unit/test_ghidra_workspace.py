@@ -16,6 +16,26 @@ def _settings(tmp_path: Path, **overrides: object) -> Settings:
     return Settings.model_validate(values)
 
 
+def _project_settings(tmp_path: Path) -> SimpleNamespace:
+    return SimpleNamespace(
+        project_dir=tmp_path / "project", repo_dir=tmp_path / "repo", project_name="wizardry8"
+    )
+
+
+def _seed(sha256: str = "seed-hash") -> dict[str, str | Path]:
+    return {
+        "program": "wiz8-program",
+        "archive": Path("seed.gzf"),
+        "binary_sha256": "binary-hash",
+        "sha256": sha256,
+    }
+
+
+def _create_project(settings: SimpleNamespace) -> None:
+    settings.project_dir.mkdir(parents=True, exist_ok=True)
+    (settings.project_dir / f"{settings.project_name}.gpr").touch()
+
+
 def test_project_dir_defaults_inside_the_checkout(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     assert settings.project_dir == settings.repo_dir / "ghidra-project"
@@ -27,7 +47,7 @@ def test_project_dir_override_relocates_the_project(tmp_path: Path) -> None:
 
 
 def test_owner_check_accepts_this_checkout_and_unclaimed_projects(tmp_path: Path) -> None:
-    settings = SimpleNamespace(project_dir=tmp_path / "project", repo_dir=tmp_path / "repo")
+    settings = _project_settings(tmp_path)
     workspace.check_project_owner(settings)
 
     settings.project_dir.mkdir()
@@ -37,23 +57,71 @@ def test_owner_check_accepts_this_checkout_and_unclaimed_projects(tmp_path: Path
 
 def test_owner_check_refuses_another_checkouts_project(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
-    other = SimpleNamespace(project_dir=project_dir, repo_dir=tmp_path / "other-repo")
+    other = SimpleNamespace(
+        project_dir=project_dir, repo_dir=tmp_path / "other-repo", project_name="wizardry8"
+    )
     project_dir.mkdir()
     workspace._write_project_owner(other)
 
-    mine = SimpleNamespace(project_dir=project_dir, repo_dir=tmp_path / "my-repo")
+    mine = SimpleNamespace(
+        project_dir=project_dir, repo_dir=tmp_path / "my-repo", project_name="wizardry8"
+    )
     with pytest.raises(RuntimeError, match="different checkout"):
         workspace.check_project_owner(mine)
+
+
+def test_seed_freshness_accepts_project_not_restored_yet(tmp_path: Path) -> None:
+    result = workspace.project_seed_freshness(_project_settings(tmp_path), _seed())
+
+    assert result["ok"] is True
+    assert result["status"] == "not-restored"
+
+
+def test_seed_freshness_rejects_legacy_project_without_seed_provenance(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    _create_project(settings)
+    workspace._write_project_owner(settings)
+
+    result = workspace.project_seed_freshness(settings, _seed())
+
+    assert result["ok"] is False
+    assert result["status"] == "unknown"
+
+
+def test_seed_freshness_detects_newer_reviewed_checkpoint(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    _create_project(settings)
+    workspace.record_project_seed(settings, _seed("old-seed"))
+
+    result = workspace.project_seed_freshness(settings, _seed("new-seed"))
+
+    assert result["ok"] is False
+    assert result["status"] == "stale"
+    assert result["recorded_seed_sha256"] == "old-seed"
+    assert result["expected_seed_sha256"] == "new-seed"
+
+
+def test_recorded_current_seed_is_accepted(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    _create_project(settings)
+    seed = _seed()
+    workspace.record_project_seed(settings, seed)
+
+    result = workspace.project_seed_freshness(settings, seed)
+
+    assert result["ok"] is True
+    assert result["status"] == "current"
 
 
 def test_existing_program_does_not_validate_unused_seed_archive(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    settings = SimpleNamespace(project_dir=tmp_path / "project", repo_dir=tmp_path / "repo")
+    settings = _project_settings(tmp_path)
     seed = {
         "program": "wiz8-program",
         "archive": tmp_path / "missing.gzf",
         "binary_sha256": "binary-hash",
+        "sha256": "seed-hash",
     }
     monkeypatch.setattr(workspace, "seed_record", lambda *_args, **_kwargs: seed)
     monkeypatch.setattr(workspace, "_program_hash", lambda *_args: "binary-hash")
@@ -68,14 +136,34 @@ def test_existing_program_does_not_validate_unused_seed_archive(
     assert result["status"] == "already-restored"
 
 
+def test_existing_program_refuses_known_stale_reviewed_seed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = _project_settings(tmp_path)
+    _create_project(settings)
+    workspace.record_project_seed(settings, _seed("old-seed"))
+    current = {
+        "program": "wiz8-program",
+        "archive": tmp_path / "current.gzf",
+        "binary_sha256": "binary-hash",
+        "sha256": "new-seed",
+    }
+    monkeypatch.setattr(workspace, "seed_record", lambda *_args, **_kwargs: current)
+    monkeypatch.setattr(workspace, "_program_hash", lambda *_args: "binary-hash")
+
+    with pytest.raises(RuntimeError, match="run `uv run wiz8 doctor`"):
+        workspace.restore_seed(settings, object())
+
+
 def test_missing_program_validates_seed_before_import(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    settings = SimpleNamespace(project_dir=tmp_path / "project", repo_dir=tmp_path / "repo")
+    settings = _project_settings(tmp_path)
     seed = {
         "program": "wiz8-program",
         "archive": tmp_path / "seed.gzf",
         "binary_sha256": "binary-hash",
+        "sha256": "seed-hash",
     }
     monkeypatch.setattr(workspace, "seed_record", lambda *_args, **_kwargs: seed)
     monkeypatch.setattr(workspace, "_program_hash", lambda *_args: None)

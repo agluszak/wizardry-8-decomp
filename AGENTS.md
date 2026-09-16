@@ -37,6 +37,8 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   loading, startup, debugger use and semantic scenarios.
 - [tooling-maintenance](.agents/skills/tooling-maintenance/SKILL.md): Python/CMake/reccmp/clang,
   source indexing, CLI orchestration, validation and runtime infrastructure.
+- [jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md): start/resume Jujutsu changes, work with
+  existing PR branches, rebase/squash safely, resolve conflicts and publish.
 
 Recovery tooling is agent-only. Prefer existing/native primitives; do not add generic query protocols,
 wrapper layers, parallel inventories/report frameworks or human-vs-machine output modes. Filter before
@@ -144,9 +146,17 @@ Use the provided Jujutsu checkout and preserve unrelated work. Never create anot
 clone, sibling or baseline checkout unless explicitly requested; each existing checkout needs its own
 `WIZ8_WORK_DIR` and live Ghidra project. Only one agent may switch/rebase/publish a shared checkout.
 
+For a genuinely new recovery task, adopt the intended base and run `uv run wiz8 doctor` before relying
+on retail/Ghidra analysis. Doctor validates checkout-local Ghidra ownership and reviewed-seed freshness
+in addition to the machine/toolchain checks. `stale`, `untracked`, or `unknown` Ghidra freshness blocks
+recovery; a matching retail binary hash alone does not prove the live analysis is current. Rerun doctor
+after a rebase/merge that changes the reviewed Ghidra manifest/checkpoint. Follow the ghidra-analysis
+skill for reconciliation; doctor never repairs or overwrites live analysis.
+
 Keep one mutable change per coherent task by default. Fetch/rebase from `main@origin` only when upstream
 work is needed or immediately before authorized integration. After a rebase or merge, run
 `uv run wiz8 report merge-preservation --base origin/main`; every removed or duplicated retail-address
 identity needs an explicit `--allow` reason. Successful push completes publication;
-do not perform routine post-push proofs. Command details live in
+do not perform routine post-push proofs. Jujutsu mechanics live in
+[jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md); the short command reference remains in
 [docs/contributor-workflow.md](docs/contributor-workflow.md).

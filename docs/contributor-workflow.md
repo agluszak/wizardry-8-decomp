@@ -1,7 +1,8 @@
 # Contributor workflow
 
-Use Jujutsu in the provided checkout. This page is a short command reference; repository policy is
-in `AGENTS.md`.
+Use Jujutsu in the provided checkout. Repository policy is in `AGENTS.md`; detailed repository-state
+recipes, especially existing-PR rebases, live in the agent
+[`jujutsu-workflow`](../.agents/skills/jujutsu-workflow/SKILL.md) skill.
 
 ## Environment ownership
 
@@ -28,7 +29,17 @@ last observed remote main:
 ```sh
 jj git fetch --remote origin
 jj new main@origin -m "Recover W8DialogInterface"
+uv run wiz8 doctor
 ```
+
+`doctor` is the recovery preflight for the adopted revision. In addition to machine/tooling checks, it
+verifies checkout-local Ghidra ownership and whether the live canonical Wiz8 program is provably based
+on the reviewed GZF tracked by this revision. `not-restored` is safe; `stale`, `untracked`, or `unknown`
+means retail-derived recovery must stop until Ghidra state is explicitly reconciled/refreshed. Doctor
+never repairs or overwrites the live project.
+
+If a later rebase/merge changes the reviewed Ghidra manifest/checkpoint, rerun doctor before using
+Ghidra again.
 
 Keep one mutable change per coherent task by default. Bookmarks are unnecessary during ordinary
 work. Split changes only when it materially improves review or recovery. Give the completed change
@@ -39,6 +50,13 @@ jj describe -m "Recover W8DialogInterface"
 ```
 
 Do not create an empty child merely to imitate `git commit`.
+
+## Existing pull requests
+
+Remote PR commits are normally immutable Jujutsu history. Do not override `immutable_heads` merely to
+squash or rebase them. Use the `jujutsu-workflow` skill: duplicate the PR stack into mutable local
+revisions, integrate those, and only move/track the remote bookmark at publication. Read-only `git show`/`git diff` is fine for
+inspecting colocated immutable commits.
 
 ## Validate the change
 

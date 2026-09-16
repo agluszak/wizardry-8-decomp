@@ -11,6 +11,34 @@ to the reviewed program. Source recovery and comparison remain in
 [matching-decomp](../matching-decomp/SKILL.md); source type/layout decisions belong in
 [type-modeling](../type-modeling/SKILL.md).
 
+## Recovery preflight
+
+Before the first Ghidra-derived recovery step in a genuinely new task, or after switching/rebasing to a
+revision that changes `vendor/ghidra/exports/manifest.json` or a reviewed GZF, run:
+
+```sh
+uv run wiz8 doctor
+```
+
+Do not infer freshness from the program name, retail binary hash, an existing `ghidra-project/`, or the
+fact that `open_program()` can find a program. A checkout can retain an older live analysis after a
+newer reviewed GZF lands. `doctor` checks checkout ownership plus the reviewed-seed provenance recorded
+when the project was restored; it does not repair or replace analysis state.
+
+The Ghidra freshness states are intentional:
+
+- `not-restored` is safe: no live project exists yet and the canonical opener will restore the current
+  reviewed seed on first use;
+- `current` is safe: the live project records the reviewed GZF hash required by this revision;
+- `stale`, `untracked`, or `unknown` blocks retail-derived work. Do not continue analysis from that
+  project until its state is explicitly reconciled or refreshed.
+
+A legacy project can therefore fail doctor even when it may happen to contain equivalent analysis: the
+point is that freshness is not provable. Do not silence or bypass that check. If live edits need to be
+preserved, follow [checkpoints](references/checkpoints.md). If there is no live work to preserve,
+replace the checkout-owned project only as an explicit state-management action rather than silently
+having doctor/opening code overwrite it.
+
 ## Open the canonical program
 
 For ordinary inspection or edits, use the existing checkout-owned project:
