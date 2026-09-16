@@ -30,7 +30,7 @@ The `srCore` accessors `getRegistry`, `getMaterial`, `getStatisticsManager`, and
 
 `srTextureFile`, `srTriangulator`, `srExponentTable`, and `srFStreamOpener` are provider-side declarations with no corresponding known Wizardry/JPEG/ZIP consumer imports. They therefore do not carry class-wide `SR_DLL_IMPORT` even though SR.DLL exports provider symbols for some of them.
 
-The same rule applies at member granularity. `srBounder`, `srDebugDD`, `srThread`, `srMutex`, `srMemoryPool`, and `srEnvironmentMapper` have no known consumer-owned imports, so their headers contain no `SR_DLL_IMPORT`. Their provider exports, vtables, or recovered bodies do not change that.
+The same rule applies at member granularity. `srBounder`, `srDebugDD`, `srThread`, `srMutex`, `srMemoryPool`, `srEnvironmentMapper`, `srBinIAsyncStream`, and the `srBinFStream`/`srBinIFStream`/`srBinIOFStream`/`srBinOFStream` family have no known consumer-owned imports, so their headers contain no `SR_DLL_IMPORT`. Their provider exports, vtables, vbtables, or recovered bodies do not change that.
 
 Mixed headers are audited declaration by declaration. `srPixelConvert` has one known imported member: `mapPixelFormat(e_surfaceType, PixelFormat&)`, used by both Wiz8 and the JPEG extension. Its reverse overload, `selectFuncs`, and the `PixelFormat` helper methods are not known consumer imports and therefore are not annotated. In `srImporter.h`, `srSurfaceIOManager::exportSurface` is imported by Wiz8, while `SurfaceImporter::getSurfaceDesc` and the `srHierarchyIOManager` / `srModelIOManager` import/export helpers are provider-side declarations.
 
