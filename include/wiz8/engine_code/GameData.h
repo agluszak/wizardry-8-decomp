@@ -62,6 +62,7 @@ class srNode;
 class W8Octree;
 struct W8OctreeTrace;
 struct W8World;
+struct W8LevelFilePlane;
 
 class BitArray;
 
@@ -176,6 +177,19 @@ struct W8GameData {
 
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
+    /* 1-based ordinal of the +0x7c pointer-table entry whose name matches,
+       else -1. */
+    int FindPointerByName004482A0(const char* name); /* 0x004482A0 */
+    /* Registers one invisible-plane record; the OctBuild driver feeds it the
+       level file's plane table. */
+    void AddLevelPlane004485F0(W8LevelFilePlane* plane); /* 0x004485F0 */
+    /* Copies the level linked record into a scratch entry and forwards to the
+       0x00448C60 helper. Callers currently pass a base pointer at
+       linked_record - 0x4f until that owning layout is recovered. */
+    void AddLinkedRecord00448BF0(unsigned char kind, int value, float scalar,
+                                 void* record); /* 0x00448BF0 */
+    /* Compiles the read game data into the shared build arrays. */
+    void CompileGameData00449D10(); /* 0x00449D10 */
 
     /* Loop the buffered prop ids through TestProp and return the id of the
        last prop that reported a hit, or -1. */

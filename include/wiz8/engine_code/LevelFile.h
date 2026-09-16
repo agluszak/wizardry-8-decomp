@@ -52,12 +52,13 @@ struct W8LevelFileLight {
     short version_00;
     int flags_02; /* bit 0x200 -> pExtra_3c */
     unsigned char unknown_06[2];
-    unsigned char unknown_08[0xc];
-    unsigned char unknown_14[0xc];
-    unsigned char unknown_20[8];
-    unsigned char unknown_28[0x14]; /* version_00 > 1 */
-    void* pExtra_3c;                /* 0x3c record, flags_02 & 0x200 */
-    W8LevelFilePathAI* pPathAI_40;  /* *pExtra_3c & 0x10 */
+    srVector3T<float> position_08; /* consumed by the vertex-lighting pass */
+    srVector3T<float> colour_14;
+    float intensity_20;
+    float range_24;
+    char name_28[0x14];            /* version_00 > 1; sun/moon/lightning classify it */
+    void* pExtra_3c;               /* 0x3c record, flags_02 & 0x200 */
+    W8LevelFilePathAI* pPathAI_40; /* *pExtra_3c & 0x10 */
 };
 
 struct W8LevelFileAnimLight {

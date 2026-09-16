@@ -52,7 +52,7 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
         minimum_0c[2] = bounds[2];
         path_strings_18 = static_cast<char**>(malloc(rows_04 << 2));
         if (path_strings_18 == 0) {
-            Function497690(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
+            ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
             return;
         }
         for (int i = 0; i < rows_04; ++i) {
@@ -62,7 +62,7 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
         }
         link_strings_1c = static_cast<char**>(malloc(rows_04 << 2));
         if (link_strings_1c == 0) {
-            Function497690(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
+            ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
             return;
         }
         for (int j = 0; j < rows_04; ++j) {
@@ -164,11 +164,13 @@ W8PrePathNode* PrePathing::GetPathNode()
     if (1000 <= static_cast<unsigned int>(chunk_node_count_11fc)) {
         ++chunk_index_11f8;
         if (1000 <= static_cast<unsigned int>(chunk_index_11f8)) {
-            Function497690(7, "There are over one million path nodes required for this level!");
+            ReportBuildStatus00497690(
+                7, "There are over one million path nodes required for this level!");
         }
         node_chunks_258[chunk_index_11f8] = static_cast<W8PrePathNode*>(malloc(0x3e80));
         if (node_chunks_258[chunk_index_11f8] == 0) {
-            Function497690(7, "PrePathing::GetPathNode -- Could not allocate path nodes.");
+            ReportBuildStatus00497690(7,
+                                      "PrePathing::GetPathNode -- Could not allocate path nodes.");
         }
         memset(node_chunks_258[chunk_index_11f8], 0, 0x3e80);
         chunk_node_count_11fc = 0;
@@ -189,7 +191,7 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
         char message[0x100];
         sprintf(message, "BuildPathList: Could not allocate path node list, length %d nodes.\n",
                 size_004);
-        Function497690(7, message);
+        ReportBuildStatus00497690(7, message);
         return 0;
     }
     for (int i = 0; i < size_004; ++i) {
@@ -341,8 +343,8 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
     visible_waypoints_058 = new BitArray(size_004);
     rendered_waypoints_05c = new BitArray(size_004);
     collected_waypoints_060 = new BitArray(size_004);
-    Function497690(6, "Deleting Unreacheable Areas.\n");
-    Function497690(6, "Deleting Nodes: \t");
+    ReportBuildStatus00497690(6, "Deleting Unreacheable Areas.\n");
+    ReportBuildStatus00497690(6, "Deleting Nodes: \t");
     for (unsigned int i = 1; i < static_cast<unsigned int>(size_004); ++i) {
         int percent =
             static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
@@ -478,7 +480,7 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
     delete collected_waypoints_060;
     collected_waypoints_060 = 0;
     sprintf(message, "Nodes Deleted: %d\n", size_004 - kept);
-    Function497690(6, message);
+    ReportBuildStatus00497690(6, message);
     size_004 = kept;
     return kept;
 }
@@ -493,7 +495,7 @@ int PrePathing::CreatePathNodeArray()
     path_nodes_044 = static_cast<unsigned int*>(malloc(size_004 << 3));
     if (path_nodes_044 == 0) {
         sprintf(message, "CreatePathNodeArray: Could not allocate m_pulNodeHashArray.\n");
-        Function497690(7, message);
+        ReportBuildStatus00497690(7, message);
     }
     if (1 < static_cast<unsigned int>(size_004)) {
         do {
@@ -510,10 +512,10 @@ int PrePathing::CreatePathNodeArray()
     }
     sprintf(message, "  %d Total Pathnodes, %d of which are Edge Nodes.\n", size_004,
             edge_node_count_008);
-    Function497690(6, message);
+    ReportBuildStatus00497690(6, message);
     sprintf(message, "Total memory taken by Path Nodes: %dk.\n",
             (static_cast<unsigned int>(size_004) & 0x1fffffff) >> 7);
-    Function497690(6, message);
+    ReportBuildStatus00497690(6, message);
     m_ulNumWayPoints = 0;
     m_pFileWayPoints = 0;
     return 1;
@@ -564,7 +566,7 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
             node_keys.GetCount());
     ReportStartupMessage004969D0(message);
     sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes_6b1);
-    Function497690(6, message);
+    ReportBuildStatus00497690(6, message);
     level->automap_nodes_6b5 =
         static_cast<unsigned long*>(malloc(level->num_automap_nodes_6b1 << 2));
     if (level->automap_nodes_6b5 == 0) {

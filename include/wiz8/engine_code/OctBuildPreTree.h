@@ -9,45 +9,47 @@ struct W8VersionedLevelParticleRecord;
 
 extern float g_float_005ec52c;
 
-struct W8OctRegionVertex004B2A20 {
-    unsigned char positional_00[0x04];
-    /* The index of this corner's W8OctPreTreeVertex in the geometry
-       vertex array; SplitMeshes deduplicates on it. */
-    unsigned long vertex_index_04;
-    unsigned char positional_08[0x04];
-    srVector3T<float> position_0c;
-};
+struct W8OctPreTreeVertex;
+struct W8OctPreTreeGeometry;
 
 struct W8OctRegionPolygon {
-    unsigned long flags_00; /* & 3 selects the axis the plane test uses */
-    unsigned char positional_04[0x04];
+    /* & 3 selects the axis the plane test uses; bit2 marks a vertex shared
+       across regions (cleared with bit3 after the duplicate pass). */
+    unsigned long flags_00;
+    /* 1-based ordinal into the geometry polygon array. */
+    unsigned long ordinal_04;
     float plane_08[4]; /* normal xyz and offset d */
     srVector3T<float> position_18;
-    unsigned char positional_24[0x04];
+    /* Canonical material-group index assigned by the material sort. */
+    unsigned long material_24;
     /* The per-polygon texture/material index CreateSubMeshes copies into
        OctMeshModel's m_plPolyTextures row. */
     unsigned long texture_28;
     /* The automesh kind (1..3) SplitMeshes partitions polygon lists on. */
     unsigned long kind_2c;
-    unsigned char positional_30[0x02];
+    /* Set by the polygon builder when the face collapses. */
+    unsigned char degenerate_30;
+    unsigned char positional_31;
     unsigned short region_32;
-    W8OctRegionVertex004B2A20* vertices_34[3];
-    unsigned char positional_40[0x14];
+    /* Corner vertices of the shared build-vertex array; the material sort
+       and SplitVertices repoint these at split copies. */
+    W8OctPreTreeVertex* vertices_34[3];
+    unsigned short face_count_40;
+    unsigned char positional_42[2];
+    /* Growable per-polygon run the cleanup releases. */
+    int* face_indices_44;
+    /* Copy of the source mesh face: the three vertex indices. */
+    int face_vertices_48[3];
     /* The three corners' texture coordinates SplitUVMaps deduplicates. */
     srVector2T<float> uvs_54[3];
-    unsigned char positional_6c[0x08];
+    /* Copy of the source face's material index. */
+    unsigned long face_material_6c;
+    unsigned char face_tail_70;
+    unsigned char positional_71[3];
 
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
 
-struct W8OctRegionGameData {
-    unsigned long positional_00;
-    void* positional_04;
-    unsigned long polygon_count_08;
-    W8OctRegionPolygon* polygons_0c;
-};
-
-static_assert(sizeof(W8OctRegionVertex004B2A20) == 0x18, "W8OctRegionVertex004B2A20_must_be_0x18");
 static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
 
 extern int g_value_65be60;
@@ -99,6 +101,17 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     void AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial);
     void ValidatePolygonRegions004B3330();
     void ValidateRegionBounds004B35B0(const srVector3T<float>* region_bounds);
+    /* SortGeometry: welds duplicate vertices, drops degenerate polygons,
+       repacks both arrays and re-inserts every polygon with mode 2. */
+    unsigned char SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry);
+    /* Inserts one region polygon into the octree working state. */
+    unsigned char InsertSurface004B02F0(W8OctRegionPolygon* polygon, unsigned long mode);
+    /* Loads the .rlk region file beside the level and folds its bounds into
+       the build. */
+    unsigned char LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
+                                         srVector3T<float>* maximum);
+    /* Walks the node tree remapping leaf region ids through positional_100. */
+    void RemapNodeRegions004B16B0(W8OctBuildNode00446330* node, int depth);
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;
@@ -125,7 +138,7 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     W8HashTable<unsigned int, short>* positional_128;
     W8HashTable<unsigned short, short>* positional_12c;
     W8HashTable<unsigned short, short>* positional_130;
-    W8OctRegionGameData* game_data_134;
+    W8OctPreTreeGeometry* game_data_134;
     unsigned long positional_138;
     unsigned long positional_13c;
 };

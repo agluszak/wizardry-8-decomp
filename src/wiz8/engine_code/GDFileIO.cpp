@@ -68,7 +68,7 @@ W8GameData* ReadGameData00447570(const char* path, void* parent)
     got_polygons = game_data->Function447660(file, 0);
     got_vertices = game_data->Function447660(file, 1);
     if (got_vertices == 0 && got_polygons == 0) {
-        Function497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
+        ReportBuildStatus00497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
     }
     CloseHandle(file);
     return game_data;
@@ -707,40 +707,40 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
     memset(header.unknown_44, 0, sizeof(header.unknown_44));
 
     if (handle == 0) {
-        Function497690(7, "WriteGameData: File not open.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: File not open.\n");
         return 0;
     }
     if (FileWrite(handle, &header, 0x68, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write GameData info.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GameData info.\n");
         return 0;
     }
     if (FileWrite(handle, vertices_24, vertex_count_20 * 0xc, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write vertex info.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write vertex info.\n");
         return 0;
     }
     if (FileWrite(handle, surfaces_38, surface_count_28 * 0x4c, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write Surface info.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
     if (interface_count_60 != 0 &&
         FileWrite(handle, interfaces_64, interface_count_60 * 0xc, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write switch interface info.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
     if (interface_state_count_68 != 0 &&
         FileWrite(handle, interface_states_6c, interface_state_count_68 * 0xc, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write switch state info.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
     if (cond_poly_count_70 != 0 &&
         FileWrite(handle, cond_polys_74, cond_poly_count_70 * 4, 0) == 0) {
-        Function497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
+        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
         return 0;
     }
     if (environ_count_80 != 0) {
         for (index = 0; index < environ_count_80; ++index) {
             if (FileWrite(handle, environs_84[index], 0x44, 0) == 0) {
-                Function497690(7, "WriteGameData: Couldn't write GD_Environ.\n");
+                ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GD_Environ.\n");
                 return 0;
             }
         }

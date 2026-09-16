@@ -168,7 +168,7 @@ unsigned char W8PathingService::WritePathNodes00458AD0(unsigned int handle)
     if (size_004 != 0) {
         success = FileWrite(handle, path_nodes_044, size_004 << 3, 0);
         if (success == 0) {
-            Function497690(7, "WritePathNodes: Couldn't write Path Hash array.\n");
+            ReportBuildStatus00497690(7, "WritePathNodes: Couldn't write Path Hash array.\n");
             return 0;
         }
     }
