@@ -320,6 +320,41 @@ void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
     }
 }
 
+// FUNCTION: WIZ8 0x00510590
+void RefreshMonsterGroup(W8MonsterGroup* monster_group)
+{
+    W8Monster* leader;
+    float leader_radius;
+    unsigned int index;
+
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x478, 0);
+    }
+    if (monster_group->leader_group_id == 0) {
+        leader = GetMonsterByLocationID(monster_group->value_9f);
+        static_cast<W8Navigator*>(leader)->LinkGroupNavigator00452BD0(0, 0.0, 0);
+    } else {
+        W8MonsterGroup* leader_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(0x480, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
+        leader = GetMonsterByLocationID(leader_group->value_9f);
+    }
+    if (leader == 0) {
+        srAssertFail("pLeader", MONSTER_GROUP_CPP, 0x482, 0);
+    }
+    leader->GetAnimationRadius(&leader_radius);
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
+        W8Monster* member = GetMonsterByLocationID(IListGetAt(monster_group->monsters, index));
+
+        if (member != leader) {
+            float member_radius;
+            member->GetAnimationRadius(&member_radius);
+            static_cast<W8Navigator*>(member)->LinkGroupNavigator00452BD0(
+                static_cast<W8Navigator*>(leader), leader_radius + leader_radius + member_radius,
+                0);
+        }
+    }
+}
+
 /* Refreshes a group and every group allied to it, then the lead member's live
    monster. All four ally slots are walked and the empty ones skipped, so the
    array is fixed-size rather than terminated.

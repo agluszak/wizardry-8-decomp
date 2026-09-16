@@ -212,6 +212,7 @@ public:
        moving mode; the result is nonzero once the target was accepted. */
     unsigned short SetMovementTargetToNavigator004526C0(W8Navigator* target,
                                                         double separation); /* 0x004526C0 */
+    void LinkGroupNavigator00452BD0(W8Navigator* target, double separation, int value);
     /* Stop this navigator, clear its movement/target state, and either mark
        the linked movement stopped or re-sync the collected group. */
     void ResetMovementAndGroupState00452C90();               /* 0x00452C90 */

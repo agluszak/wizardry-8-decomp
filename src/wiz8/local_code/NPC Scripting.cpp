@@ -293,7 +293,7 @@ void BeginNpcScriptDialogue(W8NpcState* npc, unsigned char preserve_state)
         g_staged_value_68c3c4 = g_npc_scripting.staging_restore.current_quote_index;
     }
     if (npc->has_monster == 0) {
-        Function509CD0(npc->name_style, 0, -1);
+        BindNpcToMonster(npc->name_style, 0, -1);
     }
     g_npc_scripting.staging_restore.staged_short_49e = 0;
     g_npc_scripting.flag_70 = 0;

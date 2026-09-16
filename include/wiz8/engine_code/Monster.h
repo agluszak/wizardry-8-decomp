@@ -288,7 +288,8 @@ public:
     W8GameTimer timer_2d8;
     float target_scale_2fc;
     float current_scale_300;
-    unsigned char unknown_304[4];
+    unsigned char unknown_304;
+    unsigned char unknown_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
     signed char fade_state_330;
@@ -338,6 +339,8 @@ unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8M
                                                          unsigned char* value_4);
 void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
+void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char behaviour);
+void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle);
 void SetFlag6081E4(unsigned char value);
 void UpdateNearestMonsterGroupMembers004CA570();
 void ApplyMonsterRepresentationScale(W8Monster* monster);

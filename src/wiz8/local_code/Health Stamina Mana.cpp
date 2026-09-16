@@ -2039,9 +2039,9 @@ void W8CharacterEvent::Complete()
     sound_was_active = slot->portrait_event_active;
     slot->active_character_event = 0;
     if (sound_was_active != 0) {
-        if (IsSoundPlaying(slot->voice_sound_handle) != 0) {
+        if (SoundIsPlaying(slot->voice_sound_handle) != 0) {
             sound_end_handled = 1;
-            StopSound(slot->voice_sound_handle);
+            SoundStop(slot->voice_sound_handle);
         }
         SetPartyPortraitEventState(party_slot, 0, -1, 0, 1);
     }

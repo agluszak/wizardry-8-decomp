@@ -877,6 +877,16 @@ static DWORD WINAPI DriveScenario(void*)
             }
             Sleep(1000);
             SendScenarioKey(VK_SPACE);
+            started = GetTickCount();
+            while (GetTickCount() - started < 3000) {
+                if (screen->m_dialog_1b1c == 0) {
+                    break;
+                }
+                Sleep(10);
+            }
+            if (screen->m_dialog_1b1c != 0) {
+                return FailScenario();
+            }
         }
 
         g_observation.character_page_start = 0;

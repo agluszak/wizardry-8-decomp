@@ -286,6 +286,151 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_274 = 0;
 }
 
+// FUNCTION: WIZ8 0x00498180
+stParticle::stParticle(const stParticle& other)
+    : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
+{
+    trigger_flag_192 = other.trigger_flag_192;
+    update_flags_250 = 0;
+    start_frame_264 = other.start_frame_264;
+    end_frame_268 = other.end_frame_268;
+    value_270 = other.value_270;
+    value_278 = other.value_278;
+
+    unsigned int count = other.particle_count_180;
+    if (count == 0) {
+        return;
+    }
+
+    setParent(other.getParent(), 1);
+    setName(other.getName());
+    particle_count_180 = count;
+    allocation_148 = 0;
+    allocation_164 = 0;
+    allocation_160 = 0;
+    allocation_170 = 0;
+    allocation_168 = 0;
+    allocation_16c = 0;
+    texture_154 = 0;
+    value_138 = other.value_138;
+    value_140 = other.value_140;
+    texture_frames_178 = 0;
+    retained_14c = other.retained_14c;
+    retained_14c->addReference();
+    SetRenderFlags004925A0(other.GetRenderFlags00498A10());
+
+    allocation_148 =
+        static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
+    if (allocation_148 == 0) {
+        srAssertFail("pParticle", ST_PARTICLE_CPP, 0xda, 0);
+    }
+    unsigned int i;
+    for (i = 0; i < count; ++i) {
+        allocation_148[i] = 0.0f;
+    }
+
+    vertex_count_158 = count * 4;
+    texture_frame_count_15c = count * 2;
+    SetTexture0049AB00(other.texture_154);
+    allocation_164 = static_cast<srVector2T<float>*>(
+        srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
+    if (allocation_164 == 0) {
+        srAssertFail("pTexCoord", ST_PARTICLE_CPP, 0xe4, 0);
+    }
+    allocation_160 = static_cast<srVector3T<float>*>(
+        srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
+    if (allocation_160 == 0) {
+        srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe5, 0);
+    }
+    allocation_168 =
+        static_cast<srVector3i*>(srHeap.allocate(texture_frame_count_15c * sizeof(srVector3i)));
+    if (allocation_168 == 0) {
+        srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe7, 0);
+    }
+    allocation_174 = new float[vertex_count_158];
+
+    for (i = 0; i < count; ++i) {
+        unsigned int vertex = i * 4;
+        unsigned int triangle = i * 2;
+        allocation_168[triangle].x = vertex;
+        allocation_168[triangle].y = vertex + 1;
+        allocation_168[triangle].z = vertex + 2;
+        allocation_168[triangle + 1].x = vertex + 2;
+        allocation_168[triangle + 1].y = vertex + 3;
+        allocation_168[triangle + 1].z = vertex;
+
+        allocation_148[i] = 0.0f;
+        allocation_164[vertex].Set(0.0f, 0.0f);
+        allocation_164[vertex + 1].Set(1.0f, 0.0f);
+        allocation_164[vertex + 2].Set(1.0f, 1.0f);
+        allocation_164[vertex + 3].Set(0.0f, 1.0f);
+    }
+    for (i = 0; i < vertex_count_158; ++i) {
+        allocation_174[i] = 1.0f;
+    }
+
+    state_184 = other.state_184;
+    value_188 = 0;
+    active_particle_count_18c = 0;
+    active_190 = other.active_190;
+    unknown_191 = other.unknown_191;
+    allocation_194 = new unsigned char[count];
+    memset(allocation_194, 0, count);
+    allocation_198 =
+        static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
+    allocation_19c = new unsigned int[count];
+    active_1a0 = other.active_1a0;
+    flag_1a1 = 1;
+    value_1a4 = other.value_1a4;
+    value_1a8 = other.value_1a8;
+    value_1ac = other.value_1ac;
+    value_1b0 = other.value_1b0;
+    value_1b4 = other.value_1b4;
+    value_1b8 = other.value_1b8;
+    value_1bc = other.value_1bc;
+    value_1c4 = other.value_1c4;
+    m_pflFlutterAngle = 0;
+    value_200 = other.value_200;
+    value_204 = other.value_204;
+    SetFlutter0049AD10(other.value_1c0);
+    value_1c8 = other.value_1c8;
+    value_1cc = other.value_1cc;
+    minimum_1d0 = other.minimum_1d0;
+    maximum_1dc = other.maximum_1dc;
+    direction_1e8 = other.direction_1e8;
+    acceleration_1f4 = other.acceleration_1f4;
+    value_208 = other.value_208;
+    value_20c = other.value_20c;
+    value_210 = other.value_210;
+    value_214 = other.value_214;
+    value_218 = other.value_218;
+    minimum_21c = other.minimum_21c;
+    maximum_228 = other.maximum_228;
+    value_234 = other.value_234;
+    value_240 = other.value_240;
+    update_flags_250 = 2;
+    allocation_254 = new unsigned long[texture_frame_count_15c];
+    activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    updated_at_25c = activated_at_258;
+    value_260 = other.value_260;
+    callback_26c = 0;
+
+    setLocation(other.getLocation());
+    srMatrix3T<float> rotation;
+    other.getRotation(rotation);
+    setRotation(rotation);
+
+    srMatrix4T<float> source_world;
+    other.getWorldSpaceMatrix(source_world);
+    srMatrix4T<double> world;
+    for (i = 0; i < 4; ++i) {
+        world.vectors[i].Set(source_world.vectors[i].x, source_world.vectors[i].y,
+                             source_world.vectors[i].z, source_world.vectors[i].w);
+    }
+    setWorldSpaceMatrix(world);
+    value_274 = 0;
+}
+
 // FUNCTION: WIZ8 0x00499A50
 unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
                                                    unsigned char replace_when_full)

@@ -25,13 +25,12 @@ public:
        chain is absent. */
     unsigned char GetLocation0048D050(srVector3T<float>* position);
     srNode* node_04; /* 0x04 */
-    unsigned char unknown_08[4];
-    int numbers_0c[3];              /* 0x0c, 0x10, 0x14 */
-    void* buffer_18;                /* 0x18 */
-    int size_1c;                    /* 0x1c */
-    unsigned long color_20;         /* 0x20 */
-    unsigned char flag_24;          /* 0x24 */
-    unsigned char unknown_25[0x1f]; /* 0x25 */
+    unsigned int value_08;
+    int numbers_0c[3];      /* 0x0c, 0x10, 0x14 */
+    void* buffer_18;        /* 0x18 */
+    int size_1c;            /* 0x1c */
+    unsigned long color_20; /* 0x20 */
+    char name_24[0x20];
 };
 static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
 

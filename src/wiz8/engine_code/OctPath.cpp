@@ -2501,6 +2501,103 @@ unsigned int W8PathingService::ClassifyWaypoint00459C00(const srVector3T<float>*
     return result;
 }
 
+// FUNCTION: WIZ8 0x00459d60
+unsigned int W8PathingService::FindPathCell00459D60(srVector3T<float>* position, unsigned int* cell,
+                                                    unsigned char adjust)
+{
+    int path_height = static_cast<int>((position->y - level_bounds[1]) / span_020) + 1;
+    unsigned int source_x =
+        static_cast<unsigned int>((position->x - level_bounds[0]) / grid_scale_01c);
+    unsigned int source_z =
+        static_cast<unsigned int>((position->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int selected_x = source_x;
+    unsigned int selected_z = source_z;
+    unsigned int selected_key = 0;
+    unsigned int selected_height = 0;
+    float closest_distance = 10000000.0f;
+    unsigned int key = source_z * 0x10000 + source_x;
+    int slot = m_pPathValues_064->FindNextEntry(&key, -1);
+
+    while (slot != -1) {
+        unsigned int value = m_pPathValues_064->entries[slot].value;
+        unsigned int height = value & 0xffff;
+        int difference = path_height - height;
+
+        if ((value & 0x10000000) == 0 && -cell_count_024 < difference &&
+            difference < cell_count_024) {
+            selected_key = key;
+            selected_height = height;
+            break;
+        }
+        slot = m_pPathValues_064->FindNextEntry(&key, slot);
+    }
+
+    if (selected_key == 0) {
+        int direction;
+
+        for (direction = 0; direction < 8; ++direction) {
+            unsigned int candidate_x;
+            unsigned int candidate_z = source_z;
+
+            if (direction < 1 || direction > 3) {
+                candidate_x = source_x;
+                if (direction > 4) {
+                    --candidate_x;
+                }
+            } else {
+                candidate_x = source_x + 1;
+            }
+            if (direction < 2 || direction > 6) {
+                ++candidate_z;
+            } else if (direction > 2 && direction < 6) {
+                --candidate_z;
+            }
+
+            key = candidate_z * 0x10000 + candidate_x;
+            slot = m_pPathValues_064->FindNextEntry(&key, -1);
+            while (slot != -1) {
+                unsigned int value = m_pPathValues_064->entries[slot].value;
+                unsigned int height = value & 0xffff;
+                int difference = path_height - height;
+
+                if ((value & 0x10000000) == 0 && -cell_count_024 < difference &&
+                    difference < cell_count_024) {
+                    float x =
+                        (static_cast<float>(candidate_x) + g_float_005ebc7c) * grid_scale_01c -
+                        (position->x - level_bounds[0]);
+                    float z =
+                        (static_cast<float>(candidate_z) + g_float_005ebc7c) * grid_scale_01c -
+                        (position->z - level_bounds[2]);
+                    float distance = x * x + z * z;
+
+                    if (distance < closest_distance) {
+                        selected_key = key;
+                        selected_height = height;
+                        selected_x = candidate_x;
+                        selected_z = candidate_z;
+                        closest_distance = distance;
+                    }
+                    break;
+                }
+                slot = m_pPathValues_064->FindNextEntry(&key, slot);
+            }
+        }
+    }
+
+    if (adjust != 0 && selected_key != 0) {
+        position->y = static_cast<float>(selected_height - 1) * span_020 + level_bounds[1];
+        position->x =
+            (static_cast<float>(selected_x) + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z =
+            (static_cast<float>(selected_z) + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+    }
+    if (cell != 0) {
+        cell[0] = selected_x;
+        cell[1] = selected_z;
+    }
+    return selected_key;
+}
+
 /* Test whether a position lies in the vertical neighborhood represented by its
    X/Z path-index cell, optionally snapping it onto that indexed cell.
 

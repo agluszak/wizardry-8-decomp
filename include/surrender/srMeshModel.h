@@ -62,6 +62,7 @@ public:
 
     srMeshModel(long polygons, long vertices);
     void reset(long polygons, long vertices);
+    void scale(const srVector3T<float>& scale);
     srMeshModel& operator=(const srMeshModel& other);
 
     static const char* sGetClassName()

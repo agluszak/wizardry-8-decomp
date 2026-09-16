@@ -13,6 +13,8 @@ class W8Prop;
 class W8WorldCursorNode;
 struct W8MonsterGenerator;
 
+extern int g_mipe_cube_serial_006850ba;
+
 struct W8MipeMonsterEntry {
     wchar_t name[24];
     unsigned char kind;

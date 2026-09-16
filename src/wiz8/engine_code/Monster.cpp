@@ -1194,6 +1194,7 @@ W8Monster::W8Monster()
     value_1ec = 1.0f;
     value_1f0 = 1.0f;
     value_210 = -1;
+    flag_216 = 1;
     script_238 = 0;
     script_line_23c = 0;
     script_wait_240 = -1;
@@ -1215,7 +1216,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
       flag_217(0), flag_218(0), value_21c(rhs.value_21c), value_220(rhs.value_220),
       value_224(rhs.value_224), value_228(rhs.value_228), flag_22c(0), flag_22d(0), script_238(0),
       script_wait_240(-1), trigger_278(0), registry_weight_27c(rhs.registry_weight_27c),
-      sound_334(0)
+      unknown_304(0), node_308(0), sound_334(0)
 {
     formation.SetZero();
     fade_state_330 = 0;
@@ -3866,8 +3867,8 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
     if (m_pRep->current_cycle == 25 &&
         ((value_1f8 > 0 && previous_frame < value_1f8 && value_1f8 <= m_pRep->flag_064) ||
          (value_1f8 == 0 && m_pRep->flag_064 == 1))) {
-        if (unknown_304[0] != 0) {
-            unknown_304[0] = 0;
+        if (unknown_304 != 0) {
+            unknown_304 = 0;
             CreateSpellEffect004AD8A0(g_spell_records[g_spell_index_0069b7dc].resource_name,
                                       g_spell_effect_frame_0064c158, this, 0, 0);
             return;
