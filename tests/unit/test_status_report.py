@@ -265,7 +265,9 @@ def test_status_report_marks_configured_missing_product_unbuilt(tmp_path, monkey
     )
     monkeypatch.setattr(status.RecCmpProject, "from_directory", lambda _path: project)
     monkeypatch.setattr(
-        status, "warn_if_build_may_be_stale", lambda *_args: pytest.fail("unbuilt target is not stale")
+        status,
+        "warn_if_build_may_be_stale",
+        lambda *_args: pytest.fail("unbuilt target is not stale"),
     )
     monkeypatch.setattr(
         status.Compare, "from_target", lambda *_args, **_kwargs: pytest.fail("must not compare")
