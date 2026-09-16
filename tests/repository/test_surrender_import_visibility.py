@@ -72,6 +72,7 @@ PROVIDER_ONLY_HEADERS = {
     "srThread.h",
     "srTextureFile.h",
     "srTriangulator.h",
+    "srVideoManager.h",
 }
 
 # Mixed headers where only the listed declaration is a known consumer import.
