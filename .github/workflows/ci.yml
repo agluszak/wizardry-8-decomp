@@ -140,9 +140,9 @@ jobs:
         if: env.LICENSED_INPUTS == 'true'
         run: uv run wiz8 prepare
 
-      - name: Build reccmp products
+      - name: Build WIZ8 comparison product
         if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 build reccmp-products
+        run: uv run wiz8 build match
 
       - name: Generate reccmp PR status
         id: reccmp-status
