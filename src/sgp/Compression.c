@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -11,16 +14,19 @@
 
 // mem allocation functions for ZLIB's purposes
 
+// FUNCTION: WIZ8 0x00415820
 voidpf ZAlloc( voidpf opaque, uInt items, uInt size )
 {
   return( MemAlloc( items * size ) );
 }
 
+// FUNCTION: WIZ8 0x00415840
 void ZFree( voidpf opaque, voidpf address )
 {
 	MemFree( address );
 }
 
+// FUNCTION: WIZ8 0x00415850
 PTR DecompressInit( BYTE * pCompressedData, UINT32 uiDataSize )
 {
 	z_stream *	pZStream;
@@ -52,6 +58,7 @@ PTR DecompressInit( BYTE * pCompressedData, UINT32 uiDataSize )
 	return( (PTR) pZStream );
 }
 
+// FUNCTION: WIZ8 0x004158b0
 UINT32 Decompress( PTR pDecompPtr, BYTE * pBuffer, UINT32 uiBufferLen )
 {
 	int					iZRetCode;
@@ -77,6 +84,7 @@ UINT32 Decompress( PTR pDecompPtr, BYTE * pBuffer, UINT32 uiBufferLen )
 	return( uiBufferLen - pZStream->avail_out );
 }
 
+// FUNCTION: WIZ8 0x004158f0
 void DecompressFini( PTR pDecompPtr )
 {
 	z_stream *	pZStream = (z_stream *) pDecompPtr;

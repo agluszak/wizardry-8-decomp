@@ -112,12 +112,6 @@ __forceinline Controls::~Controls() {}
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
 
-// GLOBAL: WIZ8 0x005ff5f4
-int g_W8TextClipTarget005FF5F4 = -15;
-
-// GLOBAL: WIZ8 0x00650e38
-int g_W8TextClipFlags00650E38;
-
 // GLOBAL: WIZ8 0x005ebb38
 float g_float_005ebb38 = 1.0f;
 
@@ -640,8 +634,8 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
         SetFontObjectPalette16BPP(m_font, g_font_state_palettes_68ee1c[m_fontStateIndex]);
     }
     SaveFontSettings();
-    SetFontDestBuffer(g_W8TextClipTarget005FF5F4, m_pendingBounds.left, m_pendingBounds.top,
-                      m_pendingBounds.right, m_pendingBounds.bottom, g_W8TextClipFlags00650E38);
+    SetFontDestBuffer(FontDestBuffer, m_pendingBounds.left, m_pendingBounds.top,
+                      m_pendingBounds.right, m_pendingBounds.bottom, FontDestWrap);
 
     int y = GetVerticalPosition();
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #include "types.h"
 #include <objbase.h>
 #include <initguid.h>
@@ -14,6 +17,7 @@
 	#include "debug.h"
 #endif
 
+// FUNCTION: WIZ8 0x004146e0
 void  DirectXZeroMem ( void* pMemory, int nSize )
 {
 	memset ( pMemory, 0, nSize );

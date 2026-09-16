@@ -80,6 +80,7 @@
 #include <math.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
+#include "input.h"
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 
@@ -362,7 +363,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     int missile_start = -1;
     int spell_start = -1;
     int footstep_volume = 0;
-    int footstep_falloff = 0;
+    int footstep_combat_volume = 0;
     srVector3T<float> light_first;
     srVector3T<float> light_second;
     W8SoundEvent* last_sound = 0;
@@ -463,17 +464,17 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                  "mls pitch: Must specify a sound before pitch");
                 }
                 sscanf(line, "%s %d", command, &pitch);
-                last_sound->value_014 = pitch;
+                last_sound->pitch = pitch;
             } else if (_stricmp(command, "volume") == 0) {
                 if (last_sound == 0) {
                     srAssertFail("pSndEvent", MONSTER_CPP, 0x595,
                                  "mls volume: Must specify a sound before volume");
                 }
-                sscanf(line, "%s %d %d", command, &last_sound->value_018, &last_sound->value_01c);
+                sscanf(line, "%s %d %d", command, &last_sound->volume_min, &last_sound->volume_max);
             } else if (_stricmp(command, "sound_falloff") == 0) {
                 sscanf(line, "%s %f", command, &sound_falloff);
             } else if (_stricmp(command, "footstep_vol") == 0) {
-                sscanf(line, "%s %d %d", command, &footstep_volume, &footstep_falloff);
+                sscanf(line, "%s %d %d", command, &footstep_volume, &footstep_combat_volume);
             } else if (_stricmp(command, "probability") == 0) {
                 int probability;
                 if (last_sound == 0) {
@@ -481,7 +482,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                  "mls frequency: Must specify a sound before frequency");
                 }
                 sscanf(line, "%s %d", command, &probability);
-                last_sound->value_024 = (unsigned char)probability;
+                last_sound->probability = static_cast<unsigned char>(probability);
             } else if (_stricmp(command, "animscript") == 0) {
             } else if (_stricmp(command, "script") == 0) {
                 sscanf(line, "%s %s", command, argument);
@@ -571,11 +572,11 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 } else {
                     int sound_type = -1;
                     if (_stricmp(command, "SOUND_FRAME") == 0)
-                        sound_type = 1;
+                        sound_type = W8_SOUND_EVENT_FRAME;
                     else if (_stricmp(command, "SOUND_CYCLE") == 0)
-                        sound_type = 2;
+                        sound_type = W8_SOUND_EVENT_CYCLE;
                     else if (_stricmp(command, "SOUND_FOOTSTEP") == 0)
-                        sound_type = 0x100;
+                        sound_type = W8_SOUND_EVENT_FOOTSTEP;
 
                     if (sound_type != -1) {
                         char cycle_name[256];
@@ -592,24 +593,23 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                         int sound_cycle = ParseMonsterCycleName004C2010(cycle_name, &subcycle);
                         char wave_path[256];
                         wave_path[0] = '\0';
-                        if (sound_type != 0x100) {
+                        if (sound_type != W8_SOUND_EVENT_FOOTSTEP) {
                             sprintf(wave_path, "Data\\Sound\\Monsters\\%s.WAV", wave_name);
                         }
-                        last_sound =
-                            CreateSoundEvent004D57A0(sound_type, sound_cycle, frame, subcycle - 1,
-                                                     wave_path, _stricmp(loop_name, "LOOP") == 0);
+                        last_sound = CreateSoundEvent(sound_type, sound_cycle, frame, subcycle - 1,
+                                                      wave_path, _stricmp(loop_name, "LOOP") == 0);
                         if (last_sound != 0) {
                             (*monster)->AddSoundEvent(last_sound);
-                            last_sound->value_028 = location_id;
-                            last_sound->value_018 = sound_type == 0x100 ? 0x23 : 0x7f;
-                            last_sound->value_01c = last_sound->value_018;
+                            last_sound->location_id = location_id;
+                            last_sound->volume_min =
+                                sound_type == W8_SOUND_EVENT_FOOTSTEP ? 0x23 : 0x7f;
+                            last_sound->volume_max = last_sound->volume_min;
                             if (sound_falloff > 0.0f) {
-                                last_sound->value_02c =
-                                    (unsigned int)(sound_falloff * g_world_scale_005ebc40);
+                                last_sound->falloff = sound_falloff * g_world_scale_005ebc40;
                             }
-                            if (footstep_volume != 0 || footstep_falloff != 0) {
-                                last_sound->value_030 = footstep_volume;
-                                last_sound->value_034 = footstep_falloff;
+                            if (footstep_volume != 0 || footstep_combat_volume != 0) {
+                                last_sound->footstep_volume = footstep_volume;
+                                last_sound->footstep_combat_volume = footstep_combat_volume;
                             }
                         }
                     } else if (_stricmp(command, "SHAKE_FRAME") == 0) {
@@ -1571,7 +1571,7 @@ void W8Monster::Update()
 
     UpdateAttachedObjects004C3F70();
     cycle = Query(6);
-    if (g_monster_combat_timer_enabled_006f0531 != 0 && g_combat_state != 0 &&
+    if (gfKeyState[0x11] != 0 && g_combat_state != 0 &&
         (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
         (cycle == 1 || cycle == 2) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&
@@ -2254,12 +2254,12 @@ void W8Monster::ProcessScript004C80E0()
                 sound_334 = new stSound3D(token, 0);
                 if (sound_334 != 0) {
                     srVector3T<float> position = GetPosition();
-                    sound_334->value_140 = value;
+                    sound_334->volume = value;
                     sound_334->setLocation((double)position.x, (double)position.y,
                                            (double)position.z);
                     if (distance != 0.0f)
-                        sound_334->value_144 = distance;
-                    if (sound_334->Play004AEBF0(0, 0) == 0) {
+                        sound_334->falloff = distance;
+                    if (sound_334->Play(0, 0) == 0) {
                         sound_334->release();
                         sound_334 = 0;
                     } else {
@@ -2453,7 +2453,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 0x29:
-        if (sound_334->IsPlaying004AEC70() != 0) {
+        if (sound_334->IsPlaying() != 0) {
             return 0;
         }
         sound_334->release();
@@ -4122,9 +4122,9 @@ void MonsterPropagateValue004C5870(W8Monster* monster, int value)
         if (count > 0) {
             do {
                 int propagated_value = monster->propagated_value_1e4;
-                W8SoundEvent* object = *monster->m_plsSoundEvents->GetAt(index);
+                W8SoundEvent* event = *monster->m_plsSoundEvents->GetAt(index);
                 ++index;
-                object->value_028 = propagated_value;
+                event->location_id = propagated_value;
             } while (index < count);
         }
     }

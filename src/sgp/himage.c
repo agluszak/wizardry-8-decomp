@@ -54,6 +54,7 @@ typedef union
 	UINT32	uiValue;
 } SplitUINT32;
 
+// FUNCTION: WIZ8 0x0040f850
 HIMAGE CreateImage( SGPFILENAME ImageFile, UINT16 fContents )
 {
 	HIMAGE			hImage = NULL;
@@ -143,6 +144,7 @@ HIMAGE CreateImage( SGPFILENAME ImageFile, UINT16 fContents )
 
 }
 
+// FUNCTION: WIZ8 0x0040f9f0
 BOOLEAN DestroyImage( HIMAGE hImage )
 {
 	Assert( hImage != NULL );
@@ -156,6 +158,7 @@ BOOLEAN DestroyImage( HIMAGE hImage )
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x0040fa10
 BOOLEAN ReleaseImageData( HIMAGE hImage, UINT16 fContents )
 {
 
@@ -245,6 +248,7 @@ BOOLEAN LoadImageData( HIMAGE hImage, UINT16 fContents )
 
 }
 
+// FUNCTION: WIZ8 0x0040fad0
 BOOLEAN CopyImageToBuffer( HIMAGE hImage, UINT32 fBufferType, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	// Use blitter based on type of image
@@ -304,6 +308,7 @@ BOOLEAN CopyImageToBuffer( HIMAGE hImage, UINT32 fBufferType, BYTE *pDestBuf, UI
 
 #ifndef NO_ZLIB_COMPRESSION
 
+// FUNCTION: WIZ8 0x0040fba0
 BOOLEAN Copy8BPPCompressedImageTo8BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	UINT32	uiNumLines;
@@ -384,6 +389,7 @@ BOOLEAN Copy8BPPCompressedImageTo8BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x0040fca0
 BOOLEAN Copy8BPPCompressedImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	UINT32		uiNumLines;
@@ -489,6 +495,7 @@ BOOLEAN Copy16BPPCompressedImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UI
 #endif //NO_ZLIB_COMPRESSION
 
 
+// FUNCTION: WIZ8 0x0040fe40
 BOOLEAN Copy8BPPImageTo8BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	UINT32 uiSrcStart, uiDestStart, uiNumLines, uiLineSize;
@@ -533,6 +540,7 @@ BOOLEAN Copy8BPPImageTo8BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestW
 
 }
 
+// FUNCTION: WIZ8 0x0040ff30
 BOOLEAN Copy16BPPImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	UINT32 uiSrcStart, uiDestStart, uiNumLines, uiLineSize;
@@ -589,6 +597,7 @@ BOOLEAN Extract16BPPCompressedImageToBuffer( HIMAGE hImage, BYTE *pDestBuf )
 }
 
 
+// FUNCTION: WIZ8 0x00410050
 BOOLEAN Copy8BPPImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDestWidth, UINT16 usDestHeight, UINT16 usX, UINT16 usY, SGPRect *srcRect )
 {
 	UINT32 uiSrcStart, uiDestStart, uiNumLines, uiLineSize;
@@ -650,6 +659,7 @@ BOOLEAN Copy8BPPImageTo16BPPBuffer( HIMAGE hImage, BYTE *pDestBuf, UINT16 usDest
 
 }
 
+// FUNCTION: WIZ8 0x00410190
 UINT16 *Create16BPPPalette( SGPPaletteEntry *pPalette )
 {
 	UINT16 *p16BPPPalette, r16, g16, b16, usColor;
@@ -722,6 +732,7 @@ UINT16 *Create16BPPPalette( SGPPaletteEntry *pPalette )
 	4) For gamma correction, pass in weighted values for each color.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x004102c0
 UINT16 *Create16BPPPaletteShaded( SGPPaletteEntry *pPalette, UINT32 rscale, UINT32 gscale, UINT32 bscale, BOOLEAN mono)
 {
 	UINT16 *p16BPPPalette, r16, g16, b16, usColor;
@@ -786,6 +797,7 @@ UINT16 *Create16BPPPaletteShaded( SGPPaletteEntry *pPalette, UINT32 rscale, UINT
 }
 
 // Convert from RGB to 16 bit value
+// FUNCTION: WIZ8 0x004104b0
 UINT16 Get16BPPColor( UINT32 RGBValue )
 {
 	UINT16 r16, g16, b16, usColor;
@@ -896,6 +908,7 @@ SGPPaletteEntry *ConvertRGBToPaletteEntry(UINT8 sbStart, UINT8 sbEnd, UINT8 *pOl
   return pInitEntry;
 }
 
+// FUNCTION: WIZ8 0x00410580
 BOOLEAN GetETRLEImageData( HIMAGE hImage, ETRLEData *pBuffer )
 {
 	// Assertions
@@ -924,6 +937,7 @@ BOOLEAN GetETRLEImageData( HIMAGE hImage, ETRLEData *pBuffer )
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x00410620
 void ConvertRGBDistribution565To555( UINT16 * p16BPPData, UINT32 uiNumberOfPixels )
 {
 	UINT16 *	pPixel;
@@ -952,6 +966,7 @@ void ConvertRGBDistribution565To555( UINT16 * p16BPPData, UINT32 uiNumberOfPixel
 	}
 }
 
+// FUNCTION: WIZ8 0x00410670
 void ConvertRGBDistribution565To655( UINT16 * p16BPPData, UINT32 uiNumberOfPixels )
 {
 	UINT16 *	pPixel;
@@ -979,6 +994,7 @@ void ConvertRGBDistribution565To655( UINT16 * p16BPPData, UINT32 uiNumberOfPixel
 	}
 }
 
+// FUNCTION: WIZ8 0x004106c0
 void ConvertRGBDistribution565To556( UINT16 * p16BPPData, UINT32 uiNumberOfPixels )
 {
 	UINT16 *	pPixel;
@@ -1005,6 +1021,7 @@ void ConvertRGBDistribution565To556( UINT16 * p16BPPData, UINT32 uiNumberOfPixel
 	}
 }
 
+// FUNCTION: WIZ8 0x00410700
 void ConvertRGBDistribution565ToAny( UINT16 * p16BPPData, UINT32 uiNumberOfPixels )
 {
 	UINT16 *	pPixel;

@@ -56,34 +56,58 @@ typedef struct
 	FontTranslationTable *pTranslationTable;
 } FontManager;
 
+// GLOBAL: WIZ8 0x006eb704
 FontManager *pFManager;
+// GLOBAL: WIZ8 0x006eb6a0
 HVOBJECT	FontObjs[MAX_FONTS];
 INT32		FontsLoaded=0;
 
 // Destination printing parameters
+// GLOBAL: WIZ8 0x005ff5f0
 INT32			FontDefault=(-1);
+// GLOBAL: WIZ8 0x005ff5f4
 UINT32		FontDestBuffer=BACKBUFFER;
+// GLOBAL: WIZ8 0x005ff5f8
 UINT32		FontDestPitch=640*2;
+// GLOBAL: WIZ8 0x005ff5fc
 UINT32		FontDestBPP=16;
+// GLOBAL: WIZ8 0x005ff600
 SGPRect		FontDestRegion={0,0,640,480};
+// GLOBAL: WIZ8 0x00650e38
 BOOLEAN		FontDestWrap=FALSE;
+// GLOBAL: WIZ8 0x00650e3a
 UINT16		FontForeground16=0;
+// GLOBAL: WIZ8 0x00650e3c
 UINT16		FontBackground16=0;
+// GLOBAL: WIZ8 0x005ff610
 UINT16		FontShadow16=DEFAULT_SHADOW;
+// GLOBAL: WIZ8 0x00650e3e
 UINT8			FontForeground8=0;
+// GLOBAL: WIZ8 0x00650e3f
 UINT8			FontBackground8=0;
 
 // Temp, for saving printing parameters
+// GLOBAL: WIZ8 0x005ff614
 INT32			SaveFontDefault=(-1);
+// GLOBAL: WIZ8 0x005ff618
 UINT32		SaveFontDestBuffer=BACKBUFFER;
+// GLOBAL: WIZ8 0x005ff61c
 UINT32		SaveFontDestPitch=640*2;
+// GLOBAL: WIZ8 0x005ff620
 UINT32		SaveFontDestBPP=16;
+// GLOBAL: WIZ8 0x005ff628
 SGPRect		SaveFontDestRegion={0,0,640,480};
+// GLOBAL: WIZ8 0x00650e40
 BOOLEAN		SaveFontDestWrap=FALSE;
+// GLOBAL: WIZ8 0x00650e42
 UINT16		SaveFontForeground16=0;
+// GLOBAL: WIZ8 0x00650e44
 UINT16		SaveFontShadow16=0;
+// GLOBAL: WIZ8 0x00650e46
 UINT16		SaveFontBackground16=0;
+// GLOBAL: WIZ8 0x00650e48
 UINT8			SaveFontForeground8=0;
+// GLOBAL: WIZ8 0x00650e49
 UINT8			SaveFontBackground8=0;
 
 //*****************************************************************************
@@ -117,6 +141,7 @@ UINT8 ubForeground, ubBackground;
 // stay at what they are currently set to.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406c20
 void SetFontForeground(UINT8 ubForeground)
 {
 UINT32 uiRed, uiGreen, uiBlue;
@@ -134,6 +159,7 @@ UINT32 uiRed, uiGreen, uiBlue;
 
 }
 
+// FUNCTION: WIZ8 0x00406c90
 void SetFontShadow(UINT8 ubShadow )
 {
 UINT32 uiRed, uiGreen, uiBlue;
@@ -171,6 +197,7 @@ UINT32 uiRed, uiGreen, uiBlue;
 // stay at what they are currently set to.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406d10
 void SetFontBackground(UINT8 ubBackground)
 {
 UINT32 uiRed, uiGreen, uiBlue;
@@ -204,6 +231,7 @@ void SetRGBFontBackground( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
 	FontBackground16 = Get16BPPColor( FROMRGB( uiRed, uiGreen, uiBlue ) );
 }
 
+// FUNCTION: WIZ8 0x00406d80
 void SetRGBFontShadow( UINT32 uiRed, UINT32 uiGreen, UINT32 uiBlue )
 {
 	if((FontDefault < 0) || (FontDefault > MAX_FONTS))
@@ -261,6 +289,7 @@ UINT16 *pPal16;
 //	Sets the palette of a font, using a 16 bit palette.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406dc0
 UINT16 *SetFontObjectPalette16BPP(INT32 iFont, UINT16 *pPal16)
 {
 	Assert(iFont >= 0);
@@ -280,6 +309,7 @@ UINT16 *SetFontObjectPalette16BPP(INT32 iFont, UINT16 *pPal16)
 //	Sets the palette of a font, using a 16 bit palette.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406de0
 UINT16 *GetFontObjectPalette16BPP(INT32 iFont)
 {
 	Assert(iFont >= 0);
@@ -295,6 +325,7 @@ UINT16 *GetFontObjectPalette16BPP(INT32 iFont)
 //	Returns the VOBJECT pointer of a font.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406df0
 HVOBJECT GetFontObject(INT32 iFont)
 {
 	Assert(iFont >= 0);
@@ -329,6 +360,7 @@ int count;
 //  This function returns (-1) if it fails, and debug msgs for a reason.
 //  Otherwise the font number is returned.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406e00
 INT32 LoadFontFile(UINT8 *filename)
 {
 VOBJECT_DESC		vo_desc;
@@ -412,6 +444,7 @@ UINT32 GetWidth(HVOBJECT hSrcVObject, INT16 ssIndex)
 // evaluate to is 512.
 //    'uiCharCount' specifies how many characters of the string are counted.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00406ea0
 INT16 StringPixLengthArg(INT32 usUseFont, UINT32 uiCharCount, UINT16 *pFontString, ...)
 {
 va_list argptr;
@@ -511,6 +544,7 @@ INT16 StringPixLengthArgFastHelp(INT32 usUseFont, INT32 usBoldFont, UINT32 uiCha
 //  Created on:     12/1/99
 //
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00406f90
 INT16 StringNPixLength(UINT16 *string, UINT32 uiMaxCount, INT32 UseFont)
 {
 	UINT32 Cur, uiCharCount;
@@ -536,6 +570,7 @@ INT16 StringNPixLength(UINT16 *string, UINT32 uiMaxCount, INT32 UseFont)
 //	Returns the length of a string in pixels, depending on the font given.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407010
 INT16 StringPixLength(UINT16 *string, INT32 UseFont)
 {
 	UINT32 Cur;
@@ -565,6 +600,7 @@ INT16 StringPixLength(UINT16 *string, INT32 UseFont)
 //	Saves the current font printing settings into temporary locations.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407090
 void SaveFontSettings(void)
 {
 	SaveFontDefault=FontDefault;
@@ -588,6 +624,7 @@ void SaveFontSettings(void)
 //	Restores the last saved font printing settings from the temporary lactions
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407140
 void RestoreFontSettings(void)
 {
 	FontDefault=SaveFontDefault;
@@ -679,6 +716,7 @@ INT16 GetIndex(UINT16 siChar)
 //	Sets the current font number.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407210
 BOOLEAN SetFont(INT32 iFontIndex)
 {
 	Assert(iFontIndex >= 0);
@@ -696,6 +734,7 @@ BOOLEAN SetFont(INT32 iFontIndex)
 // sets the line wrap on/off. DestBuffer is a VOBJECT handle, not a pointer.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407220
 BOOLEAN SetFontDestBuffer(UINT32 DestBuffer, INT32 x1, INT32 y1, INT32 x2, INT32 y2, BOOLEAN wrap)
 {
 	Assert(x2 > x1);
@@ -720,6 +759,7 @@ BOOLEAN SetFontDestBuffer(UINT32 DestBuffer, INT32 x1, INT32 y1, INT32 x2, INT32
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters. Uses monochrome font color settings
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407260
 UINT32 mprintf(INT32 x, INT32 y, UINT16 *pFontString, ...)
 {
 INT32		destx, desty;
@@ -772,6 +812,7 @@ UINT8				*pDestBuf;
 }
 
 
+// FUNCTION: WIZ8 0x00407420
 void VarFindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, UINT16 *pFontString, ... )
 {
 	wchar_t	string[512];
@@ -784,6 +825,7 @@ void VarFindFontRightCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 s
 	FindFontRightCoordinates( sLeft, sTop, sWidth, sHeight, string, iFontIndex, psNewX, psNewY );
 }
 
+// FUNCTION: WIZ8 0x00407530
 void VarFindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHeight, INT32 iFontIndex, INT16 *psNewX, INT16 *psNewY, UINT16 *pFontString, ... )
 {
 	wchar_t	string[512];
@@ -829,6 +871,7 @@ void FindFontCenterCoordinates( INT16 sLeft, INT16 sTop, INT16 sWidth, INT16 sHe
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407650
 UINT32 gprintf(INT32 x, INT32 y, UINT16 *pFontString, ...)
 {
 INT32		destx, desty;
@@ -880,6 +923,7 @@ UINT8				*pDestBuf;
 	return(0);
 }
 
+// FUNCTION: WIZ8 0x004077d0
 UINT32 gprintfDirty(INT32 x, INT32 y, UINT16 *pFontString, ...)
 {
 INT32		destx, desty;
@@ -949,6 +993,7 @@ UINT8				*pDestBuf;
 // the parameters are identical to printf. The resulting string may be no longer
 // than 512 word-characters.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407a10
 UINT32 gprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
 {
 INT32		destx, desty;
@@ -994,6 +1039,7 @@ wchar_t	string[512];
 }
 
 
+// FUNCTION: WIZ8 0x00407b80
 UINT32 mprintf_buffer( UINT8 *pDestBuf, UINT32 uiDestPitchBYTES, UINT32 FontType, INT32 x, INT32 y, UINT16 *pFontString, ...)
 {
 INT32		destx, desty;
@@ -1173,6 +1219,7 @@ UINT8				*pDestBuf;
 //	Starts up the font manager system with the appropriate translation table.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407d30
 BOOLEAN InitializeFontManager(UINT16 usDefaultPixelDepth, FontTranslationTable *pTransTable)
 {
 FontTranslationTable *pTransTab;
@@ -1231,6 +1278,7 @@ UINT8 uiPixelDepth;
 //
 //	Shuts down, and deallocates all fonts.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407e30
 void ShutdownFontManager(void)
 {
   INT32 count;

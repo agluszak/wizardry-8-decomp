@@ -104,11 +104,14 @@ DatabaseManagerHeaderStruct gFileDataBase;
 
 //FileSystem gfs;
 
+// GLOBAL: WIZ8 0x006eb740
 WIN32_FIND_DATA Win32FindInfo[20];
+// GLOBAL: WIZ8 0x00650e08
 BOOLEAN fFindInfoInUse[20] = {FALSE,FALSE,FALSE,FALSE,FALSE,
 															FALSE,FALSE,FALSE,FALSE,FALSE,
 															FALSE,FALSE,FALSE,FALSE,FALSE,
 															FALSE,FALSE,FALSE,FALSE,FALSE };
+// GLOBAL: WIZ8 0x005ff574
 HANDLE hFindInfoHandle[20] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 															INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
@@ -227,6 +230,7 @@ void FileDebug( BOOLEAN f )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404bf0
 BOOLEAN FileExists( STR strFilename )
 {
 	BOOLEAN	fExists = FALSE;
@@ -277,6 +281,7 @@ BOOLEAN FileExists( STR strFilename )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404c40
 BOOLEAN FileExistsNoDB( STR strFilename )
 {
 	BOOLEAN	fExists = FALSE;
@@ -320,6 +325,7 @@ BOOLEAN FileExistsNoDB( STR strFilename )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404c70
 BOOLEAN FileDelete( STR strFilename )
 {
 	return( DeleteFile( strFilename ) );
@@ -829,6 +835,7 @@ BOOLEAN _cdecl FilePrintf( HWFILE hFile, UINT8 *strFormatted, ... )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00405030
 BOOLEAN FileSeek( HWFILE hFile, UINT32 uiDistance, UINT8 uiHow )
 {
 	HANDLE	hRealFile;
@@ -962,6 +969,7 @@ INT32 FileGetPos( HWFILE hFile )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00405150
 UINT32 FileGetSize( HWFILE hFile )
 {
 	HANDLE  hRealHandle;
@@ -1316,6 +1324,7 @@ BOOLEAN GetFileManCurrentDirectory( STRING512 pcDirectory )
 }
 
 
+// FUNCTION: WIZ8 0x004051d0
 BOOLEAN DirectoryExists( STRING512 pcDirectory )
 {
 	UINT32	uiAttribs;
@@ -1347,6 +1356,7 @@ BOOLEAN DirectoryExists( STRING512 pcDirectory )
 }
 
 
+// FUNCTION: WIZ8 0x004051f0
 BOOLEAN MakeFileManDirectory( STRING512 pcDirectory )
 {
 	return CreateDirectory( pcDirectory, NULL );
@@ -1493,6 +1503,7 @@ BOOLEAN EraseDirectory( STRING512 pcDirectory)
 }
 
 
+// FUNCTION: WIZ8 0x00405200
 BOOLEAN GetExecutableDirectory( STRING512 pcDirectory )
 {
 	SGPFILENAME	ModuleFilename;
@@ -1519,6 +1530,7 @@ BOOLEAN GetExecutableDirectory( STRING512 pcDirectory )
 }
 
 
+// FUNCTION: WIZ8 0x00405270
 BOOLEAN GetFileFirst( CHAR8 *pSpec, GETFILESTRUCT *pGFStruct )
 {
 	INT32 x,iWhich=0;
@@ -1553,6 +1565,7 @@ BOOLEAN GetFileFirst( CHAR8 *pSpec, GETFILESTRUCT *pGFStruct )
 	return(TRUE);
 }
 
+// FUNCTION: WIZ8 0x00405300
 BOOLEAN GetFileNext( GETFILESTRUCT *pGFStruct )
 {
 	CHECKF( pGFStruct != NULL );
@@ -1565,6 +1578,7 @@ BOOLEAN GetFileNext( GETFILESTRUCT *pGFStruct )
 	return(FALSE);
 }
 
+// FUNCTION: WIZ8 0x00405350
 void GetFileClose( GETFILESTRUCT *pGFStruct )
 {
 	if ( pGFStruct == NULL )
@@ -1577,6 +1591,7 @@ void GetFileClose( GETFILESTRUCT *pGFStruct )
 	return;
 }
 
+// FUNCTION: WIZ8 0x00405390
 void W32toSGPFileFind( GETFILESTRUCT *pGFStruct, WIN32_FIND_DATA *pW32Struct )
 {
 	UINT32 uiAttribMask;
@@ -1638,6 +1653,7 @@ void W32toSGPFileFind( GETFILESTRUCT *pGFStruct, WIN32_FIND_DATA *pW32Struct )
 
 
 
+// FUNCTION: WIZ8 0x004054d0
 BOOLEAN FileCopy(STR strSrcFile, STR strDstFile, BOOLEAN fFailIfExists)
 {
 	return(CopyFile(strSrcFile, strDstFile, fFailIfExists));
@@ -1750,6 +1766,7 @@ BOOLEAN FileSetAttributes( STR strFilename, UINT32 uiNewAttribs )
 }
 
 
+// FUNCTION: WIZ8 0x004054f0
 UINT32 FileGetAttributes( STR strFilename )
 {
 	UINT32	uiAttribs = 0;
@@ -1792,6 +1809,7 @@ UINT32 FileGetAttributes( STR strFilename )
 
 
 
+// FUNCTION: WIZ8 0x00405550
 BOOLEAN FileClearAttributes( STR strFilename )
 {
 	return SetFileAttributes( strFilename, FILE_ATTRIBUTE_NORMAL );
@@ -1799,6 +1817,7 @@ BOOLEAN FileClearAttributes( STR strFilename )
 
 
 //returns true if at end of file, else false
+// FUNCTION: WIZ8 0x00405570
 BOOLEAN	FileCheckEndOfFile( HWFILE hFile )
 {
 	INT16 sLibraryID;
@@ -1870,6 +1889,7 @@ BOOLEAN	FileCheckEndOfFile( HWFILE hFile )
 
 
 
+// FUNCTION: WIZ8 0x00405630
 BOOLEAN GetFileManFileTime( HWFILE hFile, SGP_FILETIME	*pCreationTime, SGP_FILETIME *pLastAccessedTime, SGP_FILETIME *pLastWriteTime )
 {
 	HANDLE	hRealFile;
@@ -1930,6 +1950,7 @@ BOOLEAN GetFileManFileTime( HWFILE hFile, SGP_FILETIME	*pCreationTime, SGP_FILET
 }
 
 
+// FUNCTION: WIZ8 0x00405720
 INT32	CompareSGPFileTimes( SGP_FILETIME	*pFirstFileTime, SGP_FILETIME *pSecondFileTime )
 {
 	return( CompareFileTime( pFirstFileTime, pSecondFileTime ) );

@@ -8,7 +8,10 @@ struct W8Item;
 struct W8GrCycleLoadContext;
 struct W8World;
 
-void AudioUpdateFinish004AEFD0();
+/* Walks every registered stSound3D each audio update: releases finished
+   auto-release nodes and re-aims/re-volumes playing voices relative to the
+   camera. */
+void Update3DSounds();           /* 0x004AEFD0 */
 int CountSpellsOfKind(int kind); /* 0x004AC8F0 */
 W8SpellVisual* CreateSpellEffect004AD8A0(const char* mls_name, int frame, W8Monster* parent,
                                          int value, int flags);

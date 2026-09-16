@@ -591,9 +591,10 @@ void W8GrCycle::TickAnimation(float scale)
                         frames = 0;
                     }
                     if (m_plsSoundEvents != 0) {
-                        UpdateSoundEvents004D5890(
-                            m_plsSoundEvents, &position, 0x101, representation->current_cycle,
-                            representation->flag_064, representation->current_subcycle);
+                        UpdateSoundEvents(m_plsSoundEvents, &position,
+                                          W8_SOUND_EVENT_FRAME | W8_SOUND_EVENT_FOOTSTEP,
+                                          representation->current_cycle, representation->flag_064,
+                                          representation->current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
                         TriggerShakeEffects004AE170(m_plsShakeEvents, representation->current_cycle,
@@ -647,9 +648,10 @@ unsigned char W8GrCycle::ApplyPendingCycle()
 
         srVector3T<float> position = GetPosition();
         if (m_plsSoundEvents != 0) {
-            UpdateSoundEvents004D5890(m_plsSoundEvents, &position, 0x103,
-                                      representation->current_cycle, representation->flag_064,
-                                      representation->current_subcycle);
+            UpdateSoundEvents(m_plsSoundEvents, &position,
+                              W8_SOUND_EVENT_FRAME | W8_SOUND_EVENT_CYCLE | W8_SOUND_EVENT_FOOTSTEP,
+                              representation->current_cycle, representation->flag_064,
+                              representation->current_subcycle);
         }
         if (m_plsShakeEvents != 0) {
             TriggerShakeEffects004AE170(m_plsShakeEvents, representation->current_cycle,

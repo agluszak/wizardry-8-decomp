@@ -1111,7 +1111,7 @@ void W8OptionsAudioPanel::Populate()
             }
             break;
         case 1:
-            if (IsAmbientSoundMuted()) {
+            if (IsSoundEffectsMuted()) {
                 volume = g_settings_6850c8.muted_sound_effects_volume;
                 muted = true;
             } else {
@@ -1167,7 +1167,7 @@ void W8OptionsAudioPanel::OnDrag(W8HorizontalRangeThumb* thumb)
         SetMusicVolume(static_cast<unsigned char>(thumb->m_position));
         return;
     case 1:
-        SetAmbientSoundVolume0047AD00(static_cast<unsigned char>(thumb->m_position));
+        SetSoundEffectsVolume0047AD00(static_cast<unsigned char>(thumb->m_position));
         return;
     case 2:
         g_settings_6850c8.footstep_volume = static_cast<unsigned char>(thumb->m_position);
@@ -1195,7 +1195,8 @@ void W8OptionsAudioPanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
         SoundPlay("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
         break;
     case 2:
-        PlayFootstep0047A440(5, 9, 0);
+        PlayFootstep0047A440(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_GRAVEL,
+                             W8_FOOTSTEP_KIND_STEP);
         break;
     case 3: {
         SOUNDPARMS options;
@@ -1226,7 +1227,7 @@ void W8OptionsAudioPanel::OnPrimary(W8TextControl* control)
         SetMusicMuted(muted);
         break;
     case 1:
-        SetAmbientSoundMuted(muted);
+        SetSoundEffectsMuted(muted);
         break;
     case 2:
         if (muted != 0) {

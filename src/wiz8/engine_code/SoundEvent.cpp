@@ -27,28 +27,28 @@ W8SoundEvent::~W8SoundEvent()
     if (m_pacWaveName != 0) {
         delete[] m_pacWaveName;
     }
-    if (flag_025 != 0 && handle_020 != -1) {
-        SoundStop(handle_020);
+    if (looping != 0 && sound_handle != -1) {
+        SoundStop(sound_handle);
     }
 }
 
 /* The wave name is copied into storage the event owns and its destructor
    releases. */
 // FUNCTION: WIZ8 0x004d57a0
-W8SoundEvent* CreateSoundEvent004D57A0(int value_000, int value_004, int value_008, int value_00c,
-                                       const char* wave_name, unsigned char flag_025)
+W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, const char* wave_name,
+                               unsigned char looping)
 {
     W8SoundEvent* pSndEvent = new W8SoundEvent();
 
     if (pSndEvent == 0) {
         srAssertFail("pSndEvent", SOUNDEVENT_CPP, 0x70, "SoundEvent: Out of memory");
     }
-    pSndEvent->value_000 = value_000;
-    pSndEvent->value_004 = value_004;
-    pSndEvent->value_008 = value_008;
-    pSndEvent->value_00c = value_00c;
+    pSndEvent->kind = kind;
+    pSndEvent->cycle = cycle;
+    pSndEvent->frame = frame;
+    pSndEvent->subcycle = subcycle;
     pSndEvent->m_pacWaveName = new char[strlen(wave_name) + 1];
-    pSndEvent->flag_025 = flag_025;
+    pSndEvent->looping = looping;
     if (pSndEvent->m_pacWaveName == 0) {
         srAssertFail("pSndEvent->m_pacWaveName", SOUNDEVENT_CPP, 0x79, "SoundEvent: Out of memory");
     }
@@ -74,9 +74,9 @@ static int g_previous_footstep_variant_00683420;
    own classification matches, then play one of them at random without
    repeating the previous choice for as long as a second candidate exists. */
 // FUNCTION: WIZ8 0x004d5890
-unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
-                                        const srVector3T<float>* position, unsigned int event_mask,
-                                        int cycle, unsigned int frame, int subcycle)
+unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
+                                const srVector3T<float>* position, unsigned int event_mask,
+                                int cycle, unsigned int frame, int subcycle)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
@@ -100,18 +100,18 @@ unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
             g_sound_event_candidates_00683408.Clear();
             for (index = 0; index < count; ++index) {
                 W8SoundEvent* event = *events->GetAt(index);
-                unsigned int kind = event->value_000;
+                unsigned int kind = event->kind;
 
                 if ((bit & kind) == 0 || (event_mask & kind) == 0) {
                     continue;
                 }
-                if (kind == 1 || kind == 0x100) {
-                    if ((event->value_004 != -1 && event->value_004 != cycle) ||
-                        event->value_008 != frame || event->value_00c != subcycle) {
+                if (kind == W8_SOUND_EVENT_FRAME || kind == W8_SOUND_EVENT_FOOTSTEP) {
+                    if ((event->cycle != -1 && event->cycle != cycle) || event->frame != frame ||
+                        event->subcycle != subcycle) {
                         continue;
                     }
-                } else if (kind == 2) {
-                    if (event->value_004 != cycle || event->value_00c != subcycle) {
+                } else if (kind == W8_SOUND_EVENT_CYCLE) {
+                    if (event->cycle != cycle || event->subcycle != subcycle) {
                         continue;
                     }
                 }
@@ -130,7 +130,7 @@ unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
                 } while (g_selected_sound_event_00683418 == g_last_sound_event_0061095c);
                 selected =
                     *g_sound_event_candidates_00683408.GetAt(g_selected_sound_event_00683418);
-                if (selected->Play004D5A10(event_mask, position, cycle, frame, subcycle)) {
+                if (selected->Play(event_mask, position, cycle, frame, subcycle)) {
                     g_last_sound_event_0061095c = g_selected_sound_event_00683418;
                 }
             }
@@ -145,13 +145,13 @@ unsigned char UpdateSoundEvents004D5890(W8GrowableVector<W8SoundEvent*>* events,
    the event's own routing, rotate the listener offset into the camera frame,
    and let the ground/step branch rebuild the wave name before the play. */
 // FUNCTION: WIZ8 0x004d5a10
-unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<float>* position,
-                                         int cycle, unsigned int frame, int subcycle)
+unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* position, int cycle,
+                                 unsigned int frame, int subcycle)
 {
     W8Monster* monster = 0;
     bool track_sound = false;
 
-    if (IsAmbientSoundMuted() || !Chance(value_024)) {
+    if (IsSoundEffectsMuted() || !Chance(probability)) {
         return 0;
     }
     float angle = -GetCameraYawRadians();
@@ -162,23 +162,24 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
     srVector3T<float> camera_offset(camera_position.x - position->x,
                                     camera_position.y - position->y,
                                     camera_position.z - position->z);
-    if (camera_offset.Length() < value_02c) {
-        if (value_000 == 0x100 || strstr(m_pacWaveName, "step") != 0 ||
-            (value_028 != 0 && cycle == 4)) {
-            base_volume = value_030;
+    if (camera_offset.Length() < falloff) {
+        if (kind == W8_SOUND_EVENT_FOOTSTEP || strstr(m_pacWaveName, "step") != 0 ||
+            (location_id != 0 && cycle == 4)) {
+            base_volume = footstep_volume;
             track_sound = true;
-            if (value_028 != 0) {
-                monster = GetMonsterByLocationID(value_028);
+            if (location_id != 0) {
+                monster = GetMonsterByLocationID(location_id);
                 if (gXStatus.fCombatMode != 0 || monster->flag_218 != 0) {
-                    base_volume = value_034;
+                    base_volume = footstep_combat_volume;
                 }
             }
-        } else if (value_018 == 0 && value_01c == 0) {
+        } else if (volume_min == 0 && volume_max == 0) {
             if (strchr(m_pacWaveName, '+') != 0) {
                 base_volume = 0x87;
             }
         } else {
-            base_volume = (unsigned int)Random(value_01c - value_018 + 1) + value_018;
+            base_volume =
+                static_cast<unsigned int>(Random(volume_max - volume_min + 1)) + volume_min;
         }
 
         srMatrix3T<float> rotation;
@@ -197,12 +198,12 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
         SOUND3DPARMS options;
 
         memset(&options, 0xff, sizeof(options));
-        unsigned int event_volume =
-            (unsigned int)((g_float_005ebb38 - camera_offset.Length() / value_02c) * base_volume);
-        event_volume = (GetFlag6850F6() * event_volume) / 0x7f;
+        unsigned int event_volume = static_cast<unsigned int>(
+            (g_float_005ebb38 - camera_offset.Length() / falloff) * base_volume);
+        event_volume = (GetSoundEffectsVolume() * event_volume) / 0x7f;
         if (event_volume != 0) {
             options.uiVolume = event_volume;
-            options.uiLoop = (flag_025 == 0);
+            options.uiLoop = (looping == 0);
             options.Pos.flX = x;
             options.Pos.flY = y;
             options.Pos.flZ = z;
@@ -215,11 +216,11 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
             options.Pos.flUpX = 0.0f;
             options.Pos.flUpY = g_float_005ebb38;
             options.Pos.flUpZ = 0.0f;
-            options.Pos.flFalloffMin = value_02c;
-            options.Pos.flFalloffMax = value_02c;
+            options.Pos.flFalloffMin = falloff;
+            options.Pos.flFalloffMax = falloff;
             options.Pos.uiVolume = event_volume;
 
-            if (value_000 == 0x100) {
+            if (kind == W8_SOUND_EVENT_FOOTSTEP) {
                 if (position == 0) {
                     srAssertFail("vPos", SOUNDEVENT_CPP, 0x121, 0);
                 }
@@ -237,8 +238,11 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
                 char path[260];
                 char surface;
                 char material;
-                Function420CA0(position, &surface, &material);
-                BuildFootstepPath0047A540(path, 7, material, 0, variant);
+                GetGroundSurfaceInfo(position, &surface, &material);
+                /* Retail hardcodes the surface to OutdoorsFlat here: the query
+                   result that matters for the path is the material. */
+                BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, material,
+                                          W8_FOOTSTEP_KIND_STEP, variant);
                 delete[] m_pacWaveName;
                 m_pacWaveName = new char[strlen(path) + 1];
                 strcpy(m_pacWaveName, path);
@@ -250,12 +254,12 @@ unsigned char W8SoundEvent::Play004D5A10(unsigned int mask, const srVector3T<flo
                 options.Pos.flFalloffMax += options.Pos.flFalloffMax;
                 options.Pos.flFalloffMin += options.Pos.flFalloffMin;
             }
-            handle_020 = Sound3DPlay(m_pacWaveName, &options);
-            if (handle_020 == -1) {
+            sound_handle = Sound3DPlay(m_pacWaveName, &options);
+            if (sound_handle == -1) {
                 return 0;
             }
             if (track_sound && monster != 0) {
-                monster->TrackSoundHandle004CA6E0(handle_020);
+                monster->TrackSoundHandle004CA6E0(sound_handle);
             }
         }
     }

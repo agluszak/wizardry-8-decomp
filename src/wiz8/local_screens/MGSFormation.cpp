@@ -136,12 +136,12 @@ void RefreshFormationBoard(void)
     if (video_object == 0) {
         return;
     }
-    Function4048D0(video_object, 0, &board_image);
+    MakeVSurfaceFromVObject(video_object, 0, &board_image);
     video_object = GetCatalogVideoObjectHandle(0x9b, 0);
     if (video_object == 0) {
         return;
     }
-    Function4048D0(video_object, 0, &compass_image);
+    MakeVSurfaceFromVObject(video_object, 0, &compass_image);
     DrawFormationSlotMarkers(board_image);
     g_level_block->formation_compass_sprite = CreateSpriteFromSurface(compass_image, 0, 1, 0, 1);
     PositionToolTipNode(g_level_block->formation_compass_sprite, 0x207, 0x167, 0);

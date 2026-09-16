@@ -16,6 +16,7 @@
 #endif
 
 // DirectDrawSurface2 Calls
+// FUNCTION: WIZ8 0x0040f0b0
 void
 DDCreateSurface (	LPDIRECTDRAW2 pExistingDirectDraw,
 								DDSURFACEDESC *pNewSurfaceDesc,
@@ -84,6 +85,7 @@ DDCreateSurfaceInMemory ( LPDIRECTDRAW2 pExistingDirectDraw,
 }
 
 // Lock, unlock calls
+// FUNCTION: WIZ8 0x0040f100
 void DDLockSurface ( LPDIRECTDRAWSURFACE2 pSurface, LPRECT pDestRect, LPDDSURFACEDESC pSurfaceDesc, UINT32 uiFlags, HANDLE hEvent )
 {
 	HRESULT ReturnCode;
@@ -104,6 +106,7 @@ void DDLockSurface ( LPDIRECTDRAWSURFACE2 pSurface, LPRECT pDestRect, LPDDSURFAC
 
 }
 
+// FUNCTION: WIZ8 0x0040f150
 void DDUnlockSurface( LPDIRECTDRAWSURFACE2 pSurface, PTR pSurfaceData )
 {
 	Assert( pSurface != NULL );
@@ -113,6 +116,7 @@ void DDUnlockSurface( LPDIRECTDRAWSURFACE2 pSurface, PTR pSurfaceData )
 }
 
 
+// FUNCTION: WIZ8 0x0040f180
 void DDGetSurfaceDescription ( LPDIRECTDRAWSURFACE2 pSurface, DDSURFACEDESC *pSurfaceDesc )
 {
 	Assert ( pSurface != NULL );
@@ -206,6 +210,7 @@ DDDeleteAttachedSurface (	LPDIRECTDRAWSURFACE2 pParentSurface,
 									0, pDeleteChildSurface ) );
 }
 
+// FUNCTION: WIZ8 0x0040f1c0
 void
 DDReleaseSurface ( LPDIRECTDRAWSURFACE *ppOldSurface1, LPDIRECTDRAWSURFACE2 *ppOldSurface2 )
 {
@@ -221,6 +226,7 @@ DDReleaseSurface ( LPDIRECTDRAWSURFACE *ppOldSurface1, LPDIRECTDRAWSURFACE2 *ppO
 	*ppOldSurface2 = NULL;
 }
 
+// FUNCTION: WIZ8 0x0040f210
 void DDRestoreSurface( LPDIRECTDRAWSURFACE2 pSurface )
 {
 	Assert( pSurface != NULL );
@@ -229,6 +235,7 @@ void DDRestoreSurface( LPDIRECTDRAWSURFACE2 pSurface )
 }
 
 
+// FUNCTION: WIZ8 0x0040f230
 void DDBltFastSurface( LPDIRECTDRAWSURFACE2 pDestSurface, UINT32 uiX, UINT32 uiY, LPDIRECTDRAWSURFACE2 pSrcSurface,
 							LPRECT pSrcRect, UINT32 uiTrans)
 {
@@ -245,6 +252,7 @@ void DDBltFastSurface( LPDIRECTDRAWSURFACE2 pDestSurface, UINT32 uiX, UINT32 uiY
 }
 
 
+// FUNCTION: WIZ8 0x0040f290
 void DDBltSurface( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDestRect, LPDIRECTDRAWSURFACE2 pSrcSurface,
 					    LPRECT pSrcRect, UINT32 uiFlags, LPDDBLTFX pDDBltFx )
 {
@@ -263,6 +271,7 @@ void DDBltSurface( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDestRect, LPDIRECT
 }
 
 
+// FUNCTION: WIZ8 0x0040f300
 void DDCreatePalette( LPDIRECTDRAW2 pDirectDraw, UINT32 uiFlags, LPPALETTEENTRY pColorTable, LPDIRECTDRAWPALETTE FAR *ppDDPalette,
 								IUnknown FAR * pUnkOuter)
 {
@@ -291,6 +300,7 @@ void DDGetSurfacePalette( LPDIRECTDRAWSURFACE2 pSurface, LPDIRECTDRAWPALETTE *pp
 
 }
 
+// FUNCTION: WIZ8 0x0040f340
 void DDSetPaletteEntries( LPDIRECTDRAWPALETTE pPalette, UINT32 uiFlags, UINT32 uiStartingEntry,
 								UINT32 uiCount, LPPALETTEENTRY pEntries )
 {
@@ -301,6 +311,7 @@ void DDSetPaletteEntries( LPDIRECTDRAWPALETTE pPalette, UINT32 uiFlags, UINT32 u
 
 }
 
+// FUNCTION: WIZ8 0x0040f380
 void DDGetPaletteEntries( LPDIRECTDRAWPALETTE pPalette, UINT32 uiFlags, UINT32 uiBase,
 								UINT32 uiNumEntries, LPPALETTEENTRY pEntries )
 {
@@ -311,6 +322,7 @@ void DDGetPaletteEntries( LPDIRECTDRAWPALETTE pPalette, UINT32 uiFlags, UINT32 u
 
 }
 
+// FUNCTION: WIZ8 0x0040f3c0
 void DDReleasePalette( LPDIRECTDRAWPALETTE pPalette )
 {
 	Assert( pPalette != NULL );
@@ -337,6 +349,7 @@ void DDReleaseDC( LPDIRECTDRAWSURFACE2 pSurface, HDC hDC )
 
 }
 
+// FUNCTION: WIZ8 0x0040f3e0
 void DDSetSurfaceColorKey( LPDIRECTDRAWSURFACE2 pSurface, UINT32 uiFlags, LPDDCOLORKEY pDDColorKey )
 {
 	Assert( pSurface != NULL );
@@ -390,6 +403,7 @@ void DDSetClipperList( LPDIRECTDRAWCLIPPER pDDClipper, LPRGNDATA pClipList, UINT
 
 
 
+// FUNCTION: WIZ8 0x0040f410
 HRESULT BltFastDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, INT32 uiX, INT32 uiY, LPDIRECTDRAWSURFACE2 pSrcSurface, LPRECT pSrcRect, UINT32 uiTrans )
 {
 	DDSURFACEDESC SurfaceDescription;
@@ -451,6 +465,7 @@ HRESULT BltFastDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, INT32 
 }
 
 
+// FUNCTION: WIZ8 0x0040f5a0
 HRESULT BltDDSurfaceUsingSoftware( LPDIRECTDRAWSURFACE2 pDestSurface, LPRECT pDestRect, LPDIRECTDRAWSURFACE2 pSrcSurface, LPRECT pSrcRect, UINT32 uiFlags, LPDDBLTFX pDDBltFx )
 {
 	DDSURFACEDESC SurfaceDescription;
