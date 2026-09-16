@@ -22,7 +22,7 @@ env:
 
 jobs:
   ci:
-    name: Checks, lints, and tests
+    name: Public checks, lints, and tests
     runs-on: ubuntu-24.04
     timeout-minutes: 150
     outputs:
