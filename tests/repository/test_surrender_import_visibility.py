@@ -14,6 +14,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 SURRENDER_HEADERS = REPOSITORY / "include" / "surrender"
 
 CLASS_IMPORT_RE = re.compile(r"\bclass\s+SR_DLL_IMPORT\s+([A-Za-z_]\w*)")
+COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)
 
 # Audited class-wide imports. Removing one is just as ABI-significant as adding
 # one: class dllimport changes implicit special members, vtable emission and call
@@ -97,10 +98,14 @@ INLINE_CORE_ACCESSORS = {
 }
 
 
+def _code(path: Path) -> str:
+    return COMMENT_RE.sub("", path.read_text(encoding="utf-8"))
+
+
 def _class_imports() -> set[str]:
     imports: set[str] = set()
     for header in SURRENDER_HEADERS.glob("*.h"):
-        imports.update(CLASS_IMPORT_RE.findall(header.read_text(encoding="utf-8")))
+        imports.update(CLASS_IMPORT_RE.findall(_code(header)))
     return imports
 
 
@@ -135,8 +140,7 @@ def test_class_wide_surrender_imports_match_audited_surface() -> None:
 def test_provider_only_headers_have_no_consumer_import_annotations() -> None:
     offenders = []
     for filename in sorted(PROVIDER_ONLY_HEADERS):
-        text = (SURRENDER_HEADERS / filename).read_text(encoding="utf-8")
-        if "SR_DLL_IMPORT" in text:
+        if "SR_DLL_IMPORT" in _code(SURRENDER_HEADERS / filename):
             offenders.append(filename)
 
     assert not offenders, (
@@ -148,7 +152,7 @@ def test_provider_only_headers_have_no_consumer_import_annotations() -> None:
 def test_mixed_headers_match_audited_member_import_surface() -> None:
     errors = []
     for filename, expected in AUDITED_MIXED_MEMBER_IMPORTS.items():
-        text = (SURRENDER_HEADERS / filename).read_text(encoding="utf-8")
+        text = _code(SURRENDER_HEADERS / filename)
         observed_count = text.count("SR_DLL_IMPORT")
         if observed_count != len(expected):
             errors.append(
@@ -162,7 +166,7 @@ def test_mixed_headers_match_audited_member_import_surface() -> None:
 
 
 def test_fstream_opener_stays_provider_only() -> None:
-    text = (SURRENDER_HEADERS / "srIStreamOpener.h").read_text(encoding="utf-8")
+    text = _code(SURRENDER_HEADERS / "srIStreamOpener.h")
     marker = "class srFStreamOpener"
     assert marker in text
     fstream_declaration = text.split(marker, 1)[1]
@@ -172,7 +176,7 @@ def test_fstream_opener_stays_provider_only() -> None:
 
 
 def test_sr_core_proven_inline_accessors_stay_header_visible() -> None:
-    header = (SURRENDER_HEADERS / "srCore.h").read_text(encoding="utf-8")
+    header = _code(SURRENDER_HEADERS / "srCore.h")
 
     for method, member in INLINE_CORE_ACCESSORS.items():
         body = re.compile(
