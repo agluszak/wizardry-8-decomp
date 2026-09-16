@@ -2,19 +2,21 @@
 
 #include "srHeap.h"
 
+/* Provider-side utility. No known Wizardry/JPEG/ZIP consumer imports srThread
+   symbols, so its declarations must not carry consumer dllimport codegen. */
 class srThread {
 public:
-    SR_DLL_IMPORT srThread& operator=(const srThread& thread);
+    srThread& operator=(const srThread& thread);
 
-    static SR_DLL_IMPORT unsigned long begin(
+    static unsigned long begin(
         void (__cdecl* entry)(void*), void* argument);
-    static SR_DLL_IMPORT void end();
-    static SR_DLL_IMPORT unsigned long getHandle();
-    static SR_DLL_IMPORT long getYieldCount();
-    static SR_DLL_IMPORT void yield(unsigned long milliseconds);
+    static void end();
+    static unsigned long getHandle();
+    static long getYieldCount();
+    static void yield(unsigned long milliseconds);
 
 private:
-    static SR_DLL_IMPORT long yieldCount;
+    static long yieldCount;
 };
 
 static_assert(sizeof(srThread) == 0x01, "srThread_must_be_0x01");
