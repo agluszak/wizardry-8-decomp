@@ -2,16 +2,18 @@
 
 #include "srHeap.h"
 
+/* Provider-side utility. The SR vtable is known, but no known consumer imports
+   srMutex symbols; provider ABI evidence alone does not justify dllimport. */
 class srMutex {
 public:
-    SR_DLL_IMPORT srMutex();
-    SR_DLL_IMPORT srMutex(const srMutex& mutex);
-    virtual SR_DLL_IMPORT ~srMutex();
-    SR_DLL_IMPORT srMutex& operator=(const srMutex& mutex);
+    srMutex();
+    srMutex(const srMutex& mutex);
+    virtual ~srMutex();
+    srMutex& operator=(const srMutex& mutex);
 
-    SR_DLL_IMPORT int accessAvailable();
-    SR_DLL_IMPORT void getAccess();
-    SR_DLL_IMPORT void releaseAccess();
+    int accessAvailable();
+    void getAccess();
+    void releaseAccess();
 
 private:
     HANDLE handle_04;
