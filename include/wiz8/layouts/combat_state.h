@@ -43,7 +43,9 @@ struct W8PartySlotRow {
     int item_id_0c9;
     unsigned char item_origin;
     unsigned short item_slot;
-    unsigned char flag_0d0;
+    /* 0x0d0: the non-melee W8_ACTION_* code ChooseAction stored for the slot,
+       0xff when none; the action-key paths dispatch on it as "iActionState". */
+    unsigned char queued_action;
     W8CombatSlot target_context_5;
     /* 0x0f1: the slot's place in the marching order, the index of its entry
        in g_status_685170.party_order_slots. */
@@ -58,7 +60,7 @@ struct W8PartySlotRow {
     unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
     unsigned char flag_103;
-    unsigned char action_is_kind_one;
+    unsigned char action_is_berserk;
     unsigned char flag_105;
 };
 

@@ -10,6 +10,7 @@ struct W8ItemDatabaseRecord;
 struct W8NpcState;
 
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
+int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
 
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
@@ -133,6 +134,17 @@ extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 extern unsigned char g_byte_652da6;
 
+/* The (origin, slot) addressing FindCharacterItemAt resolves and
+   GetOriginOfCharacterItem reports: zero is the carrier's backpack array,
+   one the worn equipment array and two the shared party pool. The
+   ReviewCharacterScreen camp handler reads the same numbering. */
+enum W8ItemOrigin {
+    W8_ITEM_ORIGIN_BACKPACK = 0,
+    W8_ITEM_ORIGIN_EQUIPPED = 1,
+    W8_ITEM_ORIGIN_PARTY_POOL = 2,
+    W8_ITEM_ORIGIN_COUNT = 3
+};
+
 void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
@@ -158,3 +170,5 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);
 unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
+void BindEveryPartyItem(void);               /* 0x0051D230 */
+bool Function522D40(W8Character* character); /* 0x00522D40 */

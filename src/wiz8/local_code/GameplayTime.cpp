@@ -334,7 +334,7 @@ after_early: {
     {
         int amount =
             (static_cast<int>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[2])) +
-             static_cast<int>(static_cast<signed char>(record->unknown_0cd[1]))) *
+             static_cast<int>(static_cast<signed char>(record->unknown_0ce))) *
             static_cast<int>(minutes);
 
         if (amount < 1) {

@@ -92,7 +92,7 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
         MGSKeyBinding* binding = new MGSKeyBinding;
         binding->key = key;
         binding->modifiers = modifiers;
-        binding->unknown_004 = 1;
+        binding->active = 1;
         binding->command = command;
 
         int old_index = FindBinding(command);

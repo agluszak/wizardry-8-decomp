@@ -127,7 +127,7 @@ void RecordFactChangeForJournal(int fact_id)
         return;
     }
     if (gXStatus.fNpcDialogueMode != 0) {
-        QueueNpcMessageLine(8, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_JOURNAL_QUOTE, 0);
         return;
     }
     int range = GetTextBoxScrollRange();

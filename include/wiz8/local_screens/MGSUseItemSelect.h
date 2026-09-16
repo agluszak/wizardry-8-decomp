@@ -18,4 +18,5 @@ void SetValue69B9A4(int value);
 void Function59D180(void);
 void SelectUseItemLine0059DDC0(int line);
 
-void Function59CAC0(void);
+void CloseUseItemSelectView(void);
+void Function59CC40(int party_slot); /* 0x0059CC40 */

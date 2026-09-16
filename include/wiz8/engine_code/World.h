@@ -45,4 +45,4 @@ void SetWorld659AB8(W8World* world);
 
 void Function44E830(W8World* world, int handle);
 void Function44E9A0(W8World* world, int handle);
-void Function48F280(W8World* world, const char* name, int active);
+void UpdateCameraPathStateByName(W8World* world, const char* name, int active);

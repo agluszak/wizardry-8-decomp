@@ -534,7 +534,8 @@ void CalcAttacks(W8Character* character)
             unsigned int party_slot = CharacterPointerToPartySlot(character);
             W8NpcState* npc =
                 GetNpcState(g_status_685170.buffers.party_rows[party_slot].animation_0fa);
-            if (npc != 0 && npc->name_style == ' ' && !GetFact(0x44)) {
+            if (npc != 0 && npc->name_style == W8_NPC_RFS81_A &&
+                !GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED)) {
                 attack->attack_score /= 2;
             }
         }
@@ -902,7 +903,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
     RebuildCharacterModifierBlock(destination);
     RecalculateCharacterDerivedStats(destination);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        Function561EC0();
+        RefreshPartySlotRegions();
     }
     return slot;
 }

@@ -453,7 +453,7 @@ void ResetPartySlotRow(int slot)
     memset(row, 0, sizeof(W8PartySlotRow));
     row->occupied = 1;
     row->spell_id = 0;
-    row->flag_0d0 = 0xff;
+    row->queued_action = 0xff;
     SetSlotAction(slot, 0, -1);
 }
 

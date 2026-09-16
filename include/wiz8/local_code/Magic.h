@@ -48,7 +48,7 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
 void RecountLearnedSpellsByRealm004F96A0(W8Character* character);
-char CanCharacterCastSpell(W8Character* character, int spell_id);
+bool CanCharacterCastSpell(W8Character* character, int spell_id);
 unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
                                            char prefer_unlocked, unsigned int power_level,
                                            int level_bonus);
@@ -81,10 +81,23 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 /* 0x00501400: the power level the party slot's chosen spell can actually be
    cast at; zero means the cast cannot happen at all. */
 int GetAffordableSpellPowerLevel(int party_slot);
+/* Whether the party slot's recorded spell is still castable. */
+bool CanPartySlotCastRecordedSpell(int party_slot); /* 0x005012E0 */
+/* Whether the party slot's recorded item is still usable. */
+bool CanPartySlotUseRecordedItem(int party_slot); /* 0x00501660 */
+/* Queue the slot's recorded spell cast; zero keeps the recorded power. */
+void StartCharacterSpellCast(int party_slot, int power_level); /* 0x00501590 */
+/* Queue the slot's recorded item use. */
+void StartCharacterItemUse(int party_slot); /* 0x00501790 */
+/* Queue the slot's breath weapon use. */
+void StartCharacterBreathAttack(int party_slot); /* 0x00501880 */
+/* Whether the party slot's breath weapon is off cooldown. */
+bool CanPartySlotReBreathe(int party_slot); /* 0x00501860 */
+void Function502460(void);                  /* 0x00502460 */
 /* 0x004FF4B0: the failure chance for one cast at a power level. Retail call
    sites push three arguments. */
 unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
-                                        unsigned int power_level);
+                                          unsigned int power_level);
 char Function501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 

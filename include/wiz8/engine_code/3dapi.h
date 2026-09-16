@@ -14,6 +14,9 @@ extern unsigned char g_world_cleanup_flag_00659757;
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 extern unsigned char g_world_mesh_update_enabled_00607d7d;
 
+/* 0x00450780: the three-argument assert the main-game code paths use; it
+   forwards to the four-argument SurRender export. */
+void ReportAssertion(const char* expression, const char* source_path, long line);
 void Function44FC20(W8World* world, unsigned int flags);
 void Function450210(W8World* world, unsigned int flags);
 void SetCameraSwayMode(srCamera* camera, int mode);

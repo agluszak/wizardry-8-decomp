@@ -74,8 +74,9 @@ struct W8GlobalStatus {
     unsigned char flags_2367[0x20];
     int game_time_ms;
     unsigned char unknown_238b[4];
-    /* 0x238f: scales the monster-sight threshold while set. */
-    unsigned char flag_238f;
+    /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
+       party movement, and scales the monster-sight threshold while set. */
+    unsigned char search_mode;
     /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
@@ -149,15 +150,19 @@ struct W8GlobalStatus {
        slots. */
     int value_423d;
     unsigned char unknown_4241[0x732];
-    /* 0x4973/0x4977: GetTickCount stamps that retire NPC 0x1b3 and then start
-       the 0x1b6 cycle. */
-    int value_4973;
-    int value_4977;
+    /* 0x4973/0x4977: GetTickCount stamps. NpcScriptSavantHackDone writes the
+       first; UpdateNpcEvents retires NPC 0x1b3 fifty ticks later and starts
+       the second, which gates monster group 0x1b6's Bela cycle after five
+       seconds. */
+    int savant_hack_tick;
+    int bela_cycle_tick;
     unsigned char unknown_497b[0x10];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int value_498b;
-    int value_498f;
-    int value_4993;
+    /* 0x498f/0x4993: pending-stage flags set by FACT_QUE_ENDGAME2/3; the book
+       callback queues ENDGAME2's script notice while either holds. */
+    int endgame2_queued;
+    int endgame3_queued;
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
@@ -215,8 +220,8 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
 static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
 static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
-static_assert(offsetof(W8GlobalStatus, value_498f) == 0x498f, "W8GlobalStatus_value_498f_offset");
-static_assert(offsetof(W8GlobalStatus, value_4993) == 0x4993, "W8GlobalStatus_value_4993_offset");
+static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f, "W8GlobalStatus_value_498f_offset");
+static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993, "W8GlobalStatus_value_4993_offset");
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
 static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");

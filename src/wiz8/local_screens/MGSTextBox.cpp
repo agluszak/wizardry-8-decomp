@@ -266,71 +266,73 @@ static unsigned int GetTextBoxLineCount(short text_box)
 }
 
 // FUNCTION: WIZ8 0x0058D7E0
-bool GrowDialogueTextBuffer(void)
+static bool GrowDialogueTextBuffer(void)
 {
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0) {
+    if (g_level_block->dialogue_text_input_open == 0) {
+        return false;
+    }
+    if (g_level_block->dialogue_text_input == 0) {
+        return false;
+    }
+    if (g_level_block->dialogue_text_input->text_capacity + 0x400 > 0x3ff8) {
         return false;
     }
 
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    if (input->text_capacity + 0x400 > 0x3ff8) {
+    wchar_t* previous = g_level_block->dialogue_text_input->text;
+    g_level_block->dialogue_text_input->text_capacity += 0x400;
+    g_level_block->dialogue_text_input->text =
+        new wchar_t[g_level_block->dialogue_text_input->text_capacity];
+    if (g_level_block->dialogue_text_input->text == 0) {
+        g_level_block->dialogue_text_input->text = previous;
+        g_level_block->dialogue_text_input->text_capacity -= 0x400;
         return false;
     }
-
-    wchar_t* previous = input->text;
-    input->text_capacity += 0x400;
-    input->text = new wchar_t[input->text_capacity];
-    if (input->text == 0) {
-        input->text = previous;
-        input->text_capacity -= 0x400;
-        return false;
-    }
-    wcscpy(input->text, previous);
+    wcscpy(g_level_block->dialogue_text_input->text, previous);
     delete[] previous;
     return true;
 }
 
 // FUNCTION: WIZ8 0x0058D890
-bool GrowDialogueLineOffsets(void)
+static bool GrowDialogueLineOffsets(void)
 {
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0) {
+    if (g_level_block->dialogue_text_input_open == 0) {
+        return false;
+    }
+    if (g_level_block->dialogue_text_input == 0) {
         return false;
     }
 
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    unsigned int* previous = input->line_offsets;
-    input->line_capacity += 0x20;
-    input->line_offsets = new unsigned int[input->line_capacity];
-    if (input->line_offsets == 0) {
-        input->line_offsets = previous;
-        input->line_capacity -= 0x20;
+    unsigned int* previous = g_level_block->dialogue_text_input->line_offsets;
+    g_level_block->dialogue_text_input->line_capacity += 0x20;
+    g_level_block->dialogue_text_input->line_offsets =
+        new unsigned int[g_level_block->dialogue_text_input->line_capacity];
+    if (g_level_block->dialogue_text_input->line_offsets == 0) {
+        g_level_block->dialogue_text_input->line_offsets = previous;
+        g_level_block->dialogue_text_input->line_capacity -= 0x20;
         return false;
     }
-    for (unsigned int line = 0; line < input->line_count; ++line) {
-        input->line_offsets[line] = previous[line];
-    }
+    memcpy(g_level_block->dialogue_text_input->line_offsets, previous,
+           g_level_block->dialogue_text_input->line_count * sizeof(unsigned int));
     delete[] previous;
     return true;
 }
 
 // FUNCTION: WIZ8 0x0058D940
-void ReleaseDialogueTextInput(void)
+static void ReleaseDialogueTextInput(void)
 {
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    if (input != 0) {
-        delete[] input->text;
-        delete[] input->line_offsets;
-        delete[] input->first_line_prefix;
-        delete input;
+    if (g_level_block->dialogue_text_input != 0) {
+        delete[] g_level_block->dialogue_text_input->text;
+        delete[] g_level_block->dialogue_text_input->line_offsets;
+        delete[] g_level_block->dialogue_text_input->first_line_prefix;
+        delete g_level_block->dialogue_text_input;
         g_level_block->dialogue_text_input = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x0058DF60
-void InvalidateDialogueTextCursor(void)
+static void InvalidateDialogueTextCursor(void)
 {
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    input->dirty = 1;
+    g_level_block->dialogue_text_input->dirty = 1;
     RequestRedraw(0x80000000);
 
     W8ControlsRect bounds;
@@ -338,70 +340,84 @@ void InvalidateDialogueTextCursor(void)
     bounds.top = g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] -
                  g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
                  g_level_block->text_box_top;
-    bounds.right = StringPixLength(input->text, g_level_block->value_2e8) + bounds.left;
+    bounds.right = StringPixLength(g_level_block->dialogue_text_input->text,
+                                   g_level_block->value_2e8) +
+                 bounds.left;
     bounds.bottom = GetFontHeight(g_level_block->value_2e8) + bounds.top;
     InvalidateMainGameActionPanelRect(&bounds);
 }
 
 // FUNCTION: WIZ8 0x0058DCA0
-void RewrapDialogueTextFromLine(unsigned int line)
+static void RewrapDialogueTextFromLine(unsigned int line)
 {
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
     do {
-        unsigned int start = input->line_offsets[line - 1];
+        unsigned int start = g_level_block->dialogue_text_input->line_offsets[line - 1];
         int width = 0;
-        if (line == 1 && input->first_line_prefix != 0) {
-            width = StringPixLength(input->first_line_prefix, g_level_block->value_2e8);
+        if (line == 1 && g_level_block->dialogue_text_input->first_line_prefix != 0) {
+            width = StringPixLength(g_level_block->dialogue_text_input->first_line_prefix,
+                                    g_level_block->value_2e8);
         }
-        input->line_count = line;
+        g_level_block->dialogue_text_input->line_count = line;
 
-        size_t word_length = wcscspn(input->text + start, L" ");
-        width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1, input->text + start);
-        if (static_cast<unsigned int>(width) > input->wrap_width) {
+        size_t word_length =
+            wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
+        width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
+                                    g_level_block->dialogue_text_input->text + start);
+        if (static_cast<unsigned int>(width) >
+            g_level_block->dialogue_text_input->wrap_width) {
             return;
         }
 
         for (;;) {
-            if (input->text[start + word_length] == 0) {
+            start += word_length;
+            if (g_level_block->dialogue_text_input->text[start] == 0) {
                 return;
             }
-            start += word_length + 1;
-            word_length = wcscspn(input->text + start, L" ");
-            width +=
-                StringPixLengthArg(g_level_block->value_2e8, word_length + 1, input->text + start);
-            if (static_cast<unsigned int>(width) > input->wrap_width) {
+            ++start;
+            word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
+            width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
+                                        g_level_block->dialogue_text_input->text + start);
+            if (static_cast<unsigned int>(width) >
+                g_level_block->dialogue_text_input->wrap_width) {
                 break;
             }
         }
 
-        if (input->line_count == input->line_capacity && !GrowDialogueLineOffsets()) {
+        if (g_level_block->dialogue_text_input->line_count ==
+                g_level_block->dialogue_text_input->line_capacity &&
+            !GrowDialogueLineOffsets()) {
             return;
         }
-        input->line_offsets[line] = start;
-        ++input->line_count;
+        g_level_block->dialogue_text_input->line_offsets[line] = start;
+        ++g_level_block->dialogue_text_input->line_count;
 
-        if (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->value_fc != 4) {
-            unsigned int count = GetTextBoxLineCount(g_status_685170.text_line_cursor_1795);
-            ScrollTextBoxTo(count - GetTextBoxVisibleLineCount());
+        if (g_level_block->dialogue_text_input->cursor >
+                g_level_block->dialogue_text_input->line_offsets[line] &&
+            !IsNpcDialogueTextBoxActive577830()) {
+            ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
+                            GetTextBoxVisibleLineCount());
         }
         ++line;
     } while (true);
 }
 
 // FUNCTION: WIZ8 0x0058D9C0
-void InsertDialogueTextCharacter(wchar_t character)
+static void InsertDialogueTextCharacter(wchar_t character)
 {
-    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0) {
+    if (g_level_block->dialogue_text_input_open == 0) {
+        return;
+    }
+    if (g_level_block->dialogue_text_input == 0) {
         return;
     }
 
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    size_t length = wcslen(input->text);
-    if (input->text_capacity < length + 2 && !GrowDialogueTextBuffer()) {
+    size_t length = wcslen(g_level_block->dialogue_text_input->text);
+    if (g_level_block->dialogue_text_input->text_capacity < length + 2 &&
+        !GrowDialogueTextBuffer()) {
         return;
     }
 
-    unsigned int line = FindDialogueTextLine(input);
+    unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
     unsigned int shown =
         g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795];
     unsigned int scroll = g_level_block->text_lines[g_status_685170.text_line_cursor_1795];
@@ -411,62 +427,104 @@ void InsertDialogueTextCharacter(wchar_t character)
         ScrollTextBoxTo(shown - 8 + line);
     }
 
-    bool joins_previous_line = false;
-    if (character == L' ' && line > 1) {
-        unsigned int previous_start = input->line_offsets[line - 1];
-        joins_previous_line =
-            wcscspn(input->text + previous_start, L" ") >= input->cursor - previous_start;
-    }
-
-    for (size_t index = length + 1; index > input->cursor; --index) {
-        input->text[index] = input->text[index - 1];
-    }
-    input->text[input->cursor++] = character;
-
-    if (joins_previous_line) {
-        --line;
-    } else if (line >= input->line_count) {
-        int width = 0;
-        if (line == 1 && input->first_line_prefix != 0) {
-            width = StringPixLength(input->first_line_prefix, g_level_block->value_2e8);
+    unsigned char joins_previous_line = 0;
+    if (character == L' ') {
+        unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+        if (word_line > 1) {
+            unsigned int previous_start =
+                g_level_block->dialogue_text_input->line_offsets[word_line - 1];
+            joins_previous_line =
+                wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
+                g_level_block->dialogue_text_input->cursor - previous_start;
         }
-        unsigned int start = input->line_offsets[line - 1];
-        width += StringPixLength(input->text + start, g_level_block->value_2e8);
-        if (static_cast<unsigned int>(width) > input->wrap_width) {
+    }
+
+    for (int index = static_cast<int>(length);
+         index >= static_cast<int>(g_level_block->dialogue_text_input->cursor); --index) {
+        g_level_block->dialogue_text_input->text[index + 1] =
+            g_level_block->dialogue_text_input->text[index];
+    }
+
+    if (joins_previous_line != 0) {
+        g_level_block->dialogue_text_input
+            ->text[g_level_block->dialogue_text_input->cursor++] = character;
+        RewrapDialogueTextFromLine(--line);
+    } else {
+        g_level_block->dialogue_text_input
+            ->text[g_level_block->dialogue_text_input->cursor++] = character;
+        if (line < g_level_block->dialogue_text_input->line_count) {
             RewrapDialogueTextFromLine(line);
+        } else {
+            int width = 0;
+            if (line == 1 && g_level_block->dialogue_text_input->first_line_prefix != 0) {
+                width = StringPixLength(g_level_block->dialogue_text_input->first_line_prefix,
+                                        g_level_block->value_2e8);
+            }
+            width += StringPixLength(
+                g_level_block->dialogue_text_input->text +
+                    g_level_block->dialogue_text_input->line_offsets[line - 1],
+                g_level_block->value_2e8);
+            if (static_cast<unsigned int>(width) >
+                g_level_block->dialogue_text_input->wrap_width) {
+                RewrapDialogueTextFromLine(line);
+            }
         }
     }
     InvalidateDialogueTextCursor();
 }
 
 // FUNCTION: WIZ8 0x0058E010
-void DeleteDialogueTextCharacter(unsigned int key)
+static void DeleteDialogueTextCharacter(unsigned int key)
 {
-    W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    size_t length = wcslen(input->text);
-    unsigned int line = FindDialogueTextLine(input);
-    bool joins_previous_line = false;
-    if (line > 1) {
-        unsigned int previous_start = input->line_offsets[line - 1];
-        joins_previous_line =
-            wcscspn(input->text + previous_start, L" ") >= input->cursor - previous_start;
-    }
+    size_t length = wcslen(g_level_block->dialogue_text_input->text);
 
-    if (key == 8 && input->cursor != 0) {
-        for (unsigned int index = input->cursor; index <= length; ++index) {
-            input->text[index - 1] = input->text[index];
+    if (key == 8) {
+        if (g_level_block->dialogue_text_input->cursor != 0) {
+            unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+            unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+            unsigned char joins_previous_line = 0;
+            if (word_line > 1) {
+                unsigned int previous_start =
+                    g_level_block->dialogue_text_input->line_offsets[word_line - 1];
+                joins_previous_line =
+                    wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
+                    g_level_block->dialogue_text_input->cursor - previous_start;
+            }
+            for (unsigned int index = g_level_block->dialogue_text_input->cursor; index <= length;
+                 ++index) {
+                g_level_block->dialogue_text_input->text[index - 1] =
+                    g_level_block->dialogue_text_input->text[index];
+            }
+            --g_level_block->dialogue_text_input->cursor;
+            if (joins_previous_line != 0) {
+                RewrapDialogueTextFromLine(--line);
+            } else if (line != g_level_block->dialogue_text_input->line_count) {
+                RewrapDialogueTextFromLine(line);
+            }
         }
-        --input->cursor;
-    } else if (key == 0x2e && input->cursor < length) {
-        for (unsigned int index = input->cursor; index < length; ++index) {
-            input->text[index] = input->text[index + 1];
+    } else if (key == 0x2e) {
+        if (g_level_block->dialogue_text_input->cursor < length) {
+            unsigned int line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+            unsigned int word_line = FindDialogueTextLine(g_level_block->dialogue_text_input);
+            unsigned char joins_previous_line = 0;
+            if (word_line > 1) {
+                unsigned int previous_start =
+                    g_level_block->dialogue_text_input->line_offsets[word_line - 1];
+                joins_previous_line =
+                    wcscspn(g_level_block->dialogue_text_input->text + previous_start, L" ") >=
+                    g_level_block->dialogue_text_input->cursor - previous_start;
+            }
+            for (unsigned int index = g_level_block->dialogue_text_input->cursor; index < length;
+                 ++index) {
+                g_level_block->dialogue_text_input->text[index] =
+                    g_level_block->dialogue_text_input->text[index + 1];
+            }
+            if (joins_previous_line != 0) {
+                RewrapDialogueTextFromLine(--line);
+            } else if (line != g_level_block->dialogue_text_input->line_count) {
+                RewrapDialogueTextFromLine(line);
+            }
         }
-    }
-
-    if (joins_previous_line) {
-        --line;
-    } else if (line != input->line_count) {
-        RewrapDialogueTextFromLine(line);
     }
     InvalidateDialogueTextCursor();
 }
@@ -500,8 +558,11 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     int position = GetAtomCursorY004285A0(input_event) - region->y1 - 1;
     if (position < 0) {
         position = 0;
-    } else if (position > 0x2e) {
-        position = 0x2e;
+    } else {
+        position += 2;
+        if (position > 0x2e) {
+            position = 0x2e;
+        }
     }
 
     unsigned int previous = g_level_block->text_lines[text_box];

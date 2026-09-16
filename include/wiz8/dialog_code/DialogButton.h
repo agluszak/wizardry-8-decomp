@@ -27,6 +27,9 @@ public:
     void SetPressed(bool pressed);
     unsigned char IsPressed();
     void SetVisible(bool visible);
+    /* Installs the tooltip string on the SGP button (when one is configured
+       and tooltips are on), or clears it. */
+    void SetTooltipEnabled(unsigned char enabled); /* 0x005DBA70 */
     int GetUserData();
     /* 0x005DB3E0: load the frame images, create the SGP button, and store the
        per-button callbacks, left-toggle flag, priority and tooltip index. */

@@ -333,20 +333,32 @@ unsigned char CountLeadingPartySlots(void)
     return 0;
 }
 
-/* 0x00619DFC: one three-dword row per service - the service id, the bit that
-   stands for it, and one more field nothing here reads. -1 ends the table. */
+/* 0x00619DFC: one three-dword row per region-scoped service - the service id
+   (the same numbering GetLevelBand returns for the current level), the
+   service_flags bit that stands for it, and the NPC.DBS index of the region's
+   special NPC. -1 ends the table. */
 struct W8NpcServiceRow {
     unsigned int service_id;
     unsigned int bit;
-    unsigned int unknown_08;
+    unsigned int npc_id;
 };
 // GLOBAL: WIZ8 0x00619DFC
 const W8NpcServiceRow g_npc_services[] = {
-    {2, 1, 0x47},       {3, 2, 0x50},      {4, 0x400, 0x48},
-    {5, 4, 0x49},       {7, 8, 0x4d},      {8, 0x80, 0x4c},
-    {9, 0x40, 0x4b},    {10, 0x20, 0x4a},  {11, 0x10, 0x4e},
-    {12, 0x100, 0x51},  {13, 0x800, 0x4f}, {14, 0x200, 0x4d},
-    {15, 0x1000, 0x52}, {6, 0x2000, 0},    {0xffffffff, 0, 0x0f0e0c0d},
+    {2, W8_NPC_SERVICE_ARNIKA, 0x47},
+    {3, W8_NPC_SERVICE_TRYNTON, 0x50},
+    {4, W8_NPC_SERVICE_SWAMP, 0x48},
+    {5, W8_NPC_SERVICE_MARTEN_BLUFF, 0x49},
+    {7, W8_NPC_SERVICE_SEA_CAVES, 0x4d},
+    {8, W8_NPC_SERVICE_BAYJIN, 0x4c},
+    {9, W8_NPC_SERVICE_RAPAX, 0x4b},
+    {10, W8_NPC_SERVICE_RIFT, 0x4a},
+    {11, W8_NPC_SERVICE_MT_GIGAS, 0x4e},
+    {12, W8_NPC_SERVICE_ASCENSION, 0x51},
+    {13, W8_NPC_SERVICE_RAPAX_CAMP, 0x4f},
+    {14, W8_NPC_SERVICE_CIRCLE, 0x4d},
+    {15, W8_NPC_SERVICE_GIGAS_CAVES, 0x52},
+    {6, W8_NPC_SERVICE_MTN_PASS, 0},
+    {0xffffffff, 0, 0x0f0e0c0d},
 };
 
 /* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
@@ -356,10 +368,8 @@ const char g_substituted_npc_name[] = "RFS81B";
 // GLOBAL: WIZ8 0x00689F60
 char g_npc_name_buffer[52];
 
-/* The name style that admits a substituted name. */
-enum { W8_NPC_NAME_STYLE_SUBSTITUTABLE = ' ' };
-/* The fact that makes the substitution happen. */
-enum { W8_FACT_NPC_NAME_KNOWN = 0x44 };
+/* The name style that admits a substituted name: the unfixed RFS-81 record,
+   renamed to RFS81B once the fix fact is set. */
 
 /* The engine object standing in the world for this NPC. */
 // FUNCTION: WIZ8 0x0050a400
@@ -443,6 +453,75 @@ void MarkNpcOfKind(int kind)
     }
 }
 
+// FUNCTION: WIZ8 0x0050C870
+unsigned char CanNpcJoinParty(W8NpcState* npc)
+{
+    int band;
+    int row;
+    int index;
+    unsigned int count;
+    unsigned int total;
+    unsigned int average;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-compare"
+    if (npc->record->has_group == 0) {
+        return 0;
+    }
+    /* The service ids are the GetLevelBand region numbering: an NPC who offers
+       the current region's service stays on duty and refuses to join. */
+    band = GetLevelBand(g_status_685170.current_level);
+    row = 0;
+    while (g_npc_services[row].service_id != 0xffffffff) {
+        if (g_npc_services[row].service_id == band) {
+            if ((npc->record->service_flags & g_npc_services[row].bit) != 0) {
+                return 0;
+            }
+            break;
+        }
+        ++row;
+    }
+    if (npc->name_style == W8_NPC_GLUMPH && GetFact(W8_FACT_UMISSION_SCUBA_DONE) != 0) {
+        return 0;
+    }
+    if (npc->name_style == W8_NPC_SEXUS && GetFact(W8_FACT_SEXUS_PAID) == 0) {
+        return 0;
+    }
+    /* Retail performs the identical Madras check twice in a row - the second
+       test is dead but genuinely present, kept faithful. */
+    if (npc->name_style == W8_NPC_MADRAS && GetFact(W8_FACT_TRYNNIE_MADRAS_WILL_JOIN) == 0) {
+        return 0;
+    }
+    if (npc->name_style == W8_NPC_MADRAS && GetFact(W8_FACT_TRYNNIE_MADRAS_WILL_JOIN) == 0) {
+        return 0;
+    }
+    if ((npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) &&
+        GetFact(W8_FACT_PEACE_ACHIEVED) != 0) {
+        return 0;
+    }
+    if (npc->record->min_party_level_6f > 0) {
+        total = 0;
+        count = 0;
+        average = 0;
+        for (index = 0; index < 8; ++index) {
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                g_status_685170.buffers.characters[index].hp_current > 0 &&
+                g_status_685170.buffers.characters[index].highest_condition < 0xf) {
+                ++count;
+                total += g_status_685170.buffers.characters[index].level;
+            }
+        }
+        if (count > 0) {
+            average = total / count;
+        }
+        if (average < npc->record->min_party_level_6f) {
+            return 0;
+        }
+    }
+    return 1;
+#pragma clang diagnostic pop
+}
+
 /* Whether the NPC offers one service. The service id is looked up in a table
    that pairs it with its bit, so the ids need not be contiguous. */
 // FUNCTION: WIZ8 0x0050c9e0
@@ -487,8 +566,7 @@ void AddNpcTopic(W8NpcState* npc, int topic)
 // FUNCTION: WIZ8 0x0050c770
 const char* GetNpcDisplayName(W8NpcState* npc)
 {
-    if (npc->name_style == W8_NPC_NAME_STYLE_SUBSTITUTABLE &&
-        GetFact(W8_FACT_NPC_NAME_KNOWN) != 0) {
+    if (npc->name_style == W8_NPC_RFS81_A && GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED) != 0) {
         strcpy(g_npc_name_buffer, g_substituted_npc_name);
         return g_npc_name_buffer;
     }
@@ -531,7 +609,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         if (value != 0) {
             start_level = 0xe;
         } else {
-            start_level = GetFact(0x4b) != 0 ? 6 : 8;
+            start_level = GetFact(W8_FACT_IMPORT_TRANG) != 0 ? 6 : 8;
         }
     }
     *level = start_level;
@@ -944,34 +1022,39 @@ void ReleaseNpcBinding(int value)
 }
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
-   the monster carries no matching enchantment mark or the binding is not
-   released. */
+   the monster's record is missing, is not NPC-routed, binds no NPC, or the
+   binding has not been released. */
 // FUNCTION: WIZ8 0x0050A440
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    const unsigned char* enchant;
     W8NpcState* npc;
 
-    if (record == 0) {
+    if (record == 0 || (record->flags_0d0 & 1) == 0 || record->npc_kind_0cd == 0xfa) {
         return 0;
     }
-    /* The fifth and third bytes of enchantment slot three; the slot itself is
-       three dwords, as the effect-slot clearing shows. */
-    enchant = (const unsigned char*)&monster_info->enchantments[3];
-    if ((enchant[5] & 1) == 0) {
-        return 0;
-    }
-    if (enchant[2] != 0xfa) {
-        return 0;
-    }
-    if (monster_info->runtime_value_2f1 >= g_npc_states->count) {
-        npc = g_npc_states->data[0];
-    } else {
-        npc = g_npc_states->data[monster_info->runtime_value_2f1];
-    }
+    npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
     if (npc->binding_unavailable != 0) {
+        return npc;
+    }
+    return 0;
+}
+
+/* The NPC bound to a monster's script part while its binding is still
+   available; `allow_unavailable` also hands back a released binding. */
+// FUNCTION: WIZ8 0x0050A4A0
+W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
+                                      unsigned char allow_unavailable)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    W8NpcState* npc;
+
+    if (record == 0 || (record->flags_0d0 & 1) == 0 || record->npc_kind_0cd == 0xfa) {
+        return 0;
+    }
+    npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
+    if (npc->binding_unavailable == 0 || allow_unavailable != 0) {
         return npc;
     }
     return 0;
@@ -1049,24 +1132,24 @@ void UpdateNpcEvents0050D530(void)
 
     if (g_status_685170.flag_49bb != 0 &&
         (unsigned int)(g_status_685170.world_clock - g_status_685170.value_49b7) > 0x2a30) {
-        if (GetFact(0x3c) != 0 && Random(100) < 6) {
-            SetFact(0x2f1, 1, 0);
+        if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
+            SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
         g_status_685170.flag_49bb = 0;
     }
-    if (g_status_685170.value_4973 != 0 &&
-        (unsigned int)(GetTickCount() - g_status_685170.value_4973) > 0x32) {
+    if (g_status_685170.savant_hack_tick != 0 &&
+        static_cast<unsigned int>(GetTickCount() - g_status_685170.savant_hack_tick) > 0x32) {
         group = FindFirstMonsterByID(0x1b3);
         if (group != 0) {
             index = MonsterGetIndexByLocationID(0xc17, NPC_MANAGER_CPP, group->value_9f, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             MonsterStartsDying(monster_info, 1);
         }
-        g_status_685170.value_4973 = 0;
-        g_status_685170.value_4977 = GetTickCount();
+        g_status_685170.savant_hack_tick = 0;
+        g_status_685170.bela_cycle_tick = GetTickCount();
     }
-    if (g_status_685170.value_4977 != 0 &&
-        (unsigned int)(GetTickCount() - g_status_685170.value_4977) > 0x1388) {
+    if (g_status_685170.bela_cycle_tick != 0 &&
+        static_cast<unsigned int>(GetTickCount() - g_status_685170.bela_cycle_tick) > 0x1388) {
         group = FindFirstMonsterByID(0x1b6);
         if (group != 0) {
             index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->value_9f, 1);
@@ -1074,7 +1157,7 @@ void UpdateNpcEvents0050D530(void)
             StartMonsterCycle(monster_info, 0x10, 1);
             monster_info->monster->SetCycleCallback004CA340(0x10, TriggerBelaVoice0050D480);
         }
-        g_status_685170.value_4977 = 0;
+        g_status_685170.bela_cycle_tick = 0;
     }
 
     if (g_status_685170.flag_2430 != 0) {
@@ -1125,7 +1208,7 @@ void UpdateNpcEvents0050D530(void)
     }
 
     if (gXStatus.fCombatMode == 0 && g_status_685170.value_498b > 1) {
-        bool run_event = GetFact(0x216) != 0;
+        bool run_event = GetFact(W8_FACT_VI_IS_DEAD) != 0;
 
         if (!run_event) {
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
@@ -1149,7 +1232,7 @@ void UpdateNpcEvents0050D530(void)
                     break;
                 }
             }
-            QueueNpcMessageLine(0x42, 0);
+            QueueNpcMessageLine(W8_NPC_MSG_ENDGAME_SCREEN, 0);
         }
     }
 
@@ -1369,7 +1452,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
         if (gXStatus.uiMonstersInDatabase != 0) {
             for (; index < gXStatus.uiMonstersInDatabase; ++index) {
                 if ((records[index].flags_0d0 & 1) != 0 &&
-                    records[index].unknown_0cd[0] == npc->name_style) {
+                    records[index].npc_kind_0cd == npc->name_style) {
                     break;
                 }
             }

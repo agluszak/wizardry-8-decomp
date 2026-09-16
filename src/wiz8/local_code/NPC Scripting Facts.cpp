@@ -58,11 +58,11 @@
 /* Local Code\NPC Scripting Facts.cpp. Direct assertion ownership. */
 
 /* SOUNDPARMS EOS callback adapter: retail stores this JMP thunk rather than
-   ClearFlag68C4F7's void() entry. */
+   ClearScriptedSceneActive's void() entry. */
 // FUNCTION: WIZ8 0x005092c0
 static void ClearPotionExplosionSoundFlag(void*)
 {
-    ClearFlag68C4F7();
+    ClearScriptedSceneActive();
 }
 
 /* Camera-shake completion callback stored on W8CameraShakeEffect::completion_callback_48. */
@@ -152,7 +152,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x2b, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_TRIGGER_FIX, 0);
         return;
     case 0x33:
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0) != 0) {
@@ -228,7 +228,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                     g_profession_skill_availability[7][character->current_profession] != 0 &&
                     character->skills[7].value_02 < 10) {
                     character->skills[7].value_02 = 10;
-                    Function553C10(character, 7);
+                    ApplySkillChange(character, 7);
                 }
             }
         }
@@ -305,7 +305,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0xb7:
         if (value != 0) {
-            QueueNpcMessageLine(0x2e, 0);
+            QueueNpcMessageLine(W8_NPC_MSG_MOOK_COMMENT, 0);
         }
         return;
     case 0xba:
@@ -421,7 +421,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         SetFactionDispositionBand(5, 2);
         return;
     case 0x14f:
-        QueueNpcMessageLine(0x12, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_GOLEM, 0);
         return;
     case 0x151:
         trigger = FindTriggerByName("ChaosBTrigger");
@@ -432,7 +432,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        QueueNpcMessageLine(0x3e, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_AD, 0);
         return;
     case 0x153:
         trigger = FindTriggerByName("KnowBTrigger");
@@ -443,7 +443,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        QueueNpcMessageLine(0x40, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_DD, 0);
         return;
     case 0x155:
         trigger = FindTriggerByName("LifeBTrigger");
@@ -454,10 +454,10 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger != 0) {
             trigger->Run(-1);
         }
-        QueueNpcMessageLine(0x3f, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_ALETHEIDES_CM, 0);
         return;
     case 0x157:
-        QueueNpcMessageLine(0xf, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_SAVANT, 0);
         return;
     case 0x15f:
         if (value == 0) {
@@ -476,13 +476,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x22, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_JANETTE, 0);
         return;
     case 0x173:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x23, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_MARTEN, 0);
         return;
     case 0x179:
         if (value == 0) {
@@ -523,7 +523,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                     added = 5;
                 }
                 character->attributes[1].value += added;
-                Function553AD0(character, 1);
+                ApplyAttributeChange(character, 1);
             }
         }
         ShowString(gppStringList[0x770 / 4]);
@@ -534,7 +534,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         trigger->flags_0a0 &= ~0x100u;
         return;
     case 0x197:
-        QueueNpcMessageLine(0x25, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MILANO_RAT_DOOR, 0);
         return;
     case 0x19b:
         if (value == 0) {
@@ -543,7 +543,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         SetFact(0x273, 1, 0);
         return;
     case 0x19c:
-        QueueNpcMessageLine(0x24, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_GARI, 0);
         return;
     case 0x19e:
         if (value == 0) {
@@ -552,13 +552,13 @@ void HandleFactChange(int fact_id, unsigned char value)
         AddNpcItemWithDelay(GetNpcStateByKind(0x49), 0x1b0, 1, 0x15180);
         return;
     case 0x1a0:
-        QueueNpcMessageLine(0x10, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_BELA, 0);
         return;
     case 0x1a5:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x26, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SHAMAN, 0);
         return;
     case 0x1a8:
         if (value == 0) {
@@ -571,19 +571,19 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x1c, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_ASAIZ, 0);
         return;
     case 0x1b4:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x1a, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_LURE, 0);
         return;
     case 0x1b5:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x1b, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PILLARGATE_MADEUS, 0);
         return;
     case 0x1b8:
         if (value == 0) {
@@ -613,7 +613,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0x1c2:
         if (value == 0) {
-            QueueNpcMessageLine(0x41, 0);
+            QueueNpcMessageLine(W8_NPC_MSG_SEDEXUS_PASSOUT, 0);
             return;
         }
         BeginSedexusCapture();
@@ -643,7 +643,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         AddNpcItemWithDelay(GetNpcStateByKind(0x39), 0x1f8, 1, 0x15180);
         return;
     case 0x1e7:
-        QueueNpcMessageLine(0x13, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_ALETHEIDES_LEAVES, 0);
         return;
     case 0x1ec:
         if (value == 0) {
@@ -656,10 +656,10 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         ReleaseNpcMonsterByKind(0x55);
-        QueueNpcMessageLine(0x39, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PRINCE_NOT_HOME, 0);
         return;
     case 0x1f2:
-        QueueNpcMessageLine(0x20, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PRINCE_DISAPPEARS, 0);
         return;
     case 0x203:
         if (value == 0) {
@@ -696,34 +696,34 @@ void HandleFactChange(int fact_id, unsigned char value)
         MarkNpcOfKind(0x52);
         return;
     case 0x206:
-        QueueNpcMessageLine(0x16, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_HENCHMAN_LEAVES, 0);
         return;
     case 0x208:
-        QueueNpcMessageLine(0x15, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_CALL_HENCHMAN, 0);
         return;
     case 0x20f:
-        QueueNpcMessageLine(0x30, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_TO_BOOK, 0);
         return;
     case 0x213:
-        QueueNpcMessageLine(0x3d, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_TURN_TO_BOOK, 0);
         return;
     case 0x214:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x2f, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SAVANT_HACK, 0);
         return;
     case 0x215:
-        QueueNpcMessageLine(0x32, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SAVANT_APPEARS, 0);
         return;
     case 0x219:
-        g_status_685170.value_498f = 1;
+        g_status_685170.endgame2_queued = 1;
         return;
     case 0x21b:
-        QueueNpcMessageLine(0x34, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_PHOONZANG_SPLIT, 0);
         return;
     case 0x21c:
-        g_status_685170.value_4993 = 1;
+        g_status_685170.endgame3_queued = 1;
         return;
     case 0x21e:
         if (value == 0) {
@@ -817,7 +817,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x22a:
-        QueueNpcMessageLine(0x21, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SELF, 0);
         return;
     case 0x22b:
         if (value == 0) {
@@ -831,7 +831,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         memset(&sound, -1, sizeof(sound));
         sound.EOSCallback = ClearPotionExplosionSoundFlag;
         if (SoundPlay("Data\\Sound\\misc\\potion exploding.wav", &sound) != 0xffffffff) {
-            SetFlag68C4F7();
+            SetScriptedSceneActive();
         }
         particle = FindParticleByName(g_world, "FuzzBlast");
         if (particle != 0) {
@@ -869,34 +869,34 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x2d, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_BALBRAK_HOME, 0);
         return;
     case 0x2a5:
-        QueueNpcMessageLine(0x29, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_RUBBLE, 0);
         return;
     case 0x2a6:
         if (value != 0) {
             return;
         }
-        QueueNpcMessageLine(0x3b, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SPACER, 0);
         return;
     case 0x2ed:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x2a, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_SEDEXUS_LEAVES, 0);
         return;
     case 0x2ef:
         if (value == 0) {
             return;
         }
-        QueueNpcMessageLine(0x2c, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_SEDEXUS_RIFT, 0);
         return;
     case 0x2f0:
-        QueueNpcMessageLine(0x31, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_MOVE_TO_BOOK2, 0);
         return;
     case 0x2f3:
-        QueueNpcMessageLine(0x33, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_REMOVE_RPC_VI, 0);
         return;
     case 0x2f4:
         if (value == 0) {
@@ -928,7 +928,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     case 0x320:
     case 0x321:
-        QueueNpcMessageLine(0x35, 0);
+        QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
     case 0x322:
         Function56E800(0);

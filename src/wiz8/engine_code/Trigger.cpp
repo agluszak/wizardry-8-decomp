@@ -2517,7 +2517,7 @@ void Trigger::Run(int source)
             if (m_pacRecipients == 0) {
                 break;
             }
-            Function48F280(m_pWorld, m_pacRecipients, 1);
+            UpdateCameraPathStateByName(m_pWorld, m_pacRecipients, 1);
             FinishAction();
             goto commit_action;
 
@@ -2607,7 +2607,7 @@ void Trigger::Run(int source)
                 char name[24];
 
                 sprintf(name, "Camera0%d", camera);
-                Function48F280(m_pWorld, name, 1);
+                UpdateCameraPathStateByName(m_pWorld, name, 1);
             }
             FinishAction();
             goto commit_action;

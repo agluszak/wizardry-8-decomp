@@ -320,7 +320,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
             continue;
         }
         amount = *frame_elapsed;
-        if (g_status_685170.flag_238f != 0 || gXStatus.fCombatMode != 0) {
+        if (g_status_685170.search_mode != 0 || gXStatus.fCombatMode != 0) {
             amount = *real_elapsed * g_float_005ebc7c + amount;
         }
         switch (character->load_category) {

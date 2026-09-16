@@ -21,6 +21,8 @@
 #include "wiz8/xstatus.h"
 #include "wiz8_crash_report.h"
 #include "oct_file_semantic_test.h"
+#include "keyboard_menu_semantic_test.h"
+#include "npc_dialogue_semantic_test.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
@@ -92,6 +94,8 @@ static unsigned char g_sight_semantic_ok;
 static unsigned char g_split_semantic_ok;
 static unsigned char g_party_movement_semantic_ok;
 static unsigned char g_audio_semantic_ok;
+static unsigned char g_keyboard_semantic_ok;
+static unsigned char g_dialogue_semantic_ok;
 
 /* Bounds the driver join after WinMain returns. Python owns the hard
    process deadline, including hangs inside WinMain. */
@@ -542,6 +546,22 @@ static DWORD WINAPI DriveScenario(void*)
         PrintAudioSemanticResults(&audio_result);
         gfProgramIsRunning = 0;
         return g_audio_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "keyboard-menu") == 0) {
+        KeyboardMenuSemanticResult keyboard_result;
+        g_keyboard_semantic_ok = RunKeyboardMenuSemanticTest(&keyboard_result);
+        PrintKeyboardMenuSemanticResults(&keyboard_result);
+        gfProgramIsRunning = 0;
+        return g_keyboard_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "npc-dialogue") == 0) {
+        NpcDialogueSemanticResult dialogue_result;
+        g_dialogue_semantic_ok = RunNpcDialogueSemanticTest(&dialogue_result);
+        PrintNpcDialogueSemanticResults(&dialogue_result);
+        gfProgramIsRunning = 0;
+        return g_dialogue_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -1076,11 +1096,12 @@ int main(int argc, char** argv)
 {
     W8SetCrashContextWriter(WriteRuntimeTestContext);
     if (argc != 3 || strcmp(argv[1], "--scenario") != 0) {
-        fprintf(stderr,
-                "usage: Wiz8RuntimeTest --scenario "
-                "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-                "audio-semantics\n");
+        fprintf(
+            stderr,
+            "usage: Wiz8RuntimeTest --scenario "
+            "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
+            "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
+            "audio-semantics|keyboard-menu|npc-dialogue\n");
         return 64;
     }
 
@@ -1090,12 +1111,14 @@ int main(int argc, char** argv)
         strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
         strcmp(argv[2], "oct-file") != 0 && strcmp(argv[2], "sight-threshold") != 0 &&
         strcmp(argv[2], "split-stack") != 0 && strcmp(argv[2], "party-movement") != 0 &&
-        strcmp(argv[2], "audio-semantics") != 0) {
-        fprintf(stderr,
-                "usage: Wiz8RuntimeTest --scenario "
-                "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-                "audio-semantics\n");
+        strcmp(argv[2], "audio-semantics") != 0 && strcmp(argv[2], "keyboard-menu") != 0 &&
+        strcmp(argv[2], "npc-dialogue") != 0) {
+        fprintf(
+            stderr,
+            "usage: Wiz8RuntimeTest --scenario "
+            "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
+            "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
+            "audio-semantics|keyboard-menu|npc-dialogue\n");
         return 64;
     }
 
@@ -1196,10 +1219,14 @@ int main(int argc, char** argv)
     const bool split_flow = strcmp(g_scenario, "split-stack") == 0;
     const bool movement_flow = strcmp(g_scenario, "party-movement") == 0;
     const bool audio_flow = strcmp(g_scenario, "audio-semantics") == 0;
-    const bool semantic_flow = sight_flow || split_flow || movement_flow || audio_flow;
-    const bool semantic_ok = (sight_flow && g_sight_semantic_ok) ||
-                             (split_flow && g_split_semantic_ok) ||
-                             (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok);
+    const bool keyboard_flow = strcmp(g_scenario, "keyboard-menu") == 0;
+    const bool dialogue_flow = strcmp(g_scenario, "npc-dialogue") == 0;
+    const bool semantic_flow =
+        sight_flow || split_flow || movement_flow || audio_flow || keyboard_flow || dialogue_flow;
+    const bool semantic_ok =
+        (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok) ||
+        (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok) ||
+        (keyboard_flow && g_keyboard_semantic_ok) || (dialogue_flow && g_dialogue_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||

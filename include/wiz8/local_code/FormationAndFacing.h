@@ -41,6 +41,7 @@ void Function5545F0(W8PartyFormationState* edited, W8PartyFormationState* live);
 void Function555080(W8PartyFormationState* formation, int slot, int row);
 void Function555160(W8PartyFormationState* formation, int slot_a, int slot_b);
 /* 0x005554A0: re-aim party_heading at the selected character's formation
-   facing and swing the camera to match. */
-void Function5554A0(int party_slot);
+   facing and swing the camera to match, while the camera is not being
+   rotated by hand. */
+void FaceCameraToSelection(int party_slot);
 int GetQuadrantForPosition(srVector3T<float> position);

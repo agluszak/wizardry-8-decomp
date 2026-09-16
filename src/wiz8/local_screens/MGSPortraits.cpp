@@ -3,6 +3,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Controls.h"
@@ -23,6 +24,111 @@ W8TextControl* g_portrait_controls_0069b920[8];
 W8ConditionButton* g_condition_buttons_0069b900[8];
 // GLOBAL: WIZ8 0x0069B944
 Controls* g_condition_buttons_panel_0069b944;
+
+/* Toggle numeric hit-point display on the party portraits and invalidate all
+   eight slot masks so the new mode repaints everywhere. */
+// FUNCTION: WIZ8 0x0059AA30
+void ToggleNumericHitPoints(void)
+{
+    g_settings_6850c8.numeric_hit_points = g_settings_6850c8.numeric_hit_points == 0;
+    for (unsigned int slot = 0; slot < 8; slot++) {
+        RequestRedraw(1u << slot);
+    }
+}
+
+/* The slot's anchor positions for the keyboard menu and portrait band: the
+   panel corner, the band's two x edges (their order swaps with the column),
+   the grid row and the column pixel. 'adjust' applies the compact-display
+   shift used when the party display is a single column. */
+// FUNCTION: WIZ8 0x0059AA60
+void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_menu_edge,
+                            int* band_portrait_edge, int* grid_row, int* column_x, int adjust)
+{
+    switch (party_slot) {
+    case 0:
+        *grid_row = 1;
+        *column_x = 0;
+        *menu_x = 0;
+        *menu_y = 0x12;
+        *band_menu_edge = *menu_x + 2;
+        *band_portrait_edge = *menu_x + 0x69;
+        break;
+    case 1:
+        *grid_row = 2;
+        *column_x = 0x200;
+        *menu_x = 0x200;
+        *menu_y = 0x12;
+        *band_menu_edge = *menu_x + 0x6b;
+        *band_portrait_edge = *menu_x;
+        break;
+    case 2:
+        *grid_row = 5;
+        *column_x = 0;
+        *menu_x = 0;
+        *menu_y = 0x67;
+        *band_menu_edge = *menu_x + 2;
+        *band_portrait_edge = *menu_x + 0x69;
+        break;
+    case 3:
+        *grid_row = 6;
+        *column_x = 0x200;
+        *menu_x = 0x200;
+        *menu_y = 0x67;
+        *band_menu_edge = *menu_x + 0x6b;
+        *band_portrait_edge = *menu_x;
+        break;
+    case 4:
+        *grid_row = 9;
+        *column_x = 0;
+        *menu_x = 0;
+        *menu_y = 0xbc;
+        *band_menu_edge = *menu_x + 2;
+        *band_portrait_edge = *menu_x + 0x69;
+        break;
+    case 5:
+        *grid_row = 10;
+        *column_x = 0x200;
+        *menu_x = 0x200;
+        *menu_y = 0xbc;
+        *band_menu_edge = *menu_x + 0x6b;
+        *band_portrait_edge = *menu_x;
+        break;
+    case 6:
+        *grid_row = 0xd;
+        *column_x = 0;
+        *menu_x = 0;
+        *menu_y = 0x111;
+        *band_menu_edge = *menu_x + 2;
+        *band_portrait_edge = *menu_x + 0x69;
+        break;
+    case 7:
+        *grid_row = 0xe;
+        *column_x = 0x200;
+        *menu_x = 0x200;
+        *menu_y = 0x111;
+        *band_menu_edge = *menu_x + 0x6b;
+        *band_portrait_edge = *menu_x;
+        break;
+    default:
+        break;
+    }
+    if (adjust != 0 && g_settings_6850c8.field_006 != 0 &&
+        static_cast<unsigned int>(g_settings_6850c8.field_006) <= 2) {
+        if ((party_slot & 1) == 0) {
+            *menu_x -= 0x69;
+            *band_menu_edge = -1;
+            *band_portrait_edge -= 0x69;
+            --*grid_row;
+            *column_x = 0;
+        } else {
+            *menu_x = 0x269;
+            *band_menu_edge = -1;
+            *band_portrait_edge = 0x269;
+            ++*grid_row;
+            *column_x = 0x269;
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x0059BAD0
 void ReleasePortraitControls(void)

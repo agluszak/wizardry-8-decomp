@@ -34,6 +34,9 @@ void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
 unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
                                             int object, int source_x, int source_y);
 
+/* 0x004039C0: find the surface's cache node, release the frame handle and
+   unlink/free the node. */
+unsigned char ReleaseVideoSurface(unsigned int surface);
 void EnsureCatalogFrameLoaded(int object, int frame);
 unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
 

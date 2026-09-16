@@ -52,7 +52,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     unsigned char unknown_0f8[4];
-    int value_0fc;                             /* 0x0fc */
+    unsigned int value_0fc;                    /* 0x0fc */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
     unsigned char flag_108;                    /* 0x108 */
@@ -66,7 +66,11 @@ struct W8LevelRuntimeBlock {
     unsigned char radar_map_visible;
     unsigned char unknown_158;
     unsigned char text_scroll_drag_idle; /* 0x159: cleared while thumb is dragged */
-    unsigned char unknown_15a[0x12];
+    unsigned char unknown_15a[2];
+    /* 0x15c: the x origin the mode-6 hover panel anchors the slot's portrait
+       column position against. */
+    int value_15c;
+    unsigned char unknown_160[0xc];
     int highlight_override;             /* 0x16c */
     int party_slots_170[7];             /* 0x170: positional roles unresolved */
     int formation_highlight_party_slot; /* 0x18c */
@@ -94,19 +98,22 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_211[3];
     unsigned int clock_214; /* 0x214 */
     unsigned char flag_218; /* 0x218 */
-    unsigned char unknown_219[7];
+    unsigned char unknown_219[3];
+    int value_21c;   /* 0x21c: content row count captured by the overlay draw */
     int dialogue_x_220;
     unsigned int dialogue_y_224; /* ClearSurfaceRect's unsigned top/bottom */
     unsigned int dialogue_height_228;
-    unsigned char unknown_22c[0xc];
+    int dialogue_row_y_22c;    /* 0x22c: first content row's y; the highlight
+                                  sprite hangs off it at highlight_row * 0x12 */
+    int dialogue_text_x_230;   /* 0x230: panel left + 9 */
+    int dialogue_text_width_234; /* 0x234: panel width - 0x12 */
     int dialogue_width_238;
-    int value_23c; /* 0x23c */
-    /* The dialogue highlight sprite. The unrecovered dialogue-box draw at
-       0x00563FC0 lazily creates it from catalog object 0x72 through
-       CreateSpriteFromSurface - the retail assertion spells it
-       gpMGSV->pHighlightGraphic - and it is released through
-       ReleaseObject004257F0 whenever mode 6 ends or the tracked party slots
-       change. */
+    int highlight_row; /* 0x23c: -1 none; the content row the highlight sits on */
+    /* The dialogue highlight sprite. DrawHighlightOverlay lazily creates it
+       from catalog object 0x72 through CreateSpriteFromSurface - the retail
+       assertion spells it gpMGSV->pHighlightGraphic - and it is released
+       through ReleaseObject004257F0 whenever mode 6 ends or the tracked party
+       slots change. */
     stModelInstance2D* highlight_graphic; /* 0x240 */
     unsigned int world_update_flags;      /* 0x244 */
     unsigned int world_render_flags;      /* 0x248 */
@@ -173,7 +180,9 @@ struct W8LevelRuntimeBlock {
     int tooltip_kind;
     unsigned int countdown_30c; /* 0x30c */
     int combat_slot;            /* 0x310 */
-    unsigned char flag_314;
+    /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
+       cleared by CloseKeyboardMenu. */
+    unsigned char keyboard_menu_open;
     unsigned char unknown_315[3];
     int hover_combat_slot; /* 0x318 */
     unsigned char flag_31c;

@@ -11,3 +11,4 @@ void RebuildCharacterRegenRates00502B50(W8Character* character);
 /* 0x00502C50: the monster counterpart - hit points and stamina only, plus the
    modifier block's regen channels. */
 void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info);
+void Function502790(void); /* 0x00502790 */

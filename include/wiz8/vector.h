@@ -105,24 +105,21 @@ public:
         return count++;
     }
 
-    int InsertAt(int position, T value)
+    unsigned char InsertAt(int position, T value)
     {
         int index;
 
-        if (position < 0 || position > count) {
-            return -1;
-        }
         /* Retail insertion grows by five, unlike Add's minimum-sized growth
            (005D21F0 pointer entries and 004C80E0 script-condition bytes). */
         if (count + 1 > capacity && !Grow(capacity + 5)) {
-            return -1;
+            return 0;
         }
         for (index = count; index > position; --index) {
             data[index] = data[index - 1];
         }
         data[position] = value;
         ++count;
-        return position;
+        return 1;
     }
 
     /* Returns the element it unlinked. GenerateItemsFromTable discards that

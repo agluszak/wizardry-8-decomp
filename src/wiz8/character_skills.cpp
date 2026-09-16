@@ -12,7 +12,10 @@
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/utility.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 
@@ -265,6 +268,83 @@ void ResetCharacterSkills00553A60(W8Character* character)
         character->skills[index].level = value;
         UnequipUnusableItems(character);
     }
+}
+
+/* An attribute's base value changed: flip the at-maximum flag on the
+   attribute's pseudo-skill entry (id = attribute + 0x22), resetting or
+   refunding its row while the character screen is up and announcing the cap
+   in the main game, rebuild the effective value from the modifier block's
+   adjustment clamped to 1..125, and refresh the equipment and derived state.
+   Retail inlines InitializeSkillBaseLevels00553C90 at the tail. */
+// FUNCTION: WIZ8 0x00553AD0
+void ApplyAttributeChange(W8Character* character, int attribute)
+{
+    int skill_id = attribute + 0x22;
+
+    if (character->attributes[attribute].value >= 0x64) {
+        if (character->skills[skill_id].flag_00 == 0) {
+            character->skills[skill_id].flag_00 = 1;
+            if (g_current_screen_state.id == 3) {
+                ResetCharacterScreenSkill(skill_id);
+            }
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                ShowMainGameNoticeLine(
+                    FormatWideString(gppStringList[0x1d6],
+                                     gppStringList
+                                         [g_character_description_first_ids_61e3a4[attribute]],
+                                     character->name,
+                                     gppStringList[g_character_skill_name_ids_61e454[skill_id]]),
+                    0, 1, 0);
+            }
+        }
+    } else {
+        if (character->skills[skill_id].flag_00 != 0) {
+            character->skills[skill_id].flag_00 = 0;
+            if (g_current_screen_state.id == 3) {
+                RefundCharacterScreenSkill(skill_id);
+            }
+        }
+    }
+    int effective = character->bonus_1770.attribute_adjustments[attribute] +
+                    static_cast<int>(character->attributes[attribute].value);
+    if (effective > 0x7d) {
+        effective = 0x7d;
+    } else if (effective < 1) {
+        effective = 1;
+    }
+    character->attributes[attribute].effective = effective;
+    UnequipUnusableItems(character);
+    RecalculateCharacterDerivedStats(character);
+    InitializeSkillBaseLevels00553C90(character);
+}
+
+/* A skill's invested value changed: re-scan the availability flags, rebuild
+   the skill's level from it - with the profession-primary bonus and the
+   modifier block's per-skill adjustment, clamped to 0..125 - and refresh the
+   equipment and derived state. The single-skill half of
+   ResetCharacterSkills00553A60. */
+// FUNCTION: WIZ8 0x00553C10
+void ApplySkillChange(W8Character* character, int skill_id)
+{
+    RefreshCharacterSkillAvailability00553CD0(character);
+
+    int level = character->skills[skill_id].value_02;
+    if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+        unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
+        if (bonus == 0) {
+            bonus = 1;
+        }
+        level += bonus;
+    }
+    level += static_cast<signed char>(character->bonus_1770.unknown_13[skill_id]);
+    if (level > 0x7d) {
+        level = 0x7d;
+    } else if (level < 0) {
+        level = 0;
+    }
+    character->skills[skill_id].level = level;
+    UnequipUnusableItems(character);
+    RecalculateCharacterDerivedStats(character);
 }
 
 /* Average the two attribute values g_skill_attributes names for every skill

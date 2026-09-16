@@ -258,7 +258,11 @@ struct W8NpcDatabaseRecord {
     /* 0x068: one bit per service the NPC offers, matched against the table at
        0x00619DFC that pairs each service id with its bit. */
     unsigned int service_flags;
-    unsigned char unknown_06c[0x31];
+    unsigned char unknown_06c[3];
+    /* 0x06f: the minimum average party level the notice predicate at
+       0x0050C870 requires before this NPC's group can be invited. */
+    unsigned char min_party_level_6f;
+    unsigned char unknown_070[0x2d];
     unsigned char flag_9d; /* 0x09d: and only when this is clear */
     /* 0x09e: what the NPC is called, unless a fact substitutes another name.
        The wide RPC-character name at 0x0c4 bounds the string extent. */
@@ -316,7 +320,11 @@ struct W8MonsterRecord {
     /* 0x0cc: selects this monster's row in the name-prefix table at 0x0061E436,
        the same table a character indexes by sex. */
     unsigned char name_group_0cc;
-    unsigned char unknown_0cd[2];
+    /* 0x0cd: the NPC record index this monster is bound to, fed to
+       GetNpcStateByKind and compared against W8NpcState::name_style; 0xfa
+       marks a record with no bound NPC. */
+    unsigned char npc_kind_0cd;
+    unsigned char unknown_0ce;
     /* 0x0cf: the monster's own percentage reduction on incoming damage. */
     unsigned char damage_reduction;
     /* 0x0d0: bit 0 routes disposition through the NPC record instead of the

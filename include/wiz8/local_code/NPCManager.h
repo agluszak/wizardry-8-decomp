@@ -9,6 +9,44 @@ struct W8GameplayModifierBlock;
 struct W8MonsterInfo;
 struct W8MonsterManagerEntry;
 
+/* NPC.DBS record indices singled out by recovered code; W8NpcState::name_style
+   is this index. The names are the records' display names. */
+enum {
+    W8_NPC_ZANT = 0x0f,
+    W8_NPC_DRAZIC = 0x10,
+    W8_NPC_RODAN = 0x11,
+    W8_NPC_VI_DOMINA = 0x18,
+    W8_NPC_RFS81_A = 0x20, /* ' ' in the recovered comparisons */
+    W8_NPC_GLUMPH = 0x2b,
+    W8_NPC_AL_ADRYIAN = 0x3b,
+    W8_NPC_MADRAS = 0x4a,
+    W8_NPC_SEXUS = 0x4f,
+    W8_NPC_PHOONZANG = 0x87,
+    W8_NPC_ENDGAME2 = 0x8e,
+};
+
+/* W8NpcDatabaseRecord::service_flags bits: one per region whose signature
+   service the NPC provides. The g_npc_services table at 0x00619DFC pairs each
+   bit with the region's GetLevelBand id and its special NPC; CanNpcJoinParty
+   refuses to recruit an NPC while the party is in a region the NPC serves.
+   Region ids come from W8LevelFolderRecord::unknown_6a. */
+enum W8NpcServiceFlag {
+    W8_NPC_SERVICE_ARNIKA = 0x1,         /* region 2; npc 0x47 CHIEFGARI */
+    W8_NPC_SERVICE_TRYNTON = 0x2,        /* region 3; npc 0x50 BURZ */
+    W8_NPC_SERVICE_MARTEN_BLUFF = 0x4,   /* region 5; npc 0x49 FUZZFAS */
+    W8_NPC_SERVICE_SEA_CAVES = 0x8,      /* region 7; npc 0x4d SHAMAN */
+    W8_NPC_SERVICE_MT_GIGAS = 0x10,      /* region 11; npc 0x4e TRYNFOUN */
+    W8_NPC_SERVICE_RIFT = 0x20,          /* region 10; npc 0x4a MADRAS */
+    W8_NPC_SERVICE_RAPAX = 0x40,         /* region 9; npc 0x4b MILANO */
+    W8_NPC_SERVICE_BAYJIN = 0x80,        /* region 8; npc 0x4c SHAMAN */
+    W8_NPC_SERVICE_ASCENSION = 0x100,    /* region 12; npc 0x51 KING */
+    W8_NPC_SERVICE_CIRCLE = 0x200,       /* region 14; npc 0x4d SHAMAN */
+    W8_NPC_SERVICE_SWAMP = 0x400,        /* region 4; npc 0x48 BARLONE */
+    W8_NPC_SERVICE_RAPAX_CAMP = 0x800,   /* region 13; npc 0x4f SEXUS */
+    W8_NPC_SERVICE_GIGAS_CAVES = 0x1000, /* region 15; npc 0x52 RATTUS */
+    W8_NPC_SERVICE_MTN_PASS = 0x2000,    /* region 6; npc 0 GUARD_T_PILOT */
+};
+
 W8Monster* GetNpcMonster(W8NpcState* npc);
 
 void ChooseNewGameStartLocation(int* level, int* entrance);             /* 0x005092F0 */
@@ -23,9 +61,12 @@ char GetNpcDisposition(W8NpcState* npc);                                        
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                             /* 0x0050DD10 */
 unsigned char FindNpcOfKind(int kind);                                             /* 0x0050DD80 */
 void Function55BB10(W8NpcState* npc);                                              /* 0x0055BB10 */
-void Function55BCC0(W8NpcState* npc);                                              /* 0x0055BCC0 */
+unsigned char CanNpcJoinParty(W8NpcState* npc);                                    /* 0x0050C870 */
+void RestockNpcInventory(W8NpcState* npc);                                         /* 0x0055BCC0 */
 unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                 /* 0x0050A3C0 */
+W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
+                                      unsigned char allow_unavailable);            /* 0x0050A4A0 */
 void Function50AE40(W8NpcState* npc, int enabled);                                 /* 0x0050AE40 */
 void QueueNpcTravelRefusals(int destination_level);                                /* 0x0050E230 */
 void MarkNpcOfKind(int kind);                                                      /* 0x0050CA30 */
@@ -76,6 +117,7 @@ void ReleaseNpcBinding(int value);
 /* 0x0050A440: the NPC binding selected by a monster-list index, or null. */
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
+void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
 char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
 void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
