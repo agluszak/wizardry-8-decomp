@@ -49,3 +49,7 @@ void AutomapScreenFrame(void);
 unsigned char AutomapScreenLeave(int leaving);
 unsigned char AutomapScreenFinalize(void);
 float GetFloat64B914(void);
+void SetFloat64B914(float value); /* 0x00585300 */
+/* Packs a world position into an automap cell key. */
+unsigned int AutomapNodeKey005852B0(const srVector3T<float>* position);
+unsigned char Function585320(void);

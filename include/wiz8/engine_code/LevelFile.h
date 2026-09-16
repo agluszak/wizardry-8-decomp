@@ -9,6 +9,8 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/OctMeshModel.h"
 
+#include <stddef.h>
+
 #pragma pack(push, 1)
 
 struct W8LevelFilePathAI {
@@ -277,7 +279,8 @@ struct W8LevelFileAnimObj { /* 0x5f */
 
 struct W8LevelFileProp { /* 0xbf */
     char version_00;
-    unsigned char unknown_01;
+    unsigned char bNumFrames;      /* 0x01: original name from the
+       CreatePathProps assertion text (frame-count upper bound) */
     unsigned char unknown_02;      /* version_00 > 4 */
     unsigned char unknown_03[0xc]; /* version_00 > 4 */
     unsigned char unknown_0f[4];   /* version_00 > 5 */
@@ -286,7 +289,9 @@ struct W8LevelFileProp { /* 0xbf */
     char has_trigger_b2;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
     char num_frame_pos_b7;        /* version_00 > 7 */
-    unsigned int* usFrame_Pos;    /* 0xb8: num_frame_pos_b7 * 4 */
+    unsigned short* usFrame_Pos;  /* 0xb8: serialized as num_frame_pos_b7 * 4
+                                     bytes; CreatePathProps reads frames as
+                                     usFrame_Pos[j*2] */
     char flag_bc;                 /* version_00 > 8 */
     unsigned char unknown_bd;
     unsigned char unknown_be;
@@ -368,8 +373,10 @@ struct W8LevelFile {
     W8LevelFileParticleSystem* pParticleSystems; /* 0x6a5: nParticleSystems * 0x226 */
     int nNamedPositions;                         /* 0x6a9 */
     W8LevelFileNamedPosition* pNamedPositions;   /* 0x6ad: nNamedPositions * 0x9d */
-    int field_6b1;
-    int* pIntTable_6b5; /* field_6b1 * 4 */
+    /* PrePathing::CreateAutomapNodes fills these with the sorted automap
+       cell keys; LevelFile.cpp writes them after the named positions. */
+    int num_automap_nodes_6b1;
+    unsigned long* automap_nodes_6b5; /* num_automap_nodes_6b1 * 4 */
     unsigned char unknown_6b9[4];
     int field_6bd; /* FileGetPos result on read */
     int num_switch_triggers_6c1;
@@ -401,6 +408,21 @@ static_assert(sizeof(W8LevelFileMorph) == 6, "W8LevelFileMorph_must_be_6");
 static_assert(sizeof(W8LevelFileTransform) == 0x1c, "W8LevelFileTransform_must_be_0x1c");
 static_assert(sizeof(W8LevelFileAnimObj) == 0x5f, "W8LevelFileAnimObj_must_be_0x5f");
 static_assert(sizeof(W8LevelFileProp) == 0xbf, "W8LevelFileProp_must_be_0xbf");
+static_assert(offsetof(W8LevelFileProp, version_00) == 0x00, "W8LevelFileProp_version_00");
+static_assert(offsetof(W8LevelFileProp, bNumFrames) == 0x01, "W8LevelFileProp_bNumFrames");
+static_assert(offsetof(W8LevelFileProp, unknown_02) == 0x02, "W8LevelFileProp_unknown_02");
+static_assert(offsetof(W8LevelFileProp, unknown_03) == 0x03, "W8LevelFileProp_unknown_03");
+static_assert(offsetof(W8LevelFileProp, unknown_0f) == 0x0f, "W8LevelFileProp_unknown_0f");
+static_assert(offsetof(W8LevelFileProp, name_13) == 0x13, "W8LevelFileProp_name_13");
+static_assert(offsetof(W8LevelFileProp, anim_obj_53) == 0x53, "W8LevelFileProp_anim_obj_53");
+static_assert(offsetof(W8LevelFileProp, has_trigger_b2) == 0xb2, "W8LevelFileProp_has_trigger_b2");
+static_assert(offsetof(W8LevelFileProp, pTrigger) == 0xb3, "W8LevelFileProp_pTrigger");
+static_assert(offsetof(W8LevelFileProp, num_frame_pos_b7) == 0xb7,
+              "W8LevelFileProp_num_frame_pos_b7");
+static_assert(offsetof(W8LevelFileProp, usFrame_Pos) == 0xb8, "W8LevelFileProp_usFrame_Pos");
+static_assert(offsetof(W8LevelFileProp, flag_bc) == 0xbc, "W8LevelFileProp_flag_bc");
+static_assert(offsetof(W8LevelFileProp, unknown_bd) == 0xbd, "W8LevelFileProp_unknown_bd");
+static_assert(offsetof(W8LevelFileProp, unknown_be) == 0xbe, "W8LevelFileProp_unknown_be");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");

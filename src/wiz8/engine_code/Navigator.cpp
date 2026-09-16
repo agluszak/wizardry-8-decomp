@@ -58,6 +58,31 @@ void W8NavigatorAttachment::RecordPosition(const srVector3T<float>* position)
     position_40 = *position;
 }
 
+/* The stored route's total length, measured on first use from position_34
+   through every recorded position at or past the current index and cached in
+   value_058 under the 0x00400000 flag. Entries whose preceding path value
+   carries bit 0x2 contribute nothing. */
+// FUNCTION: WIZ8 0x00456B00
+float W8NavigatorAttachment::MeasurePathLength00456B00()
+{
+    unsigned int index = 1;
+    if ((flags_00 & 0x400000) == 0) {
+        value_058 = 0;
+        if (value_04 > 0) {
+            index = value_04;
+        }
+        srVector3T<float> previous = position_34;
+        for (; index <= path_position_index_08; ++index) {
+            if ((path_values_50[index - 1] & 2) == 0) {
+                value_058 += (position_4c[index] - previous).Length();
+            }
+            previous = position_4c[index];
+        }
+        flags_00 |= 0x400000;
+    }
+    return value_058;
+}
+
 /* Grow the attachment's parallel route-position and per-position value arrays
    by ten slots. Both arrays retain every entry through the current index. */
 // FUNCTION: WIZ8 0x00456BD0
@@ -253,6 +278,31 @@ W8NavigatorAttachment::W8NavigatorAttachment()
     separation_54 = 0.0f;
     position_10.SetZero();
     position_1c.SetZero();
+}
+
+/* The from/to attachment: a ready-made two-position route that starts at the
+   first recorded position, with value_058 carrying the direct segment length
+   until a real path is built over it. */
+// FUNCTION: WIZ8 0x00456280
+W8NavigatorAttachment::W8NavigatorAttachment(const srVector3T<float>* from,
+                                             const srVector3T<float>* to)
+{
+    flags_00 = 0x2000000;
+    path_position_index_08 = 1;
+    value_04 = 1;
+    value_0c = 0;
+    capacity_0a = 10;
+    position_4c = static_cast<srVector3T<float>*>(srHeap.allocate(10 * sizeof(srVector3T<float>)));
+    path_values_50 = static_cast<unsigned short*>(malloc(capacity_0a * sizeof(unsigned short)));
+    memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
+    value_058 = 0;
+    separation_54 = 0.0f;
+    position_10 = *from;
+    position_4c[0] = *from;
+    position_1c = *to;
+    position_4c[1] = *to;
+    position_34 = position_10;
+    value_058 = (position_1c - position_10).Length();
 }
 
 /* A second pass of defaults over the same tail, run straight after the
@@ -943,7 +993,7 @@ srVector3T<float>* W8Navigator::AdjustPosition00454440(srVector3T<float>* result
         *result = *previous;
         return result;
     }
-    if (g_octree_6598a4->current_sector < 0) {
+    if (g_octree_6598a4->current_prop < 0) {
         movement_0c0.position_adjusted_0c8 = 0;
     } else {
         movement_0c0.position_adjusted_0c8 = 1;

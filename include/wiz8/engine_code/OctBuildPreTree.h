@@ -10,7 +10,11 @@ struct W8VersionedLevelParticleRecord;
 extern float g_float_005ec52c;
 
 struct W8OctRegionVertex004B2A20 {
-    unsigned char positional_00[0x0c];
+    unsigned char positional_00[0x04];
+    /* The index of this corner's W8OctPreTreeVertex in the geometry
+       vertex array; SplitMeshes deduplicates on it. */
+    unsigned long vertex_index_04;
+    unsigned char positional_08[0x04];
     srVector3T<float> position_0c;
 };
 
@@ -19,10 +23,19 @@ struct W8OctRegionPolygon {
     unsigned char positional_04[0x04];
     float plane_08[4]; /* normal xyz and offset d */
     srVector3T<float> position_18;
-    unsigned char positional_24[0x0e];
+    unsigned char positional_24[0x04];
+    /* The per-polygon texture/material index CreateSubMeshes copies into
+       OctMeshModel's m_plPolyTextures row. */
+    unsigned long texture_28;
+    /* The automesh kind (1..3) SplitMeshes partitions polygon lists on. */
+    unsigned long kind_2c;
+    unsigned char positional_30[0x02];
     unsigned short region_32;
     W8OctRegionVertex004B2A20* vertices_34[3];
-    unsigned char positional_40[0x34];
+    unsigned char positional_40[0x14];
+    /* The three corners' texture coordinates SplitUVMaps deduplicates. */
+    srVector2T<float> uvs_54[3];
+    unsigned char positional_6c[0x08];
 
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
@@ -65,7 +78,7 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T<float>* minimum,
                               srVector3T<float>* maximum, unsigned short item_limit,
                               unsigned long path_capacity, short extent_mode);
-    W8OctPreTree004679E0* BuildOctPreTree004B4640();
+    OctPreTree* BuildOctPreTree004B4640();
     unsigned short BuildRegions004B19F0();
     unsigned char BuildParticleRegions004B3820(const W8VersionedLevelParticleRecord* particles,
                                                int particle_count);
@@ -73,17 +86,17 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
                                                int record_count, int base_index,
                                                unsigned char finalize);
 
-    void AssignInitialRegions004B1D90(const W8OctSpatialState0046CCC0* spatial);
+    void AssignInitialRegions004B1D90(const W8OctSpatialState* spatial);
     unsigned char UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry, short value,
                                                   short mode);
-    unsigned char UpdateRegionMap004B07E0(const W8OctSpatialState0046CCC0* spatial,
+    unsigned char UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
                                           const srVector3T<float>* geometry, short value,
                                           short mode);
     W8OctBuildNode00446330* FindNode004B23F0(unsigned int path);
     unsigned char MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node, unsigned int path);
     unsigned char MergeRegion004B25C0(W8OctBuildNode00446330* node, const int* cell);
     void FinalizeRegionMapping004B2A20();
-    void AssignRegionFromSurfaces004B3050(const W8OctSpatialState0046CCC0* spatial);
+    void AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial);
     void ValidatePolygonRegions004B3330();
     void ValidateRegionBounds004B35B0(const srVector3T<float>* region_bounds);
 

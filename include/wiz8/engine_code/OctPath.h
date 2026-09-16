@@ -5,32 +5,46 @@
 #include "wiz8/engine_code/stHeap.hpp"
 #include "wiz8/engine_code/stHash.hpp"
 
+#include <stddef.h>
+
 class stModelInstance;
 class GDPreProp;
+class OctPrePathLog;
+struct CondPathNode;
+class OctPreTree;
+struct W8LevelFile;
+struct W8LevelFileNamedPosition;
 
 /* One pre-path prop record handed to LinkCollideableProps: the prop's path
    name plus the GDPreProp array OctPreTree.cpp builds for it (stride 0x48). */
 struct W8PreProp {
     char name[0x40];
     unsigned short num_stop_meshes_40;
-    unsigned short padding_42;
+    /* The running base prop number this record's pStopMeshes indices are
+       relative to; InsertConditionalNodes matches a GDProp m_prop_number_02
+       into [first_prop_number, first_prop_number + num_stop_meshes). */
+    unsigned short first_prop_number_42;
     GDPreProp* pStopMeshes;
 };
 
 static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
+static_assert(offsetof(W8PreProp, num_stop_meshes_40) == 0x40, "W8PreProp_num_stop_meshes_40");
+static_assert(offsetof(W8PreProp, pStopMeshes) == 0x44, "W8PreProp_pStopMeshes");
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
-   and later releases it with delete. Its storage has no proven semantic
-   fields, so the name only claims ownership by the oct-path machinery. */
-class W8OctPathOwned004CAE40 {
+   and later releases it with delete. Its constructor's entire effect is
+   LoadPathParameters004CCCB0 - reading Data\Monsters\pathparms.txt into the
+   path-tuning globals - so the class is the path-parameter owner. Its 0x58
+   bytes of storage have no proven semantic fields. */
+class W8PathParameters {
 public:
-    W8OctPathOwned004CAE40(); /* 0x004CAE40 */
+    W8PathParameters(); /* 0x004CAE40 */
 
 private:
     unsigned char positional_00[0x58];
 };
 
-static_assert(sizeof(W8OctPathOwned004CAE40) == 0x58, "W8OctPathOwned004CAE40_must_be_0x58");
+static_assert(sizeof(W8PathParameters) == 0x58, "W8PathParameters_must_be_0x58");
 struct W8NavigatorMovementState;
 struct W8NavigatorAttachment;
 
@@ -75,12 +89,12 @@ static_assert(sizeof(W8FileWaypoint) == 0x10, "W8FileWaypoint_must_be_0x10");
    walks the zero-terminated lookup run starting at lookup_index: each lookup
    names a key, each key packs two region halfwords, and the key's parallel
    value word carries the height in its low half. */
-struct W8ConditionalPath {
+struct GDPropCondPaths {
     char name[0x40];
     unsigned int lookup_index; /* 0x40 */
 };
 
-static_assert(sizeof(W8ConditionalPath) == 0x44, "W8ConditionalPath_must_be_0x44");
+static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
 
 /* The two-dimensional cell walk used by path-surface probing. It retains the
    three-component shape of the octree walker, but only X and Z participate in
@@ -182,13 +196,13 @@ public:
                                               float separation);
     void LinkSurfaces00460020(); /* 0x00460020 */
     void LinkEdges004600B0();    /* 0x004600B0 */
-    void CheckConditionalWaypointStatus004601B0(unsigned short count, unsigned short* waypoints);
+    void CheckConditionalWayPtStatus004601B0(unsigned short count, unsigned short* waypoints);
     void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
     void SetConditionalPathFrame00457EA0(unsigned int path_handle, short frame);
     unsigned int FindConditionalPathValue00458970(unsigned int key, unsigned int value);
     void
     LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
-                         W8HashTable<unsigned int, unsigned int*>* pCondValues); /* 0x004CE510 */
+                         W8HashTable<unsigned int, CondPathNode*>* pCondValues); /* 0x004CE510 */
     unsigned char HandlePathEdgeTransition00460350(W8NavigatorMovementState* movement);
     void ReduceWaypointCosts00462220(unsigned int waypoint, float amount);
     unsigned char AdvanceAttachmentWaypoint00462DE0(const srVector3T<float>* source,
@@ -286,15 +300,20 @@ public:
                                            unsigned char diagonal_steps);
     /* `range` carries the walk budget in and the path cost back out; `hops`
        returns the reached-waypoint count. */
-    unsigned char Function4604B0(const srVector3T<float>* from, srVector3T<float>* to, float* range,
-                                 int* hops); /* 0x004604B0 */
+    unsigned char MeasureAttachmentPath004604B0(const srVector3T<float>* from,
+                                                srVector3T<float>* to, float* range,
+                                                int* hops); /* 0x004604B0 */
+    /* Whether the hop at the attachment's current index crosses a disabled
+       conditional edge whose segment box holds a door prop - and that prop's
+       door-trigger action data is a type-10 record with flag bit0 clear. */
+    unsigned char TestAttachmentHopDoor00460680(W8NavigatorAttachment* attachment); /* 0x00460680 */
     unsigned int EditWaypointLinkFlags0045F530(const char* title, unsigned int* flags,
                                                unsigned int direction);
     void EditTeleportalLink(const srVector3T<float>* destination,
                             const srVector3T<float>* source); /* 0x0045F2D0 */
     /* Takes the size, two loose values, the six-float bounds block out of the
        octree header, and the level name the octree already owns. */
-    void ConfigureForLevel(int size, float grid_scale, int value_28, const float* bounds,
+    void ConfigureForLevel(int size, float grid_scale, int path_clearance, const float* bounds,
                            const char* name); /* 0x00458A50 */
     unsigned char Load00458CE0(int handle);   /* 0x00458CE0 */
     unsigned char WritePathNodes00458AD0(unsigned int handle);
@@ -308,10 +327,12 @@ public:
 
     unsigned int m_positional_000;
     int size_004; /* 0x04 */
-    int m_positional_008;
+    /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
+       one, and WriteOctFile serializes it beside the node count. */
+    int edge_node_count_008;
     /* ReadOctFile tests this beside flag_1c8 before settling a portal. */
-    unsigned int m_ulNumSurfaces; /* 0x0c */
-    unsigned int m_ulNumEdges;    /* 0x10 */
+    unsigned int m_ulNumWayPoints;  /* 0x0c */
+    unsigned int m_ulNumWayPtLinks; /* 0x10 */
     int m_positional_014;
     int m_positional_018;
     /* The grid divisor both linking walks divide by. */
@@ -319,8 +340,10 @@ public:
     float span_020;       /* 0x20 */
     short cell_count_024; /* 0x24 */
     unsigned short m_padding_026;
-    int value_028;         /* 0x28 */
-    float level_bounds[6]; /* 0x2c */
+    /* Path probe-clearance height, raw float bits from the octree
+       header word; only ConfigureForLevel writes it. */
+    int path_clearance_028; /* 0x28 */
+    float level_bounds[6];  /* 0x2c */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */
@@ -329,8 +352,8 @@ public:
        index in its two shorts at +4 and +6. */
     W8PathSurface* m_pSurfaces_048;     /* 0x48 */
     W8PathEdge* m_pEdges_04c;           /* 0x4c */
-    W8FileWaypoint* file_waypoints_050; /* 0x50 */
-    stModelInstance* m_owned_054;       /* 0x54 */
+    W8FileWaypoint* m_pFileWayPoints;   /* 0x50 */
+    stModelInstance* waypoint_mesh_054; /* 0x54 */
     BitArray* visible_waypoints_058;    /* 0x58 */
     BitArray* rendered_waypoints_05c;   /* 0x5c */
     BitArray* collected_waypoints_060;  /* 0x60 */
@@ -382,13 +405,13 @@ public:
     unsigned short value_1d8;
     unsigned char path_direction_valid_1da;
     unsigned char m_positional_1db[0x39];
-    W8OctPathOwned004CAE40* owned_214; /* 0x214 */
+    W8PathParameters* path_parameters_214; /* 0x214 */
     int m_positional_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a
        lookup, a frame, a key and a value array, sized from the two counts.
        FindPathHandle scans the 0x44-byte path records by name. */
-    W8ConditionalPath* m_pCondPaths;     /* 0x21c */
+    GDPropCondPaths* m_pCondPaths;       /* 0x21c */
     int m_ulNumCondPaths;                /* 0x220 */
     int m_ulNumCondFrames;               /* 0x224 */
     int m_ulNumCondNodes;                /* 0x228 */
@@ -401,6 +424,81 @@ public:
 };
 
 static_assert(sizeof(W8PathingService) == 0x240, "W8PathingService_must_be_0x240");
+
+/* The 8-byte record InsertConditionalNodes hangs on the cond map under a
+   (frame << 16 | preprop index + 1) key: the node's serialized flag word
+   (height level + 1 in the low half, |0x02000000 when it came from the
+   blocker run) and its packed cell.  LinkCollideableProps drains the map into
+   the serialized key/value tables and frees each record.  The name is the
+   original spelling from the allocation-failure assertion text. */
+struct CondPathNode {
+    unsigned int value; /* 0x00 */
+    unsigned int cell;  /* 0x04 */
+};
+
+/* The 0x10-byte build-time path-node record PrePathing::GetPathNode hands out
+   of its 1000-record chunks: floor index in the low bits plus link, clearance
+   and state flags; the packed cell; world height; and the same-cell chain. */
+struct W8PrePathNode {
+    unsigned int level_flags; /* 0x00 */
+    unsigned int cell;        /* 0x04: z << 16 | x */
+    float y;                  /* 0x08 */
+    W8PrePathNode* next;      /* 0x0c: allocation order, same-cell runs */
+};
+
+static_assert(sizeof(W8PrePathNode) == 0x10, "W8PrePathNode_must_be_0x10");
+
+/* OctPrePath.cpp's 0x1204-byte build-time pathing service ("PrePathing" in its
+   own assertions): its constructor runs the W8PathingService constructor then
+   initialises scratch state through +0x1200, and the pre-tree stores it at
+   +0x2a0. */
+class PrePathing : public W8PathingService {
+public:
+    PrePathing();  /* 0x004CCFD0 */
+    ~PrePathing(); /* 0x004CD030 */
+
+    /* Copies each named position (scaled to world units) into +0x250 and
+       snaps it to the ground through `octree`. */
+    int SnapNamedPositions004CD130(W8LevelFileNamedPosition* positions, int count,
+                                   unsigned int min_component_percent, OctPreTree* octree);
+    /* Hands out the next 0x10-byte path-node record, allocating a new
+       0x3e80-byte chunk (1000 records) when the current one fills. */
+    W8PrePathNode* GetPathNode();
+    unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
+    unsigned char LinkPathNodes004CD390();
+    void PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigned int depth);
+    unsigned int DeleteUnreachableAreas004CD7C0();
+    int CreatePathNodeArray();
+    unsigned char CreateAutomapNodes004CE070(W8LevelFile* level);
+
+    W8PrePathNode** path_node_list_240; /* size_004 entries */
+    OctPrePathLog* path_log_244;
+    /* A malloc'd buffer the destructor `free`s; no surviving writer. */
+    void* owned_248;
+    int named_position_count_24c;
+    srVector3T<float>* named_positions_250;
+    W8HashTable<unsigned int, int>* cell_map_254;
+    /* Embedded chunk table: each slot is a malloc'd 0x3e80-byte run of
+       0x10-byte path-node records. The constructor fills slot 0, and the
+       destructor frees every slot through chunk_index_11f8 inclusive. */
+    W8PrePathNode* node_chunks_258[0x3e8];
+    int chunk_index_11f8;
+    int chunk_node_count_11fc;
+    /* Components smaller than this percent of the node count get deleted
+       while linking; capped at 50. */
+    unsigned int min_component_percent_1200;
+};
+
+static_assert(sizeof(PrePathing) == 0x1204, "PrePathing_must_be_0x1204");
+static_assert(offsetof(PrePathing, path_node_list_240) == 0x240, "PrePathing_path_node_list_240");
+static_assert(offsetof(PrePathing, node_chunks_258) == 0x258, "PrePathing_node_chunks_258");
+static_assert(offsetof(PrePathing, chunk_index_11f8) == 0x11f8, "PrePathing_chunk_index_11f8");
+static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
+              "PrePathing_min_component_percent_1200");
+
+/* Move an integer path cell one compass step; directions outside the
+   eight-value range wrap once. */
+void __stdcall StepPathCell004622D0(int* x, int* z, int direction);
 
 extern W8PathingService* g_pathing_00659c60;
 extern unsigned short g_path_reserve_0060827a;

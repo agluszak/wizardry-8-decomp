@@ -81,6 +81,8 @@ struct W8GameData {
     W8GameData(int handle, void* parent);   /* 0x00449010 */
     ~W8GameData();                          /* 0x00449BB0 */
     void ReadProcessedGameData(int handle); /* 0x00449240 */
+    /* Writes the game-data block WriteOctFile appends after the terminator. */
+    unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
     unsigned char Function447660(void* file, int index);
     void Function41A9E0();
     /* Builds the octree trace model and answers its scene node. */

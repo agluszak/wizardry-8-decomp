@@ -22,7 +22,7 @@ public:
     short version_00;
     short padding_02;
     int link_index_04;
-    int uv_count_08;
+    int next_link_08;
     int material_index_0c;
     int map_count_10;                       /* m_psrMap entry count */
     srVector3T<float>* vertex_locations_14; /* m_psrVertLoc */

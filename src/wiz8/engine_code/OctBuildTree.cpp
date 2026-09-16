@@ -164,7 +164,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
         spatial_00.maximum_18.y = minimum->y + spatial_00.extent_04;
         spatial_00.maximum_18.z = minimum->z + spatial_00.extent_04;
         g_oct_build_scratch_00659a48 = malloc(40000);
-        spatial_00.state_3c = 1;
+        spatial_00.polygon_count_3c = 1;
         spatial_00.item_count_40 = 0;
         spatial_00.root_90 = 0;
         spatial_00.owned_98 = 0;
@@ -203,7 +203,7 @@ W8OctBuildTree00446390::~W8OctBuildTree00446390()
 unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface,
                                                             unsigned long mode)
 {
-    W8OctSpatialState0046CCC0 working(&spatial_00);
+    W8OctSpatialState working(&spatial_00);
     srVector3T<float> vertices[3];
     srVector3T<float> plane_point;
     srVector3T<float>* plane = &plane_point;
@@ -243,10 +243,10 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
    leaf nodes reuse the same eight slots as per-mode linked-list heads. */
 // FUNCTION: WIZ8 0x004469f0
 unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
-    W8OctSpatialState0046CCC0* working, W8GDSurface* surface, srVector3T<float>* plane_point,
+    W8OctSpatialState* working, W8GDSurface* surface, srVector3T<float>* plane_point,
     unsigned long mode)
 {
-    W8OctSpatialState0046CCC0 child(working);
+    W8OctSpatialState child(working);
     unsigned char inserted = 0;
 
     if (spatial_00.depth_44 < working->depth_44) {

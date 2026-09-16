@@ -15,6 +15,11 @@ typedef W8HashTable<unsigned int, int> W8OctreeIndex;
 typedef W8HashEntry<unsigned int, int> W8OctreeEntry;
 
 class W8PathingService;
+class PrePathing;
+class OctMeshModel;
+struct CondPathNode;
+struct W8LevelFile;
+struct W8PreProp;
 struct W8World;
 struct W8GameData;
 struct W8NavigatorMovementState;
@@ -128,8 +133,11 @@ inline bool WriteVectorArray(int file, const srVector2T<float>* values, int coun
 struct W8OctSubmesh {
     unsigned long flags_00;
     int mesh_04;
-    unsigned long positional_08;
-    unsigned int positional_0c;
+    /* The same-chain successor's record index (the build record's
+       next_link_10). */
+    unsigned long next_link_08;
+    /* Reader max-scans this to size the g_octree_storage identity table. */
+    unsigned int polygon_count_0c;
 };
 
 static_assert(sizeof(W8OctSubmesh) == 0x10, "W8OctSubmesh_must_be_0x10");
@@ -225,12 +233,15 @@ static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
    two polygon-index streams.  The rest of the leaf is still positional. */
 struct W8OctPreTreeBranch {
     unsigned short positional_00;
-    unsigned short positional_02;
+    /* The region/owner id VerifyPolygonRegions and the runtime region reads
+       compare against a polygon's region_32. */
+    unsigned short region_02;
     unsigned long children_04[8];
 };
 
 struct W8OctPreTreeLeaf {
-    unsigned long positional_00;
+    /* Bit 0 is a runtime flag WriteOctFile clears before serialization. */
+    unsigned long flags_00;
     unsigned long region_offset_04;
     unsigned long polygon_offset_08;
     unsigned long gd_polygon_offset_0c;
@@ -366,7 +377,8 @@ public:
                          float limit); /* 0x00433820 */
     /* Clamp `position` to the clipped ceiling, probe the ground one
        world-scale unit lower and keep the settled height on a hit. */
-    void SnapToGround(srVector3T<float>* position, char mode); /* 0x00431D20 */
+    /* Returns the ground-hit flag in AL; pathing callers test it. */
+    bool SnapToGround(srVector3T<float>* position, char mode); /* 0x00431D20 */
     void QueueOctreeKind130042E810(int id, const srVector3T<float>* position);
     /* Box query over the shared query buffer: `*objects` carries the
        destination buffer in and out (null selects m_aulGDObjs), `excluded`
@@ -409,7 +421,7 @@ public:
        the shared query buffer. */
     unsigned long* CollectPolygonsNearPoint(srVector3T<float>* center, float radius,
                                             float height); /* 0x00438780 */
-    int CountBadRegionMeshLinks00433B90(W8OctSpatialState0046CCC0* spatial);
+    int CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial);
     void ToggleUpdateSuspension00434020(W8World* world);
     void MarkMeshLinksVisible00430A70(unsigned int mesh);
     /* Collect the model instances whose bounds reach within `radius` of
@@ -434,7 +446,7 @@ public:
     }
     unsigned long GetMeshCount() const
     {
-        return spatial_000.positional_74;
+        return spatial_000.submesh_count_74;
     }
 
 public:
@@ -442,21 +454,21 @@ public:
        teardown operate on the offset-zero subobject, but current evidence does
        not distinguish first-member composition from inheritance, so the
        declaration makes the narrower composition claim. */
-    W8OctSpatialState0046CCC0 spatial_000;
+    W8OctSpatialState spatial_000;
     W8OctPreTreeBranch* m_owned_09c;
     W8OctPreTreeLeaf* m_owned_0a0;
-    unsigned long m_positional_0a4;
-    unsigned long m_positional_0a8;
-    unsigned long m_positional_0ac;
+    unsigned long m_leaf_grid_dim_x_0a4;
+    unsigned long m_leaf_grid_dim_y_0a8;
+    unsigned long m_leaf_grid_dim_z_0ac;
     unsigned long* m_owned_0b0;
-    unsigned long m_positional_0b4;
-    unsigned long m_positional_0b8;
+    unsigned long m_branch_count_0b4;
+    unsigned long m_leaf_count_0b8;
     W8OctreeObjectRegistry* object_registry;
     char* m_owned_0c0;
     unsigned char m_fAccumulating;
     unsigned char m_positional_0c5[3];
-    unsigned long m_positional_0c8;
-    unsigned long m_positional_0cc;
+    unsigned long m_vertex_count_0c8;
+    unsigned long m_leaf_polygon_stream_len_0cc;
     unsigned long* m_owned_0d0;
     /* ReadOctFile's allocation assertion calls this the "Poly Lookup table":
        polygon index to (kind<<16)|id object key. */
@@ -486,15 +498,20 @@ public:
     stParticle** m_papParticles;
     unsigned short m_usNumPropsLoaded;
     unsigned short m_usNumParticlesLoaded;
-    int current_sector;
-    unsigned long m_positional_124;
-    unsigned long m_positional_128;
+    /* Registered prop id the last prop trace or test_props snap hit; -1 when
+       the ground resolve touched only static geometry. */
+    int current_prop;
+    unsigned long m_gd_surface_stream_len_124;
+    unsigned long m_trigger_count_128;
     unsigned long* m_owned_12c;
     void* m_owned_130;
     unsigned long m_positional_134;
-    unsigned long m_positional_138;
+    unsigned long m_region_list_len_138;
     unsigned long m_positional_13c;
-    unsigned long m_positional_140;
+    /* The leaf-level mask: VerifyPolygonRegions rebuilds it as
+       (1 << leaf_level_52) - 1 and the packed-cell writers emit it as the top
+       byte of each (mask<<24 | x<<16 | y<<8 | z) key. */
+    unsigned long m_region_mask_140;
     unsigned long m_positional_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
@@ -516,7 +533,7 @@ public:
     /* Region-link sample cell size read from .oct offset 0xac; the link
        builder strides the x/z grid by it (times three for a sparse pass). */
     float m_region_cell_178;
-    unsigned long m_positional_17c;
+    unsigned long m_path_clearance_17c;
     W8PathingService* pathing_180;
     int prop_sun_base_184; /* 0x184: this octree's base index into the shared
                               prop-sunlight bit stream */
@@ -531,11 +548,11 @@ public:
     BitArray* m_owned_19c;
     BitArray* m_owned_1a0;
     BitArray* m_owned_1a4;
-    unsigned long m_positional_1a8;
-    unsigned long m_positional_1ac;
+    unsigned long m_root_mesh_count_1a8;
+    unsigned long m_kind1_submesh_count_1ac;
     unsigned long m_positional_1b0;
     unsigned long m_meshCount_1b4;
-    unsigned long m_positional_1b8;
+    unsigned long m_gd_result_count_1b8;
     unsigned long* m_aulGDObjs; /* 0x1bc */
     srVector3T<float> camera_location_1c0;
     srVector3T<float> camera_dof_1cc;
@@ -558,7 +575,10 @@ public:
     unsigned long m_positional_290;
     unsigned char m_positional_294;
     unsigned char m_padding_295;
-    unsigned short m_positional_296;
+    /* The build's directional-sun count: the driver stores the light total
+       and CreateSubMeshes emits it as each OctMeshModel's version_00 and
+       sizes the per-sun vertex light arrays from it. */
+    unsigned short m_sun_count_296;
     unsigned char m_padding_298;
     unsigned char m_positional_299;
     unsigned char m_padding_29a[2];
@@ -572,24 +592,39 @@ static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
    the destructive OctBuildPreTree conversion is named here.
    Also non-polymorphic: the constructor's only vtable stores (0x005EC3F4
    then 0x005EC3F0, the vector construction-phase and final tables) land in
-   the separately allocated positional_3b8 vector, never in this object
+   the separately allocated props_3b8 vector, never in this object
    itself. */
-class W8OctPreTree004679E0 : public W8Octree {
+class OctPreTree : public W8Octree {
 public:
-    W8OctPreTree004679E0();
+    OctPreTree();
+    ~OctPreTree();
 
-    W8HashTable<unsigned short, unsigned long>* positional_29c;
-    unsigned long positional_2a0;
-    unsigned char positional_2a4[0xfc];
+    /* Automesh index -> packed cell (z | y<<8 | x<<16 | mask<<24) map the
+       verify passes walk to bound-check each automesh's vertices. */
+    W8HashTable<unsigned short, unsigned long>* automesh_cells_29c;
+    PrePathing* pre_pathing_2a0;
+    /* The path-node scratch block BuildPathLists/PathNodeObstructed fill:
+       created-node count, then the runs of registered prop ids the node
+       rests on (supports) and that overlap its clearance box (blocks).
+       m_lNumSupports/m_lNumBlocks are the original names from the
+       PathNodeObstructed assertion text.  Both appends write the slot before
+       the `> 29` assertion runs, so a 30th entry overruns the array exactly
+       like retail. */
+    int path_node_count_2a4;
+    int m_lNumSupports_2a8;
+    int m_lNumBlocks_2ac;
+    int m_lSupports_2b0[30];
+    int m_lBlocks_328[30];
     unsigned long polygon_cursor_3a0;
     W8OctRegionGameData* game_data_3a4;
     unsigned long positional_3a8;
     unsigned long positional_3ac;
     unsigned long positional_3b0;
-    unsigned long positional_3b4;
-    W8GrowableVector<void*>* positional_3b8; /* vector-void-ok: retail emits
-        this vector's construction-phase and final tables; its element type
-        is unresolved */
+    /* Path-node grid pitch: BuildPathLists sets it to m_region_cell_178 * 2. */
+    float path_node_extent_3b4;
+    /* The registered prop objects the path-bounds test collides against;
+       0x0046BEC0 reads m_surface_count_14 and the collidable flag on each. */
+    W8GrowableVector<GDProp*>* props_3b8;
 
     /* Walks the `from`-`to` segment through the leaf grid, collecting each
        visited leaf's region-polygon ids and plane/slab-testing them. Answers
@@ -603,12 +638,33 @@ public:
        a polygon blocks only when the ray pierces at least 5.0f past its plane
        (or starts within 1.0f in front) and the contact lands inside it. */
     bool TestCollectedPolygons004681E0(W8OctreeTrace* trace);
+    /* Serializes the finished octree to NewLevel.oct. */
+    unsigned char WriteOctFile004683F0(W8OctPreTreeGeometry* geometry, W8GameData* game_data);
+    /* Partitions the geometry into submesh records, emits the OctMeshModel
+       array and fills m_pSubmeshes/m_owned_0d4. */
+    OctMeshModel* CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry);
+    unsigned long SplitMeshes00469670(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
+    unsigned long AllocateSubMesh0046A790(W8OctSubmeshBuild* records);
+    unsigned long SplitUVMaps0046A4B0(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
+    void VerifyPolygonRegions0046ABF0();
+    void VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
+    unsigned char BuildPathLists0046B060(W8GameData* game_data, W8LevelFile* level,
+                                         unsigned int min_component_percent);
+    char PathNodeObstructed0046B700(const srVector3T<float>* node_position);
+    unsigned char InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNode*>* nodes,
+                                                 unsigned int cell, unsigned int node,
+                                                 W8PreProp* preprops, int preprop_count);
+    /* Tests the bounds box against static surfaces and registered props;
+       0 clear, 1 blocked, 3 clear but prop ids were recorded in m_lBlocks_328. */
+    char TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
+                                    const srVector3T<float>* maximum);
+    int CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops);
 };
 
-static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc, "W8OctPreTree004679E0_must_be_0x3bc");
+static_assert(sizeof(OctPreTree) == 0x3bc, "OctPreTree_must_be_0x3bc");
 
 extern W8Octree* g_octree_6598a4;
-extern W8OctPreTree004679E0* g_oct_pre_tree_659c74;
+extern OctPreTree* g_oct_pre_tree_659c74;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
 extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch

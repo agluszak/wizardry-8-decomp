@@ -8,6 +8,8 @@ struct W8MonsterInfo;
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 
+#include <stdlib.h>
+
 class srNode;
 struct W8PathAI;
 
@@ -37,6 +39,33 @@ struct W8NavigatorAttachment {
     unsigned char unknown_05c[4];
 
     W8NavigatorAttachment(); /* 0x00456210 */
+    /* The from/to form 0x004604B0 constructs on the stack: both endpoints of
+       the segment are seeded as recorded positions and value_058 holds the
+       straight-line distance. */
+    W8NavigatorAttachment(const srVector3T<float>* from,
+                          const srVector3T<float>* to); /* 0x00456280 */
+    /* Header-visible: 0x004604B0's scope exit inlines this pair of releases,
+       while its unwind funclet tail-calls the out-of-line emission the
+       linker kept at 0x004563A0. */
+    // FUNCTION: WIZ8 0x004563A0
+    ~W8NavigatorAttachment()
+    {
+        srVector3T<float>* positions = position_4c;
+        if (positions != 0) {
+            position_4c = 0;
+            srHeap.free(positions);
+        }
+        unsigned short* values = path_values_50;
+        if (values != 0) {
+            path_values_50 = 0;
+            free(values);
+        }
+    }
+
+    /* Lazily sums the stored segment lengths into value_058, skipping entries
+       whose preceding path value carries bit 0x2, and latches the
+       0x00400000 flag once measured. */
+    float MeasurePathLength00456B00(); /* 0x00456B00 */
 
     void RecordPosition(const srVector3T<float>* position);
     void GrowPathStorage00456BD0();

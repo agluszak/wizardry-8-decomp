@@ -49,6 +49,7 @@ WINE_STACK_LINE = re.compile(
     re.MULTILINE,
 )
 RUNTIME_SCENARIOS = (
+    "oct-file",
     "sight-threshold",
     "main-menu-startup",
     "main-menu-new-game",

@@ -344,8 +344,8 @@ void W8LockTumbler::Redraw(int full_redraw)
     top = m_top + m_pPanel->origin_y;
     bottom = m_bottom + m_pPanel->origin_y;
     InvalidateRegion(left - 3, top, right + 3, bottom, 0);
-    Function402FA0(-0xe, left, top, right, top + 0x24, 0x8000);
-    Function402FA0(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
+    ColorFillVideoSurfaceArea(-0xe, left, top, right, top + 0x24, 0x8000);
+    ColorFillVideoSurfaceArea(-0xe, left - 3, top + 0x24, right + 3, bottom, 0x8000);
     DrawCatalogImage(-0xe, 0x1ae, 0, 0, left + 3, top, 2, 0);
     frame = m_pin_index_3c * 4 + 1;
     if (m_pin_set_34) {
