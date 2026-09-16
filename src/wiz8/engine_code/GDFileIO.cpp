@@ -243,7 +243,7 @@ static_assert(sizeof(W8ProcessedGameDataHeader) == 0x68, "W8ProcessedGameDataHea
 unsigned char W8EnvironRecord::RescaleToReference(const W8EnvironRecord* reference)
 {
     if (reference == 0) {
-        float difference = (float)fabs(g_navigator_gravity_00603acc + value_28);
+        float difference = static_cast<float>(fabs(g_navigator_gravity_00603acc + vector_24.y));
         if (g_navigator_gravity_00603acc * g_camera_snap_epsilon_005ebc2c < difference) {
             return 1;
         }
@@ -393,9 +393,9 @@ void W8GameData::ReadProcessedGameData(int handle)
             environ_record->value_18 = 0;
             environ_record->value_1c = 0.05f;
             environ_record->value_20 = 1.0f;
-            environ_record->value_24 = 0;
-            environ_record->value_28 = 0;
-            environ_record->value_2c = 0;
+            environ_record->vector_24.x = 0.0f;
+            environ_record->vector_24.y = 0.0f;
+            environ_record->vector_24.z = 0.0f;
             environ_record->value_30 = g_default_world_height_00603ac8;
             environ_record->value_34 =
                 g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
@@ -490,9 +490,9 @@ W8GameData::W8GameData(int handle, void* parent)
             environ_record->value_18 = 0;
             environ_record->value_1c = 0.05f;
             environ_record->value_20 = 1.0f;
-            environ_record->value_24 = 0;
-            environ_record->value_28 = 0;
-            environ_record->value_2c = 0;
+            environ_record->vector_24.x = 0.0f;
+            environ_record->vector_24.y = 0.0f;
+            environ_record->vector_24.z = 0.0f;
             environ_record->value_30 = g_default_world_height_00603ac8;
             environ_record->value_34 =
                 g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;

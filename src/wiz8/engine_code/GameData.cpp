@@ -27,7 +27,7 @@
 #include "wiz8/engine_code/3d.h"
 
 // GLOBAL: WIZ8 0x00652da8
-unsigned int* g_level_data_sibling_00652da8;
+unsigned int* g_level_flags_00652da8;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
 
@@ -43,9 +43,12 @@ W8LevelDataRecord* g_level_data_00652dac;
 
 enum {
     W8_LEVEL_FLAG_0 = 0x001,
+    W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT = 0x008,
     W8_LEVEL_FLAG_4 = 0x010,
+    W8_LEVEL_FLAG_MOVEMENT_ACTIVE = 0x020,
     W8_LEVEL_FLAG_5_TO_7 = 0x0e0,
     W8_LEVEL_FLAG_6 = 0x040,
+    W8_LEVEL_FLAG_MOVEMENT_RESET = 0x080,
     W8_LEVEL_FLAG_8 = 0x100,
     W8_LEVEL_FLAG_9 = 0x200
 };
@@ -350,9 +353,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->value_08 = current->value_08;
             record->unknown_0c = current->unknown_0c;
             record->value_20 = current->value_20;
-            record->value_24 = current->value_24;
-            record->value_28 = current->value_28;
-            record->value_2c = current->value_2c;
+            record->vector_24 = current->vector_24;
             g_environ_00652DB4 = record;
             return;
         }
@@ -364,9 +365,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->value_08 = current->value_08;
             record->unknown_0c = current->unknown_0c;
             record->value_20 = current->value_20;
-            record->value_24 = current->value_24;
-            record->value_28 = current->value_28;
-            record->value_2c = current->value_2c;
+            record->vector_24 = current->vector_24;
             g_environ_00652DB4 = record;
         }
         return;
@@ -408,6 +407,31 @@ void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source
    This is compiler support, not an authored Wizardry callback wrapper. */
 // LIBRARY: WIZ8 0x0041e880
 // vector constructor iterator
+
+// FUNCTION: WIZ8 0x0041EEE0
+void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move)
+{
+    W8LevelDataRecord* level = g_level_data_00652dac;
+    if (level != 0) {
+        level->movement_limit_2c = movement_limit;
+        level->real_elapsed_24 = 0.0f;
+        level->frame_elapsed_28 = 0.0f;
+        level->movement_progress_30 = 0.0f;
+        level->camera_forward_4c.Set(0.0f, 0.0f, 0.0f);
+        level->scaled_camera_forward_7c.Set(0.0f, 0.0f, 0.0f);
+        level->flags |= W8_LEVEL_FLAG_MOVEMENT_ACTIVE;
+        if (reset != 0) {
+            level->flags |= W8_LEVEL_FLAG_MOVEMENT_RESET;
+        } else {
+            level->flags &= ~W8_LEVEL_FLAG_MOVEMENT_RESET;
+        }
+        if (fast_move != 0) {
+            level->flags |= W8_LEVEL_FLAG_8;
+        } else {
+            level->flags &= ~W8_LEVEL_FLAG_8;
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x0041ef50
 void ResetInactiveLevelDataVectors0041EF50(void)
@@ -596,7 +620,7 @@ void W8GameData::ReleaseLevelData0041A9E0()
         delete g_level_data_00652dac;
     }
     g_level_data_00652dac = 0;
-    g_level_data_sibling_00652da8 = 0;
+    g_level_flags_00652da8 = 0;
     if (g_game_time_accumulator_6598bc != 0) {
         delete g_game_time_accumulator_6598bc;
     }
@@ -614,9 +638,7 @@ void ResetCurrentEnvironment0041AA40(void)
         if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->environs_84 != 0) {
             g_environ_00652DB4 = g_octree_game_data_00652db0->environs_84[0];
         }
-        g_environ_00652DB4->value_24 = 0;
-        g_environ_00652DB4->value_28 = 0;
-        g_environ_00652DB4->value_2c = 0;
+        g_environ_00652DB4->vector_24.Set(0.0f, 0.0f, 0.0f);
         if (g_environment_load_flag_00603ad0 != 0) {
             g_environ_00652DB4->value_20 = 1.0f;
         }
@@ -633,11 +655,10 @@ void ResetCurrentEnvironment0041AA40(void)
 // FUNCTION: WIZ8 0x0041AAE0
 unsigned char SetEnvironmentLoadFlag(unsigned char flag)
 {
+    srVector3T<float> zero_vector(0.0f, 0.0f, 0.0f);
     unsigned char previous = g_environment_load_flag_00603ad0;
     if (g_environ_00652DB4 != 0) {
-        g_environ_00652DB4->value_24 = 0;
-        g_environ_00652DB4->value_28 = 0;
-        g_environ_00652DB4->value_2c = 0;
+        g_environ_00652DB4->vector_24 = zero_vector;
         if (flag == 0) {
             g_environ_00652DB4->value_20 = 1.0f;
         }
@@ -675,6 +696,19 @@ const float g_float_005ebcf0 = 57.295784f;
 const float g_float_005ebca0 = 6.0f;
 // GLOBAL: WIZ8 0x00652940
 srVector3T<float> g_origin_652940;
+
+// FUNCTION: WIZ8 0x0041FCE0
+void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary)
+{
+    W8LevelDataRecord* level = g_level_data_00652dac;
+    if ((level->flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0) {
+        *secondary = -1;
+        *environment = -1;
+        return;
+    }
+    *environment = level->sound_environment_0c;
+    *secondary = level->sound_environment_alt_0d;
+}
 
 // FUNCTION: WIZ8 0x00420b40
 float MoveTimer(int value)

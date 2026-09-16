@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/sr_api.h"
@@ -29,27 +30,21 @@ EnvironmentColour g_environment_colours_65a178[256];
 // GLOBAL: WIZ8 0x0065AD98
 EnvironmentColour g_environment_colours_65ad98[256];
 // GLOBAL: WIZ8 0x0065A168
-stTextureAnim* g_environment_value_0065a168;
-// GLOBAL: WIZ8 0x0065A16C
-stTextureAnim* g_environment_value_0065a16c;
+stTextureAnim* g_sky_gradient_animations_0065a168[3];
 // GLOBAL: WIZ8 0x0060A394
 unsigned char g_environment_flag_0060a394 = 1;
 // GLOBAL: WIZ8 0x0065A160
-W8Prop* g_environment_value_0065a160;
+W8Prop* g_sun_prop_0065a160;
 // GLOBAL: WIZ8 0x0065AD84
-W8Prop* g_environment_value_0065ad84;
+W8Prop* g_moon_prop_0065ad84;
 // GLOBAL: WIZ8 0x0065AD88
-srVector3T<float> g_environment_origin_65ad88;
-// GLOBAL: WIZ8 0x0065B99C
-int g_environment_state_65b99c;
+srVector3T<float> g_celestial_origin_65ad88;
 // GLOBAL: WIZ8 0x0060A390
 float g_view_distance_0060a390 = 12.0f;
 // GLOBAL: WIZ8 0x0060A3A4
-float g_environment_value_0060a3a4 = -1.0f;
+float g_celestial_orbit_radius_0060a3a4 = -1.0f;
 // GLOBAL: WIZ8 0x0065AD78
 EnvironmentColour g_light_direction_0065ad78;
-// GLOBAL: WIZ8 0x0065A170
-stTextureAnim* g_environment_value_0065a170;
 
 static float normalized_colour(unsigned int component)
 {
@@ -58,7 +53,9 @@ static float normalized_colour(unsigned int component)
 
 /* Builds the two 512-entry greyscale ramps consumed by the environment
    renderer.  Each ramp rises from black through 127/255, then falls from
-   127/255 to zero, matching the two loops at the original address. */
+   127/255 to zero. Retail builds one array at a time in four pointer-walk
+   loops and saturates every element through SaturateColor004299B0; this body
+   fills both arrays in two loops, so its shape is still an open mismatch. */
 // FUNCTION: WIZ8 0x00482280
 unsigned char InitializeEnvironmentColours(void)
 {
@@ -75,13 +72,13 @@ unsigned char InitializeEnvironmentColours(void)
         g_environment_colours_65a178[index] = value;
         g_environment_colours_65ad98[index] = value;
     }
-    g_environment_value_0065a168 = 0;
-    g_environment_value_0065a16c = 0;
+    g_sky_gradient_animations_0065a168[0] = 0;
+    g_sky_gradient_animations_0065a168[1] = 0;
     g_environment_flag_0060a394 = 0;
-    g_environment_value_0065a160 = 0;
-    g_environment_value_0065ad84 = 0;
-    g_environment_state_65b99c = 0;
+    g_sun_prop_0065a160 = 0;
+    g_moon_prop_0065ad84 = 0;
+    g_environment_lights_0065b998.Clear();
     g_view_distance_0060a390 = 12.0f;
-    g_environment_value_0065a170 = 0;
+    g_sky_gradient_animations_0065a168[2] = 0;
     return 1;
 }
