@@ -3,14 +3,13 @@
 extern unsigned char g_flag_6109f0;
 
 void Function4DFAE0(int value); /* 0x004DFAE0 */
-void Function4DFB40(int value); /* 0x004DFB40 */
-void Function4DFB80(int value); /* 0x004DFB80 */
 void RemoveAletheides(void);    /* 0x004E0430 */
 
 #include "wiz8/vector.h"
 
 struct W8MonsterInfo;
 struct W8MonsterGroup;
+class stSound3D;
 template <class T> class srVector3T;
 
 /* One level-specific per-frame entry point, registered by the level's own
@@ -29,6 +28,9 @@ int NormalizeMasterFunctionValue004D9700(int value);
 void RunMasterFunctions004D8E40(void);
 
 void InitializeLevelMasterFunctions004D6C50(int level);
+void ShowLevelMessage004D9960(int message_id);
 unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
                               int settle, int a, int b); /* 0x004D8F00 */
+stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, float volume,
+                                  float scale, unsigned char play_flag); /* 0x004D8F80 */

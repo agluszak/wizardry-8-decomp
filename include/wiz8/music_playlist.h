@@ -1,7 +1,6 @@
 #ifndef WIZ8_MUSIC_PLAYLIST_H
 #define WIZ8_MUSIC_PLAYLIST_H
 
-struct W8MonsterInfo;
 #include "wiz8/local_screens/Screens.h"
 
 extern int g_music_sample_handle_60aae0;
@@ -19,7 +18,5 @@ void ServiceMusicPlaylist0048F9E0(void);
 void StopMusicPlaylist(unsigned char fade);
 
 char IsCurrentMusicPlaylist(const char* playlist);
-
-void Function48F650(W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
 
 #endif

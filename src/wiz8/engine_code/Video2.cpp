@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/float_constants.h"
@@ -292,6 +293,7 @@ PTR LockPrimarySurface(UINT32* pitch)
    The four scene walks are the same typed operation used during renderer
    bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
    the menu call site. */
+// FUNCTION: WIZ8 0x00422b10
 void ResetVideoFrameState00422B10(void)
 {
     DDSURFACEDESC description;
@@ -1393,6 +1395,13 @@ void RefreshMouseCursorTexture(void)
 /* Whether the tracked cursor position lies inside the render viewport. The
    two automap callers use it, but nothing names the viewport as automap-only
    state; placed here with the neighbouring cursor bodies. */
+// FUNCTION: WIZ8 0x00427e70
+bool ClearMouseSurface(void)
+{
+    g_mouse_surface_659688->fill(0);
+    return true;
+}
+
 // FUNCTION: WIZ8 0x00428070
 bool IsCursorInsideViewport(void)
 {
@@ -1400,6 +1409,22 @@ bool IsCursorInsideViewport(void)
     int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
     return x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
            x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4;
+}
+
+// FUNCTION: WIZ8 0x004280c0
+void WarpSystemCursor(int x, int y)
+{
+    if (g_fullscreen_603c39) {
+        SetCursorPos(x, y);
+        return;
+    }
+    RECT client;
+    GetClientRect(ghWindow, &client);
+    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
+    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client));
+    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
+    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client.right));
+    SetCursorPos(client.left + x, client.top + y);
 }
 
 // FUNCTION: WIZ8 0x00428140
@@ -2179,6 +2204,24 @@ void ReleaseObject004257F0(srClass* object)
     object->release();
 }
 
+/* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
+   word its +0x160 flag selects: the 2D-only word when the flag is set, the
+   paired words otherwise. The flag is the first dword past
+   sizeof(srModelInstance); both stModelInstance and stModelInstance2D store
+   state_160 there (see ReleaseObject004257F0). */
+// FUNCTION: WIZ8 0x00425840
+void RotateNodeInDegrees00425840(srNode* node, int degrees)
+{
+    node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
+    if ((reinterpret_cast<unsigned char*>(node)[0x160] & 1) !=
+        0) { /* reinterpret-ok: unresolved derived state_160 past srModelInstance */
+        g_dword_6596ec = 2;
+    } else {
+        g_dword_6596f0 = 2;
+        g_dword_6596ec = 2;
+    }
+}
+
 // FUNCTION: WIZ8 0x00428A90
 void SetRendererMode6596EC(void)
 {
@@ -2463,6 +2506,13 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     g_dword_6596ec = 2;
     instance->render_state_164.right = (short)x;
     instance->render_state_164.bottom = (short)y;
+}
+
+// FUNCTION: WIZ8 0x004255c0
+stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
+                                           int arg_4, int arg_5)
+{
+    return Function4253F0(image, rect, mode, arg_4, arg_5);
 }
 
 // FUNCTION: WIZ8 0x004257D0
@@ -2944,39 +2994,3 @@ void EndRenderProbe004289C0(void)
 
 // SYNTHETIC: WIZ8 0x00423f00
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
-// FUNCTION: WIZ8 0x004215e0
-bool HasCameraLineOfSight(const srVector3T<float>* position)
-{
-    srVector3T<float> to = *position;
-    if (g_world == 0) {
-        return false;
-    }
-    srVector3T<float> from = g_gd_camera_65a0f8->m_position_08c;
-    if (g_world->octree != 0) {
-        return g_world->octree->HasLineOfSight(&from, &to, 1);
-    }
-    return true;
-}
-
-// FUNCTION: WIZ8 0x004255c0
-stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
-                                           int arg_4, int arg_5)
-{
-    return Function4253F0(image, rect, mode, arg_4, arg_5);
-}
-
-// FUNCTION: WIZ8 0x004280c0
-void WarpSystemCursor(int x, int y)
-{
-    if (g_fullscreen_603c39) {
-        SetCursorPos(x, y);
-        return;
-    }
-    RECT client;
-    GetClientRect(ghWindow, &client);
-    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
-    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client));
-    // reinterpret-ok: Win32 ClientToScreen takes LPPOINT; RECT is two adjacent POINTs
-    ClientToScreen(ghWindow, reinterpret_cast<LPPOINT>(&client.right));
-    SetCursorPos(client.left + x, client.top + y);
-}

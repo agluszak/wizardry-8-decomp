@@ -1349,12 +1349,12 @@ void CreateAutomapMarkerSprites005822C0(void)
             g_class_68f29c->setParent(g_scene_square_65965c, 1);
             static_cast<srMeshModel*>(g_class_68f29c->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
-            g_class_68f29c->Function480EB0(1);
+            g_class_68f29c->SetGlowEnabled00480EB0(1);
             srVector4T<float> first;
             srVector4T<float> second;
             first.Set(0.0f, 0.25f, 0.0f, 1.0f);
             second.Set(0.0f, 0.75f, 0.0f, 1.0f);
-            g_class_68f29c->Function480FF0(&first, &second);
+            g_class_68f29c->SetGlowColors00480FF0(&first, &second);
             g_class_68f29c->render_state_164.render_depth = 2000;
         }
     }

@@ -314,8 +314,8 @@ void PleaseWaitScreenFrame(void)
     }
     case 3:
         if (PleaseWaitScreenEnsureLevelArchive(g_load_descriptor_69b7c8->parameter)) {
-            if (!Function42AF60(g_load_descriptor_69b7c8->parameter,
-                                g_load_descriptor_69b7c8->parameter_2)) {
+            if (!ReloadLevelPreservingCamera0042AF60(g_load_descriptor_69b7c8->parameter,
+                                                     g_load_descriptor_69b7c8->parameter_2)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
             }
             AutoSaveIfAllowed(1);

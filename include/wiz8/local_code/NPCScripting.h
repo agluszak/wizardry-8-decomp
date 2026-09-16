@@ -110,33 +110,33 @@ void ResolveSedexusCapture(void);                         /* 0x00529F90 */
 void NpcScriptHenchmanArrives(W8Monster* monster);        /* 0x0052A080 */
 void NpcScriptHenchmanDeparted(W8Monster* monster);       /* 0x0052A150 */
 void NpcScriptSavantHackDone(W8Monster* monster);         /* 0x0052A190 */
-void NpcScriptTurnToBook(void);                           /* 0x00526E40 */
-void NpcScriptQueueEndgame(void);                         /* 0x00526DF0 */
-void NpcScriptEndgameScreen(void);                        /* 0x00526E70 */
+void NpcScriptCallback00526E40(void);                     /* 0x00526E40 */
+void NpcScriptCallback00526E70(void);                     /* 0x00526E70 */
 void OnNpcTravelConfirmationClosed(W8DialogBase* dialog); /* 0x0052A1B0 */
 void UpdateNpcDialogueVoiceAndCursor(void);               /* 0x00524DA0 */
 void ProcessNpcScriptingFrame(void);                      /* 0x00524EB0 */
-/* 0x0052A1A0: while a scripted NPC event dispatches the grouped NPC's RPC_
-   script prefix is suppressed so the event runs the NPC's own script. */
-void SetNpcScriptEventActive(unsigned char value);
-/* 0x0052A070: gates the condition-reaction pass while the Sedexus capture
-   cutscene runs. */
-unsigned char IsSedexusCaptureActive(void);
+void SetFlag68C500(unsigned char value);                  /* 0x0052A1A0 */
+unsigned char GetFlag68C4FA(void);                        /* 0x0052A070 */
 void QueueNpcMessageLine(int kind, int argument);         /* 0x005289B0 */
 void RestoreCurrentNpcQuoteBubble(void);                  /* 0x00529510 */
 void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char prepend,
                         unsigned char suppress_entries); /* 0x00528830 */
 void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
+void SetScriptedSceneActive(void);                       /* 0x00529BC0 */
+void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
 void BeginSedexusCapture(void);                          /* 0x00529EF0 */
+unsigned char IsSedexusCaptureActive(void);              /* 0x0052A070 */
+void SetNpcScriptEventActive(unsigned char value);       /* 0x0052A1A0 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse);            /* 0x00547570 */
-
-void Function420F90(srVector3T<float>* position);       /* 0x00420F90 */
+void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
+void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
+/* in GameData.h: CameraLookAt (0x00420F90) */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */
 void AuditNpcScriptQuotes00529660(void);
-void SetScriptedSceneActive(void);   /* 0x00529BC0 */
-void ClearScriptedSceneActive(void); /* 0x00529BD0 */
+void SetFlag68C4F7(void);   /* 0x00529BC0 */
+void ClearFlag68C4F7(void); /* 0x00529BD0 */
 /* 0x00524CA0: the NPC-side rebinding pass; reloads the NPC's .nsf script
    file and rebuilds its runtime bindings. */
 void ReloadNpcScriptResources(W8NpcState* npc);

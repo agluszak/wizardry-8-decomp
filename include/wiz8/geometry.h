@@ -22,7 +22,7 @@ struct W8GDSurface {
             unsigned short region_32;
         };
     };
-    unsigned int positional_34;
+    float distance_34;
     unsigned int value_38;
     unsigned char surface_flag_3c;
     unsigned char vertex_flag_3d;

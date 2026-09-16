@@ -887,10 +887,10 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         }
     }
     PlaceCharacterInFormation(&g_status_685170.formation, slot);
-    g_status_685170.formation.positions[slot].unknown_01 = 0xff;
+    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
 
     if (g_status_685170.game_started != 0) {
-        gXStatus.edited_formation.positions[slot].unknown_01 = 0xff;
+        gXStatus.edited_formation.positions[slot].bOldQuadrant = 0xff;
         PostCharacterNotice(slot, gppStringList[0x940 / 4]);
     }
     ++g_status_685170.total_member_count;

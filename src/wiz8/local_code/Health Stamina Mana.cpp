@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/local_screens/Screens.h"
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -391,7 +392,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     }
     if (amount != 0) {
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
-            Function48F650(monster_info, 0, 1);
+            PointCameraAtMonster(monster_info, 0, 1);
             category = 9;
             if (TargetSourceIsCharacter(source, 0) != 0 && source->iChar != -1) {
                 category = 8;
@@ -1747,6 +1748,8 @@ int g_special_event_0068c514;
 int g_special_event_0068c51c;
 // GLOBAL: WIZ8 0x0068C52C
 int g_special_event_0068c52c;
+// GLOBAL: WIZ8 0x0068C530
+int g_special_event_0068c530;
 // GLOBAL: WIZ8 0x0068C538
 int g_special_event_0068c538;
 // GLOBAL: WIZ8 0x0068C544

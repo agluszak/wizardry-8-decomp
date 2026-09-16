@@ -76,13 +76,11 @@ unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* re
 void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 
 /* Unresolved gap callees, declared for the call sites in this unit. */
-char Function522A00(W8ItemInstance* item);
-char Function522B80(int character_index, W8ItemInstance* item, int arg_3);
 int Function548E20(int party_slot, unsigned int arg_2);
-char Function4DA0F0(W8ItemInstance* item);
+char IsSpecialItemId004DA0F0(W8ItemInstance* item);
 char Function5A5F30(char arg_1);
 void Function5A6020(W8ItemInstance* item);
-char Function5A6310(W8ItemInstance* item);
+
 int Function5A6340(int party_slot, int action, int detail_count, W8CombatSlot* target);
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region

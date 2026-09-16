@@ -300,10 +300,10 @@ void W8GameData::ReadProcessedGameData(int handle)
     positional_2c_04 = header.positional_28;
     integrated_surface_count_34 = header.integrated_surface_count_2c;
     vertex_count_20 = header.vertex_count_1c;
-    value_60 = header.value_30;
-    value_68 = header.value_34;
+    interface_count_60 = header.value_30;
+    interface_state_count_68 = header.value_34;
     total_surface_count_44 = header.total_surface_count_38;
-    value_70 = header.value_3c;
+    cond_poly_count_70 = header.value_3c;
     environ_count_80 = header.environ_count_40;
 
     bits_58 = new BitArray(total_surface_count_44);
@@ -331,37 +331,41 @@ void W8GameData::ReadProcessedGameData(int handle)
                      "ReadProcessedGameData: Couldn't read Surface info.");
     }
 
-    if (value_60 != 0) {
-        block_64 = malloc((value_60 * 3 + 3) * sizeof(unsigned int));
-        if (block_64 == 0) {
+    if (interface_count_60 != 0) {
+        interfaces_64 = static_cast<W8GDInterface*>(
+            malloc((interface_count_60 * 3 + 3) * sizeof(unsigned int)));
+        if (interfaces_64 == 0) {
             srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
         }
-        if (FileRead(handle, block_64, value_60 * 0xc, &bytes_read) == 0) {
+        if (FileRead(handle, interfaces_64, interface_count_60 * 0xc, &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x49a,
                          "ReadProcessedGameData: Couldn't read switch interface info.");
         }
     }
 
-    if (value_68 != 0) {
-        block_6c = malloc((value_68 * 3 + 3) * sizeof(unsigned int));
-        if (block_6c == 0) {
+    if (interface_state_count_68 != 0) {
+        interface_states_6c = static_cast<W8GDInterfaceState*>(
+            malloc((interface_state_count_68 * 3 + 3) * sizeof(unsigned int)));
+        if (interface_states_6c == 0) {
             srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
                          "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
-        if (FileRead(handle, block_6c, value_68 * 0xc, &bytes_read) == 0) {
+        if (FileRead(handle, interface_states_6c, interface_state_count_68 * 0xc, &bytes_read) ==
+            0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a5,
                          "ReadProcessedGameData: Couldn't read switch state info.");
         }
     }
 
-    if (value_70 != 0) {
-        block_74 = malloc(value_70 * sizeof(unsigned int) + 4);
-        if (block_74 == 0) {
+    if (cond_poly_count_70 != 0) {
+        cond_polys_74 = static_cast<int*>(malloc(cond_poly_count_70 * sizeof(unsigned int) + 4));
+        if (cond_polys_74 == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
         }
-        if (FileRead(handle, block_74, value_70 * sizeof(unsigned int), &bytes_read) == 0) {
+        if (FileRead(handle, cond_polys_74, cond_poly_count_70 * sizeof(unsigned int),
+                     &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4b0,
                          "ReadProcessedGameData: Couldn't read conditional poly list.");
         }
@@ -439,12 +443,12 @@ W8GameData::W8GameData(int handle, void* parent)
     bits_58 = 0;
     bits_5c = 0;
     value_54 = 0;
-    value_60 = 0;
-    block_64 = 0;
-    value_68 = 0;
-    block_6c = 0;
-    value_70 = 0;
-    block_74 = 0;
+    interface_count_60 = 0;
+    interfaces_64 = 0;
+    interface_state_count_68 = 0;
+    interface_states_6c = 0;
+    cond_poly_count_70 = 0;
+    cond_polys_74 = 0;
     count_78 = 0;
     array_7c = 0;
     environ_count_80 = 0;
@@ -610,7 +614,7 @@ W8GameData::~W8GameData()
 {
     int index;
 
-    Function41A9E0();
+    ReleaseLevelData0041A9E0();
     if (geometry_index_00 != 0) {
         delete geometry_index_00;
     }
@@ -640,20 +644,20 @@ W8GameData::~W8GameData()
         count_78 = 0;
         array_7c = 0;
     }
-    if (block_64 != 0) {
-        free(block_64);
-        block_64 = 0;
-        value_60 = 0;
+    if (interfaces_64 != 0) {
+        free(interfaces_64);
+        interfaces_64 = 0;
+        interface_count_60 = 0;
     }
-    if (block_74 != 0) {
-        free(block_74);
-        block_74 = 0;
-        value_70 = 0;
+    if (cond_polys_74 != 0) {
+        free(cond_polys_74);
+        cond_polys_74 = 0;
+        cond_poly_count_70 = 0;
     }
-    if (block_6c != 0) {
-        free(block_6c);
-        block_6c = 0;
-        value_68 = 0;
+    if (interface_states_6c != 0) {
+        free(interface_states_6c);
+        interface_states_6c = 0;
+        interface_state_count_68 = 0;
     }
     if (trigger_table_50 != 0) {
         free(trigger_table_50);
@@ -695,10 +699,10 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
     header.positional_24 = positional_2c_00;
     header.positional_28 = positional_2c_04;
     header.integrated_surface_count_2c = integrated_surface_count_34;
-    header.value_30 = value_60;
-    header.value_34 = value_68;
+    header.value_30 = interface_count_60;
+    header.value_34 = interface_state_count_68;
     header.total_surface_count_38 = total_surface_count_44;
-    header.value_3c = value_70;
+    header.value_3c = cond_poly_count_70;
     header.environ_count_40 = environ_count_80;
     memset(header.unknown_44, 0, sizeof(header.unknown_44));
 
@@ -718,15 +722,18 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
         Function497690(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
-    if (value_60 != 0 && FileWrite(handle, block_64, value_60 * 0xc, 0) == 0) {
+    if (interface_count_60 != 0 &&
+        FileWrite(handle, interfaces_64, interface_count_60 * 0xc, 0) == 0) {
         Function497690(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
-    if (value_68 != 0 && FileWrite(handle, block_6c, value_68 * 0xc, 0) == 0) {
+    if (interface_state_count_68 != 0 &&
+        FileWrite(handle, interface_states_6c, interface_state_count_68 * 0xc, 0) == 0) {
         Function497690(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
-    if (value_70 != 0 && FileWrite(handle, block_74, value_70 * 4, 0) == 0) {
+    if (cond_poly_count_70 != 0 &&
+        FileWrite(handle, cond_polys_74, cond_poly_count_70 * 4, 0) == 0) {
         Function497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
         return 0;
     }

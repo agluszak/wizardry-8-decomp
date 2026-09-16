@@ -26,7 +26,16 @@ extern const float g_float_005ee77c;
    monster's distance to the player before it counts as near the group. */
 extern const float g_float_005ee780;
 /* 0x005EBC64: the vertical offset the sight probes add before tracing. */
+extern const float g_float_005ecb08;
+extern const float g_float_005ecb20;
+extern const double g_double_005ec8d8;
+extern const double g_double_005ecb18;
+extern const float g_float_005ecb10;
+extern const float g_float_005ecb0c;
 extern float g_float_005ebc64;
+/* 10.0f - the per-tick cursor input-to-world scale. */
+extern float g_float_005ebc88;
+extern float g_float_005ebcdc;
 extern double g_double_005ebc70;
 extern float g_float_005ebc90;
 extern double g_double_005ebc30;

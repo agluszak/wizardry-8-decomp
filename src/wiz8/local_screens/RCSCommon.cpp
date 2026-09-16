@@ -68,7 +68,7 @@ void SelectCampCharacter005B6B30(int slot)
 {
     giReviewCharSlot = slot;
     g_value_0069c0f8 = &g_status_685170.buffers.characters[slot];
-    Function5A4570();
+    SyncReviewCharInputRegion005A4570();
     switch (g_camp_screen_0069c0f4->page) {
     case 0:
         EnableCampActionButtons005B9270();

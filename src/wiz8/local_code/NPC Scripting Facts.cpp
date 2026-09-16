@@ -668,7 +668,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         position.x = 53550.0f;
         position.y = 3516.0f;
         position.z = 36936.0f;
-        Function420F90(&position);
+        CameraLookAt(&position);
         fact_value = EvaluateFact(0x177);
         if (g_status_685170.log_fact_checks_3120) {
             if (fact_value == 0) {

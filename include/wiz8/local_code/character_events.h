@@ -73,5 +73,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
 extern int g_special_event_0068c50c; /* 0x0068C50C */
+extern int g_special_event_0068c530; /* 0x0068C530: emitted when a slot's action
+                                        cannot reach a monster group */
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;

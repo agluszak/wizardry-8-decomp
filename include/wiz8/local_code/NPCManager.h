@@ -9,14 +9,13 @@ struct W8GameplayModifierBlock;
 struct W8MonsterInfo;
 struct W8MonsterManagerEntry;
 
-/* NPC.DBS record indices singled out by recovered code; W8NpcState::name_style
-   is this index. The names are the records' display names. */
+/* NPC database record indices used as name-style ids at runtime. */
 enum {
     W8_NPC_ZANT = 0x0f,
     W8_NPC_DRAZIC = 0x10,
     W8_NPC_RODAN = 0x11,
     W8_NPC_VI_DOMINA = 0x18,
-    W8_NPC_RFS81_A = 0x20, /* ' ' in the recovered comparisons */
+    W8_NPC_RFS81_A = 0x20,
     W8_NPC_GLUMPH = 0x2b,
     W8_NPC_AL_ADRYIAN = 0x3b,
     W8_NPC_MADRAS = 0x4a,
@@ -25,26 +24,21 @@ enum {
     W8_NPC_ENDGAME2 = 0x8e,
 };
 
-/* W8NpcDatabaseRecord::service_flags bits: one per region whose signature
-   service the NPC provides. The g_npc_services table at 0x00619DFC pairs each
-   bit with the region's GetLevelBand id and its special NPC; CanNpcJoinParty
-   refuses to recruit an NPC while the party is in a region the NPC serves.
-   Region ids come from W8LevelFolderRecord::unknown_6a. */
 enum W8NpcServiceFlag {
-    W8_NPC_SERVICE_ARNIKA = 0x1,         /* region 2; npc 0x47 CHIEFGARI */
-    W8_NPC_SERVICE_TRYNTON = 0x2,        /* region 3; npc 0x50 BURZ */
-    W8_NPC_SERVICE_MARTEN_BLUFF = 0x4,   /* region 5; npc 0x49 FUZZFAS */
-    W8_NPC_SERVICE_SEA_CAVES = 0x8,      /* region 7; npc 0x4d SHAMAN */
-    W8_NPC_SERVICE_MT_GIGAS = 0x10,      /* region 11; npc 0x4e TRYNFOUN */
-    W8_NPC_SERVICE_RIFT = 0x20,          /* region 10; npc 0x4a MADRAS */
-    W8_NPC_SERVICE_RAPAX = 0x40,         /* region 9; npc 0x4b MILANO */
-    W8_NPC_SERVICE_BAYJIN = 0x80,        /* region 8; npc 0x4c SHAMAN */
-    W8_NPC_SERVICE_ASCENSION = 0x100,    /* region 12; npc 0x51 KING */
-    W8_NPC_SERVICE_CIRCLE = 0x200,       /* region 14; npc 0x4d SHAMAN */
-    W8_NPC_SERVICE_SWAMP = 0x400,        /* region 4; npc 0x48 BARLONE */
-    W8_NPC_SERVICE_RAPAX_CAMP = 0x800,   /* region 13; npc 0x4f SEXUS */
-    W8_NPC_SERVICE_GIGAS_CAVES = 0x1000, /* region 15; npc 0x52 RATTUS */
-    W8_NPC_SERVICE_MTN_PASS = 0x2000,    /* region 6; npc 0 GUARD_T_PILOT */
+    W8_NPC_SERVICE_ARNIKA = 0x1,
+    W8_NPC_SERVICE_TRYNTON = 0x2,
+    W8_NPC_SERVICE_MARTEN_BLUFF = 0x4,
+    W8_NPC_SERVICE_SEA_CAVES = 0x8,
+    W8_NPC_SERVICE_MT_GIGAS = 0x10,
+    W8_NPC_SERVICE_RIFT = 0x20,
+    W8_NPC_SERVICE_RAPAX = 0x40,
+    W8_NPC_SERVICE_BAYJIN = 0x80,
+    W8_NPC_SERVICE_ASCENSION = 0x100,
+    W8_NPC_SERVICE_CIRCLE = 0x200,
+    W8_NPC_SERVICE_SWAMP = 0x400,
+    W8_NPC_SERVICE_RAPAX_CAMP = 0x800,
+    W8_NPC_SERVICE_GIGAS_CAVES = 0x1000,
+    W8_NPC_SERVICE_MTN_PASS = 0x2000,
 };
 
 W8Monster* GetNpcMonster(W8NpcState* npc);
@@ -66,11 +60,11 @@ void RestockNpcInventory(W8NpcState* npc);                                      
 unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                 /* 0x0050A3C0 */
 W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
-                                      unsigned char allow_unavailable);            /* 0x0050A4A0 */
-void Function50AE40(W8NpcState* npc, int enabled);                                 /* 0x0050AE40 */
-void QueueNpcTravelRefusals(int destination_level);                                /* 0x0050E230 */
-void MarkNpcOfKind(int kind);                                                      /* 0x0050CA30 */
-W8Character* GetNpcGroupCharacter(W8NpcState* npc);                                /* 0x0050B8B0 */
+                                      unsigned char allow_unavailable); /* 0x0050A4A0 */
+void ResumeNpc(W8NpcState* npc, int enabled);                           /* 0x0050AE40 */
+void QueueNpcTravelRefusals(int destination_level);                     /* 0x0050E230 */
+void MarkNpcOfKind(int kind);                                           /* 0x0050CA30 */
+W8Character* GetNpcGroupCharacter(W8NpcState* npc);                     /* 0x0050B8B0 */
 
 /* The NPC-side global frame operation: timed world events and the per-frame
    NPC state passes. */

@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/Camera.h"
 
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Monster.h"
@@ -51,7 +52,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
         path->path_18->last_update_tick = GetTickCount();
         path->path_18->distance_travelled = 0.0f;
         path->path_18->unknown_3b = 1;
-        g_saved_environment_flag_60aa64 = Function41AAE0(0);
+        g_saved_environment_flag_60aa64 = SetEnvironmentLoadFlag(0);
         return;
     }
     if (path->active_14 == 0 || fTime != 0.0f) {
@@ -65,7 +66,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
     path->active_14 = 0;
-    Function41AAE0(g_saved_environment_flag_60aa64);
+    SetEnvironmentLoadFlag(g_saved_environment_flag_60aa64);
     if (g_status_685170.current_level == 1) {
         if (_stricmp(path->name_00, "Camera01") == 0) {
             QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x721);
@@ -83,7 +84,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
                 index = MonsterGetIndexByLocationID(
                     0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->value_9f, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
-                Function48F650(monster_info, 1, 1);
+                PointCameraAtMonster(monster_info, 1, 1);
                 position = monster_info->monster->GetPosition();
                 target.x = position.x;
                 target.y = position.y;
@@ -92,7 +93,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
                     if (g_settings_6850c8.camera_rotation_style == 0) {
                         if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,
                                                                            &pitch) == 0) {
-                            Function420FB0(&target);
+                            CameraSnapToTarget(&target);
                         }
                     } else if (g_settings_6850c8.camera_rotation_style == 1 &&
                                g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,
@@ -124,5 +125,105 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
             ResetLevelDataVectors0041F0D0();
             return;
         }
+    }
+}
+
+/* The far distance at which the camera aims at a monster's lower height
+   offset rather than its head. */
+// GLOBAL: WIZ8 0x005EBCDC
+float g_float_005ebcdc = 2000.0f;
+
+/* Turn the camera to face a monster: when rotation tracking is off the
+   monster's own combat target still drives it if that target is the selected
+   character. Otherwise the force flag decides whether to orient at all, and
+   animate chooses the eased transition over the snap. The aim point is the
+   head height, or the lower offset when the two nearly coincide or the
+   monster is far away. */
+// FUNCTION: WIZ8 0x0048F650
+void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsigned char animate)
+{
+    srVector3T<float> position;
+    float pitch;
+    float angle;
+    W8Monster* monster;
+    unsigned char track;
+
+    if (g_settings_6850c8.camera_rotation_mode == 0 &&
+        monster_info->Target.iType == W8_TARGET_KIND_CHARACTER &&
+        monster_info->Target.iChar == g_status_685170.selected_character) {
+        track = 1;
+    } else {
+        track = force;
+        if (track == 0 && g_settings_6850c8.camera_rotation_mode != 1) {
+            return;
+        }
+    }
+    monster = monster_info->monster;
+    if (monster->IsRenderable004C7C00(1) == 0) {
+        return;
+    }
+    if (monster->movement_0c0.height_offset_0b8 -
+                monster->movement_0c0.secondary_height_offset_0bc <
+            g_float_005ebc64 ||
+        monster->GetDistanceToPlayer004C7CB0() > g_float_005ebcdc) {
+        position = monster->movement_0c0.position_040;
+        position.y += monster->movement_0c0.secondary_height_offset_0bc;
+    } else {
+        position = monster->movement_0c0.position_040;
+        position.y += monster->movement_0c0.height_offset_0b8;
+    }
+    if (track != 0) {
+        if (animate == 0) {
+            CameraSnapToTarget(&position);
+            return;
+        }
+        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
+            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        }
+        return;
+    }
+    if (g_settings_6850c8.camera_rotation_mode != 1) {
+        return;
+    }
+    if (g_settings_6850c8.camera_rotation_style == 1) {
+        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
+            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        }
+    } else if (g_settings_6850c8.camera_rotation_style == 0 &&
+               g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &pitch, &angle) == 0) {
+        CameraSnapToTarget(&position);
+    }
+}
+
+/* Turn the camera to face a world position: without the force flag the camera
+   only moves when tracking mode is enabled, snapping or easing per the
+   configured rotation style; with it the orientation is always updated -
+   snapped unless animate asks for the transition. */
+// FUNCTION: WIZ8 0x0048F800
+void PointCameraAtTarget(srVector3T<float>* position, unsigned char force, unsigned char animate)
+{
+    float angle;
+    float pitch;
+
+    if (force != 0) {
+        if (animate == 0) {
+            CameraSnapToTarget(position);
+            return;
+        }
+        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
+            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        }
+        return;
+    }
+    if (g_settings_6850c8.camera_rotation_mode != 1) {
+        return;
+    }
+    if (g_settings_6850c8.camera_rotation_style == 1) {
+        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
+            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        }
+    } else if (g_settings_6850c8.camera_rotation_style == 0 &&
+               g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
+        CameraSnapToTarget(position);
     }
 }

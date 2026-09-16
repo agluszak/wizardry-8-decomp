@@ -81,6 +81,9 @@ struct W8GlobalStatus {
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
     unsigned char value_2390;
+    /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime0041F170
+       folds the level's pending elapsed times into; the 0x00502D00 wait
+       pass sums them against zero. */
     float real_elapsed_2391;
     float frame_elapsed_2395;
     unsigned char unknown_2399[8];
@@ -220,8 +223,10 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
 static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
 static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
-static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f, "W8GlobalStatus_value_498f_offset");
-static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993, "W8GlobalStatus_value_4993_offset");
+static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f,
+              "W8GlobalStatus_value_498f_offset");
+static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,
+              "W8GlobalStatus_value_4993_offset");
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
 static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");

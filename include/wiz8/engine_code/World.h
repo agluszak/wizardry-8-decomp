@@ -37,7 +37,6 @@ void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* posi
 stParticle* FindParticleByName(W8World* world, const char* name);
 bool FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
                       srVector3T<float>* direction);
-void Function48F800(srVector3T<float>* position, int value, unsigned char enabled); /* 0x0048F800 */
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 

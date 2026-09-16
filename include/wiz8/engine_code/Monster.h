@@ -30,6 +30,7 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_monster_facing_tolerance_005ec2b0;
+extern const double g_monster_poster_max_distance_005ec3d8;
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_light_scale_0060bfe0;
 

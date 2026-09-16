@@ -3,6 +3,7 @@
 #include "wiz8/sgp_bridge.h"
 
 #include "Types.h"
+#include "wiz8/engine_code/IntervalGate.h"
 
 extern unsigned char g_flag_00652dce;
 
@@ -13,14 +14,20 @@ void Function41EEE0(float movement_limit, char reset, char fast_move); /* 0x0041
 
 #pragma pack(push, 1)
 
-/* The current level-data record at 0x00652DAC. GameData.cpp establishes the
-   flag word and optional vector; Camera.cpp establishes the two derived
-   forward vectors and the scale used to produce the second. */
+/* The current level-data record at 0x00652DAC — a 0xf4-byte allocation whose
+   first 0xac bytes mix flag, counter and camera-vector state. GameData.cpp
+   establishes the flag word and optional vector; Camera.cpp establishes the
+   two derived forward vectors and the scale used to produce the second.
+   Retail allocates 0xf4 and its constructor builds a W8IntervalGate at +0xc4;
+   the record's destructor at 0x00421890 exists only to tear that member down
+   (it is the body previously read as a bare `add ecx,0xc4` adjustor). */
 struct W8LevelDataRecord {
     unsigned int flags; /* 0x00 */
     unsigned char unknown_04[0x10];
     float camera_scale_14; /* 0x14 */
     unsigned char unknown_18[0x0c];
+    /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime0041F170 hands
+       to the movement/fatigue pass, then clears. */
     float real_elapsed_24;
     float frame_elapsed_28;
     unsigned char unknown_2c[0x14];
@@ -33,6 +40,14 @@ struct W8LevelDataRecord {
     float vector_88[3];                         /* 0x88 */
     unsigned char unknown_94[0x0c];
     srVector3T<float> vector_a0; /* 0xa0 */
+    unsigned char unknown_ac[0x18];
+    W8IntervalGate interval_gate_c4; /* 0xc4 */
+    unsigned char flag_ec;           /* 0xec */
+    unsigned char flag_ed;           /* 0xed */
+    unsigned char pad_ee[2];
+    int value_f0; /* 0xf0 */
+
+    ~W8LevelDataRecord(); /* 0x00421890 */
 };
 
 struct W8OctBuildTree00446390;
@@ -41,6 +56,7 @@ class srCamera;
 class srNode;
 class W8Octree;
 struct W8OctreeTrace;
+struct W8World;
 
 class BitArray;
 
@@ -48,7 +64,8 @@ class BitArray;
 struct W8EnvironRecord {
     int value_00;
     unsigned char value_04;
-    unsigned char pad_05[3];
+    unsigned char value_05;
+    unsigned char pad_06[2];
     int value_08;
     int unknown_0c;
     float value_10;
@@ -72,6 +89,24 @@ static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
 
 class BitArray;
 
+/* Switch-interface record, 0xc bytes in the processed level data: the count
+   and first index of the interface's state records in
+   W8GameData::interface_states_6c. Field +0 is the interface's own id. */
+struct W8GDInterface {
+    int id_00;
+    int state_count_04;
+    int state_first_08;
+};
+
+/* One switch-interface state, 0xc bytes: the group id the selected state is
+   compared against, and the count/first-index slice of conditional-poly
+   surface indexes in W8GameData::cond_polys_74. */
+struct W8GDInterfaceState {
+    int group_00;
+    int poly_count_04;
+    int poly_first_08;
+};
+
 /* The processed game-data record the octree and world own. The proven prefix
    above is consumed by GameData.cpp and OctBuildTree.cpp; the constructor
    below establishes the rest: two bit sets, paired count/allocation blocks,
@@ -84,7 +119,19 @@ struct W8GameData {
     /* Writes the game-data block WriteOctFile appends after the terminator. */
     unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
     unsigned char Function447660(void* file, int index);
-    void Function41A9E0();
+    /* Release the level-data record, game-time accumulator and companion
+       level-data globals; runs first in ~W8GameData. */
+    void ReleaseLevelData0041A9E0();
+    /* Selects a switch interface's state: the matching state group's
+       conditional polygons clear surface flag 0x10 while every other state's
+       polygons set it. */
+    char SetInterfaceState(int interface_id, int state); /* 0x0041C680 */
+    /* Apply one surface the mover's trace crossed, nearest first: an
+       environment boundary (flag 0x1000) swaps the active environment record,
+       carrying the live blend fields across; a trigger surface runs its
+       trigger in the crossing direction unless the bit sets already hold
+       it. */
+    void ProcessCrossedSurface(W8GDSurface* surface); /* 0x0041C770 */
     /* Builds the octree trace model and answers its scene node. */
     srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
 
@@ -111,12 +158,12 @@ struct W8GameData {
     int value_54;
     BitArray* bits_58;
     BitArray* bits_5c;
-    int value_60;
-    void* block_64;
-    int value_68;
-    void* block_6c;
-    int value_70;
-    void* block_74;
+    int interface_count_60;
+    W8GDInterface* interfaces_64;
+    int interface_state_count_68;
+    W8GDInterfaceState* interface_states_6c;
+    int cond_poly_count_70;
+    int* cond_polys_74;
     int count_78;
     void** array_7c;
     int environ_count_80;
@@ -151,9 +198,14 @@ static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 #pragma pack(pop)
 
-static_assert(sizeof(W8LevelDataRecord) == 0xac, "W8LevelDataRecord_must_be_0xac");
+static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
 
 extern W8LevelDataRecord* g_level_data_00652dac;
+/* Companion pointer cleared alongside g_level_data_00652dac on level
+   transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
+extern unsigned int* g_level_data_sibling_00652da8;
+/* Teardown flag tested and cleared by ReleaseLevelData0041A9E0. */
+extern unsigned char g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor, which
    now lives in GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ_00652DB4;
@@ -169,13 +221,12 @@ void ClearLevelDataFlag6(void);
 void ResetLevelDataVectors0041F0D0(void);
 int IsLevelDataFlag4EffectivelySet(void);
 void ResetCurrentEnvironment0041AA40(void);
+unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
 unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
-
-void Function41C680(int interface_id, int state);
 
 /* 0x00420BD0: settle a world point onto the octree ground through the
    GameData geometry index; the false branch reports the input height and
@@ -194,10 +245,26 @@ float GetCameraPitchRadians();
 void GetCameraOrientation(float* angle, float* pitch);
 void BeginManualCameraControl();
 void LevelCamera();
+void CameraLookAt(const srVector3T<float>* position);     /* 0x00420F90 */
+void CameraSnapToTarget(const srVector3T<float>* target); /* 0x00420FB0 */
 void TurnCameraToDegrees(float degrees);
 void SetCameraYawDegrees(float degrees);
 void ApplyCameraRotation(srMatrix3T<float>* rotation);
 void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
+/* 0x00420F40: camera yaw in whole degrees plus an optional yaw-rotation
+   matrix copy. */
+int GetCameraYawAndRotation00420F40(srMatrix3T<float>* rotation);
+/* 0x00421440: project `vector` onto `onto` in place; fails on a degenerate
+   target direction. */
+unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
+                                              const srVector3T<float>* onto);
+/* 0x00421570: restore a saved yaw/pitch into the game camera, reading the
+   world camera node's current rotation first and fetching the updated matrix
+   (both into the same dead local in retail). */
+void RestoreWorldCameraOrientation00421570(float* angle, float* pitch, W8World* world);
 void GetCameraPosition(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
+/* 0x004215E0: point-visibility query through the world octree; false with no
+   world, true for a loaded world without an octree. */
+bool HasCameraLineOfSight(const srVector3T<float>* position);
 void PlacePartyAtPoint(const srVector3T<float>* point);

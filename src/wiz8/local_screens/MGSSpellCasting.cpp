@@ -389,7 +389,7 @@ void CloseSpellCastingView(void)
         gpSCSV = 0;
         ResumeMainGameWorld();
         if (IsWorldCursorVisible() != 0) {
-            Function490AF0();
+            ToggleWorldCursor();
         }
         if (gXStatus.fLockInteract != 0 && IsScreenTransitionPending() == 0) {
             Function587510(0);
@@ -636,7 +636,7 @@ static void RebuildSpellCastingList(int spell_id)
                     SpellUsableNow(id, 0) != 0 &&
                     SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) !=
                         0 &&
-                    Function501D00(gpSCSV->caster, id) == 0) {
+                    IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, id) == 0) {
                     if (IsSpellBlockedForCharacter(gpSCSV->caster, id) != 0) {
                         if (pass == 1 &&
                             ((gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
@@ -1277,7 +1277,7 @@ static void ShowSpellCastingError(int spell_id)
     } else if (SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id, 0) ==
                0) {
         ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed005A02F0, 1, 0);
-    } else if (Function501D00(gpSCSV->caster, spell_id) != 0) {
+    } else if (IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, spell_id) != 0) {
         ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed005A02F0, 1, 0);
     } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id) != 0) {
         ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed005A02F0, 1, 0);

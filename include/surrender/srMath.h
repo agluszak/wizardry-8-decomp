@@ -231,7 +231,6 @@ template <class T> T srVector3T<T>::LengthSquared() const
     return x * x + y * y + z * z;
 }
 
-// TEMPLATE: WIZ8 0x00446110
 template <class T> srVector3T<T>* srVector3T<T>::SetFromDouble(const srVector3T<double>* source)
 {
     x = (T)source->x;

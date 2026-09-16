@@ -4,6 +4,7 @@
 
 #include "wiz8/character_event_queue.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Item.h"
@@ -279,7 +280,7 @@ void RunSearchPulse(void)
                         srVector3T<float> position;
                         searchable->GetPosition(&position);
                         ResetInactiveLevelDataVectors0041EF50();
-                        Function48F800(&position, 1, 1);
+                        PointCameraAtTarget(&position, 1, 1);
                         searchable->Reveal();
                     }
                 }

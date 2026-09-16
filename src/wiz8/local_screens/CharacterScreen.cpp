@@ -652,10 +652,10 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
             AdvancePage(0);
             break;
         case 5: {
-            int value = Function558640(&m_character_018);
+            int value = ComputeStartingEquipmentCost(&m_character_018);
             int next_response;
             wchar_t* format;
-            if (Function5586B0(&m_character_018)) {
+            if (CanAffordStartingEquipment(&m_character_018)) {
                 format = gppStringList[0x35c / 4];
                 next_response = 6;
             } else {

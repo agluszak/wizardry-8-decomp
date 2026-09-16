@@ -1,5 +1,10 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/level_specific_code/Monastery1.h"
 #include "wiz8/level_specific_code/Monastery2.h"
+#include "wiz8/level_specific_code/Trynnie1.h"
+#include "wiz8/level_specific_code/Ascension.h"
+#include "wiz8/level_specific_code/MtGigasOuter.h"
+#include "wiz8/level_specific_code/MtGigasTop.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/sr_api.h"
@@ -79,16 +84,12 @@ unsigned char g_flag_652da5;
    are declared here rather than in the published header. */
 void Function4D9740(void);
 void Function4D9B40(void);
-void Function4D9D30(void);
 void Function4DA670(void);
 void Function4DB200(void);
 void Function4DBAB0(void);
-void Function4DBE70(void);
-void Function4DC8D0(void);
 void Function4DCB50(void);
 void Function4DEB40(void);
 void Function4DF870(void);
-void Function4E0510(void);
 void Function4E06D0(void);
 bool Function4D9AC0(Trigger* trigger);
 bool Function4D9AD0(Trigger* trigger);
@@ -139,22 +140,6 @@ bool Function4DBB50(Trigger* trigger);
 bool Function4DBB90(Trigger* trigger);
 bool Function4DBBD0(Trigger* trigger);
 bool Function4DBE30(Trigger* trigger);
-bool Function4DBEC0(Trigger* trigger);
-bool Function4DC390(Trigger* trigger);
-bool Function4DC600(Trigger* trigger);
-bool Function4DC640(Trigger* trigger);
-bool Function4DC670(Trigger* trigger);
-bool Function4DC6B0(Trigger* trigger);
-bool Function4DC6E0(Trigger* trigger);
-bool Function4DC710(Trigger* trigger);
-bool Function4DC730(Trigger* trigger);
-bool Function4DC770(Trigger* trigger);
-bool Function4DC910(Trigger* trigger);
-bool Function4DCA20(Trigger* trigger);
-bool Function4DCA60(Trigger* trigger);
-bool Function4DCAC0(Trigger* trigger);
-bool Function4DCAF0(Trigger* trigger);
-bool Function4DCB10(Trigger* trigger);
 bool Function4DD3E0(Trigger* trigger);
 bool Function4DDD30(Trigger* trigger);
 bool Function4DDD50(Trigger* trigger);
@@ -633,37 +618,37 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4DDEB0;
         return;
     case 8:
-        Function4DC8D0();
+        ClearTextForBarTrigger004DC8D0();
         pTrigger = FindTriggerByName("roach_trigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c0,
                          "Missing trigger 'roach_trigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC910;
+        pTrigger->activation_callback_360 = OnRoachTriggerActivated;
         pTrigger = FindTriggerByName("spider_trigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c4,
                          "Missing trigger 'spider_trigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DCA20;
+        pTrigger->activation_callback_360 = OnSpiderTriggerActivated;
         pTrigger = FindTriggerByName("Bartrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1c8,
                          "Missing trigger 'Bartrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DCAF0;
+        pTrigger->activation_callback_360 = OnBarTriggerActivated;
         pTrigger = FindTriggerByName("Coffinlide");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1cc,
                          "Missing trigger 'Coffinlide'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DCA60;
+        pTrigger->activation_callback_360 = OnCoffinlideActivated;
         pTrigger = FindTriggerByName("Coffinlidg");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1d0,
                          "Missing trigger 'Coffinlidg'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DCAC0;
+        pTrigger->activation_callback_360 = OnCoffinlidgActivated;
         pTrigger = FindTriggerByName("wheel_star");
         if (pTrigger == 0) {
             srAssertFail(
@@ -672,7 +657,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "wheel_star")));
         }
-        pTrigger->activation_callback_360 = Function4DCB10;
+        pTrigger->activation_callback_360 = OnWheelStarActivated;
         return;
     case 9:
         pTrigger = FindTriggerByName("bell_button");
@@ -791,7 +776,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4DBA70;
         return;
     case 0xe:
-        Function4DBE70();
+        ProcessFlagPosition004DBE70();
         pTrigger = FindTriggerByName("_VOC_EWAXXLIFT1");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ff,
@@ -803,25 +788,25 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x203,
                          "Missing trigger 'crank'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBEC0;
+        pTrigger->activation_callback_360 = OnCrankTriggerActivated;
         pTrigger = FindTriggerByName("Security Button");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x207,
                          "Missing trigger 'Security Button'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC390;
+        pTrigger->activation_callback_360 = OnSecurityButtonActivated;
         pTrigger = FindTriggerByName("VOC_EWAXXSENTRYtrig");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x20b,
                          "Missing trigger 'VOC_EWAXXSENTRYtrig'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC600;
+        pTrigger->activation_callback_360 = OnSentryTriggerActivated;
         pTrigger = FindTriggerByName("ewaxxdoortrigger03");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x20f,
                          "Missing trigger 'ewaxxdoortrigger03'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC640;
+        pTrigger->activation_callback_360 = OnEwaxxDoor03Activated;
         pTrigger = FindTriggerByName("dummytrigger");
         if (pTrigger == 0) {
             srAssertFail(
@@ -830,7 +815,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "dummytrigger")));
         }
-        pTrigger->activation_callback_360 = Function4DC670;
+        pTrigger->activation_callback_360 = OnDummyTriggerActivated;
         return;
     case 0xf:
         pTrigger = FindTriggerByName("_VOC_EWAXXCANNON1");
@@ -838,31 +823,31 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1e2,
                          "Missing trigger '_VOC_EWAXXCANNON1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC6B0;
+        pTrigger->activation_callback_360 = OnEwaxxCannon1Activated;
         pTrigger = FindTriggerByName("EwaxxLanding");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ea,
                          "Missing trigger 'EwaxxLanding'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC6E0;
+        pTrigger->activation_callback_360 = OnEwaxxLandingActivated;
         pTrigger = FindTriggerByName("catchCord");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ee,
                          "Missing trigger 'catchCord'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC710;
+        pTrigger->activation_callback_360 = OnCatchCordActivated;
         pTrigger = FindTriggerByName("painActivatorTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1f2,
                          "Missing trigger 'painActivatorTrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC770;
+        pTrigger->activation_callback_360 = OnPainActivatorActivated;
         pTrigger = FindTriggerByName("_VOC_EWAXXTOPDOOR2");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1f6,
                          "Missing trigger '_VOC_EWAXXTOPDOOR2'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DC730;
+        pTrigger->activation_callback_360 = OnEwaxxTopDoor2Activated;
         return;
     case 0x10:
         if (GetFact(0x1ce) == 0) {
@@ -1209,7 +1194,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_04")));
         }
         pTrigger->activation_callback_360 = Function4DA060;
-        Function4D9D30();
+        EnsureTrynnie2KilledVar004D9D30();
         return;
     case 0x1b:
         pTrigger = FindTriggerByName("Liche");
@@ -1220,7 +1205,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4E05F0;
         return;
     case 0x24:
-        Function4E0510();
+        SyncButtonBlockerFromFact004E0510();
         pTrigger = FindTriggerByName("Triangle");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf2,

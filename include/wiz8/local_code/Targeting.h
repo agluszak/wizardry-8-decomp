@@ -23,12 +23,12 @@ char GetSourceNoticeColor(const W8TargetSource* source); /* 0x0053C320 */
 char GetTargetNoticeColor(const W8TargetSource* source,
                           const W8CombatSlot* target); /* 0x0053C3F0 */
 
-extern int g_target_state_6840b3;
-extern int g_picked_group_006840b7;
+extern int g_picked_monster;
+extern int g_picked_group;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
 extern W8CombatSlot g_shared_target_0068408b;
 /* ABS 0x006840AB: one action-detail block following the shared slot; the
-   eight bytes fit exactly before g_target_state_6840b3. Context 2 hands out
+   eight bytes fit exactly before g_picked_monster. Context 2 hands out
    both addresses and stores the selected use-item value in the block. */
 extern W8ActionDetailBlock g_shared_action_detail_006840ab;
 
@@ -39,11 +39,10 @@ unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_i
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context);
 void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
-void Function53B050(int party_slot); /* 0x0053B050 */
 void RefreshAllPartyTargets(void);
 unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int arg);
-/* 0x005387F0 */
-void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);
+void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context); /* 0x005387F0 */
+void AimAtPlace(int actor);                                                    /* 0x00538710 */
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
@@ -87,6 +86,7 @@ void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                                int reason); /* 0x00536AD0 */
 void ClearTargetingMode(int party_slot);
+void Function53B050(int party_slot); /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id);
@@ -119,8 +119,21 @@ void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
-unsigned char SlotHasAnyValidTarget(int party_slot);                         /* 0x0053CDF0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
-void Function537540(int party_slot);                                         /* 0x00537540 */
-void Function537D20(int party_slot);                                         /* 0x00537D20 */
-char Function53C2C0(int party_slot);
+/* 0x00537380: the target kind the slot's current action needs in the effective
+   targeting context, with the main-screen selection state folded in. */
+int GetTargetNeededForCurrentAction(int party_slot);
+/* 0x00537540: after the selected character's action changes, drop back to no
+   targeting when its recorded target still fits, or enter the mode the action
+   now needs. */
+void RevalidateSelectedTarget(int party_slot);
+/* 0x00537D20: the cycle-target command - advance the pick to the next
+   targetable group or monster and commit it. */
+void CycleToNextTarget(int party_slot);
+unsigned char SlotHasAnyValidTarget(int party_slot); /* 0x0053CDF0 */
+/* 0x00538140: every monster the slot's action could aim at, angular order,
+   stepping from the currently picked monster. */
+int PickNextTargetableMonster(int party_slot);
+/* 0x0053C2C0: whether the slot holds a dead character still reachable for a
+   targeting mode that admits one. */
+char IsDeadCharacterTargetable(int party_slot);

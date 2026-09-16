@@ -283,7 +283,6 @@ void Function59B4C0(void);
 void Function59B390(void);
 void Function502650(void);
 void Function562A80(void);
-void Function4916C0(void);
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
@@ -3051,7 +3050,7 @@ unsigned char MainGameScreenEnter(void)
         }
     }
     if (!gXStatus.fCombatMode) {
-        Function42B770(1, 1);
+        StartLevelMusic(1, 1);
     }
     return 1;
 }
@@ -3293,7 +3292,7 @@ update_screen:
             }
         }
     } else {
-        Function4916C0();
+        UpdateWorldCursor004916C0();
     }
     if (!g_level_block->keyboard_menu_open && g_level_block->hover_combat_slot != -1 &&
         g_level_block->hover_region != g_level_block->hover_combat_slot + 10U) {
@@ -3484,7 +3483,7 @@ unsigned char MainGameScreenLeave(int leaving)
         gfTrackMousePos = 0;
     }
     if (IsWorldCursorVisible()) {
-        Function490AF0();
+        ToggleWorldCursor();
     }
     Function59B270();
     if (gXStatus.fLockInteractMode)
@@ -6697,7 +6696,7 @@ void OpenNpcDialogueMode1Layout(void)
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(
             CanCharacterCastSpell(character, 0x29));
         g_screen_state_00649f1c->dialogue_text_114->W8Widget::Invalidate(1);
-        g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(Function522D40(character));
+        g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(CharacterHasServiceItem(character));
         g_screen_state_00649f1c->dialogue_text_11c->W8Widget::Invalidate(1);
     }
     RequestRedraw(0x200);

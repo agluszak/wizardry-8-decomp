@@ -767,7 +767,7 @@ unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive577830(void);         /* 0x00577830 */
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
 unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
-unsigned char Function577A40(void);
+unsigned char ProcessPendingEvent00577A40(void);
 void __fastcall
 CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
 void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
@@ -776,6 +776,7 @@ ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);        
 bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
+void ClearCombatSelection(void); /* 0x0056A5A0 */
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState00593330(void);
 int IsScreenIdle(void);

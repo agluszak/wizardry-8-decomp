@@ -35,7 +35,7 @@
  * rotated to party_facing - party_heading, and a lazily created overlay.
  * Below the board sit fifteen cell controls in five rows of three over a
  * Controls panel; edits stage into gXStatus.edited_formation and commit
- * through Function5545F0, or are only previewed while in combat.
+ * through ReconcilePartyFormation, or are only previewed while in combat.
  */
 
 /* 0x0064DAF4: on-board (left, top) of each of the fifteen cell markers,
@@ -85,11 +85,13 @@ static void DrawFormationSlotMarkers(int target)
         int image;
         int order_image;
 
-        if (row->occupied == 0 || position->row == -1) {
+        if (row->occupied == 0 || position->bQuadrant == -1) {
             continue;
         }
-        left = g_formation_marker_offsets_0064daf4[position->row * 3 + position->column][0];
-        top = g_formation_marker_offsets_0064daf4[position->row * 3 + position->column][1];
+        left = g_formation_marker_offsets_0064daf4[position->bQuadrant * 3 +
+                                                   position->bQuadrantSlot][0];
+        top = g_formation_marker_offsets_0064daf4[position->bQuadrant * 3 + position->bQuadrantSlot]
+                                                 [1];
         image = position->facing * 3;
         order_image = row->party_order_index * 3;
         if (slot == g_level_block->formation_highlight_party_slot) {
@@ -150,8 +152,9 @@ void RefreshFormationBoard(void)
     PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
     g_level_block->formation_board_sprite->render_state_164.display_state = 4;
     if (g_level_block->formation_compass_sprite != 0) {
-        Function425840(g_level_block->formation_compass_sprite,
-                       g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
+        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
+                                    g_status_685170.party_facing - g_status_685170.party_heading +
+                                        0x168);
     }
     SetRendererModePair();
 }
@@ -161,8 +164,9 @@ void RefreshFormationBoard(void)
 void UpdateFormationCompass(void)
 {
     if (g_level_block->formation_compass_sprite != 0) {
-        Function425840(g_level_block->formation_compass_sprite,
-                       g_status_685170.party_facing - g_status_685170.party_heading + 0x168);
+        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
+                                    g_status_685170.party_facing - g_status_685170.party_heading +
+                                        0x168);
     }
     SetRendererModePair();
 }
@@ -220,10 +224,10 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
         W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
         int cell;
 
-        if (row->occupied == 0 || position->row == -1) {
+        if (row->occupied == 0 || position->bQuadrant == -1) {
             continue;
         }
-        cell = position->row * 3 + position->column;
+        cell = position->bQuadrant * 3 + position->bQuadrantSlot;
         if (IsCursorInRectangle(g_formation_marker_offsets_0064daf4[cell][0] + 0x207,
                                 g_formation_marker_offsets_0064daf4[cell][1] + 0x167,
                                 g_formation_marker_offsets_0064daf4[cell][0] + 0x211,
@@ -338,7 +342,7 @@ void OpenFormationPanel(void)
         gXStatus.fReviewCharacterMode = 1;
         RegionSetEnable(0x1b);
         RequestRedraw(0x1000);
-        Function5545D0(&gXStatus.edited_formation, &g_status_685170.formation);
+        CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
         PauseMainGameWorld();
         UpdateFormationCells();
     }
@@ -363,8 +367,8 @@ static void UpdateFormationCells(void)
         W8TextControl* overlay;
         int sprite;
 
-        if (row->occupied != 0 && position->row != -1) {
-            cell = position->row * 3 + position->column;
+        if (row->occupied != 0 && position->bQuadrant != -1) {
+            cell = position->bQuadrant * 3 + position->bQuadrantSlot;
             primary = g_formation_cell_controls[cell];
             overlay = g_formation_cell_overlays[cell];
             if (CanHoldFormationPlace(slot) == 0) {
@@ -442,13 +446,13 @@ static void AcceptFormationChanges(void)
     for (slot = 0; slot < 8; ++slot) {
         if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
             CanHoldFormationPlace(slot) != 0 &&
-            gXStatus.edited_formation.positions[slot].row !=
-                g_status_685170.formation.positions[slot].row) {
+            gXStatus.edited_formation.positions[slot].bQuadrant !=
+                g_status_685170.formation.positions[slot].bQuadrant) {
             StartBreathCycle(slot, 0);
         }
     }
     if (gXStatus.fCombatMode == 0) {
-        Function5545F0(&gXStatus.edited_formation, &g_status_685170.formation);
+        ReconcilePartyFormation(&gXStatus.edited_formation, &g_status_685170.formation);
     } else if (memcmp(&gXStatus.edited_formation, &g_status_685170.formation,
                       sizeof(W8PartyFormationState)) != 0) {
         ShowNotice(8, gppStringList[0x1f64 / 4], -1, -1, 0);
@@ -469,7 +473,7 @@ static void AcceptFormationChanges(void)
 // FUNCTION: WIZ8 0x005b2960
 static void ResetFormationPanel(void)
 {
-    Function5545D0(&gXStatus.edited_formation, &g_status_685170.formation);
+    CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
     UpdateFormationCells();
 }
 
@@ -652,7 +656,7 @@ static void BeginFormationDrag(const InputAtom*)
     g_formation_drag_cell_0069c380 = g_formation_active_cell_0069c2f0;
     g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0] = -1;
     SGPMouseGetPos(&point);
-    Function427E70();
+    ClearMouseSurface();
     sprite = g_formation_cell_controls[g_formation_drag_cell_0069c380]->m_alternatePressedSprite;
     region = GetCatalogVideoObjectYOffset(0x9f) + (short)sprite;
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);
@@ -677,12 +681,13 @@ static void DropFormationSlot(int cell)
         if (g_formation_cell_slots_0069c304[cell] == -1) {
             SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4, -1, -1,
                                  0, 1, 1);
-            Function555080(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4, cell / 3);
+            SeatFormationSlotInRow(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4,
+                                   cell / 3);
         } else if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[cell]) == 0) {
             cell = -1;
         } else {
-            Function555160(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4,
-                           g_formation_cell_slots_0069c304[cell]);
+            SwapFormationSlots(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4,
+                               g_formation_cell_slots_0069c304[cell]);
         }
     }
     UpdateHeldItemCursor();

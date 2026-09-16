@@ -832,6 +832,136 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
     return total;
 }
 
+/* Spend one creation spell point on a pick: the spell goes to selected, and
+   either end of the linked 0x49/0x4b pair drags its partner along unless the
+   character already knows it. An emptied pool marks the page complete. */
+// FUNCTION: WIZ8 0x005584e0
+void SelectCreationSpell(W8Character* character, W8CharacterCreationState* creation_state,
+                         unsigned int spell)
+{
+    if (creation_state->spell_points_remaining > 0) {
+        character->spell_learned[spell] = 2;
+        --creation_state->spell_points_remaining;
+        if (spell == 0x4b) {
+            if (character->spell_learned[0x49] != 1) {
+                character->spell_learned[0x49] = 2;
+            }
+        } else if (spell == 0x49) {
+            if (character->spell_learned[0x4b] != 1) {
+                character->spell_learned[0x4b] = 2;
+            }
+        }
+    }
+    if (creation_state->spell_points_remaining == 0) {
+        creation_state->spells_complete = 1;
+    }
+    RecalculateRealmSpellPoints(character);
+}
+
+/* Return one creation spell pick: the spell goes to declined, an auto-added
+   partner of the 0x49/0x4b pair follows only while it is still marked
+   selected, and the point goes back to the pool. */
+// FUNCTION: WIZ8 0x00558560
+void DeselectCreationSpell(W8Character* character, W8CharacterCreationState* creation_state,
+                           unsigned int spell)
+{
+    if (character->spell_learned[spell] != 0) {
+        character->spell_learned[spell] = -1;
+        if (spell == 0x4b) {
+            if (character->spell_learned[0x49] == 2) {
+                character->spell_learned[0x49] = -1;
+            }
+        } else if (spell == 0x49) {
+            if (character->spell_learned[0x4b] == 2) {
+                character->spell_learned[0x4b] = -1;
+            }
+        }
+        ++creation_state->spell_points_remaining;
+        creation_state->spells_complete = 0;
+        RecalculateRealmSpellPoints(character);
+    }
+}
+
+/* Back out the in-progress spell picks before the pool is rebuilt: every
+   tentative selection (state two) returns to unlearned, the point pool is
+   topped back up and the page is marked incomplete. */
+// FUNCTION: WIZ8 0x005585D0
+void ResetSpellSelections005585D0(W8Character* character, W8CharacterCreationState* creation_state)
+{
+    for (int index = 0; index < 0x72; ++index) {
+        if (character->spell_learned[index] == 2) {
+            character->spell_learned[index] = -1;
+        }
+    }
+    creation_state->spell_points_remaining = creation_state->spell_points_total;
+    creation_state->spells_complete = 0;
+}
+
+/* Price the profession's starting gear: stage the equipment, sum every
+   carried stack's value, then empty the character back out. */
+// FUNCTION: WIZ8 0x00558640
+int ComputeStartingEquipmentCost(W8Character* character)
+{
+    W8ItemInstance* item;
+    int total;
+    int count;
+
+    total = 0;
+    AddCharacterStartingEquipment(character);
+    item = character->equipment;
+    count = 0xc;
+    do {
+        if (item->item_id != -1) {
+            total += GetItemStackValue(item);
+        }
+        ++item;
+        --count;
+    } while (count != 0);
+    item = character->backpack;
+    count = 8;
+    do {
+        if (item->item_id != -1) {
+            total += GetItemStackValue(item);
+        }
+        ++item;
+        --count;
+    } while (count != 0);
+    EmptyAllCarriedItems(character);
+    return total;
+}
+
+/* Whether the party's gold covers the new character's starting gear. */
+// FUNCTION: WIZ8 0x005586b0
+unsigned char CanAffordStartingEquipment(W8Character* character)
+{
+    W8ItemInstance* item;
+    unsigned int total;
+    int count;
+
+    total = 0;
+    AddCharacterStartingEquipment(character);
+    item = character->equipment;
+    count = 0xc;
+    do {
+        if (item->item_id != -1) {
+            total += GetItemStackValue(item);
+        }
+        ++item;
+        --count;
+    } while (count != 0);
+    item = character->backpack;
+    count = 8;
+    do {
+        if (item->item_id != -1) {
+            total += GetItemStackValue(item);
+        }
+        ++item;
+        --count;
+    } while (count != 0);
+    EmptyAllCarriedItems(character);
+    return total <= g_status_685170.party_gold;
+}
+
 /* Recompute the level-up pools after a profession change, refunding every
    baseline the previous profession's assignment had granted. */
 // FUNCTION: WIZ8 0x00557060

@@ -198,7 +198,8 @@ void DrawCampSpellPages005B7300(void);
 void DrawCampResistances005B7790(void);
 unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);
 void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
-void Function5A4570(void);
+void SyncReviewCharInputRegion005A4570(void);
+char IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
 void Function5C4EE0(void);
 
 extern int g_effect_005ee6ec;
@@ -209,7 +210,7 @@ void Function5187E0(void);
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
-                    char arg_6);
+                     char arg_6);
 /* Ending sequence picker run when that fade completes. */
 void Function5A6B90(void); /* 0x005A6B90 */
 /* 0x005A6580 */
