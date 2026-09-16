@@ -382,6 +382,7 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
     const char* script;
     int encounter_weight;
     int companion_count = 0;
+    int index;
 
     if ((flags & W8_MONGEN_DISABLED) != 0 || value_1c == -1) {
         return 0;
@@ -412,7 +413,7 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
     /* Retail computes this total even though the surviving release path never
        reads it afterwards; the external calls can still populate cycle data. */
     encounter_weight = GetMonsterCycleFallbackValue004E5B50(species);
-    for (int index = 0; index < 2; ++index) {
+    for (index = 0; index < 2; ++index) {
         companion_records[index] = GetEncounterCompanion(record, index);
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
             companion_active[index] = 1;
@@ -447,7 +448,7 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
         monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
     }
 
-    for (int index = 0; index < 2; ++index) {
+    for (index = 0; index < 2; ++index) {
         if (companion_active[index] == 0) {
             continue;
         }
