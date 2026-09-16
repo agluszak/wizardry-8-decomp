@@ -195,23 +195,14 @@ template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
 {
     int index = 0;
 
-    if (count <= 0) {
-        return 0;
-    }
     while (index < count) {
         if (data[index] == entry) {
-            break;
+            RemoveAt(index);
+            return 1;
         }
         ++index;
     }
-    if (index < 0 || index >= count) {
-        return 0;
-    }
-    for (; index < count - 1; ++index) {
-        data[index] = data[index + 1];
-    }
-    --count;
-    return 1;
+    return 0;
 }
 
 #endif

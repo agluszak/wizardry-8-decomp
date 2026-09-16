@@ -16,6 +16,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
    sub-menu entry each one gates. */
 enum {
     W8_TRAIT_PRAY = 0x0b,        /* priest */
+    W8_TRAIT_SEARCH = 0x0c,      /* qualifies a searcher for the search pulse */
     W8_TRAIT_TURN_UNDEAD = 0x11, /* priest and bishop */
     W8_TRAIT_BERSERK = 0x14,     /* fighter */
     W8_TRAIT_BREATHE = 0x1c      /* dracon racial or the breath enchantment */

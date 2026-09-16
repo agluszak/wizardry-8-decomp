@@ -79,6 +79,10 @@ extern float g_float_005ebc60;
    geometry. */
 extern float g_float_005ebc78;
 extern float g_float_005ebc7c;
+/* Search: the unit range the search score and collector scale against. */
+extern float g_float_0061a364;
+/* Search: the full facing cone the collector tests before line of sight. */
+extern float g_float_0061a368;
 extern float g_float_005ebccc;
 extern float g_float_005ec028;
 extern float g_float_005ec1a0;

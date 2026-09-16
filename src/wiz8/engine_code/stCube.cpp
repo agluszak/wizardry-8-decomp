@@ -40,34 +40,17 @@
    0x0048ED00-0x0048EFC0 are the following attribution gap, so no assertion
    names their unit. */
 
-/* One record of the world cursor's node table. The 0x0048D080 constructor
-   allocates 0x44 bytes and installs the 0x005ECAB8 vtable after zeroing the
-   scratch buffer at +0x18 and its length at +0x1c. The three numbers at
-   +0x0c/+0x10/+0x14 are the cube labels; +0x20 is the packed fill colour.
-   The 0x0048E6D0 save body writes the 0x20 bytes at +0x24 and then that
-   buffer and length. The TU name stCube.cpp and the runtime model name
-   "stCube" are suggestive but do not prove the class spelling, so the name
-   is a recovered descriptive name. Retail writes the two zeros before the
-   vptr; the C++ constructor installs the vptr first. */
-// VTABLE: WIZ8 0x005ecab8
-class W8WorldCursorNode {
-public:
-    W8WorldCursorNode()
-    {
-        buffer_18 = 0;
-        size_1c = 0;
+/* Copy the node's world location out; the searchable position resolver treats
+   a missing node chain as unresolvable. */
+// FUNCTION: WIZ8 0x0048d050
+unsigned char W8WorldCursorNode::GetLocation0048D050(srVector3T<float>* position)
+{
+    if (node_04 != 0) {
+        node_04->getLocation(*position);
+        return 1;
     }
-    virtual ~W8WorldCursorNode() {}
-    srNode* node_04; /* 0x04 */
-    unsigned char unknown_08[4];
-    int numbers_0c[3];              /* 0x0c, 0x10, 0x14 */
-    void* buffer_18;                /* 0x18 */
-    int size_1c;                    /* 0x1c */
-    unsigned long color_20;         /* 0x20 */
-    unsigned char flag_24;          /* 0x24 */
-    unsigned char unknown_25[0x1f]; /* 0x25 */
-};
-static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
+    return 0;
+}
 
 /* The cursor's node table is a real W8GrowableVector object: its static
    initializer at 0x0048D020 constructs it with capacity five and its
@@ -283,8 +266,7 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
             srAssertFail("pBuffer", ST_CUBE_CPP, 0x130, 0);
         }
         SaveFontSettings();
-        SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(),
-                          surface->getHeight(),
+        SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(), surface->getHeight(),
                           static_cast<unsigned char>(FontDestWrap));
         SetFont(g_smfnt_font_683694);
         SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
