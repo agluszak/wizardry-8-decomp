@@ -5,6 +5,7 @@
 #include "surrender/srCore.h"
 
 #include <math.h>
+#include <string.h>
 
 // GLOBAL: WIZ8 0x005ecd4c
 float g_monster_light_cycle_rate_005ecd4c = 0.025f;
@@ -35,6 +36,44 @@ MonsterLight::MonsterLight(srNode* parent, unsigned char cycle_color, float rang
     setLinearAttenuation(range, 0.0019569471f);
     specular_1b0.SetZero();
     diffuse_1a4 = *first_color;
+    setFlag(srNode::FLAG_DISABLE);
+    m_start_time_244 = g_game_time_accumulator_6598bc->GetValue30();
+}
+
+/* A copied monster light preserves the authored light configuration and
+   colour-cycle settings, but starts a fresh visible interval at the copied
+   node's parent. */
+// FUNCTION: WIZ8 0x0049D660
+MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
+{
+    srLight::operator=(other);
+    attenuation_model_150 = other.attenuation_model_150;
+    near_start_158 = other.near_start_158;
+    near_end_160 = other.near_end_160;
+    far_start_168 = other.far_start_168;
+    far_end_170 = other.far_end_170;
+    memcpy(unknown_178_, other.unknown_178_, sizeof(unknown_178_));
+    opengl_attenuation_188 = other.opengl_attenuation_188;
+    enable_flags_194 = other.enable_flags_194;
+    ambient_198 = other.ambient_198;
+    diffuse_1a4 = other.diffuse_1a4;
+    specular_1b0 = other.specular_1b0;
+    spot_direction_1bc = other.spot_direction_1bc;
+    spot_angle_1c8 = other.spot_angle_1c8;
+    spot_exponent_1cc = other.spot_exponent_1cc;
+    intensity_1d0 = other.intensity_1d0;
+    safe_range_1d4 = other.safe_range_1d4;
+    memcpy(unknown_1d8_, other.unknown_1d8_, sizeof(unknown_1d8_));
+
+    m_vertical_offset_228 = other.m_vertical_offset_228;
+    m_color_first_22c = other.m_color_first_22c;
+    m_color_second_238 = other.m_color_second_238;
+    m_start_time_244 = other.m_start_time_244;
+    m_cycle_color_248 = other.m_cycle_color_248;
+    m_fade_out_249 = 0;
+
+    setParent(other.getParent(), 1);
+    intensity_1d0 = 1.0f;
     setFlag(srNode::FLAG_DISABLE);
     m_start_time_244 = g_game_time_accumulator_6598bc->GetValue30();
 }

@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/stMeshModel.h"
@@ -27,10 +28,13 @@
 
 #include <math.h>
 #include <new>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <wchar.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "FileMan.h"
 
 #define ST_CUBE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\stCube.cpp"
 
@@ -65,6 +69,9 @@ const double g_double_005ecac8 = 75000.0;
 
 // GLOBAL: WIZ8 0x0060a9b0
 int g_cursor_node_index_0060a9b0 = -1;
+
+// GLOBAL: WIZ8 0x005ebf50
+double g_world_cursor_scale_005ebf50 = 0.002;
 
 /* Build the numbered cube the world cursor table holds: a 500-unit modeller
    cube, a translucent white material, and a 32x32 texture the label painter
@@ -235,7 +242,7 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     DrawWorldCursorNodeLabel0048DCB0(entry);
     entry->buffer_18 = 0;
     entry->size_1c = 0;
-    entry->flag_24 = 0;
+    entry->name_24[0] = 0;
 
     g_world_cursor_nodes_65ba58.Add(entry);
     return entry;
@@ -287,6 +294,177 @@ void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long col
 {
     entry->color_20 = color;
     DrawWorldCursorNodeLabel0048DCB0(entry);
+}
+
+// FUNCTION: WIZ8 0x0048e470
+unsigned int LoadWorldCursorNodeStates0048E470(int handle)
+{
+    int version;
+    unsigned int count;
+    unsigned int index;
+    bool success = true;
+
+    if (!FileRead(handle, &version, 4, 0)) {
+        return 0;
+    }
+    if (version == 0x21122112) {
+        version = 1;
+    }
+    if (!FileRead(handle, &count, 4, 0)) {
+        return 0;
+    }
+
+    for (index = 0; index < count; ++index) {
+        W8WorldCursorNode* cube = 0;
+        bool temporary = false;
+
+        if (version < 2) {
+            cube = GetWorldCursorNode0048ED10(index);
+        } else {
+            char name[0x20];
+            int cube_index;
+
+            FileRead(handle, name, sizeof(name), 0);
+            for (cube_index = 0; cube_index < g_world_cursor_nodes_65ba58.GetCount();
+                 ++cube_index) {
+                W8WorldCursorNode* candidate = *g_world_cursor_nodes_65ba58.GetAt(cube_index);
+                if (strcmp(candidate->name_24, name) == 0) {
+                    cube = candidate;
+                    break;
+                }
+            }
+            if (cube == 0) {
+                cube = new W8WorldCursorNode;
+                temporary = true;
+            }
+        }
+
+        if (success && FileRead(handle, &cube->size_1c, 4, 0)) {
+            success = true;
+        } else {
+            success = false;
+        }
+        if (cube->size_1c != 0) {
+            cube->buffer_18 = malloc(cube->size_1c);
+            if (cube->buffer_18 == 0) {
+                srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
+            }
+            memset(cube->buffer_18, 0, cube->size_1c);
+            if (success && FileRead(handle, cube->buffer_18, cube->size_1c, 0)) {
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+        if (temporary && cube != 0) {
+            if (cube->buffer_18 != 0) {
+                free(cube->buffer_18);
+                cube->buffer_18 = 0;
+            }
+            cube->size_1c = 0;
+            delete cube;
+        }
+    }
+    return count;
+}
+
+// FUNCTION: WIZ8 0x0048e7b0
+unsigned int LoadWorldCursorNodes0048E7B0(int handle)
+{
+    int version;
+    unsigned int count;
+    unsigned int index;
+    bool success = true;
+
+    if (!FileRead(handle, &version, 4, 0)) {
+        return 0;
+    }
+    if (static_cast<unsigned int>(version) == 0xdeadd00d) {
+        version = 1;
+    } else if (version > 2) {
+        FileRead(handle, &g_mipe_cube_serial_006850ba, 4, 0);
+    } else {
+        g_mipe_cube_serial_006850ba = 100;
+    }
+    if (!FileRead(handle, &count, 4, 0)) {
+        return 0;
+    }
+
+    for (index = 0; index < count; ++index) {
+        W8WorldCursorNode* cube = CreateWorldCursorCube0048D080();
+        float minimum[3];
+        float maximum[3];
+        float location[3];
+        int component;
+
+        if (version < 2) {
+            sprintf(cube->name_24, "Cube_%d", index);
+        } else {
+            FileRead(handle, cube->name_24, 0x20, 0);
+            if (cube->name_24[0] == 0) {
+                sprintf(cube->name_24, "Cube_3_%d", g_mipe_cube_serial_006850ba++);
+            }
+        }
+        for (component = 0; component < 3; ++component) {
+            if (success && FileRead(handle, &cube->numbers_0c[component], 4, 0)) {
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+        for (component = 0; component < 3; ++component) {
+            if (success && FileRead(handle, &minimum[component], 4, 0)) {
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+        for (component = 0; component < 3; ++component) {
+            if (success && FileRead(handle, &maximum[component], 4, 0)) {
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+
+        srVector3T<float> scale(
+            (maximum[0] - minimum[0]) * static_cast<float>(g_world_cursor_scale_005ebf50),
+            (maximum[1] - minimum[1]) * static_cast<float>(g_world_cursor_scale_005ebf50),
+            (maximum[2] - minimum[2]) * static_cast<float>(g_world_cursor_scale_005ebf50));
+        if (cube != 0) {
+            stModelInstance* instance = static_cast<stModelInstance*>(cube->node_04);
+            if (instance != 0) {
+                stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+                if (model != 0) {
+                    model->scale(scale);
+                }
+            }
+        }
+
+        for (component = 0; component < 3; ++component) {
+            if (success && FileRead(handle, &location[component], 4, 0)) {
+                success = true;
+            } else {
+                success = false;
+            }
+        }
+        if (cube == 0) {
+            srAssertFail("pCube", ST_CUBE_CPP, 0x10b, 0);
+        }
+        if (cube->node_04 != 0) {
+            srVector3T<double> node_location(static_cast<double>(location[0]),
+                                             static_cast<double>(location[1]),
+                                             static_cast<double>(location[2]));
+            cube->node_04->setLocation(node_location);
+        }
+        if (success && FileRead(handle, &cube->value_08, 4, 0)) {
+            success = true;
+        } else {
+            success = false;
+        }
+        DrawWorldCursorNodeLabel0048DCB0(cube);
+    }
+    return count;
 }
 
 // FUNCTION: WIZ8 0x0048ED00

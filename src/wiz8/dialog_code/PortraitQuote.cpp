@@ -8,6 +8,7 @@
 #include "vsurface.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/PortraitQuote.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 
 #include <stdlib.h>
@@ -60,10 +61,337 @@ static const char* g_quote_bubble_backgrounds_64f554[] = {
 // GLOBAL: WIZ8 0x0069c5c8
 static unsigned int g_quote_bubble_flags_69c5c8;
 
-int Function5D0050(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font, int colour,
-                   const wchar_t* text, int arg_8, int arg_9, int arg_10, unsigned int* out_edge);
-int Function5D0770(int x, int y, unsigned int wrap_width, int arg_4, int font, unsigned char colour,
-                   const wchar_t* text, int arg_8, int arg_9, int arg_10);
+int MeasureWrappedText(int arg_1, int arg_2, unsigned int wrap_width, int arg_4, int font,
+                       int colour, const wchar_t* text, int arg_8, int arg_9, int arg_10,
+                       unsigned int* out_edge);
+int DrawWrappedText(int x, int y, unsigned int wrap_width, int arg_4, int font,
+                    unsigned char colour, const wchar_t* text, int arg_8, int arg_9, int arg_10);
+
+// FUNCTION: WIZ8 0x005d0590
+static int DrawWrappedTextLine(int x, UINT16* text, int left, int top, int width, int font,
+                               unsigned char foreground, unsigned char background, bool dirty,
+                               unsigned int flags)
+{
+    short draw_x = static_cast<short>(x);
+    short draw_y = static_cast<short>(top);
+
+    if (flags & 0x20) {
+        return 1;
+    }
+    if (flags == 0) {
+        flags = 1;
+    }
+    if (flags & 1) {
+        draw_x = static_cast<short>(left);
+    } else if (flags & 2) {
+        VarFindFontCenterCoordinates(static_cast<short>(left), static_cast<short>(top),
+                                     static_cast<short>(width), GetFontHeight(font), font, &draw_x,
+                                     &draw_y, text);
+    } else if (flags & 4) {
+        VarFindFontRightCoordinates(static_cast<short>(left), static_cast<short>(top),
+                                    static_cast<short>(width), GetFontHeight(font), font, &draw_x,
+                                    &draw_y, text);
+    }
+
+    SetFont(font);
+    SetFontForeground(foreground);
+    SetFontBackground(background);
+    if (flags & 8) {
+        ShadowVideoSurfaceRect(0xfffffff2, static_cast<unsigned short>(draw_x - 1),
+                               static_cast<unsigned short>(draw_y - 1),
+                               static_cast<unsigned short>(draw_x - 1) +
+                                   static_cast<unsigned short>(StringPixLength(text, font)) + 1,
+                               static_cast<unsigned short>(draw_y - 1) + GetFontHeight(font) + 1);
+    }
+    if (dirty) {
+        gprintfDirty(draw_x, draw_y, text);
+    }
+    mprintf(draw_x, draw_y, text);
+    if (flags & 0x20) {
+        SetFontShadow(2);
+    }
+    if (flags & 0x10) {
+        InvalidateRegion(draw_x, draw_y, draw_x + StringPixLength(text, font),
+                         draw_y + GetFontHeight(font), 0);
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005d0770
+int DrawWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
+                    unsigned char colour, const wchar_t* text, int background, int dirty, int flags)
+{
+    wchar_t line[0x80];
+    wchar_t word[0x40];
+    unsigned int position = 0;
+    unsigned int word_length = 0;
+    unsigned int line_width = 0;
+    unsigned int remaining_width = wrap_width;
+    unsigned char active_colour = colour;
+    int draw_x = x;
+    int draw_y = y;
+    int active_font = font;
+    int line_count = 1;
+    short section = 1;
+    bool alternate = false;
+
+    memset(line, 0, sizeof(line));
+    memset(word, 0, sizeof(word));
+    GetFontHeight(font);
+
+    for (;;) {
+        wchar_t ch = text[position];
+        if (ch != L' ' && ch != L'\0') {
+            if (ch != L'\n') {
+                word[word_length++] = ch;
+            } else {
+                if (flags & 0x20) {
+                    SetFontShadow(0);
+                }
+                DrawWrappedTextLine(
+                    draw_x,
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    x, draw_y, remaining_width, active_font, active_colour,
+                    static_cast<unsigned char>(background), dirty != 0, section);
+                if (flags & 0x20) {
+                    SetFontShadow(2);
+                }
+                draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
+                ++line_count;
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+                line_width = 0;
+                remaining_width = wrap_width;
+                draw_x = x;
+            }
+        } else if ((word[0] < 0xb2 || word[0] > 0xb5) && word[0] != L'\n') {
+            word[word_length] = L'\0';
+            unsigned int word_width = StringPixLength(
+                reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
+                active_font);
+            word[word_length++] = L' ';
+            word[word_length] = L'\0';
+            if ((wrap_width & 0xffff) < word_width + line_width) {
+                if (flags & 0x20) {
+                    SetFontShadow(0);
+                }
+                DrawWrappedTextLine(
+                    draw_x,
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    x, draw_y, remaining_width, active_font, active_colour,
+                    static_cast<unsigned char>(background), dirty != 0, section);
+                if (flags & 0x20) {
+                    SetFontShadow(2);
+                }
+                draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
+                ++line_count;
+                wcscpy(line, word);
+                line_width = StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    active_font);
+                remaining_width = wrap_width;
+                draw_x = x;
+            } else {
+                line_width += StringPixLength(
+                    reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
+                    active_font);
+                wcscat(line, word);
+            }
+            memset(word, 0, sizeof(word));
+            word_length = 0;
+        } else {
+            if (word[0] == 0xb2) {
+                DrawWrappedTextLine(
+                    draw_x,
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    x, draw_y, remaining_width, active_font, colour,
+                    static_cast<unsigned char>(background), dirty != 0, section);
+                int span = StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    active_font);
+                draw_x += span;
+                remaining_width -= line_width;
+                active_font = alternate ? font : g_font12point1_683648;
+                alternate = !alternate;
+                if (alternate) {
+                    SetFontShadow(0);
+                }
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+            } else if (word[0] == 0xb3) {
+                section = section == 2 ? 1 : 2;
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+                line_width = 0;
+                if (section == 1) {
+                    draw_y += GetFontHeight(active_font) + (line_spacing & 0xff);
+                    ++line_count;
+                    draw_x = x;
+                }
+            } else if (word[0] == 0xb4 || word[0] == 0xb5) {
+                DrawWrappedTextLine(
+                    draw_x,
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    x, draw_y, remaining_width, active_font, active_colour,
+                    static_cast<unsigned char>(background), dirty != 0, section);
+                int span = StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    active_font);
+                draw_x += span;
+                remaining_width -= line_width;
+                if (word[0] == 0xb4 && word[1] != L' ' && word[1] < 0x100) {
+                    active_colour = static_cast<unsigned char>(word[1]);
+                } else if (word[0] == 0xb5) {
+                    active_colour = colour;
+                }
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+            }
+        }
+
+        ++position;
+        if (ch == L'\0') {
+            DrawWrappedTextLine(
+                draw_x,
+                reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                x, draw_y, remaining_width, active_font, active_colour,
+                static_cast<unsigned char>(background), dirty != 0, section);
+            if (flags & 0x20) {
+                SetFontShadow(2);
+            }
+            return (GetFontHeight(font) + (line_spacing & 0xff)) * line_count;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005d0050
+int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, int font,
+                       int alternate_font, const wchar_t* text, int arg_8, int arg_9, int arg_10,
+                       unsigned int* out_edge)
+{
+    wchar_t line[0x140];
+    wchar_t word[0x140];
+    unsigned int position = 0;
+    unsigned int word_length = 0;
+    unsigned int line_width = 0;
+    int line_count = 1;
+    short section = 1;
+    bool alternate = false;
+
+    memset(line, 0, sizeof(line));
+    memset(word, 0, sizeof(word));
+    GetFontHeight(font);
+
+    for (;;) {
+        wchar_t ch = text[position];
+        if (ch != L' ' && ch != L'\0') {
+            if (ch == L'\n') {
+                GetFontHeight(font);
+                if (line_count == 1 && out_edge != 0) {
+                    *out_edge = 0xffffffff;
+                }
+                ++line_count;
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                line_width = 0;
+                word_length = 0;
+            } else {
+                word[word_length++] = ch;
+            }
+        } else if ((word[0] < 0xb2 || word[0] > 0xb5) && word[0] != L'\n') {
+            word[word_length] = L'\0';
+            unsigned int word_width = StringPixLength(
+                reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
+                font);
+            word[word_length++] = L' ';
+            word[word_length] = L'\0';
+            unsigned int next_width = word_width + line_width;
+            if ((wrap_width & 0xffff) < next_width) {
+                GetFontHeight(font);
+                if (line_count == 1 && out_edge != 0) {
+                    *out_edge = next_width;
+                }
+                ++line_count;
+                wcscpy(line, word);
+                line_width = StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    font);
+            } else {
+                line_width += StringPixLength(
+                    reinterpret_cast<UINT16*>(word), // reinterpret-ok: SGP wide-text API boundary
+                    font);
+                wcscat(line, word);
+            }
+            memset(word, 0, sizeof(word));
+            word_length = 0;
+        } else {
+            switch (word[0]) {
+            case L'\n':
+                GetFontHeight(font);
+                if (line_count == 1 && out_edge != 0) {
+                    *out_edge = 0xffffffff;
+                }
+                ++line_count;
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                line_width = 0;
+                word_length = 0;
+                break;
+            case 0xb2:
+                StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    font);
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                if (alternate) {
+                    alternate = false;
+                    font = alternate_font;
+                } else {
+                    SetFontShadow(0);
+                    alternate = true;
+                    font = g_font12point1_683648;
+                }
+                word_length = 0;
+                break;
+            case 0xb3:
+                if (section == 2) {
+                    GetFontHeight(font);
+                    if (line_count == 1 && out_edge != 0) {
+                        *out_edge = 0xffffffff;
+                    }
+                    ++line_count;
+                    line_width = 0;
+                    section = 1;
+                } else {
+                    section = 2;
+                    line_width = 0;
+                }
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+                break;
+            case 0xb4:
+            case 0xb5:
+                line_width += StringPixLength(
+                    reinterpret_cast<UINT16*>(line), // reinterpret-ok: SGP wide-text API boundary
+                    font);
+                memset(line, 0, sizeof(line));
+                memset(word, 0, sizeof(word));
+                word_length = 0;
+                break;
+            }
+        }
+
+        ++position;
+        if (ch == L'\0') {
+            return (GetFontHeight(font) + (line_spacing & 0xff)) * line_count;
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x005cf6c0
 int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
@@ -216,13 +544,15 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     } else {
         max_line = (max_width - margin_x) - 0x17;
         right_edge = 0xffffffff;
-        Function5D0050(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, &right_edge);
+        MeasureWrappedText(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1,
+                           &right_edge);
         if (right_edge != 0xffffffff && static_cast<int>(right_edge - (max_line & 0xffff)) < 0x14) {
             max_line = right_edge;
             max_width = right_edge + 0x18;
         }
     }
-    text_height = Function5D0050(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, 0);
+    text_height =
+        MeasureWrappedText(0, 0, max_line, 2, g_font12point1_683648, 0xd0, text, 0, 0, 1, 0);
     height = text_height + margin_top + 0x18 + margin_bottom;
     max_width = max_width + margin_x * 2;
     if (static_cast<unsigned short>(max_width) >= 0x15e) {
@@ -298,8 +628,8 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         SetFont(g_font12point1_683648);
         SetFontForeground(foreground);
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
-        Function5D0770(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648, colour,
-                       text, 0, 0, 1);
+        DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648,
+                        colour, text, 0, 0, 1);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif

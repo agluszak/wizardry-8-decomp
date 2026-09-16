@@ -7,27 +7,30 @@
 #include "wiz8/layouts/world.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/PList.h"
+#include "surrender/srScene.h"
 
 #include "FileMan.h"
 
 #include <stdio.h>
 #include <string.h>
 
-/* The save/load pair reads the world's ambient list through g_world, so the
-   serialization check runs against a private copy with a PLCreate'd list and
-   restores the live pointer afterwards. The copy keeps every other field (the
-   render thread dereferences g_world->camera while the menu is up). */
+/* The save/load pair reads the world's ambient list through g_world. Keep the
+   live world identity stable because the render thread reads its scene and
+   camera concurrently; only replace the ambient-list field the check owns. */
+static W8PList* g_saved_ambient_sounds;
 static W8World g_audio_test_world;
+static W8World* g_saved_world;
 
 static void SetupAudioTestWorld()
 {
-    if (g_world != 0) {
-        memcpy(&g_audio_test_world, g_world, sizeof(g_audio_test_world));
-    } else {
+    g_saved_world = g_world;
+    if (g_world == 0) {
         memset(&g_audio_test_world, 0, sizeof(g_audio_test_world));
+        g_audio_test_world.static_scene = new srScene(0);
+        g_world = &g_audio_test_world;
     }
-    g_audio_test_world.plsAmbientSounds = PLCreate();
-    g_world = &g_audio_test_world;
+    g_saved_ambient_sounds = g_world->plsAmbientSounds;
+    g_world->plsAmbientSounds = PLCreate();
 }
 
 /* GetCameraPosition reads the lazy global camera; create it if the menu state
@@ -139,17 +142,13 @@ static unsigned char CheckAmbientSerializeRoundtrip()
 
     /* Radius one with a far emitter keeps UpdatePosition on the out-of-range
        path, so the load applies names and stopped flags without touching SGP. */
-    AddAmbientSound0047A790(&g_audio_test_world, "cavewind", &config, &far_position, &zero, &zero,
-                            0x40, 0x7f, 5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero,
-                            &zero, 0);
-    AddAmbientSound0047A790(&g_audio_test_world, "sewerdrip", &config, &far_position, &zero, &zero,
-                            0x40, 0x7f, 5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero,
-                            &zero, 0);
+    AddAmbientSound0047A790(g_world, "cavewind", &config, &far_position, &zero, &zero, 0x40, 0x7f,
+                            5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
+    AddAmbientSound0047A790(g_world, "sewerdrip", &config, &far_position, &zero, &zero, 0x40, 0x7f,
+                            5000, 20000, 0x40, 0x40, 1.0f, 1, 0, &zero, 0.0f, &zero, &zero, 0);
 
-    W8AmbientSound* wind =
-        static_cast<W8AmbientSound*>(PLGet(g_audio_test_world.plsAmbientSounds, 0));
-    W8AmbientSound* drip =
-        static_cast<W8AmbientSound*>(PLGet(g_audio_test_world.plsAmbientSounds, 1));
+    W8AmbientSound* wind = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 0));
+    W8AmbientSound* drip = static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, 1));
     if (wind == 0 || drip == 0) {
         return 0;
     }
@@ -256,7 +255,6 @@ static unsigned char CheckMuteState()
 
 bool RunAudioSemanticTests(AudioSemanticResult* result)
 {
-    W8World* previous_world = g_world;
     unsigned char footstep = CheckFootstepPaths();
 
     memset(result, 0, sizeof(*result));
@@ -276,7 +274,8 @@ bool RunAudioSemanticTests(AudioSemanticResult* result)
     result->ambient_serialize_roundtrip = CheckAmbientSerializeRoundtrip();
     result->sound3d_falloff_volume = CheckSound3DFalloff() == 0x1f;
     result->mute_state_roundtrip = CheckMuteState();
-    g_world = previous_world;
+    g_world->plsAmbientSounds = g_saved_ambient_sounds;
+    g_world = g_saved_world;
 
     return result->footstep_step_path && result->footstep_jump_path &&
            result->footstep_scuff_path && result->footstep_material_vocabulary &&

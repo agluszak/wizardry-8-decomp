@@ -364,6 +364,33 @@ float GetRangeConstant5EC35C(void)
     return g_float_005ec35c;
 }
 
+/* Cache which origin points this monster can actually provide. Projectile
+   attacks need a usable launch point only when their best range is long or
+   extreme; spell casting also requires the spell cycle. */
+// FUNCTION: WIZ8 0x0051B420
+void InitializeMonsterRangeCapabilities(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
+{
+    monster_info->unknown_379 = 1;
+    monster_info->unknown_37b = 1;
+
+    int best_range = W8_RANGE_NONE;
+    for (unsigned int attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
+        if (record->attacks[attack].fHasAttack != 0 &&
+            best_range < record->attacks[attack].range_category) {
+            best_range = record->attacks[attack].range_category;
+        }
+    }
+
+    srVector3T<float> position;
+    monster_info->has_missile_37a =
+        best_range > W8_RANGE_SHORT &&
+        monster_info->monster->GetProjectilePosition004C77F0(&position) == 1;
+
+    monster_info->has_spell_37c = record->spell_chance_0e0 != 0 &&
+                                  MonsterIsCycleSupported(monster_info->monster, 0x19) &&
+                                  monster_info->monster->GetSpellPosition004C78E0(&position) == 1;
+}
+
 // FUNCTION: WIZ8 0x0051b3f0
 unsigned char TraceModeRejectsNoHit0051B3F0(int mode)
 {

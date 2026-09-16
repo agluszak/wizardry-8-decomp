@@ -10,25 +10,25 @@
 // inherited, because the destructor override lands in the srBinStream subobject
 // table instead. The pure slot is what every reader supplies - srBinIMStream
 // with its own vread, and Wizardry's virtual-file adapter with its.
-class SR_DLL_IMPORT srBinIStream : public virtual srBinStream {
+class __declspec(novtable) srBinIStream : public virtual srBinStream {
 public:
     // The Wiz8 stream-adapter constructor expands this body inline instead of
     // calling the imported emission.
     srBinIStream() {}
-    srBinIStream(const srBinIStream& stream);
+    SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
     virtual ~srBinIStream() override {}
-    srBinIStream& operator=(const srBinIStream& stream);
+    SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
 
-    unsigned short getChar();
-    unsigned long getDWord();
-    double getDouble();
-    float getFloat();
-    srQuadWord getQuadWord();
-    unsigned short getWord();
-    srBinIStream& read(void* destination, unsigned long size);
+    SR_DLL_IMPORT unsigned short getChar();
+    SR_DLL_IMPORT unsigned long getDWord();
+    SR_DLL_IMPORT double getDouble();
+    SR_DLL_IMPORT float getFloat();
+    SR_DLL_IMPORT srQuadWord getQuadWord();
+    SR_DLL_IMPORT unsigned short getWord();
+    SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
 
 protected:
-    virtual unsigned short vget();
+    virtual SR_DLL_IMPORT unsigned short vget();
 
 private:
     virtual unsigned long vread(void* destination, unsigned long size) = 0;

@@ -883,6 +883,77 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     return npc;
 }
 
+/* Bind an NPC runtime state to a monster location, creating the state when the
+   database entry allows it. The dialogue path instead finds the existing state
+   by its database kind and only refreshes its presence fields. */
+// FUNCTION: WIZ8 0x00509cd0
+void BindNpcToMonster(unsigned char npc_id, int has_monster, int location_id)
+{
+    W8NpcState* npc = 0;
+    W8MonsterInfo* monster_info = 0;
+    int index;
+
+    if (g_npc_states == 0) {
+        InitializeNpcStates();
+    }
+    if (has_monster != 0) {
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0x150, NPC_MANAGER_CPP, location_id, 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        W8MonsterRecord* monster_record = GetMonsterDataForInfo(monster_info);
+        if (monster_record == 0 || (monster_record->flags_0d0 & 1) == 0) {
+            monster_info->bound_npc_index = -1;
+            return;
+        }
+
+        if (g_npc_records[npc_id].unknown_054 == 0) {
+            for (index = 0; index < g_npc_states->count; ++index) {
+                W8NpcState* candidate = *g_npc_states->GetAt(index);
+                if (candidate->record->kind == npc_id) {
+                    npc = candidate;
+                    break;
+                }
+            }
+        } else {
+            if (monster_info->bound_npc_index > 0) {
+                for (index = 0; index < g_npc_states->count; ++index) {
+                    W8NpcState* candidate = *g_npc_states->GetAt(index);
+                    if (candidate->binding_unavailable == 0 &&
+                        monster_info->bound_npc_index == index &&
+                        candidate->location_id == location_id) {
+                        if (candidate->name_style == npc_id) {
+                            npc = candidate;
+                        }
+                        break;
+                    }
+                }
+            }
+            if (npc == 0) {
+                npc = CreateNpcRuntimeNode(npc_id);
+            }
+        }
+        monster_info->bound_npc_index = npc->partner_index_2c;
+    } else {
+        for (index = 0; index < g_npc_states->count; ++index) {
+            W8NpcState* candidate = *g_npc_states->GetAt(index);
+            if (candidate->record->kind == npc_id) {
+                npc = candidate;
+                break;
+            }
+        }
+    }
+
+    if (npc == 0) {
+        srAssertFail("pNode", NPC_MANAGER_CPP, 0x194, 0);
+    }
+    npc->location_id = location_id;
+    npc->is_present = has_monster;
+    npc->has_monster = true;
+    npc->level_band = GetLevelBand(g_status_685170.current_level);
+    npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+    ReloadNpcScriptResources(npc);
+}
+
 /* Expand the record's character block into a fresh group-member character:
    the name, profession and starting level, attributes, skills, known spells
    and worn/carried items, then the derived passes a level advance settles. */
@@ -1044,8 +1115,7 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 /* The NPC bound to a monster's script part while its binding is still
    available; `allow_unavailable` also hands back a released binding. */
 // FUNCTION: WIZ8 0x0050A4A0
-W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
-                                      unsigned char allow_unavailable)
+W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, unsigned char allow_unavailable)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8NpcState* npc;

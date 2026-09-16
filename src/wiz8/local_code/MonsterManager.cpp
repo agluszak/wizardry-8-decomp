@@ -62,8 +62,6 @@ int g_monster_info_iterator_index;
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
 
-void MonsterSetBehaviour(W8Monster* monster, int behavior);
-void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
 // GLOBAL: WIZ8 0x006850be
@@ -162,7 +160,6 @@ void Function5248D0(W8MonsterInfo* monster_info);
 void Function508D70(unsigned int monster_list_index);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
-void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
 
@@ -197,25 +194,25 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
                 srAssertFail("MonsterIsCycleSupported(pMonsterInfo->p3D, CYCLE_BIRTH)",
                              MONSTER_MANAGER_CPP, 0x190, "Unborn monsters must have CYCLE_BIRTH!");
             }
-            MonsterSetBehaviour(monster_info->monster, 1);
+            MonsterSetCycleBehaviour(monster_info->monster, 1);
             MonsterSetCycle(monster_info->monster, 0);
             if (MonsterQuery(monster_info->monster, 0) == -1) {
                 srAssertFail("MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
                              MONSTER_MANAGER_CPP, 0x196, 0);
             }
-            MonsterSetSubCycle(monster_info->monster, 0);
+            MonsterSetCycleSubCycle(monster_info->monster, 0);
             MonsterSetAnimating(monster_info->monster, 0);
             monster_info->monster->state_088 = 0;
             monster_info->monster->flag_215 = 1;
         } else {
             MonsterSetCycle(monster_info->monster, 1);
-            MonsterSetBehaviour(monster_info->monster, 3);
+            MonsterSetCycleBehaviour(monster_info->monster, 3);
             if (MonsterQuery(monster_info->monster, 0) == -1) {
                 srAssertFail("MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
                              MONSTER_MANAGER_CPP, 0x1a4, 0);
             }
-            MonsterSetSubCycle(monster_info->monster,
-                               Random(MonsterQuery(monster_info->monster, 0)));
+            MonsterSetCycleSubCycle(monster_info->monster,
+                                    Random(MonsterQuery(monster_info->monster, 0)));
             MonsterSetAnimating(monster_info->monster, monster_info->fMotionless == 0);
         }
 
@@ -235,7 +232,8 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             WriteGameLog(7, L"%dK\n",
                          static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
-        Function51B420(monster_info, MonsterDBFromSpeciesInline(monster_info->monster_species));
+        InitializeMonsterRangeCapabilities(
+            monster_info, MonsterDBFromSpeciesInline(monster_info->monster_species));
     }
 
     WorldGetCameraLocation(GetWorld(), &camera_position);
@@ -267,7 +265,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     if (record->unknown_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
-    Function509CD0(record->npc_kind_0cd, 1, monster_info->location_id);
+    BindNpcToMonster(record->npc_kind_0cd, 1, monster_info->location_id);
 }
 
 /* Activate the representation lazily. The mode selects whether all available
@@ -822,12 +820,12 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     PLAdoptAppend(gXStatus.plsMonsterList, monster_info);
     if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
         MonsterSetCycle(monster_info->monster, 0);
-        MonsterSetBehaviour(monster_info->monster, 1);
+        MonsterSetCycleBehaviour(monster_info->monster, 1);
     } else {
         MonsterSetCycle(monster_info->monster, 1);
-        MonsterSetBehaviour(monster_info->monster, 3);
+        MonsterSetCycleBehaviour(monster_info->monster, 3);
     }
-    MonsterSetSubCycle(monster_info->monster, 0);
+    MonsterSetCycleSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
     monster_info->monster->state_088 = 1;
     monster_info->monster->flag_215 = 0;

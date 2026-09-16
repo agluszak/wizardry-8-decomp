@@ -1320,6 +1320,39 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
     return result;
 }
 
+// FUNCTION: WIZ8 0x00452bd0
+void W8Navigator::LinkGroupNavigator00452BD0(W8Navigator* target, double, int)
+{
+    if (g_flag_006081e4 != 0) {
+        movement_target_018.SetZero();
+        collision_margin_010 = 0.0;
+        target_navigator_04c = 0;
+    }
+    linked_navigator_05c = target;
+    if (target == 0) {
+        if (g_flag_006081e4 != 0) {
+            flags_00c &= 0xfffffdfe;
+            if (flags_00c == 0) {
+                movement_0c0.attachment_0ac->InitializeSegment004563E0(&movement_0c0.position_040,
+                                                                       &movement_0c0.position_040);
+                if (movement_stopped_024 == 0) {
+                    movement_stopped_024 = 1;
+                    if (navigation_mode_008 != 5 && navigation_mode_008 != 6) {
+                        movement_0c0.target_yaw = NormalizeAngle(0.0f);
+                    }
+                }
+            }
+        }
+    } else {
+        movement_0c0.flag_06c |= 2;
+        if (g_flag_006081e4 != 0) {
+            flags_00c = (flags_00c & 0xff000201) | 0x201;
+            movement_0c0.attachment_0ac->InitializeSegment004563E0(
+                &movement_0c0.position_040, &target->movement_0c0.position_040);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00452c90
 void W8Navigator::ResetMovementAndGroupState00452C90()
 {
