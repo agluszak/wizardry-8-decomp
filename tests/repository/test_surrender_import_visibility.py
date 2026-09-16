@@ -61,6 +61,8 @@ PROVIDER_ONLY_CLASSES = {
 # These standalone provider headers have no known Wizardry/JPEG/ZIP import at
 # all. Keep them completely free of the consumer import annotation.
 PROVIDER_ONLY_HEADERS = {
+    "srBinFStream.h",
+    "srBinIAsyncStream.h",
     "srBounder.h",
     "srDebugDD.h",
     "srEnvironmentMapper.h",
