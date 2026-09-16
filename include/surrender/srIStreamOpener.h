@@ -48,7 +48,9 @@ static_assert(sizeof(srIStreamOpener::Opener) == 0x04,
 static_assert(sizeof(srIStreamOpener) == 0x0c,
               "srIStreamOpener_must_be_0x0c");
 
-class SR_DLL_IMPORT srFStreamOpener : public srIStreamOpener::Opener {
+/* SR's built-in file opener is provider-owned. Consumers use the imported
+   srIStreamOpener surface; no known consumer imports srFStreamOpener itself. */
+class srFStreamOpener : public srIStreamOpener::Opener {
 public:
     srFStreamOpener();
     virtual ~srFStreamOpener() override;
