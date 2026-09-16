@@ -30,15 +30,16 @@ public:
         long bytes_per_pixel_minus_one;
         unsigned long flags;
 
-        SR_DLL_IMPORT void getName(char* name);
-        SR_DLL_IMPORT int isValid() const;
-        SR_DLL_IMPORT unsigned long match(const PixelFormat* formats, unsigned long count) const;
+        void getName(char* name);
+        int isValid() const;
+        unsigned long match(const PixelFormat* formats, unsigned long count) const;
     };
 
-    static SR_DLL_IMPORT e_surfaceType mapPixelFormat(const PixelFormat& format);
+    static e_surfaceType mapPixelFormat(const PixelFormat& format);
+    /* This overload is imported by both Wiz8 and the JPEG extension. */
     static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);
-    static SR_DLL_IMPORT void selectFuncs(const PixelFormat& format, ConversionFunc& write,
-                                          ConversionFunc& read);
+    static void selectFuncs(const PixelFormat& format, ConversionFunc& write,
+                            ConversionFunc& read);
 };
 
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
