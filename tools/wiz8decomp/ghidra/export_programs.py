@@ -9,7 +9,13 @@ from ..paths import atomic_json, sha256_file
 from .env import open_project, validate_environment
 from .import_programs import HASH_OPTION
 from .project import module_for_program, resolve_program_name
-from .workspace import SEED_SCHEMA, resolve_seed_program, seed_manifest_path, seed_records
+from .workspace import (
+    SEED_SCHEMA,
+    record_project_seed,
+    resolve_seed_program,
+    seed_manifest_path,
+    seed_records,
+)
 
 
 def export_project(settings: Settings, selector: str | None = None) -> dict[str, Any]:
@@ -70,6 +76,9 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     records.sort(key=lambda item: str(item["program"]))
     manifest = {"schema": SEED_SCHEMA, "seeds": records}
     atomic_json(seed_manifest_path(settings), manifest)
+    # The live program is the source of this new reviewed checkpoint, so keep its
+    # checkout-local provenance in sync with the manifest we just published.
+    record_project_seed(settings, record)
     report = {
         "schema": "wiz8.ghidra-seed-build",
         "seed": record,

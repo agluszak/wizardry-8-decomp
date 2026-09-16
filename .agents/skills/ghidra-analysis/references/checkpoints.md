@@ -3,6 +3,24 @@
 Checkpoint operations are for sharing reviewed analysis state between checkouts. They are not part of
 the ordinary inspect/edit loop; a normal native edit is persisted with `program.save()`.
 
+## Freshness preflight
+
+After moving a checkout to a new task base, run:
+
+```sh
+uv run wiz8 doctor
+```
+
+The checkout-owned project records the reviewed GZF hash that initialized each newly restored program.
+If the tracked checkpoint later changes, doctor reports the live project as stale. A legacy live project
+without that provenance reports `unknown`/`untracked`; do not treat matching binary hashes, function
+counts, or timestamps as proof that its analysis equals the reviewed checkpoint.
+
+Doctor never overwrites Ghidra state. If a stale/unknown live project contains work that must survive,
+reconcile it with the current reviewed checkpoint as described below. If it contains nothing worth
+preserving, replacing the checkout-owned project is still an explicit state-management/destructive
+operation: preserve/authorize it first, then let the canonical opener restore the current seed.
+
 ## Restore
 
 The canonical opener restores the seed when the local project does not exist. If an explicit restore
@@ -12,7 +30,9 @@ is required:
 uv run wiz8 ghidra restore --program wiz8
 ```
 
-Do not restore over ordinary live work, copy a live project, or open the same project concurrently.
+A new restore records reviewed-seed provenance for future doctor runs. Restore does not overwrite an
+existing live program. Do not restore over ordinary live work, copy a live project, or open the same
+project concurrently.
 
 ## Refresh a reviewed checkpoint
 
@@ -24,6 +44,9 @@ uv run wiz8 ghidra seed refresh wiz8
 
 This updates the tracked reviewed GZF checkpoint. It is a sharing operation, not a per-function or
 per-signature step and not a substitute for saving the live program.
+
+Other checkouts whose live project was restored from the previous reviewed GZF will then fail the
+freshness preflight until they explicitly reconcile or replace that live state.
 
 ## Reconcile divergent GZF checkpoints
 

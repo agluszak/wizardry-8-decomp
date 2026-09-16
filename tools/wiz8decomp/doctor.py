@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.metadata
 import os
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from .config import (
@@ -16,6 +17,42 @@ from .config import (
 )
 from .repository import validate_repository_hygiene
 from .subprocesses import tool_version
+
+
+def _ghidra_project_check(settings: Settings) -> dict[str, Any]:
+    """Check checkout ownership and reviewed-seed provenance without opening Ghidra."""
+
+    from .ghidra.workspace import project_seed_freshness, seed_record
+
+    try:
+        seed = seed_record(settings, "wiz8", validate_archive=False)
+        archive = Path(seed["archive"])
+        if not archive.is_file():
+            return {
+                "name": "ghidra-reviewed-seed",
+                "ok": False,
+                "status": "missing-seed",
+                "project_dir": str(settings.project_dir),
+                "program": str(seed["program"]),
+                "seed": str(archive),
+                "detail": "reviewed GZF listed by the seed manifest is missing",
+            }
+        freshness = project_seed_freshness(settings, seed)
+    except (OSError, RuntimeError, ValueError) as error:
+        return {
+            "name": "ghidra-reviewed-seed",
+            "ok": False,
+            "status": "invalid",
+            "project_dir": str(settings.project_dir),
+            "detail": str(error),
+        }
+    return {
+        "name": "ghidra-reviewed-seed",
+        **freshness,
+        "project_dir": str(settings.project_dir),
+        "program": str(seed["program"]),
+        "seed": str(seed["archive"]),
+    }
 
 
 def validate_environment(settings: Settings) -> dict[str, Any]:
@@ -58,6 +95,7 @@ def validate_environment(settings: Settings) -> dict[str, Any]:
     except OSError:
         work_writable = False
     checks.append({"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)})
+    checks.append(_ghidra_project_check(settings))
     required = {"7z": ["--help"], "innoextract": ["--version"], "cabextract": ["--version"]}
     optional = {"unshield": ["-V"], "wine": ["--version"], "git-lfs": ["version"]}
     for name, args in required.items():
@@ -68,7 +106,16 @@ def validate_environment(settings: Settings) -> dict[str, Any]:
         checks.append({"name": name, "ok": True, **info, "required": False})
     hygiene = validate_repository_hygiene(settings.repo_dir)
     checks.append({"name": "repository-hygiene", **hygiene})
-    failed = [item["name"] for item in checks if not item["ok"]]
+    failed = [item for item in checks if not item["ok"]]
     if failed:
-        raise RuntimeError("doctor failed: " + ", ".join(failed))
+        descriptions = []
+        for item in failed:
+            detail = item.get("detail")
+            status = item.get("status")
+            if detail:
+                qualifier = f"{status}: {detail}" if status else str(detail)
+                descriptions.append(f"{item['name']} ({qualifier})")
+            else:
+                descriptions.append(str(item["name"]))
+        raise RuntimeError("doctor failed: " + "; ".join(descriptions))
     return {"ok": True, "checks": checks, "failures": []}
