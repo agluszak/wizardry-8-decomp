@@ -137,10 +137,12 @@ UINT32		guiSoundMemoryUsed=0;													// Memory currently in use
 // GLOBAL: WIZ8 0x005ff64c
 UINT32		guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;	// Double-buffered threshold
 
+// GLOBAL: WIZ8 0x006e4104
 HDIGDRIVER hSoundDriver;																// Sound driver handle
 BOOLEAN		fDirectSound=TRUE;														// Using Direct Sound
 
 // Local module variables
+// GLOBAL: WIZ8 0x00650e50
 BOOLEAN		fSoundSystemInit=FALSE;												// Startup called T/F
 // GLOBAL: WIZ8 0x005ff651
 BOOLEAN		gfEnableStartup=TRUE;													// Allow hardware to starup
@@ -153,12 +155,17 @@ SAMPLETAG	pSampleList[SOUND_MAX_CACHED];
 SOUNDTAG	pSoundList[SOUND_MAX_CHANNELS];
 
 // 3D sound globals
+// GLOBAL: WIZ8 0x00650e54
 CHAR8				*gpProviderName=NULL;
+// GLOBAL: WIZ8 0x00650e58
 HPROVIDER		gh3DProvider=0;
 H3DPOBJECT	gh3DListener=0;
+// GLOBAL: WIZ8 0x005ff652
 BOOLEAN			gfUsingEAX=TRUE;
+// GLOBAL: WIZ8 0x00650e60
 UINT32			guiRoomTypeIndex=0;
 
+// GLOBAL: WIZ8 0x005ff654
 CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] =
 {
 	// None
@@ -1317,6 +1324,7 @@ void		*pData;
 //	Returns:	The current time of the sample in milliseconds.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004097f0
 UINT32 SoundGetPosition(UINT32 uiSoundID)
 {
 //UINT32 uiSound, uiFreq=0, uiPosition=0, uiBytesPerSample=0, uiFormat=0;
@@ -1387,6 +1395,7 @@ UINT32 uiSound, uiTime, uiPosition;
 //  Created on:     7/23/99
 //
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00409840
 BOOLEAN SoundGetMilliSecondPosition(UINT32 uiSoundID, UINT32 *puiTotalMilliseconds, UINT32 *puiCurrentMilliseconds)
 {
 UINT32 uiSound;
@@ -2212,6 +2221,7 @@ CHAR8 AILString[200];
 //	Returns:	Unique sound ID if successful, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040a2e0
 UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS *pParms)
 {
 UINT32 uiSoundID, uiSpeed;
@@ -2624,6 +2634,7 @@ BOOLEAN fStopped=FALSE;
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040aad0
 void Sound3DSetProvider(CHAR8 *pProviderName)
 {
 	Assert(pProviderName);
@@ -2931,10 +2942,16 @@ INT32 Sound3DActiveSounds(void)
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040b210
 void Sound3DSetEnvironment(INT32 iEnvironment)
 {
-	if(fSoundSystemInit && gh3DProvider)
+CHAR8 cRoomName[128];
+
+	if(gh3DProvider && gfUsingEAX && guiRoomTypeIndex != iEnvironment)
 	{
+		sprintf(cRoomName, "EAX_ENVIRONMENT_%s", pEAXRoomTypes[iEnvironment]);
+		AIL_set_3D_provider_preference(gh3DProvider, cRoomName, &iEnvironment);
+		guiRoomTypeIndex = iEnvironment;
 	}
 }
 
@@ -2984,6 +3001,7 @@ UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
 //	Returns:	Unique sound ID if successful, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040ad40
 UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS *pParms)
 {
 UINT32 uiSoundID;

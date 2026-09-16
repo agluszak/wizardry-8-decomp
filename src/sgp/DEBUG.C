@@ -57,7 +57,9 @@
 extern "C" {
 #endif
 
+// GLOBAL: WIZ8 0x00650de4
 BOOLEAN gfRecordToFile     = FALSE;
+// GLOBAL: WIZ8 0x005ff538
 BOOLEAN gfRecordToDebugger = TRUE;
 
 // moved from header file: 24mar98:HJH
@@ -68,10 +70,13 @@ INT32		giProfileCount;
 // they are required for the String() function, which is NOT a
 // debug-mode only function, it's used in release-mode as well! -- DB
 
+// GLOBAL: WIZ8 0x006ef440
 UINT8 gubAssertString[128];
 
 #define MAX_MSG_LENGTH2 512
+// GLOBAL: WIZ8 0x006ee440
 UINT8		gbTmpDebugString[8][MAX_MSG_LENGTH2];
+// GLOBAL: WIZ8 0x00650dec
 UINT8		gubStringIndex = 0;
 
 #ifdef SGP_DEBUG
@@ -120,7 +125,9 @@ UINT16 TOPIC_JA2AI = INVALID_TOPIC;
 UINT32	guiTimerID = 0;
 UINT8		guiDebugLevels[NUM_TOPIC_IDS];	// don't change this, Luis!!!!
 
+// GLOBAL: WIZ8 0x006ed040
 BOOLEAN		gfDebugTopics[MAX_TOPICS_ALLOTED];
+// GLOBAL: WIZ8 0x006ed440
 UINT16 		*gpDbgTopicPtrs[MAX_TOPICS_ALLOTED];
 
 
@@ -190,6 +197,7 @@ BOOLEAN DbgGetLogFileName( STRING512 pcName )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404b00
 BOOLEAN DbgInitialize(void)
 {
 	INT32 iX;
@@ -610,6 +618,7 @@ void _FailMessage(UINT8 *pString, UINT32 uiLineNum, UINT8 *pSourceFile)
 
 // This is NOT a _DEBUG only function! It is also needed in
 // release mode builds. -- DB
+// FUNCTION: WIZ8 0x00404b50
 UINT8 *String(const char *String, ...)
 {
 

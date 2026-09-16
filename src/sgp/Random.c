@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Annotate retail function identities verified against the Wizardry 8 binary.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -20,6 +23,7 @@
 #endif
 
 
+// FUNCTION: WIZ8 0x0040ef80
 void InitializeRandom()
 {
   // Seed the random-number generator with current time so that
@@ -36,6 +40,7 @@ void InitializeRandom()
 }
 
 // Returns a pseudo-random integer between 0 and uiRange
+// FUNCTION: WIZ8 0x0040efa0
 UINT32 Random(UINT32 uiRange)
 {
 	// Always return 0, if no range given (it's not an error)
@@ -51,6 +56,7 @@ UINT32 Random(UINT32 uiRange)
 	return rand() * uiRange / RAND_MAX % uiRange;
 }
 
+// FUNCTION: WIZ8 0x0040efe0
 BOOLEAN Chance( UINT32 uiChance )
 {
 	return (BOOLEAN)(Random( 100 ) < uiChance);

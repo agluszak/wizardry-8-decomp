@@ -283,9 +283,9 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
             srAssertFail("pBuffer", ST_CUBE_CPP, 0x130, 0);
         }
         SaveFontSettings();
-        SetFontDestBuffer(g_W8TextClipTarget005FF5F4, 0, 0, surface->getWidth(),
+        SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(),
                           surface->getHeight(),
-                          static_cast<unsigned char>(g_W8TextClipFlags00650E38));
+                          static_cast<unsigned char>(FontDestWrap));
         SetFont(g_smfnt_font_683694);
         SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
         for (int index = 0; index < 3; ++index) {

@@ -71,6 +71,3 @@ struct Controls {
         return *m_controls.GetAt(index);
     }
 };
-
-extern int g_W8TextClipTarget005FF5F4;
-extern int g_W8TextClipFlags00650E38;

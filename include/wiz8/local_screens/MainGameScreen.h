@@ -789,7 +789,6 @@ void __fastcall Function55EA40(W8NpcDialogueTextController* controller);        
 void Function571AA0(void);                                                          /* 0x00571AA0 */
 void Function573AE0(void);                                                          /* 0x00573AE0 */
 void Function5732A0(void);                                                          /* 0x005732A0 */
-extern unsigned char g_flag_006f04ec;
 void Function56E800(int);
 unsigned char Function56EC90(unsigned int party_slot);
 void Function5777C0(void);

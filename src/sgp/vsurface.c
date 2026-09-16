@@ -83,10 +83,15 @@ typedef struct VSURFACE_NODE
 
 }VSURFACE_NODE;
 
+// GLOBAL: WIZ8 0x00650dbc
 VSURFACE_NODE  *gpVSurfaceHead = NULL;
+// GLOBAL: WIZ8 0x00650dc0
 VSURFACE_NODE  *gpVSurfaceTail = NULL;
+// GLOBAL: WIZ8 0x00650dc4
 UINT32				guiVSurfaceIndex = 0;
+// GLOBAL: WIZ8 0x00650dc8
 UINT32				guiVSurfaceSize = 0;
+// GLOBAL: WIZ8 0x00650dcc
 UINT32				guiVSurfaceTotalAdded = 0;
 
 #ifdef _DEBUG
@@ -110,6 +115,7 @@ UINT8 gubVSDebugCode = 0;
 void CheckValidVSurfaceIndex( UINT32 uiIndex );
 #endif
 
+// GLOBAL: WIZ8 0x006ef4c0
 INT32				giMemUsedInSurfaces;
 
 
@@ -118,9 +124,13 @@ HLIST				ghVideoSurfaces = NULL;
 //OBSOLETE!!!!!!!!!
 
 
+// GLOBAL: WIZ8 0x00650dd4
 HVSURFACE		ghPrimary = NULL;
+// GLOBAL: WIZ8 0x00650dd8
 HVSURFACE		ghBackBuffer = NULL;
+// GLOBAL: WIZ8 0x00650ddc
 HVSURFACE   ghFrameBuffer = NULL;
+// GLOBAL: WIZ8 0x00650de0
 HVSURFACE   ghMouseBuffer = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,6 +139,7 @@ HVSURFACE   ghMouseBuffer = NULL;
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// FUNCTION: WIZ8 0x00402970
 BOOLEAN InitializeVideoSurfaceManager( )
 {
 	//Shouldn't be calling this if the video surface manager already exists.
@@ -150,6 +161,7 @@ BOOLEAN InitializeVideoSurfaceManager( )
 	return TRUE ;
 }
 
+// FUNCTION: WIZ8 0x00402990
 BOOLEAN ShutdownVideoSurfaceManager( )
 {
 	VSURFACE_NODE *curr;
@@ -182,6 +194,7 @@ BOOLEAN ShutdownVideoSurfaceManager( )
 }
 
 
+// FUNCTION: WIZ8 0x004029f0
 BOOLEAN RestoreVideoSurfaces( )
 {
 	VSURFACE_NODE *curr;
@@ -202,6 +215,7 @@ BOOLEAN RestoreVideoSurfaces( )
 }
 
 
+// FUNCTION: WIZ8 0x00402a70
 BOOLEAN AddStandardVideoSurface( VSURFACE_DESC *pVSurfaceDesc, UINT32 *puiIndex )
 {
 
@@ -256,6 +270,7 @@ BOOLEAN AddStandardVideoSurface( VSURFACE_DESC *pVSurfaceDesc, UINT32 *puiIndex 
 }
 
 
+// FUNCTION: WIZ8 0x00402b90
 BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
 {
 	VSURFACE_NODE *curr;
@@ -311,6 +326,7 @@ BYTE *LockVideoSurface( UINT32 uiVSurface, UINT32 *puiPitch )
 
 }
 
+// FUNCTION: WIZ8 0x00402c30
 void UnLockVideoSurface( UINT32 uiVSurface )
 {
 	VSURFACE_NODE *curr;
@@ -365,6 +381,7 @@ void UnLockVideoSurface( UINT32 uiVSurface )
 	UnLockVideoSurfaceBuffer( curr->hVSurface );
 }
 
+// FUNCTION: WIZ8 0x00402d00
 BOOLEAN SetVideoSurfaceTransparency( UINT32 uiIndex, COLORVAL TransColor )
 {
 	HVSURFACE hVSurface;
@@ -434,6 +451,7 @@ BOOLEAN GetVideoSurfaceDescription( UINT32 uiIndex, UINT16 *usWidth, UINT16 *usH
 	return TRUE;
 }
 
+// FUNCTION: WIZ8 0x00402db0
 BOOLEAN GetVideoSurface( HVSURFACE *hVSurface, UINT32 uiIndex )
 {
 	VSURFACE_NODE *curr;
@@ -479,6 +497,7 @@ BOOLEAN GetVideoSurface( HVSURFACE *hVSurface, UINT32 uiIndex )
   return FALSE;
 }
 
+// FUNCTION: WIZ8 0x00402e30
 BOOLEAN SetPrimaryVideoSurfaces( )
 {
 	LPDIRECTDRAWSURFACE2 pSurface;
@@ -531,6 +550,7 @@ BOOLEAN SetPrimaryVideoSurfaces( )
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x00402e60
 void DeletePrimaryVideoSurfaces( )
 {
   //
@@ -572,6 +592,7 @@ void DeletePrimaryVideoSurfaces( )
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// FUNCTION: WIZ8 0x00402ed0
 BOOLEAN BltVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, UINT16 usRegionIndex, INT32 iDestX, INT32 iDestY, UINT32 fBltFlags, blt_vs_fx *pBltFx )
 {
 
@@ -605,6 +626,7 @@ BOOLEAN BltVideoSurface(UINT32 uiDestVSurface, UINT32 uiSrcVSurface, UINT16 usRe
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// FUNCTION: WIZ8 0x00402fa0
 BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iDestY1, INT32 iDestX2, INT32 iDestY2, UINT16 Color16BPP)
 {
 	blt_vs_fx BltFx;
@@ -669,6 +691,7 @@ BOOLEAN ColorFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// FUNCTION: WIZ8 0x00403150
 BOOLEAN ImageFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iDestY1, INT32 iDestX2, INT32 iDestY2, HVOBJECT BkgrndImg, UINT16 Index, INT16 Ox, INT16 Oy)
 {
 	INT16 xc,yc,hblits,wblits,aw,pw,ah,ph,w,h,xo,yo;
@@ -777,6 +800,7 @@ BOOLEAN ImageFillVideoSurfaceArea(UINT32 uiDestVSurface, INT32 iDestX1, INT32 iD
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+// FUNCTION: WIZ8 0x004033d0
 HVSURFACE CreateVideoSurface( VSURFACE_DESC *VSurfaceDesc )
 {
 	LPDIRECTDRAW2				lpDD2Object;
@@ -1209,6 +1233,7 @@ void UnLockVideoSurfaceBuffer( HVSURFACE hVSurface )
 }
 
 // Given an HIMAGE object, blit imagery into existing Video Surface. Can be from 8->16 BPP
+// FUNCTION: WIZ8 0x00403780
 BOOLEAN SetVideoSurfaceDataFromHImage( HVSURFACE hVSurface, HIMAGE hImage, UINT16 usX, UINT16 usY, SGPRect *pSrcRect )
 {
 	BYTE		*pDest;
@@ -1385,6 +1410,7 @@ BOOLEAN GetVSurfacePaletteEntries( HVSURFACE hVSurface, SGPPaletteEntry *pPalett
 }
 
 
+// FUNCTION: WIZ8 0x004039c0
 BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex )
 {
 	VSURFACE_NODE *curr;
@@ -1444,6 +1470,7 @@ BOOLEAN DeleteVideoSurfaceFromIndex( UINT32 uiIndex )
 
 
 // Deletes all palettes, surfaces and region data
+// FUNCTION: WIZ8 0x00403a50
 BOOLEAN DeleteVideoSurface( HVSURFACE hVSurface )
 {
 	LPDIRECTDRAWSURFACE2	lpDDSurface;
@@ -1702,6 +1729,7 @@ BOOLEAN AddVSurfaceRegionAtIndex( HVSURFACE hVSurface, UINT16 usIndex, VSURFACE_
 // Blt  will use DD Blt or BltFast depending on flags.
 // Will drop down into user-defined blitter if 8->16 BPP blitting is being done
 
+// FUNCTION: WIZ8 0x00403b10
 BOOLEAN BltVideoSurfaceToVideoSurface( HVSURFACE hDestVSurface, HVSURFACE hSrcVSurface, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT32 fBltFlags, blt_vs_fx *pBltFx )
 {
 	VSURFACE_REGION aRegion;
@@ -1931,6 +1959,7 @@ BOOLEAN BltVideoSurfaceToVideoSurface( HVSURFACE hDestVSurface, HVSURFACE hSrcVS
 // ******************************************************************************************
 
 // Blt to backup buffer
+// FUNCTION: WIZ8 0x00404470
 BOOLEAN UpdateBackupSurface( HVSURFACE hVSurface )
 {
 	RECT		aRect;
@@ -1982,6 +2011,7 @@ LPDIRECTDRAWPALETTE  GetVideoSurfaceDDPalette( HVSURFACE hVSurface )
 	return( (LPDIRECTDRAWPALETTE) hVSurface->pPalette );
 }
 
+// FUNCTION: WIZ8 0x004044c0
 HVSURFACE CreateVideoSurfaceFromDDSurface( LPDIRECTDRAWSURFACE2 lpDDSurface )
 {
 	// Create Video Surface
@@ -2277,6 +2307,7 @@ BOOLEAN Blt16BPPBufferShadowRectAlternateTable(UINT16 *pBuffer, UINT32 uiDestPit
 
 
 
+// FUNCTION: WIZ8 0x004045b0
 BOOLEAN InternalShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2, BOOLEAN fLowPercentShadeTable )
 {
 	UINT16 *pBuffer;
@@ -2372,6 +2403,7 @@ BOOLEAN InternalShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 
 }
 
 
+// FUNCTION: WIZ8 0x004048a0
 BOOLEAN ShadowVideoSurfaceRect(  UINT32	uiDestVSurface, INT32 X1, INT32 Y1, INT32 X2, INT32 Y2)
 {
  return( InternalShadowVideoSurfaceRect( uiDestVSurface, X1, Y1, X2, Y2, FALSE ) );
@@ -2464,6 +2496,7 @@ BOOLEAN ShadowVideoSurfaceImage( UINT32	uiDestVSurface, HVOBJECT hImageHandle, I
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x004048d0
 BOOLEAN MakeVSurfaceFromVObject(UINT32 uiVObject, UINT16 usSubIndex, UINT32 *puiVSurface)
 {
 HVOBJECT hSrcVObject;

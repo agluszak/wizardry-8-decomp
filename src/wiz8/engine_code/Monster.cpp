@@ -80,6 +80,7 @@
 #include <math.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
+#include "input.h"
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 
@@ -1570,7 +1571,7 @@ void W8Monster::Update()
 
     UpdateAttachedObjects004C3F70();
     cycle = Query(6);
-    if (g_monster_combat_timer_enabled_006f0531 != 0 && g_combat_state != 0 &&
+    if (gfKeyState[0x11] != 0 && g_combat_state != 0 &&
         (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
         (cycle == 1 || cycle == 2) &&
         (m_pRep->pending_cycle == -1 || m_pRep->pending_cycle == 1 || m_pRep->pending_cycle == 2) &&

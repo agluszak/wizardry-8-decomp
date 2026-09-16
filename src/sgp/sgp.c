@@ -66,13 +66,18 @@ extern	BOOLEAN	CheckIfGameCdromIsInCDromDrive();
 BOOLEAN						RunSetup(void);
 
 // Should the game immediately load the quick save at startup?
+// GLOBAL: WIZ8 0x006505a0
 BOOLEAN						gfLoadAtStartup=FALSE;
+// GLOBAL: WIZ8 0x006505a1
 BOOLEAN						gfUsingBoundsChecker=FALSE;
+// GLOBAL: WIZ8 0x006505a4
 CHAR8						*gzStringDataOverride=NULL;
+// GLOBAL: WIZ8 0x006505a8
 BOOLEAN						gfCapturingVideo = FALSE;
 
 #endif
 
+// GLOBAL: WIZ8 0x006f062c
 HINSTANCE					ghInstance;
 
 
@@ -86,22 +91,31 @@ RECT				rcWindow;
 #endif
 
 // moved from header file: 24mar98:HJH
+// GLOBAL: WIZ8 0x006f0624
 UINT32		giStartMem;
+// GLOBAL: WIZ8 0x005ff450
 UINT8			gbPixelDepth;					// GLOBAL RUN-TIME SETTINGS
 
+// GLOBAL: WIZ8 0x006f0620
 UINT32		guiMouseWheelMsg;			// For mouse wheel messages
 
+// GLOBAL: WIZ8 0x006f0630
 BOOLEAN gfApplicationActive;
+// GLOBAL: WIZ8 0x006f0628
 BOOLEAN gfProgramIsRunning;
+// GLOBAL: WIZ8 0x006505a9
 BOOLEAN gfGameInitialized = FALSE;
 UINT32	giStartMem;
+// GLOBAL: WIZ8 0x006505aa
 BOOLEAN	gfDontUseDDBlits	= FALSE;
 
 // There were TWO of them??!?! -- DB
 //CHAR8		gzCommandLine[ 100 ];
 CHAR8		gzCommandLine[100];		// Command line given
 
+// GLOBAL: WIZ8 0x006505ac
 CHAR8		gzErrorMsg[2048]="";
+// GLOBAL: WIZ8 0x00650dac
 BOOLEAN	gfIgnoreMessages=FALSE;
 
 // GLOBAL VARIBLE, SET TO DEFAULT BUT CAN BE CHANGED BY THE GAME IF INIT FILE READ
@@ -403,6 +417,7 @@ INT32 FAR PASCAL WindowProcedure(HWND hWindow, UINT16 Message, WPARAM wParam, LP
 
 
 
+// FUNCTION: WIZ8 0x00401570
 BOOLEAN InitializeStandardGamingPlatform(HINSTANCE hInstance, int sCommandShow)
 {
 	FontTranslationTable *pFontTable;
@@ -722,6 +737,7 @@ void SGPExit(void)
 
 
 
+// FUNCTION: WIZ8 0x004018c0
 void GetRuntimeSettings( )
 {
 	// Runtime settings - for now use INI file - later use registry
@@ -749,6 +765,7 @@ void ShutdownWithErrorBox(const CHAR8 *pcMessage)
 
 #if !defined(JA2) && !defined(UTILS)
 
+// FUNCTION: WIZ8 0x00401950
 void ProcessCommandLine(CHAR8 *pCommandLine)
 {
 CHAR8 cSeparators[]="\t =";

@@ -15,6 +15,7 @@
 	#endif
 #endif
 
+// FUNCTION: WIZ8 0x00413fb0
 void SpecifyButtonSoundScheme( INT32 iButtonID, INT8 bSoundScheme )
 {
 	ButtonList[ iButtonID ]->ubSoundSchemeID = (UINT8)bSoundScheme;

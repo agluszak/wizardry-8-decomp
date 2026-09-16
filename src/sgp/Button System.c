@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Annotate retail global identities verified against the Wizardry 8 binary.
+   Distributed under the accompanying SFI Source Code license agreement. */
 /***********************************************************************************************
 	Button System.c
 
@@ -70,6 +73,7 @@
 #define GUI_BTN_EXTERNAL_VOBJ			2
 
 
+// GLOBAL: WIZ8 0x006e1940
 UINT8		str[128];
 
 //Kris:  December 2, 1997
@@ -119,29 +123,41 @@ void AssertFailIfIdenticalButtonAttributesFound( GUI_BUTTON *b )
 //When you click on a button, it get's anchored, until you release the mouse button.
 //When you move around, you don't want to select other buttons, even when you release
 //it.  This follows the Windows 95 convention.
+// GLOBAL: WIZ8 0x006e1198
 GUI_BUTTON *gpAnchoredButton;
 GUI_BUTTON *gpPrevAnchoredButton;
+// GLOBAL: WIZ8 0x006e1880
 BOOLEAN gfAnchoredState;
 void ReleaseAnchorMode();
 
+// GLOBAL: WIZ8 0x006e1190
 INT8 gbDisabledButtonStyle;
 void DrawHatchOnButton( GUI_BUTTON *b );
 void DrawShadeOnButton( GUI_BUTTON *b );
 void DrawDefaultOnButton( GUI_BUTTON *b );
 
+// GLOBAL: WIZ8 0x006e12c0
 GUI_BUTTON *gpCurrentFastHelpButton;
 
+// GLOBAL: WIZ8 0x005ff824
 BOOLEAN gfRenderHilights = TRUE;
 
+// GLOBAL: WIZ8 0x006e1bc0
 BUTTON_PICS		ButtonPictures[MAX_BUTTON_PICS];
+// GLOBAL: WIZ8 0x006e1194
 INT32					ButtonPicsLoaded;
 
+// GLOBAL: WIZ8 0x005ff828
 UINT32 ButtonDestBuffer = BACKBUFFER;
+// GLOBAL: WIZ8 0x005ff82c
 UINT32 ButtonDestPitch = 640*2;
+// GLOBAL: WIZ8 0x005ff830
 UINT32 ButtonDestBPP = 16;
 
+// GLOBAL: WIZ8 0x006e1240
 GUI_BUTTON *ButtonList[MAX_BUTTONS];
 
+// GLOBAL: WIZ8 0x00650ea4
 INT32 ButtonsInList=0;
 
 UINT16 GetWidthOfButtonPic( UINT16 usButtonPicID, INT32 iSlot )
@@ -149,17 +165,28 @@ UINT16 GetWidthOfButtonPic( UINT16 usButtonPicID, INT32 iSlot )
 	return ButtonPictures[ usButtonPicID ].vobj->pETRLEObject[ iSlot ].usWidth;
 }
 
+// GLOBAL: WIZ8 0x006e4060
 HVOBJECT GenericButtonGrayed[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e19c0
 HVOBJECT GenericButtonOffNormal[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e1b20
 HVOBJECT GenericButtonOffHilite[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e11a0
 HVOBJECT GenericButtonOnNormal[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e3fc0
 HVOBJECT GenericButtonOnHilite[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e18a0
 HVOBJECT GenericButtonBackground[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e1ac0
 UINT16 GenericButtonFillColors[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e1a60
 UINT16 GenericButtonBackgroundIndex[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e10e0
 INT16 GenericButtonOffsetX[MAX_GENERIC_PICS];
+// GLOBAL: WIZ8 0x006e1140
 INT16 GenericButtonOffsetY[MAX_GENERIC_PICS];
 
+// GLOBAL: WIZ8 0x006e1020
 HVOBJECT GenericButtonIcons[MAX_BUTTON_ICONS];
 
 // flag to state we wish to render buttons on the one after the next pass through render buttons
@@ -203,6 +230,7 @@ INT32 FindFreeButtonSlot(void)
 //
 //	Load images for use with QuickButtons.
 //
+// FUNCTION: WIZ8 0x0040c230
 INT32 LoadButtonImage(UINT8 *filename, INT32 Grayed, INT32 OffNormal, INT32 OffHilite, INT32 OnNormal, INT32 OnHilite)
 {
 	VOBJECT_DESC	vo_desc;
@@ -457,6 +485,7 @@ INT32 UseLoadedButtonImage(INT32 LoadedImg, INT32 Grayed, INT32 OffNormal, INT32
 //			structures are simply removed from the button image list. It's up to
 //			the user to actually unload the image.
 //
+// FUNCTION: WIZ8 0x0040c4f0
 INT32 UseVObjAsButtonImage(HVOBJECT hVObject, INT32 Grayed, INT32 OffNormal, INT32 OffHilite, INT32 OnNormal, INT32 OnHilite)
 {
 	UINT32				UseSlot;
@@ -584,6 +613,7 @@ BOOLEAN SetButtonDestBuffer(UINT32 DestBuffer)
 
 
 //Removes a QuickButton image from the system.
+// FUNCTION: WIZ8 0x0040c710
 void UnloadButtonImage(INT32 Index)
 {
 	INT32 x;
@@ -690,6 +720,7 @@ BOOLEAN EnableButton( INT32 iButtonID )
 //	Diabled buttons will appear "grayed out" on the screen (unless the
 //	graphics for such are not available).
 //
+// FUNCTION: WIZ8 0x0040c7e0
 BOOLEAN DisableButton(INT32 iButtonID )
 {
 	GUI_BUTTON *b;
@@ -725,6 +756,7 @@ BOOLEAN DisableButton(INT32 iButtonID )
 //	Initializes the button image sub-system. This function is called by
 //	InitButtonSystem.
 //
+// FUNCTION: WIZ8 0x0040c840
 BOOLEAN InitializeButtonImageManager(INT32 DefaultBuffer, INT32 DefaultPitch, INT32 DefaultBPP)
 {
 	VOBJECT_DESC	vo_desc;
@@ -936,6 +968,7 @@ BOOLEAN UnloadGenericButtonIcon(INT16 GenImg)
 //	Removes the images associated with a generic button. Except the icon
 //	image of iconic buttons. See above.
 //
+// FUNCTION: WIZ8 0x0040ca70
 BOOLEAN UnloadGenericButtonImage(INT16 GenImg)
 {
 	BOOLEAN fDeletedSomething = FALSE;
@@ -1010,6 +1043,7 @@ BOOLEAN UnloadGenericButtonImage(INT16 GenImg)
 //
 //	Loads the image files required for displaying a generic button.
 //
+// FUNCTION: WIZ8 0x0040cb70
 INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHiliteName,UINT8 *OnNormName,UINT8 *OnHiliteName,UINT8 *BkGrndName,INT16 Index,INT16 OffsetX, INT16 OffsetY)
 {
 	INT16 ImgSlot;
@@ -1138,6 +1172,7 @@ INT16 LoadGenericButtonImages(UINT8 *GrayName,UINT8 *OffNormName,UINT8 *OffHilit
 //
 //	This function is called by ShutdownButtonSystem.
 //
+// FUNCTION: WIZ8 0x0040ce60
 void ShutdownButtonImageManager(void)
 {
 	int x;
@@ -1211,6 +1246,7 @@ void ShutdownButtonImageManager(void)
 //	Initializes the GUI button system for use. Must be called before using
 //	any other button functions.
 //
+// FUNCTION: WIZ8 0x0040cf60
 BOOLEAN InitButtonSystem(void)
 {
 	INT32 x;
@@ -1248,6 +1284,7 @@ BOOLEAN InitButtonSystem(void)
 //	exiting the program. Button functions should not be used after calling
 //	this function.
 //
+// FUNCTION: WIZ8 0x0040cf90
 void ShutdownButtonSystem(void)
 {
 	int x;
@@ -1264,6 +1301,7 @@ void ShutdownButtonSystem(void)
 	UnRegisterDebugTopic(TOPIC_BUTTON_HANDLER,"Button System & Button Image Manager");
 }
 
+// FUNCTION: WIZ8 0x0040d070
 void RemoveButtonsMarkedForDeletion()
 {
 	INT32 i;
@@ -1282,6 +1320,7 @@ void RemoveButtonsMarkedForDeletion()
 //	Removes a button from the system's list. All memory associated with the
 //	button is released.
 //
+// FUNCTION: WIZ8 0x0040d150
 void RemoveButton(INT32 iButtonID)
 {
 	GUI_BUTTON *b;
@@ -1377,6 +1416,7 @@ INT32 GetNextButtonNumber(void)
 //	QuickButtons cannot be resized, therefore this function ignores the
 //	call if a QuickButton is given.
 //
+// FUNCTION: WIZ8 0x0040d210
 void ResizeButton(INT32 iButtonID,INT16 w, INT16 h)
 {
 	GUI_BUTTON *b;
@@ -1436,6 +1476,7 @@ void ResizeButton(INT32 iButtonID,INT16 w, INT16 h)
 //	Sets the position of a button on the screen. The position is relative
 //	to the top left corner of the button.
 //
+// FUNCTION: WIZ8 0x0040d2b0
 void SetButtonPosition( INT32 iButtonID ,INT16 x, INT16 y)
 {
 	GUI_BUTTON *b;
@@ -1665,6 +1706,7 @@ INT32 CreateIconButton(INT16 Icon,INT16 IconIndex,INT16 GenImg,INT16 xloc,INT16 
 }
 
 //Creates a generic button with text on it.
+// FUNCTION: WIZ8 0x0040d350
 INT32 CreateTextButton(UINT16 *string, UINT32 uiFont, INT16 sForeColor, INT16 sShadowColor, INT16 GenImg, INT16 xloc, INT16 yloc, INT16 w, INT16 h, INT32 Type, INT16 Priority,GUI_CALLBACK MoveCallback, GUI_CALLBACK ClickCallback)
 {
 	GUI_BUTTON *b;
@@ -1913,6 +1955,7 @@ BOOLEAN SetButtonCursor(INT32 iBtnId, UINT16 crsr)
 //	Creates a QuickButton. QuickButtons only have graphics associated with
 //	them. They cannot be re-sized, nor can the graphic be changed.
 //
+// FUNCTION: WIZ8 0x0040d5e0
 INT32 QuickCreateButton(UINT32 Image,INT16 xloc,INT16 yloc,INT32 Type,INT16 Priority,GUI_CALLBACK MoveCallback,GUI_CALLBACK ClickCallback)
 {
 	GUI_BUTTON *b;
@@ -2239,6 +2282,7 @@ INT32 CreateIconAndTextButton( INT32 Image, UINT16 *string, UINT32 uiFont,
 }
 
 //New functions
+// FUNCTION: WIZ8 0x0040d850
 void SpecifyButtonText( INT32 iButtonID, UINT16 *string )
 {
 	GUI_BUTTON *b;
@@ -2264,6 +2308,7 @@ void SpecifyButtonText( INT32 iButtonID, UINT16 *string )
 	}
 }
 
+// FUNCTION: WIZ8 0x0040d8c0
 void SpecifyButtonMultiColorFont(INT32 iButtonID, BOOLEAN fMultiColor)
 {
 	GUI_BUTTON *b;
@@ -2375,6 +2420,7 @@ void SpecifyGeneralButtonTextAttributes( INT32 iButtonID, UINT16 *string, INT32 
 	b->uiFlags |= BUTTON_DIRTY ;
 }
 
+// FUNCTION: WIZ8 0x0040d8e0
 void SpecifyButtonTextOffsets( INT32 iButtonID, INT8 bTextXOffset, INT8 bTextYOffset, BOOLEAN fShiftText )
 {
 	GUI_BUTTON *b;
@@ -2516,6 +2562,7 @@ void AllowDisabledButtonFastHelp( INT32 iButtonID, BOOLEAN fAllow )
 //
 //	Set the text that will be displayed as the FastHelp
 //
+// FUNCTION: WIZ8 0x0040d910
 void SetButtonFastHelpText(INT32 iButton, UINT16 *Text)
 {
 	GUI_BUTTON *b;
@@ -2543,6 +2590,7 @@ void SetBtnHelpEndCallback( INT32 iButton, MOUSE_HELPTEXT_DONE_CALLBACK Callback
 //	Dispatches all button callbacks for mouse movement. This function gets
 //	called by the Mouse System. *DO NOT CALL DIRECTLY*
 //
+// FUNCTION: WIZ8 0x0040d940
 void QuickButtonCallbackMMove(MOUSE_REGION *reg,INT32 reason)
 {
 	GUI_BUTTON *b;
@@ -2646,6 +2694,7 @@ void QuickButtonCallbackMMove(MOUSE_REGION *reg,INT32 reason)
 //	Dispatches all button callbacks for button presses. This function is
 //	called by the Mouse System. *DO NOT CALL DIRECTLY*
 //
+// FUNCTION: WIZ8 0x0040da50
 void QuickButtonCallbackMButn( MOUSE_REGION *reg, INT32 reason )
 {
 	GUI_BUTTON *b;
@@ -2824,6 +2873,7 @@ void QuickButtonCallbackMButn( MOUSE_REGION *reg, INT32 reason )
 	}
 }
 
+// FUNCTION: WIZ8 0x0040dc80
 void RenderButtons(void)
 {
 	INT32			iButtonID;
@@ -2918,6 +2968,7 @@ void MarkAButtonDirty( INT32 iButtonNum )
 //=============================================================================
 //	MarkButtonsDirty
 //
+// FUNCTION: WIZ8 0x0040de90
 void MarkButtonsDirty( void )
 {
 	INT32 x;
@@ -2977,6 +3028,7 @@ void PausedMarkButtonsDirty( void )
 //
 //	Draws a single button on the screen.
 //
+// FUNCTION: WIZ8 0x0040deb0
 BOOLEAN DrawButton(INT32 iButtonID )
 {
 	// Fail if button handle out of range
@@ -3057,6 +3109,7 @@ void DrawButtonFromPtr(GUI_BUTTON *b)
 //
 //	Draws a QuickButton type button on the screen.
 //
+// FUNCTION: WIZ8 0x0040e060
 void DrawQuickButton(GUI_BUTTON *b)
 {
 	INT32 UseImage;
@@ -3137,6 +3190,7 @@ void DrawShadeOnButton( GUI_BUTTON *b )
 	UnLockVideoSurface( ButtonDestBuffer );
 }
 
+// FUNCTION: WIZ8 0x0040e170
 void DrawDefaultOnButton( GUI_BUTTON *b )
 {
 	UINT8 *pDestBuf;
@@ -3203,6 +3257,7 @@ void DrawCheckBoxButtonOff( INT32 iButtonID )
 }
 
 
+// FUNCTION: WIZ8 0x0040e280
 void DrawCheckBoxButton( GUI_BUTTON *b )
 {
 	INT32 UseImage;
@@ -3261,6 +3316,7 @@ void DrawCheckBoxButton( GUI_BUTTON *b )
 								 VO_BLT_SRCTRANSPARENCY, NULL);
 }
 
+// FUNCTION: WIZ8 0x0040e3b0
 void DrawIconOnButton(GUI_BUTTON *b)
 {
 	INT32 xp,yp,width,height,IconX,IconY;
@@ -3368,6 +3424,7 @@ void DrawIconOnButton(GUI_BUTTON *b)
 
 
 //If a button has text attached to it, then it'll draw it last.
+// FUNCTION: WIZ8 0x0040e5d0
 void DrawTextOnButton(GUI_BUTTON *b)
 {
 	INT32 xp,yp,width,height,TextX,TextY;
@@ -3555,6 +3612,7 @@ void DrawTextOnButton(GUI_BUTTON *b)
 //	This function is called by the DrawIconicButton and DrawTextButton
 //	routines to draw the borders and background of the buttons.
 //
+// FUNCTION: WIZ8 0x0040e890
 void DrawGenericButton(GUI_BUTTON *b)
 {
 	INT32 NumChunksWide,NumChunksHigh,cx,cy,width,height,hremain,wremain;
@@ -4099,6 +4157,7 @@ INT32 CreateCheckBoxButton( INT16 x, INT16 y, UINT8 *filename, INT16 Priority, G
 }
 
 // Added Oct17, 97 Carter - kind of mindless, but might as well have it
+// FUNCTION: WIZ8 0x0040edc0
 void MSYS_SetBtnUserData(INT32 iButtonNum,INT32 index,INT32 userdata)
 {
   GUI_BUTTON *b;
@@ -4108,6 +4167,7 @@ void MSYS_SetBtnUserData(INT32 iButtonNum,INT32 index,INT32 userdata)
 	b->UserData[index]=userdata;
 }
 
+// FUNCTION: WIZ8 0x0040edf0
 INT32 MSYS_GetBtnUserData(GUI_BUTTON *b,INT32 index)
 {
 
@@ -4121,6 +4181,7 @@ INT32 MSYS_GetBtnUserData(GUI_BUTTON *b,INT32 index)
 
 //Generic Button Movement Callback to reset the mouse button if the mouse is no longer
 //in the button region.
+// FUNCTION: WIZ8 0x0040ee10
 void BtnGenericMouseMoveButtonCallback(GUI_BUTTON *btn,INT32 reason)
 {
 	//If the button isn't the anchored button, then we don't want to modify the button state.
@@ -4226,6 +4287,7 @@ void FreeButtonSavedRect( INT32 iButton )
 
 //Kris:
 //Yet new logical additions to the winbart library.
+// FUNCTION: WIZ8 0x0040ee80
 void HideButton( INT32 iButtonNum )
 {
 	GUI_BUTTON *b;
@@ -4244,6 +4306,7 @@ void HideButton( INT32 iButtonNum )
 	#endif
 }
 
+// FUNCTION: WIZ8 0x0040eea0
 void ShowButton( INT32 iButtonNum )
 {
 	GUI_BUTTON *b;
@@ -4305,6 +4368,7 @@ void RemoveButtonDefaultStatus( INT32 iButtonID )
 	}
 }
 
+// FUNCTION: WIZ8 0x0040eec0
 BOOLEAN GetButtonArea(INT32 iButtonID, SGPRect *pRect)
 {
 GUI_BUTTON *b;
@@ -4327,6 +4391,7 @@ GUI_BUTTON *b;
 	return(TRUE);
 }
 
+// FUNCTION: WIZ8 0x0040ef00
 INT32 GetButtonWidth(INT32 iButtonID)
 {
 GUI_BUTTON *b;
@@ -4343,6 +4408,7 @@ GUI_BUTTON *b;
 	return(b->Area.RegionBottomRightX - b->Area.RegionTopLeftX);
 }
 
+// FUNCTION: WIZ8 0x0040ef20
 INT32 GetButtonHeight(INT32 iButtonID)
 {
 GUI_BUTTON *b;
@@ -4359,6 +4425,7 @@ GUI_BUTTON *b;
 	return(b->Area.RegionBottomRightY - b->Area.RegionTopLeftY);
 }
 
+// FUNCTION: WIZ8 0x0040ef40
 INT32 GetButtonX(INT32 iButtonID)
 {
 GUI_BUTTON *b;
@@ -4375,6 +4442,7 @@ GUI_BUTTON *b;
 	return(b->Area.RegionTopLeftX);
 }
 
+// FUNCTION: WIZ8 0x0040ef60
 INT32 GetButtonY(INT32 iButtonID)
 {
 GUI_BUTTON *b;

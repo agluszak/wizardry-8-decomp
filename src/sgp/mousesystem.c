@@ -77,26 +77,41 @@ void DisplayHelpTokenizedString( STR16 pStringA, INT16 sX, INT16 sY );
 
 
 
+// GLOBAL: WIZ8 0x00650e78
 INT32 MSYS_ScanForID=FALSE;
+// GLOBAL: WIZ8 0x00650e7c
 INT32 MSYS_CurrentID=MSYS_ID_SYSTEM;
 
+// GLOBAL: WIZ8 0x00650e80
 INT16 MSYS_CurrentMX=0;
+// GLOBAL: WIZ8 0x00650e82
 INT16 MSYS_CurrentMY=0;
+// GLOBAL: WIZ8 0x00650e84
 INT16 MSYS_CurrentButtons=0;
+// GLOBAL: WIZ8 0x00650e86
 INT16 MSYS_Action=0;
 
+// GLOBAL: WIZ8 0x00650e88
 BOOLEAN	MSYS_SystemInitialized=FALSE;
+// GLOBAL: WIZ8 0x00650e89
 BOOLEAN MSYS_UseMouseHandlerHook=FALSE;
 
+// GLOBAL: WIZ8 0x00650e8a
 BOOLEAN MSYS_Mouse_Grabbed=FALSE;
+// GLOBAL: WIZ8 0x00650e8c
 MOUSE_REGION *MSYS_GrabRegion = NULL;
 
+// GLOBAL: WIZ8 0x006e4100
 UINT16				gusClickedIDNumber;
+// GLOBAL: WIZ8 0x00650e90
 BOOLEAN				gfClickedModeOn = FALSE;
 
+// GLOBAL: WIZ8 0x00650e94
 MOUSE_REGION *MSYS_RegList = NULL;
 
+// GLOBAL: WIZ8 0x00650e98
 MOUSE_REGION *MSYS_PrevRegion = NULL;
+// GLOBAL: WIZ8 0x00650e9c
 MOUSE_REGION *MSYS_CurrRegion = NULL;
 
 //When set, the fast help text will be instantaneous, if consecutive regions with help text are
@@ -104,7 +119,9 @@ MOUSE_REGION *MSYS_CurrRegion = NULL;
 //cleared as soon as the cursor moves into no region or a region with no helptext.
 BOOLEAN gfPersistantFastHelpMode;
 
+// GLOBAL: WIZ8 0x005ff7c8
 INT16   gsFastHelpDelay = 600; // In timer ticks
+// GLOBAL: WIZ8 0x005ff7ca
 BOOLEAN gfShowFastHelp  = TRUE;
 
 // help text is done, now execute callback, if there is one
@@ -116,12 +133,14 @@ void ExecuteMouseHelpEndCallBack( MOUSE_REGION *region );
 //NOTE:  This doesn't really need to be here, however, it is a good indication that
 //when an error appears here, that you need to go below to the init code and initialize the
 //values there as well.  That's the only reason why I left this here.
+// GLOBAL: WIZ8 0x005ff7d0
 MOUSE_REGION MSYS_SystemBaseRegion = {
 								MSYS_ID_SYSTEM, MSYS_PRIORITY_SYSTEM, BASE_REGION_FLAGS,
 								-32767, -32767, 32767, 32767, 0, 0, 0, 0, 0, 0,
 								MSYS_NO_CALLBACK, MSYS_NO_CALLBACK, { 0,0,0,0 },
 								0, 0, -1, MSYS_NO_CALLBACK, NULL, NULL };
 
+// GLOBAL: WIZ8 0x00650ea0
 BOOLEAN					gfRefreshUpdate = FALSE;
 
 //Kris:  December 3, 1997
@@ -146,6 +165,7 @@ BOOLEAN gfIgnoreShutdownAssertions;
 //
 //	Initialize the mouse system.
 //
+// FUNCTION: WIZ8 0x0040b290
 INT32 MSYS_Init(void)
 {
 	RegisterDebugTopic(TOPIC_MOUSE_SYSTEM, "Mouse Region System");
@@ -216,6 +236,7 @@ INT32 MSYS_Init(void)
 //
 //	De-inits the "mousesystem" mouse region handling code.
 //
+// FUNCTION: WIZ8 0x0040b450
 void MSYS_Shutdown(void)
 {
 	#ifdef MOUSESYSTEM_DEBUGGING
@@ -234,6 +255,7 @@ void MSYS_Shutdown(void)
 //
 //	Hook to the SGP's mouse handler
 //
+// FUNCTION: WIZ8 0x0040b510
 void MSYS_SGP_Mouse_Handler_Hook(UINT16 Type,UINT16 Xcoord, UINT16 Ycoord, BOOLEAN LeftButton, BOOLEAN RightButton)
 {
 	// If the mouse system isn't initialized, get out o' here
@@ -410,6 +432,7 @@ void MSYS_TrashRegList(void)
 //	Add a region struct to the current list. The list is sorted by priority levels. If two entries
 //	have the same priority level, then the latest to enter the list gets the higher priority.
 //
+// FUNCTION: WIZ8 0x0040b720
 void MSYS_AddRegionToList(MOUSE_REGION *region)
 {
 	MOUSE_REGION *curr;
@@ -501,6 +524,7 @@ INT32 MSYS_RegionInList( MOUSE_REGION *region )
 //
 //	Removes a region from the current list.
 //
+// FUNCTION: WIZ8 0x0040b830
 void MSYS_DeleteRegionFromList(MOUSE_REGION *region)
 {
 	// If no list present, there's nothin' to do.
@@ -562,6 +586,7 @@ void MSYS_DeleteRegionFromList(MOUSE_REGION *region)
 //	Searches the list for the highest priority region and updates it's info. It also dispatches
 //	the callback functions
 //
+// FUNCTION: WIZ8 0x0040b900
 void MSYS_UpdateMouseRegion(void)
 {
 	INT32 found;
@@ -873,6 +898,7 @@ void MSYS_UpdateMouseRegion(void)
 //
 //	Inits a MOUSE_REGION structure for use with the mouse system
 //
+// FUNCTION: WIZ8 0x0040be10
 void MSYS_DefineRegion(MOUSE_REGION *region,UINT16 tlx,UINT16 tly,UINT16 brx,UINT16 bry,INT8 priority,
 					   UINT16 crsr,MOUSE_CALLBACK movecallback,MOUSE_CALLBACK buttoncallback)
 {
@@ -979,6 +1005,7 @@ INT32 MSYS_AddRegion(MOUSE_REGION *region)
 //	Removes a region from the list, disables it, then calls the callback functions for
 //	de-initialization.
 //
+// FUNCTION: WIZ8 0x0040bee0
 void MSYS_RemoveRegion(MOUSE_REGION *region)
 {
 	if( !region )
@@ -1048,6 +1075,7 @@ void MSYS_RemoveRegion(MOUSE_REGION *region)
 //
 //	Enables a mouse region.
 //
+// FUNCTION: WIZ8 0x0040bf60
 void MSYS_EnableRegion(MOUSE_REGION *region)
 {
 	region->uiFlags |= MSYS_REGION_ENABLED;
@@ -1060,6 +1088,7 @@ void MSYS_EnableRegion(MOUSE_REGION *region)
 //
 //	Disables a mouse region without removing it from the system list.
 //
+// FUNCTION: WIZ8 0x0040bf70
 void MSYS_DisableRegion(MOUSE_REGION *region)
 {
 	region->uiFlags &= (~MSYS_REGION_ENABLED);
@@ -1098,6 +1127,7 @@ void MSYS_ChangeRegionPriority(MOUSE_REGION *region,INT8 priority)
 //
 //	Sets one of the four user data entries in a mouse region
 //
+// FUNCTION: WIZ8 0x0040bf80
 void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 {
 	if(index < 0 || index > 3)
@@ -1120,6 +1150,7 @@ void MSYS_SetRegionUserData(MOUSE_REGION *region,INT32 index,INT32 userdata)
 //
 //	Retrieves one of the four user data entries in a mouse region
 //
+// FUNCTION: WIZ8 0x0040bfa0
 INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 {
 	if(index < 0 || index > 3)
@@ -1143,6 +1174,7 @@ INT32 MSYS_GetRegionUserData(MOUSE_REGION *region,INT32 index)
 //	Assigns all mouse activity to a region, effectively blocking any other region from having
 //	control.
 //
+// FUNCTION: WIZ8 0x0040bfc0
 INT32 MSYS_GrabMouse(MOUSE_REGION *region)
 {
 	if(!MSYS_RegionInList(region))
@@ -1163,6 +1195,7 @@ INT32 MSYS_GrabMouse(MOUSE_REGION *region)
 //
 //	Releases a previously grabbed mouse region
 //
+// FUNCTION: WIZ8 0x0040c010
 void MSYS_ReleaseMouse(MOUSE_REGION *region)
 {
 	if(MSYS_GrabRegion != region)
@@ -1238,6 +1271,7 @@ void RefreshMouseRegions( )
 
 }
 
+// FUNCTION: WIZ8 0x0040c040
 void SetRegionFastHelpText( MOUSE_REGION *region, UINT16 *szText )
 {
 	Assert( region );
@@ -1573,8 +1607,10 @@ void DisplayHelpTokenizedString( STR16 pStringA, INT16 sX, INT16 sY )
 	}
 }
 
+// FUNCTION: WIZ8 0x0040c0b0
 void RenderFastHelp()
 {
+	// GLOBAL: WIZ8 0x00650e68
 	static INT32 iLastClock;
 	INT32 iTimeDifferential, iCurrentClock;
 
@@ -1689,21 +1725,25 @@ void ExecuteMouseHelpEndCallBack( MOUSE_REGION *region )
 }
 
 
+// FUNCTION: WIZ8 0x0040c1f0
 void SetFastHelpDelay( INT16 sFastHelpDelay )
 {
   gsFastHelpDelay = sFastHelpDelay;
 }
 
+// FUNCTION: WIZ8 0x0040c200
 void EnableMouseFastHelp( void )
 {
   gfShowFastHelp = TRUE;
 }
 
+// FUNCTION: WIZ8 0x0040c210
 void DisableMouseFastHelp( void )
 {
   gfShowFastHelp = FALSE;
 }
 
+// FUNCTION: WIZ8 0x0040c220
 void ResetClickedMode(void)
 {
 	gfClickedModeOn = FALSE;

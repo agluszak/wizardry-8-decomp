@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	impTGA.c
@@ -65,6 +68,7 @@ BOOLEAN ReadRLERGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiCol
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00414c60
 BOOLEAN LoadTGAFileToImage( HIMAGE hImage, UINT16 fContents )
 {
 	HWFILE	hFile;
@@ -144,6 +148,7 @@ BOOLEAN ReadUncompColMapImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00414d70
 BOOLEAN ReadUncompRGBImage( HIMAGE hImage, HWFILE hFile, UINT8 uiImgID, UINT8 uiColMap, UINT16 fContents )
 {
 	UINT8		*pBMData;

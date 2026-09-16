@@ -52,6 +52,7 @@
 #include "surrender/srScene.h"
 
 #include "FileMan.h"
+#include "input.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -73,10 +74,6 @@ unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
 
-// GLOBAL: WIZ8 0x006f0530
-unsigned char g_flag_006f0530;
-// GLOBAL: WIZ8 0x006f0531
-unsigned char g_monster_combat_timer_enabled_006f0531;
 
 // GLOBAL: WIZ8 0x006081f8
 unsigned char g_navigator_vertical_enabled_006081f8 = 1;
@@ -304,7 +301,7 @@ W8World* CreateWorld()
 void UpdateWorlds0044F400(void)
 {
     g_navigator_vertical_enabled_006081f8 =
-        !(g_monster_combat_timer_enabled_006f0531 != 0 && g_combat_state != 0 &&
+        !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
           (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {

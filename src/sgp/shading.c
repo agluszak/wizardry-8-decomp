@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -26,11 +29,16 @@ void FindIndecies(SGPPaletteEntry *pSrcPalette, SGPPaletteEntry *pMapPalette, UI
 void FindMaskIndecies(UINT8 *, UINT8 *, UINT8 *);
 
 SGPPaletteEntry Shaded8BPPPalettes[HVOBJECT_SHADE_TABLES+3][256];
+// GLOBAL: WIZ8 0x006bdaa0
 UINT8 ubColorTables[HVOBJECT_SHADE_TABLES+3][256];
 
+// GLOBAL: WIZ8 0x0069da80
 UINT16	IntensityTable[65536];
+// GLOBAL: WIZ8 0x006c0da0
 UINT16	ShadeTable[65536];
+// GLOBAL: WIZ8 0x006e0da0
 UINT16	White16BPPPalette[ 256 ];
+// GLOBAL: WIZ8 0x006000ac
 FLOAT   guiShadePercent = (FLOAT)0.48;
 FLOAT   guiBrightPercent = (FLOAT)1.1;
 
@@ -208,6 +216,7 @@ NotThisCol:
 	the table and the entry at that point will be a pixel that is 25% darker.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00413d60
 void BuildShadeTable(void)
 {
 	UINT16 red, green, blue;
@@ -281,6 +290,7 @@ void BuildIntensityTable(void)
 
 
 
+// FUNCTION: WIZ8 0x00413e80
 void SetShadeTablePercent( FLOAT uiShadePercent )
 {
 	guiShadePercent = uiShadePercent;

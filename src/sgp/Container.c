@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //*****************************************************************************
 //
 // Filename : Container.c
@@ -96,6 +99,7 @@ typedef struct OrdHeaderTag
 //
 //*****************************************************************************
 
+// FUNCTION: WIZ8 0x00405970
 HSTACK CreateStack(UINT32 uiNum_items, UINT32 uiSiz_each)
 {
 	UINT32 uiAmount;
@@ -188,6 +192,7 @@ HQUEUE CreateQueue(UINT32 uiNum_items, UINT32 uiSiz_each)
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x004059b0
 HLIST CreateList(UINT32 uiNum_items, UINT32 uiSiz_each)
 {
 	UINT32 uiAmount;
@@ -296,6 +301,7 @@ HORDLIST CreateOrdList(UINT32 uiNum_items, UINT32 uiSiz_each, INT8 (*compare)(vo
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405a00
 HSTACK Push(HSTACK hStack, void *pdata)
 {
 	StackHeader *pTemp_cont;
@@ -358,6 +364,7 @@ HSTACK Push(HSTACK hStack, void *pdata)
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405a70
 BOOLEAN Pop(HSTACK hStack, void *pdata)
 {
 	StackHeader *pTemp_cont;
@@ -412,6 +419,7 @@ BOOLEAN Pop(HSTACK hStack, void *pdata)
 // Apr 14 2000 SCT -> Created
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405ac0
 BOOLEAN PeekStack(HSTACK hStack, void *pdata)
 {
 	StackHeader *pTemp_cont;
@@ -464,6 +472,7 @@ BOOLEAN PeekStack(HSTACK hStack, void *pdata)
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405b00
 BOOLEAN DeleteStack(HSTACK hStack)
 {
 	if (hStack == NULL)
@@ -655,6 +664,7 @@ BOOLEAN PeekQueue(HQUEUE hQueue, void *pdata)
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405b20
 BOOLEAN PeekList(HLIST hList, void *pdata, UINT32 uiPos)
 {
 	ListHeader *pTemp_cont;
@@ -796,6 +806,7 @@ BOOLEAN SwapListNode(HLIST hList, void *pdata, UINT32 uiPos)
 //		- This function is nearly identical to the SwapListNode() function.
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405b90
 BOOLEAN StoreListNode(HLIST hList, void *pdata, UINT32 uiPos)
 {
 	ListHeader *pTemp_cont;
@@ -1149,6 +1160,7 @@ BOOLEAN do_copy_data(void *pmem_void, void *data, UINT32 uiSrcOfst, UINT32 uiSiz
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405c00
 UINT32 StackSize(HSTACK hStack)
 {
 	StackHeader *pTemp_cont;
@@ -1248,6 +1260,7 @@ UINT32 OrdListSize(HORDLIST hOrdList)
 // Nov 26th 1996 -> modified for use by Wizardry
 //
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00405c10
 HLIST AddtoList(HLIST hList, void *pdata, UINT32 uiPos)
 {
 	ListHeader *pTemp_cont;

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -62,6 +65,7 @@
 
 
 HLIST		ghVideoObjects = NULL;
+// GLOBAL: WIZ8 0x00650e20
 BOOLEAN	gfVideoObjectsInit=FALSE;
 
 typedef struct VOBJECT_NODE
@@ -77,10 +81,15 @@ typedef struct VOBJECT_NODE
 
 }VOBJECT_NODE;
 
+// GLOBAL: WIZ8 0x00650e24
 VOBJECT_NODE  *gpVObjectHead = NULL;
+// GLOBAL: WIZ8 0x00650e28
 VOBJECT_NODE  *gpVObjectTail = NULL;
+// GLOBAL: WIZ8 0x005ff5e8
 UINT32				guiVObjectIndex = 1;
+// GLOBAL: WIZ8 0x00650e2c
 UINT32				guiVObjectSize = 0;
+// GLOBAL: WIZ8 0x00650e30
 UINT32				guiVObjectTotalAdded = 0;
 
 #ifdef _DEBUG
@@ -112,6 +121,7 @@ void CheckValidVObjectIndex( UINT32 uiIndex );
 // **************************************************************
 
 
+// FUNCTION: WIZ8 0x00405e60
 BOOLEAN InitializeVideoObjectManager( )
 {
 	//Shouldn't be calling this if the video object manager already exists.
@@ -124,6 +134,7 @@ BOOLEAN InitializeVideoObjectManager( )
 	return TRUE ;
 }
 
+// FUNCTION: WIZ8 0x00405e80
 BOOLEAN ShutdownVideoObjectManager( )
 {
 	VOBJECT_NODE *curr;
@@ -163,6 +174,7 @@ UINT32 CountVideoObjectNodes()
 	return i;
 }
 
+// FUNCTION: WIZ8 0x00405ef0
 BOOLEAN AddStandardVideoObject( VOBJECT_DESC *pVObjectDesc, UINT32 *puiIndex )
 {
 
@@ -240,6 +252,7 @@ BOOLEAN SetVideoObjectTransparency( UINT32 uiIndex, COLORVAL TransColor )
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x00405fc0
 BOOLEAN GetVideoObject( HVOBJECT *hVObject, UINT32 uiIndex )
 {
 	VOBJECT_NODE *curr;
@@ -261,6 +274,7 @@ BOOLEAN GetVideoObject( HVOBJECT *hVObject, UINT32 uiIndex )
 	return FALSE;
 }
 
+// FUNCTION: WIZ8 0x00405ff0
 BOOLEAN BltVideoObjectFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT16 usRegionIndex, INT32 iDestX, INT32 iDestY, UINT32 fBltFlags, blt_fx *pBltFx )
 {
 	UINT16               *pBuffer;
@@ -298,6 +312,7 @@ BOOLEAN BltVideoObjectFromIndex(UINT32 uiDestVSurface, UINT32 uiSrcVObject, UINT
 }
 
 
+// FUNCTION: WIZ8 0x00406080
 BOOLEAN DeleteVideoObjectFromIndex( UINT32 uiVObject  )
 {
 	VOBJECT_NODE *curr;
@@ -362,6 +377,7 @@ BOOLEAN DeleteVideoObjectFromIndex( UINT32 uiVObject  )
 // Based on flags, blit accordingly
 // There are two types, a BltFast and a Blt. BltFast is 10% faster, uses no
 // clipping lists
+// FUNCTION: WIZ8 0x00406110
 BOOLEAN BltVideoObject(  UINT32	uiDestVSurface,
 												 HVOBJECT hSrcVObject,
 												 UINT16 usRegionIndex,
@@ -399,6 +415,7 @@ BOOLEAN BltVideoObject(  UINT32	uiDestVSurface,
 // *******************************************************************************
 
 
+// FUNCTION: WIZ8 0x00406180
 HVOBJECT CreateVideoObject( VOBJECT_DESC *VObjectDesc )
 {
 	HVOBJECT						hVObject;
@@ -554,6 +571,7 @@ BOOLEAN SetVideoObjectTransparencyColor( HVOBJECT hVObject, COLORVAL TransColor 
 
 
 // Deletes all palettes, surfaces and region data
+// FUNCTION: WIZ8 0x00406320
 BOOLEAN DeleteVideoObject( HVOBJECT hVObject )
 {
 	UINT16			usLoop;
@@ -623,6 +641,7 @@ BOOLEAN DeleteVideoObject( HVOBJECT hVObject )
 
 **********************************************************************************************/
 
+// FUNCTION: WIZ8 0x00406460
 UINT16 CreateObjectPaletteTables(HVOBJECT pObj, UINT32 uiType)
 {
 UINT32 count;
@@ -703,6 +722,7 @@ UINT32 count;
 // *******************************************************************
 
 // High level blit function encapsolates ALL effects and BPP
+// FUNCTION: WIZ8 0x004066b0
 BOOLEAN BltVideoObjectToBuffer( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, UINT16 usIndex, INT32 iDestX, INT32 iDestY, INT32 fBltFlags, blt_fx *pBltFx )
 {
 
@@ -886,6 +906,7 @@ BOOLEAN f16BitPal;
 
 
 
+// FUNCTION: WIZ8 0x004068e0
 UINT16 SetObjectShade(HVOBJECT pObj, UINT32 uiShade)
 {
 	Assert(pObj!=NULL);
@@ -950,6 +971,7 @@ UINT32	uiPitch;
 	Given a VOBJECT and ETRLE image index, retrieves the value of the pixel located at the
 	given image coordinates. The value returned is an 8-bit palette index
 ********************************************************************************************/
+// FUNCTION: WIZ8 0x00406900
 BOOLEAN GetETRLEPixelValue( UINT8 * pDest, HVOBJECT hVObject, UINT16 usETRLEIndex, UINT16 usX, UINT16 usY )
 {
 	UINT8 *					pCurrent;
@@ -1025,6 +1047,7 @@ BOOLEAN GetETRLEPixelValue( UINT8 * pDest, HVOBJECT hVObject, UINT16 usETRLEInde
 	return( FALSE );
 }
 
+// FUNCTION: WIZ8 0x00406a10
 BOOLEAN GetVideoObjectETRLEProperties( HVOBJECT hVObject, ETRLEObject *pETRLEObject, UINT16 usIndex )
 {
 	CHECKF( usIndex >= 0 );
@@ -1036,6 +1059,7 @@ BOOLEAN GetVideoObjectETRLEProperties( HVOBJECT hVObject, ETRLEObject *pETRLEObj
 
 }
 
+// FUNCTION: WIZ8 0x00406a50
 BOOLEAN GetVideoObjectETRLESubregionProperties( UINT32 uiVideoObject, UINT16 usIndex, UINT16 *pusWidth, UINT16 *pusHeight )
 {
 	HVOBJECT							hVObject;
@@ -1056,6 +1080,7 @@ BOOLEAN GetVideoObjectETRLESubregionProperties( UINT32 uiVideoObject, UINT16 usI
 }
 
 
+// FUNCTION: WIZ8 0x00406ad0
 BOOLEAN GetVideoObjectETRLEPropertiesFromIndex( UINT32 uiVideoObject, ETRLEObject *pETRLEObject, UINT16 usIndex )
 {
 	HVOBJECT							hVObject;
@@ -1100,6 +1125,7 @@ BOOLEAN GetVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 **ppPal16)
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x00406b30
 BOOLEAN CopyVideoObjectPalette16BPP(INT32 uiVideoObject, UINT16 *ppPal16)
 {
 	HVOBJECT							hVObject;
