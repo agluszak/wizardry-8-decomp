@@ -213,7 +213,7 @@ jobs:
 
       - name: Run full runtime suite
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: uv run wiz8 runtime-test --check-order
+        run: uv run wiz8 runtime-test --build --check-order
 
       - name: Remove licensed inputs and derived trees
         if: always() && env.LICENSED_INPUTS == 'true'
