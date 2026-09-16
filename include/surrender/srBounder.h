@@ -4,22 +4,24 @@
 
 // VTABLE: SURRENDER 0x10076f30 srBounder
 // VTABLE: SURRENDER 0x10076f64 srClassSupport<srBounder, srNode, 0, 5632>
+/* Provider-only SR class: no known Wizardry/JPEG/ZIP consumer imports its
+   members. Provider exports are not a reason to apply SR_DLL_IMPORT here. */
 class srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
 public:
     enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
 
     srBounder(srNode* parent);
-    SR_DLL_IMPORT srBounder(const srBounder& other);
-    SR_DLL_IMPORT srBounder& operator=(const srBounder& other);
+    srBounder(const srBounder& other);
+    srBounder& operator=(const srBounder& other);
 
     static const char* sGetClassName();
 
-    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
+    virtual void dump(std::ostream& stream) override;
     virtual ~srBounder() override;
     virtual srClass* vInstance() override;
-    virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
-    virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type) override;
-    virtual SR_DLL_IMPORT void updateBounds() override;
+    virtual void traverse(TraverseInfo& info) override;
+    virtual void process(const ProcessInfo& info, e_processType type) override;
+    virtual void updateBounds() override;
 
     void forceUpdateBounds();
     e_boundMode getBoundMode() const;
@@ -29,7 +31,7 @@ public:
 
 private:
     void checkBounds();
-    SR_DLL_IMPORT void getChildBoundingBox(srNode* node);
+    void getChildBoundingBox(srNode* node);
 
     e_boundMode bound_mode_138_;
     BoundInfo bounds_13c_;

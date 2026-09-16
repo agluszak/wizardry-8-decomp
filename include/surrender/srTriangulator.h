@@ -2,7 +2,9 @@
 
 #include "srMath.h"
 
-class SR_DLL_IMPORT srTriangulator {
+/* Recovered SR provider utility. No known Wizardry/JPEG/ZIP consumer imports
+   this class, so provider exports do not justify consumer dllimport codegen. */
+class srTriangulator {
 public:
     class CircularList {
     public:

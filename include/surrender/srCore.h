@@ -55,7 +55,9 @@ public:
     }
     SR_DLL_IMPORT srColorSurfaceIFace* getSurface() const;
     SR_DLL_IMPORT srTexture* getTexture() const;
-    SR_DLL_IMPORT srVariableTimer* getTimer() const;
+    /* Header-visible like getRegistry/getMaterial: timer users in both Wiz8
+       and recovered SR code read the pointer directly from srCore +0x08. */
+    srVariableTimer* getTimer() const { return timer_08; }
     SR_DLL_IMPORT unsigned long getUniqueID();
     SR_DLL_IMPORT srVideoManager* getVideoManager() const;
     SR_DLL_IMPORT int isInitialized() const;

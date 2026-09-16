@@ -5,14 +5,17 @@
 
 #include <stdio.h>
 
+/* SR-owned file-stream family. Its classes and virtual tables are visible in
+   the provider ABI, but no known Wizardry/JPEG/ZIP consumer imports a
+   srBinFStream/srBinIFStream/srBinIOFStream/srBinOFStream symbol. */
 class srBinFStream : public virtual srBinStream {
 public:
-    SR_DLL_IMPORT srBinFStream(const srBinFStream& stream);
-    SR_DLL_IMPORT srBinFStream& operator=(const srBinFStream& stream);
+    srBinFStream(const srBinFStream& stream);
+    srBinFStream& operator=(const srBinFStream& stream);
 
-    SR_DLL_IMPORT void close();
-    SR_DLL_IMPORT const char* getPath() const;
-    SR_DLL_IMPORT int isOpen();
+    void close();
+    const char* getPath() const;
+    int isOpen();
 
 protected:
     enum e_mode {
@@ -21,17 +24,17 @@ protected:
         SR_MODE_READ_WRITE = 2
     };
 
-    SR_DLL_IMPORT srBinFStream();
-    virtual SR_DLL_IMPORT ~srBinFStream() override;
+    srBinFStream();
+    virtual ~srBinFStream() override;
 
-    SR_DLL_IMPORT void mopen(const char* path, e_mode mode, int search_paths);
-    virtual SR_DLL_IMPORT srBinStream& pseek(unsigned long position);
-    virtual SR_DLL_IMPORT srBinStream& pseek(
+    void mopen(const char* path, e_mode mode, int search_paths);
+    virtual srBinStream& pseek(unsigned long position);
+    virtual srBinStream& pseek(
         unsigned long position, srBinStream::e_seekDir direction);
-    virtual SR_DLL_IMPORT unsigned long ptell();
+    virtual unsigned long ptell();
 
 private:
-    SR_DLL_IMPORT void setPath(const char* path);
+    void setPath(const char* path);
 
     FILE* file_08;
     char empty_path_0c;
@@ -41,21 +44,21 @@ private:
 
 class srBinIFStream : public srBinFStream, public srBinIStream {
 public:
-    SR_DLL_IMPORT srBinIFStream();
-    SR_DLL_IMPORT srBinIFStream(const char* path);
-    SR_DLL_IMPORT srBinIFStream(const srBinIFStream& stream);
-    virtual SR_DLL_IMPORT ~srBinIFStream() override;
-    SR_DLL_IMPORT srBinIFStream& operator=(const srBinIFStream& stream);
+    srBinIFStream();
+    srBinIFStream(const char* path);
+    srBinIFStream(const srBinIFStream& stream);
+    virtual ~srBinIFStream() override;
+    srBinIFStream& operator=(const srBinIFStream& stream);
 
-    SR_DLL_IMPORT void open(const char* path);
-    virtual SR_DLL_IMPORT srBinStream& seek(
+    void open(const char* path);
+    virtual srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned short vget() override;
-    virtual SR_DLL_IMPORT unsigned long vread(
+    virtual unsigned short vget() override;
+    virtual unsigned long vread(
         void* destination, unsigned long size) override;
 };
 
@@ -63,45 +66,45 @@ class srBinIOFStream : public srBinFStream,
                        public srBinIStream,
                        public srBinOStream {
 public:
-    SR_DLL_IMPORT srBinIOFStream();
-    SR_DLL_IMPORT srBinIOFStream(const char* path);
-    SR_DLL_IMPORT srBinIOFStream(const srBinIOFStream& stream);
-    virtual SR_DLL_IMPORT ~srBinIOFStream() override;
-    SR_DLL_IMPORT srBinIOFStream& operator=(const srBinIOFStream& stream);
+    srBinIOFStream();
+    srBinIOFStream(const char* path);
+    srBinIOFStream(const srBinIOFStream& stream);
+    virtual ~srBinIOFStream() override;
+    srBinIOFStream& operator=(const srBinIOFStream& stream);
 
-    SR_DLL_IMPORT void open(const char* path);
-    virtual SR_DLL_IMPORT srBinStream& seek(
+    void open(const char* path);
+    virtual srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned short vget() override;
-    virtual SR_DLL_IMPORT unsigned short vput(char value) override;
-    virtual SR_DLL_IMPORT unsigned long vread(
+    virtual unsigned short vget() override;
+    virtual unsigned short vput(char value) override;
+    virtual unsigned long vread(
         void* destination, unsigned long size) override;
-    virtual SR_DLL_IMPORT unsigned long vwrite(
+    virtual unsigned long vwrite(
         const void* source, unsigned long size) override;
 };
 
 class srBinOFStream : public virtual srBinOStream,
                       public virtual srBinFStream {
 public:
-    SR_DLL_IMPORT srBinOFStream();
-    SR_DLL_IMPORT srBinOFStream(const char* path);
-    SR_DLL_IMPORT srBinOFStream(const srBinOFStream& stream);
-    virtual SR_DLL_IMPORT ~srBinOFStream() override;
-    SR_DLL_IMPORT srBinOFStream& operator=(const srBinOFStream& stream);
+    srBinOFStream();
+    srBinOFStream(const char* path);
+    srBinOFStream(const srBinOFStream& stream);
+    virtual ~srBinOFStream() override;
+    srBinOFStream& operator=(const srBinOFStream& stream);
 
-    SR_DLL_IMPORT void open(const char* path);
-    virtual SR_DLL_IMPORT srBinStream& seek(
+    void open(const char* path);
+    virtual srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
 private:
-    virtual SR_DLL_IMPORT unsigned short vput(char value) override;
-    virtual SR_DLL_IMPORT unsigned long vwrite(
+    virtual unsigned short vput(char value) override;
+    virtual unsigned long vwrite(
         const void* source, unsigned long size) override;
 };
 

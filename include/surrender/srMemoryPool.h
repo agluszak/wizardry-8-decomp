@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+/* Provider-side utility. No known Wizardry/JPEG/ZIP consumer imports
+   srMemoryPool symbols, so its provider declarations are not dllimport. */
 class srMemoryPool {
 public:
     enum e_fit {
@@ -9,25 +11,25 @@ public:
         FIT_BEST = 1
     };
 
-    SR_DLL_IMPORT srMemoryPool(void* memory, long size, long alignment);
-    SR_DLL_IMPORT ~srMemoryPool();
-    SR_DLL_IMPORT srMemoryPool& operator=(const srMemoryPool& pool);
+    srMemoryPool(void* memory, long size, long alignment);
+    ~srMemoryPool();
+    srMemoryPool& operator=(const srMemoryPool& pool);
 
-    SR_DLL_IMPORT void* allocate(long size);
-    SR_DLL_IMPORT void dump();
-    SR_DLL_IMPORT void free(void* allocation);
-    SR_DLL_IMPORT long getAlignment() const;
-    SR_DLL_IMPORT int getLockStatus(void* allocation) const;
-    SR_DLL_IMPORT e_fit getPolicy() const;
-    SR_DLL_IMPORT long getSize() const;
-    SR_DLL_IMPORT long getSize(const void* allocation) const;
-    SR_DLL_IMPORT void lock(void* allocation);
-    SR_DLL_IMPORT int maskArea(const void* memory, long size);
-    SR_DLL_IMPORT long memAvail();
-    SR_DLL_IMPORT long memFreeTotal() const;
-    SR_DLL_IMPORT long memUsed() const;
-    SR_DLL_IMPORT void setPolicy(e_fit policy);
-    SR_DLL_IMPORT void unlock(void* allocation);
+    void* allocate(long size);
+    void dump();
+    void free(void* allocation);
+    long getAlignment() const;
+    int getLockStatus(void* allocation) const;
+    e_fit getPolicy() const;
+    long getSize() const;
+    long getSize(const void* allocation) const;
+    void lock(void* allocation);
+    int maskArea(const void* memory, long size);
+    long memAvail();
+    long memFreeTotal() const;
+    long memUsed() const;
+    void setPolicy(e_fit policy);
+    void unlock(void* allocation);
 
 private:
     struct Entry {
@@ -41,17 +43,17 @@ private:
     static_assert(sizeof(Entry) == 0x14,
                   "srMemoryPool_Entry_must_be_0x14");
 
-    SR_DLL_IMPORT Entry* addEntry(Entry* previous, Entry* next);
-    SR_DLL_IMPORT long convertPtr(const void* allocation) const;
-    SR_DLL_IMPORT void defrag(Entry* entry);
-    SR_DLL_IMPORT Entry* find(long offset) const;
-    SR_DLL_IMPORT Entry* findArea(long offset) const;
-    SR_DLL_IMPORT Entry* findBestFit(long size) const;
-    SR_DLL_IMPORT Entry* findFirstFit(long size) const;
-    SR_DLL_IMPORT Entry* findPlacing(long offset) const;
-    SR_DLL_IMPORT Entry* findSpace(long size) const;
-    SR_DLL_IMPORT void freeInternal(Entry* entry);
-    SR_DLL_IMPORT unsigned long hashVal(long offset) const;
+    Entry* addEntry(Entry* previous, Entry* next);
+    long convertPtr(const void* allocation) const;
+    void defrag(Entry* entry);
+    Entry* find(long offset) const;
+    Entry* findArea(long offset) const;
+    Entry* findBestFit(long size) const;
+    Entry* findFirstFit(long size) const;
+    Entry* findPlacing(long offset) const;
+    Entry* findSpace(long size) const;
+    void freeInternal(Entry* entry);
+    unsigned long hashVal(long offset) const;
 
     e_fit policy_00;
     long size_04;

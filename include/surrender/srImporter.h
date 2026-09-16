@@ -33,9 +33,9 @@ static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExport
 
 class __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
-    virtual SR_DLL_IMPORT int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description,
-                                             srBinIStream& stream,
-                                             const srSurfaceIOManager::ImportInfo& options);
+    virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description,
+                               srBinIStream& stream,
+                               const srSurfaceIOManager::ImportInfo& options);
     virtual srColorSurfaceIFace* importSurface(srBinIStream& stream,
                                                const srSurfaceIOManager::ImportInfo& options) = 0;
 };
@@ -60,8 +60,8 @@ public:
     srHierarchyIOManager& operator=(const srHierarchyIOManager& other);
     virtual ~srHierarchyIOManager();
 
-    SR_DLL_IMPORT void importHierarchy(const char* path, const ImportInfo& options);
-    SR_DLL_IMPORT void exportHierarchy(const char* path, const ExportInfo& options);
+    void importHierarchy(const char* path, const ImportInfo& options);
+    void exportHierarchy(const char* path, const ExportInfo& options);
 };
 
 static_assert((sizeof(srHierarchyIOManager) == 0x1c), "srHierarchyIOManager_must_be_0x1c");
@@ -95,8 +95,8 @@ public:
     srModelIOManager& operator=(const srModelIOManager& other);
     virtual ~srModelIOManager();
 
-    SR_DLL_IMPORT srModel* importModel(const char* path, const ImportInfo& options);
-    SR_DLL_IMPORT void exportModel(const char* path, srModel& model, const ExportInfo& options);
+    srModel* importModel(const char* path, const ImportInfo& options);
+    void exportModel(const char* path, srModel& model, const ExportInfo& options);
 };
 
 static_assert((sizeof(srModelIOManager) == 0x1c), "srModelIOManager_must_be_0x1c");

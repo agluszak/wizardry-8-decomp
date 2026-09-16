@@ -13,7 +13,7 @@
    getMipmapData, getMipmapLevelPartial, invalidate and setupDefaultValues.
    Slots 9/10/13 (getPriority, getDimensions, getTextureParms) stay on
    srTexture; slot 14 (getTextureName) stays on srTextureIFace. */
-class SR_DLL_IMPORT srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
+class srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
 public:
     srTextureFile(const char* file_name, int cached);
     srTextureFile(const srTextureFile& other);

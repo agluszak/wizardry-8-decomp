@@ -3,19 +3,21 @@
 #include "srBinIStream.h"
 #include "srScheduler.h"
 
+/* SR-owned asynchronous reader. The provider vtable is recovered, but no known
+   Wizardry/JPEG/ZIP consumer imports srBinIAsyncStream symbols. */
 class srBinIAsyncStream : public srBinIStream {
 public:
-    SR_DLL_IMPORT srBinIAsyncStream(const char* path);
-    SR_DLL_IMPORT srBinIAsyncStream(const srBinIAsyncStream& stream);
-    virtual SR_DLL_IMPORT ~srBinIAsyncStream() override;
+    srBinIAsyncStream(const char* path);
+    srBinIAsyncStream(const srBinIAsyncStream& stream);
+    virtual ~srBinIAsyncStream() override;
 
-    SR_DLL_IMPORT int isFinished();
+    int isFinished();
 
-    virtual SR_DLL_IMPORT srBinStream& seek(
+    virtual srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction) override;
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
-    virtual SR_DLL_IMPORT unsigned long tell() override;
-    virtual SR_DLL_IMPORT unsigned long vread(
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
+    virtual unsigned long vread(
         void* destination, unsigned long size) override;
 
 private:

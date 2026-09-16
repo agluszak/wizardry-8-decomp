@@ -2,7 +2,9 @@
 
 #include "srHeap.h"
 
-class SR_DLL_IMPORT srExponentTable {
+/* Recovered SR provider utility. Its methods are provider exports, not imports
+   in the known consumers, so the class must not carry consumer dllimport. */
+class srExponentTable {
 public:
     srExponentTable(float exponent);
     srExponentTable& operator=(const srExponentTable& other);
