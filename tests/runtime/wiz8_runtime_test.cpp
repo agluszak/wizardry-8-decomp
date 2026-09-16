@@ -23,6 +23,7 @@
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
+#include "audio_semantic_test.h"
 
 #include "english.h"
 #include "FileMan.h"
@@ -89,6 +90,7 @@ static const char* g_scenario;
 static unsigned char g_sight_semantic_ok;
 static unsigned char g_split_semantic_ok;
 static unsigned char g_party_movement_semantic_ok;
+static unsigned char g_audio_semantic_ok;
 
 /* Bounds the driver join after WinMain returns. Python owns the hard
    process deadline, including hangs inside WinMain. */
@@ -523,6 +525,14 @@ static DWORD WINAPI DriveScenario(void*)
         PrintPartyMovementSemanticResults(&movement_result);
         gfProgramIsRunning = 0;
         return g_party_movement_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "audio-semantics") == 0) {
+        AudioSemanticResult audio_result;
+        g_audio_semantic_ok = RunAudioSemanticTests(&audio_result);
+        PrintAudioSemanticResults(&audio_result);
+        gfProgramIsRunning = 0;
+        return g_audio_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -1060,7 +1070,7 @@ int main(int argc, char** argv)
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement|audio-semantics\n");
         return 64;
     }
 
@@ -1069,11 +1079,11 @@ int main(int argc, char** argv)
         strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
         strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
         strcmp(argv[2], "sight-threshold") != 0 && strcmp(argv[2], "split-stack") != 0 &&
-        strcmp(argv[2], "party-movement") != 0) {
+        strcmp(argv[2], "party-movement") != 0 && strcmp(argv[2], "audio-semantics") != 0) {
         fprintf(stderr,
                 "usage: Wiz8RuntimeTest --scenario "
                 "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement\n");
+                "npc-state-reset|new-game-entry|sight-threshold|split-stack|party-movement|audio-semantics\n");
         return 64;
     }
 
@@ -1173,10 +1183,11 @@ int main(int argc, char** argv)
     const bool sight_flow = strcmp(g_scenario, "sight-threshold") == 0;
     const bool split_flow = strcmp(g_scenario, "split-stack") == 0;
     const bool movement_flow = strcmp(g_scenario, "party-movement") == 0;
-    const bool semantic_flow = sight_flow || split_flow || movement_flow;
+    const bool audio_flow = strcmp(g_scenario, "audio-semantics") == 0;
+    const bool semantic_flow = sight_flow || split_flow || movement_flow || audio_flow;
     const bool semantic_ok = (sight_flow && g_sight_semantic_ok) ||
                              (split_flow && g_split_semantic_ok) ||
-                             (movement_flow && g_party_movement_semantic_ok);
+                             (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||

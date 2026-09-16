@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Annotate retail function identities verified against the Wizardry 8 binary.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	MemMan.cpp
@@ -100,10 +103,15 @@ STR16 gzJA2ScreenNames[] =
 
 static BOOLEAN gfMemDebug = TRUE;
 // debug variable for total memory currently allocated
+// GLOBAL: WIZ8 0x00650df4
 UINT32	guiMemTotal = 0;
+// GLOBAL: WIZ8 0x00650df8
 UINT32  guiMemAlloced = 0;
+// GLOBAL: WIZ8 0x00650dfc
 UINT32  guiMemFreed = 0;
+// GLOBAL: WIZ8 0x00650e00
 UINT32	MemDebugCounter = 0;
+// GLOBAL: WIZ8 0x00650e04
 BOOLEAN fMemManagerInit = FALSE;
 
 //**************************************************************************
@@ -134,6 +142,7 @@ void			DebugPrint( void );
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404ba0
 BOOLEAN InitializeMemoryManager( void )
 {
 	// Register the memory manager with the debugger
@@ -187,6 +196,7 @@ void MemDebug( BOOLEAN f )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404bc0
 void ShutdownMemoryManager( void )
 {
 	if ( MemDebugCounter != 0 )
@@ -425,6 +435,7 @@ void MemFreeLocked( PTR ptr, UINT32 uiSize )
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x00404bd0
 UINT32 MemGetFree( void )
 {
 	MEMORYSTATUS ms;

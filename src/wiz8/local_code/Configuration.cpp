@@ -103,7 +103,7 @@ void LoadGameConfiguration(void)
         ResetGameplaySettings();
         SaveGameConfiguration();
     }
-    SetAmbientSoundVolume0047AD00(g_settings_6850c8.sound_effects_volume);
+    SetSoundEffectsVolume0047AD00(g_settings_6850c8.sound_effects_volume);
     SetMusicVolume(g_settings_6850c8.music_volume);
     if (g_settings_6850c8.gamma < 0.1f || g_settings_6850c8.gamma > 2.0f) {
         g_settings_6850c8.gamma = 1.0f;

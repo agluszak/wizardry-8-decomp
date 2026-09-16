@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -17,6 +20,7 @@ BOOLEAN STCILoadRGB( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader *
 BOOLEAN STCILoadIndexed( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader * pHeader );
 BOOLEAN STCISetPalette( PTR pSTCIPalette, HIMAGE hImage );
 
+// FUNCTION: WIZ8 0x00415130
 BOOLEAN LoadSTCIFileToImage( HIMAGE hImage, UINT16 fContents )
 {
 	HWFILE			hFile;
@@ -85,6 +89,7 @@ BOOLEAN LoadSTCIFileToImage( HIMAGE hImage, UINT16 fContents )
 	return( TRUE );
 }
 
+// FUNCTION: WIZ8 0x00415250
 BOOLEAN STCILoadRGB( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader * pHeader )
 {
 	UINT32			uiBytesRead;
@@ -162,6 +167,7 @@ BOOLEAN STCILoadRGB( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader *
 }
 
 
+// FUNCTION: WIZ8 0x004153f0
 BOOLEAN STCILoadIndexed( HIMAGE hImage, UINT16 fContents, HWFILE hFile, STCIHeader * pHeader )
 {
 	UINT32			uiFileSectionSize;

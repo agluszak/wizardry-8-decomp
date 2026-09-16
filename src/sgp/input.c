@@ -41,7 +41,9 @@
 // The gfKeyState table is used to track which of the keys is up or down at any one time. This is used while polling
 // the interface.
 
+// GLOBAL: WIZ8 0x006f0520
 BOOLEAN   gfKeyState[256];			// TRUE = Pressed, FALSE = Not Pressed
+// GLOBAL: WIZ8 0x00650db8
 BOOLEAN   fCursorWasClipped = FALSE;
 RECT      gCursorClipRect;
 
@@ -50,49 +52,73 @@ RECT      gCursorClipRect;
 // The gsKeyTranslationTables basically translates scan codes to our own key value table. Please note that the table is 2 bytes
 // wide per entry. This will be used since we will use 2 byte characters for translation purposes.
 
+// GLOBAL: WIZ8 0x006f04ea
 UINT16   gfShiftState;					// TRUE = Pressed, FALSE = Not Pressed
+// GLOBAL: WIZ8 0x006f051c
 UINT16   gfAltState;						// TRUE = Pressed, FALSE = Not Pressed
+// GLOBAL: WIZ8 0x006f0508
 UINT16   gfCtrlState;						// TRUE = Pressed, FALSE = Not Pressed
 
 // These data structure are used to track the mouse while polling
 
+// GLOBAL: WIZ8 0x006f04f4
 BOOLEAN   gfTrackDblClick;
+// GLOBAL: WIZ8 0x006f04e4
 UINT32    guiDoubleClkDelay;		// Current delay in milliseconds for a delay
+// GLOBAL: WIZ8 0x006f0504
 UINT32		guiSingleClickTimer;
 UINT32		guiRecordedWParam;
 UINT32		guiRecordedLParam;
+// GLOBAL: WIZ8 0x006f0514
 UINT16		gusRecordedKeyState;
+// GLOBAL: WIZ8 0x006f04e9
 BOOLEAN		gfRecordedLeftButtonUp;
 
+// GLOBAL: WIZ8 0x006f0518
 UINT32		guiLeftButtonRepeatTimer;
+// GLOBAL: WIZ8 0x006f04f0
 UINT32		guiRightButtonRepeatTimer;
 
+// GLOBAL: WIZ8 0x006f04ec
 BOOLEAN   gfTrackMousePos;			// TRUE = queue mouse movement events, FALSE = don't
+// GLOBAL: WIZ8 0x006f04ed
 BOOLEAN   gfLeftButtonState;		// TRUE = Pressed, FALSE = Not Pressed
+// GLOBAL: WIZ8 0x006f04e8
 BOOLEAN   gfRightButtonState;		// TRUE = Pressed, FALSE = Not Pressed
+// GLOBAL: WIZ8 0x006f050a
 UINT16    gusMouseXPos;					// X position of the mouse on screen
+// GLOBAL: WIZ8 0x006f04f8
 UINT16    gusMouseYPos;					// y position of the mouse on screen
 
 // The queue structures are used to track input events using queued events
 
+// GLOBAL: WIZ8 0x006ef4e0
 InputAtom gEventQueue[256];
+// GLOBAL: WIZ8 0x006f04f6
 UINT16    gusQueueCount;
+// GLOBAL: WIZ8 0x006f04e2
 UINT16    gusHeadIndex;
+// GLOBAL: WIZ8 0x006f04e0
 UINT16    gusTailIndex;
 
 // ATE: Added to signal if we have had input this frame - cleared by the SGP main loop
+// GLOBAL: WIZ8 0x00650db9
 BOOLEAN		gfSGPInputReceived = FALSE;
 
 // This is the WIN95 hook specific data and defines used to handle the keyboard and
 // mouse hook
 
+// GLOBAL: WIZ8 0x006f04fc
 HHOOK ghKeyboardHook;
+// GLOBAL: WIZ8 0x006f050c
 HHOOK ghMouseHook;
 
 // If the following pointer is non NULL then input characters are redirected to
 // the related string
 
+// GLOBAL: WIZ8 0x006f0500
 BOOLEAN      gfCurrentStringInputState;
+// GLOBAL: WIZ8 0x006f0510
 StringInput *gpCurrentStringDescriptor;
 
 // Local function headers
@@ -104,6 +130,7 @@ void		AdjustMouseForWindowOrigin(void);
 
 // These are the hook functions for both keyboard and mouse
 
+// FUNCTION: WIZ8 0x00401b30
 LRESULT CALLBACK KeyboardHandler(int Code, WPARAM wParam, LPARAM lParam)
 {
 #ifndef JA2
@@ -225,12 +252,14 @@ LRESULT CALLBACK MouseHandler(int Code, WPARAM wParam, LPARAM lParam)
 
 // Wizardry mouse hander
 
+// FUNCTION: WIZ8 0x00401c70
 LRESULT CALLBACK MouseHandler(int Code, WPARAM wParam, LPARAM lParam)
 {
 UINT32 uiParam;
 UINT32	uiXPos, uiYPos;
 RECT rcClient;
 BOOLEAN fOutsideClient=FALSE;
+// GLOBAL: WIZ8 0x00650dba
 static BOOLEAN fResizing=FALSE;
 LRESULT Result;
 
@@ -315,6 +344,7 @@ LRESULT Result;
 
 #endif
 
+// FUNCTION: WIZ8 0x00401ea0
 BOOLEAN InitializeInputManager(void)
 {
   // Link to debugger
@@ -357,6 +387,7 @@ BOOLEAN InitializeInputManager(void)
   return TRUE;
 }
 
+// FUNCTION: WIZ8 0x00401f70
 void ShutdownInputManager(void)
 { // There's very little to do when shutting down the input manager. In the future, this is where the keyboard and
   // mouse hooks will be destroyed
@@ -400,6 +431,7 @@ void QueuePureEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam)
   }
 }
 
+// FUNCTION: WIZ8 0x00401f90
 void QueueEvent(UINT16 ubInputEvent, UINT32 usParam, UINT32 uiParam)
 {
   UINT32 uiTimer;
@@ -529,6 +561,7 @@ BOOLEAN DequeueSpecificEvent(InputAtom *Event, UINT32 uiMaskFlags )
 	return( FALSE );
 }
 
+// FUNCTION: WIZ8 0x00402140
 BOOLEAN DequeueEvent(InputAtom *Event)
 {
 	HandleSingleClicksAndButtonRepeats( );
@@ -1175,6 +1208,7 @@ void RestrictMouseCursor(SGPRect *pRectangle)
 	fCursorWasClipped = TRUE;
 }
 
+// FUNCTION: WIZ8 0x00402750
 void FreeMouseCursor(void)
 {
   ClipCursor(NULL);
@@ -1299,6 +1333,7 @@ void HandleSingleClicksAndButtonRepeats( void )
 }
 
 
+// FUNCTION: WIZ8 0x00402760
 INT16 GetMouseWheelDeltaValue( UINT32 wParam )
 {
 	INT16 sDelta = HIWORD( wParam );

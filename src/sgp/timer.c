@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-10.
+   Add matching markers for retained clock functions.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -17,9 +20,12 @@
 	#define WIN32_LEAN_AND_MEAN
 #endif
 
+// GLOBAL: WIZ8 0x006eb708
 UINT32 guiStartupTime;
+// GLOBAL: WIZ8 0x006eb70c
 UINT32 guiCurrentTime;
 
+// FUNCTION: WIZ8 0x00406b70
 void CALLBACK Clock( HWND hWindow, UINT uMessage, UINT idEvent, DWORD dwTime )
 {
   guiCurrentTime = GetTickCount();
@@ -33,6 +39,7 @@ void CALLBACK Clock( HWND hWindow, UINT uMessage, UINT idEvent, DWORD dwTime )
   }
 }
 
+// FUNCTION: WIZ8 0x00406ba0
 BOOLEAN InitializeClockManager(void)
 {
 
@@ -44,6 +51,7 @@ BOOLEAN InitializeClockManager(void)
   return TRUE;
 }
 
+// FUNCTION: WIZ8 0x00406bd0
 void    ShutdownClockManager(void)
 {
 
@@ -52,16 +60,19 @@ void    ShutdownClockManager(void)
 
 }
 
+// FUNCTION: WIZ8 0x00406be0
 TIMER   GetClock(void)
 {
   return guiCurrentTime;
 }
 
+// FUNCTION: WIZ8 0x00406bf0
 TIMER   SetCountdownClock(UINT32 uiTimeToElapse)
 {
   return (guiCurrentTime + uiTimeToElapse);
 }
 
+// FUNCTION: WIZ8 0x00406c00
 UINT32 ClockIsTicking(TIMER uiTimer)
 {
   if (uiTimer > guiCurrentTime)

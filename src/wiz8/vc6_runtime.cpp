@@ -52,5 +52,20 @@
 // LIBRARY: WIZ8 0x005e1ef1
 // ?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z
 
+// LIBRARY: WIZ8 0x0040116a
+// _cfltcvt_init
+
+// LIBRARY: WIZ8 0x004028c0
+// _wcsnicmp
+
+// LIBRARY: WIZ8 0x00415960
+// _inflateEnd
+
+// LIBRARY: WIZ8 0x00415ad0
+// _inflateInit_
+
+// LIBRARY: WIZ8 0x00415af0
+// _inflate
+
 // SYNTHETIC: WIZ8 0x004023a0
 // NoOp (compiler-folded empty)

@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 #ifdef JA2_PRECOMPILED_HEADERS
 	#include "JA2 SGP ALL.H"
 #elif defined( WIZ8_PRECOMPILED_HEADERS )
@@ -33,6 +36,7 @@ BOOLEAN BlitPcxToBuffer( PcxObject *pCurrentPcxObject, UINT8 *pBuffer, UINT16 us
 PcxObject *LoadPcx(UINT8 *pFilename);
 
 
+// FUNCTION: WIZ8 0x00414700
 BOOLEAN LoadPCXFileToImage( HIMAGE hImage, UINT16 fContents )
 {
 	PcxObject *pPcxObject;
@@ -81,6 +85,7 @@ BOOLEAN LoadPCXFileToImage( HIMAGE hImage, UINT16 fContents )
 }
 
 
+// FUNCTION: WIZ8 0x00414810
 PcxObject *LoadPcx(UINT8 *pFilename)
 {
   PcxHeader  Header;
@@ -152,6 +157,7 @@ PcxObject *LoadPcx(UINT8 *pFilename)
   return pCurrentPcxObject;
 }
 
+// FUNCTION: WIZ8 0x00414940
 BOOLEAN BlitPcxToBuffer( PcxObject *pCurrentPcxObject, UINT8 *pBuffer, UINT16 usBufferWidth, UINT16 usBufferHeight, UINT16 usX, UINT16 usY, BOOLEAN fTransp)
 {
   UINT8     *pPcxBuffer;

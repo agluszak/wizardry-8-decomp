@@ -1040,9 +1040,9 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
     if (sound != 0) {
         srVector3T<double> sound_position;
         sound_position.SetFromFloat(&position);
-        sound->value_140 = volume;
+        sound->volume = volume;
         sound->setLocation(sound_position);
-        if (sound->Play004AEBF0(0, 1) != 0) {
+        if (sound->Play(0, 1) != 0) {
             return 1;
         }
         sound->release();
@@ -1644,72 +1644,72 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
     case 3: {
         unsigned char version;
-        int value_94, value_98, value_ac, value_b0, value_a4, value_a8;
-        int flag_b9;
-        float value_b4;
-        srVector3T<float> vector_88, vector_c8, vector_d4;
-        srVector3T<float> vector_e0;
-        int value_ec = 0;
-        srVector3T<float> vector_f0;
-        srVector3T<float> vector_fc;
-        char sound[0x80];
+        int volume_min, volume_max, speed_min, speed_max, time_min, time_max;
+        int unbounded;
+        float radius;
+        srVector3T<float> position, region_u, region_v;
+        srVector3T<float> region_center;
+        float region_angle = 0.0f;
+        srVector3T<float> region_min;
+        srVector3T<float> region_max;
+        char wave[0x80];
         char name[0x80];
         const char* optional_name = 0;
-        unsigned char flag_c5 = 0;
-        unsigned char flag_c4 = 0;
+        unsigned char looping = 0;
+        unsigned char shared = 0;
 
-        vector_e0.x = vector_e0.y = vector_e0.z = 0.0f;
-        vector_f0.x = vector_f0.y = vector_f0.z = 0.0f;
-        vector_fc.x = vector_fc.y = vector_fc.z = 0.0f;
+        region_center.x = region_center.y = region_center.z = 0.0f;
+        region_min.x = region_min.y = region_min.z = 0.0f;
+        region_max.x = region_max.y = region_max.z = 0.0f;
 
         FileRead(handle, &version, 1, 0);
-        FileRead(handle, &value_94, 4, 0);
-        FileRead(handle, &value_98, 4, 0);
-        FileRead(handle, &value_ac, 4, 0);
-        FileRead(handle, &value_b0, 4, 0);
-        FileRead(handle, &value_a4, 4, 0);
-        FileRead(handle, &value_a8, 4, 0);
-        FileRead(handle, &flag_b9, 4, 0);
-        FileRead(handle, &value_b4, 4, 0);
-        FileRead(handle, &vector_88, sizeof(vector_88), 0);
-        FileRead(handle, &vector_c8, sizeof(vector_c8), 0);
-        FileRead(handle, &vector_d4, sizeof(vector_d4), 0);
-        FileRead(handle, sound, sizeof(sound), 0);
-        W8AmbientSoundConfig0047A790 config;
-        sprintf(config.match_name, "data\\sound\\%s", sound);
+        FileRead(handle, &volume_min, 4, 0);
+        FileRead(handle, &volume_max, 4, 0);
+        FileRead(handle, &speed_min, 4, 0);
+        FileRead(handle, &speed_max, 4, 0);
+        FileRead(handle, &time_min, 4, 0);
+        FileRead(handle, &time_max, 4, 0);
+        FileRead(handle, &unbounded, 4, 0);
+        FileRead(handle, &radius, 4, 0);
+        FileRead(handle, &position, sizeof(position), 0);
+        FileRead(handle, &region_u, sizeof(region_u), 0);
+        FileRead(handle, &region_v, sizeof(region_v), 0);
+        FileRead(handle, wave, sizeof(wave), 0);
+        W8AmbientSoundConfig config;
+        sprintf(config.wave_name, "data\\sound\\%s", wave);
         if (version > 1) {
             unsigned char has_position;
             FileRead(handle, &has_position, 1, 0);
-            FileRead(handle, &flag_c5, 1, 0);
+            FileRead(handle, &looping, 1, 0);
         }
         if (version > 2) {
-            FileRead(handle, &vector_e0, sizeof(vector_e0), 0);
-            FileRead(handle, &value_ec, 4, 0);
-            FileRead(handle, &vector_f0, sizeof(vector_f0), 0);
-            FileRead(handle, &vector_fc, sizeof(vector_fc), 0);
-            vector_e0 *= 500.0f;
+            FileRead(handle, &region_center, sizeof(region_center), 0);
+            FileRead(handle, &region_angle, 4, 0);
+            FileRead(handle, &region_min, sizeof(region_min), 0);
+            FileRead(handle, &region_max, sizeof(region_max), 0);
+            region_center *= 500.0f;
         }
         if (version > 3) {
             FileRead(handle, name, sizeof(name), 0);
             optional_name = name;
         }
         if (version > 4) {
-            FileRead(handle, &flag_c4, 1, 0);
+            FileRead(handle, &shared, 1, 0);
         }
-        vector_88.x *= 500.0f;
-        vector_88.y *= 500.0f;
-        vector_88.z *= 500.0f;
-        vector_c8.x *= 500.0f;
-        vector_c8.y *= 500.0f;
-        vector_c8.z *= 500.0f;
-        vector_d4.x *= 500.0f;
-        vector_d4.y *= 500.0f;
-        vector_d4.z *= 500.0f;
-        value_b4 *= 500.0f;
-        AddAmbientSound0047A790(world, optional_name, &config, &vector_88, &vector_c8, &vector_d4,
-                                value_94, value_98, value_ac, value_b0, value_a4, value_a8,
-                                static_cast<int>(value_b4), flag_b9 == 0, flag_c5, &vector_e0,
-                                value_ec, &vector_f0, &vector_fc, flag_c4);
+        position.x *= 500.0f;
+        position.y *= 500.0f;
+        position.z *= 500.0f;
+        region_u.x *= 500.0f;
+        region_u.y *= 500.0f;
+        region_u.z *= 500.0f;
+        region_v.x *= 500.0f;
+        region_v.y *= 500.0f;
+        region_v.z *= 500.0f;
+        radius *= 500.0f;
+        AddAmbientSound0047A790(world, optional_name, &config, &position, &region_u, &region_v,
+                                volume_min, volume_max, speed_min, speed_max, time_min, time_max,
+                                radius, unbounded == 0, looping, &region_center, region_angle,
+                                &region_min, &region_max, shared);
         return 0;
     }
 

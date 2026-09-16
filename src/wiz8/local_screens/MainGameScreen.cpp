@@ -209,8 +209,6 @@ unsigned char g_flag_68f0f9;
    header. */
 // GLOBAL: WIZ8 0x0068EE60
 W8PendingNotice g_pending_notice_68ee60;
-// GLOBAL: WIZ8 0x006F04EC
-unsigned char g_flag_006f04ec;
 // GLOBAL: WIZ8 0x0068f0fc
 unsigned char g_debug_monster_cycle_0068f0fc;
 
@@ -4194,7 +4192,7 @@ tail:
     if (g_flag_0068edd8 != 0) {
         SetFlag603C60();
         g_flag_0068edd8 = 0;
-        g_flag_006f04ec = 0;
+        gfTrackMousePos = 0;
     }
     info = GetNpcMonsterInfo(npc);
     if (info != 0) {

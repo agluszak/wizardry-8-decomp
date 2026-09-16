@@ -247,13 +247,13 @@ void RefreshRadarMap(void)
         if (handle == 0) {
             return;
         }
-        Function4048D0(handle, 0, &map_surface);
+        MakeVSurfaceFromVObject(handle, 0, &map_surface);
     } else {
         handle = GetCatalogVideoObjectHandle(0xa3, 0);
         if (handle == 0) {
             return;
         }
-        Function4048D0(handle, 0, &map_surface);
+        MakeVSurfaceFromVObject(handle, 0, &map_surface);
         for (int slot = 0; slot < 8; ++slot) {
             W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
             W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
@@ -276,13 +276,13 @@ void RefreshRadarMap(void)
         return;
     }
     unsigned int frame_surface;
-    Function4048D0(handle, 0, &frame_surface);
+    MakeVSurfaceFromVObject(handle, 0, &frame_surface);
     handle = GetCatalogVideoObjectHandle(0x9b, 0);
     if (handle == 0) {
         return;
     }
     unsigned int compass_surface;
-    Function4048D0(handle, 0, &compass_surface);
+    MakeVSurfaceFromVObject(handle, 0, &compass_surface);
 
     g_radar_compass_0069bf60 = CreateSpriteFromSurface(compass_surface, 0, 1, 0, 1);
     PositionToolTipNode(g_radar_compass_0069bf60, 0x1e, 0x167, 0);

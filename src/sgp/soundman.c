@@ -130,16 +130,21 @@ UINT32		SoundGetVolumeIndex(UINT32 uiChannel);
 BOOLEAN		SoundSetVolumeIndex(UINT32 uiChannel, UINT32 uiVolume);
 
 // Global variables
+// GLOBAL: WIZ8 0x005ff644
 UINT32		guiSoundDefaultVolume = 127;
 UINT32		guiSoundMemoryLimit=SOUND_DEFAULT_MEMORY;			// Maximum memory used for sounds
 UINT32		guiSoundMemoryUsed=0;													// Memory currently in use
+// GLOBAL: WIZ8 0x005ff64c
 UINT32		guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;	// Double-buffered threshold
 
+// GLOBAL: WIZ8 0x006e4104
 HDIGDRIVER hSoundDriver;																// Sound driver handle
 BOOLEAN		fDirectSound=TRUE;														// Using Direct Sound
 
 // Local module variables
+// GLOBAL: WIZ8 0x00650e50
 BOOLEAN		fSoundSystemInit=FALSE;												// Startup called T/F
+// GLOBAL: WIZ8 0x005ff651
 BOOLEAN		gfEnableStartup=TRUE;													// Allow hardware to starup
 
 // Sample cache list for files loaded
@@ -150,12 +155,17 @@ SAMPLETAG	pSampleList[SOUND_MAX_CACHED];
 SOUNDTAG	pSoundList[SOUND_MAX_CHANNELS];
 
 // 3D sound globals
+// GLOBAL: WIZ8 0x00650e54
 CHAR8				*gpProviderName=NULL;
+// GLOBAL: WIZ8 0x00650e58
 HPROVIDER		gh3DProvider=0;
 H3DPOBJECT	gh3DListener=0;
+// GLOBAL: WIZ8 0x005ff652
 BOOLEAN			gfUsingEAX=TRUE;
+// GLOBAL: WIZ8 0x00650e60
 UINT32			guiRoomTypeIndex=0;
 
+// GLOBAL: WIZ8 0x005ff654
 CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] =
 {
 	// None
@@ -191,6 +201,7 @@ CHAR8* pEAXRoomTypes[EAXROOMTYPE_NUM_TYPES] =
 //	Returns:	Nothing.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004086c0
 void SoundEnableSound(BOOLEAN fEnable)
 {
 	gfEnableStartup=fEnable;
@@ -323,6 +334,7 @@ UINT32 SoundPlay(STR pFilename, SOUNDPARMS *pParms)
 //						If an error occured, SOUND_ERROR will be returned
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00408ad0
 UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 {
 	UINT32	uiChannel;
@@ -411,6 +423,7 @@ UINT32	SoundPlayStreamedFile( STR pFilename, SOUNDPARMS *pParms )
 //						SOUND_ERROR is returned.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00408d60
 UINT32 SoundPlayRandom(STR pFilename, RANDOMPARMS *pParms)
 {
 UINT32 uiSample, uiTicks;
@@ -515,6 +528,7 @@ UINT32 uiChannel, uiSoundID;
 //		Returns TRUE/FALSE that an instance of a sound is still playing.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00408ef0
 BOOLEAN SoundIsPlaying(UINT32 uiSoundID)
 {
 UINT32 uiSound;
@@ -571,6 +585,7 @@ INT32 iStatus=SMP_DONE;
 //						found, or was not playing.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00408f70
 BOOLEAN SoundStop(UINT32 uiSoundID)
 {
 UINT32 uiSound;
@@ -599,6 +614,7 @@ UINT32 uiSound;
 //	Returns:	TRUE if samples were actually stopped, FALSE if none were found
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409020
 BOOLEAN SoundStopGroup(UINT32 uiPriority)
 {
 UINT32 uiCount;
@@ -707,6 +723,7 @@ UINT32 SoundGetDigitalVolume(UINT32 uiVolume)
 //
 // Created:  3/28/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00409120
 void SoundSetDefaultVolume(UINT32 uiVolume)
 {
 	guiSoundDefaultVolume=__min(uiVolume, 127);
@@ -768,6 +785,7 @@ UINT32 uiCount;
 //
 // Created:  3/17/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00409140
 BOOLEAN SoundSetFadeVolume(UINT32 uiSoundID, UINT32 uiVolume, UINT32 uiRate, BOOLEAN fStopAtZero)
 {
 UINT32 uiSound, uiVolCap, uiVolumeDiff;
@@ -804,6 +822,7 @@ UINT32 uiSound, uiVolCap, uiVolumeDiff;
 //						sample had already expired or couldn't be found
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409210
 BOOLEAN SoundSetVolume(UINT32 uiSoundID, UINT32 uiVolume)
 {
 UINT32 uiSound, uiVolCap;
@@ -967,6 +986,7 @@ UINT32 uiSound, uiLoopCap;
 //	has expired, or could not be found, SOUND_ERROR is returned.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004092a0
 UINT32 SoundGetVolume(UINT32 uiSoundID)
 {
 UINT32 uiSound;
@@ -1106,6 +1126,7 @@ UINT32 uiSound;
 //	Returns:	TRUE if a new random sound was created, FALSE if nothing was done.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409310
 BOOLEAN SoundServiceRandom(void)
 {
 UINT32 uiCount;
@@ -1127,6 +1148,7 @@ UINT32 uiCount;
 //	Returns:	TRUE if a the sample should be played.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409360
 BOOLEAN SoundRandomShouldPlay(UINT32 uiSample)
 {
 UINT32 uiTicks;
@@ -1148,6 +1170,7 @@ UINT32 uiTicks;
 //	Returns:	TRUE if a new random sound was created, FALSE if nothing was done.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004093b0
 UINT32 SoundStartRandom(UINT32 uiSample)
 {
 UINT32 uiChannel, uiSoundID;
@@ -1186,6 +1209,7 @@ SOUNDPARMS spParms;
 //	Returns:	TRUE if a new random sound was created, FALSE if nothing was done.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x00409550
 BOOLEAN SoundStopAllRandom(void)
 {
 UINT32 uiChannel, uiSample;
@@ -1227,6 +1251,7 @@ UINT32 uiChannel, uiSample;
 //	Returns:	TRUE always.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004095b0
 BOOLEAN SoundServiceStreams(void)
 {
 UINT32 uiCount, uiSpeed, uiBuffLen, uiBytesPerSample;
@@ -1299,6 +1324,7 @@ void		*pData;
 //	Returns:	The current time of the sample in milliseconds.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004097f0
 UINT32 SoundGetPosition(UINT32 uiSoundID)
 {
 //UINT32 uiSound, uiFreq=0, uiPosition=0, uiBytesPerSample=0, uiFormat=0;
@@ -1369,6 +1395,7 @@ UINT32 uiSound, uiTime, uiPosition;
 //  Created on:     7/23/99
 //
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00409840
 BOOLEAN SoundGetMilliSecondPosition(UINT32 uiSoundID, UINT32 *puiTotalMilliseconds, UINT32 *puiCurrentMilliseconds)
 {
 UINT32 uiSound;
@@ -1438,6 +1465,7 @@ BOOLEAN SoundShutdownCache(void)
 //	Returns: TRUE, always
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x004098d0
 BOOLEAN SoundSetCacheThreshhold(UINT32 uiThreshold)
 {
 	if(uiThreshold==0)
@@ -2193,6 +2221,7 @@ CHAR8 AILString[200];
 //	Returns:	Unique sound ID if successful, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040a2e0
 UINT32 SoundStartStream(STR pFilename, UINT32 uiChannel, SOUNDPARMS *pParms)
 {
 UINT32 uiSoundID, uiSpeed;
@@ -2401,12 +2430,14 @@ UINT32 uiSample;
 //	Returns:	Pointer to the current sound driver
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040a8a0
 HDIGDRIVER SoundGetDriverHandle(void)
 {
 	return(hSoundDriver);
 }
 
 // FUNCTIONS TO SET / RESET SAMPLE FLAGS
+// FUNCTION: WIZ8 0x0040a8b0
 void SoundSetSampleFlags( UINT32 uiSample, UINT32 uiFlags )
 {
 	// CHECK FOR VALUE SAMPLE
@@ -2417,6 +2448,7 @@ void SoundSetSampleFlags( UINT32 uiSample, UINT32 uiFlags )
 	}
 }
 
+// FUNCTION: WIZ8 0x0040a8e0
 void SoundRemoveSampleFlags( UINT32 uiSample, UINT32 uiFlags )
 {
 	// CHECK FOR VALID SAMPLE
@@ -2531,6 +2563,7 @@ void SoundSampleSetPanRange(UINT32 uiSample, UINT32 uiPanMin, UINT32 uiPanMax)
 //
 // Created:  3/16/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040a9a0
 void SoundSetMusic(UINT32 uiSoundID)
 {
 UINT32 uiSound=SoundGetIndexByID(uiSoundID);
@@ -2549,6 +2582,7 @@ UINT32 uiSound=SoundGetIndexByID(uiSoundID);
 //
 // Created:  3/16/00 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040a9d0
 BOOLEAN SoundStopMusic(void)
 {
 UINT32 uiCount;
@@ -2600,6 +2634,7 @@ BOOLEAN fStopped=FALSE;
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040aad0
 void Sound3DSetProvider(CHAR8 *pProviderName)
 {
 	Assert(pProviderName);
@@ -2718,6 +2753,7 @@ void Sound3DShutdownProvider(void)
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040ab20
 void Sound3DSetPosition(UINT32 uiSample, FLOAT flX, FLOAT flY, FLOAT flZ)
 {
 UINT32 uiChannel;
@@ -2827,6 +2863,7 @@ void Sound3DSetFacing(FLOAT flXFace, FLOAT flYFace, FLOAT flZFace, FLOAT flXUp, 
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040ab80
 void Sound3DSetDirection(UINT32 uiSample, FLOAT flXFace, FLOAT flYFace, FLOAT flZFace, FLOAT flXUp, FLOAT flYUp, FLOAT flZUp)
 {
 UINT32 uiChannel;
@@ -2905,10 +2942,16 @@ INT32 Sound3DActiveSounds(void)
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040b210
 void Sound3DSetEnvironment(INT32 iEnvironment)
 {
-	if(fSoundSystemInit && gh3DProvider)
+CHAR8 cRoomName[128];
+
+	if(gh3DProvider && gfUsingEAX && guiRoomTypeIndex != iEnvironment)
 	{
+		sprintf(cRoomName, "EAX_ENVIRONMENT_%s", pEAXRoomTypes[iEnvironment]);
+		AIL_set_3D_provider_preference(gh3DProvider, cRoomName, &iEnvironment);
+		guiRoomTypeIndex = iEnvironment;
 	}
 }
 
@@ -2925,6 +2968,7 @@ void Sound3DSetEnvironment(INT32 iEnvironment)
 //
 // Created:  8/17/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x0040abf0
 UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
 {
 	UINT32 uiSample, uiChannel;
@@ -2957,6 +3001,7 @@ UINT32 Sound3DPlay(STR pFilename, SOUND3DPARMS *pParms)
 //	Returns:	Unique sound ID if successful, SOUND_ERROR if not.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040ad40
 UINT32 Sound3DStartSample(UINT32 uiSample, UINT32 uiChannel, SOUND3DPARMS *pParms)
 {
 UINT32 uiSoundID;
@@ -3094,6 +3139,7 @@ UINT32 uiChannel;
 //	Returns:	TRUE if a new random sound was created, FALSE if nothing was done.
 //
 //*******************************************************************************
+// FUNCTION: WIZ8 0x0040b040
 UINT32 Sound3DStartRandom(UINT32 uiSample, SOUND3DPOS *pPos)
 {
 UINT32 uiChannel, uiSoundID;

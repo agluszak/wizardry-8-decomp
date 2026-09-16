@@ -58,6 +58,7 @@ RUNTIME_SCENARIOS = (
     "main-menu-exit-auto-repeat",
     "split-stack",
     "party-movement",
+    "audio-semantics",
 )
 # Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135

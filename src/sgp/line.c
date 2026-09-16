@@ -101,6 +101,7 @@ BOOL ClipPoint( int x, int y )
 			y <= giClipYMax && y >= giClipYMin );
 }
 
+// FUNCTION: WIZ8 0x00414010
 BOOL Clip2D( int *ix0, int *iy0, int *ix1, int *iy1 )
 {
 	BOOL	visible;
@@ -157,6 +158,7 @@ BOOL Clip2D( int *ix0, int *iy0, int *ix1, int *iy1 )
 }
 
 /* Draws a line between the specified endpoints in color Color. */
+// FUNCTION: WIZ8 0x00414390
 void LineDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr)
 {
 	int Temp, AdjUp, AdjDown, ErrorTerm, XAdvance, XDelta, YDelta;
@@ -422,6 +424,7 @@ void DrawVerticalRun(char **ScreenPtr, int XAdvance,
 
 
 /* Draws a rectangle between the specified endpoints in color Color. */
+// FUNCTION: WIZ8 0x00414660
 void RectangleDraw( BOOL fClip, int XStart, int YStart, int XEnd, int YEnd, short Color, char *ScreenPtr)
 {
   LineDraw( fClip, XStart, YStart, XEnd,   YStart, Color, ScreenPtr);

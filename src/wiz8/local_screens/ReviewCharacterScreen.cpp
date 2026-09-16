@@ -2366,7 +2366,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
     if (gated != 0 && Function5A6090(giReviewCharSlot) == 0) {
         return;
     }
-    if (g_flag_006f0530 != 0) {
+    if (gfKeyState[0x10] != 0) {
         TakeItemUnitToHand005A5DA0(item, slot_index, origin);
         return;
     }
@@ -2729,7 +2729,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         return;
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0x1000;
-    if (g_monster_combat_timer_enabled_006f0531 != 0) {
+    if (gfKeyState[0x11] != 0) {
         g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
     } else {
         if (origin == 0) {

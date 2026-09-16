@@ -1,3 +1,6 @@
+/* Modified for the Wizardry 8 reconstruction, 2026-09-16.
+   Add matching markers for retained SGP functions and globals.
+   Distributed under the accompanying SFI Source Code license agreement. */
 //**************************************************************************
 //
 // Filename :	RegInst.c
@@ -43,8 +46,11 @@
 // INI strings are not localized
 static const TCHAR szSoftware[] = _T("Software");
 
+// GLOBAL: WIZ8 0x00650eac
 static CHAR gszRegistryKey[REG_KEY_SIZE];
+// GLOBAL: WIZ8 0x00650f14
 static CHAR gszAppName[REG_KEY_SIZE];
+// GLOBAL: WIZ8 0x00650ee0
 static CHAR gszProfileName[REG_KEY_SIZE];
 
 //**************************************************************************
@@ -53,6 +59,7 @@ static CHAR gszProfileName[REG_KEY_SIZE];
 //
 //**************************************************************************
 
+// FUNCTION: WIZ8 0x0040f020
 BOOLEAN InitializeRegistryKeys(STR lpszAppName, STR lpszRegistryKey)
 {
 	CHECKF(lpszAppName != NULL);

@@ -24,6 +24,7 @@
 	#include "shading.h"
 #endif
 
+// GLOBAL: WIZ8 0x00600078
 SGPRect	ClippingRect={0, 0, 640, 480};
 													//555      565
 UINT32	guiTranslucentMask=0x3def; //0x7bef;		// mask for halving 5,6,5
@@ -1947,6 +1948,7 @@ BlitDone:
 	transparency is used for the background.
 
 	**********************************************************************************************/
+// FUNCTION: WIZ8 0x00410750
 BOOLEAN Blt8BPPDataTo8BPPBufferMonoShadowClip( UINT8 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion, UINT8 ubForeground, UINT8 ubBackground)
 {
 	UINT32 uiOffset;
@@ -3019,6 +3021,7 @@ BlitDone:
 	buffer as a destination. Clips the brush.
 
 *******************************************************************************/
+// FUNCTION: WIZ8 0x004109f0
 BOOLEAN Blt8BPPDataTo8BPPBufferTransparentClip( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion)
 {
 	UINT32 uiOffset;
@@ -3299,6 +3302,7 @@ BlitDone:
 	buffer as a destination.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00410ca0
 BOOLEAN Blt8BPPDataTo8BPPBufferTransparent( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex )
 {
 	UINT32 uiOffset;
@@ -6174,6 +6178,7 @@ BlitDone:
 	image as a mask. Any Non-zero index pixels are used to darken destination pixels.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00410db0
 BOOLEAN Blt8BPPDataTo8BPPBufferShadow( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex)
 {
 	UINT8 *pPal8BPP;
@@ -6318,6 +6323,7 @@ BlitDone:
 	clips brush if it doesn't fit on the viewport.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00410ed0
 BOOLEAN Blt8BPPDataTo8BPPBufferShadowClip( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion)
 {
 	UINT8 *pPal8BPP;
@@ -6608,6 +6614,7 @@ BlitDone:
 	transparency is used for the background.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411190
 BOOLEAN Blt8BPPDataTo16BPPBufferMonoShadowClip( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion, UINT16 usForeground, UINT16 usBackground, UINT16 usShadow )
 {
 	UINT32 uiOffset;
@@ -6947,6 +6954,7 @@ BlitDone:
 	not copied.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x004114c0
 BOOLEAN Blt16BPPTo16BPPTrans(UINT16 *pDest, UINT32 uiDestPitch, UINT16 *pSrc, UINT32 uiSrcPitch, INT32 iDestXPos, INT32 iDestYPos, INT32 iSrcXPos, INT32 iSrcYPos, UINT32 uiWidth, UINT32 uiHeight, UINT16 usTrans)
 {
 UINT16 *pSrcPtr, *pDestPtr;
@@ -7000,6 +7008,7 @@ Blit3:
 	etc. to their unblit buffer, for later reblitting. Does NOT clip.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411540
 BOOLEAN Blt16BPPTo16BPPMirror(UINT16 *pDest, UINT32 uiDestPitch, UINT16 *pSrc, UINT32 uiSrcPitch, INT32 iDestXPos, INT32 iDestYPos, INT32 iSrcXPos, INT32 iSrcYPos, UINT32 uiWidth, UINT32 uiHeight)
 {
 UINT16 *pSrcPtr, *pDestPtr;
@@ -7098,6 +7107,7 @@ BlitNTL2:
 	etc. to their unblit buffer, for later reblitting. Does NOT clip.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x004116c0
 BOOLEAN Blt8BPPTo8BPP(UINT8 *pDest, UINT32 uiDestPitch, UINT8 *pSrc, UINT32 uiSrcPitch, INT32 iDestXPos, INT32 iDestYPos, INT32 iSrcXPos, INT32 iSrcYPos, UINT32 uiWidth, UINT32 uiHeight)
 {
 UINT8 *pSrcPtr, *pDestPtr;
@@ -11825,6 +11835,7 @@ BlitDone:
 	Blits a subrect from a flat 8 bit surface to a 16-bit buffer.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411730
 BOOLEAN Blt8BPPDataSubTo16BPPBuffer( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVSURFACE hSrcVSurface, UINT8 *pSrcBuffer, UINT32 uiSrcPitch, INT32 iX, INT32 iY, SGPRect *pRect)
 {
 	UINT16 *p16BPPPalette;
@@ -12375,6 +12386,7 @@ BlitDone:
 
 }
 
+// FUNCTION: WIZ8 0x004117f0
 void SetClippingRect(SGPRect *clip)
 {
 	Assert(clip!=NULL);
@@ -12385,6 +12397,7 @@ void SetClippingRect(SGPRect *clip)
 
 }
 
+// FUNCTION: WIZ8 0x00411820
 void GetClippingRect(SGPRect *clip)
 {
 	Assert(clip!=NULL);
@@ -12412,6 +12425,7 @@ void GetClippingRect(SGPRect *clip)
 	  This was the only internal modification I made other than adding the usColor argument.
 
 *********************************************************************************************/
+// FUNCTION: WIZ8 0x00411850
 BOOLEAN Blt16BPPBufferPixelateRectWithColor(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, SGPRect *area, UINT8 Pattern[8][8], UINT16 usColor )
 {
 	INT32  width, height;
@@ -12505,6 +12519,7 @@ BOOLEAN Blt16BPPBufferHatchRectWithColor(UINT16 *pBuffer, UINT32 uiDestPitchBYTE
 }
 
 //Uses black hatch color
+// FUNCTION: WIZ8 0x00411930
 BOOLEAN Blt16BPPBufferHatchRect(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, SGPRect *area )
 {
 	UINT8 Pattern[8][8] =
@@ -12560,6 +12575,7 @@ BOOLEAN Blt16BPPBufferLooseHatchRect(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, S
 	image as a mask. Any Non-zero index pixels are used to darken destination pixels.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411a60
 BOOLEAN Blt8BPPDataTo16BPPBufferShadow( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex)
 {
 	UINT16 *p16BPPPalette;
@@ -12705,6 +12721,7 @@ BlitDone:
 
 **********************************************************************************************/
 
+// FUNCTION: WIZ8 0x00411b80
 BOOLEAN Blt8BPPDataTo16BPPBufferTransparent( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex )
 {
 	UINT16 *p16BPPPalette;
@@ -12860,6 +12877,7 @@ BlitDone:
 //
 // Created:  7/28/99 Derek Beland
 //*****************************************************************************************
+// FUNCTION: WIZ8 0x00411cb0
 BOOLEAN Blt8BPPDataTo16BPPBufferTransMirror( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex )
 {
 	UINT16 *p16BPPPalette;
@@ -13019,6 +13037,7 @@ BlitDone:
 	buffer as a destination. Clips the brush.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x00411de0
 BOOLEAN Blt8BPPDataTo16BPPBufferTransparentClip( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion)
 {
 	UINT16 *p16BPPPalette;
@@ -13308,6 +13327,7 @@ BlitDone:
 	Determines whether a given blit will need clipping or not. Returns TRUE/FALSE.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x004120b0
 BOOLEAN BltIsClipped(HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion )
 {
 	UINT32 usHeight, usWidth;
@@ -13369,6 +13389,7 @@ BOOLEAN BltIsClipped(HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, S
 	clips brush if it doesn't fit on the viewport.
 
 **********************************************************************************************/
+// FUNCTION: WIZ8 0x004121e0
 BOOLEAN Blt8BPPDataTo16BPPBufferShadowClip( UINT16 *pBuffer, UINT32 uiDestPitchBYTES, HVOBJECT hSrcVObject, INT32 iX, INT32 iY, UINT16 usIndex, SGPRect *clipregion)
 {
 	UINT16 *p16BPPPalette;
@@ -13653,6 +13674,7 @@ BlitDone:
 	area							An SGPRect, the area to darken
 
 *********************************************************************************************/
+// FUNCTION: WIZ8 0x004124a0
 BOOLEAN Blt16BPPBufferShadowRect(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, SGPRect *area)
 {
 INT32  width, height;
@@ -13721,6 +13743,7 @@ BlitLine:
 	area							An SGPRect, the area to darken
 
 *********************************************************************************************/
+// FUNCTION: WIZ8 0x00412570
 BOOLEAN Blt16BPPBufferShadowRectAlternateTable(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, SGPRect *area)
 {
 INT32  width, height;
@@ -14337,6 +14360,7 @@ FillLineEnd:
 	return(TRUE);
 }
 
+// FUNCTION: WIZ8 0x00412640
 BOOLEAN FillRect16BPP(UINT16 *pBuffer, UINT32 uiDestPitchBYTES, INT32 x1, INT32 y1, INT32 x2, INT32 y2, UINT16 color)
 {
 INT32		x1real, y1real, x2real, y2real;
