@@ -6,9 +6,11 @@
 
 Use consumer evidence to decide visibility:
 
-1. The original consumer import surface (`src/wiz8/imports/sr.def` and the extension import libraries) establishes that a symbol crosses the DLL boundary.
+1. The original consumer import surface (`src/wiz8/imports/sr.def`, `src/srext_jpegimporter/sr-jpeg-imports.def`, and `src/srext_unzip/sr-unzip-imports.def`) establishes that a symbol crosses the DLL boundary.
 2. Retail caller assembly establishes whether that consumer actually calls an import or expands a header body/client emission locally.
 3. SR.DLL exports establish the provider ABI and signatures, but an export by itself never proves `dllimport` in a consumer header.
+
+Check the decorated symbol's **owner**, not merely whether a type name occurs in the mangling. For example, `srPixelConvert` appears in `srColorSurface` constructor signatures, but that does not make `srPixelConvert` methods imports.
 
 A virtual reached only through an object's vtable does not need `SR_DLL_IMPORT` merely because the implementation lives in SR.DLL.
 
@@ -26,7 +28,11 @@ A virtual reached only through an object's vtable does not need `SR_DLL_IMPORT` 
 
 The `srCore` accessors `getRegistry`, `getMaterial`, `getStatisticsManager`, and `getTimer` are header-visible. Retail users load their fields directly; making them imports inserts calls that are absent from the original code.
 
-`srTextureFile`, `srTriangulator`, `srExponentTable`, and `srFStreamOpener` are provider-side declarations with no corresponding known Wizardry/JPEG/ZIP consumer imports. They therefore do not carry class-wide `SR_DLL_IMPORT` even though SR.DLL exports their provider symbols.
+`srTextureFile`, `srTriangulator`, `srExponentTable`, and `srFStreamOpener` are provider-side declarations with no corresponding known Wizardry/JPEG/ZIP consumer imports. They therefore do not carry class-wide `SR_DLL_IMPORT` even though SR.DLL exports provider symbols for some of them.
+
+The same rule applies at member granularity. `srBounder`, `srDebugDD`, `srThread`, `srMutex`, `srMemoryPool`, and `srEnvironmentMapper` have no known consumer-owned imports, so their headers contain no `SR_DLL_IMPORT`. Their provider exports, vtables, or recovered bodies do not change that.
+
+Mixed headers are audited declaration by declaration. `srPixelConvert` has one known imported member: `mapPixelFormat(e_surfaceType, PixelFormat&)`, used by both Wiz8 and the JPEG extension. Its reverse overload, `selectFuncs`, and the `PixelFormat` helper methods are not known consumer imports and therefore are not annotated. In `srImporter.h`, `srSurfaceIOManager::exportSurface` is imported by Wiz8, while `SurfaceImporter::getSurfaceDesc` and the `srHierarchyIOManager` / `srModelIOManager` import/export helpers are provider-side declarations.
 
 Class-wide import is still correct where the consumer evidence reaches that far. `srTimer`, for example, is constructed by Wizardry and its imported virtual surface participates in the client-local vtable emission. `srMaterialIFace` imports compiler-generated destructor/assignment symbols in addition to its named method, so reducing it to a single member annotation would lose class ABI information.
 
@@ -34,6 +40,6 @@ Class-wide import is still correct where the consumer evidence reaches that far.
 
 ## Gate
 
-`tests/repository/test_surrender_import_visibility.py` freezes the audited class-wide import set and the proven inline `srCore` accessors. A PR that adds or removes a class-wide annotation must update that audit intentionally and explain the consumer/codegen evidence. Provider-only classes are explicitly rejected.
+`tests/repository/test_surrender_import_visibility.py` freezes the audited class-wide import set, rejects consumer-import annotations in audited provider-only headers, locks the exact import count/spelling in mixed audited headers, keeps `srFStreamOpener` provider-only, and protects the proven inline `srCore` accessors. A PR that changes these visibility decisions must update the audit intentionally and explain the consumer/codegen evidence.
 
 This gate protects source-level ABI decisions; it does not claim that `SR_DLL_IMPORT` was the literal macro name used by the original SDK.
