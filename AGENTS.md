@@ -15,6 +15,9 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   owner and one evidence-backed type. Cross-TU functions/globals are declared in the owning header;
   callers include it. No local `.cpp` externs except actual C/OS/vendor interfaces without an existing
   project/dependency header.
+- SurRender `SR_DLL_IMPORT` is consumer codegen, not ownership metadata. Provider exports do not prove
+  a consumer import; use the retail consumer import tables and caller emission before adding/removing
+  class- or member-level visibility. Follow `docs/libraries/surrender-import-visibility.md`.
 - Type disagreement is a source-model defect, not a cast-site problem. Do not conceal it with casts,
   integer/pointer substitution, duplicate declarations, wrappers or aliases.
 - Do not invent aggregate/class boundaries from adjacency, shared initialization, repeated offsets or
