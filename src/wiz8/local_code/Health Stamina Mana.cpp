@@ -1575,6 +1575,14 @@ int g_effect_005ee5b8 = 12;
 int g_effect_005ee5dc = 0x15;
 // GLOBAL: WIZ8 0x005EE5E0
 int g_effect_005ee5e0 = 0x16;
+/* Search-pulse event ids: the two found-item variants and the found-trigger
+   event queued to the searcher. */
+// GLOBAL: WIZ8 0x005EE5E4
+int g_effect_005ee5e4 = 0x17;
+// GLOBAL: WIZ8 0x005EE5E8
+int g_effect_005ee5e8 = 0x18;
+// GLOBAL: WIZ8 0x005EE5F0
+int g_effect_005ee5f0 = 0x1a;
 // GLOBAL: WIZ8 0x005EE5F8
 int g_effect_005ee5f8 = 28;
 // GLOBAL: WIZ8 0x005ee610
@@ -2253,8 +2261,8 @@ unsigned char W8CharacterEvent::Dispatch()
             if (npc == 0) {
                 return 1;
             }
-            if (npc->name_style == W8_NPC_VI_DOMINA && event_type > 0x8b &&
-                event_type < 0x92 && g_status_685170.current_level != 0) {
+            if (npc->name_style == W8_NPC_VI_DOMINA && event_type > 0x8b && event_type < 0x92 &&
+                g_status_685170.current_level != 0) {
                 return 0;
             }
             if ((flags & W8_EVENT_NPC_SCRIPT) != 0) {

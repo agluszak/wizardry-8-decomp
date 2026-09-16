@@ -2,6 +2,7 @@
 #include "wiz8/local_screens/MGSFormation.h"
 #include "soundman.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/FormationAndFacing.h"
@@ -289,7 +290,6 @@ void Function5029A0(void);
 void Function561330(unsigned char value);
 void Function57E0E0(int event, const POINT* point);
 void Function59B2D0(void);
-void RunSearchPulse(void); /* 0x005171C0 */
 void Function4E8EA0(void);
 void StartCombat(int surprise);
 

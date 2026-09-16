@@ -272,12 +272,6 @@ void W8Prop::SetSetting6C(unsigned char value)
     Rep()->active = value;
 }
 
-/* Retail routes this integer-tail call to the bounds body at 0x004A1710.
-   The W8Prop operation's semantic identity remains unresolved, so preserve
-   its observed arguments without describing the mismatch as compatibility. */
-typedef void (*AnimObjIntegerTailCall)(W8AnimObj* animation, int channel, unsigned char argument,
-                                       int from, int to);
-
 // FUNCTION: WIZ8 0x0044d5f0
 void W8Prop::GetCenterPosition(srVector3T<float>* position)
 {
@@ -513,18 +507,11 @@ srModelInstance* W8Prop::ToggleRepAnimationDefault()
     return AnimObjDispatchList004A1560(rep->animation, 2, 0);
 }
 
-/* Play the prop's animation between two points, with the same default
-   argument. */
+/* Resolve the bounds of the prop's current animation frame. */
 // FUNCTION: WIZ8 0x0044d5c0
-int W8Prop::PlayRepAnimation(int from, int to)
+unsigned char W8Prop::PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    /* Retail tail-calls the bounds body with two extra integer arguments.
-       Do not invent a thunk. */
-    ((AnimObjIntegerTailCall)AnimObjGetBounds004A1710)(Rep()->animation, 2, Rep()->flag_064, from,
-                                                       to);
-#pragma clang diagnostic pop
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, minimum, maximum);
     return 1;
 }
 

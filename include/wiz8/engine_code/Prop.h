@@ -94,7 +94,7 @@ public:
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);
     srModelInstance* ToggleRepAnimationDefault();
-    int PlayRepAnimation(int arg_2, int arg_3);
+    unsigned char PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void SetSetting6E(unsigned char value, unsigned char fallback);
     void SetRepresentationActive(unsigned char active, unsigned char update_animation);
     bool CanBeUsedFrom(int arg_2, int arg_3, char notify);

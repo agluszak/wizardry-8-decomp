@@ -17,6 +17,11 @@ extern int g_effect_005ee588;
 extern int g_effect_005ee590;
 extern int g_effect_005ee594;
 extern int g_effect_005ee598;
+/* Search-pulse event ids: the two found-item variants and the found-trigger
+   event the pulse queues on the searcher. */
+extern int g_effect_005ee5e4;
+extern int g_effect_005ee5e8;
+extern int g_effect_005ee5f0;
 extern int g_effect_005ee5f8;
 extern int g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
