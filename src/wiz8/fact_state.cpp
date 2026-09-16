@@ -152,15 +152,15 @@ void InitializeFactState(void)
     SetFactNotificationsSuppressed(0);
 }
 
-/* Runs once the new-game level has finished loading: queues the two scripted
-   actors named by string-table entries 0x7e7/0x7e8 as pending actions and
+/* Runs once the new-game level has finished loading: records the two starting
+   transcript keywords from string-table entries 0x7e7/0x7e8 and
    seeds the starting fact set, all with notifications suppressed. */
 // FUNCTION: WIZ8 0x005063e0
 void PostNewGameLoad005063E0(void)
 {
     SetFactNotificationsSuppressed(1);
-    Function5775D0(gppStringList[0x7e7], 3);
-    Function5775D0(gppStringList[0x7e8], 3);
+    AddDialogueTranscriptKeyword(gppStringList[0x7e7], 3);
+    AddDialogueTranscriptKeyword(gppStringList[0x7e8], 3);
     SetFact(0xcc, 1, 0);
     SetFact(0x42, 1, 0);
     SetFact(0x1e9, 1, 0);

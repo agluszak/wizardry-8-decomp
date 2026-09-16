@@ -46,6 +46,7 @@ void NotifyNearbyMonsters(int what);
 void CombatLog(const char* format, ...);
 void BeginCombatRound(void);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
+void EndMonsterAttack(W8MonsterInfo* monster_info); /* 0x004EB7F0 */
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 unsigned char CanCharReBreathe(int party_slot);
 unsigned char CharacterHasCondition(const W8Character* character, int condition);

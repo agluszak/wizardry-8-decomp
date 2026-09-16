@@ -22,7 +22,6 @@ enum {
     W8_TRAIT_BREATHE = 0x1c      /* dracon racial or the breath enchantment */
 };
 
-void Function5477D0(W8MonsterInfo* monster_info, int flag);
 void Function547A50(int party_slot);
 /* 0x00547BF0: whether the slot has the priest/bishop turn-undead trait, its
    combat-state use flag is clear, and a live hostile undead monster (record

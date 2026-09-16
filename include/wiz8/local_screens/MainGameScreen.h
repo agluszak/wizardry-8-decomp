@@ -98,6 +98,7 @@ static_assert(sizeof(W8MainGameTextEntry) == 0xc0, "W8MainGameTextEntry_size");
    fields. Ordinary destructor 0x00588790; 0x00588770 is the scalar deleting
    wrapper. */
 // VTABLE: WIZ8 0x005eeba8
+// VTABLE: WIZ8 0x005eeba0 W8TextControl::Listener
 class W8MainGameTextPanel : public Controls,
                             public W8TextControl::Listener,
                             public W8RangeListener {
@@ -391,6 +392,7 @@ static_assert(sizeof(W8LockInfoPanel) == 0x6c, "W8LockInfoPanel_size");
    at +0x04 (table 0x005eead0) receives the action-panel buttons. Process() at
    0x00586740 is the per-frame state machine ProcessLockInteractMode drives. */
 // VTABLE: WIZ8 0x005eead8
+// VTABLE: WIZ8 0x005eead0 W8TextControl::Listener
 class W8LockInteraction : public W8LockTumblerPanelListener, public W8TextControl::Listener {
 public:
     W8LockInteraction(Trigger* trigger); /* 0x005861A0 */
@@ -444,6 +446,7 @@ public:
 };
 
 // VTABLE: WIZ8 0x005eebd8
+// VTABLE: WIZ8 0x005eebd0 W8TextControl::Listener
 class W8MainGameScreen : public W8MainGameTextSelectionListener005EEBDC,
                          public W8TextControl::Listener {
 public:
@@ -505,6 +508,7 @@ struct W8PendingNotice {
 extern W8PendingNotice g_pending_notice_68ee60;
 
 extern W8DialogBase* g_modal_owner_0068edd0;
+void OpenModal(W8DialogBase* owner);
 extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 
 /* Open the assay (item info) dialog for an item, evaluated against the party
@@ -745,10 +749,9 @@ struct W8NpcScriptQuote;
 
 void Function563890(void); /* 0x00563890 */
 void SyncDialogueNpcState00577260(void);
-/* 0x005775D0: queue a named scripted action (kind 0 item, 1 NPC, 2/3 other);
-   resolves the name against the item and NPC tables when kind is -1 and
-   ignores duplicates already pending. */
-void Function5775D0(wchar_t* name, char kind);
+/* Store a transcript keyword, inferring its category when category is -1. */
+void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category);
+bool IsDialoguePlaceKeyword(const wchar_t* name);
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
                               int quote_id, unsigned int font_palette); /* 0x00576030 */
 void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuote* quote,
@@ -912,7 +915,7 @@ void Function56E800(int);
    edge above the slot's band. Portrait and character-update paths skip the
    covered rows through this. */
 unsigned char IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
-void Function5777C0(void);
+void RecordLevelEntryDialogueState(void);
 void Function587510(int value);
 void Function5879A0(int);
 void Function58A470(int value);

@@ -144,7 +144,7 @@ def _code_data_references(image: PeImage, sites: list[int]) -> dict[int, list[in
             continue
         target = image.read_u32(site)
         target_section = image.section_at(target) if target is not None else None
-        if target_section is not None and not target_section.executable:
+        if target is not None and target_section is not None and not target_section.executable:
             references[target].append(site)
     return dict(references)
 
@@ -161,7 +161,7 @@ def _decode_vftable(
             break
         target = image.read_u32(cursor)
         section = image.section_at(target) if target is not None else None
-        if section is None or not section.executable:
+        if target is None or section is None or not section.executable:
             break
         slots.append(target)
         cursor += 4

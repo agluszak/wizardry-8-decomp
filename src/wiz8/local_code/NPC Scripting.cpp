@@ -31,6 +31,7 @@
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
@@ -61,6 +62,59 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
+#include <wchar.h>
+
+struct W8NpcScriptRegionName {
+    wchar_t name[50];
+    int region;
+};
+
+// GLOBAL: WIZ8 0x0061b788
+W8NpcScriptRegionName g_npc_script_region_names[] = {{L"Monastery", 1},
+                                                     {L"Arnika", 2},
+                                                     {L"Trynton", 3},
+                                                     {L"Swamp", 4},
+                                                     {L"Marten's Bluff", 5},
+                                                     {L"Mine Tunnels", 6},
+                                                     {L"Sea Caves", 7},
+                                                     {L"Bayjin", 8},
+                                                     {L"Rapax Castle", 9},
+                                                     {L"Rapax Rift", 10},
+                                                     {L"Mt. Gigas", 11},
+                                                     {L"Ascension Peak", 12},
+                                                     {L"Rapax Away Camp", 13},
+                                                     {L"Cosmic Circle", 14},
+                                                     {L"", 0}};
+
+// FUNCTION: WIZ8 0x00528f10
+bool GetNpcScriptRegionName(int region, wchar_t* name)
+{
+    for (int index = 0; g_npc_script_region_names[index].name[0] != 0; ++index) {
+        if (g_npc_script_region_names[index].region == region) {
+            wcscpy(name, g_npc_script_region_names[index].name);
+            return true;
+        }
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x00528f60
+void StripNpcKeywordPunctuation(wchar_t* text)
+{
+    wchar_t stripped[200];
+    int length = static_cast<int>(wcslen(text));
+    int count = 0;
+    for (int index = 0; index < length; ++index) {
+        wchar_t character = text[index];
+        if (character != L'!' && character != L'?' && character != L'@' && character != L'#' &&
+            character != L'$' && character != L',' && character != L'.' && character != L'"' &&
+            character != L':') {
+            stripped[count++] = character;
+        }
+    }
+    stripped[count] = 0;
+    wcscpy(text, stripped);
+}
 
 // GLOBAL: WIZ8 0x0068c3c4
 int g_staged_value_68c3c4;
@@ -562,7 +616,7 @@ void ProcessMessageBoxQueue(void)
         int npc_kind = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged NPC kind
         npc = GetNpcStateByKind(npc_kind);
         if (npc != 0) {
-            Function50B160(npc);
+            RecruitNpcIntoParty(npc);
         }
         Function56E800(0);
         W8MessageBoxLine* continuation = new W8MessageBoxLine;
@@ -574,7 +628,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_GROUP_ACTION: {
         int group = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged group index
         ClearMainGameTargetState();
-        Function50B590(group, 0, 0, 0);
+        DismissNpcFromParty(group, 0, false, false);
         if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
             for (int party_slot = 0; party_slot < 8; ++party_slot) {
                 if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
@@ -1091,7 +1145,7 @@ void ProcessMessageBoxQueue(void)
         if (NpcLeadHasNameStyle(0x18)) {
             npc = GetNpcStateByKind(0x18);
             if (npc != 0) {
-                Function50B590(npc->group_index, 0, 1, 0);
+                DismissNpcFromParty(npc->group_index, 0, true, false);
             }
             srVector3T<float> position;
             if (FindEntityByName("NP_VI1", &position, 0, 0)) {
@@ -1146,7 +1200,7 @@ void ProcessMessageBoxQueue(void)
                 g_combat_state->iActionChar = -1;
             }
             ClearMainGameTargetState();
-            Function50B590(party_slot, 0, 0, 1);
+            DismissNpcFromParty(party_slot, 0, false, true);
             SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
             g_combat_state->npc_combat_script_pending[party_slot] = false;
         }

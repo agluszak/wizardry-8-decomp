@@ -357,9 +357,10 @@ public:
     /* Sibling scatter query to FindNavigatorPosition: walks fixed lateral
        columns over ten rings instead of the mode-driven cell grid, and can
        flatten every accepted position back to the source height. */
-    unsigned int FindScatterPositions00437980(float* position, float yaw, float spacing,
-                                              unsigned int count, float* positions,
-                                              char proximity_check, char flatten_y);
+    unsigned int FindScatterPositions00437980(const srVector3T<float>* position, float yaw,
+                                              float spacing, unsigned int count,
+                                              srVector3T<float>* positions, char proximity_check,
+                                              char flatten_y);
     unsigned int FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                        unsigned int count, srVector3T<float>* positions,
                                        char first_only, char flag_2, char flag_3, int mode,

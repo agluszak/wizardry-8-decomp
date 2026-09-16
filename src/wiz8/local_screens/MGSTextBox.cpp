@@ -15,6 +15,11 @@
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/dialog_code/MessageDialogBase.h"
+#include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/layouts/combat_state.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -50,7 +55,259 @@ int g_text_box_value_0064bd54 = 12;
    return each record to its all-zero initial state.  The retail body walks
    the same record boundary twice: 0x15e records per run and four runs up to
    the next global at 0x0069B7D0. */
+// GLOBAL: WIZ8 0x0068f2d8
 W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+
+void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
+                      int wrapped_line);
+
+// FUNCTION: WIZ8 0x0058fdd0
+int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
+{
+    wchar_t buffer[150];
+    int length = 0;
+    buffer[0] = 0;
+    while (text[cursor] == L' ') {
+        ++cursor;
+    }
+    if (text[cursor] == 0) {
+        return -1;
+    }
+    word->start = static_cast<short>(cursor);
+    // SGP's read-only font API predates const-correct declarations.
+    word->x_start =
+        StringPixLengthArg(g_level_block->value_2e8, cursor, const_cast<wchar_t*>(text));
+    while (text[cursor] != L' ' && text[cursor] != 0) {
+        buffer[length++] = text[cursor++];
+    }
+    if (length != 0) {
+        word->end = static_cast<short>(cursor - 1);
+        buffer[length] = 0;
+        word->x_end = StringPixLength(buffer, g_level_block->value_2e8) + word->x_start;
+        return cursor;
+    }
+    return -1;
+}
+
+// FUNCTION: WIZ8 0x0058af60
+void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
+                      int wrapped_line)
+{
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode && !CanOpenNpcDialogue()) || gXStatus.fCampMode) {
+            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        } else if (GetFlag68F105()) {
+            text_box = 0;
+        } else {
+            text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
+        }
+    }
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
+        g_current_screen_state.id != W8_SCREEN_CAMP &&
+        g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT &&
+        g_current_screen_state.id != W8_SCREEN_CHARACTER) {
+        return;
+    }
+    if (g_status_685170.text_box_lines_used_4997[text_box] == 350) {
+        W8MessageStorageRecord* first = &g_message_storage_68f2d8[text_box][0];
+        if (first->wString) {
+            free(first->wString);
+            first->wString = 0;
+        }
+        if (first->entries_18) {
+            W8PList* entries = first->entries_18;
+            int count = PLLength(entries);
+            for (int index = 0; index < count; ++index) {
+                free(PLGet(entries, index));
+            }
+            PListClear(entries);
+            PLDestroy(first->entries_18);
+            first->entries_18 = 0;
+        }
+        memmove(first, first + 1, 349 * sizeof(*first));
+        memset(first + 349, 0, sizeof(*first));
+        --g_status_685170.text_box_lines_used_4997[text_box];
+        if (g_status_685170.text_box_lines_shown_49a7[text_box] != 0) {
+            --g_status_685170.text_box_lines_shown_49a7[text_box];
+            if (g_status_685170.text_box_lines_shown_49a7[text_box] <
+                g_level_block->text_lines[text_box]) {
+                g_level_block->text_lines[text_box] =
+                    g_status_685170.text_box_lines_shown_49a7[text_box];
+            }
+        }
+    }
+    unsigned int index = g_status_685170.text_box_lines_used_4997[text_box]++;
+    W8MessageStorageRecord* record = &g_message_storage_68f2d8[text_box][index];
+    record->wString = static_cast<wchar_t*>(malloc((wcslen(text) + 1) * sizeof(wchar_t)));
+    if (record->wString) {
+        wcscpy(record->wString, text);
+        record->entries_18 = 0;
+        if (!record->entries_18) {
+            record->entries_18 = PLCreate();
+        } else {
+            W8PList* entries = record->entries_18;
+            int count = PLLength(entries);
+            for (int entry = 0; entry < count; ++entry) {
+                free(PLGet(entries, entry));
+            }
+            PListClear(entries);
+        }
+        int cursor = 0;
+        W8NoticeWord word;
+        while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
+            W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
+            *stored = word;
+            stored->flag_08 = 0;
+            stored->flag_09 = 0;
+            PLAdoptAppend(record->entries_18, stored);
+        }
+    }
+    record->font_palette = font_palette;
+    record->highlight_color = 0xff;
+    record->wrapped_line = wrapped_line;
+    record->value_14 = -1;
+    ++g_notice_line_count_0069b7bc;
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+        g_status_685170.text_line_cursor_1795 == text_box) {
+        if (ScreenLifecycleSuccess()) {
+            AdvanceNoticeLine(text_box);
+        }
+    } else if (text_box == 3) {
+        g_status_685170.text_box_lines_shown_49a7[3] = g_status_685170.text_box_lines_used_4997[3];
+        g_level_block->text_lines[3] = g_status_685170.text_box_lines_used_4997[3];
+        W8MessageStorageRecord* last =
+            &g_message_storage_68f2d8[3][g_status_685170.text_box_lines_shown_49a7[3] - 1];
+        unsigned int delay = g_settings_6850c8.text_display_delay_ms *
+                             (wcslen(last->wString) * 100 / 20 + 100) / 100;
+        if (delay > 60000) {
+            delay = 60000;
+        }
+        last->clock_08 = SetCountdownClock(delay);
+    }
+}
+
+// FUNCTION: WIZ8 0x0058fa80
+void NoticeDialogDestroyed(W8DialogBase*)
+{
+    if (g_current_screen_state.id == W8_SCREEN_OPTIONS) {
+        NoOp();
+    }
+}
+
+// FUNCTION: WIZ8 0x0058ac00
+void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
+                unsigned int wrap_width, bool force_dialog)
+{
+    GetFlag68F105();
+    if (g_level_block != 0 && (g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
+                               (g_current_screen_state.id == W8_SCREEN_CAMP && !force_dialog) ||
+                               g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
+                               g_current_screen_state.id == W8_SCREEN_CHARACTER)) {
+        if (font_palette >= 16) {
+            srAssertFail("uiFontPaletteIndex <= FONT_PALETTE_COUNT", MGS_TEXT_BOX_CPP, 0x15c, 0);
+        }
+        if (wrap_width == ~0U) {
+            wrap_width = g_level_block->text_box_right - g_level_block->text_box_left - 10;
+        }
+        if (text_box == -1) {
+            if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
+                gXStatus.fCampMode != 0) {
+                text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+            } else if (GetFlag68F105()) {
+                text_box = 0;
+            } else {
+                text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
+            }
+        }
+        if (g_status_685170.quote_audit_2431) {
+            g_notice_line_count_0069b7bc = 0;
+            g_status_685170.long_quote_2432 = 0;
+        }
+        g_level_block->text_lines[8 + text_box] = 0;
+        if (static_cast<unsigned int>(StringPixLength(const_cast<wchar_t*>(text),
+                                                      g_level_block->value_2e8)) < wrap_width) {
+            AppendNoticeLine(static_cast<unsigned char>(font_palette), text, text_box, 0);
+        } else {
+            wchar_t line[4096];
+            bool more = true;
+            int line_index = 0;
+            /* This repeated default-box selection is present in the retail
+               wrapping path as well as the unwrapped entry above. */
+            if (text_box == -1) {
+                if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) ||
+                    gXStatus.fCampMode != 0) {
+                    text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+                } else if (GetFlag68F105()) {
+                    text_box = 0;
+                } else {
+                    text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
+                }
+            }
+            while (more) {
+                int words = 0;
+                wchar_t* output = line;
+                for (;;) {
+                    const wchar_t* word_start = text;
+                    wchar_t* output_start = output;
+                    *output = *text;
+                    output[1] = 0;
+                    if (*text == L'\n') {
+                        ++text;
+                        *output = 0;
+                        break;
+                    }
+                    bool wrapped = false;
+                    for (;;) {
+                        if (static_cast<unsigned int>(
+                                StringPixLength(line, g_level_block->value_2e8)) >= wrap_width &&
+                            words != 0) {
+                            text = word_start;
+                            *output_start = 0;
+                            wrapped = true;
+                            break;
+                        }
+                        ++text;
+                        ++output;
+                        if (*text == L' ' || *text == L'\t' || *text == 0 || *text == L'\n') {
+                            break;
+                        }
+                        *output = *text;
+                        output[1] = 0;
+                    }
+                    if (wrapped) {
+                        break;
+                    }
+                    if (*text == 0) {
+                        more = false;
+                        break;
+                    }
+                    ++words;
+                }
+                AppendNoticeLine(static_cast<unsigned char>(font_palette), line, text_box,
+                                 line_index);
+                ++line_index;
+                if (more) {
+                    if (line_index == 1) {
+                        g_level_block->text_lines[8 + text_box] += wcslen(line);
+                    } else {
+                        g_level_block->text_lines[8 + text_box] = ~0U;
+                    }
+                }
+                line[0] = 0;
+            }
+        }
+        if (g_status_685170.quote_audit_2431 && g_notice_line_count_0069b7bc > 7) {
+            g_status_685170.long_quote_2432 = 1;
+        }
+        g_text_box_mode_0069b7b8 = 0;
+    } else if (force_dialog) {
+        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog->SetMessage(text, 1, 50, 1, 0, 1, 0, 0, 0);
+        SetDialogDestroyCallback(dialog, NoticeDialogDestroyed);
+        OpenModal(dialog);
+        DrawDialog(g_modal_owner_0068edd0);
+    }
+}
 
 // FUNCTION: WIZ8 0x0058fd30
 void ReleaseMessageStorage(void)
@@ -248,9 +505,9 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 
 static int GetTextBoxVisibleLineCount(void)
 {
-    return gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
-                   gXStatus.fCampMode != 0 ||
-                   (gXStatus.fNpcDialogueMode != 0 && g_screen_state_00649f1c->flag_261 != 0)
+    return (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->flag_261 == 0) &&
+                   (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
+                    gXStatus.fCampMode != 0 || gXStatus.fNpcDialogueMode != 0)
                ? 7
                : 1;
 }
@@ -263,6 +520,81 @@ static unsigned int GetTextBoxLineCount(short text_box)
         count += g_level_block->dialogue_text_input->line_count;
     }
     return count;
+}
+
+// FUNCTION: WIZ8 0x0058b5f0
+void AdvanceNoticeLine(short text_box)
+{
+    if (text_box == -1) {
+        text_box = g_status_685170.text_line_cursor_1795;
+    }
+    if (g_status_685170.text_box_lines_shown_49a7[text_box] >= 350) {
+        srAssertFail("gStatus.uiTextBoxLinesShown[iTextBuffer] < MAX_TEXT_BOX_LINES",
+                     MGS_TEXT_BOX_CPP, 0x2a5, 0);
+    }
+    W8MessageStorageRecord* record =
+        &g_message_storage_68f2d8[text_box][g_status_685170.text_box_lines_shown_49a7[text_box]];
+    unsigned int delay =
+        g_settings_6850c8.text_display_delay_ms * (wcslen(record->wString) * 100 / 20 + 100) / 100;
+    if (delay > 60000) {
+        delay = 60000;
+    }
+    record->clock_08 = SetCountdownClock(delay);
+    unsigned int shown = ++g_status_685170.text_box_lines_shown_49a7[text_box];
+    if (g_level_block->text_scroll_drag_idle) {
+        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->flag_261) {
+            ScrollTextBoxTo(shown);
+            g_screen_state_00649f1c->flag_261 = 0;
+        } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
+                   !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
+            if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {
+                ScrollTextBoxTo(shown);
+                g_combat_state->notice_scroll_pending_a57 = 0;
+            } else if (shown == 350) {
+                unsigned int scroll = g_level_block->text_lines[text_box];
+                if (scroll >= 344) {
+                    ScrollTextBoxTo(scroll - 1);
+                } else if (scroll <= 342) {
+                    ScrollTextBoxTo(343);
+                }
+            } else if (shown >= 8 && shown - 7 > g_level_block->text_lines[text_box]) {
+                ScrollTextBoxTo(shown - 7);
+            }
+        } else if (!IsNpcDialogueTextBoxActive577830()) {
+            ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
+                            GetTextBoxVisibleLineCount());
+        }
+    }
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
+}
+
+// FUNCTION: WIZ8 0x0058bbc0
+void ScrollTextBoxTo(int line)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+    unsigned int count = GetTextBoxLineCount(text_box);
+    unsigned int visible = GetTextBoxVisibleLineCount();
+    if (count <= visible) {
+        return;
+    }
+    unsigned int previous = g_level_block->text_lines[text_box];
+    unsigned int target = static_cast<unsigned int>(line);
+    if (target + visible <= count) {
+        if (target > 349) {
+            target = 350;
+        }
+        g_level_block->text_lines[text_box] = target;
+    } else {
+        g_level_block->text_lines[text_box] = count - visible;
+    }
+    if (g_level_block->text_lines[text_box] != previous) {
+        g_level_block->text_content_region = (g_level_block->text_lines[text_box] != 0) + 0x56;
+        g_level_block->dialogue_content_region =
+            (g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+             GetTextBoxLineCount(text_box)) +
+            0x59;
+        RequestRedraw(W8_REDRAW_TEXT_BOX);
+    }
 }
 
 // FUNCTION: WIZ8 0x0058D7E0
@@ -340,9 +672,9 @@ static void InvalidateDialogueTextCursor(void)
     bounds.top = g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] -
                  g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
                  g_level_block->text_box_top;
-    bounds.right = StringPixLength(g_level_block->dialogue_text_input->text,
-                                   g_level_block->value_2e8) +
-                 bounds.left;
+    bounds.right =
+        StringPixLength(g_level_block->dialogue_text_input->text, g_level_block->value_2e8) +
+        bounds.left;
     bounds.bottom = GetFontHeight(g_level_block->value_2e8) + bounds.top;
     InvalidateMainGameActionPanelRect(&bounds);
 }
@@ -359,12 +691,10 @@ static void RewrapDialogueTextFromLine(unsigned int line)
         }
         g_level_block->dialogue_text_input->line_count = line;
 
-        size_t word_length =
-            wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
+        size_t word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
         width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
                                     g_level_block->dialogue_text_input->text + start);
-        if (static_cast<unsigned int>(width) >
-            g_level_block->dialogue_text_input->wrap_width) {
+        if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
             return;
         }
 
@@ -377,8 +707,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
             word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
             width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
                                         g_level_block->dialogue_text_input->text + start);
-            if (static_cast<unsigned int>(width) >
-                g_level_block->dialogue_text_input->wrap_width) {
+            if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
                 break;
             }
         }
@@ -446,12 +775,12 @@ static void InsertDialogueTextCharacter(wchar_t character)
     }
 
     if (joins_previous_line != 0) {
-        g_level_block->dialogue_text_input
-            ->text[g_level_block->dialogue_text_input->cursor++] = character;
+        g_level_block->dialogue_text_input->text[g_level_block->dialogue_text_input->cursor++] =
+            character;
         RewrapDialogueTextFromLine(--line);
     } else {
-        g_level_block->dialogue_text_input
-            ->text[g_level_block->dialogue_text_input->cursor++] = character;
+        g_level_block->dialogue_text_input->text[g_level_block->dialogue_text_input->cursor++] =
+            character;
         if (line < g_level_block->dialogue_text_input->line_count) {
             RewrapDialogueTextFromLine(line);
         } else {
@@ -460,12 +789,10 @@ static void InsertDialogueTextCharacter(wchar_t character)
                 width = StringPixLength(g_level_block->dialogue_text_input->first_line_prefix,
                                         g_level_block->value_2e8);
             }
-            width += StringPixLength(
-                g_level_block->dialogue_text_input->text +
-                    g_level_block->dialogue_text_input->line_offsets[line - 1],
-                g_level_block->value_2e8);
-            if (static_cast<unsigned int>(width) >
-                g_level_block->dialogue_text_input->wrap_width) {
+            width += StringPixLength(g_level_block->dialogue_text_input->text +
+                                         g_level_block->dialogue_text_input->line_offsets[line - 1],
+                                     g_level_block->value_2e8);
+            if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
                 RewrapDialogueTextFromLine(line);
             }
         }
@@ -603,8 +930,7 @@ unsigned char HandleDialogueTextInput(const InputAtom* input_event)
         g_level_block->dialogue_text_input_open = 0;
         g_level_block->text_lines[input->text_box] = input->saved_scroll_line;
         if (input->text[0] != 0) {
-            Function58AC00(input->notice_channel, input->text, input->text_box, input->wrap_width,
-                           0);
+            ShowNotice(input->notice_channel, input->text, input->text_box, input->wrap_width, 0);
         }
         ReleaseDialogueTextInput();
         RequestRedraw(W8_REDRAW_TEXT_BOX);

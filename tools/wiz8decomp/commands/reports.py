@@ -174,6 +174,33 @@ def semantic_debt_command(
     cli.emit(semantic_debt_report(settings.repo_dir, target))
 
 
+@app.command("retail-folded")
+def retail_folded_command() -> None:
+    """Report reviewed retail folds that released-source bodies must not override."""
+
+    from .. import command_support as cli
+    from ..evidence.claims import load_claims
+
+    claims = load_claims(cli.settings().repo_dir)
+    cli.emit(
+        {
+            "informational": True,
+            "policy": "Retail call sites and bodies govern fidelity; folding does not imply a no-op.",
+            "functions": [
+                {
+                    "address": f"0x{claim['entity_key']}",
+                    "name": claim["value"],
+                    "classification": claim["predicate"],
+                    "reference": claim["reference"],
+                    "details": claim["details"],
+                }
+                for claim in claims
+                if claim["predicate"] in {"retail-folded", "retail-folded-noop"}
+            ],
+        }
+    )
+
+
 @app.command("semantic-names")
 def semantic_names_command() -> None:
     """Rank frequently referenced FunctionXXXXXXXX declarations for recovery."""

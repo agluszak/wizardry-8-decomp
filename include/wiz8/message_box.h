@@ -33,7 +33,7 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_REMOVE_SCRIPT_ITEM = 4,   /* text: W8ItemInstance* to unscript */
     W8_NPC_MSG_CLOSE_RESUME_NPC = 5,     /* close dialogue; Function50AE40(npc, 1) */
     W8_NPC_MSG_FOCUS_NPC = 6,            /* text: npc kind to switch dialogue to */
-    W8_NPC_MSG_GROUP_ACTION = 7,         /* text: npc group index for Function50B590 */
+    W8_NPC_MSG_GROUP_ACTION = 7,         /* text: NPC party slot to dismiss */
     W8_NPC_MSG_JOURNAL_QUOTE = 8,        /* quote bubble + journal-entry.wav */
     W8_NPC_MSG_PORTRAIT_STRING = 9,      /* text: gppStringList index */
     W8_NPC_MSG_CALL_4DFAE0 = 0x0a,       /* Function4DFAE0(text) */

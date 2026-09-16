@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/Monster.h"
@@ -2117,7 +2118,7 @@ void W8Monster::ProcessScript004C80E0()
                         if (group_index != (unsigned int)-1) {
                             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
                             if (group != 0) {
-                                SetMonsterGroupDisposition(group, disposition, 0);
+                                SetMonsterGroupHostility(group, disposition, 0);
                             }
                         }
                     }
@@ -2194,10 +2195,10 @@ void W8Monster::ProcessScript004C80E0()
                         ClearMainGameTargetState();
                         W8MonsterGroup* group = FindFirstMonsterByID(0x68);
                         if (group != 0)
-                            SetMonsterGroupDisposition(group, 1, 0);
+                            SetMonsterGroupHostility(group, 1, 0);
                         group = FindFirstMonsterByID(0x13e);
                         if (group != 0) {
-                            SetMonsterGroupDisposition(group, 1, 0);
+                            SetMonsterGroupHostility(group, 1, 0);
                             NotifyMonsterGroupActivity(group);
                         }
                     } else if (_stricmp(token, "ENDSAVANTWALK") == 0) {

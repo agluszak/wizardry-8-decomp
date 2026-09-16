@@ -15,8 +15,8 @@
 // VTABLE: WIZ8 0x005ef8b0
 class W8MessageDialogBase : public W8DialogBase {
 public:
-    W8MessageDialogBase();                                       /* 0x005D25B0 */
-    virtual ~W8MessageDialogBase() override;                     /* 0x005D2610 */
+    W8MessageDialogBase();                                     /* 0x005D25B0 */
+    virtual ~W8MessageDialogBase() override;                   /* 0x005D2610 */
     virtual int CreateControls() override;                     /* 0x005D2D00 */
     virtual void DestroyControls() override;                   /* slot 2, 0x005D2F40 */
     virtual void Draw() override;                              /* 0x005D2660 */
@@ -26,15 +26,15 @@ public:
 
     /* Called on this object from outside the class by the Please Wait screen,
        which is what puts it here rather than under protected. */
-    void SetMessage(wchar_t* message, int line_count, int characters_per_line, int confirmation,
-                    int cancel, int size_to_message, int wrap_message, int maximum_width,
-                    int maximum_height); /* 0x005D2800 */
+    void SetMessage(const wchar_t* message, int line_count, int characters_per_line,
+                    int confirmation, int cancel, int size_to_message, int wrap_message,
+                    int maximum_width, int maximum_height); /* 0x005D2800 */
     /* The party-selection screen calls this centering helper on a freshly
        allocated base dialog, so it is part of the public surface rather than
        a derived-only helper. */
     void SetClientExtent(int width, int height); /* 0x005D2CB0 */
 
-    unsigned int WrapMessage(wchar_t* message); /* 0x005D2A50 */
+    unsigned int WrapMessage(const wchar_t* message); /* 0x005D2A50 */
 
     friend void MessageDialogConfirmCallback(GUI_BUTTON* button, int reason);
     friend void MessageDialogCancelCallback(GUI_BUTTON* button, int reason);

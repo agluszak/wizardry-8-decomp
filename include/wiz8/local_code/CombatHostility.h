@@ -10,6 +10,10 @@ template <class T> class W8GrowableVector;
 char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second);
 unsigned char MonsterCanAimSpell005474B0(int spell_id);
 unsigned char CombatAllowsLiveGroups(void);
+void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
+void RecountCombatMonsters(void); /* 0x00546E70 */
+void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
+                              char recurse); /* 0x00547570 */
 
 void CollectHostileMonsters00547120(W8TargetSource* source,
                                     W8GrowableVector<int>* monsters); /* 0x00547120 */

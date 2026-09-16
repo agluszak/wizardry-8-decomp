@@ -18,7 +18,8 @@ wrap. Do not build a generic comparison framework or wrap all of reccmp.
 uv run wiz8 compare 0x0044e010
 ```
 
-The normal recovered-Wizardry path builds current inputs and returns structured selected results.
+Pass `--build` after source edits to build current inputs; without it the command reads the existing
+comparison product and source index. Both paths return structured selected results.
 Mismatch details include `difference`, `reason`/`location` where available, and a bounded
 `instruction_window`; use the first meaningful divergence already reported. Whole-image comparison
 is diagnostic, not a substitute for selected-function evidence.

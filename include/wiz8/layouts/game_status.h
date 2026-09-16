@@ -64,7 +64,7 @@ struct W8GlobalStatus {
        refills. Its +0x4a flag is the light gate the monster-sight threshold
        pass reads. */
     W8GameplayModifierBlock party_modifiers_22e3;
-    int status_count_234a;
+    int next_group_id_234a;
     int next_monster_location_id_234e;
     int next_world_item_id_2352;
     int next_trigger_id_2356;
@@ -137,10 +137,7 @@ struct W8GlobalStatus {
     unsigned char unknown_2498[4];
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
-    unsigned char unknown_24a0[0x190];
-    int next_group_id_2630;
-    int monster_group_value_seed_2634;
-    unsigned char unknown_2638[0xae8];
+    unsigned char unknown_24a0[0xc80];
     unsigned char log_fact_checks_3120;
     /* 0x3121 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
        this run flipping 1 -> 2; the extent is representation-proven even
@@ -209,10 +206,8 @@ static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
 static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
               "W8GlobalStatus_alternate_name_slot_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2497) == 0x2497, "W8GlobalStatus_flag_2497_offset");
-static_assert(offsetof(W8GlobalStatus, next_group_id_2630) == 0x2630,
+static_assert(offsetof(W8GlobalStatus, next_group_id_234a) == 0x234a,
               "W8GlobalStatus_next_group_id_offset");
-static_assert(offsetof(W8GlobalStatus, monster_group_value_seed_2634) == 0x2634,
-              "W8GlobalStatus_monster_group_value_seed_offset");
 static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,

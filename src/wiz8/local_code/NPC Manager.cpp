@@ -19,6 +19,8 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
@@ -107,11 +109,11 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
 
 /* Run the update with an empty scratch block the caller does not see. */
 // FUNCTION: WIZ8 0x0050b2d0
-void UpdateNpc(W8NpcState* npc)
+void UpdateNpc(int party_slot)
 {
     srVector3T<float> scratch;
 
-    UpdateNpcAt(npc, 0, &scratch);
+    UpdateNpcAt(party_slot, 0, &scratch);
 }
 
 /* Whether the NPC will talk about one topic. Topics are stored one more than
@@ -333,33 +335,202 @@ unsigned char CountLeadingPartySlots(void)
     return 0;
 }
 
-/* 0x00619DFC: one three-dword row per region-scoped service - the service id
-   (the same numbering GetLevelBand returns for the current level), the
-   service_flags bit that stands for it, and the NPC.DBS index of the region's
-   special NPC. -1 ends the table. */
+/* The NPC-index consumers at 0x0050CC14/0x0050E025 address the first
+   word at 0x00619DF8. Service lookup starts one word into each row.
+   The five mutable race bytes at 0x00619EAC are a separate object. */
 struct W8NpcServiceRow {
+    unsigned int npc_id;
     unsigned int service_id;
     unsigned int bit;
-    unsigned int npc_id;
 };
-// GLOBAL: WIZ8 0x00619DFC
+// GLOBAL: WIZ8 0x00619DF8
 const W8NpcServiceRow g_npc_services[] = {
-    {2, W8_NPC_SERVICE_ARNIKA, 0x47},
-    {3, W8_NPC_SERVICE_TRYNTON, 0x50},
-    {4, W8_NPC_SERVICE_SWAMP, 0x48},
-    {5, W8_NPC_SERVICE_MARTEN_BLUFF, 0x49},
-    {7, W8_NPC_SERVICE_SEA_CAVES, 0x4d},
-    {8, W8_NPC_SERVICE_BAYJIN, 0x4c},
-    {9, W8_NPC_SERVICE_RAPAX, 0x4b},
-    {10, W8_NPC_SERVICE_RIFT, 0x4a},
-    {11, W8_NPC_SERVICE_MT_GIGAS, 0x4e},
-    {12, W8_NPC_SERVICE_ASCENSION, 0x51},
-    {13, W8_NPC_SERVICE_RAPAX_CAMP, 0x4f},
-    {14, W8_NPC_SERVICE_CIRCLE, 0x4d},
-    {15, W8_NPC_SERVICE_GIGAS_CAVES, 0x52},
-    {6, W8_NPC_SERVICE_MTN_PASS, 0},
-    {0xffffffff, 0, 0x0f0e0c0d},
+    {0x46, 2, W8_NPC_SERVICE_ARNIKA},
+    {0x47, 3, W8_NPC_SERVICE_TRYNTON},
+    {0x50, 4, W8_NPC_SERVICE_SWAMP},
+    {0x48, 5, W8_NPC_SERVICE_MARTEN_BLUFF},
+    {0x49, 7, W8_NPC_SERVICE_SEA_CAVES},
+    {0x4d, 8, W8_NPC_SERVICE_BAYJIN},
+    {0x4c, 9, W8_NPC_SERVICE_RAPAX},
+    {0x4b, 10, W8_NPC_SERVICE_RIFT},
+    {0x4a, 11, W8_NPC_SERVICE_MT_GIGAS},
+    {0x4e, 12, W8_NPC_SERVICE_ASCENSION},
+    {0x51, 13, W8_NPC_SERVICE_RAPAX_CAMP},
+    {0x4f, 14, W8_NPC_SERVICE_CIRCLE},
+    {0x4d, 15, W8_NPC_SERVICE_GIGAS_CAVES},
+    {0x52, 6, W8_NPC_SERVICE_MTN_PASS},
+    {0, 0xffffffff, 0},
 };
+
+// GLOBAL: WIZ8 0x00619EAC
+unsigned char g_npc_join_races[5] = {13, 12, 14, 15, 11};
+
+// FUNCTION: WIZ8 0x0050ddc0
+void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
+{
+    bool returned = false;
+    bool dropped = false;
+    int slot;
+    for (slot = 0; slot < 12; ++slot) {
+        W8ItemInstance* item = &character->equipment[slot];
+        if (item->item_id != -1 && CanUnequipSlotItem(character, slot) &&
+            !NpcWantsItem0050DC50(npc, item)) {
+            if (AddItemToPartyOrDrop(item, 0)) {
+                returned = true;
+            } else {
+                dropped = true;
+            }
+        }
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        W8ItemInstance* item = &character->backpack[slot];
+        if (item->item_id != -1 && !NpcWantsItem0050DC50(npc, item)) {
+            if (AddItemToPartyOrDrop(item, 0)) {
+                returned = true;
+            } else {
+                dropped = true;
+            }
+        }
+    }
+    if (returned) {
+        WriteGameLog(0, gppStringList[0x7f4 / 4], npc->record->source_name_004);
+    }
+    if (dropped) {
+        WriteGameLog(0, gppStringList[0x7f8 / 4], npc->record->source_name_004);
+    }
+}
+
+// FUNCTION: WIZ8 0x0050b590
+int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool neutral)
+{
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    if (row->animation_0fa == -1) {
+        return 0;
+    }
+    srVector3T<float> position;
+    if (!skip_spawn) {
+        srVector3T<float> scratch;
+        UpdateNpcAt(party_slot, 1, &scratch);
+        position = scratch;
+    }
+    W8NpcState* npc = GetNpcState(row->animation_0fa);
+    if (npc == 0 || npc->binding_unavailable) {
+        return 0;
+    }
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    *npc->character = *character;
+    npc->is_grouped = false;
+    ReleaseNpcScriptFile0055A0A0(npc->script_file);
+    npc->script_file = 0;
+    Function4EF610(party_slot, 0);
+    memset(character, 0, sizeof(*character));
+    memset(row, 0, sizeof(*row));
+    /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
+    memset(static_cast<void*>(&gXStatus.monster_manager_entries[party_slot]), 0,
+           sizeof(W8MonsterManagerEntry));
+    row->animation_0fa = -1;
+    if (npc->character->highest_condition != 18 && !skip_spawn) {
+        W8MonsterRecord* records;
+        LoadMonsterDatabase(&records);
+        unsigned int species;
+        for (species = 0; species < gXStatus.uiMonstersInDatabase; ++species) {
+            if ((records[species].flags_0d0 & 1) != 0 &&
+                records[species].npc_kind_0cd == npc->name_style) {
+                break;
+            }
+        }
+        FreeIfNotNull(records);
+        if (species == gXStatus.uiMonstersInDatabase) {
+            return 0;
+        }
+        W8MonsterGroup* group = CreateGroup(species, 1, &position, 1, 0, 1);
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->value_9f, 1));
+        if (monster != 0) {
+            CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
+            if (monster->condition_turns[17] == 9999) {
+                unsigned int stamina = static_cast<unsigned int>(npc->character->stamina_max);
+                if (static_cast<unsigned int>(npc->character->stamina) < stamina) {
+                    stamina = static_cast<unsigned int>(npc->character->stamina);
+                }
+                monster->stamina = stamina;
+            }
+            if (neutral) {
+                SetMonsterGroupHostility(group, 0, 0);
+                group->flag_ca = 1;
+            }
+        }
+    }
+    RequestRedraw(~0U);
+    ReturnDismissedNpcItems(npc, npc->character);
+    npc->unknown_1c = 1;
+    memset(npc->unknown_1e, 0, sizeof(npc->unknown_1e));
+    npc->marked_e9 = 1;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0050b160
+bool RecruitNpcIntoParty(W8NpcState* npc)
+{
+    if (npc->record->has_group == 0) {
+        return false;
+    }
+    int party_slot = AddCharacterToParty(npc->character, npc->partner_index_2c);
+    if (party_slot == -1) {
+        return false;
+    }
+    int index;
+    for (index = 0; index < 0x29; ++index) {
+        if (g_status_685170.buffers.characters[party_slot].skills[index].value_02 > 0) {
+            g_status_685170.buffers.characters[party_slot].skills[index].available_13 = true;
+        }
+    }
+    RefreshCharacterSkillAvailability00553CD0(&g_status_685170.buffers.characters[party_slot]);
+    if (npc->has_monster && npc->is_present) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
+        if (monster != 0) {
+            CopyMonsterConditionsToCharacter(&g_status_685170.buffers.characters[party_slot],
+                                             monster);
+            RemoveMonster(
+                MonsterGetIndexByLocationID(0x5bf, NPC_MANAGER_CPP, monster->location_id, 1), 1);
+        }
+    }
+    npc->group_index = static_cast<signed char>(party_slot);
+    npc->is_grouped = true;
+    npc->is_present = false;
+    npc->marked_e9 = 0;
+    npc->pending_restore = 0;
+    ReleaseNpcScriptFile0055A0A0(npc->script_file);
+    npc->script_file = 0;
+    ReloadNpcScriptResources(npc);
+
+    /* Retail writes the race into this initially populated list, then tests
+       the value just written. Preserve that assignment and early exit. */
+    unsigned char race = 0;
+    for (index = 0; index < 5; ++index) {
+        race = static_cast<unsigned char>(npc->record->character.race);
+        g_npc_join_races[index] = race;
+        if (race != 0) {
+            break;
+        }
+    }
+    if (index == 5) {
+        return true;
+    }
+    for (index = 0; index < 5; ++index) {
+        if (g_status_685170.rpc_races_243a[index] == race) {
+            return true;
+        }
+    }
+    for (index = 0; index < 5; ++index) {
+        if (g_status_685170.rpc_races_243a[index] == 0) {
+            g_status_685170.rpc_races_243a[index] = race;
+            break;
+        }
+    }
+    return true;
+}
 
 /* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
    copied into so the caller always gets a writable one. */
@@ -670,7 +841,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
    kind-0x8c greeter with the camera swung onto its head — and anything else
    falls back to the kind-0x18 greeter. */
 // FUNCTION: WIZ8 0x00509560
-void SelectStartNpcGreeting00509560(void)
+void SelectStartNpcGreeting(void)
 {
     W8Monster* monster;
     W8NpcState* npc;
@@ -1136,7 +1307,7 @@ const float g_float_005ec29c = 0.7853981256484985f;
 /* Probe the navigator from the party eye at three height bands, reporting
    whether any band reaches. */
 // FUNCTION: WIZ8 0x0050B2F0
-unsigned char UpdateNpcAt(W8NpcState* /*npc*/, int /*arg_2*/, srVector3T<float>* scratch)
+unsigned char UpdateNpcAt(int /*party_slot*/, int /*arg_2*/, srVector3T<float>* scratch)
 {
     srVector3T<float> party_position;
     float yaw;
@@ -1342,7 +1513,7 @@ void UpdateNpcEvents0050D530(void)
     if (g_status_685170.flag_2497 != 0 &&
         (g_status_685170.world_clock - g_status_685170.value_242a) > 0x3c) {
         g_status_685170.flag_2497 = 0;
-        SelectStartNpcGreeting00509560();
+        SelectStartNpcGreeting();
     }
 }
 

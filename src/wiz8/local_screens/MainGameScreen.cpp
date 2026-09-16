@@ -4973,7 +4973,7 @@ tail:
     RequestRedraw(0x200);
     g_screen_state_00649f1c->flag_261 = 1;
     swprintf(space, L" ");
-    Function58AC00(5, space, 3, -1, 0);
+    ShowNotice(5, space, 3, -1, 0);
     return 1;
 }
 
@@ -6278,7 +6278,8 @@ void HandleNpcDialogueDeparture(int value)
             if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
                 (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 ||
                  g_screen_state_00649f1c->dialogue_npc->is_present != 0)) {
-                Function5775D0(g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1);
+                AddDialogueTranscriptKeyword(
+                    g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1);
             }
         }
     }
@@ -6313,6 +6314,97 @@ void BeginScriptedWorldAction(void)
     ResetLevelDataVectors0041F0D0();
     SetTargetCursor(W8_CURSOR_MAP_LOAD);
 }
+
+// GLOBAL: WIZ8 0x00649f20
+int g_dialogue_place_keyword_count = 15;
+// GLOBAL: WIZ8 0x00649f24
+int g_dialogue_place_keyword_ids[15] = {0x751, 0x752, 0x753, 0x754, 0x755, 0x756, 0x757, 0x758,
+                                        0x759, 0x75a, 0x75b, 0x75c, 0x75d, 0x75e, 0x75f};
+// GLOBAL: WIZ8 0x00649f8c
+const wchar_t* g_dialogue_person_keywords[] = {L"BALBRAK", L"BILDUBLU", L"EWAXX",  L"KUNAR",
+                                               L"PANRACK", L"RODAN",    L"RUBBLE", L"SAXX",
+                                               L"SPARKLE", L"YAMIR",    L""};
+
+// FUNCTION: WIZ8 0x00575020
+bool IsDialoguePlaceKeyword(const wchar_t* name)
+{
+    for (int index = 0; index < g_dialogue_place_keyword_count; ++index) {
+        if (CompareWideTextIgnoreAsciiCase00402920(
+                name, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005775d0
+void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category)
+{
+    wchar_t keyword[100];
+    wcscpy(keyword, name);
+    StripNpcKeywordPunctuation(keyword);
+    if (category == -1) {
+        unsigned int index;
+        for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
+            if (CompareWideTextIgnoreAsciiCase00402920(keyword,
+                                                       g_item_records[index].display_name) == 0) {
+                category = W8_DIALOGUE_CATEGORY_ITEMS;
+                break;
+            }
+        }
+        if (category == -1) {
+            for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+                if (CompareWideTextIgnoreAsciiCase00402920(
+                        keyword, g_npc_records[index].source_name_004) == 0) {
+                    category = W8_DIALOGUE_CATEGORY_PEOPLE;
+                    break;
+                }
+            }
+        }
+        if (category == -1) {
+            for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
+                if (CompareWideTextIgnoreAsciiCase00402920(
+                        keyword, g_dialogue_person_keywords[index]) == 0) {
+                    category = W8_DIALOGUE_CATEGORY_PEOPLE;
+                    break;
+                }
+            }
+        }
+        if (category == -1) {
+            category = IsDialoguePlaceKeyword(keyword) ? W8_DIALOGUE_CATEGORY_PLACES
+                                                       : W8_DIALOGUE_CATEGORY_MISC;
+        }
+    }
+    for (int index = 0; index < g_screen_state_00649f1c->dialogue_transcript.GetCount(); ++index) {
+        if (CompareWideTextIgnoreAsciiCase00402920(
+                (*g_screen_state_00649f1c->dialogue_transcript.GetAt(index))->text, keyword) == 0) {
+            return;
+        }
+    }
+    W8DialogueTranscriptRecord* record =
+        static_cast<W8DialogueTranscriptRecord*>(malloc(sizeof(W8DialogueTranscriptRecord)));
+    memset(record, 0, sizeof(*record));
+    wcscpy(record->text, keyword);
+    record->category = category;
+    g_screen_state_00649f1c->dialogue_transcript.Add(record);
+}
+
+// FUNCTION: WIZ8 0x005777c0
+void RecordLevelEntryDialogueState(void)
+{
+    wchar_t region_name[100];
+    int region = GetLevelBand(g_status_685170.current_level);
+    if (GetNpcScriptRegionName(region, region_name)) {
+        AddDialogueTranscriptKeyword(region_name, W8_DIALOGUE_CATEGORY_PLACES);
+    }
+    if (region == 14) {
+        SetFact(0x25b, 0, 0);
+        if (!NpcLeadHasNameStyle(0x18)) {
+            SetFact(0x216, 1, 0);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00575070
 void ClearNpcDialogueTranscript(void)
 {
@@ -6927,7 +7019,7 @@ void RequestNpcJoinParty(void)
 {
     unsigned int slot;
 
-    Function58AC00(0xa, gppStringList[0x1d20 / 4], 3, GetTextBoxScrollRange(), 0);
+    ShowNotice(0xa, gppStringList[0x1d20 / 4], 3, GetTextBoxScrollRange(), 0);
     if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
         Function576850(0);
     }
@@ -6950,7 +7042,7 @@ void RequestNpcJoinParty(void)
 // FUNCTION: WIZ8 0x005715A0
 void ShowNpcDialogueNotice(void)
 {
-    Function58AC00(0xa, gppStringList[0x1d24 / 4], 3, GetTextBoxScrollRange(), 0);
+    ShowNotice(0xa, gppStringList[0x1d24 / 4], 3, GetTextBoxScrollRange(), 0);
     Function576850(1);
 }
 

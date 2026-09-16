@@ -116,3 +116,19 @@ def compare_command(
     result = _mark_match_ambiguity(compare_table_reports(reports))
     result["binaries"] = [str(path) for path in binaries]
     cli.emit(result)
+
+
+@app.command("debt")
+def debt_command() -> None:
+    """Rank unreviewed canonical tables for recovery; never a completeness gate."""
+
+    from .. import command_support as cli
+    from ..msvc_table_analysis import vtable_recovery_debt
+    from ..msvc_tables import _source_vtable_markers
+
+    settings = cli.settings()
+    path = _canonical_binary(settings)
+    if not path.is_file():
+        raise ValueError(f"PE image does not exist: {path}")
+    report = _scan(path, repo_dir=settings.repo_dir)
+    cli.emit(vtable_recovery_debt(report, _source_vtable_markers(settings.repo_dir)))

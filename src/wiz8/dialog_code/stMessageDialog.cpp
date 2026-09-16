@@ -78,9 +78,10 @@ void W8MessageDialogBase::Draw()
 }
 
 // FUNCTION: WIZ8 0x005d2800
-void W8MessageDialogBase::SetMessage(wchar_t* message, int line_count, int characters_per_line,
-                                     int confirmation, int cancel, int size_to_message,
-                                     int wrap_message, int maximum_width, int maximum_height)
+void W8MessageDialogBase::SetMessage(const wchar_t* message, int line_count,
+                                     int characters_per_line, int confirmation, int cancel,
+                                     int size_to_message, int wrap_message, int maximum_width,
+                                     int maximum_height)
 {
     unsigned int index;
 
@@ -145,7 +146,7 @@ void W8MessageDialogBase::SetMessage(wchar_t* message, int line_count, int chara
 }
 
 // FUNCTION: WIZ8 0x005d2a50
-unsigned int W8MessageDialogBase::WrapMessage(wchar_t* message)
+unsigned int W8MessageDialogBase::WrapMessage(const wchar_t* message)
 {
     wchar_t lines[32][256];
     wchar_t* remaining;

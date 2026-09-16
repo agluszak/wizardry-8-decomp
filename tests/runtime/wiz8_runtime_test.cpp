@@ -19,10 +19,19 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/local_code/Search.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/layouts/main_game_screen.h"
+#include "wiz8/fonts.h"
+#include "wiz8/notices.h"
 #include "wiz8_crash_report.h"
 #include "oct_file_semantic_test.h"
 #include "keyboard_menu_semantic_test.h"
 #include "npc_dialogue_semantic_test.h"
+#include "mongen_semantic_test.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
@@ -96,6 +105,77 @@ static unsigned char g_party_movement_semantic_ok;
 static unsigned char g_audio_semantic_ok;
 static unsigned char g_keyboard_semantic_ok;
 static unsigned char g_dialogue_semantic_ok;
+static unsigned char g_search_semantic_ok;
+static unsigned char g_mongen_semantic_ok;
+
+static bool RunSearchModeSemanticTest(void)
+{
+    W8LevelRuntimeBlock level;
+    memset(&level, 0, sizeof(level));
+    level.value_2e8 = g_font_683660;
+    level.text_box_right = 30000;
+    W8LevelRuntimeBlock* saved_level = g_level_block;
+    int saved_screen = g_current_screen_state.id;
+    unsigned char saved_search = g_status_685170.search_mode;
+    unsigned char saved_combat = gXStatus.fCombatMode;
+    unsigned char saved_camp = gXStatus.fCampMode;
+    unsigned char saved_dialogue = gXStatus.fNpcDialogueMode;
+    unsigned int saved_clock = g_search_pulse_clock_00689fcc;
+    unsigned int used[4];
+    memcpy(used, g_status_685170.text_box_lines_used_4997, sizeof(used));
+    g_level_block = &level;
+    /* The loading screen accepts notices without advancing the live game UI. */
+    g_current_screen_state.id = W8_SCREEN_PLEASE_WAIT;
+    gXStatus.fCombatMode = 0;
+    gXStatus.fCampMode = 0;
+    gXStatus.fNpcDialogueMode = 0;
+    g_status_685170.search_mode = 0;
+    g_search_pulse_clock_00689fcc = 0;
+    ToggleSearchMode();
+    bool on = g_status_685170.search_mode != 0 && g_search_pulse_clock_00689fcc != 0 &&
+              g_status_685170.text_box_lines_used_4997[0] == used[0] + 1 &&
+              wcscmp(g_message_storage_68f2d8[0][used[0]].wString,
+                     gppStringList[W8_NOTICE_SEARCH_MODE_ON]) == 0;
+    ToggleSearchMode();
+    bool off = g_status_685170.search_mode == 0 &&
+               g_status_685170.text_box_lines_used_4997[0] == used[0] + 2 &&
+               wcscmp(g_message_storage_68f2d8[0][used[0] + 1].wString,
+                      gppStringList[W8_NOTICE_SEARCH_MODE_OFF]) == 0;
+    gXStatus.fCombatMode = 1;
+    unsigned int clock = g_search_pulse_clock_00689fcc;
+    ToggleSearchMode();
+    int combat_box = GetFlag68F105() ? 0 : 1;
+    unsigned int combat_index = used[combat_box] + (combat_box == 0 ? 2 : 0);
+    bool blocked = g_status_685170.search_mode == 0 && g_search_pulse_clock_00689fcc == clock &&
+                   g_status_685170.text_box_lines_used_4997[combat_box] == combat_index + 1 &&
+                   wcscmp(g_message_storage_68f2d8[combat_box][combat_index].wString,
+                          gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT]) == 0;
+    for (int box = 0; box < 4; ++box) {
+        for (unsigned int index = used[box]; index < g_status_685170.text_box_lines_used_4997[box];
+             ++index) {
+            W8MessageStorageRecord* record = &g_message_storage_68f2d8[box][index];
+            free(record->wString);
+            if (record->entries_18) {
+                for (unsigned int entry = 0; entry < PLLength(record->entries_18); ++entry) {
+                    free(PLGet(record->entries_18, entry));
+                }
+                PListClear(record->entries_18);
+                PLDestroy(record->entries_18);
+            }
+            memset(record, 0, sizeof(*record));
+        }
+    }
+    memcpy(g_status_685170.text_box_lines_used_4997, used, sizeof(used));
+    g_level_block = saved_level;
+    g_current_screen_state.id = saved_screen;
+    g_status_685170.search_mode = saved_search;
+    gXStatus.fCombatMode = saved_combat;
+    gXStatus.fCampMode = saved_camp;
+    gXStatus.fNpcDialogueMode = saved_dialogue;
+    g_search_pulse_clock_00689fcc = saved_clock;
+    fprintf(stderr, "WIZ8_SEARCH_MODE on=%u off=%u combat_blocked=%u\n", on, off, blocked);
+    return on && off && blocked;
+}
 
 /* Bounds the driver join after WinMain returns. Python owns the hard
    process deadline, including hangs inside WinMain. */
@@ -562,6 +642,18 @@ static DWORD WINAPI DriveScenario(void*)
         PrintNpcDialogueSemanticResults(&dialogue_result);
         gfProgramIsRunning = 0;
         return g_dialogue_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "search-mode") == 0) {
+        g_search_semantic_ok = RunSearchModeSemanticTest();
+        gfProgramIsRunning = 0;
+        return g_search_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "mongen") == 0) {
+        g_mongen_semantic_ok = RunMonGenSemanticTest();
+        gfProgramIsRunning = 0;
+        return g_mongen_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -1111,7 +1203,7 @@ int main(int argc, char** argv)
             "usage: Wiz8RuntimeTest --scenario "
             "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
             "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|npc-dialogue\n");
+            "audio-semantics|keyboard-menu|npc-dialogue|search-mode|mongen\n");
         return 64;
     }
 
@@ -1122,13 +1214,14 @@ int main(int argc, char** argv)
         strcmp(argv[2], "oct-file") != 0 && strcmp(argv[2], "sight-threshold") != 0 &&
         strcmp(argv[2], "split-stack") != 0 && strcmp(argv[2], "party-movement") != 0 &&
         strcmp(argv[2], "audio-semantics") != 0 && strcmp(argv[2], "keyboard-menu") != 0 &&
-        strcmp(argv[2], "npc-dialogue") != 0) {
+        strcmp(argv[2], "npc-dialogue") != 0 && strcmp(argv[2], "search-mode") != 0 &&
+        strcmp(argv[2], "mongen") != 0) {
         fprintf(
             stderr,
             "usage: Wiz8RuntimeTest --scenario "
             "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
             "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|npc-dialogue\n");
+            "audio-semantics|keyboard-menu|npc-dialogue|search-mode|mongen\n");
         return 64;
     }
 
@@ -1231,12 +1324,15 @@ int main(int argc, char** argv)
     const bool audio_flow = strcmp(g_scenario, "audio-semantics") == 0;
     const bool keyboard_flow = strcmp(g_scenario, "keyboard-menu") == 0;
     const bool dialogue_flow = strcmp(g_scenario, "npc-dialogue") == 0;
-    const bool semantic_flow =
-        sight_flow || split_flow || movement_flow || audio_flow || keyboard_flow || dialogue_flow;
+    const bool search_flow = strcmp(g_scenario, "search-mode") == 0;
+    const bool mongen_flow = strcmp(g_scenario, "mongen") == 0;
+    const bool semantic_flow = sight_flow || split_flow || movement_flow || audio_flow ||
+                               keyboard_flow || dialogue_flow || search_flow || mongen_flow;
     const bool semantic_ok =
         (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok) ||
         (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok) ||
-        (keyboard_flow && g_keyboard_semantic_ok) || (dialogue_flow && g_dialogue_semantic_ok);
+        (keyboard_flow && g_keyboard_semantic_ok) || (dialogue_flow && g_dialogue_semantic_ok) ||
+        (search_flow && g_search_semantic_ok) || (mongen_flow && g_mongen_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||

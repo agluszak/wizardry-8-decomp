@@ -43,22 +43,23 @@ enum W8NpcServiceFlag {
 
 W8Monster* GetNpcMonster(W8NpcState* npc);
 
-void ChooseNewGameStartLocation(int* level, int* entrance);               /* 0x005092F0 */
-void SelectStartNpcGreeting00509560(void);                                /* 0x00509560 */
-int SelectNewGameStartLevel(void);                                        /* 0x00509750 */
-void BindNpcToMonster(unsigned char value, int enabled, int location_id); /* 0x00509CD0 */
-void Function50B160(W8NpcState* npc);                                     /* 0x0050B160 */
-void Function50B590(int value, int a, int b, int c);                      /* 0x0050B590 */
+void ChooseNewGameStartLocation(int* level, int* entrance);                         /* 0x005092F0 */
+void SelectStartNpcGreeting(void);                                                  /* 0x00509560 */
+int SelectNewGameStartLevel(void);                                                  /* 0x00509750 */
+void BindNpcToMonster(unsigned char value, int enabled, int location_id);           /* 0x00509CD0 */
+bool RecruitNpcIntoParty(W8NpcState* npc);                                          /* 0x0050B160 */
+int DismissNpcFromParty(int party_slot, int unused, bool skip_spawn, bool neutral); /* 0x0050B590 */
+void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character);              /* 0x0050DDC0 */
 /* 0x0050B9B0: how many leading party slots are occupied. */
 unsigned char CountLeadingPartySlots(void);
-char GetNpcDisposition(W8NpcState* npc);                                           /* 0x0050A280 */
-bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                             /* 0x0050DD10 */
-unsigned char FindNpcOfKind(int kind);                                             /* 0x0050DD80 */
-void Function55BB10(W8NpcState* npc);                                              /* 0x0055BB10 */
-unsigned char CanNpcJoinParty(W8NpcState* npc);                                    /* 0x0050C870 */
-void RestockNpcInventory(W8NpcState* npc);                                         /* 0x0055BCC0 */
-unsigned char UpdateNpcAt(W8NpcState* npc, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
-W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                 /* 0x0050A3C0 */
+char GetNpcDisposition(W8NpcState* npc);                                          /* 0x0050A280 */
+bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                            /* 0x0050DD10 */
+unsigned char FindNpcOfKind(int kind);                                            /* 0x0050DD80 */
+void Function55BB10(W8NpcState* npc);                                             /* 0x0055BB10 */
+unsigned char CanNpcJoinParty(W8NpcState* npc);                                   /* 0x0050C870 */
+void RestockNpcInventory(W8NpcState* npc);                                        /* 0x0055BCC0 */
+unsigned char UpdateNpcAt(int party_slot, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
+W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                /* 0x0050A3C0 */
 W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
                                       unsigned char allow_unavailable); /* 0x0050A4A0 */
 void ResumeNpc(W8NpcState* npc, int enabled);                           /* 0x0050AE40 */

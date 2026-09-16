@@ -24,6 +24,7 @@ int GetPairedEquipSlot(int equip_slot);
 bool ItemHasQuantityKindFour(int item_id);
 
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
+unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce); /* 0x00522090 */
 bool AddItemToCharacter(W8Character* character, W8ItemInstance* item, char equip_if_possible,
                         char announce, char skip_stacking);
 void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigned char* origin,
