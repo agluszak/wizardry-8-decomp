@@ -1,8 +1,8 @@
 """Guard the audited SurRender consumer import model.
 
-`SR_DLL_IMPORT` changes MSVC code generation.  It is not an ownership marker for
-symbols that happen to live in SR.DLL, so blanket class annotations must stay an
-explicit, reviewed ABI decision rather than drift as recovery work moves around.
+`SR_DLL_IMPORT` changes MSVC code generation. It is not an ownership marker for
+symbols that happen to live in SR.DLL, so import annotations must stay explicit,
+reviewed ABI decisions rather than drift as recovery work moves around.
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ SURRENDER_HEADERS = REPOSITORY / "include" / "surrender"
 
 CLASS_IMPORT_RE = re.compile(r"\bclass\s+SR_DLL_IMPORT\s+([A-Za-z_]\w*)")
 
-# Audited class-wide imports.  Removing one is just as ABI-significant as adding
+# Audited class-wide imports. Removing one is just as ABI-significant as adding
 # one: class dllimport changes implicit special members, vtable emission and call
-# shape.  Change this set only together with consumer/import or assembly evidence.
+# shape. Change this set only together with consumer/import or assembly evidence.
 AUDITED_CLASS_IMPORTS = {
     "srBSplineFilter",
     "srBellFilter",
@@ -43,7 +43,7 @@ AUDITED_CLASS_IMPORTS = {
 }
 
 # These two blanket annotations are being removed by their dedicated recovery
-# lanes.  Accept either state so those changes can merge independently of this
+# lanes. Accept either state so those changes can merge independently of this
 # audit; no new class may be added here merely to make the test pass.
 TRANSITIONAL_CLASS_IMPORTS = {
     "srBinIStream",
@@ -58,7 +58,33 @@ PROVIDER_ONLY_CLASSES = {
     "srTriangulator",
 }
 
-# These accessors are proven header bodies in retail callers.  SR.DLL may also
+# These standalone provider headers have no known Wizardry/JPEG/ZIP import at
+# all. Keep them completely free of the consumer import annotation.
+PROVIDER_ONLY_HEADERS = {
+    "srBounder.h",
+    "srDebugDD.h",
+    "srEnvironmentMapper.h",
+    "srExponentTable.h",
+    "srMemoryPool.h",
+    "srMutex.h",
+    "srThread.h",
+    "srTextureFile.h",
+    "srTriangulator.h",
+}
+
+# Mixed headers where only the listed declaration is a known consumer import.
+# Count the macro as well as checking the spelling so unrelated imports cannot
+# quietly accumulate beside the evidenced one.
+AUDITED_MIXED_MEMBER_IMPORTS = {
+    "srImporter.h": (
+        "SR_DLL_IMPORT void exportSurface(",
+    ),
+    "srPixelConvert.h": (
+        "static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);",
+    ),
+}
+
+# These accessors are proven header bodies in retail callers. SR.DLL may also
 # export an out-of-line identity, but consumers read the field directly.
 INLINE_CORE_ACCESSORS = {
     "getMaterial": "material_170",
@@ -101,6 +127,45 @@ def test_class_wide_surrender_imports_match_audited_surface() -> None:
         )
 
     assert not errors, "\n".join(errors)
+
+
+def test_provider_only_headers_have_no_consumer_import_annotations() -> None:
+    offenders = []
+    for filename in sorted(PROVIDER_ONLY_HEADERS):
+        text = (SURRENDER_HEADERS / filename).read_text(encoding="utf-8")
+        if "SR_DLL_IMPORT" in text:
+            offenders.append(filename)
+
+    assert not offenders, (
+        "provider-only headers carry consumer SR_DLL_IMPORT annotations: "
+        + ", ".join(offenders)
+    )
+
+
+def test_mixed_headers_match_audited_member_import_surface() -> None:
+    errors = []
+    for filename, expected in AUDITED_MIXED_MEMBER_IMPORTS.items():
+        text = (SURRENDER_HEADERS / filename).read_text(encoding="utf-8")
+        observed_count = text.count("SR_DLL_IMPORT")
+        if observed_count != len(expected):
+            errors.append(
+                f"{filename}: {observed_count} SR_DLL_IMPORT uses, expected {len(expected)}"
+            )
+        for declaration in expected:
+            if declaration not in text:
+                errors.append(f"{filename}: missing audited import {declaration}")
+
+    assert not errors, "\n".join(errors)
+
+
+def test_fstream_opener_stays_provider_only() -> None:
+    text = (SURRENDER_HEADERS / "srIStreamOpener.h").read_text(encoding="utf-8")
+    marker = "class srFStreamOpener"
+    assert marker in text
+    fstream_declaration = text.split(marker, 1)[1]
+    assert "SR_DLL_IMPORT" not in fstream_declaration, (
+        "srFStreamOpener has no known consumer imports; keep its declaration provider-only"
+    )
 
 
 def test_sr_core_proven_inline_accessors_stay_header_visible() -> None:
