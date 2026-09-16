@@ -12,7 +12,7 @@ from typing import Any
 
 from .binary.coff_archive import named_iat_archive
 from .config import Settings, load_settings
-from .paths import compile_database_relative
+from .paths import atomic_write, compile_database_relative
 from .reccmp_data import write_wiz8_data_source
 from .subprocesses import resolve_executable, run
 
@@ -234,7 +234,11 @@ def _product_cache_ready(build_dir: Path) -> bool:
 
 
 def _enable_jom_parallelism(build_dir: Path) -> list[str]:
-    """Remove only CMake's NMake serialization guards after regeneration."""
+    """Remove only CMake's NMake serialization guards after regeneration.
+
+    CMake runs in the VC6 container and may leave generated files unwritable by
+    the host runner. Replace them atomically instead of truncating them in place.
+    """
 
     updated: list[str] = []
     for path in (build_dir / "Makefile", build_dir / "CMakeFiles/Makefile2"):
@@ -242,7 +246,7 @@ def _enable_jom_parallelism(build_dir: Path) -> list[str]:
         replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
         replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
         if replacement != content:
-            path.write_bytes(replacement)
+            atomic_write(path, replacement)
             updated.append(str(path))
     return updated
 
