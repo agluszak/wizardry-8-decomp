@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from reccmp.compare import Compare
@@ -80,6 +81,13 @@ def _comparison_statistics(
     )
 
 
+def _comparison_product_available(target: RecCmpPartialTarget) -> bool:
+    """Return whether the configured recomp executable and PDB both exist."""
+
+    paths = (target.recompiled_path, target.recompiled_pdb)
+    return all(path is not None and Path(path).is_file() for path in paths)
+
+
 def _target_status(
     project: RecCmpProject,
     target_id: str,
@@ -89,6 +97,8 @@ def _target_status(
     binary = {"binary": partial.filename}
     if partial.recompiled_path is None or partial.recompiled_pdb is None:
         return {**binary, "state": "original-only"}, 0.0
+    if not _comparison_product_available(partial):
+        return {**binary, "state": "unbuilt"}, 0.0
 
     engine = Compare.from_target(project.get(target_id))
     source, source_addresses = _source_statistics(engine)
@@ -157,7 +167,7 @@ def status_report(settings: Any) -> dict[str, Any]:
     scores: dict[str, float] = {}
     for target_id in project.targets:
         partial = project.targets[target_id]
-        if partial.recompiled_path is not None and partial.recompiled_pdb is not None:
+        if _comparison_product_available(partial):
             warn_if_build_may_be_stale(settings.repo_dir, target_id, project.get(target_id))
         row, score = _target_status(project, target_id, known_functions_by_hash)
         targets[target_id] = row

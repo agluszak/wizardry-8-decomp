@@ -190,11 +190,19 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
     engine = _engine([marker], [_entity(0x401000, ComparisonAnalysis.exact())])
 
     def partial(filename, sha256, *, recompiled):
+        if recompiled:
+            product = tmp_path / filename
+            pdb = tmp_path / (filename + ".pdb")
+            product.write_bytes(b"product")
+            pdb.write_bytes(b"pdb")
+        else:
+            product = None
+            pdb = None
         return SimpleNamespace(
             filename=filename,
             sha256=sha256,
-            recompiled_path=(tmp_path / filename if recompiled else None),
-            recompiled_pdb=(tmp_path / (filename + ".pdb") if recompiled else None),
+            recompiled_path=product,
+            recompiled_pdb=pdb,
             report_config=None,
         )
 
@@ -241,6 +249,35 @@ def test_status_report_uses_hash_matched_original_denominator(tmp_path, monkeypa
         "source_coverage": pytest.approx(1 / 7701),
         "progress": pytest.approx(1 / 7701),
     }
+
+
+def test_status_report_marks_configured_missing_product_unbuilt(tmp_path, monkeypatch) -> None:
+    partial = SimpleNamespace(
+        filename="Wiz8.exe",
+        sha256="a" * 64,
+        recompiled_path=tmp_path / "Wiz8.exe",
+        recompiled_pdb=tmp_path / "Wiz8.pdb",
+        report_config=None,
+    )
+    project = SimpleNamespace(
+        targets={"WIZ8": partial},
+        get=lambda _target: pytest.fail("unbuilt target must not be opened"),
+    )
+    monkeypatch.setattr(status.RecCmpProject, "from_directory", lambda _path: project)
+    monkeypatch.setattr(
+        status,
+        "warn_if_build_may_be_stale",
+        lambda *_args: pytest.fail("unbuilt target is not stale"),
+    )
+    monkeypatch.setattr(
+        status.Compare, "from_target", lambda *_args, **_kwargs: pytest.fail("must not compare")
+    )
+    monkeypatch.setattr(status, "seed_records", lambda _settings: [])
+
+    report = status.status_report(SimpleNamespace(repo_dir=tmp_path))
+
+    assert report["targets"]["WIZ8"] == {"binary": "Wiz8.exe", "state": "unbuilt"}
+    assert report["totals"]["comparison_targets"] == 0
 
 
 def test_status_build_is_explicit(monkeypatch) -> None:
