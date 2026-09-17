@@ -258,6 +258,134 @@ def test_preceding_block_comment_address_binds_header_declaration(tmp_path: Path
     assert set(violation["names"]) == {"CanonicalName", "StaleName"}
 
 
+def test_templated_operator_overload_is_not_a_consumer_redeclaration(tmp_path: Path) -> None:
+    """Address-owned operator+ must not collide with an unrelated template overload.
+
+    Reproduces the main regression: WIZ8 0x0047D2A0 owns
+    ``srInlineString operator+(const srInlineString&, const srInlineString&)``
+    while ``template <class T> srVector3T<T> operator+`` is a distinct overload.
+    """
+
+    owned = {
+        **_declaration("operator+", is_definition=True),
+        "semantic_id": "??H@YA?AUsrInlineString@@ABU0@0@Z",
+        "return_type": "struct srInlineString",
+        "parameter_types": [
+            "const struct srInlineString &",
+            "const struct srInlineString &",
+        ],
+        "source_file": "src/srext_unzip/string_ops.cpp",
+        "line": 2,
+        "end_line": 2,
+        "target": "SREXT_UNZIP",
+    }
+    template_primary = {
+        **_declaration("operator+", is_definition=True),
+        "semantic_id": (
+            "FunctionDecl:operator+:srVector3T<type-parameter-0-0> "
+            "(const srVector3T<type-parameter-0-0> &, "
+            "const srVector3T<type-parameter-0-0> &)"
+        ),
+        "return_type": "srVector3T<type-parameter-0-0>",
+        "parameter_types": [
+            "const srVector3T<type-parameter-0-0> &",
+            "const srVector3T<type-parameter-0-0> &",
+        ],
+        "source_file": "include/surrender/srMath.h",
+        "line": 10,
+        "end_line": 10,
+    }
+    template_specialization = {
+        **_declaration("operator+", is_definition=True),
+        "semantic_id": "??$?HM@@YA?AV?$srVector3T@M@@ABV0@0@Z",
+        "return_type": "class srVector3T<float>",
+        "parameter_types": [
+            "const class srVector3T<float> &",
+            "const class srVector3T<float> &",
+        ],
+        "source_file": "include/surrender/srMath.h",
+        "line": 10,
+        "end_line": 10,
+    }
+    marker = {
+        "address": 0x0047D2A0,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/srext_unzip/string_ops.cpp",
+        "line": 1,
+        "marker_name": None,
+        "folded": False,
+        "target": "SREXT_UNZIP",
+        "declaration_key": ["SREXT_UNZIP", "??H@YA?AUsrInlineString@@ABU0@0@Z"],
+    }
+    repository = _repository(tmp_path, [marker], [owned, template_primary, template_specialization])
+    (tmp_path / "src/srext_unzip").mkdir(parents=True)
+    (tmp_path / "src/srext_unzip/string_ops.cpp").write_text(
+        "// FUNCTION: SREXT_UNZIP 0x0047D2A0\n"
+        "srInlineString operator+(const srInlineString& left, "
+        "const srInlineString& right) { return left; }\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "include/surrender").mkdir(parents=True)
+    (tmp_path / "include/surrender/srMath.h").write_text(
+        "template <class T>\n"
+        "srVector3T<T> operator+(const srVector3T<T>& first, "
+        "const srVector3T<T>& second) { return first; }\n",
+        encoding="utf-8",
+    )
+
+    assert identity_violations(repository) == []
+
+
+def test_inconsistent_ordinary_consumer_prototype_is_still_reported(tmp_path: Path) -> None:
+    """A non-template free function redeclared with the wrong prototype still fails."""
+
+    owned = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=True),
+        "return_type": "void",
+        "parameter_types": ["unsigned char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXE@Z",
+        "source_file": "src/srext_unzip/voice.cpp",
+        "line": 2,
+        "end_line": 2,
+        "target": "SREXT_UNZIP",
+    }
+    consumer = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=False),
+        "return_type": "void",
+        "parameter_types": ["char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXD@Z",
+        "source_file": "src/srext_unzip/voice.h",
+        "line": 1,
+        "end_line": 1,
+    }
+    marker = {
+        "address": 0x00525D90,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/srext_unzip/voice.cpp",
+        "line": 1,
+        "marker_name": None,
+        "folded": False,
+        "target": "SREXT_UNZIP",
+        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z"],
+    }
+    repository = _repository(tmp_path, [marker], [owned, consumer])
+    (tmp_path / "src/srext_unzip").mkdir(parents=True)
+    (tmp_path / "src/srext_unzip/voice.cpp").write_text(
+        "// FUNCTION: SREXT_UNZIP 0x00525D90\n"
+        "void TryFinishNpcVoicePlayback(unsigned char force) {}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "src/srext_unzip/voice.h").write_text(
+        "void TryFinishNpcVoicePlayback(char force);\n",
+        encoding="utf-8",
+    )
+
+    (violation,) = identity_violations(repository)
+    assert violation["kind"] == "consumer-prototype"
+    assert violation["reason"] == "redeclared prototype"
+    assert violation["names"] == ["TryFinishNpcVoicePlayback"]
+
+
 def test_same_address_prototype_disagreement_is_reported(tmp_path: Path) -> None:
     first = {
         **_declaration("TryFinishNpcVoicePlayback", is_definition=False),
