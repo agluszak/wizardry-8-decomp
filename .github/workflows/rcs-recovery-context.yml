@@ -42,6 +42,7 @@ jobs:
         run: uv run wiz8 ghidra restore
       - name: Extract recovery contexts
         run: |
+          uv run wiz8 analyze source-index
           mkdir -p build/rcs-recovery
           uv run wiz8 report context \
             0x005A42A0 0x005A45B0 0x005A4770 0x005C5240 0x005B55F0 \
