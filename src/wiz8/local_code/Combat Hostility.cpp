@@ -1,6 +1,9 @@
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/layouts/item_tables.h"
+#include "wiz8/layouts/targeting.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -9,6 +12,7 @@
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
@@ -92,6 +96,86 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
         return 0;
     }
     return 1;
+}
+
+/* Whether a party action aims at enemies: the four melee kinds do, as do
+   spells (and item-spells) whose target type sits in the enemy band. */
+// FUNCTION: WIZ8 0x00547310
+unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_kind,
+                                            int action_detail, W8ActionDetailBlock* detail)
+{
+    W8ItemInstance* item;
+    unsigned char spell_id;
+    int target_type;
+
+    switch (action_kind) {
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
+    case W8_ACTION_BREATHE:
+    case W8_ACTION_TURN_UNDEAD:
+        return 1;
+    case W8_ACTION_CAST_SPELL:
+        if (action_detail > 0x95) {
+            srAssertFail("iType < SPELL_COUNT",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
+        }
+        if (action_detail != 3 && action_detail != 0x29) {
+            target_type = GetSpellTargetType(action_detail, 0);
+            if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
+                return 1;
+            }
+        }
+        break;
+    case W8_ACTION_USE_ITEM:
+        item = detail->item_use.item;
+        if (CanCharacterActivateItem(character, item) != 0) {
+            spell_id = g_item_records[item->item_id].spell_id;
+            if (spell_id != 0) {
+                if (spell_id > 0x95) {
+                    srAssertFail("iType < SPELL_COUNT",
+                                 "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp",
+                                 0x1c2, 0);
+                }
+                if (spell_id != 3 && spell_id != 0x29) {
+                    target_type = GetSpellTargetType(spell_id, 0);
+                    if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
+                        return 1;
+                    }
+                }
+            }
+        }
+        break;
+    }
+    return 0;
+}
+
+/* Monster actions 0 and 3 always count as enemy-aimed; action 2 is a spell id. */
+// FUNCTION: WIZ8 0x00547440
+unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
+                                          unsigned int* spell_power_level)
+{
+    int target_type;
+
+    if (action_kind == 0) {
+        return 1;
+    }
+    if (action_kind == 2) {
+        if (action_detail > 0x95) {
+            srAssertFail("iType < SPELL_COUNT",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
+        }
+        if (action_detail != 3 && action_detail != 0x29) {
+            target_type = GetSpellTargetType(action_detail, 0);
+            if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    if (action_kind == 3) {
+        return 1;
+    }
+    return 0;
 }
 
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not

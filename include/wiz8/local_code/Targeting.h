@@ -77,7 +77,14 @@ bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 /* 0x0053C630: fill the slot's point from where its target is. */
 unsigned char ResolveTargetPoint(W8CombatSlot* target, char sight_probe);
 void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
-void ApplyTarget(W8CombatSlot* target, W8TargetingContext context);
+void ApplyTarget(W8CombatSlot* target, W8TargetingContext context); /* 0x00538E00 */
+/* 0x0053C490: whether an actor aiming at `target` should drop that aim now
+   that `target` has been (re)applied. Out-of-combat contexts always clear;
+   otherwise the actor and the applied target must agree on hostility with the
+   action's enemy-aimed flag. */
+unsigned char ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
+                                             W8TargetingContext context,
+                                             unsigned char action_targets_enemies);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
                                   W8TargetingContext context);
