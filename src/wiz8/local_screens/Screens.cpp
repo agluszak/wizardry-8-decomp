@@ -150,7 +150,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         }
         break;
     case W8_SCREEN_MAIN_GAME:
-        if (g_level_block->value_0fc == 0 ||
+        if (g_level_block->main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
             g_level_block->portrait_refresh_pending[party_slot] != 0) {
             switch (party_slot) {
             case 0:
@@ -375,7 +375,7 @@ void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirm
 // FUNCTION: WIZ8 0x0055F2C0
 void InitializeMainGameLevelBlock(void)
 {
-    int previous_mode;
+    W8MainUiMode previous_mode;
     int slot;
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -418,8 +418,8 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->portrait_refresh_mode[slot] = 0;
     }
     g_level_block->combat_end_notification = -1;
-    previous_mode = g_settings_6850c8.field_006;
-    g_settings_6850c8.field_006 = -1;
+    previous_mode = g_settings_6850c8.main_ui_mode;
+    g_settings_6850c8.main_ui_mode = W8_MAIN_UI_MODE_NONE;
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
@@ -454,7 +454,7 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->text_slots_1e8[slot_index] = -1;
     }
     g_level_block->unknown_2e4[0] = 0;
-    g_level_block->value_2e8 = g_font_683660;
+    g_level_block->text_box_font = g_font_683660;
     g_level_block->palette_2ec = g_colour_68ee08;
     g_level_block->selection_kind = -1;
     g_level_block->value_2f4 = -1;
@@ -471,8 +471,8 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown_320 = SetCountdownClock(0);
     g_level_block->flag_324 = 0;
     g_level_block->formation_board_alternate = 0;
-    g_level_block->flag_326 = 0;
-    g_level_block->flag_327 = 0;
+    g_level_block->radar_map_alternate = 0;
+    g_level_block->review_transition_active = 0;
     g_level_block->countdown_32c = SetCountdownClock(0);
     ResetMessageStorage();
 }

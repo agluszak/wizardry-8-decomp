@@ -566,7 +566,7 @@ struct W8MainScreenState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
     unsigned char unknown_002[0xee];
-    int value_f0; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
+    W8MainUiMode value_f0; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
     /* 0x0f4: the party slot 0x0056D030 picks as the dialogue's leading
        speaker - the occupied row whose character leads skill 0x16. */
     int dialogue_speaker;
@@ -670,9 +670,9 @@ struct W8MainScreenState {
     unsigned char flag_229;
     unsigned char unknown_22a[2];
     int value_22c;
-    /* 0x230: g_settings_6850c8.field_006 saved while the NPC dialogue is
+    /* 0x230: g_settings_6850c8.main_ui_mode saved while the NPC dialogue is
        suppressed and handed back to ApplyMainGameModeFlag when it reopens. */
-    int saved_mode_230;
+    W8MainUiMode saved_mode_230;
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
@@ -843,13 +843,18 @@ extern unsigned char g_navigator_position_changed_659c11;
 extern unsigned char g_flag_006840bb;
 void BeginLevelTransition(void); /* 0x005611A0 */
 void SetViewportMode(int mode);  /* 0x005618F0 */
-/* Apply a change to the main-game mode flag at 0x006850CE. */
-void ApplyMainGameModeFlag(int previous_mode, char enable); /* 0x00562580 */
+/* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised
+   panels, optionally re-raise them from settings prefs, refresh tooltip and
+   region state, and sync both settings and the level-block mode field. */
+void ApplyMainGameModeFlag(W8MainUiMode mode, char enable); /* 0x00562580 */
 unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
 /* 0x00561EC0: re-sync the eight party slots' region sets and portrait hit
    regions with occupancy, the monster-entry flag and the display mode; the
    party add/remove entries and the keyboard menu's close run it. */
 void RefreshPartySlotRegions(void);
+/* 0x00561FD0: re-sync mouse hotspot, region enables and viewport after a
+   main-game mode change. Declared for ApplyMainGameModeFlag; body unrecovered. */
+void SyncMainGameModeRegions(void);
 void ClearHighlightOverlayRegion(void); /* 0x00563DD0 */
 void DismissHighlightOverlay(void);     /* 0x00563EB0 */
 /* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
@@ -860,10 +865,12 @@ void Function56EE20(int party_slot);       /* 0x0056EE20 */
 void Function587A30(void);                 /* 0x00587A30 */
 void Function58A860(void);                 /* 0x0058A860 */
 void OpenAutomapScreen(void);              /* 0x00561480 */
-void Function561DB0(int slot);             /* 0x00561DB0 */
-void ClearScreenWait(void);                /* 0x00565970 */
-void Function568390(int value);            /* 0x00568390 */
-void ToggleMainGamePause(void);            /* 0x0056ABE0 */
+/* Clear one slot's pending portrait refresh while the screen is not in
+   portrait mode, and disable that slot's portrait region set. */
+void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
+void ClearScreenWait(void);              /* 0x00565970 */
+void Function568390(int value);          /* 0x00568390 */
+void ToggleMainGamePause(void);          /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
    TryMGSActionKey share: the interface commands map to views and recorded
    actions, the combat commands map to ChooseAction selections, and
@@ -891,11 +898,13 @@ enum W8MGSAction {
 void TryMGSActionKey(int command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
-unsigned char IsMGSActionKeyEnabled(short command); /* 0x0056AF80 */
-void RunMGSActionKey(short command);                /* 0x0056B270 */
-void LoadMainGameCursorResources(void); /* 0x00568E10 */
+unsigned char IsMGSActionKeyEnabled(short command);                      /* 0x0056AF80 */
+void RunMGSActionKey(short command);                                     /* 0x0056B270 */
+void LoadMainGameCursorResources(void);                                  /* 0x00568E10 */
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
+void SetRadarMapVisible(unsigned char visible);                          /* 0x00568EB0 */
+void SetActionPanelVisible(unsigned char visible);                       /* 0x00569120 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag); /* 0x00560E10 */
 void SwitchNpcDialogueLayout(int interact_id);                           /* 0x00570120 */
 void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,

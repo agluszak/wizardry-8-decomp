@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/layouts/main_game_screen.h"
+
 void LoadGameConfiguration(void);
 unsigned char SaveGameConfiguration(void);
 void SetMusicVolume(unsigned char volume);
@@ -17,7 +19,10 @@ struct W8GameSettings {
     unsigned char field_000;
     unsigned char numeric_hit_points;
     unsigned char unknown_002[0x4];
-    int field_006;
+    /* 0x06: mirrors W8LevelRuntimeBlock::main_ui_mode. ApplyMainGameModeFlag
+       writes both together; NONE is the transient park Screens uses while it
+       re-raises panels on main-game enter. */
+    W8MainUiMode main_ui_mode;
     unsigned char continuous_combat;
     unsigned char auto_advance_character;
     unsigned char tooltips_enabled;

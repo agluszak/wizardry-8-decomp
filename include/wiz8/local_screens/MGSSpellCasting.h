@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.h"
+#include "wiz8/layouts/main_game_screen.h"
 
 unsigned char IgnoreSpellCastingInput(const InputAtom* input);               /* 0x005A1140 */
 unsigned char OpenSpellCastingView(int party_slot);                          /* 0x0059F0E0 */
@@ -13,5 +14,5 @@ void InvalidateSpellCastingDescription005A0300(void);                        /* 
 void SelectSpellPowerLevel005A06F0(int power_level);                         /* 0x005A06F0 */
 void ResetSpellCastingSelection005A0B90(void);                               /* 0x005A0B90 */
 void CommitSpellCastingSelection005A0BC0(void);                              /* 0x005A0BC0 */
-void SetSpellCastingMode005A1330(int value);                                 /* 0x005A1330 */
+void SetSpellCastingMode005A1330(W8MainUiMode value);                        /* 0x005A1330 */
 int GetSpellCastingSelection005A1350(void);                                  /* 0x005A1350 */

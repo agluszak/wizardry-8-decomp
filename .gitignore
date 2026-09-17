@@ -8,6 +8,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 build/
+.wiz8-work/
 *.log
 .DS_Store
 

@@ -515,7 +515,8 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
         CompactFormationRow(formation, old_row);
     }
     if (g_status_685170.game_started != 0 && gXStatus.fNpcDialogueMode == 0) {
-        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 2 &&
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+            g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR &&
             formation == &g_status_685170.formation) {
             RefreshFormationBoard();
             RefreshRadarMap();

@@ -333,16 +333,20 @@ void DispatchMGSCommand(int command)
             break;
         }
         if (IsScreenInputBlocked() != 0) {
-            ApplyMainGameModeFlag((g_level_block->value_0fc - 1) & 1, 1);
+            ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode - 1) & 1),
+                                  1);
         } else {
-            ApplyMainGameModeFlag((g_level_block->value_0fc + 1) % 3, 1);
+            ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode + 1) % 3),
+                                  1);
         }
         break;
     case W8_MGS_COMMAND_PREV_LAYOUT:
         if (IsScreenInputBlocked() != 0) {
-            ApplyMainGameModeFlag((g_level_block->value_0fc - 1) & 1, 1);
+            ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode - 1) & 1),
+                                  1);
         } else {
-            ApplyMainGameModeFlag((g_level_block->value_0fc + 2) % 3, 1);
+            ApplyMainGameModeFlag(static_cast<W8MainUiMode>((g_level_block->main_ui_mode + 2) % 3),
+                                  1);
         }
         break;
     case W8_MGS_COMMAND_AUTOMAP:
@@ -481,11 +485,11 @@ void DispatchMGSCommand(int command)
             SelectPartyCharacter(slot);
             break;
         }
-        if (g_settings_6850c8.field_006 == 0) {
+        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
             break;
         }
         if (g_level_block->portrait_refresh_pending[slot] != 0) {
-            Function561DB0(slot);
+            ClearPortraitRefreshSlot(slot);
         } else {
             RefreshSelectedPartyPortrait(slot);
             gXStatus.monster_manager_entries[slot].field_0ce = 1;

@@ -188,7 +188,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                                                static_cast<SRDWORD>(vertex_location_count_22c));
                     }
                     AddFloatBuffer00474730(
-                        reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                        reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                         reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                         vertex_location_count_22c * 3);
                     if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
@@ -259,7 +259,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     index += run;
                 } while (index < vertex_location_count_22c);
                 AddFloatBuffer00474730(
-                    reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                    reinterpret_cast<float*>(dig),    // reinterpret-ok: packed DIG as float*
                     reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
                     vertex_location_count_22c * 3);
                 if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
@@ -296,10 +296,9 @@ void stMeshModel::getTriMesh(TriMesh& mesh)
     mesh = getTriMesh();
 }
 
-/* Retail wrapper pushes a zero flag into the shared renderer at 0x00470380.
-   The helper body is still unrecovered; forward to the SurRender import so the
-   vtable slot stays local while the full path is recovered. */
-// FUNCTION: WIZ8 0x00470360
+/* Explicitly unresolved callable at 0x00470360: retail pushes a zero flag into
+   the shared renderer at 0x00470380 before the still-unrecovered helper. This
+   forward keeps the vtable slot linkable; it is not a recovered FUNCTION body. */
 void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 {
     srMeshModel::renderTriMesh(renderer, mesh);
@@ -1497,5 +1496,8 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->PrepareSlot00475540();
     return pipe;
 }
+/* Empty notify stub. Retail ICF placed this RET amid OptionsScreen material
+   near 0x005AA400, more than a megabyte from the rest of this TU — the
+   placement-outliers report's regression fixture, not proof of mis-ownership. */
 // FUNCTION: WIZ8 0x005aa400
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}

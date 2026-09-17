@@ -13,20 +13,31 @@ class stModelInstance2D;
    fixed by LoadMainGameCursorResources at 0x00568E10: catalog id at +0,
    object at +4, frame count at +8, ETRLE size at +0xc/+0xe. */
 struct W8MainGameResourceSlot {
-    int image_id; /* 0x00: GetCatalogVideoObjectHandle / YOffset key */
-    srClass* object; /* 0x04: stTextureAnim* once loaded */
+    int image_id;             /* 0x00: GetCatalogVideoObjectHandle / YOffset key */
+    srClass* object;          /* 0x04: stTextureAnim* once loaded */
     unsigned int frame_count; /* 0x08: frames appended into the anim */
-    unsigned short size_x; /* 0x0c */
-    unsigned short size_y; /* 0x0e */
+    unsigned short size_x;    /* 0x0c */
+    unsigned short size_y;    /* 0x0e */
     unsigned short hotspot_x; /* 0x10 */
     unsigned short hotspot_y; /* 0x12 */
 };
 static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
-static_assert(offsetof(W8MainGameResourceSlot, image_id) == 0x00, "W8MainGameResourceSlot_image_id");
+static_assert(offsetof(W8MainGameResourceSlot, image_id) == 0x00,
+              "W8MainGameResourceSlot_image_id");
 static_assert(offsetof(W8MainGameResourceSlot, object) == 0x04, "W8MainGameResourceSlot_object");
 static_assert(offsetof(W8MainGameResourceSlot, frame_count) == 0x08,
               "W8MainGameResourceSlot_frame_count");
 static_assert(offsetof(W8MainGameResourceSlot, size_x) == 0x0c, "W8MainGameResourceSlot_size_x");
+
+/* Main-game chrome mode ApplyMainGameModeFlag writes into both the level block
+   and g_settings_6850c8. NONE is settings-only: Screens parks it at -1 while
+   ApplyMainGameModeFlag re-raises panels during main-game enter. */
+enum W8MainUiMode {
+    W8_MAIN_UI_MODE_NONE = -1,
+    W8_MAIN_UI_MODE_PORTRAITS = 0,
+    W8_MAIN_UI_MODE_FORMATION = 1,
+    W8_MAIN_UI_MODE_RADAR = 2
+};
 static_assert(offsetof(W8MainGameResourceSlot, hotspot_x) == 0x10,
               "W8MainGameResourceSlot_hotspot_x");
 
@@ -61,7 +72,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     unsigned char unknown_0f8[4];
-    unsigned int value_0fc;                    /* 0x0fc */
+    W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
     unsigned char flag_108;                    /* 0x108 */
@@ -78,8 +89,13 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_15a[2];
     /* 0x15c: the x origin the mode-6 hover panel anchors the slot's portrait
        column position against. */
-    int value_15c;
-    unsigned char unknown_160[0xc];
+    int portrait_hover_x_origin;
+    /* 0x160/0x164/0x168: layout offsets ApplyMainGameModeFlag writes when the
+       action panel or portrait chrome is down (0x76/6 and 0x69/6); cleared to
+       zero while the matching panel is up. Semantic names still open. */
+    int unknown_160;
+    int unknown_164;
+    int unknown_168;
     int highlight_override;             /* 0x16c */
     int party_slots_170[7];             /* 0x170: positional roles unresolved */
     int formation_highlight_party_slot; /* 0x18c */
@@ -90,6 +106,11 @@ struct W8LevelRuntimeBlock {
     int text_content_region;
     int dialogue_content_region;
     unsigned int text_lines[12]; /* 0x1a8 */
+    /* 0x1d8/0x1e8: paired four-entry slot tables cleared to -1 on level-block
+       init. Entry [2] of text_slots_1e8 is the secondary NPC-dialogue item
+       editor slot (ResetNpcDialogueItemEditor / ConfirmNpcTradeSlot);
+       the other indices and the whole 0x1d8 table still lack agreeing
+       producers beyond ClearTextSlot*. */
     int text_slots_1d8[4];
     int text_slots_1e8[4];
     unsigned char dialogue_text_input_open;
@@ -108,13 +129,14 @@ struct W8LevelRuntimeBlock {
     unsigned int clock_214; /* 0x214 */
     unsigned char flag_218; /* 0x218 */
     unsigned char unknown_219[3];
-    int value_21c;   /* 0x21c: content row count captured by the overlay draw */
+    /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
+    int hover_overlay_row_count;
     int dialogue_x_220;
     unsigned int dialogue_y_224; /* ClearSurfaceRect's unsigned top/bottom */
     unsigned int dialogue_height_228;
-    int dialogue_row_y_22c;    /* 0x22c: first content row's y; the highlight
+    int dialogue_row_y_22c;      /* 0x22c: first content row's y; the highlight
                                   sprite hangs off it at highlight_row * 0x12 */
-    int dialogue_text_x_230;   /* 0x230: panel left + 9 */
+    int dialogue_text_x_230;     /* 0x230: panel left + 9 */
     int dialogue_text_width_234; /* 0x234: panel width - 0x12 */
     int dialogue_width_238;
     int highlight_row; /* 0x23c: -1 none; the content row the highlight sits on */
@@ -176,7 +198,7 @@ struct W8LevelRuntimeBlock {
     int move_budget_2dc;
     int move_budget_2e0;
     unsigned char unknown_2e4[4];
-    int value_2e8;
+    int text_box_font;           /* 0x2e8: g_font_683660 while the main text box is live */
     unsigned short* palette_2ec; /* 0x2ec */
     int selection_kind;
     int value_2f4; /* 0x2f4 */
@@ -199,8 +221,8 @@ struct W8LevelRuntimeBlock {
     unsigned int countdown_320;
     unsigned char flag_324;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
-    unsigned char flag_326;
-    unsigned char flag_327;
+    unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
+    unsigned char review_transition_active;  /* 0x327: set while leaving into review */
     unsigned char flag_328;
     unsigned char unknown_329[3];
     unsigned int countdown_32c;
@@ -209,7 +231,8 @@ struct W8LevelRuntimeBlock {
 
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_0f0) == 0x0f0, "W8LevelRuntimeBlock_flag_0f0");
-static_assert(offsetof(W8LevelRuntimeBlock, value_0fc) == 0x0fc, "W8LevelRuntimeBlock_value_0fc");
+static_assert(offsetof(W8LevelRuntimeBlock, main_ui_mode) == 0x0fc,
+              "W8LevelRuntimeBlock_main_ui_mode");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_pending) == 0x109,
               "W8LevelRuntimeBlock_portrait_refresh_pending");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_image) == 0x114,

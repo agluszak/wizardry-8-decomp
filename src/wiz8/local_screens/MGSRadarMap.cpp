@@ -267,7 +267,7 @@ void RefreshRadarMap(void)
         }
     }
 
-    if (g_level_block->flag_326 == 0) {
+    if (g_level_block->radar_map_alternate == 0) {
         handle = GetCatalogVideoObjectHandle(0xa1, 0);
     } else {
         handle = GetCatalogVideoObjectHandle(0xa2, 0);

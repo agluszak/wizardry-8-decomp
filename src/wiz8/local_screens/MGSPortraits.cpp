@@ -112,8 +112,9 @@ void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_
     default:
         break;
     }
-    if (adjust != 0 && g_settings_6850c8.field_006 != 0 &&
-        static_cast<unsigned int>(g_settings_6850c8.field_006) <= 2) {
+    if (adjust != 0 && g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        static_cast<unsigned int>(g_settings_6850c8.main_ui_mode) <=
+            static_cast<unsigned int>(W8_MAIN_UI_MODE_RADAR)) {
         if ((party_slot & 1) == 0) {
             *menu_x -= 0x69;
             *band_menu_edge = -1;

@@ -77,14 +77,14 @@ int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
     word->start = static_cast<short>(cursor);
     // SGP's read-only font API predates const-correct declarations.
     word->x_start =
-        StringPixLengthArg(g_level_block->value_2e8, cursor, const_cast<wchar_t*>(text));
+        StringPixLengthArg(g_level_block->text_box_font, cursor, const_cast<wchar_t*>(text));
     while (text[cursor] != L' ' && text[cursor] != 0) {
         buffer[length++] = text[cursor++];
     }
     if (length != 0) {
         word->end = static_cast<short>(cursor - 1);
         buffer[length] = 0;
-        word->x_end = StringPixLength(buffer, g_level_block->value_2e8) + word->x_start;
+        word->x_end = StringPixLength(buffer, g_level_block->text_box_font) + word->x_start;
         return cursor;
     }
     return -1;
@@ -226,7 +226,7 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
         }
         g_level_block->text_lines[8 + text_box] = 0;
         if (static_cast<unsigned int>(StringPixLength(const_cast<wchar_t*>(text),
-                                                      g_level_block->value_2e8)) < wrap_width) {
+                                                      g_level_block->text_box_font)) < wrap_width) {
             AppendNoticeLine(static_cast<unsigned char>(font_palette), text, text_box, 0);
         } else {
             wchar_t line[4096];
@@ -259,8 +259,8 @@ void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box,
                     }
                     bool wrapped = false;
                     for (;;) {
-                        if (static_cast<unsigned int>(
-                                StringPixLength(line, g_level_block->value_2e8)) >= wrap_width &&
+                        if (static_cast<unsigned int>(StringPixLength(
+                                line, g_level_block->text_box_font)) >= wrap_width &&
                             words != 0) {
                             text = word_start;
                             *output_start = 0;
@@ -341,7 +341,8 @@ int GetTextBoxScrollRange(void)
     return g_level_block->text_box_right - g_level_block->text_box_left;
 }
 
-/* One entry of the second slot table. */
+/* One entry of text_slots_1e8. Index 2 is the secondary NPC-dialogue item
+   editor slot; other indices remain positional. */
 // FUNCTION: WIZ8 0x0058fa60
 int GetTextSlot1E8(int index)
 {
@@ -349,7 +350,8 @@ int GetTextSlot1E8(int index)
 }
 
 /* Empty one entry of either slot table and ask for a redraw. The two bodies
-   differ only in which table they clear, which is what pairs them. */
+   differ only in which table they clear, which is what pairs them. The 0x1d8
+   table still has no agreeing producer beyond init/clear. */
 // FUNCTION: WIZ8 0x0058f960
 void ClearTextSlot1D8(int index)
 {
@@ -396,7 +398,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
 // FUNCTION: WIZ8 0x0058aa10
 int GetTextBoxValue2E8(void)
 {
-    return g_level_block->value_2e8;
+    return g_level_block->text_box_font;
 }
 
 /* Whether the line the cursor is on has anything on it. */
@@ -760,9 +762,9 @@ static void InvalidateDialogueTextCursor(void)
                  g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
                  g_level_block->text_box_top;
     bounds.right =
-        StringPixLength(g_level_block->dialogue_text_input->text, g_level_block->value_2e8) +
+        StringPixLength(g_level_block->dialogue_text_input->text, g_level_block->text_box_font) +
         bounds.left;
-    bounds.bottom = GetFontHeight(g_level_block->value_2e8) + bounds.top;
+    bounds.bottom = GetFontHeight(g_level_block->text_box_font) + bounds.top;
     InvalidateMainGameActionPanelRect(&bounds);
 }
 
@@ -774,12 +776,12 @@ static void RewrapDialogueTextFromLine(unsigned int line)
         int width = 0;
         if (line == 1 && g_level_block->dialogue_text_input->first_line_prefix != 0) {
             width = StringPixLength(g_level_block->dialogue_text_input->first_line_prefix,
-                                    g_level_block->value_2e8);
+                                    g_level_block->text_box_font);
         }
         g_level_block->dialogue_text_input->line_count = line;
 
         size_t word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
-        width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
+        width += StringPixLengthArg(g_level_block->text_box_font, word_length + 1,
                                     g_level_block->dialogue_text_input->text + start);
         if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
             return;
@@ -792,7 +794,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
             }
             ++start;
             word_length = wcscspn(g_level_block->dialogue_text_input->text + start, L" ");
-            width += StringPixLengthArg(g_level_block->value_2e8, word_length + 1,
+            width += StringPixLengthArg(g_level_block->text_box_font, word_length + 1,
                                         g_level_block->dialogue_text_input->text + start);
             if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
                 break;
@@ -874,11 +876,11 @@ static void InsertDialogueTextCharacter(wchar_t character)
             int width = 0;
             if (line == 1 && g_level_block->dialogue_text_input->first_line_prefix != 0) {
                 width = StringPixLength(g_level_block->dialogue_text_input->first_line_prefix,
-                                        g_level_block->value_2e8);
+                                        g_level_block->text_box_font);
             }
             width += StringPixLength(g_level_block->dialogue_text_input->text +
                                          g_level_block->dialogue_text_input->line_offsets[line - 1],
-                                     g_level_block->value_2e8);
+                                     g_level_block->text_box_font);
             if (static_cast<unsigned int>(width) > g_level_block->dialogue_text_input->wrap_width) {
                 RewrapDialogueTextFromLine(line);
             }

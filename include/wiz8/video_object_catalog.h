@@ -1,6 +1,8 @@
 #ifndef WIZ8_VIDEO_OBJECT_CATALOG_H
 #define WIZ8_VIDEO_OBJECT_CATALOG_H
 
+#include "vobject.h"
+
 #pragma pack(push, 1)
 struct W8VideoObjectSlot {
     int first_frame;
@@ -22,6 +24,9 @@ extern W8VideoFrame g_video_frames_62c430[1658];
 
 unsigned int GetCatalogVideoObjectHandle(int object, int frame);
 short GetCatalogVideoObjectYOffset(int object);
+/* 0x00549420: load the catalog frame and return its HVOBJECT; optional out
+   receives the slot y_offset used as ConfigureVObjButton's base frame. */
+HVOBJECT GetCatalogVideoObject(int object, int frame, int* y_offset_out);
 void GetCatalogImageSize(int object, int frame, int image, short* width, short* height);
 /* 0x00549700: the image's own offset inside its frame, read from the locked
    surface rather than the ETRLE subregion table. */
