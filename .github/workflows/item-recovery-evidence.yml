@@ -9,15 +9,17 @@ permissions:
 env:
   GHIDRA_ARCHIVE: ghidra_12.1.2_PUBLIC_20260605.zip
   GHIDRA_SHA256: b62e81a0390618466c019c60d8c2f796ced2509c4c1aea4a37644a77272cf99d
+  GOG_INSTALLER_NAME: setup_wizardry_8_2001_12_23_(22306).exe
+  GOG_INSTALLER_SHA256: 48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
   GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.2_PUBLIC
   WIZ8_INPUT_DIR: /tmp/wiz8-inputs
   WIZ8_WORK_DIR: /tmp/wiz8-work
   WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
 
 jobs:
-  dump:
+  compare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -37,6 +39,22 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Install host tools
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cabextract \
+            innoextract \
+            llvm \
+            p7zip-full \
+            unshield \
+            unzip \
+            wine \
+            wine32:i386 \
+            wine64
+          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+
       - name: Install pinned Ghidra
         run: |
           archive="$RUNNER_TEMP/$GHIDRA_ARCHIVE"
@@ -49,30 +67,28 @@ jobs:
       - name: Install Python dependencies
         run: uv sync --frozen
 
-      - name: Dump reviewed Item.cpp functions
-        run: |
-          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
-          uv run wiz8 ghidra restore
-          uv run python - <<'PY'
-          from wiz8decomp import command_support as cli
-          from wiz8decomp.ghidra.env import open_program
-          from wiz8decomp.ghidra.query import query_many
+      - name: Build pinned VC6 toolchain
+        run: uv run wiz8 toolchain build vc6-sp5
 
-          selectors = ["0x0049f730", "0x0049fb30", "0x0049fba0", "0x0049fdb0"]
-          with open_program(cli.settings(), "wiz8") as program:
-              for selector in selectors:
-                  rows = query_many(
-                      program,
-                      [
-                          ("function", [selector]),
-                          ("decompile", [selector]),
-                          ("listing", [selector]),
-                      ],
-                  )
-                  print(f"\n===== {selector} FUNCTION =====")
-                  print(rows[0]["result"])
-                  print(f"===== {selector} DECOMPILE =====")
-                  print(rows[1]["result"].get("decompiled", ""))
-                  print(f"===== {selector} LISTING =====")
-                  print(rows[2]["result"].get("listing", ""))
-          PY
+      - name: Restore reviewed Ghidra checkpoint
+        run: uv run wiz8 ghidra restore
+
+      - name: Download licensed GOG input
+        env:
+          WIZ8_GOG_URL: ${{ secrets.WIZ8_GOG_URL }}
+        run: |
+          test -n "$WIZ8_GOG_URL"
+          installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
+          uvx --from gdown==5.2.1 gdown --fuzzy "$WIZ8_GOG_URL" -O "$installer" --quiet
+          echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
+          cat > config/local-inputs.yml <<EOF
+          schema: wiz8.local-inputs
+          inputs:
+            gog-media: $GOG_INSTALLER_NAME
+          EOF
+
+      - name: Prepare licensed corpus
+        run: uv run wiz8 prepare
+
+      - name: Compare recovered Item helpers
+        run: uv run wiz8 compare --build 0x0049fb30 0x0049fba0
