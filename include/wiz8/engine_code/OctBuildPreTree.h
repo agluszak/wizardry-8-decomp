@@ -8,6 +8,7 @@ class BitArray;
 struct W8VersionedLevelParticleRecord;
 
 extern float g_float_005ec52c;
+extern float g_float_005ebc28;
 
 struct W8OctPreTreeVertex;
 struct W8OctPreTreeGeometry;

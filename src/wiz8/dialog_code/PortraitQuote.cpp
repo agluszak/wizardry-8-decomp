@@ -393,6 +393,33 @@ int MeasureWrappedText(int x, int y, unsigned int wrap_width, int line_spacing, 
     }
 }
 
+// FUNCTION: WIZ8 0x005cf620
+unsigned char DrawPortraitQuoteBubble(int quote_handle, short x, short y, unsigned int surface)
+{
+    W8PortraitQuoteBubble* bubble;
+    unsigned int blt_flags;
+
+    if (quote_handle == -1) {
+        return 0;
+    }
+    bubble = g_portrait_quotes[quote_handle];
+    if (bubble == 0) {
+        return 0;
+    }
+    if ((bubble->flags & 1) == 0) {
+        blt_flags = 4;
+    } else {
+        blt_flags = 6;
+    }
+    g_current_portrait_quote = bubble;
+    BltVideoSurface(surface, bubble->surface, 0, x, y, blt_flags, 0);
+    if (surface == 0xfffffff2) {
+        InvalidateRegion(x, y, static_cast<short>(x + bubble->width),
+                         static_cast<short>(y + bubble->height), 0);
+    }
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x005cf6c0
 int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
                               unsigned char edge_index, const wchar_t* text, unsigned int max_width,

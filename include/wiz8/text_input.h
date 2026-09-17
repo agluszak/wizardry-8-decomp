@@ -6,6 +6,7 @@
 
 struct TEXTINPUTNODE;
 
+void InitTextInputMode(void);
 void InitTextInputModeWithScheme(int mode);
 void KillTextInputMode(void);
 char AddTextInputField(int left, int top, int width, int height, int priority, const wchar_t* text,
@@ -16,6 +17,7 @@ void SetActiveField(char index);
 short GetActiveTextInputField(void);
 void SetInputFieldStringWith16BitString(unsigned char field, wchar_t* text);
 void Get16BitStringFromField(unsigned char field, wchar_t* text);
+void ClearActiveField(void);
 void SelectNextField(void);
 unsigned int HandleTextInput(const InputAtom* input);
 void RenderActiveTextField(void);
@@ -33,3 +35,4 @@ void SelectAllText(void);
 void HandleExclusiveInput(unsigned short character);
 void AddChar(unsigned short character);
 void SetTextInputCursor(unsigned char cursor);
+void SetInputFieldBlocksMouseCallback(unsigned char field_id, unsigned char blocks);

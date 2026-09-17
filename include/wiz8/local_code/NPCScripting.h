@@ -121,7 +121,15 @@ void ProcessNpcScriptingFrame(void);                      /* 0x00524EB0 */
 void SetFlag68C500(unsigned char value);                  /* 0x0052A1A0 */
 unsigned char GetFlag68C4FA(void);                        /* 0x0052A070 */
 void QueueNpcMessageLine(int kind, int argument);         /* 0x005289B0 */
-void RestoreCurrentNpcQuoteBubble(void);                  /* 0x00529510 */
+/* 0x00525E80: searches the NPC script's kind-4 quote entries for a keyword
+   match; both out-pointers are optional. */
+int FindNpcKeywordQuote(wchar_t* keyword, short* quote_index, short* keyword_index);
+/* 0x00528D50: resolves NPC-name, named-person, and region keywords to a quote
+   id; returns -1 when nothing matches. */
+int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text);
+int FindNpcReplyQuote(wchar_t* text);            /* 0x00529300 */
+void RestoreCurrentNpcQuoteBubble(void);         /* 0x00529510 */
+void RunNpcQuoteDeclineActions(int quote_index); /* 0x00529610 */
 void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char prepend,
                         unsigned char suppress_entries); /* 0x00528830 */
 void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */

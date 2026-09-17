@@ -205,7 +205,7 @@ enum {
 };
 
 /* No weapon skill at all, which GetItemEquipSlotMask treats as a data error. */
-enum { W8_WEAPON_SKILL_NONE = 0xff };
+enum { W8_WEAPON_SKILL_NONE = -1 };
 
 /* Everything below equipment class four is a weapon; four and five are the
    off-hand pair, and the rest are worn rather than held. */

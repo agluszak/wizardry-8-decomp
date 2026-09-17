@@ -122,3 +122,5 @@ void Function50C1C0(unsigned char name_style, int value, const char* entity_name
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
                                     W8ItemInstance* out); /* 0x0050BA80 */
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
+/* 0x0050DD50: record that the NPC has told the party the given fact. */
+void TellNpcFact(W8NpcState* npc, short fact);
