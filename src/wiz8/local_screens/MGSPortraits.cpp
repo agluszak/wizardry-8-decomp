@@ -14,6 +14,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "input.h"
 
 // GLOBAL: WIZ8 0x0069B940
 Controls* g_panel_69b940; /* gpLevelButtonsPanel */
@@ -448,4 +449,73 @@ void CreateConditionButtons(void)
         RequestRedraw(0x8000);
         RequestRedraw(0xff);
     }
+}
+
+/* Forward left-button and hover events to the portrait level-up control for
+   the region's callback_id slot; release records giLevelUpChar. */
+// FUNCTION: WIZ8 0x0059BD20
+unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8TextControl* control = g_portrait_controls_0069b920[region->callback_id];
+    if (control == 0) {
+        return 0;
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+        control->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            giLevelUpChar = region->callback_id;
+            control->OnLeftButtonUp(0);
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            giLevelUpChar = -1;
+            control->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            control->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
+}
+
+/* Forward left-button and hover events to the condition button for the
+   region's callback_id slot. */
+// FUNCTION: WIZ8 0x0059C260
+unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned short us_event = event->usEvent;
+    unsigned short slot = region->callback_id;
+    if (us_event == LEFT_BUTTON_DOWN) {
+        g_condition_buttons_0069b900[slot]->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+    } else {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event == MOUSE_POS) {
+                if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+                    g_condition_buttons_0069b900[slot]->OnMouseLeave(0);
+                    return 1;
+                }
+                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                    g_condition_buttons_0069b900[slot]->OnMouseEnter(0);
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        g_condition_buttons_0069b900[slot]->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+    }
+    return 1;
 }

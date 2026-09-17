@@ -870,7 +870,39 @@ void OpenAutomapScreen(void);                 /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
 void ClearPortraitRefreshSlot(int slot);   /* 0x00561DB0 */
-void ClearScreenWait(void);                /* 0x00565970 */
+void ClearScreenWait(void); /* 0x00565970 */
+/* Portrait condition / enchantment orbs (help 25 / 26): hold opens the
+   mode-6 hover overlay; leave and release tear it down. */
+unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event,
+                                              struct W8Region* region); /* 0x005667A0 */
+unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event,
+                                                struct W8Region* region); /* 0x00566AE0 */
+/* Party portrait hit regions: select, target, open camp, and drag-hover. */
+unsigned char PortraitSelectRegionEvent(const InputAtom* event,
+                                        struct W8Region* region); /* 0x00565990 */
+/* Help 28: portrait side bar that opens Assay on the hovered weapon/item. */
+unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event,
+                                              struct W8Region* region); /* 0x00566E20 */
+/* Help 24: portrait overlay hover strip; drives portrait_overlay_party_slot. */
+unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event,
+                                              struct W8Region* region); /* 0x005670C0 */
+/* Region set 4: the eight combat-action hit regions beside the portraits. */
+unsigned char PartyCombatActionRegionEvent(const InputAtom* event,
+                                           struct W8Region* region); /* 0x005673B0 */
+/* Help 31: radar-map button beside the text area. */
+unsigned char RadarMapButtonRegionEvent(const InputAtom* event,
+                                        struct W8Region* region); /* 0x00567600 */
+/* Help 36: combat monster-list hit rows beside the radar map. */
+unsigned char MonsterListRegionEvent(const InputAtom* event,
+                                     struct W8Region* region); /* 0x00568100 */
+/* Help 23: the 3D world view — hover picks, left/right click aims/interacts,
+   and mouselook toggle. */
+unsigned char WorldViewRegionEvent(const InputAtom* event,
+                                   struct W8Region* region); /* 0x00567800 */
+/* Forward mouse events to W8MainScreenState control slots indexed by
+   callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */
+unsigned char MainScreenControlRegionEvent(const InputAtom* event,
+                                           struct W8Region* region); /* 0x0056F020 */
 void Function568390(int value);            /* 0x00568390 */
 void Function569390(unsigned char enable); /* 0x00569390: formation board */
 void ToggleMainGamePause(void);            /* 0x0056ABE0 */
@@ -975,7 +1007,10 @@ void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
 void DisableMainRegionSet(void);               /* 0x00561FB0 */
 void EnableMainRegionSet(void);                /* 0x00561FA0 */
 unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
-void OpenUseItemSelectView(int slot);          /* 0x0059C930 */
+/* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. Unresolved
+   gap body; declared for PortraitSelectRegionEvent. */
+void Function56EFF0(int party_slot);
+void OpenUseItemSelectView(int slot); /* 0x0059C930 */
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);

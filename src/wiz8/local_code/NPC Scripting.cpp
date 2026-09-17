@@ -691,6 +691,18 @@ unsigned char IsNpcScriptSessionActive(void)
     return g_npc_scripting.quote_active != 0 || g_npc_scripting.portrait_message_active != 0;
 }
 
+/* Consume a world-view click while an NPC quote/portrait session is up: finish
+   the voice playback (non-forced) and report the click as handled. */
+// FUNCTION: WIZ8 0x00577A20
+unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
+{
+    if (IsNpcScriptSessionActive() == 0) {
+        return 0;
+    }
+    TryFinishNpcVoicePlayback(0);
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00525DF0
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
 {

@@ -34,6 +34,11 @@ W8GrowableVector<stMeshModel*> g_mesh_models;
 // GLOBAL: WIZ8 0x0065a0e8
 int g_decompressed_mesh_bytes;
 
+/* Active-polygon scratch for the optional software backface pass in
+   RenderTriMeshWithEquations00470380. Layout matches srHeapArray<ulong>. */
+// GLOBAL: WIZ8 0x00659ce0
+srHeapArray<unsigned long> g_software_cull_active_polygons;
+
 /* Byte budget for the decompressed per-frame caches; AllocateFrameBuffers
    reclaims least-recently-used frames past it. */
 // GLOBAL: WIZ8 0x00609d34
@@ -296,12 +301,261 @@ void stMeshModel::getTriMesh(TriMesh& mesh)
     mesh = getTriMesh();
 }
 
-/* Explicitly unresolved callable at 0x00470360: retail pushes a zero flag into
-   the shared renderer at 0x00470380 before the still-unrecovered helper. This
-   forward keeps the vtable slot linkable; it is not a recovered FUNCTION body. */
+/* Thin vtable wrapper: submit with no external poly-equation table. */
+// FUNCTION: WIZ8 0x00470360
 void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 {
-    srMeshModel::renderTriMesh(renderer, mesh);
+    RenderTriMeshWithEquations00470380(renderer, mesh, 0);
+}
+
+/* Wizardry-extended srMeshModel::renderTriMesh. Optional `poly_equations`
+   enables a software backface cull into g_software_cull_active_polygons and
+   forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
+   g_flag_0065a0ed already requested front culling. */
+// FUNCTION: WIZ8 0x00470380
+void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const TriMesh& mesh,
+                                                     const srVector4T<float>* poly_equations)
+{
+    unsigned long active_count = 0;
+    srShader shader;
+
+    if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
+        renderer.pushEnable();
+        if ((g_flag_0065a0ee != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
+            !renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
+            renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
+        }
+
+        if (g_flag_0065a0ed != 0) {
+            renderer.setCullMode(srGERD::CULL_FRONT);
+        } else if (poly_equations != 0) {
+            renderer.setCullMode(srGERD::CULL_FRONT);
+
+            if (g_software_cull_active_polygons.capacity !=
+                static_cast<unsigned long>(mesh.polygon_count_04)) {
+                unsigned long needed = static_cast<unsigned long>(mesh.polygon_count_04);
+                if (needed == 0) {
+                    g_software_cull_active_polygons.release();
+                } else {
+                    unsigned long* replacement = srHeapArray<unsigned long>::allocate(needed);
+                    if (g_software_cull_active_polygons.data != 0 &&
+                        g_software_cull_active_polygons.capacity != 0) {
+                        unsigned long copy_count = g_software_cull_active_polygons.capacity;
+                        if (needed < copy_count) {
+                            copy_count = needed;
+                        }
+                        CopyUlongBuffer004747f0(replacement, g_software_cull_active_polygons.data,
+                                                static_cast<int>(copy_count));
+                    }
+                    g_software_cull_active_polygons.release();
+                    g_software_cull_active_polygons.data = replacement;
+                    g_software_cull_active_polygons.capacity = needed;
+                }
+            }
+
+            srMatrix4T<float> inverse_model_view;
+            renderer.getInverseModelViewMatrix(inverse_model_view);
+            srVector3T<float> eye(inverse_model_view.vectors[0].w, inverse_model_view.vectors[1].w,
+                                  inverse_model_view.vectors[2].w);
+
+            if (mesh.active_polygons_14c == 0) {
+                if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
+                    for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
+                        int vertex = mesh.poly_vertices_10[polygon].y;
+                        const srVector3T<float>& position = mesh.positions_38[vertex];
+                        const srVector4T<float>& equation = poly_equations[polygon];
+                        float facing = (eye.x - position.x) * equation.x +
+                                       (eye.y - position.y) * equation.y +
+                                       (eye.z - position.z) * equation.z;
+                        if (static_cast<float>(g_zero_005ebb40) <= facing) {
+                            g_software_cull_active_polygons.data[active_count] =
+                                static_cast<unsigned long>(polygon);
+                            ++active_count;
+                        }
+                    }
+                } else {
+                    for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
+                        int vertex = mesh.poly_vertices_10[polygon].y;
+                        const srVector3T<float>& position = mesh.positions_38[vertex];
+                        const srVector4T<float>& equation = poly_equations[polygon];
+                        float facing = (eye.x - position.x) * equation.x +
+                                       (eye.y - position.y) * equation.y +
+                                       (eye.z - position.z) * equation.z;
+                        if (facing <= static_cast<float>(g_zero_005ebb40)) {
+                            g_software_cull_active_polygons.data[active_count] =
+                                static_cast<unsigned long>(polygon);
+                            ++active_count;
+                        }
+                    }
+                }
+            } else if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
+                for (unsigned long index = 0; index < mesh.active_polygon_count_150; ++index) {
+                    unsigned long polygon = mesh.active_polygons_14c[index];
+                    int vertex = mesh.poly_vertices_10[polygon].y;
+                    const srVector3T<float>& position = mesh.positions_38[vertex];
+                    const srVector4T<float>& equation = poly_equations[polygon];
+                    float facing = (eye.x - position.x) * equation.x +
+                                   (eye.y - position.y) * equation.y +
+                                   (eye.z - position.z) * equation.z;
+                    if (static_cast<float>(g_zero_005ebb40) <= facing) {
+                        g_software_cull_active_polygons.data[active_count] = polygon;
+                        ++active_count;
+                    }
+                }
+            } else {
+                for (unsigned long index = 0; index < mesh.active_polygon_count_150; ++index) {
+                    unsigned long polygon = mesh.active_polygons_14c[index];
+                    int vertex = mesh.poly_vertices_10[polygon].y;
+                    const srVector3T<float>& position = mesh.positions_38[vertex];
+                    const srVector4T<float>& equation = poly_equations[polygon];
+                    float facing = (eye.x - position.x) * equation.x +
+                                   (eye.y - position.y) * equation.y +
+                                   (eye.z - position.z) * equation.z;
+                    if (facing <= static_cast<float>(g_zero_005ebb40)) {
+                        g_software_cull_active_polygons.data[active_count] = polygon;
+                        ++active_count;
+                    }
+                }
+            }
+        } else {
+            renderer.setCullMode(srGERD::CULL_NONE);
+        }
+
+        for (int side = 1; side >= 0; --side) {
+            if ((mesh.control_flags_0c & (1u << side)) != 0) {
+                srTriMeshPipeline* pipeline = srTriMeshPipeline::Get004750A0(&renderer);
+                // reinterpret-ok: sort bias is stored as float bits in extra_40
+                pipeline->extra_40 = *reinterpret_cast<const unsigned long*>(&mesh.sort_bias_148);
+                pipeline->triangles_34 = mesh.poly_vertices_10;
+                pipeline->triangle_count_1c = static_cast<unsigned long>(mesh.polygon_count_04);
+                pipeline->positions_38 = mesh.positions_38;
+                pipeline->vertex_count_20 = static_cast<unsigned long>(mesh.vertex_count_00);
+                pipeline->vertex_extras_3c = mesh.normals_3c;
+
+                if (poly_equations != 0) {
+                    pipeline->projected_vertices_30 = 0;
+                } else {
+                    pipeline->projected_vertices_30 = mesh.poly_equations_14;
+                }
+
+                if (poly_equations != 0) {
+                    pipeline->active_triangles_2c = g_software_cull_active_polygons.data;
+                    pipeline->active_triangle_count_24 = active_count;
+                } else if (mesh.active_polygons_14c != 0) {
+                    pipeline->active_triangles_2c = mesh.active_polygons_14c;
+                    pipeline->active_triangle_count_24 = mesh.active_polygon_count_150;
+                }
+
+                if ((mesh.control_flags_0c & 0x10) == 0) {
+                    pipeline->bounds_minimum_44 = mesh.bounds_minimum_120;
+                    pipeline->bounds_maximum_50 = mesh.bounds_maximum_12c;
+                    if (pipeline->bounds_state_6c == 0) {
+                        pipeline->bounds_state_6c = 2;
+                    }
+                }
+                if ((mesh.control_flags_0c & 0x20) == 0) {
+                    pipeline->bounds_center_5c = mesh.bounds_center_138;
+                    pipeline->bounds_radius_68 = mesh.bounds_radius_144;
+                    pipeline->bounds_state_6c = 1;
+                }
+
+                for (long pass = 0; pass < mesh.pass_count_08; ++pass) {
+                    pipeline->current_record_14->flags_00 = 0;
+                    pipeline->current_pass_18->shader_14 = 0;
+                    pipeline->current_pass_18->texture_array_0c = 0;
+                    pipeline->current_pass_18->value_10 = 0;
+
+                    if (mesh.dig_40[pass] != 0) {
+                        pipeline->current_record_14->colors_0c = mesh.dig_40[pass];
+                        pipeline->current_record_14->color_format_10 = 1;
+                        pipeline->current_record_14->flags_00 |= 1;
+                    }
+                    if (mesh.dcg_50[pass] != 0) {
+                        pipeline->current_record_14->dcg_14 = mesh.dcg_50[pass];
+                        pipeline->current_record_14->flags_00 |= 2;
+                    }
+                    if (mesh.scg_60[pass] != 0) {
+                        pipeline->current_record_14->scg_18 = mesh.scg_60[pass];
+                        pipeline->current_record_14->flags_00 |= 4;
+                    }
+
+                    if (mesh.vertex_materials_c0[pass][side] == 0) {
+                        srMaterialIFace* material = mesh.materials_70[pass][side];
+                        pipeline->material_80 = material;
+                        pipeline->current_record_14->material_08 = material;
+                    } else {
+                        pipeline->current_record_14->vertex_materials_28 =
+                            mesh.vertex_materials_c0[pass][side];
+                        pipeline->current_record_14->flags_00 |= 0x40;
+                    }
+
+                    if (mesh.poly_uv_110[pass] != 0) {
+                        pipeline->current_pass_18->value_1c =
+                            // reinterpret-ok: poly UV index table pointer bits in value_1c
+                            reinterpret_cast<unsigned long>(mesh.poly_uv_110[pass]);
+                    }
+
+                    if (mesh.poly_shaders_100[pass] == 0) {
+                        shader.value = mesh.shaders_b0[pass].value;
+                        if (g_flag_0065a0ee != 0) {
+                            shader.value = (shader.value & 0xfffffffeUL) | 6UL;
+                        }
+                        pipeline->SetFlags004752C0(shader);
+                    } else {
+                        pipeline->current_pass_18->shader_14 = mesh.poly_shaders_100[pass];
+                    }
+
+                    if (mesh.texcoords_18[pass][0] != 0) {
+                        pipeline->current_record_14->st0_20 = mesh.texcoords_18[pass][0];
+                        pipeline->current_record_14->flags_00 |= 0x10;
+                    }
+                    if (mesh.texcoords_18[pass][1] != 0) {
+                        pipeline->current_record_14->flags_00 |= 0x20;
+                        pipeline->current_record_14->st1_24 = mesh.texcoords_18[pass][1];
+                    }
+
+                    for (int layer = 0; layer < 2; ++layer) {
+                        if (mesh.poly_textures_e0[pass][layer] == 0) {
+                            srTextureIFace* texture = mesh.textures_90[pass][layer];
+                            (&pipeline->texture_78)[layer] = texture;
+                            (&pipeline->current_pass_18->texture_00)[layer] = texture;
+                        } else {
+                            (&pipeline->current_pass_18->texture_array_0c)[layer] =
+                                mesh.poly_textures_e0[pass][layer];
+                        }
+                    }
+
+                    ++pipeline->slot_count_84;
+                    pipeline->PrepareSlot00475540();
+                }
+
+                pipeline->FlushIfCurrent();
+            }
+        }
+
+        renderer.popEnable();
+        last_decompress_release_tick_440 = GetTickCount();
+    }
+}
+
+/* Copy `count` dwords with a plain pointer walk. Distinct from
+   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). Retail lowers the
+   walk through a dest-relative displacement. */
+// FUNCTION: WIZ8 0x004747f0
+void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source, int count)
+{
+    if (count != 0) {
+        int displacement =
+            // reinterpret-ok: dword copy via dest-relative source displacement
+            reinterpret_cast<const char*>(source) - reinterpret_cast<const char*>(destination);
+        do {
+            // reinterpret-ok: dword copy via dest-relative source displacement
+            *destination = *reinterpret_cast<unsigned long*>(reinterpret_cast<char*>(destination) +
+                                                             displacement);
+            ++destination;
+            --count;
+        } while (count != 0);
+    }
 }
 
 /* Copy `count` dwords between distinct buffers through the imported vp. */
@@ -1117,6 +1371,9 @@ void stMeshModel::FinalizeVertexFrame00473180(int frame)
 // TEMPLATE: WIZ8 0x00475240
 // srHeapArray<srVertexProcessor*>::ensure (folded four-byte-element instantiations)
 
+// TEMPLATE: WIZ8 0x004741b0
+// srHeapArray<T>::release (null-checked; four-byte-element instantiations)
+
 /* Mirror the active shader onto both the pipeline and the current Pass record
    selected at +0x18. */
 // FUNCTION: WIZ8 0x004752C0
@@ -1496,8 +1753,7 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     pipeline->PrepareSlot00475540();
     return pipe;
 }
-/* Empty notify stub. Retail ICF placed this RET amid OptionsScreen material
-   near 0x005AA400, more than a megabyte from the rest of this TU — the
-   placement-outliers report's regression fixture, not proof of mis-ownership. */
-// FUNCTION: WIZ8 0x005aa400
+/* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd
+   at 0x005AA400 (OptionsScreen.cpp). No separate FUNCTION claim: decomplint
+   rejects FOLDED-before-primary when engine_code sorts ahead of OptionsScreen. */
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}

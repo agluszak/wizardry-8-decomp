@@ -1270,6 +1270,9 @@ void W8OptionsGraphicsPanel::OnDrag(W8HorizontalRangeThumb*)
     SetDisplayGamma(g_options_values.gamma);
 }
 
+// FUNCTION: WIZ8 0x005aa400
+void W8OptionsGraphicsPanel::OnDragEnd(W8HorizontalRangeThumb*) {}
+
 // FUNCTION: WIZ8 0x005aa410
 void W8OptionsAdvancedGraphicsPanel::Populate()
 {

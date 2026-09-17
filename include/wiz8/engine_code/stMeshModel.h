@@ -28,6 +28,12 @@ public:
     virtual const TriMesh& getTriMesh() override;                    /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
+    /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
+       the software backface pass; non-null callers supply an external equation
+       table used to build the active-polygon scratch at 0x00659ce0. */
+    void
+    RenderTriMeshWithEquations00470380(class srGERD& renderer, const TriMesh& mesh,
+                                       const srVector4T<float>* poly_equations); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);
@@ -109,6 +115,9 @@ static_assert(sizeof(stMeshModel) == 0x464, "stMeshModel_size_must_be_0x464");
 extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 /* Bytes currently held by decompressed per-frame float caches. */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
+/* Scratch active-polygon indices filled by software backface cull in
+   RenderTriMeshWithEquations00470380 when an equation table is supplied. */
+extern srHeapArray<unsigned long> g_software_cull_active_polygons; /* 0x00659CE0 */
 
 /* True when all three components of the vector are zero; the vertex-lighting
    code uses it to decide between a plain copy and a per-vertex offset. */
@@ -119,6 +128,9 @@ void CopyDwordBuffer00470180(void* destination, const void* source, int count);
 /* Fill `count` dwords with `value`. FUN_00472270 uses this when a vec3's
    components are equal, passing vertex_count*3. */
 void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
+/* Plain dword walk used by RenderTriMeshWithEquations00470380's active-poly
+   scratch resize and by stMeshModel clone's sunlight table copy. */
+void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source, int count);
 /* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
 void AddFloatBuffer00474730(float* destination, const float* source, int count);
 /* dest[i] = source[i] + offset for `count` vectors, or a plain copy when the

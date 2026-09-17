@@ -2,7 +2,7 @@
 
 #include "wiz8/geometry.h"
 
-class srClass;
+class stTextureAnim;
 class stModelInstance2D;
 
 #include <cstddef>
@@ -14,7 +14,7 @@ class stModelInstance2D;
    object at +4, frame count at +8, ETRLE size at +0xc/+0xe. */
 struct W8MainGameResourceSlot {
     int image_id;             /* 0x00: GetCatalogVideoObjectHandle / YOffset key */
-    srClass* object;          /* 0x04: stTextureAnim* once loaded */
+    stTextureAnim* object;    /* 0x04: loaded cursor anim */
     unsigned int frame_count; /* 0x08: frames appended into the anim */
     unsigned short size_x;    /* 0x0c */
     unsigned short size_y;    /* 0x0e */
@@ -96,8 +96,11 @@ struct W8LevelRuntimeBlock {
     int unknown_160;
     int unknown_164;
     int unknown_168;
-    int highlight_override;             /* 0x16c */
-    int party_slots_170[7];             /* 0x170: positional roles unresolved */
+    int highlight_override;  /* 0x16c */
+    int party_slots_170[6]; /* 0x170: positional roles unresolved */
+    /* 0x188: PortraitAssaySidebarRegionEvent hover zone — 1 upper weapon
+       row, 2 lower, 3 assayable item; Screens resets it to 0. */
+    int portrait_assay_hover_mode;
     int formation_highlight_party_slot; /* 0x18c */
     int held_item_display_190;          /* 0x190 */
     int value_194;
@@ -120,9 +123,12 @@ struct W8LevelRuntimeBlock {
        The input is therefore dormant in this build rather than an inferred
        NPC-dialogue feature. */
     W8DialogueTextState* dialogue_text_input;
-    int portrait_overlay_party_slot;    /* 0x200: -1 while untracked */
-    int party_slot_204;                 /* 0x204: positional role unresolved */
-    int party_slot_208;                 /* 0x208: positional role unresolved */
+    int portrait_overlay_party_slot; /* 0x200: -1 while untracked */
+    /* 0x204 / 0x208: party slot whose condition / enchantment orb is held or
+       drag-hovering; PortraitConditionOrbRegionEvent and
+       PortraitEnchantmentOrbRegionEvent own them (-1 while idle). */
+    int condition_orb_party_slot;
+    int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
     unsigned char flag_210;             /* 0x210 */
     unsigned char unknown_211[3];
@@ -218,11 +224,12 @@ struct W8LevelRuntimeBlock {
     int hover_combat_slot; /* 0x318 */
     unsigned char flag_31c;
     unsigned char unknown_31d[3];
-    unsigned int countdown_320;
-    unsigned char flag_324;
+    unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
+    /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
+    unsigned char portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
-    unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
-    unsigned char review_transition_active;  /* 0x327: set while leaving into review */
+    unsigned char radar_map_alternate;      /* 0x326: radar uses alternate frame art */
+    unsigned char review_transition_active; /* 0x327: set while leaving into review */
     unsigned char flag_328;
     unsigned char unknown_329[3];
     unsigned int countdown_32c;
@@ -241,16 +248,24 @@ static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_mode) == 0x134,
               "W8LevelRuntimeBlock_portrait_refresh_mode");
 static_assert(offsetof(W8LevelRuntimeBlock, party_slots_170) == 0x170,
               "W8LevelRuntimeBlock_party_slots_170");
+static_assert(offsetof(W8LevelRuntimeBlock, portrait_assay_hover_mode) == 0x188,
+              "W8LevelRuntimeBlock_portrait_assay_hover_mode");
 static_assert(offsetof(W8LevelRuntimeBlock, formation_highlight_party_slot) == 0x18c,
               "W8LevelRuntimeBlock_formation_highlight_party_slot");
+static_assert(offsetof(W8LevelRuntimeBlock, portrait_right_hold_armed) == 0x324,
+              "W8LevelRuntimeBlock_portrait_right_hold_armed");
+static_assert(offsetof(W8LevelRuntimeBlock, radar_map_alternate) == 0x326,
+              "W8LevelRuntimeBlock_radar_map_alternate");
+static_assert(offsetof(W8LevelRuntimeBlock, review_transition_active) == 0x327,
+              "W8LevelRuntimeBlock_review_transition_active");
 static_assert(offsetof(W8LevelRuntimeBlock, value_194) == 0x194, "W8LevelRuntimeBlock_value_194");
 static_assert(offsetof(W8LevelRuntimeBlock, value_198) == 0x198, "W8LevelRuntimeBlock_value_198");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_overlay_party_slot) == 0x200,
               "W8LevelRuntimeBlock_portrait_overlay_party_slot");
-static_assert(offsetof(W8LevelRuntimeBlock, party_slot_204) == 0x204,
-              "W8LevelRuntimeBlock_party_slot_204");
-static_assert(offsetof(W8LevelRuntimeBlock, party_slot_208) == 0x208,
-              "W8LevelRuntimeBlock_party_slot_208");
+static_assert(offsetof(W8LevelRuntimeBlock, condition_orb_party_slot) == 0x204,
+              "W8LevelRuntimeBlock_condition_orb_party_slot");
+static_assert(offsetof(W8LevelRuntimeBlock, enchantment_orb_party_slot) == 0x208,
+              "W8LevelRuntimeBlock_enchantment_orb_party_slot");
 static_assert(offsetof(W8LevelRuntimeBlock, condition_highlight_party_slot) == 0x20c,
               "W8LevelRuntimeBlock_condition_highlight_party_slot");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_210) == 0x210, "W8LevelRuntimeBlock_flag_210");

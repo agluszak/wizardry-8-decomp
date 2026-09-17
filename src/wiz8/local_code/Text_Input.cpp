@@ -28,6 +28,12 @@
  * Modified 2026-09-07 to identify the released source and keep only
  * retail-evidenced Wizardry declarations and behavior in the product unit.
  * See third_party/sfi-ja2-utils/README.md for the demonstrated boundary.
+ *
+ * JA2 Utils ancestry is proven by the retained oracle, but retail has no
+ * Text_Input / Utils path string (source-tree.csv, assertions, Wiz8.exe
+ * strings). original-tu promotion requires that path evidence; leave
+ * unresolved-fragment until one appears. Recovered .cpp / local_code/ placement
+ * is a recovery choice, not a proved Wizardry path.
  */
 
 typedef void (*INPUT_CALLBACK)(unsigned char index, int active);

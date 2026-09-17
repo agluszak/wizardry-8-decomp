@@ -87,6 +87,13 @@ unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position,
                                         char follow_leader); /* 0x0050FBA0 */
+/* Whether the group is loaded, in combat, and still has members; hostile
+   groups are live on that alone, others also need CombatAllowsLiveGroups. */
+unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group); /* 0x00510B30 */
+/* The Nth live combat group in plsMonsterGroupList order; null when none. */
+W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index); /* 0x00510AC0 */
+/* Channel-12 notices summarizing a group's name, count, and visibility. */
+void ShowMonsterGroupInfoNotice(int group_id); /* 0x00511670 */
 /* Whether the group has a member placed and rendered in the world; a nonzero
    second argument also demands the member's party-threat flag. */
 unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,

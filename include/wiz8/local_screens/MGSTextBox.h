@@ -9,6 +9,7 @@ class Trigger;
 #include "wiz8/3d_code/PList.h"
 
 struct W8MonsterInfo;
+struct W8Region;
 
 struct W8NoticeWord {
     short start;
@@ -74,6 +75,8 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...);
 void ScrollTextBoxTo(int line);                                                  /* 0x0058BBC0 */
 void ScrollTextBoxUp(int lines);                                                 /* 0x0058BF00 */
 void ScrollTextBoxDown(int lines);                                               /* 0x0058C060 */
+int GetTextBoxVisibleLineCount(void);                                            /* 0x00590900 */
+
 /* 0x0058B410: recolour the character span [start, stop) of the most recent
    line in one text box; -1 picks the box the current game mode writes to. */
 void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,

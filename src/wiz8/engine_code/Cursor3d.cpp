@@ -395,6 +395,26 @@ void SetFloat60AB48(void)
     g_float_60ab48 = 4000.0f;
 }
 
+/* 0x005EC260: hard ceiling for SetWorldCursorRange00491650. */
+// GLOBAL: WIZ8 0x005ec260
+float g_float_005ec260 = 50000.0f;
+
+/* Install an action-range distance into the live cursor: subtract
+   g_float_005ebcdc / distance * world_scale, clamp to 50000, write range_44,
+   and force last_published_34 to the -1e8 republish sentinel. */
+// FUNCTION: WIZ8 0x00491650
+void SetWorldCursorRange00491650(float distance)
+{
+    if (g_world_cursor_0065ba8c != 0) {
+        distance = distance - (g_float_005ebcdc / distance) * g_world_scale_005ebc40;
+        if (distance >= g_float_005ec260) {
+            distance = g_float_005ec260;
+        }
+        g_world_cursor_0065ba8c->range_44 = distance;
+        g_world_cursor_0065ba8c->last_published_34 = -100000000.0f;
+    }
+}
+
 /* Toggle the 3D world cursor: release it if one exists, or initialize one
    if none does. Both branches tail-call into the respective functions. */
 // FUNCTION: WIZ8 0x00490af0

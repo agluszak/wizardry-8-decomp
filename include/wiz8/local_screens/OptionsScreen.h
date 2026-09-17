@@ -235,7 +235,7 @@ public:
     W8OptionsGraphicsPanel();
     virtual void Populate() override;
     virtual void OnDrag(W8HorizontalRangeThumb* thumb) override;
-    virtual void OnDragEnd(W8HorizontalRangeThumb*) override {}
+    virtual void OnDragEnd(W8HorizontalRangeThumb*) override;
 };
 
 // VTABLE: WIZ8 0x005ef0b8

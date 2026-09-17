@@ -1147,3 +1147,22 @@ int GetSelectedPropIndex0044DA60(void)
     }
     return g_selected_prop_index_00607b98;
 }
+
+/* When the renderer still holds a pick and ResolvePickedProp latched a
+   trigger, run that trigger and post the nothing-happened / special-item
+   notice. Clearing the pick also clears the latch. */
+// FUNCTION: WIZ8 0x0044DA20
+unsigned char ActivateSelectedProp0044DA20(void)
+{
+    if (GetValue65962C() == 0) {
+        g_selected_prop_trigger_00659a60 = 0;
+        return 0;
+    }
+    if (g_selected_prop_trigger_00659a60 != 0) {
+        g_flag_00606994 = 0;
+        g_selected_prop_trigger_00659a60->Run(-1);
+        g_selected_prop_trigger_00659a60->PrintNothingHappenedOrSpecialItemRequired004456E0();
+        return 1;
+    }
+    return 0;
+}

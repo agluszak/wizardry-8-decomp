@@ -94,6 +94,9 @@ bool SelectWorldCursorNode0048EFC0(void);
 int GetWorldCursorNodeCount0048ED00(void);
 void HideWorldCursor00490B90(void);
 void ShowWorldCursor00490B10(void);
+/* Clamp and install an action-range distance into the live world cursor, then
+   invalidate last_published_34 so the next update republishes. */
+void SetWorldCursorRange00491650(float distance); /* 0x00491650 */
 /* 0x00490C20: copies the cursor state vector at +0x28, or zero when there is
    no cursor. */
 void GetWorldCursorAnchor00490C20(srVector3T<float>* position);

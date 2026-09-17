@@ -913,9 +913,15 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x004503B0
-int ForwardSelectedPropIndex004503B0(void)
+int ForwardSelectedPropIndex004503B0(W8World*, int, int)
 {
     return GetSelectedPropIndex0044DA60();
+}
+
+// FUNCTION: WIZ8 0x00451150
+unsigned char ForwardActivateSelectedProp00451150(W8World*, int, int, int)
+{
+    return ActivateSelectedProp0044DA20();
 }
 
 // FUNCTION: WIZ8 0x00451100

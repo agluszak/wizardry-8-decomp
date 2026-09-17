@@ -656,13 +656,26 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
     return line;
 }
 
-static int GetTextBoxVisibleLineCount(void)
+/* Expands at call sites that retail inlines; 0x00590900 is the out-of-line
+   emission for the few retail CALL sites. */
+/* Retail returns 7 when the text box is in a multi-line mode (spell / item /
+   camp / NPC dialogue with the transcript collapsed); otherwise 1. */
+#define W8_TEXT_BOX_VISIBLE_LINE_COUNT() GetTextBoxVisibleLineCount()
+
+// FUNCTION: WIZ8 0x00590900
+int GetTextBoxVisibleLineCount(void)
 {
-    return (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->flag_261 == 0) &&
-                   (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
-                    gXStatus.fCampMode != 0 || gXStatus.fNpcDialogueMode != 0)
-               ? 7
-               : 1;
+    unsigned char dialogue = gXStatus.fNpcDialogueMode;
+    if (dialogue != 0) {
+        if (g_screen_state_00649f1c->flag_261 != 0) {
+            return 1;
+        }
+    }
+    if (gXStatus.fSpellCastMode == 0 && dialogue == 0 && gXStatus.fItemSelectMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        return 1;
+    }
+    return 7;
 }
 
 static unsigned int GetTextBoxLineCount(short text_box)
@@ -727,7 +740,7 @@ void AdvanceNoticeLine(short text_box)
             }
         } else if (!IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
-                            GetTextBoxVisibleLineCount());
+                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
         }
     }
     RequestRedraw(W8_REDRAW_TEXT_BOX);
@@ -738,7 +751,7 @@ void ScrollTextBoxTo(int line)
 {
     short text_box = g_status_685170.text_line_cursor_1795;
     unsigned int count = GetTextBoxLineCount(text_box);
-    unsigned int visible = GetTextBoxVisibleLineCount();
+    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
     if (count <= visible) {
         return;
     }
@@ -755,11 +768,70 @@ void ScrollTextBoxTo(int line)
     if (g_level_block->text_lines[text_box] != previous) {
         g_level_block->text_content_region = (g_level_block->text_lines[text_box] != 0) + 0x56;
         g_level_block->dialogue_content_region =
-            (g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+            (g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
              GetTextBoxLineCount(text_box)) +
             0x59;
         RequestRedraw(W8_REDRAW_TEXT_BOX);
     }
+}
+
+// FUNCTION: WIZ8 0x0058BF00
+void ScrollTextBoxUp(int lines)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+    unsigned int previous = g_level_block->text_lines[text_box];
+    if (previous == 0) {
+        return;
+    }
+
+    unsigned int amount = static_cast<unsigned int>(lines);
+    if (previous < amount) {
+        g_level_block->text_lines[text_box] = 0;
+    } else {
+        g_level_block->text_lines[text_box] = previous - amount;
+    }
+
+    unsigned int current = g_level_block->text_lines[text_box];
+    if (current == previous) {
+        return;
+    }
+    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+        g_level_block->dialogue_content_region = 0x5a;
+    }
+    if (current == 0) {
+        g_level_block->text_content_region = 0x56;
+    }
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
+}
+
+// FUNCTION: WIZ8 0x0058C060
+void ScrollTextBoxDown(int lines)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+    unsigned int count = GetTextBoxLineCount(text_box);
+    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int previous = g_level_block->text_lines[text_box];
+    if (previous + visible >= count) {
+        return;
+    }
+
+    if (previous + visible + static_cast<unsigned int>(lines) <= count) {
+        g_level_block->text_lines[text_box] = previous + lines;
+    } else {
+        g_level_block->text_lines[text_box] = count - visible;
+    }
+
+    unsigned int current = g_level_block->text_lines[text_box];
+    if (current == previous) {
+        return;
+    }
+    if (current != 0) {
+        g_level_block->text_content_region = 0x57;
+    }
+    if (current + visible >= count) {
+        g_level_block->dialogue_content_region = 0x59;
+    }
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
 // FUNCTION: WIZ8 0x0058D7E0
@@ -889,7 +961,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
                 g_level_block->dialogue_text_input->line_offsets[line] &&
             !IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
-                            GetTextBoxVisibleLineCount());
+                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
         }
         ++line;
     } while (true);
@@ -1030,7 +1102,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     }
 
     short text_box = g_status_685170.text_line_cursor_1795;
-    unsigned int visible_lines = GetTextBoxVisibleLineCount();
+    unsigned int visible_lines = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
     unsigned int line_count = GetTextBoxLineCount(text_box);
     if (line_count <= visible_lines) {
         return 0;
@@ -1067,6 +1139,265 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     }
     g_level_block->text_scroll_drag_idle = 0;
     return 1;
+}
+
+/* Unrecovered mode-specific text-box body handlers / wheel helpers. */
+unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
+                                            W8Region* region);       /* 0x0056F1D0 */
+void NpcDialogueTextBoxWheelAt(short x, unsigned short y, int flag); /* 0x0056F490 */
+unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
+                                              W8Region* region);       /* 0x0059DB40 */
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, int flag); /* 0x0059DD30 */
+unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
+                                          W8Region* region); /* 0x005A0F70 */
+
+// FUNCTION: WIZ8 0x0058E2A0
+unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* region)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+    if (g_level_block->text_lines[text_box] == 0) {
+        PushButtonSoundScheme005587C0(0, 1);
+    }
+
+    unsigned short us_event = event->usEvent;
+    if (us_event < RIGHT_BUTTON_DOWN + 1) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP && us_event != LEFT_BUTTON_REPEAT) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+
+        unsigned int previous = g_level_block->text_lines[text_box];
+        if (previous == 0) {
+            return 1;
+        }
+        g_level_block->text_lines[text_box] = previous - 1;
+        unsigned int current = g_level_block->text_lines[text_box];
+        if (current == previous) {
+            return 1;
+        }
+        if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
+            g_level_block->dialogue_content_region = 0x5a;
+        }
+        if (g_level_block->text_lines[text_box] == 0) {
+            g_level_block->text_content_region = 0x56;
+            RequestRedraw(W8_REDRAW_TEXT_BOX);
+            return 1;
+        }
+    } else {
+        if (us_event != RIGHT_BUTTON_UP && us_event != RIGHT_BUTTON_REPEAT) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 &&
+                    g_level_block->text_lines[text_box] != 0) {
+                    g_level_block->text_content_region = 0x58;
+                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                }
+            } else if (g_level_block->text_lines[text_box] != 0) {
+                g_level_block->text_content_region = 0x57;
+                RequestRedraw(W8_REDRAW_TEXT_BOX);
+                return 0;
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+
+        unsigned int previous = g_level_block->text_lines[text_box];
+        if (previous == 0) {
+            return 1;
+        }
+        if (previous < 7) {
+            g_level_block->text_lines[text_box] = 0;
+        } else {
+            g_level_block->text_lines[text_box] = previous - 7;
+        }
+        unsigned int current = g_level_block->text_lines[text_box];
+        if (current == previous) {
+            return 1;
+        }
+        if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+            g_level_block->dialogue_content_region = 0x5a;
+        }
+        if (g_level_block->text_lines[text_box] == 0) {
+            g_level_block->text_content_region = 0x56;
+        }
+    }
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0058E650
+unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* region)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int count = GetTextBoxLineCount(text_box);
+    if (g_level_block->text_lines[text_box] + visible >= count) {
+        PushButtonSoundScheme005587C0(0, 1);
+    }
+
+    unsigned short us_event = event->usEvent;
+    if (us_event < RIGHT_BUTTON_DOWN + 1) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP && us_event != LEFT_BUTTON_REPEAT) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            ScrollTextBoxDown(1);
+            return 1;
+        }
+    } else {
+        if (us_event != RIGHT_BUTTON_UP && us_event != RIGHT_BUTTON_REPEAT) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                    if (g_level_block->text_lines[text_box] + visible < count) {
+                        g_level_block->dialogue_content_region = 0x5b;
+                        RequestRedraw(W8_REDRAW_TEXT_BOX);
+                    }
+                }
+            } else {
+                if (g_level_block->text_lines[text_box] + visible < count) {
+                    g_level_block->dialogue_content_region = 0x5a;
+                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                    return 0;
+                }
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            ScrollTextBoxDown(7);
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0058ED90
+unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    if (event->usEvent == MOUSE_WHEEL) {
+        short delta = GetMouseWheelDeltaValue(event->usParam);
+        if (delta < 0) {
+            ScrollTextBoxDown(-delta);
+        } else {
+            short text_box = g_status_685170.text_line_cursor_1795;
+            unsigned int previous = g_level_block->text_lines[text_box];
+            if (previous != 0) {
+                unsigned int amount = static_cast<unsigned int>(delta);
+                if (previous < amount) {
+                    g_level_block->text_lines[text_box] = 0;
+                } else {
+                    g_level_block->text_lines[text_box] = previous - amount;
+                }
+                unsigned int current = g_level_block->text_lines[text_box];
+                if (current != previous) {
+                    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+                        GetTextBoxLineCount(text_box)) {
+                        g_level_block->dialogue_content_region = 0x5a;
+                    }
+                    if (g_level_block->text_lines[text_box] == 0) {
+                        g_level_block->text_content_region = 0x56;
+                    }
+                    RequestRedraw(W8_REDRAW_TEXT_BOX);
+                }
+            }
+        }
+        if (gXStatus.fNpcDialogueMode == 0) {
+            if (gXStatus.fItemSelectMode != 0) {
+                UseItemSelectTextBoxWheelAt(static_cast<short>(event->uiParam),
+                                            static_cast<unsigned short>(event->uiParam >> 16), 1);
+            }
+            return 1;
+        }
+        NpcDialogueTextBoxWheelAt(static_cast<short>(event->uiParam),
+                                  static_cast<unsigned short>(event->uiParam >> 16), 1);
+        return 1;
+    }
+    if (gXStatus.fNpcDialogueMode != 0) {
+        return NpcDialogueTextBoxRegionEvent(event, region);
+    }
+    if (gXStatus.fSpellCastMode == 0) {
+        if (gXStatus.fItemSelectMode == 0) {
+            return 0;
+        }
+        return UseItemSelectTextBoxRegionEvent(event, region);
+    }
+    return SpellCastTextBoxRegionEvent(event, region);
+}
+
+// FUNCTION: WIZ8 0x0058EFD0
+unsigned char TextBoxChannelTabRegionEvent(const InputAtom* event, W8Region* region)
+{
+    POINT mouse_pos;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    SGPMouseGetPos(&mouse_pos);
+    if (event->usEvent != LEFT_BUTTON_UP) {
+        return 0;
+    }
+
+    g_status_685170.text_line_cursor_1795 = static_cast<short>(region->callback_id);
+    region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
+
+    short text_box = g_status_685170.text_line_cursor_1795;
+    if (g_level_block->text_lines[text_box] == 0) {
+        g_level_block->text_content_region = 0x56;
+    } else {
+        g_level_block->text_content_region = 0x57;
+    }
+
+    unsigned int visible = GetTextBoxVisibleLineCount();
+    unsigned int count = GetTextBoxLineCount(text_box);
+    unsigned int scroll = g_level_block->text_lines[text_box];
+    if (scroll + visible < count) {
+        g_level_block->dialogue_content_region = 0x5a;
+    } else {
+        if (scroll + visible >= count) {
+            g_level_block->dialogue_content_region = 0x59;
+        }
+    }
+
+    if (region->callback_id == 3) {
+        if (g_status_685170.text_box_lines_shown_49a7[text_box] > 7) {
+            ScrollTextBoxTo(g_status_685170.text_box_lines_shown_49a7[text_box] - 7);
+            return 1;
+        }
+        ScrollTextBoxTo(0);
+    }
+    return 1;
+}
+
+/* Background mute for the message/text-box plates that share this catalog
+   callback - suppress the default region click sound and swallow the event. */
+// FUNCTION: WIZ8 0x0058F240
+unsigned char TextBoxMuteRegionEvent(const InputAtom*, W8Region*)
+{
+    PushButtonSoundScheme005587C0(0, 1);
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0058F250
