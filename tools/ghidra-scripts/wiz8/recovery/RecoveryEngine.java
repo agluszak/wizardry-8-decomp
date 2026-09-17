@@ -15,7 +15,7 @@
  *
  * The decompiler configuration and per-function decompile/fallback skeleton
  * in this file is reduced from Ghidra's
- * ghidra.app.util.exporter.CppExporter (Ghidra 12.1.2); the header, type,
+ * ghidra.app.util.exporter.CppExporter (Ghidra 12.1.3); the header, type,
  * equate, global, and parallel-decompilation machinery was removed.
  */
 package wiz8.recovery;
