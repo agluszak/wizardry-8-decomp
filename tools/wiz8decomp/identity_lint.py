@@ -16,9 +16,9 @@ srEXT_Unzip.dll are unrelated functions, not a collision.
 Names are compared by their last ``::`` component so a class-qualified method
 matches its marker. Prototypes are compared by the Clang semantic id (the
 VC6-mangled name), which folds calling convention, return type and parameter
-types together; the declarations carry it in the source index. Overloads of a
-method are exempt from the cross-declaration comparison because their qualified
-name does not include the parameter list; only free functions are compared by
+types together;
+the declarations carry it in the source index.Overloads of a method are exempt from the cross -
+    declaration comparison because their qualified name does not include the parameter list; only free functions are compared by
 qualified name. A declaration explicitly marked ``identity-alias:`` is a
 documented fold onto another address and is exempt from that comparison.
 
@@ -35,9 +35,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-_ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\s*\*/")
-_BARE_ADDRESS = re.compile(r"^\s*/\*\s*0x[0-9a-fA-F]{6,8}\s*\*/\s*$")
+_ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\b")
 _IDENTITY_ALIAS = re.compile(r"identity-alias\s*:")
+_FUNCTION_MARKER = re.compile(r"^\s*//\s*FUNCTION\b", re.IGNORECASE)
 _UNNAMED_FUNCTION = re.compile(r"^Function[0-9a-f]{6,8}$", re.IGNORECASE)
 
 
@@ -68,18 +68,51 @@ def _linkage_prefix(semantic_id: str) -> str:
     return semantic_id[:1]
 
 
+def _signature_end(lines: list[str], start: int, end: int) -> int:
+    """Last 1-based line of the declarator, not the function body.
+
+    Definitions report ``end_line`` at the closing brace; address comments inside
+    the body must not bind the declaration.
+    """
+
+    last = start
+    for position in range(start - 1, min(end, len(lines))):
+        last = position + 1
+        if "{" in lines[position] or lines[position].rstrip().endswith(";"):
+            break
+    return last
+
+
 def _declaration_address(lines: list[str], start: int, end: int) -> str | None:
+    """Address attached to a declaration: same-line/signature comment, or a
+    preceding ``/* 0x... */`` / ``/* 0x...:`` comment block.
+
+    Walk-back stops at ``// FUNCTION:`` markers and other non-comment code so a
+    stale address comment above a prior entity cannot leak onto the next.
+    """
+
+    signature_end = _signature_end(lines, start, end)
     own = []
-    for position in range(start - 1, end):
+    for position in range(start - 1, signature_end):
         if 0 <= position < len(lines):
             own.extend(_ADDRESS.findall(lines[position]))
     if own:
         return own[-1].lower()[2:].rjust(8, "0")
-    following = end
-    if 0 <= following < len(lines) and _BARE_ADDRESS.match(lines[following]):
-        match = _ADDRESS.search(lines[following])
-        if match:
-            return match.group(1).lower()[2:].rjust(8, "0")
+    position = start - 2
+    while 0 <= position < len(lines):
+        text = lines[position].strip()
+        if not text:
+            position -= 1
+            continue
+        if _FUNCTION_MARKER.match(lines[position]):
+            break
+        if text.startswith(("//", "/*", "*")):
+            match = _ADDRESS.search(lines[position])
+            if match:
+                return match.group(1).lower()[2:].rjust(8, "0")
+            position -= 1
+            continue
+        break
     return None
 
 
@@ -137,6 +170,11 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
 
     index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
     targets = project_targets(repo_dir)
+    declarations_by_key = {
+        (str(entry.get("target") or ""), str(entry.get("semantic_id") or "")): entry
+        for entry in index["declarations"]
+        if entry.get("semantic_id")
+    }
 
     def namespace(source_file: str, target: str | None = None) -> str:
         """The link namespace owning a claim. Markers carry their target;
@@ -153,11 +191,22 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 return name
         return ""
 
+    def marker_declaration(marker: dict[str, Any]) -> dict[str, Any]:
+        """Resolve a v3 ``declaration_key`` or a legacy embedded declaration."""
+
+        embedded = marker.get("declaration")
+        if isinstance(embedded, dict) and embedded:
+            return embedded
+        key = marker.get("declaration_key")
+        if isinstance(key, (list, tuple)) and len(key) >= 2:
+            return declarations_by_key.get((str(key[0]), str(key[1]))) or {}
+        return {}
+
     claims: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for marker in index["markers"]:
         if marker["marker_kind"] != "FUNCTION":
             continue
-        declaration = marker.get("declaration") or {}
+        declaration = marker_declaration(marker)
         name = marker.get("marker_name") or declaration.get("qualified_name") or ""
         if not name:
             continue
