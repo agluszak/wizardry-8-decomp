@@ -205,11 +205,23 @@ jobs:
             echo '__RECCMP_STATUS__'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Audit specialized reccmp comparisons
+      - name: Audit vtable comparisons
+        id: vtable
         if: env.LICENSED_INPUTS == 'true'
+        continue-on-error: true
+        run: uv run wiz8 vtable
+
+      - name: Audit datacmp comparisons
+        id: datacmp
+        if: env.LICENSED_INPUTS == 'true'
+        continue-on-error: true
+        run: uv run wiz8 datacmp
+
+      - name: Fail if specialized comparisons failed
+        if: env.LICENSED_INPUTS == 'true' && (steps.vtable.outcome == 'failure' || steps.datacmp.outcome == 'failure')
         run: |
-          uv run wiz8 vtable
-          uv run wiz8 datacmp
+          echo "vtable=${{ steps.vtable.outcome }} datacmp=${{ steps.datacmp.outcome }}"
+          exit 1
 
       - name: Run licensed comparison tests
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

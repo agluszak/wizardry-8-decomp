@@ -110,6 +110,7 @@ int W8SpellInfoDialog::CreateControls()
 
 /* Same folded body as W8MonsterInfoDialog::DestroyControls at 0x005DBDE0;
    /OPT:NOICF emits this copy. */
+// FUNCTION: WIZ8 0x005DBDE0 FOLDED
 void W8SpellInfoDialog::DestroyControls()
 {
     m_scroll_bar_058.DestroyControls();
@@ -356,6 +357,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
 
 /* Same folded body as W8MonsterInfoDialog::OnRightButtonUp at 0x005D6E60;
    /OPT:NOICF emits this copy. */
+// FUNCTION: WIZ8 0x005D6E60 FOLDED
 void W8SpellInfoDialog::OnRightButtonUp()
 {
     if (m_right_button_down) {
@@ -365,6 +367,7 @@ void W8SpellInfoDialog::OnRightButtonUp()
 
 /* Same folded body as W8MonsterInfoDialog::OnMouseWheel at 0x005D6E70;
    /OPT:NOICF emits this copy. */
+// FUNCTION: WIZ8 0x005D6E70 FOLDED
 void W8SpellInfoDialog::OnMouseWheel(int delta)
 {
     if (delta > 0) {

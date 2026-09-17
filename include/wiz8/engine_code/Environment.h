@@ -22,6 +22,9 @@ class stTextureAnim;
 class W8MaterialMapper00482010 : public srVertexProcessor {
 public:
     W8MaterialMapper00482010();
+    /* Retail ICF folds this onto W8NormalTexcoordMapper004B89A0's deleting
+       destructor at 0x004B8A50. */
+
     virtual ~W8MaterialMapper00482010() override {}
     virtual int isActive(srVertexPipe& pipe) override;
     virtual void process(srVertexPipe& pipe) override;

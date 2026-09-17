@@ -198,8 +198,8 @@ inline srInlineString::srInlineString()
    destroyed temporaries, the operator+ copy-out) keep calls while shallow
    sites expand the three stores. Our build inlines it at every site, so the
    emission does not materialize; the divergence is VC6's per-site inline
-   budget, not the declaration. */
-// FUNCTION: WIZ8 0x0047D290
+   budget, not the declaration. Address 0x0047D290 is the retail callable
+   form and is not claimed here. */
 inline void srInlineString::reset()
 {
     inline_[0] = '\0';
@@ -307,9 +307,21 @@ W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
 // W8VirtualFileStreamOpener::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x0047DA10
-// vtordisp adjustor thunk for W8VirtualFileBinIStream destruction
+// W8VirtualFileBinIStream::`scalar deleting destructor'`vtordisp{-4, 0}'
+
 // SYNTHETIC: WIZ8 0x0047DA20
 // W8VirtualFileBinIStream::`scalar deleting destructor'
+
+/* MSVC PDB spelling uses overload ordinals, not parameter types. Retail
+   secondary-vtable order is seek(2)=ulong, seek(1)=ulong+dir, tell. */
+// SYNTHETIC: WIZ8 0x0047DA50
+// W8VirtualFileBinIStream::seek(2)`vtordisp{-4, 0}'
+
+// SYNTHETIC: WIZ8 0x0047DA60
+// W8VirtualFileBinIStream::seek(1)`vtordisp{-4, 0}'
+
+// SYNTHETIC: WIZ8 0x0047DA70
+// W8VirtualFileBinIStream::tell`vtordisp{-4, 0}'
 
 /* Loads the image importers and routes their JPG/TGA reads through Wizardry's
    SLF-aware virtual file stream, which is the bridge the real menu assets use. */

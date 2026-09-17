@@ -97,6 +97,8 @@ class W8HelpTextControl : public W8TextControl {
 public:
     W8HelpTextControl(Controls* panel, unsigned int region, int left, int top, int right,
                       int bottom);
+    /* Retail ICF folds this onto W8TextControl's deleting destructor at 0x004F6030. */
+
     void SetRegionHelp(const wchar_t* text);
     virtual void OnMouseEnter(int event) override;
     virtual void OnLeftButtonDown(int event) override;

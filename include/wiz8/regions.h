@@ -54,54 +54,10 @@ struct W8Region {
 
 void InitializeRegionHelpState(void);
 
-/* Callbacks of the static region catalog whose bodies are not yet decoded.
-   The region table references these addresses directly, so they keep one
-   canonical, address-qualified declaration here until their owning units are
-   recovered; none of them is called by recovered code. */
-unsigned char Function0052FD80(const InputAtom*, W8Region*);
-unsigned char Function0055E690(const InputAtom*, W8Region*);
-unsigned char Function00565990(const InputAtom*, W8Region*);
-unsigned char Function005667A0(const InputAtom*, W8Region*);
-unsigned char Function00566AE0(const InputAtom*, W8Region*);
-unsigned char Function00566E20(const InputAtom*, W8Region*);
-unsigned char Function005670C0(const InputAtom*, W8Region*);
-unsigned char Function005673B0(const InputAtom*, W8Region*);
-unsigned char Function00567600(const InputAtom*, W8Region*);
-unsigned char Function00567800(const InputAtom*, W8Region*);
-unsigned char Function00568100(const InputAtom*, W8Region*);
-unsigned char Function005699D0(const InputAtom*, W8Region*);
-unsigned char Function0056F020(const InputAtom*, W8Region*);
-unsigned char Function00576650(const InputAtom*, W8Region*);
-unsigned char Function00581790(const InputAtom*, W8Region*);
-unsigned char Function0058E2A0(const InputAtom*, W8Region*);
-unsigned char Function0058E650(const InputAtom*, W8Region*);
+/* Unrecovered static-catalog callbacks are stored as absolute retail VAs in
+   RegionManager.cpp so matching WIZ8 does not need runtime_stubs /
+   /FORCE:UNRESOLVED (which would collapse them to image base). */
 unsigned char TextBoxScrollThumbRegionEvent(const InputAtom*, W8Region*); /* 0x0058E9F0 */
-unsigned char Function0058ED90(const InputAtom*, W8Region*);
-unsigned char Function0058EFD0(const InputAtom*, W8Region*);
-unsigned char Function0058F240(const InputAtom*, W8Region*);
-unsigned char Function00594760(const InputAtom*, W8Region*);
-unsigned char Function005949A0(const InputAtom*, W8Region*);
-unsigned char Function00598CD0(const InputAtom*, W8Region*);
-unsigned char Function00598DB0(const InputAtom*, W8Region*);
-unsigned char Function0059BD20(const InputAtom*, W8Region*);
-unsigned char Function0059C260(const InputAtom*, W8Region*);
-unsigned char Function0059D970(const InputAtom*, W8Region*);
-unsigned char Function0059DA30(const InputAtom*, W8Region*);
-unsigned char Function005A0C80(const InputAtom*, W8Region*);
-unsigned char Function005A0E50(const InputAtom*, W8Region*);
-unsigned char Function005A1DE0(const InputAtom*, W8Region*);
-unsigned char Function005AEEA0(const InputAtom*, W8Region*);
-unsigned char Function005AF530(const InputAtom*, W8Region*);
-unsigned char Function005AF5E0(const InputAtom*, W8Region*);
-unsigned char Function005B5E90(const InputAtom*, W8Region*);
-unsigned char Function005B5F10(const InputAtom*, W8Region*);
-unsigned char Function005B61A0(const InputAtom*, W8Region*);
-unsigned char Function005B6220(const InputAtom*, W8Region*);
-unsigned char Function005B62C0(const InputAtom*, W8Region*);
-unsigned char Function005B6360(const InputAtom*, W8Region*);
-unsigned char Function005B66B0(const InputAtom*, W8Region*);
-unsigned char Function005B6AA0(const InputAtom*, W8Region*);
-unsigned char Function005BC7A0(const InputAtom*, W8Region*);
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];

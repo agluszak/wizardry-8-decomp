@@ -9,17 +9,26 @@ class stModelInstance2D;
 
 /* One animated cursor resource the main-game / camp screens can install. The
    object is an stTextureAnim; size and hotspot are the unsigned shorts
-   ApplyCurrentCursor feeds to the mouse-cursor surface helpers. */
+   ApplyCurrentCursor feeds to the mouse-cursor surface helpers. Layout is
+   fixed by LoadMainGameCursorResources at 0x00568E10: catalog id at +0,
+   object at +4, frame count at +8, ETRLE size at +0xc/+0xe. */
 struct W8MainGameResourceSlot {
-    srClass* object;
-    unsigned int frame_count;
-    unsigned short size_x;
-    unsigned short size_y;
-    unsigned short hotspot_x;
-    unsigned short hotspot_y;
-    int image_id;
+    int image_id; /* 0x00: GetCatalogVideoObjectHandle / YOffset key */
+    srClass* object; /* 0x04: stTextureAnim* once loaded */
+    unsigned int frame_count; /* 0x08: frames appended into the anim */
+    unsigned short size_x; /* 0x0c */
+    unsigned short size_y; /* 0x0e */
+    unsigned short hotspot_x; /* 0x10 */
+    unsigned short hotspot_y; /* 0x12 */
 };
 static_assert(sizeof(W8MainGameResourceSlot) == 0x14, "W8MainGameResourceSlot_size");
+static_assert(offsetof(W8MainGameResourceSlot, image_id) == 0x00, "W8MainGameResourceSlot_image_id");
+static_assert(offsetof(W8MainGameResourceSlot, object) == 0x04, "W8MainGameResourceSlot_object");
+static_assert(offsetof(W8MainGameResourceSlot, frame_count) == 0x08,
+              "W8MainGameResourceSlot_frame_count");
+static_assert(offsetof(W8MainGameResourceSlot, size_x) == 0x0c, "W8MainGameResourceSlot_size_x");
+static_assert(offsetof(W8MainGameResourceSlot, hotspot_x) == 0x10,
+              "W8MainGameResourceSlot_hotspot_x");
 
 #pragma pack(push, 1)
 /* The dormant typed-dialogue input state hung off the level block: a plain

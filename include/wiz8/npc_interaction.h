@@ -6,7 +6,6 @@
    reads. */
 
 unsigned char IsNpcScriptSessionActive(void);
-void Function525D90(char param); /* 0x00525D90 */
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);
 
 /* 0x005294C0: format the bound NPC's quote for one event type into the wide

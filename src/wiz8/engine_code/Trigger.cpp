@@ -781,6 +781,10 @@ static_assert(sizeof(W8TriggerShakeEvent) == 0x44, "W8TriggerShakeEvent_must_be_
 // VTABLE: WIZ8 0x005ec140
 // class W8TriggerShakeEvent
 
+/* Retail ICF folds this class's deleting destructor onto W8TriggerEvent's. */
+// SYNTHETIC: WIZ8 0x00440980 FOLDED
+// W8TriggerShakeEvent::`scalar deleting destructor'
+
 W8TriggerShakeEvent::W8TriggerShakeEvent() : effect_038(0), intensity_03c(1), reverse_040(0) {}
 
 // GLOBAL: WIZ8 0x006599a0

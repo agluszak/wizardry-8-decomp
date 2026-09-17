@@ -267,6 +267,7 @@ int W8DialogBase::GetDialogType()
 
 /* Shared one-argument no-op at 0x005B1BE0, also emitted for widget Redraw.
    Keep its existing source marker at that owner. */
+// FUNCTION: WIZ8 0x005b1be0 FOLDED
 void W8DialogBase::OnNumericInputChanged(int) {}
 
 // FUNCTION: WIZ8 0x005ad270
@@ -279,4 +280,5 @@ void W8DialogBase::OnRightButtonDown()
 void W8DialogBase::OnRightButtonUp() {}
 
 /* Same 0x005B1BE0 no-op as OnNumericInputChanged. */
+// FUNCTION: WIZ8 0x005b1be0 FOLDED
 void W8DialogBase::OnMouseWheel(int) {}

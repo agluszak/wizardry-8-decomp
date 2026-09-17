@@ -837,6 +837,3 @@ void MartensBluff2IdolGasVictim004DE7D0(void)
         SetFact(0x33, 1, 0);
     }
 }
-
-// TEMPLATE: WIZ8 0x004DE940
-// srMatrix3T<float>::RotateAroundAxis(double, const srVector3T<float>&)

@@ -205,6 +205,7 @@ public:
     W8NpcDialogueTextController(int panel_left, int panel_top, int panel_right, int panel_bottom,
                                 int render_target, int render_arg_1c, int render_arg_20,
                                 int margin_image, int line_image); /* 0x0055DE40 */
+    virtual void Redraw() override;                                /* 0x0055DF80 */
     bool HandleScrollDownCommand(unsigned int command);
     bool HandleScrollUpCommand(unsigned int command);
     /* Add one keyword line to the transcript unless the text is already
@@ -301,6 +302,10 @@ public:
 // VTABLE: WIZ8 0x005eea60
 class W8LockTumbler : public W8Widget {
 public:
+    /* Retail ICF folds this onto W8NpcDialogueScrollWidget's deleting destructor. */
+    // SYNTHETIC: WIZ8 0x0055E5B0 FOLDED
+    // W8LockTumbler::`scalar deleting destructor'
+
     /* Inlined into 0x005856E0: the W8Widget base call plus the field writes
        below; no standalone derived body exists. */
     W8LockTumbler(Controls* panel, int left, int top, int right, int bottom, int pin_index)
@@ -309,9 +314,11 @@ public:
           m_pin_height_40(0x22), m_listener_44(0)
     {
     }
-    virtual void Redraw(int full_redraw) override;   /* 0x005854B0 */
-    virtual void OnMouseEnter(int event) override;   /* 0x00585610 */
-    virtual void OnMouseLeave(int event) override;   /* 0x00585650 */
+    virtual void Redraw(int full_redraw) override; /* 0x005854B0 */
+    virtual void OnMouseEnter(int event) override; /* 0x00585610 */
+    virtual void OnMouseLeave(int event) override; /* 0x00585650 */
+    /* Retail folds this with W8HorizontalRangeThumb::OnMouseEnter at 0x004F58C0. */
+    virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override; /* 0x00585690 */
 
     bool m_pin_set_34;                    /* 0x34: raised and holding */
@@ -772,9 +779,8 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                               int quote_id, unsigned int font_palette, unsigned char notice_kind,
                               void* payload, int npc_kind); /* 0x00576060 */
 void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
-/* 0x00575E60: open the modal dialog the quote entry selects; trade kinds
-   0x12/0x1e carry a price argument, kinds 5/0x13 pass -1. */
-void Function575E60(W8NpcQuoteEntry* entry, int value);
+/* 0x00575E60: OpenNpcDialog — quote entry and dialog request share the
+   packed 0x12-byte layout at the call site in ProcessNpcQuoteEntry. */
 void LookAtDialogueNpc(void);        /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
@@ -887,7 +893,7 @@ void TryMGSActionKey(int command); /* 0x0056B4C0 */
    cases and TryMGSActionKey share. */
 unsigned char IsMGSActionKeyEnabled(short command); /* 0x0056AF80 */
 void RunMGSActionKey(short command);                /* 0x0056B270 */
-void Function568E10(void);
+void LoadMainGameCursorResources(void); /* 0x00568E10 */
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
 void CloseMainGameOverlays(void);                                        /* 0x00569570 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag); /* 0x00560E10 */
