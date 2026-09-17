@@ -168,3 +168,125 @@ def test_named_recovered_body_is_allowed(tmp_path: Path) -> None:
     )
 
     assert identity_violations(repository) == []
+
+
+def test_v3_declaration_key_binds_marker_to_definition(tmp_path: Path) -> None:
+    """reccmp-source-index-v3 stores declaration_key, not an embedded declaration."""
+
+    definition = {
+        **_declaration("FindNpcScriptQuoteByKeyword", is_definition=True),
+        "semantic_id": "?FindNpcScriptQuoteByKeyword@@YAHPAGPAF1@Z",
+        "source_file": "src/srext_unzip/npc.cpp",
+        "line": 2,
+        "end_line": 2,
+        "target": "SREXT_UNZIP",
+    }
+    stale = {
+        **_declaration("FindNpcKeywordQuote", is_definition=False),
+        "semantic_id": "?FindNpcKeywordQuote@@YAHPAGPAF1@Z",
+        "source_file": "src/srext_unzip/npc.h",
+        "line": 2,
+        "end_line": 2,
+        "target": "SREXT_UNZIP",
+    }
+    marker = {
+        "address": 0x00525E80,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/srext_unzip/npc.cpp",
+        "line": 1,
+        "marker_name": None,
+        "folded": False,
+        "target": "SREXT_UNZIP",
+        "declaration_key": ["SREXT_UNZIP", "?FindNpcScriptQuoteByKeyword@@YAHPAGPAF1@Z"],
+    }
+    repository = _repository(tmp_path, [marker], [definition, stale])
+    (tmp_path / "src/srext_unzip").mkdir(parents=True)
+    (tmp_path / "src/srext_unzip/npc.cpp").write_text(
+        "// FUNCTION: SREXT_UNZIP 0x00525E80\n"
+        "int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* a, short* b) { return 0; }\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "src/srext_unzip/npc.h").write_text(
+        "/* 0x00525E80: stale spelling */\n"
+        "int FindNpcKeywordQuote(wchar_t* keyword, short* a, short* b);\n",
+        encoding="utf-8",
+    )
+
+    (violation,) = identity_violations(repository)
+    assert violation["reason"] == "multiple names"
+    assert set(violation["names"]) == {"FindNpcKeywordQuote", "FindNpcScriptQuoteByKeyword"}
+
+
+def test_preceding_block_comment_address_binds_header_declaration(tmp_path: Path) -> None:
+    first = {
+        **_declaration("CanonicalName", is_definition=False),
+        "line": 1,
+        "end_line": 1,
+        "semantic_id": "?CanonicalName@@YAXXZ",
+    }
+    second = {
+        **_declaration("StaleName", is_definition=False),
+        "line": 3,
+        "end_line": 3,
+        "semantic_id": "?StaleName@@YAXXZ",
+    }
+    repository = _repository(tmp_path, [], [first, second])
+    source = repository / "src/srext_unzip/test.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "void CanonicalName(); /* 0x0052A1A0 */\n"
+        "/* 0x0052A1A0: stale alias documented in a block comment */\n"
+        "void StaleName();\n",
+        encoding="utf-8",
+    )
+    (repository / "build/source-index.json").write_text(
+        json.dumps(
+            {
+                "schema": "reccmp-source-index-v3",
+                "markers": [],
+                "declarations": [first, second],
+                "classes": [],
+                "variables": [],
+                "conflicts": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    (violation,) = identity_violations(repository)
+    assert violation["reason"] == "multiple names"
+    assert set(violation["names"]) == {"CanonicalName", "StaleName"}
+
+
+def test_same_address_prototype_disagreement_is_reported(tmp_path: Path) -> None:
+    first = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=False),
+        "return_type": "void",
+        "parameter_types": ["unsigned char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXE@Z",
+        "line": 1,
+        "end_line": 1,
+    }
+    second = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=False),
+        "return_type": "void",
+        "parameter_types": ["char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXD@Z",
+        "source_file": "src/srext_unzip/other.h",
+        "line": 1,
+        "end_line": 1,
+    }
+    repository = _repository(tmp_path, [], [first, second])
+    (tmp_path / "src/srext_unzip").mkdir(parents=True)
+    (tmp_path / "src/srext_unzip/test.cpp").write_text(
+        "void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "src/srext_unzip/other.h").write_text(
+        "void TryFinishNpcVoicePlayback(char force); /* 0x00525D90 */\n",
+        encoding="utf-8",
+    )
+
+    (violation,) = identity_violations(repository)
+    assert violation["reason"] == "multiple prototypes"
+    assert violation["names"] == ["TryFinishNpcVoicePlayback"]

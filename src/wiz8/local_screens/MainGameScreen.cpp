@@ -5341,9 +5341,9 @@ void LoadMainGameCursorResources(void)
                                           static_cast<unsigned short>(frame));
             slot->size_x = properties.usWidth;
             slot->size_y = properties.usHeight;
-            stTextureAnim* animation = VideoVObjectToTextureAnim(
-                video_object, static_cast<unsigned short>(frame),
-                static_cast<unsigned short>(slot->frame_count), 1);
+            stTextureAnim* animation =
+                VideoVObjectToTextureAnim(video_object, static_cast<unsigned short>(frame),
+                                          static_cast<unsigned short>(slot->frame_count), 1);
             slot->object = animation;
             animation->addReference();
             animation->flag_60 = 3;
@@ -6346,7 +6346,7 @@ extern int g_dialogue_fallback_ids_00649f78[5]; /* 0x00649F78 */
    words, and resolves the text to one or two quote ids: the "join"-style
    keywords go straight to RequestNpcJoinParty, name/place prefixes are stripped
    and resolved through FindNpcNameOrPlaceQuote, and otherwise every word pair
-   then every single word is tried through FindNpcKeywordQuote. Unresolved input
+   then every single word is tried through FindNpcScriptQuoteByKeyword. Unresolved input
    shows a fallback notice built from the random reply tables; resolved input
    queues the script line(s). */
 // FUNCTION: WIZ8 0x005743B0
@@ -6430,7 +6430,7 @@ void HandleNpcDialogueInput(void)
             fmt = gppStringList[0x1da8 / 4];
         }
         swprintf(buf, fmt, field_text);
-        quote = FindNpcKeywordQuote(buf, 0, 0);
+        quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             plain_text = false;
             quote_id = quote;
@@ -6438,7 +6438,7 @@ void HandleNpcDialogueInput(void)
         }
     } else {
         swprintf(buf, g_format_s_006068e4, field_text);
-        quote = FindNpcKeywordQuote(buf, 0, 0);
+        quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             quote_id = quote;
             goto found;
@@ -6529,7 +6529,7 @@ pair_scan:
             if (cursor == 0)
                 goto multi_scan;
             swprintf(buf, g_format_s_space_s_00617584, word, word2);
-            quote = FindNpcKeywordQuote(buf, 0, 0);
+            quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         } while (quote == -1);
         quote_id = quote;
         goto found;
@@ -6566,7 +6566,7 @@ multi_scan:
         word[len] = 0;
         if (cursor == 0)
             break;
-        quote = FindNpcKeywordQuote(word, 0, 0);
+        quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
         if (quote != -1) {
             ++matches;
         }
@@ -6609,7 +6609,7 @@ multi_scan:
                 word[len] = 0;
                 if (cursor == 0)
                     goto found;
-                quote = FindNpcKeywordQuote(word, 0, 0);
+                quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
             } while (quote == -1);
             ++found_count;
             if (found_count == 1) {

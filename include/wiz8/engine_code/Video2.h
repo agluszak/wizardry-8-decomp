@@ -159,6 +159,8 @@ class stTextureAnim;
 /* 0x00428E90: build an stTextureAnim whose frames are VObject subimages. */
 stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
                                          unsigned short frame_count, char use_argb1555);
+/* 0x00428A90: mark the primary renderer mode word dirty. */
+void SetRendererMode6596EC(void);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
@@ -280,7 +282,6 @@ bool IsCursorInsideViewport(void); /* 0x00428070 */
 #endif
 
 extern unsigned char* g_render_options_65a118;
-void SetRendererMode6596EC(void); /* 0x00428A90 */
 void SetDisplayGamma(float value);
 unsigned int GetTotalPhysicalMemory(void);
 int GetRendererFamily(void);

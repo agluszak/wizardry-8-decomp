@@ -522,8 +522,6 @@ enum {
 /* How much stamina shakes exhaustion off again. */
 enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 
-/* 0x00590950 */
-
 // FUNCTION: WIZ8 0x0052a710
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm)
 {

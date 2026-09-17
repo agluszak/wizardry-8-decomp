@@ -23,7 +23,7 @@ struct W8SkillNoticePayload {
 static_assert(sizeof(W8ExperienceNoticePayload) == 8, "W8ExperienceNoticePayload_size");
 static_assert(sizeof(W8SkillNoticePayload) == 0x11, "W8SkillNoticePayload_size");
 
-/* Queued NPC message kinds dispatched by ProcessMessageBoxQueue at 0x005289D0.
+/* Queued NPC message kinds dispatched by ProcessMessageBoxQueue at 0x00526E90.
    W8_NPC_MSG_QUOTE lines are built by QueueNpcScriptLine; the command kinds are
    built by QueueNpcMessageLine/AddMessageBoxLine, and QUOTE_ENTRY continuations
    are built inline by the dispatcher itself. Kinds 0x11 and 0x3b have no
