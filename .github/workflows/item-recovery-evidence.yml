@@ -1,0 +1,76 @@
+name: Item recovery evidence
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GHIDRA_ARCHIVE: ghidra_12.1.2_PUBLIC_20260605.zip
+  GHIDRA_SHA256: b62e81a0390618466c019c60d8c2f796ced2509c4c1aea4a37644a77272cf99d
+  GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.2_PUBLIC
+  WIZ8_WORK_DIR: /tmp/wiz8-work
+  WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
+
+jobs:
+  dump:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: false
+
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install pinned Ghidra
+        run: |
+          archive="$RUNNER_TEMP/$GHIDRA_ARCHIVE"
+          curl --fail --location --retry 3 \
+            --output "$archive" \
+            "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.2_build/$GHIDRA_ARCHIVE"
+          echo "$GHIDRA_SHA256  $archive" | sha256sum --check -
+          unzip -q "$archive" -d "$(dirname "$GHIDRA_INSTALL_DIR")"
+
+      - name: Install Python dependencies
+        run: uv sync --frozen
+
+      - name: Dump reviewed Item.cpp functions
+        run: |
+          uv run wiz8 ghidra restore
+          uv run python - <<'PY'
+          from wiz8decomp import command_support as cli
+          from wiz8decomp.ghidra.env import open_program
+          from wiz8decomp.ghidra.query import query_many
+
+          selectors = ["0x0049f730", "0x0049fb30", "0x0049fba0", "0x0049fdb0"]
+          with open_program(cli.settings(), "wiz8") as program:
+              for selector in selectors:
+                  rows = query_many(
+                      program,
+                      [
+                          ("function", [selector]),
+                          ("decompile", [selector]),
+                          ("listing", [selector]),
+                      ],
+                  )
+                  print(f"\n===== {selector} FUNCTION =====")
+                  print(rows[0]["result"])
+                  print(f"===== {selector} DECOMPILE =====")
+                  print(rows[1]["result"].get("decompiled", ""))
+                  print(f"===== {selector} LISTING =====")
+                  print(rows[2]["result"].get("listing", ""))
+          PY
