@@ -12,7 +12,6 @@
  */
 
 #include <windows.h>
-#include "wiz8/mouth_gap.h"
 
 typedef signed long S32;
 typedef unsigned long U32;

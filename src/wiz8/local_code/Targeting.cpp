@@ -208,7 +208,7 @@ char FindFactionByName(const char* name)
 // FUNCTION: WIZ8 0x005360f0
 int GetFactionValue(char faction)
 {
-    return g_factions[faction].value_06;
+    return g_factions[faction].band_changed_clock_06;
 }
 
 /* Raise or lower one faction's flag. */

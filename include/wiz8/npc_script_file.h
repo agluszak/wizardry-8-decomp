@@ -28,25 +28,24 @@
 
 /* One 8-byte sub-entry. Its text slot at +4 is non-zero on disk to select the
    length-prefixed narrow string that follows, and is then overwritten with the
-   pointer to it. */
+   pointer to it. The leading dword is per-kind storage: the fact-conditional
+   entry read at 0x005251F0 consumes sub-entry pairs whose +0 dwords are the
+   fact id and the expected value. */
 struct W8NpcQuoteSubEntry {
-    unsigned char unknown_00[4];
-    char* text; /* 0x04 */
+    int value_00; /* 0x00 */
+    char* text;   /* 0x04 */
 }; /* 0x08 */
 
 /* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;
-   the next twelve bytes come off disk untouched. */
+   the next twelve bytes come off disk untouched. The three dwords are
+   per-kind operand slots: the response chooser reads operand_01 as the fixed
+   or low response index, operand_05 == 2 as the random-selection mode and
+   operand_09 as the range bound / chain marker. */
 struct W8NpcQuoteEntry {
     unsigned char kind_00;
-    /* 0x01: the script line/quote index the entry resolves to - queued by
-       QueueNpcScriptLine, run by RunNpcScriptLine, or returned to the reply
-       dispatch. */
-    int value_01;
-    int unknown_05;
-    /* 0x09: per-kind action selector; kind-6 reply entries use 1 for the
-       generic answer, 2 for the no-keyword fallback and 3 for the
-       per-keyword answer list. */
-    int role_09;
+    int operand_01;
+    int operand_05;
+    int operand_09;
     unsigned char sub_entry_count;   /* 0x0d */
     W8NpcQuoteSubEntry* sub_entries; /* 0x0e */
 }; /* 0x12 */
@@ -57,7 +56,10 @@ struct W8NpcScriptQuote {
     char** subquotes;             /* 0x01: subquote_count entries */
     W8NpcQuoteEntry* entries;     /* 0x05: entry_count entries */
     unsigned short entry_count;   /* 0x09 */
-    unsigned char unknown_0b;
+    /* 0x0b: selects the alert presentation - "Data\Sound\NPCs\Dialogue
+       Alert.wav" path and the portrait-message/notice flow instead of the
+       per-NPC voice file. */
+    unsigned char dialogue_alert;
 }; /* 0x0c */
 
 /* The 0x0e-byte header the loader reads first. A non-zero name slot on disk

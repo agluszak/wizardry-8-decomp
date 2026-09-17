@@ -76,6 +76,7 @@
 #undef U32
 #include "bink.h"
 #include "wiz8/bink_video.h"
+#include "wiz8/mouth_gap.h"
 #include "FileMan.h"
 
 #include <stdio.h>
@@ -2210,7 +2211,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     }
     SoundGetMilliSecondPosition(sound_handle, &total_ms, &current_ms);
     record->voice_time_remaining_ms = total_ms;
-    Function5E2D10(sound_path, &record->mouth_gap);
+    LoadMouthGapTrack(sound_path, &record->mouth_gap);
     return 1;
 }
 
@@ -3286,7 +3287,7 @@ int UpdateCharacterEventState(void)
                     }
                 }
             } else {
-                Function5E2F40(record->voice_sound_handle, &record->mouth_gap);
+                UpdateMouthGapTrack(record->voice_sound_handle, &record->mouth_gap);
                 sound_active = record->mouth_gap.mouth_open;
             }
         }

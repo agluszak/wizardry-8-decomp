@@ -861,7 +861,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (npc == 0) {
             return;
         }
-        if (npc->unknown_1d != 0) {
+        if (npc->greeting_pending != 0) {
             return;
         }
         ReleaseNpcMonsterByKind(0x57);

@@ -125,6 +125,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Targeting.cpp
     src/wiz8/3d_code/PList.cpp
     src/wiz8/engine_code/3d.cpp
+    src/wiz8/engine_code/gap.c
     src/wiz8/engine_code/Bink.cpp
     src/wiz8/level_specific_code/MasterFunctionList.cpp
     src/wiz8/level_specific_code/Monastery1.cpp

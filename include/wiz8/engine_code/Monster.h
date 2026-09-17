@@ -230,15 +230,22 @@ public:
     float value_1f0;
     int value_1f4;
     int value_1f8;
-    unsigned char flag_1fc;
-    unsigned char flag_1fd;
+    /* 0x1fc: talking state armed by StartTalking; cleared by StopTalking. */
+    unsigned char talking;
+    /* 0x1fd: the StartTalking argument; mouth texture animation only runs
+       while it is set. */
+    unsigned char animate_mouth;
     unsigned char unknown_1fe[2];
-    int value_200;
-    int value_204;
+    /* 0x200/0x204: the 120 ms clock and the last frame of the random mouth
+       flicker used while the gap track reports the mouth closed. */
+    int mouth_frame_clock;
+    int mouth_frame;
     int value_208;
     int value_20c;
     int value_210;
-    unsigned char unknown_214;
+    /* 0x214: the current mouth state the dialogue update copies out of the
+       active W8MouthGapTrack; forces mouth frame 0 while open. */
+    unsigned char mouth_open;
     unsigned char flag_215;
     unsigned char flag_216;
     unsigned char flag_217;
