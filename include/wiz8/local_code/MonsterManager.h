@@ -346,7 +346,7 @@ W8MonsterInfo* MonsterInfoFromID(int caller_line, const char* caller_file, int l
                                  unsigned char assert_on_failure);
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
 W8Monster* GetMonsterByLocationID(int location_id);
-float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
+float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
@@ -365,7 +365,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info);
 void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state);
 void ProcessMonsterManagerFrame(void);
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
-unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
+unsigned int GetMonsterExperience(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
 /* 0x00554490: the highest `skills[skill_index].level` among live party members;

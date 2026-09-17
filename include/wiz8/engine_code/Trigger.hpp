@@ -223,7 +223,9 @@ public:
     W8WorldItem* world_item_group_34c;
     unsigned char flag_350;
     unsigned char unknown_351[3];
-    unsigned int next_activation_time_354;
+    /* Sampled during construction, persisted in saves and used to reseed
+       item-table generation so a trigger's generated loot is repeatable. */
+    unsigned int item_group_seed_354;
     int gold_358;
     int value_35c;
     ActivationCallback activation_callback_360;

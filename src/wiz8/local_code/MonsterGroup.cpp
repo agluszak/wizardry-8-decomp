@@ -215,8 +215,8 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
     } else {
         switch (record->faction_id_25f) {
         case W8_FACTION_UNALIGNED:
-            if (record->hostility_range_25b != -1) {
-                disposition = record->hostility_range_25b == 0;
+            if (record->hostility_radius_25b != -1) {
+                disposition = record->hostility_radius_25b == 0;
             }
             break;
         case W8_FACTION_PARTY:
@@ -930,7 +930,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     }
 
     list = gXStatus.plsMonsterGroupList;
-    if (record->flag_26a != 0) {
+    if (record->unborn_26a != 0) {
         list = gXStatus.plsMonsterGroupEncounterList;
     }
     registry_before = GetUsedPageFileBytes();

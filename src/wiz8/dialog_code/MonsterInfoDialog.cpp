@@ -190,7 +190,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     m_text_area_ec.AddEntry(prefix, entry_text, 10, 0xf, 0);
 
     if (g_status_685170.status_ints_3121[monster_info->monster_species] == 2) {
-        FormatUnsignedIntegerWithCommas(text, GetMonsterCombatValue(record));
+        FormatUnsignedIntegerWithCommas(text, GetMonsterExperience(record));
     } else {
         wcscpy(text, gppStringList[0x13a]);
     }
@@ -340,9 +340,9 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                     0xf, 0);
         }
     }
-    if (0x31 < knowledge && record->ai_kind != 0) {
+    if (0x31 < knowledge && record->special_attack_kind_0e3 != 0) {
         m_text_area_ec.AddEntry(gppStringList[0x142],
-                                gppStringList[g_monster_ai_kind_name_ids_61ec14[record->ai_kind]],
+                                gppStringList[g_monster_special_attack_name_ids_61ec14[record->special_attack_kind_0e3]],
                                 10, 0xf, 0);
     }
 
@@ -446,7 +446,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                 FormatWideString(g_format_d_0060aa20, leader_info->flag_255), 5,
                                 0xf, 0);
         const wchar_t* strategy = L"Close";
-        if (record->holds_ground_1b9 != 0) {
+        if (record->prefer_ranged_actions_1b9 != 0) {
             strategy = L"Ranged";
         }
         m_text_area_ec.AddEntry(L"Combat Strategy", strategy, 5, 0xf, 0);

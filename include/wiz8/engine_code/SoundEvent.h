@@ -86,7 +86,7 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
 
 /* Reports the ground height, surface and material at one position through the
    level's game data: settles a probe with SettleToGround and reads the hit
-   W8GDSurface's surface_flag_3c/vertex_flag_3d. Its original translation unit
+   W8GDSurface's footstep_surface_3c/footstep_material_3d. Its original translation unit
    is not yet attributed; only this unit's player consumes it, so its seam
    lives here until that owner is established. */
 float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface,

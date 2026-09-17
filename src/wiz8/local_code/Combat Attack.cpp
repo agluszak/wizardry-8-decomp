@@ -748,7 +748,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         if (record->hit_location_chances_15f[hit_location] < 100) {
             wcscpy(
                 location_name,
-                gppStringList[g_monster_hit_location_labels[hit_location][record->body_type_15e]]);
+                gppStringList[g_monster_hit_location_labels[hit_location][record->constitution_15e]]);
         } else {
             wcscpy(location_name, &g_wchar_00689b34);
         }

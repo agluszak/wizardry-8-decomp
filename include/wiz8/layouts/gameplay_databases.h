@@ -335,7 +335,8 @@ struct W8MonsterRecord {
     wchar_t name_30[24]; /* 0x030: suffix after '#' removed at load */
     wchar_t name_60[24]; /* 0x060: suffix after '#' removed at load */
     wchar_t name_90[24]; /* 0x090: suffix after '#' removed at load */
-    unsigned char unknown_0c0;
+    /* Cosmic Forge's Monster Editor exposes this byte as 'Can open doors'. */
+    unsigned char can_open_doors_0c0;
     /* 0x0c1: rolled by the group-attack summon to size the spawned group. */
     W8Dice group_size_dice_0c1;
     unsigned char unknown_0c5[6];
@@ -349,7 +350,8 @@ struct W8MonsterRecord {
        GetNpcStateByKind and compared against W8NpcState::name_style; 0xfa
        marks a record with no bound NPC. */
     unsigned char npc_kind_0cd;
-    unsigned char unknown_0ce;
+    /* 0x0ce: signed stamina regeneration rate (Monster Editor: ST Regen). */
+    signed char stamina_regeneration_0ce;
     /* 0x0cf: the monster's own percentage reduction on incoming damage. */
     unsigned char damage_reduction;
     /* 0x0d0: bit 0 routes disposition through the NPC record instead of the
@@ -370,10 +372,10 @@ struct W8MonsterRecord {
     /* 0x0e2: the percentage chance the AI advances on the party each round;
        zero falls back to the behavior byte at +0x1c0. */
     unsigned char advance_chance_0e2;
-    /* 0x0e3: selects this monster's row in the two-byte AI table at
-       0x0061EEFC; the row value six is the one the AI singles out. */
-    unsigned char ai_kind;
-    unsigned char unknown_0e4;
+    /* 0x0e3: Special attack selector; indexes the effect rows used by
+       GroupAttacks.cpp and the corresponding display-name table. */
+    unsigned char special_attack_kind_0e3;
+    unsigned char initiative_0e4; /* 0x0e4: Monster Editor Initiative */
     /* 0x0e5/0x0e6: attacks and swings per round, named by the Combat Attack.cpp
        data-error messages "has 0 ATTACKS/round" and "has 0 SWINGS/round". */
     unsigned char attacks_per_round_0e5;
@@ -385,9 +387,12 @@ struct W8MonsterRecord {
     /* 0x14d: the ten spells the AI may cast, zero for none; ChooseMonsterSpell
        weights them by the fixed table at 0x0061CC14. */
     unsigned char spells_14d[10];
-    unsigned char unknown_157[7];
-    /* 0x15e: selects the row of monster hit-location names for this body. */
-    unsigned char body_type_15e;
+    unsigned char unknown_157[5];
+    unsigned char special_attack_cooldown_15c;
+    signed char evasion_ac_15d;
+    /* 0x15e: Monster Editor Constitution selector; retail uses it to choose
+       the body-specific hit-location label row. */
+    unsigned char constitution_15e;
     /* 0x15f: the percentage of hits that land on each of the seven monster
        hit locations; the total is reported when it falls short of 100. */
     unsigned char hit_location_chances_15f[7];
@@ -399,23 +404,25 @@ struct W8MonsterRecord {
     /* 0x17c: hit points gained (or lost, when negative) per game minute. */
     signed char hp_regeneration_17c;
     unsigned char unknown_17d[4];
-    unsigned int combat_value_181; /* 0x181: combat-strength/display value */
+    unsigned int experience_181; /* 0x181: base experience value */
     unsigned char unknown_185[2];
     short record_id_187;       /* 0x187: equals the zero-based database index */
     char cycle_name_189[0x30]; /* 0x189: GrCycle lookup key */
-    /* 0x1b9: the AI never closes in or backs off from the party when set. */
-    unsigned char holds_ground_1b9;
-    float float_1ba; /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[2];
-    /* 0x1c0: the combat-behavior selector: zero makes a monster with no
-       explicit advance chance always advance on the party, and two (with
-       +0x1bf not three) lets the queue builder add a wait action. */
-    unsigned char behavior_1c0;
+    /* 0x1b9: prefer ranged actions instead of closing/backing off. */
+    unsigned char prefer_ranged_actions_1b9;
+    float combat_move_range_1ba; /* 0x1ba: designer-facing combat movement range */
+    /* 0x1be: blocks the DEAD condition. */
+    unsigned char instant_death_immune_1be;
+    /* 0x1bf/0x1c0: the Monster Editor's Combat Behaviour and Combat Morale selectors. */
+    unsigned char combat_behavior_1bf;
+    unsigned char combat_morale_1c0;
     /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
        stores the value itself as the selected monster index. */
     short value_1c1;
-    unsigned char unknown_1c3[0x85];
-    unsigned char flag_248;
+    unsigned char unknown_1c3[0x84];
+    unsigned char attack_multiple_targets_247;
+    /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
+    unsigned char camouflage_248;
     unsigned char unknown_249;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
        candidates drops it before any other test. */
@@ -423,17 +430,19 @@ struct W8MonsterRecord {
     unsigned char unknown_24b[4];
     unsigned char missile_value_24f;
     unsigned char unknown_250[3];
-    int value_253;           /* 0x253: selected by 0x004e5b50 */
-    int value_257;           /* 0x257: alternate selected value */
-    int hostility_range_25b; /* 0x25b: unaligned; positive is a proximity threshold */
-    int faction_id_25f;      /* 0x25f: W8Faction value, domain 0..20 */
-    unsigned char unknown_263[4];
+    int value_253;            /* 0x253: selected by 0x004e5b50 */
+    int value_257;            /* 0x257: alternate selected value */
+    int hostility_radius_25b; /* 0x25b: Minimal Neutrality Distance / Hostility Radius */
+    int faction_id_25f;       /* 0x25f: W8Faction value, domain 0..20 */
+    int material_263;         /* 0x263: Monster Editor Material selector */
     /* Carved out because LoadMonsterGroup skips every live-group step for a
        record that has it set. */
     unsigned char deleted; /* 0x267 */
-    unsigned char unknown_268[2];
-    unsigned char flag_26a;                 /* 0x26a: selects an alternate group configuration */
-    unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
+    unsigned char significant_kill_268;
+    unsigned char unknown_269;
+    /* 0x26a: unborn monsters enter the birth/encounter lists before acting. */
+    unsigned char unborn_26a;
+    unsigned int experience_override_26b; /* 0x26b: nonzero experience override */
     /* 0x26f: the spell-point budget the monster casts out of, before its own
        runtime bonus. Zero is a data error the power-level chooser reports by
        name. */

@@ -96,10 +96,12 @@ spellbook mask, and six starting item IDs. Race tables contain sixteen five-abil
 records and sixteen resistance profiles with six adjustment pairs. The special Faerie
 equipment blob is a replacement six-item row selected when race ID five is active.
 
-`classesexpgroup.cfdat` remains rejected because its English seed destination
-`0x004ef1e0` lies in executable code. `evidence/reviewed/wiz8/formats/cfdat-overrides.csv` keeps both
-the patch argument and the independently proven canonical extent so the disagreement is
-not erased.
+`classesexpgroup.cfdat` is a different kind of override. Its fifteen bytes are
+`00 01 01 01 01 02 01 00 00 00 03 03 02 03 03`; indexed by profession, those values exactly
+match the four profession partitions in `CalcXPGoal` at `0x004ef090`. The English destination
+`0x004ef1e0` lies inside that function because CFAgent patches compiler-generated switch/lookup
+data, not an authored global table. The recovered source therefore keeps the switch instead of
+inventing a fifteen-byte source object.
 
 ## Gameplay databases
 
@@ -123,17 +125,21 @@ The adjacent `MonsterManager.cpp` lookup cluster establishes a separate runtime
 `W8MonsterInfo`, whose bounded layout and size assertion live in the recovered header rather
 than here. Keeping these consumers in their original translation unit also reproduces the cache
 lookup being inlined into `GetMonsterDataByLocationID`.
-The adjacent consumer at `0x004e5990` establishes a float at monster-record offset `+0x1ba`; it
-multiplies that value by the global float at `0x005ed4f0`. Its designer-facing meaning remains
-unresolved, so both the source and reviewed model retain the positional `float_1ba` name.
+The adjacent consumer at `0x004e5990` reads monster-record offset `+0x1ba` and multiplies it by
+the global float at `0x005ed4f0`. Cosmic Forge 4.38 independently round-trips that exact float
+through its `Combat Move Range` editor control. The source therefore names the field
+`combat_move_range_1ba`; the designer-facing label is external-semantic evidence, not an original
+Sir-Tech identifier, and the physical units remain unresolved.
 The exact body at `0x004e5b50` also establishes the byte string at `+0x189` as a case-insensitive
 `GrCycle` lookup key and selects one of the still-semantic-unknown integers at `+0x253` and `+0x257`.
 Those integers remain positionally named until a canonical consumer establishes their meaning.
-`GetMonsterCombatValue` at `0x004e6780` establishes unsigned values at `+0x181` and `+0x26b`: a
-nonzero `+0x26b` overrides the `+0x181` base. The descriptive combat-value name comes from its two
-canonical consumers. One contributes the result to a live-HP-weighted combat-strength total; the
-other formats it in `MonsterInfoDialog`. This does not claim an original function or designer-field
-name.
+`GetMonsterExperience` at `0x004e6780` establishes unsigned values at `+0x181` and `+0x26b`: a
+nonzero `+0x26b` overrides the `+0x181` base. Cosmic Forge's Monster Editor independently labels
+`+0x181` as `Experience`, and the retail Monster Info dialog displays the helper's effective value
+only after the species' persistent status reaches the post-combat known state. The other canonical
+consumer uses the same value in a live-HP-weighted hostile-monster total that selects combat music
+and difficulty effects. The source therefore models `+0x181` as base experience and `+0x26b` as its
+optional override; the combat-strength use is a downstream proxy, not the field's primary meaning.
 
 `InitializeSpellDatabase` at `0x004acc10` reads a count and version, allocates
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix
@@ -153,7 +159,7 @@ character's six spell-point pools. The float at `+0x121` is the effect radius or
 `GetMinimumCasterLevelForSpell` at `0x004acba0` maps the record's spell level to the
 canonical minimum caster-level sequence `1, 3, 5, 8, 11, 14, 18`.
 the final `0x74` bytes at `+0x14b` form the sound basename used below
-`Data\\Spells\\Sounds`. The target-type values and the remaining effect-dispatch fields
+`Data\Spells\Sounds`. The target-type values and the remaining effect-dispatch fields
 stay opaque pending their enum recovery.
 
 The 60 level records carry more than their leading UTF-16 display names. MonGen clamps the

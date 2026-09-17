@@ -73,7 +73,8 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
                                                               &range, &hops) == 0) {
                 continue;
             }
-            if ((float)((int)GetMonsterRecordScaledFloat1BA(info) * 1000) < range) {
+            // Truncate the float move-range to int before scaling, matching retail.
+            if (static_cast<int>(GetMonsterCombatMoveRange(info)) * 1000 < range) {
                 continue;
             }
         }
