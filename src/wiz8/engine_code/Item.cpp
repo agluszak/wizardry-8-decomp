@@ -105,6 +105,12 @@ srNode* W8Item::GetMesh()
     return static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
 }
 
+// FUNCTION: WIZ8 0x0049FBA0
+void W8Item::GetRepLocation0049FBA0(srVector3T<float>* location)
+{
+    m_pRep->GetLocation004B8890(location);
+}
+
 /* Raise or clear the selected representation flags and return the resulting
    flag word. */
 // FUNCTION: WIZ8 0x0049F310
