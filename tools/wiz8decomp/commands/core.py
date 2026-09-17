@@ -216,7 +216,10 @@ def vtable_command(
         result = compare_vtables(settings.repo_dir, target, class_filter)
         return result
 
-    cli.emit(action())
+    result = action()
+    cli.emit(result)
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
 
 
 def datacmp_command(
@@ -238,7 +241,10 @@ def datacmp_command(
         result = compare_data(settings.repo_dir, target)
         return result
 
-    cli.emit(action())
+    result = action()
+    cli.emit(result)
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
 
 
 def address_command(

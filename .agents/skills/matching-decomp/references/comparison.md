@@ -3,10 +3,12 @@
 | Question | Existing primitive |
 | --- | --- |
 | Does the actual recomp-linked function match? | `uv run wiz8 compare ADDRESS...` |
+| Does an almost-matching function differ mainly in stack-slot layout? | `uv run reccmp-stackcmp --target TARGET ADDRESS` diagnoses stack offsets; see below. |
 | Is a COFF code/data contribution identical independently of final linkage? | `uv run reccmp-reccmp --object ...` below |
 | Which original absolute targets correspond to COFF relocations in an exact pair? | `original_absolute_relocation_targets` below |
 | Do class vtable slots and targets agree? | `uv run wiz8 vtable CLASS` compares matching class names and refuses zero-entity success. |
 | Does reviewed global data agree? | `uv run wiz8 datacmp` compares reviewed globals through reccmp. |
+| Are matching annotations structurally valid? | `uv run wiz8 check` runs reccmp `decomplint` over every configured source target. |
 | What is the paired original/recompiled address? | `uv run wiz8 addr ADDRESS...` translates either side in one process. |
 
 Use the project command where one exists; use reccmp directly for capabilities the project does not
@@ -27,6 +29,35 @@ is diagnostic, not a substitute for selected-function evidence.
 Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. The comparison link uses `/OPT:NOICF`
 and `/FIXED:NO` (base relocations retained); retail folding can therefore produce a `call_target`
 mismatch even for the type-correct source callee. Do not change these modes to hide a difference.
+
+## Stack layout diagnosis
+
+Use `stackcmp` only after a focused linked comparison shows an almost-matching function whose remaining
+differences repeatedly involve `ebp`/`esp` stack operands, local ordering, or apparently shifted local
+slots while the surrounding instruction structure still lines up. It is a diagnostic for forming a
+source hypothesis, not a matching target in its own right.
+
+```sh
+uv run reccmp-stackcmp --target WIZ8 0x0044e010
+uv run reccmp-stackcmp --target SURRENDER 0x1004a5a0
+```
+
+The address is always the original address. `stackcmp` reads the existing recompiled image and PDB and
+does not build them; build the owning target first when source edits made those products stale. It maps
+original stack operands to recomp stack operands and, where CodeView data permits, names recomp locals.
+A one-to-one mapping at different offsets can support a hypothesis about local declaration order or
+lifetime. A non-bijective mapping is evidence that the remaining difference may be structural rather
+than mere slot order. Structural mismatch warnings mean the stack map is incomplete and the ordinary
+instruction diff must be inspected first.
+
+Do **not** treat stack positions as authored-source evidence. VC6 is free to reuse parameter/local/spill
+temporary storage. Never alias variables, overwrite parameters early, add overlapping storage, or
+change semantics merely to make `stackcmp` prettier. Reconcile any stack-layout hypothesis with types,
+callers, lifetimes, source oracles, and the actual instruction behavior.
+
+`reccmp-stackcmp` is deliberately not a repository/CI gate: it is per-function and its current CLI can
+print non-bijective/structural warnings while still exiting successfully. Agents should invoke it when
+the focused mismatch calls for it and interpret the output, not run it mechanically over every body.
 
 ## COFF contribution versus original
 
@@ -62,6 +93,26 @@ contribution establishes equality outside relocations; it does not alone prove t
 target is merely that fold. Reconcile the linked diff with relocation/reference/type evidence.
 Keep the callee appropriate to the canonical type; do not cast `W8PList*` to `W8IList*` just to force
 the retained address.
+
+## Specialized repository gates
+
+`uv run wiz8 check` invokes reccmp's `decomplint` engine for every target in `reccmp-project.yml` that
+has a source root, including non-WIZ8 targets. Project-specific waivers for source/link order and marker
+style are applied centrally; syntax, duplicate identities, stray markers, and other non-waived alerts
+remain fatal. Do not run a second hand-written marker parser as a substitute.
+
+`uv run wiz8 vtable` and `uv run wiz8 datacmp` are licensed-input comparisons over existing products.
+They emit structured JSON and exit non-zero when `ok` is false, so callers (including CI) can invoke
+them directly without wrapping JSON schema knowledge. Use `--program` for a non-WIZ8 product when that
+product is current. `datacmp` is for reviewed `GLOBAL` data; it is not a raw whole-section equality
+test.
+
+Not every upstream reccmp console entry point belongs in routine verification. `roadmap` is a placement
+report, `aggregate` combines saved reports, `cvdump` is a lower-level CodeView inspection tool, and
+`project`/`ghidra-import` overlap project-owned setup/import workflows. Use them directly for a concrete
+diagnostic need rather than adding unconditional CI passes. `verexp` can diagnose a DLL export-table
+question, but partial DLL reconstruction makes whole-export equality unsuitable as a blanket gate until
+the relevant product's export surface is intended to be complete.
 
 ## Original absolute COFF relocation targets
 
