@@ -15,15 +15,134 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/message_box.h"
 #include "wiz8/utility.h"
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/xstatus.h"
+#include <stdio.h>
+#include <string.h>
+#include <wchar.h>
 
 /* Unresolved fragment in two clusters: 0x00547940/0x005479B0 lie in the
    Combat Hostility.cpp (ends 0x00547570) to VideoObjectManager.cpp
    (0x00548F90) gap, and the six 0x00553xxx-0x00555xxx functions plus
    0x00558610 sit in the gaps around the anchored CharGeneration.cpp,
    ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
+
+// GLOBAL: WIZ8 0x0068506d
+unsigned char g_deferred_skill_notices_0068506d;
+
+// GLOBAL: WIZ8 0x0061ec94
+wchar_t g_format_s_possessive_0061ec94[] = L"%s's";
+
+/* Append one skill-increase clause onto a notice line. */
+// FUNCTION: WIZ8 0x00554170
+void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
+                                   unsigned char continue_line, int skill_id)
+{
+    unsigned int skill_level;
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    if (continue_line != 0) {
+        text[*length] = L' ';
+        *length += 1;
+        text[*length] = L'\n';
+        *length += 1;
+        text[*length] = L' ';
+        *length += 1;
+    }
+    text[*length] = L' ';
+    *length += 1;
+    text[*length] = 0xb4; /* font glyph */
+    *length += 1;
+    text[*length] = GetTable647CCCEntry(
+        static_cast<char>(g_status_685170.buffers.party_rows[party_slot].party_order_index));
+    *length += 1;
+    text[*length] = L' ';
+    *length += 1;
+    swprintf(text + *length, g_format_s_possessive_0061ec94, character->name);
+    *length = static_cast<unsigned int>(wcslen(text));
+    text[*length] = L' ';
+    *length += 1;
+    text[*length] = 0xb5; /* font glyph */
+    *length += 1;
+    text[*length] = L' ';
+    *length += 1;
+    skill_level = character->skills[skill_id].level;
+    if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+        skill_level = (skill_level * 0x7d) / 100;
+    }
+    swprintf(text + *length, gppStringList[0x76c / 4],
+             gppStringList[g_character_skill_name_ids_61e454[skill_id]], skill_level);
+    *length = static_cast<unsigned int>(wcslen(text));
+}
+
+/* Drain deferred skill-increase flags into message-box skill-notice lines. */
+// FUNCTION: WIZ8 0x005542E0
+void FlushDeferredSkillNotices(void)
+{
+    int count;
+    unsigned char have_line;
+    wchar_t* text;
+    W8SkillNoticePayload* extra;
+    int slot;
+    unsigned int skill_id;
+    unsigned int length;
+
+    count = 0;
+    have_line = 0;
+    length = 0;
+    if (g_deferred_skill_notices_0068506d == 0) {
+        return;
+    }
+    text = new wchar_t[0x200];
+    memset(text, 0, 0x400);
+    extra = new W8SkillNoticePayload;
+    for (slot = 0; slot < 8; ++slot) {
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= 0x12) {
+            continue;
+        }
+        for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
+            if (gXStatus.monster_manager_entries[slot].unknown_0e9[1 + skill_id] == 0) {
+                continue;
+            }
+            extra->party_slots[count] = static_cast<signed char>(slot);
+            extra->skills[count] = static_cast<signed char>(skill_id);
+            ++count;
+            AppendSkillIncreaseNoticeText(text, &length, slot, have_line,
+                                          static_cast<int>(skill_id));
+            have_line = 1;
+            if (count == 8) {
+                extra->count = 8;
+                AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+                count = 0;
+                length = 0;
+                have_line = 0;
+                text = new wchar_t[0x200];
+                memset(text, 0, 0x400);
+                extra = new W8SkillNoticePayload;
+            }
+        }
+    }
+    if (have_line == 0) {
+        delete text;
+        delete extra;
+    } else {
+        extra->count = static_cast<signed char>(count);
+        AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        memset(&gXStatus.monster_manager_entries[slot].unknown_0e9[1], 0, W8_SKILL_COUNT);
+    }
+    g_deferred_skill_notices_0068506d = 0;
+}
 
 // FUNCTION: WIZ8 0x00558610
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
@@ -289,11 +408,11 @@ void ApplyAttributeChange(W8Character* character, int attribute)
             }
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 ShowMainGameNoticeLine(
-                    FormatWideString(gppStringList[0x1d6],
-                                     gppStringList
-                                         [g_character_description_first_ids_61e3a4[attribute]],
-                                     character->name,
-                                     gppStringList[g_character_skill_name_ids_61e454[skill_id]]),
+                    FormatWideString(
+                        gppStringList[0x1d6],
+                        gppStringList[g_character_description_first_ids_61e3a4[attribute]],
+                        character->name,
+                        gppStringList[g_character_skill_name_ids_61e454[skill_id]]),
                     0, 1, 0);
             }
         }

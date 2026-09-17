@@ -73,6 +73,15 @@ enum W8Skill {
 void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
                             unsigned char suppress_notification);
 
+/* 0x00554170: append one "race-icon Name's skill +level" clause to a notice
+   buffer; when continue_line is set, insert a line break first. */
+void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int party_slot,
+                                   unsigned char continue_line, int skill_id);
+
+/* 0x005542E0: drain the deferred per-slot skill-increase flags into one or
+   more W8_NPC_MSG_SKILL_NOTICES message-box lines. */
+void FlushDeferredSkillNotices(void);
+
 /* Ability ids stored in the profession/race tables. The names below are fixed
    either by a recovered consumer or by the profession ability lists. Those
    lists preserve the manual's special-ability order for every independently

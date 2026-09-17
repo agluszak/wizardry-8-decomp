@@ -131,7 +131,11 @@ struct W8CombatState {
     int value_010;
     int value_014;
     W8CombatCharacterRow characters[8]; /* 0x018, 0xd4 stride */
-    unsigned char unknown_6b8[0xf8];
+    unsigned char unknown_6b8[0xf0];
+    /* 0x7a8: continuous-combat UI pacing; the confirm button resets it while
+       ClockIsTicking reports it still running. */
+    unsigned int combat_ui_timer_7a8;
+    unsigned char unknown_7ac[4];
     /* 0x7b0: the exact member names the Combat.cpp action assertions report. */
     int eCombatActionStatus;                  /* 0x7b0 */
     int iActionChar;                          /* 0x7b4: -1 when nobody's turn */
@@ -177,6 +181,10 @@ struct W8CombatState {
 }; /* 0xa64 */
 
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");
+static_assert(offsetof(W8CombatState, combat_ui_timer_7a8) == 0x7a8,
+              "W8CombatState_combat_ui_timer_7a8_offset");
+static_assert(offsetof(W8CombatState, eCombatActionStatus) == 0x7b0,
+              "W8CombatState_eCombatActionStatus_offset");
 static_assert(offsetof(W8CombatState, npc_combat_script_pending) == 0xa58,
               "W8CombatState_npc_combat_script_pending_offset");
 static_assert(offsetof(W8CombatState, combat_update_count) == 0xa5c,

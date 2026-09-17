@@ -616,11 +616,13 @@ def run_clang_tidy(
     if vendor:
         # Retained SGP C participates only in compiler diagnostics; the
         # reconstruction-specific clang-tidy checks deliberately exclude it.
+        # LLVM 19 refuses Checks:'-*' without --allow-no-checks.
         commands.append(
             shlex.join(
                 [
                     "clang-tidy",
                     "--quiet",
+                    "--allow-no-checks",
                     "-p",
                     "/out",
                     "--config={Checks: '-*'}",

@@ -1,10 +1,14 @@
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/character.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
@@ -12,10 +16,10 @@
 #include "wiz8/video_object_catalog.h"
 
 // GLOBAL: WIZ8 0x0069B940
-Controls* g_panel_69b940;
+Controls* g_panel_69b940; /* gpLevelButtonsPanel */
 
 // GLOBAL: WIZ8 0x0069B920
-W8TextControl* g_portrait_controls_0069b920[8];
+W8TextControl* g_portrait_controls_0069b920[8]; /* gpLevelButtons[uiSlot] */
 
 // The condition-buttons panel and its eight buttons, created together by
 // CreateConditionButtons. The asserts there name them gpConditionButtonsPanel
@@ -24,6 +28,11 @@ W8TextControl* g_portrait_controls_0069b920[8];
 W8ConditionButton* g_condition_buttons_0069b900[8];
 // GLOBAL: WIZ8 0x0069B944
 Controls* g_condition_buttons_panel_0069b944;
+/* Party slot the level-up portrait button opens; -1 while idle. */
+// GLOBAL: WIZ8 0x0069B948
+int giLevelUpChar;
+
+void OnLevelButtonActivate(void);
 
 /* Toggle numeric hit-point display on the party portraits and invalidate all
    eight slot masks so the new mode repaints everywhere. */
@@ -184,6 +193,40 @@ void DisablePortraitControls0059BB40(void)
     } while (control < g_portrait_controls_0069b920 + 8);
 }
 
+/* Hide the condition-button region set and clear any open condition highlight. */
+// FUNCTION: WIZ8 0x0059C030
+void DisableConditionButtons0059C030(void)
+{
+    RegionSetDisable(6);
+    g_condition_buttons_panel_0069b944->SetEnabled(false);
+    if (g_level_block->condition_highlight_party_slot != -1) {
+        g_level_block->condition_highlight_party_slot = -1;
+        DismissHighlightOverlay();
+        RequestRedraw(0x8000);
+        RequestRedraw(0xff);
+    }
+}
+
+/* Show the condition-button region set for a non-normal layout. */
+// FUNCTION: WIZ8 0x0059BFC0
+void EnableConditionButtons0059BFC0(void)
+{
+    W8ConditionButton** control;
+
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        srAssertFail("gConfig.uiCurrentLayout != LAYOUT_NORMAL",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0xa0c, 0);
+    }
+    RegionSetEnable(6);
+    g_condition_buttons_panel_0069b944->SetEnabled(true);
+    control = g_condition_buttons_0069b900;
+    do {
+        (*control)->SetEnabled(true);
+        ++control;
+    } while (control < g_condition_buttons_0069b900 + 8);
+    g_condition_buttons_panel_0069b944->Invalidate(0);
+}
+
 // FUNCTION: WIZ8 0x0059BB70
 void EnablePortraitAdvanceRegions0059BB70(void)
 {
@@ -214,6 +257,76 @@ void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
 void RedrawPanel69B940(void)
 {
     g_panel_69b940->Invalidate(0);
+}
+
+/* Open the character screen for giLevelUpChar when that portrait button fires. */
+// FUNCTION: WIZ8 0x0059BCA0
+void OnLevelButtonActivate(void)
+{
+    int slot = giLevelUpChar;
+
+    if (slot == -1 || slot >= 8) {
+        return;
+    }
+    if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        srAssertFail("fCHAR_OCCUPIED(giLevelUpChar)",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x988, 0);
+    }
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+    g_pending_screen_state.mode = 2;
+    SetPendingScreenState(W8_SCREEN_CHARACTER);
+}
+
+/* The eight level-up portrait buttons sit in two columns on gpLevelButtonsPanel,
+   one row per party pair. CreateConditionButtons mirrors this layout with a
+   different region base and icon set. */
+// FUNCTION: WIZ8 0x0059B940
+void CreateLevelButtons(void)
+{
+    unsigned int uiSlot;
+    unsigned int column_x;
+    int row_y;
+    int count;
+    W8TextControl** control;
+
+    g_panel_69b940 = 0;
+    control = g_portrait_controls_0069b920;
+    for (count = 8; count != 0; --count) {
+        *control = 0;
+        ++control;
+    }
+
+    g_panel_69b940 = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
+    if (g_panel_69b940 == 0) {
+        srAssertFail("gpLevelButtonsPanel",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x8e0, 0);
+    }
+
+    uiSlot = 0;
+    control = g_portrait_controls_0069b920;
+    do {
+        column_x = (uiSlot & 1) != 0 ? 0x23b : 0;
+        row_y = (uiSlot >> 1) * 0x55;
+        W8TextControl* button =
+            new W8TextControl(g_panel_69b940, uiSlot + 0x12, column_x + 0x19, row_y + 0x46,
+                              column_x + 0x2b, row_y + 0x58, 0xa7, 0, 0, 2, 1, 4, 3);
+        *control = button;
+        button->m_primaryActivationCallback = OnLevelButtonActivate;
+        if (*control == 0) {
+            srAssertFail("gpLevelButtons[uiSlot]",
+                         "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x8f7, 0);
+        }
+        ++control;
+        ++uiSlot;
+    } while (control < g_portrait_controls_0069b920 + 8);
+
+    giLevelUpChar = -1;
+    g_panel_69b940->SetEnabled(true);
+    control = g_portrait_controls_0069b920;
+    do {
+        (*control)->SetActive(false);
+        ++control;
+    } while (control < g_portrait_controls_0069b920 + 8);
 }
 
 // SYNTHETIC: WIZ8 0x005991A0

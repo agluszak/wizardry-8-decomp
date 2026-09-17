@@ -90,6 +90,48 @@ int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
     return -1;
 }
 
+/* Rebuild every stored line's word list from its string - used when the text
+   box geometry or font metrics change and the per-word hit ranges must be
+   recomputed without dropping the lines themselves. */
+// FUNCTION: WIZ8 0x0058FEE0
+void ResetMessageStorage(void)
+{
+    int row;
+    int index;
+
+    for (row = 0; row < 4; ++row) {
+        for (index = 0; index < 0x15e; ++index) {
+            W8MessageStorageRecord* record = &g_message_storage_68f2d8[row][index];
+            if (record->wString == 0) {
+                continue;
+            }
+            if (record->entries_18 == 0) {
+                record->entries_18 = PLCreate();
+            } else {
+                W8PList* entries = record->entries_18;
+                // reinterpret-ok: retail counts the pointer-list through the IList API
+                unsigned int count = ILLength(reinterpret_cast<W8IList*>(entries));
+                unsigned int entry;
+                for (entry = 0; entry < count; ++entry) {
+                    free(PLGet(entries, entry));
+                }
+                PListClear(entries);
+            }
+            {
+                int cursor = 0;
+                W8NoticeWord word;
+                while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
+                    W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
+                    *stored = word;
+                    stored->flag_08 = 0;
+                    stored->flag_09 = 0;
+                    PLAdoptAppend(record->entries_18, stored);
+                }
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0058af60
 void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
                       int wrapped_line)
@@ -193,6 +235,28 @@ void NoticeDialogDestroyed(W8DialogBase*)
     if (g_current_screen_state.id == W8_SCREEN_OPTIONS) {
         NoOp();
     }
+}
+
+/* Store the dialogue text-box rectangle and re-seat region 0x55 plus the three
+   scrollbar hit regions that hang off its right edge. */
+// FUNCTION: WIZ8 0x0058FA90
+void SetTextBoxRegionBounds(int left, int top, int right, int bottom)
+{
+    unsigned short right_u;
+
+    g_level_block->text_box_left = left;
+    g_level_block->text_box_top = top;
+    g_level_block->text_box_right = right;
+    g_level_block->text_box_bottom = bottom;
+    right_u = static_cast<unsigned short>(right);
+    SetRegionBounds(0x55, static_cast<unsigned short>(left), static_cast<unsigned short>(top),
+                    right_u, static_cast<unsigned short>(bottom));
+    SetRegionBounds(0x52, static_cast<unsigned short>(right_u + 5), 0x16b,
+                    static_cast<unsigned short>(right_u + 0x14), 0x17a);
+    SetRegionBounds(0x53, static_cast<unsigned short>(right_u + 5), 0x1ad,
+                    static_cast<unsigned short>(right_u + 0x14), 0x1bc);
+    SetRegionBounds(0x54, static_cast<unsigned short>(right_u + 9), 0x17b,
+                    static_cast<unsigned short>(right_u + 0x10), 0x1ac);
 }
 
 // FUNCTION: WIZ8 0x0058ac00
@@ -609,6 +673,18 @@ static unsigned int GetTextBoxLineCount(short text_box)
         count += g_level_block->dialogue_text_input->line_count;
     }
     return count;
+}
+
+/* Whether more lines sit below the visible window on the cursor's text box,
+   including the dormant typed-dialogue editor's extra rows when it is open on
+   that box. */
+// FUNCTION: WIZ8 0x0058b960
+bool CurrentDialogueLineHasContent(void)
+{
+    short text_box = g_status_685170.text_line_cursor_1795;
+
+    return g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+           GetTextBoxLineCount(text_box);
 }
 
 // FUNCTION: WIZ8 0x0058b5f0
