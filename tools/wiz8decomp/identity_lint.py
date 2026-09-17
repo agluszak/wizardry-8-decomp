@@ -17,9 +17,11 @@ Names are compared by their last ``::`` component so a class-qualified method
 matches its marker. Prototypes are compared by the Clang semantic id (the
 VC6-mangled name), which folds calling convention, return type and parameter
 types together;
-the declarations carry it in the source index.Overloads of a method are exempt from the cross -
+the declarations carry it in the source index. Overloads of a method are exempt from the cross -
     declaration comparison because their qualified name does not include the parameter list; only free functions are compared by
-qualified name. A declaration explicitly marked ``identity-alias:`` is a
+qualified name. Function-template primaries and specializations that share a free-function name
+with an address-owned ordinary overload are distinct overloads, not consumer redeclarations.
+A declaration explicitly marked ``identity-alias:`` is a
 documented fold onto another address and is exempt from that comparison.
 
 The scan reads the source index for markers and declarations, then re-reads the
@@ -66,6 +68,26 @@ def _linkage_prefix(semantic_id: str) -> str:
     """Separate C and C++ linkage so a C library name does not match C++."""
 
     return semantic_id[:1]
+
+
+def _is_function_template(semantic_id: str) -> bool:
+    """True for a function-template primary or an emitted specialization.
+
+    Address-owned free functions are ordinary (non-template) entities. A
+    same-named ``template <class T> … operator+`` primary, or an MSVC-mangled
+    specialization of one, is a distinct overload and must not be treated as a
+    consumer redeclaration of the address-owned symbol.
+    """
+
+    if not semantic_id:
+        return False
+    # Clang records dependent/primary template signatures this way in the index.
+    if semantic_id.startswith(("FunctionDecl:", "CXXMethodDecl:")):
+        return True
+    if "type-parameter-" in semantic_id:
+        return True
+    # MSVC mangled function-template specialization/instantiation: ??$?… / ??$…
+    return bool(semantic_id.startswith(("??$?", "??$")))
 
 
 def _signature_end(lines: list[str], start: int, end: int) -> int:
@@ -291,6 +313,10 @@ def _consumer_violations(
         for entry in entries:
             if not entry["qualified_name"] or not entry["semantic_id"]:
                 continue
+            # Template primaries/specializations are distinct overloads, not
+            # alternate spellings of an address-owned ordinary free function.
+            if _is_function_template(entry["semantic_id"]):
+                continue
             key = (
                 entry["qualified_name"],
                 _linkage_prefix(entry["semantic_id"]),
@@ -302,9 +328,12 @@ def _consumer_violations(
     for entry in index["declarations"]:
         if entry.get("semantic_kind") != "free_function":
             continue
+        semantic_id = entry.get("semantic_id") or ""
+        if _is_function_template(semantic_id):
+            continue
         key = (
             entry["qualified_name"],
-            _linkage_prefix(entry.get("semantic_id") or ""),
+            _linkage_prefix(semantic_id),
         )
         if key not in unique:
             continue

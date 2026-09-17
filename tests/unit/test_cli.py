@@ -334,7 +334,11 @@ def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects
     monkeypatch.setattr(config, "repository_root", lambda: repository)
     monkeypatch.setattr(command_support, "settings", lambda: object())
     monkeypatch.setattr(build, "check", lambda actual: events.append(("check", actual)) or {})
-    monkeypatch.setattr(build, "lint", lambda _settings: events.append(("lint",)) or {})
+    monkeypatch.setattr(
+        build,
+        "lint",
+        lambda _settings, **_kwargs: events.append(("lint",)) or {},
+    )
     monkeypatch.setattr(
         subprocesses,
         "run",
