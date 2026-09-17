@@ -18,7 +18,9 @@ across all five snapshots.
 
 Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. `LIBRARY` source markers supply
 the reviewed names with their original decorated spelling. Keeping these functions classified as compiler support prevents them from
-inflating Wizardry source-recovery counts.
+inflating Wizardry source-recovery counts. `uv run wiz8 check`'s `source-oracle` gate treats the
+documented CRT helper cluster, CRT startup range, and these `LIBRARY` / `fid-variants` claims as
+oracle-owned: a Wizardry `FUNCTION` body in that space is a gate failure.
 
 The agreement across snapshots is deliberately not described as evidence for one VC6 service
 pack. Compiler selection still has to use discriminating code bodies, Rich records, and eventual
