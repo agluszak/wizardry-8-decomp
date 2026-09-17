@@ -114,7 +114,7 @@ public:
         render_state_164.state_0d = 0;
         vector_174 = 0;
         vector_178 = 0;
-        m_pGlowMaterial_17c = 0;
+        m_pGlowMaterial = 0;
     }
     void setRenderDepth(unsigned long depth)
     {
@@ -125,7 +125,7 @@ public:
     W8ModelInstanceRenderState render_state_164;
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;
-    srMaterial* m_pGlowMaterial_17c;
+    srMaterial* m_pGlowMaterial;
     virtual ~stModelInstance2D() override; /* 0x0047F410 */
 };
 

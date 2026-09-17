@@ -13,7 +13,7 @@ class OctPreTree;
 
 struct W8OctBuildLinkLists {
     W8OctBuildLinkLists();
-    W8OctBuildLink* GetNewLink00446250(W8GDSurface* surface);
+    W8OctBuildLink* GetNewLink(W8GDSurface* surface);
 
     unsigned short m_usCurrent;
     unsigned short padding_02;
@@ -65,8 +65,7 @@ struct W8OctBuildTree00446390 {
     ~W8OctBuildTree00446390();
 
     unsigned char InsertSurface00446820(W8GDSurface* surface, unsigned long mode);
-    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
-                                                 W8GDSurface* surface,
+    unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
                                                  srVector3T<float>* plane_point,
                                                  unsigned long mode);
 

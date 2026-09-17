@@ -212,7 +212,7 @@ stModelInstance2D::stModelInstance2D(srNode* parent)
     render_state_164.render_depth = 2000;
     vector_174 = 0;
     vector_178 = 0;
-    m_pGlowMaterial_17c = 0;
+    m_pGlowMaterial = 0;
     if (parent != 0) {
         setParent(parent, 1);
     }
@@ -227,8 +227,8 @@ stModelInstance2D::~stModelInstance2D()
     if (vector_178 != 0) {
         srHeap.free(vector_178);
     }
-    if (m_pGlowMaterial_17c != 0) {
-        m_pGlowMaterial_17c->release();
+    if (m_pGlowMaterial != 0) {
+        m_pGlowMaterial->release();
     }
 }
 
@@ -330,15 +330,15 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     model->getTriMesh(mesh);
 
     if (render_state_164.state_0d != 0) {
-        if (m_pGlowMaterial_17c == 0) {
-            m_pGlowMaterial_17c = new stMaterial;
-            if (m_pGlowMaterial_17c == 0) {
+        if (m_pGlowMaterial == 0) {
+            m_pGlowMaterial = new stMaterial;
+            if (m_pGlowMaterial == 0) {
                 srAssertFail("m_pGlowMaterial", ST_MODEL_INSTANCE_CPP, 926, 0);
             }
             if (mesh.materials_70[0][0] != 0) {
-                *m_pGlowMaterial_17c = *mesh.materials_70[0][0];
+                *m_pGlowMaterial = *mesh.materials_70[0][0];
             }
-            if (m_pGlowMaterial_17c == 0) {
+            if (m_pGlowMaterial == 0) {
                 goto render_mesh;
             }
         }
@@ -353,8 +353,8 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
         emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
         emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
         emissive.w = g_float_005ebb38;
-        m_pGlowMaterial_17c->setEmissive(emissive);
-        mesh.materials_70[0][0] = m_pGlowMaterial_17c;
+        m_pGlowMaterial->setEmissive(emissive);
+        mesh.materials_70[0][0] = m_pGlowMaterial;
         mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
                                    srShader::MASK_GRADIENT_ADD;
     }
@@ -372,9 +372,9 @@ render_mesh:
 // FUNCTION: WIZ8 0x00480EB0
 void stModelInstance2D::SetGlowEnabled00480EB0(unsigned char enable)
 {
-    if (enable == 0 && m_pGlowMaterial_17c != 0) {
-        m_pGlowMaterial_17c->release();
-        m_pGlowMaterial_17c = 0;
+    if (enable == 0 && m_pGlowMaterial != 0) {
+        m_pGlowMaterial->release();
+        m_pGlowMaterial = 0;
     }
     render_state_164.state_0d = enable;
 }
