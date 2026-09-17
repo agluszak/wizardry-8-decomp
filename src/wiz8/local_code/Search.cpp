@@ -90,14 +90,13 @@ W8SearchableView* CollectSearchablesInView(void)
     int total = g_searchables_00689fa8.count;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
-    g_search_view_00689fb8.items.count = 0;
+    g_search_view_00689fb8.items.Clear();
     g_search_view_00689fb8.cursor = -1;
     for (int index = 0; index < total; ++index) {
         W8Searchable* searchable = *g_searchables_00689fa8.GetAt(index);
         srVector3T<float> position;
         searchable->GetPosition(&position);
-        srVector3T<float> delta(camera.x - position.x, camera.y - position.y,
-                                camera.z - position.z);
+        srVector3T<float> delta = camera - position;
         if (delta.Length() < g_float_0061a364) {
             if (searchable->world_item == 0 && searchable->trigger != 0) {
                 g_search_view_00689fb8.items.Add(searchable);
@@ -373,7 +372,7 @@ int W8Searchable::PickBestSearcher()
     GetCameraPosition(&camera);
     srVector3T<float> position;
     GetPosition(&position);
-    srVector3T<float> delta(camera.x - position.x, camera.y - position.y, camera.z - position.z);
+    srVector3T<float> delta = camera - position;
     if (delta.Length() < range) {
         if (earned) {
             PracticeCharacterSkill(&g_status_685170.buffers.characters[best_slot],

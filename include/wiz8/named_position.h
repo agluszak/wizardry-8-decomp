@@ -6,9 +6,7 @@ struct W8NamedPosition {
     W8NamedPosition()
     {
         name[0] = '\0';
-        position.x = 0.0f;
-        position.y = 0.0f;
-        position.z = 0.0f;
+        position.SetZero();
         value_08c = 0.0f;
         value_090 = 0.0f;
         value_094 = 0.0f;
