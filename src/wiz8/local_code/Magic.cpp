@@ -211,7 +211,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
         !ClearMonsterCombatSlot(monster_info)) {
         return false;
     }
-    if (Function4D9080(monster_info, 4, 0)) {
+    if (DispatchWorldCursorNodeCommand004D9080(monster_info, 4, 0)) {
         return false;
     }
     if (!MonsterSpellTargetOK(monster_info, spell_id, combat_slot)) {

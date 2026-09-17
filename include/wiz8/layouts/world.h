@@ -56,7 +56,9 @@ struct W8World {
     float m_positional_01c;
     float view_distance_020;
     float environment_intensity_024;
-    unsigned char m_positional_028[4];
+    /* Snapshot of environment_intensity_024 taken when a fade-out starts; the
+       lighting transition multiplies g_light_scale by this base. */
+    float environment_base_intensity_028;
     EnvironmentColour environment_colour_02c;
     stLevel* level;
     srScene* static_scene;

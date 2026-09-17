@@ -159,11 +159,11 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value != 0 && FindEntityByName("NP_BlueFlowers", &position, 0, 0) != 0) {
             world_item = SpawnItem(0x2eb, &position, 3, 1);
             if (world_item != 0) {
-                Function4F6CF0(world_item);
+                ActivateItem(world_item);
             }
             world_item = SpawnItem(0x2eb, &position, 3, 1);
             if (world_item != 0) {
-                Function4F6CF0(world_item);
+                ActivateItem(world_item);
             }
         }
         return;

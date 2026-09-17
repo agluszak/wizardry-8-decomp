@@ -2,22 +2,61 @@
 #include "wiz8/level_specific_code/Monastery1.h"
 #include "wiz8/level_specific_code/Monastery2.h"
 #include "wiz8/level_specific_code/Trynnie1.h"
+#include "wiz8/level_specific_code/Trynnie2.h"
+#include "wiz8/level_specific_code/Swamp.h"
+#include "wiz8/level_specific_code/SeaCaves.h"
+#include "wiz8/level_specific_code/Rift1.h"
+#include "wiz8/level_specific_code/Camp.h"
+#include "wiz8/level_specific_code/RapaxMainFloor.h"
+#include "wiz8/level_specific_code/RapaxUpperFloor.h"
 #include "wiz8/level_specific_code/Ascension.h"
+#include "wiz8/level_specific_code/MtGigas1.h"
+#include "wiz8/level_specific_code/MtGigas2.h"
 #include "wiz8/level_specific_code/MtGigasOuter.h"
 #include "wiz8/level_specific_code/MtGigasTop.h"
+#include "wiz8/level_specific_code/CosmicCircle.h"
+#include "wiz8/level_specific_code/MartensBluff2.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.hpp"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/layouts/world.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/save_game.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/location_variables.h"
+#include "wiz8/character_skills.h"
+#include "wiz8/string_database.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/utility.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <wchar.h>
 
 #include "Debug.h"
 
+/* The world-cursor node the party is standing in, tracked across the
+   command-0 sweep so enter/leave commands fire once per crossing. */
 // GLOBAL: WIZ8 0x006834d4
-int g_value_6834d4;
+W8WorldCursorNode* g_active_cursor_node_006834d4;
 
 // GLOBAL: WIZ8 0x006834d8
 W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;
@@ -41,17 +80,368 @@ void RunMasterFunctions004D8E40(void)
     }
 }
 
+/* Run every registered master function once with argument -1, the persist
+   command the level masters answer by writing their live state into the
+   location variables. */
+// FUNCTION: WIZ8 0x004D8EC0
+void SaveMasterFunctions004D8EC0(void)
+{
+    int count = g_master_functions_006834d8->GetCount();
+
+    for (int index = 0; index < count; ++index) {
+        (*g_master_functions_006834d8->GetAt(index))(-1);
+    }
+}
+
+/* The level callbacks' scripted spawn: settle the requested point onto the
+   ground when asked, create the group, apply hostility, refresh its centre
+   cache and re-run outward sight for the new arrivals. */
+// FUNCTION: WIZ8 0x004D8F00
+W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* position, int hostility,
+                              unsigned char settle, unsigned char a, unsigned char b)
+{
+    W8MonsterGroup* group;
+    srVector3T<float> position_copy;
+
+    if (settle != 0) {
+        position->y = SettlePositionToGround00420BD0(position, 0);
+    }
+    position_copy = *position;
+    group = CreateGroup(monster_id, count, &position_copy, a, b, settle);
+    if (group != 0) {
+        SetMonsterGroupHostility(group, hostility, 0);
+        GetMonsterGroupCentre(group, 0);
+        RefreshOutwardSightForAllMonsters();
+    }
+    return group;
+}
+
+/* One row of the cursor-node dispatch table at 0x006109F4, indexed by the
+   node's type parameter (numbers_0c[2]). The dispatcher invokes a row as
+   (command, node, context); the context slot normally carries the address of
+   the command's argument byte, while command 4 smuggles the byte itself
+   through it. */
+typedef unsigned char (*W8WorldCursorNodeHandler)(int command, W8WorldCursorNode* node,
+                                                  int context);
+
+unsigned char WorldCursorNodeShowMessageOnce004D9260(int command, W8WorldCursorNode* node,
+                                                     int context);
+unsigned char WorldCursorNodeShowContextMessage004D93E0(int command, W8WorldCursorNode* node,
+                                                        int context);
+unsigned char WorldCursorNodeShowMessage004D94B0(int command, W8WorldCursorNode* node, int context);
+unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+                                                     int context);
+unsigned char WorldCursorNodeMaleCharacterEvent004D9590(int command, W8WorldCursorNode* node,
+                                                        int context);
+unsigned char IsMasterFunctionTypeEight004D95F0(int command, W8WorldCursorNode* node, int context);
+unsigned char WorldCursorNodeSeenBodies004D9600(int command, W8WorldCursorNode* node, int context);
+unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+                                                     int context);
+unsigned char WorldCursorNodePartyVoice004D98C0(int command, W8WorldCursorNode* node, int context);
+
+/* The character-event kind constants the cursor-node handlers queue. */
+// GLOBAL: WIZ8 0x005EE5F4
+const int g_character_event_kind_005ee5f4 = 0x1b;
+// GLOBAL: WIZ8 0x005EE63C
+const int g_character_event_kind_005ee63c = 0x2d;
+// GLOBAL: WIZ8 0x005EE688
+const int g_character_event_kind_005ee688 = 0x40;
+
+// GLOBAL: WIZ8 0x006109F4
+static W8WorldCursorNodeHandler const g_world_cursor_node_handlers_006109f4[10] = {
+    WorldCursorNodeShowMessageOnce004D9260,    /* type 0 */
+    WorldCursorNodeShowMessageOnce004D9260,    /* type 1 */
+    WorldCursorNodeShowContextMessage004D93E0, /* type 2 */
+    WorldCursorNodeShowMessage004D94B0,        /* type 3 */
+    WorldCursorNodeApplyItemEffect004D9560,    /* type 4 */
+    WorldCursorNodeSeenBodies004D9600,         /* type 5 */
+    WorldCursorNodeApplyItemEffect004D96C0,    /* type 6 */
+    IsMasterFunctionTypeEight004D95F0,         /* type 7 */
+    WorldCursorNodePartyVoice004D98C0,         /* type 8 */
+    WorldCursorNodeMaleCharacterEvent004D9590  /* type 9 */
+};
+
+/* Dispatch one world-cursor-node command against the nodes covering `info`'s
+   ground-settled position (the camera's when info is null). Command zero is
+   the movement sweep: the tracked node's handler gets 2 (leave) and each
+   newly entered node's handler gets 1 (enter); commands 3, 4 and 8 deliver
+   themselves to nodes of type 3, 2 and 7 respectively. Answers whether any
+   handler reported the command handled. */
+// FUNCTION: WIZ8 0x004D9080
+unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int command,
+                                                     unsigned char arg)
+{
+    srVector3T<float> position;
+    W8WorldCursorNode* node;
+    W8WorldCursorNode* previous;
+    int context;
+    unsigned char handled;
+    unsigned char result;
+
+    result = 0;
+    handled = 0;
+    // Commands other than 4 pass the argument byte's address through the
+    // context slot; the handlers never dereference it.
+    // reinterpret-ok: pointer-sized context slot carries the byte's address.
+    context = reinterpret_cast<int>(&arg);
+    if (GetFlag68F105() != 0) {
+        return handled;
+    }
+    if (info == 0) {
+        GetCameraPosition(&position);
+    } else {
+        position = info->monster->GetPosition();
+    }
+    position.y = SettlePositionToGround00420BD0(&position, 0) + g_float_005ec3f8;
+    node = FindWorldCursorNodeAtPoint0048EDD0(0, &position);
+    if (command == 4) {
+        context = arg;
+    }
+    if (node == 0) {
+        return handled;
+    }
+    do {
+        previous = g_active_cursor_node_006834d4;
+        switch (command) {
+        case 0:
+            if (previous != 0 && previous != node) {
+                result = g_world_cursor_node_handlers_006109f4[GetWorldCursorNodeParameter0048E2B0(
+                    previous, 2)](2, previous, context);
+            }
+            previous = g_active_cursor_node_006834d4;
+            if (node != 0 && previous != node) {
+                result = g_world_cursor_node_handlers_006109f4[GetWorldCursorNodeParameter0048E2B0(
+                    node, 2)](1, node, context);
+            }
+            g_active_cursor_node_006834d4 = node;
+            break;
+        case 3:
+            if (node != 0) {
+                int type = GetWorldCursorNodeParameter0048E2B0(node, 2);
+                if (type == 3) {
+                    result = g_world_cursor_node_handlers_006109f4[3](type, node, context);
+                }
+            }
+            break;
+        case 4:
+            if (node != 0 && GetWorldCursorNodeParameter0048E2B0(node, 2) == 2) {
+                result = g_world_cursor_node_handlers_006109f4[2](4, node, context);
+            }
+            break;
+        case 8:
+            if (node != 0 && GetWorldCursorNodeParameter0048E2B0(node, 2) == 7) {
+                result = g_world_cursor_node_handlers_006109f4[7](8, node, context);
+            }
+            break;
+        default:
+            result = 0;
+            break;
+        }
+        if (result != 0) {
+            handled = 1;
+        }
+        node = FindWorldCursorNodeAtPoint0048EDD0(node, &position);
+    } while (node != 0);
+    return handled;
+}
+
+/* Type-0/1 nodes: on the enter command, show the node's message-database
+   string once - the first byte of the node's userdata is the shown flag.
+   Parameter 1 additionally gates the message on a living party member with
+   trait 0x0c while the party is neither searching nor under effect 0x11. */
+// FUNCTION: WIZ8 0x004D9260
+unsigned char WorldCursorNodeShowMessageOnce004D9260(int command, W8WorldCursorNode* node,
+                                                     int context)
+{
+    int message_id;
+    const char* folder;
+    int type;
+    unsigned char enabled;
+    unsigned char result;
+    char* shown;
+    int slot;
+    char path[512];
+    wchar_t text[2048];
+
+    result = 0;
+    message_id = GetWorldCursorNodeParameter0048E2B0(node, 0);
+    folder = GetLevelFolderName(GetLoadedLevelID());
+    type = GetWorldCursorNodeParameter0048E2B0(node, 2);
+    enabled = static_cast<unsigned char>(GetWorldCursorNodeParameter0048E2B0(node, 1));
+    if (enabled != 0 && g_status_685170.search_mode == 0 &&
+        g_status_685170.party_modifiers_22e3.flag_46 == 0) {
+        for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                CharacterHasTrait00547940(g_status_685170.buffers.characters + slot, 0xc)) {
+                goto command_check;
+            }
+        }
+        return 0;
+    }
+command_check:
+    if (command != 1) {
+        return 0;
+    }
+    if (type == 0) {
+        result = 1;
+        GetWorldCursorNodeUserdata0048EF00(node, &shown, 0);
+        if (shown == 0) {
+            SetWorldCursorNodeUserdataSize0048EF40(node, 1);
+            GetWorldCursorNodeUserdata0048EF00(node, &shown, 0);
+        }
+        if (*shown != 0) {
+            return 0;
+        }
+        *shown = 1;
+        if (folder == 0) {
+            folder = "Test";
+        }
+        sprintf(path, "Data\\Messages\\%s.msg", folder);
+        if (GetStringFromStringDatabase(path, message_id, text, 0, 0) != 0) {
+            ShowString(text);
+        }
+    }
+    return result;
+}
+
+/* Type-2 nodes: command 4 with a nonzero context flag shows the node's
+   message while the main game screen is up. */
+// FUNCTION: WIZ8 0x004D93E0
+unsigned char WorldCursorNodeShowContextMessage004D93E0(int command, W8WorldCursorNode* node,
+                                                        int context)
+{
+    const char* folder;
+    int message_id;
+    char path[512];
+    wchar_t text[2046];
+
+    folder = GetLevelFolderName(GetLoadedLevelID());
+    if (command != 4) {
+        return 0;
+    }
+    if (static_cast<unsigned char>(context) != 0) {
+        message_id = GetWorldCursorNodeParameter0048E2B0(node, 0);
+        if (folder == 0) {
+            folder = "Test";
+        }
+        sprintf(path, "Data\\Messages\\%s.msg", folder);
+        if (GetStringFromStringDatabase(path, message_id, text, 0, 0) != 0) {
+            if (wcslen(text) != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                ShowString(text);
+            }
+        }
+    }
+    return 1;
+}
+
+/* Type-3 nodes: command 3 shows the node's message unconditionally. */
+// FUNCTION: WIZ8 0x004D94B0
+unsigned char WorldCursorNodeShowMessage004D94B0(int command, W8WorldCursorNode* node, int context)
+{
+    const char* folder;
+    int message_id;
+    char path[512];
+    wchar_t text[2048];
+
+    folder = GetLevelFolderName(GetLoadedLevelID());
+    if (command != 3) {
+        return 0;
+    }
+    message_id = GetWorldCursorNodeParameter0048E2B0(node, 0);
+    if (folder == 0) {
+        folder = "Test";
+    }
+    sprintf(path, "Data\\Messages\\%s.msg", folder);
+    if (GetStringFromStringDatabase(path, message_id, text, 0, 0) != 0) {
+        if (wcslen(text) != 0) {
+            ShowString(text);
+        }
+    }
+    return 1;
+}
+
+/* Type-4 nodes: entering applies the node's item effect to a random party
+   member. */
+// FUNCTION: WIZ8 0x004D9560
+unsigned char WorldCursorNodeApplyItemEffect004D9560(int command, W8WorldCursorNode* node,
+                                                     int context)
+{
+    if (command == 1) {
+        ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee5f4, -1, 0,
+                                         g_effect_argument_005ed8c8);
+    }
+    return 1;
+}
+
+/* Type-9 nodes: entering while the fact-0x14c gate holds queues the male
+   event for the indexed party member when that member is male. */
+// FUNCTION: WIZ8 0x004D9590
+unsigned char WorldCursorNodeMaleCharacterEvent004D9590(int command, W8WorldCursorNode* node,
+                                                        int context)
+{
+    W8Character* character;
+
+    if (command == 1 && g_status_685170.flag_2489 != 0) {
+        character = g_status_685170.buffers.characters + g_status_685170.alternate_name_slot_247f;
+        if (character->gender == W8_GENDER_MALE) {
+            QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
+                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        }
+    }
+    return 1;
+}
+
 /* Predicate installed in the master-function callback table. */
 // FUNCTION: WIZ8 0x004D95F0
-unsigned char IsMasterFunctionTypeEight004D95F0(int type)
+unsigned char IsMasterFunctionTypeEight004D95F0(int command, W8WorldCursorNode* node, int context)
 {
-    return type == 8;
+    return command == 8;
+}
+
+/* Type-5 nodes: the Ascension Peak "seen bodies" check. Once all three relic
+   items are on the party and neither blocking fact holds, queue the reaction
+   and latch the AP_SeenBodies location variable. Retail runs the fact-0x133
+   clear twice. */
+// FUNCTION: WIZ8 0x004D9600
+unsigned char WorldCursorNodeSeenBodies004D9600(int command, W8WorldCursorNode* node, int context)
+{
+    if (command == 1) {
+        if (GetLocationVarIDByName("AP_SeenBodies") == -1) {
+            if (CountAscensionPeakItems004DF810() == 3) {
+                if (GetFact(0x5c) != 0 || GetFact(0x97) != 0) {
+                    ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
+                                                     g_effect_argument_005ed8c8);
+                    CreateLocationVar("AP_SeenBodies", 1);
+                    if (GetFact(0x133) != 0) {
+                        SetFact(0x133, 0, 0);
+                    }
+                    if (GetFact(0x133) != 0) {
+                        SetFact(0x133, 0, 0);
+                    }
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+/* Type-6 nodes: entering applies the node's item effect to a random party
+   member. */
+// FUNCTION: WIZ8 0x004D96C0
+unsigned char WorldCursorNodeApplyItemEffect004D96C0(int command, W8WorldCursorNode* node,
+                                                     int context)
+{
+    if (command == 1) {
+        ApplyItemEffectToRandomCharacter(g_character_event_kind_005ee688, -1, 0,
+                                         g_effect_argument_005ed8c8);
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004D96F0
 void ClearValue6834D4(void)
 {
-    g_value_6834d4 = 0;
+    g_active_cursor_node_006834d4 = 0;
 }
 
 /* Master-function values 0x10 and 0x26 select the same path once either of
@@ -79,76 +469,115 @@ int g_value_6834e0;
 // GLOBAL: WIZ8 0x00652DA5
 unsigned char g_flag_652da5;
 
+/* Fill the away camp chest from the level-0x26 item records stored in the
+   current save. Records that are not world-persistent move into the chest
+   trigger's container item; persistent records are flattened back into the
+   load vector (so their own groups are visited too) and then freed. */
+// FUNCTION: WIZ8 0x004D9740
+void LoadAwayCampChest004D9740(void)
+{
+    W8GrowableVector<W8WorldItem*> items(5);
+    W8Prop* pChest;
+    Trigger* pTrigger;
+    W8WorldItem* pContainer;
+    int index;
+
+    pChest = FindPropByName(g_world, "AwayCampChest");
+    if (pChest == 0) {
+        srAssertFail("pChest", MASTER_FUNCTION_CPP, 0x5a4, 0);
+    }
+    pTrigger = pChest->GetValue18();
+    if (pTrigger == 0) {
+        srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5a6, 0);
+    }
+    pContainer = pTrigger->GetOrCreateItemGroup00445670(1);
+    if (pContainer == 0) {
+        srAssertFail("pContainer", MASTER_FUNCTION_CPP, 0x5a8, 0);
+    }
+    LoadSavedLevelItems00516070(0x26, &items);
+    for (index = 0; index < items.GetCount(); ++index) {
+        W8WorldItem* item = *items.GetAt(index);
+
+        if (ItemInfoIsWorldPersistent(item)) {
+            if (ItemInfoGetNumInGroup(item) != 0) {
+                W8WorldItem* next = ItemInfoGroupGetNext(item);
+
+                if (next != 0) {
+                    ItemInfoMakeGroupList(next, &items);
+                }
+            }
+            free(item);
+        } else {
+            ItemInfoAddToGroup(pContainer, item);
+        }
+    }
+}
+
+/* Type-8 nodes: entering queues a random party member's voice line for the
+   node's event type, once - the first byte of the node's userdata is the
+   shown flag. */
+// FUNCTION: WIZ8 0x004D98C0
+unsigned char WorldCursorNodePartyVoice004D98C0(int command, W8WorldCursorNode* node, int context)
+{
+    int event_type;
+    char* shown;
+    int slot;
+
+    event_type = GetWorldCursorNodeParameter0048E2B0(node, 0);
+    if (command == 1) {
+        GetWorldCursorNodeUserdata0048EF00(node, &shown, 0);
+        if (shown == 0) {
+            SetWorldCursorNodeUserdataSize0048EF40(node, 1);
+            GetWorldCursorNodeUserdata0048EF00(node, &shown, 0);
+        }
+        if (*shown == 0) {
+            *shown = 1;
+            slot = PickRandomPartySpeaker(event_type, -1);
+            if (slot != -1) {
+                QueueCharacterEvent(g_status_685170.buffers.characters + slot, event_type, 0,
+                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+            }
+        }
+    }
+    return 1;
+}
+
+/* Format the current level's message-database path, fetch the indexed string
+   and show it. Answers whether the string existed. */
+// FUNCTION: WIZ8 0x004D9960
+unsigned char ShowLevelMessage004D9960(int message_id)
+{
+    const char* folder;
+    char path[512];
+    wchar_t text[2000];
+
+    folder = GetLevelFolderName(GetLoadedLevelID());
+    if (folder == 0) {
+        folder = "Test";
+    }
+    sprintf(path, "Data\\Messages\\%s.msg", folder);
+    if (GetStringFromStringDatabase(path, message_id, text, 0, 0) != 0) {
+        ShowString(text);
+        return 1;
+    }
+    return 0;
+}
+
 /* The level-specific callbacks and master-function helpers this unit
    installs. Their bodies live in the other level-specific units, so they
    are declared here rather than in the published header. */
-void Function4D9740(void);
-void Function4D9B40(void);
-void Function4DA670(void);
-void Function4DB200(void);
-void Function4DBAB0(void);
-void Function4DCB50(void);
+void EnsureTrynnie1KilledVar004DA670(void);
 void Function4DEB40(void);
 void Function4DF870(void);
 void Function4E06D0(void);
-bool Function4D9AC0(Trigger* trigger);
-bool Function4D9AD0(Trigger* trigger);
-bool Function4D9D70(Trigger* trigger);
-bool Function4D9DA0(Trigger* trigger);
-bool Function4D9DD0(Trigger* trigger);
-bool Function4D9E00(Trigger* trigger);
-bool Function4D9E60(Trigger* trigger);
-bool Function4DA060(Trigger* trigger);
-bool Function4DA110(Trigger* trigger);
-bool Function4DA2E0(Trigger* trigger);
-bool Function4DA3C0(Trigger* trigger);
-bool Function4DA460(Trigger* trigger);
-bool Function4DA590(Trigger* trigger);
-bool Function4DA5D0(Trigger* trigger);
-bool Function4DA610(Trigger* trigger);
-bool Function4DA630(Trigger* trigger);
-bool Function4DA650(Trigger* trigger);
-bool Function4DA740(Trigger* trigger);
-bool Function4DA960(Trigger* trigger);
-bool Function4DA9B0(Trigger* trigger);
-bool Function4DAA10(Trigger* trigger);
-bool Function4DADF0(Trigger* trigger);
-bool Function4DAE30(Trigger* trigger);
-bool Function4DAE70(Trigger* trigger);
-bool Function4DAEB0(Trigger* trigger);
-bool Function4DAEF0(Trigger* trigger);
-bool Function4DAF30(Trigger* trigger);
-bool Function4DAF70(Trigger* trigger);
-bool Function4DAFD0(Trigger* trigger);
-bool Function4DB090(Trigger* trigger);
-bool Function4DB120(Trigger* trigger);
-bool Function4DB160(Trigger* trigger);
-bool Function4DB180(Trigger* trigger);
-bool Function4DB1C0(Trigger* trigger);
-bool Function4DB380(Trigger* trigger);
-bool Function4DB420(Trigger* trigger);
-bool Function4DB460(Trigger* trigger);
-bool Function4DB4A0(Trigger* trigger);
-bool Function4DB650(Trigger* trigger);
-bool Function4DB690(Trigger* trigger);
-bool Function4DB6D0(Trigger* trigger);
-bool Function4DB770(Trigger* trigger);
-bool Function4DB810(Trigger* trigger);
-bool Function4DBA70(Trigger* trigger);
-bool Function4DBA90(Trigger* trigger);
-bool Function4DBB50(Trigger* trigger);
-bool Function4DBB90(Trigger* trigger);
-bool Function4DBBD0(Trigger* trigger);
-bool Function4DBE30(Trigger* trigger);
-bool Function4DD3E0(Trigger* trigger);
-bool Function4DDD30(Trigger* trigger);
-bool Function4DDD50(Trigger* trigger);
-bool Function4DDD80(Trigger* trigger);
-bool Function4DDDC0(Trigger* trigger);
-bool Function4DDEB0(Trigger* trigger);
-bool Function4DDF20(Trigger* trigger);
-bool Function4DE520(Trigger* trigger);
-bool Function4DE620(Trigger* trigger);
+bool Trynnie2GoodaVineA004D9D70(Trigger* trigger);
+bool Trynnie2GoodaVineB004D9DA0(Trigger* trigger);
+bool Trynnie2GiveZulu004D9DD0(Trigger* trigger);
+bool Trynnie2MeatMaker004D9E00(Trigger* trigger);
+bool Trynnie2MeatBox004D9E60(Trigger* trigger);
+bool Trynnie2UrnTrigger004DA060(Trigger* trigger);
+bool Trynnie1FountRandomFX004DA740(Trigger* trigger);
+
 bool Function4DEDB0(Trigger* trigger);
 bool Function4DEE10(Trigger* trigger);
 bool Function4DEE50(Trigger* trigger);
@@ -195,7 +624,6 @@ bool Function4E23C0(Trigger* trigger);
 bool Function4E2420(Trigger* trigger);
 bool Function4E26F0(Trigger* trigger);
 bool Function4E2760(Trigger* trigger);
-bool TriggerArrowTrap(Trigger* trigger);
 
 /* Install the level's trigger callbacks and master-function helpers. */
 // FUNCTION: WIZ8 0x004D6C50
@@ -315,7 +743,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xb8,
                          "Missing trigger 'ARN11'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9AC0;
+        pTrigger->activation_callback_360 = CosmicCircleReturnFalse004D9AC0;
         pTrigger = FindTriggerByName("RedButton");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xbd,
@@ -427,13 +855,13 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         Function4DF870();
         return;
     case 4:
-        Function4D9B40();
+        CosmicCircleSetup004D9B40();
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE1HEDRA");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x33a,
                          "Missing trigger 'CC_TRIGGERPLANE1HEDRA'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9AD0;
+        pTrigger->activation_callback_360 = CosmicCircleTriggerPlane1Hedra004D9AD0;
         break;
     case 5:
         Function4DEB40();
@@ -555,7 +983,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Function4DF7E0;
         return;
     case 6:
-        Function4DCB50();
+        MartensBluff2Setup004DCB50();
         pTrigger = FindTriggerByName("Arrowtraptrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x192,
@@ -567,55 +995,55 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x196,
                          "Missing trigger 'Spikeballtrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DD3E0;
+        pTrigger->activation_callback_360 = MartensBluff2Spikeballtrigger004DD3E0;
         pTrigger = FindTriggerByName("DoorBolt");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x19a,
                          "Missing trigger 'DoorBolt'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDD30;
+        pTrigger->activation_callback_360 = MartensBluff2DoorBolt004DDD30;
         pTrigger = FindTriggerByName("DummyLever");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x19e,
                          "Missing trigger 'DummyLever'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDD50;
+        pTrigger->activation_callback_360 = MartensBluff2DummyLever004DDD50;
         pTrigger = FindTriggerByName("Dummy");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1a2,
                          "Missing trigger 'Dummy'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDD80;
+        pTrigger->activation_callback_360 = MartensBluff2Dummy004DDD80;
         pTrigger = FindTriggerByName("PerfumeBox");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1a6,
                          "Missing trigger 'PerfumeBox'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDDC0;
+        pTrigger->activation_callback_360 = MartensBluff2PerfumeBox004DDDC0;
         pTrigger = FindTriggerByName("StoneIdol");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1aa,
                          "Missing trigger 'StoneIdol'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DE520;
+        pTrigger->activation_callback_360 = MartensBluff2StoneIdol004DE520;
         pTrigger = FindTriggerByName("BlueFlowers");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ae,
                          "Missing trigger 'BlueFlowers'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DE620;
+        pTrigger->activation_callback_360 = MartensBluff2BlueFlowers004DE620;
         pTrigger = FindTriggerByName("SquisherControls");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1b2,
                          "Missing trigger 'SquisherControls'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDF20;
+        pTrigger->activation_callback_360 = MartensBluff2SquisherControls004DDF20;
         pTrigger = FindTriggerByName("DoorControls");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1b6,
                          "Missing trigger 'DoorControls'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DDEB0;
+        pTrigger->activation_callback_360 = MartensBluff2DoorControls004DDEB0;
         return;
     case 8:
         ClearTextForBarTrigger004DC8D0();
@@ -674,106 +1102,106 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Monastery2MicroDoor2004DC880;
         return;
     case 0xc:
-        Function4DBAB0();
+        MtGigas1Setup004DBAB0();
         pTrigger = FindTriggerByName("_VOC_EWAXXLIFT1");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x219,
                          "Missing trigger '_VOC_EWAXXLIFT1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBB50;
+        pTrigger->activation_callback_360 = MtGigas1Lift1004DBB50;
         pTrigger = FindTriggerByName("_VOC_EWAXXLIFT2");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x21d,
                          "Missing trigger '_VOC_EWAXXLIFT2'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBB90;
+        pTrigger->activation_callback_360 = MtGigas1Lift2004DBB90;
         pTrigger = FindTriggerByName("PRESSUREPLATE");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x221,
                          "Missing trigger '_VOC_EWAXXLIFT2'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBBD0;
+        pTrigger->activation_callback_360 = MtGigas1PressurePlate004DBBD0;
         pTrigger = FindTriggerByName("mudWallTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x225,
                          "Missing trigger 'mudWallTrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBE30;
+        pTrigger->activation_callback_360 = MtGigas1MudWall004DBE30;
         return;
     case 0xd:
-        Function4DB200();
+        MtGigas2Setup004DB200();
         pTrigger = FindTriggerByName("_VOC_EWAXXTRAIN");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x22e,
                          "Missing trigger '_VOC_EWAXXTRAIN'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB380;
+        pTrigger->activation_callback_360 = MtGigas2Train004DB380;
         pTrigger = FindTriggerByName("redwire");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x232,
                          "Missing trigger 'redwire'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB420;
+        pTrigger->activation_callback_360 = MtGigas2RedWire004DB420;
         pTrigger = FindTriggerByName("bluewire");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x236,
                          "Missing trigger 'bluewire'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB460;
+        pTrigger->activation_callback_360 = MtGigas2BlueWire004DB460;
         pTrigger = FindTriggerByName("yellowwire");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x23a,
                          "Missing trigger 'yellowwire'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB4A0;
+        pTrigger->activation_callback_360 = MtGigas2YellowWire004DB4A0;
         pTrigger = FindTriggerByName("_VOC_EWAXXLIFT3");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x23e,
                          "Missing trigger '_VOC_EWAXXLIFT3'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB650;
+        pTrigger->activation_callback_360 = MtGigas2Lift3004DB650;
         pTrigger = FindTriggerByName("_VOC_EWAXXTOPDOOR1");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x242,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB690;
+        pTrigger->activation_callback_360 = MtGigas2TopDoor1004DB690;
         pTrigger = FindTriggerByName("_VOC_EWAXXOFFICER1");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x246,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB6D0;
+        pTrigger->activation_callback_360 = MtGigas2Officer1004DB6D0;
         pTrigger = FindTriggerByName("_VOC_EWAXXOFFICER2");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x24a,
                          "Missing trigger '_VOC_EWAXXTOPDOOR1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB770;
+        pTrigger->activation_callback_360 = MtGigas2Officer2004DB770;
         pTrigger = FindTriggerByName("triggerPlaneLaserAlarm");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x24e,
                          "Missing trigger 'triggerPlaneLaserAlarm'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB810;
+        pTrigger->activation_callback_360 = MtGigas2LaserAlarm004DB810;
         pTrigger = FindTriggerByName("triggerPlaneLaserAlarm01");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x252,
                          "Missing trigger 'triggerPlaneLaserAlarm01'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB810;
+        pTrigger->activation_callback_360 = MtGigas2LaserAlarm004DB810;
         pTrigger = FindTriggerByName("accessHatch");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x256,
                          "Missing trigger 'accessHatch'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBA90;
+        pTrigger->activation_callback_360 = MtGigas2AccessHatch004DBA90;
         pTrigger = FindTriggerByName("wiringMalfunction");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x25a,
                          "Missing trigger 'wiringMalfunction'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBA70;
+        pTrigger->activation_callback_360 = MtGigas2WiringMalfunction004DBA70;
         return;
     case 0xe:
         ProcessFlagPosition004DBE70();
@@ -782,7 +1210,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x1ff,
                          "Missing trigger '_VOC_EWAXXLIFT1'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DBB50;
+        pTrigger->activation_callback_360 = MtGigas1Lift1004DBB50;
         pTrigger = FindTriggerByName("crank");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x203,
@@ -851,7 +1279,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         return;
     case 0x10:
         if (GetFact(0x1ce) == 0) {
-            Function4D9740();
+            LoadAwayCampChest004D9740();
             SetFact(0x1ce, 0, 0);
         }
         pTrigger = FindTriggerByName("prisondoor06");
@@ -859,19 +1287,19 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x308,
                          "Missing trigger 'prisondoor06'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA610;
+        pTrigger->activation_callback_360 = CampPrisonDoor06004DA610;
         pTrigger = FindTriggerByName("prisondoor04");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x30c,
                          "Missing trigger 'prisondoor04'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA630;
+        pTrigger->activation_callback_360 = CampPrisonDoor04004DA630;
         pTrigger = FindTriggerByName("prisondoor03");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x310,
                          "Missing trigger 'prisondoor03'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA650;
+        pTrigger->activation_callback_360 = CampPrisonDoor03004DA650;
         return;
     case 0x12:
         pTrigger = FindTriggerByName("AltarBox");
@@ -879,25 +1307,25 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x29c,
                          "Missing trigger 'AltarBox'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA3C0;
+        pTrigger->activation_callback_360 = RapaxMainFloorAltarBox004DA3C0;
         pTrigger = FindTriggerByName("platformtrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a0,
                          "Missing trigger 'platformtrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA460;
+        pTrigger->activation_callback_360 = RapaxMainFloorPlatform004DA460;
         pTrigger = FindTriggerByName("platformtrigger01");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a4,
                          "Missing trigger 'platformtrigger01'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA590;
+        pTrigger->activation_callback_360 = RapaxMainFloorPlatform01004DA590;
         pTrigger = FindTriggerByName("platformtrigger02");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2a8,
                          "Missing trigger 'platformtrigger02'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA5D0;
+        pTrigger->activation_callback_360 = RapaxMainFloorPlatform02004DA5D0;
         return;
     case 0x13:
         pTrigger = FindTriggerByName("AirBox");
@@ -905,13 +1333,13 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x290,
                          "Missing trigger 'AirBox'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA110;
+        pTrigger->activation_callback_360 = RapaxUpperFloorAirBox004DA110;
         pTrigger = FindTriggerByName("DoorDone");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x294,
                          "Missing trigger 'DoorDone'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA2E0;
+        pTrigger->activation_callback_360 = RapaxUpperFloorDoorDone004DA2E0;
         return;
     case 0x15:
         pTrigger = FindTriggerByName("Fireantspawn");
@@ -919,25 +1347,25 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x27a,
                          "Missing trigger 'Fireantspawn'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB120;
+        pTrigger->activation_callback_360 = Rift1Fireantspawn004DB120;
         pTrigger = FindTriggerByName("Sexspawn");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x27e,
                          "Missing trigger 'Sexspawn'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAFD0;
+        pTrigger->activation_callback_360 = Rift1Sexspawn004DAFD0;
         pTrigger = FindTriggerByName("Hotstuff");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x282,
                          "Missing trigger 'Hotstuff'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB090;
+        pTrigger->activation_callback_360 = Rift1Hotstuff004DB090;
         pTrigger = FindTriggerByName("Gate");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x286,
                          "Missing trigger 'Gate'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DB160;
+        pTrigger->activation_callback_360 = Rift1Gate004DB160;
         pTrigger = FindTriggerByName("AshLock");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -945,7 +1373,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                              String(/* reinterpret-ok: SGP rotating debug buffer */
                                     "Missing trigger '%s'! It's not in the LVL file!", "AshLock")));
         }
-        pTrigger->activation_callback_360 = Function4DB180;
+        pTrigger->activation_callback_360 = Rift1AshLock004DB180;
         pTrigger = FindTriggerByName("TimeDorado");
         if (pTrigger == 0) {
             srAssertFail(
@@ -954,7 +1382,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "TimeDorado")));
         }
-        pTrigger->activation_callback_360 = Function4DB1C0;
+        pTrigger->activation_callback_360 = Rift1TimeDorado004DB1C0;
         return;
     case 0x16:
         g_flag_652da5 = 1;
@@ -964,31 +1392,31 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b1,
                          "Missing trigger 'HigardiChest01'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAE30;
+        pTrigger->activation_callback_360 = SeaCavesHigardiChest01004DAE30;
         pTrigger = FindTriggerByName("HigardiChest02");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b5,
                          "Missing trigger 'HigardiChest02'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAE70;
+        pTrigger->activation_callback_360 = SeaCavesHigardiChest02004DAE70;
         pTrigger = FindTriggerByName("HigardiChest03");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2b9,
                          "Missing trigger 'HigardiChest03'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAEB0;
+        pTrigger->activation_callback_360 = SeaCavesHigardiChest03004DAEB0;
         pTrigger = FindTriggerByName("HigardiChest04");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2bd,
                          "Missing trigger 'HigardiChest04'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAEF0;
+        pTrigger->activation_callback_360 = SeaCavesHigardiChest04004DAEF0;
         pTrigger = FindTriggerByName("HigardiChest05");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2c1,
                          "Missing trigger 'HigardiChest05'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DAF30;
+        pTrigger->activation_callback_360 = SeaCavesHigardiChest05004DAF30;
         pTrigger = FindTriggerByName("doortomb");
         if (pTrigger == 0) {
             srAssertFail(
@@ -997,7 +1425,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "doortomb")));
         }
-        pTrigger->activation_callback_360 = Function4DAF70;
+        pTrigger->activation_callback_360 = SeaCavesDoorTomb004DAF70;
         return;
     case 0x18:
         pTrigger = FindTriggerByName("gas_trig_plane01");
@@ -1005,55 +1433,55 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ca,
                          "Missing trigger 'gas_trig_plane01'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane02");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ce,
                          "Missing trigger 'gas_trig_plane02'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane03");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2d2,
                          "Missing trigger 'gas_trig_plane03'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane04");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2d6,
                          "Missing trigger 'gas_trig_plane04'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane05");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2da,
                          "Missing trigger 'gas_trig_plane05'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane06");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2de,
                          "Missing trigger 'gas_trig_plane06'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("gas_trig_plane07");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2e2,
                          "Missing trigger 'gas_trig_plane07'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA9B0;
+        pTrigger->activation_callback_360 = SwampGasPlane004DA9B0;
         pTrigger = FindTriggerByName("oil_pool");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2e6,
                          "Missing trigger 'oil_pool'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA960;
+        pTrigger->activation_callback_360 = SwampOilPool004DA960;
         pTrigger = FindTriggerByName("onelid");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2ea,
                          "Missing trigger 'onelid'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DADF0;
+        pTrigger->activation_callback_360 = SwampOnelid004DADF0;
         pTrigger = FindTriggerByName("fire_trig_plane01");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1062,7 +1490,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane01")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane02");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1071,7 +1499,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane02")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane03");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1080,7 +1508,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane03")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane04");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1089,7 +1517,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane04")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane05");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1098,7 +1526,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane05")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane06");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1107,7 +1535,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane06")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         pTrigger = FindTriggerByName("fire_trig_plane07");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -1116,7 +1544,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                                     "Missing trigger '%s'! It's not in the LVL file!",
                                     "fire_trig_plane07")));
         }
-        pTrigger->activation_callback_360 = Function4DAA10;
+        pTrigger->activation_callback_360 = SwampFirePlane004DAA10;
         return;
     case 0x19:
         pTrigger = FindTriggerByName("Fount_randomFX");
@@ -1124,8 +1552,8 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x2fa,
                          "Missing trigger 'Fount_randomFX'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DA740;
-        Function4DA670();
+        pTrigger->activation_callback_360 = Trynnie1FountRandomFX004DA740;
+        EnsureTrynnie1KilledVar004DA670();
         return;
     case 0x1a:
         pTrigger = FindTriggerByName("GoodaVine_A");
@@ -1133,31 +1561,31 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x31a,
                          "Missing trigger 'GoodaVine_A'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9D70;
+        pTrigger->activation_callback_360 = Trynnie2GoodaVineA004D9D70;
         pTrigger = FindTriggerByName("GoodaVine_B");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x31e,
                          "Missing trigger 'GoodaVine_B'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9DA0;
+        pTrigger->activation_callback_360 = Trynnie2GoodaVineB004D9DA0;
         pTrigger = FindTriggerByName("Meat_Maker");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x322,
                          "Missing trigger 'Meat maker'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9E00;
+        pTrigger->activation_callback_360 = Trynnie2MeatMaker004D9E00;
         pTrigger = FindTriggerByName("Meat_Box");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x326,
                          "Missing trigger 'Meat_Box! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9E60;
+        pTrigger->activation_callback_360 = Trynnie2MeatBox004D9E60;
         pTrigger = FindTriggerByName("Give_Zulu");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x32a,
                          "Missing trigger 'Give Zulu'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4D9DD0;
+        pTrigger->activation_callback_360 = Trynnie2GiveZulu004D9DD0;
         pTrigger = FindTriggerByName("URN_Trigger_01");
         if (pTrigger == 0) {
             srAssertFail(
@@ -1166,7 +1594,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_01")));
         }
-        pTrigger->activation_callback_360 = Function4DA060;
+        pTrigger->activation_callback_360 = Trynnie2UrnTrigger004DA060;
         pTrigger = FindTriggerByName("URN_Trigger_02");
         if (pTrigger == 0) {
             srAssertFail(
@@ -1175,7 +1603,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_02")));
         }
-        pTrigger->activation_callback_360 = Function4DA060;
+        pTrigger->activation_callback_360 = Trynnie2UrnTrigger004DA060;
         pTrigger = FindTriggerByName("URN_Trigger_03");
         if (pTrigger == 0) {
             srAssertFail(
@@ -1184,7 +1612,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_03")));
         }
-        pTrigger->activation_callback_360 = Function4DA060;
+        pTrigger->activation_callback_360 = Trynnie2UrnTrigger004DA060;
         pTrigger = FindTriggerByName("URN_Trigger_04");
         if (pTrigger == 0) {
             srAssertFail(
@@ -1193,7 +1621,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                     String(/* reinterpret-ok: SGP rotating debug buffer */
                            "Missing trigger '%s'! It's not in the LVL file!", "URN_Trigger_04")));
         }
-        pTrigger->activation_callback_360 = Function4DA060;
+        pTrigger->activation_callback_360 = Trynnie2UrnTrigger004DA060;
         EnsureTrynnie2KilledVar004D9D30();
         return;
     case 0x1b:

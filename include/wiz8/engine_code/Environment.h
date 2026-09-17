@@ -110,6 +110,7 @@ extern bool g_fog_enabled_0065b9ad;
 /* 1/duration while the lighting transition body at 0x00484300 runs, zero when
    idle: UpdateEnvironment482770 hands off to that body while it is not zero. */
 extern float g_environment_transition_rate_0065b9b8;
+extern unsigned long g_environment_transition_tick_0065b9bc;
 /* Last day phase the light direction was published from. */
 extern int g_last_light_phase_0060a3ac;
 /* Last day phase the world's environment colour was refreshed from. */
@@ -148,3 +149,7 @@ extern W8GrowableVector<stLight*> g_environment_lights_0065b998;
 
 void SetGameTimeDays(int value);
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
+/* Arm the lighting transition. Duration is in milliseconds: negative fades the
+   world out, positive fades it back in over abs(duration); zero applies the
+   current base intensity immediately and returns to day/night mode. */
+void BeginWorldLightingFade(float duration);

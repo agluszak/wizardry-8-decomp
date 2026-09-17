@@ -64,5 +64,5 @@ signed char GetFactionDispositionScore(signed char faction);
    relations a fresh game begins with. */
 void ResetFactions(void);
 
-void SetFactionDispositionBand(char faction, unsigned char band); /* 0x00535B40 */
+void SetFactionDispositionBand(signed char faction, signed char band); /* 0x00535B40 */
 #endif
