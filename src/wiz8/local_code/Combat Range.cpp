@@ -31,6 +31,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/startup_world.h"
+#include "wiz8/engine_code/Navigator.h"
 
 /*
  * Local Code\Combat Range.cpp.
@@ -246,6 +248,9 @@ float CalcRangeDistance(W8RangeCategory range_category)
     unsigned int steps = 0;
 
     switch (range_category) {
+    case W8_RANGE_NONE:
+        steps = 0;
+        break;
     case W8_RANGE_TOUCH:
         steps = 2;
         break;
@@ -258,14 +263,41 @@ float CalcRangeDistance(W8RangeCategory range_category)
     case W8_RANGE_EXTREME:
         steps = 50;
         break;
-    case W8_RANGE_NONE:
-        steps = 0;
-        break;
     default:
         srAssertFail("FALSE", COMBAT_RANGE_CPP, 1123,
                      "CalcRangeDistance: ERROR - Invalid range category");
     }
     return steps * g_world_scale_005ebc40;
+}
+
+/* Party-relative action range for the world cursor: same band steps as
+   CalcRangeDistance, then add the startup navigator's movement value_0b0. */
+// FUNCTION: WIZ8 0x0051AB50
+float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category)
+{
+    unsigned int steps = 0;
+
+    switch (range_category) {
+    case W8_RANGE_NONE:
+        steps = 0;
+        break;
+    case W8_RANGE_TOUCH:
+        steps = 2;
+        break;
+    case W8_RANGE_SHORT:
+        steps = 4;
+        break;
+    case W8_RANGE_LONG:
+        steps = 25;
+        break;
+    case W8_RANGE_EXTREME:
+        steps = 50;
+        break;
+    default:
+        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
+                     "CalcRangeDistance: ERROR - Invalid range category");
+    }
+    return steps * g_world_scale_005ebc40 + g_startup_world_659c0c->movement_0c0.value_0b0;
 }
 
 /* Close a gap of rows one row at a time, stopping when either the gap or the

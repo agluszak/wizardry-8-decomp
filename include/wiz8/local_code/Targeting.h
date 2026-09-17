@@ -41,8 +41,13 @@ void ClearTargetMarker(void);
 void RefreshTargetMarker(void);
 void RefreshAllPartyTargets(void);
 unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int arg);
-void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context); /* 0x005387F0 */
-void AimAtPlace(int actor);                                                    /* 0x00538710 */
+void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);  /* 0x005387F0 */
+void AimAtCharacter(int actor, int character_slot, W8TargetingContext context); /* 0x00538670 */
+void AimAtCharacterIndirect(int actor, int character_slot,
+                            W8TargetingContext context); /* 0x005386C0 */
+void AimAtPlace(int actor);                              /* 0x00538710 */
+/* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
+void Function53C130(int party_slot, char enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
@@ -134,6 +139,8 @@ int GetTargetNeededForCurrentAction(int party_slot);
    targeting when its recorded target still fits, or enter the mode the action
    now needs. */
 void RevalidateSelectedTarget(int party_slot);
+/* 0x00537B00: cycle the pick within a group and aim the party slot at it. */
+void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group);
 /* 0x00537D20: the cycle-target command - advance the pick to the next
    targetable group or monster and commit it. */
 void CycleToNextTarget(int party_slot);

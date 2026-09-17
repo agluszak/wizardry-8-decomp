@@ -159,6 +159,8 @@ void DrainInputEventQueue(void); /* 0x0055D3C0 */
    force-inlined function visible only in its own TU, kept addressable for the
    row-callback tables. */
 __forceinline void CloseKeyboardMenu(void); /* 0x00592E60 */
+/* Open the keyboard-action menu for one party slot. */
+void OpenKeyboardMenuForSlot(int slot); /* 0x00592C70 */
 /* Build the panel and one row per selectable menu entry. */
 unsigned char BuildKeyboardMenu(void); /* 0x00592F90 */
 /* Re-enable the menu's region set and every row region. */

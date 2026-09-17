@@ -382,6 +382,20 @@ void AimAtCharacter(int actor, int character_slot, W8TargetingContext context)
     AimAtTarget(actor, &target, context);
 }
 
+/* Aim at a character through the indirect kind (type 9). */
+// FUNCTION: WIZ8 0x005386C0
+void AimAtCharacterIndirect(int actor, int character_slot, W8TargetingContext context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.iMonsterID = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iChar = character_slot;
+    target.iType = W8_TARGET_KIND_CHARACTER_INDIRECT;
+    AimAtTarget(actor, &target, context);
+}
+
 /* Aim at the place the party is looking, drop the marker and let the display
    know. */
 // FUNCTION: WIZ8 0x00538710

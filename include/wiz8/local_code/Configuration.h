@@ -4,6 +4,7 @@
 
 void LoadGameConfiguration(void);
 unsigned char SaveGameConfiguration(void);
+/* Bodies live in music_playlist.cpp (address-interleaved with that fragment). */
 void SetMusicVolume(unsigned char volume);
 bool IsMusicMuted(void);
 void SetMusicMuted(unsigned char muted);

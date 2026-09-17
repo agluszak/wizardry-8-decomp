@@ -285,10 +285,9 @@ void ApplyCurrentCursor(void)
     if (g_main_game_resource_slots[gXStatus.iCurrentCursor].object != 0) {
         ResizeMouseCursorSurface(g_main_game_resource_slots[gXStatus.iCurrentCursor].size_x,
                                  g_main_game_resource_slots[gXStatus.iCurrentCursor].size_y);
-        SetMouseCursorTexture(static_cast<stTextureAnim*>(
-            g_main_game_resource_slots[gXStatus.iCurrentCursor].object));
-        static_cast<stTextureAnim*>(g_main_game_resource_slots[gXStatus.iCurrentCursor].object)
-            ->SetFrame00485400(gXStatus.current_cursor_frame);
+        SetMouseCursorTexture(g_main_game_resource_slots[gXStatus.iCurrentCursor].object);
+        g_main_game_resource_slots[gXStatus.iCurrentCursor].object->SetFrame00485400(
+            gXStatus.current_cursor_frame);
         SetMouseCursorHotspot(g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_x,
                               g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_y);
     }
@@ -394,15 +393,15 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->party_slots_170[3] = -1;
     g_level_block->party_slots_170[5] = -1;
     g_level_block->party_slots_170[4] = -1;
-    g_level_block->party_slots_170[6] = 0;
+    g_level_block->portrait_assay_hover_mode = 0;
     g_level_block->formation_highlight_party_slot = -1;
     g_level_block->held_item_display_190 = -1;
     g_level_block->highlight_row = -1;
     g_level_block->highlight_graphic = 0;
     g_level_block->value_198 = 0x35;
     g_level_block->portrait_overlay_party_slot = -1;
-    g_level_block->party_slot_204 = -1;
-    g_level_block->party_slot_208 = -1;
+    g_level_block->condition_orb_party_slot = -1;
+    g_level_block->enchantment_orb_party_slot = -1;
     g_level_block->condition_highlight_party_slot = -1;
     g_level_block->text_content_region = CurrentTextLineHasContent() ? 0x57 : -1;
     g_level_block->dialogue_content_region = CurrentDialogueLineHasContent() ? 0x5a : -1;
@@ -469,7 +468,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->hover_combat_slot = -1;
     g_level_block->flag_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
-    g_level_block->flag_324 = 0;
+    g_level_block->portrait_right_hold_armed = 0;
     g_level_block->formation_board_alternate = 0;
     g_level_block->radar_map_alternate = 0;
     g_level_block->review_transition_active = 0;

@@ -19,6 +19,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Monster.h"
@@ -2507,6 +2508,21 @@ W8WorldItem* Trigger::GetOrCreateItemGroup00445670(char create)
         world_item_group_34c = SpawnItem(0x23c, &position, 0, 0);
     }
     return world_item_group_34c;
+}
+
+/* After a selected-prop Run: while g_flag_00606994 is clear, post either the
+   special-item notice (value_23c != -1) or the nothing-happened notice. */
+// FUNCTION: WIZ8 0x004456E0
+void Trigger::PrintNothingHappenedOrSpecialItemRequired004456E0()
+{
+    if (g_flag_00606994 != 0) {
+        return;
+    }
+    if (value_23c != -1) {
+        ShowNotice(0xf, gppStringList[0x96b], -1, -1, 0);
+        return;
+    }
+    ShowNotice(0xf, gppStringList[0x964], -1, -1, 0);
 }
 
 /* Execute the selected Trigger action. The original keeps the three trigger

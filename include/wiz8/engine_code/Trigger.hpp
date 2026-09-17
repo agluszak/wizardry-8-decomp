@@ -126,6 +126,9 @@ public:
     bool SelectAction();
     void GenerateItemGroup();
     W8WorldItem* GetOrCreateItemGroup00445670(char create);
+    /* After a selected-prop Run: while g_flag_00606994 is clear, post either
+       the special-item notice (value_23c != -1) or the nothing-happened notice. */
+    void PrintNothingHappenedOrSpecialItemRequired004456E0(); /* 0x004456E0 */
     void RunDestination00440DD0(const char* destination);
     void Run(int source);
 

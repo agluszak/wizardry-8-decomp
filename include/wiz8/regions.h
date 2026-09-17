@@ -57,7 +57,12 @@ void InitializeRegionHelpState(void);
 /* Unrecovered static-catalog callbacks are stored as absolute retail VAs in
    RegionManager.cpp so matching WIZ8 does not need runtime_stubs /
    /FORCE:UNRESOLVED (which would collapse them to image base). */
+unsigned char TextBoxScrollUpRegionEvent(const InputAtom*, W8Region*);    /* 0x0058E2A0 */
+unsigned char TextBoxScrollDownRegionEvent(const InputAtom*, W8Region*);  /* 0x0058E650 */
 unsigned char TextBoxScrollThumbRegionEvent(const InputAtom*, W8Region*); /* 0x0058E9F0 */
+unsigned char TextBoxBodyRegionEvent(const InputAtom*, W8Region*);        /* 0x0058ED90 */
+unsigned char TextBoxChannelTabRegionEvent(const InputAtom*, W8Region*);  /* 0x0058EFD0 */
+unsigned char TextBoxMuteRegionEvent(const InputAtom*, W8Region*);        /* 0x0058F240 */
 
 extern unsigned int g_region_set_count; /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];

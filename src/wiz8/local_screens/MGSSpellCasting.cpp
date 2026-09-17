@@ -94,6 +94,14 @@ static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;
 
+int GetSpellCastingPowerIndex(void)
+{
+    if (gpSCSV == 0) {
+        return -1;
+    }
+    return gpSCSV->iSpellPower;
+}
+
 static void CreateSpellCastingViewControls(void);
 static void ReleaseSpellCastingViewControls(void);
 void SelectSpellRealm005A0320(void);

@@ -20,6 +20,7 @@
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -37,6 +38,10 @@
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "vobject.h"
@@ -73,6 +78,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/world_cursor.h"
+#include "wiz8/local_code/MonsterGroup.h"
 
 #include "font.h"
 #include "FileMan.h"
@@ -85,6 +91,7 @@
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_code/ItemManager.h"
+#include "wiz8/item_spawning.h"
 #include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/local_screens/Screens.h"
@@ -186,6 +193,10 @@ unsigned char g_flag_0068edc9;
 // GLOBAL: WIZ8 0x0068edd8
 unsigned char g_flag_0068edd8;
 
+/* Saved mouse position while mouselook is latched (WarpSystemCursor restore). */
+// GLOBAL: WIZ8 0x0068edc0
+POINT g_mouselook_cursor_pos_0068edc0;
+
 // GLOBAL: WIZ8 0x0068eddc
 int g_main_game_mode_0068eddc;
 
@@ -273,6 +284,12 @@ const wchar_t g_format_d_percent_0064bab0[] = L"%d%%";
 // GLOBAL: WIZ8 0x006068e4
 const wchar_t g_format_s_006068e4[] = L"%s";
 
+// GLOBAL: WIZ8 0x006481b4
+const wchar_t g_format_s_colon_s_paren_d_006481b4[] = L"%s: %s (%d)";
+
+// GLOBAL: WIZ8 0x0061c3e0
+const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
+
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
 // GLOBAL: WIZ8 0x005eebbc
@@ -303,7 +320,26 @@ unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
 void Function561330(unsigned char value);
 void Function57E0E0(int event, const POINT* point);
+void Function57DC20(void);
+void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed);
+unsigned char IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
+int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y);
+int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance);
+void OpenMonsterInfoDialog0056AD60(int location_id);
+void AimAtMonsterLocation00537950(int party_slot, int location_id, int allow_single_target);
+void AimAtGroundTarget00538770(int party_slot);
+unsigned char InteractWithWorldItem004F7910(int runtime_id);
+void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
+                                   const srVector3T<float>* maximum);
 void Function59B2D0(void);
+extern unsigned char g_flag_00652da7;
+/* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
+   Three rows fill through 0x00616f40, immediately before the power index. */
+// GLOBAL: WIZ8 0x00616eb0
+double g_world_cursor_extent_table_00616eb0[18];
+/* Per spell-power index into g_world_cursor_extent_table_00616eb0. */
+// GLOBAL: WIZ8 0x00616f41
+signed char g_spell_power_extent_index_00616f41[16];
 void Function4E8EA0(void);
 void StartCombat(int surprise);
 
@@ -4537,6 +4573,1382 @@ void ClearScreenWait(void)
     SetPendingScreenState(W8_SCREEN_OPTIONS);
 }
 
+/* Party portrait hit region: left-click selects / aims, right-hold opens camp,
+   drag-hover arms the mode-6 overlay, and MOUSE_POS drives help plus targeting
+   cursor. Skips the slot parked in g_value_006840be. */
+// FUNCTION: WIZ8 0x00565990
+unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int slot = region->callback_id;
+    unsigned char targeting = 0;
+    unsigned char aim_ok = 0;
+    unsigned char front_rank = 0;
+    int needed;
+    int action_kind;
+    unsigned int us_event;
+    const wchar_t* help_text;
+
+    if (slot == static_cast<unsigned int>(static_cast<short>(g_value_006840be))) {
+        return 0;
+    }
+
+    needed = GetTargetNeededForCurrentAction(g_status_685170.selected_character);
+    if (gXStatus.iTargetingMode == 1 || (needed == 1 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        targeting = 1;
+        if (CanPartySlotParticipate(slot) != 0) {
+            front_rank = 0;
+            ChooseCombatAction(g_status_685170.selected_character, W8_TARGETING_CONTEXT_CURRENT,
+                               &action_kind, 0, 0, 0);
+            aim_ok = 1;
+            if (action_kind == 5) {
+                if (g_status_685170.selected_character == static_cast<int>(slot)) {
+                    front_rank = 0;
+                    aim_ok = 0;
+                } else if (FrontRankScreens(g_status_685170.selected_character, slot) != 0) {
+                    front_rank = 1;
+                    aim_ok = 1;
+                }
+            }
+        }
+    } else if (gXStatus.iTargetingMode == 7 ||
+               (needed == 7 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        targeting = 1;
+        IsDeadCharacterTargetable(slot);
+    }
+
+    us_event = event->usEvent;
+    if (us_event < LEFT_BUTTON_REPEAT + 1) {
+        if (us_event == LEFT_BUTTON_REPEAT) {
+            if (g_level_block->portrait_refresh_pending[slot] == 0 &&
+                g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+                g_level_block->portrait_overlay_party_slot == -1 &&
+                ClockIsTicking(g_level_block->countdown_32c) == 0 &&
+                (region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                g_level_block->portrait_overlay_party_slot = slot;
+                if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x8000;
+                    return 1;
+                }
+            }
+            /* retail falls through to return 1 at the end when the arm did not
+               redraw */
+        } else if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            if (g_level_block->portrait_refresh_pending[slot] == 0 &&
+                g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+                g_level_block->portrait_overlay_party_slot == -1) {
+                g_level_block->countdown_32c = SetCountdownClock(500);
+                return 1;
+            }
+        } else if (us_event == LEFT_BUTTON_UP) {
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                if (g_level_block->portrait_overlay_party_slot == static_cast<int>(slot)) {
+                    g_level_block->portrait_overlay_party_slot = -1;
+                    if (g_level_block->highlight_graphic != 0) {
+                        ReleaseObject004257F0(g_level_block->highlight_graphic);
+                        g_level_block->highlight_graphic = 0;
+                    }
+                    if (g_main_game_mode_0068eddc == 6) {
+                        ClearSurfaceRect(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                        InvalidateRegion(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                        if (g_level_block->dialogue_y_224 <
+                                static_cast<unsigned int>(
+                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x100;
+                        }
+                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                                0x166 &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x800;
+                        }
+                    }
+                    g_main_game_mode_0068eddc = 0;
+                    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
+                        g_main_game_mode_0068eddc = 0;
+                        return 1;
+                    }
+                    if (g_level_block == 0) {
+                        g_main_game_mode_0068eddc = 0;
+                        return 1;
+                    }
+                    g_level_block->redraw_flags |= 0x8000;
+                    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
+                        return 1;
+                    }
+                    if (g_level_block == 0) {
+                        return 1;
+                    }
+                    g_level_block->redraw_flags |= 0xff;
+                } else if (IsNpcDialogueCursorActive() == 0) {
+                    if (targeting != 0) {
+                        if (aim_ok != 0) {
+                            if (g_flag_68506f == 0) {
+                                if (CanPartySlotParticipate(slot) == 0) {
+                                    AimAtCharacterIndirect(g_status_685170.selected_character, slot,
+                                                           W8_TARGETING_CONTEXT_CURRENT);
+                                    StartBreathCycle(g_status_685170.selected_character, 0);
+                                } else if (front_rank != 0) {
+                                    QueueCharacterEvent(
+                                        &g_status_685170.buffers
+                                             .characters[g_status_685170.selected_character],
+                                        g_character_event_kind_005ee65c, 0,
+                                        g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                    ShowNotice(0xc, gppStringList[0x1f70 / 4], -1, -1, 0);
+                                } else {
+                                    AimAtCharacter(g_status_685170.selected_character, slot,
+                                                   W8_TARGETING_CONTEXT_CURRENT);
+                                    StartBreathCycle(g_status_685170.selected_character, 0);
+                                }
+                            } else {
+                                EndScriptedPortraitPick00529C40(slot);
+                            }
+                        } else {
+                            QueueCharacterEvent(
+                                &g_status_685170.buffers
+                                     .characters[g_status_685170.selected_character],
+                                g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
+                                g_effect_argument_005ed914);
+                        }
+                    } else if (g_status_685170.item_in_cursor == 0 ||
+                               gXStatus.iCurrentCursor != 7 ||
+                               g_value_00685072 ==
+                                   // reinterpret-ok: g_value_00685072 stores an item pointer as int
+                                   reinterpret_cast<int>(&g_status_685170.item_in_hand_235b)) {
+                        if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
+                            RefreshSelectedPartyPortrait(slot);
+                        }
+                        SelectPartyCharacter(slot);
+                    } else {
+                        int force_to_party;
+                        if (gXStatus.fCombatMode == 0 && IsPartySlotEligible00524A10(slot) != 0) {
+                            force_to_party = 0;
+                        } else {
+                            force_to_party = 1;
+                        }
+                        Function51BA00(slot, static_cast<char>(force_to_party));
+                        if (gXStatus.fItemSelectMode != 0) {
+                            Function59D690();
+                        }
+                    }
+                } else {
+                    Function56EFF0(slot);
+                }
+            }
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 1 << (slot & 0x1f);
+                if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x200000;
+                    return 1;
+                }
+            }
+        } else {
+            if (us_event != LEFT_BUTTON_DBL_CLK) {
+                return 0;
+            }
+            if (IsNpcDialogueCursorActive() == 0 && g_flag_68506f == 0) {
+                if (gXStatus.fNpcDialogueMode != 0) {
+                    CloseNpcDialogueForCamp();
+                }
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_4 = 0;
+                if (g_main_game_mode_0068eddc == 3) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (gXStatus.fNpcDialogueMode != 0) {
+                        Function56E800(0);
+                    }
+                } else if (g_main_game_mode_0068eddc == 5) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    Function5187E0();
+                } else {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (g_main_game_mode_0068eddc == 6) {
+                        if (g_level_block->highlight_graphic != 0) {
+                            ReleaseObject004257F0(g_level_block->highlight_graphic);
+                            g_level_block->highlight_graphic = 0;
+                            if (g_main_game_mode_0068eddc != 6) {
+                                goto open_camp_after_mode6;
+                            }
+                        }
+                        ClearSurfaceRect(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                        InvalidateRegion(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                        if (g_level_block->dialogue_y_224 <
+                                static_cast<unsigned int>(
+                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x100;
+                        }
+                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                                0x166 &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x800;
+                        }
+                    }
+                }
+            open_camp_after_mode6:
+                g_main_game_mode_0068eddc = 0;
+                SetPendingScreenState(W8_SCREEN_CAMP);
+                if (gXStatus.fLockInteractMode != 0) {
+                    Function5879A0(1);
+                }
+                if (gXStatus.fTrapInteractMode != 0) {
+                    Function58A790(1);
+                }
+                if (gXStatus.fSpellCastMode != 0) {
+                    CloseSpellCastingView();
+                }
+                if (gXStatus.fItemSelectMode != 0) {
+                    CloseUseItemSelectView();
+                }
+                if (gXStatus.fReviewCharacterMode != 0) {
+                    CloseFormationPanel();
+                }
+                SetPrimarySurfaceTextureHint2Enabled(0);
+                return 1;
+            }
+        }
+    } else if (us_event == RIGHT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        if (targeting == 0 && IsNpcDialogueCursorActive() == 0 && g_flag_68506f == 0 &&
+            g_level_block->portrait_right_hold_armed == 0) {
+            g_level_block->countdown_320 = SetCountdownClock(1000);
+            g_level_block->portrait_right_hold_armed = 1;
+        }
+    } else {
+        if (us_event != RIGHT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if (g_level_block->portrait_right_hold_armed != 0 &&
+                ClockIsTicking(g_level_block->countdown_320) == 0) {
+                g_level_block->portrait_right_hold_armed = 0;
+                if (gXStatus.fNpcDialogueMode != 0) {
+                    CloseNpcDialogueForCamp();
+                }
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_4 = 0;
+                if (g_main_game_mode_0068eddc == 3) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (gXStatus.fNpcDialogueMode != 0) {
+                        Function56E800(0);
+                    }
+                } else if (g_main_game_mode_0068eddc == 5) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    Function5187E0();
+                } else {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (g_main_game_mode_0068eddc == 6) {
+                        DismissHighlightOverlay();
+                    }
+                }
+                g_main_game_mode_0068eddc = 0;
+                SetPendingScreenState(W8_SCREEN_CAMP);
+                UpdateScreenOverlays(1);
+                SetPrimarySurfaceTextureHint2Enabled(0);
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+                    if (IsNpcDialogueCursorActive() == 0) {
+                        if (targeting != 0 && aim_ok != 0) {
+                            if (gXStatus.iTargetingMode == 0) {
+                                RevalidateSelectedTarget(g_status_685170.selected_character);
+                            }
+                            SetTargetCursor(4);
+                            return 0;
+                        }
+                        SetTargetCursor(GetTargetingCursorForState(0));
+                    }
+                } else {
+                    if (g_level_block->portrait_refresh_pending[slot] == 0) {
+                        if (g_status_685170.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
+                            g_value_00685072 ==
+                                // reinterpret-ok: g_value_00685072 stores an item pointer as int
+                                reinterpret_cast<int>(&g_status_685170.item_in_hand_235b)) {
+                            help_text = gppStringList[0x74 / 4];
+                        } else {
+                            help_text = gppStringList[0x78 / 4];
+                        }
+                        SetRegionHelpText(help_text);
+                    }
+                    PushButtonSoundScheme005587C0(0, 1);
+                    g_level_block->portrait_right_hold_armed = 0;
+                    NoOp();
+                    if (IsNpcDialogueCursorActive() == 0) {
+                        if (g_level_block->tooltip_kind != 0 ||
+                            g_level_block->tooltip_subject != static_cast<int>(slot)) {
+                            g_level_block->tooltip_pending = 1;
+                            g_level_block->tooltip_since = GetTickCount();
+                            g_level_block->tooltip_subject = slot;
+                            g_level_block->tooltip_kind = 0;
+                        }
+                        if (gXStatus.iTargetingMode == 0) {
+                            Function53C130(slot, 1);
+                            return 0;
+                        }
+                    }
+                }
+            } else {
+                g_level_block->portrait_right_hold_armed = 0;
+                NoOp();
+                if (IsNpcDialogueCursorActive() == 0) {
+                    if (g_level_block->tooltip_kind != 0 || g_level_block->tooltip_subject != -1) {
+                        g_level_block->tooltip_pending = 1;
+                        g_level_block->tooltip_since = GetTickCount();
+                        g_level_block->tooltip_subject = -1;
+                        g_level_block->tooltip_kind = 0;
+                    }
+                    SetTargetCursor(GetTargetingCursorForState(0));
+                    if (gXStatus.iTargetingMode == 0) {
+                        Function53C130(slot, 0);
+                    }
+                }
+                if (g_level_block->portrait_overlay_party_slot == static_cast<int>(slot)) {
+                    g_level_block->portrait_overlay_party_slot = -1;
+                    if (g_level_block->highlight_graphic != 0) {
+                        ReleaseObject004257F0(g_level_block->highlight_graphic);
+                        g_level_block->highlight_graphic = 0;
+                    }
+                    if (g_main_game_mode_0068eddc == 6) {
+                        ClearSurfaceRect(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                        InvalidateRegion(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                        if (g_level_block->dialogue_y_224 <
+                                static_cast<unsigned int>(
+                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x100;
+                        }
+                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                                0x166 &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x800;
+                        }
+                    }
+                    g_main_game_mode_0068eddc = 0;
+                    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x8000;
+                        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0xff;
+                            return 0;
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && targeting == 0 &&
+            IsNpcDialogueCursorActive() == 0 && g_flag_68506f == 0) {
+            g_level_block->portrait_right_hold_armed = 0;
+            if (g_status_685170.item_in_cursor == 0 || gfKeyState[0x11] != 0) {
+                if (gXStatus.fNpcDialogueMode != 0) {
+                    CloseNpcDialogueForCamp();
+                }
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_4 = 0;
+                if (g_main_game_mode_0068eddc == 3) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (gXStatus.fNpcDialogueMode != 0) {
+                        Function56E800(0);
+                    }
+                } else if (g_main_game_mode_0068eddc == 5) {
+                    g_pending_screen_state.parameter_2 = slot;
+                    Function5187E0();
+                } else {
+                    g_pending_screen_state.parameter_2 = slot;
+                    if (g_main_game_mode_0068eddc == 6) {
+                        if (g_level_block->highlight_graphic != 0) {
+                            ReleaseObject004257F0(g_level_block->highlight_graphic);
+                            g_level_block->highlight_graphic = 0;
+                            if (g_main_game_mode_0068eddc != 6) {
+                                goto open_camp_right_up;
+                            }
+                        }
+                        ClearSurfaceRect(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                        InvalidateRegion(
+                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                        if (g_level_block->dialogue_y_224 <
+                                static_cast<unsigned int>(
+                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x100;
+                        }
+                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                                0x166 &&
+                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            g_level_block != 0) {
+                            g_level_block->redraw_flags |= 0x800;
+                        }
+                    }
+                }
+            open_camp_right_up:
+                g_main_game_mode_0068eddc = 0;
+                SetPendingScreenState(W8_SCREEN_CAMP);
+                if (gXStatus.fLockInteractMode != 0) {
+                    Function5879A0(1);
+                }
+                if (gXStatus.fTrapInteractMode != 0) {
+                    Function58A790(1);
+                }
+                if (gXStatus.fSpellCastMode != 0) {
+                    CloseSpellCastingView();
+                }
+                if (gXStatus.fItemSelectMode != 0) {
+                    CloseUseItemSelectView();
+                }
+                if (gXStatus.fReviewCharacterMode != 0) {
+                    CloseFormationPanel();
+                }
+                SetPrimarySurfaceTextureHint2Enabled(0);
+                return 1;
+            }
+            Function51BA00(slot, 1);
+            if (gXStatus.fItemSelectMode != 0) {
+                Function59D690();
+                return 1;
+            }
+        }
+    }
+    return 1;
+}
+
+/* Condition orb on a party portrait (help 25): press while highest_condition
+   is set arms the overlay slot; release and leave dismiss the hover plate;
+   enter drives tooltip kind 1 and region help. */
+// FUNCTION: WIZ8 0x005667A0
+unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int slot = region->callback_id;
+    W8Character* character = &g_status_685170.buffers.characters[slot];
+    unsigned int us_event;
+
+    if (character->highest_condition == 0) {
+        PushButtonSoundScheme005587C0(0, 1);
+    }
+
+    us_event = event->usEvent;
+    if (us_event != LEFT_BUTTON_DOWN) {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+                if (g_level_block->tooltip_kind != 1 || g_level_block->tooltip_subject != -1) {
+                    g_level_block->tooltip_pending = 1;
+                    g_level_block->tooltip_since = GetTickCount();
+                    g_level_block->tooltip_subject = -1;
+                    g_level_block->tooltip_kind = 1;
+                }
+                if (g_level_block->condition_orb_party_slot != -1) {
+                    g_level_block->condition_orb_party_slot = -1;
+                    if (g_level_block->highlight_graphic != 0) {
+                        ReleaseObject004257F0(g_level_block->highlight_graphic);
+                        g_level_block->highlight_graphic = 0;
+                    }
+                    ClearHighlightOverlayRegion();
+                    g_main_game_mode_0068eddc = 0;
+                    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x8000;
+                    }
+                }
+            } else {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                    if (character->highest_condition != 0) {
+                        if (g_level_block->tooltip_kind != 1 ||
+                            g_level_block->tooltip_subject != static_cast<int>(slot)) {
+                            g_level_block->tooltip_pending = 1;
+                            g_level_block->tooltip_since = GetTickCount();
+                            g_level_block->tooltip_subject = slot;
+                            g_level_block->tooltip_kind = 1;
+                        }
+                        if (gfLeftButtonState != 0 && character->highest_condition != 0) {
+                            g_level_block->condition_orb_party_slot = slot;
+                            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                                g_level_block != 0) {
+                                g_level_block->redraw_flags |= 0x8000;
+                            }
+                        }
+                        EnableRegionHelpFlag004F27D0(region);
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            DisableRegionHelpFlag004F27E0(region);
+            return 0;
+        }
+        if (g_level_block->condition_orb_party_slot == -1) {
+            return 1;
+        }
+        g_level_block->condition_orb_party_slot = -1;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8000;
+        }
+        return 1;
+    }
+
+    if (character->highest_condition == 0) {
+        return 1;
+    }
+    g_level_block->condition_orb_party_slot = slot;
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x8000;
+    }
+    return 1;
+}
+
+/* Enchantment orb on a party portrait (help 26): near-clone of the condition
+   orb against enchantment_top and tooltip kind 2. */
+// FUNCTION: WIZ8 0x00566AE0
+unsigned char PortraitEnchantmentOrbRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int slot = region->callback_id;
+    W8Character* character = &g_status_685170.buffers.characters[slot];
+    unsigned int us_event;
+
+    if (character->enchantment_top == 0) {
+        PushButtonSoundScheme005587C0(0, 1);
+    }
+
+    us_event = event->usEvent;
+    if (us_event != LEFT_BUTTON_DOWN) {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+                if (g_level_block->tooltip_kind != 2 || g_level_block->tooltip_subject != -1) {
+                    g_level_block->tooltip_pending = 1;
+                    g_level_block->tooltip_since = GetTickCount();
+                    g_level_block->tooltip_subject = -1;
+                    g_level_block->tooltip_kind = 2;
+                }
+                if (g_level_block->enchantment_orb_party_slot != -1) {
+                    g_level_block->enchantment_orb_party_slot = -1;
+                    if (g_level_block->highlight_graphic != 0) {
+                        ReleaseObject004257F0(g_level_block->highlight_graphic);
+                        g_level_block->highlight_graphic = 0;
+                    }
+                    ClearHighlightOverlayRegion();
+                    g_main_game_mode_0068eddc = 0;
+                    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x8000;
+                    }
+                }
+            } else {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                    if (character->enchantment_top != 0) {
+                        if (g_level_block->tooltip_kind != 2 ||
+                            g_level_block->tooltip_subject != static_cast<int>(slot)) {
+                            g_level_block->tooltip_pending = 1;
+                            g_level_block->tooltip_since = GetTickCount();
+                            g_level_block->tooltip_subject = slot;
+                            g_level_block->tooltip_kind = 2;
+                        }
+                        if (gfLeftButtonState != 0 && character->enchantment_top != 0) {
+                            g_level_block->enchantment_orb_party_slot = slot;
+                            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                                g_level_block != 0) {
+                                g_level_block->redraw_flags |= 0x8000;
+                            }
+                        }
+                        EnableRegionHelpFlag004F27D0(region);
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+            DisableRegionHelpFlag004F27E0(region);
+            return 0;
+        }
+        if (g_level_block->enchantment_orb_party_slot == -1) {
+            return 1;
+        }
+        g_level_block->enchantment_orb_party_slot = -1;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x8000;
+        }
+        return 1;
+    }
+
+    if (character->enchantment_top == 0) {
+        return 1;
+    }
+    g_level_block->enchantment_orb_party_slot = slot;
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x8000;
+    }
+    return 1;
+}
+
+/* Help 28: portrait side bar — hover picks upper/lower weapon or assayable
+   item; click opens Assay or binds items with Shift. */
+// FUNCTION: WIZ8 0x00566E20
+unsigned char PortraitAssaySidebarRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int previous_mode = g_level_block->portrait_assay_hover_mode;
+    unsigned int slot = region->callback_id;
+    W8Character* character;
+    W8ItemInstance* item;
+    int item_id;
+    unsigned int us_event;
+
+    if (IsPartySlotEligible00524A10(slot) == 0) {
+        return 0;
+    }
+
+    character = &g_status_685170.buffers.characters[slot];
+    item_id = character->equipment[W8_EQUIP_SLOT_PRIMARY_WEAPON].item_id;
+    if (item_id == -1 || (g_item_records[item_id].flags_041 & 4) == 0) {
+        if (GetAtomCursorY004285A0(event) - region->y1 < 0x19) {
+            g_level_block->portrait_assay_hover_mode = 1;
+        } else {
+            g_level_block->portrait_assay_hover_mode = 2;
+        }
+    } else {
+        g_level_block->portrait_assay_hover_mode = 3;
+    }
+
+    if (previous_mode != g_level_block->portrait_assay_hover_mode &&
+        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 1 << (slot & 0x1f);
+    }
+
+    us_event = event->usEvent;
+    if (us_event < RIGHT_BUTTON_UP) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if ((event->usKeyState & SHIFT_DOWN) == 0) {
+            BindCharacterItems(slot, 1);
+            return 1;
+        }
+        BindEveryPartyItem();
+        return 1;
+    }
+    if (us_event != RIGHT_BUTTON_UP) {
+        if (us_event != MOUSE_POS) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0 &&
+                (PushButtonSoundScheme005587C0(0, 1),
+                 g_level_block->tooltip_kind != 5 ||
+                     g_level_block->tooltip_subject != static_cast<int>(slot))) {
+                g_level_block->tooltip_pending = 1;
+                g_level_block->tooltip_since = GetTickCount();
+                g_level_block->tooltip_subject = slot;
+                g_level_block->tooltip_kind = 5;
+            }
+        } else if (g_level_block->tooltip_kind != 5 || g_level_block->tooltip_subject != -1) {
+            g_level_block->tooltip_pending = 1;
+            g_level_block->tooltip_since = GetTickCount();
+            g_level_block->tooltip_subject = -1;
+            g_level_block->tooltip_kind = 5;
+            return 0;
+        }
+        return 0;
+    }
+    if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
+        return 1;
+    }
+    {
+        int mode = g_level_block->portrait_assay_hover_mode;
+        if (mode != 1) {
+            if (mode == 2) {
+                item = &character->equipment[W8_EQUIP_SLOT_SECONDARY_WEAPON];
+                goto open_assay;
+            }
+            if (mode != 3) {
+                return 1;
+            }
+        }
+        item = &character->equipment[W8_EQUIP_SLOT_PRIMARY_WEAPON];
+    open_assay:
+        if (item != 0 && item->item_id != -1) {
+            OpenAssayDialog0056AE20(item, slot);
+        }
+    }
+    return 1;
+}
+
+/* Help 24: portrait overlay hover strip; left-down and enter (while held)
+   set portrait_overlay_party_slot, leave and up dismiss the mode-6 plate. */
+// FUNCTION: WIZ8 0x005670C0
+unsigned char PortraitOverlayHoverRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int us_event = event->usEvent;
+    unsigned int slot = region->callback_id;
+
+    if (us_event == LEFT_BUTTON_DOWN) {
+        g_level_block->portrait_overlay_party_slot = slot;
+    } else {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+                if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+                    return 0;
+                }
+                PushButtonSoundScheme005587C0(0, 1);
+                if (g_level_block->tooltip_kind != 4 ||
+                    g_level_block->tooltip_subject != static_cast<int>(slot)) {
+                    g_level_block->tooltip_pending = 1;
+                    g_level_block->tooltip_since = GetTickCount();
+                    g_level_block->tooltip_subject = slot;
+                    g_level_block->tooltip_kind = 4;
+                }
+                if (gfLeftButtonState != 0) {
+                    g_level_block->portrait_overlay_party_slot = slot;
+                }
+            } else {
+                if (g_level_block->tooltip_kind != 4 || g_level_block->tooltip_subject != -1) {
+                    g_level_block->tooltip_pending = 1;
+                    g_level_block->tooltip_since = GetTickCount();
+                    g_level_block->tooltip_subject = -1;
+                    g_level_block->tooltip_kind = 4;
+                }
+                if (g_level_block->portrait_overlay_party_slot == -1) {
+                    return 0;
+                }
+                g_level_block->portrait_overlay_party_slot = -1;
+                if (g_level_block->highlight_graphic != 0) {
+                    ReleaseObject004257F0(g_level_block->highlight_graphic);
+                    g_level_block->highlight_graphic = 0;
+                }
+                ClearHighlightOverlayRegion();
+                g_main_game_mode_0068eddc = 0;
+            }
+            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x8000;
+            }
+            return 0;
+        }
+        g_level_block->portrait_overlay_party_slot = -1;
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x8000;
+    }
+    return 1;
+}
+
+/* Combat-action hit regions beside the eight party portraits (region set 4):
+   open the keyboard menu on release while combat input is live, drive hover
+   help for a queued spell/item, and right-click falls back when an action is
+   unreachable. */
+// FUNCTION: WIZ8 0x005673B0
+unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int slot = region->callback_id;
+    if (IsPartySlotEligible00524A10(slot) == 0) {
+        return 0;
+    }
+
+    switch (event->usEvent) {
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
+            g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            if (g_level_block->keyboard_menu_open != 0 &&
+                slot != static_cast<unsigned int>(g_level_block->combat_slot)) {
+                CloseKeyboardMenu();
+            }
+            if (g_combat_state->flag_001 != 0) {
+                g_level_block->combat_slot = slot;
+                OpenKeyboardMenuForSlot(slot);
+                return 1;
+            }
+        }
+        return 1;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && gXStatus.fSpellCastMode == 0 &&
+            gXStatus.fItemSelectMode == 0) {
+            FallbackFromUnreachableAction(slot);
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            if (g_level_block->keyboard_menu_open == 0) {
+                g_level_block->combat_slot = -1;
+                g_level_block->countdown_30c = SetCountdownClock(0);
+                g_level_block->hover_combat_slot = -1;
+            }
+            g_level_block->party_slots_170[4] = -1;
+            gXStatus.monster_manager_entries[slot].field_0d1 = 1;
+            DisableRegionHelpFlag004F27E0(region);
+            return 0;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+            return 0;
+        }
+        if (g_combat_state->flag_001 != 0) {
+            g_level_block->party_slots_170[4] = slot;
+            gXStatus.monster_manager_entries[slot].field_0d1 = 1;
+        }
+        {
+            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+            if (row->action_03d == W8_ACTION_CAST_SPELL) {
+                EnableRegionHelpFlag004F27D0(region);
+                SetRegionHelpText(
+                    FormatWideString(g_format_s_colon_s_paren_d_006481b4, gppStringList[0x1a0 / 4],
+                                     g_spell_records[row->action_detail_041].display_name,
+                                     row->action_detail_045.spell.power_level));
+                return 0;
+            }
+            if (row->action_03d == W8_ACTION_USE_ITEM) {
+                EnableRegionHelpFlag004F27D0(region);
+                SetRegionHelpText(FormatWideString(
+                    g_format_s_colon_s_0061c3e0, gppStringList[0x1a4 / 4],
+                    FormatItemDisplayName(row->action_detail_045.item_use.item, 0)));
+                return 0;
+            }
+        }
+        DisableRegionHelpFlag004F27E0(region);
+        return 0;
+    }
+    return 0;
+}
+
+/* Help 31: radar-map button near the text area — left-up opens automap after
+   tearing down mode 3/5/6 overlays; right-up toggles zoom; enter/leave hover
+   the map button art. */
+// FUNCTION: WIZ8 0x00567600
+unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int us_event = event->usEvent;
+
+    if (us_event < RIGHT_BUTTON_UP) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            if (g_main_game_mode_0068eddc == 3) {
+                if (gXStatus.fNpcDialogueMode != 0) {
+                    Function56E800(0);
+                }
+            } else if (g_main_game_mode_0068eddc == 5) {
+                Function5187E0();
+            } else if (g_main_game_mode_0068eddc == 6) {
+                if (g_level_block->highlight_graphic != 0) {
+                    ReleaseObject004257F0(g_level_block->highlight_graphic);
+                    g_level_block->highlight_graphic = 0;
+                    if (g_main_game_mode_0068eddc != 6) {
+                        goto open_automap;
+                    }
+                }
+                ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                                 g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                                 g_level_block->dialogue_y_224 +
+                                     g_level_block->dialogue_height_228);
+                InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                                 g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                                 g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228,
+                                 0);
+                if (g_level_block->dialogue_y_224 <
+                        static_cast<unsigned int>(
+                            g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x100;
+                }
+                if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x800;
+                }
+            }
+        open_automap:
+            g_main_game_mode_0068eddc = 0;
+            SetPendingScreenState(W8_SCREEN_AUTOMAP);
+            return 1;
+        }
+    } else if (us_event == RIGHT_BUTTON_UP) {
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            ToggleRadarMapZoom();
+        }
+    } else {
+        if (us_event != MOUSE_POS) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_level_block->radar_map_alternate = 0;
+            RefreshRadarMap();
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_level_block->radar_map_alternate = 1;
+            RefreshRadarMap();
+            return 1;
+        }
+    }
+    return 1;
+}
+
+/* Help 23: the 3D world viewport. Hover refreshes combat selection / world
+   item highlight; left-up aims or interacts; right-up opens monster/item
+   info or toggles mouselook; mipe editor input is forwarded while armed. */
+// FUNCTION: WIZ8 0x00567800
+unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
+{
+    POINT mouse;
+    int target_needed;
+    unsigned short us_event;
+    int cursor_x;
+    int cursor_y;
+    int selection;
+    int party_slot;
+    unsigned int party_offset;
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* monster_record;
+    W8ItemInstance* held_item;
+    W8NpcState* npc;
+    W8WorldItem* world_item;
+    int extent_row;
+    srVector3T<float> extent_min;
+    srVector3T<float> extent_max;
+    double* extent_doubles;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    if (IsMessageBoxActive() != 0 || gXStatus.fReviewCharacterMode != 0 ||
+        g_level_runtime_flag_0065ba70 != 0) {
+        return 0;
+    }
+    target_needed = GetTargetNeededForCurrentAction(g_status_685170.selected_character);
+    us_event = event->usEvent;
+    mouse.x = target_needed;
+    if (us_event <= RIGHT_BUTTON_DOWN) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags = region->flags | W8_REGION_RIGHT_BUTTON_HELD;
+            if (GetFlag68F105() != 0) {
+                SGPMouseGetPos(&mouse);
+                Function57E0E0(RIGHT_BUTTON_DOWN, &mouse);
+                return 1;
+            }
+            if (g_level_block->highlighted_item != -1 && gXStatus.fSpellCastMode == 0 &&
+                gXStatus.fNpcDialogueMode == 0 && gXStatus.fItemSelectMode == 0 &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                (g_settings_6850c8.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
+                OpenMonsterInfoDialog0056AD60(g_level_block->highlighted_item);
+                return 1;
+            }
+            if (g_status_685170.item_in_cursor == 0 && g_level_block->selected_item != -1 &&
+                gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+                gXStatus.fTrapInteractMode == 0 &&
+                (g_settings_6850c8.ctrl_right_click_info == 0 || gfKeyState[0x11] != 0)) {
+                world_item = ItemInfo(ItemIndex(g_level_block->selected_item));
+                PartyAttemptsToIdentifyItem(&world_item->item, 0);
+                OpenAssayDialog0056AE20(&world_item->item, -1);
+                return 1;
+            }
+            if (IsWorldCursorVisible() == 0 && gXStatus.fNpcDialogueMode == 0) {
+                if (g_settings_6850c8.mouselook_toggle == 0) {
+                    if (g_flag_0068edd8 != 0) {
+                        return 1;
+                    }
+                } else if (g_flag_0068edd8 != 0) {
+                    WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
+                                     g_mouselook_cursor_pos_0068edc0.y);
+                    SetFlag603C60();
+                    g_flag_0068edd8 = 0;
+                    g_flag_0068edd9 = 0;
+                    gfTrackMousePos = 0;
+                    g_flag_00652da7 = 0;
+                    return 1;
+                }
+                SGPMouseGetPos(&g_mouselook_cursor_pos_0068edc0);
+                ClearFlag603C60();
+                SetMouseCursorHotspot(0, 0);
+                WarpSystemCursor(0x140, 0xf0);
+                g_flag_0068edd8 = 1;
+                g_flag_0068edd9 = 0;
+                g_flag_00652da7 = 1;
+                gfTrackMousePos = 1;
+            }
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            if (g_flag_0068edd8 != 0) {
+                return 0;
+            }
+            region->flags = region->flags | W8_REGION_LEFT_BUTTON_HELD;
+            if (GetFlag68F105() == 0) {
+                return 1;
+            }
+            SGPMouseGetPos(&mouse);
+            Function57E0E0(LEFT_BUTTON_DOWN, &mouse);
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if (g_flag_0068edd8 != 0) {
+            return 1;
+        }
+        region->flags = region->flags & ~W8_REGION_LEFT_BUTTON_HELD;
+        if (FinishNpcVoiceIfSessionActive00577A20() != 0) {
+            return 1;
+        }
+        if (gXStatus.iTargetingMode == 3 ||
+            (target_needed == 3 && (event->usKeyState & CTRL_DOWN) != 0)) {
+            if (IsWorldCursorVisible() == 0) {
+                InitializeWorldCursor00490210();
+            }
+            SetWorldCursorRange00491650(
+                CalcRangeDistanceFromParty0051AB50(static_cast<W8RangeCategory>(GetCharActionRange(
+                    g_status_685170.selected_character, 0, W8_TARGETING_CONTEXT_CURRENT))));
+            if (gpSCSV != 0 && GetActionSpellLikeId(g_status_685170.selected_character,
+                                                    W8_TARGETING_CONTEXT_CURRENT) == 0x3c) {
+                extent_row = GetSpellCastingPowerIndex();
+                if (extent_row == -1) {
+                    extent_row = 2;
+                } else {
+                    extent_row = g_spell_power_extent_index_00616f41[extent_row];
+                }
+                extent_doubles = &g_world_cursor_extent_table_00616eb0[extent_row * 6];
+                extent_min.x = static_cast<float>(extent_doubles[0]);
+                extent_min.y = static_cast<float>(extent_doubles[1]);
+                extent_min.z = static_cast<float>(extent_doubles[2]);
+                extent_max.x = static_cast<float>(extent_doubles[3]);
+                extent_max.y = static_cast<float>(extent_doubles[4]);
+                extent_max.z = static_cast<float>(extent_doubles[5]);
+                SetWorldCursorExtents00492190(&extent_min, &extent_max);
+            }
+        } else if (gXStatus.iTargetingMode == 4 ||
+                   (target_needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
+            AimAtGroundTarget00538770(g_status_685170.selected_character);
+        } else if (g_level_block->highlighted_item == -1) {
+            if (g_status_685170.item_in_cursor != 0) {
+                cursor_y = GetAtomCursorY004285A0(event);
+                cursor_x = GetAtomCursorX00428580(event);
+                if (ForwardSelectedPropIndex004503B0(GetWorld(), cursor_x, cursor_y) == -1) {
+                    if (g_flag_006840bc == 0) {
+                        DropItemInHand(1);
+                    }
+                    goto left_up_done;
+                }
+            }
+            if (g_level_block->selected_item == -1) {
+                if (g_flag_006840bc == 0) {
+                    cursor_y = GetAtomCursorY004285A0(event);
+                    cursor_x = GetAtomCursorX00428580(event);
+                    ForwardActivateSelectedProp00451150(GetWorld(), 2, cursor_x, cursor_y);
+                }
+            } else if (g_flag_006840bc == 0 &&
+                       InteractWithWorldItem004F7910(g_level_block->selected_item) != 0) {
+                g_level_block->selected_item = -1;
+                VideoRemoveToolTip();
+                SetTargetingMode(0);
+            }
+        } else {
+            monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0x16c2, "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp",
+                g_level_block->highlighted_item, 1));
+            if (gXStatus.fCombatMode == 0) {
+                if (target_needed != 2 && target_needed != 1 && target_needed != 5) {
+                    if ((gXStatus.iCurrentCursor == 6 || g_status_685170.item_in_cursor != 0) &&
+                        g_status_685170.selected_character != -1 &&
+                        CanPartyMemberAimAtMonster(g_status_685170.selected_character, 2,
+                                                   monster_info, 6, 0) != 0) {
+                        monster_record = GetMonsterDataForInfo(monster_info);
+                        if ((monster_record->flags_0d0 & 1) == 0) {
+                            ShowNotice(0xc, gppStringList[0x7de], -1, 0xffffffff, 0);
+                        } else {
+                            held_item = 0;
+                            if (g_status_685170.item_in_cursor != 0) {
+                                held_item = &g_status_685170.item_in_hand_235b;
+                            }
+                            if (monster_info->highest_condition < 0xf) {
+                                npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                    0x16fe,
+                                    "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp",
+                                    g_level_block->highlighted_item, 1));
+                                QueueNpcScriptNotice(npc, held_item, -1, 0, 0);
+                                SetCombatSelection(-1);
+                            } else {
+                                ShowNotice(0xc, gppStringList[0x7de], -1, 0xffffffff, 0);
+                            }
+                        }
+                    }
+                    goto left_up_done;
+                }
+            } else {
+                if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+                    ShowNotice(0xc, gppStringList[0x7dd], -1, 0xffffffff, 0);
+                    goto left_up_done;
+                }
+                if (gfKeyState[0x10] != 0) {
+                    party_slot = 0;
+                    party_offset = 0;
+                    do {
+                        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+                            g_status_685170.buffers.characters[party_slot].hp_current != 0) {
+                            AimAtMonsterLocation00537950(party_slot,
+                                                         g_level_block->highlighted_item, 0);
+                        }
+                        party_offset = party_offset + 0x106;
+                        party_slot = party_slot + 1;
+                    } while (party_offset < 0x830);
+                    goto left_up_done;
+                }
+            }
+            if (g_status_685170.selected_character == -1) {
+                srAssertFail("gStatus.iSelectedCharacter != -1",
+                             "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0x16db,
+                             0);
+            }
+            AimAtMonsterLocation00537950(g_status_685170.selected_character,
+                                         g_level_block->highlighted_item, 1);
+        }
+    left_up_done:
+        if (GetFlag68F105() == 0) {
+            return 1;
+        }
+        SGPMouseGetPos(&mouse);
+        Function57E0E0(LEFT_BUTTON_UP, &mouse);
+        return 1;
+    }
+    if (us_event == RIGHT_BUTTON_UP) {
+        if (g_flag_0068edd8 != 0 && g_settings_6850c8.mouselook_toggle == 0) {
+            WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x, g_mouselook_cursor_pos_0068edc0.y);
+            SetFlag603C60();
+            g_flag_0068edd8 = 0;
+            g_flag_0068edd9 = 0;
+            gfTrackMousePos = 0;
+            g_flag_00652da7 = 0;
+            return 1;
+        }
+        if (GetFlag68F105() == 0) {
+            return 1;
+        }
+        SGPMouseGetPos(&mouse);
+        Function57E0E0(RIGHT_BUTTON_UP, &mouse);
+        return 1;
+    }
+    if (us_event != MOUSE_POS) {
+        return 0;
+    }
+    cursor_y = GetAtomCursorY004285A0(event);
+    cursor_x = GetAtomCursorX00428580(event);
+    if (GetFlag68F105() == 0) {
+        if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != 3 &&
+            gXStatus.iTargetingMode != 4 && gXStatus.iTargetingMode != 6 &&
+            gXStatus.active_monster_count != 0 && IsWorldCursorVisible() == 0 &&
+            g_flag_0068edd8 == 0) {
+            selection = PickNearestMonsterUnderCursor005396D0(cursor_x, cursor_y);
+        } else {
+            selection = -1;
+        }
+        SetCombatSelection(selection);
+        if (g_level_block->highlighted_item == -1) {
+            if (gXStatus.item_manager_pending == 0 || IsWorldCursorVisible() != 0 ||
+                g_flag_0068edd8 != 0) {
+                selection = -1;
+            } else {
+                selection = PickNearestItemUnderCursor004F7370(cursor_x, cursor_y, 5000.0f);
+            }
+            SetCombatTarget(selection);
+        }
+    } else {
+        Function57DC20();
+    }
+    if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0 && g_modal_owner_0068edd0 == 0) {
+        party_slot = 0;
+        party_offset = 0;
+        while (g_status_685170.buffers.party_rows[party_slot].occupied == 0 ||
+               g_level_block->portrait_refresh_pending[party_slot] == 0 ||
+               IsPartyPortraitUnderCursor00561980(party_slot) == 0) {
+            party_offset = party_offset + 0x106;
+            party_slot = party_slot + 1;
+            if (party_offset > 0x82f) {
+                UpdateWorldViewCursor0056A5D0(event, mouse.x);
+                return 1;
+            }
+        }
+        return 0;
+    }
+    SetCombatSelection(-1);
+    SetCombatTarget(-1);
+    SetCombatAction(-1);
+    SetTargetCursor(GetTargetingCursorForState(0));
+    return 1;
+}
+
+/* Help 36: combat monster-list rows. Hit-test by 11-pixel row, hover via
+   SetCombatAction, left-up aims, right-up posts the group info notice. */
+// FUNCTION: WIZ8 0x00568100
+unsigned char MonsterListRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int row = -1;
+    W8MonsterGroup* group = 0;
+    int group_id = -1;
+
+    if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.iTargetingMode != 3 && gXStatus.iTargetingMode != 4 &&
+        gXStatus.iTargetingMode != 6 && gXStatus.active_monster_count != 0 &&
+        IsWorldCursorVisible() == 0 && g_flag_0068edd8 == 0) {
+        row = (GetAtomCursorY004285A0(event) - region->y1) / 0xb;
+        group = GetLiveMonsterGroupAtIndex(row);
+        if (group == 0) {
+            row = -1;
+        } else {
+            group_id = group->group_id;
+        }
+    }
+    SetCombatAction(group_id);
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
+            g_status_685170.selected_character != -1 && group_id != -1 &&
+            g_level_block->unknown_290[0] != 0) {
+            AimAtMonsterGroupMember(g_status_685170.selected_character, group);
+        }
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && group_id != -1 &&
+            gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+            gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+            gXStatus.fTrapInteractMode == 0) {
+            ShowMonsterGroupInfoNotice(group_id);
+        }
+        return 1;
+    default:
+        return row == -1;
+    }
+}
+
 /* Forget the whole combat selection - what is picked, what it is aimed at, and
    what is going to be done - and then re-derive who is acting. */
 // FUNCTION: WIZ8 0x0056a5a0
@@ -8119,6 +9531,90 @@ void W8NpcDialogueTextController::SetTranscriptSorted(unsigned char sorted)
 {
     text_area.SetSorted(sorted);
     Invalidate(0);
+}
+
+/* Forward mouse enter/leave and button events to the main-screen control whose
+   pointer sits at W8MainScreenState::dialogue_text_10c[callback_id]. Id 0x27
+   is the panel slot at +0x1a8 and is ignored. Ids 1..6 and 0x16/0x17 pass 1
+   into the widget hooks; every other id passes 0. Mouse-enter always passes 0. */
+// FUNCTION: WIZ8 0x0056F020
+unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int callback_id = region->callback_id;
+    W8Widget* control;
+    unsigned char arg;
+
+    if (callback_id == 0x27) {
+        return 0;
+    }
+    control =
+        // reinterpret-ok: retail indexes contiguous control* slots from dialogue_text_10c
+        reinterpret_cast<W8Widget**>(&g_screen_state_00649f1c->dialogue_text_10c)[callback_id];
+    if (control == 0) {
+        return 0;
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
+            arg = 1;
+        } else {
+            arg = 0;
+        }
+        control->OnLeftButtonDown(arg);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
+            arg = 1;
+        } else {
+            arg = 0;
+        }
+        control->OnLeftButtonUp(arg);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+    case RIGHT_BUTTON_REPEAT:
+        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
+            arg = 1;
+        } else {
+            arg = 0;
+        }
+        control->OnRightButtonDown(arg);
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_UP:
+        if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 || callback_id == 0x17) {
+            arg = 1;
+        } else {
+            arg = 0;
+        }
+        control->OnRightButtonUp(arg);
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            if ((callback_id >= 1 && callback_id <= 6) || callback_id == 0x16 ||
+                callback_id == 0x17) {
+                arg = 1;
+            } else {
+                arg = 0;
+            }
+            control->OnMouseLeave(arg);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            control->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
 }
 
 /* Reset the secondary dialogue editor: drop the pending item, clear the item

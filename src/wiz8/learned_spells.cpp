@@ -2,8 +2,12 @@
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
-/* Unresolved fragment: 0x004F9600 lies between the accepted ItemManager
-   0x004F94C0 and Magic 0x004F97A0 anchors. Neither proves this body's TU. */
+/* Unresolved fragment: 0x004F9600 sits in the ItemManager (0x004F94C0) →
+   Magic (0x004F97A0) gap with RecountLearnedSpellsByRealm / CanCharacterCastSpell
+   (also unanchored, currently in Magic.cpp). ItemManager's last proved body is
+   unrelated world-item work; the first Magic path anchor is SpellTargetString
+   at 0x004F97A0. Keeping this separate avoids inventing a TU name; merging into
+   Magic.cpp would be organizational only and would not prove ownership. */
 // FUNCTION: WIZ8 0x004F9600
 void BuildLearnedSpellState004F9600(W8LearnedSpellState* scratch, W8Character* character)
 {

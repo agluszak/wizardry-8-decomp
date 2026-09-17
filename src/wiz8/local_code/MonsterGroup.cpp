@@ -490,6 +490,35 @@ unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
     return 0;
 }
 
+/* Walk plsMonsterGroupList and return the Nth live combat group. The live
+   filter is the same as IsMonsterGroupLive; retail inlines those tests. */
+// FUNCTION: WIZ8 0x00510ac0
+W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
+{
+    W8MonsterGroup* group = 0;
+    unsigned int group_list_index = 0;
+    unsigned int count = ILLength(reinterpret_cast<W8IList*>(
+        gXStatus.plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+
+    if (count != 0) {
+        do {
+            group = GetMonsterGroupByListIndex(group_list_index);
+            if (group->flag_28 != 0 && group->fInCombat != 0 && group->member_count != 0 &&
+                (group->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
+                if (index == 0) {
+                    return group;
+                }
+                --index;
+            }
+            ++group_list_index;
+            count = ILLength(reinterpret_cast<W8IList*>(
+                gXStatus
+                    .plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+        } while (group_list_index < count);
+    }
+    return group;
+}
+
 /* Follows a group's leader chain to the group that actually leads the formation
    and acts on its lead member. A broken link - a leader id that resolves to no
    group - stops the walk and reports success anyway, as does a null group,

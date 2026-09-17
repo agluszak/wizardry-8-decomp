@@ -687,6 +687,9 @@ extern unsigned char g_octree_trace_enabled_00659899;
    unrecovered render routines, so the names stay address-qualified. */
 extern unsigned char g_flag_0065a0ec;
 extern unsigned char g_flag_0065a0ed;
+/* Inverted-depth / alternate pass-compare mode; renderTriMesh forces GEQUAL
+   and the frame clear path uses a zero clear-depth while this is set. */
+extern unsigned char g_flag_0065a0ee;
 extern unsigned char g_flag_0065a146;
 
 int CheckLevelAssetSet0042CCC0(const char* level_path);

@@ -146,6 +146,8 @@ unsigned short g_octree_region_debug_last_006598b0;
 unsigned char g_flag_0065a0ec;
 // GLOBAL: WIZ8 0x0065a0ed
 unsigned char g_flag_0065a0ed;
+// GLOBAL: WIZ8 0x0065a0ee
+unsigned char g_flag_0065a0ee;
 // GLOBAL: WIZ8 0x0065a146
 unsigned char g_flag_0065a146;
 

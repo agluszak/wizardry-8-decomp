@@ -21,43 +21,6 @@ W8GameSettings g_settings_6850c8;
 char g_config_file_name[8] = "Wiz8";
 // GLOBAL: WIZ8 0x0061e18c
 char g_config_file_extension[] = "CFG";
-int g_music_sample_handle_60aae0 = -1;
-
-// FUNCTION: WIZ8 0x0048fe50
-void SetMusicVolume(unsigned char volume)
-{
-    g_settings_6850c8.music_volume = volume;
-    if (g_music_sample_handle_60aae0 != -1) {
-        SoundSetVolume(g_music_sample_handle_60aae0, volume);
-    }
-}
-
-// FUNCTION: WIZ8 0x0048fe80
-bool IsMusicMuted(void)
-{
-    return g_settings_6850c8.muted_music_volume != 0xff;
-}
-
-// FUNCTION: WIZ8 0x0048fe90
-void SetMusicMuted(unsigned char muted)
-{
-    if (muted != 0) {
-        if (g_settings_6850c8.muted_music_volume == 0xff) {
-            g_settings_6850c8.muted_music_volume = g_settings_6850c8.music_volume;
-            g_settings_6850c8.music_volume = 0;
-            if (g_music_sample_handle_60aae0 != -1) {
-                SoundSetVolume(g_music_sample_handle_60aae0, 0);
-            }
-        }
-    } else if (g_settings_6850c8.muted_music_volume != 0xff) {
-        g_settings_6850c8.music_volume = g_settings_6850c8.muted_music_volume;
-        if (g_music_sample_handle_60aae0 != -1) {
-            SoundSetVolume(g_music_sample_handle_60aae0, g_settings_6850c8.muted_music_volume);
-        }
-        g_settings_6850c8.muted_music_volume = 0xff;
-    }
-}
-
 // FUNCTION: WIZ8 0x0054b810
 void LoadGameConfiguration(void)
 {

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "input.h"
 #include "wiz8/local_code/TextControl.h"
 
 #include <cstddef>
+
+struct W8Region;
 
 /* The eight party-condition buttons beside the portraits, created by
    CreateConditionButtons; its asserts name gpConditionButtonsPanel and
@@ -57,6 +60,11 @@ void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 *
    the current layout. SyncMainGameModeRegions picks between them. */
 void DisableConditionButtons0059C030(void);
 void EnableConditionButtons0059BFC0(void);
+
+/* Region callbacks the eight portrait level-up buttons and condition buttons
+   share. */
+unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* region); /* 0x0059BD20 */
+unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x0059C260 */
 
 /* Main-game portrait overlay helpers used when a party slot refreshes. */
 unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int flags,

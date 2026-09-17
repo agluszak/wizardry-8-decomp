@@ -23,5 +23,10 @@ extern unsigned char g_flag_00609c8c;
 void ReportAssertion(const char* expression, const char* source_path, long line);
 void Function44FC20(W8World* world, unsigned int flags);
 void ApplyWorldUpdateFlags(W8World* world, unsigned int flags);
-int ForwardSelectedPropIndex004503B0(void);
+/* Retail call sites push world/x/y; the body ignores them and reads the
+   renderer's selected prop index. */
+int ForwardSelectedPropIndex004503B0(W8World* world, int x, int y);
+/* Retail call sites push world/mode/x/y; the body ignores them and runs the
+   selected prop trigger when one is latched. */
+unsigned char ForwardActivateSelectedProp00451150(W8World* world, int mode, int x, int y);
 void SetCameraSwayMode(srCamera* camera, int mode);

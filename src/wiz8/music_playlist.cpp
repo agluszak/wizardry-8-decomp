@@ -12,10 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Unresolved fragment: all six functions lie in the single anchored gap
-   between Camera.cpp (0x0048F2F0) and Cursor3d.cpp (0x00490C60). One
-   contiguous interval, but no anchor proves the file is one original TU. */
+/* Unresolved fragment between Camera.cpp (0x0048F2F0) and Cursor3d.cpp
+   (0x00490C60). Playlist bodies and the three music-volume helpers below are
+   address-interleaved in that gap; Configuration.cpp's proved anchors are
+   elsewhere, so those helpers live here rather than in that TU. No retail
+   path string proves a filename — leave unresolved-fragment. */
 
+// GLOBAL: WIZ8 0x0060aae0
+int g_music_sample_handle_60aae0 = -1;
 stScript* g_music_playlist_65ba74;
 unsigned int g_music_playlist_tick_65ba78;
 unsigned char g_music_playlist_active_65ba7e;
@@ -26,6 +30,41 @@ unsigned char g_music_force_next_60aae5;
 int g_music_state_60aae8;
 int g_music_state_60aaec;
 int g_music_state_60aaf0;
+
+// FUNCTION: WIZ8 0x0048fe50
+void SetMusicVolume(unsigned char volume)
+{
+    g_settings_6850c8.music_volume = volume;
+    if (g_music_sample_handle_60aae0 != -1) {
+        SoundSetVolume(g_music_sample_handle_60aae0, volume);
+    }
+}
+
+// FUNCTION: WIZ8 0x0048fe80
+bool IsMusicMuted(void)
+{
+    return g_settings_6850c8.muted_music_volume != 0xff;
+}
+
+// FUNCTION: WIZ8 0x0048fe90
+void SetMusicMuted(unsigned char muted)
+{
+    if (muted != 0) {
+        if (g_settings_6850c8.muted_music_volume == 0xff) {
+            g_settings_6850c8.muted_music_volume = g_settings_6850c8.music_volume;
+            g_settings_6850c8.music_volume = 0;
+            if (g_music_sample_handle_60aae0 != -1) {
+                SoundSetVolume(g_music_sample_handle_60aae0, 0);
+            }
+        }
+    } else if (g_settings_6850c8.muted_music_volume != 0xff) {
+        g_settings_6850c8.music_volume = g_settings_6850c8.muted_music_volume;
+        if (g_music_sample_handle_60aae0 != -1) {
+            SoundSetVolume(g_music_sample_handle_60aae0, g_settings_6850c8.muted_music_volume);
+        }
+        g_settings_6850c8.muted_music_volume = 0xff;
+    }
+}
 
 // FUNCTION: WIZ8 0x00490180
 char IsCurrentMusicPlaylist(const char* playlist)
