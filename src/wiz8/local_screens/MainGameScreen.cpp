@@ -5005,7 +5005,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
     state->dialogue_npc = npc;
     state->dialogue_npc->flag_22 = 0;
     state->dialogue_npc->flag_23 = 0;
-    if (state->dialogue_npc->unknown_1d != 0) {
+    if (state->dialogue_npc->greeting_pending != 0) {
         state->dialogue_npc->flag_84 = 0;
     }
     BeginNpcScriptDialogue(state->dialogue_npc, 0);
@@ -6082,7 +6082,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             fact_result = FindNpcScriptItemQuote(item->item_id, 0, &flag);
             if (fact_result == -1) {
                 Function50A570(g_screen_state_00649f1c->dialogue_npc, 3,
-                               g_screen_state_00649f1c->dialogue_speaker, item);
+                               g_screen_state_00649f1c->dialogue_speaker, item, 0);
                 QueueNpcScriptLine(
                     GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0,
                     0, 0);
@@ -6254,11 +6254,11 @@ void HandleNpcDialogueDeparture(int value)
     if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->unknown_1c == 0 ||
          g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&
         g_screen_state_00649f1c->value_25c < 1) {
-        if (g_screen_state_00649f1c->dialogue_npc->unknown_1d == 0) {
+        if (g_screen_state_00649f1c->dialogue_npc->greeting_pending == 0) {
             QueueNpcScriptLine(1, 0, 0, 0);
         } else {
             QueueNpcScriptLine(0, 0, 0, 0);
-            g_screen_state_00649f1c->dialogue_npc->unknown_1d = 0;
+            g_screen_state_00649f1c->dialogue_npc->greeting_pending = 0;
             if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
                 g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 &&
                 g_screen_state_00649f1c->dialogue_npc->record->unknown_056 == 0) {

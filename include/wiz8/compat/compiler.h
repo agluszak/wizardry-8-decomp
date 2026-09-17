@@ -4,10 +4,14 @@
 // making them syntax-neutral for the C++98 matching toolchain.
 #if !defined(WIZ8_CLANG_LINT)
 #define override
+#endif
 
 /* Keep source-level layout contracts in standard static_assert form while
    retaining the VC6 matching compiler.  The line-numbered typedef makes each
-   assertion independent even when several appear in one scope. */
+   assertion independent even when several appear in one scope.  C TUs keep the
+   shim under lint too: C11 static_assert needs <assert.h>, which the pinned
+   VC98 headers do not provide. */
+#if !defined(WIZ8_CLANG_LINT) || !defined(__cplusplus)
 #define WIZ8_COMPAT_JOIN_INNER(left, right) left##right
 #define WIZ8_COMPAT_JOIN(left, right) WIZ8_COMPAT_JOIN_INNER(left, right)
 #define static_assert(condition, message)                                                          \

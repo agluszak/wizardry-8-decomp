@@ -1212,12 +1212,12 @@ W8Monster::W8Monster()
 W8Monster::W8Monster(const W8Monster& rhs)
     : W8GrCycle(rhs), flags_1dc(rhs.flags_1dc), value_1e0(rhs.value_1e0),
       propagated_value_1e4(rhs.propagated_value_1e4), value_1e8(1.0f), value_1ec(1.0f),
-      value_1f0(1.0f), value_1f4(rhs.value_1f4), value_1f8(rhs.value_1f8), flag_1fc(0), flag_1fd(0),
-      value_200(0), value_204(0), value_208(0), value_210(-1), flag_215(rhs.flag_215), flag_216(1),
-      flag_217(0), flag_218(0), value_21c(rhs.value_21c), value_220(rhs.value_220),
-      value_224(rhs.value_224), value_228(rhs.value_228), flag_22c(0), flag_22d(0), script_238(0),
-      script_wait_240(-1), trigger_278(0), registry_weight_27c(rhs.registry_weight_27c),
-      unknown_304(0), node_308(0), sound_334(0)
+      value_1f0(1.0f), value_1f4(rhs.value_1f4), value_1f8(rhs.value_1f8), talking(0),
+      animate_mouth(0), mouth_frame_clock(0), mouth_frame(0), value_208(0), value_210(-1),
+      flag_215(rhs.flag_215), flag_216(1), flag_217(0), flag_218(0), value_21c(rhs.value_21c),
+      value_220(rhs.value_220), value_224(rhs.value_224), value_228(rhs.value_228), flag_22c(0),
+      flag_22d(0), script_238(0), script_wait_240(-1), trigger_278(0),
+      registry_weight_27c(rhs.registry_weight_27c), unknown_304(0), node_308(0), sound_334(0)
 {
     formation.SetZero();
     fade_state_330 = 0;
@@ -2771,10 +2771,10 @@ void W8Monster::BeginFadeOut004C5150(float duration)
 void W8Monster::StartTalking004C73F0(unsigned char animate_mouth)
 {
     if (m_pRep != 0) {
-        flag_1fc = 1;
-        flag_1fd = animate_mouth;
-        value_200 = GetTickCount();
-        unknown_214 = 0;
+        talking = 1;
+        this->animate_mouth = animate_mouth;
+        mouth_frame_clock = GetTickCount();
+        mouth_open = 0;
         value_210 = -1;
         value_208 = GetTickCount();
         value_20c = Random(2000) + 2000;
@@ -2790,7 +2790,7 @@ void W8Monster::StopTalking004C7470()
         srModelInstance* model;
         stTextureAnim* mouth;
 
-        flag_1fc = 0;
+        talking = 0;
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
             mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080();
@@ -3207,24 +3207,24 @@ void W8Monster::UpdateRepresentation(W8World* world)
         value_1ec -= g_float_005ebc3c;
     }
 
-    if (flag_1fc != 0 && flag_1fd != 0) {
-        if (unknown_214 != 0) {
+    if (talking != 0 && animate_mouth != 0) {
+        if (mouth_open != 0) {
             model = GetCurrentModelInstance004A8250();
             if (model != 0 &&
                 (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080()) != 0) {
                 mouth->flag_60 = 3;
                 mouth->SetFrame00485400(0);
             }
-        } else if (GetTickCount() - value_200 > 120) {
+        } else if (GetTickCount() - mouth_frame_clock > 120) {
             unsigned short frame;
-            value_200 = GetTickCount();
+            mouth_frame_clock = GetTickCount();
             do {
                 frame = (unsigned short)Random(6);
                 if (frame > 3) {
                     frame = 0;
                 }
-            } while (frame == (unsigned short)value_204);
-            value_204 = frame;
+            } while (frame == static_cast<unsigned short>(mouth_frame));
+            mouth_frame = frame;
             model = GetCurrentModelInstance004A8250();
             if (model != 0 &&
                 (mouth = static_cast<stModelInstance*>(model)->FindMouthTexture00481080()) != 0) {

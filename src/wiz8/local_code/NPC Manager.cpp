@@ -1034,7 +1034,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     npc->is_present = 0;
     npc->disposition = g_npc_records[npc_id].disposition;
     npc->gold_80 = g_npc_records[npc_id].gold;
-    npc->unknown_1d = 1;
+    npc->greeting_pending = 1;
     npc->unknown_ca = g_npc_records[npc_id].value_002;
 
     for (index = 0; index < g_npc_states->count; ++index) {
@@ -1881,5 +1881,28 @@ void RebindNpcLevelTriggers0050AC60(void)
             count = g_npc_states->count;
             ++npc_index;
         } while (npc_index < count);
+    }
+}
+
+/* Clear every item_ids_30 slot that still holds `item_id` - quote entries
+   call this after the item leaves the npc's stock so it cannot be sold
+   twice. The npc null check is the original's own dead assert: the pointer
+   was already dereferenced by the scan. */
+// FUNCTION: WIZ8 0x0050E4B0
+void ClearNpcItemId(W8NpcState* npc, int item_id)
+{
+    int index;
+    unsigned char slot;
+
+    for (index = 0; index < 40; ++index) {
+        if (npc->item_ids_30[index] == item_id) {
+            if (npc == 0) {
+                srAssertFail("pNPC", NPC_MANAGER_CPP, 0x7a4, 0);
+            }
+            slot = index;
+            if (npc->item_ids_30[slot] != -1) {
+                npc->item_ids_30[slot] = -1;
+            }
+        }
     }
 }

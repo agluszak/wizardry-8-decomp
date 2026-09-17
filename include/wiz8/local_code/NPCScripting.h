@@ -24,7 +24,10 @@ class W8DialogBase;
 struct W8NpcDialogueStagingRestore {
     int current_quote_index;
     int finished_quote_index;
-    unsigned short unknown_49c;
+    /* 0x08: which subquote of the staged quote is next; reset when a new quote
+       is staged or the cursor runs past subquote_count. */
+    unsigned char subquote_index;
+    unsigned char unused_49d;
     short staged_short_49e;
 };
 #pragma pack(pop)
@@ -34,8 +37,12 @@ static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRe
 struct W8NpcScriptingState {
     unsigned char unknown_00[0x64];
     W8NpcDialogueStagingRestore staging_restore;
-    unsigned char flag_70;
-    unsigned char flag_71;
+    /* 0x70: a quote is being presented - voice is playing or the text/EOS
+       hold is counting down. Cleared by FinishNpcVoicePlayback. */
+    unsigned char quote_active;
+    /* 0x71: the quote's voice sound actually started; gates SoundStop and the
+       mouth-gap cleanup in FinishNpcVoicePlayback. */
+    unsigned char voice_playing;
     unsigned char unknown_72[6];
     W8NpcScriptFile* script_file;
     W8NpcState* npc;
@@ -62,8 +69,10 @@ static_assert(offsetof(W8NpcScriptingState, unknown_00) == 0x00,
               "W8NpcScriptingState_unknown_00_offset");
 static_assert(offsetof(W8NpcScriptingState, unknown_72) == 0x72,
               "W8NpcScriptingState_unknown_72_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_70) == 0x70, "W8NpcScriptingState_flag_70_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_71) == 0x71, "W8NpcScriptingState_flag_71_offset");
+static_assert(offsetof(W8NpcScriptingState, quote_active) == 0x70,
+              "W8NpcScriptingState_quote_active_offset");
+static_assert(offsetof(W8NpcScriptingState, voice_playing) == 0x71,
+              "W8NpcScriptingState_voice_playing_offset");
 static_assert(offsetof(W8NpcScriptingState, script_file) == 0x78,
               "W8NpcScriptingState_script_file_offset");
 static_assert(offsetof(W8NpcScriptingState, npc) == 0x7c, "W8NpcScriptingState_npc_offset");
@@ -101,9 +110,17 @@ static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 extern W8NpcScriptingState g_npc_scripting;
 extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
 
-void RunNpcScriptLine(int script_line, unsigned char param);        /* 0x00525FA0 */
-void ProcessMessageBoxQueue(void);                                  /* 0x00526E90 */
-void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int script_line); /* 0x00526810 */
+void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
+int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
+                                short* sub_entry_index);               /* 0x00525E80 */
+void RunNpcScriptLine(int script_line, unsigned char force_npc_voice); /* 0x00525FA0 */
+void ProcessMessageBoxQueue(void);                                     /* 0x00526E90 */
+/* 0x00526810: execute a queued quote entry's deferred effect; the
+   continuation quote is handed to the modal-dialog kinds (5/0x13 force -1). */
+void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote);
+/* 0x00528B50: build a W8_NPC_MSG_QUOTE_ENTRY line for `entry` carrying
+   `continuation_quote`; prepend != 0 inserts it at the queue front. */
+void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned char prepend);
 /* 0x00528FF0: the first argument is a pointer into a character or party item
    slot - the slot whose address matches is the one removed. */
 void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id);

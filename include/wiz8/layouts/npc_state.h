@@ -46,8 +46,9 @@ struct W8NpcState {
        representative values rather than a range. */
     unsigned char disposition;
     unsigned char unknown_1c;
-    /* 0x1d: set by CreateNpcRuntimeNode when the node is built. */
-    unsigned char unknown_1d;
+    /* 0x1d: raised by CreateNpcRuntimeNode; the greeting quote (0) and the
+       first-interaction paths lower it once the NPC has been greeted. */
+    unsigned char greeting_pending;
     unsigned char unknown_1e[4];
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
@@ -73,8 +74,8 @@ struct W8NpcState {
     /* 0x2f: the loaded level id the binding is stamped for. */
     unsigned char bound_level;
     /* 0x30: the forty item ids 0x0050B9E0 copies out of the record's item
-       table, -1 for an unused slot. */
-    unsigned short item_ids_30[40];
+       table, -1 for an unused slot; every retail reader sign-extends. */
+    short item_ids_30[40];
     /* 0x80: the purse 0x004F8CB0 hands to AddPartyGold, from the record's
        gold field. */
     int gold_80;

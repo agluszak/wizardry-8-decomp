@@ -746,6 +746,7 @@ unsigned char LoadKeywordFile(const char* path,
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
 
 struct W8NpcScriptQuote;
+struct W8NpcQuoteEntry;
 
 void Function563890(void); /* 0x00563890 */
 void SyncDialogueNpcState00577260(void);
@@ -758,8 +759,11 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                               int quote_id, unsigned int font_palette, unsigned char notice_kind,
                               void* payload, int npc_kind); /* 0x00576060 */
 void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
-void LookAtDialogueNpc(void);                               /* 0x005767F0 */
-void CloseNpcDialogueIfActive(void);                        /* 0x00576B80 */
+/* 0x00575E60: open the modal dialog the quote entry selects; trade kinds
+   0x12/0x1e carry a price argument, kinds 5/0x13 pass -1. */
+void Function575E60(W8NpcQuoteEntry* entry, int value);
+void LookAtDialogueNpc(void);        /* 0x005767F0 */
+void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
                               int force);   /* 0x0056C6D0 */
 void BeginScriptedWorldAction(void);        /* 0x00577520 */

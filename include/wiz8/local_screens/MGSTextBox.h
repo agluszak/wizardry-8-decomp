@@ -88,3 +88,6 @@ void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
 void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box = -1,
                 unsigned int wrap_width = ~0U, bool force_dialog = false);
+/* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,
+   choosing the text-box slot from the current dialogue/camp/combat mode. */
+void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...);

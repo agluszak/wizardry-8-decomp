@@ -114,7 +114,14 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
 char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
-void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item);
+void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item,
+                    unsigned int gold); /* 0x0050A570: every retail call pushes five */
+/* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
+   entry just handed out. */
+void ClearNpcItemId(W8NpcState* npc, int item_id);
+/* 0x0050ADA0: the live NPC state whose display (or fact-substituted) name
+   matches case-insensitively; 0 when none does. */
+W8NpcState* FindNpcStateByName(const char* name);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 const char* GetNpcDisplayName(W8NpcState* npc);
 void Function50C440(W8NpcState* npc, int value);                                   /* 0x0050C440 */

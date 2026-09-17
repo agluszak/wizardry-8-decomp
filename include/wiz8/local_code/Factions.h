@@ -36,8 +36,12 @@ enum W8Faction {
 
 struct W8FactionRuntimeRecord {
     signed char disposition_score;
-    unsigned char unknown_01[5];
-    int value_06;
+    /* 0x01: witnessed offenses against the faction; RecordFactionOffense
+       increments it (cap 0xfa) and reads it for the penalty tiers. */
+    int offense_count_01;
+    unsigned char unknown_05;
+    /* 0x06: g_status_685170.world_clock at the last band change. */
+    int band_changed_clock_06;
     unsigned char flag_0a;
     unsigned char unknown_0b[3];
 };
@@ -64,5 +68,16 @@ signed char GetFactionDispositionScore(signed char faction);
    relations a fresh game begins with. */
 void ResetFactions(void);
 
-void SetFactionDispositionBand(char faction, unsigned char band); /* 0x00535B40 */
+void SetFactionDispositionBand(signed char faction, char band); /* 0x00535B40 */
+
+/* 0x00535CF0: faction change entry point - op 1 with a faction outside
+   unaligned/party routes mode 0 to the witnessed-offense path and modes
+   1..3 to a direct disposition delta. */
+void ApplyFactionChange(char mode, char op, signed char faction, int value);
+/* 0x00535D50: bump the faction's offense count and apply the penalty the
+   victim's record and the running count select. */
+void RecordFactionOffense(signed char faction, unsigned int victim_location_index);
+/* 0x00535EA0: clamp disposition_score + delta to 0..99, stamp the world clock
+   when the band moved, and post the worsened/improved notice. */
+void AdjustFactionDisposition(signed char faction, char delta);
 #endif

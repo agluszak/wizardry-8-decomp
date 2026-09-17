@@ -164,6 +164,7 @@ if(WIZ8_BUILD_PRODUCTS)
             "${PROJECT_SOURCE_DIR}/tests/runtime/sight_semantic_test.cpp"
             "${PROJECT_SOURCE_DIR}/tests/runtime/split_stack_semantic_test.cpp"
             "${PROJECT_SOURCE_DIR}/tests/runtime/audio_semantic_test.cpp"
+            "${PROJECT_SOURCE_DIR}/tests/runtime/mouth_gap_semantic_test.cpp"
             "${PROJECT_SOURCE_DIR}/tests/runtime/party_movement_semantic_test.cpp"
             "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
