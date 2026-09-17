@@ -10,6 +10,7 @@ env:
   GHIDRA_ARCHIVE: ghidra_12.1.2_PUBLIC_20260605.zip
   GHIDRA_SHA256: b62e81a0390618466c019c60d8c2f796ced2509c4c1aea4a37644a77272cf99d
   GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.2_PUBLIC
+  WIZ8_INPUT_DIR: /tmp/wiz8-inputs
   WIZ8_WORK_DIR: /tmp/wiz8-work
   WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
 
@@ -50,6 +51,7 @@ jobs:
 
       - name: Dump reviewed Item.cpp functions
         run: |
+          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           uv run wiz8 ghidra restore
           uv run python - <<'PY'
           from wiz8decomp import command_support as cli
