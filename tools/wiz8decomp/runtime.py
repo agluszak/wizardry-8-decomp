@@ -61,6 +61,7 @@ RUNTIME_SCENARIOS = (
     "party-movement",
     "audio-semantics",
     "keyboard-menu",
+    "mouth-gap",
     "npc-dialogue",
     "search-mode",
     "mongen",

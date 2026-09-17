@@ -32,6 +32,7 @@
 #include "keyboard_menu_semantic_test.h"
 #include "npc_dialogue_semantic_test.h"
 #include "mongen_semantic_test.h"
+#include "mouth_gap_semantic_test.h"
 #include "sight_semantic_test.h"
 #include "split_stack_semantic_test.h"
 #include "party_movement_semantic_test.h"
@@ -107,6 +108,7 @@ static unsigned char g_keyboard_semantic_ok;
 static unsigned char g_dialogue_semantic_ok;
 static unsigned char g_search_semantic_ok;
 static unsigned char g_mongen_semantic_ok;
+static unsigned char g_mouth_gap_semantic_ok;
 
 static bool RunSearchModeSemanticTest(void)
 {
@@ -634,6 +636,14 @@ static DWORD WINAPI DriveScenario(void*)
         PrintKeyboardMenuSemanticResults(&keyboard_result);
         gfProgramIsRunning = 0;
         return g_keyboard_semantic_ok ? 0 : 1;
+    }
+
+    if (strcmp(g_scenario, "mouth-gap") == 0) {
+        MouthGapSemanticResult mouth_gap_result;
+        g_mouth_gap_semantic_ok = RunMouthGapSemanticTest(&mouth_gap_result);
+        PrintMouthGapSemanticResults(&mouth_gap_result);
+        gfProgramIsRunning = 0;
+        return g_mouth_gap_semantic_ok ? 0 : 1;
     }
 
     if (strcmp(g_scenario, "npc-dialogue") == 0) {
@@ -1203,7 +1213,7 @@ int main(int argc, char** argv)
             "usage: Wiz8RuntimeTest --scenario "
             "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
             "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|npc-dialogue|search-mode|mongen\n");
+            "audio-semantics|keyboard-menu|mouth-gap|npc-dialogue|search-mode|mongen\n");
         return 64;
     }
 
@@ -1214,14 +1224,14 @@ int main(int argc, char** argv)
         strcmp(argv[2], "oct-file") != 0 && strcmp(argv[2], "sight-threshold") != 0 &&
         strcmp(argv[2], "split-stack") != 0 && strcmp(argv[2], "party-movement") != 0 &&
         strcmp(argv[2], "audio-semantics") != 0 && strcmp(argv[2], "keyboard-menu") != 0 &&
-        strcmp(argv[2], "npc-dialogue") != 0 && strcmp(argv[2], "search-mode") != 0 &&
-        strcmp(argv[2], "mongen") != 0) {
+        strcmp(argv[2], "mouth-gap") != 0 && strcmp(argv[2], "npc-dialogue") != 0 &&
+        strcmp(argv[2], "search-mode") != 0 && strcmp(argv[2], "mongen") != 0) {
         fprintf(
             stderr,
             "usage: Wiz8RuntimeTest --scenario "
             "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
             "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|npc-dialogue|search-mode|mongen\n");
+            "audio-semantics|keyboard-menu|mouth-gap|npc-dialogue|search-mode|mongen\n");
         return 64;
     }
 
@@ -1326,13 +1336,16 @@ int main(int argc, char** argv)
     const bool dialogue_flow = strcmp(g_scenario, "npc-dialogue") == 0;
     const bool search_flow = strcmp(g_scenario, "search-mode") == 0;
     const bool mongen_flow = strcmp(g_scenario, "mongen") == 0;
+    const bool mouth_gap_flow = strcmp(g_scenario, "mouth-gap") == 0;
     const bool semantic_flow = sight_flow || split_flow || movement_flow || audio_flow ||
-                               keyboard_flow || dialogue_flow || search_flow || mongen_flow;
+                               keyboard_flow || dialogue_flow || search_flow || mongen_flow ||
+                               mouth_gap_flow;
     const bool semantic_ok =
         (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok) ||
         (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok) ||
         (keyboard_flow && g_keyboard_semantic_ok) || (dialogue_flow && g_dialogue_semantic_ok) ||
-        (search_flow && g_search_semantic_ok) || (mongen_flow && g_mongen_semantic_ok);
+        (search_flow && g_search_semantic_ok) || (mongen_flow && g_mongen_semantic_ok) ||
+        (mouth_gap_flow && g_mouth_gap_semantic_ok);
     const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
                                 strcmp(g_scenario, "main-game-start") == 0 ||
                                 strcmp(g_scenario, "npc-state-reset") == 0 ||
