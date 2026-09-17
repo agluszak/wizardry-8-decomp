@@ -96,7 +96,7 @@ struct W8LevelRuntimeBlock {
     int unknown_160;
     int unknown_164;
     int unknown_168;
-    int highlight_override;  /* 0x16c */
+    int highlight_override; /* 0x16c */
     int party_slots_170[6]; /* 0x170: positional roles unresolved */
     /* 0x188: PortraitAssaySidebarRegionEvent hover zone — 1 upper weapon
        row, 2 lower, 3 assayable item; Screens resets it to 0. */
@@ -161,7 +161,7 @@ struct W8LevelRuntimeBlock {
     unsigned int world_update_timer;     /* 0x254 */
     unsigned int countdown_258;          /* 0x258 */
     unsigned int countdown_25c;          /* 0x25c */
-    unsigned char transition_active;     /* 0x260 */
+    bool transition_active;              /* 0x260 */
     unsigned char transition_pending;    /* 0x261 */
     unsigned char unknown_262[2];
     int highlighted_item;
@@ -208,7 +208,7 @@ struct W8LevelRuntimeBlock {
     unsigned short* palette_2ec; /* 0x2ec */
     int selection_kind;
     int value_2f4; /* 0x2f4 */
-    unsigned char selection_settled;
+    bool selection_settled;
     unsigned char unknown_2f9[3];
     unsigned int tooltip_since;
     unsigned char tooltip_pending;
@@ -228,8 +228,8 @@ struct W8LevelRuntimeBlock {
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
     unsigned char portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
-    unsigned char radar_map_alternate;      /* 0x326: radar uses alternate frame art */
-    unsigned char review_transition_active; /* 0x327: set while leaving into review */
+    unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
+    bool review_transition_active;           /* 0x327: set while leaving into review */
     unsigned char flag_328;
     unsigned char unknown_329[3];
     unsigned int countdown_32c;
