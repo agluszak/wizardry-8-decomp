@@ -40,6 +40,13 @@ public:
                             short priority, int tooltip_index,
                             W8DialogButtonCallback right_callback,
                             W8DialogButtonCallback double_click_callback);
+    /* 0x005DB350: create an SGP text button (BUTTON_NO_TOGGLE, priority 0x7f),
+       store this in its user-data slot 0 and the payload in slot 1 (read back
+       by GetUserData), then install the left-click callback. */
+    unsigned char ConfigureTextButton(const wchar_t* text, unsigned int font, short fore_color,
+                                      short shadow_color, short x, short y, short width,
+                                      short height, W8DialogButtonCallback left_callback,
+                                      int user_data);
 
     friend void DialogButtonCallback(GUI_BUTTON* button, INT32 reason);
 
