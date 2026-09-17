@@ -574,11 +574,11 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
     if (g_float_005ebc7c < surface->plane_24[1]) {
         if ((surface->flags_00 & 4) == 0 && g_float_005ec1a0 < surface->plane_24[1]) {
             surface->flags_00 |= 4;
-            surface->value_48 = g_float_005ebb38;
+            surface->slope_48 = g_float_005ebb38;
         }
-        if (surface->value_48 < g_float_005ebb34) {
+        if (surface->slope_48 < g_float_005ebb34) {
             surface->flags_00 |= 0x20;
-            surface->value_48 = g_float_005ebb34;
+            surface->slope_48 = g_float_005ebb34;
         }
     } else if (surface->value_40 < g_float_005ec028 &&
                g_path_endpoint_scale_005ec1a4 < surface->value_40 && (surface->flags_00 & 4) != 0) {
@@ -588,12 +588,12 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
     flags = surface->flags_00;
     surface->value_40 *= g_world_scale_005ebc40;
     if ((flags & 4) == 0) {
-        surface->value_48 = g_float_005ebb34;
-    } else if (surface->value_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
+        surface->slope_48 = g_float_005ebb34;
+    } else if (surface->slope_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
         if (surface->plane_24[1] <= g_float_005ebccc) {
             upper_value = surface->plane_24[1];
         }
-        surface->value_48 = upper_value;
+        surface->slope_48 = upper_value;
     }
     surface->flags_00 = flags & ~8U;
 }

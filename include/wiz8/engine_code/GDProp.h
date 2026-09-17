@@ -32,7 +32,7 @@ class GDProp {
 
 public:
     GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
-           unsigned char surface_flag, unsigned char vertex_flag); /* 0x004B6E00 */
+           unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B6E00 */
     ~GDProp();                                                     /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);
     unsigned char ContainsPathCoordinate004B75F0(unsigned short x, unsigned short y) const;
@@ -47,7 +47,7 @@ public:
 
 private:
     void Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
-                    unsigned char surface_flag, unsigned char vertex_flag); /* 0x004B7060 */
+                    unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B7060 */
     void PrepareGeometry004B6F30(srModelInstance* instance);
 
     unsigned short m_flags_00;          /* 0x00 */

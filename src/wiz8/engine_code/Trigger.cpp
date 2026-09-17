@@ -436,7 +436,7 @@ bool Trigger::Save0043BE60(int hFile)
         SaveItemFile(hFile, world_item_group_34c);
     }
     FileWrite(hFile, &flag_350, sizeof(flag_350), 0);
-    FileWrite(hFile, &next_activation_time_354, sizeof(next_activation_time_354), 0);
+    FileWrite(hFile, &item_group_seed_354, sizeof(item_group_seed_354), 0);
     FileWrite(hFile, &gold_358, sizeof(gold_358), 0);
     FileWrite(hFile, &value_35c, sizeof(value_35c), 0);
     return header_ok;
@@ -595,7 +595,7 @@ bool Trigger::Load0043C1B0(int hFile, char version)
             world_item_group_34c = LoadItem(hFile, 0);
         }
         FileRead(hFile, &flag_350, sizeof(flag_350), 0);
-        FileRead(hFile, &next_activation_time_354, sizeof(next_activation_time_354), 0);
+        FileRead(hFile, &item_group_seed_354, sizeof(item_group_seed_354), 0);
         FileRead(hFile, &gold_358, sizeof(gold_358), 0);
         FileRead(hFile, &value_35c, sizeof(value_35c), 0);
     }
@@ -2102,7 +2102,7 @@ Trigger::Trigger()
     position_11c = 0.0f;
     position_120 = 0.0f;
     action_data_128[0] = 0;
-    next_activation_time_354 = GetTickCount() + Random(30000);
+    item_group_seed_354 = GetTickCount() + Random(30000);
     gold_358 = 0;
     value_35c = 0;
     trigger_id_09c = g_status_685170.next_trigger_id_2356++;
@@ -2462,7 +2462,8 @@ void Trigger::RunDestination00440DD0(const char* destination)
 }
 
 /* Materialize this trigger's item table once. The two dice fields are the
-   item-count and gold rolls at ItemTable record offsets 0x1cd and 0x1d5. */
+   item-count and gold rolls at ItemTable record offsets 0x1cd and 0x1d5.
+   The trigger's persistent seed reseeds the CRT RNG before generation. */
 // FUNCTION: WIZ8 0x00445500
 void Trigger::GenerateItemGroup()
 {
@@ -2476,7 +2477,7 @@ void Trigger::GenerateItemGroup()
         return;
     }
 
-    srand(next_activation_time_354);
+    srand(item_group_seed_354);
     table_id = FindItemTableByName(inline_action_data_24c);
     if (table_id == (unsigned int)-1) {
         return;

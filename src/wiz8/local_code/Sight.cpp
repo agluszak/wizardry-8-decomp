@@ -181,7 +181,7 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     target_position.z = target_monster->movement_0c0.position_040.z;
     observer_yaw = source_monster->GetYaw();
     if (target->fInCombat == 0) {
-        penalty_modifier = target_record->flag_248;
+        penalty_modifier = target_record->camouflage_248;
     } else {
         penalty_modifier = 0;
     }
@@ -790,7 +790,7 @@ after_sight:
                 distance = monster->GetDistanceToPlayer004C7CB0();
                 npc_fade_flag = 0;
                 if (monster_info->fInCombat == 0) {
-                    npc_fade_flag = record->flag_248;
+                    npc_fade_flag = record->camouflage_248;
                 }
                 seen_by_party = false;
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
@@ -894,7 +894,7 @@ after_sight:
                             }
                         }
                     }
-                    if (monster_info->party_threat.state_04 != 1 && record->flag_248 != 0) {
+                    if (monster_info->party_threat.state_04 != 1 && record->camouflage_248 != 0) {
                         unsigned int now =
                             static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
 
@@ -915,7 +915,7 @@ after_sight:
             }
             (void)seen_by_party;
         }
-        if (monster_info->party_threat.state_04 == 1 && record->flag_248 != 0) {
+        if (monster_info->party_threat.state_04 == 1 && record->camouflage_248 != 0) {
             unsigned int now =
                 static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
 

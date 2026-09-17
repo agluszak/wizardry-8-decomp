@@ -1,0 +1,26 @@
+offset,field_name,storage,control_id,control_label,editor_read_site,editor_write_site,retail_corroboration,authority,notes
+0x0c0,can_open_doors_0c0,u8,0x0757,Can open doors,0x00713a3f,0x00719c17,MonsterManager propagates it into movement flag 0x10000000,external-semantic,Paired Cosmic Forge read/write mapping
+0x0ce,stamina_regeneration_0ce,i8,0x0438,ST Regen,0x00713855,numeric editor writer,GameplayTime adds the signed byte to monster stamina regeneration per elapsed minute,external-semantic,Signed byte; retail consumer independently fixes both meaning and signedness
+0x0e3,special_attack_kind_0e3,u8,0x05ce,Special attack,0x0071367b,0x00718c6d,Indexes GroupAttacks effect/condition/realm tables and MonsterInfo display names,external-semantic,Replaces generic ai_kind terminology
+0x0e4,initiative_0e4,u8,0x0465,Initiative,0x00713e93,0x0071bd97,,external-semantic,Paired editor mapping
+0x157..0x15b,attack_body_part_chances_157,u8[5],0x045f/0x0460/0x0469/0x046a/0x046b,Chances to attack enemy body parts,0x00713f82/0x00713fb2/0x00713fe1/0x00714011/0x00714041,paired editor apply controls,,external-semantic,Five adjacent percentage controls; distinct from incoming hit-location chances at +0x15f
+0x15c,special_attack_cooldown_15c,u8,0x0472,Cooldown,0x00714342,0x0071b6b2,,external-semantic,Control is in Special attack block
+0x15d,evasion_ac_15d,i8,0x0499,Evasion AC,0x00713f1a,0x0071be24,,external-semantic,Editor reads signed byte
+0x15e,constitution_15e,u8,0x05de,Constitution,0x00713906,0x00718c81,Combat Attack indexes the body-specific hit-location label row with this value,external-semantic,Designer-facing Constitution selector
+0x181,experience_181,u32,0x044d,Experience,0x007137b8,paired editor apply handler,GetMonsterExperience returns this unless the +0x26b override is nonzero,external-semantic,Base experience value
+0x1b9,prefer_ranged_actions_1b9,u8,0x074e,Prefer ranged actions,0x007136a5,0x0071a507,MonsterAI suppresses close/backoff and MonsterInfo displays Ranged strategy,external-semantic,Paired editor mapping
+0x1ba,combat_move_range_1ba,f32,0x0473,Combat Move Range,0x00714068,0x0071bcbb,0x004e5990 scales it for movement combat noise and AI range consumers,external-semantic,Physical units still unresolved
+0x1be,instant_death_immune_1be,u8,0x0756,Instant Death Immunity,0x0071371b,0x0071a5a7,Magic Effects blocks the DEAD condition when set,external-semantic,Paired editor mapping
+0x1bf,combat_behavior_1bf,u8,0x0ca2,Combat Behaviour,0x007135f9,0x00718c95,MonsterAI action-queue branch compares it against 3,external-semantic,Distinct from +0x1c0
+0x1c0,combat_morale_1c0,u8,0x0ca4,Combat Morale,0x0071363a,0x00718ca9,MonsterAdvanceChance and action-queue logic consume it,external-semantic,Distinct from +0x1bf
+0x247,attack_multiple_targets_247,u8,0x0755,Attack Multiple Targets,0x007136e0,0x0071a557,,external-semantic,No canonical retail consumer identified yet
+0x248,camouflage_248,u8,0x0483,Camouflage,0x007138e0,numeric editor writer,Sight and Monster visibility code consume this rating,external-semantic,Paired semantic/editor evidence
+0x24f,effective_level_24f,u8,0x0484,Levels,0x00713b67,paired editor apply control,Combat Attack Magic Effects Sight GroupAttacks and Monster consume this byte as an effective/combat level in attack resistance spell and effect formulas,external-semantic,First byte of Cosmic Forge's four-byte Levels row; not the value MonsterInfoDialog displays
+0x250,unknown_250,u8,0x048b,Levels,0x00713c3c,paired editor apply control,,external-semantic,Second byte of the four-byte Levels row; semantic role unresolved
+0x251,display_level_251,u8,0x048c,Levels,0x00713d11,paired editor apply control,MonsterInfoDialog reads this byte directly as monster_level and displays it,external-semantic,Third byte of the four-byte Levels row
+0x252,unknown_252,u8,0x048d,Levels,0x00713de6,paired editor apply control,,external-semantic,Fourth byte of the four-byte Levels row; semantic role unresolved
+0x25b,hostility_radius_25b,i32,0x044e,Hostility Radius,0x0071387b,numeric editor writer,MonsterAI and MonsterGroup use it as a neutrality/hostility proximity threshold,external-semantic,UI label also says Minimal Neutrality Distance
+0x263,material_263,i32,0x0742,Material,0x007138a0,0x00718af5,,external-semantic,No canonical retail consumer identified yet
+0x268,significant_kill_268,u8,0x0758,Significant Kill,0x00713ab5,paired editor apply handler,,external-semantic,No canonical retail consumer identified yet
+0x26a,unborn_26a,u8,0x0752,Unborn,0x00713a7a,0x00719c67,MonsterManager and MonsterGroup route it through unborn/encounter lists before activation,external-semantic,UI text says should be born before acting
+0x26b,experience_override_26b,u32,0x044d,Experience override,derived from accessor,derived from accessor,GetMonsterExperience prefers this value when nonzero,descriptive,Relationship is retail-derived rather than a separate editor control

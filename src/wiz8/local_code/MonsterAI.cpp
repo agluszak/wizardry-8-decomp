@@ -57,9 +57,9 @@
 
 #define MONSTER_AI_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterAI.cpp"
 
-/* The AI table row value that marks a monster the flee and control rules treat
-   differently. */
-enum { W8_AI_KIND_ROW_SPECIAL = 6 };
+/* The special-attack table row value that marks a summon; flee and control
+   rules treat those rows differently. */
+enum { W8_SPECIAL_ATTACK_EFFECT_SUMMON = 6 };
 
 /* The spell the AI casts when it wants a place rather than a target. */
 enum { W8_AI_SPELL_PLACE = 0x77 };
@@ -89,9 +89,10 @@ void QueueMonsterAction(W8MonsterInfo* monster_info, int action_kind, int action
 const int g_int_00617ae8 = 125000;
 
 struct W8SpellEffectEntry;
-/* 0x0061EEFC: two dwords per AI kind; only the leading dword is read here. */
+/* 0x0061EEFC: two dwords per special-attack kind; only the leading dword is
+   read here. */
 // GLOBAL: WIZ8 0x0061EEFC
-extern const int g_ai_kind_table[32][2] = {
+extern const int g_special_attack_table[32][2] = {
     {0, 0}, {1, 0}, {1, 0}, {2, 3}, {4, 0}, {1, 1}, {1, 1}, {1, 0}, {5, 4}, {5, 0}, {1, 5},
     {1, 1}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 0}, {1, 1}, {1, 5}, {1, 0},
     {1, 1}, {1, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {6, 0}, {5, 0}, {6, 0},
@@ -863,14 +864,14 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         }
         goto validate;
     }
-    if (record->holds_ground_1b9 == 0 &&
+    if (record->prefer_ranged_actions_1b9 == 0 &&
         (range_category = GetBestMonsterAttackRange(record, 1)) != W8_RANGE_NONE &&
         (monster_info->condition_turns[0xc] == 0 || record->kind_0cb == 0xc) &&
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
         hp_ratio =
             static_cast<float>(monster_info->hp_current) / static_cast<float>(monster_info->hp_max);
-        backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
+        backs_off = hp_ratio <= 0.95f && record->prefer_ranged_actions_1b9 == 0;
         monster_info->action_kind = backs_off ? 7 : 5;
     } else {
         rating = RateMonsterBestAttack(monster_info, record, 0);
@@ -881,7 +882,8 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
             }
             if (CanMonsterFlee(monster_info, record, 0) && Random(100) < chance) {
                 monster_info->action_kind = W8_MONSTER_ACTION_FLEE;
-                if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
+                if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+                    W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
                     position = monster_info->monster->GetPosition();
                     ResetCombatSlot(&monster_info->Target);
                     monster_info->Target.iType = W8_TARGET_KIND_PLACE;
@@ -931,7 +933,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     record = GetMonsterDataForInfo(monster_info);
                     hp_ratio = static_cast<float>(monster_info->hp_current) /
                                static_cast<float>(monster_info->hp_max);
-                    backs_off = hp_ratio <= 0.95f && record->holds_ground_1b9 == 0;
+                    backs_off = hp_ratio <= 0.95f && record->prefer_ranged_actions_1b9 == 0;
                     monster_info->action_kind = backs_off ? 7 : 5;
                 }
             } else {
@@ -1013,7 +1015,7 @@ members:
         }
         if (GetBestMonsterAttackRange(record, 0) <= W8_RANGE_SHORT) {
             distance = member->monster->GetDistanceToPlayer004C7CB0();
-            if (GetMonsterRecordScaledFloat1BA(member) * g_float_005ee774 > distance) {
+            if (GetMonsterCombatMoveRange(member) * g_float_005ee774 > distance) {
                 if (waypoint_checked == 0) {
                     leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP, monster_group->value_9f, 1);
                     if (leader != 0 && leader->fActive != 0) {
@@ -1063,7 +1065,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
         }
     } else if (record->advance_chance_0e2 != 0) {
         result = record->advance_chance_0e2;
-    } else if (record->behavior_1c0 == 0) {
+    } else if (record->combat_morale_1c0 == 0) {
         result = 100;
     }
     return result;
@@ -1137,7 +1139,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
                 return;
             }
         }
-        if (record->behavior_1c0 == 2 && record->unknown_1be[1] != 3 &&
+        if (record->combat_morale_1c0 == 2 && record->combat_behavior_1bf != 3 &&
             Random(100) < monster_info->attributes[1]) {
             QueueMonsterAction(monster_info, 1, -1, 0, W8_TARGET_KIND_NONE, 0);
         }
@@ -2119,7 +2121,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 leader->fActive != 0) {
                 nearest = GetGroupNearestDistance(group, 999999.0f);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
-                        GetMonsterRecordScaledFloat1BA(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
                 minimum = GetRangeConstant5EC360() + g_float_005ee77c;
                 if (reach <= minimum) {
                     reach = minimum;
@@ -2236,7 +2238,7 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
 
     if (within_reach != 0) {
         reach = CalcRangeDistance(GetMonsterBestRangeCategory(monster_info, 1, &sight)) +
-                GetMonsterRecordScaledFloat1BA(monster_info) * g_float_005ebc64;
+                GetMonsterCombatMoveRange(monster_info) * g_float_005ebc64;
         if (reach <= GetRangeConstant5EC360() + g_float_005ee77c) {
             reach = GetRangeConstant5EC360() + g_float_005ee77c;
         }
@@ -2284,10 +2286,10 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
     return 0;
 }
 
-/* Whether the monster can flee at all: it has a flee chance, an AI kind row,
-   the special-attack cycle the flee uses, enough of its stat left, and - for
-   the ordinary kinds - somewhere to run. The singled-out AI kind flees at the
-   party instead and may not be offered as a special action. */
+/* Whether the monster can flee at all: it has a flee chance, a special-attack
+   row, the special-attack cycle the flee uses, enough stamina left, and - for
+   non-summoning attacks - somewhere to run. Summoning rows flee at the party
+   instead and may not be offered as a special action. */
 // FUNCTION: WIZ8 0x00534A40
 unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                              char exclude_special)
@@ -2297,7 +2299,7 @@ unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* recor
     if (record->flee_chance_0e1 == 0) {
         return 0;
     }
-    if (record->ai_kind == 0) {
+    if (record->special_attack_kind_0e3 == 0) {
         return 0;
     }
     if (MonsterIsCycleSupported(monster_info->monster, 0x12) == 0) {
@@ -2315,10 +2317,11 @@ unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* recor
         return 0;
     }
     if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
-        MonsterAIKindHonorsCastingBlock(record->ai_kind) != 0) {
+        MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind_0e3) != 0) {
         return 0;
     }
-    if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
+    if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+        W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         if (CalcRangeDistance(W8_RANGE_LONG) <
             monster_info->monster->GetDistanceToPlayer004C7CB0()) {
             return 0;
@@ -2338,14 +2341,15 @@ unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* recor
     return 1;
 }
 
-/* Aim a monster that wants to get away. A monster of the singled-out AI kind
-   aims at where the party is standing instead of at anybody in it. */
+/* Aim a monster that wants to get away. A summoning special-attack row aims
+   at where the party is standing instead of at anybody in it. */
 // FUNCTION: WIZ8 0x00534cb0
 unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
     srVector3T<float> party;
 
-    if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
+    if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
+        W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
         GetCameraPosition(&party);
         ResetCombatSlot(&monster_info->Target);
         monster_info->Target.iType = W8_TARGET_KIND_PLACE;
@@ -2357,8 +2361,8 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
 
 /* Whether the action a monster has settled on can actually be carried out. An
    attack needs a character to swing at; a spell needs to be castable and needs
-   a target of a kind it accepts; fleeing is refused outright to the AI kind
-   that has nowhere to flee to. */
+   a target of a kind it accepts; fleeing is refused outright for the summoning
+   special-attack rows that have nowhere to flee to. */
 // FUNCTION: WIZ8 0x00535150
 unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
 {
@@ -2384,8 +2388,8 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
         }
         break;
     case W8_MONSTER_ACTION_FLEE:
-        if (g_ai_kind_table[GetMonsterDataForInfo(monster_info)->ai_kind][0] ==
-            W8_AI_KIND_ROW_SPECIAL) {
+        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind_0e3][0] ==
+            W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
             return 0;
         }
         spell_id = W8_AI_SPELL_PLACE;
@@ -2672,7 +2676,7 @@ void CheckMonsterGroupsEnterCombat(void)
                 if (group->ubDisposition == DISP_NEUTRAL) {
                     record = MonsterGroupGetRecord(group);
                     if ((record->flags_0d0 & 1) == 0 && record->faction_id_25f == 0 &&
-                        record->hostility_range_25b != 0 && record->hostility_range_25b != -1) {
+                        record->hostility_radius_25b != 0 && record->hostility_radius_25b != -1) {
                         SetMonsterGroupHostility(group, 1, 0);
                     }
                 }
@@ -2720,7 +2724,7 @@ unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             if (member->fActive != 0 && member->hp_current != 0 &&
                 member->highest_condition < 0x12 && MonsterHasVisibleTarget(member, 0, 4, 1) != 0) {
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
-                        GetMonsterRecordScaledFloat1BA(leader) * g_float_005ebc64;
+                        GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
                 minimum = GetRangeConstant5EC360() + g_float_005ee77c;
                 if (reach <= minimum) {
                     reach = minimum;

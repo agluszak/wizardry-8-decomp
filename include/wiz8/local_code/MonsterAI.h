@@ -37,8 +37,8 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
                                       int within_reach);              /* 0x00534850 */
 float GetGroupNearestDistance(W8MonsterGroup* group, float furthest); /* 0x005324B0 */
 
-/* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per AI kind. */
-extern const int g_ai_kind_table[32][2];
+/* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
+extern const int g_special_attack_table[32][2];
 
 unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id); /* 0x005326F0 */
 /* Whether the combat slot accepts `spell_id` from this caster; the original

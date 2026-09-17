@@ -543,7 +543,7 @@ char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* t
     } else {
         monster_info = MonsterInfoFromID(0xdc9, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
         monster = GetMonsterDataForInfo(monster_info);
-        if (monster->unknown_1be[0] != 0 && condition_id == W8_CONDITION_DEAD) {
+        if (monster->instant_death_immune_1be != 0 && condition_id == W8_CONDITION_DEAD) {
             return 1;
         }
         W8ConditionImmunity* immunity = g_condition_immunities_006171A8;

@@ -10,9 +10,11 @@ void CopyMonsterConditionsToCharacter(W8Character* character, const W8MonsterInf
 
 /* Semantic names for the condition slots that were still represented by
    behavior-only aliases or raw indices in layouts/character.h. The ordering is
-   fixed independently by the condition icon catalog and by the monster visual
-   path, which maps condition N to icon N-1 for slots 1..18. Poisoned (7),
-   Asleep (15), Dead (18), the count and duration sentinel remain declared in
+   fixed independently by the retail condition icon catalog and the spell/
+   condition name table: both contain ... Webbed, Asleep, Paralyzed,
+   Unconscious, Dead ... in slot order. The monster visual path additionally
+   maps condition N to icon N-1 for slots 1..18. Poisoned (7), Asleep (15),
+   Dead (18), the count and duration sentinel remain declared in
    layouts/character.h. */
 enum {
     W8_CONDITION_DRAINED = 1,

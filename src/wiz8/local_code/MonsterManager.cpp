@@ -137,7 +137,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->value_344 = -1;
     memset(monster_info->movement_watch_position, 0, sizeof(monster_info->movement_watch_position));
 
-    if (PLAdoptAppend(record->flag_26a != 0 ? gXStatus.plsUnbornMonsterList
+    if (PLAdoptAppend(record->unborn_26a != 0 ? gXStatus.plsUnbornMonsterList
                                             : gXStatus.plsMonsterList,
                       monster_info) == -1) {
         free(monster_info);
@@ -263,7 +263,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     }
     RequestRefreshPartyState();
     RefreshFlaggedMainGameState00593330();
-    if (record->unknown_0c0 != 0) {
+    if (record->can_open_doors_0c0 != 0) {
         monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
     }
     BindNpcToMonster(record->npc_kind_0cd, 1, monster_info->location_id);
@@ -527,8 +527,10 @@ W8Monster* GetMonsterByLocationID(int location_id)
     return 0;
 }
 
+/* Scale the monster database's combat movement range by the shared factor at
+   0x005ED4F0 before range/path consumers use it. */
 // FUNCTION: WIZ8 0x004e5990
-float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
+float GetMonsterCombatMoveRange(W8MonsterInfo* monster_info)
 {
     W8MonsterRecord* record;
     float result;
@@ -540,7 +542,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
     if (record == 0) {
         srAssertFail("pMonsterDB", MONSTER_MANAGER_CPP, 0x66a, 0);
     }
-    result = record->float_1ba * g_monster_record_float_scale;
+    result = record->combat_move_range_1ba * g_monster_record_float_scale;
     return result;
 }
 
@@ -982,13 +984,16 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
     }
 }
 
+/* Return the monster experience value exposed by Monster Info. Retail prefers
+   the optional +0x26b override and otherwise uses the +0x181 base. The same
+   effective value is also used as an HP-weighted combat-difficulty proxy. */
 // FUNCTION: WIZ8 0x004e6780
-unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
+unsigned int GetMonsterExperience(const W8MonsterRecord* record)
 {
-    unsigned int value = record->combat_value_override_26b;
+    unsigned int value = record->experience_override_26b;
 
     if (value <= 0) {
-        value = record->combat_value_181;
+        value = record->experience_181;
     }
     return value;
 }

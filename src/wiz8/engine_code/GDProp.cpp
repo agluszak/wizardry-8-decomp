@@ -18,7 +18,7 @@ float g_float_005ebccc = 0.75f;
 
 // FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
-               unsigned char surface_flag, unsigned char vertex_flag)
+               unsigned char footstep_surface, unsigned char footstep_material)
 {
     m_flags_00 = 0;
     m_path_handle_04 = 0;
@@ -49,7 +49,7 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
             g_octree_6598a4->pathing_180->LinkSurfaces00460020();
             g_octree_6598a4->pathing_180->LinkEdges004600B0();
         }
-        Initialize(instance, 1, prop_number, surface_flag, vertex_flag);
+        Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
     }
 }
 
@@ -121,7 +121,7 @@ void GDProp::PrepareGeometry004B6F30(srModelInstance* instance)
    dominant axis, slope classification and caller-provided material bytes. */
 // FUNCTION: WIZ8 0x004b7060
 void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
-                        unsigned char surface_flag, unsigned char vertex_flag)
+                        unsigned char footstep_surface, unsigned char footstep_material)
 {
     if (attach == 0) {
         m_flags_00 |= 4;
@@ -172,8 +172,8 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 }
             }
             surface->flags_00 = dominant_axis + 0x800;
-            surface->surface_flag_3c = surface_flag;
-            surface->vertex_flag_3d = vertex_flag;
+            surface->footstep_surface_3c = footstep_surface;
+            surface->footstep_material_3d = footstep_material;
             surface->value_38 = 0;
             if ((mesh_flags & 1) != 0) {
                 surface->flags_00 |= 0x8000;
@@ -183,12 +183,12 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 surface->value_40 = 500.0f;
                 surface->flags_00 |= 4;
                 if (g_float_005ebccc < surface->plane_24[1]) {
-                    surface->value_48 = 1.0f;
+                    surface->slope_48 = 1.0f;
                 } else {
-                    surface->value_48 = surface->plane_24[1];
+                    surface->slope_48 = surface->plane_24[1];
                 }
             } else {
-                surface->value_48 = 0.0f;
+                surface->slope_48 = 0.0f;
                 surface->value_40 = 500.0f;
             }
         }

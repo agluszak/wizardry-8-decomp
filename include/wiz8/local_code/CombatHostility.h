@@ -33,6 +33,6 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
    one group going hostile brings the rest of its faction with it. */
 void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */
 
-/* 0x0061EC14: gppStringList indices naming each monster ai_kind, indexed by
-   W8MonsterRecord::ai_kind; slot zero is unused. */
-extern const int g_monster_ai_kind_name_ids_61ec14[12];
+/* 0x0061EC14: gppStringList indices naming each monster special-attack kind,
+   indexed by W8MonsterRecord::special_attack_kind_0e3; slot zero is unused. */
+extern const int g_monster_special_attack_name_ids_61ec14[12];

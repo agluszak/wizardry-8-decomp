@@ -6,6 +6,14 @@
 
 #include <math.h>
 
+/* Physical-surface flags corroborated by both retail consumers and Cosmic
+   Forge's physical-face editor. Other bits stay unnamed until their retail
+   behavior is independently established. */
+enum W8GDSurfaceFlags {
+    W8_GD_SURFACE_WALKABLE = 0x00000004,
+    W8_GD_SURFACE_PATHFINDING = 0x00000040,
+};
+
 struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
@@ -24,12 +32,12 @@ struct W8GDSurface {
     };
     float distance_34;
     unsigned int value_38;
-    unsigned char surface_flag_3c;
-    unsigned char vertex_flag_3d;
+    unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
+    unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
     unsigned char positional_3e[2];
     float value_40;
     unsigned int positional_44;
-    float value_48;
+    float slope_48; /* face slope; generated surfaces derive it from normal_24[1] */
 };
 
 static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");

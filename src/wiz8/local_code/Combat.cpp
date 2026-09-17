@@ -382,7 +382,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
         return;
     }
 
-    scale = GetMonsterRecordScaledFloat1BA(monster_info);
+    scale = GetMonsterCombatMoveRange(monster_info);
     if (monster_info->action_kind == 9) {
         speed = 0x32;
     } else {

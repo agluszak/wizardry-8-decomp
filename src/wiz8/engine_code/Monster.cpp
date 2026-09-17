@@ -5012,7 +5012,7 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x1977, MONSTER_CPP, location_id, 1));
     record = GetMonsterDataForInfo(monster_info);
-    if (record->flag_248 > 0) {
+    if (record->camouflage_248 > 0) {
         return monster_info->party_threat.flag_07;
     }
     if (alternate != 0) {
