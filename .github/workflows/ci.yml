@@ -80,6 +80,13 @@ jobs:
             wine64 \
             xvfb
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          # Docker creates missing bind-mount source paths as root. Keep the
+          # empty placeholders runner-owned; `wiz8 prepare` materializes the
+          # actual pinned source trees later, only in the licensed lane.
+          mkdir -p \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
 

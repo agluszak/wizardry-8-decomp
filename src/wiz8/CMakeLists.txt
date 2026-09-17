@@ -66,7 +66,7 @@ function(wiz8_add_executable)
     )
 endfunction()
 
-if(ZLIB_SOURCE)
+if(ZLIB_SOURCE AND EXISTS "${ZLIB_SOURCE}/zlib.h")
     # The canonical executable statically links pristine zlib 1.0.4; 46 of its
     # bodies are already reviewed by their source markers and provenance claims.
     # Build the pinned source as a real library so bring-up resolves inflate*

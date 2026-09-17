@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_generators.h"
@@ -19,6 +20,8 @@
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/item_spawning.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sgp_bridge.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
@@ -74,12 +77,17 @@ unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
 
-
 // GLOBAL: WIZ8 0x006081f8
 unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 
 // GLOBAL: WIZ8 0x00607d7d
 unsigned char g_world_mesh_update_enabled_00607d7d = 1;
+
+// GLOBAL: WIZ8 0x00609c88
+float g_float_00609c88 = 60.0f;
+
+// GLOBAL: WIZ8 0x00609c8c
+unsigned char g_flag_00609c8c = 1;
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -389,9 +397,9 @@ const double g_double_005ec1f8 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebce8
 const double g_double_005ebce8 = 180.0;
 // GLOBAL: WIZ8 0x00607d84
-float g_camera_base_horizontal_fov_607d84;
+float g_camera_base_horizontal_fov_607d84 = 85.0f;
 // GLOBAL: WIZ8 0x00607d88
-float g_camera_base_vertical_fov_607d88;
+float g_camera_base_vertical_fov_607d88 = 71.0f;
 // GLOBAL: WIZ8 0x00659abc
 float g_camera_sway_horizontal_phase_659abc;
 // GLOBAL: WIZ8 0x00659ac0
@@ -642,9 +650,7 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
         location->z = (float)world->camera->getLocationZ();
         return;
     }
-    location->x = 0.0f;
-    location->y = 0.0f;
-    location->z = 0.0f;
+    location->SetZero();
 }
 
 /* Set the view position after loading or traversing a portal. The camera light
@@ -828,9 +834,7 @@ void GetWorldCameraState(W8World* world, W8WorldCameraState* state)
             state->position.y = (float)world->camera->getLocationY();
             state->position.z = (float)world->camera->getLocationZ();
         } else {
-            state->position.x = 0.0f;
-            state->position.y = 0.0f;
-            state->position.z = 0.0f;
+            state->position.SetZero();
         }
         GetCameraOrientation(state->yaw, state->pitch);
     }
@@ -853,4 +857,207 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
 W8World* GetWorld659AB8(void)
 {
     return g_world_659ab8;
+}
+
+/* Runtime/debug adjustment dispatcher for the active world's clipping and
+   environment controls. Bits not handled here are intentionally ignored. */
+// FUNCTION: WIZ8 0x00450210
+void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
+{
+    float scale;
+
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x321, 0);
+    }
+    if ((flags & 1) != 0) {
+        WorldSetFarClip(world, static_cast<float>(WorldGetFarClip(world)) +
+                                   g_position_height_epsilon_005ebfdc);
+        scale = 2.0f;
+        if (WorldGetFarClip(world) >= 50000.0f) {
+            scale = 1.5f;
+        }
+        WorldSetValue74(world, static_cast<float>(WorldGetFarClip(world)) * scale);
+    }
+    if ((flags & 2) != 0) {
+        WorldSetFarClip(world, static_cast<float>(WorldGetFarClip(world)) -
+                                   g_position_height_epsilon_005ebfdc);
+        scale = 2.0f;
+        if (WorldGetFarClip(world) >= 50000.0f) {
+            scale = 1.5f;
+        }
+        WorldSetValue74(world, static_cast<float>(WorldGetFarClip(world)) * scale);
+    }
+    if ((flags & 4) != 0 && g_float_00609c88 < 180.0f) {
+        g_float_00609c88 += g_float_005ebc88;
+    }
+    if ((flags & 8) != 0 && g_float_00609c88 > g_float_005ebc88) {
+        g_float_00609c88 -= g_float_005ebc88;
+    }
+    if ((flags & 0x10) != 0) {
+        g_flag_00609c8c = 1;
+    }
+    if ((flags & 0x40) != 0) {
+        world->m_loaded = world->m_loaded == 0;
+    }
+    if ((flags & 0x100) != 0) {
+        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) + 0.02f);
+    }
+    if ((flags & 0x200) != 0) {
+        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) - 0.02f);
+    }
+}
+
+// FUNCTION: WIZ8 0x004503B0
+int ForwardSelectedPropIndex004503B0(void)
+{
+    return GetSelectedPropIndex0044DA60();
+}
+
+// FUNCTION: WIZ8 0x00451100
+W8World* ForwardCreateWorld00451100(void)
+{
+    return CreateWorld();
+}
+
+/* Resolve the PARTY alias or a named position stored with the current world. */
+// FUNCTION: WIZ8 0x004512C0
+bool FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
+                      srVector3T<float>* direction)
+{
+    if (name == 0) {
+        return false;
+    }
+    if (_stricmp("PARTY", name) == 0) {
+        GetCameraPosition(position);
+        return true;
+    }
+
+    int count = g_world->named_positions->GetCount();
+    for (int index = 0; index < count; ++index) {
+        W8NamedPosition* entry = *g_world->named_positions->GetAt(index);
+        if (_stricmp(name, entry->name) == 0) {
+            *position = entry->position;
+            if (location_id != 0) {
+                *location_id = entry->value_08c;
+            }
+            if (direction != 0) {
+                direction->x = entry->value_090;
+                direction->y = entry->value_094;
+                direction->z = entry->value_098;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Push a candidate position clear of static geometry, then reject it when it
+   overlaps another world item or monster. */
+// FUNCTION: WIZ8 0x00451390
+unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<float>* position,
+                                                   unsigned char check_items,
+                                                   unsigned char check_monsters)
+{
+    float threshold = radius * g_path_endpoint_scale_005ec1a4;
+    float angle = 0.0f;
+
+    do {
+        srVector3T<float> first(0.0f, 0.0f, radius);
+        first.RotateAboutY(sin(angle), cos(angle));
+        first += *position;
+
+        double opposite_angle = angle + g_camera_pi_005ec2a0;
+        srVector3T<float> second(0.0f, 0.0f, radius);
+        second.RotateAboutY(sin(opposite_angle), cos(opposite_angle));
+        second += *position;
+
+        g_octree_6598a4->TraceLineOfSight(position, &first, 1, -3, -3, 1, 0);
+        g_octree_6598a4->TraceLineOfSight(position, &second, 1, -3, -3, 1, 0);
+
+        first -= *position;
+        second -= *position;
+        float first_distance = first.Length();
+        if (first_distance < threshold && second.Length() < threshold) {
+            return 0;
+        }
+        if (first_distance < threshold) {
+            first.SetLength(radius - first_distance);
+            *position -= first;
+        } else {
+            second.SetLength(radius - second.Length());
+            *position -= second;
+        }
+        angle += 0.7853981256484985f;
+    } while (angle < g_camera_pi_005ec2a0);
+
+    if (check_items != 0) {
+        W8WorldItem* item = GetNextWorldItem(1);
+        while (item != 0) {
+            W8Item* owner = item->owner;
+            if (owner != 0) {
+                srVector3T<float> center;
+                float other_radius;
+                owner->GetSearchPosition(&center);
+                owner->GetBoundsRadius(&other_radius);
+                srVector3T<float> delta(center.x - position->x, center.y - position->y,
+                                        center.z - position->z);
+                if (delta.Length() < other_radius + radius) {
+                    return 0;
+                }
+            }
+            item = GetNextWorldItem(0);
+        }
+    }
+
+    if (check_monsters != 0) {
+        W8MonsterInfo* info = GetNextMonsterInfo(1);
+        while (info != 0) {
+            W8Monster* monster = info->monster;
+            if (monster != 0) {
+                srVector3T<float> center;
+                float other_radius;
+                monster->GetAnimationCenter(&center);
+                monster->GetAnimationRadius(&other_radius);
+                srVector3T<float> delta(center.x - position->x, center.y - position->y,
+                                        center.z - position->z);
+                if (delta.Length() < other_radius + radius) {
+                    return 0;
+                }
+            }
+            info = GetNextMonsterInfo(0);
+        }
+    }
+    return 1;
+}
+
+/* Try the requested point first, then the two retail half-turn probe points
+   around it; only an unobstructed probe is handed to the overlap resolver. */
+// FUNCTION: WIZ8 0x00451800
+unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* position,
+                                             unsigned char check_items,
+                                             unsigned char check_monsters)
+{
+    srVector3T<float> candidate = *position;
+    if (AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+        *position = candidate;
+        return 1;
+    }
+
+    float angle = 0.0f;
+    float diameter = radius + radius;
+    do {
+        candidate.x = diameter * sin(angle) + position->x;
+        candidate.y = position->y;
+        candidate.z = diameter * cos(angle) + position->z;
+        srVector3T<float> unblocked = candidate;
+
+        g_octree_6598a4->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);
+        if (candidate == unblocked &&
+            AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+            *position = candidate;
+            return 1;
+        }
+        angle += g_float_005ec2a8;
+    } while (angle < g_camera_pi_005ec2a0);
+    return 0;
 }

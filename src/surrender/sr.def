@@ -105,6 +105,8 @@ EXPORTS
     ??0srModelIOManager@@QAE@XZ
     ??1srDebugDD@@UAE@XZ
     ?resetInternalStatistics@srDebugDD@@AAEXXZ
+    ??0srDebugVP@@QAE@PAVsrVP@@@Z
+    ?resetInternalStatistics@srDebugVP@@AAEXXZ
     ?getFunctionCallCount@srDebugDD@@QBEKW4e_command@srDD@@@Z
     ?getFunctionCallTime@srDebugDD@@QBENW4e_command@srDD@@@Z
     ?increaseCallCount@srDebugDD@@QAEXW4e_command@srDD@@@Z

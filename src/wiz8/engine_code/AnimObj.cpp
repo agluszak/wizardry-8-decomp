@@ -820,8 +820,8 @@ stLightDefinition* stLightDefinition005ECDA0::Clone() const
 // FUNCTION: WIZ8 0x004a2580
 bool stLightDefinition005ECDA0::IsEnabledForSubcycle(unsigned char subcycle)
 {
-    if (static_cast<float>(*values_18.GetAt(0)) <= time_4c &&
-        time_4c <= static_cast<float>(*values_18.GetAt(values_18.GetCount() - 1))) {
+    if (*values_18.GetAt(0) <= time_4c &&
+        time_4c <= *values_18.GetAt(values_18.GetCount() - 1)) {
         return true;
     }
     return false;

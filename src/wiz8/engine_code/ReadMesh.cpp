@@ -25,13 +25,6 @@
 #include <stdio.h>
 
 #pragma pack(push, 1)
-struct W8ReadMeshFace {
-    int vertices[3];
-    srVector2T<float> texture_coordinates[3];
-    int material_index;
-    unsigned char flags;
-};
-
 struct W8CompressedReadMeshFace {
     unsigned short vertices[3];
     srVector2T<float> texture_coordinates[3];
@@ -40,7 +33,6 @@ struct W8CompressedReadMeshFace {
 };
 #pragma pack(pop)
 
-static_assert(sizeof(W8ReadMeshFace) == 0x29, "W8ReadMeshFace_size_must_be_0x29");
 static_assert(sizeof(W8CompressedReadMeshFace) == 0x21,
               "W8CompressedReadMeshFace_size_must_be_0x21");
 

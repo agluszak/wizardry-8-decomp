@@ -8,6 +8,31 @@ struct W8MonsterInfo;
 void CopyCharacterConditionsToTarget(const W8Character* character, const int* target);
 void CopyMonsterConditionsToCharacter(W8Character* character, const W8MonsterInfo* monster_info);
 
+/* Semantic names for the condition slots that were still represented by
+   behavior-only aliases or raw indices in layouts/character.h. The ordering is
+   fixed independently by the condition icon catalog and by the monster visual
+   path, which maps condition N to icon N-1 for slots 1..18. Poisoned (7),
+   Asleep (15), Dead (18), the count and duration sentinel remain declared in
+   layouts/character.h. */
+enum {
+    W8_CONDITION_DRAINED = 1,
+    W8_CONDITION_DISEASED = 2,
+    W8_CONDITION_IRRITATED = 3,
+    W8_CONDITION_NAUSEATED = 4,
+    W8_CONDITION_SLOWED = 5,
+    W8_CONDITION_AFRAID = 6,
+    W8_CONDITION_SILENCED = 8,
+    W8_CONDITION_HEXED = 9,
+    W8_CONDITION_INFATUATED = 10,
+    W8_CONDITION_INSANE = 11,
+    W8_CONDITION_BLIND = 12,
+    W8_CONDITION_TURNCOAT = 13,
+    W8_CONDITION_WEBBED = 14,
+    W8_CONDITION_PARALYZED = 16,
+    W8_CONDITION_UNCONSCIOUS = 17,
+    W8_CONDITION_MISSING = 19
+};
+
 #pragma pack(push, 2)
 struct W8ConditionImmunity {
     unsigned char kind;

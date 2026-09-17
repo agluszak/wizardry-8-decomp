@@ -100,6 +100,9 @@ extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 /* Bytes currently held by decompressed per-frame float caches. */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 
+/* True when all three components of the vector are zero; the vertex-lighting
+   code uses it to decide between a plain copy and a per-vertex offset. */
+int __fastcall IsZeroVector0046FFA0(const srVector3T<float>* vector);
 /* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3
    arrays. */
 void CopyDwordBuffer00470180(void* destination, const void* source, int count);

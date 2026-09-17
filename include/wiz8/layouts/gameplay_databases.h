@@ -120,6 +120,28 @@ enum {
    learn-from-item assertion names. */
 enum { W8_SPELL_NONE = 0 };
 
+/* Who or what a spell is cast on. The eleven values are the spell record's
+   target_type domain; the interface names them through string ids 798-808,
+   which give "Caster", "One Ally", "Party", "One Enemy", "Enemy Group",
+   "Cone", "Radius", "All Enemies", "Point" and "Adventuring" twice over - the
+   two adventuring kinds are the carried item (Identify Item) and the lock or
+   trap (Knock Knock, Divine Trap). This is not the targeting-need domain
+   GetTargetNeededForSpellFriendly maps these onto. */
+enum W8SpellTargetType {
+    W8_TARGET_TYPE_CASTER = 0,
+    W8_TARGET_TYPE_ALLY = 1,
+    W8_TARGET_TYPE_PARTY = 2,
+    W8_TARGET_TYPE_ENEMY = 3,
+    W8_TARGET_TYPE_ENEMY_GROUP = 4,
+    W8_TARGET_TYPE_CONE = 5,
+    W8_TARGET_TYPE_RADIUS = 6,
+    W8_TARGET_TYPE_ALL_ENEMIES = 7,
+    W8_TARGET_TYPE_POINT = 8,
+    W8_TARGET_TYPE_ITEM = 9,
+    W8_TARGET_TYPE_LOCK_OR_TRAP = 10,
+    W8_TARGET_TYPE_COUNT = 11
+};
+
 /* One spell, as the database holds it at run time. */
 struct W8SpellRuntimeRecord {
     char database_name[64]; /* 0x000 */
@@ -149,17 +171,20 @@ struct W8SpellRuntimeRecord {
     int field_12b;
     /* 0x12f: the range category a monster casting this spell needs. */
     W8RangeCategory range_category;
-    W8SpellRealm realm; /* 0x133 */
-    int target_type;    /* 0x137 */
+    W8SpellRealm realm;            /* 0x133 */
+    W8SpellTargetType target_type; /* 0x137 */
     /* 0x13b: when the spell may be cast. SpellUsableNow switches on it and its
        assertion calls it uiSpellUsableWhen with a SPELL_USAGE_COUNT of five. */
     W8SpellUsage usable_when;
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
     unsigned char unknown_140[4];
-    /* 0x144: participates in the effect liveness/suppression condition together
-       with the effect flags at 0x121 and 0x122. */
-    unsigned char field_144;
+    /* 0x144: the spell's effect is delivered by a missile in flight, so its
+       queued effect stays alive until the missile lands. Set for the ten
+       projectile spells - Frost, Heal Wounds, Make Wounds, Sleep, Stamina,
+       Terror, Noxious Fumes, Crush, Return to Portal and the monster Special
+       Attack Cone. */
+    unsigned char missile_delivered;
     unsigned char unknown_145[2];
     /* 0x147: SpellInfoDialog prints the effect-dice line when this is set. */
     int show_effect_dice;

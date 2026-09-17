@@ -1,6 +1,10 @@
 #pragma once
 
+#include <ostream>
+
 #include "srVP.h"
+
+class srDebugVP;
 
 /* The private imported implementation pointer is exposed to clients by this
    ordinary header-visible facade; the direct load and virtual call are visible
@@ -17,13 +21,23 @@
    Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
    and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
-   CALLIND +0x38 / +0xd8. srDebugVP is declared; ctor and
-   resetInternalStatistics stay imported. */
+   CALLIND +0x38 / +0xd8. */
 class srVectorProcessor {
 public:
     static SR_DLL_IMPORT const char* getName();
+    /* startDebug wraps the active processor in an srDebugVP and makes vp
+       point at it while debug_active is set; its argument enables the
+       wrapper's pointer-alignment counters. endDebug restores the base
+       processor and destroys the wrapper. dump prints the wrapper's
+       per-command statistics and resetStatistics clears them. */
+    static SR_DLL_IMPORT void startDebug(int check_misalignments);
+    static SR_DLL_IMPORT void endDebug();
+    static SR_DLL_IMPORT void dump(std::ostream& stream);
+    static SR_DLL_IMPORT void resetStatistics();
     static SR_DLL_IMPORT int load(const char* filename);
+    static SR_DLL_IMPORT void initBaseVP();
     static SR_DLL_IMPORT long getID(const char* filename);
+    static SR_DLL_IMPORT int loadBest(const char* path);
     static SR_DLL_IMPORT void release();
 
     static inline void memcopy(void* destination, const void* source, SRDWORD bytes)
@@ -105,6 +119,13 @@ public:
         vp->_transform(destination, vectors, matrix, count);
     }
 
+    /* destination[i] = |vectors[i]| for `count` vectors through vtable
+       +0x210; the automap cell lighting uses it for per-vertex distances. */
+    static inline void length(float* destination, const srVector3* vectors, SRDWORD count)
+    {
+        vp->_length(destination, vectors, count);
+    }
+
     static inline void mul(float* destination, float constant, const float* source, SRDWORD count)
     {
         vp->_mul(destination, constant, source, count);
@@ -141,16 +162,20 @@ public:
     }
 
 private:
-    static void install10064390(srVP* processor);
+    static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;
-    // Original private spellings are not exported.
+    /* vp is the processor clients dispatch through. While debug_active is
+       set vp points at debug, the srDebugVP wrapper; otherwise vp and base
+       are the same installed processor. module is the srVP_* library handle
+       load() keeps so release() can free it; it is 0 for the built-in
+       processor. */
     // GLOBAL: SURRENDER 0x100A9240
-    static srVP* base_100a9240;
+    static srVP* base;
     // GLOBAL: SURRENDER 0x100A9244
-    static srVP* debug_100a9244;
+    static srDebugVP* debug;
     // GLOBAL: SURRENDER 0x100A9248
-    static unsigned long state_100a9248;
+    static unsigned long debug_active;
     // GLOBAL: SURRENDER 0x100A924C
-    static void* module_100a924c;
+    static void* module;
 };

@@ -32,7 +32,8 @@ struct W8MessageStorageRecord {
     unsigned char highlight_stop;
     int clock_08;
     unsigned char unknown_0c[4];
-    int wrapped_line;
+    /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
+    int link_10;
     int value_14;
     W8PList* entries_18;
     unsigned char unknown_1c[8];
@@ -57,7 +58,10 @@ void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
 
-void Function5905F0(const wchar_t* text, int mode); /* 0x005905F0 */
+/* 0x005905F0: merge text onto a box's last used line, re-posting the combined
+   line so wrapping, highlighting and the link counts rebuild; -1 picks the box
+   the current game mode writes to. */
+void AppendToLastTextLine(const wchar_t* text, int text_box);
 /* 0x0069B7BC: wrapped line count of the notice ShowNotice last displayed;
    only maintained while game_status.quote_audit_2431 is raised. */
 extern int g_notice_line_count_0069b7bc;

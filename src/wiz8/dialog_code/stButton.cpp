@@ -132,9 +132,11 @@ void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
 {
     if (enabled) {
         if (m_tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
-            SetButtonFastHelpText(m_button_01c,
-                                  reinterpret_cast<UINT16*>(
-                                      gppStringList[m_tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+            SetButtonFastHelpText(
+                m_button_01c,
+                reinterpret_cast<UINT16*>(
+                    gppStringList
+                        [m_tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
         }
     } else {
         SetButtonFastHelpText(m_button_01c, 0);
@@ -189,6 +191,30 @@ W8DialogButton::~W8DialogButton()
 }
 
 #define STBUTTON_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\stButton.cpp"
+
+// FUNCTION: WIZ8 0x005DB350
+unsigned char W8DialogButton::ConfigureTextButton(const wchar_t* text, unsigned int font,
+                                                  short fore_color, short shadow_color, short x,
+                                                  short y, short width, short height,
+                                                  W8DialogButtonCallback left_callback,
+                                                  int user_data)
+{
+    INT32 handle =
+        CreateTextButton(reinterpret_cast<UINT16*>(const_cast<wchar_t*>(
+                             text)), // reinterpret-ok: SGP API declared UINT16* for text
+                         font, fore_color, shadow_color, -1, x, y, width, height, BUTTON_NO_TOGGLE,
+                         0x7f, DialogButtonCallback, DialogButtonCallback);
+    m_button_01c = handle;
+    if (handle != -1) {
+        SetButtonUserDataPointer(handle, this);
+        MSYS_SetBtnUserData(m_button_01c, 1, user_data);
+        m_left_callback = left_callback;
+        m_left_toggles = 0;
+        m_dirty = 1;
+        return 1;
+    }
+    return 0;
+}
 
 // FUNCTION: WIZ8 0x005db3e0
 unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,

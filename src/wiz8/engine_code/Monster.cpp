@@ -940,7 +940,7 @@ int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
 
 // FUNCTION: WIZ8 0x004bea20
 W8MonsterRep::W8MonsterRep()
-    : flag_5bc(0), name_5c0(0), linked_objects_5e8(0), standing_height_5ec(0), scale_5f0(1.0f),
+    : flag_5bc(0), name_5c0(0), spell_icons_5e8(0), standing_height_5ec(0), scale_5f0(1.0f),
       minimum_scale_5f4(0.0f), maximum_scale_5f8(0.0f), value_5fc(1.0f), flag_600(0), flag_601(0),
       value_604(10.0f), random_idle_fps_min(0), random_idle_fps_max(0), value_610(0),
       monster_light_624(0)
@@ -1035,7 +1035,7 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
 
 // FUNCTION: WIZ8 0x004bebd0
 W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
-    : W8EmitterHost(other), flag_5bc(other.flag_5bc), linked_objects_5e8(0),
+    : W8EmitterHost(other), flag_5bc(other.flag_5bc), spell_icons_5e8(0),
       standing_height_5ec(other.standing_height_5ec), scale_5f0(other.scale_5f0),
       minimum_scale_5f4(other.minimum_scale_5f4), maximum_scale_5f8(other.maximum_scale_5f8),
       value_5fc(other.value_5fc), flag_600(other.flag_600), flag_601(other.flag_601),
@@ -1205,7 +1205,7 @@ W8Monster::W8Monster()
     sound_334 = 0;
 
     m_pRep = new W8MonsterRep;
-    m_pRep->linked_objects_5e8 = PLCreate();
+    m_pRep->spell_icons_5e8 = PLCreate();
 }
 
 // FUNCTION: WIZ8 0x004bfe00
@@ -1228,7 +1228,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
         srAssertFail("rhs.m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp", 1099, 0);
     }
     m_pRep = static_cast<W8MonsterRep*>(rhs.m_pRep->Clone());
-    m_pRep->linked_objects_5e8 = PLCreate();
+    m_pRep->spell_icons_5e8 = PLCreate();
 
     defining_orders_28c = 0;
     orders_finished_28d = 0;
@@ -1258,9 +1258,9 @@ W8Monster::W8Monster(const W8Monster& rhs)
 W8Monster::~W8Monster()
 {
     SetLights(0);
-    if (m_pRep->linked_objects_5e8 != 0) {
-        PrepareMonsterCycleForDestruction004ACF90(this);
-        PLDestroy(m_pRep->linked_objects_5e8);
+    if (m_pRep->spell_icons_5e8 != 0) {
+        ClearMonsterSpellIcons(this);
+        PLDestroy(m_pRep->spell_icons_5e8);
     }
     if (IsSoleRegisteredCycleForName004A8700()) {
         g_monster_cycle_registry_weight_0065ba4c -= registry_weight_27c;
@@ -3604,14 +3604,14 @@ unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
     return 0;
 }
 
-/* Keep equipped items, linked items, and temporary poster model instances in
+/* Keep equipped items, spell icons, and temporary poster model instances in
    the camera-facing attachment layout selected by the representation. */
 // FUNCTION: WIZ8 0x004c3f70
 void W8Monster::UpdateAttachedObjects004C3F70()
 {
     W8MonsterRep* representation = m_pRep;
     int attachment_layout = representation->value_5c4;
-    unsigned int linked_count = PLLength(representation->linked_objects_5e8);
+    unsigned int linked_count = PLLength(representation->spell_icons_5e8);
     int poster_count = representation->linked_runtime_objects_614.GetCount();
     srMatrix3T<float> camera_rotation;
     srVector3T<float> base_position;
@@ -3687,8 +3687,8 @@ void W8Monster::UpdateAttachedObjects004C3F70()
             group_height = (float)(group * g_monster_attachment_group_spacing_005ed2a0);
 
             for (chunk_index = 0; chunk_index < chunk_count; ++chunk_index, ++index) {
-                W8MonsterLinkedItem005E8* entry = static_cast<W8MonsterLinkedItem005E8*>(
-                    PLGet(representation->linked_objects_5e8, index));
+                W8MonsterSpellIcon* entry =
+                    static_cast<W8MonsterSpellIcon*>(PLGet(representation->spell_icons_5e8, index));
                 W8Item* item = entry->psrBMO;
                 const srVector3T<float>& source =
                     g_monster_attachment_offsets_0060e618[chunk_count - 1][chunk_index];
@@ -3870,7 +3870,7 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
          (value_1f8 == 0 && m_pRep->flag_064 == 1))) {
         if (unknown_304 != 0) {
             unknown_304 = 0;
-            CreateSpellEffect004AD8A0(g_spell_records[g_spell_index_0069b7dc].resource_name,
+            CreateAttachedSpellEffect(g_spell_records[g_spell_index_0069b7dc].resource_name,
                                       g_spell_effect_frame_0064c158, this, 0, 0);
             return;
         }

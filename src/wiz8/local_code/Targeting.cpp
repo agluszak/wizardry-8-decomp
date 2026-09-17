@@ -1321,12 +1321,12 @@ int GetTargetingCursorForState(int alternate)
 bool ActionNeedsExplicitTarget(int party_slot)
 {
     switch (GetSpellTargetType(g_status_685170.buffers.party_rows[party_slot].spell_id, 0)) {
-    case 0:
-    case 2:
-    case 7:
-    case 10:
+    case W8_TARGET_TYPE_CASTER:
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
+    case W8_TARGET_TYPE_LOCK_OR_TRAP:
         return false;
-    case 3:
+    case W8_TARGET_TYPE_ENEMY:
         if (gXStatus.fCampMode != 0) {
             return false;
         }

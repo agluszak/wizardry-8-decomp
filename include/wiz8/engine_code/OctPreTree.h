@@ -105,26 +105,66 @@ struct W8OctRegionPolygon;
    at +0x1c, normal at +0x24, light at +0x30 and the per-sun light array
    pointer at +0x3c; the driver also clears flag bytes at +0x0a and +0x6a. */
 struct W8OctPreTreeVertex {
-    unsigned char positional_00[0x0c];
+    /* bit0: welded into an earlier vertex - vertex_index_04 then holds the
+       redirect; bit1: material-split copy; bit2: sits inside more than one
+       region volume (region_08 zeroed). */
+    unsigned long flags_00;
+    /* Ordinal into the geometry vertex array; on welded vertices the merge
+       helper stores the surviving vertex's index here. */
+    unsigned long vertex_index_04;
+    /* Owning auto-region id written by the region assignment pass. */
+    unsigned short region_08;
+    /* Weld/split touch marker the driver and SplitVertices clear per pass. */
+    unsigned char flag_0a;
+    unsigned char positional_0b;
     srVector3T<float> position_0c;
-    unsigned char positional_18[4];
+    /* Number of polygons referencing this vertex; SortGeometry counts and
+       the region pass tracks the run bound. */
+    short normal_count_18;
+    unsigned char positional_1a[2];
     int material_1c;
-    unsigned char positional_20[4];
+    /* The polygon automesh kind SplitVertices copies onto material-split
+       duplicates. */
+    unsigned long kind_20;
     srVector3T<float> normal_24;
     srVector3T<float> light_30;
     float* sun_lights_3c;
-    unsigned char positional_40[0x20];
+    unsigned short face_count_40;
+    unsigned char positional_42[2];
+    /* Growable run of polygon ordinals sharing this vertex, built by the
+       region pass; consecutive vertices may share one allocation. */
+    int* face_indices_44;
+    /* Second owned run freed by the geometry cleanup. */
+    int* owned_48;
+    /* Corner texture coordinate written when a polygon vertex is split. */
+    srVector2T<float> uv_4c;
+    /* Unscaled level-file position kept beside the engine-scaled
+       position_0c. */
+    srVector3T<float> original_position_54;
 };
 
 /* The shared geometry context the 0x00493120 driver builds and hands to
    CreateSubMeshes, SplitMeshes and WriteOctFile: the deduplicated build
-   vertices plus the 0x74-byte region polygons.  The driver writes further
-   fields past +0x0c whose layout is unproven for this cluster. */
+   vertices plus the 0x74-byte region polygons.  The material sort appends
+   the canonical material/texture group counts; +0x10/+0x14 hold an owned
+   buffer the cleanup releases. */
 struct W8OctPreTreeGeometry {
     unsigned long vertex_count_00;
     W8OctPreTreeVertex* vertices_04;
     unsigned long polygon_count_08;
     W8OctRegionPolygon* polygons_0c;
+    unsigned long positional_10;
+    void* owned_14;
+    unsigned long material_count_18;
+    unsigned long texture_count_1c;
+    /* Largest per-vertex polygon reference count, refreshed by the region
+       assignment pass. */
+    unsigned short max_face_count_20;
+    unsigned char positional_22[2];
+
+    /* Frees the per-vertex polygon runs, both arrays and the owned +0x14
+       buffer; the preprocessing driver runs it during cleanup. */
+    void Release004CFC10();
 };
 
 /* The 0x34-byte per-submesh build record SplitMeshes partitions polygons and

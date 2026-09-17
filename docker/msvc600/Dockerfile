@@ -77,4 +77,33 @@ RUN wget -O /tmp/jom.zip \
  && unzip /tmp/jom.zip -d /root/.wine/drive_c/jom \
  && rm /tmp/jom.zip
 
+# Build the reconstruction-specific clang-tidy check last so plugin iteration does
+# not invalidate the MSVC/Wine layers. The wrapper loads it into the existing
+# clang-tidy pass and limits debt diagnostics to host-published changed lines
+# (or WIZ8_REDUNDANT_CAST_LINES=* for an explicit full-corpus audit).
+COPY clang-tidy-plugin /tmp/wiz8-clang-tidy-plugin
+RUN cmake \
+      -S /tmp/wiz8-clang-tidy-plugin \
+      -B /tmp/wiz8-clang-tidy-plugin/build \
+      -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DLLVM_DIR=/usr/lib/llvm-19/lib/cmake/llvm \
+      -DClang_DIR=/usr/lib/llvm-19/lib/cmake/clang \
+ && cmake --build /tmp/wiz8-clang-tidy-plugin/build \
+ && cmake --install /tmp/wiz8-clang-tidy-plugin/build \
+ && install -m 0755 /tmp/wiz8-clang-tidy-plugin/clang-tidy-wrapper.py /usr/local/bin/clang-tidy \
+ && test "$(command -v clang-tidy)" = /usr/local/bin/clang-tidy \
+ && clang-tidy --wiz8-wrapper-self-test \
+ && clang-tidy --checks=-*,wiz8-redundant-scalar-cast --list-checks \
+      | grep -q 'wiz8-redundant-scalar-cast' \
+ && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
+      --checks=-*,wiz8-redundant-scalar-cast \
+      /tmp/wiz8-clang-tidy-plugin/test.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 \
+      > /tmp/wiz8-clang-tidy-plugin/test.log 2>&1 \
+ && test "$(grep -c '\[wiz8-redundant-scalar-cast\]' \
+      /tmp/wiz8-clang-tidy-plugin/test.log)" -eq 7 \
+ && rm -rf /tmp/wiz8-clang-tidy-plugin
+
 ENTRYPOINT ["/usr/bin/wine"]

@@ -3332,9 +3332,9 @@ render_world:
                 Function44FC20(g_world_659ab8, g_level_block->world_render_flags | 0x40);
             }
         }
-        Function450210(g_world, g_level_block->world_update_flags);
+        ApplyWorldUpdateFlags(g_world, g_level_block->world_update_flags);
         if (g_world_659ab8 && (g_level_block->world_update_flags & 3) == 0) {
-            Function450210(g_world_659ab8, g_level_block->world_update_flags);
+            ApplyWorldUpdateFlags(g_world_659ab8, g_level_block->world_update_flags);
         }
         g_level_block->world_update_flags = 0;
         g_level_block->world_render_flags = 0;
@@ -4051,13 +4051,13 @@ W8ScreenRect g_viewport_modes_647d30[7] = {
 
 /* The viewport currently applied, as four separate dwords. */
 // GLOBAL: WIZ8 0x00647f44
-int g_viewport_left_647f44;
+int g_viewport_left_647f44 = 0;
 // GLOBAL: WIZ8 0x00647f48
-int g_viewport_top_647f48;
+int g_viewport_top_647f48 = 0;
 // GLOBAL: WIZ8 0x00647f4c
-int g_viewport_right_647f4c;
+int g_viewport_right_647f4c = 0;
 // GLOBAL: WIZ8 0x00647f50
-int g_viewport_bottom_647f50;
+int g_viewport_bottom_647f50 = 0;
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */

@@ -30,7 +30,7 @@
    a reconstructed owner in GDCamera.cpp. */
 
 // GLOBAL: WIZ8 0x0060AA64
-int g_saved_environment_flag_60aa64;
+int g_saved_environment_flag_60aa64 = 1;
 
 // FUNCTION: WIZ8 0x0048F2F0
 void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime)

@@ -851,9 +851,9 @@ float g_navigator_minimum_speed_006081ec = 0.5f;
 // GLOBAL: WIZ8 0x006081f0
 float g_navigator_minimum_speed_mode23_006081f0 = 0.8999999761581421f;
 /* Runtime scale for the camera-sphere radius in the octree trace resolver;
-   assigned during startup rather than carrying a link-time constant. */
+   the retail image carries link-time 1.0 here. */
 // GLOBAL: WIZ8 0x006081f4
-float g_float_006081f4;
+float g_float_006081f4 = 1.0f;
 // GLOBAL: WIZ8 0x00659bf8
 W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 

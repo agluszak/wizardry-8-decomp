@@ -105,7 +105,7 @@ unsigned char MonsterCanAimSpell005474B0(int spell_id)
     }
     if (spell_id != 3 && spell_id != 0x29) {
         int target_type = GetSpellTargetType(spell_id, 0);
-        if (target_type > 2 && target_type < 8) {
+        if (target_type > W8_TARGET_TYPE_PARTY && target_type < W8_TARGET_TYPE_POINT) {
             return 1;
         }
         return 0;

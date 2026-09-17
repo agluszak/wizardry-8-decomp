@@ -205,4 +205,15 @@ template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
     return 0;
 }
 
+/* Thin derived collection: identical layout and inherited behavior, but the
+   retail image gives it its own vtable and deleting destructor (0x005EC018
+   over the base 0x005EC004 for the stModelInstance* instantiation, with the
+   base constructor emitted at 0x004390F0 and the derived deleting destructor
+   at 0x00438F70). The octree model-instance queries take the base pointer. */
+template <class T> class W8Vector : public W8GrowableVector<T> {
+public:
+    W8Vector() {}
+    explicit W8Vector(int initial_capacity) : W8GrowableVector<T>(initial_capacity) {}
+};
+
 #endif

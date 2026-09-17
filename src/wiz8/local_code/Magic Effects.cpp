@@ -119,7 +119,7 @@ void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
     if (monster_info->effect_2de != 0) {
         PostMonsterNotice(monster_info, gppStringList[0x6b4 / 4]);
         monster_info->effect_2de = 0;
-        DropMonsterVisual(monster_info->monster, 0x26, 0);
+        SetMonsterSpellIcon(monster_info->monster, SPELL_ICON_CHARMED, 0);
     }
 }
 
@@ -133,7 +133,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
     int index;
 
     if (slot->active != 0) {
-        DropMonsterVisual(monster_info->monster, g_effect_visual_table[slot->effect_id][0], 0);
+        SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[slot->effect_id][0], 0);
     }
     for (index = 0; index < 9; ++index) {
         bytes[index] = 0;

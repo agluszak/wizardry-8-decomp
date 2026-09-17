@@ -639,7 +639,10 @@ struct W8MainScreenState {
     unsigned char unknown_1fb[5];
     unsigned char flag_200;
     unsigned char flag_201;
-    unsigned char unknown_202[6];
+    unsigned char unknown_202[2];
+    /* 0x204: the haggled price the NPC dialogue's price-check popup displays
+       and the submit path acts on. */
+    int pending_price_204;
     int quote_bubble;
     short quote_x;
     short quote_y;

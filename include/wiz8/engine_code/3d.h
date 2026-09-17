@@ -60,8 +60,7 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points);
 /* Report whether the six-float bounds box (min xyz, max xyz) intersects the
    region volume's frustum: true when a bounds corner satisfies all six
    planes or a volume corner lands inside the bounds. */
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume,
-                                          const float* bounds);
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const float* bounds);
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
@@ -80,3 +79,4 @@ void WorldRemoveLight(W8World* world, stLight* light); /* 0x0046E250 */
 void DestroyWorldLights0046E4A0(W8World* world);
 void DetachWorldItemMeshes0046DE40(W8World* world);
 extern W8GameData* g_octree_game_data_00652db0;
+void __stdcall SetOctreeGameData0046D7D0(W8GameData* value); /* 0x0046D7D0 */

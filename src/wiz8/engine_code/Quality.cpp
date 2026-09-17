@@ -46,7 +46,7 @@ void DestroyRenderQuality0047B570(void)
 // FUNCTION: WIZ8 0x0047b590
 void EnableRenderOption(int option)
 {
-    if (option < 0x11) {
+    if (option < W8_RENDER_OPTION_COUNT) {
         SetRenderOption(option, 1);
     }
 }
@@ -63,11 +63,11 @@ void SetRenderOption(int option, int enabled)
         g_gerd_659634->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
                                                           : srTextureIFace::FILTER_NONE);
         break;
-    case 4:
+    case W8_RENDER_OPTION_MIP_MAPPING:
         g_gerd_659634->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
                                                        : srTextureIFace::MIPMAP_NONE);
         break;
-    case 5:
+    case W8_RENDER_OPTION_DITHER:
         if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
             g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
@@ -87,26 +87,26 @@ void SetRenderOption(int option, int enabled)
         if (enabled && g_render_fog_distance_60e610 > 0.1f)
             g_render_fog_distance_60e610 = 0.1f;
         break;
-    case 9:
+    case W8_RENDER_OPTION_MISSILE_LIGHTS:
         g_render_flag_60a20c = enabled != 0;
         break;
-    case 10:
+    case W8_RENDER_OPTION_MESH_SKY:
         g_render_flag_603c6c = enabled != 0;
         break;
-    case 11:
+    case W8_RENDER_OPTION_HIGH_TEXTURE_DETAIL:
         SetResidentTexturePolicy(enabled ? 0 : 1);
         break;
-    case 12:
+    case W8_RENDER_OPTION_HIGH_TEXTURE_CACHE:
         SetTextureCacheSize00426740(enabled ? 0x2000000 : 0x1000000);
         break;
-    case 13:
+    case W8_RENDER_OPTION_VIDEO_SYNC:
         SetSwapInterval00426710(enabled != 0);
         break;
-    case 16:
+    case W8_RENDER_OPTION_CORRECT_BLURRED_TEXT:
         SetSurfaceScale004297E0(enabled ? 0.5f : 0.0f);
         break;
     }
-    if (option < 0x11) {
+    if (option < W8_RENDER_OPTION_COUNT) {
         g_render_options_65a118[2 + option] = enabled != 0;
     }
 }
@@ -114,7 +114,7 @@ void SetRenderOption(int option, int enabled)
 // FUNCTION: WIZ8 0x0047b5b0
 void DisableRenderOption(int option)
 {
-    if (option < 0x11) {
+    if (option < W8_RENDER_OPTION_COUNT) {
         SetRenderOption(option, 0);
     }
 }
@@ -127,7 +127,7 @@ void DisableAllRenderOptions0047B5D0(void)
     do {
         SetRenderOption(option, 0);
         ++option;
-    } while (option < 0x11);
+    } while (option < W8_RENDER_OPTION_COUNT);
 }
 
 /* The original carries a dead entry test: it compares the counter against the
@@ -142,7 +142,7 @@ void EnableAllRenderOptions(void)
     int option;
 
     option = 0;
-    while (option < 0x11) {
+    while (option < W8_RENDER_OPTION_COUNT) {
         SetRenderOption(option, 1);
         option++;
     }
@@ -152,7 +152,7 @@ void EnableAllRenderOptions(void)
 // FUNCTION: WIZ8 0x0047b610
 unsigned char GetRenderOptionState(int option)
 {
-    if (option >= 0x11) {
+    if (option >= W8_RENDER_OPTION_COUNT) {
         return 0;
     }
     return g_render_options_65a118[2 + option];
@@ -169,14 +169,14 @@ unsigned char LoadRenderOptions0047B890(int handle)
     if (FileRead(handle, &version, 4, &transferred) == 0 || version != 1) {
         return 0;
     }
-    if (FileRead(handle, options, 0x11, &transferred) == 0) {
+    if (FileRead(handle, options, W8_RENDER_OPTION_COUNT, &transferred) == 0) {
         return 0;
     }
     option = 0;
     do {
         SetRenderOption(option, options[option] != 0);
         ++option;
-    } while (option < 0x11);
+    } while (option < W8_RENDER_OPTION_COUNT);
     return 1;
 }
 
@@ -189,5 +189,6 @@ bool SaveRenderOptions0047B920(int handle)
     if (FileWrite(handle, &version, 4, &transferred) == 0) {
         return false;
     }
-    return FileWrite(handle, g_render_options_65a118 + 2, 0x11, &transferred) != 0;
+    return FileWrite(handle, g_render_options_65a118 + 2, W8_RENDER_OPTION_COUNT, &transferred) !=
+           0;
 }

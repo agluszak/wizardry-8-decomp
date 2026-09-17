@@ -66,7 +66,8 @@ unsigned char W8OctBuildNode00446330::RearrangeNodePolys004AF7B0(short current_d
                 W8GDSurface** surfaces = static_cast<W8GDSurface**>(
                     malloc(g_value_65be58 * sizeof(W8GDSurface*) + sizeof(W8GDSurface*)));
                 if (surfaces == 0) {
-                    Function497690(7, "RearrangeNodePolys: Could not allocate poly list.\n");
+                    ReportBuildStatus00497690(
+                        7, "RearrangeNodePolys: Could not allocate poly list.\n");
                     return 0;
                 }
                 unsigned long index;
@@ -98,7 +99,7 @@ int W8OctBuildNode00446330::CollectLinkedSurfaces004AF8F0(short current_depth, s
             do {
                 g_pointer_65be64[g_value_65be58++] = link->surface_00;
                 if (10000 < g_value_65be58) {
-                    Function497690(7, "OctBuildPreTree::m_ppPolyList too long.");
+                    ReportBuildStatus00497690(7, "OctBuildPreTree::m_ppPolyList too long.");
                     return 0;
                 }
                 link = link->next_04;
@@ -434,7 +435,7 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
         if (game_data_134->polygons_0c[polygon].region_32 == 0) {
             char message[252];
             sprintf(message, "Poly %d not found in ANY region.\n", (int)polygon);
-            Function497690(6, message);
+            ReportBuildStatus00497690(6, message);
         }
     }
 
@@ -747,7 +748,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
             char message[256];
             sprintf(message, "Polygon %d in invalid submesh %d\n", (int)polygon_index,
                     (unsigned int)region);
-            Function497690(6, message);
+            ReportBuildStatus00497690(6, message);
         }
 
         for (int axis = 0; axis != 3; ++axis) {
@@ -773,7 +774,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
         if (node->positional_28 >= final_region_count) {
             char message[256];
             sprintf(message, "Invalid submesh %d\n", (unsigned int)node->positional_28);
-            Function497690(6, message);
+            ReportBuildStatus00497690(6, message);
         }
     }
 
@@ -924,7 +925,7 @@ void W8OctBuildPreTree004AFDA0::ValidatePolygonRegions004B3330()
         if (!found) {
             char message[256];
             sprintf(message, "Poly %d not found in correct region.\n", (int)polygon_index);
-            Function497690(6, message);
+            ReportBuildStatus00497690(6, message);
         }
     }
 }
@@ -955,13 +956,14 @@ void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const srVector3T<fl
             W8OctBuildNode00446330* node = FindNode004B23F0(path);
             if (node != 0) {
                 if (node->positional_28 != region) {
-                    Function497690(7, "Region has wrong automesh.");
+                    ReportBuildStatus00497690(7, "Region has wrong automesh.");
                 }
                 const srVector3T<float>* bounds = region_bounds + region_index * 2;
                 if (maximum.x < bounds[0].x || bounds[1].x < minimum.x || maximum.y < bounds[0].y ||
                     bounds[1].y < minimum.y || maximum.z < bounds[0].z || bounds[1].z < minimum.z) {
-                    Function497690(7, "AutoMesh has no vertices inside region. You probably "
-                                      "have an old .cub file!");
+                    ReportBuildStatus00497690(
+                        7, "AutoMesh has no vertices inside region. You probably "
+                           "have an old .cub file!");
                 }
             }
         }
@@ -1313,7 +1315,7 @@ OctPreTree* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
                                                  ? spatial_00.max_region_radius_60
                                                  : g_float_005ed038;
     while (selected_depth_c0 < tree->spatial_000.depth_44) {
-        Function497690(6, "Collapsing tree by one level.");
+        ReportBuildStatus00497690(6, "Collapsing tree by one level.");
         --tree->spatial_000.depth_44;
         tree->spatial_000.node_extent_70 += tree->spatial_000.node_extent_70;
     }

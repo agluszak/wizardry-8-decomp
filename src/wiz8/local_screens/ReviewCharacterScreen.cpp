@@ -316,9 +316,9 @@ void W8CampInfoLabel005EF2B0::OnLeftButtonDoubleClick(int event)
 // GLOBAL: WIZ8 0x0064DD14
 const wchar_t g_format_3d_0064dd14[] = L"%3.3d";
 // GLOBAL: WIZ8 0x0064DD20
-const wchar_t g_format_d_0064dd20[] = L"%d";
+const wchar_t g_format_d_0064dd20[] = L"%3d";
 // GLOBAL: WIZ8 0x0064DD28
-const wchar_t g_format_s_0064dd28[] = L"%s";
+const wchar_t g_format_s_0064dd28[] = L"%s:";
 // GLOBAL: WIZ8 0x00648164
 const wchar_t g_format_s_colon_00648164[] = L"%s: ";
 

@@ -1,4 +1,5 @@
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
@@ -164,7 +165,7 @@ void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short tex
     }
     record->font_palette = font_palette;
     record->highlight_color = 0xff;
-    record->wrapped_line = wrapped_line;
+    record->link_10 = wrapped_line;
     record->value_14 = -1;
     ++g_notice_line_count_0069b7bc;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
@@ -481,6 +482,92 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
     }
     line->highlight_stop = stop - g_level_block->text_lines[8 + text_box];
     line->highlight_color = color;
+}
+
+/* Append text to the last used line of one text box. The line's record is
+   removed and the combined string posted again so wrapping, the shown count
+   and the continuation links rebuild, while the line keeps its channel,
+   highlight span and clock. With the merge mode off the text posts as a new
+   line instead. A -1 box means the one the current game mode posts to. */
+// FUNCTION: WIZ8 0x005905F0
+void AppendToLastTextLine(const wchar_t* text, int text_box)
+{
+    size_t length = wcslen(text);
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
+        g_current_screen_state.id != W8_SCREEN_CAMP) {
+        return;
+    }
+    if (g_text_box_mode_0069b7b8 == 0) {
+        ShowNotice(g_text_box_value_0064bd54, text, text_box, -1, 0);
+        return;
+    }
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        } else if (GetFlag68F105()) {
+            text_box = 0;
+        } else {
+            text_box = gXStatus.fCombatMode != 0;
+        }
+    }
+    unsigned int* lines_used = &g_status_685170.text_box_lines_used_4997[text_box];
+    if (!(*lines_used > 0)) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xf92, 0);
+    }
+    W8MessageStorageRecord* line = &g_message_storage_68f2d8[text_box][*lines_used - 1];
+    if (!(line->wString != 0)) {
+        srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0xf94, 0);
+    }
+    wchar_t* merged = static_cast<wchar_t*>(operator new((length + wcslen(line->wString)) * 2 + 2));
+    wcscpy(merged, line->wString);
+    wcscat(merged, text);
+    unsigned char channel = line->font_palette;
+    int link = line->link_10;
+    unsigned char color = line->highlight_color;
+    unsigned char stop = line->highlight_stop;
+    unsigned char start = line->highlight_start;
+    if (line->wString) {
+        free(line->wString);
+        line->wString = 0;
+    }
+    W8PList* entries = line->entries_18;
+    if (entries) {
+        // reinterpret-ok: retail counts the pointer-list through the IList API
+        unsigned int count = ILLength(reinterpret_cast<W8IList*>(entries));
+        for (unsigned int entry = 0; entry < count; ++entry) {
+            free(PLGet(entries, entry));
+        }
+        PListClear(entries);
+        PLDestroy(entries);
+        line->entries_18 = 0;
+    }
+    if (g_status_685170.text_box_lines_shown_49a7[text_box] == *lines_used) {
+        if (!(g_status_685170.text_box_lines_shown_49a7[text_box] > 0)) {
+            srAssertFail("gStatus.uiTextBoxLinesShown[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0xfa9,
+                         0);
+        }
+        --g_status_685170.text_box_lines_shown_49a7[text_box];
+    }
+    --*lines_used;
+    ShowNotice(channel, merged, text_box, -1, 0);
+    if (color != 0xff) {
+        HighlightTextBoxRange(color, start, stop, static_cast<short>(text_box));
+    }
+    if (link != 0) {
+        W8MessageStorageRecord* last = &g_message_storage_68f2d8[text_box][*lines_used - 1];
+        if (!(last->wString != 0)) {
+            srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0xfbd, 0);
+        }
+        int propagated = 0;
+        if (last->link_10 != -1 && last->link_10 + 1 > 0) {
+            W8MessageStorageRecord* entry = last;
+            do {
+                entry->link_10 += link;
+                ++propagated;
+                --entry;
+            } while (propagated < last->link_10 + 1);
+        }
+    }
 }
 
 /* The dirty byte of the dormant typed-dialogue input state, or nothing when

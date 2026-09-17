@@ -533,7 +533,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     }
 
     chunks->OpenChunk(0x4f545541, 0); /* AUTO */
-    SaveAutomapNotes00581CE0(chunks->m_hFile);
+    SaveAutomapNotes(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     if (g_world->triggers->count != 0) {
@@ -677,7 +677,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                             } else if (chunk_id == 0x53455254) { /* TRES */
                                 LoadTriggerActionData0043D1F0(stream->m_hFile);
                             } else if (chunk_id == 0x4f545541) { /* AUTO */
-                                LoadAutomapNotes00581E60(stream->m_hFile);
+                                LoadAutomapNotes(stream->m_hFile);
                             } else if (chunk_id == 0x47495254) { /* TRIG */
                                 LoadWorldTriggers0043C860(g_world, stream->m_hFile);
                             } else if (chunk_id == 0x54535041) { /* APST */
@@ -938,27 +938,27 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (monster_info->highest_condition != 0) {
         for (index = 0; index < W8_CONDITION_COUNT; ++index) {
             if (monster_info->condition_turns[index] != 0) {
-                DropMonsterVisual(monster, index - 1, 1);
+                SetMonsterSpellIcon(monster, index - 1, 1);
             }
         }
     }
     for (index = 0; index < 8; ++index) {
         if (monster_info->enchantments[index].value_08 != 0) {
-            DropMonsterVisual(monster, index + 0x10, 1);
+            SetMonsterSpellIcon(monster, index + 0x10, 1);
         }
     }
     for (index = 0; index < 12; ++index) {
         if (monster_info->effect_slots_10f[index].duration_0d != 0) {
-            DropMonsterVisual(
+            SetMonsterSpellIcon(
                 monster, g_effect_visual_table[monster_info->effect_slots_10f[index].effect_id][0],
                 1);
         }
     }
     if (monster_info->effect_2de > 0) {
-        DropMonsterVisual(monster, 0x26, 1);
+        SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
     }
     if (monster_info->value_2da != 0) {
-        DropMonsterVisual(monster, 0x27, 1);
+        SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, 1);
     }
     if (record_version >= 2) {
         monster->LoadMovementState00454AD0(chunk->m_hFile);

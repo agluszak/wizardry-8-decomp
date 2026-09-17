@@ -13,9 +13,9 @@ public:
 
     operator double() const
     {
-        return (double)(unsigned int)(*(const unsigned __int64*)this >> 32) *
+        return (unsigned int)(*(const unsigned __int64*)this >> 32) *
                    4294967296.0 +
-               (double)(unsigned int)*(const unsigned __int64*)this;
+               (unsigned int)*(const unsigned __int64*)this;
     }
 };
 

@@ -11,9 +11,14 @@ template <class T> class srArray {
 public:
     inline srArray() : data(0), capacity(0) {}
 
+    /* Retail's canonical emissions (srArray<srNode*>::setCapacity at
+       0x0049E290, the folded scalar-delete destructor at 0x004701B0) use the
+       scalar global operators on raw bytes, never new[]/delete[]: every
+       instantiated element type is POD, so construction and element teardown
+       do not exist. */
     inline ~srArray()
     {
-        delete[] data;
+        ::operator delete(data);
         data = 0;
         capacity = 0;
     }
@@ -23,7 +28,7 @@ public:
         if (capacity != new_capacity) {
             T* replacement = 0;
             if (new_capacity > 0) {
-                replacement = new T[new_capacity];
+                replacement = static_cast<T*>(::operator new(new_capacity * sizeof(T)));
                 if (data != 0 && capacity > 0) {
                     unsigned long copy_count = capacity;
                     if (copy_count >= new_capacity) {
@@ -34,7 +39,7 @@ public:
                     }
                 }
             }
-            delete[] data;
+            ::operator delete(data);
             data = replacement;
             capacity = new_capacity;
         }
@@ -69,11 +74,11 @@ public:
         release();
     }
 
+    /* The canonical emission at 0x004701D0 frees unconditionally; srHeap.free
+       accepts a null pointer. */
     inline void release()
     {
-        if (data != 0) {
-            srHeap.free(data);
-        }
+        srHeap.free(data);
         data = 0;
         capacity = 0;
     }
@@ -97,9 +102,39 @@ public:
         return *this;
     }
 
+    /* The preserving single-argument grow `operator[]` reaches; retail emits
+       it out of line at 0x004700D0 for the automap scratch array and inlines
+       the same shape at 0x00580C76: element construction comes from `new T[]`
+       through the element type's class operator new[], then the old storage
+       is released unconditionally. */
+    inline void setCapacity(unsigned long new_capacity)
+    {
+        if (capacity != new_capacity) {
+            T* replacement = 0;
+            if (new_capacity > 0) {
+                replacement = new T[new_capacity];
+                if (data != 0 && capacity > 0) {
+                    unsigned long copy_count = capacity;
+                    if (copy_count >= new_capacity) {
+                        copy_count = new_capacity;
+                    }
+                    for (unsigned long index = 0; index < copy_count; ++index) {
+                        replacement[index] = data[index];
+                    }
+                }
+            }
+            release();
+            data = replacement;
+            capacity = new_capacity;
+        }
+    }
+
     /* `preserve` copies the overlapping prefix of the old contents into the
-       new storage; callers that refill the whole array pass 0. */
-    inline void setCapacity(unsigned long new_capacity, int preserve = 1)
+       new storage; callers that refill the whole array pass 0. Retail's
+       GetVertexLights inlines this overload (0x0047211A): it allocates raw
+       storage and null-checks the old buffer before freeing, so the new
+       elements are never constructed here. */
+    inline void setCapacity(unsigned long new_capacity, int preserve)
     {
         if (capacity != new_capacity) {
             if (new_capacity > 0) {
@@ -113,7 +148,9 @@ public:
                         replacement[index] = data[index];
                     }
                 }
-                release();
+                if (data != 0) {
+                    srHeap.free(data);
+                }
                 data = replacement;
                 capacity = new_capacity;
             } else {
@@ -142,6 +179,15 @@ public:
             result = data;
         }
         return result;
+    }
+
+    /* Lazy indexed access grows by eight slots like srArray's. */
+    inline T& operator[](unsigned long index)
+    {
+        if (index >= capacity) {
+            setCapacity(capacity + 8 + index);
+        }
+        return data[index];
     }
 
     T* data;

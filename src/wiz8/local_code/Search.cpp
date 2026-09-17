@@ -21,6 +21,7 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
@@ -89,14 +90,13 @@ W8SearchableView* CollectSearchablesInView(void)
     int total = g_searchables_00689fa8.count;
     srVector3T<float> camera;
     GetCameraPosition(&camera);
-    g_search_view_00689fb8.items.count = 0;
+    g_search_view_00689fb8.items.Clear();
     g_search_view_00689fb8.cursor = -1;
     for (int index = 0; index < total; ++index) {
         W8Searchable* searchable = *g_searchables_00689fa8.GetAt(index);
         srVector3T<float> position;
         searchable->GetPosition(&position);
-        srVector3T<float> delta(camera.x - position.x, camera.y - position.y,
-                                camera.z - position.z);
+        srVector3T<float> delta = camera - position;
         if (delta.Length() < g_float_0061a364) {
             if (searchable->world_item == 0 && searchable->trigger != 0) {
                 g_search_view_00689fb8.items.Add(searchable);
@@ -166,7 +166,7 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
     position->SetZero();
     if (world_item != 0) {
         if (world_item->owner != 0) {
-            world_item->owner->GetRepLocation0049FBA0(position);
+            world_item->owner->GetSearchPosition(position);
             return;
         }
         position->x = world_item->position.x;
@@ -287,13 +287,13 @@ void RunSearchPulse(void)
             }
             if (g_status_685170.search_mode == 0 || (g_level_data_00652dac->flags & 0x100) != 0) {
                 /* Retail scans the party for a live member carrying the
-                   searching skill and then discards the result. */
+                   Scouting skill and then discards the result. */
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
                     W8Character* character = &g_status_685170.buffers.characters[slot];
                     if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
                         character->hp_current != 0 &&
-                        character->highest_condition < W8_CONDITION_HOSTILE &&
-                        character->skills[0x0f].level != 0) {
+                        character->highest_condition < W8_CONDITION_TURNCOAT &&
+                        character->skills[W8_SKILL_SCOUTING].level != 0) {
                         break;
                     }
                 }
@@ -308,8 +308,8 @@ void RunSearchPulse(void)
 }
 
 /* Pick the best searching party member for this searchable: eligible members
-   score their searching skill (halved, quartered in the special level state)
-   plus an attribute-derived bonus; the detect-secrets party effect instead
+   score their Scouting skill (halved, quartered in the special level state)
+   plus a Senses-derived bonus; the detect-secrets party effect instead
    force-picks random eligible members without practicing the skill. The pick
    must also reach this searchable's position. */
 // FUNCTION: WIZ8 0x00517560
@@ -321,12 +321,12 @@ int W8Searchable::PickBestSearcher()
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
         W8Character* character = &g_status_685170.buffers.characters[slot];
         if (g_status_685170.buffers.party_rows[slot].occupied == 0 || character->hp_current == 0 ||
-            character->highest_condition >= W8_CONDITION_HOSTILE) {
+            character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
         if (CharacterHasTrait00547940(character, W8_TRAIT_SEARCH) ||
             g_status_685170.search_mode != 0) {
-            unsigned int level = character->skills[0x0f].level;
+            unsigned int level = character->skills[W8_SKILL_SCOUTING].level;
             unsigned int base = level >> 1;
             if ((g_level_data_00652dac->flags & 0x100) != 0) {
                 base = level >> 2;
@@ -334,7 +334,7 @@ int W8Searchable::PickBestSearcher()
             unsigned int score = 0;
             if (base != 0 ||
                 (g_status_685170.search_mode != 0 && (g_level_data_00652dac->flags & 0x100) == 0)) {
-                unsigned int attribute = character->attributes[6].effective;
+                unsigned int attribute = character->attributes[W8_ATTRIBUTE_SENSES].effective;
                 if (attribute < 0x33) {
                     score = base + attribute / 5;
                 } else if (attribute < 0x51) {
@@ -372,10 +372,11 @@ int W8Searchable::PickBestSearcher()
     GetCameraPosition(&camera);
     srVector3T<float> position;
     GetPosition(&position);
-    srVector3T<float> delta(camera.x - position.x, camera.y - position.y, camera.z - position.z);
+    srVector3T<float> delta = camera - position;
     if (delta.Length() < range) {
         if (earned) {
-            PracticeCharacterSkill(&g_status_685170.buffers.characters[best_slot], 0x0f, 5, 0);
+            PracticeCharacterSkill(&g_status_685170.buffers.characters[best_slot],
+                                   W8_SKILL_SCOUTING, 5, 0);
         }
         return best_slot;
     }

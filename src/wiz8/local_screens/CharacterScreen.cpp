@@ -257,7 +257,7 @@ void W8CharacterScreen::ShowDialog005B0610(int value)
 void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8ProfessionInfoDialog005EFBFC(profession);
+    m_dialog_1b1c = new W8ProfessionInfoDialog(profession);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -266,7 +266,7 @@ void W8CharacterScreen::ShowProfessionInfo(unsigned int profession)
 void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8RaceInfoDialog005EFC38(race);
+    m_dialog_1b1c = new W8RaceInfoDialog(race);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }

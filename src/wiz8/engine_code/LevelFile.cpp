@@ -249,7 +249,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         }
         for (i = 0; i < pLevel->nNamedPositions; ++i) {
             W8LevelFileNamedPosition* pPosition = pLevel->pNamedPositions + i;
-            Function497690(
+            ReportBuildStatus00497690(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                        String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
                               (double)pPosition->x_81, (double)pPosition->y_85,
@@ -462,7 +462,8 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     fSuccess = FileWrite(hFile, &level_scale, 4, 0) & fSuccess;
     fSuccess = FileWrite(hFile, &pLevel->num_automap_nodes_6b1, 4, 0) & fSuccess;
     if (pLevel->num_automap_nodes_6b1 != 0) {
-        fSuccess &= FileWrite(hFile, pLevel->automap_nodes_6b5, pLevel->num_automap_nodes_6b1 * 4, 0);
+        fSuccess &=
+            FileWrite(hFile, pLevel->automap_nodes_6b5, pLevel->num_automap_nodes_6b1 * 4, 0);
         free(pLevel->automap_nodes_6b5);
         if (fSuccess == 0) {
             return 0;
@@ -507,13 +508,13 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
     int count = pMesh->num_vertices_04;
     if (count >= 0x186a1 || count <= 0) {
         sprintf(g_level_file_error_682ff8, "Invalid number of vertices in mesh: %d\n", count);
-        Function497690(7, g_level_file_error_682ff8);
+        ReportBuildStatus00497690(7, g_level_file_error_682ff8);
         return 0;
     }
     count = pMesh->num_faces_08;
     if (count >= 0x30d41 || count <= 0) {
         sprintf(g_level_file_error_682ff8, "Invalid number of faces in mesh: %d\n", count);
-        Function497690(7, g_level_file_error_682ff8);
+        ReportBuildStatus00497690(7, g_level_file_error_682ff8);
         return 0;
     }
     if (pMesh->version_00 > 2) {
@@ -630,7 +631,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
             srAssertFail("pMesh->pstVertices", LEVELFILE_CPP, 0x315, 0);
         }
         if (FileWrite(hFile, pMesh->pstVertices, pMesh->num_vertices_04 * 0xc, 0) == 0) {
-            Function497690(7, "WriteFileMesh: Could not write mesh vertices.\n");
+            ReportBuildStatus00497690(7, "WriteFileMesh: Could not write mesh vertices.\n");
         }
     } else {
         fSuccess &= FileWrite(hFile, &pMesh->lod_mode_40, 1, 0);
@@ -649,7 +650,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
                 }
                 fSuccess &= FileWrite(hFile, pLods[i], pMesh->num_vertices_04 * 0xc, 0);
                 if (fSuccess == 0) {
-                    Function497690(7, "WriteFileMesh: Could not write mesh vertices.\n");
+                    ReportBuildStatus00497690(7, "WriteFileMesh: Could not write mesh vertices.\n");
                 }
                 free(pLods[i]);
             }
@@ -693,16 +694,16 @@ bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
     unsigned char fSuccess = FileRead(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileRead(hFile, &pLight->flags_02, 4, 0);
     fSuccess &= FileRead(hFile, pLight->unknown_06, 2, 0);
-    fSuccess &= FileRead(hFile, pLight->unknown_08, 0xc, 0);
-    fSuccess &= FileRead(hFile, pLight->unknown_14, 0xc, 0);
-    fSuccess &= FileRead(hFile, pLight->unknown_20, 4, 0);
-    fSuccess &= FileRead(hFile, pLight->unknown_20 + 4, 4, 0);
+    fSuccess &= FileRead(hFile, &pLight->position_08, 0xc, 0);
+    fSuccess &= FileRead(hFile, &pLight->colour_14, 0xc, 0);
+    fSuccess &= FileRead(hFile, &pLight->intensity_20, 4, 0);
+    fSuccess &= FileRead(hFile, &pLight->range_24, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
     }
     if (pLight->version_00 > 1) {
-        fSuccess = FileRead(hFile, pLight->unknown_28, 0x14, 0) != 0;
+        fSuccess = FileRead(hFile, pLight->name_28, 0x14, 0) != 0;
         if ((pLight->flags_02 & 0x200) != 0) {
             *(unsigned char*)&pLight->flags_02 = 1;
             pLight->pExtra_3c = malloc(0x3c);
@@ -735,16 +736,16 @@ bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
     unsigned char fSuccess = FileWrite(hFile, &pLight->version_00, 2, 0);
     fSuccess &= FileWrite(hFile, &pLight->flags_02, 4, 0);
     fSuccess &= FileWrite(hFile, pLight->unknown_06, 2, 0);
-    fSuccess &= FileWrite(hFile, pLight->unknown_08, 0xc, 0);
-    fSuccess &= FileWrite(hFile, pLight->unknown_14, 0xc, 0);
-    fSuccess &= FileWrite(hFile, pLight->unknown_20, 4, 0);
-    fSuccess &= FileWrite(hFile, pLight->unknown_20 + 4, 4, 0);
+    fSuccess &= FileWrite(hFile, &pLight->position_08, 0xc, 0);
+    fSuccess &= FileWrite(hFile, &pLight->colour_14, 0xc, 0);
+    fSuccess &= FileWrite(hFile, &pLight->intensity_20, 4, 0);
+    fSuccess &= FileWrite(hFile, &pLight->range_24, 4, 0);
     fSuccess &= 1;
     if (fSuccess == 0) {
         return 0;
     }
     if (pLight->version_00 > 1) {
-        fSuccess = FileWrite(hFile, pLight->unknown_28, 0x14, 0) != 0;
+        fSuccess = FileWrite(hFile, pLight->name_28, 0x14, 0) != 0;
         if (((pLight->flags_02 & 0x200) != 0) && (pLight->pExtra_3c != 0)) {
             fSuccess &= FileWrite(hFile, pLight->pExtra_3c, 0x3c, 0);
             if (fSuccess == 0) {
@@ -845,7 +846,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (ok == 0) {
             srAssertFail("fSuccess", LEVELFILE_CPP, 0x408, 0);
         }
-        Function497690(
+        ReportBuildStatus00497690(
             5,
             reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                 const char*>(String(
@@ -854,7 +855,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 1) {
             ok &= FileRead(hFile, pSwitch->unknown_21f, 4, 0);
             ok &= FileRead(hFile, pSwitch->switch_name_223, 0x40, 0);
-            Function497690(
+            ReportBuildStatus00497690(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                        String("Switch Trigger name: %s\n", pSwitch->switch_name_223)));
         }
@@ -865,7 +866,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 if (pSwitch->door_kind_264 == 1) {
                     ok &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_kind_264);
                     if (ok == 0) {
-                        Function497690(7, "Problem reading door trigger.\n");
+                        ReportBuildStatus00497690(7, "Problem reading door trigger.\n");
                         return 0;
                     }
                 }
@@ -912,7 +913,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         }
         if (pSound->version_00 > 3) {
             ok &= FileRead(hFile, pSound->field_ef, 0x80, 0);
-            Function497690(
+            ReportBuildStatus00497690(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                        const char*>(String(
                        "Sound Trigger: %s\n",
@@ -947,7 +948,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
     ok &= FileRead(hFile, pInvis->name_1b, 0x80, 0);
     ok &= FileRead(hFile, pInvis->recipients_9b, 0x100, 0);
     ok &= fSuccess;
-    Function497690(
+    ReportBuildStatus00497690(
         5,
         reinterpret_cast< // reinterpret-ok: String returns a logging buffer
             const char*>(String(
@@ -1170,10 +1171,11 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     memset(pSuper, 0, sizeof(W8LevelFileSuperTrigger));
     unsigned char fSuccess = FileRead(hFile, &pSuper->version_00, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->name_01, 0x80, 0);
-    Function497690(5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
-                          const char*>(String(
-                          "Super Trigger: %s ",
-                          pSuper->name_01))); // reinterpret-ok: String returns a logging buffer
+    ReportBuildStatus00497690(
+        5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
+               const char*>(
+               String("Super Trigger: %s ",
+                      pSuper->name_01))); // reinterpret-ok: String returns a logging buffer
     fSuccess &= FileRead(hFile, &pSuper->flags_81, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->active_82, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->kind_83, 1, 0);
@@ -1181,7 +1183,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->prop_index_85, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->activation_count_86, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->inactive_count_87, 1, 0);
-    Function497690(
+    ReportBuildStatus00497690(
         5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
                "     Active: %d Kind: %d WhenActive: %d PropIndex: %d, activated %d "
                "times, inactive %d times, interaction: %d",
@@ -1191,14 +1193,14 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->trigger_on_8c, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->trigger_off_90, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->recipients_94, 0x100, 0);
-    Function497690(
+    ReportBuildStatus00497690(
         5,
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
             String("     trigger: %d (on %d, off %d) name: %s", pSuper->trigger_88,
                    pSuper->trigger_on_8c, pSuper->trigger_off_90, pSuper->recipients_94)));
     fSuccess &= FileRead(hFile, &pSuper->ataxia_or_cure_194, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->ps_events_195, 0x100, 0);
-    Function497690(
+    ReportBuildStatus00497690(
         5,
         reinterpret_cast< // reinterpret-ok: String returns a logging buffer
             const char*>(String(
@@ -1208,7 +1210,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->price_296, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->door_kind_29a, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->animation_29b, 0x80, 0);
-    Function497690(
+    ReportBuildStatus00497690(
         5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
                "     allow save: %d, price: %d door kind %d anim: %s", pSuper->allow_save_295,
                pSuper->price_296, pSuper->door_kind_29a, pSuper->animation_29b)));
@@ -1220,7 +1222,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->wait_4ad, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->loop_4ae, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->speed_4af, 0x10, 0);
-        Function497690(
+        ReportBuildStatus00497690(
             5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                    String("     size: (%f, %f, %f) direction: %f speed: %f wait (%d,%d,%d) loop %d",
                           (double)pSuper->size_49b[0], (double)pSuper->size_49b[1],
@@ -1232,7 +1234,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->set_group_4c1, 1, 0);
         fSuccess &= FileRead(hFile, pSuper->groups_4c2, 0x100, 0);
         fSuccess &= FileRead(hFile, pSuper->objects_5c2, 0x100, 0);
-        Function497690(
+        ReportBuildStatus00497690(
             5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                    String("     ignore: %d Group %d set_group %d groups %s objects %s",
                           pSuper->ignore_4bf, pSuper->group_4c0, pSuper->set_group_4c1,
@@ -1241,7 +1243,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
         fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
-        Function497690(
+        ReportBuildStatus00497690(
             5,
             reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                 String("     close door: %d wait: %d 5fCount %d event: %s", pSuper->close_door_6c2,
@@ -1250,7 +1252,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     }
     if (pSuper->version_00 > 2) {
         fSuccess &= FileRead(hFile, pSuper->particle_system_7cf, 0x80, 0);
-        Function497690(
+        ReportBuildStatus00497690(
             5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                    String("     attach particle system: %s", pSuper->particle_system_7cf)));
     }
@@ -1431,7 +1433,7 @@ bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
         fSuccess &= FileRead(hFile, &pDoorRec->unknown_0c, 1, 0);
         fSuccess &= FileRead(hFile, pDoorRec->unknown_0d, 0xc, 0);
         fSuccess &= FileRead(hFile, pDoorRec->name_19, 0x80, 0);
-        Function497690(
+        ReportBuildStatus00497690(
             5,
             reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                 const char*>(String(
@@ -1705,7 +1707,7 @@ header_done:
                                 sprintf(g_level_file_error_682ff8,
                                         "Invalid number of materials in mesh: %d\n",
                                         (int)pFrame->num_textures_5d);
-                                Function497690(7, g_level_file_error_682ff8);
+                                ReportBuildStatus00497690(7, g_level_file_error_682ff8);
                                 return 0;
                             }
                             if (pFrame->num_textures_5d != 0) {
@@ -1975,7 +1977,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileRead(hFile, pProp->name_13, 0x40, 0);
-            Function497690(
+            ReportBuildStatus00497690(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                        const char*>(
                        String("Prop: %s",
@@ -2134,12 +2136,13 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
     }
-    Function497690(5,
-                   reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                       String("Particle System: %s Position (%f, %f, %f)", pRecord + 1,
-                              (double)(*(float*)(pRecord + 0x41) * g_world_scale_005ebc40),
-                              (double)(*(float*)(pRecord + 0x45) * g_world_scale_005ebc40),
-                              (double)(*(float*)(pRecord + 0x49) * g_world_scale_005ebc40))));
+    ReportBuildStatus00497690(
+        5,
+        reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+            String("Particle System: %s Position (%f, %f, %f)", pRecord + 1,
+                   (double)(*(float*)(pRecord + 0x41) * g_world_scale_005ebc40),
+                   (double)(*(float*)(pRecord + 0x45) * g_world_scale_005ebc40),
+                   (double)(*(float*)(pRecord + 0x49) * g_world_scale_005ebc40))));
     return fSuccess;
 }
 
