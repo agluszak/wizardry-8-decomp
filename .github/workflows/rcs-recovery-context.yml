@@ -42,17 +42,43 @@ jobs:
         run: uv run wiz8 ghidra restore
       - name: Extract recovery contexts
         run: |
-          uv run wiz8 analyze source-index
           mkdir -p build/rcs-recovery
-          uv run wiz8 report context \
-            0x005A42A0 0x005A45B0 0x005A4770 0x005C5240 0x005B55F0 \
-            0x005A6090 0x005A6440 0x005A5F30 0x005A6020 0x005A6340 \
-            0x00548E20 0x005187E0 0x004EF1F0 0x005A6970 0x005A6790 \
-            0x005A68C0 0x0050B3B0 0x005A6B90 0x005C4EE0 \
-            0x005AEEA0 0x005AF530 0x005AF5E0 0x005B5E90 0x005B5F10 \
-            0x005B61A0 0x005B6220 0x005B62C0 0x005B6360 0x005B66B0 \
-            0x005B6AA0 > build/rcs-recovery/context.json
-          cp build/context/*.cpp build/rcs-recovery/
+          uv run python - <<'PY'
+          import json
+          from pathlib import Path
+          from wiz8decomp.config import load_settings
+          from wiz8decomp.ghidra.env import open_program
+          from wiz8decomp.ghidra.query import query_many
+
+          selectors = [
+              "0x005A42A0", "0x005A45B0", "0x005A4770", "0x005C5240", "0x005B55F0",
+              "0x005A6090", "0x005A6440", "0x005A5F30", "0x005A6020", "0x005A6340",
+              "0x00548E20", "0x005187E0", "0x004EF1F0", "0x005A6970", "0x005A6790",
+              "0x005A68C0", "0x0050B3B0", "0x005A6B90", "0x005C4EE0",
+              "0x005AEEA0", "0x005AF530", "0x005AF5E0", "0x005B5E90", "0x005B5F10",
+              "0x005B61A0", "0x005B6220", "0x005B62C0", "0x005B6360", "0x005B66B0",
+              "0x005B6AA0",
+          ]
+          out = Path("build/rcs-recovery")
+          settings = load_settings()
+          records = []
+          with open_program(settings, "wiz8") as live:
+              for selector in selectors:
+                  rows = query_many(live, [
+                      ("function", [selector]),
+                      ("decompile", [selector]),
+                      ("listing", [selector]),
+                      ("indirect-calls", [selector]),
+                  ])
+                  record = {row["command"]: row["result"] for row in rows}
+                  record["selector"] = selector
+                  records.append(record)
+                  decompiled = record["decompile"].get("decompiled") or ""
+                  (out / f"{int(selector, 0):08x}.cpp").write_text(decompiled + "\n", encoding="utf-8")
+                  listing = record["listing"].get("listing") or ""
+                  (out / f"{int(selector, 0):08x}.asm").write_text(listing + "\n", encoding="utf-8")
+          (out / "context.json").write_text(json.dumps(records, indent=2, default=str), encoding="utf-8")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: rcs-recovery-context
