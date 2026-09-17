@@ -15,7 +15,7 @@ The environment `start` script recreates the gitignored machine config on every 
 
 | Variable | Value |
 | --- | --- |
-| `GHIDRA_INSTALL_DIR` | `/home/ubuntu/ghidra/ghidra_12.1.2_PUBLIC` |
+| `GHIDRA_INSTALL_DIR` | `/home/ubuntu/ghidra/ghidra_12.1.3_PUBLIC` |
 | `WIZ8_INPUT_DIR` | `/home/ubuntu/wiz8-inputs` |
 | `WIZ8_WORK_DIR` | `/home/ubuntu/wiz8-work` |
 | `JAVA_HOME` | `/usr/lib/jvm/java-21-openjdk-amd64` |
@@ -34,7 +34,7 @@ The environment `start` script recreates the gitignored machine config on every 
   The Docker daemon is started per boot by `start` with the `fuse-overlayfs` storage driver; build
   images with the legacy builder (`DOCKER_BUILDKIT=0`). Rebuild with
   `uv run wiz8 toolchain build vc6-sp5`.
-- **Ghidra**: `12.1.2 PUBLIC` at `$GHIDRA_INSTALL_DIR`, driven through PyGhidra by the CLI (for
+- **Ghidra**: `12.1.3 PUBLIC` at `$GHIDRA_INSTALL_DIR`, driven through PyGhidra by the CLI (for
   example `uv run wiz8 ghidra import`). The JDK is at `$JAVA_HOME`.
 - **Host tooling on `PATH`**: `7z`, `innoextract`, `cabextract`, `unshield`, `git-lfs`,
   `llvm-undname`, and host `wine` (used by reccmp's cvdump and by `just run`).

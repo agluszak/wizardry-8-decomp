@@ -6,7 +6,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-REQUIRED_GHIDRA_VERSION = "12.1.2"
+REQUIRED_GHIDRA_VERSION = "12.1.3"
 REQUIRED_GHIDRA_RELEASE = "PUBLIC"
 REQUIRED_PYGHIDRA_VERSION = "3.1.0"
 

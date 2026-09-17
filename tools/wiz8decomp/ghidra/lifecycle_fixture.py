@@ -6,6 +6,8 @@ import json
 import re
 import shutil
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -79,6 +81,73 @@ def _build_fixture(
     if not executable.is_file() or not pdb.is_file():
         raise RuntimeError("VC6 lifecycle self-test did not produce its executable and PDB")
     return executable, pdb
+
+
+def find_lifecycle_fixture_executable(settings: Settings) -> Path | None:
+    """Return a prebuilt lifecycle PE under ``build/recovery-fixture/``, if any.
+
+    Does not invoke Docker/VC6. Unit/integration callers should skip when absent.
+    """
+
+    candidates = [
+        settings.build_dir / "recovery-fixture" / "vc6-sp5" / "lifecycle_probe.exe",
+        settings.build_dir / "recovery-fixture" / "vc6-sp5-recovered" / "lifecycle_recovered.exe",
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
+
+
+@contextmanager
+def open_lifecycle_fixture_program(settings: Settings) -> Iterator[Any]:
+    """Import the prebuilt lifecycle fixture into a disposable Ghidra project.
+
+    Yields the analyzed ``Program``. Raises ``FileNotFoundError`` when no
+    prebuilt executable is present. Does not touch the checkout-owned wiz8
+    project and does not rebuild via Docker VC6.
+    """
+
+    executable = find_lifecycle_fixture_executable(settings)
+    if executable is None:
+        raise FileNotFoundError("lifecycle fixture binary not built under build/recovery-fixture/")
+    pdb = executable.with_suffix(".pdb")
+    headless = settings.ghidra_install_dir / "support/analyzeHeadless"
+    settings.build_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="lifecycle-binding-", dir=settings.build_dir) as raw:
+        temporary = Path(raw)
+        fixture = temporary / executable.name
+        shutil.copy2(executable, fixture)
+        if pdb.is_file():
+            shutil.copy2(pdb, temporary / pdb.name)
+        (temporary / "project").mkdir()
+        subprocesses.run(
+            [
+                headless,
+                temporary / "project",
+                "lifecycle-fixture",
+                "-import",
+                fixture,
+                "-overwrite",
+                "-processor",
+                "x86:LE:32:default",
+                "-cspec",
+                "windows",
+            ],
+            cwd=settings.repo_dir,
+            log_path=settings.build_dir / "logs" / "lifecycle-fixture-binding-import.json",
+        )
+        from .env import start_pyghidra
+
+        start_pyghidra(settings)
+        import pyghidra
+
+        # Same disposable project layout as ``_recover_image``, without Wiz8Recover.
+        with (
+            pyghidra.open_project(temporary / "project", "lifecycle-fixture") as project,
+            pyghidra.program_context(project, "/" + fixture.name) as program,
+        ):
+            yield program
 
 
 def _recover_image(

@@ -363,6 +363,17 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
+    analyze_app.command("decompiler-quality")(decompiler_quality_command)
+    analyze_app.command("prototype-repair")(prototype_repair_command)
+    analyze_app.command("enrichment-checkpoint")(enrichment_checkpoint_command)
+    analyze_app.command("class-this-typing")(class_this_typing_command)
+    analyze_app.command("class-structures")(class_structures_command)
+    analyze_app.command("global-typing")(global_typing_command)
+    analyze_app.command("callback-typing")(callback_typing_command)
+    analyze_app.command("function-attributes")(function_attributes_command)
+    analyze_app.command("vftable-typing")(vftable_typing_command)
+    analyze_app.command("cosmic-forge-globals")(cosmic_forge_globals_command)
+    analyze_app.command("convention-heuristics")(convention_heuristics_command)
 
 
 def source_index_command() -> None:
@@ -371,6 +382,423 @@ def source_index_command() -> None:
     from ..source_index import write_source_index
 
     cli.emit(write_source_index(cli.settings()))
+
+
+def decompiler_quality_command(
+    limit: Annotated[
+        int,
+        typer.Option(min=1, help="Maximum matched functions to decompile."),
+    ] = 200,
+    seed: Annotated[
+        int,
+        typer.Option(help="Stable corpus sample seed."),
+    ] = 1,
+    corpus_kind: Annotated[
+        str,
+        typer.Option(
+            "--corpus-kind",
+            help="oracle (exact|effective; default) or pain (any FUNCTION, stratified).",
+        ),
+    ] = "oracle",
+    require_match: Annotated[
+        bool | None,
+        typer.Option(
+            "--require-match/--any-recovered",
+            help="Override corpus match filter. Default follows --corpus-kind.",
+        ),
+    ] = None,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Explicit corpus address; repeatable. Disables stratified sampling."),
+    ] = None,
+    profile: Annotated[
+        str,
+        typer.Option(help="Decompiler option profile: analysis (default), recovery, or program."),
+    ] = "analysis",
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Score Ghidra decompiler debt on a high-confidence recovered corpus."""
+    from .. import command_support as cli
+    from ..decompiler_quality import run_decompiler_quality
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_decompiler_quality(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            limit=limit,
+            seed=seed,
+            addresses=addresses,
+            require_match=require_match,
+            corpus_kind=corpus_kind,
+            profile=profile,
+        )
+
+    cli.emit(action())
+
+
+def prototype_repair_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write source-backed conventions into the live program."),
+    ] = False,
+    promote_default_cdecl: Annotated[
+        bool,
+        typer.Option(
+            "--promote-default-cdecl/--skip-default-cdecl",
+            help="Also promote Ghidra default/unknown to explicit __cdecl when source says so.",
+        ),
+    ] = True,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Report or apply calling-convention repairs from recovered source signatures."""
+    from .. import command_support as cli
+    from ..prototype_repair import run_prototype_repair
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_prototype_repair(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            addresses=addresses,
+            promote_default_cdecl=promote_default_cdecl,
+        )
+
+    cli.emit(action())
+
+
+def enrichment_checkpoint_command(
+    apply_conventions: Annotated[
+        bool,
+        typer.Option(
+            "--apply-conventions",
+            help="Apply source-backed calling conventions (disposable project unless --live).",
+        ),
+    ] = False,
+    apply_enrichment: Annotated[
+        bool,
+        typer.Option(
+            "--apply-enrichment",
+            help=(
+                "Apply source-safe enrichment stages (class/this/vftable/globals/"
+                "callbacks/CF/attributes; thunks stay off). Uses a disposable "
+                "restored project unless --live."
+            ),
+        ),
+    ] = False,
+    import_source: Annotated[
+        bool,
+        typer.Option(
+            "--import-source",
+            help=(
+                "Run reccmp-ghidra-import (requires build/PDB). Uses a disposable "
+                "restored project unless --live."
+            ),
+        ),
+    ] = False,
+    live: Annotated[
+        bool,
+        typer.Option(
+            "--live",
+            help=(
+                "Opt-in: apply mutations to the canonical checkout Ghidra project "
+                "instead of a disposable restore under work_dir/enrichment-checkpoint/."
+            ),
+        ),
+    ] = False,
+    skip_quality: Annotated[
+        bool,
+        typer.Option("--skip-quality", help="Skip the matched-function decompiler-quality sample."),
+    ] = False,
+    measure_pain: Annotated[
+        bool,
+        typer.Option(
+            "--measure-pain",
+            help=(
+                "Also score a pinned pain corpus (mismatch|inconclusive) before/after enrichment."
+            ),
+        ),
+    ] = False,
+    quality_limit: Annotated[
+        int,
+        typer.Option(min=1, help="Matched functions in the quality sample."),
+    ] = 50,
+    quality_seed: Annotated[int, typer.Option(help="Quality corpus seed.")] = 1,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Measure (and optionally apply) a high-confidence analysis enrichment checkpoint."""
+    from .. import command_support as cli
+    from ..enrichment_checkpoint import run_enrichment_checkpoint
+
+    payload = run_enrichment_checkpoint(
+        cli.settings(),
+        program_name=program,
+        target=target,
+        quality_limit=quality_limit,
+        quality_seed=quality_seed,
+        apply_conventions=apply_conventions,
+        apply_enrichment=apply_enrichment,
+        import_source=import_source,
+        measure_quality=not skip_quality,
+        measure_pain=measure_pain,
+        live=live,
+    )
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+def class_this_typing_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write Class* this types into the live program."),
+    ] = False,
+    allow_custom_storage: Annotated[
+        bool,
+        typer.Option(
+            "--allow-custom-storage",
+            help="Enable custom variable storage when auto-parameter this cannot be typed.",
+        ),
+    ] = False,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Type this from existing /wiz8/classes Structures on source __thiscall methods."""
+    from .. import command_support as cli
+    from ..class_this_typing import run_class_this_typing
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_class_this_typing(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            allow_custom_storage=allow_custom_storage,
+            addresses=addresses,
+        )
+
+    cli.emit(action())
+
+
+def class_structures_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write /wiz8/classes Structures into the live program."),
+    ] = False,
+    skip_this_typing: Annotated[
+        bool,
+        typer.Option(
+            "--skip-this-typing",
+            help="Do not chain class-this-typing after a successful apply.",
+        ),
+    ] = False,
+    class_name: Annotated[
+        list[str] | None,
+        typer.Option("--class", help="Limit to these owning class names; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Promote PDB/root class Structures into /wiz8/classes for typed this."""
+    from .. import command_support as cli
+    from ..class_structure_projection import run_class_structure_projection
+
+    def action():
+        return run_class_structure_projection(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            class_names=class_name,
+            type_this=not skip_this_typing,
+        )
+
+    cli.emit(action())
+
+
+def global_typing_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write source-backed GLOBAL types into the live listing."),
+    ] = False,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Type recovered GLOBAL markers in the canonical Ghidra listing."""
+    from .. import command_support as cli
+    from ..global_typing import run_global_typing
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_global_typing(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            addresses=addresses,
+        )
+
+    cli.emit(action())
+
+
+def callback_typing_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write curated callback field types into the live program."),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Create typed callback FunctionDefinitions and apply them to known fields."""
+    from .. import command_support as cli
+    from ..callback_typing import run_callback_typing
+
+    def action():
+        return run_callback_typing(cli.settings(), program_name=program, apply=apply)
+
+    cli.emit(action())
+
+
+def function_attributes_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write varargs/noreturn attributes into the live program."),
+    ] = False,
+    apply_thunks: Annotated[
+        bool,
+        typer.Option(
+            "--apply-thunks",
+            help="Write planned pure-JMP / ECX-adjustor thunks into the live program.",
+        ),
+    ] = False,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Report or apply source-backed varargs/noreturn; thunks need --apply-thunks."""
+    from .. import command_support as cli
+    from ..function_attributes import run_function_attributes
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_function_attributes(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            apply_thunks=apply_thunks,
+            addresses=addresses,
+        )
+
+    cli.emit(action())
+
+
+def vftable_typing_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write typed vftable Structures into the live program."),
+    ] = False,
+    class_name: Annotated[
+        list[str] | None,
+        typer.Option("--class", help="Limit to these class names; repeatable."),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        typer.Option(min=1, help="Optional cap on planned vftables."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Create named vftable Structures at known class vtable addresses."""
+    from .. import command_support as cli
+    from ..vftable_typing import run_vftable_typing
+
+    def action():
+        return run_vftable_typing(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            class_names=class_name,
+            limit=limit,
+        )
+
+    cli.emit(action())
+
+
+def cosmic_forge_globals_command(
+    apply: Annotated[
+        bool,
+        typer.Option("--apply", help="Write Cosmic Forge table types into the live listing."),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Type accepted Cosmic Forge .cfdat destination blobs from reviewed evidence."""
+    from .. import command_support as cli
+    from ..cosmic_forge_globals import run_cosmic_forge_globals
+
+    def action():
+        return run_cosmic_forge_globals(cli.settings(), program_name=program, apply=apply)
+
+    cli.emit(action())
+
+
+def convention_heuristics_command(
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply",
+            help="Write high-confidence heuristic conventions into the live program.",
+        ),
+    ] = False,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        typer.Option(min=1, help="Optional cap on planned repairs."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Heuristic calling conventions for unrecovered bodies (vtable/ECX/ret N)."""
+    from .. import command_support as cli
+    from ..convention_heuristics import run_convention_heuristics
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_convention_heuristics(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            addresses=addresses,
+            limit=limit,
+        )
+
+    cli.emit(action())
 
 
 def unresolved_report_command(

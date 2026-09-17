@@ -65,6 +65,11 @@ def start_pyghidra(settings: Settings, *, max_heap: str | None = None) -> None:
 
     if pyghidra.started():
         return
+    # Unit tests sometimes leave incomplete ``ghidra`` ModuleType stubs in
+    # ``sys.modules``; those shadow the real Java package after launch.
+    for key in list(sys.modules):
+        if key == "ghidra" or key.startswith("ghidra."):
+            del sys.modules[key]
     launcher = pyghidra.HeadlessPyGhidraLauncher(install_dir=settings.ghidra_install_dir)
     _remove_cwd_from_sys_path()
     if max_heap is not None:
