@@ -553,40 +553,37 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     ReportBuildStatus00497690(6,
                                               "\nOctree Statistics:\n==========================\n");
                     sprintf(message, "Width of Level: %f\t\tTree Depth: %d\n",
-                            static_cast<double>(build_tree->spatial_00.extent_04),
-                            build_tree->spatial_00.depth_44);
+                            build_tree->spatial_00.extent_04, build_tree->spatial_00.depth_44);
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "Width of Leaves: %f,  %f metres\n",
-                            static_cast<double>(build_tree->spatial_00.node_extent_70),
-                            static_cast<double>(
-                                (build_tree->spatial_00.node_extent_70 * g_float_005ebc60)));
+                            build_tree->spatial_00.node_extent_70,
+                            (build_tree->spatial_00.node_extent_70 * g_float_005ebc60));
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
-                            static_cast<double>(
-                                (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60)));
+                            (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60));
                     g_oct_node_count_0065bd0c = GetValue65BE60();
                     g_oct_leaf_count_0065bd10 = build_tree->positional_b8;
                     ReportBuildStatus00497690(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",
-                            static_cast<double>(build_tree->spatial_00.minimum_0c.x),
-                            static_cast<double>(build_tree->spatial_00.minimum_0c.y),
-                            static_cast<double>(build_tree->spatial_00.minimum_0c.z));
+                            build_tree->spatial_00.minimum_0c.x,
+                            build_tree->spatial_00.minimum_0c.y,
+                            build_tree->spatial_00.minimum_0c.z);
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "World Maximum Corner: \t%f  \t%f  \t%f\n",
-                            static_cast<double>(build_tree->spatial_00.maximum_18.x),
-                            static_cast<double>(build_tree->spatial_00.maximum_18.y),
-                            static_cast<double>(build_tree->spatial_00.maximum_18.z));
+                            build_tree->spatial_00.maximum_18.x,
+                            build_tree->spatial_00.maximum_18.y,
+                            build_tree->spatial_00.maximum_18.z);
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "World Dimensions:\n\tX: %fm  \tY: %fm  \tZ: %fm\n",
-                            static_cast<double>(((build_tree->spatial_00.clipped_maximum_30.x -
-                                                  build_tree->spatial_00.clipped_minimum_24.x) *
-                                                 g_float_005ebc60)),
-                            static_cast<double>(((build_tree->spatial_00.clipped_maximum_30.y -
-                                                  build_tree->spatial_00.clipped_minimum_24.y) *
-                                                 g_float_005ebc60)),
-                            static_cast<double>(((build_tree->spatial_00.clipped_maximum_30.z -
-                                                  build_tree->spatial_00.clipped_minimum_24.z) *
-                                                 g_float_005ebc60)));
+                            ((build_tree->spatial_00.clipped_maximum_30.x -
+                              build_tree->spatial_00.clipped_minimum_24.x) *
+                             g_float_005ebc60),
+                            ((build_tree->spatial_00.clipped_maximum_30.y -
+                              build_tree->spatial_00.clipped_minimum_24.y) *
+                             g_float_005ebc60),
+                            ((build_tree->spatial_00.clipped_maximum_30.z -
+                              build_tree->spatial_00.clipped_minimum_24.z) *
+                             g_float_005ebc60));
                     ReportBuildStatus00497690(6, message);
                     for (i = 0; i < level->num_switch_triggers_6c1; ++i) {
                         int slot = value->FindPointerByName004482A0(
@@ -615,19 +612,19 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                                     "Warning: GD Polygon %d cannot be inserted into tree\n", i);
                             ReportBuildStatus00497690(6, message);
                             sprintf(message, "\tVertex 1: \t%f  \t%f  \t%f\n",
-                                    static_cast<double>(surface->vertices_34[0]->position_0c.x),
-                                    static_cast<double>(surface->vertices_34[0]->position_0c.y),
-                                    static_cast<double>(surface->vertices_34[0]->position_0c.z));
+                                    surface->vertices_34[0]->position_0c.x,
+                                    surface->vertices_34[0]->position_0c.y,
+                                    surface->vertices_34[0]->position_0c.z);
                             ReportBuildStatus00497690(6, message);
                             sprintf(message, "\tVertex 2: \t%f  \t%f  \t%f\n",
-                                    static_cast<double>(surface->vertices_34[1]->position_0c.x),
-                                    static_cast<double>(surface->vertices_34[1]->position_0c.y),
-                                    static_cast<double>(surface->vertices_34[1]->position_0c.z));
+                                    surface->vertices_34[1]->position_0c.x,
+                                    surface->vertices_34[1]->position_0c.y,
+                                    surface->vertices_34[1]->position_0c.z);
                             ReportBuildStatus00497690(6, message);
                             sprintf(message, "\tVertex 3: \t%f  \t%f  \t%f\n\n",
-                                    static_cast<double>(surface->vertices_34[2]->position_0c.x),
-                                    static_cast<double>(surface->vertices_34[2]->position_0c.y),
-                                    static_cast<double>(surface->vertices_34[2]->position_0c.z));
+                                    surface->vertices_34[2]->position_0c.x,
+                                    surface->vertices_34[2]->position_0c.y,
+                                    surface->vertices_34[2]->position_0c.z);
                             ReportBuildStatus00497690(6, message);
                         }
                     }
@@ -839,15 +836,11 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             } else {
                                 tree->spatial_000.GetWorkingBounds0046CDF0(&bound_min, &bound_max);
                                 ReportBuildStatus00497690(6, "Graphic Data Bounding Box:\n");
-                                sprintf(message, "     Minimum: %f   %f   %f\n",
-                                        static_cast<double>(bound_min.x),
-                                        static_cast<double>(bound_min.y),
-                                        static_cast<double>(bound_min.z));
+                                sprintf(message, "     Minimum: %f   %f   %f\n", bound_min.x,
+                                        bound_min.y, bound_min.z);
                                 ReportBuildStatus00497690(6, message);
-                                sprintf(message, "     Maximum: %f   %f   %f\n\n",
-                                        static_cast<double>(bound_max.x),
-                                        static_cast<double>(bound_max.y),
-                                        static_cast<double>(bound_max.z));
+                                sprintf(message, "     Maximum: %f   %f   %f\n\n", bound_max.x,
+                                        bound_max.y, bound_max.z);
                                 ReportBuildStatus00497690(6, message);
                                 ReportBuildStatus00497690(6, "\nWriting Oct File...\n");
                                 result = tree->WriteOctFile004683F0(&geometry, value);
@@ -1915,15 +1908,9 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
                 ++texture_count;
             }
             sprintf(name, "Mat:%1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %d %c",
-                    static_cast<double>(record->diffuse_0d5[0]),
-                    static_cast<double>(record->diffuse_0d5[1]),
-                    static_cast<double>(record->diffuse_0d5[2]),
-                    static_cast<double>(record->specular_0ed[0]),
-                    static_cast<double>(record->specular_0ed[1]),
-                    static_cast<double>(record->specular_0ed[2]),
-                    static_cast<double>(record->positional_0f9),
-                    static_cast<double>(record->opacity_0fd),
-                    static_cast<double>(record->emission_101),
+                    record->diffuse_0d5[0], record->diffuse_0d5[1], record->diffuse_0d5[2],
+                    record->specular_0ed[0], record->specular_0ed[1], record->specular_0ed[2],
+                    record->positional_0f9, record->opacity_0fd, record->emission_101,
                     static_cast<int>(record->shader_flags_116), classify[index]);
             for (scan = 0; scan < material_count; ++scan) {
                 if (strcmp(material_names + scan * 0x200, name) == 0) {
@@ -2035,22 +2022,20 @@ void OctBuildOptions00496CD0(char* stem)
             if (g_option_pathing_0060ac70 == 0) {
                 sprintf(lines[2], "(P)athing %s", pathing_state);
             } else {
-                sprintf(
-                    lines[2],
-                    "(P)athing %s    (N)ode Spacing: %5.2fm    (H)ead Room:   %5.2fm"
-                    "    (D)elete Percentage: %d",
-                    pathing_state,
-                    static_cast<double>((g_option_path_node_spacing_0060ac74 * g_float_005ebc60)),
-                    static_cast<double>((g_option_path_head_room_0060ac78 * g_float_005ebc60)),
-                    g_option_delete_percentage_0060ac7c);
+                sprintf(lines[2],
+                        "(P)athing %s    (N)ode Spacing: %5.2fm    (H)ead Room:   %5.2fm"
+                        "    (D)elete Percentage: %d",
+                        pathing_state, (g_option_path_node_spacing_0060ac74 * g_float_005ebc60),
+                        (g_option_path_head_room_0060ac78 * g_float_005ebc60),
+                        g_option_delete_percentage_0060ac7c);
             }
             sprintf(lines[3], "(R)ename Alphas %s    (M)esh Linking %s", rename_state, mesh_state);
             sprintf(lines[4],
                     "Min. Leaf (S)ize %5.2fm    Max. Leaf (C)ount %d    (A)uto Region"
                     " Size %5.2fm",
-                    static_cast<double>((g_option_min_leaf_size_0060ac80 * g_float_005ebc60)),
+                    (g_option_min_leaf_size_0060ac80 * g_float_005ebc60),
                     g_option_max_leaf_count_0060ac88,
-                    static_cast<double>((g_option_auto_region_size_0065bd30 * g_float_005ebc60)));
+                    (g_option_auto_region_size_0065bd30 * g_float_005ebc60));
             sprintf(lines[5], "Hit ENTER to accept,  ESC to cancel and exit");
             if (edit_mode == 0) {
                 sprintf(lines[6], " ");
