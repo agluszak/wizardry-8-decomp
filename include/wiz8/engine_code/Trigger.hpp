@@ -125,6 +125,7 @@ public:
     bool CanRunLinkedTriggers();
     bool SelectAction();
     void GenerateItemGroup();
+    W8WorldItem* GetOrCreateItemGroup00445670(char create);
     void RunDestination00440DD0(const char* destination);
     void Run(int source);
 

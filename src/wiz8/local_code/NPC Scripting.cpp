@@ -1567,6 +1567,25 @@ void AuditNpcScriptQuotes00529660(void)
     fclose(file);
     g_status_685170.quote_audit_2431 = 0;
 }
+/* Queue `text` as a floating portrait message: the string is copied so the
+   queue owns it, and while the level-data flag is clear the message is
+   bracketed by RESET_LEVEL_STATE markers so the dispatcher restores state
+   around it. */
+// FUNCTION: WIZ8 0x005299B0
+void ShowString(wchar_t* text)
+{
+    wchar_t* copy = new wchar_t[0x200];
+    wcscpy(copy, text);
+    if (GetLevelDataFlag6() == 0) {
+        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE,
+                          reinterpret_cast<wchar_t*>(1), // reinterpret-ok: tagged storage
+                          0);
+    }
+    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_MESSAGE, copy, 0);
+    if (GetLevelDataFlag6() == 0) {
+        AddMessageBoxLine(W8_NPC_MSG_RESET_LEVEL_STATE, 0, 0);
+    }
+}
 // FUNCTION: WIZ8 0x00529BC0
 void SetScriptedSceneActive(void)
 {

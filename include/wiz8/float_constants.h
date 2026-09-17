@@ -118,6 +118,9 @@ extern double g_double_005ebe80;
 extern double g_double_005ebe88;
 extern double g_double_005ebe90;
 extern double g_double_005ebf40;
+/* 0x005EC980: 0.25, the per-component weight that averages a trigger plane's
+   four representation vectors into its center. */
+extern const double g_double_005ec980;
 extern const double g_double_005ebf60;
 extern float g_float_005ec3f8;
 extern float g_float_005ecbb4;

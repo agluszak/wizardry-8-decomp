@@ -225,6 +225,7 @@ extern int g_viewport_bottom_6595f4;
 extern int g_dword_6596d8;
 extern int g_resident_texture_policy_659714;
 extern unsigned char g_flag_65970d;
+extern unsigned char g_flag_65970e;
 
 void SetResidentTexturePolicy(int policy);
 void SetSurfaceScale004297E0(float scale);

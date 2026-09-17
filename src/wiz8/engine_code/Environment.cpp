@@ -25,6 +25,7 @@
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/engine_code/Monster.h"
 
 /*
  * Engine Code\Environment.cpp.
@@ -64,10 +65,14 @@ srFog* g_environment_object_0065b9b4;
 W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
 
 /* 1/duration while the transition body at 0x00484300 runs, zero when idle.
-   Its only writer in the image is 0x00483FD0, which stores 1/duration and sets
-   the lighting mode to 1; 0x00484300 stores zero again once it completes. */
+   BeginWorldLightingFade stores 1/duration and sets the lighting mode to 1;
+   UpdateEnvironmentLighting00484300 stores zero again once it completes. */
 // GLOBAL: WIZ8 0x0065b9b8
 float g_environment_transition_rate_0065b9b8;
+/* Tick baseline for the active lighting transition; rewritten every frame the
+   transition body advances the light scale. */
+// GLOBAL: WIZ8 0x0065b9bc
+unsigned long g_environment_transition_tick_0065b9bc;
 // GLOBAL: WIZ8 0x0060a3ac
 int g_last_light_phase_0060a3ac = -1;
 // GLOBAL: WIZ8 0x0060a395
@@ -568,10 +573,10 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
     }
     if (g_double_005ebc30 <= value || g_zero_005ebb40 < value) {
         if (g_double_005ebc30 <= value) {
-            value = (float)g_double_005ebc30;
+            value = static_cast<float>(g_double_005ebc30);
         }
     } else {
-        value = (float)g_zero_005ebb40;
+        value = static_cast<float>(g_zero_005ebb40);
     }
     if (world->static_scene == 0) {
         colour = 0.0;
@@ -579,6 +584,221 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
         return;
     }
     ApplyEnvironmentColour00483BA0(world, value, &world->environment_colour_02c);
+}
+
+/* Arm or complete a lighting fade. A zero duration snaps back to day/night
+   lighting with the current base intensity; any other duration stores
+   1/duration as the per-millisecond rate and, for a fade-out, snapshots the
+   live intensity into the world's base field. */
+// FUNCTION: WIZ8 0x00483FD0
+void BeginWorldLightingFade(float duration)
+{
+    W8World* world;
+    float intensity;
+    EnvironmentColour colour;
+    EnvironmentColour direction;
+
+    if (duration == g_float_005ebb34) {
+        g_environment_lighting_mode_0060a3a8 = 2;
+        g_environment_transition_rate_0065b9b8 = 0.0f;
+        g_flag_65970d = 1;
+        g_monster_shadow_updates_enabled_0065970c = 1;
+        g_flag_65970e = 0;
+        g_light_scale_0060bfe0 = 1.0f;
+
+        world = g_world;
+        intensity = world->environment_base_intensity_028;
+        if (world == 0) {
+            srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
+        }
+        if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+            if (g_double_005ebc30 <= intensity) {
+                intensity = static_cast<float>(g_double_005ebc30);
+            }
+        } else {
+            intensity = static_cast<float>(g_zero_005ebb40);
+        }
+        if (world->static_scene == 0) {
+            colour.red = 0.0f;
+            colour.green = 0.0f;
+            colour.blue = 0.0f;
+            // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
+            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+            ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+        } else {
+            ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+        }
+
+        world = g_world_659ab8;
+        if (world != 0) {
+            intensity = world->environment_base_intensity_028;
+            if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+                if (g_double_005ebc30 <= intensity) {
+                    intensity = static_cast<float>(g_double_005ebc30);
+                }
+            } else {
+                intensity = static_cast<float>(g_zero_005ebb40);
+            }
+            if (world->static_scene == 0) {
+                colour.red = 0.0f;
+                colour.green = 0.0f;
+                colour.blue = 0.0f;
+                // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
+                SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+                ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+            } else {
+                ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+            }
+        }
+
+        direction = g_light_direction_0065ad78;
+        if (direction.red <= g_float_005ebb34) {
+            direction.red = 0.0f;
+        } else if (direction.red >= g_float_005ebb38) {
+            direction.red = 1.0f;
+        }
+        if (direction.green <= g_float_005ebb34) {
+            direction.green = 0.0f;
+        } else if (direction.green >= g_float_005ebb38) {
+            direction.green = 1.0f;
+        }
+        if (direction.blue <= g_float_005ebb34) {
+            direction.blue = 0.0f;
+        } else if (direction.blue >= g_float_005ebb38) {
+            direction.blue = 1.0f;
+        }
+        PublishLightDirection(&direction);
+        return;
+    }
+
+    g_environment_transition_rate_0065b9b8 = g_float_005ebb38 / duration;
+    g_environment_transition_tick_0065b9bc = GetTickCount();
+    g_environment_lighting_mode_0060a3a8 = 1;
+    if (duration < g_float_005ebb34) {
+        g_world->environment_base_intensity_028 = g_world->environment_intensity_024;
+        if (g_world_659ab8 != 0) {
+            g_world_659ab8->environment_base_intensity_028 =
+                g_world_659ab8->environment_intensity_024;
+        }
+    }
+}
+
+/* Advance an armed lighting transition by the milliseconds since its tick
+   baseline: update the shared light scale, reapply both worlds' ambient from
+   scale times each world's base intensity, and publish a scale-modulated light
+   direction. Completing a fade-out leaves mode 0; completing a fade-in returns
+   to day/night mode 2. */
+// FUNCTION: WIZ8 0x00484300
+void UpdateEnvironmentLighting00484300(void)
+{
+    unsigned long now = GetTickCount();
+    unsigned long elapsed = now - g_environment_transition_tick_0065b9bc;
+    W8World* world;
+    float scale;
+    float intensity;
+    EnvironmentColour colour;
+    EnvironmentColour direction;
+
+    if (elapsed == 0) {
+        return;
+    }
+
+    scale = elapsed * g_environment_transition_rate_0065b9b8 + g_light_scale_0060bfe0;
+    if (g_float_005ebb38 < scale) {
+        scale = 1.0f;
+    } else if (scale < g_float_005ebb34) {
+        scale = 0.0f;
+    }
+    g_light_scale_0060bfe0 = scale;
+
+    world = g_world;
+    intensity = scale * world->environment_base_intensity_028;
+    if (world == 0) {
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 0x298, 0);
+    }
+    if (g_double_005ebc30 <= intensity || g_zero_005ebb40 < intensity) {
+        if (g_double_005ebc30 <= intensity) {
+            intensity = static_cast<float>(g_double_005ebc30);
+        }
+    } else {
+        intensity = static_cast<float>(g_zero_005ebb40);
+    }
+    if (world->static_scene == 0) {
+        colour.red = 0.0f;
+        colour.green = 0.0f;
+        colour.blue = 0.0f;
+        // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
+        SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+        ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+    } else {
+        ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+    }
+
+    world = g_world_659ab8;
+    if (world != 0) {
+        float secondary = scale * world->environment_base_intensity_028;
+        if (g_double_005ebc30 <= secondary || g_zero_005ebb40 < secondary) {
+            if (g_double_005ebc30 <= secondary) {
+                secondary = static_cast<float>(g_double_005ebc30);
+            }
+        } else {
+            secondary = static_cast<float>(g_zero_005ebb40);
+        }
+        if (world->static_scene == 0) {
+            colour.red = 0.0f;
+            colour.green = 0.0f;
+            colour.blue = 0.0f;
+            // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
+            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+            ApplyEnvironmentColour00483BA0(world, secondary, &colour);
+        } else {
+            ApplyEnvironmentColour00483BA0(world, secondary, &world->environment_colour_02c);
+        }
+    }
+
+    direction.red = g_light_direction_0065ad78.red * scale;
+    direction.green = g_light_direction_0065ad78.green * scale;
+    direction.blue = g_light_direction_0065ad78.blue * scale;
+    if (direction.red <= g_float_005ebb34) {
+        direction.red = 0.0f;
+    } else if (direction.red >= g_float_005ebb38) {
+        direction.red = 1.0f;
+    }
+    if (direction.green <= g_float_005ebb34) {
+        direction.green = 0.0f;
+    } else if (direction.green >= g_float_005ebb38) {
+        direction.green = 1.0f;
+    }
+    if (direction.blue <= g_float_005ebb34) {
+        direction.blue = 0.0f;
+    } else if (direction.blue >= g_float_005ebb38) {
+        direction.blue = 1.0f;
+    }
+    PublishLightDirection(&direction);
+
+    if (intensity == g_float_005ebb34) {
+        g_environment_lighting_mode_0060a3a8 = 0;
+        g_flag_65970d = 0;
+        g_monster_shadow_updates_enabled_0065970c = 0;
+        g_flag_65970e = 1;
+        g_environment_transition_rate_0065b9b8 = 0.0f;
+        g_environment_transition_tick_0065b9bc = now;
+        return;
+    }
+    if (scale == g_float_005ebb38) {
+        g_environment_lighting_mode_0060a3a8 = 2;
+        g_flag_65970d = 1;
+        g_monster_shadow_updates_enabled_0065970c = 1;
+        g_flag_65970e = 0;
+        g_environment_transition_rate_0065b9b8 = 0.0f;
+        g_environment_transition_tick_0065b9bc = now;
+        return;
+    }
+    g_flag_65970e = 0;
+    g_environment_transition_tick_0065b9bc = now;
+    g_environment_lighting_mode_0060a3a8 = 1;
+    g_flag_65970d = 1;
+    g_monster_shadow_updates_enabled_0065970c = 1;
 }
 
 // FUNCTION: WIZ8 0x00482F60

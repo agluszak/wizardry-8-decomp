@@ -120,8 +120,10 @@ struct W8GlobalStatus {
     int difficulty;
     unsigned char unknown_244b[8];
     wchar_t monster_name_buffer_2453[22];
-    unsigned char alternate_name_slot_247f;
-    unsigned char unknown_2480[7];
+    /* 0x247f: party-slot index read as a full dword by GetMonsterGroupName and
+       the type-9 world-cursor handler. */
+    int alternate_name_slot_247f;
+    unsigned char unknown_2483[4];
     unsigned char flag_2487;
     /* 0x2488: one-shot gate; when set, the next condition-change and
        condition-cleared reaction is swallowed and the flag cleared. */
@@ -149,7 +151,11 @@ struct W8GlobalStatus {
     /* 0x423d: party-slot-like dword the 0x14c fact compares against occupied
        slots. */
     int value_423d;
-    unsigned char unknown_4241[0x732];
+    unsigned char unknown_4241[0x731];
+    /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
+       the level-4 setup; the setup skips its work while this or value_2390
+       holds. */
+    unsigned char cc_arena_spawned_4972;
     /* 0x4973/0x4977: GetTickCount stamps. NpcScriptSavantHackDone writes the
        first; UpdateNpcEvents retires NPC 0x1b3 fifty ticks later and starts
        the second, which gates monster group 0x1b6's Bela cycle after five

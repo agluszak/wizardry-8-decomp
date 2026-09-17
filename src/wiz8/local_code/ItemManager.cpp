@@ -24,8 +24,13 @@
 #include "random.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/stModelInstance.h"
+#include "surrender/srCore.h"
+#include "FileMan.h"
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
 
@@ -455,7 +460,7 @@ unsigned int ItemIndex(int runtime_id)
    everything chained onto it. A failed append drops that entry and the walk
    continues. */
 // FUNCTION: WIZ8 0x004f8440
-int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8GrowableVector<W8WorldItem*>* out)
+int ItemInfoMakeGroupList(W8WorldItem* item, W8GrowableVector<W8WorldItem*>* out)
 {
     W8WorldItem* next;
 
@@ -470,6 +475,239 @@ int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8GrowableVector<W8Worl
         out->Add(next);
     }
     return out->count;
+}
+
+/* 0x00617D34: the generic 3D model names ActivateItem falls back to when a
+   record's internal_name is blank, indexed by unidentified_name_index. */
+// GLOBAL: WIZ8 0x00617d34
+static const char g_item_model_fallback_names[145][0x1e] = {"Dagger",
+                                                            "Long Sword",
+                                                            "Bipennis",
+                                                            "Battle Axe",
+                                                            "Flail",
+                                                            "Mace",
+                                                            "Hammer",
+                                                            "Staff",
+                                                            "Halberd",
+                                                            "Spear",
+                                                            "Bo Stick",
+                                                            "Bow",
+                                                            "Crossbow",
+                                                            "Sling",
+                                                            "Great Sword",
+                                                            "Rapier",
+                                                            "Katana",
+                                                            "Long Staff",
+                                                            "Wand",
+                                                            "Magic Stave",
+                                                            "Spellbook",
+                                                            "Shuriken",
+                                                            "Arrows",
+                                                            "Bullets",
+                                                            "Kite Shield",
+                                                            "Basnet",
+                                                            "Plate Torso",
+                                                            "Plate Leggings",
+                                                            "Gauntlets",
+                                                            "Sollerets",
+                                                            "Amulet",
+                                                            "Ring",
+                                                            "Blue Potion",
+                                                            "Scroll",
+                                                            "Powder",
+                                                            "Key",
+                                                            "Locket",
+                                                            "Great Bow",
+                                                            "Round Shield",
+                                                            "Wizard Cone",
+                                                            "Leather Helm",
+                                                            "Cuirass",
+                                                            "Leather Top",
+                                                            "Greaves",
+                                                            "Leather Leggings",
+                                                            "Gloves",
+                                                            "Sandals",
+                                                            "Buskins",
+                                                            "Boots",
+                                                            "Book",
+                                                            "Ankh",
+                                                            "Ninjato",
+                                                            "War Hammer",
+                                                            "Flamberge",
+                                                            "Bullwhip",
+                                                            "Sai",
+                                                            "Nunchuka",
+                                                            "Glaive",
+                                                            "Black Sword",
+                                                            "Fire Sword",
+                                                            "Upper Robes",
+                                                            "Lower Robes",
+                                                            "Halter",
+                                                            "Skirt",
+                                                            "Skullcap",
+                                                            "Feathered Cap",
+                                                            "Mitre",
+                                                            "Breast Plate",
+                                                            "Kabuto",
+                                                            "Upper Toseido",
+                                                            "Lower Toseido",
+                                                            "Burgonet",
+                                                            "Fur Leggings",
+                                                            "Cloak",
+                                                            "Mantis Gloves",
+                                                            "Mantis Boots",
+                                                            "Garland",
+                                                            "Cat 'O Nine Tails",
+                                                            "Silver Cross",
+                                                            "Ruby Talisman",
+                                                            "Purple Amulet",
+                                                            "Bracelet",
+                                                            "Necklace",
+                                                            "Quarrels",
+                                                            "Jade Figure",
+                                                            "Chain Coif",
+                                                            "Upper Chain",
+                                                            "Lower Chain",
+                                                            "Mail Mittens",
+                                                            "Chain Hosen",
+                                                            "Lance",
+                                                            "Armet",
+                                                            "Ninja Cowl",
+                                                            "Upper Ninja Garb",
+                                                            "Lower Ninja Garb",
+                                                            "Tabi Boots",
+                                                            "Heaume",
+                                                            "Box Helm",
+                                                            "Diamond Ring",
+                                                            "Bag",
+                                                            "Red Potion",
+                                                            "Green Potion",
+                                                            "Purple Potion",
+                                                            "Yellow Potion",
+                                                            "Power Glove",
+                                                            "T'Rang Staff",
+                                                            "Bronze Gauntlets",
+                                                            "Comm Link",
+                                                            "Light Sword",
+                                                            "Magic Bag",
+                                                            "Phaser",
+                                                            "ID Card",
+                                                            "Darts",
+                                                            "Powder Shot",
+                                                            "Musket",
+                                                            "Coin",
+                                                            "Stone",
+                                                            "Stick",
+                                                            "Short Sword",
+                                                            "UNDEFINED",
+                                                            "Bagpipes",
+                                                            "Lyre",
+                                                            "Lute",
+                                                            "Horn",
+                                                            "Map",
+                                                            "Bracelet",
+                                                            "Shuriken",
+                                                            "UNDEFINED",
+                                                            "Wand",
+                                                            "Yellow Potion",
+                                                            "Medium Shield",
+                                                            "UNDEFINED",
+                                                            "UNDEFINED",
+                                                            "UNDEFINED",
+                                                            "UNDEFINED",
+                                                            "UNDEFINED",
+                                                            "Saxophone",
+                                                            "Violin",
+                                                            "Drum",
+                                                            "Bullroarer",
+                                                            "bomb",
+                                                            "emptybottle",
+                                                            "stix",
+                                                            "rocket",
+                                                            "rocketlauncher"};
+
+/* Put one spawned item into the world: load its 3D model from
+   Data\Items3D\Bitmaps, drop it at the item's position with a random yaw,
+   attach and register it, then scale it by whether the sun reaches it. */
+// FUNCTION: WIZ8 0x004f6cf0
+void ActivateItem(W8WorldItem* item)
+{
+    srVector3T<float> position;
+    srVector3T<float> sun_position;
+    W8ReadLevelInfo info;
+    char zItemName[0x3c];
+    char zItemFullPath[0x38];
+    const char* name;
+    srRegistry::ClassNode* node;
+    srNode* sun;
+    stModelInstance* mesh;
+
+    if (item == 0) {
+        srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x1d4, 0);
+    }
+    if (item->unknown_08 != 0) {
+        srAssertFail("!pItemInfo->fActive", ITEM_MANAGER_CPP, 0x1d5, 0);
+    }
+
+    info.world = GetWorld();
+    info.hFile = 0;
+    info.bitmap_folder = "Data\\Items3D\\Bitmaps";
+
+    name = g_item_records[item->item.item_id].internal_name;
+    if (strlen(name) == 0) {
+        name =
+            g_item_model_fallback_names[g_item_records[item->item.item_id].unidentified_name_index];
+    }
+    strcpy(zItemName, name);
+    if (strstr(zItemName, ".ITM") != 0) {
+        sprintf(zItemFullPath, "%s\\%s", "Data\\Items3D", zItemName);
+    } else {
+        sprintf(zItemFullPath, "%s\\%s.ITM", "Data\\Items3D", zItemName);
+    }
+    if (!FileExists(zItemFullPath)) {
+        strcpy(zItemName, "questionmark");
+        sprintf(zItemFullPath, "%s\\%s.ITM", "Data\\Items3D", zItemName);
+        if (!FileExists(zItemFullPath)) {
+            srAssertFail("FileExists(zItemFullPath)", ITEM_MANAGER_CPP, 0x1ed,
+                         FormatString("ActivateItem: ERROR - missing ITM file %s, item %d",
+                                      zItemFullPath, item->item.item_id));
+        }
+    }
+
+    if (LoadItemFromFile(&info, zItemName, &item->owner, 0) == 0) {
+        srAssertFail("fSuccess", ITEM_MANAGER_CPP, 0x1f2,
+                     FormatString("ActivateItem: ERROR - ItemRead %s failed", zItemName));
+    }
+    if (ItemHasFlags(item, 4)) {
+        item->owner->LightRadarBlip();
+    }
+    position = item->position;
+    item->owner->SetLocation0049F720(&position);
+    item->owner->SetYaw(
+        static_cast<float>(Random(0x168) * 2 * g_camera_pi_005ec2a0 * g_double_005ed7b0));
+    static_cast<W8ItemRep*>(item->owner->m_pRep)->flags |= item->entity_flags;
+    item->owner->AttachMesh0049F900(GetWorld());
+    AddItemToWorld0046E5C0(GetWorld(), item->owner);
+    item->unknown_08 = 1;
+    ++gXStatus.item_manager_pending;
+
+    node = srCore.getRegistry()->getClassNode(0x1000);
+    if (node == 0) {
+        node = srCore.getRegistry()->registerClass(srNode::sGetClassName(),
+                                                   srClass::sGetClassNode(), 0x1000, 1);
+    }
+    sun = static_cast<srNode*>(srCore.getRegistry()->find(node, "SUN", 0));
+    if (sun != 0) {
+        sun_position = sun->getLocation();
+        mesh = static_cast<stModelInstance*>(item->owner->GetMesh());
+        if (mesh != 0) {
+            if (g_octree_6598a4->HasLineOfSight(&position, &sun_position, 1)) {
+                mesh->scale_194 = 1.0f;
+            } else {
+                mesh->scale_194 = 0.0f;
+            }
+        }
+    }
 }
 
 /* Take one item out of the world. Its three assertions name the two fields
