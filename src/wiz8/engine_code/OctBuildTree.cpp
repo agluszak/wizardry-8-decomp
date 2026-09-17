@@ -27,7 +27,7 @@ W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), padding_02(0)
    50,000 eight-byte links.  A fresh zeroed link records the surface while its
    next pointer remains null. */
 // FUNCTION: WIZ8 0x00446250
-W8OctBuildLink* W8OctBuildLinkLists::GetNewLink00446250(W8GDSurface* surface)
+W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(W8GDSurface* surface)
 {
     if (m_ausLinkCounts[m_usCurrent] > 49999) {
         ++m_usCurrent;
@@ -242,9 +242,10 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
 /* Descend through every overlapping octant.  Branch nodes own child nodes;
    leaf nodes reuse the same eight slots as per-mode linked-list heads. */
 // FUNCTION: WIZ8 0x004469f0
-unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
-    W8OctSpatialState* working, W8GDSurface* surface, srVector3T<float>* plane_point,
-    unsigned long mode)
+unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
+                                                                     W8GDSurface* surface,
+                                                                     srVector3T<float>* plane_point,
+                                                                     unsigned long mode)
 {
     W8OctSpatialState child(working);
     unsigned char inserted = 0;
@@ -262,13 +263,13 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(
 
         W8OctBuildLink*& head = node->links_00[(short)mode];
         if (head == 0) {
-            head = link_lists_9c->GetNewLink00446250(surface);
+            head = link_lists_9c->GetNewLink(surface);
         } else {
             W8OctBuildLink* tail = head;
             while (tail->next_04 != 0) {
                 tail = tail->next_04;
             }
-            tail->next_04 = link_lists_9c->GetNewLink00446250(surface);
+            tail->next_04 = link_lists_9c->GetNewLink(surface);
         }
         inserted = 1;
     } else {
