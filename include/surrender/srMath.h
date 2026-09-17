@@ -125,6 +125,7 @@ public:
 };
 
 // TEMPLATE: WIZ8 0x00421670
+// srVector3T<float>::SetZero
 template <class T> void srVector3T<T>::SetZero()
 {
     x = (T)0;
@@ -133,6 +134,7 @@ template <class T> void srVector3T<T>::SetZero()
 }
 
 // TEMPLATE: WIZ8 0x00421680
+// srVector3T<float>::Set
 template <class T>
 srVector3T<T>* srVector3T<T>::Set(double source_0, double source_1, double source_2)
 {
@@ -218,6 +220,7 @@ template <class T> srVector3T<T>* srVector3T<T>::Unitize()
 }
 
 // TEMPLATE: WIZ8 0x00421700
+// srVector3T<float>::Length
 template <class T> T srVector3T<T>::Length() const
 {
     return (T)sqrt(x * x + y * y + z * z);
@@ -240,6 +243,7 @@ template <class T> srVector3T<T>* srVector3T<T>::SetFromDouble(const srVector3T<
 }
 
 // TEMPLATE: WIZ8 0x00451A10
+// srVector3T<float>::RotateAboutY
 template <class T> srVector3T<T>* srVector3T<T>::RotateAboutY(double sine, double cosine)
 {
     T new_z = (T)(z * cosine - x * sine);
@@ -249,6 +253,7 @@ template <class T> srVector3T<T>* srVector3T<T>::RotateAboutY(double sine, doubl
 }
 
 // TEMPLATE: WIZ8 0x0049BA80
+// srVector3T<float>::RotateAboutX
 template <class T> srVector3T<T>* srVector3T<T>::RotateAboutX(double sine, double cosine)
 {
     T new_z = (T)(z * cosine + y * sine);
@@ -371,6 +376,7 @@ public:
 };
 
 // TEMPLATE: WIZ8 0x004D6B30
+// srVector4T<float>::Set
 template <class T> srVector4T<T>* srVector4T<T>::Set(T source_0, T source_1, T source_2, T source_3)
 {
     x = source_0;
@@ -419,6 +425,7 @@ public:
 };
 
 // TEMPLATE: WIZ8 0x004219F0
+// srMatrix3T<float>::SetRows
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector3T<T>& second,
                                       const srVector3T<T>& third)
@@ -430,6 +437,7 @@ srMatrix3T<T>* srMatrix3T<T>::SetRows(const srVector3T<T>& first, const srVector
 }
 
 // TEMPLATE: WIZ8 0x00421A40
+// srMatrix3T<float>::MultiplyBy
 template <class T> srMatrix3T<T>* srMatrix3T<T>::MultiplyBy(const srMatrix3T<T>& other)
 {
     T result[9];
@@ -481,6 +489,7 @@ template <class T> bool srMatrix3T<T>::operator==(const srMatrix3T<T>& other) co
 }
 
 // TEMPLATE: WIZ8 0x00438F90
+// srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, double cosine)
 {
     srVector3T<T> basis[3];
@@ -503,6 +512,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double sine, doubl
 }
 
 // TEMPLATE: WIZ8 0x00478EB0
+// srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double sine, double cosine)
 {
     srVector3T<T> basis[3];
@@ -546,6 +556,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
 }
 
 // TEMPLATE: WIZ8 0x00467430
+// srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 {
     srVector3T<T> basis[3];
@@ -574,6 +585,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 }
 
 // TEMPLATE: WIZ8 0x004A5AB0
+// srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 {
     srVector3T<T> basis[3];
@@ -602,6 +614,7 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 }
 
 // TEMPLATE: WIZ8 0x0042B910
+// srMatrix3T<float>::RotateAroundAxis
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
                                                const srVector3T<T>& axis)
@@ -681,6 +694,7 @@ public:
 };
 
 // TEMPLATE: WIZ8 0x0049BAB0
+// srMatrix4T<float>::Invert
 template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
 {
     srMatrix4T<T> inverse;
@@ -856,6 +870,7 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
    last column is `translation`; the bottom row is (0,0,0,1). Wiz8's
    BakeInstanceVertexLighting calls this before bulk-transforming vertices. */
 // TEMPLATE: WIZ8 0x00470200
+// srMatrix4T<float>::Set
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation)
 {

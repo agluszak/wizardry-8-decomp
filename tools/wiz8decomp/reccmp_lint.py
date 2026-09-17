@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import argparse
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from reccmp.dir import source_code_search
 from reccmp.parser.error import AlertCode
-from reccmp.tools.decomplint import decomplint_parse_args, lint_all_targets
+from reccmp.project.detect import RecCmpProject
+from reccmp.tools.decomplint import DecomplintTarget, check_aliases, lint_all_targets
 
 # Many recovered translation units preserve reviewed source/link ordering that is
 # not monotonically increasing by address. reccmp's generic order advice cannot
@@ -29,17 +30,28 @@ class ReccmpLintError(RuntimeError):
     """reccmp found a non-waived annotation problem."""
 
 
-def validate_reccmp_annotations(repository: Path) -> dict[str, Any]:
-    arguments = argparse.Namespace(
-        paths=[repository / "src/wiz8", repository / "include/wiz8"],
-        target="WIZ8",
-        encoding="utf-8",
+def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
+    """Translate every reccmp source target into decomplint's native scope."""
+
+    project = RecCmpProject.from_directory(repository)
+    project_file = project.project_config_path or repository / "reccmp-project.yml"
+    return tuple(
+        DecomplintTarget(
+            paths=tuple(source_code_search(target.source_paths)),
+            module=target.target_id,
+            encoding=target.encoding or "utf-8",
+            project_file_path=project_file,
+            aliases=target.marker_aliases,
+        )
+        for target in project.targets.values()
+        if target.source_paths
     )
-    alerts = [
-        alert
-        for alert in lint_all_targets(decomplint_parse_args(arguments))
-        if alert.target in {None, "WIZ8"}
-    ]
+
+
+def validate_reccmp_annotations(repository: Path) -> dict[str, Any]:
+    lint_targets = _configured_lint_targets(repository)
+    alerts = lint_all_targets(lint_targets)
+    alerts.extend(check_aliases(lint_targets))
     problems = [alert for alert in alerts if alert.code not in ALLOWED_ALERTS]
     if problems:
         rendered = [
@@ -52,6 +64,7 @@ def validate_reccmp_annotations(repository: Path) -> dict[str, Any]:
     return {
         "ok": True,
         "engine": "reccmp-decomplint",
+        "targets": [target.module for target in lint_targets],
         "alerts": dict(sorted(counts.items())),
         "waived": sorted(code.name.lower() for code in ALLOWED_ALERTS),
     }

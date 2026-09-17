@@ -35,8 +35,10 @@ source use [source oracles](references/source-oracles.md). Read only the referen
 6. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
    spelling merely to manipulate registers/CFG/score.
 7. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
-8. If final linkage obscures the question, select the appropriate object/data/vtable modality from the
-   comparison reference. Stop when no evidence-backed source correction remains.
+8. For an almost-match dominated by stack-offset/local-order differences, use `reccmp-stackcmp` as a
+   diagnostic before guessing at source changes. If final linkage obscures the question, select the
+   appropriate object/data/vtable modality from the comparison reference. Stop when no evidence-backed
+   source correction remains.
 
 `uv run wiz8 recover function ADDRESS...` is an optional candidate generator. It writes disposable
 artifacts; it does not edit source, build or compare and is never a prerequisite.
@@ -89,6 +91,12 @@ require refreshing them, for example `uv run wiz8 compare --build --changed`. Do
 - `mismatch`: inspect the first meaningful divergence and form a concrete source/type/ABI/lifetime/
   ownership hypothesis before editing. A percentage or changed CFG is not source evidence.
 - `inconclusive` / `missing`: identify the absent pairing/evidence/analysis; do not claim equivalence.
+
+When a `mismatch` is already structurally close and the repeated differences are stack operands or
+local-slot offsets, run `uv run reccmp-stackcmp --target TARGET ADDRESS` on the original address. Use
+its 1:1/reordered/non-bijective mappings to decide what source fact to investigate next. It is not a
+pass/fail gate and stack layout is not source evidence: never alias locals/parameters or distort
+lifetimes merely to reproduce VC6 storage reuse. See the comparison reference for interpretation.
 
 Revert demonstrated semantic/ABI regressions. When no evidence-backed correction remains, keep the
 straightforward source and report the unresolved mismatch rather than inventing compiler folklore.

@@ -236,6 +236,31 @@ def test_inspection_commands_do_not_build_by_default(
     assert calls == [function_name]
 
 
+@pytest.mark.parametrize(
+    "arguments,function_name",
+    [
+        (["vtable", "Widget"], "compare_vtables"),
+        (["datacmp"], "compare_data"),
+    ],
+)
+def test_vtable_and_datacmp_exit_nonzero_when_not_ok(
+    tmp_path, monkeypatch, arguments, function_name
+) -> None:
+    from wiz8decomp import comparison
+
+    (tmp_path / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
+    )
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(comparison, function_name, lambda *_args: {"ok": False, "issue_count": 1})
+
+    result = CliRunner().invoke(app, arguments)
+
+    assert result.exit_code == 1
+    assert '"ok": false' in result.output
+
+
 def test_runtime_test_build_is_explicit(monkeypatch) -> None:
     from wiz8decomp import build, runtime
 
