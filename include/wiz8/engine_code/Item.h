@@ -41,6 +41,8 @@ struct W8Item : public W8GrObject {
        caller. */
     void GetWorldItemBounds(float* lower, float* upper);
     void GetRepLocation0049FBA0(srVector3T<float>* location);
+    void Function49FBF0(float angle); /* 0x0049FBF0 */
+    void Function4A0030();            /* 0x004A0030 */
     /* 0x004A0050: whether the item's radar-blip timer is still ticking, off
        its value_01c lookup; feeds the `lit` argument of PlaceRadarBlip. */
     unsigned char IsRadarBlipLit();

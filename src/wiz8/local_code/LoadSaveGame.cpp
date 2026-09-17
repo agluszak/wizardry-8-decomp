@@ -1664,3 +1664,65 @@ void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
     }
     chunks->ReleaseCurrentChunk();
 }
+
+/* Collect one level's saved world items out of the fixed current-save file.
+   The LVLS groups are walked for a matching level number; every ITEM record
+   inside is loaded and appended to the caller's vector. The scan stops once
+   the level's group has been processed. */
+// FUNCTION: WIZ8 0x00516070
+unsigned char LoadSavedLevelItems00516070(int level, W8GrowableVector<W8WorldItem*>* items)
+{
+    W8Chunk chunk;
+    unsigned int file_level;
+    unsigned int item_count;
+    unsigned int index;
+    int inner;
+    int outer_count;
+    int outer;
+    unsigned char found = 0;
+
+    if (chunk.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) == 0) {
+        return 0;
+    }
+    outer_count = chunk.ChunkCount();
+    for (outer = 0; outer < outer_count; ++outer) {
+        if (found != 0) {
+            break;
+        }
+        chunk.OpenChunk(0, 0);
+        if (chunk.CurrentChunkId() == 0x534c564c) { /* LVLS */
+            if (chunk.CurrentChunkAtEnd() != 0) {
+                chunk.OpenGroup();
+                chunk.Read(&file_level, 4, 0);
+                chunk.SkipCurrentChunk();
+            } else {
+                chunk.OpenGroup();
+                chunk.Read(&file_level, 4, 0);
+                if (level == static_cast<int>(file_level)) {
+                    found = 1;
+                    for (inner = chunk.ChunkCount(); inner > 0; --inner) {
+                        chunk.OpenChunk(0, 0);
+                        if (chunk.CurrentChunkAtEnd() == 0 &&
+                            chunk.CurrentChunkId() == 0x4d455449) { /* ITEM */
+                            chunk.Read(&item_count, 4, 0);
+                            for (index = 0; index < item_count; ++index) {
+                                W8WorldItem* item = LoadItem(chunk.m_hFile, 0);
+
+                                if (item != 0) {
+                                    items->Add(item);
+                                }
+                            }
+                        }
+                        chunk.SkipCurrentChunk();
+                        chunk.ReleaseCurrentChunk();
+                    }
+                }
+            }
+            chunk.ReleaseGroup();
+        }
+        chunk.SkipCurrentChunk();
+        chunk.ReleaseCurrentChunk();
+    }
+    chunk.Close();
+    return found;
+}

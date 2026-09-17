@@ -519,12 +519,10 @@ unsigned char W8Prop::PlayRepAnimation(srVector3T<float>* minimum, srVector3T<fl
    and the guarded store is written after the assertion rather than instead of
    it, so a null member writes through null on a build with assertions off. */
 // FUNCTION: WIZ8 0x0044e1f0
-void W8Prop::SetSetting6E(unsigned char value, unsigned char fallback)
+void W8Prop::SetSetting6E(unsigned char value)
 {
     if (m_pRep == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 2698, 0);
-        Rep()->flag_06e = fallback;
-        return;
     }
     Rep()->flag_06e = value;
 }

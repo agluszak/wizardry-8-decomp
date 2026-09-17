@@ -1329,7 +1329,7 @@ unsigned char IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, 
     if (IsSpellBlockedForMonster(monster_info, spell_id)) {
         return 0;
     }
-    if (Function4D9080(monster_info, 4, 0) != 0) {
+    if (DispatchWorldCursorNodeCommand004D9080(monster_info, 4, 0) != 0) {
         return 0;
     }
     if (spell_id == 0x3c && monster_info->value_344 != -1) {

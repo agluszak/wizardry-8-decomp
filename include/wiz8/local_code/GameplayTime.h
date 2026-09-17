@@ -12,3 +12,5 @@ void RebuildCharacterRegenRates00502B50(W8Character* character);
    modifier block's regen channels. */
 void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info);
 void Function502790(void); /* 0x00502790 */
+void Function5025F0(void); /* 0x005025F0 */
+void Function5029E0(void); /* 0x005029E0 */

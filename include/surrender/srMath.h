@@ -412,6 +412,7 @@ public:
     /* The single-angle overloads evaluate the trigonometry themselves. */
     srMatrix3T<T>* RotateAboutY(double angle);
     srMatrix3T<T>* RotateAboutX(double angle);
+    srMatrix3T<T>* RotateAroundAxis(double angle, const srVector3T<T>& axis);
     srVector3T<T> Transform(const srVector3T<T>& value) const;
     bool operator==(const srMatrix3T<T>& other) const;
 
@@ -593,6 +594,39 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
         basis[2].x = (T)0;
         basis[2].y = sine;
         basis[2].z = cosine;
+        rotation.vectors[0] = basis[0];
+        rotation.vectors[1] = basis[1];
+        rotation.vectors[2] = basis[2];
+        MultiplyBy(rotation);
+    }
+    return this;
+}
+
+/* Single-angle overload of the Rodrigues rotation above, keeping the
+   trigonometry and the basis products in double precision until the float
+   stores. The MartensBluff2 arrow trap emits it at 0x004DE940. */
+template <class T>
+srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>& axis)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    double sine;
+    double cosine;
+    double one_minus_cosine;
+
+    if (angle != 0.0) {
+        cosine = cos(angle);
+        sine = sin(angle);
+        one_minus_cosine = 1.0 - cosine;
+        basis[0].x = (T)(axis.x * axis.x + ((T)1 - axis.x * axis.x) * cosine);
+        basis[0].y = (T)(axis.x * axis.y * one_minus_cosine - axis.z * sine);
+        basis[0].z = (T)(axis.x * axis.z * one_minus_cosine + axis.y * sine);
+        basis[1].x = (T)(axis.y * axis.x * one_minus_cosine + axis.z * sine);
+        basis[1].y = (T)(axis.y * axis.y + ((T)1 - axis.y * axis.y) * cosine);
+        basis[1].z = (T)(axis.y * axis.z * one_minus_cosine - axis.x * sine);
+        basis[2].x = (T)(axis.z * axis.x * one_minus_cosine - axis.y * sine);
+        basis[2].y = (T)(axis.z * axis.y * one_minus_cosine + axis.x * sine);
+        basis[2].z = (T)(axis.z * axis.z + ((T)1 - axis.z * axis.z) * cosine);
         rotation.vectors[0] = basis[0];
         rotation.vectors[1] = basis[1];
         rotation.vectors[2] = basis[2];

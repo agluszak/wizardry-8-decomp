@@ -2391,8 +2391,8 @@ void Trigger::RunDestination00440DD0(const char* destination)
     srMatrix3T<float> rotation;
     int location_id;
     int entrance;
-    int entity_value;
     int current_location;
+    float entity_value;
     float angle;
     bool named_entity;
 
@@ -2488,6 +2488,20 @@ void Trigger::GenerateItemGroup()
     }
     gold_358 = RollDice(&g_item_tables[table_id]->gold_dice);
     flag_350 = 1;
+}
+
+/* The trigger's container world item, materialized on demand: when asked to
+   create and none exists yet a bare container item is spawned into the world
+   and remembered. */
+// FUNCTION: WIZ8 0x00445670
+W8WorldItem* Trigger::GetOrCreateItemGroup00445670(char create)
+{
+    srVector3T<float> position;
+
+    if (create != 0 && world_item_group_34c == 0) {
+        world_item_group_34c = SpawnItem(0x23c, &position, 0, 0);
+    }
+    return world_item_group_34c;
 }
 
 /* Execute the selected Trigger action. The original keeps the three trigger

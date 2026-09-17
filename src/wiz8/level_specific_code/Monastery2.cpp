@@ -64,7 +64,7 @@ bool Monastery2MicroDoor2004DC880(Trigger* pTrigger)
     position.z = -49440.0f;
     item = SpawnItem(0x2d7, &position, 3, 1);
     if (item != 0) {
-        Function4F6CF0(item);
+        ActivateItem(item);
     }
     return 1;
 }

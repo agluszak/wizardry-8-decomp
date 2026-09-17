@@ -17,6 +17,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
+#include "wiz8/geometry.h"
 #include "surrender/srNode.h"
 #include "surrender/srModeler.h"
 #include "surrender/srMaterial.h"
@@ -288,6 +289,32 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
     }
 }
 
+/* The three label numbers double as generic per-node parameters; the world
+   cursor and the master-function table index into them by slot. */
+// FUNCTION: WIZ8 0x0048E2B0
+int GetWorldCursorNodeParameter0048E2B0(W8WorldCursorNode* entry, int index)
+{
+    if (entry != 0) {
+        return entry->numbers_0c[index];
+    }
+    return -1;
+}
+
+/* Set a parameter and retire the userdata scratch - the handlers lazily
+   allocate it again on the next visit. */
+// FUNCTION: WIZ8 0x0048E2D0
+void SetWorldCursorNodeParameter0048E2D0(W8WorldCursorNode* entry, int index, int value)
+{
+    if (entry != 0) {
+        entry->numbers_0c[index] = value;
+        if (entry->buffer_18 != 0) {
+            free(entry->buffer_18);
+            entry->buffer_18 = 0;
+        }
+        entry->size_1c = 0;
+    }
+}
+
 /* Store the packed fill colour and repaint the cube numbers. */
 // FUNCTION: WIZ8 0x0048e400
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long color)
@@ -491,6 +518,91 @@ void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
             }
             entry->node_04->setParent(parent, 1);
         }
+    }
+}
+
+/* Answer the next table node after `after` whose world-space bounds contain
+   `point`; a null `after` starts the walk at the head of the table. When
+   `after` is the last entry the walk answers null immediately. */
+// FUNCTION: WIZ8 0x0048EDD0
+W8WorldCursorNode* FindWorldCursorNodeAtPoint0048EDD0(W8WorldCursorNode* after,
+                                                      srVector3T<float>* point)
+{
+    unsigned int index = 0;
+    unsigned int count = g_world_cursor_nodes_65ba58.count;
+
+    if (after != 0) {
+        for (unsigned int i = 0; i < count; ++i) {
+            if (*g_world_cursor_nodes_65ba58.GetAt(i) == after) {
+                index = i + 1;
+                if (i == count - 1) {
+                    return 0;
+                }
+            }
+        }
+    }
+    while (index < count) {
+        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
+        if (entry->node_04 != 0) {
+            srNode::BoundInfo bounds;
+            entry->node_04->getLocalBounds(bounds);
+            srVector3T<double> location = entry->node_04->getLocation();
+            bounds.minimum.x += static_cast<float>(location.x);
+            bounds.minimum.y += static_cast<float>(location.y);
+            bounds.minimum.z += static_cast<float>(location.z);
+            bounds.maximum.x += static_cast<float>(location.x);
+            bounds.maximum.y += static_cast<float>(location.y);
+            bounds.maximum.z += static_cast<float>(location.z);
+            if (PointInsideBounds004BE870(point, &bounds.minimum, &bounds.maximum) != 0) {
+                return entry;
+            }
+        }
+        ++index;
+    }
+    return 0;
+}
+
+/* Copy the node's userdata pointer and size into the caller's slots; either
+   out pointer may be null. */
+// FUNCTION: WIZ8 0x0048EF00
+void GetWorldCursorNodeUserdata0048EF00(W8WorldCursorNode* entry, char** buffer, int* size)
+{
+    if (entry != 0) {
+        if (buffer != 0) {
+            *buffer = static_cast<char*>(entry->buffer_18);
+        }
+        if (size != 0) {
+            *size = entry->size_1c;
+        }
+    } else {
+        if (buffer != 0) {
+            *buffer = 0;
+        }
+        if (size != 0) {
+            *size = 0;
+        }
+    }
+}
+
+/* Allocate the node's userdata scratch, or release it when `size` is zero.
+   Retail overwrites an existing allocation without freeing it first. */
+// FUNCTION: WIZ8 0x0048EF40
+void SetWorldCursorNodeUserdataSize0048EF40(W8WorldCursorNode* entry, int size)
+{
+    if (entry != 0) {
+        if (size != 0) {
+            entry->buffer_18 = malloc(size);
+            if (entry->buffer_18 == 0) {
+                srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
+            }
+            memset(entry->buffer_18, 0, size);
+        } else {
+            if (entry->buffer_18 != 0) {
+                free(entry->buffer_18);
+                entry->buffer_18 = 0;
+            }
+        }
+        entry->size_1c = size;
     }
 }
 

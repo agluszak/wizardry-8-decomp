@@ -35,7 +35,7 @@ void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
 void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location);
 void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
-bool FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
+bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
                       srVector3T<float>* direction);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

@@ -1,5 +1,6 @@
 #pragma once
 
-/* Level 0x1a (Trynnie1) helpers, run by InitializeLevelMasterFunctions004D6C50
-   under case 0x1a. */
-void EnsureTrynnie2KilledVar004D9D30(void);
+/* Trynnie1.cpp helpers. KillTrynnieGroups004DA850 swaps the
+   'Trynnies'/'Dead Trynnies' encounter tables and clears the live groups;
+   Trynnie2's killed-var sync also calls it. */
+void KillTrynnieGroups004DA850(void); /* 0x004DA850 */

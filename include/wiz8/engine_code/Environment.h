@@ -148,3 +148,6 @@ extern W8GrowableVector<stLight*> g_environment_lights_0065b998;
 
 void SetGameTimeDays(int value);
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
+/* 0x00483FD0: arm the lighting transition - a negative duration fades the
+   world out, a positive one fades it back in over abs(duration) seconds. */
+unsigned char Function483FD0(float duration);
