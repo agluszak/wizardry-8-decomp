@@ -9,7 +9,7 @@ build reccmp products and publish the current recovery statistics as a PR commen
 
 Every pull request and push to `main` uses only public or tracked repository inputs. It:
 
-- installs Python 3.13, Java 21, Wine/Xvfb, and the pinned Ghidra 12.1.2 PUBLIC release, verifying
+- installs Python 3.13, Java 21, Wine/Xvfb, and the pinned Ghidra 12.1.3 PUBLIC release, verifying
   Ghidra's official SHA-256 before use;
 - builds the pinned VC6 analysis image and fetches the pinned public zlib/JPEG/Info-ZIP sources;
 - runs `uv run wiz8 doctor`, `uv run wiz8 check`, and `uv run wiz8 lint`;

@@ -28,12 +28,13 @@ _TIMEOUT_SECONDS = 120
 # this is beyond what one query should return anyway.
 _TRACE_LIMIT = 20000
 _STYLES = ("decompile", "normalize", "paramid")
+# Named option profiles for enrichment vs recovery export. ``program`` keeps
+# the program's saved decompiler options (historical default).
+_PROFILES = ("program", "analysis", "recovery")
 
-# (program unique id, style) -> DecompInterface. A batch session serves one program,
-# so this holds at most a handful of interfaces; one-shot paths dispose on exit.
+# (program unique id, domain, style, profile, c_output) -> DecompInterface
 _sessions: dict[tuple[int, str, str], Any] = {}
-# (session key, function entry) -> DecompileResults. Public query documents are
-# projections of this live result, never inputs to another analysis.
+# (session key, function entry) -> DecompileResults
 _results: dict[tuple[int, str, str, str], Any] = {}
 
 
@@ -62,7 +63,36 @@ def _node_key(node: Any) -> tuple[Any, ...] | None:
     )
 
 
-def _session(program: Any, style: str, *, c_output: bool) -> Any:
+def _apply_profile(options: Any, profile: str) -> None:
+    """Mutate ``DecompileOptions`` for a named enrichment/recovery profile."""
+
+    if profile == "program":
+        return
+    if profile == "analysis":
+        # Aggressive high-level reconstruction for reading / enrichment scoring.
+        options.setInferConstantPointers(True)
+        options.setRespectReadOnly(True)
+        options.setAnalyzeForLoops(True)
+        options.setSplitStructures(True)
+        options.setSplitArrays(True)
+        options.setSplitPointers(True)
+        options.setEliminateUnreachable(True)
+        return
+    if profile == "recovery":
+        # Fresh defaults plus explicit recovery knobs (every analysis knob set).
+        # Avoid grabFromProgram so saved analysis options cannot leak in.
+        options.setInferConstantPointers(False)
+        options.setRespectReadOnly(False)
+        options.setAnalyzeForLoops(False)
+        options.setSplitStructures(False)
+        options.setSplitArrays(False)
+        options.setSplitPointers(False)
+        options.setEliminateUnreachable(False)
+        return
+    raise ValueError(f"unknown decompiler profile: {profile}")
+
+
+def _session(program: Any, style: str, *, c_output: bool, profile: str = "program") -> Any:
     """The persistent decompiler interface for `program` in `style`.
 
     C generation is part of the key: toggling it resets an open interface, so
@@ -74,16 +104,21 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
 
     if style not in _STYLES:
         raise ValueError(f"unknown decompiler style: {style}")
+    if profile not in _PROFILES:
+        raise ValueError(f"unknown decompiler profile: {profile}")
     key = (
         int(program.getUniqueProgramID()),
         _domain_identity(program),
-        f"{style}:{'c' if c_output else 'tree'}",
+        f"{style}:{profile}:{'c' if c_output else 'tree'}",
     )
     interface = _sessions.get(key)
     if interface is not None:
         return interface
     options = DecompileOptions()
-    options.grabFromProgram(program)
+    if profile != "recovery":
+        # ``program``: saved options only. ``analysis``: saved + analysis knobs.
+        options.grabFromProgram(program)
+    _apply_profile(options, profile)
     interface = DecompInterface()
     interface.setOptions(options)
     interface.setSimplificationStyle(style)
@@ -95,19 +130,21 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
     return interface
 
 
-def _decompile_result(program: Any, function: Any, style: str, *, c_output: bool) -> Any:
+def _decompile_result(
+    program: Any, function: Any, style: str, *, c_output: bool, profile: str = "program"
+) -> Any:
     from ghidra.util.task import TaskMonitor
 
     session_key = (
         int(program.getUniqueProgramID()),
         _domain_identity(program),
-        f"{style}:{'c' if c_output else 'tree'}",
+        f"{style}:{profile}:{'c' if c_output else 'tree'}",
     )
     key = (*session_key, str(function.getEntryPoint()))
     if key not in _results:
-        _results[key] = _session(program, style, c_output=c_output).decompileFunction(
-            function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY
-        )
+        _results[key] = _session(
+            program, style, c_output=c_output, profile=profile
+        ).decompileFunction(function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY)
     return _results[key]
 
 
@@ -124,8 +161,10 @@ def dispose_sessions() -> None:
             interface.dispose()
 
 
-def _high_function(program: Any, function: Any, style: str = "decompile") -> Any:
-    result = _decompile_result(program, function, style, c_output=False)
+def _high_function(
+    program: Any, function: Any, style: str = "decompile", *, profile: str = "program"
+) -> Any:
+    result = _decompile_result(program, function, style, c_output=False, profile=profile)
     high = result.getHighFunction() if result is not None else None
     if high is None:
         error = result.getErrorMessage() if result is not None else "no result"
@@ -135,16 +174,17 @@ def _high_function(program: Any, function: Any, style: str = "decompile") -> Any
     return high
 
 
-def decompile_c(program: Any, function: Any) -> dict[str, Any]:
+def decompile_c(program: Any, function: Any, *, profile: str = "program") -> dict[str, Any]:
     """Render C through the same persistent service used for HighFunction."""
 
-    result = _decompile_result(program, function, "decompile", c_output=True)
+    result = _decompile_result(program, function, "decompile", c_output=True, profile=profile)
     completed = bool(result is not None and result.decompileCompleted())
     rendered = result.getDecompiledFunction() if completed else None
     return {
         "completed": completed,
         "error": result.getErrorMessage() if result is not None else "no result",
         "decompiled": rendered.getC() if rendered is not None else None,
+        "profile": profile,
     }
 
 
