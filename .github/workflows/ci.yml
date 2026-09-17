@@ -103,9 +103,6 @@ jobs:
       - name: Build pinned VC6 analysis image
         run: uv run wiz8 toolchain build vc6-sp5
 
-      - name: Fetch pinned public library sources
-        run: uv run wiz8 ghidra fid fetch-sources
-
       - name: Run repository checks and Python tests
         run: uv run wiz8 check
 
