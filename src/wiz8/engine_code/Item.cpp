@@ -105,10 +105,32 @@ srNode* W8Item::GetMesh()
     return static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
 }
 
-// FUNCTION: WIZ8 0x0049FBA0
-void W8Item::GetRepLocation0049FBA0(srVector3T<float>* location)
+// FUNCTION: WIZ8 0x0049FB30
+unsigned char W8Item::GetWorldItemBounds(float* lower, float* upper)
 {
-    m_pRep->GetLocation004B8890(location);
+    lower[0] = static_cast<W8ItemRep*>(m_pRep)->bounds_min_068.x;
+    lower[1] = static_cast<W8ItemRep*>(m_pRep)->bounds_min_068.y;
+    lower[2] = static_cast<W8ItemRep*>(m_pRep)->bounds_min_068.z;
+    upper[0] = static_cast<W8ItemRep*>(m_pRep)->bounds_max_074.x;
+    upper[1] = static_cast<W8ItemRep*>(m_pRep)->bounds_max_074.y;
+    upper[2] = static_cast<W8ItemRep*>(m_pRep)->bounds_max_074.z;
+    return 1;
+}
+
+static const float g_item_bounds_vertical_factor_005ecd88 = 0.66f;
+
+// FUNCTION: WIZ8 0x0049FBA0
+unsigned char W8Item::GetRepLocation0049FBA0(srVector3T<float>* location)
+{
+    float lower[3];
+    float upper[3];
+
+    if (GetWorldItemBounds(lower, upper) != 0) {
+        m_pRep->GetLocation004B8890(location);
+        location->y += (upper[1] - lower[1]) * g_item_bounds_vertical_factor_005ecd88;
+        return 1;
+    }
+    return 0;
 }
 
 /* Raise or clear the selected representation flags and return the resulting
