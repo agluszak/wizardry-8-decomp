@@ -3,6 +3,7 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -38,7 +39,7 @@ W8NpcScriptingState g_npc_scripting;
    (upper 0x00524780) and Local Code\NPC Scripting.cpp (lower 0x00524CA0). */
 
 /* Report whether a party slot can be picked: in range, occupied, still on its
-   feet, and highest_condition below HOSTILE. */
+   feet, and not Turncoat or a more severe condition. */
 // FUNCTION: WIZ8 0x00524a10
 bool IsPartySlotEligible00524A10(int slot)
 {
@@ -58,7 +59,7 @@ bool IsPartySlotEligible00524A10(int slot)
     if (character->hp_current == 0) {
         return 0;
     }
-    eligible = character->highest_condition < W8_CONDITION_HOSTILE;
+    eligible = character->highest_condition < W8_CONDITION_TURNCOAT;
     return eligible;
 }
 

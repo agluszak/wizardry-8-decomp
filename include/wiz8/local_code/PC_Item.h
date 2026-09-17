@@ -10,6 +10,28 @@ void ReleaseGenericItemNames(void);
 struct W8ItemDatabaseRecord;
 struct W8NpcState;
 
+/* W8Character::equipment index domain. The five body-location slots are fixed
+   by CalcArmorClasses' {0,4,10,5,11} location table and the per-location hit
+   weights; GetItemDefaultEquipSlot independently fixes the torso/legs/head/
+   feet/hands classes. The inventory paper-doll regions identify the two
+   stacked accessory cells and the cloak cell, while the four weapon cells are
+   already established by the hand-pairing code. */
+enum W8EquipSlot {
+    W8_EQUIP_SLOT_HEAD = 0,
+    W8_EQUIP_SLOT_MISC_1 = 1,
+    W8_EQUIP_SLOT_MISC_2 = 2,
+    W8_EQUIP_SLOT_CLOAK = 3,
+    W8_EQUIP_SLOT_TORSO = 4,
+    W8_EQUIP_SLOT_FEET = 5,
+    W8_EQUIP_SLOT_PRIMARY_WEAPON = 6,
+    W8_EQUIP_SLOT_SECONDARY_WEAPON = 7,
+    W8_EQUIP_SLOT_ALTERNATE_PRIMARY_WEAPON = 8,
+    W8_EQUIP_SLOT_ALTERNATE_SECONDARY_WEAPON = 9,
+    W8_EQUIP_SLOT_LEGS = 10,
+    W8_EQUIP_SLOT_HANDS = 11,
+    W8_EQUIP_SLOT_COUNT = 12
+};
+
 unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
 extern const int g_item_spell_presentation[11];
@@ -98,9 +120,9 @@ bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstanc
 
 bool CanCharacterUseItem(const W8Character* character, int item_id);
 
-/* Equip-slot bucket used by the items-page realm filters: 3 for the body
-   slots (0, 4, 5, 10, 11), 4 for accessories (1-3), 2 for the hand slots, 5
-   for anything else. */
+/* Equip-slot bucket used by the items-page realm filters: body locations are
+   Head/Torso/Feet/Legs/Hands, accessory slots are Misc #1/#2 and Cloak, and
+   the four weapon slots form the hand bucket. */
 int GetItemEquipSlotGroup(int item_id);
 
 unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int percent);

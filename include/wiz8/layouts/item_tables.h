@@ -29,12 +29,41 @@ struct W8ItemRequirement {
     unsigned char minimum;
 }; /* 0x02 */
 
+/* Named subset of W8ItemDatabaseRecord::equip_class. Values 0..3 are weapon
+   classes whose finer distinction is not recovered here. Classes 4..12 are
+   fixed by GetItemEquipSlotMask: class 4 is the non-shield off-hand class
+   (ammunition), class 5 is the shield class used by the Shield AC component,
+   and classes 6..12 map directly to the manual's six worn armor/accessory
+   locations.
+
+   That slot-mask coverage does not bound the database field. The Assay display
+   table g_equip_class_name_ids_61e7dc has 32 entries, and recovered Assay /
+   item paths also use higher values (including 0x0d, 0x0e, 0x11, 0x12, and
+   0x13). Keep equip_class a byte: this enum names the proven subset and is not
+   a completeness claim. */
+enum W8ItemEquipClass {
+    W8_ITEM_EQUIP_CLASS_WEAPON_0 = 0,
+    W8_ITEM_EQUIP_CLASS_WEAPON_1 = 1,
+    W8_ITEM_EQUIP_CLASS_WEAPON_2 = 2,
+    W8_ITEM_EQUIP_CLASS_WEAPON_3 = 3,
+    W8_ITEM_EQUIP_CLASS_AMMUNITION = 4,
+    W8_ITEM_EQUIP_CLASS_SHIELD = 5,
+    W8_ITEM_EQUIP_CLASS_TORSO = 6,
+    W8_ITEM_EQUIP_CLASS_LEGS = 7,
+    W8_ITEM_EQUIP_CLASS_HEAD = 8,
+    W8_ITEM_EQUIP_CLASS_FEET = 9,
+    W8_ITEM_EQUIP_CLASS_HANDS = 10,
+    W8_ITEM_EQUIP_CLASS_MISC = 11,
+    W8_ITEM_EQUIP_CLASS_CLOAK = 12,
+};
+
 struct W8ItemDatabaseRecord {
     wchar_t display_name[30]; /* 0x000 */
     /* 0x03c: the item number the Wizardry 7 import matches imported item ids
        against (Party Import.cpp). */
     short legacy_item_number_03c;
-    unsigned char equip_class;              /* 0x03e: zero through twelve */
+    unsigned char equip_class;              /* 0x03e: open byte domain; named W8ItemEquipClass
+                                  values are the proven subset, not the bound */
     unsigned short unidentified_name_index; /* 0x03f */
     unsigned char flags_041;                /* 0x041 */
     unsigned char category;                 /* 0x042: three is a spell source */

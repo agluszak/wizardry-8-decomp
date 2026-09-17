@@ -63,23 +63,24 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     RebuildCharacterRegenRates00502B50(character);
 
     character->damage_reduction = 0;
-    if (CharacterHasTrait00547940(character, 0x1d)) {
-        character->damage_reduction += character->attributes[3].effective / 10;
+    if (CharacterHasTrait00547940(character, W8_TRAIT_DWARF_DAMAGE_RESISTANCE)) {
+        character->damage_reduction += character->attributes[W8_ATTRIBUTE_VITALITY].effective / 10;
     }
-    if (CharacterHasTrait00547940(character, 6)) {
-        character->damage_reduction +=
-            (int)ScaleValueByProfessionLevel005479B0(character, 6, 30.0f);
+    if (CharacterHasTrait00547940(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE)) {
+        character->damage_reduction += static_cast<int>(
+            ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 30.0f));
     }
-    if (character->skills[0x25].flag_00 != 0) {
-        character->damage_reduction += (character->skills[0x25].level >> 2) + 5;
+    if (character->skills[W8_SKILL_IRON_SKIN].flag_00 != 0) {
+        character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
     }
     character->damage_reduction += character->bonus_1770.damage_reduction_adjustment;
     RecalculateCharacterResistances(character);
 
-    int base = character->attributes[3].effective + character->attributes[0].effective * 2;
+    int base = character->attributes[W8_ATTRIBUTE_VITALITY].effective +
+               character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int previous_capacity = character->carrying_capacity;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, 0x18)) {
+    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = capacity * 2 / 3;
     }
     bool changed = previous_capacity != capacity;
@@ -95,15 +96,15 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     unsigned int load =
         (unsigned int)(character->total_carried_weight * 100) / character->carrying_capacity;
     if (load < 0x32) {
-        character->load_category = 0;
+        character->load_category = W8_LOAD_NONE;
     } else if (load < 0x46) {
-        character->load_category = 1;
+        character->load_category = W8_LOAD_LIGHT;
     } else if (load < 0x55) {
-        character->load_category = 2;
+        character->load_category = W8_LOAD_MEDIUM;
     } else if (load <= 100) {
-        character->load_category = 3;
+        character->load_category = W8_LOAD_HEAVY;
     } else {
-        character->load_category = 4;
+        character->load_category = W8_LOAD_EXTREME;
     }
 
     CalcInitiative(character);
@@ -121,9 +122,10 @@ void RecalculateCharacterDerivedStats(W8Character* character)
 bool RecalculateCarryingCapacity004EDC10(W8Character* character)
 {
     unsigned int previous = character->carrying_capacity;
-    int base = character->attributes[3].effective + character->attributes[0].effective * 2;
+    int base = character->attributes[W8_ATTRIBUTE_VITALITY].effective +
+               character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, 0x18)) {
+    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = (unsigned int)(base * 0x18) / 3;
     }
     character->carrying_capacity = capacity;
@@ -143,7 +145,7 @@ bool RecalculateCarriedWeight(W8Character* character)
    the compare and branch. Suppress only this diagnostic here. */
     unsigned int previous = character->inventory_weight;
     character->inventory_weight = 0;
-    for (int index = 0; index < 0xc; ++index) {
+    for (int index = 0; index < W8_EQUIP_SLOT_COUNT; ++index) {
         character->inventory_weight += GetItemStackWeight(&character->equipment[index]);
     }
     for (int backpack_index = 0; backpack_index < 8; ++backpack_index) {
@@ -186,7 +188,7 @@ void RedistributePartyEncumbrance(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].occupied != 0 && character->highest_condition < 0x12) {
+        if (active[slot].occupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
             load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
@@ -203,7 +205,7 @@ void RedistributePartyEncumbrance(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].occupied != 0 && character->highest_condition < 0x12 &&
+            if (active[slot].occupied != 0 && character->highest_condition < W8_CONDITION_DEAD &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -229,13 +231,13 @@ void RedistributePartyEncumbrance(void)
             static_cast<unsigned int>(carried * 100) / character->carrying_capacity;
         int old_band = character->load_category;
         if (percent < 50) {
-            character->load_category = 0;
+            character->load_category = W8_LOAD_NONE;
         } else if (percent < 70) {
-            character->load_category = 1;
+            character->load_category = W8_LOAD_LIGHT;
         } else if (percent < 85) {
-            character->load_category = 2;
+            character->load_category = W8_LOAD_MEDIUM;
         } else {
-            character->load_category = (percent > 100) + 3;
+            character->load_category = (percent > 100) + W8_LOAD_HEAVY;
         }
         if (old_band != character->load_category) {
             CalcInitiative(character);
