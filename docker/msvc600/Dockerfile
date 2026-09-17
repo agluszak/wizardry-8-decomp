@@ -32,7 +32,8 @@ ENV WINEARCH=win32 \
     COMSPEC="C:\\windows\\system32\\cmd.exe" \
     TMP="Z:\\out\\tmp" \
     TEMP="Z:\\out\\tmp" \
-    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin"
+    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin" \
+    WIZ8_REDUNDANT_CAST_LINES="*"
 
 RUN wineboot --init || true
 
@@ -77,10 +78,11 @@ RUN wget -O /tmp/jom.zip \
  && unzip /tmp/jom.zip -d /root/.wine/drive_c/jom \
  && rm /tmp/jom.zip
 
-# Build the reconstruction-specific clang-tidy check last so plugin iteration does
-# not invalidate the MSVC/Wine layers. The wrapper loads it into the existing
-# clang-tidy pass and limits debt diagnostics to host-published changed lines
-# (or WIZ8_REDUNDANT_CAST_LINES=* for an explicit full-corpus audit).
+# Build the reconstruction-specific clang-tidy checks last so plugin iteration does
+# not invalidate the MSVC/Wine layers. The wrapper loads them into the existing
+# clang-tidy pass, aggregates cross-TU boolean-domain facts, and limits debt
+# diagnostics to host-published changed lines (or WIZ8_REDUNDANT_CAST_LINES=*
+# for an explicit full-corpus audit).
 COPY clang-tidy-plugin /tmp/wiz8-clang-tidy-plugin
 RUN cmake \
       -S /tmp/wiz8-clang-tidy-plugin \
@@ -97,6 +99,8 @@ RUN cmake \
  && clang-tidy --wiz8-wrapper-self-test \
  && clang-tidy --checks=-*,wiz8-redundant-scalar-cast --list-checks \
       | grep -q 'wiz8-redundant-scalar-cast' \
+ && clang-tidy --checks=-*,wiz8-bool-like-byte --list-checks \
+      | grep -q 'wiz8-bool-like-byte' \
  && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
       --checks=-*,wiz8-redundant-scalar-cast \
       /tmp/wiz8-clang-tidy-plugin/test.cpp \
@@ -104,6 +108,21 @@ RUN cmake \
       > /tmp/wiz8-clang-tidy-plugin/test.log 2>&1 \
  && test "$(grep -c '\[wiz8-redundant-scalar-cast\]' \
       /tmp/wiz8-clang-tidy-plugin/test.log)" -eq 7 \
+ && if WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-240' clang-tidy \
+      --checks=-*,wiz8-bool-like-byte \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 \
+      > /tmp/wiz8-clang-tidy-plugin/bool_test.log 2>&1; then \
+      cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
+    fi \
+ && bool_diagnostics="$(grep -c '\[wiz8-bool-like-byte\]' \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log)" \
+ && if [ "$bool_diagnostics" -ne 10 ]; then \
+      echo "expected 10 bool-like diagnostics, got $bool_diagnostics"; \
+      cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
+    fi \
+ && grep -q "warning: byte-returning predicate 'HasLineOfSightToBounds0046FD70'" \
+      /tmp/wiz8-clang-tidy-plugin/bool_test.log \
  && rm -rf /tmp/wiz8-clang-tidy-plugin
 
 ENTRYPOINT ["/usr/bin/wine"]

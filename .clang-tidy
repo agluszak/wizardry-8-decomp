@@ -32,11 +32,18 @@
 #   #include lines as duplicates when a skipped system or sibling header already
 #   pulled in the same spelling, and the same hits on self-contained headers
 #   would delete required includes. Real same-file repeats stay a review item.
-# - wiz8-redundant-scalar-cast is project-specific. Normal lint gates only changed
-#   lines; WIZ8_REDUNDANT_CAST_LINES=* is the explicit full-corpus audit mode.
+# - wiz8-redundant-scalar-cast and wiz8-bool-like-byte are project-specific.
+#   Normal lint gates only changed lines; WIZ8_REDUNDANT_CAST_LINES=* is the
+#   explicit full-corpus audit mode for both reconstruction-debt checks.
+#   Boolean-domain proofs include exact whole-record memset(..., 0/1, sizeof(T))
+#   initialization. Predicate-shaped byte functions with missing bodies are
+#   surfaced as non-gating warnings only when recovered code actually uses them.
+#   A proven intentional byte boolean can use `bool-byte-ok: reason` on or
+#   immediately above its declaration.
 Checks: >
   -*,
   wiz8-redundant-scalar-cast,
+  wiz8-bool-like-byte,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
   bugprone-sizeof-expression,

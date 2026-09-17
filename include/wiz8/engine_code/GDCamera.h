@@ -53,7 +53,7 @@ public:
     srMatrix3T<float> m_rotation;       /* 0x054 */
     srVector3T<float> m_direction_078;  /* 0x078 */
     float m_frame_elapsed;              /* 0x084 */
-    unsigned char m_transition_active;  /* 0x088 */
+    bool m_transition_active;           /* 0x088 */
     unsigned char m_forced_transition;  /* 0x089 */
     unsigned char m_padding_08a[2];
     srVector3T<float> m_position_08c;     /* 0x08c */
