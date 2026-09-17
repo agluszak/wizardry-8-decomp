@@ -307,7 +307,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (old_duration == 0 && condition != 0 && condition <= 0x12) {
-            DropMonsterVisual(monster_info->monster, condition - 1, 1);
+            SetMonsterSpellIcon(monster_info->monster, condition - 1, 1);
         }
         if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(target, 0) != 0 &&
             target->iChar != -1) {
@@ -397,7 +397,7 @@ void ClearMonsterCondition(int location_id, int condition)
             MonsterInfoSetMotionless(monster_info, monster_info->highest_condition < 0xE ? 0 : 1);
         }
         if (condition != 0 && condition < 0x13) {
-            DropMonsterVisual(monster_info->monster, condition - 1, 0);
+            SetMonsterSpellIcon(monster_info->monster, condition - 1, 0);
         }
         switch (condition) {
         case 6:
@@ -707,7 +707,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
 
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
-    DropMonsterVisual(monster_info->monster, slot + 0x10, 0);
+    SetMonsterSpellIcon(monster_info->monster, slot + 0x10, 0);
     RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);
@@ -732,7 +732,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(948, CONDITIONS_CPP, location_id, 1));
     memset(&monster_info->enchantments[slot], 0, sizeof(W8Enchantment));
-    DropMonsterVisual(monster_info->monster, slot + 0x10, 0);
+    SetMonsterSpellIcon(monster_info->monster, slot + 0x10, 0);
     RebuildMonsterDerivedStats(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
         RefreshMonsterSight(monster_info);

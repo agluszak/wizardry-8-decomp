@@ -44,9 +44,9 @@ typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
 
 /* One spell/condition icon attached to a monster: the icon id and the
    billboard object created for it. Field names come from the
-   DropMonsterVisual asserts "pSpellMI->psrBMO" and its icon compares. */
-struct W8MonsterLinkedItem005E8 {
-    int icon_00;
+   SetMonsterSpellIcon asserts "pSpellMI->psrBMO" and its icon compares. */
+struct W8MonsterSpellIcon {
+    int icon;
     W8Item* psrBMO;
 };
 
@@ -72,11 +72,11 @@ struct W8MonsterRep : public W8EmitterHost {
     unsigned char ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monster* monster, int cycle_index,
                                         int value);
 
-    /* The spell-icon list; named by the DropMonsterVisual assert
+    /* The spell-icon list; named by the SetMonsterSpellIcon assert
        "pMonRep->GetSpellIcons()". */
     W8PList* GetSpellIcons()
     {
-        return linked_objects_5e8;
+        return spell_icons_5e8;
     }
 
     W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT];                   /* 0x0ac */
@@ -86,8 +86,8 @@ struct W8MonsterRep : public W8EmitterHost {
     unsigned char unknown_5bd[3];
     char* name_5c0; /* 0x5c0: owned copy */
     int value_5c4;
-    W8Item* objects_5c8[8];      /* 0x5c8 */
-    W8PList* linked_objects_5e8; /* 0x5e8 */
+    W8Item* objects_5c8[8];   /* 0x5c8 */
+    W8PList* spell_icons_5e8; /* 0x5e8: W8MonsterSpellIcon records */
     float standing_height_5ec;
     float scale_5f0;
     float minimum_scale_5f4;

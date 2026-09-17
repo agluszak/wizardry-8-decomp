@@ -36,6 +36,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/item_video_object_vector.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/regions.h"
@@ -49,7 +50,11 @@
 #include "FileMan.h"
 #include "mousesystem.h"
 #include "Font.h"
+#include "vobject.h"
+#include "vobject_blitters.h"
+#include "line.h"
 #include "surrender/srMeshModel.h"
+#include "surrender/srVectorProcessor.h"
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -130,7 +135,7 @@ int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
 float g_automap_range_0064b910 = 10000.0f;
 // GLOBAL: WIZ8 0x0064b90d
-unsigned char g_flag_64b90d;
+unsigned char g_flag_64b90d = 1;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
 // GLOBAL: WIZ8 0x0064b91c
@@ -214,10 +219,13 @@ void UpdateAutomapPageButtons00581200(void);
 void Function425C90(int left, int top, int right, int bottom);
 void UpdateAutomapBounds00580380(void);
 void Function474FB0(int value);
-void Function580270(void);
-void Function5809F0(const srVector3T<float>* position);
-void Function581280(W8ScreenRect* rect);
+void ResetAutomapLighting(void);
+void LightAutomapCell(const srVector3T<float>* position);
+int RestoreAutomapRect(W8ScreenRect* rect);
 void SetAutomapLayer00580F20(int layer);
+stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id);
+stModelInstance2D* CreateAutomapMonsterMarker00583710(int type);
+stModelInstance2D* CreateAutomapTextMarker005839D0(void);
 
 // FUNCTION: WIZ8 0x00581000
 unsigned char HasAutomapLayer(int layer)
@@ -1112,6 +1120,45 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
     return 1;
 }
 
+/* Zero every world mesh's vertex-light table and flag it dirty, then clear
+   the cell-processed bitmap so UpdateAutomapBounds rebuilds the lighting for
+   every visited cell. */
+// FUNCTION: WIZ8 0x00580270
+void ResetAutomapLighting(void)
+{
+    if (g_world->octree != 0) {
+        for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
+            srModelInstance* instance = g_world->psrMeshes[mesh];
+            if (instance != 0) {
+                for (stMeshModel* model = static_cast<stMeshModel*>(instance->model()); model != 0;
+                     model = model->next) {
+                    srVector3T<float>* lights = model->GetVertexLights(1, 1);
+                    int count = model->vertex_location_count_22c * 3;
+                    if (count != 0) {
+                        // reinterpret-ok: vertex-light floats zeroed via dword fill.
+                        srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
+                                                static_cast<SRDWORD>(count));
+                    }
+                    model->flags_3a0 |= 2;
+                }
+            }
+        }
+    } else {
+        for (stMeshModel* model = static_cast<stMeshModel*>(g_world->update_mesh_source->model());
+             model != 0; model = model->next) {
+            srVector3T<float>* lights = model->GetVertexLights(1, 1);
+            int count = model->vertex_location_count_22c * 3;
+            if (count != 0) {
+                // reinterpret-ok: vertex-light floats zeroed via dword fill.
+                srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights), 0,
+                                        static_cast<SRDWORD>(count));
+            }
+            model->flags_3a0 |= 2;
+        }
+    }
+    g_bits_68f28c->ClearAll();
+}
+
 /* Recompute the explored-bounds box from the visited-cell bitmap: mark new
    cells for the node builder and grow the box to cover each visited cell. */
 // FUNCTION: WIZ8 0x00580380
@@ -1121,7 +1168,7 @@ void UpdateAutomapBounds00580380(void)
     PartyHasCondition(0x40);
     if (g_world->octree != 0) {
         if (g_automap_bounds_dirty_0064b91c != 0) {
-            Function580270();
+            ResetAutomapLighting();
             g_automap_bounds_dirty_0064b91c = 0;
         }
         g_automap_bounds_min.y = g_automap_grid_min_0068f1d8.y;
@@ -1169,7 +1216,7 @@ void UpdateAutomapBounds00580380(void)
                     }
                     if (g_bits_68f28c->Test(bit) == 0) {
                         g_bits_68f28c->Set(bit);
-                        Function5809F0(&position);
+                        LightAutomapCell(&position);
                     }
                 }
                 bit = bit + 1;
@@ -1184,6 +1231,105 @@ void UpdateAutomapBounds00580380(void)
             span = g_automap_bounds_max.z - g_automap_bounds_min.z;
         }
         g_automap_top_y = span + g_automap_bounds_max.y;
+    }
+}
+
+/* Reveal one visited cell: collect the model instances the octree reports
+   near the cell position, then for every linked mesh either flood its
+   vertex-light table with 1.0 when the whole bounding box is inside the query
+   range, or compute per-vertex distances and fill only the in-range runs. */
+// FUNCTION: WIZ8 0x005809F0
+void LightAutomapCell(const srVector3T<float>* position)
+{
+    W8Vector<stModelInstance*> instances(5);
+    srArray<float> distances;
+    srHeapArray<srVector3T<float> > vertices;
+    float range = g_automap_range_0064b910;
+
+    if (g_world->octree->CollectModelsNearPoint(&instances, position, range, 0, 0) != 0) {
+        for (int index = 0; index < instances.GetCount(); ++index) {
+            stModelInstance* instance = *instances.GetAt(index);
+            if (instance == 0) {
+                continue;
+            }
+            stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+            srVector3T<float> location;
+            location = instance->getLocation();
+            srVector3T<float> minimum;
+            srVector3T<float> maximum;
+            model->getBoundingBox(minimum, maximum);
+            minimum += location;
+            maximum += location;
+            unsigned char inside =
+                (minimum - *position).Length() <= range && (maximum - *position).Length() <= range;
+            while (model != 0) {
+                srVector3T<float>* lights = model->GetVertexLights(1, -1);
+                srVector3T<float>* source = model->getVertexLoc();
+                int count = model->vertex_location_count_22c;
+                if (inside != 0) {
+                    float light_value = 1.0f;
+                    // reinterpret-ok: vertex-light floats filled via dword fill.
+                    srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(lights),
+                                            // reinterpret-ok: fill pattern read as dword.
+                                            reinterpret_cast<SRDWORD&>(light_value),
+                                            static_cast<SRDWORD>(count) * 3);
+                } else {
+                    if (static_cast<int>(distances.capacity) < count) {
+                        distances.setCapacity(count);
+                    }
+                    if (static_cast<int>(vertices.capacity) < count) {
+                        vertices.setCapacity(count);
+                    }
+                    srVector3T<float>* transformed = &vertices[0];
+                    if (IsZeroVector0046FFA0(position) != 0) {
+                        CopyDwordBuffer00470180(transformed, source, count * 3);
+                    } else {
+                        srVector3T<float> offset = -*position;
+                        OffsetVertices00470040(transformed, source, &offset, count);
+                    }
+                    if (count != 0) {
+                        srVectorProcessor::length(&distances[0], &vertices[0],
+                                                  static_cast<SRDWORD>(count));
+                    }
+                    float* distance = &distances[0];
+                    if (count != 0) {
+                        srVector3T<float>* light = lights;
+                        unsigned int vertex = 0;
+                        while (vertex < static_cast<unsigned int>(count)) {
+                            unsigned int lit = vertex;
+                            while (lit < static_cast<unsigned int>(count) &&
+                                   *distance <= g_automap_range_0064b910) {
+                                ++lit;
+                                ++distance;
+                            }
+                            unsigned int lit_count = lit - vertex;
+                            if (lit_count != 0) {
+                                float light_value = 1.0f;
+                                // reinterpret-ok: vertex-light floats filled via
+                                // dword fill.
+                                srVectorProcessor::copy(reinterpret_cast<SRDWORD*>(light),
+                                                        // reinterpret-ok: fill pattern as dword.
+                                                        reinterpret_cast<SRDWORD&>(light_value),
+                                                        lit_count * 3);
+                                light += lit_count;
+                                vertex = lit;
+                            }
+                            unsigned int dark = vertex;
+                            while (dark < static_cast<unsigned int>(count) &&
+                                   *distance > g_automap_range_0064b910) {
+                                ++dark;
+                                ++distance;
+                            }
+                            if (dark - vertex != 0) {
+                                light += dark - vertex;
+                                vertex = dark;
+                            }
+                        }
+                    }
+                }
+                model = model->next;
+            }
+        }
     }
 }
 
@@ -1243,6 +1389,25 @@ void UpdateAutomapPageButtons00581200(void)
     g_automap_buttons[7]->SetVisible(g_automap_page_0068f260 == 2);
     g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = 1;
     g_automap_buttons[g_automap_page_0068f260 + 5]->Draw();
+}
+
+/* Blit the saved automap surface back over a screen rect to erase whatever
+   was drawn there. */
+// FUNCTION: WIZ8 0x00581280
+int RestoreAutomapRect(W8ScreenRect* rect)
+{
+    if (g_automap_surface != 0) {
+        unsigned int pitch;
+        void* pixels = LockPrimarySurface(&pitch);
+        srColorSurface* surface =
+            SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, pixels, 0x280, 0x1e0, pitch);
+        surface->setFilter(&srBoxFilter);
+        surface->blit(rect->left, rect->top, *g_automap_surface, rect->left, rect->top, rect->right,
+                      rect->bottom);
+        surface->release();
+        UnlockPrimarySurface();
+    }
+    return 1;
 }
 
 /* When the cursor leaves a hovered note, erase its tooltip rectangle and
@@ -1314,13 +1479,168 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
             }
             if (rect.right != rect.left && -1 < rect.right - rect.left && rect.bottom != rect.top &&
                 -1 < rect.bottom - rect.top) {
-                Function581280(&rect);
+                RestoreAutomapRect(&rect);
                 InvalidateScreenRects(&rect, 1, 0);
                 return 1;
             }
         }
     }
     return 0;
+}
+
+/* Persist the visited-cell bitmap and every note's position, layer and text.
+   A 0xF00DF00D signature brackets the note records. */
+// FUNCTION: WIZ8 0x00581CE0
+bool SaveAutomapNotes(int handle)
+{
+    int signature = 0xf00df00d;
+    unsigned char saved;
+    if (g_bits_68f288 != 0) {
+        saved = g_bits_68f288->Save(handle);
+    } else {
+        saved = static_cast<unsigned char>(handle);
+    }
+    if (saved == 0) {
+        return false;
+    }
+    if (FileWrite(handle, &signature, 4, 0) == 0) {
+        return false;
+    }
+    unsigned int count = g_automap_notes->GetCount();
+    if (FileWrite(handle, &count, 4, 0) == 0) {
+        return false;
+    }
+    for (unsigned int index = 0; index < count; ++index) {
+        W8AutomapNote* note = *g_automap_notes->GetAt(index);
+        if (note != 0) {
+            unsigned char ok = FileWrite(handle, &note->position.x, 4, 0) != 0 &&
+                               FileWrite(handle, &note->position.y, 4, 0) != 0 &&
+                               FileWrite(handle, &note->layer, 4, 0) != 0;
+            int length = wcslen(note->text) + 1;
+            if (ok == 0) {
+                return false;
+            }
+            if (FileWrite(handle, &length, 4, 0) == 0) {
+                return false;
+            }
+            if (FileWrite(handle, note->text, length * 2, 0) == 0) {
+                return false;
+            }
+        }
+    }
+    return FileWrite(handle, &signature, 4, 0) != 0;
+}
+
+/* Release every note, restore the visited-cell bitmap for the loaded level,
+   then rebuild the notes from the saved records. */
+// FUNCTION: WIZ8 0x00581E60
+bool LoadAutomapNotes(int handle)
+{
+    int signature = 0;
+    while (g_automap_notes->GetCount() != 0) {
+        W8AutomapNote* note = *g_automap_notes->GetAt(0);
+        free(note->text);
+        delete note;
+        g_automap_notes->RemoveAt(0);
+    }
+    g_automap_redraw = 1;
+    if (g_bits_68f288 != 0 && 1 < g_bits_68f288->bit_count) {
+        g_bits_68f288->Load(handle);
+        if (g_bits_68f288->bit_count == static_cast<unsigned int>(g_automap_cell_count_0068f27c)) {
+            g_automap_state->unknown_0f9[0] = 1;
+        } else {
+            g_bits_68f288->SetSize(g_automap_cell_count_0068f27c);
+        }
+        g_automap_bounds_dirty_0064b91c = 1;
+        unsigned int count;
+        if (FileRead(handle, &signature, 4, 0) != 0 && signature == static_cast<int>(0xf00df00d) &&
+            FileRead(handle, &count, 4, 0) != 0) {
+            for (unsigned int index = 0; index < count; ++index) {
+                srVector2T<float> position;
+                int layer;
+                int length;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+                /* Retail feeds this slot to malloc even when the FileRead
+                   chain short-circuits before filling it. */
+                unsigned char ok = FileRead(handle, &position.x, 4, 0) != 0 &&
+                                   FileRead(handle, &position.y, 4, 0) != 0 &&
+                                   FileRead(handle, &layer, 4, 0) != 0 &&
+                                   FileRead(handle, &length, 4, 0) != 0;
+                wchar_t* text = static_cast<wchar_t*>(malloc(length * 2));
+#pragma clang diagnostic pop
+                if (ok == 0) {
+                    return false;
+                }
+                if (FileRead(handle, text, length * 2, 0) == 0) {
+                    return false;
+                }
+                CreateAutomapNote(&position, layer, text);
+                free(text);
+            }
+            return FileRead(handle, &signature, 4, 0) != 0;
+        }
+    }
+    return false;
+}
+
+/* Convert the cursor position to an automap world position on the layer
+   below the current one, defaulting the height to the grid minimum when no
+   clip plane exists there. */
+// FUNCTION: WIZ8 0x00582050
+unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position)
+{
+    srVector3T<float> point;
+
+    if (GetCursorPositionInViewport(&point) != 0) {
+        int layer = g_automap_layer + 1;
+        float height;
+        if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+            g_automap_layers.data[layer] != 0) {
+            height = static_cast<float>((*g_automap_layers.GetAt(layer))->getLocationY());
+        } else {
+            height = g_automap_grid_min_0068f1d8.y;
+        }
+        position->y = height;
+        position->x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
+        position->z = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+        return 1;
+    }
+    return 0;
+}
+
+/* Find the note on the current layer nearest the cursor, limited to a
+   zoom-scaled pick radius. */
+// FUNCTION: WIZ8 0x00582180
+W8AutomapNote* FindAutomapNoteUnderCursor00582180(void)
+{
+    W8AutomapNote* result = 0;
+    double best = 99999999999.9;
+    srVector3T<float> point;
+
+    if (g_automap_page_0068f260 != 2 && GetCursorPositionInViewport(&point) != 0) {
+        int layer = g_automap_layer + 1;
+        if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+            *g_automap_layers.GetAt(layer) != 0) {
+            (*g_automap_layers.GetAt(layer))->getLocationY();
+        }
+        float x = (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
+        float y = g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
+        for (unsigned int index = 0; index < static_cast<unsigned int>(g_automap_notes->count);
+             ++index) {
+            W8AutomapNote* note = *g_automap_notes->GetAt(index);
+            if (note->layer == g_automap_layer) {
+                float dx = x - note->position.x;
+                float dy = y - note->position.y;
+                double distance = sqrt(dx * dx + dy * dy);
+                if (distance < best && distance < g_automap_zoom * 0.05) {
+                    best = distance;
+                    result = note;
+                }
+            }
+        }
+    }
+    return result;
 }
 
 /* Load the automap marker textures and build the party, monster and text
@@ -1435,6 +1755,321 @@ void CreateAutomapMarkerSprites005822C0(void)
             surface->setFilter(&srBSplineFilter);
         }
     }
+}
+
+/* Redraw the transient party, monster, item and note markers over the automap
+   surface. */
+// FUNCTION: WIZ8 0x00582930
+void RenderAutomapMarkers00582930(void)
+{
+    unsigned char detect_all = PartyHasCondition(0x40);
+    while (g_releasable_68f1f4->GetCount()) {
+        srClass* object = *g_releasable_68f1f4->GetAt(0);
+        object->release();
+        int index = g_releasable_68f1f4->IndexOf(object);
+        if (index >= 0)
+            g_releasable_68f1f4->RemoveAt(index);
+    }
+    float left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
+    srVector3T<float> point(g_automap_saved_camera.position.x, 1.0f,
+                            g_automap_saved_camera.position.z);
+    float top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+    if (point.x < left || left + g_automap_zoom < point.x || point.z < top ||
+        top + g_automap_zoom < point.z) {
+        g_class_68f29c->setFlag(srNode::FLAG_DISABLE);
+    } else {
+        int x = 0xc - static_cast<int>((point.x - left) / g_automap_zoom * -455.0f);
+        int y = 0x20 - static_cast<int>((1.0f - (point.z - top) / g_automap_zoom) * -435.0f);
+        float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+        srVector3T<double> scale(factor, factor, factor);
+        g_class_68f29c->setScale(scale);
+        if (static_cast<unsigned short>(g_class_68f29c->GetHeight00480F70()) < 1) {
+            g_class_68f29c->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+            factor = g_float_005ebb38 / (g_class_68f29c->GetHeight00480F70() & 0xffff);
+            scale.Set(factor, factor, factor);
+            g_class_68f29c->setScale(scale);
+        }
+        unsigned int width = g_class_68f29c->GetWidth00480EF0();
+        unsigned int height = g_class_68f29c->GetHeight00480F70();
+        PositionToolTipNode(g_class_68f29c, x - ((width & 0xffff) >> 1),
+                            y - ((height & 0xffff) >> 1), 0);
+        g_class_68f29c->setRotation(0.0, 0.0, -static_cast<double>(GetCameraYawRadians()));
+        g_class_68f29c->clearFlag(srNode::FLAG_DISABLE);
+        g_class_68f29c->setParent(0, 1);
+        g_class_68f29c->setParent(g_scene_square_65965c, 1);
+    }
+    unsigned int count = PLLength(gXStatus.plsMonsterList);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8MonsterInfo* info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+        W8Monster* monster = info->monster;
+        srVector3T<float> location;
+        location = 0.0f;
+        monster->m_pRep->GetLocation004B8890(&location);
+        for (int layer = 0; layer < g_automap_layers.count; ++layer) {
+            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+                *g_automap_layers.GetAt(layer) != 0 &&
+                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
+                break;
+            }
+        }
+        if (g_flag_0068f264 != 0 || detect_all != 0 ||
+            (monster->flag_217 == 0 && info->party_threat.state_04 == 1)) {
+            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
+            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
+                top + g_automap_zoom < location.z) {
+                continue;
+            }
+            int x = 0xc - static_cast<int>((location.x - left) / g_automap_zoom * -455.0f);
+            int y = 0x20 - static_cast<int>((1.0f - (location.z - top) / g_automap_zoom) * -435.0f);
+            stModelInstance2D* marker;
+            switch (info->ubDisposition) {
+            case W8_DISPOSITION_NEUTRAL:
+                marker = CreateAutomapMonsterMarker00583710(1);
+                break;
+            case W8_DISPOSITION_HOSTILE:
+                marker = CreateAutomapMonsterMarker00583710(2);
+                break;
+            case W8_DISPOSITION_FRIENDLY:
+                marker = CreateAutomapMonsterMarker00583710(0);
+                break;
+            }
+            unsigned int width = marker->GetWidth00480EF0();
+            x -= (width & 0xffff) >> 1;
+            unsigned int height = marker->GetHeight00480F70();
+            y -= (height & 0xffff) >> 1;
+            marker->setParent(g_scene_fullscreen_659644, 1);
+            PositionToolTipNode(marker, x, y, 0);
+        }
+    }
+    for (W8WorldItem* world_item = GetNextWorldItem(1); world_item != 0;
+         world_item = GetNextWorldItem(0)) {
+        W8Item* item = world_item->owner;
+        if (item == 0) {
+            continue;
+        }
+        srVector3T<float> location;
+        item->GetRepLocation0049FBA0(&location);
+        int layer = 0;
+        for (; layer < g_automap_layers.count; ++layer) {
+            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+                *g_automap_layers.GetAt(layer) != 0 &&
+                (*g_automap_layers.GetAt(layer))->getLocation().y < location.y) {
+                break;
+            }
+        }
+        if ((static_cast<W8ItemRep*>(item->m_pRep)->flags & 4) == 0 &&
+            (detect_all != 0 || ((static_cast<W8ItemRep*>(item->m_pRep)->flags >> 3) & 1) != 0 ||
+             HasCameraLineOfSight(&location)) &&
+            layer - 1 == g_automap_layer) {
+            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
+            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
+                top + g_automap_zoom < location.z) {
+                continue;
+            }
+            int x = 0xc - static_cast<int>((location.x - left) / g_automap_zoom * -455.0f);
+            int y = 0x20 - static_cast<int>((1.0f - (location.z - top) / g_automap_zoom) * -435.0f);
+            stModelInstance2D* marker = CreateAutomapItemMarker005833E0(world_item->item.item_id);
+            if (marker != 0) {
+                unsigned int width = marker->GetWidth00480EF0();
+                unsigned int height = marker->GetHeight00480F70();
+                PositionToolTipNode(marker, x - ((width & 0xffff) >> 1),
+                                    y - ((height & 0xffff) >> 1), 0);
+                marker->setParent(g_scene_fullscreen_659644, 1);
+            }
+        }
+    }
+    if (g_automap_page_0068f260 != 2) {
+        SGPRect saved_clip;
+        GetClippingRect(&saved_clip);
+        SGPRect clip = {0xc, 0x20, 0x1d3, 0x1d3};
+        SetClippingRect(&clip);
+        SetFont(g_font_683660);
+        SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
+        SetFontDestClip(0xc, 0x20, 0x1d3, 0x1d3);
+        int font_height = GetFontHeight(g_font_683660);
+        unsigned int count = g_automap_notes->GetCount();
+        for (unsigned int index = 0; index < count; ++index) {
+            W8AutomapNote* note = *g_automap_notes->GetAt(index);
+            int layer = note->layer + 1;
+            if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&
+                *g_automap_layers.GetAt(layer) != 0) {
+                (*g_automap_layers.GetAt(layer))->getLocationY();
+            }
+            left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
+            top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
+            if (note->position.x < left || left + g_automap_zoom < note->position.x ||
+                note->position.y < top || top + g_automap_zoom < note->position.y) {
+                continue;
+            }
+            int x = 0xc - static_cast<int>((note->position.x - left) / g_automap_zoom * -455.0f);
+            int y = 0x20 -
+                    static_cast<int>((1.0f - (note->position.y - top) / g_automap_zoom) * -435.0f);
+            stModelInstance2D* marker = CreateAutomapTextMarker005839D0();
+            if (note == g_automap_editing_note)
+                marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
+            if (marker != 0) {
+                unsigned int width = marker->GetWidth00480EF0();
+                x -= (width & 0xffff) >> 1;
+                unsigned int height = marker->GetHeight00480F70();
+                y -= (height & 0xffff) >> 1;
+                PositionToolTipNode(marker, x, y, 0);
+                marker->setParent(g_scene_fullscreen_659644, 1);
+                if (note->layer == g_automap_layer && note->text != 0 &&
+                    (g_automap_page_0068f260 == 0 || note == g_automap_hovered_note ||
+                     note == g_automap_editing_note)) {
+                    height = marker->GetHeight00480F70();
+                    y += ((height & 0xffff) >> 1) - ((font_height & 0xffff) >> 1);
+                    width = marker->GetWidth00480EF0();
+                    x += (width & 0xffff) + 2;
+                    // reinterpret-ok: SGP text APIs take UINT16*; wchar_t*.
+                    gprintfDirty(x, y, reinterpret_cast<UINT16*>(note->text));
+                    if (note == g_automap_editing_note) {
+                        marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
+                        unsigned int pitch;
+                        char* buffer = static_cast<char*>(LockPrimarySurface(&pitch));
+                        SetClippingRegionAndImageWidth(pitch, 0xc, 0x20, 0x1c7, 0x1b3);
+                        int color = Get16BPPColor(0x569bef);
+                        int length =
+                            // reinterpret-ok: SGP text APIs take UINT16*.
+                            StringPixLength(reinterpret_cast<UINT16*>(note->text), g_font_683660);
+                        RectangleDraw(TRUE, x - 1, y, x + length + 2, y + (font_height & 0xffff),
+                                      color, buffer);
+                        UnlockPrimarySurface();
+                    }
+                }
+            }
+        }
+        SetClippingRect(&saved_clip);
+    }
+}
+
+/* Create a scaled automap blip for a world item by blitting its inventory icon
+   into a scratch surface and wrapping it in a 2D brush. */
+// FUNCTION: WIZ8 0x005833E0
+stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id)
+{
+    int object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id);
+    ETRLEObject properties;
+    unsigned short region = GetCatalogVideoObjectYOffset(object);
+    unsigned int handle = GetCatalogVideoObjectHandle(object, 0);
+    if (!GetVideoObjectETRLEPropertiesFromIndex(handle, &properties, region)) {
+        return 0;
+    }
+    srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555, 0x40, 0x40);
+    surface->autoRelease();
+    surface->fill(0);
+    surface->setFilter(&srBSplineFilter);
+    int y = (0x40 - properties.usHeight) / 2;
+    int x = (0x40 - properties.usWidth) / 2;
+    BlitVideoObjectToColorSurface(GetCatalogVideoObjectHandle(object, 0),
+                                  GetCatalogVideoObjectYOffset(object), surface, x, y);
+    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f;
+    stModelInstance2D* marker = static_cast<stModelInstance2D*>(
+        MakePolygonBrush(g_scene_fullscreen_659644, surface, surface->getWidth() * g_scale_x_5ebb1c,
+                         surface->getHeight() * g_scale_y_5ebb20, 0.0f, 0.0f, 1.0f, 1.0f, 1));
+    if (marker == 0) {
+        return 0;
+    }
+    static_cast<srMeshModel*>(marker->model())->setControlMask(0x40);
+    g_releasable_68f1f4->Add(marker);
+    marker->SetGlowEnabled00480EB0(1);
+    srVector4T<float> first;
+    srVector4T<float> second;
+    second.Set(0.0f, 0.0f, 1.0f, 1.0f);
+    first.Set(0.0f, 0.0f, 0.25f, 1.0f);
+    marker->SetGlowColors00480FF0(&first, &second);
+    marker->setRenderDepth(2000);
+    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        marker->setScale(srVector3T<double>(factor, factor, factor));
+        return marker;
+    }
+    marker->setScale(srVector3T<double>(factor, factor, factor));
+    return marker;
+}
+
+/* Clone the friendly, neutral or hostile blip sprite for one monster entry and
+   register the clone for release after the pass. */
+// FUNCTION: WIZ8 0x00583710
+stModelInstance2D* CreateAutomapMonsterMarker00583710(int type)
+{
+    stModelInstance2D* marker = new stModelInstance2D(0);
+    if (marker == 0) {
+        return 0;
+    }
+    switch (type) {
+    case 0: {
+        srVector4T<float> first;
+        srVector4T<float> second;
+        *marker = *g_class_68f2a0;
+        second.Set(0.0f, 0.5f, 0.0f, 1.0f);
+        first.Set(0.0f, 0.0f, 0.0f, 1.0f);
+        marker->SetGlowColors00480FF0(&first, &second);
+        break;
+    }
+    case 1: {
+        srVector4T<float> first;
+        srVector4T<float> second;
+        *marker = *g_class_68f2a4;
+        second.Set(0.25f, 0.25f, 0.0f, 1.0f);
+        first.Set(0.0f, 0.0f, 0.0f, 1.0f);
+        marker->SetGlowColors00480FF0(&first, &second);
+        break;
+    }
+    case 2: {
+        srVector4T<float> first;
+        srVector4T<float> second;
+        *marker = *g_class_68f2a8;
+        second.Set(0.5f, 0.0f, 0.0f, 1.0f);
+        first.Set(0.0f, 0.0f, 0.0f, 1.0f);
+        marker->SetGlowColors00480FF0(&first, &second);
+        break;
+    }
+    }
+    g_releasable_68f1f4->Add(marker);
+    marker->SetGlowEnabled00480EB0(1);
+    marker->setRenderDepth(2000);
+    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * 0.85f;
+    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        marker->setScale(srVector3T<double>(factor, factor, factor));
+    } else {
+        marker->setScale(srVector3T<double>(factor, factor, factor));
+    }
+    return marker;
+}
+
+/* Clone the text blip sprite and register the clone for release after the
+   pass. */
+// FUNCTION: WIZ8 0x005839D0
+stModelInstance2D* CreateAutomapTextMarker005839D0(void)
+{
+    stModelInstance2D* marker = new stModelInstance2D(0);
+    if (marker == 0) {
+        return 0;
+    }
+    *marker = *g_automap_text_marker_0068f2ac;
+    g_releasable_68f1f4->Add(marker);
+    float factor = (g_float_005ebb38 / (g_automap_zoom * 0.00004f)) * 0.44f * g_float_005ebc7c;
+    if ((marker->GetHeight00480F70() & 0xffff) * factor < g_float_005ebb38) {
+        marker->setScale(srVector3T<double>(1.0, 1.0, 1.0));
+        factor = g_float_005ebb38 / (marker->GetHeight00480F70() & 0xffff);
+        marker->setScale(srVector3T<double>(factor, factor, factor));
+    } else {
+        marker->setScale(srVector3T<double>(factor, factor, factor));
+    }
+    marker->SetGlowEnabled00480EB0(1);
+    srVector4T<float> first;
+    srVector4T<float> second;
+    second.Set(1.0f, 0.4f, 0.0f, 1.0f);
+    first.Set(0.0f, 0.0f, 0.0f, 1.0f);
+    marker->SetGlowColors00480FF0(&first, &second);
+    marker->setRenderDepth(2000);
+    return marker;
 }
 /* While a note is being edited, forward key events into its text buffer and
    let left-button-up drop the note at the cursor. */
@@ -1758,4 +2393,28 @@ unsigned char ReadAutomapNodes00584DD0(int hFile)
         g_record_68f284->Insert(static_cast<unsigned int*>(g_block_68f280) + index, &value);
     }
     return success;
+}
+
+/* Pack a world position into an automap node key: eleven bits of z, then
+   eleven of x, then ten of y, each scaled to grid cells. ResetAutomapView
+   spells the same expression inline on the origin-relative position. */
+// FUNCTION: WIZ8 0x005852B0
+unsigned int AutomapNodeKey(const srVector3T<float>* position)
+{
+    return ((static_cast<unsigned int>(position->z / g_float_64b914) & 0x7ff) |
+            static_cast<unsigned int>(position->x / g_float_64b914) << 11)
+               << 10 |
+           (static_cast<unsigned int>(position->y / g_float_64b914) & 0x3ff);
+}
+
+/* The large-map level set: the same levels that get the 30000-unit automap
+   range in ResetAutomapView also get 4000-unit cells instead of 2000. */
+// FUNCTION: WIZ8 0x00585320
+bool AutomapLevelIsLarge(void)
+{
+    if (g_status_685170.current_level == 0x18 ||
+        (g_status_685170.current_level > 0x1a && g_status_685170.current_level <= 0x22)) {
+        return 1;
+    }
+    return 0;
 }

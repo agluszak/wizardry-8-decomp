@@ -32,8 +32,8 @@ void RestoreAutomapCameraPosition(void);
 unsigned char CanUseCurrentAutomapTool(void);
 
 void ResetAutomapView005817D0(void);
-bool SaveAutomapNotes00581CE0(int handle);
-bool LoadAutomapNotes00581E60(int handle);
+bool SaveAutomapNotes(int handle); /* 0x00581CE0 */
+bool LoadAutomapNotes(int handle); /* 0x00581E60 */
 unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
 W8AutomapNote* FindAutomapNoteUnderCursor00582180(void);
@@ -51,5 +51,5 @@ unsigned char AutomapScreenFinalize(void);
 float GetFloat64B914(void);
 void SetFloat64B914(float value); /* 0x00585300 */
 /* Packs a world position into an automap cell key. */
-unsigned int AutomapNodeKey005852B0(const srVector3T<float>* position);
-unsigned char Function585320(void);
+unsigned int AutomapNodeKey(const srVector3T<float>* position);
+bool AutomapLevelIsLarge(void);

@@ -2453,7 +2453,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
         rotation.RotateAroundAxis(sin(angle), cos(angle), destination_direction);
     }
     ApplyCameraRotation(&rotation);
-    SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
+    SpawnCameraSpellEffect("set_portal", 1, 0, 0);
 #pragma clang diagnostic pop
 }
 

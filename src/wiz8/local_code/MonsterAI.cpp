@@ -764,7 +764,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         break;
     case 9:
         effect = FindMonsterControlSpellEffect();
-        if (effect == 0 || (visual = effect->effects.data[0]) == 0) {
+        if (effect == 0 || (visual = effect->spell_visuals.data[0]) == 0) {
             break;
         }
         if (monster->SetMovementTargetToNavigator004526C0(visual, 2500.0) == 0) {
@@ -1385,7 +1385,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
     unsigned int index;
     unsigned int duration;
 
-    if (GetSpellTargetType(spell_id, 0) == 8) {
+    if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_POINT) {
         return 1;
     }
     if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
@@ -1884,7 +1884,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
     }
     target_type = GetSpellTargetType(spell_id, 0);
     switch (target_type) {
-    case 0:
+    case W8_TARGET_TYPE_CASTER:
         ResetCombatSlot(&slot);
         slot.iMonsterID = monster_info->location_id;
         slot.iType = W8_TARGET_KIND_MONSTER;
@@ -1893,7 +1893,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         targets->Add(slot);
         break;
-    case 1:
+    case W8_TARGET_TYPE_ALLY:
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member->fActive != 0 && member->hp_current != 0 &&
@@ -1926,7 +1926,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             }
         }
         break;
-    case 3:
+    case W8_TARGET_TYPE_ENEMY:
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
@@ -1959,7 +1959,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             }
         }
         break;
-    case 4:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
         for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->group_id != monster_info->monster_group_id &&
@@ -1984,8 +1984,8 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         targets->Add(slot);
         break;
-    case 5:
-    case 6:
+    case W8_TARGET_TYPE_CONE:
+    case W8_TARGET_TYPE_RADIUS:
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             member = MonsterGetScriptPartByLocationIndex(index);
             if (member != monster_info && member->fActive != 0 && member->hp_current != 0 &&
@@ -1995,7 +1995,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
                 ResetCombatSlot(&slot);
                 slot.iType = W8_TARGET_KIND_MONSTER;
                 slot.iMonsterID = member->location_id;
-                ResolveTargetPoint(&slot, target_type == 6);
+                ResolveTargetPoint(&slot, target_type == W8_TARGET_TYPE_RADIUS);
                 slot.iType = W8_TARGET_KIND_PLACE;
                 if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
                     SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
@@ -2007,7 +2007,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             0) {
             ResetCombatSlot(&slot);
             slot.iType = W8_TARGET_KIND_PARTY;
-            ResolveTargetPoint(&slot, target_type == 6);
+            ResolveTargetPoint(&slot, target_type == W8_TARGET_TYPE_RADIUS);
             slot.iType = W8_TARGET_KIND_PLACE;
             if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
                 SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
@@ -2023,7 +2023,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             }
         }
         break;
-    case 7:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
         ResetCombatSlot(&slot);
         slot.iType = W8_TARGET_KIND_FIVE;
         if (MonsterSpellTargetOK(monster_info, spell_id, &slot) == 0 ||
@@ -2032,7 +2032,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         }
         targets->Add(slot);
         break;
-    case 8:
+    case W8_TARGET_TYPE_POINT:
         ResetCombatSlot(&slot);
         slot.point = monster_info->monster->GetPosition();
         targets->Add(slot);
@@ -2055,9 +2055,9 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
 // FUNCTION: WIZ8 0x00534290
 unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 {
-    int target_type = GetSpellTargetType(spell_id, 0);
+    W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
 
-    if (target_type > 4 && target_type < 7) {
+    if (target_type > W8_TARGET_TYPE_ENEMY_GROUP && target_type < W8_TARGET_TYPE_ALL_ENEMIES) {
         return AimMonsterAtSpellTarget(monster_info, spell_id);
     }
     if (g_spell_records[spell_id].needs_aim_13f != 0) {
@@ -2422,7 +2422,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 }
 
 /* Whether the point the monster-control effect is anchored to is still within
-   reach. effects.data sits at W8SpellEffectEntry + 0x10c; the first visual is
+   reach. spell_visuals.data sits at W8SpellEffectEntry + 0x10c; the first visual is
    a W8SpellVisual whose W8Navigator secondary base is the ordinary GrCycle
    conversion at +0x18. With no effect running, or nothing anchored, there is
    nothing to be in range of; failing the test falls back on where the party
@@ -2439,7 +2439,7 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
     if (effect == 0) {
         return 0;
     }
-    visual = effect->effects.data[0];
+    visual = effect->spell_visuals.data[0];
     if (visual == 0) {
         return 0;
     }
