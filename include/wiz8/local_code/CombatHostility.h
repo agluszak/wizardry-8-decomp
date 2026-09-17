@@ -11,7 +11,7 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second);
 unsigned char MonsterCanAimSpell005474B0(int spell_id);
 unsigned char CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
-void RecountCombatMonsters(void); /* 0x00546E70 */
+void RecountCombatMonsters(void);                                          /* 0x00546E70 */
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
                               char recurse); /* 0x00547570 */
 
@@ -22,3 +22,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* Give every other same-faction group that can see this one its disposition -
    one group going hostile brings the rest of its faction with it. */
 void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */
+
+/* 0x0061EC14: gppStringList indices naming each monster ai_kind, indexed by
+   W8MonsterRecord::ai_kind; slot zero is unused. */
+extern const int g_monster_ai_kind_name_ids_61ec14[12];

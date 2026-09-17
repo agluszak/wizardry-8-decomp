@@ -11,6 +11,7 @@ class stModelInstance2D;
 
 struct W8IList;
 struct W8MipeState;
+struct W8NpcDialogRequest;
 struct W8NpcState;
 struct W8NpcScriptQuote;
 struct W8ScreenRect;
@@ -22,6 +23,8 @@ void ClearHighlightIfItIs(const int* item);
 #include "wiz8/layouts/main_game_screen.h"
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
 extern const wchar_t g_format_s_006068e4[];
+/* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
+extern const wchar_t g_format_d_percent_0064bab0[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];
@@ -636,7 +639,12 @@ struct W8MainScreenState {
     W8ItemInstance pending_item_1ed;
     unsigned char flag_1f9;
     unsigned char script_busy; /* 0x1fa: set 0xff during script execution */
-    unsigned char unknown_1fb[5];
+    unsigned char unknown_1fb;
+    /* 0x1fc: the aux_data argument the NPC-dialog dispatch stashes when the
+       request is a 0x12/0x1e price check; the reply handler runs it as the
+       accepted script line, tells it as a fact, or runs its kind-0x17 decline
+       entries. */
+    int pending_fact_1fc;
     unsigned char flag_200;
     unsigned char flag_201;
     unsigned char unknown_202[2];
@@ -655,7 +663,9 @@ struct W8MainScreenState {
     unsigned char flag_229;
     unsigned char unknown_22a[2];
     int value_22c;
-    unsigned char unknown_230[4];
+    /* 0x230: g_settings_6850c8.field_006 saved while the NPC dialogue is
+       suppressed and handed back to ApplyMainGameModeFlag when it reopens. */
+    int saved_mode_230;
     unsigned char flag_234;
     unsigned char unknown_235[3];
     int value_238;
@@ -895,7 +905,11 @@ void HandleNpcDialogueDeparture(int value);                                     
 unsigned char HandleNpcDialogueItem(W8ItemInstance* item);                          /* 0x00575810 */
 void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
 void ResetNpcDialogueItemEditor(void);                                              /* 0x0056FED0 */
-void Function576850(int value);                                                     /* 0x00576850 */
+void SetNpcDialogueHidden(char value);                                              /* 0x00576850 */
+void HandleNpcDialogueReply(wchar_t* text, char echo);                              /* 0x00574250 */
+void HandleNpcDialogueInput(void);                                                  /* 0x005743B0 */
+void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data);                      /* 0x00575E60 */
+void OnNpcDialogClosed(W8DialogBase* dialog);                                       /* 0x00576E20 */
 void Function5ADB10(int value);                                                     /* 0x005ADB10 */
 void Function58BA60(void);                                                          /* 0x0058BA60 */
 void Function575710(void);                                                          /* 0x00575710 */

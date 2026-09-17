@@ -50,8 +50,7 @@ const wchar_t* g_spell_target_parentheticals_60d4e0[11] = {
     g_spell_target_mark_fff4, g_spell_target_mark_fff4,
 };
 // GLOBAL: WIZ8 0x0061e9a0
-const unsigned short g_spell_range_name_ids_61e9a0[8] = {1307, 1308, 1309, 1310,
-                                                         1311, 1312, 1313, 1314};
+const unsigned short g_spell_range_name_ids_61e9a0[4] = {1307, 1308, 1309, 1310};
 // GLOBAL: WIZ8 0x0064fdcc
 const wchar_t g_format_d_space_0064fdcc[] = L"%d ";
 // GLOBAL: WIZ8 0x0064fdc4

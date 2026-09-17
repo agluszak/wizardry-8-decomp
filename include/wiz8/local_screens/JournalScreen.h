@@ -44,6 +44,9 @@ void RefreshJournalPanel005BD860(void);
 /* 0x0068de40: the fact journal, created lazily by the initializer below and
    appended to whenever a fact changes. */
 extern W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
+/* 0x0064D7F0: the "%d / %d" current-over-max format shared by journal pages
+   and debug stat readouts. */
+extern wchar_t g_journal_page_format_0064d7f0[];
 void InitializeFactJournal(void);
 /* 0x005588F0: append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */

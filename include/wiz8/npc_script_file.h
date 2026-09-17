@@ -38,7 +38,15 @@ struct W8NpcQuoteSubEntry {
    the next twelve bytes come off disk untouched. */
 struct W8NpcQuoteEntry {
     unsigned char kind_00;
-    unsigned char unknown_01[0xc];
+    /* 0x01: the script line/quote index the entry resolves to - queued by
+       QueueNpcScriptLine, run by RunNpcScriptLine, or returned to the reply
+       dispatch. */
+    int value_01;
+    int unknown_05;
+    /* 0x09: per-kind action selector; kind-6 reply entries use 1 for the
+       generic answer, 2 for the no-keyword fallback and 3 for the
+       per-keyword answer list. */
+    int role_09;
     unsigned char sub_entry_count;   /* 0x0d */
     W8NpcQuoteSubEntry* sub_entries; /* 0x0e */
 }; /* 0x12 */

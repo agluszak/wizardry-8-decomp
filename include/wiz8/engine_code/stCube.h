@@ -34,6 +34,8 @@ public:
 };
 static_assert(sizeof(W8WorldCursorNode) == 0x44, "W8WorldCursorNode_size");
 
+extern double g_world_cursor_scale_005ebf50;
+
 W8WorldCursorNode* CreateWorldCursorCube0048D080(void);
 void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry);
 void MoveWorldCursorNode0048DBF0(W8WorldCursorNode* entry, srVector3T<float>* position);

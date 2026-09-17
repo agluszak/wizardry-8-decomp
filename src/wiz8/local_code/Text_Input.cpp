@@ -107,6 +107,33 @@ static unsigned char gubMouseDownPos;
 static int gsCursorX;
 static size_t guiVisibleCount;
 
+// FUNCTION: WIZ8 0x005D3470
+void InitTextInputMode(void)
+{
+    if (gpTextInputHead != 0) {
+        STACKTEXTINPUTNODE* session = (STACKTEXTINPUTNODE*)malloc(sizeof(STACKTEXTINPUTNODE));
+        session->head = gpTextInputHead;
+        session->pColors = pColors;
+        session->next = pInputStack;
+        pInputStack = session;
+        for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
+            if (field->fEnabled != 0) {
+                MSYS_DisableRegion(&field->region);
+                field->fEnabled = 0;
+            }
+        }
+        gpActive = 0;
+    }
+    gpTextInputHead = 0;
+    pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
+    gfTextInputMode = 1;
+    gfEditingText = 0;
+    pColors->fBevelling = 0;
+    pColors->fUseDisabledAutoShade = 1;
+    pColors->usCursorColor = Get16BPPColor(0x0a0a0a);
+    gubVisibleStart = 0;
+}
+
 // FUNCTION: WIZ8 0x005D3520
 void InitTextInputModeWithScheme(int mode)
 {
@@ -1307,4 +1334,21 @@ void SelectAllText(void)
     gubStartHilite = first;
     gubEndHilite = last;
     gfHiliteMode = 1;
+}
+
+/* 0x005D5DA0: sets whether the named field's mouse region callback is
+   suppressed; the NPC dialogue toggles it on field 0 while the modal is up. */
+// FUNCTION: WIZ8 0x005D5DA0
+void SetInputFieldBlocksMouseCallback(unsigned char field_id, unsigned char blocks)
+{
+    TEXTINPUTNODE* field = gpTextInputHead;
+    if (field != 0) {
+        while (field->ubID != field_id) {
+            field = field->next;
+            if (field == 0) {
+                return;
+            }
+        }
+        field->blocks_mouse_callback = blocks;
+    }
 }

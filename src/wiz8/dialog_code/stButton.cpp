@@ -143,6 +143,21 @@ void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
     }
 }
 
+// FUNCTION: WIZ8 0x005dbac0
+void W8DialogButton::SetTooltipIndex(int tooltip_index)
+{
+    if (m_button_01c != -1) {
+        m_tooltip_index = tooltip_index;
+        if (g_settings_6850c8.tooltips_enabled != 0) {
+            SetButtonFastHelpText(
+                m_button_01c,
+                reinterpret_cast<UINT16*>(
+                    gppStringList
+                        [tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x005dbaf0
 int W8DialogButton::GetUserData()
 {
@@ -191,6 +206,38 @@ W8DialogButton::~W8DialogButton()
 }
 
 #define STBUTTON_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\stButton.cpp"
+
+// FUNCTION: WIZ8 0x005db2a0
+unsigned char W8DialogButton::ConfigureVObjButton(HVOBJECT object, int base_frame,
+                                                  W8DialogButtonCallback left_callback,
+                                                  unsigned char left_toggles)
+{
+    int on_frame = base_frame + 2;
+
+    m_image_018 = UseVObjAsButtonImage(object, base_frame + 3, base_frame, base_frame + 1, on_frame,
+                                       on_frame);
+    m_gray_frame = base_frame + 3;
+    m_off_normal_frame = base_frame;
+    m_off_hover_frame = base_frame + 1;
+    m_on_normal_frame = on_frame;
+    m_on_hover_frame = on_frame;
+    if (m_image_018 != -1) {
+        m_button_01c = QuickCreateButton(m_image_018, 0, 0, BUTTON_NO_TOGGLE, 0x7f,
+                                         DialogButtonCallback, DialogButtonCallback);
+    }
+    if (m_button_01c != -1) {
+        SetButtonUserDataPointer(m_button_01c, this);
+        m_left_callback = left_callback;
+        m_left_toggles = left_toggles;
+        m_dirty = 1;
+        return 1;
+    }
+    if (m_image_018 != -1) {
+        UnloadButtonImage(m_image_018);
+        m_image_018 = -1;
+    }
+    return 0;
+}
 
 // FUNCTION: WIZ8 0x005DB350
 unsigned char W8DialogButton::ConfigureTextButton(const wchar_t* text, unsigned int font,

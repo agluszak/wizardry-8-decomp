@@ -460,3 +460,4 @@ unsigned char CharacterScreenLeave(int leaving);
 extern const wchar_t g_dash_0064789c[];
 extern const wchar_t g_format_d_0060aa20[];
 extern const wchar_t g_format_d_slash_d_00614b58[];
+extern const wchar_t g_format_plus_d_0064dc24[];
