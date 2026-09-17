@@ -88,6 +88,8 @@ extern float g_float_005ebc60;
    geometry. */
 extern float g_float_005ebc78;
 extern float g_float_005ebc7c;
+/* Automap pan step as a fraction of the current zoom span. */
+extern const float g_float_005ebcd8;
 /* Search: the unit range the search score and collector scale against. */
 extern float g_float_0061a364;
 /* Search: the full facing cone the collector tests before line of sight. */

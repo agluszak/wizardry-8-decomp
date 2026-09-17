@@ -270,3 +270,33 @@ def translation_units_command() -> None:
     settings = cli.settings()
     layout = translation_unit_layout(settings)
     cli.emit(translation_unit_report(settings, layout=layout))
+
+
+@app.command("placement-outliers")
+def placement_outliers_command(
+    min_gap: int = typer.Option(
+        0x100000,
+        "--min-gap",
+        help="Minimum |address - TU median| in bytes before a FUNCTION is listed.",
+    ),
+    min_peers: int = typer.Option(
+        3,
+        "--min-peers",
+        help="Require this many FUNCTION markers in an original TU before scoring outliers.",
+    ),
+) -> None:
+    """Flag large address outliers in proved original TUs, with fold/emission notes."""
+
+    from .. import command_support as cli
+    from ..reports.placement_outliers import placement_outlier_report
+    from ..source_index import warn_if_source_index_may_be_stale
+
+    settings = cli.settings()
+    warn_if_source_index_may_be_stale(settings.repo_dir, "WIZ8")
+    cli.emit(
+        placement_outlier_report(
+            settings.repo_dir,
+            min_gap=min_gap,
+            min_peers=min_peers,
+        )
+    )

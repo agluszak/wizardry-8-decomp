@@ -76,7 +76,7 @@ struct W8SpellCastingView {
     W8TextControl* power_pips[9];    /* 0x540 */
     W8TextControl* spell_name;       /* 0x564 */
     W8TextControl* cancel_button;    /* 0x568 */
-    int saved_game_mode;             /* 0x56c */
+    W8MainUiMode saved_game_mode;    /* 0x56c */
     unsigned char flag_570;          /* 0x570 */
     unsigned char pad_571[3];
     int field_574;                  /* 0x574 */
@@ -295,7 +295,7 @@ static void ReleaseSpellCastingViewControls(void)
 // FUNCTION: WIZ8 0x0059F0E0
 unsigned char OpenSpellCastingView(int party_slot)
 {
-    int mode;
+    W8MainUiMode mode;
 
     if (IsPartySlotEligible00524A10(party_slot) == 0) {
         return 0;
@@ -317,9 +317,9 @@ unsigned char OpenSpellCastingView(int party_slot)
     gpSCSV->location_id = -1;
     gpSCSV->interact_id = -1;
     CloseMainGameOverlays();
-    mode = g_settings_6850c8.field_006;
-    if (mode == 2) {
-        ApplyMainGameModeFlag(1, 0);
+    mode = g_settings_6850c8.main_ui_mode;
+    if (mode == W8_MAIN_UI_MODE_RADAR) {
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
     } else {
         SetViewportMode(GetMainGameViewportMode());
     }
@@ -1207,7 +1207,7 @@ static void SelectSpellCastingListRow005A1150(int index)
 }
 
 // FUNCTION: WIZ8 0x005A1330
-void SetSpellCastingMode005A1330(int value)
+void SetSpellCastingMode005A1330(W8MainUiMode value)
 {
     gpSCSV->saved_game_mode = value;
 }

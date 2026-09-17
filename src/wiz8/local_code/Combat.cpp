@@ -556,7 +556,8 @@ void EndCombat004EA310(int mode)
     ZoomRadarMapOut();
     EnablePortraitAdvanceRegions0059BB70();
     DisableMainRegionSet();
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0) {
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+        g_level_block->review_transition_active == 0) {
         ClearSurfaceRect(0x17, 0x34, 0x2d, 0x159);
         ClearSurfaceRect(0x253, 0x34, 0x269, 0x159);
         RequestRedraw(0x810ff);

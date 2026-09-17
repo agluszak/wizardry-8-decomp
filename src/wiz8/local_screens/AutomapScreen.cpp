@@ -130,6 +130,45 @@ W8AutomapState* g_automap_state;
 // GLOBAL: WIZ8 0x0068f274
 srColorSurface* g_automap_surface;
 
+void AutomapZoomInButton(void);
+void AutomapZoomOutButton(void);
+void AutomapSelectNoteToolButton(void);
+void AutomapSelectEraseToolButton(void);
+void AutomapCyclePageButton(void);
+void AutomapLayerDownButton(void);
+void AutomapLayerUpButton(void);
+void AutomapPanNorthButton(void);
+void AutomapPanSouthButton(void);
+void AutomapPanWestButton(void);
+void AutomapPanEastButton(void);
+void AutomapExitButton(void);
+void ResetAutomapZoom0057FE40(void);
+
+/* String-table tooltip indexes for the sixteen automap chrome buttons. */
+// GLOBAL: WIZ8 0x0064b7a4
+const int g_automap_button_tooltips_64b7a4[16] = {0, 1, 2,  3,  4,  5,  6,  7,
+                                                  8, 9, 10, 11, 12, 13, 14, 15};
+/* Left-click actions. ResetAutomapZoom / RestoreAutomapCameraPosition are the
+   already-recovered bodies at the retail callback addresses. */
+// GLOBAL: WIZ8 0x0064b7e4
+void (*const g_automap_button_callbacks_64b7e4[16])(void) = {
+    AutomapZoomInButton,         AutomapZoomOutButton,         ResetAutomapZoom0057FE40,
+    AutomapSelectNoteToolButton, AutomapSelectEraseToolButton, AutomapCyclePageButton,
+    AutomapCyclePageButton,      AutomapCyclePageButton,       AutomapLayerDownButton,
+    AutomapLayerUpButton,        AutomapPanNorthButton,        AutomapPanSouthButton,
+    AutomapPanWestButton,        AutomapPanEastButton,         RestoreAutomapCameraPosition,
+    AutomapExitButton,
+};
+/* Catalog object ids ConfigureVObjButton loads for each button. */
+// GLOBAL: WIZ8 0x0064b824
+const int g_automap_button_catalogs_64b824[16] = {388, 392, 396, 380, 384, 348, 352, 356,
+                                                  340, 344, 360, 364, 368, 372, 376, 336};
+/* Screen positions for the sixteen buttons. */
+// GLOBAL: WIZ8 0x0064b864
+const int g_automap_button_positions_64b864[16][2] = {
+    {490, 124}, {541, 124}, {591, 124}, {490, 70},  {541, 70},  {591, 70},  {591, 70},  {591, 70},
+    {490, 164}, {591, 164}, {540, 218}, {540, 326}, {486, 272}, {594, 272}, {540, 272}, {588, 441},
+};
 // GLOBAL: WIZ8 0x0064b8e4
 int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
@@ -211,7 +250,6 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note);
 unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point);
 void SetAutomapCameraPoint0057FC70(srVector3T<float>* position);
 void SetAutomapButtonMode(int update);
-void ResetAutomapZoom0057FE40(void);
 void Function427460(int x, int y);
 void RenderAutomapFrame00581030(void);
 void Function46F760(W8World* world, int value);
@@ -347,6 +385,207 @@ void RestoreAutomapCameraPosition(void)
     g_automap_position.x = g_automap_saved_camera.position.x;
     g_automap_position.z = g_automap_saved_camera.position.z;
     SetAutomapCameraPoint0057FC70(&g_automap_position);
+}
+
+/* Build the sixteen chrome buttons from the adjacent catalog / callback /
+   tooltip / position tables. */
+// FUNCTION: WIZ8 0x00583BC0
+void CreateAutomapButtons00583BC0(void)
+{
+    int index;
+    int base_frame;
+    HVOBJECT object;
+
+    g_automap_buttons = new W8DialogButton*[16];
+    if (g_automap_buttons == 0) {
+        srAssertFail("gpstAutomapButtons",
+                     "C:\\Projects\\Wizardry 8\\Local Screens\\AutomapScreen.cpp", 0xd05, 0);
+    }
+    for (index = 0; index < 16; ++index) {
+        object = GetCatalogVideoObject(g_automap_button_catalogs_64b824[index], 0, &base_frame);
+        if (object != 0) {
+            g_automap_buttons[index] = new W8DialogButton;
+            if (g_automap_buttons[index] != 0) {
+                W8DialogButtonCallback callback = reinterpret_cast<W8DialogButtonCallback>(
+                    g_automap_button_callbacks_64b7e4[index]); // reinterpret-ok: void() vs button*
+                if (g_automap_buttons[index]->ConfigureVObjButton(object, base_frame, callback,
+                                                                  0) != 0) {
+                    g_automap_buttons[index]->SetPosition(
+                        g_automap_button_positions_64b864[index][0],
+                        g_automap_button_positions_64b864[index][1]);
+                    g_automap_buttons[index]->SetTooltipIndex(
+                        g_automap_button_tooltips_64b7a4[index]);
+                }
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00583CE0
+void AutomapZoomInButton(void)
+{
+    srVector3T<float> center;
+    center.x = 0.5f;
+    center.y = 0.5f;
+    center.z = 0.0f;
+    ZoomAutomapIn0057FFC0(&center);
+}
+
+/* Mirror of the right-click zoom-out path: one step when the camera is below
+   the full top height, otherwise restore the full explored span. The one-step
+   arm inlines SetAutomapToolCursor the same way retail does. */
+// FUNCTION: WIZ8 0x00583D10
+void AutomapZoomOutButton(void)
+{
+    if (g_automap_position.y < g_automap_top_y) {
+        if (g_automap_zoom_mode == 1) {
+            g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+            srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                       g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                       g_automap_bounds_min.z + g_automap_bounds_max.z);
+            position = position * 0.5;
+            position.y = g_automap_top_y;
+            SetAutomapCameraPoint0057FC70(&position);
+            SetAutomapToolCursor(g_automap_tool);
+            SetAutomapButtonMode(0);
+        } else {
+            float ground_y = g_automap_position.y - g_automap_zoom;
+            float height = g_automap_top_y - (g_automap_top_y - ground_y) * g_float_005ebc7c;
+            if (g_automap_position.y <= height) {
+                g_automap_position.y = height;
+                if (g_automap_buttons != 0) {
+                    g_automap_buttons[0]->SetEnabled(1);
+                    g_automap_buttons[1]->SetEnabled(1);
+                    g_automap_buttons[0]->m_dirty = 1;
+                    g_automap_buttons[0]->Draw();
+                    g_automap_buttons[1]->m_dirty = 1;
+                    g_automap_buttons[1]->Draw();
+                }
+                g_automap_zoom = g_automap_position.y - ground_y;
+                g_automap_zoom_mode = 1;
+                SetAutomapCameraPoint0057FC70(&g_automap_position);
+                int tool = g_automap_tool;
+                if (g_automap_tool == 0 && g_automap_cursor_inside != 0) {
+                    if (g_automap_zoom <= g_float_005ec360) {
+                        tool = 4;
+                    } else {
+                        tool = 1;
+                    }
+                }
+                SetMouseCursorFromVideoObject(
+                    GetCatalogVideoObjectHandle(tool + 0x14b, 0),
+                    GetCatalogVideoObjectYOffset(tool + 0x14b),
+                    static_cast<short>(g_automap_cursor_offsets[tool][0]),
+                    static_cast<short>(g_automap_cursor_offsets[tool][1]));
+                gXStatus.iCurrentCursor = 7;
+                RefreshMouseCursorTexture();
+            } else {
+                g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+                srVector3T<float> position(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                                           g_automap_bounds_max.y + g_automap_bounds_min.y,
+                                           g_automap_bounds_min.z + g_automap_bounds_max.z);
+                position = position * 0.5;
+                position.y = g_automap_top_y;
+                SetAutomapCameraPoint0057FC70(&position);
+                SetAutomapToolCursor(g_automap_tool);
+                SetAutomapButtonMode(0);
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00583FC0
+void AutomapSelectNoteToolButton(void)
+{
+    if (g_automap_tool == 2) {
+        return;
+    }
+    g_automap_tool = 2;
+    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14d, 0),
+                                  GetCatalogVideoObjectYOffset(0x14d),
+                                  static_cast<short>(g_automap_cursor_offsets[2][0]),
+                                  static_cast<short>(g_automap_cursor_offsets[2][1]));
+    gXStatus.iCurrentCursor = 7;
+    RefreshMouseCursorTexture();
+}
+
+// FUNCTION: WIZ8 0x00584020
+void AutomapSelectEraseToolButton(void)
+{
+    if (g_automap_tool == 3) {
+        return;
+    }
+    g_automap_tool = 3;
+    SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0x14e, 0),
+                                  GetCatalogVideoObjectYOffset(0x14e),
+                                  static_cast<short>(g_automap_cursor_offsets[3][0]),
+                                  static_cast<short>(g_automap_cursor_offsets[3][1]));
+    gXStatus.iCurrentCursor = 7;
+    RefreshMouseCursorTexture();
+}
+
+// FUNCTION: WIZ8 0x00584080
+void AutomapCyclePageButton(void)
+{
+    g_automap_page_0068f260 = (g_automap_page_0068f260 + 1) % 3;
+    g_automap_buttons[5]->SetVisible(g_automap_page_0068f260 == 0);
+    g_automap_buttons[6]->SetVisible(g_automap_page_0068f260 == 1);
+    g_automap_buttons[7]->SetVisible(g_automap_page_0068f260 == 2);
+    g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = 1;
+    g_automap_buttons[g_automap_page_0068f260 + 5]->Draw();
+    g_automap_redraw = 1;
+}
+
+// FUNCTION: WIZ8 0x00584110
+void AutomapLayerDownButton(void)
+{
+    if (g_automap_layer > 0) {
+        SetAutomapLayer00580F20(g_automap_layer - 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00584130
+void AutomapLayerUpButton(void)
+{
+    if (g_automap_layer < g_automap_layers.count) {
+        SetAutomapLayer00580F20(g_automap_layer + 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00584150
+void AutomapPanNorthButton(void)
+{
+    g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
+    SetAutomapCameraPoint0057FC70(&g_automap_position);
+}
+
+// FUNCTION: WIZ8 0x00584180
+void AutomapPanSouthButton(void)
+{
+    g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
+    SetAutomapCameraPoint0057FC70(&g_automap_position);
+}
+
+// FUNCTION: WIZ8 0x005841B0
+void AutomapPanWestButton(void)
+{
+    g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
+    SetAutomapCameraPoint0057FC70(&g_automap_position);
+}
+
+// FUNCTION: WIZ8 0x005841E0
+void AutomapPanEastButton(void)
+{
+    g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
+    SetAutomapCameraPoint0057FC70(&g_automap_position);
+}
+
+// FUNCTION: WIZ8 0x00584240
+void AutomapExitButton(void)
+{
+    if (g_automap_editing_note == 0) {
+        RequestScreenTransition();
+    }
 }
 
 // FUNCTION: WIZ8 0x0057e660
@@ -737,19 +976,19 @@ void AutomapScreenFrame(void)
     }
     bool moved = false;
     if (gfKeyState[0x25]) {
-        g_automap_position.x -= g_automap_zoom * 0.35f;
+        g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
         moved = true;
     }
     if (gfKeyState[0x27]) {
-        g_automap_position.x += g_automap_zoom * 0.35f;
+        g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
         moved = true;
     }
     if (gfKeyState[0x26]) {
-        g_automap_position.z += g_automap_zoom * 0.35f;
+        g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
         moved = true;
     }
     if (gfKeyState[0x28]) {
-        g_automap_position.z -= g_automap_zoom * 0.35f;
+        g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
         moved = true;
     }
     if (moved)

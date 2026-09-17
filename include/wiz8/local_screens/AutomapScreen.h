@@ -19,6 +19,8 @@ static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
 extern int g_value_68f2b0;
 extern int g_value_68f2c4;
+void SetValue68F2B0(int value); /* 0x00587C10 */
+void SetValue68F2C4(int value); /* 0x0058A870 */
 
 class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;

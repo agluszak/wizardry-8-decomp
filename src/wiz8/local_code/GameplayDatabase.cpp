@@ -718,7 +718,7 @@ void ResetGameplaySettings(void)
     memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
     g_settings_6850c8.sound_effects_volume = 0x40;
     g_settings_6850c8.voice_volume = 0x40;
-    g_settings_6850c8.field_006 = 1;
+    g_settings_6850c8.main_ui_mode = W8_MAIN_UI_MODE_FORMATION;
     g_settings_6850c8.continuous_combat = 0;
     g_settings_6850c8.auto_advance_character = 0;
     g_settings_6850c8.tooltips_enabled = 1;

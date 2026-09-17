@@ -182,10 +182,15 @@ class W8CharacterEvent;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* 0x005EBFB4 is AutomapScreen.cpp's g_releasable_68f1f4, declared
-   W8GrowableVector<srClass*>*; its initializer at 0x00582310 installs this
-   final table. The vtable is not emitted by recovered source yet because the
-   constructing body is still unrecovered. */
+/* AutomapScreen.cpp's CreateAutomapMarkerSprites005822C0 constructs
+   g_releasable_68f1f4 with `new W8GrowableVector<srClass*>(5)`. That use is
+   what emits this specialization. Retail splits the capacity ctor there: a
+   helper at 0x00585460 writes the construction-phase table 0x005EBFB8 and
+   allocates the array, then the final-vtable store at 0x00582310 (inside
+   CreateAutomapMarkerSprites, not a separate function) installs 0x005EBFB4.
+   The complete TEMPLATE ctor below performs both stages in one body. Like the
+   other construction-phase tables in this file, 0x005EBFB8 carries no marker
+   of its own. */
 // VTABLE: WIZ8 0x005ebfb4
 // class W8GrowableVector<srClass*>
 

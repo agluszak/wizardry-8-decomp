@@ -2400,7 +2400,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         }
         ReleasePortraitQuoteBubble(quote->quote_handle);
         if (g_current_screen_state.id == W8_SCREEN_CAMP ||
-            (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->flag_327 == 0)) {
+            (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block->review_transition_active == 0)) {
             int left = quote->x;
             int top = quote->y;
             ClearSurfaceRect(left, top, quote->width + left, quote->height + top);
@@ -2512,7 +2512,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
             EnableRegionSetInput(party_slot + 0x1d);
         }
     }
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.field_006 != 0 &&
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);

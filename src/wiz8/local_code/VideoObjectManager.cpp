@@ -925,6 +925,33 @@ short GetCatalogVideoObjectYOffset(int object)
     return g_video_slots_6448c8[object].y_offset;
 }
 
+// FUNCTION: WIZ8 0x00549420
+HVOBJECT GetCatalogVideoObject(int object, int frame, int* y_offset_out)
+{
+    W8VideoFrame* record;
+    HVOBJECT video_object;
+
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xfd, 0);
+    }
+    EnsureCatalogFrameLoaded(object, frame);
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
+    }
+    record = &g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame];
+    if (record->mode == 0) {
+        if (y_offset_out != 0) {
+            if (!gfVideoObjectsInit) {
+                srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xf2, 0);
+            }
+            *y_offset_out = g_video_slots_6448c8[object].y_offset;
+        }
+        GetVideoObject(&video_object, record->handle);
+        return video_object;
+    }
+    return 0;
+}
+
 /* Mark the complete rectangle covered by one catalog image. ETRLE-backed
    objects supply subimage dimensions through the canonical SGP object API;
    surface-backed objects expose the dimensions on the canonical SGP surface

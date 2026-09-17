@@ -118,6 +118,9 @@ const float g_float_005ebb38 = 1.0f;
 // GLOBAL: WIZ8 0x005ebc7c
 float g_float_005ebc7c = 0.5f;
 
+// GLOBAL: WIZ8 0x005ebcd8
+const float g_float_005ebcd8 = 0.35f;
+
 // FUNCTION: WIZ8 0x004f30f0
 void Controls::EnableRegionSet(unsigned char enable)
 {
