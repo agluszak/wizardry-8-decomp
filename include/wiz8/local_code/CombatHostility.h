@@ -3,11 +3,21 @@
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 struct W8TargetSource;
+struct W8Character;
+union W8ActionDetailBlock;
 template <class T> class W8GrowableVector;
 
 /* Local Code\Combat Hostility.cpp: whether two monsters count as hostile to
    each other, and whether a spell can be aimed by monster AI. */
 char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second);
+/* 0x00547310: whether a party action aims at enemies (melee kinds, or a spell /
+   item-spell whose target type is an enemy band). */
+unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_kind,
+                                            int action_detail, W8ActionDetailBlock* detail);
+/* 0x00547440: the monster-side counterpart; action kinds 0 and 3 always count,
+   kind 2 defers to MonsterCanAimSpell005474B0. */
+unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
+                                          unsigned int* spell_power_level);
 unsigned char MonsterCanAimSpell005474B0(int spell_id);
 unsigned char CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */

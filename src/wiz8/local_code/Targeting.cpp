@@ -159,6 +159,57 @@ char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* targ
     return 12;
 }
 
+/* Whether a peer aiming at the just-applied target should drop that aim. */
+// FUNCTION: WIZ8 0x0053C490
+unsigned char ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
+                                             W8TargetingContext context,
+                                             unsigned char action_targets_enemies)
+{
+    unsigned char source_hostile;
+    unsigned char target_hostile;
+
+    if (context == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
+        return 1;
+    }
+    if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
+        if (source->iChar == BAD_INDEX) {
+            srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
+        }
+        source_hostile = g_status_685170.buffers.characters[source->iChar].condition_turns[13] != 0;
+    } else {
+        if (source->iType != W8_TARGET_SOURCE_MONSTER) {
+            srAssertFail("FALSE", TARGETING_CPP, 0xdf9, 0);
+            return 0;
+        }
+        if (source->iMonsterID == BAD_INDEX) {
+            srAssertFail("pSource->iMonsterID != BAD_INDEX", TARGETING_CPP, 0xcf8, 0);
+        }
+        source_hostile =
+            MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0xdf3, TARGETING_CPP, source->iMonsterID, 1))
+                ->ubDisposition == DISP_HOSTILE;
+    }
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        target_hostile = g_status_685170.buffers.characters[target->iChar].condition_turns[13] != 0;
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        target_hostile =
+            MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0xe06, TARGETING_CPP, target->iMonsterID, 1))
+                ->ubDisposition == DISP_HOSTILE;
+    } else if (target->iType == W8_TARGET_KIND_GROUP) {
+        target_hostile = GetMonsterGroupByListIndex(
+                             GetMonsterGroupIndexByID(0xe0b, TARGETING_CPP, target->iGroupID, 1))
+                             ->ubDisposition == DISP_HOSTILE;
+    } else {
+        srAssertFail("FALSE", TARGETING_CPP, 0xe11, 0);
+        return 0;
+    }
+    if (source_hostile == target_hostile) {
+        return action_targets_enemies != 0;
+    }
+    return action_targets_enemies == 0;
+}
+
 /* The faction names, thirty bytes apart, in the same order as the faction ids.
    Twenty-one of them, which is the whole faction domain. */
 // GLOBAL: WIZ8 0x0061CE74
@@ -389,6 +440,76 @@ void SetTargetToGroup(int group_id, W8TargetingContext context)
     target.iType = W8_TARGET_KIND_GROUP;
     target.iGroupID = group_id;
     ApplyTarget(&target, context);
+}
+
+/* Walk every party slot and every live monster: anyone already aiming at
+   `target` drops that aim when the applied context and their action say so. A
+   monster target also clears its highlight bit before the walk. */
+// FUNCTION: WIZ8 0x00538E00
+void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
+{
+    W8TargetSource source;
+    W8PartySlotRow* row;
+    W8Character* character;
+    W8MonsterInfo* monster_info;
+    unsigned char action_targets_enemies;
+    int party_slot;
+
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x638, TARGETING_CPP, target->iMonsterID, 1));
+        MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
+    }
+
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        row = &g_status_685170.buffers.party_rows[party_slot];
+        character = &g_status_685170.buffers.characters[party_slot];
+        if (row->occupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= 0x12) {
+            continue;
+        }
+        if (target->iType == W8_TARGET_KIND_MONSTER) {
+            NotifyMonsterHighlight(party_slot, target->iMonsterID, 0);
+        }
+        SetTargetSourceToCharacter(party_slot, &source);
+        if (gXStatus.fCombatMode != 0) {
+            if (memcmp(&row->target_in_combat, target, sizeof(W8CombatSlot)) == 0) {
+                action_targets_enemies = CharacterActionTargetsEnemies(
+                    character, row->action_03d, row->action_detail_041, &row->action_detail_045);
+                if (ShouldClearAimForAppliedTarget(&source, target, context,
+                                                   action_targets_enemies) != 0) {
+                    if (row->action_03d == W8_ACTION_PROTECT) {
+                        DropCharacterFromRound(party_slot);
+                    } else {
+                        RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+                    }
+                }
+            }
+        }
+        if (memcmp(&row->target_out_of_combat, target, sizeof(W8CombatSlot)) == 0) {
+            action_targets_enemies =
+                CharacterActionTargetsEnemies(character, row->pending_action, row->attack_mode[0],
+                                              &row->pending_action_detail_015);
+            if (ShouldClearAimForAppliedTarget(&source, target, context, action_targets_enemies) !=
+                0) {
+                RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0);
+            }
+        }
+    }
+
+    for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        SetTargetSourceToMonster(monster_info, &source);
+        if (memcmp(&monster_info->Target, target, sizeof(W8CombatSlot)) == 0) {
+            action_targets_enemies =
+                MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
+                                            &monster_info->spell_power_level);
+            if (ShouldClearAimForAppliedTarget(&source, target, context, action_targets_enemies) !=
+                0) {
+                ResetCombatSlot(&monster_info->Target);
+            }
+        }
+    }
 }
 
 /* Put the on-screen marker over one monster, from the party's eye to the
