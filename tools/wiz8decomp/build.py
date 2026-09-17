@@ -211,7 +211,7 @@ def _ensure_sr_assert_import(settings: Settings) -> Path:
 
     path = settings.product_build_dir / "sr-assert-import.lib"
     payload = named_iat_archive(
-        "SR.dll", "?srAssertFail@@YAXPBD0J0J0@Z", "?srAssertFail@@YAXPBD0J0ZZ"
+        "SR.dll", "?srAssertFail@@YAXPBD0J0@Z", "?srAssertFail@@YAXPBD0J0ZZ"
     )
     if not path.is_file() or path.read_bytes() != payload:
         path.parent.mkdir(parents=True, exist_ok=True)
