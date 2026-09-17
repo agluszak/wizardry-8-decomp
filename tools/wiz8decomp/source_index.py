@@ -690,7 +690,8 @@ def _source_artifact_projections(
                     file_dependencies.update(
                         relative
                         for path in record.get("files") or ()
-                        if (relative := compile_database_relative(str(path), repository)) is not None
+                        if (relative := compile_database_relative(str(path), repository))
+                        is not None
                     )
                     continue
                 if kind not in ("declaration", "variable"):

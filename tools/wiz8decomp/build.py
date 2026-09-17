@@ -685,7 +685,9 @@ def lint(
 
     repository = settings.repo_dir
     source_index = write_source_index(settings)
-    changes = list(changed_paths) if changed_paths is not None else _changed_paths(repository, since)
+    changes = (
+        list(changed_paths) if changed_paths is not None else _changed_paths(repository, since)
+    )
     selected, changed, dependent = _lint_selection(settings, since, changes)
     output = repository / LINT_BUILD_DIR
     configured = (output / "CMakeCache.txt").is_file() and (output / "build.ninja").is_file()
@@ -694,9 +696,7 @@ def lint(
     cast_lines = redundant_cast_line_filter(repository)
     image_id = _docker_image_id()
     inputs = _lint_cache_inputs(repository, selected, changes, recovered, vendor)
-    digest = _lint_cache_digest(
-        output, repository, image_id, cast_lines, recovered, vendor, inputs
-    )
+    digest = _lint_cache_digest(output, repository, image_id, cast_lines, recovered, vendor, inputs)
     stamp = output / ".lint-success.sha256"
     cached = stamp.is_file() and stamp.read_text(encoding="utf-8").strip() == digest
     scope = "full" if selected is None else "changed"
