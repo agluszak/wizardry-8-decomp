@@ -17,7 +17,9 @@ class Trigger;
 struct W8ItemRep : public W8AnimRepBase005EC1D8 {
     virtual ~W8ItemRep() override;
     srNode* m_psrMesh; /* 0x64 */
-    unsigned char unknown_68[0x28];
+    srVector3T<float> bounds_min_068;
+    srVector3T<float> bounds_max_074;
+    unsigned char unknown_080[0x10];
     unsigned int flags; /* 0x90 */
 
     unsigned int SetFlags(unsigned int mask, bool enabled); /* 0x0049F310 */
@@ -39,8 +41,8 @@ struct W8Item : public W8GrObject {
     srNode* GetMesh();
     /* 0x0049FB30: copy the rep's cached lower/upper bounds out to the
        caller. */
-    void GetWorldItemBounds(float* lower, float* upper);
-    void GetRepLocation0049FBA0(srVector3T<float>* location);
+    unsigned char GetWorldItemBounds(float* lower, float* upper);
+    unsigned char GetRepLocation0049FBA0(srVector3T<float>* location);
     /* 0x004A0050: whether the item's radar-blip timer is still ticking, off
        its value_01c lookup; feeds the `lit` argument of PlaceRadarBlip. */
     unsigned char IsRadarBlipLit();
@@ -50,6 +52,8 @@ struct W8Item : public W8GrObject {
    Allocation, array stride, enclosing member, and constructor evidence for
    either complete size is still missing. */
 static_assert(offsetof(W8ItemRep, m_psrMesh) == 0x64, "W8ItemRep_m_psrMesh_offset");
+static_assert(offsetof(W8ItemRep, bounds_min_068) == 0x68, "W8ItemRep_bounds_min_offset");
+static_assert(offsetof(W8ItemRep, bounds_max_074) == 0x74, "W8ItemRep_bounds_max_offset");
 static_assert(offsetof(W8ItemRep, flags) == 0x90, "W8ItemRep_flags_offset");
 static_assert(offsetof(W8Item, trigger_018) == 0x18, "W8Item_trigger_offset");
 static_assert(offsetof(W8Item, value_01c) == 0x1c, "W8Item_value_01c_offset");
