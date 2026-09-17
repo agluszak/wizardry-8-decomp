@@ -177,6 +177,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/dialog_code/MonsterInfoDialog.cpp
     src/wiz8/dialog_code/AssayDialog.cpp
     src/wiz8/dialog_code/DialogTextArea.cpp
+    src/wiz8/dialog_code/NpcDialog.cpp
     src/wiz8/dialog_code/stButton.cpp
     src/wiz8/dialog_code/SpellInfoDialog.cpp
     src/wiz8/dialog_code/SplitItemDialog.cpp
