@@ -216,47 +216,35 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
     return candidates
 
 
-def _translation_unit_dependencies(
-    settings: Settings, prefix: list[str], roots: dict[str, tuple[str, ...]]
-) -> list[dict[str, Any]]:
-    """Persist Clang's dependency projection for later read-only selection."""
+def _source_index_input_digest(repository: Path, database: Path) -> str:
+    """Fingerprint inputs whose unchanged projection can safely be reused."""
 
-    from .build import VC6_IMAGE
-    from .subprocesses import run
-
-    repository = settings.repo_dir.resolve()
-    result = run(
-        [
-            *prefix,
-            *_ANALYSIS_LINUX_TEMP,
-            "--entrypoint",
-            "clang-scan-deps-19",
-            VC6_IMAGE,
-            "-compilation-database=/out/compile_commands.json",
-            "-format=experimental-full",
-        ],
-        cwd=repository,
-        log_path=repository / "build/logs/source-index-dependencies.json",
-    )
-    source_roots = tuple(root for target_roots in roots.values() for root in target_roots)
-    projected: dict[str, set[str]] = {}
-    for unit in json.loads(result.stdout)["translation-units"]:
-        for command in unit["commands"]:
-            source = compile_database_relative(command["input-file"], repository)
-            if source is None or not any(
-                source == root or source.startswith(root.rstrip("/") + "/") for root in source_roots
-            ):
-                continue
-            dependencies = projected.setdefault(source, set())
-            dependencies.update(
-                relative
-                for path in command["file-deps"]
-                if (relative := compile_database_relative(path, repository)) is not None
+    digest = hashlib.sha256(b"wiz8-source-index-inputs-v1\0")
+    candidates = {repository / "reccmp-project.yml", *_cmake_configure_inputs(repository)}
+    roots = indexed_targets(repository, database if database.is_file() else None)
+    for source_roots in roots.values():
+        for root in source_roots:
+            candidates.update(
+                path
+                for path in (repository / root).rglob("*")
+                if path.is_file() and path.suffix.lower() in _SOURCE_SUFFIXES
             )
-    return [
-        {"source_file": source, "file_dependencies": sorted(dependencies)}
-        for source, dependencies in sorted(projected.items())
-    ]
+    lint_headers = repository / "tools/lint/include"
+    if lint_headers.is_dir():
+        candidates.update(path for path in lint_headers.rglob("*") if path.is_file())
+    for path in sorted(candidates, key=lambda item: item.as_posix()):
+        if not path.is_file():
+            continue
+        try:
+            identity = path.resolve().relative_to(repository.resolve()).as_posix()
+        except ValueError:
+            identity = str(path.resolve())
+        digest.update(identity.encode() + b"\0" + path.read_bytes() + b"\0")
+    if database.is_file():
+        digest.update(b"compile_commands.json\0" + database.read_bytes() + b"\0")
+    indexer_source = _analysis_indexer_binary()
+    digest.update(b"reccmp-indexer\0" + indexer_source.read_bytes())
+    return digest.hexdigest()
 
 
 def validate_source_index(repository: Path) -> dict[str, int]:
@@ -647,6 +635,10 @@ def _collect_source_index(
             host_database,
             targets,
             clang="/usr/bin/clang-cl",
+            # The configured indexer may itself be a Docker wrapper. reccmp's
+            # native batch mode still amortizes LLVM startup with one worker;
+            # more workers would mean one concurrent container per worker.
+            jobs=1,
             cache_dir=cache,
             force=force,
         ),
@@ -654,20 +646,13 @@ def _collect_source_index(
     )
 
 
-def _header_declaration_projection(
+def _source_artifact_projections(
     repository: Path,
     host_database: Path,
     targets: dict[str, tuple[Path, ...]],
     cache: Path,
-) -> list[dict[str, Any]]:
-    """Per-header declaration occurrences from the current TU artifacts.
-
-    The merged index collapses each ``semantic_id`` to one winner record, so it
-    cannot say which header declares an entity. The cached per-TU NDJSON
-    artifacts record every observed declaration with the file it was seen in;
-    replaying the collection identity hash locates exactly the artifacts that
-    produced this index, ignoring stale cache entries.
-    """
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Project header declarations and TU dependencies from reccmp's cached artifacts."""
     import subprocess
 
     from reccmp.source.batch import resolve_indexer
@@ -680,8 +665,10 @@ def _header_declaration_projection(
     indexer_digest = hashlib.sha256(indexer.read_bytes() + compiler_identity.encode()).hexdigest()
     owned = {relative_unit_id(repository, path) for paths in targets.values() for path in paths}
     seen: dict[tuple[str, str], dict[str, Any]] = {}
+    dependencies: dict[str, set[str]] = {}
     for entry in json.loads(host_database.read_text(encoding="utf-8")):
-        if relative_unit_id(repository, entry["file"]) not in owned:
+        source = relative_unit_id(repository, entry["file"])
+        if source not in owned:
             continue
         identity = hashlib.sha256()
         identity.update(indexer_digest.encode() + b"\0")
@@ -692,12 +679,20 @@ def _header_declaration_projection(
         artifact = cache / "tu" / f"{identity.hexdigest()}.ndjson"
         if not artifact.is_file():
             continue
+        file_dependencies = dependencies.setdefault(source, set())
         with artifact.open(encoding="utf-8") as stream:
             for line in stream:
                 if not line.strip():
                     continue
                 record = json.loads(line)
                 kind = record.get("record")
+                if kind == "dependency":
+                    file_dependencies.update(
+                        relative
+                        for path in record.get("files") or ()
+                        if (relative := compile_database_relative(str(path), repository)) is not None
+                    )
+                    continue
                 if kind not in ("declaration", "variable"):
                     continue
                 source_file = str(record.get("source_file") or "")
@@ -723,15 +718,40 @@ def _header_declaration_projection(
                 previous = seen.get(key)
                 if previous is None or (defined and not previous["defined"]):
                     seen[key] = projected
-    return [seen[key] for key in sorted(seen)]
+    header_declarations = [seen[key] for key in sorted(seen)]
+    translation_unit_dependencies = [
+        {"source_file": source, "file_dependencies": sorted(paths)}
+        for source, paths in sorted(dependencies.items())
+    ]
+    return header_declarations, translation_unit_dependencies
+
+
+def _source_index_result(document: dict[str, Any], *, cached: bool) -> dict[str, Any]:
+    return {
+        "path": "build/source-index.json",
+        "markers": len(document.get("markers") or ()),
+        "declarations": len(document.get("declarations") or ()),
+        "classes": len(document.get("classes") or ()),
+        "variables": len(document.get("variables") or ()),
+        "conflicts": len(document.get("conflicts") or ()),
+        "cached": cached,
+    }
 
 
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
-    from .build import LINT_BUILD_DIR, clang_container_prefix, configure_clang
+    from .build import LINT_BUILD_DIR, configure_clang
 
     repository = settings.repo_dir.resolve()
     validate_synthetic_marker_blocks(repository)
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
+    index_path = repository / "build/source-index.json"
+    stamp = repository / "build/reccmp-source/source-index-inputs.sha256"
+    if not force and database.is_file() and index_path.is_file() and stamp.is_file():
+        digest = _source_index_input_digest(repository, database)
+        if stamp.read_text(encoding="utf-8").strip() == digest:
+            validate_cross_tu_declarations(repository)
+            return _source_index_result(load_source_index(repository), cached=True)
+
     inventories = _cmake_configure_inputs(repository)
     if not database.is_file() or any(
         path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
@@ -755,16 +775,14 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         repository, database, targets, settings, force=force
     )
     document = index.to_dict()
-    document["header_declarations"] = _header_declaration_projection(
+    header_declarations, dependencies = _source_artifact_projections(
         repository,
         host_database,
         targets,
         repository / "build" / "reccmp-source",
     )
-    document["translation_unit_dependencies"] = _translation_unit_dependencies(
-        settings, clang_container_prefix(settings, database.parent), roots
-    )
-    index_path = repository / "build/source-index.json"
+    document["header_declarations"] = header_declarations
+    document["translation_unit_dependencies"] = dependencies
     content = json.dumps(document, separators=(",", ":")) + "\n"
     if not index_path.is_file() or index_path.read_bytes() != content.encode("utf-8"):
         index_path.write_bytes(content.encode("utf-8"))
@@ -773,11 +791,6 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         # compiler-backed projection is byte-for-byte unchanged.
         index_path.touch()
     validate_cross_tu_declarations(repository)
-    return {
-        "path": "build/source-index.json",
-        "markers": len(index.markers),
-        "declarations": len(index.declarations),
-        "classes": len(index.classes),
-        "variables": len(index.variables),
-        "conflicts": len(index.conflicts),
-    }
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text(_source_index_input_digest(repository, database) + "\n", encoding="utf-8")
+    return _source_index_result(document, cached=False)
