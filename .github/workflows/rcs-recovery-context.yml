@@ -1,0 +1,55 @@
+name: RCS recovery context
+
+on:
+  push:
+    branches:
+      - recover-rcs-30-chatgpt
+
+permissions:
+  contents: read
+
+jobs:
+  context:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GHIDRA_INSTALL_DIR: /tmp/ghidra_12.1.2_PUBLIC
+      WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: false
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install Ghidra
+        run: |
+          curl --fail --location --retry 3 -o /tmp/ghidra.zip \
+            https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.2_build/ghidra_12.1.2_PUBLIC_20260605.zip
+          unzip -q /tmp/ghidra.zip -d /tmp
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Restore reviewed checkpoint
+        run: uv run wiz8 ghidra restore
+      - name: Extract recovery contexts
+        run: |
+          mkdir -p build/rcs-recovery
+          uv run wiz8 report context \
+            0x005A42A0 0x005A45B0 0x005A4770 0x005C5240 0x005B55F0 \
+            0x005A6090 0x005A6440 0x005A5F30 0x005A6020 0x005A6340 \
+            0x00548E20 0x005187E0 0x004EF1F0 0x005A6970 0x005A6790 \
+            0x005A68C0 0x0050B3B0 0x005A6B90 0x005C4EE0 \
+            0x005AEEA0 0x005AF530 0x005AF5E0 0x005B5E90 0x005B5F10 \
+            0x005B61A0 0x005B6220 0x005B62C0 0x005B6360 0x005B66B0 \
+            0x005B6AA0 > build/rcs-recovery/context.json
+          cp build/context/*.cpp build/rcs-recovery/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rcs-recovery-context
+          path: build/rcs-recovery
