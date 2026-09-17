@@ -352,7 +352,7 @@ void UpdateRadarBlips(void)
             W8ItemRep* rep = static_cast<W8ItemRep*>(item->m_pRep);
             if ((rep->flags & 4) == 0) {
                 rep->GetLocation004B8890(&position);
-                item->GetWorldItemBounds(&bounds_min.x, &bounds_max.x);
+                item->GetCachedLocalBounds(&bounds_min.x, &bounds_max.x);
                 center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                            (bounds_min.y + bounds_max.y) * g_double_005ebe80,
                            (bounds_min.z + bounds_max.z) * g_double_005ebe80);

@@ -1849,7 +1849,7 @@ void RenderAutomapMarkers00582930(void)
             continue;
         }
         srVector3T<float> location;
-        item->GetRepLocation0049FBA0(&location);
+        item->GetSearchPosition(&location);
         int layer = 0;
         for (; layer < g_automap_layers.count; ++layer) {
             if (layer >= 0 && g_automap_layers.count != 0 && layer < g_automap_layers.count &&

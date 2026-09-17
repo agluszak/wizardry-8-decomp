@@ -3332,9 +3332,9 @@ render_world:
                 Function44FC20(g_world_659ab8, g_level_block->world_render_flags | 0x40);
             }
         }
-        Function450210(g_world, g_level_block->world_update_flags);
+        ApplyWorldUpdateFlags(g_world, g_level_block->world_update_flags);
         if (g_world_659ab8 && (g_level_block->world_update_flags & 3) == 0) {
-            Function450210(g_world_659ab8, g_level_block->world_update_flags);
+            ApplyWorldUpdateFlags(g_world_659ab8, g_level_block->world_update_flags);
         }
         g_level_block->world_update_flags = 0;
         g_level_block->world_render_flags = 0;
