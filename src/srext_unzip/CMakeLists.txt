@@ -1,6 +1,6 @@
 set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
 
-if(INFOZIP_SOURCE)
+if(INFOZIP_SOURCE AND EXISTS "${INFOZIP_SOURCE}/api.c")
     # This is the exact VC6 static-library source set from the release-5.4
     # windll/visualc/lib project. Sir-Tech links these upstream objects into
     # srEXT_Unzip.dll and adds a narrow SurRender adapter afterward.
