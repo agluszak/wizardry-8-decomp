@@ -32,8 +32,11 @@
 #   #include lines as duplicates when a skipped system or sibling header already
 #   pulled in the same spelling, and the same hits on self-contained headers
 #   would delete required includes. Real same-file repeats stay a review item.
+# - wiz8-redundant-scalar-cast is project-specific. Normal lint gates only changed
+#   lines; WIZ8_REDUNDANT_CAST_LINES=* is the explicit full-corpus audit mode.
 Checks: >
   -*,
+  wiz8-redundant-scalar-cast,
   bugprone-misplaced-widening-cast,
   readability-redundant-casting,
   bugprone-sizeof-expression,

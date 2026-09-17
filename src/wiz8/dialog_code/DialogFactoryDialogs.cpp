@@ -1750,7 +1750,7 @@ void W8TriggerItemPickerDialog::Draw()
         }
         unsigned short weight = g_item_records[item->item_id].weight;
         gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
-                L"%4.1f lbs", (double)((float)weight * 0.1f));
+                L"%4.1f lbs", weight * 0.1f);
     }
 }
 
