@@ -425,6 +425,7 @@ def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
     keep their upstream warnings by policy, and the retained SGP C library,
     whose C idioms are outside the reconstruction-error profile.
     """
+    from .clang_tidy_lines import FILTER_ENV, redundant_cast_line_filter
     from .source_index import indexed_targets
 
     database = json.loads((output / "compile_commands.json").read_text(encoding="utf-8"))
@@ -443,9 +444,14 @@ def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
     files = sorted({entry["file"] for entry in database if first_party(entry["file"])})
     if not files:
         raise RuntimeError("clang-tidy: compile database has no first-party sources")
+    # Publish the changed-line filter from the host. Jujutsu workspaces often have
+    # no `.git` inside the mounted tree, and the analysis image does not ship jj.
+    cast_lines = redundant_cast_line_filter(repository)
     run(
         [
             *prefix,
+            "-e",
+            f"{FILTER_ENV}={cast_lines}",
             "--entrypoint",
             "clang-tidy",
             VC6_IMAGE,
