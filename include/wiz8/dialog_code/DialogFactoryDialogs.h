@@ -22,8 +22,9 @@ class W8DialogNumericInput {
 public:
     /* 0x005E1460: the only call site (0x005DDA60) allocates 0x30 bytes, null
        checks the result and merges the returned `this`, which is the ordinary
-       VC6 `new T(args)` shape rather than a separate initializer call. */
-    W8DialogNumericInput(int flags, const W8ControlsRect* bounds, int value, int font,
+       VC6 `new T(args)` shape rather than a separate initializer call. Retail
+       leaves m_active and unknown_01e uninitialized. */
+    W8DialogNumericInput(int control_id, const W8ControlsRect* bounds, int value, int font,
                          W8DialogBase* dialog, W8DialogButton* button);
     void SetValue(int value);                                 /* 0x005E14C0 */
     void SetActive(unsigned char active);                     /* 0x005E14D0 */
@@ -31,17 +32,32 @@ public:
     void Draw(unsigned char force);                           /* 0x005E15C0 */
     unsigned char HandleInput(const InputAtom* input);        /* 0x005E19A0 */
 
+private:
+    /* 0x005E17A0: write a digit character at the caret position and re-parse
+       the text into m_value, rejecting results above m_maximum. */
+    void TypeDigit005E17A0(wchar_t digit);
+    /* 0x005E1840: VK_DELETE — remove the character right of the caret. */
+    void DeleteForward005E1840();
+    /* 0x005E18F0: VK_BACK — remove the character left of the caret. */
+    void Backspace005E18F0();
+
+public:
     W8ControlsRect m_bounds; /* 0x00 */
-    int m_caret;             /* 0x10: -1 when inactive */
-    int m_font;              /* 0x14 */
-    int m_value;             /* 0x18 */
-    unsigned char m_dirty;   /* 0x1c */
-    unsigned char m_active;  /* 0x1d */
+    /* 0x10: -1 while inactive; otherwise the count of characters to the right
+       of the caret. */
+    int m_caret;
+    int m_font;             /* 0x14 */
+    int m_value;            /* 0x18 */
+    unsigned char m_dirty;  /* 0x1c */
+    unsigned char m_active; /* 0x1d */
     unsigned char unknown_01e[2];
-    int m_maximum;            /* 0x20: -1, then 1000000 for the split dialog */
+    /* 0x20: -1, then the stack total for the split dialogs. The acceptance
+       test in TypeDigit005E17A0 compares unsigned, so -1 is "no maximum". */
+    unsigned int m_maximum;
     W8DialogBase* m_dialog;   /* 0x24 */
     W8DialogButton* m_button; /* 0x28 */
-    int m_field_2c;           /* 0x2c */
+    /* 0x2c: echoed back as the argument of m_dialog->OnNumericInputChanged. */
+    int m_control_id;
 };
 static_assert(sizeof(W8DialogNumericInput) == 0x30, "W8DialogNumericInput_size");
 
@@ -126,6 +142,9 @@ public:
 class W8SplitAmountDialog : public W8DialogBase {
 public:
     W8SplitAmountDialog(); /* 0x005D97D0 */
+    /* 0x005D9890: the split-size entry point; the pool total seeds both the
+       remaining and total fields. */
+    W8SplitAmountDialog(int total);
     virtual ~W8SplitAmountDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;

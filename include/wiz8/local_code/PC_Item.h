@@ -56,6 +56,7 @@ unsigned int GetItemUnitWeight(const W8ItemInstance* item);
 unsigned int GetItemStackWeight(const W8ItemInstance* item);
 unsigned char GetItemEquipClass(const W8ItemInstance* item);
 int GetItemDefaultEquipSlot(int item_id);
+int GetItemSpellPresentation(const W8ItemDatabaseRecord* record);
 unsigned short GetItemEquipSlotMask(int item_id, char primary_off_hand_free,
                                     char alternate_off_hand_free, char primary_main_hand_free,
                                     char alternate_main_hand_free);
@@ -177,3 +178,5 @@ char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
                           W8DialogDestroyCallback callback);
 bool CharacterHasServiceItem(W8Character* character);  /* 0x00522D40 */
 int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
+/* 0x0051BF40: take gold from the party, clamping at zero. */
+void SpendPartyGold(unsigned int amount);

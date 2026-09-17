@@ -1347,10 +1347,132 @@ void AddMessageBoxLine(int kind, wchar_t* text, void* extra)
         delete line;
     }
 }
+
+/* Resolve the player's reply text to the script line it selects. The current
+   quote's option/keyword entries (kinds 5 and 0x13) carry the matchable
+   phrases in their sub-entries; a hit consults the quote's kind-6 reply
+   entries - role 3 supplies the per-keyword answer list, role 1 the generic
+   answer. No keyword match at all falls back to the role-2 entry. -1 when the
+   quote has no usable reply. */
+// FUNCTION: WIZ8 0x00529300
+int FindNpcReplyQuote(wchar_t* text)
+{
+    W8NpcScriptQuote* quote;
+    W8NpcQuoteEntry* entry;
+    wchar_t sub_text[1024];
+    int quote_index;
+    int index;
+    int sub;
+
+    quote_index = g_npc_scripting.staging_restore.current_quote_index;
+    quote = g_npc_scripting.npc->script_file->quotes + quote_index;
+    index = 0;
+    if (quote->entry_count > 0) {
+        entry = quote->entries;
+        do {
+            if (entry->kind_00 == 5 || entry->kind_00 == 0x13) {
+                goto found;
+            }
+            ++index;
+            ++entry;
+        } while (index < quote->entry_count);
+    }
+
+fallback:
+    index = 0;
+    if (quote->entry_count <= 0) {
+        return -1;
+    }
+    entry = quote->entries;
+    while (entry->kind_00 != 6 || entry->role_09 != 2) {
+        ++index;
+        ++entry;
+        if (index >= quote->entry_count) {
+            return -1;
+        }
+    }
+    goto done;
+
+found:
+    if (entry->sub_entry_count == 0) {
+        goto fallback;
+    }
+    for (sub = 0; sub < entry->sub_entry_count; ++sub) {
+        swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
+        if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) == 0) {
+            for (index = 0; index < quote->entry_count; ++index) {
+                entry = &quote->entries[index];
+                if (entry->kind_00 == 6 && entry->role_09 == 3 && entry->sub_entry_count != 0) {
+                    for (sub = 0; sub < entry->sub_entry_count; ++sub) {
+                        swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
+                        if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) == 0) {
+                            return entry->value_01;
+                        }
+                    }
+                }
+            }
+            index = 0;
+            if (quote->entry_count <= 0) {
+                return -1;
+            }
+            entry = quote->entries;
+            while (entry->kind_00 != 6 || entry->role_09 != 1) {
+                ++index;
+                ++entry;
+                if (index >= quote->entry_count) {
+                    return -1;
+                }
+            }
+            goto done;
+        }
+    }
+    goto fallback;
+
+done:
+    return entry->value_01;
+}
+
+/* Repost the NPC's current quote bubble after a modal sub-dialog closes, or
+   clear it when the dialogue NPC/script went away. */
+// FUNCTION: WIZ8 0x00529510
+void RestoreCurrentNpcQuoteBubble(void)
+{
+    W8NpcScriptFile* script_file;
+
+    if (g_npc_scripting.npc != 0 && (script_file = g_npc_scripting.npc->script_file) != 0 &&
+        g_npc_scripting.staging_restore.current_quote_index <
+            static_cast<int>(script_file->quote_count)) {
+        SetNpcQuoteBubbleVisible(
+            0, 0, script_file->quotes + g_npc_scripting.staging_restore.current_quote_index,
+            g_npc_scripting.staging_restore.current_quote_index, 0xffffffff);
+        return;
+    }
+    SetNpcQuoteBubbleVisible(0, 0, 0, -1, 0xffffffff);
+}
 // FUNCTION: WIZ8 0x00529560
 void SetFlag68C4F4(void)
 {
     g_npc_scripting.flag_c4 = 1;
+}
+
+/* Run every kind-0x17 consequence entry of the given quote - the reply
+   handler's decline path when the party refuses a price offer. */
+// FUNCTION: WIZ8 0x00529610
+void RunNpcQuoteDeclineActions(int quote_index)
+{
+    W8NpcScriptQuote* quote;
+    int index;
+
+    quote = g_npc_scripting.npc->script_file->quotes + quote_index;
+    index = 0;
+    if (quote->entry_count != 0) {
+        do {
+            if (quote->entries[index].kind_00 == 0x17) {
+                RunNpcScriptLine(quote->entries[index].value_01, 0);
+            }
+            ++index;
+        } while (index < quote->entry_count);
+    }
 }
 /* QA audit over every `Data\NPC Scripts\*.nsf`: load each script file, print
    every quote line that is not a placeholder sentinel through ShowNotice, log

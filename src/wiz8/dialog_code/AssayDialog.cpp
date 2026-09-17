@@ -1,6 +1,11 @@
+#include <wchar.h>
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/SpellInfoDialog.h"
 #include "wiz8/layouts/character.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/string_database.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -23,6 +28,9 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/sr_api.h"
@@ -72,6 +80,23 @@ unsigned short g_equip_class_name_ids_61e7dc[32] = {
 const wchar_t g_assay_format_1f_0064fbb4[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
 const wchar_t g_assay_format_1f_1f_s_0064fbc0[] = L"%.1f (%.1f %s)";
+/* String-list label ids indexed by W8ItemDatabaseRecord::flags_041 bit. */
+// GLOBAL: WIZ8 0x0061e938
+const unsigned short g_item_flag_name_ids_61e938[8] = {
+    1255, 1256, 1257, 1258, 1259, 1260, 1261, 1262,
+};
+/* String-list label ids indexed by W8ItemDatabaseRecord::quantity_kind. */
+// GLOBAL: WIZ8 0x0061e948
+const unsigned short g_quantity_kind_name_ids_61e948[7] = {
+    1264, 1265, 1266, 1267, 1268, 0, 1269,
+};
+/* String-list label ids indexed by W8ItemDatabaseRecord::unknown_075. */
+// GLOBAL: WIZ8 0x0061e97c
+const unsigned short g_item_property_name_ids_61e97c[6] = {
+    1289, 1290, 1291, 1292, 1293, 1294,
+};
+// GLOBAL: WIZ8 0x0069c818
+static wchar_t g_assay_entry_text[0x101];
 
 static const char ASSAY_DIALOG_CPP[] = "C:\\Projects\\Wizardry 8\\Dialog Code\\AssayDialog.cpp";
 
@@ -183,6 +208,455 @@ void W8AssayDialog::DestroyControls()
         }
     }
 }
+
+// FUNCTION: WIZ8 0x005d7310
+unsigned char W8AssayDialog::PopulateText()
+{
+    W8ControlsRect bounds;
+    const W8ItemDatabaseRecord* record;
+    const wchar_t* text;
+    unsigned short slot_mask;
+    const unsigned short* label;
+    unsigned int bit;
+    int index;
+    int count;
+    const W8ItemRequirement* requirement;
+    const unsigned short (*flag_names)[2];
+    wchar_t modifier_text[0x100];
+    char path[0x200];
+    wchar_t description[0x7d0];
+
+    bounds.left = m_x + g_assay_text_area_offsets.left;
+    bounds.top = m_y + g_assay_text_area_offsets.top;
+    bounds.right = m_x + g_assay_text_area_offsets.right;
+    bounds.bottom = m_y + g_assay_text_area_offsets.bottom;
+    m_text_area.Configure(&bounds, g_font_683660, 0);
+    m_text_area.SetEntrySpacing(1);
+    record = &g_item_records[m_item->item_id];
+    if (m_item->identified != 0 && record->damage_dice.count + record->damage_dice.base > 0) {
+        if (!ItemHasSingledOutGenericName(m_item->item_id) || record->damage_dice.base == 0) {
+            text = FormatWideString(
+                L"%d - %d", record->damage_dice.base + record->damage_dice.count,
+                record->damage_dice.sides * record->damage_dice.count + record->damage_dice.base);
+        } else {
+            text = FormatWideString(L"%+d%%", record->damage_dice.base * 10);
+        }
+        m_text_area.AddEntry(gppStringList[0x23a0 / 4], text, 10, 0xf, 0);
+    }
+    if (record->attack_hit_bonus != 0 && m_item->identified != 0) {
+        m_text_area.AddEntry(gppStringList[0x22dc / 4],
+                             FormatWideString(g_format_plus_d_0064dc24, record->attack_hit_bonus),
+                             10, 0xf, 0);
+    }
+    if (record->attack_damage_bonus != 0 && m_item->identified != 0) {
+        m_text_area.AddEntry(
+            gppStringList[0x22c4 / 4],
+            FormatWideString(g_format_plus_d_0064dc24, record->attack_damage_bonus), 10, 0xf, 0);
+    }
+    slot_mask = GetItemEquipSlotMask(m_item->item_id, 1, 1, 1, 1);
+    count = 0;
+    bit = 0;
+    label = g_equip_slot_label_ids_61e7c4;
+    do {
+        if (label != g_equip_slot_label_ids_61e7c4 + 8 &&
+            label != g_equip_slot_label_ids_61e7c4 + 9 && (slot_mask & (1 << bit)) != 0) {
+            if (count == 0) {
+                wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+            text = gppStringList[*label];
+            if (wcslen(g_assay_entry_text) + 1 + wcslen(text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+        ++label;
+        ++bit;
+    } while (label < g_equip_class_name_ids_61e7dc);
+    if (count != 0) {
+        m_text_area.AddEntry(gppStringList[0x2394 / 4], g_assay_entry_text, 10, 0xf, 0);
+    }
+    if (GetItemDefaultEquipSlot(m_item->item_id) != -1 &&
+        g_item_records[m_item->item_id].equip_class != 4) {
+        unsigned int palette;
+        if (m_item->bound == 0) {
+            text = gppStringList[0x23f0 / 4];
+            palette = 0xf;
+        } else if (record->binds_on_equip == 0) {
+            text = gppStringList[0x23ec / 4];
+            palette = 0xf;
+        } else if (m_item->bind_announced == 0) {
+            text = gppStringList[0x23e8 / 4];
+            palette = 0;
+        } else {
+            text = gppStringList[0x23e4 / 4];
+            palette = 0xf;
+        }
+        m_text_area.AddEntry(gppStringList[0x23f4 / 4], text, 10, palette, 0);
+    }
+    count = 0;
+    bit = 0;
+    label = g_item_flag_name_ids_61e938;
+    do {
+        if ((1 << bit) == 4 && (record->flags_041 & 4) != 0) {
+            if (count == 0) {
+                wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+            text = gppStringList[*label];
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+        ++label;
+        ++bit;
+    } while (label < g_item_flag_name_ids_61e938 + 8);
+    if (count != 0) {
+        m_text_area.AddEntry(gppStringList[0x244c / 4], g_assay_entry_text, 10, 0xf, 0);
+    }
+    if (m_item->identified != 0) {
+        count = 0;
+        for (index = 0; index < 0x10; ++index) {
+            if (record->unknown_050[index] != 0) {
+                if (count == 0) {
+                    wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) <
+                           0x101) {
+                    wcscat(g_assay_entry_text, g_comma_space_00619794);
+                }
+                text = gppStringList[g_damage_type_name_ids_61e9cc[index]];
+                if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                    wcscat(g_assay_entry_text, text);
+                }
+                if (wcslen(g_assay_entry_text) + 1 + wcslen(L" ") < 0x101) {
+                    wcscat(g_assay_entry_text, L" ");
+                }
+                text = FormatWideString(g_format_d_percent_0064bab0, record->unknown_050[index]);
+                if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                    wcscat(g_assay_entry_text, text);
+                }
+                ++count;
+                if (index == 2) {
+                    if (wcslen(g_assay_entry_text) + 1 + wcslen(L" (") < 0x101) {
+                        wcscat(g_assay_entry_text, L" (");
+                    }
+                    text = gppStringList[0x2354 / 4];
+                    if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                        wcscat(g_assay_entry_text, text);
+                    }
+                    text = FormatWideString(L" %d)", record->unknown_050[0x10]);
+                    if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                        wcscat(g_assay_entry_text, text);
+                    }
+                }
+            }
+        }
+        if (count != 0) {
+            m_text_area.AddEntry(gppStringList[0x2358 / 4], g_assay_entry_text, 10, 0xf, 0);
+        }
+        if (record->unknown_050[0x11] != 0xff) {
+            m_text_area.AddEntry(
+                gppStringList[0x2360 / 4],
+                gppStringList[g_special_category_name_ids_61ea78[record->unknown_050[0x11]]], 10,
+                0xf, 0);
+        }
+        if (record->equip_class == 5 && m_character != 0 &&
+            IsItemWornByCharacter(m_character, m_item)) {
+            m_text_area.AddEntry(
+                gppStringList[0x237c / 4],
+                FormatWideString(L"%+d, %+d %s", record->armor_class_bonus,
+                                 m_character->armor_class_components[3] - record->armor_class_bonus,
+                                 gppStringList[0x10a0 / 4]),
+                10, 0xf, 0);
+        } else if (record->armor_class_bonus != 0) {
+            m_text_area.AddEntry(
+                gppStringList[0x237c / 4],
+                FormatWideString(g_format_plus_d_0064dc24, record->armor_class_bonus), 10, 0xf, 0);
+        }
+    }
+    if (record->unknown_075 != 0) {
+        m_text_area.AddEntry(gppStringList[0x23a4 / 4],
+                             gppStringList[g_item_property_name_ids_61e97c[record->unknown_075]],
+                             10, 0xf, 0);
+    }
+    switch (record->equip_class) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 0x11:
+    case 0x12:
+        m_text_area.AddEntry(gppStringList[0x239c / 4],
+                             gppStringList[g_spell_range_name_ids_61e9a0[record->wield_group]], 10,
+                             0xf, 0);
+    }
+    index = GetItemSpellPresentation(record);
+    if (index == -1) {
+        if (record->weapon_skill != -1) {
+            m_text_area.AddEntry(
+                gppStringList[0x2320 / 4],
+                gppStringList[g_character_skill_name_ids_61e454[record->weapon_skill]], 10, 0xf, 0);
+        }
+    } else {
+        if (record->weapon_skill == -1) {
+            text = gppStringList[g_character_skill_name_ids_61e454[index]];
+        } else {
+            text = FormatWideString(
+                L"%s, %s", gppStringList[g_character_skill_name_ids_61e454[index]],
+                gppStringList[g_character_skill_name_ids_61e454[record->weapon_skill]]);
+        }
+        m_text_area.AddEntry(gppStringList[0x2320 / 4], text, 10, 0xf, 0);
+    }
+    count = 0;
+    bit = 0;
+    flag_names = g_attack_flag_name_ids_61e9a8;
+    do {
+        if ((record->attack_flags_04e & (1 << bit)) != 0) {
+            if (count == 0) {
+                wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+            } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+            text = gppStringList[(*flag_names)[0]];
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+        ++flag_names;
+        ++bit;
+    } while (flag_names < g_attack_flag_name_ids_61e9a8 + 9);
+    if (count != 0) {
+        m_text_area.AddEntry(gppStringList[0x235c / 4], g_assay_entry_text, 10, 0xf, 0);
+    }
+    if ((m_item->identified != 0 || m_item->unknown_07[0] != 0) && record->spell_id != 0) {
+        if (record->equip_class == 0xd || record->equip_class == 0xe ||
+            record->equip_class == 0x13) {
+            text = FormatWideString(g_format_s_006068e4,
+                                    g_spell_records[record->spell_id].display_name);
+        } else {
+            text = FormatWideString(L"%s (Pwr %d)", g_spell_records[record->spell_id].display_name,
+                                    record->unknown_064[0]);
+        }
+        m_text_area.AddEntry(gppStringList[0x23a8 / 4], text, 10, 0xf, 0);
+        if (record->equip_class == 0x13) {
+            m_text_area.AddEntry(gppStringList[0x23ac / 4],
+                                 FormatWideString(g_format_d_0060aa20,
+                                                  g_spell_records[record->spell_id].spell_level),
+                                 10, 0xf, 0);
+        }
+    }
+    if (m_item->identified != 0) {
+        if (record->quantity_kind == 2) {
+            m_text_area.AddEntry(
+                gppStringList[g_quantity_kind_name_ids_61e948[record->quantity_kind]],
+                FormatWideString(g_format_d_0060aa20, m_item->uses_or_charges), 10, 0xf, 0);
+        }
+        if (record->quantity_kind == 3 || record->quantity_kind == 4) {
+            m_text_area.AddEntry(
+                gppStringList[g_quantity_kind_name_ids_61e948[record->quantity_kind]],
+                FormatWideString(g_format_d_slash_d_00614b58, m_item->uses_or_charges,
+                                 record->initial_quantity.sides * record->initial_quantity.count +
+                                     record->initial_quantity.base),
+                10, 0xf, 0);
+        }
+        if (record->modifier_06c > 0) {
+            m_text_area.AddEntry(gppStringList[0x2364 / 4],
+                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06c),
+                                 10, 0xf, 0);
+        }
+        if (record->modifier_06c < 0) {
+            m_text_area.AddEntry(gppStringList[0x2368 / 4],
+                                 FormatWideString(g_format_d_0060aa20, record->modifier_06c), 10,
+                                 0xf, 0);
+        }
+        if (record->modifier_06d > 0) {
+            m_text_area.AddEntry(gppStringList[0x236c / 4],
+                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06d),
+                                 10, 0xf, 0);
+        }
+        if (record->modifier_06d < 0) {
+            m_text_area.AddEntry(gppStringList[0x2370 / 4],
+                                 FormatWideString(g_format_d_0060aa20, record->modifier_06d), 10,
+                                 0xf, 0);
+        }
+        if (record->modifier_06e > 0) {
+            m_text_area.AddEntry(gppStringList[0x2374 / 4],
+                                 FormatWideString(g_format_plus_d_0064dc24, record->modifier_06e),
+                                 10, 0xf, 0);
+        }
+        if (record->modifier_06e < 0) {
+            m_text_area.AddEntry(gppStringList[0x2378 / 4],
+                                 FormatWideString(g_format_d_0060aa20, record->modifier_06e), 10,
+                                 0xf, 0);
+        }
+        if (record->modifier_0b3_index != -1 && record->modifier_0b3_value > 0) {
+            swprintf(
+                modifier_text, L"%s %+d",
+                gppStringList[g_character_description_first_ids_61e3a4[record->modifier_0b3_index]],
+                record->modifier_0b3_value);
+            m_text_area.AddEntry(gppStringList[0x230c / 4], modifier_text, 10, 0xf, 0);
+        }
+        if (record->modifier_0b3_index != -1 && record->modifier_0b3_value < 0) {
+            swprintf(
+                modifier_text, L"%s %d",
+                gppStringList[g_character_description_first_ids_61e3a4[record->modifier_0b3_index]],
+                record->modifier_0b3_value);
+            m_text_area.AddEntry(gppStringList[0x2310 / 4], modifier_text, 10, 0xf, 0);
+        }
+        if (record->modifier_0b1_index != -1 && record->modifier_0b1_value > 0) {
+            swprintf(modifier_text, L"%s %+d",
+                     gppStringList[g_character_skill_name_ids_61e454[record->modifier_0b1_index]],
+                     record->modifier_0b1_value);
+            m_text_area.AddEntry(gppStringList[0x2314 / 4], modifier_text, 10, 0xf, 0);
+        }
+        if (record->modifier_0b1_index != -1 && record->modifier_0b1_value < 0) {
+            swprintf(modifier_text, L"%s %d",
+                     gppStringList[g_character_skill_name_ids_61e454[record->modifier_0b1_index]],
+                     record->modifier_0b1_value);
+            m_text_area.AddEntry(gppStringList[0x2318 / 4], modifier_text, 10, 0xf, 0);
+        }
+        count = 0;
+        for (index = 0; index < 6; ++index) {
+            if (record->resistance_bonus_06f[index] > 0) {
+                if (count == 0) {
+                    wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+                } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) <
+                           0x101) {
+                    wcscat(g_assay_entry_text, g_comma_space_00619794);
+                }
+                text = FormatWideString(g_format_d_percent_0064bab0,
+                                        record->resistance_bonus_06f[index]);
+                if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                    wcscat(g_assay_entry_text, text);
+                }
+                if (wcslen(g_assay_entry_text) + 1 + wcslen(L" vs. ") < 0x101) {
+                    wcscat(g_assay_entry_text, L" vs. ");
+                }
+                text = gppStringList[g_realm_message_offsets[index]];
+                if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                    wcscat(g_assay_entry_text, text);
+                }
+                ++count;
+            }
+        }
+        if (count != 0) {
+            m_text_area.AddEntry(gppStringList[0x232c / 4], g_assay_entry_text, 10, 0xf, 0);
+        }
+    }
+    if (record->gender_mask != 3) {
+        if (record->gender_mask == 0) {
+            text = gppStringList[0x2448 / 4];
+        } else if (record->gender_mask != 1) {
+            text = gppStringList[0x2444 / 4];
+        } else {
+            text = gppStringList[0x2440 / 4];
+        }
+        m_text_area.AddEntry(gppStringList[0x23cc / 4], text, 10, 0xf, 0);
+    }
+    count = 0;
+    wcscpy(g_assay_entry_text, &g_wchar_00689b34);
+    requirement = record->attribute_requirements;
+    for (index = 0; index < 2; ++index, ++requirement) {
+        if (requirement->stat_id != 0xff) {
+            if (count != 0 &&
+                wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+            text = gppStringList[g_character_description_first_ids_61e3a4[static_cast<signed char>(
+                requirement->stat_id)]];
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            text = FormatWideString(L" %d", requirement->minimum);
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+    }
+    requirement = record->skill_requirements;
+    for (index = 0; index < 2; ++index, ++requirement) {
+        if (requirement->stat_id != 0xff) {
+            if (count != 0 &&
+                wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+            text = gppStringList[g_character_skill_name_ids_61e454[static_cast<signed char>(
+                requirement->stat_id)]];
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            text = FormatWideString(L" %d", requirement->minimum);
+            if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+                wcscat(g_assay_entry_text, text);
+            }
+            ++count;
+        }
+    }
+    if (record->category == 6 || record->category == 8) {
+        if (record->spell_id == 0) {
+            srAssertFail("uiSpell != SPELL_NONE", ASSAY_DIALOG_CPP, 0x390, 0);
+        }
+        if (count != 0) {
+            if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) < 0x101) {
+                wcscat(g_assay_entry_text, g_comma_space_00619794);
+            }
+        }
+        if (record->category == 6) {
+            text = gppStringList[0x23f8 / 4];
+        } else {
+            text = gppStringList[0x23fc / 4];
+        }
+        if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+            wcscat(g_assay_entry_text, text);
+        }
+        text = FormatWideString(L" %ld", GetMinimumCasterLevelForSpell(record->spell_id));
+        if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
+            wcscat(g_assay_entry_text, text);
+        }
+    }
+    if (count != 0) {
+        m_text_area.AddEntry(gppStringList[0x23d0 / 4], g_assay_entry_text, 10, 0xf, 0);
+    }
+    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->unknown_07[0] != 0) &&
+        m_character != 0) {
+        if (m_character->spell_learned[record->spell_id] == 1) {
+            m_text_area.AddEntry(0, gppStringList[0x23b4 / 4], 10, 1, 0);
+        } else if (CanCharacterLearnSpell(m_character, record->spell_id) == 0 &&
+                   CanCastFromItem(m_character, m_item)) {
+            m_text_area.AddEntry(0, gppStringList[0x23b0 / 4], 10, 0, 0);
+        }
+    }
+    if (record->maximum_quantity != 0) {
+        m_text_area.AddEntry(gppStringList[0x23e0 / 4],
+                             FormatWideString(g_format_d_0060aa20, record->maximum_quantity), 10,
+                             0xf, 0);
+    }
+    strcpy(path, "Data\\Databases\\ItemDesc.dbs");
+    GetStringFromStringDatabase(path, m_item->item_id, description, 0, 0);
+    if (wcslen(description) != 0 && m_item->identified != 0) {
+        m_text_area.AddEntry(gppStringList[0x243c / 4], description, 10, 0xf, 0);
+    }
+    m_text_area.m_dirty = 1;
+    return 1;
+}
+
+/* The SurRender headers pull <iostream>, so retail emitted the VC6 stream
+   statics here: __winit (ios_base::_Winit) at 0x0069C814 and __ioinit
+   (ios_base::Init) at 0x0069C815. The lint iostream stub shadows the real
+   header, so the toolchain does not emit the objects or these thunks. */
+// SYNTHETIC: WIZ8 0x005D87F0
+// `dynamic initializer for '__ioinit''
+// SYNTHETIC: WIZ8 0x005D8810
+// `dynamic atexit destructor for '__ioinit''
+// SYNTHETIC: WIZ8 0x005D8820
+// `dynamic initializer for '__winit''
+// SYNTHETIC: WIZ8 0x005D8840
+// `dynamic atexit destructor for '__winit''
 
 // FUNCTION: WIZ8 0x005d9200
 void W8AssayDialog::Draw()

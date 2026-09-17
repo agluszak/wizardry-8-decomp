@@ -287,8 +287,10 @@ struct W8MonsterInfo {
     W8CombatSlot Target;
     int value_2da; /* 0x2da: nonzero gate in 0x004e5c00 */
     /* 0x2de: the monster is under the effect the magic code clears by name;
-       clearing it posts a notice and drops the visual. */
-    unsigned char effect_2de;
+       clearing it posts a notice and drops the visual. The NPC price-check
+       dispatch reads it signed (MOVSX) as a percentage discount on the quoted
+       price. */
+    signed char effect_2de;
     unsigned char unknown_2df[2];
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
        is enumerated by MonsterActionFatigueCost, whose error text names it. */
@@ -366,6 +368,9 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
+/* 0x00554490: the highest `skills[skill_index].level` among live party members;
+   `party_slot` receives the best member's slot. */
+unsigned int GetBestPartySkillLevel(int skill_index, int* party_slot);
 
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);

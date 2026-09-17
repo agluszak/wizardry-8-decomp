@@ -18,8 +18,9 @@ struct W8NpcDialogOption {
    0x12/0x1e price-check messages 0x01 carries the base price. */
 #pragma pack(push, 1)
 struct W8NpcDialogRequest {
-    char opcode; /* 0x00: 0x05 option list, 0x12/0x1e price check, 0x13 keyword entry */
-    char unknown_01[0xc];
+    char opcode;    /* 0x00: 0x05 option list, 0x12/0x1e price check, 0x13 keyword entry */
+    int base_price; /* 0x01: the price check's starting value for opcodes 0x12/0x1e */
+    char unknown_05[8];
     unsigned char option_count; /* 0x0d */
     W8NpcDialogOption* options; /* 0x0e */
 };
@@ -33,6 +34,10 @@ struct W8NpcDialogRequest {
    Enter-key handling in ProcessInput reach back through it. */
 // VTABLE: WIZ8 0x005efa4c
 class W8NpcDialog : public W8DialogBase {
+    /* Its destroy callback at 0x00576E20 reads m_selected_option/m_message/
+       m_input_text from MainGameScreen.cpp. */
+    friend void OnNpcDialogClosed(W8DialogBase* dialog);
+
 public:
     W8NpcDialog(W8NpcDialogRequest* message, int aux_data); /* 0x005DA6B0 */
     virtual ~W8NpcDialog() override;
@@ -49,7 +54,7 @@ private:
 
     W8TextBuffer* m_text_buffers[2]; /* 0x54 */
     W8DialogButton* m_buttons[3];    /* 0x5c */
-    unsigned char m_selected_option; /* 0x68 */
+    signed char m_selected_option;   /* 0x68: read MOVSX by the destroy callback */
     unsigned char unknown_069[3];
     W8NpcDialogRequest* m_message;   /* 0x6c */
     int m_aux_data;                  /* 0x70 */

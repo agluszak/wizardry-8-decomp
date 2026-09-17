@@ -38,6 +38,9 @@ public:
     virtual void OnMouseWheel(int delta);
 
     friend void SetDialogDestroyCallback(W8DialogBase* dialog, W8DialogDestroyCallback callback);
+    /* The embedded numeric entry field clears m_field_4c directly when it
+       deactivates (0x005E14D0 and siblings). */
+    friend class W8DialogNumericInput;
 
 public:
     /* Main Game raises the redraw bit when promoting its pending dialog. */
@@ -72,7 +75,9 @@ public:
        destroy callback reads it back. */
     void* m_user_data; /* 0x48 */
 protected:
-    int m_field_4c;                    /* 0x4c */
+    /* 0x4c: cleared by W8DialogNumericInput when its field deactivates; no
+       writer of a nonzero value has been recovered. */
+    int m_field_4c;
     unsigned char m_right_button_down; /* 0x50 */
     unsigned char unknown_051[3];
 }; /* 0x54 */

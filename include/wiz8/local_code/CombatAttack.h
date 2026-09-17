@@ -23,6 +23,16 @@ extern const unsigned short g_pc_hit_location_labels[W8_PC_HIT_LOCATIONS + 1][2]
 extern const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]
                                                          [W8_MONSTER_BODY_TYPES];
 
+/* 0x0061E9CC: gppStringList indices naming the sixteen damage channels the
+   missile_values arrays on monster attacks and item records carry. */
+extern const unsigned short g_damage_type_name_ids_61e9cc[0x10];
+/* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags_04e bits;
+   AssayDialog reads the first of each pair, combat logging the second. */
+extern const unsigned short g_attack_flag_name_ids_61e9a8[9][2];
+/* Label ids for an item's special-category byte, also indexed by the MIPE
+   editor's category selector. */
+extern const unsigned short g_special_category_name_ids_61ea78[42];
+
 /* The 0x30-byte attack record Combat Attack.cpp clears and
    FireMissileSourceToTarget consumes. The recovered filler is the Monster.cpp
    stack local built from a database attack and the monster's missile bonus. */

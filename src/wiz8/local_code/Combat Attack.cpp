@@ -558,6 +558,24 @@ const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS][W8_
 };
 // clang-format on
 
+// GLOBAL: WIZ8 0x0061e9a8
+const unsigned short g_attack_flag_name_ids_61e9a8[9][2] = {
+    {1311, 1312}, {1313, 1314}, {1315, 1316}, {1317, 1318}, {1319, 1320},
+    {1321, 1322}, {1323, 1324}, {1325, 1326}, {1327, 1328},
+};
+
+// GLOBAL: WIZ8 0x0061e9cc
+const unsigned short g_damage_type_name_ids_61e9cc[0x10] = {
+    1330, 1331, 1332, 1333, 1334, 1335, 1336, 1337, 1338, 1339, 1340, 1341, 1342, 1343, 1344, 1345,
+};
+
+// GLOBAL: WIZ8 0x0061ea78
+const unsigned short g_special_category_name_ids_61ea78[42] = {
+    1400, 1401, 1402, 1403, 1404, 1405, 1406, 1407, 1408, 1409, 1410, 1411, 1412, 1413,
+    1414, 1415, 1416, 1417, 1418, 1419, 1420, 1421, 1422, 1423, 1424, 1425, 1426, 1427,
+    1428, 1429, 1430, 1431, 1432, 0,    1433, 1434, 1435, 1436, 1437, 1438, 1439, 1440,
+};
+
 /* Land a spell missile on whatever it struck. The spell's own impact sound
    plays when it has one. A single-target effect (no radius) rolls its size,
    applies it to the struck monster or character and rolls the effect's

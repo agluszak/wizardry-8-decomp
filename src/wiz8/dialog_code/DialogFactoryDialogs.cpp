@@ -12,8 +12,10 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/ItemManager.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/video_object_catalog.h"
 
@@ -29,6 +31,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 /* Dialog Code\DialogFactoryDialogs.cpp. The factory dialogs are the list-box
    dialog (kind 3) and the trigger-owned item picker; the split-item dialog
@@ -594,6 +597,31 @@ int W8ListBoxDialog005CBB40::GetDialogType()
     return 3;
 }
 
+/* The split-size dialog ("popup_splititem.sti" with a numeric entry field):
+   two stepper buttons, two passive frames around the field, accept/cancel. */
+struct W8SplitAmountButtonOffset {
+    int x;
+    int y;
+};
+
+// GLOBAL: WIZ8 0x0064fc08
+W8SplitAmountButtonOffset g_split_amount_button_offsets[6] = {
+    {0xdb, 0x20}, {0xc0, 0x20}, {0xbe, 0xf}, {0xbe, 0x35}, {0xed, 0x47}, {0x111, 0x47},
+};
+
+// GLOBAL: WIZ8 0x0064fc38
+W8ControlsRect g_split_amount_text_bounds[3] = {
+    {0x4a, 0xf, 0xb8, 0x1b},
+    {0x4a, 0x35, 0xb8, 0x41},
+    {0xbe, 0xf, 0xf4, 0x1b},
+};
+
+// GLOBAL: WIZ8 0x0064fc68
+W8ControlsRect g_split_amount_field_bounds = {0xbe, 0x35, 0xf4, 0x41};
+
+// GLOBAL: WIZ8 0x0064fc78
+int g_split_amount_string_ids[3] = {265, 266, 267};
+
 // FUNCTION: WIZ8 0x005d97d0
 W8SplitAmountDialog::W8SplitAmountDialog()
 {
@@ -611,6 +639,27 @@ W8SplitAmountDialog::W8SplitAmountDialog()
     m_remaining_080 = 0;
     m_taken_084 = 0;
     m_total_088 = 0;
+    m_result_08c = 0;
+    m_active_field_7c = 0;
+}
+
+// FUNCTION: WIZ8 0x005d9890
+W8SplitAmountDialog::W8SplitAmountDialog(int total)
+{
+    int index;
+
+    SetExtent(322, 111);
+    SetBackground("Data\\Dialogs\\popup_splititem.sti", 2);
+    for (index = 0; index < 6; ++index) {
+        m_buttons_054[index] = 0;
+    }
+    m_field_6c = 0;
+    m_field_70 = 0;
+    m_field_74 = 0;
+    m_split_input_078 = 0;
+    m_remaining_080 = total;
+    m_total_088 = total;
+    m_taken_084 = 0;
     m_result_08c = 0;
     m_active_field_7c = 0;
 }
@@ -642,6 +691,9 @@ void W8SplitAmountDialog::DestroyControls()
         m_split_input_078 = 0;
     }
 }
+
+// SYNTHETIC: WIZ8 0x005d9870
+// W8SplitAmountDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005d9930
 W8SplitAmountDialog::~W8SplitAmountDialog()
@@ -718,6 +770,101 @@ int W8SplitAmountDialog::CreateControls()
     return 0;
 }
 
+// FUNCTION: WIZ8 0x005d9b30
+unsigned char W8SplitAmountDialog::CreateButtons005D9B30()
+{
+    int index;
+
+    for (index = 0; index < 6; ++index) {
+        m_buttons_054[index] = new W8DialogButton;
+        if (m_buttons_054[index] == 0) {
+            for (index = 0; index < 6; ++index) {
+                if (m_buttons_054[index] != 0) {
+                    delete m_buttons_054[index];
+                    m_buttons_054[index] = 0;
+                }
+            }
+            return 0;
+        }
+    }
+    m_buttons_054[0]->Configure("Data\\Dialogs\\popup_splititem.sti", 0xc, 9, 10, 0xd, 0xb,
+                                SplitDecrementOne005DA440, 0, 0, 0x7f, -1,
+                                SplitDecrementFive005DA490, 0);
+    m_buttons_054[1]->Configure("Data\\Dialogs\\popup_splititem.sti", 7, 4, 5, 8, 6,
+                                SplitIncrementOne005DA4E0, 0, 0, 0x7f, -1,
+                                SplitIncrementFive005DA530, 0);
+    m_buttons_054[2]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1, 0, 0, 0, 0,
+                                -1, 0, 0);
+    m_buttons_054[3]->Configure("Data\\Dialogs\\popup_splititem.sti", -1, 3, -1, 3, -1,
+                                SplitActivateField005DA5C0, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_054[4]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 4, 2,
+                                SplitAccept005DA580, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_054[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 5, 6, 9, 7,
+                                SplitCancel005DA5A0, 0, 0, 0x7f, -1, 0, 0);
+    m_buttons_054[0]->m_fires_on_press = 1;
+    m_buttons_054[1]->m_fires_on_press = 1;
+    for (index = 0; index < 6; ++index) {
+        m_buttons_054[index]->SetPosition(g_split_amount_button_offsets[index].x + m_x,
+                                          g_split_amount_button_offsets[index].y + m_y);
+        m_buttons_054[index]->m_owner_040 = this;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005d9d10
+unsigned char W8SplitAmountDialog::CreateTextBuffers005D9D10()
+{
+    int index;
+    W8ControlsRect bounds;
+    W8TextBuffer** field;
+
+    field = &m_field_6c;
+    for (index = 0; index < 3; ++index) {
+        bounds.left = g_split_amount_text_bounds[index].left + m_x;
+        bounds.top = g_split_amount_text_bounds[index].top + m_y;
+        bounds.right = g_split_amount_text_bounds[index].right + m_x;
+        bounds.bottom = g_split_amount_text_bounds[index].bottom + m_y;
+        *field = new W8TextBuffer(
+            &bounds, gppStringList[g_split_amount_string_ids[index]], g_font_683660,
+            g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED550, 4);
+        if (*field == 0) {
+            field = &m_field_6c;
+            for (index = 0; index < 3; ++index) {
+                if (*field != 0) {
+                    delete *field;
+                    *field = 0;
+                }
+                ++field;
+            }
+            return 0;
+        }
+        ++field;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005d9e30
+unsigned char W8SplitAmountDialog::CreateNumericInput005D9E30()
+{
+    W8ControlsRect bounds;
+
+    m_active_field_7c = 0;
+    bounds.left = g_split_amount_field_bounds.left + m_x;
+    bounds.top = g_split_amount_field_bounds.top + m_y;
+    bounds.right = g_split_amount_field_bounds.right + m_x;
+    bounds.bottom = g_split_amount_field_bounds.bottom + m_y;
+    m_split_input_078 =
+        new W8DialogNumericInput(0, &bounds, m_taken_084, g_font_683660, this, m_buttons_054[3]);
+    if (m_split_input_078 == 0) {
+        NoOp();
+        delete m_split_input_078;
+        m_split_input_078 = 0;
+        return 0;
+    }
+    m_split_input_078->m_maximum = 1000000;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x005d9f20
 void W8SplitAmountDialog::Draw()
 {
@@ -764,6 +911,52 @@ void W8SplitAmountDialog::Draw()
     }
 }
 
+// FUNCTION: WIZ8 0x005da000
+void W8SplitAmountDialog::UpdateTextBuffers005DA000()
+{
+    wchar_t text[12];
+
+    swprintf(text, g_format_d_0060aa20, m_remaining_080);
+    m_field_74->SetText(text, g_font_683660);
+    m_buttons_054[2]->m_dirty = 1;
+    m_field_74->m_geometryDirty = 1;
+    if (m_remaining_080 < 0) {
+        m_field_74->m_fontStateIndex = 0;
+    } else {
+        m_field_74->m_fontStateIndex = -1;
+    }
+    m_split_input_078->SetValue(m_taken_084);
+    m_buttons_054[3]->m_dirty = 1;
+    m_split_input_078->m_dirty = 1;
+    m_split_input_078->m_button->m_dirty = 1;
+}
+
+// FUNCTION: WIZ8 0x005da090
+void W8SplitAmountDialog::UpdateButtonStates005DA090()
+{
+    if (m_taken_084 == 0) {
+        m_buttons_054[0]->SetEnabled(0);
+        m_buttons_054[0]->m_dirty = 1;
+    } else if (m_buttons_054[0]->IsEnabled() == 0) {
+        m_buttons_054[0]->SetEnabled(1);
+        m_buttons_054[0]->m_dirty = 1;
+    }
+    if (m_remaining_080 == 0) {
+        m_buttons_054[1]->SetEnabled(0);
+        m_buttons_054[1]->m_dirty = 1;
+    } else if (m_buttons_054[1]->IsEnabled() == 0) {
+        m_buttons_054[1]->SetEnabled(1);
+        m_buttons_054[1]->m_dirty = 1;
+    }
+    if (m_remaining_080 < 0) {
+        m_buttons_054[4]->SetEnabled(0);
+        m_buttons_054[4]->m_dirty = 1;
+        return;
+    }
+    m_buttons_054[4]->SetEnabled(1);
+    m_buttons_054[4]->m_dirty = 1;
+}
+
 // FUNCTION: WIZ8 0x005da140
 void W8SplitAmountDialog::OnNumericInputChanged(int value)
 {
@@ -774,6 +967,40 @@ void W8SplitAmountDialog::OnNumericInputChanged(int value)
         UpdateButtonStates005DA090();
         UpdateTextBuffers005DA000();
     }
+}
+
+// FUNCTION: WIZ8 0x005da180
+unsigned char W8SplitAmountDialog::HandleInputEvent005DA180(const InputAtom* input)
+{
+    int index;
+    W8DialogNumericInput** field;
+
+    field = &m_split_input_078;
+    for (index = 0; index < 1; ++index) {
+        if (*field != 0 && (*field)->m_active != 0 && (*field)->HandleInput(input) != 0) {
+            return 1;
+        }
+        ++field;
+    }
+    if (input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) {
+        int key = toupper(input->usParam);
+        if (key == 0x1b) {
+            m_keep_open = 0;
+        } else if (key == 0x2b) {
+            m_remaining_080 = __max(0, m_remaining_080 - 1);
+            m_taken_084 = __min(m_taken_084 + 1, m_total_088);
+            UpdateButtonStates005DA090();
+            UpdateTextBuffers005DA000();
+            return m_keep_open;
+        } else if (key == 0x2d) {
+            m_taken_084 = __max(0, m_taken_084 - 1);
+            m_remaining_080 = __min(m_remaining_080 + 1, m_total_088);
+            UpdateButtonStates005DA090();
+            UpdateTextBuffers005DA000();
+            return m_keep_open;
+        }
+    }
+    return m_keep_open;
 }
 
 // FUNCTION: WIZ8 0x005da2a0
@@ -1791,3 +2018,9 @@ void W8TriggerItemPickerDialog::CloseOwningDialog005CE6E0(W8DialogButton* button
         button->m_owner_040->m_keep_open = 0;
     }
 }
+
+// TEMPLATE: WIZ8 0x005CF200
+// W8GrowableVector<unsigned char>::SetAt
+
+// TEMPLATE: WIZ8 0x005CF220
+// W8GrowableVector<unsigned char>::GetAt

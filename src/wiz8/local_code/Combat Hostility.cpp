@@ -126,6 +126,10 @@ static const char COMBAT_HOSTILITY_CPP[] =
 // GLOBAL: WIZ8 0x0061ec0c
 const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
+// GLOBAL: WIZ8 0x0061ec14
+const int g_monster_ai_kind_name_ids_61ec14[12] = {0,    1598, 1599, 1600, 1601, 1602,
+                                                   1603, 1604, 1605, 1606, 1607, 1608};
+
 // FUNCTION: WIZ8 0x00547570
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)
 {

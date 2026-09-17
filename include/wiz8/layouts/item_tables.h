@@ -39,7 +39,7 @@ struct W8ItemDatabaseRecord {
     unsigned char flags_041;                /* 0x041 */
     unsigned char category;                 /* 0x042: three is a spell source */
     unsigned char unknown_043[3];
-    unsigned char weapon_skill;      /* 0x046 */
+    signed char weapon_skill;        /* 0x046: -1 when the item grants none */
     unsigned char wield_group;       /* 0x047 */
     signed char attack_damage_bonus; /* 0x048 */
     signed char attack_hit_bonus;    /* 0x049 */
@@ -56,9 +56,9 @@ struct W8ItemDatabaseRecord {
     /* 0x06c..0x06e: three per-item modifier bytes the equipment fold adds to
        the derived block's own unknowns; 0x06f..0x074 are the six resistance
        bonuses it sums and clamps. */
-    unsigned char modifier_06c;
-    unsigned char modifier_06d;
-    unsigned char modifier_06e;
+    signed char modifier_06c;
+    signed char modifier_06d;
+    signed char modifier_06e;
     signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
     unsigned char unknown_075;
     unsigned short profession_mask; /* 0x076 */
@@ -76,9 +76,9 @@ struct W8ItemDatabaseRecord {
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
     signed char modifier_0b1_index;
-    unsigned char modifier_0b1_value;
+    signed char modifier_0b1_value;
     signed char modifier_0b3_index;
-    unsigned char modifier_0b3_value;
+    signed char modifier_0b3_value;
     unsigned char unknown_0b5[4]; /* 0x0b5 .. 0x0b8 */
     int merge_kind_0b9;           /* first database kind accepted by MergeItems */
     int merge_kind_0bd;           /* second database kind accepted by MergeItems */

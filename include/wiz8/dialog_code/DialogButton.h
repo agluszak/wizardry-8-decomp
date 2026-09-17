@@ -47,6 +47,14 @@ public:
                                       short shadow_color, short x, short y, short width,
                                       short height, W8DialogButtonCallback left_callback,
                                       int user_data);
+    /* 0x005DB2A0: configure from an already-loaded vobject; the five state
+       frames derive from base_frame (gray +3, off +0/+1, on states +2/+2). */
+    unsigned char ConfigureVObjButton(HVOBJECT object, int base_frame,
+                                      W8DialogButtonCallback left_callback,
+                                      unsigned char left_toggles);
+    /* 0x005DBAC0: store the tooltip string-table index and, when tooltips are
+       enabled, push its text onto the SGP button. */
+    void SetTooltipIndex(int tooltip_index);
 
     friend void DialogButtonCallback(GUI_BUTTON* button, INT32 reason);
 
