@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -15,7 +16,7 @@ from reccmp.source import SourceIndexError
 
 from .config import Settings
 from .paths import atomic_json
-from .subprocesses import run
+from .subprocesses import resolve_executable, run
 
 LOGGER = logging.getLogger(__name__)
 _PRODUCT_INPUT_SUFFIXES = frozenset(
@@ -50,18 +51,32 @@ def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -
     ]
 
 
-def changed_source_files(repository: Path, since: str | None = None) -> list[Path]:
-    """Use Jujutsu's diff to select current C/C++ files, including marked headers."""
+def changed_files(repository: Path, since: str | None = None) -> list[Path]:
+    """Select changed paths with jj locally and Git in plain CI checkouts."""
 
-    command = ["jj", "diff", "--name-only", "--color=never"]
-    if since is not None:
-        command.extend(("--from", since))
+    if resolve_executable("jj") is not None:
+        command = ["jj", "diff", "--name-only", "--color=never"]
+        if since is not None:
+            command.extend(("--from", since))
+    else:
+        baseline = since
+        if baseline is None:
+            base_branch = os.environ.get("GITHUB_BASE_REF")
+            baseline = f"origin/{base_branch}" if base_branch else "HEAD^"
+        elif baseline.endswith("@origin"):
+            baseline = f"origin/{baseline.removesuffix('@origin')}"
+        command = ["git", "diff", "--name-only", "--no-renames", baseline]
     result = run(command, cwd=repository)
+    return [repository / name for name in result.stdout.splitlines() if name]
+
+
+def changed_source_files(repository: Path, since: str | None = None) -> list[Path]:
+    """Select current changed C/C++ files, including marked headers."""
+
     return [
         path
-        for name in result.stdout.splitlines()
-        if (path := repository / name).suffix.lower()
-        in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
+        for path in changed_files(repository, since)
+        if path.suffix.lower() in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
         and path.is_file()
     ]
 
