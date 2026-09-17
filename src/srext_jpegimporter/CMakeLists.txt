@@ -1,6 +1,10 @@
 set(IJG_JPEG_SOURCE "" CACHE PATH "Pinned IJG release 6 source tree")
-if(NOT IJG_JPEG_SOURCE)
-    message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
+if(NOT IJG_JPEG_SOURCE OR NOT EXISTS "${IJG_JPEG_SOURCE}/jpeglib.h")
+    if(WIZ8_BUILD_PRODUCTS)
+        message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
+    endif()
+    message(STATUS "Skipping IJG-dependent JPEG importer targets: source tree is unavailable")
+    return()
 endif()
 
 # Product link order recovered from the original address map. In
