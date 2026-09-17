@@ -211,7 +211,7 @@ def _ensure_sr_assert_import(settings: Settings) -> Path:
 
     path = settings.product_build_dir / "sr-assert-import.lib"
     payload = named_iat_archive(
-        "SR.dll", "?srAssertFail@@YAXPBD0J0@Z", "?srAssertFail@@YAXPBD0J0ZZ"
+        "SR.dll", "?srAssertFail@@YAXPBD0J0J0@Z", "?srAssertFail@@YAXPBD0J0ZZ"
     )
     if not path.is_file() or path.read_bytes() != payload:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -452,11 +452,9 @@ def lint_required(repository: Path, changed_paths: list[Path]) -> bool:
 
 
 def _changed_paths(repository: Path, since: str | None) -> list[Path]:
-    command = ["jj", "diff", "--name-only", "--color=never"]
-    if since is not None:
-        command.extend(("--from", since))
-    result = run(command, cwd=repository)
-    return [repository / name for name in result.stdout.splitlines() if name]
+    from .comparison import changed_files
+
+    return changed_files(repository, since)
 
 
 def _lint_selection(
