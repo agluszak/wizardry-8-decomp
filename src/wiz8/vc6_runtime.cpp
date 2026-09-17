@@ -28,6 +28,9 @@
 // LIBRARY: WIZ8 0x005e1c10
 // ??3@YAXPAX@Z
 
+// LIBRARY: WIZ8 0x005e1c1c
+// free_import_thunk
+
 // LIBRARY: WIZ8 0x005e1ca0
 // __allmul
 
@@ -58,6 +61,13 @@
 // LIBRARY: WIZ8 0x004028c0
 // _wcsnicmp
 
+/* zlib 1.0.4 corpus in Wiz8.exe. Names come from docs/libraries/zlib-1.0.4.md;
+   the source-oracle gate also treats the whole 0x00415910-0x0041A7ED span as
+   library-owned even when an interior helper is still unnamed here. */
+
+// LIBRARY: WIZ8 0x00415910
+// inflateReset
+
 // LIBRARY: WIZ8 0x00415960
 // _inflateEnd
 
@@ -66,6 +76,21 @@
 
 // LIBRARY: WIZ8 0x00415af0
 // _inflate
+
+// LIBRARY: WIZ8 0x00415f60
+// deflate_stored
+
+// LIBRARY: WIZ8 0x004165c0
+// deflate_slow
+
+// LIBRARY: WIZ8 0x00417810
+// adler32
+
+// LIBRARY: WIZ8 0x00417940
+// zcalloc
+
+// LIBRARY: WIZ8 0x00417960
+// zcfree
 
 // SYNTHETIC: WIZ8 0x004023a0
 // NoOp (compiler-folded empty)

@@ -750,6 +750,7 @@ def check(repository: Path) -> dict[str, Any]:
     from .placement import validate_source_placement
     from .reccmp_lint import validate_reccmp_annotations
     from .source_index import write_source_index
+    from .source_oracle import validate_source_oracle_ownership
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
 
@@ -767,6 +768,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("c-linkage", lambda: validate_c_linkage(repository)),
         ("placement", lambda: validate_source_placement(settings)),
         ("identities", lambda: validate_identity(repository)),
+        ("source-oracle", lambda: validate_source_oracle_ownership(repository)),
         ("structures", lambda: validate_structures(repository)),
     )
     commands = (

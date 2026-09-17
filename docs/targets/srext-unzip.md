@@ -47,6 +47,8 @@ uv run wiz8 compare 0x100106B0 --program SREXT_UNZIP
 The target links the pinned upstream source subset, the recovered wrapper, and the typed SurRender
 slice with VC6 SP5. The narrowed Info-ZIP units retain only the memory API and WinDLL helpers present
 in the original; unused stock entry points are excluded without rewriting the retained bodies.
+In `config/reccmp/srext-unzip.csv`, those Sir-Tech retained helpers are typed `function` (matching
+their recovered `FUNCTION` markers). Stock UnZip codec symbols remain `library`.
 
 Some comparison percentages are depressed by unnamed upstream static globals on the original side.
 An unresolved reccmp placeholder is not itself a code mismatch; inspect the instruction stream

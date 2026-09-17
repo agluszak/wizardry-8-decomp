@@ -17,7 +17,9 @@ The zlib-owned range begins at `0x00415910` with `inflateReset` and ends at `0x0
 `0x0041AB40` references `C:\Projects\Wizardry 8\Engine Code\GameData.cpp`. The three functions at
 `0x00415850`-`0x004158F0` are Sir-Tech wrappers, not zlib source. The configured stream callbacks
 at `0x00415820` and `0x00415840` are also Wizardry-owned: unlike zlib's later `zcalloc`/`zcfree`,
-they call the executable's imported `malloc` and `free` directly.
+they call the executable's imported `malloc` and `free` directly. The `source-oracle` gate treats
+this zlib range (and the three public `inflate*` `LIBRARY` markers) as oracle-owned so agents do not
+re-decompile it under `src/wiz8`.
 
 The linked corpus is broader than the wrapper API suggests. Alongside five public inflate
 functions, the executable retains seven deflate helpers and seventeen functions from `trees.c`.

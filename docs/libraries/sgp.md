@@ -11,3 +11,8 @@ notes. `src/sgp/CMakeLists.txt` is the sole build membership list.
 claims file. A folded no-op must not acquire the released ancestor's behavior;
 an ordinary fold such as `DeleteList`/`DeleteStack` still performs deallocation.
 The two-argument SGP `PlayButtonSound` is distinct from Wizardry's sound helper.
+
+`uv run wiz8 check` / `uv run wiz8 report source-oracle` enforce that proven SGP
+retail addresses stay owned under `src/sgp` rather than being re-recovered in
+`src/wiz8`. The same gate covers documented zlib and MSVC CRT contribution
+ranges and their `LIBRARY` / FID claims.

@@ -201,6 +201,22 @@ def retail_folded_command() -> None:
     )
 
 
+@app.command("source-oracle")
+def source_oracle_command() -> None:
+    """Report proven available-source ownership and fail on Wizardry misplaced recoveries."""
+
+    from .. import command_support as cli
+    from ..source_index import warn_if_source_index_may_be_stale
+    from ..source_oracle import source_oracle_report
+
+    settings = cli.settings()
+    warn_if_source_index_may_be_stale(settings.repo_dir, "WIZ8")
+    report = source_oracle_report(settings.repo_dir)
+    cli.emit(report)
+    if report["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
 @app.command("semantic-names")
 def semantic_names_command() -> None:
     """Rank frequently referenced FunctionXXXXXXXX declarations for recovery."""
