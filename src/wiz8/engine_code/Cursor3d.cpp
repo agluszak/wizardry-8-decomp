@@ -131,9 +131,7 @@ void GetWorldCursorPosition00490BF0(srVector3T<float>* position)
     if (g_world_cursor_0065ba8c != 0) {
         *position = g_world_cursor_0065ba8c->position_28;
     } else {
-        position->x = 0.0f;
-        position->y = 0.0f;
-        position->z = 0.0f;
+        position->SetZero();
     }
 }
 
@@ -187,9 +185,7 @@ void GetWorldCursorAnchor00490C20(srVector3T<float>* position)
     if (g_world_cursor_0065ba8c != 0) {
         *position = g_world_cursor_0065ba8c->position_28;
     } else {
-        position->x = 0.0f;
-        position->y = 0.0f;
-        position->z = 0.0f;
+        position->SetZero();
     }
 }
 
@@ -211,7 +207,6 @@ void ApplyWorldCursorInput00490C60(void)
     srVector3T<float> delta;
     srVector3T<float> lifted;
     srVector3T<float> clamped;
-    float length_squared;
     float saved_y = g_world_cursor_0065ba8c->position_28.y;
 
     if (g_world_cursor_0065ba8c == 0) {
@@ -246,10 +241,7 @@ void ApplyWorldCursorInput00490C60(void)
         lifted.z = delta.z;
         if (g_world_cursor_0065ba8c->range_44 > g_float_005ebb34 &&
             g_world_cursor_0065ba8c->range_44 < lifted.Length()) {
-            length_squared = delta.LengthSquared();
-            if (length_squared != 0.0) {
-                delta *= g_world_cursor_0065ba8c->range_44 / sqrt(length_squared);
-            }
+            delta.SetLength(g_world_cursor_0065ba8c->range_44);
         }
         g_world->dynamic_scene->getRotation(rotation);
         g_world_cursor_0065ba8c->offset_18 += delta;
@@ -269,9 +261,7 @@ void ApplyWorldCursorInput00490C60(void)
     } else {
         GetCameraPosition(&camera);
         camera.y -= g_default_world_height_00603ac8;
-        rotation.vectors[0].Set(1.0, 0.0, 0.0);
-        rotation.vectors[1].Set(0.0, 1.0, 0.0);
-        rotation.vectors[2].Set(0.0, 0.0, 1.0);
+        rotation.SetIdentity();
         if (g_gd_camera_65a0f8->m_yaw != 0.0) {
             rotation.RotateAboutY(sin(g_gd_camera_65a0f8->m_yaw), cos(g_gd_camera_65a0f8->m_yaw));
         }
@@ -279,22 +269,14 @@ void ApplyWorldCursorInput00490C60(void)
         delta += g_world_cursor_0065ba8c->position_28;
         if (g_world_cursor_0065ba8c->range_44 > g_float_005ebb34 &&
             g_world_cursor_0065ba8c->range_44 < (camera - delta).Length()) {
-            clamped = srVector3T<float>(delta.x - camera.x, delta.y - camera.y, delta.z - camera.z);
-            length_squared = clamped.LengthSquared();
-            if (length_squared != 0.0) {
-                clamped *= g_world_cursor_0065ba8c->range_44 / sqrt(length_squared);
-            }
-            delta =
-                srVector3T<float>(camera.x + clamped.x, camera.y + clamped.y, camera.z + clamped.z);
+            clamped = delta - camera;
+            clamped.SetLength(g_world_cursor_0065ba8c->range_44);
+            delta = camera + clamped;
         }
         if ((camera - delta).Length() < g_monster_poster_max_distance_005ec3d8) {
-            clamped = srVector3T<float>(delta.x - camera.x, delta.y - camera.y, delta.z - camera.z);
-            length_squared = clamped.LengthSquared();
-            if (length_squared != 0.0) {
-                clamped *= g_monster_poster_max_distance_005ec3d8 / sqrt(length_squared);
-            }
-            delta =
-                srVector3T<float>(camera.x + clamped.x, camera.y + clamped.y, camera.z + clamped.z);
+            clamped = delta - camera;
+            clamped.SetLength(g_monster_poster_max_distance_005ec3d8);
+            delta = camera + clamped;
         }
         if (g_world_cursor_0065ba8c->march_enabled_51 != 0) {
             MarchWorldCursorTarget004919E0(&delta);
@@ -370,9 +352,7 @@ void BindCursorMonsterToGroup004914E0(void)
             g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
         }
         if (g_world_cursor_0065ba8c == 0) {
-            position.x = 0.0f;
-            position.y = 0.0f;
-            position.z = 0.0f;
+            position.SetZero();
         } else {
             position = g_world_cursor_0065ba8c->position_28;
         }
@@ -548,7 +528,6 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
     double step;
     float lower_best = -1e+10f;
     float upper_best;
-    float len2;
     float ground;
     int lower_count;
     bool upper_found;
@@ -556,9 +535,7 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
 
     trace_from = *target + g_world_cursor_0065ba8c->probe_center_54;
     origin = g_world_cursor_0065ba8c->position_28;
-    dist = sqrt((target->x - origin.x) * (target->x - origin.x) +
-                (target->y - origin.y) * (target->y - origin.y) +
-                (target->z - origin.z) * (target->z - origin.z));
+    dist = (*target - origin).Length();
     if (dist == g_zero_005ebb40) {
         return 0;
     }
@@ -576,10 +553,7 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
             }
             dir = *target - origin;
             scaled = dir;
-            len2 = dir.LengthSquared();
-            if (static_cast<double>(len2) != g_zero_005ebb40) {
-                scaled *= step / sqrt(static_cast<double>(len2));
-            }
+            scaled.SetLength(step);
             step_pos = origin + scaled;
             end_pos = step_pos;
             for (i = 4; i < 8; i++) {
@@ -691,9 +665,7 @@ int ResolveWorldCursorTarget004921E0(srVector3T<float>* position)
     int i;
 
     if (cursor == 0) {
-        position->x = 0.0f;
-        position->y = 0.0f;
-        position->z = 0.0f;
+        position->SetZero();
     } else {
         *position = cursor->position_28;
     }

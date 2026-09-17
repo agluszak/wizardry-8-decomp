@@ -159,9 +159,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
     srVector3T<float> camera_position;
 
     GetCameraPosition(&camera_position);
-    srVector3T<float> camera_offset(camera_position.x - position->x,
-                                    camera_position.y - position->y,
-                                    camera_position.z - position->z);
+    srVector3T<float> camera_offset = camera_position - *position;
     if (camera_offset.Length() < falloff) {
         if (kind == W8_SOUND_EVENT_FOOTSTEP || strstr(m_pacWaveName, "step") != 0 ||
             (location_id != 0 && cycle == 4)) {
@@ -189,8 +187,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
 
-        srVector3T<float> offset(position->x - camera_position.x, position->y - camera_position.y,
-                                 position->z - camera_position.z);
+        srVector3T<float> offset = *position - camera_position;
         srVector3T<float> transformed = rotation.Transform(offset);
         float x = transformed.x;
         float y = transformed.y;

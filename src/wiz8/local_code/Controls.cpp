@@ -255,11 +255,7 @@ unsigned char DispatchControlRegionEvent(const InputAtom* event, W8Region* regio
     unsigned short index = region->callback_id;
     unsigned short reason = event->usEvent;
 
-    if (index < owner->m_controls.count) {
-        widget = owner->m_controls.data[index];
-    } else {
-        widget = owner->m_controls.data[0];
-    }
+    widget = *owner->m_controls.GetAt(index);
     if (widget == 0) {
         srAssertFail("pControl", "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp", 0x1AA, 0);
     }

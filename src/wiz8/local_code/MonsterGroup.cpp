@@ -594,8 +594,7 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
    two name sets, but the variant comes from the member count rather than a
    caller - a group of exactly one is named in the singular.
  
-   Its opening assertion is followed immediately by MonsterGroupGetRecord's own,
-   which is that body inlined here. */
+   Its opening assertion is followed immediately by MonsterGroupGetRecord's own. */
 // FUNCTION: WIZ8 0x00510280
 wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
 {
@@ -604,9 +603,8 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
 
     if (monster_group == 0) {
         srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3eb, 0);
-        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
     }
-    record = MonsterDBFromSpecies(monster_group->monster_id);
+    record = MonsterGroupGetRecord(monster_group);
     name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",

@@ -35,14 +35,10 @@ float GetCameraFacingYaw004BE5C0(srVector3T<float>* position)
 /* Euclidean distance between two world-space points. The retail callers at
    0x004F7577 and 0x004F759D are both in the ItemManager.cpp interval. */
 // FUNCTION: WIZ8 0x004BE6D0
-float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first,
-                                    const srVector3T<float>* second)
+float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first, const srVector3T<float>* second)
 {
-    float delta_x = first->x - second->x;
-    float delta_y = first->y - second->y;
-    float delta_z = first->z - second->z;
-
-    return static_cast<float>(sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z));
+    srVector3T<float> delta = *first - *second;
+    return delta.Length();
 }
 
 // FUNCTION: WIZ8 0x004BE870

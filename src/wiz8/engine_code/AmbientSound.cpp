@@ -57,9 +57,7 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
     float scale_y;
     float scale_z;
 
-    relative.x = listener->x - region_center.x;
-    relative.y = listener->y - region_center.y;
-    relative.z = listener->z - region_center.z;
+    relative = *listener - region_center;
     scale_x = g_float_005ebb38 / region_scale.x;
     scale_y = g_float_005ebb38 / region_scale.y;
     scale_z = g_float_005ebb38 / region_scale.z;
@@ -174,8 +172,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                     rotation.RotateAboutY(sin(static_cast<double>(angle)),
                                           cos(static_cast<double>(angle)));
                 }
-                srVector3T<float> offset(position.x - listener->x, position.y - listener->y,
-                                         position.z - listener->z);
+                srVector3T<float> offset = position - *listener;
                 transformed = rotation.Transform(offset);
                 Sound3DSetPosition(sound_handle, transformed.x, transformed.y, transformed.z);
                 Sound3DSetDirection(sound_handle, -transformed.x, -transformed.y, -transformed.z,
@@ -263,9 +260,7 @@ void W8AmbientSound::Service(unsigned char entered)
                     rotation.RotateAboutY(sin(static_cast<double>(angle)),
                                           cos(static_cast<double>(angle)));
                 }
-                offset.x = position.x - camera.x;
-                offset.y = position.y - camera.y;
-                offset.z = position.z - camera.z;
+                offset = position - camera;
                 transformed = rotation.Transform(offset);
                 memset(&pos, 0, sizeof(pos));
                 pos.flX = transformed.x;
@@ -282,9 +277,7 @@ void W8AmbientSound::Service(unsigned char entered)
                 pos.flUpZ = 0.0f;
                 pos.flFalloffMin = radius;
                 pos.flFalloffMax = radius;
-                to_listener.x = camera.x - position.x;
-                to_listener.y = camera.y - position.y;
-                to_listener.z = camera.z - position.z;
+                to_listener = camera - position;
                 distance = to_listener.Length();
                 volume = static_cast<unsigned int>(((Random(volume_max - volume_min) + volume_min) *
                                                     g_settings_6850c8.sound_effects_volume) /
@@ -320,9 +313,7 @@ void W8AmbientSound::Service(unsigned char entered)
         if (static_cast<double>(angle) != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(static_cast<double>(angle)), cos(static_cast<double>(angle)));
         }
-        offset.x = position.x - camera.x;
-        offset.y = position.y - camera.y;
-        offset.z = position.z - camera.z;
+        offset = position - camera;
         transformed = rotation.Transform(offset);
         memset(&parms, -1, sizeof(parms));
         parms.uiVolume = current_volume;

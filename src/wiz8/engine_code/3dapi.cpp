@@ -641,9 +641,7 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
         location->z = (float)world->camera->getLocationZ();
         return;
     }
-    location->x = 0.0f;
-    location->y = 0.0f;
-    location->z = 0.0f;
+    location->SetZero();
 }
 
 /* Set the view position after loading or traversing a portal. The camera light
@@ -827,9 +825,7 @@ void GetWorldCameraState(W8World* world, W8WorldCameraState* state)
             state->position.y = (float)world->camera->getLocationY();
             state->position.z = (float)world->camera->getLocationZ();
         } else {
-            state->position.x = 0.0f;
-            state->position.y = 0.0f;
-            state->position.z = 0.0f;
+            state->position.SetZero();
         }
         GetCameraOrientation(state->yaw, state->pitch);
     }
