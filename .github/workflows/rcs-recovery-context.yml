@@ -69,7 +69,7 @@ jobs:
                       ("decompile", [selector]),
                       ("listing", [selector]),
                       ("indirect-calls", [selector]),
-                  ])
+                  ], function_seeds=[selector])
                   record = {row["command"]: row["result"] for row in rows}
                   record["selector"] = selector
                   records.append(record)
