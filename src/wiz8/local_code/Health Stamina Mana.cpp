@@ -1533,8 +1533,9 @@ struct W8PortraitTables {
 // GLOBAL: WIZ8 0x0061cb3c
 W8PortraitTables g_portrait_tables_0061cb3c = {
     {0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138, 0x0080, 0x0138},
-    {0x0013, 0x0067, 0x00bc, 0x0111, 0x0013, 0x0067, 0x00bc, 0x0111},
-    {1, 3, 3, 4, 5, 3, 2, 3, 3, 3, 1, 2, 3, 4, 1, 1, 3, 3, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {0x0013, 0x0013, 0x0067, 0x0067, 0x00bc, 0x00bc, 0x0111, 0x0111},
+    {1, 3, 3, 4, 5, 3, 2, 3, 3, 3, 1,          2,          3,          4,          1,
+     1, 3, 3, 4, 1, 1, 1, 1, 1, 5, 0x01010101, 0x01010101, 0x01010101, 0x01010101, 0x01010101},
 };
 // GLOBAL: WIZ8 0x005ED8C8
 int g_effect_argument_005ed8c8 = 0;
@@ -1731,11 +1732,11 @@ W8CharacterEventDescriptor g_character_event_descriptors_005ee000[0xb1] = {
 };
 
 // GLOBAL: WIZ8 0x005EE5D0
-int g_effect_005ee5d0;
+int g_effect_005ee5d0 = 18;
 // GLOBAL: WIZ8 0x005EE5D4
-int g_effect_005ee5d4;
+int g_effect_005ee5d4 = 19;
 // GLOBAL: WIZ8 0x005EE5D8
-int g_effect_005ee5d8;
+int g_effect_005ee5d8 = 20;
 // GLOBAL: WIZ8 0x0068C504
 int g_special_event_0068c504;
 // GLOBAL: WIZ8 0x0068C508

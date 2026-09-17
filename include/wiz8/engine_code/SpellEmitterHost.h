@@ -32,7 +32,9 @@ public:
     W8AnimObj* emitters[28];                                       /* 0x0d8 */
     float emitter_values[28];                                      /* 0x148 */
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[28]; /* 0x1b8 */
-    unsigned char flag_378;
+    /* Set for spawned visuals: UpdateRepresentation then adds the
+       camera-facing yaw rotation on top of the mode's orientation. */
+    unsigned char billboard_378;
     unsigned char unknown_379[3];
 }; /* 0x37c */
 

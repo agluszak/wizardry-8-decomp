@@ -71,9 +71,8 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id)
     return character->profession_levels[profession_id] + magic_level_offset;
 }
 
-/* The target type that costs three off the difficulty: whatever
-   GetSpellTargetType answers seven for. */
-enum { W8_SPELL_TARGET_DISCOUNTED = 7 };
+/* The all-enemies target type costs three off the difficulty - hitting
+   everything is priced easier than picking targets. */
 
 /* How hard one spell is to bring off. Half the caster's own figure, plus the
    caller's bonus, plus half of the spell's level and half its point cost taken
@@ -88,7 +87,7 @@ int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus)
         (g_spell_records[spell_id].spell_point_cost / 2 + g_spell_records[spell_id].spell_level) /
             2;
 
-    if (GetSpellTargetType(spell_id, 0) == W8_SPELL_TARGET_DISCOUNTED) {
+    if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_ALL_ENEMIES) {
         difficulty -= 3;
     }
     if (difficulty < 0) {
@@ -201,7 +200,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
         }
     }
 
-    if (GetSpellTargetType(spell_id, 0) == 0) {
+    if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_CASTER) {
         SetMonsterCombatTarget(monster_info, monster_info->location_id);
     } else if (!MonsterTargetMatchesSpell(monster_info, spell_id)) {
         return false;
@@ -294,24 +293,24 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
-        case 0:
+        case W8_TARGET_TYPE_CASTER:
             return 8;
-        case 1:
+        case W8_TARGET_TYPE_ALLY:
             return spell_id != 0x58 ? 1 : 7;
-        case 2:
-        case 7:
-        case 10:
+        case W8_TARGET_TYPE_PARTY:
+        case W8_TARGET_TYPE_ALL_ENEMIES:
+        case W8_TARGET_TYPE_LOCK_OR_TRAP:
             break;
-        case 3:
+        case W8_TARGET_TYPE_ENEMY:
             return 2;
-        case 4:
+        case W8_TARGET_TYPE_ENEMY_GROUP:
             return 5;
-        case 5:
+        case W8_TARGET_TYPE_CONE:
             return 4;
-        case 6:
-        case 8:
+        case W8_TARGET_TYPE_RADIUS:
+        case W8_TARGET_TYPE_POINT:
             return 3;
-        case 9:
+        case W8_TARGET_TYPE_ITEM:
             if (g_level_block == 0 || context == W8_TARGETING_CONTEXT_SPELL ||
                 context == W8_TARGETING_CONTEXT_ITEM) {
                 return 6;
@@ -333,19 +332,19 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 int GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
-    case 0:
+    case W8_TARGET_TYPE_CASTER:
         return 8;
-    case 1:
+    case W8_TARGET_TYPE_ALLY:
         return spell_id != 0x58 ? 1 : 7;
-    case 2:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_CONE:
+    case W8_TARGET_TYPE_RADIUS:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
+    case W8_TARGET_TYPE_POINT:
         break;
-    case 3:
+    case W8_TARGET_TYPE_ENEMY:
         return 2;
-    case 4:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
         return 5;
     default:
         srAssertFail(
@@ -622,10 +621,10 @@ void UpdateSpellEffects00500930(void)
         W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
         bool alive = true;
 
-        for (int visual_index = 0; visual_index < effect->effects.GetCount() && alive;
+        for (int visual_index = 0; visual_index < effect->spell_visuals.GetCount() && alive;
              ++visual_index) {
-            W8SpellVisual* visual = *effect->effects.GetAt(visual_index);
-            if (visual->started == 0) {
+            W8SpellVisual* visual = *effect->spell_visuals.GetAt(visual_index);
+            if (visual->finished == 0) {
                 alive = false;
             }
         }
@@ -644,7 +643,7 @@ void UpdateSpellEffects00500930(void)
             }
         }
 
-        if ((g_spell_records[effect->kind].field_144 != 0 || effect->flag_122 != 0) &&
+        if ((g_spell_records[effect->kind].missile_delivered != 0 || effect->flag_122 != 0) &&
             effect->flag_121 == 0 && !alive) {
             continue;
         }
@@ -668,8 +667,8 @@ void UpdateSpellEffects00500930(void)
                     SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
                                      missile->definition_1fc.duration_scale, 0, 0);
                 if (visual != 0) {
-                    visual->flag_1e6 = 0;
-                    effect->effects.Add(visual);
+                    visual->auto_release = 0;
+                    effect->spell_visuals.Add(visual);
                     alive = false;
                 }
             }
@@ -708,9 +707,9 @@ void UpdateSpellEffects00500930(void)
         }
 
         if (!handled && g_spell_records[effect->kind].needs_aim_13f != 0 &&
-            !IsSpellInSingledOutSet(effect->kind)) {
-            int target_type = GetSpellTargetType(effect->kind, 0);
-            if (target_type != 6 && target_type != 2) {
+            !IsCombatEffectSlotSpell(effect->kind)) {
+            W8SpellTargetType target_type = GetSpellTargetType(effect->kind, 0);
+            if (target_type != W8_TARGET_TYPE_RADIUS && target_type != W8_TARGET_TYPE_PARTY) {
                 if (g_settings_6850c8.verbose_combat_messages == 0) {
                     ReportSpellResult005005C0(effect);
                 }
@@ -720,12 +719,12 @@ void UpdateSpellEffects00500930(void)
         if (effect->kind == 0x4f) {
             FinishSpellEffect00500F70(effect);
         }
-        for (int release_visual = 0; release_visual < effect->effects.GetCount();
+        for (int release_visual = 0; release_visual < effect->spell_visuals.GetCount();
              ++release_visual) {
-            W8SpellVisual* visual = *effect->effects.GetAt(release_visual);
-            visual->flag_1e6 = 1;
+            W8SpellVisual* visual = *effect->spell_visuals.GetAt(release_visual);
+            visual->auto_release = 1;
             if (effect->flag_121 != 0) {
-                visual->started = 1;
+                visual->finished = 1;
             }
         }
         for (int release_missile = 0; release_missile < effect->missiles.GetCount();
@@ -1386,7 +1385,8 @@ bool CanPartySlotUseRecordedItem(int party_slot)
 
     spell_id = GetItemSpell(item);
     normalize = ItemClassNormalizesTarget(&g_item_records[item->item_id]);
-    if (GetSpellTargetType(spell_id, normalize) == 0 && row->item_target.iChar != party_slot) {
+    if (GetSpellTargetType(spell_id, normalize) == W8_TARGET_TYPE_CASTER &&
+        row->item_target.iChar != party_slot) {
         return false;
     }
     if (!SpellUsableNow(spell_id, 0)) {
@@ -1506,24 +1506,24 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
 
     ResetCombatSlot(&target);
     switch (GetSpellTargetType(spell_id, 0)) {
-    case 0:
-    case 1:
-    case 3:
+    case W8_TARGET_TYPE_CASTER:
+    case W8_TARGET_TYPE_ALLY:
+    case W8_TARGET_TYPE_ENEMY:
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = GetRandomCharacter(0, 1, -1, -1);
         break;
-    case 2:
-    case 4:
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
         target.iType = W8_TARGET_KIND_PARTY;
         break;
-    case 5:
+    case W8_TARGET_TYPE_CONE:
         sight_probe = 0;
         target.iType = W8_TARGET_KIND_PARTY;
         ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
-    case 6:
-    case 8:
+    case W8_TARGET_TYPE_RADIUS:
+    case W8_TARGET_TYPE_POINT:
         sight_probe = 1;
         target.iType = W8_TARGET_KIND_PARTY;
         ResolveTargetPoint(&target, sight_probe);
@@ -1827,9 +1827,6 @@ enum {
     W8_SPELL_IDENTIFY = 0x17
 };
 
-/* The target kinds this chooser knows what to do with. */
-enum { W8_TARGET_TYPE_ONE = 1, W8_TARGET_TYPE_PARTY = 2, W8_TARGET_TYPE_ITEM = 9 };
-
 /* How hard the slot should cast the spell it has picked, from what its target
    actually needs. Everything it reads is the target's condition array - a
    character's at 0x0a01 or a monster's at 0x57, the same twenty entries with
@@ -1857,7 +1854,7 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     }
 
     switch (GetSpellTargetType(spell_id, 0)) {
-    case W8_TARGET_TYPE_ONE:
+    case W8_TARGET_TYPE_ALLY:
         switch (spell_id) {
         case W8_SPELL_RESTORE_HP:
         case W8_SPELL_RESTORE_STAMINA:
@@ -2120,16 +2117,16 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlo
     effect =
         SpawnSpellEffect(&position, g_spell_records[W8_SPELL_LURE].resource_name, argument, 0, 0);
     if (effect != 0) {
-        effect->flag_1e6 = 0;
-        owner->effects.Add(effect);
+        effect->auto_release = 0;
+        owner->spell_visuals.Add(effect);
     }
 
     position = target->point;
     effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
     if (effect != 0) {
-        effect->flag_1e6 = 0;
+        effect->auto_release = 0;
         effect->host->behaviour_071 = 3;
-        owner->effects.Add(effect);
+        owner->spell_visuals.Add(effect);
     }
 }
 
@@ -2154,18 +2151,18 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
     const unsigned short* condition_text = g_spell_condition_text_0061e57a;
 
     if (GetTextBoxMode() != 0) {
-        Function5905F0(effect->reported_124 == 0 ? L" -- " : L", ", -1);
+        AppendToLastTextLine(effect->reported_124 == 0 ? L" -- " : L", ", -1);
         SetTextBoxMode(1, -1);
     }
     if (effect->result_126.amount != 0) {
         if (effect->result_126.count == 1) {
-            Function5905F0(FormatWideString(gppStringList[0x668 / 4], effect->result_126.amount),
-                           -1);
+            AppendToLastTextLine(
+                FormatWideString(gppStringList[0x668 / 4], effect->result_126.amount), -1);
         } else {
-            Function5905F0(FormatWideString(gppStringList[0x664 / 4], effect->result_126.count,
-                                            effect->result_126.amount / effect->result_126.count,
-                                            -1),
-                           -1);
+            AppendToLastTextLine(
+                FormatWideString(gppStringList[0x664 / 4], effect->result_126.count,
+                                 effect->result_126.amount / effect->result_126.count, -1),
+                -1);
             SetTextBoxMode(1, -1);
         }
         SetTextBoxMode(1, -1);
@@ -2176,12 +2173,12 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
     do {
         if (*condition_count != 0) {
             if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
-                Function5905F0(L", ", -1);
+                AppendToLastTextLine(L", ", -1);
                 SetTextBoxMode(1, -1);
             }
             if (*condition_count == 1) {
                 if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
-                    Function5905F0(
+                    AppendToLastTextLine(
                         FormatWideString(
                             L"%s %s", g_status_685170.buffers.characters[effect->target.iChar].name,
                             gppStringList[condition_text[0]]),
@@ -2190,14 +2187,14 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                     W8MonsterInfo* monster_info =
                         MonsterInfoFromID(0x112a, MAGIC_CPP, effect->target.iMonsterID, 1);
                     if (monster_info != 0) {
-                        Function5905F0(FormatWideString(L"%s %s",
-                                                        GetMonsterName(monster_info, 0, 0),
-                                                        gppStringList[condition_text[0]]),
-                                       -1);
+                        AppendToLastTextLine(FormatWideString(L"%s %s",
+                                                              GetMonsterName(monster_info, 0, 0),
+                                                              gppStringList[condition_text[0]]),
+                                             -1);
                     }
                 }
             } else {
-                Function5905F0(
+                AppendToLastTextLine(
                     FormatWideString(L"%ld %s", *condition_count, gppStringList[condition_text[1]]),
                     -1);
             }
@@ -2229,6 +2226,6 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
         }
     }
     if (effect->reported_124 == 0) {
-        Function5905F0(gppStringList[0x694 / 4], -1);
+        AppendToLastTextLine(gppStringList[0x694 / 4], -1);
     }
 }

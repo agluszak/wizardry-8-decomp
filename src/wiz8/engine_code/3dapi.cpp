@@ -74,7 +74,6 @@ unsigned char g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
 
-
 // GLOBAL: WIZ8 0x006081f8
 unsigned char g_navigator_vertical_enabled_006081f8 = 1;
 
@@ -389,9 +388,9 @@ const double g_double_005ec1f8 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebce8
 const double g_double_005ebce8 = 180.0;
 // GLOBAL: WIZ8 0x00607d84
-float g_camera_base_horizontal_fov_607d84;
+float g_camera_base_horizontal_fov_607d84 = 85.0f;
 // GLOBAL: WIZ8 0x00607d88
-float g_camera_base_vertical_fov_607d88;
+float g_camera_base_vertical_fov_607d88 = 71.0f;
 // GLOBAL: WIZ8 0x00659abc
 float g_camera_sway_horizontal_phase_659abc;
 // GLOBAL: WIZ8 0x00659ac0

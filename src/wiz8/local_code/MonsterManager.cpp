@@ -1177,7 +1177,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->stamina = 0;
         monster_info->monster->state_088 = 0;
         monster_info->monster->flags_00c = 0x200000;
-        PrepareMonsterCycleForDestruction004ACF90(monster_info->monster);
+        ClearMonsterSpellIcons(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->monster, &position);
         monster_info->position_17 = position;

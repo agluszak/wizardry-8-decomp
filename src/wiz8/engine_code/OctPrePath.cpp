@@ -532,7 +532,7 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
     if (path_node_list_240 == 0) {
         return 0;
     }
-    SetFloat64B914(Function585320() != 0 ? 4000.0f : 2000.0f);
+    SetFloat64B914(AutomapLevelIsLarge() ? 4000.0f : 2000.0f);
     int created = 0;
     unsigned int i = 1;
     if (1 < static_cast<unsigned int>(size_004)) {
@@ -550,7 +550,7 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
             position.y = static_cast<float>(node->level_flags & 0xffff) * span_020;
             position.x = static_cast<float>(node->cell & 0xffff) * grid_scale_01c;
             position.z = static_cast<float>(node->cell >> 0x10) * grid_scale_01c;
-            unsigned int key = AutomapNodeKey005852B0(&position);
+            unsigned int key = AutomapNodeKey(&position);
             if (used_keys.FindNextEntry(&key, -1) == -1) {
                 node_keys.Add(key);
                 unsigned char present = 1;

@@ -30,16 +30,16 @@
    rows as g_condition_notices_0061E570. */
 // GLOBAL: WIZ8 0x0061EFFC
 const int g_ai_kind_condition_table_61effc[32][2] = {
-    {0, 0},  {0, 0}, {0, 0}, {12, 6}, {11, 13}, {0, 0}, {0, 3}, {0, 0}, {0, 0}, {0, 0},  {0, 0},
-    {0, 0},  {0, 0}, {0, 0}, {0, 0},  {0, 0},   {0, 0}, {0, 0}, {0, 0}, {0, 4}, {0, 16}, {0, 7},
-    {0, 15}, {0, 5}, {0, 0}, {0, 0},  {0, 0},   {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+    {0, 0},   {12, 0}, {12, 0}, {0, 0}, {0, 0}, {6, 11}, {6, 13}, {6, 0},  {0, 0}, {0, 0}, {11, 0},
+    {11, 13}, {11, 0}, {3, 0},  {3, 0}, {4, 0}, {4, 0},  {16, 0}, {16, 0}, {7, 3}, {7, 0}, {15, 0},
+    {5, 16},  {5, 0},  {0, 0},  {0, 0}, {0, 0}, {0, 0},  {0, 0},  {0, 0},  {0, 0}, {0, 0},
 };
 
 /* The per-kind realm/effect id handed to ApplyEffectAndAnnounce and the
    realm drain. */
 // GLOBAL: WIZ8 0x0061F0FC
 const int g_ai_kind_realm_table_61f0fc[32] = {
-    0, 0, 0, 0, 5, 4, 1, 3, 1, 0, 0, 2, 4, 1, 0, 0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 1, 5, 1, 4, 5, 4, 0, 0, 4, 5, 4, 3, 2, 3, 2, 4, 3, 1, 1, 2, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0,
 };
 
 /* Resolve one kind-table entry against every character and monster target in
@@ -365,14 +365,14 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
         }
         if (announce == 0) {
             if (uiHits[0] == 0) {
-                Function5905F0(gppStringList[0x694 / 4], -1);
+                AppendToLastTextLine(gppStringList[0x694 / 4], -1);
             } else {
                 for (i = 0; i < 2; ++i) {
                     if (uiHits[i] == 0) {
                         continue;
                     }
                     if (i == 1 && uiHits[0] != 0) {
-                        Function5905F0(L",", -1);
+                        AppendToLastTextLine(L",", -1);
                     }
                     switch (g_ai_kind_table[iAIKind][i]) {
                     case 1:
@@ -403,7 +403,7 @@ void ResolveMonsterGroupAttack005560A0(int iAIKind, W8TargetSource* pSource,
                         SetTextBoxMode(1, -1);
                         continue;
                     }
-                    Function5905F0(text, -1);
+                    AppendToLastTextLine(text, -1);
                     SetTextBoxMode(1, -1);
                 }
             }

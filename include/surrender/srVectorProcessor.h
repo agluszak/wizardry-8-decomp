@@ -119,6 +119,13 @@ public:
         vp->_transform(destination, vectors, matrix, count);
     }
 
+    /* destination[i] = |vectors[i]| for `count` vectors through vtable
+       +0x210; the automap cell lighting uses it for per-vertex distances. */
+    static inline void length(float* destination, const srVector3* vectors, SRDWORD count)
+    {
+        vp->_length(destination, vectors, count);
+    }
+
     static inline void mul(float* destination, float constant, const float* source, SRDWORD count)
     {
         vp->_mul(destination, constant, source, count);

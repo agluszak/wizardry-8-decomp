@@ -1180,10 +1180,10 @@ unsigned long float_bits(float value)
 } // namespace
 
 // FUNCTION: WIZ8 0x00424EB0
-static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
-                                         double height, float mapping_x, float mapping_y,
-                                         float mapping_width, float mapping_height,
-                                         unsigned char overlay)
+srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
+                                  double height, float mapping_x, float mapping_y,
+                                  float mapping_width, float mapping_height,
+                                  unsigned char overlay)
 {
     srMeshModel* model;
     srTextureMap* texture;
@@ -1243,8 +1243,9 @@ static srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* su
     return instance;
 }
 
-static BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
-                                             srColorSurface* destination, UINT16 x, UINT16 y)
+// FUNCTION: WIZ8 0x00484A40
+BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
+                                      srColorSurface* destination, UINT16 x, UINT16 y)
 {
     HVOBJECT object;
     ETRLEObject properties;

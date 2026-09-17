@@ -4051,13 +4051,13 @@ W8ScreenRect g_viewport_modes_647d30[7] = {
 
 /* The viewport currently applied, as four separate dwords. */
 // GLOBAL: WIZ8 0x00647f44
-int g_viewport_left_647f44;
+int g_viewport_left_647f44 = 0;
 // GLOBAL: WIZ8 0x00647f48
-int g_viewport_top_647f48;
+int g_viewport_top_647f48 = 0;
 // GLOBAL: WIZ8 0x00647f4c
-int g_viewport_right_647f4c;
+int g_viewport_right_647f4c = 0;
 // GLOBAL: WIZ8 0x00647f50
-int g_viewport_bottom_647f50;
+int g_viewport_bottom_647f50 = 0;
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */

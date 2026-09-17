@@ -106,6 +106,8 @@ extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
 
 class srColorSurface;
+class srColorSurfaceIFace;
+class srModelInstance;
 class srNode;
 class srTextureIFace;
 class stModelInstance2D;
@@ -142,6 +144,14 @@ bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
    coordinates; positional snaps to the renderer's pixel grid. */
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
+/* 0x00424EB0: build the 2D polygon-brush model instance over a surface;
+   RenderAutomapMarkers' item-marker factory calls it cross-TU. */
+srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
+                                  double height, float mapping_x, float mapping_y,
+                                  float mapping_width, float mapping_height, unsigned char overlay);
+/* 0x00484A40: blit one frame of a video object into a color surface. */
+BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
+                                      srColorSurface* destination, UINT16 x, UINT16 y);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
