@@ -1,6 +1,7 @@
 #pragma once
 #include "wiz8/layouts/screen_state.h"
 
+#include "input.h"
 #include "wiz8/vector.h"
 
 struct W8CreditLine {
@@ -17,3 +18,5 @@ unsigned char ReadWideTextLine004CEED0(int handle, wchar_t* destination, int cap
 unsigned char CreditsScreenEnter(void);
 void CreditsScreenFrame(void);
 unsigned char CreditsScreenLeave(int leaving);
+/* Full-screen dismiss on left-up or right-up. */
+unsigned char CreditsBackgroundRegionEvent(const InputAtom* event); /* 0x005BC7A0 */

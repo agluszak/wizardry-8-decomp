@@ -1,9 +1,17 @@
 #include "wiz8/regions.h"
+#include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/local_screens/CreditsScreen.h"
+#include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSFormation.h"
+#include "wiz8/local_screens/MGSKeyboard.h"
+#include "wiz8/local_screens/MGSPartyMovement.h"
 #include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/local_screens/MGSSpellIcons.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
@@ -23,7 +31,9 @@
 
 /* Unrecovered static-catalog callbacks store the retail VA so matching WIZ8
    does not pull in runtime_stubs (/FORCE:UNRESOLVED would collapse them to
-   image base). Recovered callbacks keep their function names. */
+   image base). Recovered callbacks keep their function names. WorldView
+   0x00567800 remains deliberately unrecovered until its Ghidra boundary is
+   repaired. */
 #define W8_UNRECOVERED_REGION_CB(va)                                                               \
     reinterpret_cast<W8RegionCallback>(va) /* reinterpret-ok: retail region callback VA */
 
@@ -61,9 +71,16 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 279, 423, 364, 467, MainMenuExit, 0, 0, 0, -1, 0},
     {0x00000001, 286, 382, 351, 402, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 639, 479, W8_UNRECOVERED_REGION_CB(0x005BC7A0), 0, 0, 0, 0, 0},
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
+    {0x00000001, 0, 0, 639, 479, reinterpret_cast<W8RegionCallback>(CreditsBackgroundRegionEvent),
+     /* reinterpret-ok: retail catalog stores InputAtom-only CreditsBackgroundRegionEvent */ 0, 0,
+     0, 0, 0},
+// clang-format on
+#pragma clang diagnostic pop
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0055E690), 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, DialogueTranscriptRegionEvent, 0, 0, 0, -1, 0},
     {0x00000001, 24, 68, 42, 85, PartyCombatActionRegionEvent, 0, 0, 0, -1, 0},
     {0x00000001, 595, 68, 613, 85, PartyCombatActionRegionEvent, 1, 0, 0, -1, 0},
 
@@ -234,40 +251,40 @@ W8Region g_regions[1500] = {
     {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 8, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, MainScreenControlRegionEvent, 39, 0, 0, 0, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0C80), 5, 1, 0, -1, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 0, 1, 0, 46, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 1, 1, 0, 47, 0},
+    {0x00000001, 0, 0, 0, 0, SpellRealmButtonRegionEvent, 5, 1, 0, -1, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 0, 1, 0, 46, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 1, 1, 0, 47, 0},
 
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 2, 1, 0, 48, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 3, 1, 0, 49, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 4, 1, 0, 50, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 2, 1, 0, 48, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 3, 1, 0, 49, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 4, 1, 0, 50, 0},
 
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 5, 1, 0, 51, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 6, 1, 0, 52, 0},
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 7, 1, 0, 53, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 5, 1, 0, 51, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 6, 1, 0, 52, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 7, 1, 0, 53, 0},
 
-    {0x00000002, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 8, 1, 0, 54, 0},
+    {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 8, 1, 0, 54, 0},
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
     // clang-format off
     {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(IgnoreSpellCastingInput), /* reinterpret-ok: retail region catalog stores IgnoreSpellCastingInput's InputAtom ABI */ 0, 1, 0, 55, 0},
 // clang-format on
 #pragma clang diagnostic pop
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A0E50), 10, 1, 0, 17, 0},
+    {0x00000001, 0, 0, 0, 0, SpellPowerPipRegionEvent, 10, 1, 0, 17, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0059D970), 0, 1, 0, 96, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0059D970), 1, 1, 0, 97, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0059DA30), 0, 1, 0, 98, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 0, 1, 0, 96, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 1, 1, 0, 97, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 0, 1, 0, 98, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0059DA30), 3, 1, 0, 99, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0059DA30), 8, 1, 0, 17, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 3, 1, 0, 99, 0},
+    {0x00000001, 0, 0, 0, 0, UseItemSelectControlRegionEvent, 8, 1, 0, 17, 0},
     {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 0, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, FormationCellRegionEvent, 1, 0, 0, -1, 0},
@@ -294,91 +311,91 @@ W8Region g_regions[1500] = {
     {0x00000001, 0, 0, 0, 0, FormationActionRegionEvent, 2, 1, 0, 1983, 0},
     {0x00000001, 214, 60, 427, 303, FormationBackgroundRegionEvent, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 8, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 11, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 9, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 10, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 11, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00594760), 12, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005949A0), 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598DB0), 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuRowRegionEvent, 12, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, KeyboardMenuBackgroundRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 0, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598DB0), 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598DB0), 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598DB0), 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 3, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598DB0), 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00598CD0), 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A1DE0), 0, 1, 0, 37, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuRowRegionEvent, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SubMenuBackgroundRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 0, 1, 0, 37, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005A1DE0), 1, 1, 0, 38, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 11, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 10, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, FreeTurnButtonRegionEvent, 1, 1, 0, 38, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 11, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 10, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 8, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 9, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 7, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AEEA0), 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyEffectIconRegionEvent, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 7, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF530), 8, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatLeftEffectIconRegionEvent, 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 0, 1, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, MonsterListRegionEvent, 0, 1, 0, 36, 0},
     {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00567800), 0, 0, 0, 23, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B66B0), 0, 1, 0, 1984, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6AA0), 0, 1, 0, 2387, 0},
-    {0x00000001, 164, 12, 254, 84, W8_UNRECOVERED_REGION_CB(0x005B5E90), 0, 1, 0, 2368, 0},
+    {0x00000001, 0, 0, 0, 0, CampLevelUpButtonRegionEvent, 0, 1, 0, 1984, 0},
+    {0x00000001, 0, 0, 0, 0, CampDismissButtonRegionEvent, 0, 1, 0, 2387, 0},
+    {0x00000001, 164, 12, 254, 84, CampDismissPortraitRegionEvent, 0, 1, 0, 2368, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 2, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 3, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 5, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 6, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B5F10), 7, 0, 0, -1, 0},
-    {0x00000001, 106, 96, 302, 109, W8_UNRECOVERED_REGION_CB(0x005B61A0), 0, 1, 0, 2362, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 6, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CampPortraitSlotRegionEvent, 7, 0, 0, -1, 0},
+    {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, 1, 0, 2362, 0},
 
-    {0x00000001, 106, 124, 302, 133, W8_UNRECOVERED_REGION_CB(0x005B6220), 0, 1, 0, 2363, 0},
+    {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, 1, 0, 2363, 0},
     {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 0, 1, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 1, 1, 0, -1, 0},
 
@@ -436,44 +453,49 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 4, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B62C0), 0, 1, 0, 2364, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 0, 1, 0, 2364, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B62C0), 1, 1, 0, 2367, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B62C0), 2, 1, 0, 2366, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B62C0), 3, 1, 0, 2365, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 1, 1, 0, 2367, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 2, 1, 0, 2366, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 3, 1, 0, 2365, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B62C0), 4, 1, 0, 2368, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 0, 1, 0, 2369, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 1, 1, 0, 2370, 0},
+    {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 4, 1, 0, 2368, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 0, 1, 0, 2369, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 1, 1, 0, 2370, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 2, 1, 0, 2371, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 3, 1, 0, 2372, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 4, 1, 0, 2373, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 2, 1, 0, 2371, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 3, 1, 0, 2372, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 4, 1, 0, 2373, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 5, 1, 0, 2374, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 6, 1, 0, 2375, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6360), 7, 1, 0, 2376, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 5, 1, 0, 2374, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 6, 1, 0, 2375, 0},
+    {0x00000001, 0, 0, 0, 0, CampItemActionRegionEvent, 7, 1, 0, 2376, 0},
 
-    {0x00000001, 0, 0, 639, 479, W8_UNRECOVERED_REGION_CB(0x00581790), 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 639, 479, AutomapBackgroundRegionEvent, 0, 0, 0, -1, 0},
     {0x00000001, 0, 0, 639, 479, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 5, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 6, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 6, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x0052FD80), 7, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00576650), 0, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005699D0), 0, 0, 0, -1, 0},
-
+    {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 7, 0, 0, -1, 0},
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(ScreenLifecycleSuccess), /* reinterpret-ok: retail region catalog stores the zero-argument success sentinel */ 0, 0, 0, -1, 0},
+    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
+    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(NpcQuoteBubbleRegionEvent),
+     /* reinterpret-ok: retail catalog stores InputAtom-only NpcQuoteBubbleRegionEvent */ 0, 0, 0,
+     -1, 0},
+    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(CombatBarRegionEvent),
+     /* reinterpret-ok: retail catalog stores InputAtom-only CombatBarRegionEvent */ 0, 0, 0, -1,
+     0},
+    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(ScreenLifecycleSuccess),
+     /* reinterpret-ok: retail region catalog stores the zero-argument success sentinel */ 0, 0, 0,
+     -1, 0},
 // clang-format on
 #pragma clang diagnostic pop
 };

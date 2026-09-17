@@ -36,6 +36,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Video2.h"
@@ -2485,6 +2486,39 @@ unsigned char W8NpcDialogueTextController::IsSlotPortraitTranscriptCovered(unsig
     return 0;
 }
 
+// FUNCTION: WIZ8 0x0055E490
+void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
+{
+    wchar_t keyword[200];
+    unsigned int hit;
+
+    if (g_screen_state_00649f1c->flag_250 != 0) {
+        return;
+    }
+
+    hit = text_area.HitTestEntry(x, y);
+    if (hit == static_cast<unsigned int>(-1)) {
+        return;
+    }
+
+    if (text_area.m_state_5d_entry == static_cast<int>(hit)) {
+        text_area.CopyVisibleEntryText(hit, keyword);
+        text_area.ClearEntryState5D();
+        text_area.SetEntryState5D(static_cast<int>(hit));
+        SetDialogueFieldKeyword(keyword, 0);
+        HandleNpcDialogueInput();
+        text_area.SetEntryState60(text_area.GetOwningEntryIndex(static_cast<int>(hit)), 0);
+        InvalidateLayout();
+        return;
+    }
+
+    text_area.CopyVisibleEntryText(hit, keyword);
+    text_area.ClearEntryState5D();
+    text_area.SetEntryState5D(static_cast<int>(hit));
+    SetDialogueFieldKeyword(keyword, 0);
+    InvalidateLayout();
+}
+
 // FUNCTION: WIZ8 0x0055E2C0
 void __fastcall CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller)
 {
@@ -2647,6 +2681,74 @@ void W8NpcDialogueScrollWidget::OnLeftButtonUp(int event)
             m_primaryActivationCallback();
         }
     }
+}
+
+/* Dialogue transcript body region: press arms the held flag, release clicks a
+   keyword, mouse-pos updates selection, and the wheel scrolls the text area. */
+// FUNCTION: WIZ8 0x0055E690
+unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+    W8NpcDialogueTextController* controller;
+    unsigned char scrolled;
+    short delta;
+
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            g_screen_state_00649f1c->npc_dialogue_controller_1b0->SelectTranscriptKeywordAtPoint(
+                static_cast<unsigned short>(event->uiParam),
+                static_cast<unsigned short>(event->uiParam >> 16));
+            return 1;
+        }
+    } else {
+        if (us_event != MOUSE_POS) {
+            if (us_event != MOUSE_WHEEL) {
+                return 0;
+            }
+            delta = GetMouseWheelDeltaValue(event->usParam);
+            if (delta > 0) {
+                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+                scrolled = controller->text_area.ScrollUp(0);
+                if (scrolled == 0) {
+                    return 0;
+                }
+                controller->Invalidate(0);
+                return 0;
+            }
+            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+            scrolled = controller->text_area.ScrollDown(0);
+            if (scrolled == 0) {
+                return 0;
+            }
+            controller->Invalidate(0);
+            return 0;
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+            if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+                if (controller->text_area.UpdateSelectionFromPoint(
+                        static_cast<unsigned short>(event->uiParam),
+                        static_cast<unsigned short>(event->uiParam >> 16)) != 0) {
+                    controller->InvalidateLayout();
+                }
+            }
+        } else {
+            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+            if (controller->text_area.ClearPointSelection() != 0) {
+                controller->InvalidateLayout();
+                return 1;
+            }
+        }
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0055E7C0
@@ -4194,6 +4296,42 @@ void RequestRedrawCombatBar(void)
     }
 }
 
+/* Surprise / combat-bar overlay region: mouse buttons and mapped keys clear
+   surprise and resume the world when the bar is up. */
+// FUNCTION: WIZ8 0x005699D0
+unsigned char CombatBarRegionEvent(const InputAtom* event)
+{
+    int us_event = event->usEvent;
+
+    if (us_event <= RIGHT_BUTTON_DOWN) {
+        if (us_event == RIGHT_BUTTON_DOWN || us_event == LEFT_BUTTON_DOWN ||
+            us_event == LEFT_BUTTON_UP) {
+            goto resume_world;
+        }
+    } else {
+        if (us_event == RIGHT_BUTTON_UP) {
+            goto resume_world;
+        }
+        if (us_event == MOUSE_POS) {
+            return 1;
+        }
+    }
+
+    if (g_mgs_keyboard->FindCommandForEvent(event) == -1) {
+        return 0;
+    }
+
+resume_world:
+    if (gXStatus.fSurprisePossible != 0) {
+        Function502790();
+    }
+    if (g_flag_006840bd == 0) {
+        return 1;
+    }
+    ResumeMainGameWorld();
+    return 1;
+}
+
 /* Note that the party's state changed. The combat half is only asked for while
    a fight is on; the party half always. */
 // FUNCTION: WIZ8 0x005653f0
@@ -5085,6 +5223,38 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 return 1;
             }
         }
+    }
+    return 1;
+}
+
+/* Party portrait event regions (callback_id 0..7): complete an active character
+   event on release, or finish NPC voice for the lead portraits. */
+// FUNCTION: WIZ8 0x0052FD80
+unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned short callback_id = region->callback_id;
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[callback_id];
+    W8CharacterEvent* active;
+
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        break;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            if (callback_id != 0 && callback_id != 1) {
+                active = entry->active_character_event;
+                if (active != 0) {
+                    gXStatus.character_event_queue->CompleteActiveEvent(active);
+                    return 1;
+                }
+            }
+            TryFinishNpcVoicePlayback(1);
+            return 1;
+        }
+        break;
+    default:
+        return 0;
     }
     return 1;
 }
@@ -7496,6 +7666,17 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
     g_screen_state_00649f1c->quote_bubble = -1;
 }
 
+/* NPC quote-bubble region: left-down finishes any playing NPC voice. */
+// FUNCTION: WIZ8 0x00576650
+unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event)
+{
+    if (event->usEvent != LEFT_BUTTON_DOWN) {
+        return 0;
+    }
+    TryFinishNpcVoicePlayback(1);
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00576670
 void DrawNpcQuoteBubble(void)
 {
@@ -8818,6 +8999,24 @@ int g_dialogue_fallback_ids_00649f78[5] = {0x765, 0x766, 0x767, 0x768, 0x769};
 const wchar_t* g_dialogue_person_keywords[] = {L"BALBRAK", L"BILDUBLU", L"EWAXX",  L"KUNAR",
                                                L"PANRACK", L"RODAN",    L"RUBBLE", L"SAXX",
                                                L"SPARKLE", L"YAMIR",    L""};
+
+/* Replace field 0 with keyword, or space-append when the field already has
+   text and append is set. */
+// FUNCTION: WIZ8 0x00574F90
+void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append)
+{
+    wchar_t field_text[200];
+    wchar_t combined[200];
+
+    Get16BitStringFromField(0, field_text);
+    StripNpcKeywordPunctuation(keyword);
+    if (wcslen(field_text) != 0 && append != 0) {
+        swprintf(combined, g_format_s_space_s_00617584, field_text, keyword);
+        SetInputFieldStringWith16BitString(0, combined);
+    } else {
+        SetInputFieldStringWith16BitString(0, keyword);
+    }
+}
 
 // FUNCTION: WIZ8 0x00575020
 bool IsDialoguePlaceKeyword(const wchar_t* name)

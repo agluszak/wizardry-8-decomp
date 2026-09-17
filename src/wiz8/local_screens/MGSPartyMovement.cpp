@@ -286,6 +286,46 @@ void InvalidatePartyMovementPanel(void)
     g_party_movement_panel->Invalidate(0);
 }
 
+/* Free-turn (id 0) and cancel-party-movement (id 1) button regions; the two
+   W8TextControl* globals sit adjacent so callback_id indexes from the free-
+   turn pointer. */
+// FUNCTION: WIZ8 0x005A1DE0
+unsigned char FreeTurnButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event;
+    unsigned int callback_id;
+
+    if (gXStatus.fPartyMovementUi == 0) {
+        return 0;
+    }
+    us_event = event->usEvent;
+    callback_id = region->callback_id;
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            (&g_free_turn_button)[callback_id]->OnLeftButtonDown(0);
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_UP) {
+            (&g_free_turn_button)[callback_id]->OnLeftButtonUp(0);
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            }
+            return 1;
+        }
+    } else if (us_event == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            (&g_free_turn_button)[callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            (&g_free_turn_button)[callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x005A1E90
 void DisableFreeTurnButton(void)
 {

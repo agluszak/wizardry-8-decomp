@@ -8,6 +8,7 @@
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/game_status.h"
@@ -112,8 +113,6 @@ void SyncPartyPortraitVitalsBars(void)
     }
 }
 
-/* Toggle numeric hit-point display on the party portraits and invalidate all
-   eight slot masks so the new mode repaints everywhere. */
 // FUNCTION: WIZ8 0x0059AA30
 void ToggleNumericHitPoints(void)
 {

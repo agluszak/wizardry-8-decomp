@@ -1,8 +1,6 @@
 from pathlib import Path
 
 from wiz8decomp.reports.placement_outliers import (
-    FIXTURE_ADDRESS,
-    FIXTURE_SOURCE,
     placement_outlier_report,
     placement_outliers,
 )
@@ -60,29 +58,32 @@ def test_placement_outliers_annotates_folded_without_template() -> None:
     assert rows[0]["has_fold_or_emission_evidence"] is True
 
 
-def test_placement_outliers_includes_notify_linked_model_shaped_fixture() -> None:
-    """Regression shape for 0x005AA400 in stMeshModel.cpp: megabyte-scale gap, no fold mark."""
+def test_placement_outliers_flags_megabyte_gap_without_emission_evidence() -> None:
+    """Synthetic regression: large gap with no FOLDED/TEMPLATE/SYNTHETIC peers."""
 
-    source = FIXTURE_SOURCE
+    source = "src/wiz8/engine_code/SyntheticOutlier.cpp"
     markers = [
         _marker(0x00470040, source, name="NearLow"),
         _marker(0x00473260, source, name="NearMid"),
         _marker(0x004748C0, source, name="NearHigh"),
-        _marker(FIXTURE_ADDRESS, source, name="NotifyLinkedModel005AA400"),
+        _marker(0x005AA400, source, name="FarBody"),
     ]
     rows = placement_outliers(markers, {source}, min_gap=0x100000, min_peers=3)
     assert len(rows) == 1
-    assert rows[0]["address"] == f"0x{FIXTURE_ADDRESS:08x}"
-    assert rows[0]["source_file"] == FIXTURE_SOURCE
+    assert rows[0]["address"] == "0x005aa400"
+    assert rows[0]["source_file"] == source
     assert rows[0]["has_fold_or_emission_evidence"] is False
 
 
 def test_placement_outlier_report_writes_artifact(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[2]
     (tmp_path / "build").mkdir()
-    mesh = tmp_path / FIXTURE_SOURCE
-    mesh.parent.mkdir(parents=True)
-    mesh.write_text("// FUNCTION: WIZ8 0x005aa400\nvoid NotifyLinkedModel005AA400();\n")
+    # Reuse a real ORIGINAL_TU path so source_unit_records classifies it; the
+    # markers themselves are synthetic and do not bind production policy.
+    tu_source = "src/wiz8/engine_code/stMeshModel.cpp"
+    tu_file = tmp_path / tu_source
+    tu_file.parent.mkdir(parents=True)
+    tu_file.write_text("// FUNCTION: WIZ8 0x005aa400\nvoid FarBody();\n")
     import shutil
 
     shutil.copyfile(
@@ -93,14 +94,13 @@ def test_placement_outlier_report_writes_artifact(tmp_path: Path) -> None:
         repository / "src/wiz8/sources.cmake",
         tmp_path / "src/wiz8/sources.cmake",
     )
-    # Minimal index: three clustered functions plus the fixture outlier.
     index = {
         "schema": "reccmp-source-index-v3",
         "markers": [
-            _marker(0x00470040, FIXTURE_SOURCE, name="NearLow"),
-            _marker(0x00473260, FIXTURE_SOURCE, name="NearMid"),
-            _marker(0x004748C0, FIXTURE_SOURCE, name="NearHigh"),
-            _marker(FIXTURE_ADDRESS, FIXTURE_SOURCE, name="NotifyLinkedModel005AA400"),
+            _marker(0x00470040, tu_source, name="NearLow"),
+            _marker(0x00473260, tu_source, name="NearMid"),
+            _marker(0x004748C0, tu_source, name="NearHigh"),
+            _marker(0x005AA400, tu_source, name="FarBody"),
         ],
         "declarations": [],
     }
@@ -115,5 +115,7 @@ def test_placement_outlier_report_writes_artifact(tmp_path: Path) -> None:
 
     report = placement_outlier_report(tmp_path, min_gap=0x100000, min_peers=3)
     assert report["informational"] is True
-    assert report["fixture_present"] is True
+    assert "fixture_present" not in report
+    assert report["outlier_count"] == 1
+    assert report["outliers"][0]["name"] == "FarBody"
     assert (tmp_path / report["artifact"]).is_file()

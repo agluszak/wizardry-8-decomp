@@ -219,7 +219,7 @@ struct W8LevelRuntimeBlock {
     int combat_slot;            /* 0x310 */
     /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
        cleared by CloseKeyboardMenu. */
-    unsigned char keyboard_menu_open;
+    bool keyboard_menu_open;
     unsigned char unknown_315[3];
     int hover_combat_slot; /* 0x318 */
     unsigned char flag_31c;

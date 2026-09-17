@@ -2,6 +2,7 @@
 
 extern float g_float_64b914;
 
+#include "input.h"
 #include "wiz8/geometry.h"
 
 #include "surrender/srMath.h"
@@ -50,6 +51,9 @@ unsigned char AutomapScreenEnter(void);
 void AutomapScreenFrame(void);
 unsigned char AutomapScreenLeave(int leaving);
 unsigned char AutomapScreenFinalize(void);
+/* Full-screen dismiss: left-up after a held press leaves the automap. */
+unsigned char AutomapBackgroundRegionEvent(const InputAtom* event,
+                                           struct W8Region* region); /* 0x00581790 */
 float GetFloat64B914(void);
 void SetFloat64B914(float value); /* 0x00585300 */
 /* Packs a world position into an automap cell key. */

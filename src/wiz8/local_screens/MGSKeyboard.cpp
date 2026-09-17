@@ -89,6 +89,24 @@ int MGSKeyboard::FindBinding(int command) const
     return -1;
 }
 
+// FUNCTION: WIZ8 0x0055d2a0
+int MGSKeyboard::FindCommandForEvent(const InputAtom* event) const
+{
+    int count = m_bindings.GetCount();
+    int index = 0;
+    if (count > 0) {
+        do {
+            MGSKeyBinding* binding = *m_bindings.GetAt(index);
+            if (binding->active == event->usEvent && binding->modifiers == event->usKeyState &&
+                binding->key == event->usParam) {
+                return binding->command;
+            }
+            ++index;
+        } while (index < count);
+    }
+    return -1;
+}
+
 // FUNCTION: WIZ8 0x0055d300
 MGSKeyBinding* MGSKeyboard::GetBinding(int index) const
 {
@@ -1042,4 +1060,98 @@ void KeyboardMenuUseRecordedItem(void)
     CloseKeyboardMenu();
     StartCharacterItemUse(g_value_64c1c8);
     RequestRedraw(0x200000);
+}
+
+// FUNCTION: WIZ8 0x00594760
+unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8TextControl* row = g_keyboard_menu_rows_69b820[region->callback_id];
+    unsigned short row_id;
+    W8PartySlotRow* party_row;
+    W8ItemInstance* item;
+    wchar_t* name;
+    int power;
+
+    if (row == 0) {
+        return 0;
+    }
+    switch (event->usEvent) {
+    case RIGHT_BUTTON_DOWN:
+        row->OnRightButtonDown(0);
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        row->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        row->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_UP:
+        row->OnRightButtonUp(0);
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            row->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+            return 0;
+        }
+        row->OnMouseEnter(0);
+        row_id = region->callback_id;
+        if (g_keyboard_menu_pages_69b808[row_id] == W8_SUBMENU_SPELLS &&
+            g_keyboard_menu_items_69b7ec[row_id] == 1) {
+            SetRegionHelpForceEnabled004F27C0(1);
+            if (g_keyboard_menu_rows_69b820[region->callback_id]->m_enabled == 0) {
+                SetRegionHelpText(gppStringList[0x168 / 4]);
+                return 1;
+            }
+            name = g_spell_records[g_status_685170.buffers.party_rows[g_value_64c1c8].spell_id]
+                       .display_name;
+            power = GetAffordableSpellPowerLevel(g_value_64c1c8);
+            SetRegionHelpText(FormatWideString(g_format_s_colon_s_paren_d_006481b4,
+                                               gppStringList[0x168 / 4], name, power));
+            return 1;
+        }
+        if (g_keyboard_menu_pages_69b808[row_id] != W8_SUBMENU_ITEMS) {
+            return 1;
+        }
+        if (g_keyboard_menu_items_69b7ec[row_id] != 2) {
+            return 1;
+        }
+        SetRegionHelpForceEnabled004F27C0(1);
+        if (g_keyboard_menu_rows_69b820[region->callback_id]->m_enabled == 0) {
+            SetRegionHelpText(gppStringList[0x174 / 4]);
+            return 1;
+        }
+        party_row = &g_status_685170.buffers.party_rows[g_value_64c1c8];
+        item = FindCharacterItemAt(g_value_64c1c8, party_row->item_origin, party_row->item_slot);
+        name = FormatItemDisplayName(item, 0);
+        SetRegionHelpText(
+            FormatWideString(g_format_s_colon_s_0061c3e0, gppStringList[0x174 / 4], name));
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005949A0
+unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event, W8Region*)
+{
+    if (g_level_block->keyboard_menu_open == 0) {
+        return 0;
+    }
+    if (event->usEvent != RIGHT_BUTTON_UP) {
+        return 0;
+    }
+    CloseKeyboardMenu();
+    return 1;
 }

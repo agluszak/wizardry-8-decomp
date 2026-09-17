@@ -2,6 +2,7 @@
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/TextControl.h"
@@ -16,8 +17,12 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/targeting.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/local_code/Strings.h"
@@ -27,6 +32,7 @@
 #include "wiz8/fonts.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/cursor.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/regions.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -53,6 +59,10 @@ Controls* g_dismiss_panel_0069c3c8;
    arms: one control per actionable entry-mode, cleared before each reselection. */
 // GLOBAL: WIZ8 0x0069c3cc
 W8TextControl* g_item_action_controls_69c3cc[8];
+/* Five page buttons (help 2364-2368) packed immediately before the dismiss
+   button; Function5B4EB0 allocates them on the shared bottom Controls panel. */
+// GLOBAL: WIZ8 0x0069c3ec
+W8TextControl* g_camp_page_buttons_0069c3ec[5];
 // GLOBAL: WIZ8 0x0069c3c0
 W8TextControl* g_level_up_button_0069c3c0;
 // GLOBAL: WIZ8 0x0069c400
@@ -92,6 +102,40 @@ void SelectCampCharacter005B6B30(int slot)
         break;
     }
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
+}
+
+/* Give the held item to a camp portrait on right-click: refuse dead/insane/
+   stoned with a notice, check eligibility and combat action allowance, then
+   AddItemToCharacter. */
+// FUNCTION: WIZ8 0x005B6C10
+void TryGiveHeldItemToCampPortrait005B6C10(int slot)
+{
+    W8Character* character;
+
+    if (!g_status_685170.buffers.party_rows[slot].occupied) {
+        return;
+    }
+    character = &g_status_685170.buffers.characters[slot];
+    if (character->condition_turns[19] != 0) {
+        ShowCampNoticeLine(gppStringList[0x241c / 4], 0, 1, 0);
+        return;
+    }
+    if (character->condition_turns[14] != 0) {
+        ShowCampNoticeLine(gppStringList[0x2420 / 4], 0, 1, 0);
+        return;
+    }
+    if (character->condition_turns[13] != 0) {
+        ShowCampNoticeLine(gppStringList[0x2424 / 4], 0, 1, 0);
+        return;
+    }
+    if (!IsPartySlotEligible00524A10(slot)) {
+        ShowCampNoticeLine(gppStringList[0x2404 / 4], 0, 1, 0);
+        return;
+    }
+    if (Function5A6090(slot) == 0) {
+        return;
+    }
+    AddItemToCharacter(character, &g_status_685170.item_in_hand_235b, 0, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b6d20
@@ -183,6 +227,258 @@ void OpenLevelUpCharacterScreen(void)
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
+/* Dismiss-confirm portrait/name hitbox (help 2368): click dismisses the
+   reviewed party member; mouse enter/leave toggles unknown_d40[0]. */
+// FUNCTION: WIZ8 0x005B5E90
+unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+
+    if (us_event == LEFT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    }
+    if (us_event != LEFT_BUTTON_UP) {
+        if (us_event != MOUSE_POS) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
+            if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+                return 0;
+            }
+            g_camp_screen_0069c0f4->unknown_d40[0] = 1;
+        } else {
+            g_camp_screen_0069c0f4->unknown_d40[0] = 0;
+        }
+        g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+        return 0;
+    }
+    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+        return 1;
+    }
+    DismissSelectedPartyCharacter();
+    return 1;
+}
+
+/* Eight party portrait slots on the camp screen. Targeting modes 1 and 7 aim
+   spells/items; otherwise a click selects the reviewed character. */
+// FUNCTION: WIZ8 0x005B5F10
+unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+    unsigned int target_slot = region->callback_id;
+
+    if (us_event < RIGHT_BUTTON_UP) {
+        if (us_event == RIGHT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_DOWN) {
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event != LEFT_BUTTON_UP) {
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
+            g_status_685170.buffers.party_rows[target_slot].occupied != 0) {
+            if (gXStatus.iTargetingMode == 1) {
+                if (g_camp_screen_0069c0f4->page != 0 ||
+                    (g_camp_screen_0069c0f4->entry_mode != 7 &&
+                     g_camp_screen_0069c0f4->entry_mode != 9)) {
+                    if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
+                        QueueCharacterEvent(&g_status_685170.buffers.characters[giReviewCharSlot],
+                                            g_character_event_kind_005ee65c, 0,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                        return 1;
+                    }
+                    AimAtCharacter(giReviewCharSlot, static_cast<int>(target_slot),
+                                   W8_TARGETING_CONTEXT_CURRENT);
+                    StartBreathCycle(giReviewCharSlot, 0);
+                    return 1;
+                }
+                if (g_status_685170.buffers.characters[target_slot].condition_turns[19] == 0) {
+                    if (g_camp_screen_0069c0f4->entry_mode != 7) {
+                        TargetCharacterWithHeldItem005BA8E0(target_slot);
+                        return 1;
+                    }
+                    ReportCastResult005BA620(static_cast<int>(target_slot));
+                    return 1;
+                }
+            } else {
+                if (gXStatus.iTargetingMode == 7) {
+                    if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
+                        QueueCharacterEvent(&g_status_685170.buffers.characters[giReviewCharSlot],
+                                            g_character_event_kind_005ee65c, 0,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                        return 1;
+                    }
+                    AimAtCharacterIndirect(giReviewCharSlot, static_cast<int>(target_slot),
+                                           W8_TARGETING_CONTEXT_CURRENT);
+                    StartBreathCycle(giReviewCharSlot, 0);
+                    return 1;
+                }
+                if (giReviewCharSlot != static_cast<int>(target_slot)) {
+                    SelectCampCharacter005B6B30(static_cast<int>(target_slot));
+                    return 1;
+                }
+            }
+        }
+    } else {
+        if (us_event != RIGHT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
+                g_camp_screen_0069c0f4->redraw_flags |= 1u << (region->callback_id & 0x1f);
+                if ((g_camp_screen_0069c0f4->entry_mode == 7 ||
+                     g_camp_screen_0069c0f4->entry_mode == 9) &&
+                    g_status_685170.buffers.characters[target_slot].condition_turns[19] == 0) {
+                    if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                        UpdateItemCursorForState005BAD20(1, 0, static_cast<int>(target_slot));
+                        return 0;
+                    }
+                    UpdateItemCursorForState005BAD20(0, 0, static_cast<int>(target_slot));
+                }
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
+            g_status_685170.item_in_cursor != 0) {
+            TryGiveHeldItemToCampPortrait005B6C10(static_cast<int>(target_slot));
+        }
+    }
+    return 1;
+}
+
+/* Opens the character editor (W8_SCREEN_CHARACTER, mode 1) for the reviewed
+   party member. Help 2362. */
+// FUNCTION: WIZ8 0x005B61A0
+unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+
+    if (us_event == LEFT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+    } else {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event != MOUSE_POS) {
+                return 0;
+            }
+            if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
+                g_camp_screen_0069c0f4->redraw_flags |= 0x200;
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            g_current_screen_state.parameter_3 = g_value_0069c0f8;
+            g_current_screen_state.parameter_2 = giReviewCharSlot;
+            g_pending_screen_state.mode = 1;
+            g_pending_screen_state.parameter_3 = g_value_0069c0f8;
+            SetPendingScreenState(W8_SCREEN_CHARACTER);
+            return 1;
+        }
+    }
+    return 1;
+}
+
+/* Name-edit / camp input-mode toggle (help 2363): arms input_mode on press and
+   clears it on release, activating the hover region while editing. */
+// FUNCTION: WIZ8 0x005B6220
+unsigned char CampNameEditRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+
+    if (us_event == LEFT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        SetCampInputMode005A4BC0(1);
+        ActivateDialogRegion(g_camp_screen_0069c0f4->hover_region);
+    } else {
+        if (us_event != LEFT_BUTTON_UP) {
+            if (us_event == MOUSE_POS) {
+                if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
+                    g_camp_screen_0069c0f4->redraw_flags |= 0x200;
+                }
+                return 0;
+            }
+            return 0;
+        }
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        SetCampInputMode005A4BC0(0);
+        ClearActiveRegionIfMatches(g_camp_screen_0069c0f4->hover_region);
+    }
+    g_camp_screen_0069c0f4->redraw_flags |= 0x7ff;
+    return 1;
+}
+
+/* Shared handler for the five bottom page buttons in g_camp_page_buttons_0069c3ec. */
+// FUNCTION: WIZ8 0x005B62C0
+unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+    unsigned short callback_id = region->callback_id;
+
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            g_camp_page_buttons_0069c3ec[callback_id]->OnLeftButtonDown(0);
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_UP) {
+            g_camp_page_buttons_0069c3ec[callback_id]->OnLeftButtonUp(0);
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            }
+            return 1;
+        }
+    } else if (us_event == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_camp_page_buttons_0069c3ec[callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_camp_page_buttons_0069c3ec[callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Shared handler for the eight item-action buttons. */
+// FUNCTION: WIZ8 0x005B6360
+unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+    unsigned short callback_id = region->callback_id;
+
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            g_item_action_controls_69c3cc[callback_id]->OnLeftButtonDown(0);
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_UP) {
+            g_item_action_controls_69c3cc[callback_id]->OnLeftButtonUp(0);
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            }
+            return 1;
+        }
+    } else if (us_event == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_item_action_controls_69c3cc[callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_item_action_controls_69c3cc[callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x005b6400
 void CreateRcsLevelUpPanel(void)
 {
@@ -256,6 +552,37 @@ void UpdateRcsLevelUpPanel(void)
     g_level_up_panel_0069c3c4->Redraw();
 }
 
+/* Single level-up button (help 1984). Assembly writes region flags through the
+   second parameter; Ghidra wrongly folded them into the event pointer. */
+// FUNCTION: WIZ8 0x005B66B0
+unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        g_level_up_button_0069c3c0->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        g_level_up_button_0069c3c0->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_level_up_button_0069c3c0->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_level_up_button_0069c3c0->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x005b6740
 void CreateRcsDismissPanel(void)
 {
@@ -314,6 +641,37 @@ void OnDismissCharacterDialogClosed(W8DialogBase* base)
         g_value_006840be = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }
+}
+
+/* Single dismiss button (help 2387). Same region-flag pattern as the level-up
+   button. */
+// FUNCTION: WIZ8 0x005B6AA0
+unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+    case LEFT_BUTTON_REPEAT:
+        g_dismiss_button_0069c400->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        g_dismiss_button_0069c400->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_dismiss_button_0069c400->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            g_dismiss_button_0069c400->OnMouseEnter(0);
+            return 1;
+        }
+        break;
+    }
+    return 0;
 }
 
 /* The same for the second panel and its widget. */

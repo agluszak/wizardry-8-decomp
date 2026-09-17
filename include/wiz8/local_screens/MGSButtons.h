@@ -1,10 +1,13 @@
 #pragma once
 
+#include "input.h"
+
 /* Local Screens\MGSButtons.cpp. The combat sub-menu's panel, its five text
    rows and the two scroll-arrow buttons: construction, teardown and the
    per-frame name/action caption draw. */
 
 struct Controls;
+struct W8Region;
 class W8TextControl;
 class W8DialogButton;
 
@@ -125,3 +128,8 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
 /* Applies SetTooltipEnabled to all nine bank buttons, both scroll arrows and
    both panel buttons; the submenu rebuild paths call it around teardown. */
 void SetSubMenuButtonTooltips(int enabled); /* 0x005990F0 */
+/* Region callback for the sub-menu background: right-up tears the panel down. */
+unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event,
+                                           W8Region* region); /* 0x00598CD0 */
+/* Region callback the five sub-menu rows share. */
+unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region); /* 0x00598DB0 */

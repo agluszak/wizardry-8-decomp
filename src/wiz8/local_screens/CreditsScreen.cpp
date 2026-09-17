@@ -205,3 +205,15 @@ void CreditsScreenFrame(void)
     g_credit_redraw_0069c498 = 0;
     RenderFrame();
 }
+
+/* Full-screen credits background: left-up or right-up leaves the screen. */
+// FUNCTION: WIZ8 0x005BC7A0
+unsigned char CreditsBackgroundRegionEvent(const InputAtom* event)
+{
+    int us_event = event->usEvent;
+    if (us_event != LEFT_BUTTON_UP && us_event != RIGHT_BUTTON_UP) {
+        return 0;
+    }
+    RequestScreenTransition();
+    return 1;
+}
