@@ -876,7 +876,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
                 other = GetMonsterGenerator(index);
                 if (other->node_18 != 0) {
                     static_cast<W8ItemRep*>(other->node_18->m_pRep)->SetFlags(0x10, 0);
-                    static_cast<W8ItemRep*>(other->node_18->m_pRep)->Function49FDB0(0);
+                    other->node_18->SetHighlight(false);
                 }
                 ++index;
                 count = GetMonsterGeneratorCount();
@@ -885,7 +885,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         g_mipe_state_0068f100->generator = generator;
         if (generator->node_18 != 0) {
             static_cast<W8ItemRep*>(generator->node_18->m_pRep)->SetFlags(0x10, 1);
-            static_cast<W8ItemRep*>(generator->node_18->m_pRep)->Function49FDB0(1);
+            generator->node_18->SetHighlight(true);
         }
         return 1;
     case 0x32:

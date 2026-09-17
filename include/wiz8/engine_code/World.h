@@ -14,6 +14,7 @@ W8World* GetWorld659AB8(void);
 void MarkRendererReady(void);
 
 W8World* CreateWorld();
+W8World* ForwardCreateWorld00451100(void);
 unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level_folder,
                         const char* asset_folder, unsigned char use_octree);
 unsigned char ForwardLoadWorld(W8World* world, char* level_file_name, const char* level_folder,
@@ -37,6 +38,12 @@ void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* posi
 stParticle* FindParticleByName(W8World* world, const char* name);
 bool FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
                       srVector3T<float>* direction);
+unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<float>* position,
+                                                   unsigned char check_items,
+                                                   unsigned char check_monsters);
+unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* position,
+                                             unsigned char check_items,
+                                             unsigned char check_monsters);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 

@@ -1138,3 +1138,14 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
         }
     }
 }
+
+/* The renderer owns the selected model instance. Without one, retail also
+   resets the cached prop index to -1 before returning it. */
+// FUNCTION: WIZ8 0x0044DA60
+int GetSelectedPropIndex0044DA60(void)
+{
+    if (GetValue65962C() == 0) {
+        return g_selected_prop_index_00607b98 = -1;
+    }
+    return g_selected_prop_index_00607b98;
+}

@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Item.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -1025,12 +1026,14 @@ void W8MonsterGenerator::Reset()
    Written once because the arm path and the reload below both compile it. */
 static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* generator)
 {
-    void* context[2];
+    W8ReadLevelInfo context;
     W8Item* marker = 0;
 
-    context[1] = const_cast<char*>("Data\\Items3D\\Bitmaps");
-    context[0] = g_world;
-    if (Function49F4A0(context, "mongen", &marker, 0) == 0) {
+    context.world = g_world;
+    context.hFile = 0;
+    context.bitmap_folder = "Data\\Items3D\\Bitmaps";
+    context.mesh_filename = 0;
+    if (!LoadItemFromFile(&context, "mongen", &marker, false)) {
         srAssertFail("fSuccess", MON_GEN_CPP, 0x309, "Couldn't load mongen.itm");
     }
     generator->node_18 = marker;

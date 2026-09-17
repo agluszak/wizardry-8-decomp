@@ -135,4 +135,5 @@ W8Prop* FindPropByName(W8World* world, const char* name);
 bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop);
 
 char ResolvePickedProp(W8World* world);
+int GetSelectedPropIndex0044DA60(void);
 void UpdateWorldProps0044E010(W8World* world);
