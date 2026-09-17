@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import shlex
+import subprocess
 import sys
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -32,6 +35,8 @@ _PRODUCT_OUTPUTS = {
 _PRODUCT_INPUT_SUFFIXES = frozenset(
     {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inc", ".rc", ".def", ".asm"}
 )
+_LINT_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
+_LINT_HEADER_SUFFIXES = frozenset({".h", ".hpp", ".hxx"})
 PRODUCT_GENERATOR = "NMake Makefiles"
 JOM_PROGRAM = r"C:\jom\jom.exe"
 
@@ -417,90 +422,316 @@ def clang_container_prefix(settings: Settings, output: Path) -> list[str]:
     return command
 
 
-def run_clang_tidy(prefix: list[str], output: Path, repository: Path) -> None:
-    """Gate first-party code with the narrow reconstruction-error profile.
+def _repository_relative(repository: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(repository.resolve()).as_posix()
+    except ValueError:
+        return path.as_posix()
 
-    Only translation units under a reccmp source root are tidied: the compile
-    database also covers the pristine zlib/Info-ZIP static libraries, which
-    keep their upstream warnings by policy, and the retained SGP C library,
-    whose C idioms are outside the reconstruction-error profile.
-    """
-    from .clang_tidy_lines import FILTER_ENV, redundant_cast_line_filter
+
+def _full_lint_change(repository: Path, path: Path) -> bool:
+    relative = _repository_relative(repository, path)
+    if relative in {".clang-tidy", "CMakeLists.txt", "reccmp-project.yml"}:
+        return True
+    if relative.startswith(("docker/msvc600/", "tools/lint/")):
+        return True
+    if relative.startswith("cmake/") and relative.endswith(".cmake"):
+        return True
+    if relative.startswith("src/") and Path(relative).name in {"CMakeLists.txt", "sources.cmake"}:
+        return True
+    return relative.startswith("src/sgp/") and path.suffix.casefold() in _LINT_HEADER_SUFFIXES
+
+
+def lint_required(repository: Path, changed_paths: list[Path]) -> bool:
+    """Whether a PR diff needs the compiler-backed lint lane."""
+
+    return any(
+        path.suffix.casefold() in _LINT_SOURCE_SUFFIXES or _full_lint_change(repository, path)
+        for path in changed_paths
+    )
+
+
+def _changed_paths(repository: Path, since: str | None) -> list[Path]:
+    command = ["jj", "diff", "--name-only", "--color=never"]
+    if since is not None:
+        command.extend(("--from", since))
+    result = run(command, cwd=repository)
+    return [repository / name for name in result.stdout.splitlines() if name]
+
+
+def _lint_selection(
+    settings: Settings, since: str | None, changed_paths: list[Path]
+) -> tuple[list[Path] | None, list[Path], list[Path]]:
+    from .clang_tidy_lines import FILTER_ENV
+    from .comparison import changed_source_files, header_dependent_files
     from .source_index import indexed_targets
 
-    database = json.loads((output / "compile_commands.json").read_text(encoding="utf-8"))
+    repository = settings.repo_dir
+    changed = changed_source_files(repository, since)
+    deleted_source = any(
+        path.suffix.casefold() in _LINT_SOURCE_SUFFIXES and not path.is_file()
+        for path in changed_paths
+    )
+    if (
+        os.environ.get(FILTER_ENV) == "*"
+        or deleted_source
+        or any(_full_lint_change(repository, path) for path in changed_paths)
+    ):
+        return None, changed, []
+
+    database = repository / LINT_BUILD_DIR / "compile_commands.json"
+    dependent: set[Path] = set()
+    for target in indexed_targets(repository, database):
+        dependent.update(header_dependent_files(settings, target, changed))
+    selected = set(changed) | dependent
+    return sorted(selected), changed, sorted(dependent - set(changed))
+
+
+def _lint_compile_files(
+    output: Path, repository: Path, selected: list[Path] | None
+) -> tuple[list[str], list[str]]:
+    from .source_index import indexed_targets
+
+    database_path = output / "compile_commands.json"
+    database = json.loads(database_path.read_text(encoding="utf-8"))
     roots = {
         root.rstrip("/")
-        for source_roots in indexed_targets(repository).values()
+        for source_roots in indexed_targets(repository, database_path).values()
         for root in source_roots
     }
+    selected_relative = (
+        None if selected is None else {_repository_relative(repository, path) for path in selected}
+    )
+    recovered: set[str] = set()
+    vendor: set[str] = set()
+    for entry in database:
+        raw = str(entry.get("file") or "")
+        relative = compile_database_relative(raw, repository)
+        if relative is None:
+            continue
+        if selected_relative is not None and relative not in selected_relative:
+            continue
+        if relative.startswith("src/sgp/"):
+            vendor.add(raw)
+            continue
+        if any(relative == root or relative.startswith(root + "/") for root in roots):
+            recovered.add(raw)
+    return sorted(recovered), sorted(vendor)
 
-    def first_party(path: str) -> bool:
-        relative = compile_database_relative(path, repository)
-        if relative is None or relative.startswith("src/sgp/"):
-            return False
-        return any(relative == root or relative.startswith(root + "/") for root in roots)
 
-    files = sorted({entry["file"] for entry in database if first_party(entry["file"])})
-    if not files:
-        raise RuntimeError("clang-tidy: compile database has no first-party sources")
-    # Publish the changed-line filter from the host. Jujutsu workspaces often have
-    # no `.git` inside the mounted tree, and the analysis image does not ship jj.
-    cast_lines = redundant_cast_line_filter(repository)
+def _docker_image_id() -> str:
+    docker = resolve_executable("docker") or "docker"
+    result = subprocess.run(
+        [docker, "image", "inspect", "--format={{.Id}}", VC6_IMAGE],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 and result.stdout.strip() else VC6_IMAGE
+
+
+def _lint_cache_digest(
+    output: Path,
+    repository: Path,
+    image_id: str,
+    cast_lines: str,
+    recovered: list[str],
+    vendor: list[str],
+    inputs: set[Path],
+) -> str:
+    digest = hashlib.sha256(b"wiz8-clang-lint-v1\0")
+    digest.update(image_id.encode() + b"\0")
+    digest.update(cast_lines.encode() + b"\0")
+    digest.update((output / "compile_commands.json").read_bytes())
+    digest.update((repository / ".clang-tidy").read_bytes())
+    for profile, files in (("recovered", recovered), ("vendor", vendor)):
+        for filename in files:
+            digest.update(profile.encode() + b"\0" + filename.encode() + b"\0")
+    for path in sorted(inputs, key=lambda item: _repository_relative(repository, item)):
+        relative = _repository_relative(repository, path)
+        digest.update(relative.encode() + b"\0")
+        if path.is_file():
+            digest.update(path.read_bytes())
+        else:
+            digest.update(b"<missing>")
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _lint_cache_inputs(
+    repository: Path,
+    selected: list[Path] | None,
+    changed_paths: list[Path],
+    recovered: list[str],
+    vendor: list[str],
+) -> set[Path]:
+    inputs = set(changed_paths)
+    if selected is not None:
+        inputs.update(selected)
+    else:
+        for filename in (*recovered, *vendor):
+            relative = compile_database_relative(filename, repository)
+            if relative is not None:
+                inputs.add(repository / relative)
+    return inputs
+
+
+def _lint_file_names(repository: Path, files: list[str]) -> list[str]:
+    names = []
+    for filename in files:
+        names.append(compile_database_relative(filename, repository) or filename)
+    return sorted(names)
+
+
+def _write_lint_selection_log(repository: Path, result: dict[str, Any]) -> Path:
+    path = repository / "build/logs/clang-tidy-selection.json"
+    atomic_write(path, (json.dumps(result, indent=2, sort_keys=True) + "\n").encode())
+    return path
+
+
+def run_clang_tidy(
+    prefix: list[str],
+    output: Path,
+    repository: Path,
+    recovered: list[str],
+    vendor: list[str],
+    cast_lines: str,
+) -> None:
+    """Compile and tidy the selected first-party translation units in one container."""
+    from .clang_tidy_lines import FILTER_ENV
+
+    commands: list[str] = []
+    if recovered:
+        commands.append(
+            shlex.join(
+                [
+                    "clang-tidy",
+                    "--quiet",
+                    "-p",
+                    "/out",
+                    "--config-file",
+                    "/repo/.clang-tidy",
+                    *recovered,
+                ]
+            )
+        )
+    if vendor:
+        # Retained SGP C participates only in compiler diagnostics; the
+        # reconstruction-specific clang-tidy checks deliberately exclude it.
+        commands.append(
+            shlex.join(
+                [
+                    "clang-tidy",
+                    "--quiet",
+                    "-p",
+                    "/out",
+                    "--config={Checks: '-*'}",
+                    *vendor,
+                ]
+            )
+        )
+    if not commands:
+        return
     run(
         [
             *prefix,
             "-e",
             f"{FILTER_ENV}={cast_lines}",
             "--entrypoint",
-            "clang-tidy",
+            "bash",
             VC6_IMAGE,
-            "--quiet",
-            "-p",
-            "/out",
-            "--config-file",
-            "/repo/.clang-tidy",
-            *files,
+            "-lc",
+            "set -e\n" + "\n".join(commands),
         ],
         cwd=output,
         log_path=output.parent / "logs" / "clang-tidy.json",
     )
 
 
-def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
-    """Compile recovered C++ with structural or full recovery diagnostics."""
+def lint(
+    settings: Settings,
+    *,
+    full_diagnostics: bool = False,
+    since: str | None = None,
+    changed_paths: list[Path] | None = None,
+) -> dict[str, Any]:
+    """Compile changed C/C++ with structural or full recovery diagnostics."""
 
-    output, prefix = configure_clang(settings, full_diagnostics=full_diagnostics)
-    target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
-    run(
-        [
-            *prefix,
-            "--entrypoint",
-            "cmake",
-            VC6_IMAGE,
-            "--build",
-            "/out",
-            "--target",
-            target,
-            "--",
-            "-k",
-            "0",
-        ],
-        cwd=settings.repo_dir,
-        log_path=settings.repo_dir
-        / "build"
-        / "logs"
-        / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
+    if full_diagnostics:
+        output, prefix = configure_clang(settings, full_diagnostics=True)
+        run(
+            [
+                *prefix,
+                "--entrypoint",
+                "cmake",
+                VC6_IMAGE,
+                "--build",
+                "/out",
+                "--target",
+                "WIZ8_CLANG_DIAGNOSTICS",
+                "--",
+                "-k",
+                "0",
+            ],
+            cwd=settings.repo_dir,
+            log_path=settings.repo_dir / "build/logs/clang-full-diagnostics.json",
+        )
+        return {
+            "status": "ok",
+            "mode": "full-diagnostics",
+            "log": str(Path("build/logs/clang-full-diagnostics.json")),
+        }
+
+    from .clang_tidy_lines import redundant_cast_line_filter
+    from .source_index import write_source_index
+
+    repository = settings.repo_dir
+    source_index = write_source_index(settings)
+    changes = list(changed_paths) if changed_paths is not None else _changed_paths(repository, since)
+    selected, changed, dependent = _lint_selection(settings, since, changes)
+    output = repository / LINT_BUILD_DIR
+    configured = (output / "CMakeCache.txt").is_file() and (output / "build.ninja").is_file()
+    output, prefix = configure_clang(settings)
+    recovered, vendor = _lint_compile_files(output, repository, selected)
+    cast_lines = redundant_cast_line_filter(repository)
+    image_id = _docker_image_id()
+    inputs = _lint_cache_inputs(repository, selected, changes, recovered, vendor)
+    digest = _lint_cache_digest(
+        output, repository, image_id, cast_lines, recovered, vendor, inputs
     )
-    if not full_diagnostics:
-        run_clang_tidy(prefix, output, settings.repo_dir)
+    stamp = output / ".lint-success.sha256"
+    cached = stamp.is_file() and stamp.read_text(encoding="utf-8").strip() == digest
+    scope = "full" if selected is None else "changed"
+    files = _lint_file_names(repository, recovered + vendor)
+    docker_runs = 0 if configured else 1
+    if not cached and files:
+        run_clang_tidy(prefix, output, repository, recovered, vendor, cast_lines)
+        docker_runs += 1
+    if not cached:
+        atomic_write(stamp, (digest + "\n").encode())
+
+    log_result = {
+        "status": "cached" if cached else "passed",
+        "scope": scope,
+        "cached": cached,
+        "docker_runs": docker_runs,
+        "file_count": len(files),
+        "recovered_file_count": len(recovered),
+        "vendor_file_count": len(vendor),
+        "changed_file_count": len(changed),
+        "dependent_file_count": len(dependent),
+        "source_index_cached": bool(source_index.get("cached")),
+        "files": files,
+    }
+    log = _write_lint_selection_log(repository, log_result)
     return {
         "status": "ok",
-        "mode": "full-diagnostics" if full_diagnostics else "gating",
-        "log": str(
-            Path("build/logs")
-            / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json")
-        ),
+        "mode": "gating",
+        "scope": scope,
+        "cached": cached,
+        "files": len(files),
+        "docker_runs": docker_runs,
+        "log": str(log.relative_to(repository)),
     }
 
 
@@ -557,5 +788,6 @@ def check(repository: Path) -> dict[str, Any]:
     return {
         "status": "passed",
         "source_index": source_index["path"],
+        "source_index_cached": bool(source_index.get("cached")),
         "gates": gates,
     }
