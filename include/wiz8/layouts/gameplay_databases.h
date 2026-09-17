@@ -256,7 +256,7 @@ struct W8NpcDatabaseRecord {
        past-the-end tests compare it signed. */
     int item_table_id;
     /* 0x068: one bit per service the NPC offers, matched against the table at
-       0x00619DFC that pairs each service id with its bit. */
+       0x00619DF8 that pairs each service id with its bit. */
     unsigned int service_flags;
     unsigned char unknown_06c[3];
     /* 0x06f: the minimum average party level the notice predicate at

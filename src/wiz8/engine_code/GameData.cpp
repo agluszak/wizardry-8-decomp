@@ -31,6 +31,21 @@ unsigned int* g_level_flags_00652da8;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
 
+// FUNCTION: WIZ8 0x00420bd0
+float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
+{
+    srVector3T<float> candidate = *position;
+    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
+        return g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, hit, 1,
+                                                                          500.0f);
+    }
+    float height = position->y;
+    if (hit != 0) {
+        *hit = 0;
+    }
+    return height;
+}
+
 /*
  * Engine Code\GameData.cpp.
  *

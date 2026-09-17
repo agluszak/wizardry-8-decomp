@@ -110,7 +110,7 @@ def _project_owner_record(settings: Settings) -> dict[str, Any]:
         return {}
     record = json.loads(marker.read_text(encoding="utf-8"))
     if not isinstance(record, dict):
-        raise RuntimeError(f"invalid Ghidra project owner marker: {marker}")
+        raise TypeError(f"invalid Ghidra project owner marker: {marker}")
     schema = record.get("schema")
     if schema not in {None, OWNER_SCHEMA}:
         raise RuntimeError(f"unsupported Ghidra project owner marker schema: {schema!r}")

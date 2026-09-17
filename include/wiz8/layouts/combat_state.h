@@ -161,7 +161,8 @@ struct W8CombatState {
     unsigned char flag_a51;
     unsigned char unknown_a52[2];
     unsigned char flag_a54;
-    unsigned char unknown_a55[3];
+    unsigned char unknown_a55[2];
+    unsigned char notice_scroll_pending_a57;
     /* 0xa58: queued refusal script for NPC party slots 0 and 1. The sweep
        at 0x004ed710 sets a flag after queuing events 0x3a and 0x36; event
        0x36 clears it. 0x004ed460 tests exactly these two slots. */

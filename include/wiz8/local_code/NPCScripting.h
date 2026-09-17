@@ -1,5 +1,8 @@
 #pragma once
 
+bool GetNpcScriptRegionName(int region, wchar_t* name);
+void StripNpcKeywordPunctuation(wchar_t* text);
+
 #include "wiz8/mouth_gap.h"
 #include "wiz8/message_box.h"
 #include "wiz8/vector.h"
@@ -127,10 +130,8 @@ void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
 void BeginSedexusCapture(void);                          /* 0x00529EF0 */
 unsigned char IsSedexusCaptureActive(void);              /* 0x0052A070 */
 void SetNpcScriptEventActive(unsigned char value);       /* 0x0052A1A0 */
-void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility,
-                              char recurse);            /* 0x00547570 */
-void Function553AD0(W8Character* character, int value); /* 0x00553AD0 */
-void Function553C10(W8Character* character, int skill); /* 0x00553C10 */
+void Function553AD0(W8Character* character, int value);  /* 0x00553AD0 */
+void Function553C10(W8Character* character, int skill);  /* 0x00553C10 */
 /* in GameData.h: CameraLookAt (0x00420F90) */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */

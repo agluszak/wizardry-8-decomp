@@ -14,6 +14,8 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -63,7 +65,6 @@ int g_monster_info_iterator_index;
 #define MAX_MONSTERS_IN_DATABASE 1000
 
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
-void Function546E70(void);
 // GLOBAL: WIZ8 0x006850be
 int g_dword_6850be;
 // FUNCTION: WIZ8 0x0052A780
@@ -1015,7 +1016,7 @@ unsigned char AnyMonsterDying(void)
 bool InitializeMonsterManagerState(void)
 {
     g_status_685170.next_monster_location_id_234e = 1;
-    g_status_685170.status_count_234a = 1;
+    g_status_685170.next_group_id_234a = 1;
     gXStatus.active_monster_count = 0;
     gXStatus.field_02d = 0;
     g_dword_6850be = 0;
@@ -1186,7 +1187,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
             RefreshAllSight();
             SetTargetToMonster(monster_info->location_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
             RefreshFlaggedMainGameState00593330();
-            Function546E70();
+            RecountCombatMonsters();
             if (g_combat_state->pActionMonsterInfo == monster_info) {
                 g_combat_state->eCombatActionStatus = 0;
                 g_combat_state->pActionMonsterInfo = 0;
@@ -1238,7 +1239,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
     monster_info->monster->flags_00c = 0;
     if (monster_info->ubDisposition == 1) {
-        Function546E70();
+        RecountCombatMonsters();
     }
     if (gXStatus.fCombatMode != 0) {
         EndMonsterTurn(monster_info);
@@ -1291,7 +1292,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     monster_info->pCombat = 0;
     monster_info->fInCombat = 0;
     if (monster_info->ubDisposition == 1) {
-        Function546E70();
+        RecountCombatMonsters();
     }
 }
 

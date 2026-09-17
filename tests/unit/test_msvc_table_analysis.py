@@ -12,7 +12,62 @@ from wiz8decomp.msvc_table_analysis import (
     _receiver_provenance,
     compare_table_reports,
     table_shape_fingerprint,
+    vtable_recovery_debt,
 )
+
+
+def test_debt_does_not_promote_a_named_construction_phase_destructor() -> None:
+    table = {
+        "address": "0x005ebfe8",
+        "slots": [
+            {
+                "target": "0x00429fb0",
+                "resolution": {
+                    "source_name": "Vector::`scalar deleting destructor' (construction-phase copy)",
+                    "shared_count": 2,
+                },
+            }
+        ],
+        "writes": [
+            {"function": "0x00429fb0", "receiver_provenance": "incoming-ecx", "receiver_offset": 0}
+        ],
+    }
+    result = vtable_recovery_debt({"vftables": [table]}, {})
+    assert not result["groups"]["unreviewed-high-confidence-final"]
+    candidate = result["groups"]["probable-construction-phase"][0]
+    assert candidate["address"] == "0x005ebfe8"
+    assert candidate["deleting_destructor_evidence"]
+    assert candidate["shared_slots"] == 1
+
+
+def test_debt_keeps_unknown_receivers_ambiguous_and_vbtables_separate() -> None:
+    result = vtable_recovery_debt(
+        {
+            "vftables": [
+                {
+                    "address": "0x1000",
+                    "slots": [
+                        {
+                            "target": "0x2000",
+                            "resolution": {"source_name": "Widget::`scalar deleting destructor'"},
+                        }
+                    ],
+                    "writes": [{"receiver_provenance": "unknown", "receiver_offset": None}],
+                }
+            ],
+            "vbtables": [
+                {
+                    "address": "0x3000",
+                    "entries": [{"displacement": -4}, {"displacement": 12}],
+                    "writes": [],
+                }
+            ],
+        },
+        {},
+    )
+    assert result["groups"]["ambiguous"][0]["address"] == "0x1000"
+    assert result["groups"]["vbtable"][0]["entries"][1]["displacement"] == 12
+    assert not result["groups"]["unreviewed-high-confidence-final"]
 
 
 @dataclass(frozen=True)

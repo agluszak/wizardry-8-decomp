@@ -62,6 +62,8 @@ RUNTIME_SCENARIOS = (
     "audio-semantics",
     "keyboard-menu",
     "npc-dialogue",
+    "search-mode",
+    "mongen",
 )
 # Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135

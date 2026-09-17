@@ -182,6 +182,7 @@ public:
 };
 static_assert(sizeof(W8CharacterStatsRow005EF750) == 0x34, "W8CharacterStatsRow005EF750_size");
 
+// VTABLE: WIZ8 0x005ef778 W8CharacterPage
 class W8CharacterPage005EF778 : public W8CharacterPage,
                                 public W8CharacterStatsRowListener005EF768,
                                 public W8CharacterPageEntryListener,

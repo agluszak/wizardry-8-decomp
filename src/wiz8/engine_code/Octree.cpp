@@ -5399,11 +5399,12 @@ static const float g_scatter_column_offsets_00605ae8[5] = {0.0f, 1.0f, -1.0f, 2.
    relaxes the tight vertical bound during search and rewrites every accepted
    y to the original source height afterwards. */
 // FUNCTION: WIZ8 0x00437980
-unsigned int W8Octree::FindScatterPositions00437980(float* position, float yaw, float spacing,
-                                                    unsigned int count, float* positions,
+unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* position, float yaw,
+                                                    float spacing, unsigned int count,
+                                                    srVector3T<float>* positions,
                                                     char proximity_check, char flatten_y)
 {
-    float source_y = position[1];
+    float source_y = position->y;
     unsigned int found = 0;
     int* candidates = 0;
     unsigned int columns = 3;
@@ -5413,9 +5414,7 @@ unsigned int W8Octree::FindScatterPositions00437980(float* position, float yaw, 
     float angle = NormalizeAngle(yaw + g_monster_rotation_offset_005ec04c);
     float cos_angle = static_cast<float>(cos(static_cast<double>(angle)));
     srVector3T<float> source;
-    source.x = position[0];
-    source.y = position[1];
-    source.z = position[2];
+    source = *position;
     float sin_angle = static_cast<float>(sin(static_cast<double>(angle)));
     float cos_step = spacing * cos_angle;
     float sin_step = spacing * sin_angle;
@@ -5424,13 +5423,13 @@ unsigned int W8Octree::FindScatterPositions00437980(float* position, float yaw, 
     if (proximity_check != 0) {
         float expand = spacing * g_float_005ec048;
         srVector3T<float> low;
-        low.x = position[0] - expand;
-        low.y = position[1] - expand;
-        low.z = position[2] - expand;
+        low.x = position->x - expand;
+        low.y = position->y - expand;
+        low.z = position->z - expand;
         srVector3T<float> high;
-        high.x = expand + position[0];
-        high.y = expand + position[1];
-        high.z = expand + position[2];
+        high.x = expand + position->x;
+        high.y = expand + position->y;
+        high.z = expand + position->z;
         candidates = static_cast<int*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
@@ -5507,19 +5506,14 @@ unsigned int W8Octree::FindScatterPositions00437980(float* position, float yaw, 
                     goto next_cell;
                 accept:
                     if (found == 0) {
-                        positions[0] = candidate.x;
-                        positions[1] = candidate.y;
-                        positions[2] = candidate.z;
+                        positions[0] = candidate;
                         source.x = candidate.x;
                         source.y = candidate.y;
                         source.z = candidate.z;
                         found = 1;
                     } else if (pathing_180 == 0 || pathing_180->TestWaypointSpan0045A1B0(
                                                        &candidate, &source, 0, 0) != 0) {
-                        float* slot = positions + found * 3;
-                        slot[0] = candidate.x;
-                        slot[1] = candidate.y;
-                        slot[2] = candidate.z;
+                        positions[found] = candidate;
                         ++found;
                     }
                 }
@@ -5534,13 +5528,9 @@ unsigned int W8Octree::FindScatterPositions00437980(float* position, float yaw, 
         delete[] candidates;
     }
     if (flatten_y != 0 && found != 0) {
-        float* slot = positions + 1;
-        unsigned int remaining = found;
-        do {
-            *slot = source_y;
-            slot += 3;
-            --remaining;
-        } while (remaining != 0);
+        for (unsigned int index = 0; index < found; ++index) {
+            positions[index].y = source_y;
+        }
     }
     return found;
 }

@@ -1903,7 +1903,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     unsigned int index;
     int reachable;
 
-    if (GetMonsterGroupRecord(group)->untargetable_24a != 0) {
+    if (MonsterGroupGetRecord(group)->untargetable_24a != 0) {
         return 0;
     }
 

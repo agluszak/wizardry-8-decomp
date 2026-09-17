@@ -84,7 +84,9 @@ struct W8CharacterSkill {
        profession-skill assignment scales, before the spent points land on
        value_02. */
     unsigned int base_level_0a;
-    unsigned char unknown_0e[0x18];
+    unsigned char unknown_0e[5];
+    bool available_13;
+    unsigned char unknown_14[0x12];
 }; /* 0x26 */
 
 /* One resistance channel. Recalculation rebuilds `base` from scratch each time

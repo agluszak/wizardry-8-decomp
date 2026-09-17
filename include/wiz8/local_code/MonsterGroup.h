@@ -95,8 +95,9 @@ unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
    allied groups; while the byte is set, each call ticks the counter beside
    it. The record kinds the special encounter ids carry ignore a set. */
 void SetMonsterGroupEngagementState(int group_id, unsigned char state); /* 0x00511BE0 */
-unsigned char MoveMonsterGroupToPosition(W8MonsterGroup* group, srVector3T<float>* position,
-                                         float yaw, int a, int b, int c, int d); /* 0x00510CC0 */
+bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* position, float yaw,
+                                bool proximity_check, bool include_allies, bool flatten_y,
+                                bool alternate_radius); /* 0x00510CC0 */
 /* Place a monster group relative to the party camera: with flag clear the
    group moves straight to the camera position, and with flag set it picks a
    point at the requested distance on a random angle around the camera yaw,
@@ -122,11 +123,10 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
 void ReleaseMonsterGroup(W8MonsterGroup* group);
-W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);
+W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* group);
 void RefreshMonsterGroup(W8MonsterGroup* monster_group);
 void DetachMonsterGroup(W8MonsterGroup* monster_group);
 void SetMonsterGroupMode(W8MonsterGroup* monster_group, int value);
-void SetMonsterGroupDisposition(W8MonsterGroup* monster_group, unsigned char flag, int value);
 void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */

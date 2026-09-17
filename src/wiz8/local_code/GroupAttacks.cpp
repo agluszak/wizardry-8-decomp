@@ -12,6 +12,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/notices.h"
@@ -474,7 +475,7 @@ void SpawnSummonedMonsterGroup00556B10(int iAIKind, W8TargetSource* pSource,
     } else {
         disposition = 1;
     }
-    SetMonsterGroupDisposition(group, disposition, 0);
+    SetMonsterGroupHostility(group, disposition, 0);
     if (monster_info->player_visibility.state_04 == 1) {
         placed = PositionMonsterGroupNearCamera00511050(group, 0.0f, 0.0f, 1);
         if (placed == 0) {

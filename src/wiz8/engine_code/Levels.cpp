@@ -643,7 +643,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             ResetNpcBindingsForParty0050DB50();
             ClearPendingNpcLevelFlags0050C270();
             ReleaseNpcMonsterBindings0050C2E0();
-            Function5777C0();
+            RecordLevelEntryDialogueState();
             g_combat_countdown_6850b0 = 0;
         }
         if (g_status_685170.flag_2497 && (GetFact(0x4c) || GetFact(0x4b))) {

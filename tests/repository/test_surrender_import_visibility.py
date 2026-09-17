@@ -43,11 +43,10 @@ AUDITED_CLASS_IMPORTS = {
     "srVariableTimer",
 }
 
-# These two blanket annotations are being removed by their dedicated recovery
-# lanes. Accept either state so those changes can merge independently of this
-# audit; no new class may be added here merely to make the test pass.
+# srBinIStream now uses member imports and inline lifecycle bodies. Only the
+# outstanding srDebugVP recovery may still remove its blanket annotation;
+# no new class may be added here merely to make the test pass.
 TRANSITIONAL_CLASS_IMPORTS = {
-    "srBinIStream",
     "srDebugVP",
 }
 
@@ -80,9 +79,7 @@ PROVIDER_ONLY_HEADERS = {
 # Count the macro as well as checking the spelling so unrelated imports cannot
 # quietly accumulate beside the evidenced one.
 AUDITED_MIXED_MEMBER_IMPORTS = {
-    "srImporter.h": (
-        "SR_DLL_IMPORT void exportSurface(",
-    ),
+    "srImporter.h": ("SR_DLL_IMPORT void exportSurface(",),
     "srPixelConvert.h": (
         "static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);",
     ),
@@ -120,9 +117,7 @@ def test_class_wide_surrender_imports_match_audited_surface() -> None:
 
     errors = []
     if provider_only:
-        errors.append(
-            "provider-only classes carry SR_DLL_IMPORT: " + ", ".join(provider_only)
-        )
+        errors.append("provider-only classes carry SR_DLL_IMPORT: " + ", ".join(provider_only))
     if missing:
         errors.append(
             "audited class-wide imports were removed without updating the ABI audit: "
@@ -130,8 +125,7 @@ def test_class_wide_surrender_imports_match_audited_surface() -> None:
         )
     if unexpected:
         errors.append(
-            "new class-wide imports need consumer/codegen evidence: "
-            + ", ".join(unexpected)
+            "new class-wide imports need consumer/codegen evidence: " + ", ".join(unexpected)
         )
 
     assert not errors, "\n".join(errors)
@@ -144,8 +138,7 @@ def test_provider_only_headers_have_no_consumer_import_annotations() -> None:
             offenders.append(filename)
 
     assert not offenders, (
-        "provider-only headers carry consumer SR_DLL_IMPORT annotations: "
-        + ", ".join(offenders)
+        "provider-only headers carry consumer SR_DLL_IMPORT annotations: " + ", ".join(offenders)
     )
 
 

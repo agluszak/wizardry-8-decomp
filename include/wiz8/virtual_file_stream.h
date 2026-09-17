@@ -3,7 +3,10 @@
 #include "surrender/srBinIStream.h"
 #include "surrender/srIStreamOpener.h"
 
-/* Wizardry's SurRender stream adapter. The virtual srBinStream base starts at
+/* Wizardry's SurRender stream adapter. The vbptr at +4 is installed at
+   0x0047cc02 with table 0x005ec6a8: {-4, 12}. Its self displacement returns
+   to offset zero, and its virtual-base displacement reaches +0x10.
+   The virtual srBinStream base starts at
    +0x10; the remaining storage is the FileMan handle and one unknown word.
    The opener's getDescription returns the identifier-style string
    "stBinIStream" - a candidate original spelling for this class, recorded but

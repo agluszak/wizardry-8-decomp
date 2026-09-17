@@ -2670,10 +2670,10 @@ void CheckMonsterGroupsEnterCombat(void)
             if (ShouldMonsterGroupEnterCombat(group) != 0) {
                 MonsterGroupEnterCombat(group);
                 if (group->ubDisposition == DISP_NEUTRAL) {
-                    record = GetMonsterGroupRecord(group);
+                    record = MonsterGroupGetRecord(group);
                     if ((record->flags_0d0 & 1) == 0 && record->faction_id_25f == 0 &&
                         record->hostility_range_25b != 0 && record->hostility_range_25b != -1) {
-                        SetMonsterGroupDisposition(group, 1, 0);
+                        SetMonsterGroupHostility(group, 1, 0);
                     }
                 }
             }

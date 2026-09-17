@@ -81,8 +81,9 @@ uv run wiz8 compare --file src/wiz8/engine_code/Prop.cpp
 uv run wiz8 compare --changed
 ```
 
-Selected `compare` refreshes the compiler-backed source index and builds the comparison product itself.
-Do not pre-run `analyze source-index`, `check` or `build` merely to prepare it.
+`compare` reads the existing source index and comparison product. Pass `--build` when source edits
+require refreshing them, for example `uv run wiz8 compare --build --changed`. Do not pre-run
+`analyze source-index` or `check` merely to prepare that explicit build-and-compare operation.
 
 - `exact` / `effective`: stop investigating that body unless another acceptance criterion remains.
 - `mismatch`: inspect the first meaningful divergence and form a concrete source/type/ABI/lifetime/

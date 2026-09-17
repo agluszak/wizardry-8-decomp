@@ -20,6 +20,7 @@ extern const unsigned int g_W8TextBufferLayoutMask005EF88C;
 extern const unsigned int g_W8TextBufferLayoutMask005EF890;
 extern const wchar_t g_W8LineBreakCharacters00617C90[];
 
+// VTABLE: WIZ8 0x005ed5b8
 class W8TextBuffer {
 public:
     friend class W8DialogTextArea;

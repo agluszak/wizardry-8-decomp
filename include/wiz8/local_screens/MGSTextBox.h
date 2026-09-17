@@ -10,16 +10,30 @@ class Trigger;
 
 struct W8MonsterInfo;
 
+struct W8NoticeWord {
+    short start;
+    short end;
+    short x_start;
+    short x_end;
+    unsigned char flag_08;
+    unsigned char flag_09;
+};
+static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
+
+void AdvanceNoticeLine(short text_box);
+
 /* Local Screens\MGSTextBox.cpp owns the four message runs at 0x0068F2D8. */
 struct W8MessageStorageRecord {
     wchar_t* wString; /* 0x00: the assertion at 0x0058B410 names it */
-    unsigned char unknown_04;
+    unsigned char font_palette;
     /* 0x05-0x07: the recoloured span [start, stop) of this line. */
     unsigned char highlight_color;
     unsigned char highlight_start;
     unsigned char highlight_stop;
     int clock_08;
-    unsigned char unknown_0c[0x0c];
+    unsigned char unknown_0c[4];
+    int wrapped_line;
+    int value_14;
     W8PList* entries_18;
     unsigned char unknown_1c[8];
 };
@@ -72,4 +86,5 @@ bool CurrentDialogueLineHasContent(void);                              /* 0x0058
 int FindStoppedTextLine(void);                                         /* 0x0058D760 */
 void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
-void ShowNotice(int channel, const wchar_t* text, int a = -1, int b = -1, int c = 0);
+void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box = -1,
+                unsigned int wrap_width = ~0U, bool force_dialog = false);

@@ -399,6 +399,9 @@ static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60")
    vector at +0x0c, the selected panel index at +0x20, and the controls owner
    at +0x24; the remaining panel objects stay positional until their types are
    recovered. */
+// VTABLE: WIZ8 0x005ef008 W8ControlSelectionListener
+// VTABLE: WIZ8 0x005ef000 W8TextControl::Listener
+// VTABLE: WIZ8 0x005eeffc W8DialogCloseListener
 class W8OptionsScreen : public W8ControlSelectionListener,
                         public W8TextControl::Listener,
                         public W8DialogCloseListener {

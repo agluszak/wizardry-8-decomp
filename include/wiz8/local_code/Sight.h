@@ -31,6 +31,7 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
                             int penalty_modifier, int skip_field_of_view,
                             unsigned char sight_override, float distance); /* 0x00505A40 */
 
+bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group);
 bool IsSightRangeOverridden(void);
 bool GetSightCondition37A(const W8MonsterInfo* monster);
 

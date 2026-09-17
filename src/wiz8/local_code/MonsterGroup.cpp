@@ -27,6 +27,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/regions.h"
@@ -50,6 +51,90 @@ enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
    it is not under the control state the group excludes. */
 enum { W8_MONSTER_CONTROL_EXCLUDED = 1 };
 enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
+
+// FUNCTION: WIZ8 0x00510cc0
+bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* position, float yaw,
+                                bool proximity_check, bool include_allies, bool flatten_y,
+                                bool alternate_radius)
+{
+    if (group->flag_28 == 0) {
+        return false;
+    }
+    W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->value_9f, 1));
+    float radius = alternate_radius ? leader->monster->movement_0c0.alternate_radius_0b4
+                                    : leader->monster->radius_084;
+    int location_ids[45];
+    srVector3T<float> positions[45];
+    unsigned int count = group->member_count;
+    unsigned int index;
+    for (index = 0; index < count; ++index) {
+        location_ids[index] = IListGetAt(group->monsters, index);
+    }
+    if (include_allies) {
+        for (int ally_index = 0; ally_index < 4; ++ally_index) {
+            if (group->allied_group_ids[ally_index] != 0) {
+                W8MonsterGroup* ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                    0x692, MONSTER_GROUP_CPP, group->allied_group_ids[ally_index], 1));
+                W8MonsterInfo* ally_leader = MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(0x693, MONSTER_GROUP_CPP, ally->value_9f, 1));
+                float ally_radius = alternate_radius
+                                        ? ally_leader->monster->movement_0c0.alternate_radius_0b4
+                                        : ally_leader->monster->radius_084;
+                if (radius < ally_radius) {
+                    radius = ally_radius;
+                }
+                for (index = 0; index < static_cast<unsigned int>(ally->member_count); ++index) {
+                    location_ids[count++] = IListGetAt(ally->monsters, index);
+                }
+            }
+        }
+    }
+    if (proximity_check) {
+        for (index = 0; index < count; ++index) {
+            g_octree_6598a4->UnregisterLocationObjects(static_cast<short>(location_ids[index]));
+        }
+    }
+    srVector3T<float> target = *position;
+    unsigned int found;
+    if (alternate_radius) {
+        found = g_octree_6598a4->FindNavigatorPosition(
+            &target, yaw, radius + radius, count, positions, proximity_check, flatten_y, 0, 5, 1);
+    } else {
+        found = g_octree_6598a4->FindScatterPositions00437980(
+            &target, yaw, radius + radius, count, positions, proximity_check, flatten_y);
+    }
+    if (found == 0) {
+        return false;
+    }
+    if (proximity_check) {
+        while (found < count) {
+            --count;
+            RemoveMonster(
+                MonsterGetIndexByLocationID(0x6c9, MONSTER_GROUP_CPP, location_ids[count], 1), 1);
+        }
+    }
+    target = positions[0];
+    unsigned int position_index = 0;
+    for (index = 0; index < count; ++index) {
+        int location_id = location_ids[index];
+        W8MonsterInfo* member = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x6d5, MONSTER_GROUP_CPP, location_id, 1));
+        member->monster->SetAngles004538F0(yaw);
+        member->monster->position_dirty_09c = 1;
+        if (location_id == group->value_9f) {
+            member->monster->SetPositionInternal00453590(&target);
+        } else {
+            if (position_index < found - 1) {
+                ++position_index;
+            }
+            member->monster->SetPositionInternal00453590(&positions[position_index]);
+        }
+        srVector3T<float> placed = member->monster->GetPosition();
+        g_octree_6598a4->UpdateMonsterLocation(static_cast<unsigned short>(location_id), &placed);
+    }
+    return true;
+}
 
 /* A group is done dying only when every live script record either has no
    engine Monster or reports the Monster death cycle.  Save-list location IDs
@@ -768,7 +853,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
                 leader->allied_group_ids[slot] = monster_group->group_id;
                 monster_group->leader_group_id = leader->group_id;
                 RefreshMonsterGroup(monster_group);
-                SetMonsterGroupDisposition(monster_group, leader->ubDisposition, 0);
+                SetMonsterGroupHostility(monster_group, leader->ubDisposition, 0);
                 return 1;
             }
         }
@@ -811,8 +896,8 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     }
 
     do {
-        group->group_id = g_status_685170.next_group_id_2630;
-        g_status_685170.next_group_id_2630 = g_status_685170.next_group_id_2630 + 1;
+        group->group_id = g_status_685170.next_group_id_234a;
+        g_status_685170.next_group_id_234a = g_status_685170.next_group_id_234a + 1;
     } while (group->group_id == 0);
 
     group->leader_group_id = 0;
@@ -867,7 +952,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         } while (created < count);
     }
 
-    group->value_9f = g_status_685170.monster_group_value_seed_2634 - 1;
+    group->value_9f = g_status_685170.next_monster_location_id_234e - 1;
     group->highlighted_member = -1;
 
     index = 0;
@@ -885,9 +970,9 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
 
     group->flag_28 = 1;
     yaw = GetCameraFacingYaw004BE5C0(const_cast<srVector3T<float>*>(position));
-    MoveMonsterGroupToPosition(group, const_cast<srVector3T<float>*>(position), yaw, 0, 0, 0, 0);
+    MoveMonsterGroupToPosition(group, position, yaw, 0, 0, 0, 0);
     RefreshMonsterGroup(group);
-    SetMonsterGroupDisposition(group, MonsterGroupCalcDefaultDisposition(group), 0);
+    SetMonsterGroupHostility(group, MonsterGroupCalcDefaultDisposition(group), 0);
 
     if (announce_spawn != 0 && g_flag_689b32 != 0) {
         int registry_after = GetUsedPageFileBytes();

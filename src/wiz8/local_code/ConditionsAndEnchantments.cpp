@@ -17,6 +17,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -286,7 +287,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
                     monster_info->condition_turns[W8_CONDITION_HOSTILE] = 0;
                     return;
                 }
-                Function5477D0(monster_info, (monster_info->ubDisposition == 1) + 1);
+                SetMonsterHostility(monster_info, (monster_info->ubDisposition == 1) + 1);
             }
         }
         slot = 0x13;
@@ -372,7 +373,7 @@ void ClearMonsterCondition(int location_id, int condition)
                 0x2e0, "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
                 monster_info->monster_group_id, 1);
             monster_group = GetMonsterGroupByListIndex(list_index);
-            Function5477D0(monster_info, monster_group->ubDisposition);
+            SetMonsterHostility(monster_info, monster_group->ubDisposition);
         }
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
             WriteGameLog(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
@@ -609,7 +610,7 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
 /* The same copy the other way round, from a monster onto one character. Every
    condition carries the monster's argument here, not only the seventh. */
 // FUNCTION: WIZ8 0x00524250
-void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monster_info)
+void CopyMonsterConditionsToCharacter(W8Character* character, const W8MonsterInfo* monster_info)
 {
     unsigned int condition;
     int duration;
@@ -622,7 +623,8 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
             if (condition == W8_CONDITION_POISONED) {
                 duration = monster_info->condition_turns[W8_CONDITION_POISONED];
             }
-            SetCharacterCondition(party_slot, condition, duration, argument, 0, 0);
+            SetCharacterCondition(CharacterPointerToPartySlot(character), condition, duration,
+                                  argument, 0, 0);
         }
     }
 }

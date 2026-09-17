@@ -24,6 +24,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from capstone import CsError
+
 from .binary.code import decode_chain_ending_at, disassembler, function_start, import_thunks
 from .binary.image import PeImage
 
@@ -220,15 +222,17 @@ def _receiver_provenance(image: PeImage, engine: Any, write: dict[str, Any]) -> 
                     mem = operands[1].mem
                     base = _canonical_reg(insn.reg_name(mem.base)) if mem.base else None
                     index = _canonical_reg(insn.reg_name(mem.index)) if mem.index else None
-                    if index is None and base is not None and offsets.get(base) is not None:
-                        value = int(offsets[base]) + mem.disp
+                    base_offset = offsets.get(base) if base is not None else None
+                    index_offset = offsets.get(index) if index is not None else None
+                    if index is None and base_offset is not None:
+                        value = base_offset + mem.disp
                     elif (
                         base is None
                         and index is not None
                         and mem.scale == 1
-                        and offsets.get(index) is not None
+                        and index_offset is not None
                     ):
-                        value = int(offsets[index]) + mem.disp
+                        value = index_offset + mem.disp
                 offsets[dst] = value
         elif (
             mnemonic in {"add", "sub"}
@@ -258,7 +262,7 @@ def _receiver_provenance(image: PeImage, engine: Any, write: dict[str, Any]) -> 
 
         try:
             _reads, writes = insn.regs_access()
-        except Exception:
+        except CsError:
             writes = []
         for register_id in writes:
             register = _canonical_reg(insn.reg_name(register_id))
@@ -403,6 +407,132 @@ def enrich_msvc_table_report(path: Path, report: dict[str, Any]) -> dict[str, An
         "construction_families": families,
     }
     return report
+
+
+def vtable_recovery_debt(report: dict[str, Any], reviewed: dict[int, list[str]]) -> dict[str, Any]:
+    """Rank census evidence for investigation, without claiming new class identities.
+
+    Transition order is instruction order, not a control-flow proof. Only named
+    lifecycle functions support the probable construction/final labels; every
+    unreviewed label still requires checking Ghidra callers and stores.
+    """
+
+    families = report.get("analysis", {}).get("construction_families", [])
+    by_table: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    transient: set[str] = set()
+    final: set[str] = set()
+    for family in families:
+        name = family.get("function_source_name", "")
+        parts = name.rsplit("::", 1)
+        constructor = len(parts) == 2 and parts[0].split("::")[-1] == parts[1]
+        destructor = len(parts) == 2 and parts[1].startswith("~")
+        transitions = [t for t in family["transitions"] if t["kind"] == "vftable"]
+        for index, transition in enumerate(transitions):
+            address = transition["table"]
+            by_table[address].append(family)
+            if constructor:
+                (final if index == len(transitions) - 1 else transient).add(address)
+            elif destructor:
+                (final if index == 0 else transient).add(address)
+
+    shapes = Counter(table_shape_fingerprint(t) for t in report.get("vftables", []))
+    groups: dict[str, list[dict[str, Any]]] = {
+        name: []
+        for name in (
+            "unreviewed-high-confidence-final",
+            "probable-construction-phase",
+            "ambiguous",
+            "reviewed-final",
+            "vbtable",
+        )
+    }
+    for kind in ("vftables", "vbtables"):
+        for table in report.get(kind, []):
+            address = table["address"]
+            writes = table.get("writes", [])
+            fixed = [
+                w
+                for w in writes
+                if w.get("receiver_provenance") == "incoming-ecx"
+                and isinstance(w.get("receiver_offset"), int)
+            ]
+            slots = table.get("slots", [])
+            named = []
+            deleting = []
+            for slot in slots:
+                resolution = slot.get("resolution", {})
+                names = [
+                    resolution.get("source_name", ""),
+                    resolution.get("name", ""),
+                    *resolution.get("names", []),
+                ]
+                if any(names):
+                    named.append(slot)
+                if resolution.get("kind") == "scalar-deleting-destructor" or any(
+                    "scalar deleting destructor" in name or "??_G" in name for name in names
+                ):
+                    deleting.append(slot)
+            sources = reviewed.get(int(address, 16), [])
+            construction_identity = any(
+                "construction-phase" in str(slot.get("resolution", {}).get("source_name", ""))
+                for slot in slots
+            ) or any("construction-phase" in w.get("function_source_name", "") for w in writes)
+            if kind == "vbtables":
+                category = "vbtable"
+            elif sources:
+                category = "reviewed-final"
+            elif construction_identity or (address in transient and address not in final):
+                category = "probable-construction-phase"
+            elif fixed and named and deleting and address not in transient:
+                category = "unreviewed-high-confidence-final"
+            else:
+                category = "ambiguous"
+            shared = [s for s in slots if s.get("resolution", {}).get("shared_count", 1) > 1]
+            row = {
+                "address": address,
+                "reviewed_sources": sources,
+                "installations": writes,
+                "fixed_receiver_installations": len(fixed),
+                "slot_count": len(slots),
+                "named_slots": len(named),
+                "unnamed_slots": len(slots) - len(named),
+                "deleting_destructor_evidence": deleting,
+                "source_construction_identity": construction_identity,
+                "construction_families": by_table.get(address, []),
+                "shared_slots": len(shared),
+                "unique_slot_targets": len({s["target"] for s in slots}),
+                "local_shape_multiplicity": shapes[table_shape_fingerprint(table)]
+                if kind == "vftables"
+                else None,
+                "entries": table.get("entries", []),
+            }
+            groups[category].append(row)
+    for rows in groups.values():
+        rows.sort(
+            key=lambda row: (
+                -bool(row["fixed_receiver_installations"]),
+                -bool(row["construction_families"]),
+                -row["named_slots"] / max(1, row["slot_count"]),
+                -bool(row["deleting_destructor_evidence"]),
+                -sum(bool(w.get("function_source_name")) for w in row["installations"]),
+                row["local_shape_multiplicity"] or 0,
+                int(row["address"], 16),
+            )
+        )
+    return {
+        "schema": "wiz8.vtable-recovery-debt",
+        "binary": report.get("binary"),
+        "informational": True,
+        "limitations": [
+            "Incoming ECX is provenance, not proof of class membership.",
+            "Instruction-order transitions require control-flow and lifecycle review.",
+            "Local shape uniqueness is not cross-build identity; use vtables compare.",
+            "Deleting-destructor evidence is named/export evidence, not exhaustive body analysis.",
+        ],
+        "source_identity_overlay": report.get("analysis", {}).get("source_identity_overlay"),
+        "counts": {name: len(rows) for name, rows in groups.items()},
+        "groups": groups,
+    }
 
 
 def table_shape_fingerprint(table: dict[str, Any]) -> str:

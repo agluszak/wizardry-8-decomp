@@ -107,7 +107,7 @@
    LoadStatusHeader forwards are established; the rest is read and kept. */
 struct W8StatusHeader {
     float version;                     /* 0x000 */
-    int status_count_004;              /* 0x004: meaning not established */
+    int next_group_id;                 /* 0x004 */
     int next_monster_location_id;      /* 0x008 */
     int next_world_item_id;            /* 0x00c */
     int next_trigger_id;               /* 0x010 */
@@ -408,12 +408,12 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     if (header.version != 2.0f) {
         return 0;
     }
-    g_status_685170.status_count_234a = header.status_count_004;
+    g_status_685170.next_group_id_234a = header.next_group_id;
     g_status_685170.next_monster_location_id_234e = header.next_monster_location_id;
     g_status_685170.next_world_item_id_2352 = header.next_world_item_id;
     g_status_685170.next_trigger_id_2356 = header.next_trigger_id;
-    if (header.status_count_004 == 0) {
-        g_status_685170.status_count_234a = 1;
+    if (header.next_group_id == 0) {
+        g_status_685170.next_group_id_234a = 1;
     }
     if (header.next_monster_location_id == 0) {
         g_status_685170.next_monster_location_id_234e = 1;
@@ -482,7 +482,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->OpenChunk(0x54415453, 0); /* STAT */
     memset(&header, 0, sizeof(header));
     header.version = 2.0f;
-    header.status_count_004 = g_status_685170.status_count_234a;
+    header.next_group_id = g_status_685170.next_group_id_234a;
     header.next_monster_location_id = g_status_685170.next_monster_location_id_234e;
     header.next_world_item_id = g_status_685170.next_world_item_id_2352;
     header.next_trigger_id = g_status_685170.next_trigger_id_2356;

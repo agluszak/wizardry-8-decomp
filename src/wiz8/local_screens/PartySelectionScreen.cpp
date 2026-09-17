@@ -466,6 +466,7 @@ class W8PartySelectionController;
    +0x50 and +0x54; the complete W8Control member at +0x58 owns their selection
    vector. The selected absolute row at +0x80 is read directly by the party-selection
    keyboard handler. */
+// VTABLE: WIZ8 0x005ef3b4 W8PartySelectionPanelSelectionListener005EF3B4
 class W8PartySelectionCharacterPanel005EF3C8
     : public Controls,
       public W8ControlSelectionListener,
@@ -488,6 +489,7 @@ public:
 static_assert(sizeof(W8PartySelectionCharacterPanel005EF3C8) == 0x84,
               "W8PartySelectionCharacterPanel005EF3C8_size");
 
+// VTABLE: WIZ8 0x005ef448 W8TextControl::Listener
 class W8PartySelectionCharacterGridPanel005EF450 : public Controls, public W8TextControl::Listener {
 public:
     W8PartySelectionCharacterGridPanel005EF450();
