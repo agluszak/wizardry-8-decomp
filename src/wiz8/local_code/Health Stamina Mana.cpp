@@ -10,23 +10,18 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
-#include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
-#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/combat_state.h"
-#include "wiz8/local_code/Combat.h"
-#include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/local_code/Strings.h"
-#include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -36,10 +31,6 @@
 #include "wiz8/npc_script_file.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
-#include "wiz8/local_code/GameplayCode.h"
-#include "wiz8/character_skills.h"
-#include "wiz8/local_code/Magic.h"
-#include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/Targeting.h"
@@ -60,7 +51,6 @@
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/npc_interaction.h"
-#include "wiz8/local_code/PC_Item.h"
 #include "timer.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/dialog_code/PortraitQuote.h"
@@ -1539,7 +1529,9 @@ W8PortraitTables g_portrait_tables_0061cb3c = {
      1, 3, 3, 4, 1, 1, 1, 1, 1, 5, 0x01010101, 0x01010101, 0x01010101, 0x01010101, 0x01010101},
 };
 // GLOBAL: WIZ8 0x005ED8C8
+#pragma bss_seg(".data")
 int g_effect_argument_005ed8c8 = 0;
+#pragma bss_seg()
 // GLOBAL: WIZ8 0x005ED8E0
 unsigned int g_event_flag_005ed8e0 = 8;
 // GLOBAL: WIZ8 0x005ED8E4
@@ -1563,7 +1555,9 @@ int g_effect_005ee594 = 3;
 // GLOBAL: WIZ8 0x005ee598
 int g_effect_005ee598 = 4;
 // GLOBAL: WIZ8 0x005ee588
+#pragma bss_seg(".data")
 int g_effect_005ee588 = 0;
+#pragma bss_seg()
 // GLOBAL: WIZ8 0x005EE58C
 int g_effect_005ee58c = 1;
 // GLOBAL: WIZ8 0x005EE5A4

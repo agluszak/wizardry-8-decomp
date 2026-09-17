@@ -38,12 +38,13 @@
 #include "surrender/srModelInstance.h"
 #include "surrender/srPixelConvert.h"
 #include "surrender/srCamera.h"
+#include "surrender/srTextureMap.h"
+#include "wiz8/engine_code/stTextureAnim.h"
 #include "surrender/srScene.h"
 #include "surrender/srShader.h"
 #include "surrender/srStatisticsManager.h"
 #include "surrender/srStringTable.h"
 #include "surrender/srTexture.h"
-#include "surrender/srTextureMap.h"
 #include "surrender/srVertexProcessor.h"
 #include "DirectDraw Calls.h"
 #include "Types.h"
@@ -1259,6 +1260,23 @@ BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
     return BltVideoObjectToBuffer(static_cast<UINT16*>(destination->getDataPtr()),
                                   destination->getPitch(), object, region, x, y,
                                   VO_BLT_SRCTRANSPARENCY, 0);
+}
+
+/* Same blit as BlitVideoObjectToColorSurface with an already-resolved handle.
+   Returns TRUE whenever the ETRLE properties lookup succeeds; the buffer blit
+   result is not forwarded. */
+// FUNCTION: WIZ8 0x00484AC0
+BOOLEAN BlitHVObjectToColorSurface(HVOBJECT object, UINT16 region, srColorSurface* destination,
+                                   int x, int y)
+{
+    ETRLEObject properties;
+
+    if (!GetVideoObjectETRLEProperties(object, &properties, region)) {
+        return FALSE;
+    }
+    BltVideoObjectToBuffer(static_cast<UINT16*>(destination->getDataPtr()), destination->getPitch(),
+                           object, region, x, y, VO_BLT_SRCTRANSPARENCY, 0);
+    return TRUE;
 }
 
 static void MoveSystemCursor(int x, int y)
@@ -2798,6 +2816,86 @@ unsigned int GetTotalPhysicalMemory(void)
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
     return status.dwTotalPhys;
+}
+
+/* Build an stTextureAnim whose frames are consecutive VObject subimages starting
+   at start_frame. use_argb1555 selects SURFACE_ARGB1555 versus SURFACE_RGB555 for
+   each frame surface. The setName string is the retail identity. */
+// FUNCTION: WIZ8 0x00428E90
+stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
+                                         unsigned short frame_count, char use_argb1555)
+{
+    ETRLEObject properties;
+    unsigned short frame;
+    unsigned short end_frame;
+    unsigned long extent;
+    unsigned short largest;
+
+    if (!gfVideoObjectsInit) {
+        return 0;
+    }
+
+    stTextureAnim* animation = SR_NEW(stTextureAnim)();
+    animation->autoRelease();
+    animation->setName("VideoVObjecttoTextureAnim");
+    animation->setMipmapBias(-8.0f);
+
+    frame = start_frame;
+    end_frame = static_cast<unsigned short>(start_frame + frame_count);
+    while (frame < end_frame) {
+        if (GetVideoObjectETRLEProperties(object, &properties, frame)) {
+            largest = properties.usHeight;
+            if (properties.usHeight < properties.usWidth) {
+                largest = properties.usWidth;
+            }
+            if (largest < 0x101) {
+                if (largest < 0x81) {
+                    if (largest < 0x41) {
+                        if (largest < 0x21) {
+                            extent = ((largest < 0x11) - 1 & 0x10) + 0x10;
+                        } else {
+                            extent = 0x40;
+                        }
+                    } else {
+                        extent = 0x80;
+                    }
+                } else {
+                    extent = 0x100;
+                }
+            } else {
+                extent = static_cast<unsigned long>(-1);
+            }
+
+            srColorSurface* surface;
+            if (!use_argb1555) {
+                surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_RGB555, extent, extent);
+            } else {
+                surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, extent, extent);
+            }
+            surface->setName("VideoVObjecttoTextureAnim:srColorSurface");
+            surface->autoRelease();
+            surface->fill(0);
+            if (BlitHVObjectToColorSurface(object, frame, surface, 0, 0)) {
+                srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
+                texture->autoRelease();
+                texture->setName("VideoVObjecttoTextureAnim");
+                texture->setMipmapBias(-8.0f);
+                texture->setSurfacePtr(surface);
+                texture->setCorrection(srTextureIFace::CORRECTION_FASTEST);
+                texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+                texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+                texture->setMagFilter(srTextureIFace::FILTER_NONE);
+                texture->setMinFilter(srTextureIFace::FILTER_NONE);
+                texture->enableHint(srTextureIFace::HINT_POSITIONAL_3);
+                texture->setMipmap(srTextureIFace::MIPMAP_NONE);
+                texture->enableHint(use_argb1555 ? srTextureIFace::HINT_POSITIONAL_2
+                                                 : srTextureIFace::HINT_POSITIONAL_1);
+                animation->AddTexture00485420(texture);
+            }
+        }
+        ++frame;
+    }
+    return animation;
 }
 
 // FUNCTION: WIZ8 0x00429800

@@ -126,18 +126,18 @@ void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned
 void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id);
 /* 0x00528CD0: look the item's fact up; both out-pointers are optional. */
 int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item);
-void ResolveSedexusCapture(void);                         /* 0x00529F90 */
-void NpcScriptHenchmanArrives(W8Monster* monster);        /* 0x0052A080 */
-void NpcScriptHenchmanDeparted(W8Monster* monster);       /* 0x0052A150 */
-void NpcScriptSavantHackDone(W8Monster* monster);         /* 0x0052A190 */
-void NpcScriptCallback00526E40(void);                     /* 0x00526E40 */
-void NpcScriptCallback00526E70(void);                     /* 0x00526E70 */
-void OnNpcTravelConfirmationClosed(W8DialogBase* dialog); /* 0x0052A1B0 */
-void UpdateNpcDialogueVoiceAndCursor(void);               /* 0x00524DA0 */
-void ProcessNpcScriptingFrame(void);                      /* 0x00524EB0 */
-void SetFlag68C500(unsigned char value);                  /* 0x0052A1A0 */
-unsigned char GetFlag68C4FA(void);                        /* 0x0052A070 */
-void QueueNpcMessageLine(int kind, int argument);         /* 0x005289B0 */
+void ResolveSedexusCapture(void);                              /* 0x00529F90 */
+void NpcScriptHenchmanArrives(W8Monster* monster);             /* 0x0052A080 */
+void NpcScriptHenchmanDeparted(W8Monster* monster);            /* 0x0052A150 */
+void NpcScriptSavantHackDone(W8Monster* monster);              /* 0x0052A190 */
+void NpcScriptCallback00526E40(void);                          /* 0x00526E40 */
+void NpcScriptCallback00526E70(void);                          /* 0x00526E70 */
+void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);      /* 0x0052A1B0 */
+void UpdateNpcDialogueVoiceAndCursor(void);                    /* 0x00524DA0 */
+void ProcessNpcScriptingFrame(void);                           /* 0x00524EB0 */
+void SetFlag68C500(unsigned char value);                       /* 0x0052A1A0 */
+unsigned char GetFlag68C4FA(void);                             /* 0x0052A070 */
+void QueueNpcMessageLine(W8NpcMessageKind kind, int argument); /* 0x005289B0 */
 /* 0x00525E80: searches the NPC script's kind-4 quote entries for a keyword
    match; both out-pointers are optional. */
 int FindNpcKeywordQuote(wchar_t* keyword, short* quote_index, short* keyword_index);
@@ -155,8 +155,7 @@ void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
 void BeginSedexusCapture(void);                          /* 0x00529EF0 */
 unsigned char IsSedexusCaptureActive(void);              /* 0x0052A070 */
 void SetNpcScriptEventActive(unsigned char value);       /* 0x0052A1A0 */
-void Function553AD0(W8Character* character, int value);  /* 0x00553AD0 */
-void Function553C10(W8Character* character, int skill);  /* 0x00553C10 */
+/* ApplyAttributeChange / ApplySkillChange: character_skills.h (0x00553AD0 / 0x00553C10) */
 /* in GameData.h: CameraLookAt (0x00420F90) */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
 void SetFlag68C4F4(void); /* 0x00529560 */

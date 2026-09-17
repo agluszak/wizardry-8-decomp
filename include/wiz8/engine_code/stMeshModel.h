@@ -19,6 +19,16 @@ public:
 
     stMeshModel(long polygons, long vertices);
 
+    virtual srClass* vInstance() override; /* 0x004748c0 */
+    virtual int getBoundingSphere(srVector3T<float>& center,
+                                  float& radius) override; /* 0x00471dd0 */
+    virtual int getBoundingBox(srVector3T<float>& minimum,
+                               srVector3T<float>& maximum) override; /* 0x00471d80 */
+    virtual void getTriMesh(TriMesh& mesh) override;                 /* 0x004727e0 */
+    virtual const TriMesh& getTriMesh() override;                    /* 0x00472270 */
+    virtual void renderTriMesh(class srGERD& renderer,
+                               const TriMesh& mesh) override; /* 0x00470360 */
+
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);
     void LinkTo(stMeshModel* other);      /* 0x00471D60 */

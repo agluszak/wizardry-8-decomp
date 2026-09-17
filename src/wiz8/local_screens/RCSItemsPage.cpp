@@ -68,7 +68,9 @@ int g_split_dialog_x_005efb4c = 0xa1;
 // GLOBAL: WIZ8 0x005EFB50
 int g_split_dialog_y_005efb50 = 0x94;
 // GLOBAL: WIZ8 0x005EFB64
+#pragma bss_seg(".data")
 int g_split_dialog_kind_005efb64 = 0;
+#pragma bss_seg()
 // GLOBAL: WIZ8 0x005EF958
 int g_info_dialog_x_005ef958 = 0x80;
 // GLOBAL: WIZ8 0x005EF95C

@@ -92,40 +92,33 @@ const float g_float_005ebcf8 = 0.0055555556900799274f;
 float g_light_scale_0060bfe0 = 1.0f;
 
 unsigned char g_monster_shadow_updates_enabled_0065970c;
+/* Layout-compatible with srVector3T<float> but POD so VC6 emits static .data
+   instead of a dynamic initializer into .bss. */
+struct W8AttachmentOffset {
+    float x;
+    float y;
+    float z;
+};
+
 // GLOBAL: WIZ8 0x0060e618
-srVector3T<float> g_monster_attachment_offsets_0060e618[8][8] = {
-    {srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-75.0f, 0.0f, 0.0f), srVector3T<float>(75.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-75.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(75.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f),
-     srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f),
-     srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f),
-     srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f),
-     srVector3T<float>(-37.5f, 75.0f, 0.0f), srVector3T<float>(37.5f, 75.0f, 0.0f),
-     srVector3T<float>(0.0f, 0.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f),
-     srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f),
-     srVector3T<float>(-75.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 75.0f, 0.0f),
-     srVector3T<float>(75.0f, 75.0f, 0.0f), srVector3T<float>(0.0f, 0.0f, 0.0f)},
-    {srVector3T<float>(-112.5f, 0.0f, 0.0f), srVector3T<float>(-37.5f, 0.0f, 0.0f),
-     srVector3T<float>(37.5f, 0.0f, 0.0f), srVector3T<float>(112.5f, 0.0f, 0.0f),
-     srVector3T<float>(-112.5f, 75.0f, 0.0f), srVector3T<float>(-37.5f, 75.0f, 0.0f),
-     srVector3T<float>(37.5f, 75.0f, 0.0f), srVector3T<float>(112.5f, 75.0f, 0.0f)}};
+W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {
+    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
+     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-75.0f, 0.0f, 0.0f}, {75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
+     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
+     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
+     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
+     {0.0f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
+     {-37.5f, 75.0f, 0.0f}, {37.5f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
+     {-75.0f, 75.0f, 0.0f}, {0.0f, 75.0f, 0.0f}, {75.0f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
+     {-112.5f, 75.0f, 0.0f}, {-37.5f, 75.0f, 0.0f}, {37.5f, 75.0f, 0.0f},
+     {112.5f, 75.0f, 0.0f}}};
 // GLOBAL: WIZ8 0x0060e914
 float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
@@ -3642,8 +3635,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
             W8Item* item = representation->objects_5c8[index];
 
             if (item != 0) {
-                const srVector3T<float>& source =
+                const W8AttachmentOffset& raw =
                     g_monster_attachment_offsets_0060e618[attachment_layout - 1][index];
+                srVector3T<float> source(raw.x, raw.y, raw.z);
                 srVector3T<float> offset;
                 srVector3T<float> location;
                 srNode* mesh;
@@ -3690,8 +3684,9 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 W8MonsterSpellIcon* entry =
                     static_cast<W8MonsterSpellIcon*>(PLGet(representation->spell_icons_5e8, index));
                 W8Item* item = entry->psrBMO;
-                const srVector3T<float>& source =
+                const W8AttachmentOffset& raw =
                     g_monster_attachment_offsets_0060e618[chunk_count - 1][chunk_index];
+                srVector3T<float> source(raw.x, raw.y, raw.z);
                 srVector3T<float> offset;
                 srVector3T<float> location;
                 srNode* mesh;

@@ -152,6 +152,13 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
 /* 0x00484A40: blit one frame of a video object into a color surface. */
 BOOLEAN BlitVideoObjectToColorSurface(UINT32 video_object, UINT16 region,
                                       srColorSurface* destination, UINT16 x, UINT16 y);
+/* 0x00484AC0: same blit with an already-resolved HVOBJECT. */
+BOOLEAN BlitHVObjectToColorSurface(HVOBJECT object, UINT16 region, srColorSurface* destination,
+                                   int x, int y);
+class stTextureAnim;
+/* 0x00428E90: build an stTextureAnim whose frames are VObject subimages. */
+stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
+                                         unsigned short frame_count, char use_argb1555);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region

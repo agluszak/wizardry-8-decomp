@@ -89,6 +89,11 @@ float g_float_00609c88 = 60.0f;
 // GLOBAL: WIZ8 0x00609c8c
 unsigned char g_flag_00609c8c = 1;
 
+// GLOBAL: WIZ8 0x006f0530
+unsigned char g_flag_006f0530;
+// GLOBAL: WIZ8 0x006f0531
+unsigned char g_monster_combat_timer_enabled_006f0531;
+
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
 {
@@ -919,9 +924,11 @@ W8World* ForwardCreateWorld00451100(void)
     return CreateWorld();
 }
 
-/* Resolve the PARTY alias or a named position stored with the current world. */
+/* Resolve the PARTY alias or a named position stored with the current world.
+   The third out-param is float* at every call site (World.h); retail still
+   stores named-position value_08c as int bits into that slot. */
 // FUNCTION: WIZ8 0x004512C0
-bool FindEntityByName(const char* name, srVector3T<float>* position, int* location_id,
+bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
                       srVector3T<float>* direction)
 {
     if (name == 0) {
@@ -937,8 +944,9 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, int* locati
         W8NamedPosition* entry = *g_world->named_positions->GetAt(index);
         if (_stricmp(name, entry->name) == 0) {
             *position = entry->position;
-            if (location_id != 0) {
-                *location_id = entry->value_08c;
+            if (angle != 0) {
+                // c-style-cast-ok: value_08c is int storage written through float* out-param
+                *(int*)angle = entry->value_08c;
             }
             if (direction != 0) {
                 direction->x = entry->value_090;

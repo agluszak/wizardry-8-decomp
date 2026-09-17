@@ -215,7 +215,7 @@ void DispatchMGSCommand(int command)
         } else if (gXStatus.fReviewCharacterMode != 0) {
             CloseFormationPanel();
         } else if (IsNpcScriptSessionActive() != 0) {
-            Function525D90(1);
+            TryFinishNpcVoicePlayback(1);
         } else if (gXStatus.character_event_queue->HasActiveEvents() != 0) {
             gXStatus.character_event_queue->CompleteFirstActiveEvent();
         } else {

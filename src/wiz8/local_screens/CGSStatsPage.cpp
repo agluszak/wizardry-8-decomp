@@ -265,6 +265,7 @@ void W8CharacterStatsRecordControl005EF700::OnMouseLeave(int event)
 
 /* The record control's right-button release is the same folded body as the
    value control's; /OPT:NOICF emits its own copy. */
+// FUNCTION: WIZ8 0x005c92f0 FOLDED
 void W8CharacterStatsRecordControl005EF700::OnRightButtonUp(int event)
 {
     unsigned char enabled = m_enabled;

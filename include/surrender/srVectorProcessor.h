@@ -55,6 +55,11 @@ public:
         vp->_copy(destination, constant, count);
     }
 
+    static inline void copy(srVector3* destination, const srVector3& constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
     static inline void copyIndexed(SRDWORD* destination, const SRDWORD* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -129,6 +134,12 @@ public:
     static inline void mul(float* destination, float constant, const float* source, SRDWORD count)
     {
         vp->_mul(destination, constant, source, count);
+    }
+
+    static inline void mul(srVector3* destination, const srVector3& constant,
+                           const srVector3* vector_source, SRDWORD count)
+    {
+        vp->_mul(destination, constant, vector_source, count);
     }
 
     static inline void mul(srVector3* destination, const srVector3* vector_source,

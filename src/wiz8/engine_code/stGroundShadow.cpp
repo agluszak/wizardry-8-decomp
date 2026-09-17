@@ -69,6 +69,7 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     width_140 = other.width_140;
 }
 
+/* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. */
 void stGroundShadow::traverse(TraverseInfo& info)
 {
     if (nextSibling() != 0) {

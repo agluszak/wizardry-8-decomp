@@ -617,6 +617,8 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 /* Single-angle overload of the Rodrigues rotation above, keeping the
    trigonometry and the basis products in double precision until the float
    stores. The MartensBluff2 arrow trap emits it at 0x004DE940. */
+// TEMPLATE: WIZ8 0x004DE940
+// srMatrix3T<float>::RotateAroundAxis(double, const srVector3T<float>&)
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>& axis)
 {
@@ -648,7 +650,7 @@ srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double angle, const srVector3T<T>
 }
 
 // TEMPLATE: WIZ8 0x0042B910
-// srMatrix3T<float>::RotateAroundAxis
+// srMatrix3T<float>::RotateAroundAxis(double, double, const srVector3T<float>&)
 template <class T>
 srMatrix3T<T>* srMatrix3T<T>::RotateAroundAxis(double sine, double cosine,
                                                const srVector3T<T>& axis)

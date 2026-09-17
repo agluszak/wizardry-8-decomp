@@ -14,8 +14,10 @@
    prose), so it does not prove the C++ class name on its own. */
 // VTABLE: WIZ8 0x005ec6a0 W8VirtualFileBinIStream
 // VTABLE: WIZ8 0x005ec68c srBinStream
+/* Retail places a vtordisp{-4,0} immediately before the virtual srBinStream
+   base at +0x10; leave the default vtordisp so MSVC emits the same field and
+   the secondary-vtable adjustor thunks at 0x0047DA10 / 0x0047DA50..70. */
 // class W8VirtualFileBinIStream
-#pragma vtordisp(off)
 class W8VirtualFileBinIStream : public srBinIStream {
 public:
     explicit W8VirtualFileBinIStream(const char* path);
@@ -27,10 +29,8 @@ public:
     unsigned long tell() override;
 
 private:
-    int m_hFile;                 /* 0x08 */
-    unsigned char unknown_0c[4]; /* 0x0c */
+    int m_hFile; /* 0x08; vtordisp at 0x0c; virtual srBinStream at 0x10 */
 };
-#pragma vtordisp(on)
 
 static_assert(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
 

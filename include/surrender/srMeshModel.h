@@ -132,7 +132,14 @@ public:
     srMaterialIFace* materials_1c[4][2];
     srTextureIFace* textures_3c[4][2];
     srShader shaders_5c[4];
-    unsigned char unknown_6c_[0x1bc];
+    /* 0x6c..0x200: still-unmodeled mesh tables. getBoundingBox/Sphere read the
+       cached AABB/sphere that calculateBounds writes immediately before
+       pass_count_228. */
+    unsigned char unknown_6c_[0x194];
+    srVector3T<float> bounds_minimum_200;
+    srVector3T<float> bounds_maximum_20c;
+    srVector3T<float> bounds_center_218;
+    float bounds_radius_224;
     long pass_count_228;
     /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
        indexing the location array, which is what makes it that array's

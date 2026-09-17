@@ -89,7 +89,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     int saved_race0;
     int saved_item_id_0c9;
     int saved_item_target_char;
-    int saved_target_type;
+    W8SpellTargetType saved_target_type;
     unsigned char saved_item_origin;
     unsigned char saved_camp_mode;
     unsigned char saved_lock_interact;
@@ -318,7 +318,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_item_records[item_id].category = 2;
     g_item_records[item_id].spell_id = spell_id;
     g_item_records[item_id].quantity_kind = 1;
-    g_spell_records[spell_id].target_type = 0;
+    g_spell_records[spell_id].target_type = W8_TARGET_TYPE_CASTER;
     gXStatus.fCampMode = 0;
     gXStatus.fLockInteract = 0;
     gXStatus.fTrapInteract = 0;

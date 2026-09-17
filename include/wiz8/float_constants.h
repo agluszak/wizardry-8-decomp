@@ -14,8 +14,8 @@
    as a clamp bound by another and as a threshold by a third, so no role name
    is true of it. */
 
-extern float g_float_005ebb38;
-extern float g_float_005ebb34;
+extern const float g_float_005ebb38;
+extern const float g_float_005ebb34;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
 extern const float g_float_005ee774;
@@ -42,7 +42,7 @@ extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern const float g_environment_near_scale_005ec0b0;
 extern const float g_world_scale_005ebc40;
-extern float g_float_005ec020;
+extern const float g_float_005ec020;
 extern float g_float_005ec1a8;
 extern float g_float_005ec2f8;
 /* 0x005EC35C: read as GetRangeConstant5EC35C's return and as OctPath's

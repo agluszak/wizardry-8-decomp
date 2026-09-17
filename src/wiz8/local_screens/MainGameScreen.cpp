@@ -38,6 +38,8 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/stTextureAnim.h"
+#include "vobject.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -67,8 +69,6 @@
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/dialog_code/PortraitQuote.h"
-#include "wiz8/local_code/NPCManager.h"
-#include "wiz8/npc_script_file.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/wiz8_windows.h"
@@ -114,7 +114,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wiz8/layouts/game_status.h"
-#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 
 /*
@@ -174,13 +173,13 @@ unsigned char g_flag_0068edd8;
 // GLOBAL: WIZ8 0x0068eddc
 int g_main_game_mode_0068eddc;
 
-// GLOBAL: WIZ8 0x0064827c
+// GLOBAL: WIZ8 0x00648278
 W8MainGameResourceSlot g_main_game_resource_slots[17] = {
-    {0, 1, 0, 0, 0, 0, 2},  {0, 5, 0, 0, 0, 0, 3},  {0, 1, 0, 0, 0, 0, 4},  {0, 1, 0, 0, 0, 0, 5},
-    {0, 1, 0, 0, 0, 0, 6},  {0, 4, 0, 0, 0, 0, 7},  {0, 4, 0, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0, 8},
-    {0, 1, 0, 0, 0, 0, 9},  {0, 1, 0, 0, 0, 0, 10}, {0, 5, 0, 0, 0, 0, 11}, {0, 1, 0, 0, 0, 0, 12},
-    {0, 1, 0, 0, 0, 0, 13}, {0, 4, 0, 0, 0, 0, 15}, {0, 1, 0, 0, 0, 0, 14}, {0, 1, 0, 0, 0, 0, 16},
-    {0, 1, 0, 0, 0, 0, 0},
+    {1, 0, 1, 0, 0, 0, 0},  {2, 0, 5, 0, 0, 0, 0},  {3, 0, 1, 0, 0, 0, 0},  {4, 0, 1, 0, 0, 0, 0},
+    {5, 0, 1, 0, 0, 0, 0},  {6, 0, 4, 0, 0, 0, 0},  {7, 0, 4, 0, 0, 0, 0},  {0, 0, 0, 0, 0, 0, 0},
+    {8, 0, 1, 0, 0, 0, 0},  {9, 0, 1, 0, 0, 0, 0},  {10, 0, 5, 0, 0, 0, 0}, {11, 0, 1, 0, 0, 0, 0},
+    {12, 0, 1, 0, 0, 0, 0}, {13, 0, 4, 0, 0, 0, 0}, {15, 0, 1, 0, 0, 0, 0}, {14, 0, 1, 0, 0, 0, 0},
+    {16, 0, 1, 0, 0, 0, 0},
 };
 
 // GLOBAL: WIZ8 0x0065bd2c
@@ -381,6 +380,13 @@ void W8LockTumbler::OnMouseLeave(int event)
     if (m_enabled && !m_pin_set_34) {
         Invalidate(event);
     }
+}
+
+/* Retail ICF folds this onto W8HorizontalRangeThumb::OnMouseEnter. */
+// FUNCTION: WIZ8 0x004f58c0 FOLDED
+void W8LockTumbler::OnLeftButtonDown(int)
+{
+    PushButtonSoundScheme005587C0(0, 1);
 }
 
 // FUNCTION: WIZ8 0x00585690
@@ -2302,6 +2308,55 @@ W8NpcDialogueTextController::W8NpcDialogueTextController(int panel_left, int pan
     text_area.SetLineHeight(scroll_height);
 }
 
+/* Expanded transcript paint: when dirty, redraw the panel backdrop, optionally
+   tile the line/margin catalog images for the open layout, then forward to
+   active children and the embedded text area. */
+// FUNCTION: WIZ8 0x0055DF80
+void W8NpcDialogueTextController::Redraw()
+{
+    unsigned char was_dirty;
+    int force;
+    int height;
+    int top;
+    int index;
+
+    was_dirty = m_fDirty;
+    if (m_fEnabled) {
+        force = was_dirty != 0;
+        if (force) {
+            DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                                          origin_x, origin_y, 2, 0);
+            m_fDirty = 0;
+        }
+        if (line_image != -1 && margin_image != -1) {
+            if (visible == 1 && was_dirty != 0) {
+                height = line_height;
+                top = (origin_y - height) + margin;
+                if (height < scroll_height) {
+                    do {
+                        DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c,
+                                                      line_image, origin_x, top, 2, 0);
+                        top -= line_height;
+                        height += line_height;
+                    } while (height < scroll_height);
+                }
+                DrawCatalogImageAndInvalidate(-0xe, m_renderTarget, m_renderArg_1c, margin_image,
+                                              origin_x, (line_height - margin) + top, 2, 0);
+                force = 1;
+            } else if (force == 0 && m_fLayoutDirty == 0) {
+                return;
+            }
+            for (index = 0; index < m_controls.count; ++index) {
+                if (ControlAt(index)->m_active) {
+                    ControlAt(index)->Redraw(force);
+                }
+            }
+            m_fLayoutDirty = 0;
+            text_area.Draw(static_cast<unsigned char>(force));
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0055E0C0
 unsigned char W8NpcDialogueTextController::AddTranscriptEntry(const wchar_t* text,
                                                               signed char category, char mark)
@@ -2971,7 +3026,7 @@ unsigned char MainGameScreenEnter(void)
             return 0;
         }
         ResetMainGameScreenState();
-        Function568E10();
+        LoadMainGameCursorResources();
     }
     gXStatus.unknown_026[1] = 1;
     MSYS_Init();
@@ -4050,15 +4105,19 @@ W8ScreenRect g_viewport_modes_647d30[7] = {
     {128, 18, 512, 450}, {128, 18, 512, 416}, {23, 18, 617, 416},
 };
 
-/* The viewport currently applied, as four separate dwords. */
-// GLOBAL: WIZ8 0x00647f44
-int g_viewport_left_647f44 = 0;
-// GLOBAL: WIZ8 0x00647f48
-int g_viewport_top_647f48 = 0;
-// GLOBAL: WIZ8 0x00647f4c
-int g_viewport_right_647f4c = 0;
-// GLOBAL: WIZ8 0x00647f50
-int g_viewport_bottom_647f50 = 0;
+/* Active viewport rectangle plus the preceding retail dword at 0x00647f40
+   (-1). Bundling the non-zero sentinel forces VC6 to emit the block in
+   .data; separate `int x = 0` definitions land in .bss and fail datacmp. */
+struct W8ActiveViewport647F40 {
+    int sentinel_647f40;
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+
+// GLOBAL: WIZ8 0x00647f40
+W8ActiveViewport647F40 g_active_viewport_647f40 = {-1, 0, 0, 0, 0};
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */
@@ -4072,12 +4131,12 @@ void SetViewportMode(int mode)
     }
     rect = &g_viewport_modes_647d30[mode];
     SetRegionBounds(0xe6, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
-    g_viewport_left_647f44 = rect->left;
-    g_viewport_top_647f48 = rect->top;
-    g_viewport_right_647f4c = rect->right;
-    g_viewport_bottom_647f50 = rect->bottom;
-    SetViewport(g_viewport_left_647f44, g_viewport_top_647f48, g_viewport_right_647f4c,
-                g_viewport_bottom_647f50);
+    g_active_viewport_647f40.left = rect->left;
+    g_active_viewport_647f40.top = rect->top;
+    g_active_viewport_647f40.right = rect->right;
+    g_active_viewport_647f40.bottom = rect->bottom;
+    SetViewport(g_active_viewport_647f40.left, g_active_viewport_647f40.top,
+                g_active_viewport_647f40.right, g_active_viewport_647f40.bottom);
     g_level_block->camera_mode_100 = mode;
 }
 
@@ -5262,6 +5321,35 @@ void CreateNpcDialogueControls(void)
 
 /* The panel flags and the modal-dialog frame hooks. The g_flag_006840bc state
    is declared in MainGameScreen.h so the renderer consumes the same object. */
+
+/* Load each main-game cursor catalog entry into an stTextureAnim and record the
+   ETRLE frame size onto the slot. Called once when the level block is first
+   allocated. */
+// FUNCTION: WIZ8 0x00568E10
+void LoadMainGameCursorResources(void)
+{
+    HVOBJECT video_object;
+    ETRLEObject properties;
+    W8MainGameResourceSlot* slot = g_main_game_resource_slots;
+    W8MainGameResourceSlot* end = g_main_game_resource_slots + 17;
+
+    for (; slot < end; ++slot) {
+        unsigned int handle = GetCatalogVideoObjectHandle(slot->image_id, 0);
+        short frame = GetCatalogVideoObjectYOffset(slot->image_id);
+        if (GetVideoObject(&video_object, handle)) {
+            GetVideoObjectETRLEProperties(video_object, &properties,
+                                          static_cast<unsigned short>(frame));
+            slot->size_x = properties.usWidth;
+            slot->size_y = properties.usHeight;
+            stTextureAnim* animation = VideoVObjectToTextureAnim(
+                video_object, static_cast<unsigned short>(frame),
+                static_cast<unsigned short>(slot->frame_count), 1);
+            slot->object = animation;
+            animation->addReference();
+            animation->flag_60 = 3;
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x00568950
 unsigned int DispatchMainGameMouseButtons(const InputAtom* input)

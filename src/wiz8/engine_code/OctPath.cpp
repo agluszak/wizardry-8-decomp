@@ -34,7 +34,7 @@
 // GLOBAL: WIZ8 0x005ebc30
 double g_double_005ebc30 = 1.0;
 // GLOBAL: WIZ8 0x005ec020
-float g_float_005ec020 = 0.0f;
+const float g_float_005ec020 = 0.0f;
 // GLOBAL: WIZ8 0x005ec368
 double g_double_005ec368 = 25.00000037252903;
 // GLOBAL: WIZ8 0x005ec378

@@ -13,6 +13,8 @@ public:
     W8RangeButton(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
                   int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
                   int text_58, short direction, W8RangeControl* range);
+    /* Retail ICF folds this onto W8TextControl's deleting destructor at 0x004F6030. */
+
     virtual void OnLeftButtonDown(int event) override;
     virtual void ActivatePrimary(int event) override;
     virtual void AdjustValue(int steps) override;

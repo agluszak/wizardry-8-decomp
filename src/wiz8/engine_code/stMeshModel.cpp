@@ -6,14 +6,19 @@
 #include "surrender/srGERD.h"
 #include "surrender/srHeap.h"
 #include "wiz8/wiz8_windows.h"
+#include "surrender/srMaterial.h"
 #include "surrender/srTriangleCuller.h"
 #include "surrender/srTriMeshPipeline.h"
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srVectorProcessor.h"
+#include "wiz8/engine_code/Octree.h"
 
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+
+extern srVector3T<float> g_environment_offset_00659cd0;
+extern float g_light_scale_0060bfe0;
 
 /*
  * Engine Code\stMeshModel.cpp.
@@ -86,6 +91,220 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     }
 }
 
+// SYNTHETIC: WIZ8 0x00470e90
+// stMeshModel::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x004748c0
+srClass* stMeshModel::vInstance()
+{
+    return new stMeshModel(0, 0);
+}
+
+// FUNCTION: WIZ8 0x00471dd0
+int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
+{
+    if ((control_state_390 & 1) != 0) {
+        calculateBounds();
+    }
+    center = bounds_center_218;
+    radius = bounds_radius_224;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00471d80
+int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
+{
+    if ((control_state_390 & 1) != 0) {
+        calculateBounds();
+    }
+    minimum = bounds_minimum_200;
+    maximum = bounds_maximum_20c;
+    return 1;
+}
+
+/* Apply pending vertex DIG lighting when flags_3a0 bit 1 is set, then return
+   the SurRender TriMesh cache. */
+// FUNCTION: WIZ8 0x00472270
+const srMeshModel::TriMesh& stMeshModel::getTriMesh()
+{
+    float light_scale = g_light_scale_0060bfe0;
+    srVector3T<float>* dig;
+    srVector3T<float>* lights;
+    float* sunlight;
+    srPtr<srMaterialIFace>* vertex_materials;
+    int count;
+    int index;
+    int run;
+    int next_index;
+    srMaterialIFace* material_iface;
+    srMaterial* material;
+    srVector3T<float> scaled;
+    srVector3T<float> ambient_rgb;
+
+    if ((flags_3a0 & 2) != 0 && g_flag_0065a0ec == 0) {
+        lights = vertex_lights_3b4[vertex_light_table_3b0].data;
+        sunlight = vertex_sunlight_3c4.data;
+        if (lights != 0 && sunlight != 0) {
+            dig = getVertexDIG(0, 1);
+            vertex_materials = getVertexMaterial(0, static_cast<e_side>(0), 0);
+            if (vertex_materials == 0) {
+                if ((ambient_color_3a4.x == g_float_005ebb34 &&
+                     ambient_color_3a4.y == g_float_005ebb34 &&
+                     ambient_color_3a4.z == g_float_005ebb34) ||
+                    vertex_light_table_3b0 == 1) {
+                    CopyDwordBuffer00470180(dig, lights, vertex_location_count_22c * 3);
+                    if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
+                         g_environment_offset_00659cd0.y != g_float_005ebb34 ||
+                         g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                        vertex_light_table_3b0 != 1 &&
+                        (count = vertex_location_count_22c, count != 0) &&
+                        IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                        srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                                               static_cast<SRDWORD>(count));
+                    }
+                } else {
+                    /* Retail indexes material ambient at +0x28; that is
+                       srMaterial::parms_18.ambient on the concrete type. */
+                    material = static_cast<srMaterial*>(getMaterial(0, static_cast<e_side>(0)));
+                    ambient_rgb.x = material->parms_18.ambient.x;
+                    ambient_rgb.y = material->parms_18.ambient.y;
+                    ambient_rgb.z = material->parms_18.ambient.z;
+                    count = vertex_location_count_22c;
+                    scaled.x = ambient_rgb.x * ambient_color_3a4.x;
+                    scaled.y = ambient_rgb.y * ambient_color_3a4.y;
+                    scaled.z = ambient_rgb.z * ambient_color_3a4.z;
+                    if (count != 0) {
+                        if (scaled.x == scaled.y && scaled.x == scaled.z) {
+                            unsigned int bits;
+                            // reinterpret-ok: FillDwordBuffer takes the float bit pattern
+                            bits = *reinterpret_cast<unsigned int*>(&scaled.x);
+                            FillDwordBuffer00474700(dig, bits, count * 3);
+                        } else {
+                            srVectorProcessor::copy(dig, scaled, static_cast<SRDWORD>(count));
+                        }
+                    }
+                    if (vertex_location_count_22c != 0) {
+                        srVectorProcessor::mul(dig, dig, sunlight,
+                                               static_cast<SRDWORD>(vertex_location_count_22c));
+                    }
+                    AddFloatBuffer00474730(
+                        reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                        reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
+                        vertex_location_count_22c * 3);
+                    if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
+                         g_environment_offset_00659cd0.y != g_float_005ebb34 ||
+                         g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                        (count = vertex_location_count_22c, count != 0) &&
+                        IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                        srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                                               static_cast<SRDWORD>(count));
+                    }
+                }
+            } else {
+                if ((ambient_color_3a4.x == g_float_005ebb34 &&
+                     ambient_color_3a4.y == g_float_005ebb34 &&
+                     ambient_color_3a4.z == g_float_005ebb34) ||
+                    vertex_light_table_3b0 == 1) {
+                    if (vertex_location_count_22c != 0) {
+                        FillDwordBuffer00474700(dig, 0, vertex_location_count_22c * 3);
+                    }
+                } else {
+                    count = vertex_location_count_22c;
+                    if (count != 0) {
+                        if (ambient_color_3a4.x == ambient_color_3a4.y &&
+                            ambient_color_3a4.x == ambient_color_3a4.z) {
+                            unsigned int bits;
+                            // reinterpret-ok: FillDwordBuffer takes the float bit pattern
+                            bits = *reinterpret_cast<unsigned int*>(&ambient_color_3a4.x);
+                            FillDwordBuffer00474700(dig, bits, count * 3);
+                        } else {
+                            srVectorProcessor::copy(dig, ambient_color_3a4,
+                                                    static_cast<SRDWORD>(count));
+                        }
+                    }
+                    if (vertex_location_count_22c != 0) {
+                        srVectorProcessor::mul(dig, dig, sunlight,
+                                               static_cast<SRDWORD>(vertex_location_count_22c));
+                    }
+                }
+                index = 0;
+                do {
+                    next_index = index + 1;
+                    run = 1;
+                    if (next_index < vertex_location_count_22c) {
+                        do {
+                            if (static_cast<srMaterialIFace*>(vertex_materials[index]) !=
+                                static_cast<srMaterialIFace*>(vertex_materials[next_index])) {
+                                break;
+                            }
+                            ++run;
+                            ++next_index;
+                        } while (next_index < vertex_location_count_22c);
+                    }
+                    material_iface = vertex_materials[index];
+                    if (material_iface != 0) {
+                        material = static_cast<srMaterial*>(material_iface);
+                        scaled.x = material->parms_18.ambient.x;
+                        scaled.y = material->parms_18.ambient.y;
+                        scaled.z = material->parms_18.ambient.z;
+                        if (run != 0) {
+                            if (IsZeroVector0046FFA0(&scaled) == 0) {
+                                srVectorProcessor::mul(dig + index, scaled, dig + index,
+                                                       static_cast<SRDWORD>(run));
+                            } else {
+                                FillDwordBuffer00474700(dig + index, 0, run * 3);
+                            }
+                        }
+                    }
+                    index += run;
+                } while (index < vertex_location_count_22c);
+                AddFloatBuffer00474730(
+                    reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                    reinterpret_cast<float*>(lights), // reinterpret-ok: packed lights as float*
+                    vertex_location_count_22c * 3);
+                if ((g_environment_offset_00659cd0.x != g_float_005ebb34 ||
+                     g_environment_offset_00659cd0.y != g_float_005ebb34 ||
+                     g_environment_offset_00659cd0.z != g_float_005ebb34) &&
+                    vertex_light_table_3b0 != 1 &&
+                    (count = vertex_location_count_22c, count != 0) &&
+                    IsZeroVector0046FFA0(&g_environment_offset_00659cd0) == 0) {
+                    srVectorProcessor::add(dig, g_environment_offset_00659cd0, dig,
+                                           static_cast<SRDWORD>(count));
+                }
+            }
+            if (light_scale != g_float_005ebb38 &&
+                (count = vertex_location_count_22c, count != 0)) {
+                if (light_scale == g_float_005ebb34) {
+                    FillDwordBuffer00474700(dig, 0, count * 3);
+                } else {
+                    srVectorProcessor::mul(
+                        reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                        light_scale,
+                        reinterpret_cast<float*>(dig), // reinterpret-ok: packed DIG as float*
+                        static_cast<SRDWORD>(count) * 3);
+                }
+            }
+        }
+        flags_3a0 &= ~2u;
+    }
+    return srMeshModel::getTriMesh();
+}
+
+// FUNCTION: WIZ8 0x004727e0
+void stMeshModel::getTriMesh(TriMesh& mesh)
+{
+    mesh = getTriMesh();
+}
+
+/* Retail wrapper pushes a zero flag into the shared renderer at 0x00470380.
+   The helper body is still unrecovered; forward to the SurRender import so the
+   vtable slot stays local while the full path is recovered. */
+// FUNCTION: WIZ8 0x00470360
+void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
+{
+    srMeshModel::renderTriMesh(renderer, mesh);
+}
+
 /* Copy `count` dwords between distinct buffers through the imported vp. */
 // FUNCTION: WIZ8 0x00470180
 void CopyDwordBuffer00470180(void* destination, const void* source, int count)
@@ -93,6 +312,16 @@ void CopyDwordBuffer00470180(void* destination, const void* source, int count)
     if (count != 0 && destination != source) {
         srVectorProcessor::memcopy(destination, source, count << 2);
     }
+}
+
+// FUNCTION: WIZ8 0x0046ffa0
+int __fastcall IsZeroVector0046FFA0(const srVector3T<float>* vector)
+{
+    if (vector->x == g_float_005ebb34 && vector->y == g_float_005ebb34 &&
+        vector->z == g_float_005ebb34) {
+        return 1;
+    }
+    return 0;
 }
 
 /* Fill `count` dwords through vp->_copy(SRDWORD*, SRDWORD, SRDWORD). */

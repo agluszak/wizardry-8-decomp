@@ -113,7 +113,7 @@ const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
 
 // GLOBAL: WIZ8 0x005ebb38
-float g_float_005ebb38 = 1.0f;
+const float g_float_005ebb38 = 1.0f;
 
 // GLOBAL: WIZ8 0x005ebc7c
 float g_float_005ebc7c = 0.5f;
@@ -1420,6 +1420,9 @@ public:
     W8VerticalRangeThumb(W8RangeControl* range, int left, int top, int right, int bottom,
                          int render_arg, int normal_sprite, int hovered_sprite,
                          int disabled_sprite);
+    /* Retail ICF folds this onto W8HorizontalRangeThumb's deleting destructor
+       at 0x004f69b0. */
+
     virtual void Redraw(int full_redraw) override;
     void AdjustValue(int steps) override;
     virtual void OnMouseEnter(int event) override;
@@ -2006,7 +2009,8 @@ void W8HorizontalRangeThumb::OnMouseEnter(int)
     PushButtonSoundScheme005587C0(0, 1);
 }
 
-/* Retail folds these two hover hooks with the horizontal thumb's methods. */
+/* Retail ICF-folds these two hover hooks onto the horizontal thumb methods
+   at 0x004f58c0 / 0x004f58d0. */
 void W8VerticalRangeThumb::OnMouseEnter(int)
 {
     PushButtonSoundScheme005587C0(0, 1);

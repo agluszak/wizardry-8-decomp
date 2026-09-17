@@ -16,7 +16,6 @@ void Function4E8370(void);                                   /* 0x004E8370 */
 unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
 void Function4EA1F0(void);                          /* 0x004EA1F0 */
-void Function517780(void);                          /* 0x00517780 */
 struct W8TargetSource;
 struct W8CombatSlot;
 union W8ActionDetailBlock;

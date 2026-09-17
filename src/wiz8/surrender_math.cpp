@@ -60,7 +60,7 @@
 // srMatrix3T<float>::RotateAboutY
 
 // TEMPLATE: WIZ8 0x0042B910
-// srMatrix3T<float>::RotateAroundAxis
+// srMatrix3T<float>::RotateAroundAxis(double, double, const srVector3T<float>&)
 
 // TEMPLATE: WIZ8 0x004817E0
 // srVector4T<float>::Set (double arguments; no source caller retains it)

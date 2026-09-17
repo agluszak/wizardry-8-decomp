@@ -34,6 +34,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatHostility.h"
@@ -416,8 +417,8 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
     if (entry->operand_09 == 4 && entry->operand_05 != 2) {
         line = new W8MessageBoxLine;
         memset(line, 0, sizeof(W8MessageBoxLine));
-        line->quote_entry = reinterpret_cast<int>(entry); /* reinterpret-ok: tagged storage */
-        line->type = 2;
+        line->quote_entry = entry;
+        line->type = W8_NPC_MSG_QUOTE_ENTRY;
         line->quote_index = -1;
         line->continuation_quote = 0;
         line->npc = g_npc_scripting.npc;
@@ -823,10 +824,10 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     SetFact(entry->operand_01, entry->operand_05, 0);
                     break;
                 case 8:
-                    AddMessageBoxLine(1, 0, 0);
+                    AddMessageBoxLine(W8_NPC_MSG_CLOSE_DIALOGUE, 0, 0);
                     for (index = 0; index < g_npc_scripting.message_lines.GetCount(); index++) {
                         line = *g_npc_scripting.message_lines.GetAt(index);
-                        if (line->type == 0x1f) {
+                        if (line->type == W8_NPC_MSG_SHOW_DIALOGUE_PANEL) {
                             delete line;
                             g_npc_scripting.message_lines.RemoveAt(index);
                             break;
@@ -862,10 +863,12 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                             if (target->is_grouped == 0) {
                                 ClearMainGameTargetState();
                             } else {
-                                AddMessageBoxLine(7,
-                                                  reinterpret_cast<wchar_t*>(
-                                                      static_cast<int>(target->group_index)),
-                                                  0); /* reinterpret-ok: tagged message argument */
+                                AddMessageBoxLine(
+                                    W8_NPC_MSG_GROUP_ACTION,
+                                    reinterpret_cast<wchar_t*>(static_cast<int>(
+                                        target
+                                            ->group_index)), /* reinterpret-ok: tagged int in text/argument dword */
+                                    0);
                             }
                         }
                     }
@@ -874,7 +877,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     line = new W8MessageBoxLine;
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
-                    line->type = 5;
+                    line->type = W8_NPC_MSG_CLOSE_RESUME_NPC;
                     line->text = 0;
                     line->extra = 0;
                     line->npc = g_npc_scripting.npc;
@@ -890,10 +893,12 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         g_world_action_quote_max_005ee6d0 <
                             g_npc_scripting.staging_restore.current_quote_index) {
                         BeginScriptedWorldAction();
-                        AddMessageBoxLine(7,
-                                          reinterpret_cast<wchar_t*>(
-                                              static_cast<int>(g_npc_scripting.npc->group_index)),
-                                          0); /* reinterpret-ok: tagged message argument */
+                        AddMessageBoxLine(
+                            W8_NPC_MSG_GROUP_ACTION,
+                            reinterpret_cast<wchar_t*>(static_cast<int>(
+                                g_npc_scripting.npc
+                                    ->group_index)), /* reinterpret-ok: tagged int in text/argument dword */
+                            0);
                     }
                     break;
                 case 21: {
@@ -915,9 +920,8 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     line = new W8MessageBoxLine;
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
-                    line->type = 0x27;
-                    line->text =
-                        reinterpret_cast<wchar_t*>(event_type); /* reinterpret-ok: tagged storage */
+                    line->type = W8_NPC_MSG_PARTY_SPEAKER_EVENT;
+                    line->argument = event_type;
                     line->extra = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
@@ -1161,7 +1165,8 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         /* fall through */
     case 0x12:
     case 0x1e:
-        Function575E60(entry, continuation_quote);
+        // reinterpret-ok: quote entry and dialog request share packed 0x12 layout
+        OpenNpcDialog(reinterpret_cast<W8NpcDialogRequest*>(entry), continuation_quote);
         break;
     case 9:
         ReplaceOrCreateItem(&item, entry->operand_01, 1, 1, 0);
@@ -1338,9 +1343,7 @@ void ProcessMessageBoxQueue(void)
                     W8MessageBoxLine* continuation = new W8MessageBoxLine;
                     memset(continuation, 0, sizeof(W8MessageBoxLine));
                     continuation->quote_index = -1;
-                    continuation->quote_entry =
-                        reinterpret_cast<int>( // reinterpret-ok: tagged data
-                            &quote->entries[index]);
+                    continuation->quote_entry = &quote->entries[index];
                     continuation->type = W8_NPC_MSG_QUOTE_ENTRY;
                     continuation->continuation_quote = line->quote_index;
                     continuation->npc = g_npc_scripting.npc;
@@ -1359,15 +1362,13 @@ void ProcessMessageBoxQueue(void)
         return;
     }
 
-    switch (line->type) {
+    switch (static_cast<int>(line->type)) {
     case W8_NPC_MSG_CLOSE_DIALOGUE:
         CloseNpcDialogueIfActive();
         g_flag_6109f0 = 1;
         break;
     case W8_NPC_MSG_QUOTE_ENTRY:
-        ProcessNpcQuoteEntry(
-            reinterpret_cast<W8NpcQuoteEntry*>(line->quote_entry), // reinterpret-ok: tagged data
-            line->continuation_quote);
+        ProcessNpcQuoteEntry(line->quote_entry, line->continuation_quote);
         break;
     case W8_NPC_MSG_REOPEN_TRANSCRIPT:
         Function570A20();
@@ -1384,7 +1385,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case W8_NPC_MSG_FOCUS_NPC: {
-        int npc_kind = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged NPC kind
+        int npc_kind = line->argument;
         npc = GetNpcStateByKind(npc_kind);
         if (npc != 0) {
             RecruitNpcIntoParty(npc);
@@ -1397,7 +1398,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_GROUP_ACTION: {
-        int group = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged group index
+        int group = line->argument;
         ClearMainGameTargetState();
         DismissNpcFromParty(group, 0, false, false);
         if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
@@ -1421,7 +1422,7 @@ void ProcessMessageBoxQueue(void)
                   0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
         break;
     case W8_NPC_MSG_PORTRAIT_STRING: {
-        int string_index = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged string index
+        int string_index = line->argument;
         g_npc_scripting.portrait_message_active = 1;
         SetNpcQuoteBubbleVisible(1, gppStringList[string_index], 0, -1, -1);
         g_npc_scripting.message_duration_ms =
@@ -1626,7 +1627,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case W8_NPC_MSG_SET_CONDITION_13: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
+        int party_slot = line->argument;
         g_status_685170.skip_next_condition_reaction = 1;
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
         g_status_685170.flag_2487 = 1;
@@ -1741,8 +1742,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_SPEAKER_EVENT: {
-        unsigned int event_type = reinterpret_cast<unsigned int>( // reinterpret-ok: tagged id
-            line->text);
+        unsigned int event_type = static_cast<unsigned int>(line->argument);
         int party_slot =
             PickRandomPartySpeaker(event_type, g_status_685170.selected_party_member_2434);
         if (party_slot != -1) {
@@ -1758,7 +1758,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_MEMBER_EVENT: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
+        int party_slot = line->argument;
         QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee58c,
                             g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -1965,7 +1965,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_CLEAR_NPC_COMBAT:
         if (g_combat_state != 0) {
-            int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
+            int party_slot = line->argument;
             if (g_combat_state->iActionChar == party_slot) {
                 g_combat_state->eCombatActionStatus = 0;
                 g_combat_state->iActionChar = -1;
@@ -1981,8 +1981,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_TRAVEL_CONFIRM:
         ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, 1, 1);
-        g_pending_npc_travel_level =
-            reinterpret_cast<int>(line->text); // reinterpret-ok: queued level id
+        g_pending_npc_travel_level = line->argument;
         break;
     case W8_NPC_MSG_PRINCE_NOT_HOME: {
         Function56E800(0);
@@ -1997,7 +1996,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_SLOT_EVENT_18: {
-        int party_slot = reinterpret_cast<int>(line->text); // reinterpret-ok: tagged party slot
+        int party_slot = line->argument;
         QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], 0x18,
                             g_event_flag_005ed8ec | g_event_flag_005ed8e0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -2088,14 +2087,14 @@ void QueueNpcScriptLine(int quote, unsigned char mark_pending, unsigned char pre
 }
 
 // FUNCTION: WIZ8 0x005289B0
-void QueueNpcMessageLine(int kind, int argument)
+void QueueNpcMessageLine(W8NpcMessageKind kind, int argument)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
 
     memset(line, 0, sizeof(W8MessageBoxLine));
     line->quote_index = -1;
     line->type = kind;
-    line->text = reinterpret_cast<wchar_t*>(argument); // reinterpret-ok: tagged storage
+    line->argument = argument;
     line->extra = 0;
     line->npc = g_npc_scripting.npc;
 
@@ -2103,7 +2102,7 @@ void QueueNpcMessageLine(int kind, int argument)
 }
 
 // FUNCTION: WIZ8 0x00528a80
-void AddMessageBoxLine(int kind, wchar_t* text, void* extra)
+void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
 
@@ -2229,8 +2228,8 @@ void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned
     W8MessageBoxLine* line = new W8MessageBoxLine;
 
     memset(line, 0, sizeof(W8MessageBoxLine));
-    line->quote_entry = reinterpret_cast<int>(entry); /* reinterpret-ok: tagged storage */
-    line->type = 2;
+    line->quote_entry = entry;
+    line->type = W8_NPC_MSG_QUOTE_ENTRY;
     line->quote_index = -1;
     line->continuation_quote = continuation_quote;
     line->npc = g_npc_scripting.npc;
