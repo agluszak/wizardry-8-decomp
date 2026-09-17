@@ -94,7 +94,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
     positional_b8 = 0;
 
     if (leaf_size < g_float_005ebc64) {
-        Function497690(7, "Leaf Size too small--try a larger leaf size!");
+        ReportBuildStatus00497690(7, "Leaf Size too small--try a larger leaf size!");
     }
     spatial_00.flags_00 = 0;
     spatial_00.item_limit_48 = item_limit;
@@ -141,7 +141,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
                 ++spatial_00.depth_44;
             }
             if (spatial_00.depth_44 > 6) {
-                Function497690(7, "Leaf Size too small--try a larger leaf size!");
+                ReportBuildStatus00497690(7, "Leaf Size too small--try a larger leaf size!");
             }
             spatial_00.extent_04 = spatial_00.cell_size_08;
         } else {

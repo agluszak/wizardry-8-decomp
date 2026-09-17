@@ -24,7 +24,7 @@ struct W8World;
 struct W8GameData;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
-struct W8OctRegionGameData;
+struct W8OctPreTreeGeometry;
 
 /* The 0x30-byte ray state the octree line/probe walks share: a segment
    (start_00, end_0c), a fixed-length march step_18 (end-start scaled by
@@ -617,7 +617,7 @@ public:
     int m_lSupports_2b0[30];
     int m_lBlocks_328[30];
     unsigned long polygon_cursor_3a0;
-    W8OctRegionGameData* game_data_3a4;
+    W8OctPreTreeGeometry* game_data_3a4;
     unsigned long positional_3a8;
     unsigned long positional_3ac;
     unsigned long positional_3b0;

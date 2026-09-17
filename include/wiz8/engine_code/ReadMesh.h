@@ -6,7 +6,17 @@ struct W8MaterialRecord004B8A70;
 #include "wiz8/vector.h"
 
 struct W8ReadLevelInfo;
-struct W8ReadMeshFace;
+
+#pragma pack(push, 1)
+struct W8ReadMeshFace {
+    int vertices[3];
+    srVector2T<float> texture_coordinates[3];
+    int material_index;
+    unsigned char flags;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8ReadMeshFace) == 0x29, "W8ReadMeshFace_size_must_be_0x29");
 class srMaterialIFace;
 class srModelInstance;
 class srTextureIFace;
