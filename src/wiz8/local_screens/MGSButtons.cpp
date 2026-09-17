@@ -1,8 +1,10 @@
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -15,7 +17,9 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/fonts.h"
 #include "wiz8/layouts/game_status.h"
@@ -27,6 +31,7 @@
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/Screens.h"
@@ -62,8 +67,39 @@ const int g_submenu_button_positions_64c290[9][2] = {
 /* The (x, y) of the two scroll arrows. */
 // GLOBAL: WIZ8 0x0064C330
 const int g_scroll_button_positions_64c330[2][2] = {{300, 456}, {323, 456}};
+/* The (x, y) of the two panel buttons (close and formation). */
 // GLOBAL: WIZ8 0x0064C378
-const int g_submenu_panel_left_64c378 = 541;
+const int g_submenu_panel_button_positions_64c378[2][2] = {{541, 452}, {571, 452}};
+// GLOBAL: WIZ8 0x0064C388
+const char g_options_disk_path_64c388[] = "Data\\Main Interface\\options_disk.sti";
+// GLOBAL: WIZ8 0x0064C3B0
+const int g_options_disk_position_64c3b0[2] = {0, 450};
+// GLOBAL: WIZ8 0x0064C3B8
+const char g_attack_confirm_path_64c3b8[] = "Data\\Main Interface\\attack_confirm.sti";
+// GLOBAL: WIZ8 0x0064C3E0
+const char g_combat_stop_path_64c3e0[] = "Data\\Main Interface\\combat_stop.sti";
+// GLOBAL: WIZ8 0x0064C404
+const char g_cont_start_path_64c404[] = "Data\\Main Interface\\cont_start.sti";
+// GLOBAL: WIZ8 0x0064C428
+const char g_cont_toggle_path_64c428[] = "Data\\Main Interface\\cont_toggle.sti";
+// GLOBAL: WIZ8 0x0064C44C
+const char g_cont_pending_path_64c44c[] = "Data\\Main Interface\\cont_pending.sti";
+/* All five combat-stance buttons share the same screen origin. */
+// GLOBAL: WIZ8 0x0064C478
+const int g_combat_stance_positions_64c478[5][2] = {
+    {610, 450}, {610, 450}, {610, 450}, {610, 450}, {610, 450},
+};
+// GLOBAL: WIZ8 0x0064C4A0
+const char g_roof_buttons_path_64c4a0[] = "Data\\Main Interface\\main_roof_buttons.sti";
+// GLOBAL: WIZ8 0x0064C4D0
+const int g_roof_button_positions_64c4d0[3][2] = {{10, 1}, {39, 1}, {68, 1}};
+// GLOBAL: WIZ8 0x0064C4E8
+const char g_layout_arrows_path_64c4e8[] = "Data\\Main Interface\\main_layout_arrows.sti";
+/* Left column then right column; both columns share the same x in retail. */
+// GLOBAL: WIZ8 0x0064C518
+const int g_layout_arrow_positions_64c518[6][2] = {
+    {0, 371}, {0, 394}, {0, 417}, {0, 371}, {0, 394}, {0, 417},
+};
 /* The (menu, item) keyed message indexes both menus build rows from. */
 // GLOBAL: WIZ8 0x0064C548
 const short g_submenu_entry_message_ids_64c548[25] = {
@@ -93,10 +129,21 @@ short g_submenu_entry_states_69b874[5];
 short g_submenu_entry_count_69b87e;
 // GLOBAL: WIZ8 0x0069B880
 TIMER g_submenu_clock_69b880;
+/* Layout arrows: [0..2] left column (radar/action/formation), [3..5] right. */
+// GLOBAL: WIZ8 0x0069B884
+W8DialogButton* g_layout_arrow_buttons_69b884[6];
+/* Combat stance: attack confirm, stop, continuous start/toggle/pending. */
+// GLOBAL: WIZ8 0x0069B89C
+W8DialogButton* g_combat_stance_buttons_69b89c[5];
 // GLOBAL: WIZ8 0x0069B8B0
 W8DialogButton* g_submenu_buttons_69b8b0[9];
 // GLOBAL: WIZ8 0x0069B8D4
 unsigned char g_submenu_flag_69b8d4;
+/* Roof viewpoint buttons: modes 0, 1 and 2. */
+// GLOBAL: WIZ8 0x0069B8D8
+W8DialogButton* g_roof_buttons_69b8d8[3];
+// GLOBAL: WIZ8 0x0069B8E4
+W8DialogButton* g_options_disk_button_69b8e4;
 /* The name is proven by this file's own assertion. */
 // GLOBAL: WIZ8 0x0069B8E8
 Controls* gpSubMenuPanel;
@@ -118,6 +165,17 @@ void SubMenuButtonSpellView(W8DialogButton* button);
 void SubMenuButtonOpenMenu0(W8DialogButton* button);
 void SubMenuButtonOpenMenu1(W8DialogButton* button);
 void SubMenuButtonToggleCombat(W8DialogButton* button);
+void SubMenuPanelCloseButton(W8DialogButton* button);
+void SubMenuPanelFormationButton(W8DialogButton* button);
+void MainGameOptionsDiskButton(W8DialogButton* button);
+void MainGameCombatConfirmButton(W8DialogButton* button);
+void MainGameCombatStanceSecondary(W8DialogButton* button);
+void MainGameRoofButton0(W8DialogButton* button);
+void MainGameRoofButton1(W8DialogButton* button);
+void MainGameRoofButton2(W8DialogButton* button);
+void MainGameLayoutRadarButton(W8DialogButton* button);
+void MainGameLayoutActionPanelButton(W8DialogButton* button);
+void MainGameLayoutFormationButton(W8DialogButton* button);
 
 /* The per-row select callbacks AssignSubMenuCallback installs. */
 void SubMenuSelectAttack(void);
@@ -559,7 +617,7 @@ unsigned char BuildSubMenuPanel(short notification)
     case 9:
         menu = W8_SUBMENU_MOVE;
         count = 2;
-        left = g_submenu_panel_left_64c378 - 1;
+        left = g_submenu_panel_button_positions_64c378[0][0] - 1;
         break;
     default:
         left = notification;
@@ -1356,6 +1414,380 @@ unsigned char CreateSubMenuScrollButtons(void)
         g_submenu_scroll_buttons_69b858[i]->m_owner_040 = 0;
     }
     return 1;
+}
+
+// FUNCTION: WIZ8 0x005978D0
+void SubMenuPanelCloseButton(W8DialogButton* button)
+{
+    int index;
+
+    if (g_level_block->combat_end_notification != -1) {
+        SetSubMenuButtonTooltips(1);
+        g_level_block->combat_end_notification = -1;
+        g_submenu_entry_count_69b87e = 0;
+        RegionSetDisable(0x27);
+        DisableRegionSetInput(0x27);
+        if (gpSubMenuPanel != 0) {
+            delete gpSubMenuPanel;
+            gpSubMenuPanel = 0;
+        }
+        for (index = 0; index < 5; ++index) {
+            if (g_submenu_rows_69b8ec[index] != 0) {
+                delete g_submenu_rows_69b8ec[index];
+                g_submenu_rows_69b8ec[index] = 0;
+            }
+        }
+        RequestRedraw(0x200);
+    }
+    UpdateScreenOverlays(0);
+    if (BuildSubMenuPanel(9) == 0) {
+        SetSubMenuButtonTooltips(1);
+        g_level_block->combat_end_notification = -1;
+        g_submenu_entry_count_69b87e = 0;
+        RegionSetDisable(0x27);
+        DisableRegionSetInput(0x27);
+        if (gpSubMenuPanel != 0) {
+            delete gpSubMenuPanel;
+            gpSubMenuPanel = 0;
+        }
+        for (index = 0; index < 5; ++index) {
+            if (g_submenu_rows_69b8ec[index] != 0) {
+                delete g_submenu_rows_69b8ec[index];
+                g_submenu_rows_69b8ec[index] = 0;
+            }
+        }
+        RequestRedraw(0x200);
+    }
+    SetSubMenuButtonTooltips(0);
+    g_submenu_clock_69b880 = SetCountdownClock(0);
+    g_submenu_flag_69b8d4 = 0;
+    RequestRedraw(0x200);
+}
+
+// FUNCTION: WIZ8 0x00597A10
+void SubMenuPanelFormationButton(W8DialogButton* button)
+{
+    if (gXStatus.fReviewCharacterMode == 0) {
+        OpenFormationPanel();
+    } else {
+        CloseFormationPanel();
+    }
+}
+
+// FUNCTION: WIZ8 0x00597670
+unsigned char CreateSubMenuPanelButtons(void)
+{
+    int index;
+
+    for (index = 0; index < 2; ++index) {
+        g_submenu_panel_buttons_69b860[index] = new W8DialogButton;
+        if (g_submenu_panel_buttons_69b860[index] == 0) {
+            for (index = 0; index < 2; ++index) {
+                if (g_submenu_panel_buttons_69b860[index] != 0) {
+                    delete g_submenu_panel_buttons_69b860[index];
+                    g_submenu_panel_buttons_69b860[index] = 0;
+                }
+            }
+            return 0;
+        }
+    }
+    g_submenu_panel_buttons_69b860[0]->Configure(g_submenu_icons_path_64c238, 0x21, 0x1e, 0x1f,
+                                                 0x20, 0x22, SubMenuPanelCloseButton, 0, 0, 0x7f,
+                                                 0x4d, 0, 0);
+    g_submenu_panel_buttons_69b860[1]->Configure(g_submenu_icons_path_64c238, 0x26, 0x23, 0x24,
+                                                 0x25, 0x27, SubMenuPanelFormationButton, 0, 1,
+                                                 0x7f, 0x4e, 0, 0);
+    for (index = 0; index < 2; ++index) {
+        g_submenu_panel_buttons_69b860[index]->SetPosition(
+            g_submenu_panel_button_positions_64c378[index][0],
+            g_submenu_panel_button_positions_64c378[index][1]);
+        g_submenu_panel_buttons_69b860[index]->m_owner_040 = 0;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00597B70
+void MainGameOptionsDiskButton(W8DialogButton* button)
+{
+    if (IsLevelDataFlag4EffectivelySet() != 0) {
+        g_pending_screen_state.mode = 3;
+        SetPendingScreenState(W8_SCREEN_OPTIONS);
+    }
+}
+
+// FUNCTION: WIZ8 0x00597A30
+unsigned char CreateOptionsDiskButton(void)
+{
+    g_options_disk_button_69b8e4 = new W8DialogButton;
+    if (g_options_disk_button_69b8e4 == 0) {
+        return 0;
+    }
+    g_options_disk_button_69b8e4->Configure(g_options_disk_path_64c388, 3, 0, 1, 2, 2,
+                                            MainGameOptionsDiskButton, 0, 0, 0x7f, 0x41, 0, 0);
+    g_options_disk_button_69b8e4->SetPosition(g_options_disk_position_64c3b0[0],
+                                              g_options_disk_position_64c3b0[1]);
+    g_options_disk_button_69b8e4->m_owner_040 = 0;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00597E70
+void MainGameCombatConfirmButton(W8DialogButton* button)
+{
+    if (gXStatus.fCombatMode == 0) {
+        return;
+    }
+    if (g_combat_state->flag_000 != 0) {
+        TogglePartyCombatStance();
+        return;
+    }
+    Function4E8370();
+    if (g_settings_6850c8.continuous_combat == 0) {
+        return;
+    }
+    if (ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0) {
+        return;
+    }
+    g_combat_state->combat_ui_timer_7a8 = SetCountdownClock(0);
+}
+
+// FUNCTION: WIZ8 0x00597ED0
+void MainGameCombatStanceSecondary(W8DialogButton* button)
+{
+    if (gXStatus.fCombatMode != 0) {
+        TogglePartyCombatStance();
+    }
+}
+
+// FUNCTION: WIZ8 0x00597B90
+unsigned char CreateCombatStanceButtons(void)
+{
+    int index;
+
+    for (index = 0; index < 5; ++index) {
+        g_combat_stance_buttons_69b89c[index] = new W8DialogButton;
+        if (g_combat_stance_buttons_69b89c[index] == 0) {
+            for (index = 0; index < 5; ++index) {
+                if (g_combat_stance_buttons_69b89c[index] != 0) {
+                    delete g_combat_stance_buttons_69b89c[index];
+                    g_combat_stance_buttons_69b89c[index] = 0;
+                }
+            }
+            return 0;
+        }
+    }
+    g_combat_stance_buttons_69b89c[0]->Configure(g_attack_confirm_path_64c3b8, 3, 0, 1, 2, 2,
+                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
+                                                 MainGameCombatStanceSecondary, 0);
+    g_combat_stance_buttons_69b89c[1]->Configure(g_combat_stop_path_64c3e0, 3, 0, 1, 2, 2,
+                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
+                                                 MainGameCombatStanceSecondary, 0);
+    g_combat_stance_buttons_69b89c[2]->Configure(g_cont_start_path_64c404, 3, 0, 1, 2, 2,
+                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x4f,
+                                                 MainGameCombatStanceSecondary, 0);
+    g_combat_stance_buttons_69b89c[3]->Configure(g_cont_toggle_path_64c428, 3, 0, 1, 2, 2,
+                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x51,
+                                                 MainGameCombatStanceSecondary, 0);
+    g_combat_stance_buttons_69b89c[4]->Configure(g_cont_pending_path_64c44c, 3, 0, 1, 2, 2,
+                                                 MainGameCombatConfirmButton, 0, 0, 0x7f, 0x50,
+                                                 MainGameCombatStanceSecondary, 0);
+    for (index = 0; index < 5; ++index) {
+        g_combat_stance_buttons_69b89c[index]->SetPosition(
+            g_combat_stance_positions_64c478[index][0], g_combat_stance_positions_64c478[index][1]);
+        g_combat_stance_buttons_69b89c[index]->m_owner_040 = 0;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00598270
+void MainGameRoofButton0(W8DialogButton* button)
+{
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_PORTRAITS, 1);
+    RequestRedraw(0x300);
+}
+
+// FUNCTION: WIZ8 0x00598290
+void MainGameRoofButton1(W8DialogButton* button)
+{
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+    RequestRedraw(0x300);
+}
+
+// FUNCTION: WIZ8 0x005982B0
+void MainGameRoofButton2(W8DialogButton* button)
+{
+    ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+    RequestRedraw(0x300);
+}
+
+// FUNCTION: WIZ8 0x00597EE0
+unsigned char CreateRoofButtons(void)
+{
+    int index;
+
+    for (index = 0; index < 3; ++index) {
+        g_roof_buttons_69b8d8[index] = new W8DialogButton;
+        if (g_roof_buttons_69b8d8[index] == 0) {
+            for (index = 0; index < 3; ++index) {
+                if (g_roof_buttons_69b8d8[index] != 0) {
+                    delete g_roof_buttons_69b8d8[index];
+                    g_roof_buttons_69b8d8[index] = 0;
+                }
+            }
+            return 0;
+        }
+    }
+    g_roof_buttons_69b8d8[0]->Configure(g_roof_buttons_path_64c4a0, 9, 0, 6, 3, 6,
+                                        MainGameRoofButton0, 0, 1, 0x7f, 0x38, 0, 0);
+    g_roof_buttons_69b8d8[1]->Configure(g_roof_buttons_path_64c4a0, 10, 1, 7, 4, 7,
+                                        MainGameRoofButton1, 0, 1, 0x7f, 0x39, 0, 0);
+    g_roof_buttons_69b8d8[2]->Configure(g_roof_buttons_path_64c4a0, 0xb, 2, 8, 5, 8,
+                                        MainGameRoofButton2, 0, 1, 0x7f, 0x3a, 0, 0);
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        g_roof_buttons_69b8d8[0]->SetPressed(1);
+    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
+        g_roof_buttons_69b8d8[1]->SetPressed(1);
+    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_roof_buttons_69b8d8[2]->SetPressed(1);
+    }
+    for (index = 0; index < 3; ++index) {
+        g_roof_buttons_69b8d8[index]->SetPosition(g_roof_button_positions_64c4d0[index][0],
+                                                  g_roof_button_positions_64c4d0[index][1]);
+        g_roof_buttons_69b8d8[index]->m_owner_040 = 0;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00598670
+void MainGameLayoutRadarButton(W8DialogButton* button)
+{
+    if (g_level_block->radar_map_visible != 0) {
+        if (g_level_block->formation_board_visible == 0 &&
+            g_level_block->action_panel_visible == 0) {
+            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+            return;
+        }
+        g_settings_6850c8.field_02a = 0;
+        SetRadarMapVisible(0);
+        return;
+    }
+    g_settings_6850c8.field_02a = 1;
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings_6850c8.field_029 = 0;
+        g_settings_6850c8.field_02b = 0;
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        return;
+    }
+    SetRadarMapVisible(1);
+}
+
+// FUNCTION: WIZ8 0x005986E0
+void MainGameLayoutActionPanelButton(W8DialogButton* button)
+{
+    if (g_level_block->action_panel_visible != 0) {
+        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
+            if (g_level_block->radar_map_visible == 0 &&
+                g_level_block->formation_board_visible == 0) {
+                ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+            }
+            g_settings_6850c8.field_029 = 0;
+            SetActionPanelVisible(0);
+            return;
+        }
+        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+            g_settings_6850c8.field_02c = 0;
+        }
+        SetActionPanelVisible(0);
+        return;
+    }
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings_6850c8.field_02a = 0;
+        g_settings_6850c8.field_029 = 1;
+        g_settings_6850c8.field_02b = 0;
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        return;
+    }
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        g_settings_6850c8.field_02c = 1;
+        SetActionPanelVisible(1);
+        return;
+    }
+    g_settings_6850c8.field_029 = 1;
+    SetActionPanelVisible(1);
+}
+
+// FUNCTION: WIZ8 0x005987A0
+void MainGameLayoutFormationButton(W8DialogButton* button)
+{
+    if (g_level_block->formation_board_visible != 0) {
+        if (g_level_block->radar_map_visible == 0 && g_level_block->action_panel_visible == 0) {
+            ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
+            return;
+        }
+        g_settings_6850c8.field_02b = 0;
+        Function569390(0);
+        return;
+    }
+    g_settings_6850c8.field_02b = 1;
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        g_settings_6850c8.field_02a = 0;
+        g_settings_6850c8.field_029 = 0;
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
+        return;
+    }
+    Function569390(1);
+}
+
+// FUNCTION: WIZ8 0x005982D0
+unsigned char CreateLayoutArrowButtons(void)
+{
+    int index;
+
+    for (index = 0; index < 6; ++index) {
+        g_layout_arrow_buttons_69b884[index] = new W8DialogButton;
+        if (g_layout_arrow_buttons_69b884[index] == 0) {
+            for (index = 0; index < 6; ++index) {
+                if (g_layout_arrow_buttons_69b884[index] != 0) {
+                    delete g_layout_arrow_buttons_69b884[index];
+                    g_layout_arrow_buttons_69b884[index] = 0;
+                }
+            }
+            return 0;
+        }
+    }
+    g_layout_arrow_buttons_69b884[0]->Configure(g_layout_arrows_path_64c4e8, 6, 0, 1, -1, 2,
+                                                MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3e, 0, 0);
+    g_layout_arrow_buttons_69b884[1]->Configure(g_layout_arrows_path_64c4e8, 0xe, 8, 9, -1, 10,
+                                                MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3f,
+                                                0, 0);
+    g_layout_arrow_buttons_69b884[2]->Configure(g_layout_arrows_path_64c4e8, 0x16, 0x10, 0x11, -1,
+                                                0x12, MainGameLayoutFormationButton, 0, 0, 0x7f,
+                                                0x40, 0, 0);
+    g_layout_arrow_buttons_69b884[3]->Configure(g_layout_arrows_path_64c4e8, 7, 3, 4, -1, 5,
+                                                MainGameLayoutRadarButton, 0, 0, 0x7f, 0x3b, 0, 0);
+    g_layout_arrow_buttons_69b884[4]->Configure(g_layout_arrows_path_64c4e8, 0xf, 0xb, 0xc, -1, 0xd,
+                                                MainGameLayoutActionPanelButton, 0, 0, 0x7f, 0x3c,
+                                                0, 0);
+    g_layout_arrow_buttons_69b884[5]->Configure(g_layout_arrows_path_64c4e8, 0x17, 0x13, 0x14, -1,
+                                                0x15, MainGameLayoutFormationButton, 0, 0, 0x7f,
+                                                0x3d, 0, 0);
+    for (index = 0; index < 6; ++index) {
+        g_layout_arrow_buttons_69b884[index]->SetPosition(
+            g_layout_arrow_positions_64c518[index][0], g_layout_arrow_positions_64c518[index][1]);
+        g_layout_arrow_buttons_69b884[index]->m_owner_040 = 0;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00598AB0
+void CreateMainGameInterfaceButtons(void)
+{
+    CreateSubMenuButtons();
+    CreateSubMenuScrollButtons();
+    CreateSubMenuPanelButtons();
+    CreateOptionsDiskButton();
+    CreateCombatStanceButtons();
+    CreateRoofButtons();
+    CreateLayoutArrowButtons();
 }
 
 // FUNCTION: WIZ8 0x00596FE0

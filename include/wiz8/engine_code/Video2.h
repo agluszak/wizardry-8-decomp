@@ -124,11 +124,12 @@ struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
-stModelInstance2D* Function424790(int width, int height, const srVector4T<float>* color, char a4);
+stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
+                                              char a4);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
    radar overlay is created through it directly. */
-stModelInstance2D* Function4253F0(int target, const W8ControlsRect* bounds, int a3, int a4,
-                                  char a5);
+stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds, int a3,
+                                                int a4, char a5);
 /* 0x004255C0: wrap the sprite-surface factory - image is a video surface
    handle (or a negative target id), rect an optional source rectangle. */
 stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,

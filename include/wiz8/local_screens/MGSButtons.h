@@ -35,6 +35,10 @@ enum W8SubMenuEntryState {
 extern Controls* gpSubMenuPanel;
 extern W8DialogButton* g_submenu_scroll_buttons_69b858[2];
 extern W8DialogButton* g_submenu_panel_buttons_69b860[2];
+extern W8DialogButton* g_layout_arrow_buttons_69b884[6];
+extern W8DialogButton* g_combat_stance_buttons_69b89c[5];
+extern W8DialogButton* g_roof_buttons_69b8d8[3];
+extern W8DialogButton* g_options_disk_button_69b8e4;
 extern short g_submenu_entry_count_69b87e;
 extern unsigned int g_submenu_clock_69b880;
 extern unsigned char g_submenu_flag_69b8d4;
@@ -55,7 +59,7 @@ extern const int g_submenu_entry_help_ids_64c57c[25];
 extern const char g_submenu_icons_path_64c238[];
 extern const char g_submenu_combat_icons_path_64c260[];
 extern const int g_submenu_button_positions_64c290[9][2];
-extern const int g_submenu_panel_left_64c378;
+extern const int g_submenu_panel_button_positions_64c378[2][2];
 /* Which menu the open sub-menu panel serves (W8SubMenuPage value), each row's
    entry index and each row's W8SubMenuEntryState; the retail storage is
    word-sized, so the enum values ride in shorts. */
@@ -71,6 +75,19 @@ void RefreshSubMenuPanel(char invalidate); /* 0x005963E0 */
 void ResetSubMenuPanel(void); /* 0x00596CF0 */
 /* Create and lay out the two scroll-arrow buttons. */
 unsigned char CreateSubMenuScrollButtons(void); /* 0x00596EC0 */
+/* Create the close/formation panel buttons. */
+unsigned char CreateSubMenuPanelButtons(void); /* 0x00597670 */
+/* Create the options-disk button. */
+unsigned char CreateOptionsDiskButton(void); /* 0x00597A30 */
+/* Create the five combat-stance buttons. */
+unsigned char CreateCombatStanceButtons(void); /* 0x00597B90 */
+/* Create the three roof/viewpoint buttons. */
+unsigned char CreateRoofButtons(void); /* 0x00597EE0 */
+/* Create the six layout-arrow buttons. */
+unsigned char CreateLayoutArrowButtons(void); /* 0x005982D0 */
+/* MainGameScreenEnter's interface-button bank: submenu, scroll, panel,
+   options disk, combat stance, roof, and layout arrows. */
+void CreateMainGameInterfaceButtons(void); /* 0x00598AB0 */
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */
 void DrawSubMenuCharacterAction(void); /* 0x00596FE0 */
@@ -103,8 +120,7 @@ void MapSubMenuSelection(short menu, short item); /* 0x00596240 */
    USABLE/UNUSABLE or the _SELECTED variant when it is already queued. */
 W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot); /* 0x00596360 */
 /* The row availability states the refresh maps icon frames through. */
-W8SubMenuEntryState GetSubMenuEntryState(short menu, short item,
-                                         int party_slot); /* 0x00595FE0 */
+W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot); /* 0x00595FE0 */
 
 /* Applies SetTooltipEnabled to all nine bank buttons, both scroll arrows and
    both panel buttons; the submenu rebuild paths call it around teardown. */

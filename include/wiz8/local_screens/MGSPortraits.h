@@ -46,11 +46,17 @@ static_assert(offsetof(W8ConditionButton, m_ui_slot_c0) == 0xc0, "W8ConditionBut
 
 void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);
-void Function59B940(void);
+/* Create the eight level-up portrait buttons (gpLevelButtons) and their panel. */
+void CreateLevelButtons(void);                                   /* 0x0059B940 */
 void ToggleNumericHitPoints(void);                               /* 0x0059AA30 */
 void CreateConditionButtons(void);                               /* 0x0059BDB0 */
+void DisablePortraitControls0059BB40(void);                      /* 0x0059BB40 */
 void EnablePortraitAdvanceRegions0059BB70(void);                 /* 0x0059BB70 */
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 */
+/* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
+   the current layout. SyncMainGameModeRegions picks between them. */
+void DisableConditionButtons0059C030(void);
+void EnableConditionButtons0059BFC0(void);
 
 /* Main-game portrait overlay helpers used when a party slot refreshes. */
 unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int flags,

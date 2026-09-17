@@ -92,7 +92,7 @@
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/string_database.h"
-#include "wiz8/local_screens/IntroScreen.h"
+#include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/layouts/character.h"
@@ -105,11 +105,13 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "vobject_blitters.h"
 #include "random.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,8 +160,22 @@ unsigned char g_flag_00685076;
 // GLOBAL: WIZ8 0x00685077
 signed char g_value_00685077;
 
+// GLOBAL: WIZ8 0x0068edb0
+unsigned int g_mouselook_last_tick_0068edb0;
+// GLOBAL: WIZ8 0x0068edb4
+unsigned char g_mouselook_tick_init_0068edb4;
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
+
+// GLOBAL: WIZ8 0x0068ede0
+float g_mouselook_pending_yaw_0068ede0;
+// GLOBAL: WIZ8 0x0068ede4
+float g_mouselook_pending_pitch_0068ede4;
+
+// GLOBAL: WIZ8 0x005ee9a0
+const float g_mouselook_smooth_max_005ee9a0 = 0.39269906f;
+// GLOBAL: WIZ8 0x005ee9a4
+const float g_mouselook_smooth_min_005ee9a4 = 0.006135923f;
 
 // GLOBAL: WIZ8 0x0068edc8
 unsigned char g_flag_0068edc8;
@@ -268,13 +284,12 @@ unsigned char g_navigator_position_changed_659c11;
 // GLOBAL: WIZ8 0x006840BB
 unsigned char g_flag_006840bb;
 
-void Function568C40(void);
-void Function569CC0(void);
+void ApplyPendingMouselook(void);
+void ApplyPendingTooltip(void);
 void Function5A6970(void);
 unsigned char Function5A6790(void);
 void Function5A68C0(void);
 void Function50B3B0(int value);
-void Function5542E0(void);
 void Function59A3A0(void);
 void Function575C50(void);
 void Function577560(void);
@@ -324,6 +339,15 @@ unsigned char Function57E3C0(void);
 void ProcessLockInteractMode(void)
 {
     g_lock_interaction_68f2c0->Process();
+}
+
+/* Re-arm the lock tumbler and action region sets while lock interact is up. */
+// FUNCTION: WIZ8 0x00587C20
+void EnableLockInteractionPanels(void)
+{
+    if (g_lock_interaction_68f2c0 != 0) {
+        g_lock_interaction_68f2c0->EnablePanels(1);
+    }
 }
 
 // FUNCTION: WIZ8 0x005854B0
@@ -2116,6 +2140,15 @@ void W8MainGameScreen::EnablePanelRegionSets(bool enable)
     m_action_panel_014->EnableRegionSet(enable);
 }
 
+/* Re-arm the trap text/action panel region sets while trap interact is up. */
+// FUNCTION: WIZ8 0x0058A880
+void EnableTrapInteractionPanelRegions(void)
+{
+    if (g_main_game_screen != 0) {
+        g_main_game_screen->EnablePanelRegionSets(true);
+    }
+}
+
 // FUNCTION: WIZ8 0x0058a060
 void W8MainGameScreen::ApplyInspectSuccess()
 {
@@ -3031,9 +3064,9 @@ unsigned char MainGameScreenEnter(void)
     gXStatus.unknown_026[1] = 1;
     MSYS_Init();
     ResetRegions();
-    Function598AB0();
-    Function5AE9D0();
-    Function59B940();
+    CreateMainGameInterfaceButtons();
+    CreateSpellIconHudControls();
+    CreateLevelButtons();
     CreateConditionButtons();
     InitializeMainGameLevelBlock();
     ScrollTextBoxToCursor();
@@ -3211,8 +3244,8 @@ void MainGameScreenFrame(void)
         g_build_level_links_0065bd2c = 0;
     }
 update_screen:
-    Function568C40();
-    Function569CC0();
+    ApplyPendingMouselook();
+    ApplyPendingTooltip();
     if (IsMessageBoxActive() || g_modal_owner_0068edd0) {
         if (g_flag_0068edd8) {
             SetFlag603C60();
@@ -3244,7 +3277,7 @@ update_screen:
         SyncDialogueNpcStateAndMarkPending00577220();
     }
     if (!IsScreenBusy()) {
-        Function5542E0();
+        FlushDeferredSkillNotices();
     }
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.fEncumbranceDirty) {
         RedistributePartyEncumbrance();
@@ -3662,7 +3695,7 @@ unsigned char MainGameScreenLeave(int leaving)
     g_monster_shadow_updates_enabled_0065970c = 0;
     DisableSky();
     Function598AE0();
-    Function5AEB20();
+    DestroySpellIconHudControls();
     return 1;
 }
 
@@ -4396,6 +4429,105 @@ void DisableMainRegionSet(void)
     DisableRegionSetInput(W8_REGION_SET_MAIN);
 }
 
+/* Re-arm the main-game region sets after ResetRegions: pick the viewport and
+   layout band from the current mode, then re-enable whichever overlays are
+   up (combat portraits, condition buttons, spell/NPC/lock/trap/formation/
+   radar, party movement, review, keyboard menu, combat submenu). */
+// FUNCTION: WIZ8 0x00561FD0
+void SyncMainGameModeRegions(void)
+{
+    SetMouseCursorHotspot(0, 0);
+    SyncSystemCursor();
+    RegionSetEnable(0x28);
+    if (g_level_block->value_284 == 0) {
+        DisableRegionInput(0xe5);
+    } else {
+        EnableRegionInput(0xe5);
+    }
+
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        SetViewportMode(GetMainGameViewportMode());
+        RegionSetEnable(0xf);
+    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
+        SetViewportMode(GetMainGameViewportMode());
+        RegionSetEnable(0x10);
+    } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        SetViewportMode(GetMainGameViewportMode());
+        RegionSetEnable(0x11);
+    }
+
+    RefreshPartySlotRegions();
+    if (gXStatus.fCombatMode == 0) {
+        RegionSetDisable(4);
+        DisableRegionSetInput(4);
+        EnablePortraitAdvanceRegions0059BB70();
+    } else {
+        RegionSetEnable(4);
+        DisablePortraitControls0059BB40();
+    }
+    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+        DisableConditionButtons0059C030();
+    } else {
+        EnableConditionButtons0059BFC0();
+    }
+
+    if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR) {
+        if (g_level_block->action_panel_visible != 0) {
+            RegionSetEnable(0x14);
+            EnableRegionInput(0x59);
+            EnableRegionInput(0x52);
+            EnableRegionInput(0x53);
+            EnableRegionInput(0x54);
+            EnableRegionInput(0x55);
+            EnableRegionInput(0x56);
+            EnableRegionInput(0x57);
+            EnableRegionInput(0x58);
+        }
+        if (gXStatus.fSpellCastMode != 0) {
+            RegionSetEnable(0x19);
+            RestoreSpellCastingRegions();
+        } else if (gXStatus.fNpcDialogueMode != 0 && CanOpenNpcDialogue() == 0) {
+            RegionSetEnable(0x18);
+        } else if (gXStatus.fItemSelectMode != 0) {
+            RegionSetEnable(0x1a);
+            RestoreSpellCastingRegions();
+        } else if (gXStatus.fLockInteractMode != 0) {
+            EnableLockInteractionPanels();
+        } else if (gXStatus.fTrapInteractMode != 0) {
+            EnableTrapInteractionPanelRegions();
+        } else {
+            if (g_level_block->formation_board_visible != 0) {
+                RegionSetEnable(0x13);
+            }
+            if (g_level_block->radar_map_visible != 0) {
+                RegionSetEnable(0x12);
+            }
+        }
+    }
+
+    if (gXStatus.fPartyMovementUi != 0 && g_flag_006840bc == 0) {
+        UpdatePartyMovementPanel();
+    }
+    if (gXStatus.fReviewCharacterMode != 0) {
+        RegionSetEnable(0x1b);
+    }
+    if (g_level_block->keyboard_menu_open != 0) {
+        EnableKeyboardMenuInput();
+    }
+    if (g_level_block->combat_end_notification != -1) {
+        EnableSubMenuRegions();
+    }
+    if (g_level_block != 0) {
+        if (gXStatus.fCombatMode != 0) {
+            g_level_block->refresh_combat_panel = 1;
+        }
+        g_level_block->refresh_party_panel = 1;
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x100;
+    }
+}
+
 /* Clear whatever the screen was waiting on and hand the tenth reason to the
    frame. */
 // FUNCTION: WIZ8 0x00565970
@@ -4531,6 +4663,142 @@ void DisableCombatRegions(void)
         DisableRegionInput(0x59);
         RegionSetDisable(0x14);
     }
+}
+
+/* Drain the pending mouselook yaw/pitch into the camera, optionally scaling
+   mid-range deltas by frame time when mouselook smoothing is enabled. */
+// FUNCTION: WIZ8 0x00568C40
+void ApplyPendingMouselook(void)
+{
+    unsigned int now;
+    unsigned int elapsed;
+    float scale;
+    float pitch_step;
+    float yaw_step;
+    float yaw;
+    float pitch;
+
+    if ((g_mouselook_tick_init_0068edb4 & 1) == 0) {
+        g_mouselook_tick_init_0068edb4 =
+            static_cast<unsigned char>(g_mouselook_tick_init_0068edb4 | 1);
+        g_mouselook_last_tick_0068edb0 = GetTickCount();
+    }
+    now = GetTickCount();
+    elapsed = now - g_mouselook_last_tick_0068edb0;
+    g_mouselook_last_tick_0068edb0 = now;
+    scale = g_generator_jitter_fraction;
+    if (elapsed > 9 && elapsed < 0x33) {
+        scale = (elapsed / 10) * g_generator_jitter_fraction;
+    } else if (elapsed > 9) {
+        scale = g_float_005ebb38;
+    }
+    if (g_mouselook_pending_pitch_0068ede4 == g_float_005ebb34 &&
+        g_mouselook_pending_yaw_0068ede0 == g_float_005ebb34) {
+        return;
+    }
+    if (g_settings_6850c8.mouselook_smoothing == 0) {
+        pitch_step = g_mouselook_pending_pitch_0068ede4;
+        yaw_step = g_mouselook_pending_yaw_0068ede0;
+    } else {
+        if (fabs(g_mouselook_pending_pitch_0068ede4) < g_mouselook_smooth_min_005ee9a4 ||
+            fabs(g_mouselook_pending_pitch_0068ede4) > g_mouselook_smooth_max_005ee9a0) {
+            pitch_step = g_mouselook_pending_pitch_0068ede4;
+        } else {
+            pitch_step = g_mouselook_pending_pitch_0068ede4 * scale;
+        }
+        if (fabs(g_mouselook_pending_yaw_0068ede0) < g_mouselook_smooth_min_005ee9a4 ||
+            fabs(g_mouselook_pending_yaw_0068ede0) > g_mouselook_smooth_max_005ee9a0) {
+            yaw_step = g_mouselook_pending_yaw_0068ede0;
+        } else {
+            yaw_step = g_mouselook_pending_yaw_0068ede0 * scale;
+        }
+    }
+    GetCameraOrientation(&yaw, &pitch);
+    yaw += yaw_step;
+    pitch += pitch_step;
+    g_mouselook_pending_pitch_0068ede4 -= pitch_step;
+    g_mouselook_pending_yaw_0068ede0 -= yaw_step;
+    SetCameraOrientation(&yaw, &pitch, 0);
+}
+
+/* After the tooltip delay elapses, clear any previous highlight slots (and
+   redraw them), then park the pending subject on the slot its kind selects. */
+// FUNCTION: WIZ8 0x00569CC0
+void ApplyPendingTooltip(void)
+{
+    bool refresh_formation = false;
+
+    if (g_level_block->tooltip_pending == 0) {
+        return;
+    }
+    if (GetTickCount() - g_level_block->tooltip_since < 0x33) {
+        return;
+    }
+    if (g_level_block->highlight_override != -1) {
+        RequestRedraw(1u << (g_level_block->highlight_override & 0x1f));
+        g_level_block->highlight_override = -1;
+    }
+    if (g_level_block->party_slots_170[0] != -1) {
+        RequestRedraw(1u << (g_level_block->party_slots_170[0] & 0x1f));
+        g_level_block->party_slots_170[0] = -1;
+    }
+    if (g_level_block->party_slots_170[1] != -1) {
+        RequestRedraw(1u << (g_level_block->party_slots_170[1] & 0x1f));
+        g_level_block->party_slots_170[1] = -1;
+    }
+    if (g_level_block->party_slots_170[2] != -1) {
+        RequestRedraw(1u << (g_level_block->party_slots_170[2] & 0x1f));
+        g_level_block->party_slots_170[2] = -1;
+    }
+    if (g_level_block->party_slots_170[3] != -1) {
+        RequestRedraw(1u << (g_level_block->party_slots_170[3] & 0x1f));
+        g_level_block->party_slots_170[3] = -1;
+    }
+    if (g_level_block->party_slots_170[5] != -1) {
+        RequestRedraw(1u << (g_level_block->party_slots_170[5] & 0x1f));
+        g_level_block->party_slots_170[5] = -1;
+    }
+    if (g_level_block->formation_highlight_party_slot != -1) {
+        RequestRedraw(1u << (g_level_block->formation_highlight_party_slot & 0x1f));
+        g_level_block->formation_highlight_party_slot = -1;
+        refresh_formation = true;
+    }
+    if (g_level_block->tooltip_subject != -1) {
+        RequestRedraw(1u << (g_level_block->tooltip_subject & 0x1f));
+        switch (g_level_block->tooltip_kind) {
+        case 0:
+            g_level_block->highlight_override = g_level_block->tooltip_subject;
+            break;
+        case 1:
+            g_level_block->party_slots_170[0] = g_level_block->tooltip_subject;
+            break;
+        case 2:
+            g_level_block->party_slots_170[1] = g_level_block->tooltip_subject;
+            break;
+        case 3:
+            g_level_block->party_slots_170[2] = g_level_block->tooltip_subject;
+            break;
+        case 4:
+            g_level_block->party_slots_170[3] = g_level_block->tooltip_subject;
+            break;
+        case 5:
+            g_level_block->party_slots_170[5] = g_level_block->tooltip_subject;
+            break;
+        case 6:
+            g_level_block->formation_highlight_party_slot = g_level_block->tooltip_subject;
+            refresh_formation = true;
+            break;
+        case 7:
+            g_level_block->formation_highlight_party_slot = g_level_block->tooltip_subject;
+            break;
+        }
+    }
+    if (refresh_formation) {
+        RefreshFormationBoard();
+    }
+    g_level_block->tooltip_pending = 0;
+    g_level_block->tooltip_subject = -1;
+    g_level_block->tooltip_kind = -1;
 }
 
 /* Raise or drop the radar map panel and restore the viewport mode when the

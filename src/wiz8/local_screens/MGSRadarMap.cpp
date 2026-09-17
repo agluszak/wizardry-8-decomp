@@ -124,7 +124,7 @@ void EnsureRadarMapOverlay(void)
         bounds.top = 0x166;
         bounds.right = 0x80;
         bounds.bottom = 0x1c2;
-        g_radar_backdrop_0069bf58 = Function4253F0(-0xe, &bounds, 0, 0, 1);
+        g_radar_backdrop_0069bf58 = CreateSpriteFromVideoSurface(-0xe, &bounds, 0, 0, 1);
         PositionToolTipNode(g_radar_backdrop_0069bf58, 0x17, 0x166, 0);
         g_radar_backdrop_0069bf58->render_state_164.display_state = 4;
     }
@@ -302,7 +302,7 @@ void RefreshRadarMap(void)
         color.y = g_radar_blip_colors_0064ca90[sector][1];
         color.z = g_radar_blip_colors_0064ca90[sector][2];
         color.w = 1.0f;
-        icon = Function424790(2, 2, &color, 0);
+        icon = CreateColoredPolygonSprite(2, 2, &color, 0);
         g_radar_icon_pools_0069bf68[sector].Add(icon);
         icon->state_160 |= 1;
     }

@@ -56,6 +56,8 @@
 #include "soundman.h"
 #include "vobject.h"
 #include "vobject_blitters.h"
+#include "vsurface.h"
+#include "wiz8/local_code/ControlsRect.h"
 
 #include <direct.h>
 #include <math.h>
@@ -70,6 +72,13 @@
    they are declared here instead of the released Video2 header. */
 srNode* Function424BA0(srTextureIFace* texture, float width, float height,
                        unsigned char positional_3);
+srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
+                                            srNode* parent, unsigned char overlay);
+srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
+                                      unsigned char overlay);
+unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* source,
+                                    int source_pitch, float* scale_x, float* scale_y,
+                                    float* mapping_x, float* mapping_y);
 void SaveJpegScreenshot(void);
 void FlushDirtyTiles00425B40(void);
 
@@ -1183,8 +1192,7 @@ unsigned long float_bits(float value)
 // FUNCTION: WIZ8 0x00424EB0
 srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,
                                   double height, float mapping_x, float mapping_y,
-                                  float mapping_width, float mapping_height,
-                                  unsigned char overlay)
+                                  float mapping_width, float mapping_height, unsigned char overlay)
 {
     srMeshModel* model;
     srTextureMap* texture;
@@ -2527,11 +2535,199 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     instance->render_state_164.bottom = (short)y;
 }
 
+/* Builds a square power-of-two polygon brush from a surface rectangle. The
+   larger source extent (including a one-pixel border) is rounded up to 16..256,
+   then CopySurfaceWithBorder / MakePolygonBrush install it on the square
+   overlay scene. */
+// FUNCTION: WIZ8 0x00424560
+srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
+                                            srNode* parent, unsigned char overlay)
+{
+    int extent = (rect[3] - rect[1]) + 2;
+    int width_extent = (rect[2] - rect[0]) + 2;
+    double width = rect[2] * g_double_005ebe90 - rect[0] * g_double_005ebe90;
+    if (extent < width_extent) {
+        extent = width_extent;
+    }
+    if (extent <= 0x100) {
+        unsigned long size;
+        if (extent > 0x80) {
+            size = 0x100;
+        } else if (extent > 0x40) {
+            size = 0x80;
+        } else if (extent > 0x20) {
+            size = 0x40;
+        } else {
+            size = ((extent <= 0x10) - 1 & 0x10) + 0x10;
+        }
+
+        srColorSurface* surface =
+            SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_ARGB1555, size, size);
+        surface->autoRelease();
+        surface->fill(0);
+        surface->setFilter(&srBoxFilter);
+
+        float scale_x;
+        float scale_y;
+        float mapping_x;
+        float mapping_y;
+        if (CopySurfaceWithBorder(surface, rect, source, source_pitch, &scale_x, &scale_y,
+                                  &mapping_x, &mapping_y)) {
+            srModelInstance* node = MakePolygonBrush(parent, surface, width, width, scale_x,
+                                                     scale_y, mapping_x, mapping_y, overlay);
+            node->setName("Video2DRectToSquarePolygon");
+            stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
+            instance->render_state_164.display_state = static_cast<unsigned char>(g_index_6596e4);
+            instance->state_160 |= 1;
+            instance->render_state_164.left = static_cast<short>(size);
+            instance->render_state_164.top = static_cast<short>(size);
+            PositionToolTipNode(node, rect[0], rect[1], 0);
+            return node;
+        }
+        surface->release();
+    }
+    return 0;
+}
+
+/* Locks a video surface (or negative target id), copies the requested rectangle
+   into either the user overlay polygon path or the square overlay path, and
+   records the resulting 2D instance extents. */
+// FUNCTION: WIZ8 0x004253F0
+stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect* bounds, int a3,
+                                                int /*a4*/, char a5)
+{
+    HVSURFACE surface;
+    unsigned short width;
+    unsigned short height;
+    int source_rect[4];
+    UINT32 pitch;
+    BYTE* pixels;
+    srModelInstance* node;
+    stModelInstance2D* instance;
+    char mode = static_cast<char>(a3);
+
+    if (!GetVideoSurface(&surface, static_cast<UINT32>(target))) {
+        return 0;
+    }
+    if (bounds == 0) {
+        source_rect[0] = 0;
+        source_rect[1] = 0;
+        source_rect[2] = surface->usWidth;
+        source_rect[3] = surface->usHeight;
+        width = surface->usWidth;
+        height = surface->usHeight;
+    } else {
+        width = static_cast<unsigned short>(static_cast<short>(bounds->right) -
+                                            static_cast<short>(bounds->left));
+        height = static_cast<unsigned short>(static_cast<short>(bounds->bottom) -
+                                             static_cast<short>(bounds->top));
+        source_rect[0] = bounds->left;
+        source_rect[1] = bounds->top;
+        source_rect[2] = bounds->right;
+        source_rect[3] = bounds->bottom;
+        if (width > surface->usWidth) {
+            return 0;
+        }
+        if (height > surface->usHeight) {
+            return 0;
+        }
+    }
+    if (width > 0x100 || height > 0x100) {
+        return 0;
+    }
+    pixels = LockVideoSurface(static_cast<UINT32>(target), &pitch);
+    if (pixels == 0) {
+        return 0;
+    }
+    if (mode != 0) {
+        node = Video2DRectToSquarePolygon(source_rect, pixels, static_cast<int>(pitch),
+                                          g_scene_square_65965c, a5);
+    } else {
+        node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch),
+                                    g_scene_user_659640, a5);
+        g_dword_6596f0 = 2;
+    }
+    g_dword_6596ec = 2;
+    UnLockVideoSurface(static_cast<UINT32>(target));
+    instance = static_cast<stModelInstance2D*>(node);
+    if (instance != 0) {
+        if (mode != 0) {
+            unsigned short extent = width;
+            if (width <= height) {
+                extent = height;
+            }
+            instance->render_state_164.top = extent;
+            if (width <= height) {
+                width = height;
+            }
+        } else {
+            instance->render_state_164.top = height;
+        }
+        instance->render_state_164.left = width;
+    }
+    /* Retail writes display_state even when the node factory returned null. */
+    instance->render_state_164.display_state = 3;
+    return instance;
+}
+
+/* Builds a solid-color quad sprite. Width/height are pixel counts; color becomes
+   the material emissive. Radar blip templates are the observed callers. */
+// FUNCTION: WIZ8 0x00424790
+stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
+                                              char a4)
+{
+    double scale_x = width * g_double_005ebe90;
+    double scale_y = height * g_double_005ebe88;
+    srMeshModel* model = SR_NEW(srMeshModel)(0L, 0L);
+    model->autoRelease();
+
+    g_modeler_65963c->createGrid(1, 1);
+    srVector3T<float> scale;
+    scale.x = static_cast<float>(scale_x);
+    scale.y = static_cast<float>(scale_y);
+    scale.z = 1.0f;
+    g_modeler_65963c->scale(scale);
+    g_modeler_65963c->convert(*model, 1);
+    g_modeler_65963c->discard();
+
+    srMaterial* material = SR_NEW(srMaterial)();
+    material->autoRelease();
+    material->setEmissive(*color);
+    srVector4T<float> zero;
+    zero.x = 0.0f;
+    zero.y = 0.0f;
+    zero.z = 0.0f;
+    zero.w = 0.0f;
+    material->setDiffuse(zero);
+    material->setSpecular(zero);
+    material->parms_18.shininess = 1.0f;
+    material->parms_18.diffuse.w = 1.0f;
+    material->dirty_74 = 1;
+    model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
+
+    stModelInstance2D* instance = new stModelInstance2D(g_scene_user_659640);
+    instance->setName("Video2DPolyColored");
+    instance->SetModel0047F3A0(model);
+    instance->setRotation(0.0, 0.0, 0.0);
+
+    srShader shader;
+    shader.value = 0x2417;
+    model->setShader(shader, 0);
+
+    instance->render_state_164.left = static_cast<short>(width);
+    instance->render_state_164.top = static_cast<short>(height);
+    instance->render_state_164.display_state = 3;
+    if (a4 != 0) {
+        instance->setParent(g_scene_fullscreen_659644, 1);
+    }
+    return instance;
+}
+
 // FUNCTION: WIZ8 0x004255c0
 stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsRect* rect, int mode,
                                            int arg_4, int arg_5)
 {
-    return Function4253F0(image, rect, mode, arg_4, arg_5);
+    return CreateSpriteFromVideoSurface(image, rect, mode, arg_4, arg_5);
 }
 
 // FUNCTION: WIZ8 0x004257D0

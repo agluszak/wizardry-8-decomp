@@ -853,24 +853,27 @@ unsigned char ProcessMainGameInput(void);                   /* 0x005684E0 */
    party add/remove entries and the keyboard menu's close run it. */
 void RefreshPartySlotRegions(void);
 /* 0x00561FD0: re-sync mouse hotspot, region enables and viewport after a
-   main-game mode change. Declared for ApplyMainGameModeFlag; body unrecovered. */
+   main-game mode change. */
 void SyncMainGameModeRegions(void);
 void ClearHighlightOverlayRegion(void); /* 0x00563DD0 */
 void DismissHighlightOverlay(void);     /* 0x00563EB0 */
 /* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
    points hand it the slot, a content row count and a minimum plate width. */
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width);
-void SelectPartyCharacter(int party_slot); /* 0x00565740 */
-void Function56EE20(int party_slot);       /* 0x0056EE20 */
-void Function587A30(void);                 /* 0x00587A30 */
-void Function58A860(void);                 /* 0x0058A860 */
-void OpenAutomapScreen(void);              /* 0x00561480 */
+void SelectPartyCharacter(int party_slot);    /* 0x00565740 */
+void Function56EE20(int party_slot);          /* 0x0056EE20 */
+void Function587A30(void);                    /* 0x00587A30 */
+void EnableLockInteractionPanels(void);       /* 0x00587C20 */
+void Function58A860(void);                    /* 0x0058A860 */
+void EnableTrapInteractionPanelRegions(void); /* 0x0058A880 */
+void OpenAutomapScreen(void);                 /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
-void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
-void ClearScreenWait(void);              /* 0x00565970 */
-void Function568390(int value);          /* 0x00568390 */
-void ToggleMainGamePause(void);          /* 0x0056ABE0 */
+void ClearPortraitRefreshSlot(int slot);   /* 0x00561DB0 */
+void ClearScreenWait(void);                /* 0x00565970 */
+void Function568390(int value);            /* 0x00568390 */
+void Function569390(unsigned char enable); /* 0x00569390: formation board */
+void ToggleMainGamePause(void);            /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
    TryMGSActionKey share: the interface commands map to views and recorded
    actions, the combat commands map to ChooseAction selections, and
@@ -972,8 +975,7 @@ void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
 void DisableMainRegionSet(void);               /* 0x00561FB0 */
 void EnableMainRegionSet(void);                /* 0x00561FA0 */
 unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
-void Function598AB0(void);
-void OpenUseItemSelectView(int slot); /* 0x0059C930 */
+void OpenUseItemSelectView(int slot);          /* 0x0059C930 */
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);

@@ -6,6 +6,7 @@ void InitializeMainGameLevelBlock(void);               /* 0x0055F2C0 */
 void SetTargetCursor(int cursor);                      /* 0x0055EE70 */
 void ApplyCurrentCursor(void);                         /* 0x0055F080 */
 void RequestPartySlotRedraw(int bit);                  /* 0x0055EE30 */
+unsigned char GetTable647CCCEntry(char index);         /* 0x0055F2B0 */
 unsigned char ScreenLifecycleSuccess(void);
 void NoOp(void);
 int GetPendingScreenState(void);
