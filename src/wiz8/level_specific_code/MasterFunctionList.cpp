@@ -21,6 +21,7 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/layouts/world.h"
@@ -62,6 +63,11 @@ W8WorldCursorNode* g_active_cursor_node_006834d4;
 W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;
 // GLOBAL: WIZ8 0x006834dc
 unsigned char g_flag_006834dc;
+
+/* SGP full-volume scale: CreateAndPlaySoundNode multiplies its clamped
+   loudness fraction by this to get the node's base volume. */
+// GLOBAL: WIZ8 0x005EC510
+const float g_float_005ec510 = 127.0f;
 
 /* Run every registered master function once with argument zero, dropping the
    ones that set the removal flag while it runs. */
@@ -114,6 +120,31 @@ W8MonsterGroup* SpawnMonsters(int monster_id, int count, srVector3T<float>* posi
         RefreshOutwardSightForAllMonsters();
     }
     return group;
+}
+
+/* The level callbacks' one-shot positional sound: reject a negative
+   loudness fraction, clamp anything above one, then create the node at the
+   requested spot, scale its base volume and falloff and start playback. */
+// FUNCTION: WIZ8 0x004D8F80
+stSound3D* CreateAndPlaySoundNode(char* sound_name, srVector3T<float> position, float volume,
+                                  float scale, unsigned char play_flag)
+{
+    if (volume > g_float_005ebb38) {
+        volume = 1.0f;
+    } else if (volume < g_float_005ebb34) {
+        return 0;
+    }
+
+    stSound3D* sound = new stSound3D(sound_name, 0);
+    if (sound != 0) {
+        srVector3T<double> sound_position;
+        sound_position.Set(position.x, position.y, position.z);
+        sound->setLocation(sound_position);
+        sound->volume = static_cast<int>(volume * g_float_005ec510);
+        sound->falloff = scale * g_world_scale_005ebc40;
+        sound->Play(play_flag, 1);
+    }
+    return sound;
 }
 
 /* One row of the cursor-node dispatch table at 0x006109F4, indexed by the

@@ -49,6 +49,11 @@ static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");
 
 void SetWorld659AB8(W8World* world);
 
-void Function44E830(W8World* world, int handle);
-void Function44E9A0(W8World* world, int handle);
+/* APST chunk: serialize every world prop's animation state. The record is a
+   fixed 64-byte name plus the six rep bytes LoadAnimationState0044DBD0 reads. */
+void SaveWorldProps0044E830(W8World* world, int handle);
+/* APST chunk: restore saved prop animation state. The 0xDEADD00D signature
+   selects the name-keyed format; older saves carry a bare count plus the
+   object's unknown_008 key. Unmatched records are consumed by a scratch prop. */
+void LoadWorldProps0044E9A0(W8World* world, int handle);
 void UpdateCameraPathStateByName(W8World* world, const char* name, int active);

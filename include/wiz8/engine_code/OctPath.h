@@ -8,6 +8,7 @@
 #include <stddef.h>
 
 class stModelInstance;
+class GDProp;
 class GDPreProp;
 class OctPrePathLog;
 struct CondPathNode;
@@ -194,8 +195,8 @@ public:
                                        float separation);
     unsigned int StepMonsterAlongPath00467150(W8NavigatorMovementState* movement, float radius,
                                               float separation);
-    void LinkSurfaces00460020(); /* 0x00460020 */
-    void LinkEdges004600B0();    /* 0x004600B0 */
+    void LinkSurfaces00460020(GDProp* prop); /* 0x00460020 */
+    void LinkEdges004600B0(GDProp* prop);    /* 0x004600B0 */
     void CheckConditionalWayPtStatus004601B0(unsigned short count, unsigned short* waypoints);
     void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
     void SetConditionalPathFrame00457EA0(unsigned int path_handle, short frame);

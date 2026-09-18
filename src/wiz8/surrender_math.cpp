@@ -47,6 +47,9 @@
 // TEMPLATE: WIZ8 0x0049BA80
 // srVector3T<float>::RotateAboutX
 
+// TEMPLATE: WIZ8 0x0044EC60
+// srVector3T<float>::operator==
+
 // TEMPLATE: WIZ8 0x004219F0
 // srMatrix3T<float>::SetRows
 

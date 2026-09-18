@@ -2,10 +2,15 @@
 /* Engine Code\GDProp.cpp */
 
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/ReadMesh.h"
+#include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/float_constants.h"
+#include "wiz8/layouts/world.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "surrender/srHeap.h"
@@ -46,8 +51,8 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
 
     if (instance != 0) {
         if (m_path_handle_04 != 0 && g_octree_6598a4->pathing_180 != 0) {
-            g_octree_6598a4->pathing_180->LinkSurfaces00460020();
-            g_octree_6598a4->pathing_180->LinkEdges004600B0();
+            g_octree_6598a4->pathing_180->LinkSurfaces00460020(this);
+            g_octree_6598a4->pathing_180->LinkEdges004600B0(this);
         }
         Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
     }
@@ -268,6 +273,33 @@ void GDProp::BindTrigger(Trigger* owner)
     }
 }
 
+/* Scan the transformed vertices for the axis-aligned bounds. The cached box
+   feeds the path bookkeeping range/sentinel and is also copied out for the
+   caller. */
+// FUNCTION: WIZ8 0x004b7500
+void GDProp::ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>* maximum)
+{
+    m_bound_max_40 = m_pVertices[0];
+    m_bound_min_34 = m_pVertices[0];
+    for (int vertex = 1; vertex < m_vertex_count_18; ++vertex) {
+        for (int axis = 0; axis < 3; ++axis) {
+            if ((&m_bound_min_34.x)[axis] > (&m_pVertices[vertex].x)[axis]) {
+                (&m_bound_min_34.x)[axis] = (&m_pVertices[vertex].x)[axis];
+            }
+            if ((&m_bound_max_40.x)[axis] < (&m_pVertices[vertex].x)[axis]) {
+                (&m_bound_max_40.x)[axis] = (&m_pVertices[vertex].x)[axis];
+            }
+        }
+    }
+
+    m_path_range_28 = m_bound_min_34.y;
+    m_path_range_30 = m_bound_max_40.y;
+    m_path_sentinel_2c = (m_bound_min_34.y + m_bound_max_40.y) * g_float_005ebc7c;
+
+    *minimum = m_bound_min_34;
+    *maximum = m_bound_max_40;
+}
+
 /* The pathing record supplies inclusive unsigned coordinate bounds at
    +0x4c..+0x52. */
 // FUNCTION: WIZ8 0x004B75F0
@@ -280,6 +312,161 @@ unsigned char GDProp::ContainsPathCoordinate004B75F0(unsigned short x, unsigned 
     return 0;
 }
 
+/* Box overlap test against every surface triangle: the query bounds are
+   copied into a local two-vector box and each surface's three vertices are
+   gathered into a triangle before the spatial triangle test runs. */
+// FUNCTION: WIZ8 0x004b7620
+char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
+                                   const srVector3T<float>* maximum)
+{
+    srVector3T<float> bounds[2];
+    srVector3T<float> triangle[3];
+    unsigned char hit = 0;
+
+    bounds[0] = *minimum;
+    bounds[1] = *maximum;
+    for (int index = 0; index < m_surface_count_14 && hit == 0; ++index) {
+        W8GDSurface* surface = &m_pGDSurfaces[index];
+        triangle[0] = m_pVertices[surface->vertex_indices_18[0]];
+        triangle[1] = m_pVertices[surface->vertex_indices_18[1]];
+        triangle[2] = m_pVertices[surface->vertex_indices_18[2]];
+        hit = TestSpatialTriangle0046CE60(
+            bounds, triangle,
+            reinterpret_cast<const srVector3T<float>*>(&surface->plane_24[0])); /* reinterpret-ok:
+            the serialized 4-float plane shares the vector3's leading layout */
+    }
+    return hit;
+}
+
+/* Record a waypoint index for a grid point that lies inside the path bounds.
+   The waypoint list grows in blocks of ten shorts; the allocation message
+   names CheckConditionalWayPt because the list is consumed by
+   CheckConditionalWayPtStatus. */
+// FUNCTION: WIZ8 0x004b7730
+unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const int* point)
+{
+    if (static_cast<unsigned short>(point[0]) < m_path_bound_4c ||
+        static_cast<unsigned short>(point[0]) > m_path_bound_4e ||
+        static_cast<unsigned short>(point[1]) < m_path_bound_50 ||
+        static_cast<unsigned short>(point[1]) > m_path_bound_52) {
+        return 0;
+    }
+
+    if (m_waypoint_count_0a % 10 == 0) {
+        unsigned short* pusNewList = static_cast<unsigned short*>(
+            malloc((m_waypoint_count_0a + 10) * sizeof(unsigned short)));
+        if (pusNewList == 0) {
+            srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x242,
+                         "CheckConditionalWayPt: Couldn't allocate new waypt list.");
+        }
+        memset(pusNewList, 0, (m_waypoint_count_0a + 10) * sizeof(unsigned short));
+        if (m_waypoints_10 != 0) {
+            memcpy(pusNewList, m_waypoints_10, m_waypoint_count_0a * sizeof(unsigned short));
+            free(m_waypoints_10);
+        }
+        m_waypoints_10 = pusNewList;
+    }
+    m_waypoints_10[m_waypoint_count_0a] = static_cast<unsigned short>(index);
+    ++m_waypoint_count_0a;
+    return 1;
+}
+
+/* Record a link index when the segment between the two grid points touches
+   the path bounds. The clip walks the segment's major axis: the crossed
+   minor bound interpolates the other coordinate, which must land within one
+   cell of the rectangle. The vertical branch re-tests its first crossing
+   instead of interpolating the second — a faithful retail oddity. */
+// FUNCTION: WIZ8 0x004b7830
+unsigned char GDProp::RegisterPathVertex004B7830(unsigned int index, const int* point,
+                                                 const int* second)
+{
+    unsigned short x0 = static_cast<unsigned short>(point[0]);
+    unsigned short y0 = static_cast<unsigned short>(point[1]);
+    unsigned short x1 = static_cast<unsigned short>(second[0]);
+    unsigned short y1 = static_cast<unsigned short>(second[1]);
+    float dx = static_cast<float>(x1 - x0);
+    float dy = static_cast<float>(y1 - y0);
+    bool found = false;
+
+    if (fabs(dx) > fabs(dy)) {
+        float slope = dy / dx;
+        float cross = (m_path_bound_4c - x0) * slope + y0;
+        if (cross > m_path_bound_50 - 1 && cross < m_path_bound_52 + 1) {
+            found = true;
+        }
+        cross = (m_path_bound_4e - x0) * slope + y0;
+        if (cross > m_path_bound_50 - 1 && cross < m_path_bound_52 + 1) {
+            found = true;
+        }
+    } else {
+        float slope = dx / dy;
+        float cross = (m_path_bound_50 - y0) * slope + x0;
+        if (cross > m_path_bound_4c - 1 && cross < m_path_bound_4e + 1) {
+            found = true;
+        }
+        if (cross > m_path_bound_4c - 1 && cross < m_path_bound_4e + 1) {
+            found = true;
+        }
+    }
+    if (found == 0) {
+        return 0;
+    }
+
+    if (m_link_count_08 % 10 == 0) {
+        unsigned short* pusNewList =
+            static_cast<unsigned short*>(malloc((m_link_count_08 + 10) * sizeof(unsigned short)));
+        if (pusNewList == 0) {
+            srAssertFail("pusNewList", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x28d,
+                         "CheckConditionalWayPt: Couldn't allocate new waypt list.");
+        }
+        memset(pusNewList, 0, (m_link_count_08 + 10) * sizeof(unsigned short));
+        if (m_links_0c != 0) {
+            memcpy(pusNewList, m_links_0c, m_link_count_08 * sizeof(unsigned short));
+            free(m_links_0c);
+        }
+        m_links_0c = pusNewList;
+    }
+    m_links_0c[m_link_count_08] = static_cast<unsigned short>(index);
+    ++m_link_count_08;
+    return 1;
+}
+
+/* Register the item on the collidable prop's sector list, building the path
+   representation and the list itself on first use. */
+// FUNCTION: WIZ8 0x004b7ad0
+void AddItemToSector(int sector, W8WorldItem* item)
+{
+    if (item != 0 && sector >= 0) {
+        W8Prop* prop = *g_world->collidable_props->GetAt(sector);
+        GDProp* gd = prop->m_gd_prop;
+        if (gd == 0) {
+            prop->BuildOrRefreshPathingRepresentation();
+            gd = prop->m_gd_prop;
+            if (gd == 0) {
+                return;
+            }
+        }
+        if (gd->m_list_54 == 0) {
+            gd->m_list_54 = PLCreate();
+        }
+        if (gd->m_list_54 != 0 && PListIndexOf(gd->m_list_54, item) < 0) {
+            PLAdoptAppend(gd->m_list_54, item);
+        }
+    }
+}
+
+/* Drop the item from the collidable prop's sector list when both exist. */
+// FUNCTION: WIZ8 0x004b7b50
+void RemoveItemFromSector(int sector, W8WorldItem* item)
+{
+    if (item != 0 && sector >= 0) {
+        W8Prop* prop = *g_world->collidable_props->GetAt(sector);
+        if (prop != 0 && prop->m_gd_prop != 0 && prop->m_gd_prop->m_list_54 != 0) {
+            PListRemove(prop->m_gd_prop->m_list_54, item);
+        }
+    }
+}
+
 /* Whether the optional owned list currently contains an entry. */
 // FUNCTION: WIZ8 0x004B7BA0
 unsigned char GDProp::HasListEntries004B7BA0()
@@ -288,4 +475,204 @@ unsigned char GDProp::HasListEntries004B7BA0()
         return 1;
     }
     return 0;
+}
+
+/* The array-element ctor for `new GDPreProp[n]`; the base default runs
+   inlined, then the extra frame field is zeroed. */
+// FUNCTION: WIZ8 0x004b7bc0
+GDPreProp::GDPreProp()
+{
+    last_frame_58 = 0;
+}
+
+/* Rebuild the collision geometry for one animation frame. The frame index is
+   clamped against every transform channel's path count and stored as the
+   conditional frame number; the counts accumulated for allocation are then
+   reset so each transform's fill re-counts the appended geometry. */
+// FUNCTION: WIZ8 0x004b7c00
+void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* anim)
+{
+    signed char index;
+
+    for (index = 0; index < anim->num_transforms_5a; ++index) {
+        W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
+        if (frame >= transform->pathAI_06.path_count_0a) {
+            frame = transform->pathAI_06.path_count_0a - 1;
+        }
+    }
+    m_prop_number_02 = frame;
+
+    for (index = 0; index < anim->num_transforms_5a; ++index) {
+        W8LevelFileMesh* mesh = &anim->pTransforms_5b[index].LODMesh_02.pFrames->mesh_01;
+        if ((mesh->flags_0c & 1) != 0) {
+            srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x355,
+                         "Transform prop made collideable!!!");
+            m_surface_count_14 += mesh->num_lods_42 * mesh->num_faces_08;
+            m_vertex_count_18 += mesh->num_lods_42 * mesh->num_vertices_04;
+        } else {
+            m_surface_count_14 += mesh->num_faces_08;
+            m_vertex_count_18 += mesh->num_vertices_04;
+        }
+    }
+
+    m_pVertices = static_cast<srVector3T<float>*>(
+        srHeap.allocate(m_vertex_count_18 * sizeof(srVector3T<float>)));
+    m_pGDSurfaces = static_cast<W8GDSurface*>(malloc(m_surface_count_14 * sizeof(W8GDSurface)));
+    if (m_pGDSurfaces == 0) {
+        srAssertFail("m_pGDSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDProp.cpp", 0x364,
+                     0);
+    }
+    memset(m_pGDSurfaces, 0, m_surface_count_14 * sizeof(W8GDSurface));
+    m_vertex_count_18 = 0;
+    m_surface_count_14 = 0;
+
+    for (index = 0; index < anim->num_transforms_5a; ++index) {
+        W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
+        float node[10];
+        if (transform->pathAI_06.scaled_01 == 2) {
+            memcpy(node, static_cast<float*>(transform->pathAI_06.pScaledPaths) + frame * 10,
+                   sizeof(node));
+        } else {
+            memcpy(node, static_cast<float*>(transform->pathAI_06.pPaths) + frame * 7,
+                   7 * sizeof(float));
+            node[7] = node[8] = node[9] = 1.0f;
+        }
+        TransformMeshGeometry004B7E50(node, &transform->LODMesh_02.pFrames->mesh_01);
+    }
+}
+
+/* Append one transform channel's geometry under the path record's affine
+   transform: position and scale convert through the world scale (LOD meshes
+   carry their own compression factor), the axis/angle supplies the rotation,
+   and every appended surface then receives its plane, dominant axis and slope
+   classification. */
+// FUNCTION: WIZ8 0x004b7e50
+void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* mesh)
+{
+    int surface_base = m_surface_count_14;
+
+    srVector3T<float> axis(node[4], node[5], node[6]);
+    srMatrix3T<float> rotation;
+    srMatrix4x3T<float> matrix;
+    srVector3T<float> translation;
+    srVector3T<float> scale;
+    float factor;
+
+    rotation.SetIdentity();
+    if (node[3] != g_zero_005ebb40) {
+        rotation.RotateAroundAxis(sin(node[3]), cos(node[3]), axis);
+    }
+    translation.x = node[0] * g_double_005ec150;
+    translation.y = node[1] * g_double_005ec150;
+    translation.z = node[2] * g_double_005ec150;
+
+    if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
+        factor = mesh->lod_scale_58 * g_world_scale_005ebc40;
+    } else {
+        factor = static_cast<float>(g_double_005ec150);
+    }
+    scale.x = node[7] * factor;
+    scale.y = node[8] * factor;
+    scale.z = node[9] * factor;
+
+    matrix.SetRotation(rotation);
+    matrix.SetTranslation(translation);
+    matrix.Scale(scale);
+
+    if ((mesh->flags_0c & 1) != 0) {
+        for (int lod = 0; lod < mesh->num_lods_42; ++lod) {
+            int vertex_base = m_vertex_count_18;
+            if ((mesh->flags_0c & 2) != 0) {
+                short* vertices = static_cast<short*>(mesh->lod_shorts_44[lod]);
+                for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
+                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(
+                        srVector3T<float>(static_cast<float>(vertices[vertex * 3]),
+                                          static_cast<float>(vertices[vertex * 3 + 1]),
+                                          static_cast<float>(vertices[vertex * 3 + 2])));
+                    ++m_vertex_count_18;
+                }
+            } else {
+                float* vertices = static_cast<float*>(mesh->lods_48[lod]);
+                for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
+                    m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
+                        vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+                    ++m_vertex_count_18;
+                }
+            }
+            if ((mesh->flags_0c & 2) != 0) {
+                W8LevelFileCompressedFace* faces =
+                    static_cast<W8LevelFileCompressedFace*>(mesh->pstCompFaces);
+                for (int face = 0; face < mesh->num_faces_08; ++face) {
+                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
+                    ++m_surface_count_14;
+                    surface->vertex_indices_18[0] = faces[face].vertex_indices_00[0] + vertex_base;
+                    surface->vertex_indices_18[1] = faces[face].vertex_indices_00[1] + vertex_base;
+                    surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
+                }
+            } else {
+                W8ReadMeshFace* faces = static_cast<W8ReadMeshFace*>(mesh->pstFaces);
+                for (int face = 0; face < mesh->num_faces_08; ++face) {
+                    W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
+                    ++m_surface_count_14;
+                    surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
+                    surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
+                    surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
+                }
+            }
+        }
+    } else {
+        int vertex_base = m_vertex_count_18;
+        float* vertices = static_cast<float*>(mesh->pstVertices);
+        for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
+            m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
+                vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
+            ++m_vertex_count_18;
+        }
+        if ((mesh->flags_0c & 2) != 0) {
+            W8LevelFileCompressedFace* faces =
+                static_cast<W8LevelFileCompressedFace*>(mesh->pstCompFaces);
+            for (int face = 0; face < mesh->num_faces_08; ++face) {
+                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
+                ++m_surface_count_14;
+                surface->vertex_indices_18[0] = faces[face].vertex_indices_00[0] + vertex_base;
+                surface->vertex_indices_18[1] = faces[face].vertex_indices_00[1] + vertex_base;
+                surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
+            }
+        } else {
+            W8ReadMeshFace* faces = static_cast<W8ReadMeshFace*>(mesh->pstFaces);
+            for (int face = 0; face < mesh->num_faces_08; ++face) {
+                W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
+                ++m_surface_count_14;
+                surface->vertex_indices_18[0] = faces[face].vertices[0] + vertex_base;
+                surface->vertex_indices_18[1] = faces[face].vertices[1] + vertex_base;
+                surface->vertex_indices_18[2] = faces[face].vertices[2] + vertex_base;
+            }
+        }
+    }
+
+    for (int index = surface_base; index < m_surface_count_14; ++index) {
+        W8GDSurface* surface = &m_pGDSurfaces[index];
+        BuildTrianglePlane00449A40(surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                                   &m_pVertices[surface->vertex_indices_18[1]],
+                                   &m_pVertices[surface->vertex_indices_18[2]]);
+
+        int dominant_axis;
+        float largest = g_float_005ebb34;
+        for (int axis = 0; axis < 3; ++axis) {
+            float magnitude = static_cast<float>(fabs(surface->plane_24[axis]));
+            if (largest < magnitude) {
+                largest = magnitude;
+                dominant_axis = axis;
+            }
+        }
+        surface->flags_00 = dominant_axis + 0x800;
+        surface->value_38 = 0;
+        if (g_float_005ebc7c <= surface->plane_24[1]) {
+            surface->value_40 = 500.0f;
+            surface->flags_00 |= 4;
+        } else {
+            surface->slope_48 = 0.0f;
+            surface->value_40 = 500.0f;
+        }
+    }
 }

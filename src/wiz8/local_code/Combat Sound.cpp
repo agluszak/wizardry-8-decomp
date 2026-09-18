@@ -1,13 +1,63 @@
 #include "wiz8/virtual_file.h"
 #include "wiz8/local_code/CombatSound.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/engine_code/Missile.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/item_tables.h"
+#include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "FileMan.h"
+#include "random.h"
+#include "soundman.h"
 
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#define COMBAT_SOUND_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Sound.cpp"
+
 char* g_weapon_attack_sounds_68dd90[38];
 char* g_material_impact_sounds_68d850[28][12];
+
+/* Play one combat sound under Data\Sound\Combat\.  When the name carries more
+   than one recorded variant a random 1..n digit is appended onto the caller's
+   buffer before the .wav path is built; callers only reach that branch with
+   writable names.  A positive volume is scaled by the configured effects
+   level; zero and below play at the default.  With the flag set the handle is
+   registered on the combat state so the service can poll SoundIsPlaying. */
+// FUNCTION: WIZ8 0x005499D0
+void PlayCombatSound005499D0(char* sound_name, unsigned int variant_count, bool store_handle,
+                             int volume)
+{
+    SOUNDPARMS parms;
+    char zSoundFileName[0x60];
+    unsigned int handle;
+
+    if (variant_count > 1) {
+        strcat(sound_name, FormatString("%d", Random(variant_count) + 1));
+    }
+    sprintf(zSoundFileName, "Data\\Sound\\Combat\\%s.wav", sound_name);
+    if (!FileExists(zSoundFileName)) {
+        srAssertFail("FileExists(zSoundFileName)", COMBAT_SOUND_CPP, 104,
+                     FormatString("CombatSound: ERROR - Sound file %s not found", zSoundFileName));
+    }
+    if (volume > 0) {
+        memset(&parms, 0xff, sizeof(parms));
+        parms.uiVolume =
+            static_cast<unsigned int>(g_settings_6850c8.sound_effects_volume * volume) / 127;
+        handle = SoundPlay(zSoundFileName, &parms);
+    } else {
+        handle = SoundPlay(zSoundFileName, 0);
+    }
+    if (handle != 0xffffffff && g_combat_state != 0 && store_handle) {
+        g_combat_state->hit_sound_7bc = handle;
+        g_combat_state->hit_sound_active_7c0 = 1;
+    }
+}
 
 static unsigned char ReadHitSoundLine(int handle, char* line, unsigned int capacity)
 {
@@ -135,19 +185,173 @@ void ReleaseHitSoundDatabase(void)
     }
 }
 
-/* Look up a material/weapon impact sound.  Missing material-specific entries
-   inherit material zero; invalid indices use the retail "HIT" fallback. */
-// FUNCTION: WIZ8 0x00549EB0
-const char* GetMaterialImpactSound00549EB0(int material, int weapon)
+/* Look up a weapon-class/target-material impact sound.  Missing
+   weapon-specific entries inherit weapon class zero; out-of-range indices use
+   the retail "HIT" fallback.  The buffer comes back writable because
+   PlayCombatSound may append a variant digit. */
+/* The impact lookup shared by the emitted body below and by the sibling
+   callers, where retail folds it inline. */
+static __forceinline char* LookupMaterialImpactSound(int weapon_class, int target_material)
 {
     char* sound;
 
-    if (material < 0 || material >= 28 || weapon < 0 || weapon >= 12) {
-        return "HIT";
+    if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
+        return const_cast<char*>("HIT");
     }
-    sound = g_material_impact_sounds_68d850[material][weapon];
+    sound = g_material_impact_sounds_68d850[weapon_class][target_material];
     if (sound == 0) {
-        sound = g_material_impact_sounds_68d850[0][weapon];
+        sound = g_material_impact_sounds_68d850[0][target_material];
     }
     return sound;
+}
+
+// FUNCTION: WIZ8 0x00549EB0
+char* GetMaterialImpactSound00549EB0(int weapon_class, int target_material)
+{
+    return LookupMaterialImpactSound(weapon_class, target_material);
+}
+
+/* The two missile/monster siblings spell the same lookup as three leaves
+   that each call PlayCombatSound rather than sharing one tail call. */
+static __forceinline void PlayMaterialImpactSound(int weapon_class, int target_material, int volume)
+{
+    char* sound;
+
+    if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
+        PlayCombatSound005499D0(const_cast<char*>("HIT"), 1, 1, volume);
+        return;
+    }
+    sound = g_material_impact_sounds_68d850[weapon_class][target_material];
+    if (sound) {
+        PlayCombatSound005499D0(sound, 1, 1, volume);
+    } else {
+        PlayCombatSound005499D0(g_material_impact_sounds_68d850[0][target_material], 1, 1, volume);
+    }
+}
+
+/* The equipment slot covering one armour-class hit location, then the item
+   worn there (-1 when that location is bare).  The inlined copies share the
+   line-168 assertion. */
+static __forceinline int PCItemInACSlot(const W8Character* character, int hit_location)
+{
+    int slot = 0;
+
+    switch (hit_location) {
+    case 0:
+        slot = W8_EQUIP_SLOT_HEAD;
+        break;
+    case 1:
+        slot = W8_EQUIP_SLOT_TORSO;
+        break;
+    case 2:
+        slot = W8_EQUIP_SLOT_LEGS;
+        break;
+    case 3:
+        slot = W8_EQUIP_SLOT_FEET;
+        break;
+    case 4:
+        slot = W8_EQUIP_SLOT_HANDS;
+        break;
+    default:
+        srAssertFail("FALSE", COMBAT_SOUND_CPP, 168, "PCItemInACSlot: ERROR - Invalid AC location");
+    }
+    return character->equipment[slot].item_id;
+}
+
+// FUNCTION: WIZ8 0x00549EF0
+void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* hand_attack,
+                               int arg_3, bool store_handle, int volume)
+{
+    int weapon_class;
+
+    if (hand_attack->wield_kind == 0) {
+        weapon_class = 9;
+    } else {
+        weapon_class = g_item_records[row->weapon_item_id_78].weapon_sound_class_0c5;
+        if (weapon_class < 0 || weapon_class >= 38) {
+            return;
+        }
+    }
+    PlayCombatSound005499D0(g_weapon_attack_sounds_68dd90[weapon_class], 1, store_handle, volume);
+}
+
+// FUNCTION: WIZ8 0x00549F50
+void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8CombatSlot* target,
+                                 int hit_location, int volume)
+{
+    int weapon_class;
+    int target_material = -1;
+
+    if (hand_attack->wield_kind == 0) {
+        weapon_class = 9;
+    } else {
+        weapon_class = g_item_records[g_combat_state->characters[iChar].paired_item_id_7c]
+                           .weapon_sound_class_0c5;
+    }
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        int item = PCItemInACSlot(character, hit_location);
+        target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
+        target_material = record == 0 ? 0 : record->material_263;
+    } else {
+        srAssertFail("FALSE", COMBAT_SOUND_CPP, 415, "MakePCHitSound : Unknown target type");
+    }
+    PlayCombatSound005499D0(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+}
+
+// FUNCTION: WIZ8 0x0054A0E0
+void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, int volume)
+{
+    int weapon_class =
+        g_missile_table_65bde0[missile->missile_table_index_1d8].weapon_sound_class_165;
+    /* Defined so the assert-failure path still reaches the material lookup;
+       -1 is out of range and yields the retail "HIT" fallback. */
+    int target_material = -1;
+
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        int item = PCItemInACSlot(character, hit_location);
+        target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
+        target_material = record == 0 ? 0 : record->material_263;
+    } else {
+        srAssertFail("FALSE", COMBAT_SOUND_CPP, 465, "MakePCHitSound : Unknown target type");
+    }
+    PlayMaterialImpactSound(weapon_class, target_material, volume);
+}
+
+// FUNCTION: WIZ8 0x0054A270
+void MakeMonsterHitSound0054A270(const W8MonsterCombatState* combat, W8CombatSlot* target,
+                                 int hit_location, int volume)
+{
+    int weapon_class;
+    /* Defined so the assert-failure path still reaches the material lookup;
+       -1 is out of range and yields the retail "HIT" fallback. */
+    int target_material = -1;
+
+    if (combat == 0) {
+        return;
+    }
+    if (target == 0) {
+        return;
+    }
+    /* pCombat+0x1c holds the selected attack's material class inside the
+       character_hate run; the matching byte at +0x1b is read by the caller
+       too.  The authored field spelling is unresolved, so read the byte. */
+    // reinterpret-ok: unresolved packed byte inside character_hate[0]'s storage
+    weapon_class = reinterpret_cast<const signed char*>(combat->character_hate)[2];
+    if (target->iType == W8_TARGET_KIND_CHARACTER) {
+        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        int item = PCItemInACSlot(character, hit_location);
+        target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
+    } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+        const W8MonsterRecord* record = GetMonsterDataByLocationID(target->iMonsterID);
+        target_material = record == 0 ? 0 : record->material_263;
+    } else {
+        srAssertFail("FALSE", COMBAT_SOUND_CPP, 504, "MakePCHitSound : Unknown target type");
+    }
+    PlayMaterialImpactSound(weapon_class, target_material, volume);
 }

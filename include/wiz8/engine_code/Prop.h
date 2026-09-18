@@ -29,7 +29,7 @@ class W8PropRepresentation : public W8AnimRep005ED050 {
 public:
     /* Default construction is inlined at Prop::Prop. */
     W8PropRepresentation()
-        : animation(0), animation_speed(0.0f), value_0a0(0.0f), flag_0a4(0), flag_0a5(0),
+        : animation(0), animation_speed(0.0f), value_0a0(0), flag_0a4(0), flag_0a5(0),
           value_0a8(0.5f), flag_0ac(0), flag_0ad(0), slots(5), flag_0c0(0xff), flag_0c1(0xff)
     {
     }
@@ -44,9 +44,12 @@ public:
     /* CreateAndLoadProp loads m_pRep into ECX, then passes (pInfo, pProp). */
     bool LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop); /* 0x0044AEE0 */
 
-    W8AnimObj* animation;   /* 0x98 */
-    float animation_speed;  /* 0x9c */
-    float value_0a0;        /* 0xa0 */
+    W8AnimObj* animation;  /* 0x98 */
+    float animation_speed; /* 0x9c */
+    /* 0xa0: integer path position accumulator.  Method44C030 adds the elapsed
+       frame count to it with a dword add, compares it against the animation's
+       value_16, and FILD-converts it for PathAISetValue004A9F60. */
+    int value_0a0;
     unsigned char flag_0a4; /* 0xa4 */
     unsigned char flag_0a5; /* 0xa5 */
     unsigned char unknown_0a6[2];
@@ -79,8 +82,23 @@ public:
 
     void Method44D360(W8World* world);
     void Method44C030();
-    void Method44C670();                       /* 0x0044C670 */
-    int BuildOrRefreshPathingRepresentation(); /* 0x0044DEA0 */
+    /* Re-apply every animation path and roll the position snapshots forward.
+       `world` is only used by the pWorld assertion. */
+    void ApplyAnimationPaths0044C200(W8World* world);
+    /* Advance the rep's animation value by `frames`, honouring the direction,
+       bounce and wrap modes; clamps to the counter range and pushes the new
+       value to every bound path. `total` is the animation's frame count. */
+    void AdvanceAnimationValue0044C310(int frames, char total);
+    /* The animation value one step ahead of the current one, without
+       committing it - clamped for transitive animations, wrapping or bouncing
+       for the looping kinds. */
+    char NextAnimationValue0044C600();
+    void Method44C670(); /* 0x0044C670 */
+    /* Restore the rep's persisted animation state: five saved bytes plus one
+       discarded byte, clamped to the loaded animation's frame count, with
+       path values re-synced while a running animation is active. */
+    bool LoadAnimationState0044DBD0(int hFile); /* 0x0044DBD0 */
+    int BuildOrRefreshPathingRepresentation();  /* 0x0044DEA0 */
     /* When the animation advanced exactly one frame this writes the current
        position minus the home position into `out`; otherwise `out` is zeroed.
        `point` is accepted but never read. */
@@ -110,16 +128,22 @@ public:
     bool IsTriggerInView0044E3A0(srVector3T<float>* position);
     Trigger* GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
+    /* Whether the renderer's currently selected model instance is dispatched
+       by this prop's animation - the prop half of ResolvePickedProp's test.
+       `world` is accepted but never read. */
+    bool IsPickedProp0044D680(W8World* world); /* 0x0044D680 */
     void GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum);
     void CollectModelInstances(W8GrowableVector<stModelInstance*>* instances);
     /* Run trigger_18 when its action is one of the missile-impact kinds
        (0x3a..0x3c); the record hands Run the missile's table index. */
     void RunMissileTrigger0044E230(W8AIMissile* record);
 
-    Trigger* trigger_18;            /* 0x18 */
-    unsigned int flags_1c;          /* 0x1c */
-    char* m_name;                   /* 0x20 */
-    int unknown_024;                /* 0x24 */
+    Trigger* trigger_18;   /* 0x18 */
+    unsigned int flags_1c; /* 0x1c */
+    char* m_name;          /* 0x20 */
+    /* 0x24: Method44C030 stores the animation timer's progress here, then
+       reduces it by the whole-frame count - the fractional remainder. */
+    float unknown_024;
     W8GameTimer* m_animation_timer; /* 0x28 */
     srVector3T<float> position_02c; /* 0x2c: written by Method44C670 */
     GDProp* m_gd_prop;              /* 0x38 */

@@ -154,7 +154,11 @@ struct W8MissileTableRecord {
     int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[0x0c];
     unsigned char flag_154; /* 0x154: blocks ending combat while set */
-    unsigned char unknown_155[0x90];
+    unsigned char unknown_155[0x10];
+    /* 0x165: the missile weapon's impact sound class; MakePCHitSound bounds it
+       against the 28 material-impact rows. */
+    int weapon_sound_class_165;
+    unsigned char unknown_169[0x7c];
 };
 #pragma pack(pop)
 

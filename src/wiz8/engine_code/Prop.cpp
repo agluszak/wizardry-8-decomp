@@ -13,7 +13,9 @@
 
 #include <string.h>
 
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/AniMesh.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -21,15 +23,23 @@
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
+#include "surrender/srCamera.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srNode.h"
+
+#include "FileMan.h"
 
 #include "DEBUG.H"
 
 #include <math.h>
 #include <new>
+#include <stdlib.h>
 #include <windows.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/geometry.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "random.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
@@ -284,6 +294,41 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
 
 Trigger* g_selected_prop_trigger_00659a60;
 int g_selected_prop_index_00607b98;
+
+/* Whether the renderer's currently selected model instance is one of the
+   instances this prop's animation dispatches.  With a running animation every
+   list entry is checked; otherwise the single dispatched instance for the
+   current frame is compared directly. */
+// FUNCTION: WIZ8 0x0044d680
+bool W8Prop::IsPickedProp0044D680(W8World* world)
+{
+    srModelInstance* instance;
+    unsigned char frame;
+    unsigned int count;
+    int index;
+
+    if (Rep()->active == 0) {
+        return false;
+    }
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        for (index = 0; index < static_cast<int>(count); ++index) {
+            instance =
+                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index));
+            if (GetValue65962C() == instance) {
+                return true;
+            }
+        }
+        return false;
+    }
+    frame = Rep()->flag_064;
+    if (AnimationIsRunning(Rep()->animation) == 0) {
+        instance = AnimObjDispatch004A14D0(Rep()->animation, 2, frame);
+    } else {
+        instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
+    }
+    return GetValue65962C() == instance;
+}
 
 /* Resolve the renderer's picked model instance back to the prop and trigger
    that own it. A pick is accepted only while the prop is active, the trigger
@@ -565,6 +610,300 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
     }
 }
 
+/* Per-frame prop animation service called from WorldUpdateProps.  While the
+   rep is animating it converts the game timer's progress into whole elapsed
+   frames and drives AdvanceAnimationValue0044C310; a finished run leaves the
+   0x20 pathing-dirty bit set for the next call to rebuild.  A pending
+   value_066 frame is latched into flag_064 first, and an idle prop with the
+   random flag may start a fresh run on its own. */
+// FUNCTION: WIZ8 0x0044c030
+void W8Prop::Method44C030()
+{
+    W8PropRepresentation* rep = Rep();
+    unsigned int total;
+    int frames;
+
+    if (rep->active == 0 && (rep->flag_070 != 1 || rep->flag_06d == 0) && (flags_1c & 0x20) == 0) {
+        return;
+    }
+    total = AnimObjValue004A15D0(rep->animation, 2);
+    unknown_024 = 0.0f;
+    if (rep->value_066 != 0xffff) {
+        if (static_cast<short>(rep->value_066) < static_cast<int>(total)) {
+            rep->flag_064 = static_cast<unsigned char>(rep->value_066);
+        }
+        rep->value_066 = 0xffff;
+    }
+    if (static_cast<int>(total) < 2 || rep->flag_0a4 != 0) {
+        return;
+    }
+    if (rep->flag_06d == 0 && rep->flag_0a5 != 0 && rand() * (1.0f / RAND_MAX) < rep->value_0a8) {
+        if (rep->flag_06e == 2) {
+            rep->flag_064 = rep->counter_094;
+            rep->flag_06e = 1;
+        } else {
+            rep->flag_064 = rep->counter_095;
+            rep->flag_06e = 3;
+        }
+        m_animation_timer->Restart();
+        rep->flag_06d = 1;
+    }
+    if (rep->flag_06d == 0) {
+        if ((flags_1c & 0x20) == 0) {
+            return;
+        }
+        ApplyAnimationPaths0044C200(GetWorld());
+        BuildOrRefreshPathingRepresentation();
+        flags_1c &= ~0x20;
+        return;
+    }
+    unknown_024 = m_animation_timer->GetProgress();
+    BuildOrRefreshPathingRepresentation();
+    frames = static_cast<int>(unknown_024);
+    unknown_024 -= frames;
+    rep->flag_0ad = static_cast<unsigned char>(frames);
+    if (frames != 0) {
+        W8AnimObj* animation;
+
+        AdvanceAnimationValue0044C310(frames, static_cast<char>(total));
+        animation = Rep()->animation;
+        if (animation->path_24 != 0) {
+            if ((flags_1c & 2) != 0) {
+                rep->value_0a0 += frames;
+                if (rep->value_0a0 >= animation->value_16) {
+                    rep->value_0a0 = animation->value_16;
+                }
+            } else {
+                rep->value_0a0 = rep->flag_064;
+            }
+            PathAISetValue004A9F60(animation->path_24, static_cast<float>(rep->value_0a0));
+        }
+    }
+    if (rep->flag_06d == 0) {
+        flags_1c |= 0x20;
+    }
+}
+
+/* Walk every path list entry, apply the path to its mesh, and roll the prop's
+   position snapshots: the previous current becomes the old position and the
+   path's location becomes the new current. */
+// FUNCTION: WIZ8 0x0044c200
+void W8Prop::ApplyAnimationPaths0044C200(W8World* world)
+{
+    unsigned int count;
+    int index;
+
+    if (world == 0) {
+        srAssertFail("pWorld", PROP_CPP, 0x3db, 0);
+    }
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        for (index = 0; index < static_cast<int>(count); ++index) {
+            stModelInstance* mesh = static_cast<stModelInstance*>(
+                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+            W8PathAI* path;
+
+            if (mesh == 0) {
+                srAssertFail("psrMesh", PROP_CPP, 0x3ea, 0);
+            }
+            path = AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+            if (path != 0) {
+                srVector3T<float> location;
+
+                PathAIApply004AA520(path, mesh);
+                static_cast<srNode*>(mesh)->getLocation(location);
+                position_03c = position_02c;
+                position_02c = location;
+            }
+        }
+    }
+}
+
+/* Advance the rep's animation value by `frames` in the rep's direction.
+   Transitive animations clamp at either end and complete: the run stops, the
+   linked triggers fire and the global redraw flag goes up.  Looping kinds
+   wrap or, when flag_06f is two, bounce off the ends and flip direction; a
+   step larger than the counter range folds through whole trips.  The new
+   value is clamped and pushed to every bound path. */
+// FUNCTION: WIZ8 0x0044c310
+void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
+{
+    W8PropRepresentation* rep = Rep();
+    unsigned int frame = rep->flag_064;
+    char behaviour = rep->flag_06f;
+    int end = rep->counter_095;
+    int start = rep->counter_094;
+    unsigned int count;
+    int index;
+
+    if (behaviour == 3) {
+        rep->flag_064 = static_cast<unsigned char>(Random(total));
+    } else if (rep->flag_070 == 1) {
+        if (rep->flag_06e == 1) {
+            if (static_cast<int>(frame) + frames < end) {
+                rep->flag_064 = static_cast<unsigned char>(frame + frames);
+            } else {
+                rep->flag_064 = rep->counter_095;
+                rep->flag_06d = 0;
+                rep->flag_06e = 2;
+                if (trigger_18 != 0) {
+                    trigger_18->RunLinkedTriggers00441590();
+                }
+                g_flag_006840bb = 1;
+            }
+        } else if (rep->flag_06e == 3) {
+            if (static_cast<int>(frame) - frames > start) {
+                rep->flag_064 = static_cast<unsigned char>(frame - frames);
+            } else {
+                rep->flag_064 = rep->counter_094;
+                rep->flag_06d = 0;
+                rep->flag_06e = 4;
+                if (trigger_18 != 0) {
+                    trigger_18->RunLinkedTriggers00441590();
+                }
+                g_flag_006840bb = 1;
+            }
+        }
+    } else {
+        int range = end - start;
+
+        if (frames < range) {
+            if (rep->flag_06e == 1) {
+                frame += frames;
+                if (static_cast<int>(frame) <= end) {
+                    rep->flag_064 = static_cast<unsigned char>(frame);
+                } else if (behaviour == 2) {
+                    rep->flag_06e = 3;
+                    rep->flag_064 = static_cast<unsigned char>(2 * end - static_cast<int>(frame));
+                } else {
+                    rep->flag_064 = static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
+                }
+            } else if (rep->flag_06e == 3) {
+                frame -= frames;
+                if (static_cast<int>(frame) >= start) {
+                    rep->flag_064 = static_cast<unsigned char>(frame);
+                } else if (behaviour == 2) {
+                    rep->flag_064 = static_cast<unsigned char>(2 * start - static_cast<int>(frame));
+                    rep->flag_06e = 1;
+                } else {
+                    rep->flag_064 = static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
+                }
+            }
+        } else if (rep->flag_06e == 1) {
+            int effective = static_cast<int>(frame) - start + frames;
+
+            if (behaviour == 2) {
+                int trips = effective / range;
+                int remainder = effective - trips * range;
+
+                if (trips % 2 == 0) {
+                    rep->flag_064 = static_cast<unsigned char>(start + remainder);
+                } else {
+                    rep->flag_06e = 3;
+                    rep->flag_064 = static_cast<unsigned char>(end - remainder);
+                }
+            } else {
+                rep->flag_064 = static_cast<unsigned char>(start + effective -
+                                                           effective / (range + 1) * (range + 1));
+            }
+        } else if (rep->flag_06e == 3) {
+            int effective = 2 * start - static_cast<int>(frame) + frames;
+
+            if (behaviour == 2) {
+                int trips = effective / range;
+                int remainder = effective - trips * range;
+
+                if (trips % 2 == 0) {
+                    rep->flag_064 = static_cast<unsigned char>(start + remainder);
+                    rep->flag_06e = 1;
+                } else {
+                    rep->flag_064 = static_cast<unsigned char>(end - remainder);
+                }
+            } else {
+                int folded = effective - 1;
+
+                rep->flag_064 =
+                    static_cast<unsigned char>(end + folded / (range + 1) * (range + 1) - folded);
+            }
+        }
+    }
+    if (rep->flag_064 < rep->counter_094) {
+        rep->flag_064 = rep->counter_094;
+    } else if (rep->flag_064 > rep->counter_095) {
+        rep->flag_064 = rep->counter_095;
+    }
+    if (AnimationIsRunning(rep->animation) == 1) {
+        count = AnimObjListCount004A1620(rep->animation, 2);
+        for (index = 0; index < static_cast<int>(count); ++index) {
+            W8PathAI* path =
+                AnimObjListEntry004A16C0(rep->animation, 2, static_cast<signed char>(index));
+
+            if (path != 0) {
+                PathAISetValue004A9F60(path, static_cast<float>(rep->flag_064));
+            }
+        }
+    }
+}
+
+/* The animation value one step ahead, exactly as
+   AdvanceAnimationValue0044C310 would compute a single step: transitive kinds
+   clamp at the ends, looping kinds wrap to the opposite end, and behaviour
+   two steps back instead.  Retail returns the literal one rather than
+   counter_094 + 1 when a bouncing run sits at the start. */
+// FUNCTION: WIZ8 0x0044c600
+char W8Prop::NextAnimationValue0044C600()
+{
+    W8PropRepresentation* rep = Rep();
+    char direction = rep->flag_06e;
+
+    if (rep->flag_070 == 1) {
+        if (direction == 1) {
+            if (rep->flag_064 < rep->counter_095) {
+                return rep->flag_064 + 1;
+            }
+        } else if (direction == 3 && rep->counter_094 < rep->flag_064) {
+            return rep->flag_064 - 1;
+        }
+        return rep->flag_064;
+    }
+    if (direction == 1) {
+        if (rep->flag_064 != rep->counter_095) {
+            return rep->flag_064 + 1;
+        }
+        if (rep->flag_06f == 2) {
+            return rep->flag_064 - 1;
+        }
+        return rep->counter_094;
+    }
+    if (direction != 3) {
+        return rep->flag_064;
+    }
+    if (rep->flag_064 > rep->counter_094) {
+        return rep->flag_064 - 1;
+    }
+    if (rep->flag_06f == 2) {
+        return 1;
+    }
+    return rep->counter_095;
+}
+
+/* When the next animation step moves the rep exactly one frame, write the
+   delta between the current and previous positions into `out` and return the
+   elapsed frame count; otherwise `out` is zeroed.  `point` is accepted but
+   never read. */
+// FUNCTION: WIZ8 0x0044e130
+char W8Prop::GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* point)
+{
+    unsigned char next = static_cast<unsigned char>(NextAnimationValue0044C600());
+
+    if (abs(next - Rep()->flag_064) == 1) {
+        *out = position_02c - position_03c;
+        return Rep()->flag_0ad;
+    }
+    out->SetZero();
+    return 0;
+}
+
 /* Whether the prop can be used from where the caller is. The owned GDProp has
    to be there, its own owner has to be, that owner must not be in the tenth
    state or hold either of two bits, and the reach test has to pass. */
@@ -659,6 +998,368 @@ void W8Prop::Method44C670()
     BuildOrRefreshPathingRepresentation();
 }
 
+/* Per-frame prop update: while the animation is running this binds every
+   dispatched instance to the world's dynamic scene, interpolates between the
+   current and next keyframe records (position lerp, quaternion slerp for
+   rotations - the same algorithm as PathAIApply004AA520), pushes the transform
+   onto the instance or its child chain, and rolls the position snapshots
+   forward. A stopped animation binds the single current instance and applies
+   either the rep's path or its stored transform. */
+// FUNCTION: WIZ8 0x0044c830
+void W8Prop::Method44C830(W8World* world)
+{
+    int index;
+    int count;
+    bool has_scales;
+    unsigned char next_frame;
+    stModelInstance* instance;
+    stMeshModel* mesh;
+    W8PathAI* path;
+    srNode* node;
+    srVector3T<float> zero;
+    srVector3T<float> position;
+    srVector3T<float> current;
+    srVector3T<float> next_pos;
+    srVector3T<float> current_scale;
+    srVector3T<float> next_scale;
+    srVector3T<float> scale_vector;
+    srVector3T<float> rep_position;
+    srVector3T<double> location;
+    srVector3T<double> scale_location;
+    srMatrix3T<float> rotation;
+    srMatrix3T<float> next;
+    srMatrix3T<float> rep_rotation;
+    W8Quaternion first;
+    W8Quaternion second;
+    W8Quaternion adjusted;
+    double amount;
+    double dot;
+    double b;
+    double angle;
+    double sine;
+    double w;
+    double x;
+    double y;
+    double z;
+    double scale;
+    double sx;
+    double sy;
+    double sz;
+    double xx;
+    double xy;
+    double xz;
+    double yy;
+    double yz;
+    double zz;
+    double xw;
+    double yw;
+    double zw;
+    float inv;
+
+    if (Rep()->active == 0) {
+        return;
+    }
+    if (world == 0) {
+        srAssertFail("pWorld", PROP_CPP, 0x5a1, 0);
+    }
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        has_scales = false;
+        zero.SetZero();
+        count = static_cast<int>(AnimObjListCount004A1620(Rep()->animation, 2));
+        for (index = 0; index < count; ++index) {
+            instance = static_cast<stModelInstance*>(
+                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+            if (instance == 0) {
+                srAssertFail("psrMesh", PROP_CPP, 0x5b4, 0);
+            }
+            instance->clearFlag(srNode::FLAG_DISABLE);
+            instance->setParent(world->dynamic_scene, 1);
+            instance->scale_194 = zero;
+            if (g_settings_6850c8.smooth_world_animations != 0) {
+                instance->value_1ac = unknown_024;
+            } else {
+                instance->value_1ac = 0.0f;
+            }
+            mesh = static_cast<stMeshModel*>(instance->getModel());
+            if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
+                instance->state_178 |= 0x10;
+            }
+            path = AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+            if (path == 0) {
+                continue;
+            }
+            next_frame = static_cast<unsigned char>(NextAnimationValue0044C600());
+            if (next_frame > Rep()->counter_095) {
+                unknown_024 = 0.0f;
+            }
+            rotation = path->rotations_14[Rep()->flag_064];
+            next = path->rotations_14[next_frame];
+            instance->getRotation(rotation_048);
+            if (!(rotation == next)) {
+                first.SetFromMatrix(rotation);
+                second.SetFromMatrix(next);
+                amount = unknown_024;
+                adjusted = second;
+                dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
+                      first.v.z * second.v.z;
+                if (dot < g_zero_005ebb40) {
+                    dot = -dot;
+                    adjusted.v = -adjusted.v;
+                    adjusted.w = -adjusted.w;
+                }
+                if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
+                    dot = g_double_005ebc30 - amount;
+                    b = amount;
+                } else {
+                    angle = acos(dot);
+                    sine = sin(angle);
+                    dot = sin((g_double_005ebc30 - amount) * angle) / sine;
+                    b = sin(angle * amount) / sine;
+                }
+                adjusted.v = dot * first.v + b * adjusted.v;
+                w = first.w * dot + adjusted.w * b;
+                x = adjusted.v.x;
+                y = adjusted.v.y;
+                z = adjusted.v.z;
+                scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
+                sx = scale * x;
+                sy = scale * y;
+                sz = scale * z;
+                xw = sx * w;
+                yw = sy * w;
+                zw = sz * w;
+                xx = sx * x;
+                xy = sx * y;
+                xz = sx * z;
+                yy = sy * y;
+                yz = sy * z;
+                zz = sz * z;
+                rotation.vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
+                rotation.vectors[1].x = static_cast<float>(xy + zw);
+                rotation.vectors[2].x = static_cast<float>(xz - yw);
+                rotation.vectors[0].y = static_cast<float>(xy - zw);
+                rotation.vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
+                rotation.vectors[2].y = static_cast<float>(yz + xw);
+                rotation.vectors[0].z = static_cast<float>(xz + yw);
+                rotation.vectors[1].z = static_cast<float>(yz - xw);
+                rotation.vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+            }
+            rotation_06c = rotation;
+            current = **path->nodes_0c->GetAt(Rep()->flag_064);
+            next_pos = **path->nodes_0c->GetAt(next_frame);
+            inv = g_float_005ebb38 - unknown_024;
+            position.x = current.x * inv + next_pos.x * unknown_024;
+            position.y = current.y * inv + next_pos.y * unknown_024;
+            position.z = current.z * inv + next_pos.z * unknown_024;
+            if (path->scales_18 != 0) {
+                has_scales = true;
+                current_scale = path->scales_18[Rep()->flag_064];
+                next_scale = path->scales_18[next_frame];
+                scale_vector.x = current_scale.x * inv + next_scale.x * unknown_024;
+                scale_vector.y = current_scale.y * inv + next_scale.y * unknown_024;
+                scale_vector.z = current_scale.z * inv + next_scale.z * unknown_024;
+            }
+            node = instance->firstChild();
+            if (node == 0) {
+                instance->setRotation(rotation);
+                location.SetFromFloat(&position);
+                instance->setLocation(location);
+                if (has_scales) {
+                    scale_location.SetFromFloat(&scale_vector);
+                    instance->setScale(scale_location);
+                }
+            } else {
+                do {
+                    node->setRotation(rotation);
+                    location.SetFromFloat(&position);
+                    node->setLocation(location);
+                    if (has_scales) {
+                        scale_location.SetFromFloat(&scale_vector);
+                        node->setScale(scale_location);
+                    }
+                    node = node->nextSibling();
+                } while (node != 0);
+            }
+            position_03c = position_02c;
+            position_02c = position;
+        }
+    } else {
+        instance = static_cast<stModelInstance*>(Rep()->ToggleAnimation(Rep()->flag_064));
+        if (instance == 0) {
+            srAssertFail("psrMesh", PROP_CPP, 0x624, 0);
+        }
+        instance->clearFlag(srNode::FLAG_DISABLE);
+        instance->setParent(world->dynamic_scene, 1);
+        instance->scale_194.SetZero();
+        if (g_settings_6850c8.smooth_world_animations != 0) {
+            instance->value_1ac = unknown_024;
+        } else {
+            instance->value_1ac = 0.0f;
+        }
+        mesh = static_cast<stMeshModel*>(instance->getModel());
+        if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
+            instance->state_178 |= 0x10;
+        }
+        if (Rep()->animation->path_24 != 0) {
+            PathAIApply004AA520(Rep()->animation->path_24, instance);
+        } else {
+            Rep()->GetLocation004B8890(&rep_position);
+            Rep()->GetRotation004B88F0(&rep_rotation);
+            node = instance->firstChild();
+            if (node == 0) {
+                location.SetFromFloat(&rep_position);
+                instance->setLocation(location);
+                instance->setRotation(rep_rotation);
+            } else {
+                do {
+                    location.SetFromFloat(&rep_position);
+                    node->setLocation(location);
+                    node->setRotation(rep_rotation);
+                    node = node->nextSibling();
+                } while (node != 0);
+            }
+        }
+        Function46F4A0(instance, world->dynamic_scene);
+    }
+    if (m_gd_prop == 0) {
+        BuildOrRefreshPathingRepresentation();
+    }
+}
+
+/* The detach counterpart to Method44C830: the current frame is stashed in
+   flag_0ac, then every dispatched instance is flagged disabled and detached
+   from the scene.  While the animation runs the whole list is walked;
+   otherwise only the snapshot frame's instance (or the first dispatch-list
+   entry when a run is in progress) is pulled. */
+// FUNCTION: WIZ8 0x0044d360
+void W8Prop::Method44D360(W8World* world)
+{
+    stModelInstance* instance;
+    unsigned int count;
+    int index;
+
+    if (world == 0) {
+        srAssertFail("pWorld", PROP_CPP, 0x66b, 0);
+    }
+    Rep()->flag_0ac = Rep()->flag_064;
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        for (index = 0; index < static_cast<int>(count); ++index) {
+            instance = static_cast<stModelInstance*>(
+                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+            if (instance == 0) {
+                srAssertFail("psrMesh", PROP_CPP, 0x678, 0);
+            }
+            instance->setFlag(srNode::FLAG_DISABLE);
+            instance->setParent(0, 1);
+        }
+    } else {
+        unsigned char frame = Rep()->flag_064;
+
+        if (AnimationIsRunning(Rep()->animation) == 0) {
+            instance =
+                static_cast<stModelInstance*>(AnimObjDispatch004A14D0(Rep()->animation, 2, frame));
+        } else {
+            instance =
+                static_cast<stModelInstance*>(AnimObjDispatchList004A1560(Rep()->animation, 2, 0));
+        }
+        if (instance == 0) {
+            srAssertFail("psrMesh", PROP_CPP, 0x686, 0);
+        }
+        instance->setFlag(srNode::FLAG_DISABLE);
+        instance->setParent(0, 1);
+    }
+}
+
+/* Restore the rep's persisted animation state: frame, the two counters, the
+   direction flags and one byte the format no longer uses.  Each saved index
+   is clamped to the loaded animation's frame count, path values are re-synced
+   while a running animation is active, and Method44C670 reapplies the state.
+   The read chain's success is reported even though the restore runs either
+   way. */
+// FUNCTION: WIZ8 0x0044dbd0
+bool W8Prop::LoadAnimationState0044DBD0(int hFile)
+{
+    unsigned char unused;
+    unsigned int count;
+    int index;
+    int total;
+    bool success;
+    W8PathAI* path;
+
+    success = FileRead(hFile, &Rep()->flag_064, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->counter_094, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->counter_095, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->flag_06e, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->flag_06d, 1, 0) != 0 && FileRead(hFile, &unused, 1, 0) != 0;
+    if (Rep()->animation != 0) {
+        total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
+        if (Rep()->counter_095 >= total) {
+            Rep()->counter_095 = static_cast<unsigned char>(total - 1);
+        }
+        if (Rep()->counter_094 >= total) {
+            Rep()->counter_094 = static_cast<unsigned char>(total - 1);
+        }
+        if (Rep()->flag_064 >= total) {
+            Rep()->flag_064 = static_cast<unsigned char>(total - 1);
+        }
+        if (AnimationIsRunning(Rep()->animation) == 1) {
+            count = AnimObjListCount004A1620(Rep()->animation, 2);
+            for (index = 0; index < static_cast<int>(count); ++index) {
+                path =
+                    AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+                if (path != 0) {
+                    PathAISetValue004A9F60(path, static_cast<float>(Rep()->flag_064));
+                }
+            }
+        }
+        Method44C670();
+    }
+    return success;
+}
+
+/* Union of the per-frame bounds over every frame of the rep's animation.
+   The rep's current frame is saved, the bounds for frame zero seed the merge,
+   and each remaining frame expands the result before the frame is restored. */
+// FUNCTION: WIZ8 0x0044dd60
+void W8Prop::GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum)
+{
+    srVector3T<float> local_minimum;
+    srVector3T<float> local_maximum;
+    unsigned char saved_frame;
+    int frame;
+    int total;
+
+    total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
+    saved_frame = Rep()->flag_064;
+    Rep()->flag_064 = 0;
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, minimum, maximum);
+    for (frame = 1; frame < total; ++frame) {
+        Rep()->flag_064 = static_cast<unsigned char>(frame);
+        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &local_minimum,
+                                 &local_maximum);
+        if (local_minimum.x < minimum->x) {
+            minimum->x = local_minimum.x;
+        }
+        if (local_minimum.y < minimum->y) {
+            minimum->y = local_minimum.y;
+        }
+        if (local_minimum.z < minimum->z) {
+            minimum->z = local_minimum.z;
+        }
+        if (local_maximum.x > maximum->x) {
+            maximum->x = local_maximum.x;
+        }
+        if (local_maximum.y > maximum->y) {
+            maximum->y = local_maximum.y;
+        }
+        if (local_maximum.z > maximum->z) {
+            maximum->z = local_maximum.z;
+        }
+    }
+    Rep()->flag_064 = saved_frame;
+}
+
 /* Build or refresh the pathing representation for a collidable Prop.  Retail
    requires a transitive animation with one mesh, then either constructs the
    owned GDProp or reinitializes it for the current animation frame. */
@@ -696,6 +1397,89 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
         }
     }
     return m_gd_prop->m_surface_count_14;
+}
+
+/* Run the prop's own trigger for a missile impact.  Only the three prop
+   animation actions (0x3a..0x3c) accept the missile's table index as their
+   source; every other trigger setup is ignored. */
+// FUNCTION: WIZ8 0x0044e230
+void W8Prop::RunMissileTrigger0044E230(W8AIMissile* record)
+{
+    if (record != 0 && record->missile_0c != 0 && trigger_18 != 0 &&
+        (trigger_18->initial_action_22a == 0x3a || trigger_18->initial_action_22a == 0x3b ||
+         trigger_18->initial_action_22a == 0x3c)) {
+        trigger_18->Run(record->missile_0c->missile_table_index_1d8);
+    }
+}
+
+/* Mirror of GetPosition0044E2C0: while the rep node reports itself current
+   the position is stored in position_02c, otherwise it goes through the rep
+   node's own location. */
+// FUNCTION: WIZ8 0x0044e310
+void W8Prop::SetPosition0044E310(srVector3T<float>* position)
+{
+    if (AnimationIsRunning(Rep()->animation) == 1) {
+        position_02c = *position;
+        return;
+    }
+    m_pRep->SetLocation004B8850(position);
+}
+
+/* Whether a prop with a selectable trigger is visible from `position`: the
+   trigger's distance interval has to contain the centre of the current
+   frame's bounds and the centre, minimum or maximum has to project
+   on-screen through the active world's camera. */
+// FUNCTION: WIZ8 0x0044e3a0
+bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
+{
+    Trigger* trigger = trigger_18;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    srVector3T<float> center;
+    srVector3T<float> projected;
+    float distance;
+
+    if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
+        ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
+        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &minimum, &maximum);
+        center.Set((minimum.x + maximum.x) * g_double_005ebe80,
+                   (minimum.y + maximum.y) * g_double_005ebe80,
+                   (minimum.z + maximum.z) * g_double_005ebe80);
+        distance = (center - *position).Length();
+        if (distance < trigger->range_maximum_0a8 && trigger->range_minimum_0a4 <= distance) {
+            {
+                srVector3T<double> input(static_cast<double>(center.x),
+                                         static_cast<double>(center.y),
+                                         static_cast<double>(center.z));
+
+                if (g_world->camera->project(projected, input) ==
+                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    return true;
+                }
+            }
+            {
+                srVector3T<double> input(static_cast<double>(minimum.x),
+                                         static_cast<double>(minimum.y),
+                                         static_cast<double>(minimum.z));
+
+                if (g_world->camera->project(projected, input) ==
+                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    return true;
+                }
+            }
+            {
+                srVector3T<double> input(static_cast<double>(maximum.x),
+                                         static_cast<double>(maximum.y),
+                                         static_cast<double>(maximum.z));
+
+                if (g_world->camera->project(projected, input) ==
+                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0044bf50
@@ -1132,6 +1916,97 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
                 for (int frame = 0; frame < frame_count; ++frame) {
                     instances->Add(GetAniMeshFrame004B6550(mesh, frame));
                 }
+            }
+        }
+    }
+}
+
+/* APST chunk writer: a 0xDEADD00D signature, the format version and the prop
+   count, then one record per prop - a fixed 64-byte name plus the six rep
+   bytes that LoadAnimationState0044DBD0 reads back (frame, counters, direction
+   flags and the active byte). The per-prop byte writes only run while the
+   previous writes succeed. */
+// FUNCTION: WIZ8 0x0044e830
+void SaveWorldProps0044E830(W8World* world, int handle)
+{
+    int index;
+    int count;
+    unsigned int signature;
+    unsigned int version;
+    char name[0x40];
+    W8Prop* prop;
+
+    signature = 0xDEADD00D;
+    version = 1;
+    FileWrite(handle, &signature, 4, 0);
+    FileWrite(handle, &version, 4, 0);
+    count = static_cast<int>(PLLength(world->plsProps));
+    FileWrite(handle, &count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
+        strcpy(name, prop->m_name);
+        FileWrite(handle, name, 0x40, 0);
+        if (FileWrite(handle, &prop->Rep()->flag_064, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->counter_094, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->counter_095, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->flag_06e, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->flag_06d, 1, 0) != 0) {
+            FileWrite(handle, &prop->Rep()->active, 1, 0);
+        }
+    }
+}
+
+/* APST chunk reader. The 0xDEADD00D signature selects the name-keyed format;
+   older saves carry a bare record count followed by each prop's object key.
+   Records whose prop cannot be found are consumed by a scratch prop so the
+   stream stays aligned. */
+// FUNCTION: WIZ8 0x0044e9a0
+void LoadWorldProps0044E9A0(W8World* world, int handle)
+{
+    int index;
+    int count;
+    int entries;
+    int key;
+    unsigned int signature;
+    unsigned int version;
+    char name[0x40];
+    W8Prop* prop;
+    W8Prop* entry;
+
+    FileRead(handle, &signature, 4, 0);
+    if (signature != 0xDEADD00D) {
+        count = signature;
+        for (index = 0; index < count; ++index) {
+            FileRead(handle, &key, 4, 0);
+            prop = 0;
+            entries = static_cast<int>(PLLength(world->plsProps));
+            for (int entry_index = 0; entry_index < entries; ++entry_index) {
+                entry = static_cast<W8Prop*>(PLGet(world->plsProps, entry_index));
+                if (entry->unknown_008 == key) {
+                    prop = entry;
+                    break;
+                }
+            }
+            if (prop != 0) {
+                prop->LoadAnimationState0044DBD0(handle);
+            } else {
+                prop = new W8Prop();
+                prop->LoadAnimationState0044DBD0(handle);
+                delete prop;
+            }
+        }
+    } else {
+        FileRead(handle, &version, 4, 0);
+        FileRead(handle, &count, 4, 0);
+        for (index = 0; index < count; ++index) {
+            FileRead(handle, name, 0x40, 0);
+            prop = FindPropByName(g_world, name);
+            if (prop != 0) {
+                prop->LoadAnimationState0044DBD0(handle);
+            } else {
+                prop = new W8Prop();
+                prop->LoadAnimationState0044DBD0(handle);
+                delete prop;
             }
         }
     }

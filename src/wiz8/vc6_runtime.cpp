@@ -61,6 +61,9 @@
 // LIBRARY: WIZ8 0x004028c0
 // _wcsnicmp
 
+// LIBRARY: WIZ8 0x0041A810
+// _AIL_shutdown@0_import_thunk (MSS32.DLL)
+
 /* zlib 1.0.4 corpus in Wiz8.exe. Names come from docs/libraries/zlib-1.0.4.md;
    the source-oracle gate also treats the whole 0x00415910-0x0041A7ED span as
    library-owned even when an interior helper is still unnamed here. */

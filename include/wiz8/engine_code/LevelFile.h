@@ -19,8 +19,13 @@ struct W8LevelFilePathAI {
     unsigned char unknown_02[4];
     unsigned char unknown_06[4];
     int path_count_0a;
-    void* pScaledPaths; /* 0x0e: path_count_0a * 0x28 */
-    void* pPaths;       /* 0x12: path_count_0a * 0x1c */
+    void* pScaledPaths; /* 0x0e: path_count_0a records of 10 floats */
+    void* pPaths;       /* 0x12: path_count_0a records of 7 floats */
+};
+
+struct W8LevelFileCompressedFace { /* 0x21 */
+    unsigned short vertex_indices_00[3];
+    unsigned char unknown_06[0x1b];
 };
 
 struct W8LevelFileMesh {
@@ -43,9 +48,9 @@ struct W8LevelFileMesh {
         lods_48; /* flags_0c & 1 && !(flags_0c & 2): num_lods_42 elements of num_vertices_04 * 0xc */
     void*
         pstVertices; /* 0x4c: !(flags_0c & 1): num_vertices_04 * 0x18 allocated, 0x12a..0xc read each */
-    void* pstCompFaces;          /* 0x50: flags_0c & 4: num_faces_08 * 0x21 */
-    void* pstFaces;              /* 0x54: num_faces_08 * 0x52 allocated, 0x29 read each */
-    unsigned char unknown_58[4]; /* flags_0c & 1 && lod_mode_40 > 1 */
+    void* pstCompFaces; /* 0x50: flags_0c & 4: num_faces_08 * W8LevelFileCompressedFace */
+    void* pstFaces;     /* 0x54: 0x52 allocated each, W8ReadMeshFace (0x29) read each */
+    float lod_scale_58; /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
 struct W8LevelFileLight {
@@ -390,6 +395,7 @@ struct W8LevelFile {
 
 #pragma pack(pop)
 
+static_assert(sizeof(W8LevelFileCompressedFace) == 0x21, "W8LevelFileCompressedFace_must_be_0x21");
 static_assert(sizeof(W8LevelFilePathAI) == 0x16, "W8LevelFilePathAI_must_be_0x16");
 static_assert(sizeof(W8LevelFileMesh) == 0x5c, "W8LevelFileMesh_must_be_0x5c");
 static_assert(sizeof(W8LevelFileLight) == 0x44, "W8LevelFileLight_must_be_0x44");

@@ -57,9 +57,16 @@ W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, con
 }
 
 /* Candidate list, chosen index, and previous choice. The list is reused for
-   every mask bit, so it is cleared before each scan instead of reallocated. */
+   every mask bit, so it is cleared before each scan instead of reallocated;
+   the static initializer constructs it with capacity five. */
 // GLOBAL: WIZ8 0x00683408
-W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408;
+W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408(5);
+
+/* The static initializer above emits this specialization's capacity ctor.
+   0x005ED098 is its construction-phase table; the final table and both
+   deleting destructors carry their markers in GrObject.cpp. */
+// TEMPLATE: WIZ8 0x004D6030
+// W8GrowableVector<W8SoundEvent*>::W8GrowableVector
 
 // GLOBAL: WIZ8 0x00683418
 int g_selected_sound_event_00683418;
