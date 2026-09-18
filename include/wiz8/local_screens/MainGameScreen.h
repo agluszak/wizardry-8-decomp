@@ -827,7 +827,7 @@ void ClearMainGameTargetState(void);
 
 extern unsigned short g_value_006840be;
 extern unsigned char g_flag_00685071;
-extern int g_value_00685072;
+extern W8ItemInstance* g_value_00685072;
 extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;

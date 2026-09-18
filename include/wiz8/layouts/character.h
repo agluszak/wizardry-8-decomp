@@ -327,7 +327,7 @@ struct W8Character {
     W8CharacterConditionRecord conditions_1817[4]; /* 0x1817 .. 0x185a */
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
-    unsigned char deep_fatigue_applied;
+    bool deep_fatigue_applied;
     /* 0x185c: one cost per skill id 0x18..0x1b, read by the profession-change
        cost diff with the skill id biased down. */
     unsigned char skill_costs_185c[4];

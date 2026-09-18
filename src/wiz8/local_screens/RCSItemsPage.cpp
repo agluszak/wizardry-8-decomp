@@ -296,7 +296,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
     } else {
         if (IsUsableItemClass00522A00(item) == 0 || IsSpecialItemId004DA0F0(item) != 0) {
             g_flag_00685071 = 1;
-            g_value_00685072 = (int)item;
+            g_value_00685072 = item;
             g_value_00685077 = static_cast<char>(giReviewCharSlot);
             GetOriginOfCharacterItem(giReviewCharSlot, item, &g_flag_00685076, &slot);
         } else {

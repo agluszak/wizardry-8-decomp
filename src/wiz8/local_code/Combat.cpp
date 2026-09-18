@@ -861,7 +861,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
 /* Whether a slot may switch to the given action context, optionally repairing
    the aim state first when the caller allows it. */
 // FUNCTION: WIZ8 0x004e79a0
-unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3, int arg_4)
+bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3, int arg_4)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 

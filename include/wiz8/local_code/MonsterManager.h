@@ -366,7 +366,7 @@ void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int 
 void ProcessMonsterManagerFrame(void);
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
 unsigned int GetMonsterExperience(const W8MonsterRecord* record);
-unsigned char AnyMonsterDying(void);    // bool-byte-ok: retail returns al as unsigned char
+bool AnyMonsterDying(void);
 float GetAveragePartyMemberLevel(void); /* 0x004EFB60 */
 /* 0x00554490: the highest `skills[skill_index].level` among live party members;
    `party_slot` receives the best member's slot. */
