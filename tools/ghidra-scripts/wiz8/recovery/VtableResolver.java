@@ -118,6 +118,23 @@ final class VtableResolver {
 				match = ghidraClass;
 			}
 		}
+		if (match != null) {
+			return match;
+		}
+		// Fallback: unique GhidraClass with this structure's leaf name. Category
+		// paths are organization, not provenance — a Structure at /W8Monster or
+		// a legacy /wiz8/classes/W8Monster copy must still resolve to class
+		// W8Monster when that namespace is unambiguous.
+		for (Symbol symbol : program.getSymbolTable().getSymbols(structure.getName())) {
+			if (symbol.getSymbolType() == SymbolType.CLASS &&
+				symbol.getObject() instanceof GhidraClass ghidraClass &&
+				ghidraClass.getName().equals(structure.getName())) {
+				if (match != null) {
+					return null;
+				}
+				match = ghidraClass;
+			}
+		}
 		return match;
 	}
 

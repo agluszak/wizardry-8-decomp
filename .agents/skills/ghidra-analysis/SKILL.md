@@ -94,10 +94,18 @@ Keep uncertain facts unknown. When source and Ghidra disagree, retail/source evi
 owner is wrong; correct both owners when the fact is established. Do not repeatedly query a prototype
 already known to be false.
 
+## Analysis enrichment
+
+Whole-program decompiler quality comes from enriching the analysis database, not from pretty-printer
+tweaks. Follow [analysis enrichment](references/analysis-enrichment.md) for the ordered roadmap
+(benchmark → calling conventions → source projection → class Structures → globals/callbacks →
+attributes → dual decompiler profiles). Score enrichment changes with
+`uv run wiz8 analyze decompiler-quality` before promoting them into reviewed state.
+
 ## Checkpoints and bulk projection
 
 Ordinary analysis edits need `program.save`, not a GZF ritual. Read
 [checkpoints](references/checkpoints.md) only when sharing/restoring/reconciling reviewed Ghidra state.
-Read [source import](references/source-import.md) only when explicitly regenerating canonical state
-from the rebuilt source/PDB. Those are state-management operations, not prerequisites for normal
-inspection or recovery.
+Read [source import](references/source-import.md) for periodic high-confidence enrichment
+checkpoints and for full canonical regeneration from the rebuilt source/PDB. Those are
+state-management operations, not prerequisites for normal inspection or recovery.

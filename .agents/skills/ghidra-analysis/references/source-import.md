@@ -1,8 +1,43 @@
-# Regenerate canonical Ghidra state from source
+# Source → Ghidra enrichment
 
-Use this workflow only when the task explicitly asks to regenerate/update canonical Ghidra analysis
-from the current recovered source. It mutates reviewed state and is intentionally separate from
-ordinary inspection, native edits, checkpoint refresh and source-layout auditing.
+Two related workflows project recovered source into the canonical Ghidra program.
+Both mutate reviewed analysis state. Neither is a prerequisite for ordinary
+inspection or body recovery. Score changes with
+`uv run wiz8 analyze decompiler-quality` (see
+[analysis enrichment](analysis-enrichment.md)).
+
+## Periodic enrichment checkpoint (preferred)
+
+Use this when the live program should absorb **high-confidence** recovered facts
+without a full canonical regeneration ritual. Default mode is measurement-only.
+
+```sh
+# Plan + quality sample (no writes)
+uv run wiz8 analyze enrichment-checkpoint
+
+# Apply source-backed calling conventions, re-score
+uv run wiz8 analyze enrichment-checkpoint --apply-conventions
+
+# Also project matched PDB/reccmp names, signatures, types, and source lines
+uv run wiz8 build WIZ8
+uv run wiz8 analyze enrichment-checkpoint --apply-conventions --import-source
+```
+
+Then spot-check and, when intentionally reviewed, refresh the GZF:
+
+```sh
+uv run wiz8 report context ADDRESS...
+uv run wiz8 ghidra seed refresh wiz8
+```
+
+Evidence boundary: only matched/source-backed entities belong in reviewed state.
+Do not point the importer at a derived/cached project. Soft Param-ID guesses are
+not part of this checkpoint.
+
+## Full canonical regeneration
+
+Use this when the task explicitly asks to rebuild canonical Ghidra analysis from
+the current recovered source/PDB as a dedicated state-management operation.
 
 1. Preserve the current reviewed checkpoint as a rollback point.
 2. Build a current VC6 PDB:
@@ -22,9 +57,16 @@ ordinary inspection, native edits, checkpoint refresh and source-layout auditing
    PY
    ```
 
-   The importer matches recompiled entities to original addresses and applies names, signatures,
-   types and source lines. Review its statistics; known unsupported insertion/type/parameter cases
-   need interpretation rather than a blanket zero-error requirement.
+   Or via the checkpoint:
+
+   ```sh
+   uv run wiz8 analyze enrichment-checkpoint --apply-conventions --import-source
+   ```
+
+   The importer matches recompiled entities to original addresses and applies
+   names, signatures, types and source lines. Review its statistics; known
+   unsupported insertion/type/parameter cases need interpretation rather than a
+   blanket zero-error requirement.
 
 4. Spot-check the affected identities, then export the reviewed checkpoint:
 
@@ -33,6 +75,6 @@ ordinary inspection, native edits, checkpoint refresh and source-layout auditing
    uv run wiz8 ghidra seed refresh wiz8
    ```
 
-Do not point the importer at a derived/cached project and do not run it speculatively. When only the
-source-layout audit is needed, use `uv run wiz8 analyze source-layouts`; that workflow operates on a
-disposable derived project and leaves canonical state untouched.
+When only the source-layout audit is needed, use
+`uv run wiz8 analyze source-layouts`; that workflow operates on a disposable
+derived project and leaves canonical state untouched.

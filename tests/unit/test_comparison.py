@@ -132,6 +132,10 @@ def test_changed_source_files_uses_jj_when_workspace_and_executable_exist(
     for name in ["One.cpp", "Two Words.h", "README.md"]:
         (tmp_path / name).write_text("")
 
+    monkeypatch.setattr(
+        comparison, "resolve_executable", lambda name: "jj" if name == "jj" else None
+    )
+
     def fake_run(command, *, cwd):
         assert cwd == tmp_path
         expected = ["jj", "diff", "--name-only", "--color=never"]

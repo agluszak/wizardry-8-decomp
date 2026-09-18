@@ -7,6 +7,7 @@ import shutil
 import struct
 import tarfile
 import tempfile
+import time
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -278,10 +279,38 @@ def static_inventory(settings: Settings) -> dict[str, Any]:
     return result
 
 
-def _download(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": "wizardry8-decomp/0.1"})
-    with urllib.request.urlopen(request, timeout=120) as response:
-        return response.read()
+def _download(url: str, *, attempts: int = 3) -> bytes:
+    """Fetch ``url`` with a few retries for transient CDN/hash flakes."""
+
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "wizardry8-decomp/0.1"})
+            with urllib.request.urlopen(request, timeout=120) as response:
+                return response.read()
+        except Exception as exc:  # noqa: BLE001 — retry transient network failures
+            last_error = exc
+            if attempt < attempts:
+                time.sleep(min(2**attempt, 8))
+    assert last_error is not None
+    raise last_error
+
+
+def _download_verified(url: str, expected_sha256: str, *, label: str) -> bytes:
+    """Download ``url`` until the payload matches ``expected_sha256``."""
+
+    last_hash: str | None = None
+    for attempt in range(1, 4):
+        payload = _download(url)
+        digest = hashlib.sha256(payload).hexdigest()
+        if digest == expected_sha256:
+            return payload
+        last_hash = digest
+        if attempt < 3:
+            time.sleep(min(2**attempt, 8))
+    raise RuntimeError(
+        f"download hash mismatch for {label}: got {last_hash}, expected {expected_sha256}"
+    )
 
 
 def _safe_extract_tar(archive: Path, destination: Path) -> None:
@@ -327,9 +356,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
         suffix = ".tar.gz" if source.url.endswith((".tar.gz", ".tgz")) else Path(source.url).suffix
         archive = archives / f"{library.id}{suffix}"
         if not archive.is_file() or sha256_file(archive) != source.sha256:
-            payload = _download(source.url)
-            if hashlib.sha256(payload).hexdigest() != source.sha256:
-                raise RuntimeError(f"download hash mismatch for {library.id}")
+            payload = _download_verified(source.url, source.sha256, label=library.id)
             atomic_write(archive, payload)
         destination = unpacked / library.id
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -355,11 +382,11 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 )
                 overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
                 if not overlay_archive.is_file() or sha256_file(overlay_archive) != overlay.sha256:
-                    payload = _download(overlay.url)
-                    if hashlib.sha256(payload).hexdigest() != overlay.sha256:
-                        raise RuntimeError(
-                            f"download hash mismatch for {library.id} overlay {index}"
-                        )
+                    payload = _download_verified(
+                        overlay.url,
+                        overlay.sha256,
+                        label=f"{library.id} overlay {index}",
+                    )
                     atomic_write(overlay_archive, payload)
                 with tempfile.TemporaryDirectory(dir=root) as overlay_temporary:
                     overlay_destination = Path(overlay_temporary)
