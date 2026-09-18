@@ -53,6 +53,10 @@ void ScaleValueForCharacterDifficulty(int party_slot, int* value);
 void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value);
 void ProcessSpellEffectTargets(W8SpellEffectEntry* effect); /* 0x0054BA00 */
 void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
+/* 0x0054FF20: facing for a placed monster - the camera when disposition one
+   asks, else the nearest live monster in extreme range, else the camera. */
+float GetNearestMonsterOrCameraHeading0054FF20(srVector3T<float> position, char use_camera_heading,
+                                               int exclusion);
 
 /* The queued-effect helpers ProcessSpellEffectTargets dispatches to. */
 char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition,
@@ -85,3 +89,15 @@ void ResetPartyEffectBlock(W8EffectSlot* slot);
 
 void ResetCombatEffects(void); /* 0x00552530 */
 void RecalculateCharacterResistances(W8Character* character);
+
+/* Enchantment- and flat-amount damage applied outside the announced attack
+   path: each rolls or takes its amount, runs it through the target's damage
+   reduction, applies it, and feeds the running combat totals and the pending
+   damage-report queue inside g_combat_state. */
+void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
+                                        W8Enchantment* enchantment);
+void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                      W8Enchantment* enchantment);
+void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source, int damage);
+void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                        int damage);

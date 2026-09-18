@@ -1254,3 +1254,25 @@ search_encounter:
 done:
     return group;
 }
+
+/* Stamp one control state on every live member of the group, skipping
+   entries whose monster is already in its death cycle. The member list is
+   re-measured each pass so a resize mid-walk does not overrun it. */
+// FUNCTION: WIZ8 0x005117D0
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state)
+{
+    unsigned int index = 0;
+    unsigned int count = ILLength(monster_group->monsters);
+
+    while (index < count) {
+        int location_id = IListGetAt(monster_group->monsters, index);
+        unsigned int monster_list_index = MonsterGetIndexByLocationID(
+            0x818, "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp", location_id, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info != 0 && !monster_info->monster->IsDying()) {
+            SetMonsterControlState(monster_info, control_state);
+        }
+        ++index;
+        count = ILLength(monster_group->monsters);
+    }
+}

@@ -160,6 +160,11 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 /* Nonzero when the group - or one of its allied groups - has a member whose
    highest condition is in the 0x0d..0x11 incapacitated band. */
 bool MonsterGroupHasIncapacitatedMember(int group_id); /* 0x00511D40 */
+/* 0x005117D0: stamp the control state on every live, not-dying member. */
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state);
+/* 0x00510A10: retire a group and its allies from the encounter budget,
+   following the leader chain first. */
+void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 

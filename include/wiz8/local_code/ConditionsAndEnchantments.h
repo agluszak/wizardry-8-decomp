@@ -74,6 +74,10 @@ unsigned char GetConditionRecordFlag(int party_slot, int condition);
    its allies. */
 void BindMonsterToCharacter00524780(int party_slot, int record, int location_id);
 void RemoveAllConditionsFromParty(void);
+/* 0x00524780: bind a monster into one of a character's two dependence
+   condition records; a slot-one binding also retires the monster's group. */
+void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int dependence_slot,
+                                      int monster_id);
 
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x005237E0: rescan condition_turns from slot 0x13 downward and write the

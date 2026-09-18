@@ -3,6 +3,11 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/PolyPick.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -3965,5 +3970,183 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     FinishSpellEffectTargets(effect);
     if (queued_spell_id != 0x17 && g_current_screen_state.id == 6) {
         RefreshTextBoxMode00590BD0(0xffff);
+    }
+}
+
+/* Heading a newly placed monster should take: toward the camera when
+   disposition one asks for it, otherwise toward the nearest live monster
+   found inside an extreme-range box around the point, and back to the camera
+   when nothing is out there. The by-value position doubles as the source
+   point for both heading helpers. */
+// FUNCTION: WIZ8 0x0054FF20
+float GetNearestMonsterOrCameraHeading0054FF20(srVector3T<float> position, char use_camera_heading,
+                                               int exclusion)
+{
+    unsigned int index = 0;
+    double nearest_distance = 0.0;
+    W8Monster* nearest = 0;
+    srVector3T<float> lower = position;
+    srVector3T<float> upper = position;
+    float extent = CalcRangeDistance(W8_RANGE_EXTREME);
+
+    if (use_camera_heading != 1) {
+        lower.x -= extent;
+        lower.y -= extent;
+        lower.z -= extent;
+        upper.x += extent;
+        upper.y += extent;
+        upper.z += extent;
+        unsigned long* results = static_cast<unsigned long*>(operator new(0x400));
+        unsigned int count = g_octree_6598a4->QueryLocationsInBox(
+            &results, &lower, &upper, static_cast<unsigned short>(exclusion));
+        if (count == 0) {
+            delete[] results;
+            return HeadingToTargetCPP(&position);
+        }
+        for (; index < count; ++index) {
+            W8Monster* monster = GetMonsterByLocationID(results[index]);
+            const srVector3T<float>& found = monster->GetPosition();
+            float delta_x = found.x - position.x;
+            float delta_y = found.y - position.y;
+            float delta_z = found.z - position.z;
+            double distance = sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+            if (distance < nearest_distance || index == 0) {
+                nearest_distance = distance;
+                nearest = monster;
+            }
+        }
+        delete[] results;
+        const srVector3T<float>& target = nearest->GetPosition();
+        return GetHeadingAngle(&position, &target);
+    }
+    return HeadingToTargetCPP(&position);
+}
+
+/* Damage from the target-side enchantment: the enchantment's power scales the
+   spell record's dice, the reduced roll is applied to the character, the
+   result's amount feeds the running combat total at +0xa1a, and the reports
+   queue on the combat state for the message pass. */
+// FUNCTION: WIZ8 0x00553350
+void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
+                                        W8Enchantment* enchantment)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    W8Dice dice;
+    unsigned int amount;
+
+    if (enchantment->value_00 == 0) {
+        return;
+    }
+    memset(static_cast<void*>(&result), 0, sizeof(result));
+    dice = g_spell_records[0x1b].effect_dice;
+    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    amount = ApplyCharacterDamageReduction(&g_status_685170.buffers.characters[party_slot],
+                                           RollDice(&dice));
+    if (amount > 0) {
+        ApplyDamageToCharacter(party_slot, amount, 0, verbose, verbose, &result, 0);
+        // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1a.
+        *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x76]) += result.amount;
+        while (result.reports.GetCount() > 0) {
+            report = *result.reports.GetAt(0);
+            result.reports.RemoveAt(0);
+            // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
+            reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
+                &g_combat_state->unknown_9a4[0x5a])
+                ->Add(report);
+        }
+    }
+}
+
+/* The monster-side counterpart: the same enchantment-scaled dice roll feeds
+   ApplyDamageToMonster and the running total, with no report queueing. */
+// FUNCTION: WIZ8 0x00553540
+void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                      W8Enchantment* enchantment)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8MonsterRecord* record;
+    W8Dice dice;
+    int damage;
+    unsigned int amount;
+
+    if (enchantment->value_00 == 0) {
+        return;
+    }
+    dice = g_spell_records[0x1b].effect_dice;
+    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    damage = RollDice(&dice);
+    record = GetMonsterDataForInfo(monster_info);
+    amount = ApplyDamageReduction(monster_info, record, damage);
+    if (amount > 0) {
+        ApplyDamageToMonster(monster_info, amount, source, 0, verbose, verbose, 0, 0);
+        // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1a.
+        *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x76]) += amount;
+    }
+}
+
+/* Flat-amount damage to a character: when the combat log is quiet the applied
+   amount feeds the running total at +0xa1e and the reports queue up; when it
+   is verbose the damage is applied with the announced flags instead. */
+// FUNCTION: WIZ8 0x005535D0
+void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source, int damage)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    unsigned int amount;
+
+    amount = ApplyCharacterDamageReduction(&g_status_685170.buffers.characters[party_slot], damage);
+    if (amount > 0) {
+        if (verbose != 0) {
+            ApplyDamageToCharacter(party_slot, amount, 0, 1, 1, 0, 1);
+        } else {
+            amount = ApplyDamageToCharacter(party_slot, amount, 0, 0, 0, &result, 0);
+            // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1e.
+            *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x7a]) += amount;
+            while (result.reports.GetCount() > 0) {
+                report = *result.reports.GetAt(0);
+                result.reports.RemoveAt(0);
+                // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
+                reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
+                    &g_combat_state->unknown_9a4[0x5a])
+                    ->Add(report);
+            }
+        }
+    }
+}
+
+/* The monster-side counterpart: the flat amount reduced by the monster's own
+   reduction is applied, feeding the running total and report queue in quiet
+   mode or the announced apply in verbose mode. */
+// FUNCTION: WIZ8 0x00553770
+void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                        int damage)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    W8MonsterRecord* record;
+    unsigned int amount;
+
+    record = GetMonsterDataForInfo(monster_info);
+    amount = ApplyDamageReduction(monster_info, record, damage);
+    if (amount > 0) {
+        if (verbose != 0) {
+            ApplyDamageToMonster(monster_info, amount, source, 0, 1, 1, 0, 1);
+        } else {
+            amount = ApplyDamageToMonster(monster_info, amount, source, 0, 0, 0, &result, 0);
+            // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1e.
+            *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x7a]) += amount;
+            while (result.reports.GetCount() > 0) {
+                report = *result.reports.GetAt(0);
+                result.reports.RemoveAt(0);
+                // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
+                reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
+                    &g_combat_state->unknown_9a4[0x5a])
+                    ->Add(report);
+            }
+        }
     }
 }

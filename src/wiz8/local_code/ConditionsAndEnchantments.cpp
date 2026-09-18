@@ -799,3 +799,41 @@ void RemoveAllConditionsFromParty(void)
         }
     }
 }
+
+/* Bind a monster to one of a character's two dependence slots: the monster
+   remembers it is bound, a slot-one binding retires the monster's group from
+   the encounter budget, and the character's condition record keeps the level
+   it happened on, the monster's id and the live flag before the derived
+   stats rebuild. */
+// FUNCTION: WIZ8 0x00524780
+void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int dependence_slot,
+                                      int monster_id)
+{
+    W8MonsterInfo* monster_info;
+
+    if (party_slot >= 8) {
+        srAssertFail("uiChar < MAX_CHARS", CONDITIONS_CPP, 0x447, 0);
+    }
+    if (dependence_slot >= 2) {
+        srAssertFail("uiDependence < DEPEND_COND_COUNT", CONDITIONS_CPP, 0x448, 0);
+    }
+    if (monster_id == -1) {
+        srAssertFail("iMonsterID != -1", CONDITIONS_CPP, 0x449, 0);
+    }
+
+    monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, 1));
+    monster_info->unknown_24c =
+        static_cast<unsigned char>(monster_info->unknown_24c | (1 << dependence_slot));
+    if (dependence_slot == 1) {
+        RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, 1)));
+    }
+
+    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_00 =
+        g_status_685170.current_level;
+    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_04 =
+        monster_id;
+    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_08 = 1;
+    RebuildConditionsAndDerivedStats(party_slot);
+}

@@ -364,11 +364,10 @@ extern unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x00616eb0
 double g_world_cursor_extent_table_00616eb0[18];
 /* Per spell-power index into g_world_cursor_extent_table_00616eb0. The
-   Insanity cursor reads it byte-indexed by the power field, and the dword
-   table at 0x00616f4c immediately after it is a separate Magic Effects global,
-   so the bound ends at eight rather than running into that table. */
+   Insanity cursor reads it byte-indexed by the power field; the eleven bytes
+   run to 0x00616f4c, where the separate Magic Effects dword table starts. */
 // GLOBAL: WIZ8 0x00616f41
-signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 0, 1, 1, 2, 2};
+signed char g_spell_power_extent_index_00616f41[11] = {0, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0};
 void Function4E8EA0(void);
 void StartCombat(int surprise);
 

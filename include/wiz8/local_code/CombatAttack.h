@@ -122,3 +122,12 @@ int CalcRangeCategoryToTarget(const W8Character* character, int hand);
 int GetHandAttackValue(int party_slot, unsigned int hand);
 int NormalizeAttackMode(int attack_mode);
 unsigned int ChooseAttackMode(unsigned int attack_modes);
+
+/* 0x005459B0: how much of a hit a monster actually takes - its own adjustment
+   and the record's reduction add, the remainder is taken as a percentage
+   rounding to nearest, and nothing goes below zero. */
+int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecord* record,
+                         int damage);
+/* 0x00545950: the character-side counterpart - the character's own reduction
+   taken the same way, and having the damage-reduction skill practises it. */
+int ApplyCharacterDamageReduction(W8Character* character, int damage);
