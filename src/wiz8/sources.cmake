@@ -145,6 +145,8 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/level_specific_code/MtGigas2.cpp
     src/wiz8/level_specific_code/MtGigas1.cpp
     src/wiz8/level_specific_code/MartensBluff2.cpp
+    src/wiz8/level_specific_code/MartensBluff1.cpp
+    src/wiz8/level_specific_code/Arnika.cpp
     src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
     src/wiz8/engine_code/Quality.cpp
