@@ -709,9 +709,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
         world->camera->setRotation(s_saved_camera_rotation);
     }
     SetCameraSwayMode(world->camera, 0);
-    camera_count = static_cast<int>(
-        ILLength(reinterpret_cast< // reinterpret-ok: camera PList shares ILLength count word
-                 W8IList*>(world->plsCameras)));
+    camera_count = static_cast<int>(PLLength(world->plsCameras));
     if (world->plsCameras != 0 && camera_count != 0) {
         for (index = 0; index < camera_count; ++index) {
             camera_path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));

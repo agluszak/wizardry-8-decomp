@@ -557,9 +557,7 @@ void HandleWaypointKey00579DF0(unsigned short key)
         WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
     } else if (key == 0x58) {
         if (g_mipe_state_0068f100 != 0) {
-            unsigned int count = ILLength(
-                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                    W8IList*>(&g_mipe_state_0068f100->waypoints));
+            unsigned int count = PLLength(&g_mipe_state_0068f100->waypoints);
             if (count != 0) {
                 monster = (W8Monster*)PLGet(&g_mipe_state_0068f100->waypoints, count - 1);
                 if (monster != 0) {
@@ -1000,10 +998,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                 }
             }
             found = 0;
-            if (0 <
-                (int)ILLength(
-                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                        W8IList*>(g_mipe_category_list_0068f11c))) {
+            if (0 < static_cast<int>(PLLength(g_mipe_category_list_0068f11c))) {
                 do {
                     table = (W8EncounterTableRuntime*)PLGet(g_mipe_category_list_0068f11c, found);
                     entry = GetEncounterTable(current_index);
@@ -1011,11 +1006,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                         break;
                     }
                     ++found;
-                } while (
-                    found <
-                    (int)ILLength(
-                        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                            W8IList*>(g_mipe_category_list_0068f11c)));
+                } while (found < static_cast<int>(PLLength(g_mipe_category_list_0068f11c)));
             }
             g_mipe_table_base_0068f120 = (found / 6) * 6;
             g_mipe_table_row_0068f118 = found % 6;

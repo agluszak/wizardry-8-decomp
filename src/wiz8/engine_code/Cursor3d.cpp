@@ -358,11 +358,7 @@ void BindCursorMonsterToGroup004914E0(void)
         }
         index = GetMonsterGroupIndexByID(0x237, CURSOR3D_CPP, g_world_cursor_0065ba8c->value_4c, 0);
         if (index == 0xffffffff) {
-            index = ILLength(reinterpret_cast<W8IList*>( // reinterpret-ok: retail passes the
-                                                         // monster-group PList to ILLength;
-                                                         // the two list layouts share the
-                                                         // length field.
-                gXStatus.plsMonsterGroupList));
+            index = PLLength(gXStatus.plsMonsterGroupList);
             if (index == 0) {
                 return;
             }

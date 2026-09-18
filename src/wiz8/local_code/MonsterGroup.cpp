@@ -560,8 +560,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
 {
     W8MonsterGroup* group = 0;
     unsigned int group_list_index = 0;
-    unsigned int count = ILLength(reinterpret_cast<W8IList*>(
-        gXStatus.plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+    unsigned int count = PLLength(gXStatus.plsMonsterGroupList);
 
     if (count != 0) {
         do {
@@ -574,9 +573,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
                 --index;
             }
             ++group_list_index;
-            count = ILLength(reinterpret_cast<W8IList*>(
-                gXStatus
-                    .plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+            count = PLLength(gXStatus.plsMonsterGroupList);
         } while (group_list_index < count);
     }
     return group;

@@ -323,8 +323,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
     next_party_slot:;
     }
 
-    count = ILLength(reinterpret_cast<W8IList*>(
-        gXStatus.plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
+    count = PLLength(gXStatus.plsMonsterList);
     for (index = 0; index < count; ++index) {
         other = MonsterGetScriptPartByLocationIndex(index);
         GetMonsterDataForInfo(other);
@@ -334,8 +333,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
             MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
             return 1;
         }
-        count = ILLength(reinterpret_cast<W8IList*>(
-            gXStatus.plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
+        count = PLLength(gXStatus.plsMonsterList);
     }
     return 0;
 }

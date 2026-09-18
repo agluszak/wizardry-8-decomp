@@ -1584,7 +1584,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     }
     world->camera->setViewPlane(saved_width, saved_height);
     // reinterpret-ok: retail calls ILLength on the W8PList* plsCameras
-    unsigned int camera_count = ILLength(reinterpret_cast<W8IList*>(world->plsCameras));
+    unsigned int camera_count = PLLength(world->plsCameras);
     if (!aborted && world->plsCameras != 0 && camera_count != 0) {
         for (int camera_index = 0; camera_index < static_cast<int>(camera_count); ++camera_index) {
             W8WorldCameraEntry* entry =

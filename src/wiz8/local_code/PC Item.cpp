@@ -3157,8 +3157,7 @@ unsigned char CanUseItemForAction(int party_slot, const W8ItemInstance* item)
         return 0;
     }
 
-    // reinterpret-ok: the int context slot carries the item pointer the use-item view reads back
-    SetValue69B9A4(reinterpret_cast<int>(const_cast<W8ItemInstance*>(item)));
+    SetValue69B9A4(const_cast<W8ItemInstance*>(item));
     usable =
         SpellHasAnyValidTarget(party_slot, record->spell_id, ItemClassNormalizesTarget(record));
     SetValue69B9A4(0);
@@ -3651,11 +3650,13 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
                   0);
     }
 
-    effect = CastSpellFromSource(
-        spell_id, &target, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
-        power, 0, static_cast<int>(difficulty), 0,
-        // reinterpret-ok: CastSpellFromSource out-arg is int*; retail reuses power
-        reinterpret_cast<int*>(&power), difficulty_kind, 0, 0);
+    {
+        int power_out = static_cast<int>(power);
+        effect = CastSpellFromSource(
+            spell_id, &target, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+            power, 0, static_cast<int>(difficulty), 0, &power_out, difficulty_kind, 0, 0);
+        power = static_cast<unsigned int>(power_out);
+    }
 
     if (effect == 1) {
         if (g_settings_6850c8.verbose_combat_messages != 0 || item->identified == 0) {

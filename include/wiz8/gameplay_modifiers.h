@@ -23,12 +23,12 @@
    the clear path drops. ApplyPartyEffectSlots scales the amount at +0x05 by
    the percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
-    unsigned char active; /* 0x00 */ // bool-byte-ok: packed effect-slot flag byte
-    int effect_id;                   /* 0x01 */
-    int amount;                      /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
+    bool active;              /* 0x00 */
+    int effect_id;            /* 0x01 */
+    int amount;               /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
                              0x3e detonation pass read and write it as one dword */
-    unsigned int percent;            /* 0x09 */
-    unsigned int duration_0d;        /* 0x0d: remaining lifetime, aged down in whole
+    unsigned int percent;     /* 0x09 */
+    unsigned int duration_0d; /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
 
