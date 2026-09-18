@@ -620,7 +620,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
    third bound - and the two conversions happen in the order the point's fields
    do not. */
 // FUNCTION: WIZ8 0x00460020
-void W8PathingService::LinkSurfaces00460020()
+void W8PathingService::LinkSurfaces00460020(GDProp* prop)
 {
     unsigned int index = 1;
     int point[3];
@@ -636,7 +636,7 @@ void W8PathingService::LinkSurfaces00460020()
             converted = (int)((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
             point[0] = (int)((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
             point[1] = converted;
-            RegisterPathSurface004B7730(index, point);
+            prop->RegisterPathSurface004B7730(index, point);
         }
         ++index;
     } while (index < m_ulNumWayPoints);
@@ -647,7 +647,7 @@ void W8PathingService::LinkSurfaces00460020()
    those surfaces contributes one converted point, so the builder receives the
    edge as a pair. */
 // FUNCTION: WIZ8 0x004600b0
-void W8PathingService::LinkEdges004600B0()
+void W8PathingService::LinkEdges004600B0(GDProp* prop)
 {
     unsigned int index = 1;
     int first[2];
@@ -671,7 +671,7 @@ void W8PathingService::LinkEdges004600B0()
             converted = (int)((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
             second[0] = (int)((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
             second[1] = converted;
-            RegisterPathVertex004B7830(index, first, second);
+            prop->RegisterPathVertex004B7830(index, first, second);
         }
         ++index;
     } while (index < m_ulNumWayPtLinks);

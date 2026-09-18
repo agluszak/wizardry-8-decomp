@@ -1549,6 +1549,15 @@ bool stSound3D::IsPlaying()
     return false;
 }
 
+// FUNCTION: WIZ8 0x004AEC90
+void stSound3D::Stop()
+{
+    if (sound_handle != -1) {
+        SoundStop(sound_handle);
+        sound_handle = -1;
+    }
+}
+
 /* Per-frame 3D sound servicing for the instanced sound list: each live entry
    that stopped playing is dropped (releasing it removes it from the vector, so
    the walk count and index step back together); each playing one is re-aimed

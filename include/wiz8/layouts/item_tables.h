@@ -111,8 +111,13 @@ struct W8ItemDatabaseRecord {
     unsigned char unknown_0b5[4]; /* 0x0b5 .. 0x0b8 */
     int merge_kind_0b9;           /* first database kind accepted by MergeItems */
     int merge_kind_0bd;           /* second database kind accepted by MergeItems */
-    unsigned char unknown_0c5[8]; /* 0x0c5 .. 0x0c8 */
-    signed char merge_skill_0c9;  /* skill required to create this item */
+    /* 0x0c1: the item's material index; combat sound reads it on the struck
+       item to pick the impact table's material column (0..11). */
+    int material_0c1;
+    /* 0x0c5: the weapon's attack sound class; combat sound bounds it against
+       the 38-entry swing table and the 28 impact rows. */
+    int weapon_sound_class_0c5;
+    signed char merge_skill_0c9; /* skill required to create this item */
     unsigned char merge_skill_level_0ca;
     unsigned char unknown_0cb[2];
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */

@@ -92,7 +92,13 @@ struct W8CombatCharacterRow {
     unsigned int uiSwingsRemaining; /* 0x68: exact name from the attack assertions */
     int current_hand;               /* 0x6c: indexes the slot row's attack modes */
     int current_equip_slot;         /* 0x70: indexes the character's equipment */
-    unsigned char unknown_74[0x0c];
+    /* 0x74: the paired weapon slot GetPairedEquipSlot answered for
+       current_equip_slot, -1 when nothing is paired with it. */
+    int paired_equip_slot;
+    /* 0x78/0x7c: the item record indexes of the weapon in the attacking hand
+       and of the paired weapon (the primary's own when nothing is paired). */
+    int weapon_item_id_78;
+    int paired_item_id_7c;
     unsigned char flag_80; /* 0x80 */
     unsigned char flag_81; /* 0x81: toggled when an attack action is chosen */
     unsigned char unknown_82[0x12];
@@ -140,7 +146,11 @@ struct W8CombatState {
     int eCombatActionStatus;                  /* 0x7b0 */
     int iActionChar;                          /* 0x7b4: -1 when nobody's turn */
     struct W8MonsterInfo* pActionMonsterInfo; /* 0x7b8 */
-    unsigned char unknown_7bc[5];
+    /* 0x7bc/0x7c0: the hit sound PlayCombatSound registered so the combat
+       service can poll it with SoundIsPlaying; the byte clears when the
+       handle finishes. */
+    unsigned int hit_sound_7bc;
+    bool hit_sound_active_7c0;
     W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
     W8EffectSlot effect_slots_85a[6]; /* 0x85a..0x8bf */
     W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */

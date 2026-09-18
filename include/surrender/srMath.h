@@ -931,12 +931,69 @@ float Det3(float param_1, float param_2, float param_3, float param_4, float par
    the homogeneous srMatrix4T expansion. Wiz8.exe itself only imports the
    float 4x4 getter; the 4x3 form is the SurRender cache and SR.DLL API.
    getWorldSpaceMatrix memcpy's the 12-float / 12-double cache; pushMultMatrix
-   expands the affine multiply itself. No member functions appear in the
-   export table or those bodies. */
+   expands the affine multiply itself. The only float member emissions in
+   Wiz8.exe are the translation/scale writes inside GDProp's
+   TransformMeshGeometry004B7E50. */
 template <class T> class srMatrix4x3T {
 public:
+    void SetRotation(const srMatrix3T<T>& rotation);
+    srMatrix4x3T<T>* SetTranslation(const srVector3T<T>& translation);
+    srMatrix4x3T<T>* Scale(const srVector3T<T>& scale);
+    srVector3T<T> TransformPoint(const srVector3T<T>& point) const;
+
     srVector4T<T> rows[3];
 };
+
+template <class T> void srMatrix4x3T<T>::SetRotation(const srMatrix3T<T>& rotation)
+{
+    rows[0].x = rotation.vectors[0].x;
+    rows[0].y = rotation.vectors[0].y;
+    rows[0].z = rotation.vectors[0].z;
+    rows[1].x = rotation.vectors[1].x;
+    rows[1].y = rotation.vectors[1].y;
+    rows[1].z = rotation.vectors[1].z;
+    rows[2].x = rotation.vectors[2].x;
+    rows[2].y = rotation.vectors[2].y;
+    rows[2].z = rotation.vectors[2].z;
+}
+
+// TEMPLATE: WIZ8 0x004B8660
+// srMatrix4x3T<float>::SetTranslation
+template <class T>
+srMatrix4x3T<T>* srMatrix4x3T<T>::SetTranslation(const srVector3T<T>& translation)
+{
+    rows[0].w = translation.x;
+    rows[1].w = translation.y;
+    rows[2].w = translation.z;
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x004B8680
+// srMatrix4x3T<float>::Scale
+template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& scale)
+{
+    rows[0].x *= scale.x;
+    rows[1].x *= scale.x;
+    rows[2].x *= scale.x;
+    rows[0].y *= scale.y;
+    rows[1].y *= scale.y;
+    rows[2].y *= scale.y;
+    rows[0].z *= scale.z;
+    rows[1].z *= scale.z;
+    rows[2].z *= scale.z;
+    return this;
+}
+
+/* Affine point transform: dest.i = row_i.xyz·point + row_i.w. The only Wiz8
+   emission is inlined inside GDProp::TransformMeshGeometry004B7E50. */
+template <class T> srVector3T<T> srMatrix4x3T<T>::TransformPoint(const srVector3T<T>& point) const
+{
+    srVector3T<T> result;
+    result.x = rows[0].x * point.x + rows[0].y * point.y + rows[0].z * point.z + rows[0].w;
+    result.y = rows[1].x * point.x + rows[1].y * point.y + rows[1].z * point.z + rows[1].w;
+    result.z = rows[2].x * point.x + rows[2].y * point.y + rows[2].z * point.z + rows[2].w;
+    return result;
+}
 
 static_assert(sizeof(srMatrix4x3T<float>) == 0x30, "srMatrix4x3T_float_must_be_0x30");
 static_assert(sizeof(srMatrix4x3T<double>) == 0x60, "srMatrix4x3T_double_must_be_0x60");

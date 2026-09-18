@@ -543,7 +543,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     }
 
     chunks->OpenChunk(0x54535041, 0); /* APST */
-    Function44E830(g_world, chunks->m_hFile);
+    SaveWorldProps0044E830(g_world, chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53425543, 0); /* CUBS */
@@ -681,7 +681,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                             } else if (chunk_id == 0x47495254) { /* TRIG */
                                 LoadWorldTriggers0043C860(g_world, stream->m_hFile);
                             } else if (chunk_id == 0x54535041) { /* APST */
-                                Function44E9A0(g_world, stream->m_hFile);
+                                LoadWorldProps0044E9A0(g_world, stream->m_hFile);
                             } else if (chunk_id == 0x53425543) { /* CUBS */
                                 LoadWorldCursorNodeStates0048E470(stream->m_hFile);
                             } else if (chunk_id == 0x534e474d) { /* MGNS */

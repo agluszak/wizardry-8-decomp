@@ -564,7 +564,7 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
             pMesh->lods_48 = pLods;
         } else {
             if (pMesh->lod_mode_40 > 1) {
-                FileRead(hFile, pMesh->unknown_58, 4, 0);
+                FileRead(hFile, &pMesh->lod_scale_58, 4, 0);
             }
             void** pLods = static_cast<void**>(malloc(pMesh->num_lods_42 * 4));
             if (pLods == 0) {
@@ -637,7 +637,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
         fSuccess &= FileWrite(hFile, &pMesh->lod_mode_40, 1, 0);
         fSuccess &= FileWrite(hFile, &pMesh->num_lods_42, 2, 0);
         if (pMesh->lod_mode_40 > 1) {
-            fSuccess &= FileWrite(hFile, pMesh->unknown_58, 4, 0);
+            fSuccess &= FileWrite(hFile, &pMesh->lod_scale_58, 4, 0);
         }
         if ((pMesh->flags_0c & 2) == 0) {
             void** pLods = pMesh->lods_48;
