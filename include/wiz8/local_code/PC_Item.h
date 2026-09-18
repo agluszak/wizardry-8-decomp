@@ -3,6 +3,8 @@
 void InitializeItemVideoObjects(void);
 void ReleaseGenericItemNames(void);
 
+#include <wchar.h>
+
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/dialog_code/DialogBase.h"
@@ -32,18 +34,33 @@ enum W8EquipSlot {
     W8_EQUIP_SLOT_COUNT = 12
 };
 
-unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
+bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
 extern const int g_item_spell_presentation[11];
-extern const int g_equip_slot_icons[6];
+/* 0x00648C5C: the paper-doll icon of each of the twelve equipment slots. The
+   two alternate-set hand slots have none, which is exactly the value the
+   bound-item predicates refuse to hold a binding behind. */
+extern const int g_equip_slot_icons[12];
 int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
 unsigned int GetEquipmentBindingDifficulty(int character_index);
 unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
-bool ItemHasSingledOutGenericName(int item_id);
-int GetPairedEquipSlot(int equip_slot);
 bool ItemHasQuantityKindFour(int item_id);
+int GetPairedEquipSlot(int equip_slot);
+wchar_t* GetItemDisplayName(const W8ItemInstance* item);
+
+/* 0x0051B7B0 and 0x0051CCE0 are also expanded at their own call sites inside
+   this unit: retail inlines the display-name body seven times in UseItem, three
+   times in FormatItemDisplayName and twice in CastItemSpell0051EE70, and the
+   name-kind test once in EquipMatchingPartnerItem, while nine and eight call
+   sites in other units call the out-of-line copies. VC6 /O2 expands only
+   inline-marked/member functions (measured: moving these definitions above their
+   callers changes nothing), so the original marked them inline; with the body
+   visible only here that marking also suppresses the out-of-line emission my
+   build then needs. Kept as ordinary calls until the visibility question is
+   settled by its owner. */
+bool ItemHasSingledOutGenericName(int item_id);
 
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
 unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce); /* 0x00522090 */
@@ -65,7 +82,6 @@ void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength,
 int RevealCharacterItemBindings(unsigned int party_slot, int strength, unsigned int percent);
 wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity);
 unsigned int GetItemStackValue(const W8ItemInstance* item);
-wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 bool FindItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** found,
                          int include_backpack, const W8ItemInstance* resume_after);
 /* 0x00521060: the whole-party counterpart. It tests the item in hand and the
@@ -154,6 +170,10 @@ unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 /* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
 extern const unsigned short g_generic_item_name_notice[147];
 
+/* 0x0068C108: one lazily built generic name per unidentified-name index. */
+enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
+extern wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
+
 /* Defined in Dialog Code\AssayDialog.cpp (GLOBAL 0x0061E7DC): the
    gppStringList index of each equipment class's display name. */
 
@@ -192,9 +212,49 @@ char GetItemMergeKind0051E980(int item_id, short* related_kind);
 char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
 char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
+
+/* 0x0051EB90: fill an equipment slot from the item that pairs with the given
+   one - the alternate hand when its own item is compatible, otherwise the
+   named item found anywhere on the character. */
 void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int item_id,
-                              int equip_slot);                               /* 0x0051EB90 */
+                              int equip_slot);
 void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item); /* 0x0051EA90 */
+
+/* 0x0051BC00: hand one item to a party member, preferring the character or the
+   party pool according to the flag exactly as StoreItemWithCharacterOrParty
+   does, and then consume the source record. */
+unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
+                                         unsigned char party_first);
+
+/* 0x0051BA00: the item-in-hand form of the same store, reached from the
+   portrait screen, after the whole party has had its identification attempt. */
+unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_first);
+
+/* 0x0051DDE0: use one item as a character's action. `out_uses` receives the
+   fatigue cost of the attempt, or -1 when nothing was attempted. */
+unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses);
+
+/* Unresolved gap callees, declared for the action paths that reach them.
+   0x0051DCD0 rates how hard one attempt at an item's spell is for a character
+   of this skill level. 0x0051EE70 applies the item's spell and consumes the
+   uses it took. */
+unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skill,
+                                          unsigned int skill_level, unsigned int spell_id,
+                                          unsigned int power);
+int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned int power);
+
+/* The same batch's remaining bodies, recovered together with them. */
+void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
+unsigned int SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
+void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);
+void RemovePartyPoolEntry00521C20(unsigned int index);
+unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,
+                                                    W8ItemInstance** found,
+                                                    W8Character** found_character,
+                                                    int include_backpack);
+void EmptyBackpackSlot00521AC0(W8Character* character, int slot);
+void EmptyPartyPoolEntry00521CD0(int index);
+void UpgradeProfessionClassItem005218C0(W8Character* character);
 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);

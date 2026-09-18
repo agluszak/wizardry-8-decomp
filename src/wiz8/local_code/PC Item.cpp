@@ -53,6 +53,10 @@
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
@@ -211,15 +215,25 @@ enum { W8_WEAPON_SKILL_NONE = -1 };
    off-hand pair, and the rest are worn rather than held. */
 enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 
+/* 0x0061E956: the gppStringList message each item use kind shows for whatever
+   the item was used on. Retail reads a word at a four-byte stride from this
+   run of consecutive ids - every other entry - so the access doubles the use
+   kind. The run's extent ends where g_action_kind_message_ids_61e988 starts. */
+// GLOBAL: WIZ8 0x0061e956
+extern const unsigned short g_item_use_messages_61e956[25] = {
+    0x4f6, 0x4f7, 0x4f8, 0x4f9, 0x4fa, 0x4fb, 0x4fc, 0x4fd, 0x4fe, 0x4ff, 0x500, 0x501, 0x502,
+    0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x509, 0x50a, 0x50b, 0x50c, 0x50d, 0x50e,
+};
 /* 0x0068C108: one lazily built generic name per unidentified-name index, and
    0x0061E810: the notice each index formats from. The table's extent is the
    pointer bound the release walk stops at. */
-enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
 const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
+/* The twelve slots' paper-doll icons: the two alternate-set hand slots have
+   none, which is the value the bound-item predicates refuse a binding behind. */
 // GLOBAL: WIZ8 0x00648c5c
-const int g_equip_slot_icons[6] = {0, 0, 0, 0, 0, 0};
+const int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
 /* The leading entries are an offset alias of the tail of
    g_equip_class_name_ids_61e7dc; retail reads both views of one block. */
 // GLOBAL: WIZ8 0x0061E810
@@ -674,6 +688,10 @@ enum {
     W8_ITEM_CATEGORY_CASTER_ITEM_8 = 8
 };
 
+/* 0x0A: the bound the use-kind assertion names as USE_TYPE_COUNT, and the
+   extent of the per-kind message table at 0x0061E956. */
+enum { W8_ITEM_USE_TYPE_COUNT = 10 };
+
 /* The sex mask value that admits either sex rather than the one bit a
    restrictive record names. */
 enum { W8_ITEM_GENDER_MASK_ANY = 3 };
@@ -681,9 +699,11 @@ enum { W8_ITEM_GENDER_MASK_ANY = 3 };
 /* An unused requirement slot. */
 enum { W8_ITEM_REQUIREMENT_NONE = 0xff };
 
-/* The two profession levels the casting categories read, by index into
-   W8Character::profession_levels. */
-enum { W8_CASTER_PROFESSION_CATEGORY_8 = 8, W8_CASTER_PROFESSION_CATEGORY_6 = 9 };
+/* The two profession levels the casting categories read, named by index into
+   W8Character::profession_levels (0x008d + 4 * index, so 0x0ad and 0x0b1). The
+   caster-item categories pair with them: CASTER_ITEM_6 reads index 9 through
+   the spell-source path and CASTER_ITEM_8 reads index 8. */
+enum { W8_CASTER_PROFESSION_INDEX_8 = 8, W8_CASTER_PROFESSION_INDEX_9 = 9 };
 
 /* 0x00521EF0 */
 
@@ -741,13 +761,15 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
         }
         if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]) <
                 minimum_caster_level) {
                 return false;
             }
         } else {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_INDEX_8]) <
                 minimum_caster_level) {
                 return false;
             }
@@ -782,7 +804,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
    category zero is dead weight, spell-less records fail unless they are the
    one exempt item, and an empty charge stack fails. */
 // FUNCTION: WIZ8 0x0051d800
-unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item)
+bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record;
 
@@ -864,6 +886,31 @@ int GetItemEquipSlotGroup(int item_id)
     }
 }
 
+/* What to call an item. An identified one is called by its own name, which
+   leads its record - so the record address is the name address. An
+   unidentified one is called by the generic name its index shares, built once
+   on first use and kept. Defined above the bodies that use it because retail
+   expands it at its in-unit call sites. */
+// FUNCTION: WIZ8 0x0051b7b0
+wchar_t* GetItemDisplayName(const W8ItemInstance* item)
+{
+    unsigned int name_index;
+    wchar_t* built;
+
+    if (item->identified != 0) {
+        return g_item_records[item->item_id].display_name;
+    }
+
+    name_index = g_item_records[item->item_id].unidentified_name_index;
+    if (g_generic_item_names[name_index] == 0) {
+        built = static_cast<wchar_t*>(malloc(0x78));
+        g_generic_item_names[name_index] = built;
+        swprintf(built, gppStringList[0x79c / 4],
+                 gppStringList[g_generic_item_name_notice[name_index]]);
+    }
+    return g_generic_item_names[name_index];
+}
+
 /* Whether an item's generic name is one of five the callers single out. The
    set is a jump table based at eleven, so it is a property of the shared
    unidentified name rather than of the item itself. */
@@ -905,6 +952,191 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
         return g_item_spell_presentation[record->category];
     }
     return -1;
+}
+
+/* Use one item as a character's action. The attempts that cannot happen at all
+   come first, each with its own notice and character event: a spent charge
+   stack, a spent dose, a class-0x0d item whose influence the character is still
+   under, and the one item that resolves to an NPC fact instead of a spell.
+   Everything else aims the item and casts the spell it carries, which is where
+   the spell's presentation skill and the character's own level in it decide how
+   hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
+   stays -1 when nothing was attempted. */
+#pragma clang diagnostic push
+/* The two quantity-notice paths end without casting anything and never assign
+   the result; retail reads the argument's own stack slot there, so the caller
+   sees the stale nonzero value it pushed rather than a failure. */
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+// FUNCTION: WIZ8 0x0051dde0
+unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    unsigned int party_slot = CharacterPointerToPartySlot(character);
+    unsigned int power;
+    unsigned int chance;
+    int skill;
+    int event_type;
+    int fatigue_cost = -1;
+    W8TargetSource target;
+    unsigned char used;
+
+    if (!CanCharacterUseItem(character, item->item_id)) {
+        PostCharacterNotice(party_slot, gppStringList[0x164 / 4], GetItemDisplayName(item));
+        *out_uses = -1;
+        return 0;
+    }
+    if (!CanCharacterActivateItem(character, item)) {
+        PostCharacterNotice(party_slot, gppStringList[0x165 / 4], GetItemDisplayName(item));
+        goto finish;
+    }
+
+    if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
+        PostCharacterNotice(party_slot, gppStringList[0x1f1 / 4], GetItemDisplayName(item));
+        event_type = g_special_event_0068c558;
+    } else if (record->quantity_kind == 4 && item->uses_or_charges == 0) {
+        PostCharacterNotice(party_slot, gppStringList[0x1f2 / 4], GetItemDisplayName(item));
+        event_type = g_effect_005ee624;
+    } else {
+        if (record->equip_class == 0xd &&
+            character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+            PostCharacterNotice(party_slot, gppStringList[0x166 / 4]);
+            goto finish;
+        }
+
+        /* The one item that is not used on anybody: it hands the level's NPC
+           over to the fact that says the party has met them. */
+        if (item->item_id == 0x29f) {
+            W8NpcState* npc = GetNpcState(
+                g_status_685170.buffers.party_rows[CharacterPointerToPartySlot(character)]
+                    .animation_0fa);
+            if (npc == 0) {
+                srAssertFail("pNPC", PC_ITEM_CPP, 0x89d, 0);
+            }
+            if (npc->name_style != 0x20) {
+                srAssertFail("pNPC->ubNPCDBaseID == NPC_RFS81A", PC_ITEM_CPP, 0x89e, 0);
+            }
+            SetFact(0x44, 1, 0);
+            SetFact(0x284, 0, 0);
+            RemoveCharacterItem(character, item, 1);
+            return 1;
+        }
+
+        if (record->equip_class != 0xd && record->equip_class != 0xe) {
+            /* An ordinary item carries the spell's own power, and the one use
+               kind whose presentation skill is nine costs a flat ten. */
+            if (g_item_spell_presentation[record->category] == 9) {
+                fatigue_cost = 10;
+            }
+            power = record->unknown_064[0];
+        } else {
+            /* A casting aid has to beat the difficulty of the character's own
+               level in the skill that presents the spell. Each attempt that
+               fails is retried one power lower, and the first roll that
+               succeeds ends the search. */
+            skill = record->spell_id != 0x58 && record->spell_id != 0x74
+                        ? g_item_spell_presentation[record->category]
+                        : -1;
+            power = 7;
+            do {
+                if (GetItemUseDifficulty0051DCD0(character, skill, character->skills[skill].level,
+                                                 record->spell_id, power) > 0xf) {
+                    --power;
+                    continue;
+                }
+                chance = power * 7;
+                while (power != 0 && chance > Random(100)) {
+                    --power;
+                    chance -= 7;
+                }
+                break;
+            } while (power != 0);
+
+            if (power == 0) {
+                PostCharacterNotice(party_slot, gppStringList[0x7cc / 4], GetItemDisplayName(item));
+                PracticeCharacterSkill(character, skill, 1, 0);
+                goto finish;
+            }
+        }
+
+        /* The targeting classes aim through the slot's own out-of-combat
+           target; everything else is used on the character acting. */
+        SetTargetSourceToCharacter(party_slot, &target);
+        if (record->equip_class == 0x10 ||
+            (record->equip_class > 0x14 && record->equip_class < 0x17)) {
+            if (gXStatus.fCombatMode == 0) {
+                W8CombatSlot* aimed =
+                    &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat;
+                if (aimed->iType == W8_TARGET_KIND_CHARACTER) {
+                    SetTargetSourceToCharacter(aimed->iChar, &target);
+                } else if (aimed->iType == W8_TARGET_KIND_MONSTER) {
+                    SetTargetSourceToMonster(
+                        MonsterGetScriptPartByLocationIndex(
+                            MonsterGetIndexByLocationID(0x8fd, PC_ITEM_CPP, aimed->iMonsterID, 1)),
+                        &target);
+                }
+            } else {
+                AimAtCharacter(party_slot, party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            }
+        }
+        target.unknown_18[1] = 1;
+
+        if (record->category >= W8_ITEM_USE_TYPE_COUNT) {
+            srAssertFail("pItemDB->ubUseType < USE_TYPE_COUNT", PC_ITEM_CPP, 0x906, 0);
+        }
+        /* A spell-carrying item the world-cursor handler refuses cannot be used
+           at all, and the attempt is over before anything is announced. */
+        if (record->spell_id != 0 && g_item_records[item->item_id].spell_id != 0 &&
+            g_item_records[item->item_id].equip_class != 0xe &&
+            (g_item_records[item->item_id].equip_class < 0x15 ||
+             g_item_records[item->item_id].equip_class > 0x16) &&
+            DispatchWorldCursorNodeCommand004D9080(0, 4, 1)) {
+            *out_uses = 0;
+            return 0;
+        }
+
+        if (TargetSourceIsCharacter(&target, 0)) {
+            PostCharacterNotice(target.iChar, g_format_s_space_s_00617584,
+                                gppStringList[g_item_use_messages_61e956[record->category * 2]],
+                                GetItemDisplayName(item));
+        } else if (TargetSourceIsMonster(&target, 0)) {
+            ShowNoticef(
+                9, L"%s %s %s",
+                GetMonsterName(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                                   0x91d, PC_ITEM_CPP, target.iMonsterID, 1)),
+                               0, 0),
+                gppStringList[g_item_use_messages_61e956[record->category * 2]],
+                GetItemDisplayName(item));
+        } else {
+            srAssertFail("FALSE", PC_ITEM_CPP, 0x924, 0);
+        }
+
+        if (g_settings_6850c8.verbose_combat_messages == 0) {
+            SetTextBoxMode(1, -1);
+        }
+        if (record->spell_id == 0) {
+            char* message =
+                FormatString("UseItem: ERROR - Usable item %d doesn't do anything!", item->item_id);
+            srAssertFail("FALSE", PC_ITEM_CPP, 0x934, message);
+            used = 0;
+            fatigue_cost = 0;
+        } else {
+            used = CastItemSpell0051EE70(character, item, power);
+            if (!used) {
+                fatigue_cost = 0;
+            } else {
+                RemoveCharacterItem(character, item, 1);
+            }
+        }
+        goto finish;
+    }
+
+    QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], event_type, 0,
+                        g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+
+finish:
+    *out_uses = fatigue_cost;
+    return used;
+#pragma clang diagnostic pop
 }
 
 /* Whether the item worn in one slot may be taken off. A binding that has not
@@ -1263,28 +1495,160 @@ void ReleaseGenericItemNames(void)
     }
 }
 
-/* What to call an item. An identified one is called by its own name, which
-   leads its record - so the record address is the name address. An
-   unidentified one is called by the generic name its index shares, built once
-   on first use and kept. */
-// FUNCTION: WIZ8 0x0051b7b0
-wchar_t* GetItemDisplayName(const W8ItemInstance* item)
+/* Hand the item in hand to a party member. It is first offered to everybody who
+   could identify it, and then stored with the character or the party pool in
+   the order the flag asks for. The item-in-hand state is cleared before the
+   outcome is tested, and a store that fails is announced: the notice names the
+   slot when neither destination was open, and the item otherwise. The flag
+   doubles as the result the way the compiled body reads it, so a failed
+   party-first attempt still reports success. */
+// FUNCTION: WIZ8 0x0051ba00
+unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_first)
 {
-    unsigned int name_index;
-    wchar_t* built;
+    W8ItemInstance* item = &g_status_685170.item_in_hand_235b;
+    unsigned char stored = party_first;
+    unsigned char identified = 0;
+    unsigned int slot;
 
-    if (item->identified != 0) {
-        return g_item_records[item->item_id].display_name;
+    if (!g_status_685170.item_in_cursor) {
+        srAssertFail("gStatus.fItemInCursor", PC_ITEM_CPP, 376, 0);
     }
 
-    name_index = g_item_records[item->item_id].unidentified_name_index;
-    if (g_generic_item_names[name_index] == 0) {
-        built = static_cast<wchar_t*>(malloc(0x78));
-        g_generic_item_names[name_index] = built;
-        swprintf(built, gppStringList[0x79c / 4],
-                 gppStringList[g_generic_item_name_notice[name_index]]);
+    /* Every member who is up and not too badly hurt gets an attempt at the
+       item, which is what practises the skill for them; the first one who
+       learns what it is bounds the loop's answer. */
+    if (item->identified == 0) {
+        for (slot = 0; slot < 8; ++slot) {
+            W8Character* character = &g_status_685170.buffers.characters[slot];
+            if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+                continue;
+            }
+            /* 0xb is the index the body bounds the sweep at: a member past it is
+               too far gone to be offered the item. */
+            if (character->hp_current == 0 || character->highest_condition >= 0xb) {
+                continue;
+            }
+            if (identified == 0) {
+                identified = TryIdentifyItemFor(character, item);
+            } else {
+                TryIdentifyItemFor(character, item);
+            }
+        }
     }
-    return g_generic_item_names[name_index];
+
+    if (g_status_685170.game_started == 0) {
+        srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 0x194, 0);
+    }
+    if (!g_status_685170.buffers.party_rows[uiChar].occupied) {
+        srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
+    }
+
+    /* The same chain StoreItemWithCharacterOrParty later factors out for the
+       rest of the file; here and in the general form below it is written out. */
+    if (IsPartySlotEligible00524A10(uiChar) != 0) {
+        W8Character* character = &g_status_685170.buffers.characters[uiChar];
+        if (!stored && AddItemToCharacter(character, item, 0, 1, 0)) {
+            stored = 1;
+        } else if (AddItemToParty(item, 1, 0)) {
+            stored = 1;
+        } else if (stored && AddItemToCharacter(character, item, 0, 1, 0)) {
+            stored = 1;
+        }
+    } else if (stored) {
+        stored = AddItemToParty(item, 1, 0);
+    }
+
+    g_held_item_source_006840c0 = -1;
+    g_held_item_origin_006840c4 = 0xff;
+    g_held_item_slot_006840c5 = 0xffff;
+    ClearHeldItemDisplay();
+    if (stored) {
+        return stored;
+    }
+
+    if (IsPartySlotEligible00524A10(uiChar) == 0 && !party_first) {
+        ShowNoticeLine(gppStringList[0x7d4 / 4], 0, 1, 0);
+    } else {
+        ShowNoticeLine(gppStringList[0x2430 / 4], 0, 1, 0);
+    }
+    return stored;
+}
+
+/* Hand one item to a party member. The character and the party pool are tried
+   in the order the flag asks for, with the other tried after - and when the
+   slot has nobody in it, only the pool. The source record is consumed once the
+   item is stored: the item in hand clears the cursor state instead, and a party
+   pool entry that was already empty is shifted out of the packed array. */
+// FUNCTION: WIZ8 0x0051bc00
+unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
+                                         unsigned char party_first)
+{
+    W8ItemInstance shifted[500];
+    unsigned char stored;
+
+    if (g_status_685170.game_started == 0) {
+        srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 0x194, 0);
+    }
+    if (!g_status_685170.buffers.party_rows[uiChar].occupied) {
+        srAssertFail("fCHAR_OCCUPIED(uiChar)", PC_ITEM_CPP, 0x195, 0);
+    }
+
+    if (IsPartySlotEligible00524A10(uiChar) == 0) {
+        if (!party_first) {
+            return 0;
+        }
+        stored = AddItemToParty(item, 1, 0);
+        if (!stored) {
+            return 0;
+        }
+    } else {
+        W8Character* character = &g_status_685170.buffers.characters[uiChar];
+        if (!party_first && AddItemToCharacter(character, item, 0, 1, 0)) {
+            stored = 1;
+        } else if (AddItemToParty(item, 1, 0)) {
+            stored = 1;
+        } else if (!party_first) {
+            return 0;
+        } else if (AddItemToCharacter(character, item, 0, 1, 0)) {
+            stored = 1;
+        } else {
+            return 0;
+        }
+    }
+
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    } else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        RefreshAfterItemRecordChange(item, 0, 1);
+    }
+
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+    if (item < pool || item > &pool[499]) {
+        return stored;
+    }
+
+    unsigned int count = g_status_685170.party_item_count_1791;
+    unsigned int index = 0;
+    while (index < count && item != &pool[index]) {
+        ++index;
+    }
+    if (index == count || pool[index].item_id != -1) {
+        return stored;
+    }
+
+    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
+    memcpy(&shifted[index], &pool[index + 1], bytes);
+    memcpy(&pool[index], &shifted[index], bytes);
+    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+    pool[count - 1].item_id = -1;
+    --g_status_685170.party_item_count_1791;
+    RedistributePartyEncumbrance();
+    return stored;
 }
 
 /* Drop whatever is in hand, unless it is one of the items that may not be
@@ -1727,6 +2091,38 @@ void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance*
     }
 }
 
+/* Fill one equipment slot with the item that pairs with the given one. Only
+   the five generic name kinds the merge path singles out pair at all. The
+   alternate left hand is the pair to take when it holds something compatible;
+   otherwise the caller may name an item that has to be found on the character.
+   Neither being available queues the character's event instead of swapping. */
+// FUNCTION: WIZ8 0x0051eb90
+void EquipMatchingPartnerItem(W8Character* character, W8ItemInstance* item, int item_id,
+                              int equip_slot)
+{
+    W8ItemInstance* pair;
+
+    if (!ItemHasSingledOutGenericName(item->item_id)) {
+        return;
+    }
+    if (item->item_id == -1) {
+        srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 0xa52, 0);
+    }
+
+    if (character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id != -1 &&
+        CompatiblePartnerItems(item->item_id,
+                               character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id)) {
+        pair = &character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT];
+    } else if (item_id == -1 || !FindItemOnCharacter(character, item_id, &pair, 1, 0)) {
+        QueueCharacterEvent(character, g_effect_005ee624, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+        return;
+    }
+
+    SwapItemInstances(pair, &character->equipment[equip_slot], character, 1);
+    PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x750 / 4]);
+}
+
 /* Where one item id sits on a character. The worn slots are searched first and
    the carried ones only when asked for; a starting slot makes the search
    resume after it rather than from the front. */
@@ -1907,8 +2303,8 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0; index < (unsigned int)g_status_685170.party_item_count_1791;
-             ++index) {
+        for (unsigned int index = 0;
+             index < static_cast<unsigned int>(g_status_685170.party_item_count_1791); ++index) {
             W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
             if (item->item_id == item_id) {
                 total += item->stack_count == 0 ? 1 : item->stack_count;
@@ -2965,4 +3361,789 @@ int ChooseCharacterEquipSlot(W8Character* character, int item_id)
         return W8_EQUIP_SLOT_NONE;
     }
     return slot;
+}
+
+/* Rate how hard one attempt at an item's spell is. The base is the ordinary
+   spell failure chance for the character's level in the skill that presents
+   the spell; the two casting-aid skills then add a shortfall term - fifteen
+   times the spell's own level against that skill level, in thirds - and a term
+   for each power level the caster is short of the spell's minimum. Skill
+   twenty is the most forgiving of the four and takes ten percent off, while
+   skill nine takes twenty. */
+// FUNCTION: WIZ8 0x0051dcd0
+unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skill,
+                                          unsigned int skill_level, unsigned int spell_id,
+                                          unsigned int power)
+{
+    unsigned int failure = GetSpellFailureChance(skill_level, spell_id, power);
+    unsigned int shortfall;
+    int minimum_caster_level;
+    int caster_level;
+    int adjusted_power;
+
+    switch (skill) {
+    case 9:
+        return failure * 8 / 10;
+    case 0xc:
+    case 0x17:
+        shortfall = g_spell_records[spell_id].spell_level * 0xf;
+        if (skill_level < shortfall) {
+            failure += (shortfall - skill_level) / 3;
+        }
+        minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
+        caster_level = skill == 0xc ? character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]
+                                    : character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
+        adjusted_power = (minimum_caster_level - caster_level) - 1 + static_cast<int>(power);
+        if (adjusted_power > 0) {
+            return failure + g_spell_records[spell_id].spell_level * adjusted_power;
+        }
+        break;
+    case 0x14:
+        failure = failure * 9 / 10;
+        break;
+    }
+    return failure;
+}
+
+/* Aim the item in an instance at whoever the slot is currently targeting, then
+   start the use as that slot's action. The one spell that needs a caster
+   picked before it can be used also opens the character screen. */
+// FUNCTION: WIZ8 0x0051db60
+void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item)
+{
+    unsigned int party_slot = CharacterPointerToPartySlot(character);
+    W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    int detail = -1;
+
+    row->item_detail.item_use.kind = -1;
+    row->item_detail.item_use.item = item;
+    row->item_target = *target;
+    row->item_id_0c9 = item->item_id;
+    GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
+    if (g_item_records[item->item_id].spell_id == 0x17) {
+        ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 1, 1);
+        OpenCharacterScreenForPartySlot(CharacterPointerToPartySlot(character), 1);
+        return;
+    }
+    ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 0, 1);
+}
+
+/* Take one of an item's uses away, and when that was the last one, empty the
+   record. A stack counts down its count and a charged item its charges; an
+   already-exhausted charged item can only be cleared when the caller allows
+   it, and one whose kind has hidden properties is kept even then. Either way
+   the emptied record leaves the packed party pool behind it. */
+// FUNCTION: WIZ8 0x0051e760
+void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3)
+{
+    W8ItemInstance shifted[500];
+    int item_id = item->item_id;
+
+    if (item_id == -1) {
+        return;
+    }
+    if (g_item_records[item_id].quantity_kind == 0 && g_item_records[item_id].equip_class != 0x16) {
+        return;
+    }
+
+    if (g_item_records[item_id].quantity_kind == 1) {
+        if (item->stack_count != 0) {
+            --item->stack_count;
+        }
+        if (item->stack_count != 0) {
+            return;
+        }
+    } else if (item->uses_or_charges == 0) {
+        if (!arg_3) {
+            return;
+        }
+    } else {
+        --item->uses_or_charges;
+        if (item->uses_or_charges != 0) {
+            return;
+        }
+        if (ItemHasHiddenProperties(item_id)) {
+            return;
+        }
+    }
+
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    } else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        RefreshAfterItemRecordChange(item, character, 1);
+    }
+
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+    if (item < pool || item > &pool[499]) {
+        return;
+    }
+
+    unsigned int count = g_status_685170.party_item_count_1791;
+    unsigned int index = 0;
+    while (index < count && item != &pool[index]) {
+        ++index;
+    }
+    if (index == count || pool[index].item_id != -1) {
+        return;
+    }
+
+    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
+    memcpy(&shifted[index], &pool[index + 1], bytes);
+    memcpy(&pool[index], &shifted[index], bytes);
+    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+    pool[count - 1].item_id = -1;
+    --g_status_685170.party_item_count_1791;
+    RedistributePartyEncumbrance();
+}
+
+/* The same pairing as EquipMatchingPartnerItem, but for the items that carry a
+   number of uses rather than being worn: the compatible-partner table names the
+   kind to look for, and the first one found anywhere on the character takes the
+   uses. With no partner the character only voices the attempt, and their
+   attacks are recomputed for the change the failed attempt implies. */
+// FUNCTION: WIZ8 0x0051ea90
+void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
+{
+    W8ItemInstance* partner;
+    int item_id = item->item_id;
+    int row;
+
+    if (item_id == -1 || !ItemHasQuantityKindFour(item_id)) {
+        return;
+    }
+
+    row = 0;
+    while (g_compatible_partner_pairs_616e6c[row][0] !=
+           g_item_records[item_id].unidentified_name_index) {
+        ++row;
+        if (g_compatible_partner_pairs_616e6c[row][0] == 0) {
+            return;
+        }
+    }
+
+    if (FindCharacterItemByDatabaseKind005213C0(
+            character, g_compatible_partner_pairs_616e6c[row][1], &partner, 1)) {
+        MergeItemUses(character, item, partner);
+        PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x750 / 4]);
+        return;
+    }
+
+    QueueCharacterEvent(character, g_effect_005ee624, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
+    CalcAttacks(character);
+}
+
+/* Put an item in the party pool, and when the pool will not take it, leave it in
+   hand instead. The hand's own item is set aside first, so the newcomer can be
+   dropped exactly like any held item - except for the ones that may not be
+   discarded, which are announced instead - and the hand's item comes back
+   afterwards. */
+// FUNCTION: WIZ8 0x00522090
+unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce)
+{
+    unsigned char stored = AddItemToParty(item, announce, 0);
+    if (stored != 0) {
+        return stored;
+    }
+
+    bool hand_was_holding = g_status_685170.item_in_cursor != 0;
+    W8ItemInstance set_aside;
+    if (hand_was_holding) {
+        set_aside = g_status_685170.item_in_hand_235b;
+    }
+
+    g_held_item_source_006840c0 = -1;
+    g_held_item_origin_006840c4 = 0xff;
+    g_held_item_slot_006840c5 = 0xffff;
+    ClearHeldItemDisplay();
+    CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
+    if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 &
+         W8_ITEM_FLAG_NO_DISCARD) == 0) {
+        DropHeldItem(0);
+    } else {
+        ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+    }
+
+    if (hand_was_holding) {
+        g_status_685170.item_in_hand_235b = set_aside;
+    }
+    return stored;
+}
+
+/* Cast the spell an item carries and spend the uses it cost. The attempt is
+   refused outright when the record cannot carry a spell at all; the difficulty
+   comes from the skill that presents the spell, paced by the combat clock and
+   raised for an item nobody has identified yet; the sound is keyed by the
+   item's own resource name; and the effect's outcome decides whether the item
+   is marked used, reported as a finding, or practised on afterwards. */
+// FUNCTION: WIZ8 0x0051ee70
+int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned int power)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    unsigned int party_slot = CharacterPointerToPartySlot(character);
+    unsigned int spell_id = record->spell_id;
+    W8TargetSource target;
+    unsigned char rejected_spell;
+    unsigned int difficulty = 0;
+    int skill;
+    int effect;
+    int caster_figure;
+    int difficulty_kind;
+
+    /* A record with no spell, an off-hand-only class and the two casting-aid
+       classes are the ones the spell engine is told about rather than cast. */
+    rejected_spell = (record->spell_id == 0 || record->equip_class == 0xe ||
+                      (record->equip_class > 0x14 && record->equip_class < 0x17))
+                         ? 1
+                         : 0;
+    if (!CanUseItemSpell004FAC40(party_slot, spell_id, power, 1, rejected_spell)) {
+        return 0;
+    }
+
+    if (record->spell_id == 'X' || record->spell_id == 't') {
+        skill = -1;
+    } else {
+        skill = g_item_spell_presentation[record->category];
+        if (skill == -1) {
+            difficulty = 0;
+        } else {
+            difficulty = GetItemUseDifficulty0051DCD0(
+                character, skill, character->skills[skill].level, spell_id, power);
+            ScaleByCombatPace(party_slot, &difficulty);
+            if (item->identified == 0) {
+                difficulty += 0x1e;
+            }
+        }
+    }
+
+    SetTargetSourceToCharacter(party_slot, &target);
+    target.unknown_1d[4] = 1;
+    TrackItemSpellSource00501D20(character, spell_id);
+
+    if (skill == 9) {
+        difficulty_kind = 4;
+        caster_figure = character->level;
+    } else if (skill == 0xc) {
+        difficulty_kind = 2;
+        caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_9];
+    } else if (skill == 0x17) {
+        difficulty_kind = 3;
+        caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
+    } else {
+        difficulty_kind = 1;
+        caster_figure = character->level;
+    }
+    /* The spell engine reads the difficulty it worked out off the source's own
+       tail bytes: 0x1f here, and the flag above at 0x21. */
+    target.unknown_1d[2] =
+        static_cast<unsigned char>(GetSpellDifficulty(caster_figure, spell_id, power));
+
+    if (strlen(record->video_object_name + 0x18) != 0) {
+        // reinterpret-ok: SGP's String returns UINT8* and SoundPlay takes char*
+        SoundPlay(reinterpret_cast<char*>(
+                      String("Data\\Spells\\Sounds\\%s.wav", record->video_object_name + 0x18)),
+                  0);
+    }
+
+    effect = CastSpellFromSource(
+        spell_id, &target, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+        power, 0, static_cast<int>(difficulty), 0,
+        // reinterpret-ok: CastSpellFromSource out-arg is int*; retail reuses power
+        reinterpret_cast<int*>(&power), difficulty_kind, 0, 0);
+
+    if (effect == 1) {
+        if (g_settings_6850c8.verbose_combat_messages != 0 || item->identified == 0) {
+            FormatNotice(8, -1, gppStringList[0x7d0 / 4], GetItemDisplayName(item),
+                         g_spell_records[spell_id].display_name, power);
+            if (g_settings_6850c8.verbose_combat_messages == 0) {
+                SetTextBoxMode(1, -1);
+            }
+        }
+        item->unknown_07[0] = 1;
+    } else if (effect == 3) {
+        PostCharacterNotice(party_slot,
+                            FormatWideString(gppStringList[0x1a9], FormatItemDisplayName(item, 0)));
+    }
+
+    if (skill != -1) {
+        if (SpellAffectedTarget004F9AE0(
+                character, spell_id,
+                &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat, power)) {
+            PracticeCharacterSkill(character, skill,
+                                   g_spell_records[spell_id].spell_level + (power >> 1), 0);
+        }
+    }
+    return effect;
+}
+
+/* Split a stack of thrown weapons across the two hands. The source is the hand
+   opposite the requested one and the destination is the requested hand, so the
+   primary hand takes the larger half of the stack and the off hand the smaller;
+   a lone item moves across as itself rather than being split, but only when the
+   primary hand is the destination. */
+// FUNCTION: WIZ8 0x0051ed30
+void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot)
+{
+    W8ItemInstance created;
+    int source_slot;
+    W8ItemInstance* source;
+    int item_id;
+    unsigned char moved;
+
+    if (equip_slot != W8_EQUIP_SLOT_PRIMARY_RIGHT && equip_slot != W8_EQUIP_SLOT_PRIMARY_LEFT) {
+        return;
+    }
+    source_slot = GetPairedEquipSlot(equip_slot);
+    source = &character->equipment[source_slot];
+    item_id = source->item_id;
+    /* Equipment class two is the thrown weapon, which is the only kind that
+       stacks across the two hands. */
+    if (item_id == -1 || g_item_records[item_id].equip_class != 2) {
+        return;
+    }
+
+    moved = source->stack_count;
+    if (equip_slot == W8_EQUIP_SLOT_PRIMARY_RIGHT) {
+        if (moved == 1) {
+            SwapItemInstances(&character->equipment[equip_slot], source, character, 1);
+            return;
+        }
+        moved = moved - (moved >> 1);
+    } else {
+        if (moved == 1) {
+            return;
+        }
+        moved >>= 1;
+    }
+
+    ReplaceOrCreateItem(&created, item_id, 0, source->identified, source->bound);
+    source->stack_count -= moved;
+    created.stack_count = moved;
+    CopyItemInstance(&character->equipment[equip_slot], &created, character, 1);
+    RefreshAfterItemRecordChange(source, character, 1);
+}
+
+/* Close the hole one party-pool index leaves: everything after it moves down one
+   place and the count drops. Retail allocates a full 500-entry scratch buffer
+   (0x1770 bytes) for the shift; the caller has already emptied the record, so an
+   entry that still holds an item is left alone. */
+// FUNCTION: WIZ8 0x00521c20
+void RemovePartyPoolEntry00521C20(unsigned int index)
+{
+    W8ItemInstance shifted[500];
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+
+    if (pool[index].item_id != -1 ||
+        index >= static_cast<unsigned int>(g_status_685170.party_item_count_1791)) {
+        return;
+    }
+
+    unsigned int count = g_status_685170.party_item_count_1791;
+    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
+    memcpy(&shifted[index], &pool[index + 1], bytes);
+    memcpy(&pool[index], &shifted[index], bytes);
+    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+    pool[count - 1].item_id = -1;
+    --g_status_685170.party_item_count_1791;
+    RedistributePartyEncumbrance();
+}
+
+/* Empty one of a character's eight carried slots. Retail compares the
+   resolved backpack entry to the global item-in-hand address before clearing;
+   that path is unreachable for a real character pointer but is emitted. When
+   the emptied entry also lives in the party pool, the hole is closed. */
+// FUNCTION: WIZ8 0x00521ac0
+void EmptyBackpackSlot00521AC0(W8Character* character, int slot)
+{
+    if (character == 0 || slot < 0 || slot >= 8) {
+        return;
+    }
+
+    W8ItemInstance* item = &character->backpack[slot];
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    } else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        RefreshAfterItemRecordChange(item, character, 1);
+    }
+
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+    if (item < pool || item > &pool[499]) {
+        return;
+    }
+    unsigned int count = g_status_685170.party_item_count_1791;
+    for (unsigned int index = 0; index < count; ++index) {
+        if (&pool[index] == item) {
+            RemovePartyPoolEntry00521C20(index);
+            return;
+        }
+    }
+}
+
+/* Empty one entry of the packed party pool by index and close the hole.
+   Retail takes a signed index and rejects negatives with JL. */
+// FUNCTION: WIZ8 0x00521cd0
+void EmptyPartyPoolEntry00521CD0(int index)
+{
+    if (index < 0 || index >= g_status_685170.party_item_count_1791) {
+        return;
+    }
+
+    W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    } else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        RefreshAfterItemRecordChange(item, 0, 1);
+    }
+
+    RemovePartyPoolEntry00521C20(static_cast<unsigned int>(index));
+}
+
+/* The whole-party counterpart of FindCharacterItemByDatabaseKind: the item in
+   hand first, then every occupied slot, then the party pool when the caller asks
+   for it. The character that held the match comes back through the third
+   output. */
+// FUNCTION: WIZ8 0x00521480
+unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,
+                                                    W8ItemInstance** found,
+                                                    W8Character** found_character,
+                                                    int include_backpack)
+{
+    if (found_character != 0) {
+        *found_character = 0;
+    }
+
+    if (g_status_685170.item_in_cursor &&
+        g_item_records[g_status_685170.item_in_hand_235b.item_id].unidentified_name_index ==
+            item_kind) {
+        if (found != 0) {
+            *found = &g_status_685170.item_in_hand_235b;
+        }
+        return 1;
+    }
+
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (FindCharacterItemByDatabaseKind005213C0(character, item_kind, found,
+                                                    include_backpack)) {
+            if (found_character != 0) {
+                *found_character = character;
+            }
+            return 1;
+        }
+    }
+
+    if (include_backpack == 2) {
+        for (unsigned int index = 0;
+             index < static_cast<unsigned int>(g_status_685170.party_item_count_1791); ++index) {
+            W8ItemInstance* entry = &g_status_685170.party_item_pool_0021[index];
+            if (entry->item_id != -1 &&
+                g_item_records[entry->item_id].unidentified_name_index == item_kind) {
+                if (found != 0) {
+                    *found = entry;
+                }
+                return 1;
+            }
+        }
+    }
+
+    if (found != 0) {
+        *found = 0;
+    }
+    return 0;
+}
+
+/* Give the character the class item their current profession level earns. The
+   ladder answers with the item id and the notice to show; the first tier hands
+   over the welcome item outright, the top tier replaces nothing, and an item
+   they already hold only gets its id raised when it is below the tier's. */
+// FUNCTION: WIZ8 0x005218c0
+void UpgradeProfessionClassItem005218C0(W8Character* character)
+{
+    W8ItemInstance* found = 0;
+    W8ItemInstance created;
+    int item_id;
+    int message_id;
+
+    switch (character->profession_levels[W8_CASTER_PROFESSION_INDEX_8]) {
+    case 0:
+    case 2:
+        return;
+    case 1:
+        if (FindCharacterItemByDatabaseKind005213C0(character, 0x83, &found, 1)) {
+            return;
+        }
+        ReplaceOrCreateItem(&created, 599, 0, 1, 1);
+        if (!AddItemToCharacter(character, &created, 0, 1, 0) && !AddItemToParty(&created, 1, 0)) {
+            return;
+        }
+        PostCharacterNotice(
+            CharacterPointerToPartySlot(character),
+            FormatWideString(
+                gppStringList[0x167],
+                gppStringList[g_gender_name_message_rows_61e430[character->gender][3]]));
+        return;
+    case 3:
+    case 4:
+        item_id = 600;
+        message_id = 0x168;
+        break;
+    case 5:
+    case 6:
+        item_id = 0x259;
+        message_id = 0x169;
+        break;
+    case 7:
+    case 8:
+        item_id = 0x25a;
+        message_id = 0x16a;
+        break;
+    case 9:
+    case 10:
+        item_id = 0x25b;
+        message_id = 0x16b;
+        break;
+    case 0xb:
+    case 0xc:
+        item_id = 0x25c;
+        message_id = 0x16c;
+        break;
+    case 0xd:
+    case 0xe:
+    case 0xf:
+        item_id = 0x25d;
+        message_id = 0x16d;
+        break;
+    case 0x10:
+    case 0x11:
+        item_id = 0x25e;
+        message_id = 0x16e;
+        break;
+    case 0x12:
+    case 0x13:
+    case 0x14:
+        item_id = 0x25f;
+        message_id = 0x16f;
+        break;
+    case 0x15:
+    case 0x16:
+        item_id = 0x260;
+        message_id = 0x170;
+        break;
+    case 0x17:
+    case 0x18:
+    case 0x19:
+        item_id = 0x261;
+        message_id = 0x171;
+        break;
+    default:
+        item_id = 0x262;
+        message_id = 0x172;
+        break;
+    }
+
+    if ((FindCharacterItemByDatabaseKind005213C0(character, 0x83, &found, 1) ||
+         FindItemByDatabaseKindOnParty00521480(0x83, &found, 0, 2)) &&
+        found != 0 && found->item_id < item_id) {
+        found->item_id = item_id;
+        PostCharacterNotice(
+            CharacterPointerToPartySlot(character),
+            FormatWideString(
+                gppStringList[message_id],
+                gppStringList[g_gender_name_message_rows_61e430[character->gender][2]]));
+    }
+}
+
+/* Take every instance of one item id out of the party: the hand first, then
+   every member's slots, then the pool. When remove_all is clear the search
+   stops at the first hit. When it is set, retail still only calls
+   FindItemOnCharacter once per party member before moving on, so a second copy
+   on the same character is not cleared in that pass; the pool walk that follows
+   does compact every matching pool entry. */
+// FUNCTION: WIZ8 0x005215d0
+unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
+{
+    unsigned char removed = 0;
+
+    if (g_status_685170.item_in_cursor && g_status_685170.item_in_hand_235b.item_id == item_id) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+        if (!remove_all) {
+            return 1;
+        }
+        removed = 1;
+    }
+
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8ItemInstance* found = 0;
+        if (!FindItemOnCharacter(character, item_id, &found, 1, 0)) {
+            continue;
+        }
+
+        if (found == &g_status_685170.item_in_hand_235b) {
+            g_held_item_source_006840c0 = -1;
+            g_held_item_origin_006840c4 = 0xff;
+            g_held_item_slot_006840c5 = 0xffff;
+            ClearHeldItemDisplay();
+        } else {
+            memset(found, 0, sizeof(*found));
+            found->item_id = -1;
+            RefreshAfterItemRecordChange(found, character, 1);
+        }
+
+        if (found >= pool && found <= &pool[499]) {
+            unsigned int count = g_status_685170.party_item_count_1791;
+            for (unsigned int index = 0; index < count; ++index) {
+                if (&pool[index] == found) {
+                    RemovePartyPoolEntry00521C20(index);
+                    break;
+                }
+            }
+        }
+
+        if (!remove_all) {
+            return 1;
+        }
+        removed = 1;
+    }
+
+    for (int index = 0; index < g_status_685170.party_item_count_1791; ++index) {
+        if (pool[index].item_id != item_id) {
+            continue;
+        }
+        EmptyPartyPoolEntry00521CD0(index);
+        if (!remove_all) {
+            return 1;
+        }
+        removed = 1;
+        /* The tail moved down into this index, so it is visited again. */
+        --index;
+    }
+    return removed;
+}
+
+/* Swap each hand's weapon set for the other pair, and say why when it cannot
+   happen. A character who is holding nothing at all has nothing to swap and is
+   told so; a weapon bound to its wearer blocks the whole swap until the binding
+   has been announced; and an item that cannot be held together with what is
+   already there is left where it is, with the pair swapping around it. */
+// FUNCTION: WIZ8 0x0051d3b0
+unsigned int SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;
+    unsigned char blocked_primary = 0;
+    unsigned char blocked_alternate = 0;
+    int primary_right_item;
+    int alternate_right_item;
+
+    if (character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id == -1 &&
+        character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT].item_id == -1 &&
+        character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT].item_id == -1 &&
+        character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id == -1) {
+        if (announce) {
+            PostCharacterNoticeInContext00590A40(party_slot, notice_context, gppStringList[0x1eb]);
+        }
+        return 0;
+    }
+
+    BindEquippedItem(character, W8_EQUIP_SLOT_PRIMARY_RIGHT);
+    BindEquippedItem(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
+    if (!CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_RIGHT) ||
+        !CanUnequipSlotItem(character, W8_EQUIP_SLOT_PRIMARY_LEFT)) {
+        if (announce) {
+            PostCharacterNoticeInContext00590A40(party_slot, notice_context, gppStringList[0x1ee]);
+        }
+        return 0;
+    }
+
+    primary_right_item = character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id;
+    alternate_right_item = character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT].item_id;
+    if (alternate_right_item == -1 &&
+        character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id != -1) {
+        blocked_primary = CanHoldItemsTogether(
+            primary_right_item, character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id);
+    }
+    if (character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id == -1 &&
+        alternate_right_item != -1) {
+        blocked_alternate = CanHoldItemsTogether(
+            character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT].item_id, alternate_right_item);
+    }
+
+    if ((character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id != -1 ||
+         alternate_right_item != -1) &&
+        !blocked_primary) {
+        SwapItemInstances(&character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT],
+                          &character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT], character, refresh);
+    }
+    if ((character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT].item_id != -1 ||
+         character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id != -1) &&
+        !blocked_alternate) {
+        SwapItemInstances(&character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT],
+                          &character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT], character, refresh);
+    }
+
+    if (refresh) {
+        RequestRedraw(1 << (party_slot & 0x1f));
+        RebuildEquipmentAndDerivedStatsForSlot(party_slot);
+    }
+    if (announce) {
+        PostCharacterNoticeInContext00590A40(party_slot, notice_context, gppStringList[0x1ec]);
+    }
+    return 1;
+}
+
+/* Bind a party member's carried items, which the combat UI only allows once the
+   turn is really theirs: a free-turn phase or a party movement mode refuses the
+   whole request with a notice, and so does the slot whose action is still being
+   chosen. Otherwise the weapon sets swap, the row's one-shot flag clears, and
+   the portraits redraw. */
+// FUNCTION: WIZ8 0x0051d2c0
+void BindCharacterItems(int party_slot, int arg_2)
+{
+    if (gXStatus.fCombatMode != 0) {
+        if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+            ShowNotice(0xc, gppStringList[0x1f6 / 4], -1, 0xffffffff, 0);
+            return;
+        }
+        if (g_combat_state->iActionChar == party_slot && g_combat_state->eCombatActionStatus == 2 &&
+            (g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_ATTACK ||
+             g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_BERSERK)) {
+            ShowNoticef(8, gppStringList[0x1f7 / 4],
+                        g_status_685170.buffers.characters[party_slot].name);
+            return;
+        }
+    }
+
+    if (IsPartySlotEligible00524A10(party_slot) != 0) {
+        if (SwapWeaponSetSlots0051D3B0(party_slot, static_cast<char>(arg_2), 1) != 0) {
+            g_status_685170.buffers.party_rows[party_slot].flag_105 = 0;
+        }
+    }
+    RequestRedraw(0x200000);
 }

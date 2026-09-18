@@ -24,6 +24,9 @@ extern int g_effect_005ee5e8;
 extern int g_effect_005ee5f0;
 extern int g_effect_005ee5f8;
 extern int g_effect_005ee610;
+/* 0x005EE624: the character event an item use queues when the attempt ends
+   without casting anything. */
+extern int g_effect_005ee624;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
@@ -72,6 +75,10 @@ void RequeueSelectedPortraitEvent(void);
 void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
+/* 0x00590A40: the notice the weapon-set swap paths post, between the two variadic
+   formatters. Its middle argument is the context the notices are posted under -
+   zero while the NPC dialogue owns the screens, -1 otherwise. */
+void PostCharacterNoticeInContext00590A40(int party_slot, int context, const wchar_t* format, ...);
 extern int g_special_event_0068c50c; /* 0x0068C50C */
 extern int g_special_event_0068c530; /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
