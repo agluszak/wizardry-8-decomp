@@ -601,7 +601,6 @@ unsigned char ShowLevelMessage004D9960(int message_id)
    are declared here rather than in the published header. */
 void EnsureTrynnie1KilledVar004DA670(void);
 void Function4DEB40(void);
-void Function4DF870(void);
 void Function4E06D0(void);
 bool Trynnie2GoodaVineA004D9D70(Trigger* trigger);
 bool Trynnie2GoodaVineB004D9DA0(Trigger* trigger);
@@ -620,18 +619,6 @@ bool Function4DEFB0(Trigger* trigger);
 bool Function4DF120(Trigger* trigger);
 bool Function4DF710(Trigger* trigger);
 bool Function4DF7E0(Trigger* trigger);
-bool Function4DFE60(Trigger* trigger);
-bool Function4DFF90(Trigger* trigger);
-bool Function4DFFF0(Trigger* trigger);
-bool Function4E00B0(Trigger* trigger);
-bool Function4E0110(Trigger* trigger);
-bool Function4E01D0(Trigger* trigger);
-bool Function4E0230(Trigger* trigger);
-bool Function4E02F0(Trigger* trigger);
-bool Function4E0390(Trigger* trigger);
-bool Function4E04F0(Trigger* trigger);
-bool Function4E0560(Trigger* trigger);
-bool Function4E05A0(Trigger* trigger);
 bool Function4E05F0(Trigger* trigger);
 bool Function4E0880(Trigger* trigger);
 bool Function4E0A80(Trigger* trigger);
@@ -814,55 +801,55 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x116,
                          "Missing trigger 'RampUp'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DFE60;
+        pTrigger->activation_callback_360 = AscensionRampUp004DFE60;
         pTrigger = FindTriggerByName("ChaosATrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x11a,
                          "Missing trigger 'ChaosATrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DFFF0;
+        pTrigger->activation_callback_360 = AscensionChaosATrigger004DFFF0;
         pTrigger = FindTriggerByName("ChaosBTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x11e,
                          "Missing trigger 'ChaosBTrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DFF90;
+        pTrigger->activation_callback_360 = AscensionChaosBTrigger004DFF90;
         pTrigger = FindTriggerByName("LifeATrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x122,
                          "Missing trigger 'LifeATrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0110;
+        pTrigger->activation_callback_360 = AscensionLifeATrigger004E0110;
         pTrigger = FindTriggerByName("LifeBTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x126,
                          "Missing trigger 'LifeBTrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E00B0;
+        pTrigger->activation_callback_360 = AscensionLifeBTrigger004E00B0;
         pTrigger = FindTriggerByName("KnowATrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x12a,
                          "Missing trigger 'KnowATrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0230;
+        pTrigger->activation_callback_360 = AscensionKnowATrigger004E0230;
         pTrigger = FindTriggerByName("KnowBTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x12e,
                          "Missing trigger 'KnowBTrigger'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E01D0;
+        pTrigger->activation_callback_360 = AscensionKnowBTrigger004E01D0;
         pTrigger = FindTriggerByName("RampUp");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x132,
                          "Missing trigger 'RampUp'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E02F0;
+        pTrigger->activation_callback_360 = AscensionDarkSavantSpawn004E02F0;
         pTrigger = FindTriggerByName("Path1Camera");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x136,
                          "Missing trigger 'Path1Camera'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0390;
+        pTrigger->activation_callback_360 = AscensionPath1Camera004E0390;
         pTrigger = FindTriggerByName("Shaker");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x5ee,
@@ -870,8 +857,8 @@ void InitializeLevelMasterFunctions004D6C50(int level)
                              String(/* reinterpret-ok: SGP rotating debug buffer */
                                     "Missing trigger '%s'! It's not in the LVL file!", "Shaker")));
         }
-        pTrigger->activation_callback_360 = Function4E04F0;
-        Function4DF870();
+        pTrigger->activation_callback_360 = AscensionShaker004E04F0;
+        AscensionPeakInit004DF870();
         return;
     case 4:
         CosmicCircleSetup004D9B40();
@@ -1658,31 +1645,31 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf2,
                          "Missing trigger 'Triangle'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0560;
+        pTrigger->activation_callback_360 = AscensionFootstepsShape004E0560;
         pTrigger = FindTriggerByName("Circle");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xf6,
                          "Missing trigger 'Circle'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0560;
+        pTrigger->activation_callback_360 = AscensionFootstepsShape004E0560;
         pTrigger = FindTriggerByName("Square");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xfa,
                          "Missing trigger 'Square'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0560;
+        pTrigger->activation_callback_360 = AscensionFootstepsShape004E0560;
         pTrigger = FindTriggerByName("Star");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xfe,
                          "Missing trigger 'Star'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0560;
+        pTrigger->activation_callback_360 = AscensionFootstepsShape004E0560;
         pTrigger = FindTriggerByName("ButtonBlocker");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x102,
                          "Missing trigger 'ButtonBlocker'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E05A0;
+        pTrigger->activation_callback_360 = AscensionButtonBlocker004E05A0;
         return;
     }
     return;

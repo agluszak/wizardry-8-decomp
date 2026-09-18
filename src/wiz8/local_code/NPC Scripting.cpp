@@ -1442,7 +1442,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_CALL_4DFAE0:
-        Function4DFAE0(0);
+        SpawnAlfieChaos004DFAE0(0);
         break;
     case W8_NPC_MSG_CALL_4DFB40:
         SpawnAlfieLife004DFB40(0);
