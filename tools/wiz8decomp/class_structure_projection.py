@@ -64,15 +64,37 @@ def _as_structure(data_type: Any) -> Any | None:
 
 
 def _structure_path_tier(path: str, simple: str, name: str) -> int:
-    """Lower is better provenance: root simple, Demangler, then others."""
+    """Lower is better: source-identity category path, then weaker fallbacks."""
 
-    if path == f"/{simple}":
+    identity = "/" + name.replace("::", "/")
+    if path == identity:
         return 0
-    if path == f"/{name}" and name != simple:
-        return 0
-    if path == f"/Demangler/{simple}":
+    if name != simple and path == f"/{name}":
         return 1
-    return 2
+    if path == f"/{simple}":
+        return 0 if name == simple else 2
+    if path == f"/Demangler/{simple}":
+        return 3
+    return 4
+
+
+def _identity_category_paths(name: str) -> list[str]:
+    """Exact Ghidra category encodings of a source identity, then weaker lookups."""
+
+    simple = _simple_name(name)
+    paths: list[str] = ["/" + name.replace("::", "/")]
+    if name != simple:
+        paths.append(f"/{name}")
+    if f"/{simple}" not in paths:
+        paths.append(f"/{simple}")
+    paths.append(f"/Demangler/{simple}")
+    unique: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        if path not in seen:
+            seen.add(path)
+            unique.append(path)
+    return unique
 
 
 def _find_named_structure(
@@ -83,10 +105,11 @@ def _find_named_structure(
 ) -> Any | None:
     """Best existing Structure for ``name`` outside the wiz8/classes category.
 
-    Prefer exact ``/{simple}``, ``/{name}``, ``/Demangler/{simple}`` paths. When
-    ``asserted_size`` is known, reject length mismatches. Score by provenance
-    tier first, then size match, then richness — never pick solely by max
-    (components, size) when that ignores a better-path candidate.
+    Prefer the namespace-aware category path for the source identity
+    (``/ns/Foo`` for ``ns::Foo``) before leaf-only or Demangler lookups.
+    When ``asserted_size`` is known, reject length mismatches. Score by
+    provenance tier first, then size match, then richness — never pick solely
+    by max (components, size) when that ignores a better-path candidate.
     """
 
     from java.util import ArrayList  # type: ignore[import-not-found]
@@ -96,7 +119,7 @@ def _find_named_structure(
     candidates: list[Any] = []
     seen_paths: set[str] = set()
 
-    for path in (f"/{simple}", f"/{name}", f"/Demangler/{simple}"):
+    for path in _identity_category_paths(name):
         structure = _as_structure(manager.getDataType(path))
         if structure is None:
             continue

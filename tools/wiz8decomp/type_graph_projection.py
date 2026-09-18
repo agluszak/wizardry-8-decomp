@@ -61,7 +61,6 @@ from .datatype_contracts import (
     settings_typedef_blocks_remap,
     structures_field_shape_agree,
     type_identity,
-    union_blocks_remap,
     unwrap_plain_typedefs,
     walk_datatype_refs,
 )
@@ -141,8 +140,6 @@ def decide_field_action(
         return None
     if settings_typedef_blocks_remap(bound) or settings_typedef_blocks_remap(evidence):
         return "conflict"
-    if union_blocks_remap(bound) or union_blocks_remap(evidence):
-        return "conflict"
     if bound is evidence or type_identity(bound) == type_identity(evidence):
         legacy = has_legacy_nested_ref(bound) if nested_legacy is None else nested_legacy
         return "remap-nested" if legacy else "agree"
@@ -162,8 +159,17 @@ def decide_field_action(
     return "agree"
 
 
-def _class_key_from_path(path: str) -> str | None:
-    """Qualified class identity from a Structure path. Never leaf-only."""
+def _class_key_from_path(
+    path: str,
+    *,
+    source_identities: set[str] | None = None,
+) -> str | None:
+    """Map a datatype path to a source class identity.
+
+    ``/wiz8/classes/...`` is our own encoding. Arbitrary Ghidra/PDB/Demangler
+    category paths are organization, not C++ namespaces — resolve them against
+    known source identities instead of synthesizing ``foo::bar::Baz``.
+    """
 
     if not path:
         return None
@@ -174,12 +180,28 @@ def _class_key_from_path(path: str) -> str | None:
     if is_legacy_path(text):
         rest = text[len("/wiz8/classes/") :]
         return rest.replace("/", "::") if rest else None
-    if text.startswith("/") and not text.startswith("/wiz8/"):
-        return text.lstrip("/").replace("/", "::")
+    if not source_identities:
+        return None
+    if text.startswith("/"):
+        encoded = {identity: "/" + identity.replace("::", "/") for identity in source_identities}
+        for identity, encoded_path in encoded.items():
+            if text == encoded_path or text == f"/{identity}":
+                return identity
+    leaf = text.rsplit("/", 1)[-1].removesuffix(" *")
+    if leaf in source_identities:
+        return leaf
+    qualified = [key for key in source_identities if key.endswith("::" + leaf)]
+    if len(qualified) == 1:
+        return qualified[0]
     return None
 
 
-def _discover_nested_structure_names(evidence: Any | None, known: set[str]) -> set[str]:
+def _discover_nested_structure_names(
+    evidence: Any | None,
+    *,
+    source_identities: set[str],
+    already: set[str],
+) -> set[str]:
     discovered: set[str] = set()
     if evidence is None:
         return discovered
@@ -189,8 +211,8 @@ def _discover_nested_structure_names(evidence: Any | None, known: set[str]) -> s
         if hasattr(nested, "getArguments"):
             continue
         path = type_identity(nested)
-        key = _class_key_from_path(path)
-        if not key or key in known or key in discovered:
+        key = _class_key_from_path(path, source_identities=source_identities)
+        if not key or key in already or key in discovered:
             continue
         discovered.add(key)
     return discovered
@@ -211,6 +233,7 @@ def build_identity_map(
     sizes = _asserted_size_classes(index)
     selected = _selected_identities(repository, target, class_names=class_names)
     known = {_simple_name(name) for name in selected} | set(selected)
+    source_identities = set(classes)
     identity: dict[str, dict[str, Any]] = {}
 
     queue = list(selected)
@@ -294,7 +317,9 @@ def build_identity_map(
             "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
         }
 
-        for nested_name in _discover_nested_structure_names(report_evidence, known):
+        for nested_name in _discover_nested_structure_names(
+            report_evidence, source_identities=source_identities, already=known
+        ):
             if nested_name not in seen:
                 known.add(nested_name)
                 queue.append(nested_name)
@@ -399,6 +424,7 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
         Structure,
         TypeDef,
         Union,
+        UnionDataType,
     )
 
     current = data_type
@@ -454,10 +480,29 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
         return clone
 
     if isinstance(current, Union):
-        # reccmp cannot write unions; leftover nested legacy is a conflict.
-        if has_legacy_nested_ref(current):
-            raise TypeGraphConflict("union-legacy")
-        return current
+        components = (
+            list(current.getDefinedComponents())
+            if hasattr(current, "getDefinedComponents")
+            else list(current.getComponents())
+        )
+        remapped_members: list[tuple[Any, Any]] = []
+        changed = False
+        for component in components:
+            new_dt = _remap_datatype(program, component.getDataType(), identity)
+            if new_dt is not component.getDataType():
+                changed = True
+            remapped_members.append((new_dt, component))
+        if not changed:
+            return current
+        clone = UnionDataType(current.getCategoryPath(), current.getName())
+        for new_dt, component in remapped_members:
+            clone.add(
+                new_dt,
+                component.getLength(),
+                component.getFieldName(),
+                component.getComment() if hasattr(component, "getComment") else None,
+            )
+        return clone
 
     if isinstance(current, Structure):
         path = str(current.getPathName())
@@ -467,7 +512,10 @@ def _remap_datatype(program: Any, data_type: Any, identity: Mapping[str, Mapping
                 continue
             if path == bound_path:
                 return current
-            if path == row.get("evidence_path") or _class_key_from_path(path) == key:
+            if (
+                path == row.get("evidence_path")
+                or _class_key_from_path(path, source_identities=set(identity)) == key
+            ):
                 bound = program.getDataTypeManager().getDataType(bound_path)
                 if bound is not None:
                     return bound

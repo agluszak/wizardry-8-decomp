@@ -146,12 +146,11 @@ def test_convention_hard_disagree_skips_without_override(monkeypatch) -> None:
     assert fn.getCallingConventionName() == "__fastcall"
 
 
-def test_stdcall_may_promote_to_thiscall(monkeypatch) -> None:
+def test_stdcall_does_not_promote_to_thiscall(monkeypatch) -> None:
     fn = _FakeFunction(custom=False, convention="__stdcall")
     space = SimpleNamespace(getAddress=lambda _a: object())
     structure = SimpleNamespace(getPathName=lambda: "/W8Monster")
     ghidra_class = SimpleNamespace(getName=lambda _q=True: "W8Monster")
-    pointee = SimpleNamespace(getPathName=lambda: "/W8Monster")
     program = SimpleNamespace(
         getAddressFactory=lambda: SimpleNamespace(getDefaultAddressSpace=lambda: space),
         getFunctionManager=lambda: SimpleNamespace(getFunctionAt=lambda _a: fn),
@@ -169,10 +168,6 @@ def test_stdcall_may_promote_to_thiscall(monkeypatch) -> None:
         "wiz8decomp.class_this_typing.ensure_function_class_namespace",
         lambda *_a, **_k: False,
     )
-    monkeypatch.setattr(
-        "wiz8decomp.class_this_typing.auto_this_structure",
-        lambda *_a, **_k: pointee,
-    )
     row = {
         "address": "0x00401000",
         "name": "W8Monster::method",
@@ -180,6 +175,6 @@ def test_stdcall_may_promote_to_thiscall(monkeypatch) -> None:
         "action": "bind-class-this",
     }
     result = apply_this_typing_row(program, row, allow_custom_storage=False)
-    assert result.get("error") is None
-    assert fn._set_convention == "__thiscall"
-    assert result["action"] == "bind-class-this"
+    assert result.get("error") == "convention-hard-disagree"
+    assert fn._set_convention is None
+    assert fn.getCallingConventionName() == "__stdcall"

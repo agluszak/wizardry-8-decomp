@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
 from wiz8decomp.legacy_classes_cleanup import classify_legacy_datatype
 
 
@@ -52,12 +53,26 @@ class _FakeStructure:
 class _FakeManager:
     def __init__(self, types: dict[str, object]) -> None:
         self._types = types
+        self.replace_calls: list[tuple[str, str, bool]] = []
 
     def getDataType(self, path: str):
         return self._types.get(path)
 
-    def getDataTypesContaining(self, _dt):
-        return []
+    def replaceDataType(self, old: object, new: object, update_category_path: bool) -> object:
+        old_path = str(old.getPathName())  # type: ignore[union-attr]
+        new_path = str(new.getPathName())  # type: ignore[union-attr]
+        self.replace_calls.append((old_path, new_path, update_category_path))
+        if update_category_path:
+            moved = _FakeStructure(
+                old_path,
+                int(new.getLength()),
+                list(new.getDefinedComponents()),  # type: ignore[union-attr]
+            )
+            self._types.pop(new_path, None)
+            self._types[old_path] = moved
+            return moved
+        self._types.pop(old_path, None)
+        return new
 
 
 def test_cleanup_refuses_size_mismatch() -> None:
@@ -79,7 +94,7 @@ def test_cleanup_refuses_size_mismatch() -> None:
     assert row["reason"] == "size-mismatch"
 
 
-def test_cleanup_accepts_exact_duplicate_for_replace_or_delete() -> None:
+def test_cleanup_accepts_exact_duplicate_for_replace() -> None:
     int_dt = SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
     components = [_FakeComponent(0, 4, "x", int_dt)]
     legacy = _FakeStructure("/wiz8/classes/W8Monster", 840, components)
@@ -89,7 +104,7 @@ def test_cleanup_accepts_exact_duplicate_for_replace_or_delete() -> None:
     )
     identity = {"W8Monster": {"bound_path": "/W8Monster", "status": "agree"}}
     row = classify_legacy_datatype(program, legacy, identity_map_or_bindings=identity)
-    assert row["action"] in {"safe-delete", "replace-then-delete"}
+    assert row["action"] == "replace-then-delete"
     assert row["bound_path"] == "/W8Monster"
 
 
@@ -102,3 +117,65 @@ def test_cleanup_refuses_when_bound_still_legacy_path() -> None:
     row = classify_legacy_datatype(program, legacy, identity_map_or_bindings=identity)
     assert row["action"] == "conflict"
     assert row["reason"] == "bound-still-legacy"
+
+
+def test_apply_replace_keeps_bound_category(monkeypatch: pytest.MonkeyPatch) -> None:
+    from wiz8decomp.legacy_classes_cleanup import apply_legacy_classes_cleanup
+
+    int_dt = SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
+    components = [_FakeComponent(0, 4, "x", int_dt)]
+    legacy = _FakeStructure("/wiz8/classes/stLight", 600, components)
+    bound = _FakeStructure("/stLight", 600, list(components))
+    manager = _FakeManager({legacy.getPathName(): legacy, bound.getPathName(): bound})
+    program = SimpleNamespace(getDataTypeManager=lambda: manager)
+
+    def _immediate_apply_rows(program, rows, apply_one, **_kwargs):
+        applied = []
+        errors = []
+        for row in rows:
+            result = dict(apply_one(program, row))
+            if result.get("error"):
+                errors.append(result)
+            else:
+                applied.append(result)
+        return {"applied": len(applied), "errors": errors, "rows": applied}
+
+    monkeypatch.setattr("wiz8decomp.ghidra.mutations.apply_rows", _immediate_apply_rows)
+    result = apply_legacy_classes_cleanup(
+        program,
+        {
+            "types": [
+                {
+                    "path": legacy.getPathName(),
+                    "name": "stLight",
+                    "action": "replace-then-delete",
+                    "bound_path": bound.getPathName(),
+                }
+            ]
+        },
+    )
+    assert result["errors"] == []
+    assert result["applied"] == 1
+    assert manager.replace_calls == [("/wiz8/classes/stLight", "/stLight", False)]
+    assert manager.getDataType("/stLight") is bound
+    assert manager.getDataType("/wiz8/classes/stLight") is None
+
+
+def test_cleanup_merges_when_ghidra_class_is_missing() -> None:
+    int_dt = SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
+    components = [_FakeComponent(0, 4, "x", int_dt)]
+    legacy = _FakeStructure("/wiz8/classes/stLight", 600, components)
+    bound = _FakeStructure("/stLight", 600, list(components))
+    program = SimpleNamespace(
+        getDataTypeManager=lambda: _FakeManager(
+            {legacy.getPathName(): legacy, bound.getPathName(): bound}
+        )
+    )
+    row = classify_legacy_datatype(
+        program,
+        legacy,
+        identity_map_or_bindings={"stLight": {"status": "missing-class"}},
+    )
+    assert row["action"] == "replace-then-delete"
+    assert row["bound_path"] == "/stLight"
+    assert row["reason"] == "exact-duplicate"

@@ -13,8 +13,12 @@ from wiz8decomp.vftable_typing import (
     _read_slots,
     _retarget_class_vfptr,
     _simple_name,
+    _subobject_view_paths,
     _vftable_paths,
     annotate_slot_fd_sources,
+    construction_vtable_attachments,
+    lifecycle_class_name,
+    unique_receiver_offset,
 )
 
 
@@ -28,6 +32,16 @@ def test_simple_and_field_names() -> None:
     assert _field_name(2, "W8OptionsSlider::~W8OptionsSlider") == "dtor_W8OptionsSlider_02"
 
 
+def test_subobject_view_paths() -> None:
+    category, name, path = _subobject_view_paths("W8Monster", "W8Navigator", 0x20)
+    assert category == "/wiz8/subobjects/W8Monster"
+    assert name == "W8Navigator_at_0x20"
+    assert path == "/wiz8/subobjects/W8Monster/W8Navigator_at_0x20"
+    category, name, path = _subobject_view_paths("ns::Derived", "Base", 4)
+    assert category == "/wiz8/subobjects/ns/Derived"
+    assert path == "/wiz8/subobjects/ns/Derived/Base_at_0x4"
+
+
 def test_vftable_paths_are_namespace_safe() -> None:
     category, name, path, sigs = _vftable_paths("ns::W8Monster")
     assert category == "/wiz8/vftables/ns"
@@ -39,6 +53,22 @@ def test_vftable_paths_are_namespace_safe() -> None:
     assert category == "/wiz8/vftables"
     assert path == "/wiz8/vftables/W8Monster_vftable"
     assert sigs == "/wiz8/vftables/W8Monster_sigs"
+
+    category, name, path, sigs = _vftable_paths("W8Monster", base_class="W8Navigator")
+    assert name == "W8Monster_vftable_for_W8Navigator"
+    assert path == "/wiz8/vftables/W8Monster_vftable_for_W8Navigator"
+    assert sigs == "/wiz8/vftables/W8Monster_sigs_for_W8Navigator"
+
+    category, name, path, sigs = _vftable_paths("W8TriggerActionData", phase="construction")
+    assert name == "W8TriggerActionData_vftable_ctor"
+    assert path == "/wiz8/vftables/W8TriggerActionData_vftable_ctor"
+    assert sigs == "/wiz8/vftables/W8TriggerActionData_sigs_ctor"
+
+    category, name, path, sigs = _vftable_paths(
+        "W8Monster", base_class="W8Navigator", phase="construction"
+    )
+    assert name == "W8Monster_vftable_for_W8Navigator_ctor"
+    assert path == "/wiz8/vftables/W8Monster_vftable_for_W8Navigator_ctor"
 
     left = _vftable_paths("alpha::Shared")
     right = _vftable_paths("beta::Shared")
@@ -342,3 +372,250 @@ def test_retarget_class_vfptr_returns_false_without_binding(monkeypatch) -> None
         lambda _program, _name: None,
     )
     assert _retarget_class_vfptr(object(), "W8Monster", object()) is False
+
+
+def test_lifecycle_class_name_accepts_ctor_and_dtor() -> None:
+    assert lifecycle_class_name("W8TriggerActionData::W8TriggerActionData") == "W8TriggerActionData"
+    assert lifecycle_class_name("ns::Widget::~Widget") == "ns::Widget"
+    assert lifecycle_class_name("Trigger::Run") is None
+    assert lifecycle_class_name("W8TriggerActionData::Reset") is None
+
+
+def test_unique_receiver_offset_requires_one_incoming_value() -> None:
+    assert (
+        unique_receiver_offset(
+            [
+                {"receiver_provenance": "incoming-ecx", "receiver_offset": 16},
+                {"receiver_provenance": "incoming-ecx-plus-dynamic", "receiver_offset": 16},
+            ]
+        )
+        == 16
+    )
+    assert (
+        unique_receiver_offset(
+            [
+                {"receiver_provenance": "incoming-ecx", "receiver_offset": 0},
+                {"receiver_provenance": "incoming-ecx", "receiver_offset": 16},
+            ]
+        )
+        is None
+    )
+    assert (
+        unique_receiver_offset([{"receiver_provenance": "unknown", "receiver_offset": 0}]) is None
+    )
+
+
+def test_construction_attachments_take_earlier_ctor_and_later_dtor_tables() -> None:
+    record = SimpleNamespace(
+        qualified_name="W8TriggerActionData",
+        vtable_address=0x5EC138,
+        base_vtables=(),
+    )
+    families = [
+        {
+            "function_source_name": "W8TriggerActionData::W8TriggerActionData",
+            "receiver_offset": 0,
+            "transitions": [
+                {"kind": "vftable", "table": "0x005ec148"},
+                {"kind": "vftable", "table": "0x005ec138"},
+            ],
+        },
+        {
+            "function_source_name": "W8TriggerActionData::~W8TriggerActionData",
+            "receiver_offset": 0,
+            "transitions": [
+                {"kind": "vftable", "table": "0x005ec138"},
+                {"kind": "vftable", "table": "0x005ec148"},
+            ],
+        },
+    ]
+    attachments = construction_vtable_attachments(families, [record])
+    assert attachments == [
+        {
+            "class": "W8TriggerActionData",
+            "address": 0x5EC148,
+            "base_class": None,
+            "role": "construction",
+            "receiver_offset": 0,
+        }
+    ]
+
+
+def test_construction_attachments_keep_marked_support_tables_and_for_clause_base() -> None:
+    support = SimpleNamespace(
+        qualified_name="srClassSupport<stModelInstance>",
+        vtable_address=0x5EC814,
+        base_vtables=(),
+    )
+    derived = SimpleNamespace(
+        qualified_name="stModelInstance",
+        vtable_address=0x5EC7D0,
+        base_vtables=(SimpleNamespace(address=0x5EC7C0, base_class="srModel::Client"),),
+    )
+    families = [
+        {
+            "function_source_name": "stModelInstance::stModelInstance",
+            "receiver_offset": 0,
+            "transitions": [
+                {"kind": "vftable", "table": "0x005ec814"},
+                {"kind": "vftable", "table": "0x005ec7d0"},
+            ],
+        },
+        {
+            "function_source_name": "stModelInstance::stModelInstance",
+            "receiver_offset": 4,
+            "transitions": [
+                {"kind": "vftable", "table": "0x005ec804"},
+                {"kind": "vftable", "table": "0x005ec7c0"},
+            ],
+        },
+    ]
+    attachments = construction_vtable_attachments(families, [support, derived])
+    assert attachments == [
+        {
+            "class": "stModelInstance",
+            "address": 0x5EC804,
+            "base_class": "srModel::Client",
+            "role": "construction",
+            "receiver_offset": 4,
+        }
+    ]
+
+
+def test_construction_apply_does_not_retarget_complete_object_vfptr(monkeypatch) -> None:
+    called: list[object] = []
+
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._build_vftable_structure",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            getPathName=lambda: "/wiz8/vftables/W8TriggerActionData_vftable_ctor",
+            getNumComponents=lambda: 1,
+        ),
+    )
+    monkeypatch.setattr("wiz8decomp.vftable_typing._apply_data", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._vftable_has_function_definitions", lambda _s: True
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._retarget_class_vfptr",
+        lambda *_args, **_kwargs: called.append(True) or True,
+    )
+    row = {
+        "action": "create-and-apply",
+        "extent_source": "census",
+        "class": "W8TriggerActionData",
+        "role": "construction",
+        "address": "0x005ec148",
+        "vftable": "/wiz8/vftables/W8TriggerActionData_vftable_ctor",
+        "subobject_offset": 0,
+        "slots": [
+            {"index": 0, "target": "0x00401000", "name": "a", "fd_source": "callee-implementation"}
+        ],
+    }
+    result = _apply_vftable_typing_row(object(), row)
+    assert result["vfptr_retargeted"] is False
+    assert called == []
+
+
+def test_base_apply_does_not_retarget_complete_object_vfptr(monkeypatch) -> None:
+    called: list[int] = []
+    views: list[int] = []
+
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._build_vftable_structure",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            getPathName=lambda: "/wiz8/vftables/W8Monster_vftable_for_Base",
+            getNumComponents=lambda: 1,
+        ),
+    )
+    monkeypatch.setattr("wiz8decomp.vftable_typing._apply_data", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._vftable_has_function_definitions", lambda _s: True
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._retarget_class_vfptr",
+        lambda _program, _name, _table, *, offset: called.append(offset) or True,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing.install_derived_base_view",
+        lambda _program, *, derived, base, offset, vftable: views.append(offset) or True,
+    )
+    row = {
+        "action": "create-and-apply",
+        "extent_source": "census",
+        "class": "W8Monster",
+        "base_class": "W8Navigator",
+        "role": "base",
+        "address": "0x00500010",
+        "vftable": "/wiz8/vftables/W8Monster_vftable_for_W8Navigator",
+        "subobject_offset": 0,
+        "slots": [
+            {"index": 0, "target": "0x00401000", "name": "a", "fd_source": "callee-implementation"}
+        ],
+    }
+    result = _apply_vftable_typing_row(object(), row)
+    assert result["vfptr_retargeted"] is False
+    assert result["subobject_view"] is False
+    assert called == []
+    assert views == []
+
+    row["subobject_offset"] = 16
+    result = _apply_vftable_typing_row(object(), row)
+    assert result["vfptr_retargeted"] is False
+    assert result["subobject_view"] is True
+    assert called == []
+    assert views == [16]
+
+
+def test_retarget_class_vfptr_requires_named_field_at_offset(monkeypatch) -> None:
+    import sys
+    import types
+
+    replaced: list[int] = []
+
+    class _Component:
+        def __init__(self, name: str, offset: int) -> None:
+            self._name = name
+            self._offset = offset
+
+        def getFieldName(self) -> str:
+            return self._name
+
+        def getOffset(self) -> int:
+            return self._offset
+
+        def getComment(self):
+            return None
+
+    class _Structure:
+        def getDefinedComponents(self):
+            return [_Component("vfptr", 0), _Component("vfptr", 16)]
+
+        def replaceAtOffset(self, offset, _pointer, _length, _field, _comment) -> None:
+            replaced.append(offset)
+
+    monkeypatch.setattr(
+        "wiz8decomp.class_binding.find_ghidra_class",
+        lambda _program, _name: object(),
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_binding.find_class_structure",
+        lambda _program, _gc: _Structure(),
+    )
+    data = types.ModuleType("ghidra.program.model.data")
+
+    class _PointerDataType:
+        def __init__(self, vftable, manager):
+            self.vftable = vftable
+            self.manager = manager
+
+    data.PointerDataType = _PointerDataType
+    monkeypatch.setitem(sys.modules, "ghidra", types.ModuleType("ghidra"))
+    monkeypatch.setitem(sys.modules, "ghidra.program", types.ModuleType("ghidra.program"))
+    monkeypatch.setitem(
+        sys.modules, "ghidra.program.model", types.ModuleType("ghidra.program.model")
+    )
+    monkeypatch.setitem(sys.modules, "ghidra.program.model.data", data)
+    program = SimpleNamespace(getDataTypeManager=lambda: object())
+    assert _retarget_class_vfptr(program, "W8VirtualFileBinIStream", object(), offset=16) is True
+    assert replaced == [16]

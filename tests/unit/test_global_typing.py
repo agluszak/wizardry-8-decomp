@@ -73,9 +73,28 @@ def test_named_data_type_search_order(monkeypatch) -> None:
     )
     assert _named_data_type(program, "ns::W8Foo") is None
     assert "/ns::W8Foo" in hits
+    assert "/ns/W8Foo" in hits
     assert "/W8Foo" in hits
+    assert hits.index("/ns/W8Foo") < hits.index("/ns::W8Foo")
     assert hits.index("/ns::W8Foo") < hits.index("/W8Foo")
     assert "/wiz8/classes/W8Foo" not in hits
+
+
+def test_named_data_type_resolves_nested_namespace_category() -> None:
+    class Manager:
+        def getDataType(self, path: str):
+            if path == "/srCamera/Rect":
+                return SimpleNamespace(path=path, getPathName=lambda: path)
+            return None
+
+    program = SimpleNamespace(
+        getDataTypeManager=lambda: Manager(),
+        getSymbolTable=lambda: SimpleNamespace(getNamespace=lambda *_a: None),
+        getGlobalNamespace=lambda: object(),
+    )
+    resolved = _named_data_type(program, "srCamera::Rect")
+    assert resolved is not None
+    assert resolved.path == "/srCamera/Rect"
 
 
 def test_needs_type_update() -> None:
