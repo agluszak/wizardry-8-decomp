@@ -4,6 +4,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/character_events.h"
@@ -307,18 +308,13 @@ void Function5A6970(void);
 unsigned char Function5A6790(void);
 void Function5A68C0(void);
 void Function50B3B0(int value);
-void Function59A3A0(void);
-void Function575C50(void);
-void Function577560(void);
-void Function59B1A0(void);
 void Function59B4C0(void);
 void Function59B390(void);
-void Function502650(void);
 void Function562A80(void);
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
-void Function561330(unsigned char value);
+void UpdateAmbientFollowUpIdle(unsigned char input_handled);
 void Function57E0E0(int event, const POINT* point);
 void Function57DC20(void);
 unsigned char IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
@@ -2816,6 +2812,26 @@ void ClearMainGameTargetState(void)
     SetTargetCursor(W8_CURSOR_NONE);
 }
 
+/* While a scripted world action holds value_2435, pump MOUSE_POS into MSYS and
+   discard every queued input atom so the player cannot steer the party. */
+// FUNCTION: WIZ8 0x00577560
+void DrainInputDuringScriptedWorldAction(void)
+{
+    POINT mouse;
+    InputAtom input;
+
+    if (g_status_685170.value_2435 == 0) {
+        return;
+    }
+
+    SGPMouseGetPos(&mouse);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(mouse.x),
+                                static_cast<unsigned short>(mouse.y), gfLeftButtonState,
+                                gfRightButtonState);
+    while (DequeueEvent(&input) == 1) {
+    }
+}
+
 // FUNCTION: WIZ8 0x00577220
 void SyncDialogueNpcStateAndMarkPending00577220(void)
 {
@@ -3317,7 +3333,7 @@ update_screen:
     if (!g_level_block->transition_active && !gXStatus.fCombatMode && gXStatus.fEncumbranceDirty) {
         RedistributePartyEncumbrance();
     }
-    Function59A3A0();
+    SyncPartyPortraitVitalsBars();
     if (g_modal_owner_0068edd0) {
         if (!g_flag_006840bc) {
             g_flag_006840bc = 1;
@@ -3353,12 +3369,12 @@ update_screen:
             ResumeMainGameWorld();
         }
     }
-    Function575C50();
+    ProcessNpcDialogueFrameInput();
     NoOp();
-    Function577560();
+    DrainInputDuringScriptedWorldAction();
     gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
     UpdateCharacterEventState();
-    Function59B1A0();
+    TickPartyPortraitOverlayClocks();
     if (gXStatus.fCombatMode) {
         Function59B4C0();
     }
@@ -3366,7 +3382,7 @@ update_screen:
     if (g_level_block->keyboard_menu_open || g_level_block->combat_slot != -1) {
         Function59B390();
     }
-    Function502650();
+    UpdateSurpriseMode();
     if (gXStatus.fCombatMode) {
         for (int slot = 0; slot < 8; ++slot) {
             if (!g_status_685170.buffers.party_rows[slot].occupied ||
@@ -3383,7 +3399,7 @@ update_screen:
         Function562A80();
         return;
     }
-    Function515B00();
+    ProcessMainGameAutoSave();
     UpdateSharedGameDataObject0041F1F0();
     g_byte_00659a64 = 0;
     WorldUpdateProps(GetWorld());
@@ -3422,7 +3438,7 @@ update_screen:
         g_level_block->hover_region != g_level_block->hover_combat_slot + 10U) {
         g_level_block->hover_combat_slot = -1;
     }
-    Function561330(ProcessMainGameInput());
+    UpdateAmbientFollowUpIdle(ProcessMainGameInput());
     if (!GetFlag69DA6C()) {
         if (!GetFlag68F105() || GetFlag68F104()) {
             HandleManualCameraHotkeys();
@@ -3840,6 +3856,39 @@ void SelectPartyCharacter(int party_slot)
         g_level_block->redraw_flags |= 1 << (party_slot & 0x1f) | 0x201000;
     }
     g_level_block->pick_changed_154 = 1;
+}
+
+/* Gate ambient party follow-up chatter: any modal mode or recent input resets
+   the 60s idle clock and disarms an armed follow-up sequence; after a full
+   minute of cursor idle with the clock expired, ProcessFollowUpEvents runs. */
+// FUNCTION: WIZ8 0x00561330
+void UpdateAmbientFollowUpIdle(unsigned char input_handled)
+{
+    if (gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+        gXStatus.fSurprisePossible == 0) {
+        if (input_handled == 0) {
+            if (GetMillisecondsSinceCursorMove() > 60000) {
+                if (ClockIsTicking(g_level_block->countdown_258) != 0) {
+                    return;
+                }
+                gXStatus.character_event_queue->ProcessFollowUpEvents();
+                return;
+            }
+        } else {
+            g_level_block->countdown_258 = SetCountdownClock(60000);
+        }
+        if ((gXStatus.character_event_queue->follow_up_flags & 1) != 0) {
+            gXStatus.character_event_queue->follow_up_flags &= ~(1 | 2);
+            return;
+        }
+    } else {
+        g_level_block->countdown_258 = SetCountdownClock(60000);
+        if ((gXStatus.character_event_queue->follow_up_flags & 1) != 0) {
+            gXStatus.character_event_queue->follow_up_flags &= ~(1 | 2);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00561a20
@@ -7194,6 +7243,65 @@ void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot)
     dialog->m_destroy_callback = InvalidateMainGameScreen005670A0;
     g_modal_owner_0068edd0 = dialog;
     ActivateDialogRegion(0x138);
+}
+
+/* MainGameScreenFrame drains Escape and left-click while NPC dialogue is
+   active and character events are deferred for the script. Escape either
+   restores a hidden dialogue panel or backs out of the current layout;
+   left-click finishes in-progress NPC voice playback. */
+// FUNCTION: WIZ8 0x00575C50
+void ProcessNpcDialogueFrameInput(void)
+{
+    POINT mouse;
+    InputAtom input;
+
+    if (ShouldDeferCharacterEventForNpcScript(1) == 0 || gXStatus.fNpcDialogueMode == 0) {
+        return;
+    }
+
+    SGPMouseGetPos(&mouse);
+    MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(mouse.x),
+                                static_cast<unsigned short>(mouse.y), gfLeftButtonState,
+                                gfRightButtonState);
+
+    while (DequeueEvent(&input) == 1) {
+        if (input.usEvent == KEY_DOWN) {
+            if (input.usParam == 0x1b) {
+                if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+                    SetNpcDialogueHidden(0);
+                } else if (IsNpcScriptSessionActive() != 0) {
+                    TryFinishNpcVoicePlayback(0);
+                } else {
+                    int layout = g_screen_state_00649f1c->value_fc;
+                    if (layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT ||
+                        layout == W8_DIALOGUE_LAYOUT_TOPIC_MENU) {
+                        Function56E800(0);
+                    } else if (layout == 1) {
+                        int previous = g_screen_state_00649f1c->value_104;
+                        CloseNpcDialogueMode1Layout();
+                        if (previous == W8_DIALOGUE_LAYOUT_TOPIC_MENU) {
+                            ShowNpcDialogueTopicMenu();
+                        } else if (previous == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
+                            OpenNpcDialogueTranscriptLayout();
+                        }
+                    } else if (layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+                        char return_to_topics = g_screen_state_00649f1c->flag_229;
+                        CloseNpcDialogueOptionLayout();
+                        if (return_to_topics != 0) {
+                            ShowNpcDialogueTopicMenu();
+                        } else {
+                            OpenNpcDialogueTranscriptLayout();
+                        }
+                    } else if (layout == 5) {
+                        CloseNpcDialogueMode5Layout();
+                        OpenNpcDialogueTranscriptLayout();
+                    }
+                }
+            }
+        } else if (input.usEvent == LEFT_BUTTON_DOWN) {
+            TryFinishNpcVoicePlayback(0);
+        }
+    }
 }
 
 /* Open the modal NPC sub-dialog for a script request: option list (0x05),

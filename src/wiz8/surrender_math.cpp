@@ -29,6 +29,12 @@
 // TEMPLATE: WIZ8 0x00421900
 // operator*<float>(srVector3T<float> const &,double)
 
+// TEMPLATE: WIZ8 0x0044eeb0
+// operator*<float>(double, srVector3T<float> const &)
+
+// TEMPLATE: WIZ8 0x0044ee70
+// operator-<float>(srVector3T<float> const &)
+
 // TEMPLATE: WIZ8 0x00421950
 // operator/<float>(srVector3T<float> const &,double)
 

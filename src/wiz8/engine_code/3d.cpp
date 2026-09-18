@@ -373,6 +373,28 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
     return 1;
 }
 
+/* One-instance form of the lit-marker path FinalizeWorldScenes walks: mark the
+   first-child chain, then bake the dynamic scene's light children. */
+// FUNCTION: WIZ8 0x0046f4a0
+unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
+                                                         srNode* dynamic_scene)
+{
+    srNode* lights = dynamic_scene->firstChild();
+
+    if ((instance->state_178 & 2) == 0) {
+        instance->state_178 |= 2;
+        /* Retail inlines this walk rather than calling SetChainValue15C. */
+        char* chain =
+            reinterpret_cast<char*>(instance); // reinterpret-ok: first_child_/exclusion_mask layout
+        for (; chain != 0;
+             chain = *reinterpret_cast<char**>(chain + 0x134)) { // reinterpret-ok: +0x134 link
+            *reinterpret_cast<int*>(chain + 0x15c) = 1; // reinterpret-ok: exclusion_mask_15c
+        }
+        BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
+    }
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x0046F510
 void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum,
                           const srVector3T<float>* candidate_minimum,
@@ -949,8 +971,7 @@ unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float 
 }
 
 // FUNCTION: WIZ8 0x0046d920
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume,
-                                          const float* bounds)
+unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const float* bounds)
 {
     for (short x = 0; x < 2; ++x) {
         for (short y = 0; y < 2; ++y) {

@@ -49,6 +49,15 @@ static_assert(offsetof(W8ConditionButton, m_ui_slot_c0) == 0xc0, "W8ConditionBut
 
 void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);
+/* Per-frame: recompute each occupied slot's HP/stamina/mana bar fill (0..0x2d)
+   into W8MonsterManagerEntry::field_0ac/0b0/0b4 and the cached hp_current at
+   field_0b8; mark field_0bc and RequestRedraw(0x80000000) when the bars (or
+   numeric HP, when that option is on) change. */
+void SyncPartyPortraitVitalsBars(void); /* 0x0059A3A0 */
+/* Per-frame: advance occupied slots' secondary portrait overlay clocks
+   (field_09c / field_0bd) on the shared 100 ms field_0ca timer and redraw
+   dirty slots whose field_0d0 gate is clear. */
+void TickPartyPortraitOverlayClocks(void); /* 0x0059B1A0 */
 /* Create the eight level-up portrait buttons (gpLevelButtons) and their panel. */
 void CreateLevelButtons(void);                                   /* 0x0059B940 */
 void ToggleNumericHitPoints(void);                               /* 0x0059AA30 */

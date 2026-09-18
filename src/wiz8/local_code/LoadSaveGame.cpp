@@ -45,6 +45,8 @@
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/engine_code/game_timer.h"
 
 #include <windows.h>
 
@@ -121,9 +123,8 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
    positional names preserve the current identity ceiling; the orchestration
    below establishes only their argument shape and section ownership. */
 
-/* 0x005156C0 and 0x00517A90, not yet identified; named by address as elsewhere
-   in src/wiz8. The first loads a character from somewhere other than a loose
-   file, the second builds the failure notice CreateMessageBox posts. */
+/* 0x00517A90, not yet identified; named by address as elsewhere in src/wiz8.
+   It builds the failure notice CreateMessageBox posts. */
 
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
@@ -175,10 +176,10 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot
 }
 
 /* Loads one character record, either from a loose file under Saves\Characters
-   or Saves\NPCs, or through 0x005156C0 when 0x0068517C says characters are not
-   loose. The two spellings of the path share one sprintf: the branch that
-   already has a directory literal jumps into the arm that formats one, which is
-   what writing the call in both arms compiles to.
+   or Saves\NPCs, or through LoadCharacterFromCurrentGame when 0x0068517C says
+   characters are not loose. The two spellings of the path share one sprintf:
+   the branch that already has a directory literal jumps into the arm that
+   formats one, which is what writing the call in both arms compiles to.
    The record is cleared before the read, and the read is two calls: a four-byte
    length and then that many bytes. A short or failed second read leaves the
    record cleared and reports failure, and the file is closed either way. */
@@ -189,7 +190,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     char directory[260];
     unsigned int size;
     unsigned int transferred;
-    unsigned char loaded = 0;
+    bool loaded = false;
     int handle;
 
     if (g_status_685170.game_started) {
@@ -204,7 +205,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
     }
 
     if (g_status_685170.game_started && (slot == -1 || g_status_685170.flags_2367[slot] != 0)) {
-        loaded = Function5156C0(path, character);
+        loaded = LoadCharacterFromCurrentGame(path, character) != 0;
     } else {
         handle = FileOpen(path, 1, 0);
         if (handle == 0) {
@@ -213,7 +214,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         memset(character, 0, sizeof(W8Character));
         if (FileRead(handle, &size, 4, &transferred) &&
             FileRead(handle, character, size, &transferred)) {
-            loaded = 1;
+            loaded = true;
         }
         FileClose(handle);
         /* The same read-only repair VerifyDataSubdirs makes, for the one errno
@@ -223,14 +224,14 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         }
     }
     if (loaded) {
-        return loaded;
+        return 1;
     }
 report:
     if (report_failure) {
         CreateMessageBox(FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name),
                          g_small_font_683678, 1, 1, 0, 0);
     }
-    return loaded;
+    return loaded ? 1 : 0;
 }
 
 // FUNCTION: WIZ8 0x00511df0
@@ -1229,7 +1230,7 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     char file_name[16];
     char path[260];
     char directory[260];
-    unsigned char saved = 1;
+    bool saved = true;
     unsigned int size;
     unsigned int transferred;
     int handle;
@@ -1257,14 +1258,14 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
         size = sizeof(W8Character);
         if (FileWrite(handle, &size, 4, &transferred) == 0 ||
             FileWrite(handle, character, sizeof(W8Character), &transferred) == 0) {
-            saved = 0;
+            saved = false;
         }
         FileClose(handle);
     } else {
-        saved = Function5155B0(path, slot, character);
+        saved = SaveCharacterToCurrentGame(path, slot, character) != 0;
     }
     if (saved) {
-        return saved;
+        return 1;
     }
 report:
     if (report_failure) {
@@ -1279,12 +1280,109 @@ report:
     return 0;
 }
 
-/* Save-slot bookkeeping from the same established
-   Local Code\LoadSaveGame.cpp translation unit. */
-
 /* The two chunk tags the walk recognises, as the four-character codes the
    comparison spells them. */
 enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
+
+/* Find a live CHAR chunk in Saves\\CurrentGame.SAV whose 64-byte name matches
+   and mark it consumed so a later append can supersede it. */
+// FUNCTION: WIZ8 0x005154a0
+char MarkCurrentGameCharacterChunkConsumed(const char* path)
+{
+    W8Chunk chunk;
+    char name[64];
+    bool found = false;
+    int index = 0;
+    int count;
+
+    if (chunk.OpenReadWrite(const_cast<char*>("Saves\\CurrentGame.SAV")) != 0) {
+        count = chunk.ChunkCount();
+        if (count > 0) {
+            do {
+                if (found) {
+                    break;
+                }
+                chunk.OpenChunk(0, 0);
+                if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
+                    chunk.Read(name, 0x40, 0);
+                    if (_stricmp(name, path) == 0) {
+                        chunk.SetCurrentChunkAtEnd();
+                        found = true;
+                    }
+                }
+                ++index;
+            } while (index < count);
+        }
+        chunk.Close();
+    }
+    return found ? 1 : 0;
+}
+
+/* Append one character record to Saves\\CurrentGame.SAV. Retail writes the
+   64-byte name, size and body without opening a CHAR chunk header first; the
+   matching load walk still keys on CHAR tags produced by other writers. */
+// FUNCTION: WIZ8 0x005155b0
+char SaveCharacterToCurrentGame(const char* path, int /*slot*/, W8Character* character)
+{
+    W8Chunk chunk;
+    char name[64];
+    unsigned int size;
+
+    MarkCurrentGameCharacterChunkConsumed(path);
+    strncpy(name, path, 0x3f);
+    name[0x3f] = 0;
+    if (chunk.OpenAppend(const_cast<char*>("Saves\\CurrentGame.SAV")) != 0) {
+        chunk.Write(name, 0x40, 0);
+        size = W8_CHARACTER_SERIALIZED_SIZE;
+        chunk.Write(&size, 4, 0);
+        chunk.Write(character, size, 0);
+        chunk.Close();
+        return 1;
+    }
+    return 0;
+}
+
+/* Load one character record from a CHAR chunk in Saves\\CurrentGame.SAV. */
+// FUNCTION: WIZ8 0x005156c0
+char LoadCharacterFromCurrentGame(const char* path, W8Character* character)
+{
+    W8Chunk chunk;
+    char name[64];
+    bool found = false;
+    unsigned int size;
+    int index = 0;
+    int count;
+
+    if (chunk.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) != 0) {
+        count = chunk.ChunkCount();
+        if (count > 0) {
+            do {
+                if (found) {
+                    break;
+                }
+                chunk.OpenChunk(0, 0);
+                if (chunk.CurrentChunkAtEnd() == 0 && chunk.CurrentChunkId() == W8_SAVE_TAG_CHAR) {
+                    chunk.Read(name, 0x40, 0);
+                    if (_stricmp(name, path) == 0) {
+                        memset(character, 0, sizeof(W8Character));
+                        chunk.Read(&size, 4, 0);
+                        if (size > W8_CHARACTER_SERIALIZED_SIZE) {
+                            srAssertFail("uiSize <= sizeof(*pPC)", LOADSAVEGAME_CPP, 0xba2, 0);
+                        }
+                        chunk.Read(character, size, 0);
+                        found = true;
+                    }
+                }
+                ++index;
+            } while (index < count);
+        }
+        chunk.Close();
+    }
+    return found ? 1 : 0;
+}
+
+/* Save-slot bookkeeping from the same established
+   Local Code\LoadSaveGame.cpp translation unit. */
 
 // GLOBAL: WIZ8 0x00689f98
 unsigned char g_save_pending_00689f98;
@@ -1346,7 +1444,7 @@ unsigned char AutoSaveIfAllowed(char forced)
     if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
-        (char)IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
+        IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
         /* The copy is written out in both arms rather than selecting the source
            into one call. VC6 tail-merges the two inlined copies but keeps each
@@ -1396,6 +1494,77 @@ void ReportSaveFailed(char quiet)
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
     }
+}
+
+/* Deferred main-game autosave. The first eligible frame after the gameplay
+   timer elapses raises the notice and restarts the timer; the next eligible
+   frame clears that flag and calls SaveGame. Iron Man overwrites the current
+   slot name the same way AutoSaveIfAllowed does. Declining the second-pass
+   gates is reported as success so the success notice still posts. */
+// FUNCTION: WIZ8 0x00515b00
+void ProcessMainGameAutoSave(void)
+{
+    char name[64];
+    char saved;
+
+    if (g_status_685170.value_2435 != 0) {
+        return;
+    }
+    if (AnyMonsterDying() != 0) {
+        return;
+    }
+    if (g_settings_6850c8.auto_save == 0 && g_status_685170.iron_man == 0) {
+        return;
+    }
+    if (gXStatus.fCombatMode != 0) {
+        return;
+    }
+    if (IsSightRangeOverridden() != 0) {
+        return;
+    }
+    if (IsLevelDataFlag4EffectivelySet() == 0) {
+        return;
+    }
+    if (gXStatus.fNpcDialogueMode != 0) {
+        return;
+    }
+    if (gXStatus.fCampMode != 0) {
+        return;
+    }
+    if (g_save_notice_shown_0068506b == 0) {
+        if (g_gameplay_timer_685067->GetProgress() <= g_float_005ebb38) {
+            return;
+        }
+        g_save_notice_shown_0068506b = 1;
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+            ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
+        }
+        g_gameplay_timer_685067->Restart();
+        return;
+    }
+    g_save_notice_shown_0068506b = 0;
+    if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
+        (g_settings_6850c8.auto_save != 0 || g_status_685170.iron_man != 0) &&
+        gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
+        IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        if (g_status_685170.iron_man != 0) {
+            strcpy(name, ConvertWideStringToString(GetLastSaveName()));
+        } else {
+            strcpy(name, "AutoSave");
+        }
+        saved = SaveGame(name, 0);
+    } else {
+        saved = 1;
+    }
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
+        return;
+    }
+    if (saved == 0) {
+        ShowNotice(0xc, gppStringList[0x1e14 / 4], -1, -1, 0);
+        return;
+    }
+    ShowNotice(0xc, gppStringList[0x1e10 / 4], -1, -1, 0);
 }
 
 /* Choose the numbered quick-save slot that the next quick save should write.

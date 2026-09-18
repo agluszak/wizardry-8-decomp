@@ -14,7 +14,7 @@ class W8Missile;
 /* One party slot row. Only the fields reached by recovered combat and
    targeting code are named. */
 struct W8PartySlotRow {
-    unsigned char occupied; /* 0x00: gStatus.XChar[slot].fOccupied */
+    unsigned char occupied; // bool-byte-ok: packed party-row flag byte (fOccupied)
     int pending_action;
     int attack_mode[4];
     /* 0x15: the pending action's own two-word block, the same shape a chosen

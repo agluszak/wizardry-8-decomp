@@ -94,6 +94,58 @@ unsigned char W8Chunk::OpenWrite(char* path)
     return 1;
 }
 
+/* Reopen an existing RIFF for append. Children are skipped under a temporary
+   read so the file sits at the end of the group; the original child count is
+   then pushed onto the write-side progress stack before writing is armed. */
+// FUNCTION: WIZ8 0x0055be80
+unsigned char W8Chunk::OpenAppend(char* path)
+{
+    W8ChunkHead* head;
+    int child_count;
+    int remaining;
+    int position;
+    int distance;
+
+    if (m_hFile != 0) {
+        return 0;
+    }
+    m_hFile = FileOpen(path, FILE_ACCESS_READWRITE, 0);
+    if (m_hFile == 0) {
+        return 0;
+    }
+    m_fWriting = 0;
+    OpenChunk(0, 0);
+    head = m_heads.data[m_heads.count - 1];
+    if (head == 0) {
+        srAssertFail("pHead", CHUNK_CPP, 0x1f0, 0);
+    }
+    if (head->chunk_id != W8_RIFF_CHUNK_ID) {
+        return 0;
+    }
+    OpenGroup();
+    child_count = m_group_counts.data[m_group_counts.count - 1];
+    remaining = child_count;
+    if (child_count > 0) {
+        do {
+            OpenChunk(0, 0);
+            head = m_heads.data[m_heads.count - 1];
+            if (head == 0) {
+                srAssertFail("pHead", CHUNK_CPP, 0x136, 0);
+            }
+            position = FileGetPos(m_hFile);
+            distance = m_offsets.data[m_offsets.count - 1] + (head->extent_08 - position);
+            if (distance != 0) {
+                FileSeek(m_hFile, distance, FILE_SEEK_FROM_CURRENT);
+            }
+            ReleaseCurrentChunk();
+            --remaining;
+        } while (remaining != 0);
+    }
+    m_group_progress.Add(child_count);
+    m_fWriting = 1;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x0055c080
 unsigned char W8Chunk::OpenReadWrite(char* path)
 {

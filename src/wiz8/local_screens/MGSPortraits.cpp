@@ -5,6 +5,7 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/layouts/combat_state.h"
@@ -14,7 +15,9 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/xstatus.h"
 #include "input.h"
+#include "timer.h"
 
 // GLOBAL: WIZ8 0x0069B940
 Controls* g_panel_69b940; /* gpLevelButtonsPanel */
@@ -34,6 +37,80 @@ Controls* g_condition_buttons_panel_0069b944;
 int giLevelUpChar;
 
 void OnLevelButtonActivate(void);
+
+/* Portrait vitals bars are 0x2d pixels wide. Cache the filled lengths (and the
+   raw hp_current used when numeric HP is shown) on each party
+   W8MonsterManagerEntry; MainGameScreenFrame calls this every tick. A dead
+   slot (hp_current == 0) still refreshes the cache to zeros but skips the
+   dirty/redraw path — matching retail. */
+// FUNCTION: WIZ8 0x0059A3A0
+void SyncPartyPortraitVitalsBars(void)
+{
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[0];
+    W8PartySlotRow* row = g_status_685170.buffers.party_rows;
+    W8Character* character = g_status_685170.buffers.characters;
+
+    for (; entry < &gXStatus.monster_manager_entries[W8_PARTY_SLOT_COUNT];
+         ++entry, ++row, ++character) {
+        unsigned int hp_bar;
+        unsigned int stamina_bar;
+        unsigned int mana_bar = 0;
+
+        if (row->occupied != 0) {
+            if (character->hp_current != 0) {
+                hp_bar =
+                    (character->hp_current * 0x2d) / static_cast<unsigned int>(character->hp_max);
+                if (hp_bar == 0) {
+                    hp_bar = 1;
+                }
+
+                {
+                    int stamina = character->stamina;
+                    unsigned int positive_stamina =
+                        stamina < 0 ? 0 : static_cast<unsigned int>(stamina);
+                    stamina_bar = (positive_stamina * 0x2d) /
+                                  static_cast<unsigned int>(character->stamina_max);
+                    if (stamina_bar == 0 && stamina != 0) {
+                        stamina_bar = 1;
+                    }
+                }
+
+                if (SumCharacterSpellPoints(character) != 0) {
+                    int spell_left;
+                    if (SumCharacterSpellPointsLeft(character) < 0) {
+                        spell_left = 0;
+                    } else {
+                        spell_left = SumCharacterSpellPointsLeft(character);
+                    }
+                    mana_bar = (static_cast<unsigned int>(spell_left) * 0x2d) /
+                               static_cast<unsigned int>(SumCharacterSpellPoints(character));
+                    if (mana_bar == 0 && SumCharacterSpellPointsLeft(character) != 0) {
+                        mana_bar = 1;
+                    }
+                } else {
+                    mana_bar = 0;
+                }
+
+                if (hp_bar != static_cast<unsigned int>(entry->field_0ac) ||
+                    stamina_bar != static_cast<unsigned int>(entry->field_0b0) ||
+                    mana_bar != static_cast<unsigned int>(entry->field_0b4) ||
+                    (g_settings_6850c8.numeric_hit_points != 0 &&
+                     static_cast<int>(character->hp_current) != entry->field_0b8)) {
+                    entry->field_0bc = 1;
+                    RequestRedraw(0x80000000);
+                }
+            } else {
+                hp_bar = 0;
+                stamina_bar = 0;
+            }
+
+            entry->field_0ac = static_cast<int>(hp_bar);
+            entry->field_0b0 = static_cast<int>(stamina_bar);
+            entry->field_0b4 = static_cast<int>(mana_bar);
+            entry->field_0b8 = static_cast<int>(character->hp_current);
+        }
+    }
+}
 
 /* Toggle numeric hit-point display on the party portraits and invalidate all
    eight slot masks so the new mode repaints everywhere. */
@@ -276,6 +353,59 @@ void OnLevelButtonActivate(void)
     g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
+}
+
+/* Tick each occupied slot's secondary portrait overlay animations. field_09c
+   and field_0bd advance on the shared 100 ms field_0ca countdown; when either
+   steps and field_0d0 is clear, RequestRedraw marks that slot's portrait. */
+// FUNCTION: WIZ8 0x0059B1A0
+void TickPartyPortraitOverlayClocks(void)
+{
+    unsigned int slot = 0;
+    W8PartySlotRow* row = g_status_685170.buffers.party_rows;
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[0];
+
+    for (; entry < &gXStatus.monster_manager_entries[W8_PARTY_SLOT_COUNT]; ++entry, ++row, ++slot) {
+        unsigned char clock_expired;
+        unsigned char stepped = 0;
+
+        if (row->occupied != 0) {
+            clock_expired =
+                ClockIsTicking(static_cast<unsigned int>(entry->field_0ca)) == 0 ? 1 : 0;
+
+            if (entry->field_09c != 0) {
+                if (clock_expired != 0) {
+                    entry->field_0a3 = entry->field_0a3 + 1;
+                    stepped = 1;
+                }
+                if (entry->field_0a3 == entry->field_0a7) {
+                    entry->field_09c = 0;
+                    entry->field_09d = 0;
+                } else if (entry->field_09d != 0 && entry->field_0a3 == 0xd &&
+                           entry->field_09e == 0) {
+                    entry->field_09e = 1;
+                }
+            }
+
+            if (entry->field_0bd != 0) {
+                if (clock_expired != 0) {
+                    entry->field_0be = entry->field_0be + 1;
+                    stepped = 1;
+                }
+                if (entry->field_0be == entry->field_0c6) {
+                    entry->field_0bd = 0;
+                }
+            }
+
+            if (clock_expired != 0) {
+                entry->field_0ca = static_cast<int>(SetCountdownClock(100));
+            }
+
+            if (stepped != 0 && entry->field_0d0 == 0) {
+                RequestRedraw(1u << (slot & 0x1f));
+            }
+        }
+    }
 }
 
 /* The eight level-up portrait buttons sit in two columns on gpLevelButtonsPanel,

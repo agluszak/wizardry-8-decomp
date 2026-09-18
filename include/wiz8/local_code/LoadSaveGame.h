@@ -83,9 +83,14 @@ unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_notice_shown_0068506b;
 
-char Function5155B0(const char* path, int slot, W8Character* character);
-char Function5156C0(const char* path, W8Character* character);
-void Function515B00(void);
+/* Mark a matching CHAR payload consumed in Saves\\CurrentGame.SAV. */
+char MarkCurrentGameCharacterChunkConsumed(const char* path); /* 0x005154A0 */
+/* Append one character record to Saves\\CurrentGame.SAV. `slot` is unused. */
+char SaveCharacterToCurrentGame(const char* path, int slot,
+                                W8Character* character);                     /* 0x005155B0 */
+char LoadCharacterFromCurrentGame(const char* path, W8Character* character); /* 0x005156C0 */
+/* Deferred main-game autosave: notice first, then SaveGame on the next tick. */
+void ProcessMainGameAutoSave(void);      /* 0x00515B00 */
 void SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
 
 unsigned char LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */

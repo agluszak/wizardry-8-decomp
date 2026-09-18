@@ -1476,6 +1476,13 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
     }
 }
 
+/* Milliseconds since PositionMouseCursor last stamped g_cursor_move_tick_659698. */
+// FUNCTION: WIZ8 0x00428220
+unsigned int GetMillisecondsSinceCursorMove(void)
+{
+    return GetTickCount() - g_cursor_move_tick_659698;
+}
+
 /* The tracked cursor as viewport-relative 0..1 coordinates, or zero when it
    lies outside. Same tracked position and viewport as the query above. */
 // FUNCTION: WIZ8 0x00428230

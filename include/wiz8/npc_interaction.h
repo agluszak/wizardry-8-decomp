@@ -5,9 +5,9 @@
 /* The NPC-scripting gates NPC Scripting.cpp sets and npc_interaction.cpp
    reads. */
 
-unsigned char IsNpcScriptSessionActive(void);
+unsigned char IsNpcScriptSessionActive(void); // bool-byte-ok: retail returns al as unsigned char
+// bool-byte-ok: retail returns al as unsigned char
 unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);
-
 /* 0x005294C0: format the bound NPC's quote for one event type into the wide
    output. */
 unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output);
