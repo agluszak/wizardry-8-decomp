@@ -32,34 +32,119 @@ Enrichment must:
 4. Keep `VtableResolver.classNamespace()` able to resolve the same class
    (leaf-name fallback when category mapping is ambiguous).
 
+**Collect/plan is read-only.** `collect_*` helpers use `find_ghidra_class` and
+emit `missing-class` / `create-class` actions; `ensure_ghidra_class` runs only
+inside apply transactions.
+
 Custom storage is an exceptional ABI operation, not the normal way to pick a
-class Structure. Synthetic `wiz8::classes::…` namespaces must not be invented
-to justify a directory layout.
+class Structure. Ordinary `class-this-typing` **skips** functions that already
+have custom variable storage (`skip-custom-storage`) and never calls
+`setCustomVariableStorage(False)` to silence ABI. Explicit convention
+hard-disagreements (same classification as `prototype-repair`) are skipped
+rather than overridden to `__thiscall`.
+
+Synthetic `wiz8::classes::…` namespaces must not be invented to justify a
+directory layout.
+
+Acceptance cases (ordinary method, derived, secondary-base) should bind without
+custom storage. Full ProgramBuilder / lifecycle-fixture coverage is required for
+those shapes; unit tests document the policy and skip cleanly when the fixture
+project is unavailable (see `tests/unit/test_class_binding.py` and
+`tests/unit/test_enrichment_ghidra.py`).
 
 ## Ordered work
 
 | Step | Goal | Status |
 | --- | --- | --- |
-| Foundation | Source class ↔ `GhidraClass` ↔ Structure binding; auto `this` without custom storage | `class_binding` + rewritten `class-this-typing` / `class-structures` |
+| Foundation | Source class ↔ `GhidraClass` ↔ Structure binding; auto `this` without custom storage | `class_binding` + rewritten `class-this-typing` / `class-structures`; fixtures present |
 | 10 | Objective decompiler-quality benchmark (oracle + pain) | `wiz8 analyze decompiler-quality` |
 | 1 | Calling-convention / prototype repair before Param ID | `prototype-repair` (source-backed); heuristics report-only except census vtable thiscall |
-| 2 | Owned enrichment candidate (unique run dir, hard-fail deltas) | `enrichment-checkpoint` (disposable by default; `--live` opt-in) |
-| 5–8 | Globals, callbacks, CF, attributes | existing passes; consolidate onto shared resolver next |
+| 2 | Owned enrichment candidate (unique run dir, outcome split) | `enrichment-checkpoint` (disposable by default) + `enrichment-promote` |
+| 5–8 | Globals, callbacks, CF, attributes | consumers retargeted onto `class_binding`; see consolidation below |
 | 9 | Dual decompiler profiles | Python `semantic.py` profiles; Java recovery still uses program options |
 
-## Consolidation direction (before claiming the enrichment loop is complete)
+## Promote candidate
 
-1. **Class binding first** — ordinary, derived, and secondary-base cases without custom storage.
-2. **Compiler projection** — extend reccmp importer gaps (callbacks/unions/variadics); retire overlapping handwritten declaration parsers (`srVector3T<float>` array misparse, qualifier order).
-3. **Type graph projection** — identity map + field reconciliation, not component-count contests or competing universes.
-4. **Vtable slots as ABI declarations** — census extents, full slot contracts, no silent truncation or stale FunctionDefinition agreement.
-5. **One runner owns the experiment** — unique run directory, shared open `Program`, promote the tested candidate (not an unverified `--live` rerun).
-6. **Validation** — safe application / preserved recovery / useful improvement as separate outcomes.
+Disposable trials write all authoritative artifacts under
+`work_dir/enrichment-checkpoint/run-<id>/`:
+
+- `before.json` / `after.json` / `delta.json` / `pain-*.json`
+- `report.json`, `input-manifest.json`
+- `candidate.gzf` + `candidate.sha256` (frozen immediately when the disposable
+  trial finishes — promote consumes these exact files and does **not** re-pack
+  a mutable project later)
+- per-pass reports under `steps/`
+
+A convenience `build/enrichment-checkpoint/latest.json` may mirror the report.
+Shared `build/enrichment-checkpoint/before.json` is **not** the trial source of
+truth.
+
+Report `outcomes`:
+
+- `safe_application` — no unexpected apply errors, import ok, inputs matched
+- `preserved_recovery` — quality/pain deltas report no new decompiler failures
+- `useful_improvement` — `null` if unmeasured; `true` only when measured debt/pain
+  improved with evidence. Applied-row count alone does **not** make this true.
+  Promotion may still be manually accepted when usefulness is inconclusive.
+
+CLI `ok` remains `safe_application and preserved_recovery` (nonzero exit when false).
+
+When a disposable trial is accepted, promote **that** candidate — do not rerun
+with `--live`:
+
+```sh
+uv run wiz8 analyze enrichment-promote --from-latest
+# or:
+uv run wiz8 analyze enrichment-promote "$WIZ8_WORK_DIR/enrichment-checkpoint/run-<id>"
+```
+
+Promote verifies `candidate.gzf` against `candidate.sha256` (and report
+provenance / seed sha256), restores into a staging directory, verifies, then
+swaps the live project aside. It refuses missing/mismatched candidate archives,
+refuses stale/untracked/unknown live freshness without `--force` when a live
+project exists, and does **not** refresh vendor GZF seeds.
+
+## Consolidation direction
+
+Items below are the advanced follow-through after the `#212`/`#218`/`#219`
+binding pivot. Parser template/qualifier bugs on the Wiz8 side are closed
+(digit-only array extents, order-independent qualifier stripping). **reccmp
+importer gaps remain upstream** and are not fixed by bumping the pin here:
+`LF_PROCEDURE` → void, missing-union write, and `T_NOTYPE` variadic rejection.
+Those gaps are why curated `callback_typing` / `function_attributes` still
+exist; do not expand them as a second declaration source.
+
+1. **Class binding first** — ordinary, derived, and secondary-base cases without custom storage. *(done)*
+2. **Compiler projection** — extend reccmp importer gaps (callbacks/unions/variadics) upstream; retire overlapping handwritten declaration parsers only after that lands.
+3. **Type graph projection** — identity map + field reconciliation onto bound Structures (`wiz8 analyze type-graph`). Nested Pointer/Array/Structure/FunctionDef refs remap through `class_binding`; equal-richness disagreements are `conflict` (never richer-wins). Opaque shells + rich evidence → `reconcile-fields`. *(done)*
+4. **Legacy `/wiz8/classes` cleanup** — dry-run inventory always (`wiz8 analyze legacy-classes-cleanup`); gated apply with `--apply` or enrichment `--cleanup-legacy-classes`. Refuses size/shape mismatches and bound-still-legacy paths; never vendor GZF rewrite. *(done)*
+5. **Vtable slots as ABI declarations** — census extents preserved (unresolved slots marked, never silently truncated); agree requires live callee FunctionDefinition contracts; apply refuses unresolved census rows.
+6. **One runner owns the experiment** — unique run directory, shared open `Program`, promote the tested candidate (not an unverified `--live` rerun).
+7. **Validation** — safe application / preserved recovery / useful improvement as separate outcomes.
+
+### How to run remapper + cleanup
+
+```sh
+# Dry-run identity + field plan
+uv run wiz8 analyze type-graph
+
+# Apply shells / reconcile-fields / remap-nested onto bound Structures
+uv run wiz8 analyze type-graph --apply
+
+# Inventory leftover /wiz8/classes (default dry-run)
+uv run wiz8 analyze legacy-classes-cleanup
+
+# Gated delete after replaceDataType (prefer disposable enrichment first)
+uv run wiz8 analyze enrichment-checkpoint --apply-enrichment --cleanup-legacy-classes
+uv run wiz8 analyze enrichment-promote --from-latest
+```
 
 ## Deferred deliberately
 
+- **Upstream reccmp** `LF_PROCEDURE` / union / variadic import (and any pin bump).
 - **RTTI on `Wiz8.exe`**: retail is `/GR-`. Optional probes on RTTI-bearing modules only.
 - **FID as DB enrichment**: after prototypes and class bindings land.
+- Retiring all legacy path fallbacks from `global_typing` / `callback_typing` once a promoted seed is clean.
 
 ## Enrichment discipline
 

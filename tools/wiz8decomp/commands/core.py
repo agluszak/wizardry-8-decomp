@@ -366,8 +366,11 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
     analyze_app.command("prototype-repair")(prototype_repair_command)
     analyze_app.command("enrichment-checkpoint")(enrichment_checkpoint_command)
+    analyze_app.command("enrichment-promote")(enrichment_promote_command)
     analyze_app.command("class-this-typing")(class_this_typing_command)
     analyze_app.command("class-structures")(class_structures_command)
+    analyze_app.command("type-graph")(type_graph_command)
+    analyze_app.command("legacy-classes-cleanup")(legacy_classes_cleanup_command)
     analyze_app.command("global-typing")(global_typing_command)
     analyze_app.command("callback-typing")(callback_typing_command)
     analyze_app.command("function-attributes")(function_attributes_command)
@@ -489,9 +492,10 @@ def enrichment_checkpoint_command(
         typer.Option(
             "--apply-enrichment",
             help=(
-                "Apply source-safe enrichment stages (class/this/vftable/globals/"
-                "callbacks/CF/attributes; thunks stay off). Uses a disposable "
-                "restored project unless --live."
+                "Apply source-safe enrichment stages (class/type-graph/this/vftable/"
+                "globals/callbacks/CF/attributes; thunks stay off). Uses a disposable "
+                "restored project unless --live. Promote accepted candidates with "
+                "`wiz8 analyze enrichment-promote`."
             ),
         ),
     ] = False,
@@ -505,13 +509,24 @@ def enrichment_checkpoint_command(
             ),
         ),
     ] = False,
+    cleanup_legacy_classes: Annotated[
+        bool,
+        typer.Option(
+            "--cleanup-legacy-classes",
+            help=(
+                "With --apply-enrichment, also delete gated leftover /wiz8/classes "
+                "types after type-graph projection. Dry-run inventory always runs."
+            ),
+        ),
+    ] = False,
     live: Annotated[
         bool,
         typer.Option(
             "--live",
             help=(
                 "Opt-in: apply mutations to the canonical checkout Ghidra project "
-                "instead of a disposable restore under work_dir/enrichment-checkpoint/."
+                "instead of a disposable restore under work_dir/enrichment-checkpoint/. "
+                "Prefer disposable apply + enrichment-promote for accepted candidates."
             ),
         ),
     ] = False,
@@ -549,9 +564,55 @@ def enrichment_checkpoint_command(
         apply_conventions=apply_conventions,
         apply_enrichment=apply_enrichment,
         import_source=import_source,
+        cleanup_legacy_classes=cleanup_legacy_classes,
         measure_quality=not skip_quality,
         measure_pain=measure_pain,
         live=live,
+    )
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+def enrichment_promote_command(
+    run_dir: Annotated[
+        Path | None,
+        typer.Argument(
+            help=(
+                "Disposable enrichment-checkpoint run directory containing report.json "
+                "and ghidra-project/."
+            ),
+        ),
+    ] = None,
+    from_latest: Annotated[
+        bool,
+        typer.Option(
+            "--from-latest",
+            help=(
+                "Promote the newest work_dir/enrichment-checkpoint/run-* whose report "
+                "has safe_application and preserved_recovery."
+            ),
+        ),
+    ] = False,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Replace live project even when seed freshness is stale/untracked/unknown.",
+        ),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Promote a tested disposable enrichment candidate into the checkout live project."""
+    from .. import command_support as cli
+    from ..enrichment_promote import run_enrichment_promote
+
+    payload = run_enrichment_promote(
+        cli.settings(),
+        run_dir=run_dir,
+        from_latest=from_latest,
+        force=force,
+        program_name=program,
     )
     cli.emit(payload)
     if payload.get("ok") is False:
@@ -577,7 +638,7 @@ def class_this_typing_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Type this from existing /wiz8/classes Structures on source __thiscall methods."""
+    """Bind source __thiscall methods to the class Structure via GhidraClass."""
     from .. import command_support as cli
     from ..class_this_typing import run_class_this_typing
 
@@ -598,7 +659,10 @@ def class_this_typing_command(
 def class_structures_command(
     apply: Annotated[
         bool,
-        typer.Option("--apply", help="Write /wiz8/classes Structures into the live program."),
+        typer.Option(
+            "--apply",
+            help="Bind or create opaque class Structures in the live program.",
+        ),
     ] = False,
     skip_this_typing: Annotated[
         bool,
@@ -614,7 +678,7 @@ def class_structures_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Promote PDB/root class Structures into /wiz8/classes for typed this."""
+    """Reconcile source class Structures with native GhidraClass binding."""
     from .. import command_support as cli
     from ..class_structure_projection import run_class_structure_projection
 
@@ -626,6 +690,64 @@ def class_structures_command(
             apply=apply,
             class_names=class_name,
             type_this=not skip_this_typing,
+        )
+
+    cli.emit(action())
+
+
+def type_graph_command(
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply",
+            help="Apply identity shells and field reconcile/remap onto bound Structures.",
+        ),
+    ] = False,
+    class_name: Annotated[
+        list[str] | None,
+        typer.Option("--class", help="Limit to these owning class names; repeatable."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Two-phase type-graph remapper onto class_binding Structures."""
+    from .. import command_support as cli
+    from ..type_graph_projection import run_type_graph_projection
+
+    def action():
+        return run_type_graph_projection(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            class_names=class_name,
+        )
+
+    cli.emit(action())
+
+
+def legacy_classes_cleanup_command(
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply",
+            help=(
+                "Delete gated leftover /wiz8/classes types after replaceDataType. "
+                "Dry-run inventory is the default."
+            ),
+        ),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Inventory or safely remove leftover /wiz8/classes enriched Structures."""
+    from .. import command_support as cli
+    from ..legacy_classes_cleanup import run_legacy_classes_cleanup
+
+    def action():
+        return run_legacy_classes_cleanup(
+            cli.settings(),
+            program_name=program,
+            apply=apply,
         )
 
     cli.emit(action())
