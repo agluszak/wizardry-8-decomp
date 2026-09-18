@@ -49,6 +49,7 @@ struct TEXTINPUTNODE {
     unsigned char _padding05[3];
     wchar_t* szString;
     unsigned char ubStrLen;
+    // bool-byte-ok: JA2 declares fEnabled as BOOLEAN (UINT8)
     unsigned char fEnabled;
     unsigned char fUserField;
     unsigned char _padding0f;
@@ -254,7 +255,7 @@ void KillTextInputMode(void)
     if (gpActive == 0)
         gpActive = gpTextInputHead;
     for (; field != 0; field = field->next) {
-        if (field != gpActive || field->ubID != 0 || field->fEnabled == 0)
+        if (field == gpActive || field->ubID != 0 || field->fEnabled == 0)
             continue;
         gpActive = field;
         if (field->szString == 0) {
@@ -369,10 +370,10 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 wcsncpy(field->szString, text, field->ubMaxChars);
             } else if (!field->fUserField) {
                 field->ubStrLen = 0;
-                wcscpy(field->szString, L"");
+                swprintf(field->szString, &g_wchar_00689b34);
             }
+            gfHiliteMode = 0;
             gubCursorPos = 0;
-            gubStartHilite = 0;
             if (gpActive != 0) {
                 gubParkingPos = CalculateCursorPos(
                     gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, 0,
@@ -398,7 +399,7 @@ void Get16BitStringFromField(unsigned char index, wchar_t* text)
     TEXTINPUTNODE* field = gpTextInputHead;
     while (field != 0) {
         if (field->ubID == index) {
-            wcscpy(text, field->szString);
+            swprintf(text, field->szString);
             return;
         }
         field = field->next;
@@ -529,50 +530,59 @@ unsigned int HandleTextInput(const InputAtom* input)
                 --gpActive->ubStrLen;
                 return 1;
             }
-        } else if (gubStartHilite != selection_end) {
-            unsigned char first = gubStartHilite;
-            unsigned char last = selection_end;
-            if (last < first) {
-                unsigned char swap = first;
-                first = last;
-                last = swap;
-            }
-            memmove(gpActive->szString + first, gpActive->szString + last,
-                    (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-            gpActive->ubStrLen -= last - first;
-            gubCursorPos = first;
-            gubStartHilite = 0;
-            gubParkingPos = CalculateCursorPos(
-                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10, first,
-                gpActive->szString, &gsCursorX, &guiVisibleCount);
+        } else {
             gfHiliteMode = 0;
-            return 1;
+            if (gubStartHilite != selection_end) {
+                unsigned char first = gubStartHilite;
+                unsigned char last = selection_end;
+                if (last < first) {
+                    unsigned char swap = first;
+                    first = last;
+                    last = swap;
+                }
+                memmove(gpActive->szString + first, gpActive->szString + last,
+                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
+                gpActive->ubStrLen -= last - first;
+                gubStartHilite = 0;
+                gubEndHilite = 0;
+                gubCursorPos = first;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    first, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                return 1;
+            }
         }
         break;
 
     case 0x23: /* End */
-        if ((input->usKeyState & SHIFT_DOWN) == 0) {
+        if ((input->usKeyState & SHIFT_DOWN) != 0) {
+            if (gfHiliteMode == 0) {
+                gfHiliteMode = 1;
+                gubStartHilite = gubCursorPos;
+            }
+            gubCursorPos = gpActive->ubStrLen;
+            gubEndHilite = gubCursorPos;
+        } else {
             gfHiliteMode = 0;
-        } else if (gfHiliteMode == 0) {
-            gfHiliteMode = 1;
-            gubStartHilite = gubCursorPos;
+            gubCursorPos = gpActive->ubStrLen;
         }
-        gubCursorPos = gpActive->ubStrLen;
-        gubEndHilite = gubCursorPos;
         gubParkingPos = CalculateCursorPos(
             gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
             gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         return 1;
 
     case 0x24: /* Home */
-        if ((input->usKeyState & SHIFT_DOWN) == 0) {
+        if ((input->usKeyState & SHIFT_DOWN) != 0) {
+            if (gfHiliteMode == 0) {
+                gfHiliteMode = 1;
+                gubStartHilite = gubCursorPos;
+            }
+            gubCursorPos = 0;
+            gubEndHilite = 0;
+        } else {
+            gubCursorPos = 0;
             gfHiliteMode = 0;
-        } else if (gfHiliteMode == 0) {
-            gfHiliteMode = 1;
-            gubStartHilite = gubCursorPos;
         }
-        gubCursorPos = 0;
-        gubEndHilite = 0;
         gubParkingPos = CalculateCursorPos(gpActive->region.RegionBottomRightX -
                                                gpActive->region.RegionTopLeftX - 10,
                                            0, gpActive->szString, &gsCursorX, &guiVisibleCount);
@@ -585,18 +595,29 @@ unsigned int HandleTextInput(const InputAtom* input)
                 gfHiliteMode = 1;
                 gubStartHilite = gubCursorPos;
             }
-            if (gubCursorPos != 0)
+            if (gubCursorPos != 0) {
                 --gubCursorPos;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            }
             gubEndHilite = gubCursorPos;
-        } else if (gfHiliteMode != 0) {
+            return 1;
+        }
+        if (gfHiliteMode != 0) {
             gubCursorPos = gubStartHilite;
             gfHiliteMode = 0;
-        } else if (gubCursorPos != 0) {
-            --gubCursorPos;
+            gubParkingPos = CalculateCursorPos(
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            return 1;
         }
-        gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        if (gubCursorPos != 0) {
+            --gubCursorPos;
+            gubParkingPos = CalculateCursorPos(
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        }
         return 1;
 
     case 0x27: /* Right */
@@ -606,18 +627,29 @@ unsigned int HandleTextInput(const InputAtom* input)
                 gfHiliteMode = 1;
                 gubStartHilite = gubCursorPos;
             }
-            if (gubCursorPos < gpActive->ubStrLen)
+            if (gubCursorPos < gpActive->ubStrLen) {
                 ++gubCursorPos;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            }
             gubEndHilite = gubCursorPos;
-        } else if (gfHiliteMode != 0) {
+            return 1;
+        }
+        if (gfHiliteMode != 0) {
             gubCursorPos = selection_end;
             gfHiliteMode = 0;
-        } else if (gubCursorPos < gpActive->ubStrLen) {
-            ++gubCursorPos;
+            gubParkingPos = CalculateCursorPos(
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            return 1;
         }
-        gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        if (gubCursorPos < gpActive->ubStrLen) {
+            ++gubCursorPos;
+            gubParkingPos = CalculateCursorPos(
+                gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        }
         return 1;
 
     case 0x2e: /* Delete */
@@ -631,7 +663,17 @@ unsigned int HandleTextInput(const InputAtom* input)
             SetTextInputCursor(0);
             return 1;
         }
-        if (gfHiliteMode != 0 && gubStartHilite != selection_end) {
+        if (gfHiliteMode == 0) {
+            if (gubCursorPos < gpActive->ubStrLen) {
+                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
+                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
+                --gpActive->ubStrLen;
+            }
+            SetTextInputCursor(gubCursorPos);
+            return 1;
+        }
+        gfHiliteMode = 0;
+        if (gubStartHilite != selection_end) {
             unsigned char first = gubStartHilite;
             unsigned char last = selection_end;
             if (last < first) {
@@ -642,78 +684,78 @@ unsigned int HandleTextInput(const InputAtom* input)
             memmove(gpActive->szString + first, gpActive->szString + last,
                     (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
             gpActive->ubStrLen -= last - first;
-            gubCursorPos = first;
-            gfHiliteMode = 0;
+            gubStartHilite = 0;
+            gubEndHilite = 0;
             SetTextInputCursor(first);
+        }
+        return 1;
+
+    default: {
+        unsigned int character =
+            TranslateKeyToCharacter((unsigned short)input->usParam, input->usKeyState);
+        if (character == 0)
+            return 1;
+        if (character == 0x25 || character == 0x5c)
+            return 0;
+
+        if (gfHiliteMode != 0) {
+            gfHiliteMode = 0;
+            if (gubStartHilite != gubEndHilite) {
+                unsigned char first = gubStartHilite;
+                unsigned char last = gubEndHilite;
+                if (last < first) {
+                    unsigned char swap = first;
+                    first = last;
+                    last = swap;
+                }
+                memmove(gpActive->szString + first, gpActive->szString + last,
+                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
+                gpActive->ubStrLen -= last - first;
+                gubStartHilite = 0;
+                gubEndHilite = 0;
+                gubCursorPos = first;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+            }
+        }
+
+        unsigned short input_type = (unsigned short)gpActive->usInputType;
+        if (input_type > 0x0fff) {
+            HandleExclusiveInput((unsigned short)character);
             return 1;
         }
-        if (gubCursorPos < gpActive->ubStrLen) {
-            memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
-                    (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
-            --gpActive->ubStrLen;
+        if (character == L' ' && (input_type & 4) != 0) {
+            AddChar(L' ');
+            return 1;
         }
-        SetTextInputCursor(gubCursorPos);
-        return 1;
-
-    default:
-        break;
-    }
-
-    unsigned int character =
-        TranslateKeyToCharacter((unsigned short)input->usParam, input->usKeyState);
-    if (character == 0)
-        return 1;
-    if (character == 0x25 || character == 0x5c)
-        return 0;
-
-    if (gfHiliteMode != 0 && gubStartHilite != gubEndHilite) {
-        unsigned char first = gubStartHilite;
-        unsigned char last = gubEndHilite;
-        if (last < first) {
-            unsigned char swap = first;
-            first = last;
-            last = swap;
+        if (character == L'-' && (input_type & 2) != 0 && gubCursorPos == 0) {
+            AddChar(L'-');
+            return 1;
         }
-        memmove(gpActive->szString + first, gpActive->szString + last,
-                (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-        gpActive->ubStrLen -= last - first;
-        gubCursorPos = first;
-        gfHiliteMode = 0;
-    }
-
-    unsigned short input_type = (unsigned short)gpActive->usInputType;
-    if (input_type > 0x0fff) {
-        HandleExclusiveInput((unsigned short)character);
-        return 1;
-    }
-    if (character == L' ' && (input_type & 4) != 0) {
-        AddChar(L' ');
-        return 1;
-    }
-    if (character == L'-' && (input_type & 2) != 0 && gubCursorPos == 0) {
-        AddChar(L'-');
-        return 1;
-    }
-    if (character >= L'0' && character <= L'9' && (input_type & 1) != 0) {
-        AddChar((unsigned short)character);
-        return 1;
-    }
-    if ((input_type & 2) != 0) {
-        if (IsUppercaseWideChar((unsigned short)character) != 0) {
-            if ((input_type & 0x20) != 0)
-                character = ToLowercaseWideChar(character);
+        if (character >= L'0' && character <= L'9' && (input_type & 1) != 0) {
             AddChar((unsigned short)character);
             return 1;
         }
-        if (IsLowercaseWideChar((unsigned short)character) != 0) {
-            if ((input_type & 0x10) != 0)
-                character = ToUppercaseWideChar(character);
-            AddChar((unsigned short)character);
-            return 1;
+        if ((input_type & 2) != 0) {
+            if (IsUppercaseWideChar((unsigned short)character) != 0) {
+                if ((input_type & 0x20) != 0)
+                    character = ToLowercaseWideChar(character);
+                AddChar((unsigned short)character);
+                return 1;
+            }
+            if (IsLowercaseWideChar((unsigned short)character) != 0) {
+                if ((input_type & 0x10) != 0)
+                    character = ToUppercaseWideChar(character);
+                AddChar((unsigned short)character);
+                return 1;
+            }
         }
+        if ((input_type & 8) != 0 && IsPunctuationWideChar((unsigned short)character) != 0) {
+            AddChar((unsigned short)character);
+        }
+        return 1;
     }
-    if ((input_type & 8) != 0 && IsPunctuationWideChar((unsigned short)character) != 0) {
-        AddChar((unsigned short)character);
     }
     return 1;
 }
@@ -1107,16 +1149,18 @@ void RenderActiveTextField(void)
 
     for (size_t index = 0; index < guiVisibleCount; ++index) {
         short prefix = StringPixLengthArg(pColors->usFont, index, visible);
+        unsigned char background;
         if (has_selection && (int)(selection_first - gubParkingPos) <= (int)index &&
             (int)index < (int)(selection_last - gubParkingPos)) {
             SetFontForeground(pColors->ubHiForeColor);
-            SetFontBackground(pColors->ubHiShadowColor);
-            SetFontShadow(pColors->ubHiBackColor);
+            SetFontShadow(pColors->ubHiShadowColor);
+            background = pColors->ubHiBackColor;
         } else {
             SetFontForeground(pColors->ubForeColor);
-            SetFontBackground(pColors->ubShadowColor);
-            SetFontShadow(0);
+            SetFontShadow(pColors->ubShadowColor);
+            background = 0;
         }
+        SetFontBackground(background);
         if (visible[index] == L'%') {
             mprintf(field->region.RegionTopLeftX + prefix + 3,
                     field->region.RegionTopLeftY + vertical_offset, L"%%");
@@ -1145,17 +1189,19 @@ void RenderInactiveTextFieldNode(TEXTINPUTNODE* field)
     SaveFontSettings();
     SetFont(pColors->usFont);
     bool disabled = field->fEnabled == 0 && pColors->fUseDisabledAutoShade != 0;
+    unsigned char shadow;
     if (disabled) {
         SetFontForeground(pColors->ubDisabledForeColor);
-        SetFontBackground(pColors->ubDisabledShadowColor);
+        shadow = pColors->ubDisabledShadowColor;
     } else {
         SetFontForeground(pColors->ubForeColor);
-        SetFontBackground(pColors->ubShadowColor);
+        shadow = pColors->ubShadowColor;
     }
+    SetFontShadow(shadow);
     unsigned short font_height = GetFontHeight(pColors->usFont);
     unsigned int vertical_offset =
         (field->region.RegionBottomRightY - field->region.RegionTopLeftY - font_height) / 2;
-    SetFontShadow(0);
+    SetFontBackground(0);
     RenderBackgroundField(field);
 
     wchar_t escaped[256];
