@@ -60,10 +60,15 @@ struct W8XStatus {
     W8PList* plsMonsterGroupEncounterList; /* 0x905 */
     unsigned char unknown_049[4];
     unsigned char fSurprisePossible; /* 0x90d: 0x00683FC5 */
-    unsigned char unknown_04e[7];
-    unsigned char fPartyMovementUi;   /* 0x915: 0x00683FCD; region set 0x1c / panels */
-    unsigned char fPartyMovementMode; /* 0x916: 0x00683FCE */
-    float flPartyMoveDistLimit;       /* 0x917 */
+    /* Surprise-mode scratch beside fSurprisePossible: a busy gate, the
+       world_clock deadline, and the 0/1/2 phase word UpdateSurpriseMode
+       advances. */
+    unsigned char surprise_busy_90e;   /* 0x90e */
+    int surprise_deadline_90f;         /* 0x90f */
+    unsigned short surprise_phase_913; /* 0x913 */
+    unsigned char fPartyMovementUi;    /* 0x915: 0x00683FCD; region set 0x1c / panels */
+    unsigned char fPartyMovementMode;  /* 0x916: 0x00683FCE */
+    float flPartyMoveDistLimit;        /* 0x917 */
     /* 0x91b: accumulated party movement distance; the combat movement update
        converts it into the remaining percentage displayed by the panel. */
     float party_move_distance;
@@ -95,6 +100,10 @@ static_assert(offsetof(W8XStatus, plsUnbornMonsterList) == 0x901,
               "W8XStatus_unborn_monster_list_offset");
 static_assert(offsetof(W8XStatus, fSurprisePossible) == 0x90d,
               "W8XStatus_surprise_possible_offset");
+static_assert(offsetof(W8XStatus, surprise_busy_90e) == 0x90e, "W8XStatus_surprise_busy_offset");
+static_assert(offsetof(W8XStatus, surprise_deadline_90f) == 0x90f,
+              "W8XStatus_surprise_deadline_offset");
+static_assert(offsetof(W8XStatus, surprise_phase_913) == 0x913, "W8XStatus_surprise_phase_offset");
 static_assert(offsetof(W8XStatus, fPartyMovementUi) == 0x915, "W8XStatus_party_movement_ui_offset");
 static_assert(offsetof(W8XStatus, fPartyMovementMode) == 0x916,
               "W8XStatus_party_movement_mode_offset");

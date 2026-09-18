@@ -319,7 +319,9 @@ struct W8LevelDatabaseRecord {
     int minimum_encounter_budget;  /* 0x48 */
     int encounter_budget_period;   /* 0x4c: elapsed-time divisor */
     int encounter_culling_seconds; /* 0x50 */
-    unsigned char unknown_054[0x84];
+    /* 0x54: divisor UpdateSurpriseMode uses when accelerating gameplay time. */
+    float gameplay_time_scale_054;
+    unsigned char unknown_058[0x80];
 }; /* 0xd8 */
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and

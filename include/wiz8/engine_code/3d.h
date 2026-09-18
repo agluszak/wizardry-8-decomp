@@ -34,10 +34,8 @@ void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 
 unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene);
-/* Mark an attached instance for vertex lighting (state_178 bit 1), tag the
-   attached child chain's exclusion masks, then bake lighting from the
-   dynamic scene's light chain. 0x0046F4A0 */
-unsigned char Function46F4A0(stModelInstance* instance, srNode* dynamic_scene);
+unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
+                                                         srNode* dynamic_scene); /* 0x0046F4A0 */
 unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
                                                  char walk_chain);
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument);

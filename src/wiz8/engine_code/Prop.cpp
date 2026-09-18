@@ -1219,7 +1219,7 @@ void W8Prop::Method44C830(W8World* world)
                 } while (node != 0);
             }
         }
-        Function46F4A0(instance, world->dynamic_scene);
+        BakeInstanceVertexLightingIfNeeded0046F4A0(instance, world->dynamic_scene);
     }
     if (m_gd_prop == 0) {
         BuildOrRefreshPathingRepresentation();

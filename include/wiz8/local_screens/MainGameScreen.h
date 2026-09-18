@@ -784,11 +784,14 @@ void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
 void LookAtDialogueNpc(void);        /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
-                              int force);   /* 0x0056C6D0 */
-void BeginScriptedWorldAction(void);        /* 0x00577520 */
-void Function570A20(void);                  /* 0x00570A20 */
-void OpenNpcDialogueTranscriptLayout(void); /* 0x00570CF0 */
-void DispatchPendingNpcScriptNotice(void);  /* 0x0056CA90 */
+                              int force); /* 0x0056C6D0 */
+void BeginScriptedWorldAction(void);      /* 0x00577520 */
+void ClearMainGameTargetState(void);      /* 0x00577540 */
+/* While value_2435 is set, pump MOUSE_POS and discard the input queue. */
+void DrainInputDuringScriptedWorldAction(void); /* 0x00577560 */
+void Function570A20(void);                      /* 0x00570A20 */
+void OpenNpcDialogueTranscriptLayout(void);     /* 0x00570CF0 */
+void DispatchPendingNpcScriptNotice(void);      /* 0x0056CA90 */
 unsigned char CanOpenNpcDialogue(void);
 bool IsNpcDialogueTextBoxActive577830(void);         /* 0x00577830 */
 bool IsNpcDialogueTextBoxActive(void);               /* 0x0056EFD0 */
@@ -813,7 +816,6 @@ void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 void SyncDialogueNpcStateAndMarkPending00577220(void);
-void ClearMainGameTargetState(void);
 
 extern unsigned short g_value_006840be;
 extern unsigned char g_flag_00685071;
@@ -960,11 +962,17 @@ void ResetNpcDialogueItemEditor(void);                                          
 void SetNpcDialogueHidden(char value);                                              /* 0x00576850 */
 void HandleNpcDialogueReply(wchar_t* text, char echo);                              /* 0x00574250 */
 void HandleNpcDialogueInput(void);                                                  /* 0x005743B0 */
-void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data);                      /* 0x00575E60 */
-void OnNpcDialogClosed(W8DialogBase* dialog);                                       /* 0x00576E20 */
-void Function5ADB10(int value);                                                     /* 0x005ADB10 */
-void Function58BA60(void);                                                          /* 0x0058BA60 */
-void Function575710(void);                                                          /* 0x00575710 */
+/* While NPC dialogue is up, pump MOUSE_POS into MSYS and drain Escape /
+   left-click: Escape backs out of the current dialogue layout (or unhides
+   a suppressed panel), left-click finishes in-progress NPC voice. */
+void ProcessNpcDialogueFrameInput(void);                       /* 0x00575C50 */
+void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data); /* 0x00575E60 */
+void OnNpcDialogClosed(W8DialogBase* dialog);                  /* 0x00576E20 */
+void Function5ADB10(int value);                                /* 0x005ADB10 */
+void Function58BA60(void);                                     /* 0x0058BA60 */
+void Function575710(void);                                     /* 0x00575710 */
+unsigned char Function56B6F0(void);                            /* 0x0056B6F0 */
+void Function56B5F0(void);                                     /* 0x0056B5F0 */
 /* 0x00571660: learn one keyword into the dialogue transcript. category -1
    auto-classifies the text against items, NPC/named-monster names and the
    place-name table; a nonzero play_chime rings the keyword chime. */
