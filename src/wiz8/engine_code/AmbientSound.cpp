@@ -371,9 +371,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(const char* match_name,
     if (g_world == 0) {
         return 0;
     }
-    count = static_cast<int>(ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-            W8IList*>(g_world->plsAmbientSounds)));
+    count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     if (previous == 0) {
         index = 0;
     } else {
@@ -432,9 +430,7 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
 
         SoundServiceRandom();
         SoundServiceStreams();
-        count = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(world->plsAmbientSounds)));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -553,9 +549,7 @@ void RepositionAmbientSounds0047A600(W8World* world)
         int index;
 
         SoundServiceRandom();
-        count = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(world->plsAmbientSounds)));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -652,9 +646,7 @@ unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
 // FUNCTION: WIZ8 0x0047a950
 void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-            W8IList*>(g_world->plsAmbientSounds)));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
@@ -673,9 +665,7 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047a9e0
 void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-            W8IList*>(g_world->plsAmbientSounds)));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
@@ -694,9 +684,7 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047aa70
 void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-            W8IList*>(g_world->plsAmbientSounds)));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
@@ -783,9 +771,7 @@ void SetSoundEffectsVolume0047AD00(unsigned char volume)
     g_settings_6850c8.sound_effects_volume = volume;
     SoundSetDefaultVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-        count = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(g_world->plsAmbientSounds)));
+        count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
@@ -805,9 +791,7 @@ void SetSoundEffectsVolume0047AD00(unsigned char volume)
     world = GetWorld();
     if (world != 0) {
         SoundServiceRandom();
-        count = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(world->plsAmbientSounds)));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -819,9 +803,7 @@ void SetSoundEffectsVolume0047AD00(unsigned char volume)
         }
         SoundServiceRandom();
         SoundServiceStreams();
-        count = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(world->plsAmbientSounds)));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -859,9 +841,7 @@ void SetSoundEffectsMuted(unsigned char muted)
             g_settings_6850c8.sound_effects_volume = 0;
             SoundSetDefaultVolume(0);
             if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-                count = static_cast<int>(ILLength(
-                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                        W8IList*>(g_world->plsAmbientSounds)));
+                count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound =
                         static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
@@ -881,9 +861,7 @@ void SetSoundEffectsMuted(unsigned char muted)
             world = GetWorld();
             if (world != 0) {
                 SoundServiceRandom();
-                count = static_cast<int>(ILLength(
-                    reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                        W8IList*>(world->plsAmbientSounds)));
+                count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound =
                         static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -901,9 +879,7 @@ void SetSoundEffectsMuted(unsigned char muted)
         g_settings_6850c8.sound_effects_volume = g_settings_6850c8.muted_sound_effects_volume;
         SoundSetDefaultVolume(g_settings_6850c8.muted_sound_effects_volume);
         if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-            count = static_cast<int>(ILLength(
-                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                    W8IList*>(g_world->plsAmbientSounds)));
+            count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, index));
@@ -923,9 +899,7 @@ void SetSoundEffectsMuted(unsigned char muted)
         world = GetWorld();
         if (world != 0) {
             SoundServiceRandom();
-            count = static_cast<int>(ILLength(
-                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                    W8IList*>(world->plsAmbientSounds)));
+            count = static_cast<int>(PLLength(world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -937,9 +911,7 @@ void SetSoundEffectsMuted(unsigned char muted)
             }
             SoundServiceRandom();
             SoundServiceStreams();
-            count = static_cast<int>(ILLength(
-                reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                    W8IList*>(world->plsAmbientSounds)));
+            count = static_cast<int>(PLLength(world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound =
                     static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, index));
@@ -971,9 +943,7 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
         FileWrite(handle, &count, 4, 0);
         return;
     }
-    count = ILLength(
-        reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-            W8IList*>(g_world->plsAmbientSounds));
+    count = PLLength(g_world->plsAmbientSounds);
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8AmbientSound* sound =
@@ -1023,9 +993,7 @@ void LoadAmbientSoundList0047B270(HWFILE handle)
         } else {
             ok = 0;
         }
-        length = static_cast<int>(ILLength(
-            reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                W8IList*>(g_world->plsAmbientSounds)));
+        length = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (scan = 0; scan < length; ++scan) {
             W8AmbientSound* sound =
                 static_cast<W8AmbientSound*>(PLGet(g_world->plsAmbientSounds, scan));

@@ -564,19 +564,19 @@ void RecallCasterToSavedLocation(W8SpellEffectEntry* pQueue)
    or a current state past the idle slot all answer yes; otherwise the idle
    check decides. */
 // FUNCTION: WIZ8 0x00554540
-unsigned char IsScreenBusy(void)
+bool IsScreenBusy(void)
 {
     if (gXStatus.fCombatMode != 0) {
-        return 1;
+        return true;
     }
     if (IsModalOpen()) {
-        return 1;
+        return true;
     }
     if (g_flag_0068506e != 0) {
-        return 1;
+        return true;
     }
     if (g_current_screen_state.id != 7) {
-        return 1;
+        return true;
     }
     return !IsScreenIdle();
 }

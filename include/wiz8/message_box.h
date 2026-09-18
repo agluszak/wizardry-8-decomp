@@ -4,6 +4,7 @@
 
 struct W8NpcState;
 struct W8NpcQuoteEntry;
+struct W8ItemInstance;
 
 /* Heap payloads shared by the NPC message queue and the quote-bubble owner.
    The experience appender at 0x004eef10 allocates 8 bytes; the skill appenders
@@ -33,8 +34,8 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_CLOSE_DIALOGUE = 1,       /* close dialogue; set g_flag_6109f0 */
     W8_NPC_MSG_QUOTE_ENTRY = 2,          /* quote_entry + continuation_quote */
     W8_NPC_MSG_REOPEN_TRANSCRIPT = 3,    /* Function570A20 + transcript layout */
-    W8_NPC_MSG_REMOVE_SCRIPT_ITEM = 4,   /* text: W8ItemInstance* to unscript */
-    W8_NPC_MSG_CLOSE_RESUME_NPC = 5,     /* close dialogue; Function50AE40(npc, 1) */
+    W8_NPC_MSG_REMOVE_SCRIPT_ITEM = 4,   /* item: W8ItemInstance* to unscript */
+    W8_NPC_MSG_CLOSE_RESUME_NPC = 5,     /* close dialogue; ResumeNpc(npc, 1) */
     W8_NPC_MSG_FOCUS_NPC = 6,            /* argument: npc kind to switch dialogue to */
     W8_NPC_MSG_GROUP_ACTION = 7,         /* argument: NPC party slot to dismiss */
     W8_NPC_MSG_JOURNAL_QUOTE = 8,        /* quote bubble + journal-entry.wav */
@@ -111,12 +112,13 @@ struct W8MessageBoxLine {
     W8NpcMessageKind type; /* 0x0c */
     /* 0x10: per-kind payload sharing one dword:
        - wchar_t* text: PORTRAIT_*, SKILL_NOTICES, LEVEL_UP (owned; delete[]),
-         REMOVE_SCRIPT_ITEM (W8ItemInstance*), FINISH_ACTION/RESET_LEVEL_STATE
-         (null vs non-null flag)
+         FINISH_ACTION/RESET_LEVEL_STATE (null vs non-null flag)
+       - W8ItemInstance* item: REMOVE_SCRIPT_ITEM
        - int argument: QueueNpcMessageLine tags (npc kind, group/party slot,
          string index, event type, travel level id) and PARTY_SPEAKER_EVENT */
     union {
         wchar_t* text;
+        W8ItemInstance* item;
         int argument;
     };
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */

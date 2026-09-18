@@ -164,7 +164,7 @@ void UpdatePartyMovementControl(void)
    free phase, it comes down to whether a move is already pending; in the
    opening phase it is always allowed. */
 // FUNCTION: WIZ8 0x004f0800
-unsigned char CanPartyMove(void)
+bool CanPartyMove(void)
 {
     unsigned int status;
 
@@ -174,14 +174,14 @@ unsigned char CanPartyMove(void)
     status = g_combat_state->uiCurrentPartyActionStatus;
     if (g_combat_state->uiCurrentPartyAction == 0 || status == W8_ACTION_STATUS_FINISHED) {
         if (g_combat_state->uiNextPartyAction != 0) {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
     if (status == 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* Average the haste bonus over the party: every occupied slot must either be

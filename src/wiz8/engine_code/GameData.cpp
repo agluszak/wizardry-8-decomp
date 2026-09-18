@@ -1584,18 +1584,18 @@ int IsLevelDataFlag4EffectivelySet(void)
 /* Whether the level has a live vector at 0x88: bit zero has to be up and at
    least one of the three floats has to differ from the default. */
 // FUNCTION: WIZ8 0x0041f010
-unsigned char HasLevelDataVector(void)
+bool HasLevelDataVector(void)
 {
     if (g_level_data_00652dac == 0) {
-        return 0;
+        return false;
     }
     if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_0) != 0 &&
         (g_level_data_00652dac->vector_88.x != g_float_005ebb34 ||
          g_level_data_00652dac->vector_88.y != g_float_005ebb34 ||
          g_level_data_00652dac->vector_88.z != g_float_005ebb34)) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // GLOBAL: WIZ8 0x00652db4

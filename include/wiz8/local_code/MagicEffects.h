@@ -19,7 +19,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition);  /* 0x0055
    unit's assertion-backed hull (0x00553910) and precedes Formation & Facing's
    at 0x005545F0, so it lives with its defining unit. */
 
-unsigned char IsScreenBusy(void);
+bool IsScreenBusy(void);
 
 /* 0x00552250: shrink a rolled magnitude by the share of it the target's
    resistance in the realm turns aside; a permanent magnitude is left alone. */

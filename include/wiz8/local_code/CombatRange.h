@@ -53,8 +53,8 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
 int GetCharAttackRange(W8Character* character, unsigned int hand);
 /* 0x005199F0: the range category the slot's chosen action works at. */
 int GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
-unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
-                                   char notify); /* 0x00519920 */
+bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
+                          char notify); /* 0x00519920 */
 float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind);
 float GetRangeConstant5EC35C(void);
 float GetRangeConstant5EC360(void); /* 0x0051B300 */

@@ -82,7 +82,7 @@ int giReviewCharSlot = -1;
 // GLOBAL: WIZ8 0x0069c0f8
 W8Character* g_value_0069c0f8;
 // GLOBAL: WIZ8 0x0069c0fc
-int g_camp_entry_parameter_0069c0fc;
+W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
 // GLOBAL: WIZ8 0x0069c100
 W8Character* g_camp_character_0069c100;
 // GLOBAL: WIZ8 0x0069c104
@@ -2382,9 +2382,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         return;
     }
     if (g_camp_screen_0069c0f4->entry_mode == 2) {
-        party_slot = CharacterPointerToPartySlot(
-            reinterpret_cast< // reinterpret-ok: camp entry parameter is tagged pointer-or-mode storage
-                W8Character*>(g_camp_entry_parameter_0069c0fc));
+        party_slot = CharacterPointerToPartySlot(g_camp_entry_parameter_0069c0fc);
         if (CanItemLeaveItsSlot(item) == 0) {
             QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
                                 g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,

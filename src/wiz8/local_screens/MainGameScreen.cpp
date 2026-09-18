@@ -6611,14 +6611,14 @@ int IsScreenInputBlocked(void)
 /* Whether the screen is idle - none of the six overlays is up. The same six
    flags the input block reads, but all of them and unconditionally. */
 // FUNCTION: WIZ8 0x00561440
-int IsScreenIdle(void)
+bool IsScreenIdle(void)
 {
     if (gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
         gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* The automap key: tear down whichever dialogue overlay mode is active - the
@@ -8574,8 +8574,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
     g_pending_screen_state.parameter_2 = party_slot;
     g_pending_screen_state.parameter_3 = g_status_685170.buffers.characters + party_slot;
     g_pending_screen_state.parameter_4 =
-        flag != 0 ? reinterpret_cast<int>(g_pending_screen_state.parameter_3)
-                  : 0; // reinterpret-ok: the pending slot stores the pointer as an int
+        flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode != 0) {
             Function56E800(0);
