@@ -16,6 +16,8 @@ void ClearNpcItems(W8NpcState* npc);
 void SortNpcItems(W8NpcState* npc);
 unsigned char PopulateNpcStock(W8NpcState* npc);
 unsigned char MaintainNpcStock(W8NpcState* npc, char force);
+void MatureNpcDelayedItems0055BB10(W8NpcState* npc);
+void RestockNpcInventory(W8NpcState* npc); /* 0x0055BCC0 */
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);

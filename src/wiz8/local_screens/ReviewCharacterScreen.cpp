@@ -37,12 +37,24 @@
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
+#include "wiz8/local_screens/PleaseWaitScreen.h"
+#include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_screens/MainMenuScreen.h"
+#include "wiz8/engine_code/stModelInstance.h"
+#include "surrender/srMeshModel.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srShader.h"
 #include "wiz8/sound_man.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/GameplayTime.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "Font.h"
 #include "english.h"
 #include "input.h"
@@ -89,6 +101,24 @@ W8Character* g_camp_character_0069c100;
 unsigned char g_camp_character_pending_0069c104;
 // GLOBAL: WIZ8 0x0069c108
 unsigned int g_camp_item_region_set_0069c108;
+// GLOBAL: WIZ8 0x0069c10c
+unsigned long g_fade_tick_base_0069c10c;
+// GLOBAL: WIZ8 0x0069c110
+void (*g_fade_callback_0069c110)(void);
+// GLOBAL: WIZ8 0x0069c114
+unsigned char g_fade_flag_0069c114;
+// GLOBAL: WIZ8 0x0069c118
+unsigned int g_fade_duration_0069c118;
+// GLOBAL: WIZ8 0x0069c11c
+stModelInstance2D* g_fade_overlay_0069c11c;
+// GLOBAL: WIZ8 0x0069c120
+int g_fade_out_0069c120;
+// GLOBAL: WIZ8 0x0069c124
+unsigned int g_ending_sound_0069c124;
+// GLOBAL: WIZ8 0x0069c128
+unsigned char g_ending_screen_0069c128;
+// GLOBAL: WIZ8 0x0069c129
+unsigned char g_ending_autosave_0069c129;
 // GLOBAL: WIZ8 0x0069c40c
 unsigned int g_camp_spell_region_sets_0069c40c[6];
 // GLOBAL: WIZ8 0x0069c51c
@@ -2146,7 +2176,7 @@ void SyncReviewCharInputRegion005A4570(void)
 
 /* Kicked off by the post-quake camera-shake callback: latches the endgame
    flags, resets input regions, then starts the fade whose completion runs
-   Function5A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
+   ShowEndingScreen005A6B90 - the ending sequence picker. Fact 0x1a2 forces the long
    fade, fact 0x2f4 swaps the timing and marks the variant. */
 /* Realm filters 2-5 are exclusive: selecting one clears the others. */
 // FUNCTION: WIZ8 0x005a49d0
@@ -2844,5 +2874,284 @@ void BeginEndgameSequence005A6580(void)
     VideoRemoveToolTip();
     g_level_block->transition_pending = 1;
     g_level_block->review_transition_active = 1;
-    BeginScreenFade(fade_to_black, 0, fade_code, Function5A6B90, 1, endgame_variant);
+    BeginScreenFade(fade_to_black, 0, fade_code, ShowEndingScreen005A6B90, 1, endgame_variant);
+}
+
+/* Begin a timed full-screen fade: spawn a 640x480 colored quad over the UI,
+   switch its blend shader for the requested ramp direction and seed the
+   fade state. `callback` runs from UpdateScreenFade005A6790 once the ramp
+   finishes. `fade_to_black` selects the subtractive ramp (white quad
+   darkening to black); `fade_out` selects the direction the opacity runs. */
+// FUNCTION: WIZ8 0x005A6620
+void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callback)(void),
+                     char flag, char arg_6)
+{
+    srShader shader;
+    srVector4T<float> color;
+
+    g_fade_duration_0069c118 = duration;
+    g_fade_out_0069c120 = fade_out;
+    g_fade_callback_0069c110 = callback;
+    g_fade_flag_0069c114 = arg_6;
+    g_level_block->flag_328 = 1;
+    if (flag != 0) {
+        SetFlag603C4C(1);
+    }
+    if (fade_to_black != 0) {
+        color.x = 1.0f;
+        color.y = 1.0f;
+        color.z = 1.0f;
+    } else {
+        color.x = 0.0f;
+        color.y = 0.0f;
+        color.z = 0.0f;
+    }
+    color.w = 1.0f;
+    g_fade_overlay_0069c11c = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
+    PositionToolTipNode(g_fade_overlay_0069c11c, 0, 0, 0);
+    shader = static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())->getShader(0);
+    if (fade_to_black == 0) {
+        shader.value = (shader.value & ~0x6040) | 0xa0;
+    } else {
+        shader.value = (shader.value & ~0x20c0) | 0x4020;
+    }
+    static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())->setShader(shader, 0);
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())
+                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+        ->setOpacity(fade_out != 0 ? 1.0f : 0.0f);
+    g_fade_tick_base_0069c10c = GetTickCount();
+}
+
+/* Advance the pending screen fade: interpolate the overlay's opacity over
+   g_fade_duration_0069c118 (reversed when fading back out) and render a
+   frame per tick while g_fade_flag_0069c114 is set. On completion a
+   fade-in snaps the quad opaque and renders twice, then the overlay is
+   released and the stored callback runs. Returns g_fade_flag_0069c114. */
+// FUNCTION: WIZ8 0x005A6790
+unsigned char UpdateScreenFade005A6790(void)
+{
+    if (g_level_block->flag_328 == 0) {
+        return 0;
+    }
+    unsigned long elapsed = GetTickCount() - g_fade_tick_base_0069c10c;
+    if (g_fade_duration_0069c118 < elapsed) {
+        g_level_block->flag_328 = 0;
+        if (g_fade_out_0069c120 == 0) {
+            static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())
+                                         ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+                ->setOpacity(1.0f);
+            RenderFrame();
+            RenderFrame();
+        }
+        g_fade_overlay_0069c11c->release();
+        SetFlag603C4C(0);
+        if (g_fade_callback_0069c110 != 0) {
+            g_fade_callback_0069c110();
+        }
+        return g_fade_flag_0069c114;
+    }
+    float progress = static_cast<float>(elapsed) / g_fade_duration_0069c118;
+    srMaterial* material =
+        static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())
+                                     ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
+    if (g_fade_out_0069c120 == 0) {
+        material->setOpacity(progress);
+    } else {
+        material->setOpacity(g_float_005ebb38 - progress);
+    }
+    if (g_fade_flag_0069c114 != 0) {
+        RenderFrame();
+    }
+    return g_fade_flag_0069c114;
+}
+
+/* Start the party-death transition: Iron Man runs delete the current saves
+   first, then the death sting and CombatLose playlist start while the input
+   regions collapse to the modal review region and the fade carries the
+   screen to DrawPartyDeathScreen005A6A70. */
+// FUNCTION: WIZ8 0x005A68C0
+void BeginPartyDeath005A68C0(void)
+{
+    if (g_level_block->review_transition_active) {
+        return;
+    }
+    if (g_status_685170.iron_man != 0 && g_party_moving_006850b5 == 0) {
+        DeleteCurrentSaveFiles();
+    }
+    if (gXStatus.fSurprisePossible != 0) {
+        RestoreSurpriseView005029A0();
+    }
+    UpdateHeldItemCursor();
+    SoundPlay("Data\\Sound\\Misc\\PartyDead.wav", 0);
+    StartMusicResource0048FC10("CombatLose.MPL", 0, 1);
+    MSYS_Init();
+    ResetRegions();
+    ActivateDialogRegion(0x138);
+    VideoRemoveToolTip();
+    g_level_block->transition_pending = 1;
+    BeginScreenFade(1, 0, 0x7d0, DrawPartyDeathScreen005A6A70, 1, 0);
+    g_level_block->review_transition_active = 1;
+}
+
+/* Pump the post-fade review/death state: on the first tick an armed ending
+   autosave writes the next free Ending slot and reports it on the main-menu
+   message line; a dirty level reloads; any queued key-down or button-up
+   schedules the closing fade back through EndReviewTransition005A6B20. */
+// FUNCTION: WIZ8 0x005A6970
+void PumpReviewTransition005A6970(void)
+{
+    InputAtom input;
+    char name[260];
+    bool exit_review;
+
+    if (!g_level_block->review_transition_active || g_level_block->flag_328 != 0) {
+        return;
+    }
+    if (g_ending_autosave_0069c129 != 0) {
+        if (FindFreeEndingSaveName00516890(name) != 0) {
+            SaveGame(name, 0);
+            SetMainMenuMessage(
+                FormatWideString(L"%s %S.%S", gppStringList[0x78b], name, g_save_extension));
+        }
+        g_ending_autosave_0069c129 = 0;
+    }
+    if (g_status_685170.current_level != -1) {
+        LoadCurrentLevelData();
+    }
+    exit_review = false;
+    while (DequeueEvent(&input) == 1) {
+        switch (input.usEvent) {
+        case KEY_DOWN:
+        case LEFT_BUTTON_UP:
+        case RIGHT_BUTTON_UP:
+            exit_review = true;
+            break;
+        }
+    }
+    if (exit_review) {
+        BeginScreenFade(0, 0, 0x320, EndReviewTransition005A6B20, 1, 1);
+    }
+    RenderFrame();
+}
+
+/* Fade-completion callback for party death: draw the review backdrop and
+   the centered party-death line over it, drop the radar/formation panels,
+   then schedule the holding fade that waits for input. */
+// FUNCTION: WIZ8 0x005A6A70
+void DrawPartyDeathScreen005A6A70(void)
+{
+    const wchar_t* text;
+
+    DrawCatalogImageAndInvalidate(-14, 0x1df, 0, 0, 0, 0, 2, 0);
+    if (g_party_moving_006850b5 != 0) {
+        text = gppStringList[0x777];
+    } else {
+        text = gppStringList[0x778];
+    }
+    SetFont(g_level_load_font_69b7c0);
+    gprintf(0x276 - StringPixLength(const_cast<wchar_t*>(text), g_level_load_font_69b7c0), 0x1c7,
+            const_cast<wchar_t*>(text));
+    SetRadarMapVisible(0);
+    SetFormationBoardVisible(0);
+    VideoRemoveToolTip();
+    g_flag_65970d = 0;
+    BeginScreenFade(1, 1, 0x4b0, 0, 1, 1);
+}
+
+/* Fade-completion callback leaving the review/death screen: release the
+   modal region, stop the ending voice-over, reset the main-game mode and
+   leave the transition. The endgame path continues to the credits screen;
+   party death just stops the playlist. */
+// FUNCTION: WIZ8 0x005A6B20
+void EndReviewTransition005A6B20(void)
+{
+    ClearActiveRegionIfMatches(0x138);
+    if (g_ending_sound_0069c124 != 0) {
+        SoundStop(g_ending_sound_0069c124);
+        g_ending_sound_0069c124 = 0;
+    }
+    g_flag_65970d = 1;
+    ResetMainGameMode00560C60();
+    g_level_block->review_transition_active = 0;
+    if (g_ending_screen_0069c128 != 0) {
+        SetPendingScreenState(9);
+        g_ending_screen_0069c128 = 0;
+        return;
+    }
+    StopMusicPlaylist(1);
+}
+
+/* Fade-completion callback for the ending sequence: pick the ending's
+   backdrop, string-table text and voice-over from the ending facts, draw
+   them over a cleared screen and schedule the holding fade. Fact 0x1a2 is
+   the losing ending - it swaps in the CombatLose playlist and skips the
+   credits-screen handoff and autosave arming. */
+// FUNCTION: WIZ8 0x005A6B90
+void ShowEndingScreen005A6B90(void)
+{
+    int fade_to_black;
+    bool schedule_fade;
+    char* music;
+    char* sound;
+    int image;
+    wchar_t text[512];
+    W8ControlsRect bounds;
+    SOUNDPARMS parms;
+
+    fade_to_black = 0;
+    schedule_fade = true;
+    music = "EndCredit.MPL";
+    g_ending_screen_0069c128 = 1;
+    g_ending_autosave_0069c129 = 1;
+    if (GetFact(0x2f4) != 0) {
+        image = 0x1e1;
+        schedule_fade = false;
+        wcscpy(text, gppStringList[0x787]);
+        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME1.VOC";
+    } else if (GetFact(0x219) != 0) {
+        image = 0x1e2;
+        wcscpy(text, gppStringList[0x788]);
+        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME2.VOC";
+    } else if (GetFact(0x21b) != 0) {
+        image = 0x1e2;
+        wcscpy(text, gppStringList[0x789]);
+        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME3.VOC";
+    } else if (GetFact(0x1a2) != 0) {
+        image = 0x1e3;
+        fade_to_black = 1;
+        wcscpy(text, gppStringList[0x78a]);
+        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME4.VOC";
+        music = "CombatLose.MPL";
+        g_ending_screen_0069c128 = 0;
+        g_ending_autosave_0069c129 = 0;
+    } else {
+        image = 0x1df;
+        sound = "";
+        text[0] = 0;
+    }
+    DrawCatalogImageAndInvalidate(-14, image, 0, 0, 0, 0, 2, 0);
+    bounds.left = 0x46;
+    bounds.top = 0;
+    bounds.right = 0x239;
+    bounds.bottom = 0x1d0;
+    {
+        W8TextBuffer buffer(&bounds, text, g_options_detail_font_683614,
+                            g_W8TextBufferLayoutMask005ED55C, 4);
+        buffer.RenderToTarget(0, 0, -14);
+    }
+    SetRadarMapVisible(0);
+    SetFormationBoardVisible(0);
+    VideoRemoveToolTip();
+    g_flag_65970d = 0;
+    if (*music != 0) {
+        StartMusicResource0048FC10(music, 0, 1);
+    }
+    if (*sound != 0) {
+        memset(&parms, 0xff, sizeof(SOUNDPARMS));
+        parms.uiVolume = g_settings_6850c8.voice_volume * 0x7f / 0xff;
+        g_ending_sound_0069c124 = SoundPlayStreamedFile(sound, &parms);
+    }
+    if (schedule_fade) {
+        BeginScreenFade(fade_to_black, 1, 0x4b0, 0, 1, 1);
+    }
 }

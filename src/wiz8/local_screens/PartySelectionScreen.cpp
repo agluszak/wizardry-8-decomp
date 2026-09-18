@@ -139,7 +139,7 @@ void W8PartySelectionCharacterCollection::DetachFromParty(int index)
     if (!LoadCharacter(path, replacement, -1, 0)) {
         memcpy(replacement, previous, sizeof(W8Character));
     }
-    Function4EF610(slot + 2, 0);
+    RemoveCharacterFromParty(slot + 2, 0);
     replacement->in_party = 0;
     characters.SetAt(index, replacement);
 }
@@ -1740,7 +1740,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
         if (!LoadCharacter(path, replacement, -1, 0)) {
             memcpy(replacement, previous, sizeof(W8Character));
         }
-        Function4EF610(slot + 2, 0);
+        RemoveCharacterFromParty(slot + 2, 0);
         replacement->in_party = 0;
         collection->characters.SetAt(index, replacement);
     }
@@ -1940,7 +1940,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
             if (!LoadCharacter(path, replacement, -1, 0)) {
                 memcpy(replacement, previous, sizeof(W8Character));
             }
-            Function4EF610(slot + 2, 0);
+            RemoveCharacterFromParty(slot + 2, 0);
             replacement->in_party = 0;
             collection->characters.SetAt(index, replacement);
         }

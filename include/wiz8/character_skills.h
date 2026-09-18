@@ -118,7 +118,12 @@ enum W8Trait {
     W8_TRAIT_DWARF_DAMAGE_RESISTANCE = 0x1d        /* Dwarf */
 };
 
-void Function547A50(int party_slot);
+/* 0x00547A50: the cheat-death trait's revival - notice, unconsciousness, and
+   hit points rolled back up from a profession-level-scaled share. */
+void CheatDeathRevive00547A50(int party_slot);
+/* 0x00548E60: the alchemist's brew - rolls a level-banded item for a character
+   with the MAKE_POTIONS trait, then re-arms the brew cooldown. */
+void BrewAlchemistPotion00548E60(W8Character* character);
 /* 0x00547BF0: whether the slot has the priest/bishop turn-undead trait, its
    combat-state use flag is clear, and a live hostile undead monster (record
    kind 0x14) is in play. */

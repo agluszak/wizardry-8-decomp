@@ -942,7 +942,7 @@ after_sight:
             if (npc == 0) {
                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0x15b, 0);
             } else if (npc->marked_e9 != 0) {
-                Function50CF70(npc, 0);
+                HandleMarkedNpcEvent0050CF70(npc, 0);
             }
         }
     }

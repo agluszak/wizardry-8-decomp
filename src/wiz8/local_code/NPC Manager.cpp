@@ -415,7 +415,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     npc->is_grouped = false;
     ReleaseNpcScriptFile0055A0A0(npc->script_file);
     npc->script_file = 0;
-    Function4EF610(party_slot, 0);
+    RemoveCharacterFromParty(party_slot, 0);
     memset(character, 0, sizeof(*character));
     memset(row, 0, sizeof(*row));
     /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
@@ -456,8 +456,8 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     }
     RequestRedraw(~0U);
     ReturnDismissedNpcItems(npc, npc->character);
-    npc->unknown_1c = 1;
-    memset(npc->unknown_1e, 0, sizeof(npc->unknown_1e));
+    npc->dismissed_flag = 1;
+    memset(&npc->dismissed_timer, 0, sizeof(npc->dismissed_timer));
     npc->marked_e9 = 1;
     return 1;
 }
@@ -737,6 +737,170 @@ const char* GetNpcDisplayName(W8NpcState* npc)
     return npc->record->display_name;
 }
 
+/* Age every bound NPC's timeout state once per game-time pass. The caller
+   feeds elapsed minutes times ten: a dismissed NPC's flag clears once its
+   accumulator passes 0x3c of those units, and each dialogue cooldown flag
+   drops once its world-clock stamp is more than 0xa8c0 old. */
+// FUNCTION: WIZ8 0x0050C7D0
+void AdvanceNpcTimers0050C7D0(unsigned int elapsed)
+{
+    for (unsigned int index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+        if (npc->binding_unavailable == 0) {
+            if (npc->dismissed_flag != 0) {
+                npc->dismissed_timer += elapsed;
+                if (npc->dismissed_timer > 0x3c) {
+                    npc->dismissed_flag = 0;
+                }
+            }
+            if (npc->flag_c8 != 0 &&
+                static_cast<unsigned int>(g_status_685170.world_clock - npc->clock_cc) > 0xa8c0) {
+                npc->flag_c8 = 0;
+            }
+            if (npc->flag_c9 != 0 &&
+                static_cast<unsigned int>(g_status_685170.world_clock - npc->clock_d0) > 0xa8c0) {
+                npc->flag_c9 = 0;
+            }
+        }
+    }
+}
+
+/* Consume the two pending NPC event marks once combat and surprise are both
+   quiet. The 0x2446 mark resolves the kind-0x42 NPC: when a bound, flagged
+   record is present the mark just clears; otherwise the named party slot
+   becomes infatuated and fact 0x2a6 is raised unless the level band is 9 or
+   10. The 0x242e mark replays the bound NPCs of the first two party rows
+   after its 0x3c delay: a row whose character carries a highest condition of
+   0xf or worse keeps its NPC bound and the whole mark stays pending, while
+   clear rows fire the name-style group events or mark the NPC's service. */
+// FUNCTION: WIZ8 0x0050CA80
+void ProcessNpcPendingEvents0050CA80(void)
+{
+    unsigned char all_clear = 1; // bool-byte-ok: retail byte flag
+
+    if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
+        if (g_status_685170.flag_2446 != 0) {
+            unsigned char flagged = 0;
+            for (int index = 0; index < g_npc_states->count; ++index) {
+                W8NpcState* candidate = *g_npc_states->GetAt(index);
+                if (candidate->record->kind == 0x42) {
+                    if (candidate != 0 && static_cast<unsigned char>(candidate->unknown_04) != 0) {
+                        flagged = 1;
+                    }
+                    break;
+                }
+            }
+            if (flagged != 0) {
+                g_status_685170.flag_2446 = 0;
+            } else {
+                char band = GetLevelBand(g_status_685170.current_level);
+                if (band != 9 && band != 0xa) {
+                    W8Character* character =
+                        &g_status_685170.buffers
+                             .characters[g_status_685170.alternate_name_slot_247f];
+                    if (character->gender == W8_GENDER_MALE) {
+                        QueueCharacterEvent(character, g_effect_005ee638, 0,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                    }
+                    SetCharacterCondition(g_status_685170.alternate_name_slot_247f,
+                                          W8_CONDITION_INFATUATED, 9999, 0, 0, 1);
+                    g_status_685170.flag_2446 = 0;
+                    SetFact(0x2a6, 1, 0);
+                }
+            }
+        }
+        if (g_status_685170.flag_242e != 0 &&
+            (g_status_685170.world_clock - g_status_685170.value_242a) > 0x3c) {
+            int service = 0;
+            if (g_npc_services[0].service_id != 0xffffffff) {
+                while (g_npc_services[service].service_id !=
+                       static_cast<unsigned int>(GetLevelBand(g_status_685170.current_level))) {
+                    ++service;
+                    if (g_npc_services[service].service_id == 0xffffffff) {
+                        g_status_685170.flag_242e = 0;
+                        return;
+                    }
+                }
+                for (int slot = 0; slot < 2; ++slot) {
+                    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+                    W8Character* character = &g_status_685170.buffers.characters[slot];
+                    if (row->occupied == 0 || character->hp_current == 0) {
+                        continue;
+                    }
+                    W8NpcState* npc = GetNpcState(row->animation_0fa);
+                    if (character->highest_condition < 0xf) {
+                        int event = 0;
+                        if (GetLevelBand(g_status_685170.current_level) != 0xd) {
+                            if (npc->name_style == 0x11 &&
+                                (g_status_685170.buffers.party_rows[0].occupied == 0 ||
+                                 GetNpcState(g_status_685170.buffers.party_rows[0].animation_0fa)
+                                         ->name_style != 0x10 ||
+                                 g_status_685170.buffers.characters[0].highest_condition >= 0xf) &&
+                                (g_status_685170.buffers.party_rows[1].occupied == 0 ||
+                                 GetNpcState(g_status_685170.buffers.party_rows[1].animation_0fa)
+                                         ->name_style != 0x10 ||
+                                 g_status_685170.buffers.characters[1].highest_condition >= 0xf)) {
+                                event = 0x6c;
+                            } else if (npc->name_style == 0x10 && !NpcLeadHasNameStyle(0x11)) {
+                                event = 0x67;
+                            }
+                        }
+                        if (event != 0) {
+                            QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
+                                                g_effect_argument_005ed914);
+                            BeginScriptedWorldAction();
+                            QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                            continue;
+                        }
+                        W8NpcState* bound = GetNpcState(row->animation_0fa);
+                        if (bound != 0 && bound->service_flags[service] == 0) {
+                            bound->service_flags[service] = 1;
+                            if (NpcOffersService(
+                                    bound, GetLevelBand(g_status_685170.current_level)) == 0 &&
+                                service != 0xc && service != 0xd) {
+                                QueueCharacterEvent(
+                                    character,
+                                    static_cast<unsigned char>(g_npc_services[service].npc_id), 0,
+                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                            }
+                        }
+                        bound = GetNpcState(row->animation_0fa);
+                        if (bound != 0) {
+                            char band = GetLevelBand(g_status_685170.current_level);
+                            for (int index = 0; g_npc_services[index].service_id != 0xffffffff;
+                                 ++index) {
+                                if (g_npc_services[index].service_id ==
+                                    static_cast<unsigned int>(band)) {
+                                    if ((bound->record->service_flags &
+                                         g_npc_services[index].bit) != 0) {
+                                        row->flag_fe = 1;
+                                        bound->event_clock_eb = g_status_685170.world_clock;
+                                        RebuildConditionsAndDerivedStats(slot);
+                                        QueueCharacterEvent(character, 0x56, 0,
+                                                            g_effect_argument_005ed8c8,
+                                                            g_effect_argument_005ed914);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        npc->flag_e8 = 0;
+                    } else if (character->highest_condition == 0x11 ||
+                               character->highest_condition == 0x10 ||
+                               character->highest_condition == 0xf) {
+                        all_clear = 0;
+                        npc->flag_e8 = 1;
+                    }
+                }
+                if (all_clear == 0) {
+                    return;
+                }
+            }
+            g_status_685170.flag_242e = 0;
+        }
+    }
+}
+
 /* Choose the new-game start level and entrance, then bind the intro NPCs that
    belong to that campaign path. Import 0x4c is Gigas, 0x4b is the bluff, and
    0x4e or neither is the monastery. */
@@ -805,8 +969,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
                      display_value);
     }
     if (value != 0) {
-        Function50C1C0(0x18, 0xe, "NP_ViGigas");
-        Function50C1C0(0xc, 0xe, "NP_BalbrakIntro");
+        RestoreNamedNpcAtLevel0050C1C0(0x18, 0xe, "NP_ViGigas");
+        RestoreNamedNpcAtLevel0050C1C0(0xc, 0xe, "NP_BalbrakIntro");
         return;
     }
 
@@ -821,11 +985,11 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
                      display_value);
     }
     if (value != 0) {
-        Function50C1C0(0x18, 6, "NP_ViBluff");
-        Function50C1C0(0x8c, 6, "NP_GuardBluff");
+        RestoreNamedNpcAtLevel0050C1C0(0x18, 6, "NP_ViBluff");
+        RestoreNamedNpcAtLevel0050C1C0(0x8c, 6, "NP_GuardBluff");
         return;
     }
-    Function50C1C0(0x18, 8, "NP_ViMon");
+    RestoreNamedNpcAtLevel0050C1C0(0x18, 8, "NP_ViMon");
 }
 
 /* Runs when the pending flag_2497 transition times out: new-game parties get
@@ -1028,7 +1192,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     npc->disposition = g_npc_records[npc_id].disposition;
     npc->gold_80 = g_npc_records[npc_id].gold;
     npc->greeting_pending = 1;
-    npc->unknown_ca = g_npc_records[npc_id].value_002;
+    npc->trade_pool_ca = g_npc_records[npc_id].value_002;
 
     for (index = 0; index < g_npc_states->count; ++index) {
         released = *g_npc_states->GetAt(index);
@@ -1294,6 +1458,185 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, unsigned char
     return 0;
 }
 
+/* One dialogue interaction against an NPC. The action kind selects the path:
+   talking and the level-scaled charm shift disposition through the record's
+   signed scale bytes, paying gold and selling an item draw the record's trade
+   pool down by the party's Communication-adjusted price, and the scripted
+   kind adds its operand straight to disposition. Kinds 0 and 1 reuse an
+   argument's stack slot as the best-skill out-parameter; kind 2 and 3 fall
+   into the shared disposition refresh at the tail. */
+// FUNCTION: WIZ8 0x0050A570
+void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
+                                 unsigned int gold)
+{
+    switch (static_cast<char>(kind)) {
+    case 0: {
+        int scale = npc->record->talk_scale_5e;
+        int quotient;
+        int level;
+        int delta;
+        int sum;
+
+        npc->flag_c8 = 1;
+        npc->clock_cc = g_status_685170.world_clock;
+        if (scale < 1) {
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            quotient = -scale / 5;
+        } else {
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            quotient = scale / 5;
+        }
+        delta = scale + level * quotient / 100;
+        sum = npc->disposition + static_cast<char>(delta);
+        if (sum > 99) {
+            npc->disposition = 99;
+        } else if (sum < 0) {
+            npc->disposition = 0;
+        } else {
+            npc->disposition += static_cast<char>(delta);
+        }
+        PracticeCharacterSkill(&g_status_685170.buffers.characters[kind], 0x16, 8, 0);
+        GetNpcDisposition(npc);
+        return;
+    }
+    case 1: {
+        W8MonsterInfo* monster_info;
+        W8MonsterRecord* monster_record;
+        unsigned int monster_level;
+        unsigned int total_level = 0;
+        unsigned int count = 0;
+        unsigned int average_level;
+        int scale;
+        int quotient;
+        int level;
+        int delta;
+        int sum;
+        int index;
+
+        npc->flag_c9 = 1;
+        npc->clock_d0 = g_status_685170.world_clock;
+        if (npc->has_monster == 0 || npc->is_present == 0) {
+            monster_info = 0;
+        } else {
+            monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
+        }
+        monster_record = GetMonsterDataForInfo(monster_info);
+        monster_level = monster_record->effective_level_24f;
+        if (monster_level < 1) {
+            monster_level = 1;
+        }
+        for (index = 0; index < 8; ++index) {
+            W8Character* character = &g_status_685170.buffers.characters[index];
+            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
+                character->hp_current != 0 && character->highest_condition < 0xf) {
+                ++count;
+                total_level += character->level;
+            }
+        }
+        if (count == 0) {
+            average_level = 1;
+        } else {
+            average_level = total_level / count;
+        }
+        scale = npc->record->charm_scale_5d;
+        if (scale < 1) {
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            quotient = -scale / 5;
+        } else {
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            quotient = scale / 5;
+        }
+        delta = scale + level * quotient / 100;
+        if (delta > 0) {
+            delta = static_cast<int>(average_level * delta / monster_level);
+        }
+        sum = npc->disposition + static_cast<char>(delta);
+        if (sum > 99) {
+            npc->disposition = 99;
+        } else if (sum < 0) {
+            npc->disposition = 0;
+        } else {
+            npc->disposition += static_cast<char>(delta);
+        }
+        PracticeCharacterSkill(&g_status_685170.buffers.characters[value], 0x16, 5, 0);
+        GetNpcDisposition(npc);
+        return;
+    }
+    case 2: {
+        int level;
+        unsigned int adjusted;
+
+        SpendPartyGold(gold);
+        level = static_cast<int>(GetBestPartySkillLevel(0x16, 0));
+        adjusted = gold + level * (static_cast<int>(gold & 0xffff) / 5) / 100;
+        if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
+            npc->trade_pool_ca = 0;
+        } else {
+            npc->trade_pool_ca = static_cast<unsigned short>(npc->trade_pool_ca - adjusted);
+        }
+        if (npc->trade_pool_ca != 0) {
+            break;
+        }
+        GetNpcDisposition(npc);
+        level = GetNpcDisposition(npc);
+        if (level < W8_NPC_DISPOSITION_HOSTILE) {
+            level = 2;
+        } else {
+            level = level < W8_NPC_DISPOSITION_FRIENDLY;
+        }
+        if (level != 0) {
+            npc->disposition = 0x4b;
+        }
+        npc->trade_pool_ca = g_npc_records[npc->name_style].value_002;
+        break;
+    }
+    case 3: {
+        unsigned int price = GetItemStackValue(item);
+        int level;
+        unsigned int adjusted;
+
+        level = static_cast<int>(GetBestPartySkillLevel(0x16, 0));
+        adjusted = price + level * (static_cast<int>(price & 0xffff) / 5) / 100;
+        if (static_cast<int>(npc->trade_pool_ca - (adjusted & 0xffff)) < 0) {
+            npc->trade_pool_ca = 0;
+        } else {
+            npc->trade_pool_ca = static_cast<unsigned short>(npc->trade_pool_ca - adjusted);
+        }
+        if (npc->trade_pool_ca != 0) {
+            break;
+        }
+        GetNpcDisposition(npc);
+        level = GetNpcDisposition(npc);
+        if (level < W8_NPC_DISPOSITION_HOSTILE) {
+            level = 2;
+        } else {
+            level = level < W8_NPC_DISPOSITION_FRIENDLY;
+        }
+        if (level != 0) {
+            npc->disposition = 0x4b;
+        }
+        npc->trade_pool_ca = g_npc_records[npc->name_style].value_002;
+        break;
+    }
+    case 4: {
+        int sum = npc->disposition + static_cast<char>(gold);
+        if (sum > 99) {
+            npc->disposition = 99;
+        } else if (sum < 0) {
+            npc->disposition = 0;
+        } else {
+            npc->disposition += static_cast<char>(gold);
+        }
+        GetNpcDisposition(npc);
+        return;
+    }
+    default:
+        break;
+    }
+    GetNpcDisposition(npc);
+}
+
 // GLOBAL: WIZ8 0x005EC29C
 const float g_float_005ec29c = 0.7853981256484985f;
 
@@ -1552,6 +1895,39 @@ void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBloc
     }
 }
 
+/* Restore the named entity's NPC on its level, or stamp the pending restore
+   for the level-entry pass. The runtime node is created when no state for the
+   record kind exists. */
+// FUNCTION: WIZ8 0x0050C1C0
+void RestoreNamedNpcAtLevel0050C1C0(int kind, char level, const char* entity_name)
+{
+    int count = g_npc_states->count;
+    W8NpcState* npc = 0;
+
+    for (int index = 0; index < count; ++index) {
+        W8NpcState** slot = g_npc_states->data;
+        if (index < count) {
+            slot += index;
+        }
+        W8NpcState* candidate = *slot;
+        if (candidate->record->kind == kind) {
+            npc = candidate;
+            break;
+        }
+    }
+    if (npc == 0) {
+        npc = CreateNpcRuntimeNode(kind);
+    }
+    if (level == g_status_685170.current_level) {
+        RestoreNpcMonster0050C560(npc, entity_name);
+        npc->flag_ea = 0;
+        return;
+    }
+    npc->pending_restore = 1;
+    strcpy(npc->restore_entity_name, entity_name);
+    npc->pending_restore_level = level;
+}
+
 /* Drop the pending-restore flag from every NPC bound to the loaded level whose
    restore check passes. The state vector is re-read after the check because it
    can remove an entry. */
@@ -1606,8 +1982,8 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
         }
         W8NpcState* npc = *slot;
 
-        if (npc->flag_112 != 0 && npc->binding_unavailable == 0 &&
-            npc->flag_113 == g_status_685170.current_level) {
+        if (npc->pending_release != 0 && npc->binding_unavailable == 0 &&
+            npc->pending_release_level == g_status_685170.current_level) {
             W8NpcState* companion = 0;
             bool found = false;
 
@@ -1668,12 +2044,68 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
 #pragma clang diagnostic pop
 }
 
+/* Release the monster binding held under this NPC's naming style, now or when
+   the stamped level is loaded: the same companion lookup the level-entry
+   release pass runs - the NPC whose record kind is this state's name_style. */
+// FUNCTION: WIZ8 0x0050C440
+void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level)
+{
+    if (level == g_status_685170.current_level) {
+        unsigned int count = g_npc_states->count;
+        W8NpcState* companion = 0;
+        for (unsigned int index = 0; index < count; ++index) {
+            W8NpcState** slot = g_npc_states->data;
+            if (index < count) {
+                slot += index;
+            }
+            W8NpcState* candidate = *slot;
+            if (static_cast<unsigned int>(candidate->record->kind) == npc->name_style) {
+                companion = candidate;
+                break;
+            }
+        }
+        if (companion->has_monster) {
+            if (companion->is_present) {
+                unsigned int monster_index =
+                    MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
+                W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+
+                if (monster_info != 0) {
+                    RemoveMonster(MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
+                                                              monster_info->location_id, 1),
+                                  1);
+                }
+            }
+            int partner_index = companion->partner_index_2c;
+
+            if (partner_index != -1 && partner_index >= 0 && partner_index <= g_npc_states->count) {
+                W8NpcState** target_slot = g_npc_states->data;
+
+                if (partner_index < g_npc_states->count) {
+                    target_slot += partner_index;
+                }
+                W8NpcState* target = *target_slot;
+
+                target->has_monster = 0;
+                ReleaseNpcScriptFile0055A0A0(target->script_file);
+                target->script_file = 0;
+                if (target->record->unknown_054 != 0) {
+                    target->binding_unavailable = 1;
+                }
+            }
+        }
+    } else {
+        npc->pending_release = 1;
+        npc->pending_release_level = level;
+    }
+}
+
 /* Place or move this NPC's monster at the named world entity. Without a live
    monster it loads MONSTERS.DBS, finds the NPC-linked species whose name-style
    byte matches, and asks CreateGroup to create it; with a live monster it
    repositions the Navigator subobject. */
 // FUNCTION: WIZ8 0x0050c560
-unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
+unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, const char* entity_name)
 {
     srVector3T<float> position;
     srVector3T<float> copied;
@@ -1721,6 +2153,136 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name)
     }
 }
 
+/* Run one marked NPC's scripted event step. The special naming styles run
+   first - Vi Domina's fact, Sgt Rubble's two-stage teleport on level 13 and
+   Glumph's mission item - then mode 0 arms the one-shot event pass while any
+   other mode releases the companion monster binding, and the NPC's own
+   restore is scheduled last. */
+// FUNCTION: WIZ8 0x0050CF70
+void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
+{
+    W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
+
+    if (monster_info != 0 && monster_info->highest_condition > 0xe) {
+        return;
+    }
+    if (npc->name_style == ' ' || npc->name_style == '!') {
+        npc->marked_e9 = 0;
+        npc->marked_114 = 0;
+        return;
+    }
+    if (npc->name_style == W8_NPC_VI_DOMINA) {
+        SetFact(0x22b, 0, 0);
+    }
+    if (npc->name_style == ')' && g_status_685170.current_level == 0xd) {
+        srVector3T<float> position;
+
+        if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1 ||
+            GetLocationVarValueByName("CODESgtRubbleTeleport") == 0) {
+            if (FindEntityByName("RubbleCovert", &position, 0, 0)) {
+                static_cast<W8Navigator*>(monster_info->monster)->SetPosition(&position);
+                if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1) {
+                    CreateLocationVar("CODESgtRubbleTeleport", 1);
+                } else {
+                    SetTriggerVariableByName00444030("CODESgtRubbleTeleport", 1);
+                }
+                Trigger* trigger = FindTriggerByName("door08");
+
+                if (trigger != 0) {
+                    trigger->Run(-1);
+                }
+            }
+            SetFact(0x21e, 0, 0);
+            npc->marked_e9 = 0;
+            npc->marked_114 = 0;
+            return;
+        }
+        if (GetLocationVarValueByName("CODESgtRubbleTeleport") == 1) {
+            if (FindEntityByName("rubbleUnderWater", &position, 0, 0)) {
+                static_cast<W8Navigator*>(monster_info->monster)->SetPosition(&position);
+                SetTriggerVariableByName00444030("CODESgtRubbleTeleport", 2);
+            }
+            npc->marked_e9 = 0;
+            npc->marked_114 = 0;
+            return;
+        }
+    }
+    if (npc->name_style == W8_NPC_GLUMPH && GetFact(W8_FACT_UMISSION_SCUBA_DONE) == 0) {
+        srVector3T<float> position;
+
+        monster_info = GetNpcMonsterInfo(npc);
+        if (monster_info != 0) {
+            position = monster_info->monster->GetPosition();
+            W8WorldItem* item = SpawnItem(0x1e6, &position, 3, 1);
+
+            if (item != 0) {
+                ActivateItem(item);
+            }
+        } else if (FindEntityByName("NP_Glumph", &position, 0, 0)) {
+            W8WorldItem* item = SpawnItem(0x1e6, &position, 3, 1);
+
+            if (item != 0) {
+                ActivateItem(item);
+            }
+        }
+    }
+    if (mode != 0) {
+        unsigned int count = g_npc_states->count;
+        W8NpcState* companion = 0;
+
+        for (unsigned int index = 0; index < count; ++index) {
+            W8NpcState** slot = g_npc_states->data;
+
+            if (index < count) {
+                slot += index;
+            }
+            W8NpcState* candidate = *slot;
+            if (static_cast<unsigned int>(candidate->record->kind) == npc->name_style) {
+                companion = candidate;
+                break;
+            }
+        }
+        if (companion->has_monster) {
+            if (companion->is_present) {
+                unsigned int monster_index =
+                    MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, companion->location_id, 1);
+                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
+
+                if (info != 0) {
+                    RemoveMonster(
+                        MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP, info->location_id, 1),
+                        1);
+                }
+            }
+            int partner_index = companion->partner_index_2c;
+
+            if (partner_index != -1 && partner_index >= 0 && partner_index <= g_npc_states->count) {
+                W8NpcState* target = *g_npc_states->GetAt(partner_index);
+
+                target->has_monster = 0;
+                ReleaseNpcScriptFile0055A0A0(target->script_file);
+                target->script_file = 0;
+                if (target->record->unknown_054 != 0) {
+                    target->binding_unavailable = 1;
+                }
+            }
+        }
+    } else {
+        npc->flag_ea = 1;
+        g_status_685170.flag_2430 = 1;
+    }
+    if (npc->marked_114 == 0) {
+        if (npc->name_style == 7 && GetFact(0x1f) != 0) {
+            RestoreNamedNpcAtLevel0050C1C0(npc->name_style, 0x11, "NP_MylesCell");
+        } else {
+            RestoreNamedNpcAtLevel0050C1C0(npc->name_style, npc->record->restore_level,
+                                           npc->record->restore_entity_name);
+        }
+    }
+    npc->marked_e9 = 0;
+    npc->marked_114 = 0;
+}
+
 /* Hand back the monster binding of every marked NPC, then find the companion
    whose record kind matches the NPC's naming style and release its live
    monster and its own binding. The state vector is re-read after every
@@ -1748,7 +2310,7 @@ void ReleaseMarkedNpcBindings0050DA00(void)
 
         if (npc->binding_unavailable == 0) {
             if (npc->marked_e9 != 0) {
-                Function50CF70(npc, 1);
+                HandleMarkedNpcEvent0050CF70(npc, 1);
             }
             if (npc->pending_restore != 0) {
                 W8NpcState* companion = 0;
@@ -1813,6 +2375,27 @@ void ReleaseMarkedNpcBindings0050DA00(void)
 #pragma clang diagnostic pop
 }
 
+/* The activation callback RebindNpcLevelTriggers0050AC60 installs on every NPC
+   trigger: queue the NPC's script notice, handing it the item on the cursor
+   when the trigger's 0x100 flag or the NPC's '{' naming style asks for it. */
+// FUNCTION: WIZ8 0x0050abf0
+bool NotifyNpcTriggerActivation0050ABF0(Trigger* trigger)
+{
+    W8ItemInstance* item = 0;
+
+    if (gXStatus.fNpcDialogueMode == 0) {
+        W8NpcState* npc = *g_npc_states->GetAt(trigger->m_lData1);
+
+        if (trigger->flag_0a0_08 != 0 || npc->name_style == '{') {
+            if (g_status_685170.item_in_cursor != 0) {
+                item = &g_status_685170.item_in_hand_235b;
+            }
+        }
+        QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    }
+    return false;
+}
+
 /* Rebuild the level's NPC bindings: first drop the followers whose record or
    presence rules changed, then re-install each NPC trigger's activation
    callback and re-stamp the NPC from the loaded level. */
@@ -1861,7 +2444,7 @@ void RebindNpcLevelTriggers0050AC60(void)
                 Trigger* trigger = FindTriggerByName(trigger_name);
 
                 if (trigger != 0) {
-                    trigger->activation_callback_360 = Function50ABF0;
+                    trigger->activation_callback_360 = NotifyNpcTriggerActivation0050ABF0;
                     trigger->m_lData1 = static_cast<int>(npc_index);
                     npc->has_monster = 1;
                     npc->level_band =

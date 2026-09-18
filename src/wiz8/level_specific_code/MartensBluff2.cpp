@@ -685,7 +685,7 @@ bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
     if (particle != 0) {
         particle->SetActive(1);
     }
-    Function5025F0();
+    BeginSurprise005025F0();
     MartensBluff2IdolGas004DE660(1);
     g_master_functions_006834d8->Add(MartensBluff2IdolGas004DE660);
     pTrigger->flags_0a0 &= ~0x100u;
@@ -738,7 +738,7 @@ void MartensBluff2IdolGas004DE660(int command)
         }
         g_idol_gas_gate_683554 = 0;
         g_idol_gas_armed_613828 = 1;
-        Function5029E0();
+        ResolveSurpriseWake005029E0();
         return;
     }
     if (!g_idol_gas_gate_683554->IsFinished()) {

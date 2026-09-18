@@ -137,7 +137,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     g_status_685170.game_time_ms = (int)(time % 86400000U);
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        Function502010(elapsed);
+        UpdateGameClock00502010(elapsed);
     }
     g_tick_65b9a8 = GetTickCount();
 

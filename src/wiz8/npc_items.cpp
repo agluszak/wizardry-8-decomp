@@ -739,10 +739,70 @@ void DecayNpcInventory(W8NpcState* npc)
     }
 }
 
+// FUNCTION: WIZ8 0x0055BB10
+void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
+{
+    if (npc->items == 0) {
+        return;
+    }
+    unsigned int count = PLLength(npc->items);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+        if (entry->available_at == 0 ||
+            entry->available_at >= static_cast<unsigned int>(g_status_685170.world_clock)) {
+            continue;
+        }
+        entry->available_at = 0;
+        if (npc->record->kind == 3) {
+            switch (entry->item.item_id) {
+            case 0x28a:
+                SetFact(0xb0, 1, 0);
+                break;
+            case 0x28b:
+                SetFact(0xb1, 1, 0);
+                break;
+            case 0x28c:
+                SetFact(0xb2, 1, 0);
+                break;
+            case 0x28d:
+                SetFact(0xb3, 1, 0);
+                break;
+            case 0x28e:
+                SetFact(0xb4, 1, 0);
+                break;
+            default:
+                break;
+            }
+        } else if (npc->record->kind == 0x49) {
+            if (entry->item.item_id == 0x1b0) {
+                SetFact(0x19d, 1, 0);
+                SetFact(0x19e, 0, 0);
+                return;
+            }
+        } else if (npc->record->kind == 0x39) {
+            if (entry->item.item_id == 500) {
+                SetFact(0x1dc, 0, 0);
+                SetFact(0x1ca, 1, 0);
+                return;
+            }
+            if (entry->item.item_id == 0x1f5) {
+                SetFact(0x1dd, 0, 0);
+                SetFact(0x1cb, 1, 0);
+                return;
+            }
+            if (entry->item.item_id == 0x1f8) {
+                SetFact(0x1de, 0, 0);
+                SetFact(0x1cc, 1, 0);
+                return;
+            }
+        }
+    }
+}
+
 /* Restock the NPC's trade inventory, then refresh the derived stock state. */
 // FUNCTION: WIZ8 0x0055BCC0
 void RestockNpcInventory(W8NpcState* npc)
 {
     MaintainNpcStock(npc, 0);
-    Function55BB10(npc);
+    MatureNpcDelayedItems0055BB10(npc);
 }

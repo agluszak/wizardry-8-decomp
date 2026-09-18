@@ -132,3 +132,11 @@ extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed8d8;
 extern unsigned int g_event_flag_005ed8e8; /* 0x005ED8E8 */
 extern int g_effect_argument_005ed914;
+extern int g_effect_005ee618; /* 0x005EE618: event type 36 - queued on the bound
+                               party row plus one random peer when the allied
+                               NPC dies (HandleScriptedNpcDeath) */
+extern int g_effect_005ee630; /* 0x005EE630: event type 42 - queued on every
+                               eligible party member in the same pass */
+extern int g_effect_005ee638;
+extern int g_effect_005ee658; /* 0x005EE658: event type 0x34 - rest-benefit
+                               resolution after the surprise sequence */
