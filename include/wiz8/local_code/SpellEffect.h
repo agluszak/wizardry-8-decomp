@@ -1,6 +1,7 @@
 #ifndef WIZ8_LOCAL_CODE_SPELL_EFFECT_H
 #define WIZ8_LOCAL_CODE_SPELL_EFFECT_H
 
+#include "wiz8/dice.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/vector.h"
@@ -31,41 +32,83 @@ struct W8SpellDamageReport {
 
 static_assert(sizeof(W8SpellDamageReport) == 0x6c, "W8SpellDamageReport_must_be_0x6c");
 
+#pragma pack(push, 1)
+/* One spell effect definition, 0x30 bytes. A missile carries its own copy at
+   0x1fc. The radius at 0x00 bounds an area effect (0 for a single target),
+   the dice at 0x04 are rolled for the effect's size, the three values at
+   0x20 through 0x2c combine into its duration, and the percentage at 0x24
+   scales both. */
+struct W8SpellEffectDefinition {
+    float radius;     /* 0x00: an area effect reaches this far; 0 is single-target */
+    W8Dice magnitude; /* 0x04 */
+    /* 0x08: the percentage chance of each condition the effect can inflict,
+       rolled by ApplyEffectConditions. */
+    unsigned char condition_chances[0x10];
+    int power_level;        /* 0x18 */
+    int value_1c;           /* 0x1c */
+    int duration_scale;     /* 0x20 */
+    unsigned int percent;   /* 0x24 */
+    int duration_base;      /* 0x28 */
+    int duration_per_power; /* 0x2c */
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_must_be_0x30");
+
 /* What one missile or queued effect accumulates while it resolves: the total
    amount, the number of hits, one count per condition, and the report records
    handed to the message pass. Both the missile and the effect embed this at
    their own offset. The totals and condition counts are unsigned: the message
    pass divides or tests them with unsigned instructions. */
+#pragma pack(push, 1)
 struct W8SpellEffectResult {
     unsigned int amount;                               /* 0x00 */
     unsigned int count;                                /* 0x04 */
     unsigned int condition_counts[W8_CONDITION_COUNT]; /* 0x08 */
     W8GrowableVector<W8SpellDamageReport*> reports;    /* 0x58 */
+    /* 0x68..0xa2: the retail initializer clears the whole 0xa2-byte block;
+       no field past the reports vector has been proven. */
+    unsigned char unknown_68[0x3a];
 };
+#pragma pack(pop)
 
-static_assert(sizeof(W8SpellEffectResult) == 0x68, "W8SpellEffectResult_must_be_0x68");
+static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_0xa2");
 
 #pragma pack(push, 1)
 struct W8SpellEffectEntry {
     ~W8SpellEffectEntry(); /* 0x0042BAC0 */
 
-    int kind;              /* 0x000 */
-    int turns_remaining;   /* 0x004 */
-    W8TargetSource source; /* 0x008 */
+    int kind;            /* 0x000 */
+    int turns_remaining; /* 0x004 */
+    /* Magic.cpp asserts this as pOrigSource: the cast's original source. */
+    W8TargetSource OrigSource; /* 0x008 */
     unsigned char unknown_03c[0x20];
-    /* The second source the hostility walk hands to 0x00547120; its
-       reflection and backfire bytes are the two flags 0x00500930 tests
-       before releasing the effect. */
-    W8TargetSource target_source_05c; /* 0x05c */
-    W8CombatSlot target;              /* 0x090 */
-    unsigned char unknown_0b0[0x20];
-    int argument; /* 0x0d0 */
-    /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
-    int value_0d4;
-    unsigned char unknown_0d8[8];
-    /* Two integer lists this body walks against the monster manager entries. */
-    W8GrowableVector<int> values_0e0;          /* 0x0e0 */
-    W8GrowableVector<int> monster_indices_0f0; /* 0x0f0 */
+    /* Magic Effects.cpp asserts this as pQueue->Source: the working source the
+       hostility walk and effect bodies hand to CollectHostileMonsters / damage. */
+    W8TargetSource Source; /* 0x05c */
+    W8CombatSlot target;   /* 0x090 */
+    /* 0x0b0: queued spell casts carry the whole 0x30-byte effect definition
+       here (CastSpellFromSource copies it in); control/lure effects place
+       their own argument pair at the same storage. */
+    union {
+        W8SpellEffectDefinition definition;
+        struct {
+            unsigned char unknown_0b0[0x20];
+            int argument; /* 0x0d0 */
+            /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
+            int value_0d4;
+            /* 0x0d8: the lingering-condition turns the 0x23 branch seeds from
+               the rolled argument plus the target's existing count. */
+            int value_0d8;
+            unsigned char unknown_0dc[4];
+        };
+    };
+    /* Two integer lists this body walks: the monster location ids
+       CollectHostileMonsters gathers at 0x0e0, and a second index list at
+       0x0f0 used both as party-slot indices and as monster-manager entry
+       indices depending on the effect path. */
+    W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
+    W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
     /* 0x100: spawned visuals. The vector's data pointer is at +0x10c. */
     W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
     W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
@@ -77,7 +120,6 @@ struct W8SpellEffectEntry {
     unsigned char reported_124;
     unsigned char unknown_125;
     W8SpellEffectResult result_126; /* 0x126 */
-    unsigned char unknown_18e[0x3a];
 };
 #pragma pack(pop)
 

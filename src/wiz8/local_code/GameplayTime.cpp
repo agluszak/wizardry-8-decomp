@@ -121,11 +121,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
     record = GetMonsterDataForInfo(monster_info);
     if (monster_info->fInCombat != 0) {
-        int args[2];
+        W8CombatSlot target;
 
-        args[0] = 3;
-        args[1] = monster_info->location_id;
-        Function5526F0(monster_info->pCombat->effect_slots_3e, args);
+        target.iType = W8_TARGET_KIND_MONSTER;
+        target.iMonsterID = monster_info->location_id;
+        TickCombatEffectSlots(monster_info->pCombat->effect_slots_3e, &target);
         goto after_early;
     }
     monster = monster_info->monster;

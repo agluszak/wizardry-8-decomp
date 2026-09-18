@@ -23,12 +23,12 @@
    the clear path drops. ApplyPartyEffectSlots scales the amount at +0x05 by
    the percentage at +0x09 before accumulating it. */
 struct W8EffectSlot {
-    unsigned char active; /* 0x00 */
-    int effect_id;        /* 0x01 */
-    signed char amount;   /* 0x05 */
-    unsigned char unknown_06[3];
-    unsigned int percent;      /* 0x09 */
-    unsigned int duration_0d;  /* 0x0d: remaining lifetime, aged down in whole
+    unsigned char active; /* 0x00 */ // bool-byte-ok: packed effect-slot flag byte
+    int effect_id;                   /* 0x01 */
+    int amount;                      /* 0x05: dword magnitude - ApplyCombatEffectSlot and the
+                             0x3e detonation pass read and write it as one dword */
+    unsigned int percent;            /* 0x09 */
+    unsigned int duration_0d;        /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
 
@@ -72,5 +72,16 @@ static_assert(offsetof(W8GameplayModifierBlock, attribute_adjustments) == 0x0c,
 static_assert(sizeof(W8GameplayModifierBlock) == 0x67, "W8GameplayModifierBlock_must_be_0x67");
 
 #pragma pack(pop)
+
+/* The spell that fills each being effect slot; the monster side indexes
+   W8MonsterInfo::effect_slots_10f, the party side
+   W8GameStatus::effect_slots_17af. */
+extern const int g_being_effect_slot_spells_00616d84[12];
+/* The combat-state spell per effect slot, walked against
+   W8CombatState::effect_slots and the monster's effect_slots_3e. */
+extern const int g_combat_effect_slot_spells_00616db4[9];
+/* The same mapping for the second combat effect block, indexed against
+   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
+extern const int g_combat_effect_slot_spells_00616dd8[9];
 
 #endif

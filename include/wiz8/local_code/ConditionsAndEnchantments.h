@@ -59,6 +59,14 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns);
 /* 0x00524110: the per-condition aging tick the sight producer runs while a
    condition's countdown is live. */
 void TickMonsterCondition(int location_id, int condition, unsigned int minutes);
+/* 0x005236A0: the character-side counterpart of TickMonsterCondition. */
+void TickCharacterCondition(int party_slot, int condition, unsigned int minutes);
+/* 0x00523940/0x005242B0: settle a condition on a character or monster with
+   its argument, rolled duration and definition percentage. */
+void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
+                                     unsigned int duration, unsigned int percent);
+void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
+                                   unsigned int duration, unsigned int percent);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
 void RemoveAllConditionsFromParty(void);
 

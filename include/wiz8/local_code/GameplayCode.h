@@ -62,5 +62,10 @@ void DeriveCharacterPersonality004EFA30(W8Character* character);
 /* Rerolls personality_0081/voice_0085 until no party member shares the
    character's gender/personality/voice pick. */
 void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
-unsigned int GetAveragePartyLevel(void);                     /* 0x004EF420 */
+/* 0x00587C80: knock-knock style spell committed against the active lock or
+   trap interaction; with no interaction open it just prints the refusal
+   notice. The lock-interaction owner lives past MainGameScreen.h, which this
+   task does not expand. */
+void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire);
+unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
 void Function4EF7E0(W8Character*, W8Character*, int);

@@ -96,41 +96,41 @@ void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource*
 }
 
 // FUNCTION: WIZ8 0x0053bea0
-unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
+bool TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == BAD_INDEX) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        return 1;
+        return true;
     }
     if (allow_indirect == 1 && source->iType == W8_TARGET_SOURCE_INDIRECT &&
         source->iChar != BAD_INDEX) {
         if (!source->fBackfire && !source->fReflection) {
             srAssertFail("pSource->fBackfire || pSource->fReflection", TARGETING_CPP, 0xceb, 0);
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0053bf10
-unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect)
+bool TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         if (source->iMonsterID == BAD_INDEX) {
             srAssertFail("pSource->iMonsterID != BAD_INDEX", TARGETING_CPP, 0xcf8, 0);
         }
-        return 1;
+        return true;
     }
     if (allow_indirect == 1 && source->iType == W8_TARGET_SOURCE_INDIRECT &&
         source->iMonsterID != BAD_INDEX) {
         if (!source->fBackfire && !source->fReflection) {
             srAssertFail("pSource->fBackfire || pSource->fReflection", TARGETING_CPP, 0xd00, 0);
         }
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // FUNCTION: WIZ8 0x0053c320

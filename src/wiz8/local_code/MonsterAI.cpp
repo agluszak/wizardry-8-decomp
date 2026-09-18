@@ -103,21 +103,21 @@ extern const int g_special_attack_table[32][2] = {
    monster side indexes effect_slots_10f, the party side the matching rows
    in g_status_685170. */
 // GLOBAL: WIZ8 0x00616D84
-static const int g_being_effect_slot_spells_00616d84[12] = {
+const int g_being_effect_slot_spells_00616d84[12] = {
     0x20, 0x21, 0x11, 0x14, 0x8, 0x28, 0x1a, 0x2d, 0x40, 0, 0, 0,
 };
 
 /* The combat-state spell per effect slot, walked against
    W8CombatState::effect_slots and the monster's effect_slots_3e. */
 // GLOBAL: WIZ8 0x00616DB4
-static const int g_combat_effect_slot_spells_00616db4[9] = {
+const int g_combat_effect_slot_spells_00616db4[9] = {
     0x31, 0x30, 0x4c, 0x51, 0x5d, 0x50, 0, 0, 0,
 };
 
 /* The same mapping for the second combat effect block, indexed against
    W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
 // GLOBAL: WIZ8 0x00616DD8
-static const int g_combat_effect_slot_spells_00616dd8[9] = {
+const int g_combat_effect_slot_spells_00616dd8[9] = {
     0x2, 0x35, 0x3b, 0x3e, 0, 0, 0x1e, 0x28, 0x32,
 };
 
@@ -2202,8 +2202,8 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
 // FUNCTION: WIZ8 0x005347A0
-bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
-                                           int hostility, int within_reach)
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only, int hostility,
+                                  int within_reach)
 {
     unsigned int index;
     W8MonsterInfo* member;
@@ -2291,8 +2291,7 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
    non-summoning attacks - somewhere to run. Summoning rows flee at the party
    instead and may not be offered as a special action. */
 // FUNCTION: WIZ8 0x00534A40
-bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                             char exclude_special)
+bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char exclude_special)
 {
     W8GrowableVector<W8CombatSlot> targets;
 

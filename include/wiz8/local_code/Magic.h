@@ -54,8 +54,17 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                                            int level_bonus);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
-                        unsigned int power_level, int a, int b, int c, int d, int e, int f,
+                        unsigned int power_level, int a, int b, int c, int* d, int e, int f,
                         int g); /* 0x004FB4C0 */
+/* 0x004FEA50: assert and route the source/target pair a cast is about to
+   use; some target kinds have their own placement pass. */
+void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
+/* 0x004FA4D0: take the realm spell points one cast costs off the casting
+   character; the dispatcher's multi-cast loop keeps going while it answers
+   two. */
+int ConsumeCastSpellPoints004FA4D0(unsigned int party_slot, int spell_id, unsigned int amount,
+                                   int* cost, int flag);
 
 /* Resolve valid spell targets for one cast and append location ids to the
    caller's vectors. The party and monster vectors are separate outputs; the

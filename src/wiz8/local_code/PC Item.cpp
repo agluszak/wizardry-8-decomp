@@ -1618,7 +1618,7 @@ unsigned int CountIdentifyAttemptsNeeded(W8ItemInstance* item, unsigned int perc
    reaches. Nothing bound at all answers zero; some still hidden answers one
    and all revealed answers two. */
 // FUNCTION: WIZ8 0x00520bc0
-char RevealCharacterItemBindings(unsigned int party_slot, int strength, unsigned int percent)
+int RevealCharacterItemBindings(unsigned int party_slot, int strength, unsigned int percent)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int score = strength * 3;

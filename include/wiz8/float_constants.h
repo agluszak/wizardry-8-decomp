@@ -91,6 +91,7 @@ extern float g_float_005ebc60;
    geometry. */
 extern float g_float_005ebc78;
 extern float g_float_005ebc7c;
+extern float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;
 /* Search: the unit range the search score and collector scale against. */

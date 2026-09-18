@@ -5,6 +5,7 @@
 struct W8CombatSlot;
 struct W8MonsterInfo;
 struct W8MonsterGroup;
+template <class T> class srVector3T;
 template <class T> class W8GrowableVector;
 
 void ResetCombatSlot(W8CombatSlot* slot);
@@ -13,8 +14,8 @@ void ResetCombatSlot(W8CombatSlot* slot);
    its result type is the domain rather than a plain int. */
 W8TargetingContext GetCurrentTargetingContext(int party_slot);
 
-unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
-unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
+bool TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
+bool TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
 /* Notice colours for combat text: 8 for a party-side source, 9 for a monster
    and 12 for anything else. The target form colours a character target by
@@ -113,6 +114,12 @@ void CommitSelectedSpellTarget(void);
 void RefreshMonsterTargetCounts005398D0(void);
 unsigned char AnyMonsterVisible0053A1D0(void);
 void UpdateTargetMarkerHighlight0053B1D0(void);
+/* 0x00539E70: fill `found` with the location ids of monsters within `radius`
+   of `centre` that are visible from `eye` (unless highlighting is on, which
+   takes them without the sight check and tints instead). */
+void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector3T<float>* eye,
+                                 W8GrowableVector<int>* found, float radius, char side,
+                                 char highlighting);
 
 class W8Monster;
 /* 0x0053A060: whether `monster` is within `max_distance` of the player and
