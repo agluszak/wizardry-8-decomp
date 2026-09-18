@@ -18,7 +18,7 @@ extern int g_learn_sound_0068c510;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
    retail caller pushes only these two arguments. */
-unsigned char SpellUsableNow(int spell_id, unsigned char allow_out_of_combat);
+bool SpellUsableNow(int spell_id, unsigned char allow_out_of_combat);
 
 int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
                                     W8TargetingContext context);

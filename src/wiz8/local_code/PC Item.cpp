@@ -547,7 +547,7 @@ short g_compatible_partner_pairs_616e6c[6][2] = {
    ranged items carry their own accepted classes. Anything not named is
    refused. */
 // FUNCTION: WIZ8 0x0051c8f0
-unsigned char CompatiblePartnerItems(int ranged_item_id, int other_item_id)
+bool CompatiblePartnerItems(int ranged_item_id, int other_item_id)
 {
     if ((unsigned int)ranged_item_id >= gXStatus.uiItemsInDatabase) {
         srAssertFail("uiRangedItem < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 0x3fd,
@@ -2392,7 +2392,7 @@ int GetItemSpellRange(const W8ItemInstance* item)
    further points also reveal its binding, and an attempt that only just came
    off practises the skill. */
 // FUNCTION: WIZ8 0x005208f0
-unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
+bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
 {
     char strength;
     int margin;
@@ -3141,7 +3141,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
    spell the moment admits. The use-item view's context slot is parked on the
    instance while the target check runs. */
 // FUNCTION: WIZ8 0x00522a30
-unsigned char CanUseItemForAction(int party_slot, const W8ItemInstance* item)
+bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
     W8Character* character = &g_status_685170.buffers.characters[party_slot];

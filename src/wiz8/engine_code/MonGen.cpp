@@ -531,7 +531,7 @@ unsigned char W8MonsterGenerator::CanGenerateEncounter(unsigned char force)
     if (g_encounter_culling_scale_fast == 1.0f) {
         srVector3T<float> lower(state_0c.x - 5000.0f, state_0c.y - 5000.0f, state_0c.z - 5000.0f);
         srVector3T<float> upper(state_0c.x + 5000.0f, state_0c.y + 5000.0f, state_0c.z + 5000.0f);
-        int* locations = 0;
+        unsigned long* locations = 0;
         if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return 0;
         }

@@ -294,11 +294,11 @@ public:
        a floor). `*results` carries the destination buffer in and out; a null
        incoming buffer selects the internal m_aulGDObjs store. Returns the
        entry count. */
-    int CollectObjectsAlongSegment(int** results, const srVector3T<float>* from,
+    int CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* from,
                                    const srVector3T<float>* to, float extent,
                                    unsigned short kind); /* 0x0042ED60 */
     /* Kind-12 box query; `exclusion` 0 maps to none. */
-    unsigned int QueryLocationsInBox(int** results, const srVector3T<float>* lower,
+    unsigned int QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
                                      const srVector3T<float>* upper,
                                      unsigned short exclusion); /* 0x0042EF00 */
     /* AABB occupancy test: GD triangles, kind-12 location objects (with each
@@ -385,8 +385,9 @@ public:
        destination buffer in and out (null selects m_aulGDObjs), `excluded`
        is an object id pre-marked in the dedupe set (-1 = none). Returns the
        entry count. */
-    int QueryObjects(int** objects, const srVector3T<float>* lower, const srVector3T<float>* upper,
-                     unsigned short kind, int excluded); /* 0x0042F280 */
+    int QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
+                     const srVector3T<float>* upper, unsigned short kind,
+                     int excluded); /* 0x0042F280 */
     void AdjustPosition00431DA0(srVector3T<float>* position, unsigned int mode);
     /* Refresh the pathing service's debug preview from the world cursor,
        falling back to the camera eye when the cursor is unset. */
@@ -676,7 +677,7 @@ unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* mo
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
 extern unsigned int* g_octree_storage_00659770;
-extern int* g_octree_state_00659890;
+extern unsigned long* g_octree_state_00659890;
 extern srNode* g_octree_trace_node_00659894;
 extern float g_octree_cell_scale_005ebcd0;
 extern unsigned long g_octree_bytes_read_00659888;

@@ -162,9 +162,9 @@ char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* targ
 
 /* Whether a peer aiming at the just-applied target should drop that aim. */
 // FUNCTION: WIZ8 0x0053C490
-unsigned char ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
-                                             W8TargetingContext context,
-                                             unsigned char action_targets_enemies)
+bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
+                                    W8TargetingContext context,
+                                    unsigned char action_targets_enemies)
 {
     unsigned char source_hostile;
     unsigned char target_hostile;
@@ -325,7 +325,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext 
 /* The same check without the range half, and with one target kind that a
    global override always accepts. */
 // FUNCTION: WIZ8 0x00537270
-unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
+bool IsSpellTargetOfNeededKind(int party_slot, int spell_id)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
@@ -530,7 +530,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
 /* Put the on-screen marker over one monster, from the party's eye to the
    monster's own bounds. */
 // FUNCTION: WIZ8 0x00539870
-unsigned char ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
+bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 {
     srVector3T<float> eye;
     srVector3T<float> lower;
@@ -708,7 +708,7 @@ int GetTargetNeededForCurrentAction(int party_slot)
    item with no spell needs nothing picked, and one target kind a global
    override always accepts. */
 // FUNCTION: WIZ8 0x005372b0
-unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
+bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     const W8ItemDatabaseRecord* record;
@@ -904,7 +904,7 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
    position lifted by the sight offset instead. Answers zero for any kind
    without a place. */
 // FUNCTION: WIZ8 0x0053c630
-unsigned char ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
+bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
 {
     srVector3T<float> point;
     W8Monster* monster;
@@ -1424,7 +1424,7 @@ void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id)
    chosen hostile spell accepts. The caller only needs the validator's side
    effects, so this wrapper discards its answer. */
 // FUNCTION: WIZ8 0x0053A300
-unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
+bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     return TargetMatchesNeeded(&monster_info->Target, GetTargetNeededForSpellHostile(spell_id));
 }
@@ -2029,7 +2029,7 @@ W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingConte
    The source block is built here rather than passed in, so this always asks on
    the character's own behalf. */
 // FUNCTION: WIZ8 0x00536d60
-unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
+bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
 {
     W8TargetSource source;
     int action;
@@ -2081,7 +2081,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
    the slot's stored combat target is re-validated once against the in-combat
    action before being aimed at again. */
 // FUNCTION: WIZ8 0x00536570
-unsigned char RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
+bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
 {
     W8ActionDetailBlock* detail_block;
     W8ActionDetailBlock* detail_block_2;
@@ -2271,7 +2271,7 @@ done:
    group, spells and item casts ask the spell record - and the stored target
    has to both match that need and still be in range. */
 // FUNCTION: WIZ8 0x00536f60
-unsigned char TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
+bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
 {
     W8TargetingContext resolved;
     W8ActionDetailBlock* detail_block;
@@ -2358,7 +2358,7 @@ unsigned char TargetIsInPlay(int party_slot, int value, W8TargetingContext conte
    untargetable flag is checked last rather than first, so an action needing
    nothing still reaches a monster carrying it. */
 // FUNCTION: WIZ8 0x00536ad0
-unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target, int reason)
+bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, int reason)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x1ce, TARGETING_CPP, location_id, 1));
@@ -2428,7 +2428,7 @@ unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single
    The two dialogue-driven actions answer yes as well until the dialogue has
    settled, since until then there is no spell or item to ask about. */
 // FUNCTION: WIZ8 0x0053cdf0
-unsigned char SlotHasAnyValidTarget(int party_slot)
+bool SlotHasAnyValidTarget(int party_slot)
 {
     int action;
     int detail;
@@ -2519,7 +2519,7 @@ enum {
    Out of combat the one-monster kind answers yes without looking, since
    anything in the level can be walked up to. */
 // FUNCTION: WIZ8 0x0053d010
-unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
+bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
 {
     unsigned int index;
 
@@ -2865,8 +2865,7 @@ void RefreshAllPartyTargets(void)
             (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-            bool can_switch =
-                CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
+            bool can_switch = CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
 
             if (can_switch) {
                 RefreshCombatTargetHighlights(party_slot, target);
@@ -3023,7 +3022,7 @@ bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T
 /* Any live monster visible to the camera within the far-clip range, resuming
    the scan at the last match. */
 // FUNCTION: WIZ8 0x0053A1D0
-unsigned char AnyMonsterVisible0053A1D0(void)
+bool AnyMonsterVisible0053A1D0(void)
 {
     srVector3T<float> camera;
     float limit;

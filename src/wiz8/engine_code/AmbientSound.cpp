@@ -644,7 +644,7 @@ unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
 }
 
 // FUNCTION: WIZ8 0x0047a950
-void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
+void PositionAmbientSoundByName0047A950(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -663,7 +663,7 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0047a9e0
-void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
+void StopAmbientSoundByName0047A9E0(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
@@ -682,7 +682,7 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0047aa70
-void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
+void ToggleAmbientSoundByName0047AA70(W8World* /* unused */, const char* name)
 {
     int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;

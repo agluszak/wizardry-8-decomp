@@ -987,7 +987,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
         srVector3T<float> lower;
         srVector3T<float> upper;
         srVector3T<float> extent;
-        int* locations = 0;
+        unsigned long* locations = 0;
         extent.Set(radius, radius, radius);
         lower = center - extent;
         upper = center + extent;
@@ -3427,11 +3427,11 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             const char* name = NextTriggerRecipient(&recipient);
             if (action_230 == 0x41) {
-                PositionAmbientSoundByName0047A950((int)g_world, name);
+                PositionAmbientSoundByName0047A950(g_world, name);
             } else if (action_230 == 0x42) {
-                StopAmbientSoundByName0047A9E0((int)g_world, name);
+                StopAmbientSoundByName0047A9E0(g_world, name);
             } else {
-                ToggleAmbientSoundByName0047AA70((int)g_world, name);
+                ToggleAmbientSoundByName0047AA70(g_world, name);
             }
             action_succeeded = true;
         }

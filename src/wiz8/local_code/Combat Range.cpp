@@ -184,8 +184,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 
 /* Whether the first lighting condition applies at distant or extreme range. */
 // FUNCTION: WIZ8 0x00519be0
-unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
-                                              W8RangeCategory range_category)
+bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCategory range_category)
 {
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(monster);

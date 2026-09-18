@@ -127,9 +127,9 @@ void UpdateAmbientSounds0047A3E0(W8World* world);
 void RepositionAmbientSounds0047A600(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);
 
-void PositionAmbientSoundByName0047A950(int /* unused */, const char* name);
-void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name);
-void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name);
+void PositionAmbientSoundByName0047A950(W8World* /* unused */, const char* name);
+void StopAmbientSoundByName0047A9E0(W8World* /* unused */, const char* name);
+void ToggleAmbientSoundByName0047AA70(W8World* /* unused */, const char* name);
 void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
 unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
                                       const W8AmbientSoundConfig* config,

@@ -143,7 +143,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
    are deliberately resolved through the canonical lookup path rather than
    treated as list indices. */
 // FUNCTION: WIZ8 0x00511850
-unsigned char MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group)
+bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group)
 {
     unsigned int index;
     unsigned int monster_list_index;
@@ -1087,7 +1087,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
    Failing to destroy the member list leaves the record in place and reports
    failure, so the group survives rather than being half-freed. */
 // FUNCTION: WIZ8 0x0050f4a0
-unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
+bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info)
 {
     unsigned int group_list_index;
     W8PList* list;
@@ -1101,7 +1101,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
         if (monster_group->flag_c3 != 0) {
             DetachMonsterGroup(monster_group);
         }
-        SetMonsterGroupMode(monster_group, value);
+        SetMonsterGroupMode(monster_group, monster_info);
     } else {
         RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     }
@@ -1116,10 +1116,10 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
         removed = PLRemoveAt(list, group_list_index);
         if (removed != 0) {
             free(removed);
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Gives every live group whose lead member has no cycle-24 runtime the default
