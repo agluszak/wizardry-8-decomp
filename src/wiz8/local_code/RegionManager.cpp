@@ -360,7 +360,7 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005AF5E0), 0, 1, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, MonsterListRegionEvent, 0, 1, 0, 36, 0},
-    {0x00000001, 0, 0, 0, 0, WorldViewRegionEvent, 0, 0, 0, 23, 0},
+    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00567800), 0, 0, 0, 23, 0},
 
     {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B66B0), 0, 1, 0, 1984, 0},
     {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x005B6AA0), 0, 1, 0, 2387, 0},

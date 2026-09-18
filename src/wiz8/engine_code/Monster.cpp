@@ -3951,7 +3951,7 @@ prepare_attack:
     ClearAttackBlock(&attack_block);
     attack_block.missile_value_04 = attack->missile_value_17;
     memcpy(attack_block.missile_values_08, attack->missile_values_05, 0x10);
-    monster_value = record->missile_value_24f;
+    monster_value = record->effective_level_24f;
     attack_block.monster_value_18 = monster_value + (monster_value < 15 ? monster_value : 15);
     attack_block.missile_value_1c = attack->missile_value_1b;
 

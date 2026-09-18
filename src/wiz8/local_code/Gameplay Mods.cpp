@@ -477,7 +477,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
                                                character->conditions_1817[1].value_04, 1)) != 0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
-                    target->unknown_08[1] += -1 - (monster->missile_value_24f >> 1);
+                    target->unknown_08[1] += -1 - (monster->effective_level_24f >> 1);
                 } else {
                     target->unknown_08[1] += -5;
                 }

@@ -325,8 +325,7 @@ int W8MonsterGenerator::SelectEncounterCandidates(W8EncounterTableRuntime* table
 int W8MonsterGenerator::RollEncounterGroupSize(W8MonsterRecord* record)
 {
     W8Dice* dice = &record->group_size_dice_0c1;
-    float relative_level =
-        static_cast<float>(record->unknown_250[1]) / GetAveragePartyMemberLevel();
+    float relative_level = record->display_level_251 / GetAveragePartyMemberLevel();
     int minimum = dice->base + dice->count;
     int maximum = dice->base + dice->count * dice->sides;
     float midpoint = (minimum + maximum) * 0.5f;

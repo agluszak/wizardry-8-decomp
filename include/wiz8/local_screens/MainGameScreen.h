@@ -869,8 +869,8 @@ void EnableTrapInteractionPanelRegions(void); /* 0x0058A880 */
 void OpenAutomapScreen(void);                 /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
-void ClearPortraitRefreshSlot(int slot);   /* 0x00561DB0 */
-void ClearScreenWait(void); /* 0x00565970 */
+void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
+void ClearScreenWait(void);              /* 0x00565970 */
 /* Portrait condition / enchantment orbs (help 25 / 26): hold opens the
    mode-6 hover overlay; leave and release tear it down. */
 unsigned char PortraitConditionOrbRegionEvent(const InputAtom* event,
@@ -897,13 +897,11 @@ unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
 /* Help 23: the 3D world view — hover picks, left/right click aims/interacts,
    and mouselook toggle. */
-unsigned char WorldViewRegionEvent(const InputAtom* event,
-                                   struct W8Region* region); /* 0x00567800 */
 /* Forward mouse events to W8MainScreenState control slots indexed by
    callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */
-void Function568390(int value);            /* 0x00568390 */
+void Function568390(int value);                                      /* 0x00568390 */
 void Function569390(unsigned char enable); /* 0x00569390: formation board */
 void ToggleMainGamePause(void);            /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and

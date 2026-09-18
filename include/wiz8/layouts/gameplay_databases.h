@@ -387,7 +387,7 @@ struct W8MonsterRecord {
     /* 0x14d: the ten spells the AI may cast, zero for none; ChooseMonsterSpell
        weights them by the fixed table at 0x0061CC14. */
     unsigned char spells_14d[10];
-    unsigned char unknown_157[5];
+    unsigned char attack_body_part_chances_157[5];
     unsigned char special_attack_cooldown_15c;
     signed char evasion_ac_15d;
     /* 0x15e: Monster Editor Constitution selector; retail uses it to choose
@@ -428,8 +428,13 @@ struct W8MonsterRecord {
        candidates drops it before any other test. */
     unsigned char untargetable_24a;
     unsigned char unknown_24b[4];
-    unsigned char missile_value_24f;
-    unsigned char unknown_250[3];
+    /* 0x24f: effective/combat monster level used by attack, resistance,
+       spell and effect formulas. Distinct from the displayed level at 0x251. */
+    unsigned char effective_level_24f;
+    unsigned char unknown_250;
+    /* 0x251: monster level shown by MonsterInfo and related UI. */
+    unsigned char display_level_251;
+    unsigned char unknown_252;
     int value_253;            /* 0x253: selected by 0x004e5b50 */
     int value_257;            /* 0x257: alternate selected value */
     int hostility_radius_25b; /* 0x25b: Minimal Neutrality Distance / Hostility Radius */
@@ -451,6 +456,12 @@ struct W8MonsterRecord {
 }; /* 0x297 */
 
 static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x297");
+static_assert(offsetof(W8MonsterRecord, attack_body_part_chances_157) == 0x157,
+              "W8MonsterRecord_attack_body_part_chances_157");
+static_assert(offsetof(W8MonsterRecord, effective_level_24f) == 0x24f,
+              "W8MonsterRecord_effective_level_24f");
+static_assert(offsetof(W8MonsterRecord, display_level_251) == 0x251,
+              "W8MonsterRecord_display_level_251");
 
 #pragma pack(pop)
 
