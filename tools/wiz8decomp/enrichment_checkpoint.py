@@ -708,9 +708,7 @@ def run_enrichment_checkpoint(
             result["candidate_freeze_error"] = str(exc)
             if ok:
                 result["ok"] = False
-                result.setdefault("failure_reasons", []).append(
-                    f"candidate freeze failed: {exc}"
-                )
+                result.setdefault("failure_reasons", []).append(f"candidate freeze failed: {exc}")
                 outcomes = {
                     **outcomes,
                     "safe_application": False,

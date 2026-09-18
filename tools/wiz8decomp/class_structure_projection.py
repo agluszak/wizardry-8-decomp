@@ -230,7 +230,13 @@ def collect_structure_projection_plan(
                 size_mismatched_source = candidate
 
         if ghidra_class is None:
-            if source is not None and _is_useful(source) and source_size_ok or asserted is not None and asserted > 1:
+            if (
+                source is not None
+                and _is_useful(source)
+                and source_size_ok
+                or asserted is not None
+                and asserted > 1
+            ):
                 action = "create-class"
             else:
                 action = "missing-class"
@@ -281,9 +287,7 @@ def collect_structure_projection_plan(
         "schema": _SCHEMA,
         "target": target,
         "counts": dict(sorted(counts.items())),
-        "actionable": (
-            counts["create-opaque"] + counts["bind-existing"] + counts["create-class"]
-        ),
+        "actionable": (counts["create-opaque"] + counts["bind-existing"] + counts["create-class"]),
         "classes": rows,
     }
 

@@ -110,14 +110,10 @@ def _resolve_frozen_candidate(run_dir: Path, report: dict[str, Any]) -> tuple[Pa
     expected = _read_candidate_sha256(run_dir)
     actual = sha256_file(gzf)
     if actual != expected:
-        raise RuntimeError(
-            f"candidate.gzf sha256 mismatch under {run_dir}: {actual} != {expected}"
-        )
+        raise RuntimeError(f"candidate.gzf sha256 mismatch under {run_dir}: {actual} != {expected}")
     reported = (report.get("candidate") or {}).get("sha256")
     if reported and reported != actual:
-        raise RuntimeError(
-            f"candidate sha256 disagrees with report.json ({reported} != {actual})"
-        )
+        raise RuntimeError(f"candidate sha256 disagrees with report.json ({reported} != {actual})")
     return gzf, actual
 
 

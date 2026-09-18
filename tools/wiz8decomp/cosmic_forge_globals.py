@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
 
 _SCHEMA = "wiz8.cosmic-forge-globals-v1"
 _OVERRIDES = Path("evidence/reviewed/wiz8/formats/cfdat-overrides.csv")
@@ -487,7 +487,7 @@ def run_cosmic_forge_globals(
             "apply": apply,
             "counts": plan["counts"],
             "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
+            "report": repo_relative(report_path, settings.repo_dir),
             "sample": plan["globals"][:20],
         }
         if not apply:
@@ -501,5 +501,5 @@ def run_cosmic_forge_globals(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
         return result

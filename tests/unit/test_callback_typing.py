@@ -120,7 +120,9 @@ def test_collect_legacy_only_needs_migration(monkeypatch) -> None:
         "wiz8decomp.callback_typing._resolve_field_structure",
         fake_resolve,
     )
-    plan = collect_callback_typing_plan(SimpleNamespace(getDataTypeManager=lambda: SimpleNamespace(getDataType=lambda _p: None)))
+    plan = collect_callback_typing_plan(
+        SimpleNamespace(getDataTypeManager=lambda: SimpleNamespace(getDataType=lambda _p: None))
+    )
     legacy_rows = [row for row in plan["fields"] if row["action"] == "legacy-only-needs-migration"]
     assert legacy_rows
     assert all(row["action"] != "set-field" for row in legacy_rows)

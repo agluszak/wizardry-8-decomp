@@ -25,6 +25,7 @@ def repo_relative(path: Path, repo_dir: Path) -> str:
     except ValueError:
         return str(path)
 
+
 def atomic_write(path: Path, data: str | bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)

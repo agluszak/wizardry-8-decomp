@@ -121,11 +121,7 @@ def _named_data_type(program: Any, name: str) -> Any | None:
 
         binding = resolve_class_binding(program, text)
         path = binding.get("structure_path")
-        if (
-            binding.get("status") == "bound"
-            and path
-            and not is_legacy_enriched_path(str(path))
-        ):
+        if binding.get("status") == "bound" and path and not is_legacy_enriched_path(str(path)):
             data_type = manager.getDataType(str(path))
             if data_type is not None:
                 return data_type
@@ -163,7 +159,9 @@ def _named_data_type(program: Any, name: str) -> Any | None:
         if data_type is not None:
             from .class_binding import is_legacy_enriched_path
 
-            resolved_path = str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
+            resolved_path = (
+                str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
+            )
             if is_legacy_enriched_path(resolved_path):
                 continue
             return data_type

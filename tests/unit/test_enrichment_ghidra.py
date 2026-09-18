@@ -54,7 +54,9 @@ def binding_program():
                 with (
                     pyghidra.open_project(fixture, name) as project,
                     pyghidra.program_context(
-                        project, "/" + next(iter(project.getProjectData().getRootFolder().getFiles())).getName()
+                        project,
+                        "/"
+                        + next(iter(project.getProjectData().getRootFolder().getFiles())).getName(),
                     ) as program,
                 ):
                     yield program
