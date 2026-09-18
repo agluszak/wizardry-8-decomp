@@ -83,29 +83,46 @@ public class Wiz8Recover extends GhidraScript {
 	}
 
 	private static RecoverySourceIndex sourceIndex(Path path, String target) throws Exception {
+		if (path == null) {
+			return new RecoverySourceIndex(target, Map.of(), List.of());
+		}
 		Map<Long, SourceHints> functions = new LinkedHashMap<>();
+		Map<String, JsonObject> declarationsByKey = new LinkedHashMap<>();
 		Map<String, SourceCandidate> declarations = new LinkedHashMap<>();
 		try (var reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			JsonObject document = JsonParser.parseReader(reader).getAsJsonObject();
-			JsonArray array = document.getAsJsonArray("markers");
-			for (JsonElement element : array) {
-				JsonObject marker = element.getAsJsonObject();
-				if (!target.equals(marker.get("target").getAsString())) continue;
-				functions.put(marker.get("address").getAsLong(), sourceHints(marker));
+			JsonArray declared = document.getAsJsonArray("declarations");
+			if (declared != null) {
+				for (JsonElement element : declared) {
+					JsonObject declaration = element.getAsJsonObject();
+					if (!declaration.has("semantic_id") || declaration.get("semantic_id").isJsonNull()) {
+						continue;
+					}
+					String semanticId = declaration.get("semantic_id").getAsString();
+					String declarationTarget = declaration.has("target")
+						&& !declaration.get("target").isJsonNull()
+						? declaration.get("target").getAsString() : "";
+					declarationsByKey.putIfAbsent(declarationTarget + "\0" + semanticId, declaration);
+					String sourceFile = declaration.get("source_file").getAsString();
+					if (!belongsToTarget(sourceFile, target)) continue;
+					SourceKind sourceKind = sourceKind("UNKNOWN", declaration);
+					if (sourceKind == SourceKind.LIBRARY_ENTITY) continue;
+					declarations.putIfAbsent(semanticId, new SourceCandidate(
+						semanticId,
+						declaration.get("qualified_name").getAsString(),
+						declaration.get("source_signature").getAsString(),
+						sourceKind, declaration.getAsJsonArray("parameter_types").size(),
+						sourceFile, declaration.get("line").getAsInt()));
+				}
 			}
-			for (JsonElement element : document.getAsJsonArray("declarations")) {
-				JsonObject declaration = element.getAsJsonObject();
-				String sourceFile = declaration.get("source_file").getAsString();
-				if (!belongsToTarget(sourceFile, target)) continue;
-				SourceKind sourceKind = sourceKind("UNKNOWN", declaration);
-				if (sourceKind == SourceKind.LIBRARY_ENTITY) continue;
-				String semanticId = declaration.get("semantic_id").getAsString();
-				declarations.putIfAbsent(semanticId, new SourceCandidate(
-					semanticId,
-					declaration.get("qualified_name").getAsString(),
-					declaration.get("source_signature").getAsString(),
-					sourceKind, declaration.getAsJsonArray("parameter_types").size(),
-					sourceFile, declaration.get("line").getAsInt()));
+			JsonArray array = document.getAsJsonArray("markers");
+			if (array != null) {
+				for (JsonElement element : array) {
+					JsonObject marker = element.getAsJsonObject();
+					if (!target.equals(marker.get("target").getAsString())) continue;
+					functions.put(marker.get("address").getAsLong(),
+						sourceHints(marker, declarationsByKey));
+				}
 			}
 		}
 		Set<String> established = new LinkedHashSet<>();
@@ -123,13 +140,13 @@ public class Wiz8Recover extends GhidraScript {
 			sourceFile.startsWith("include/" + root + "/");
 	}
 
-	private static SourceHints sourceHints(JsonObject marker) {
-		if (marker == null || !marker.has("declaration") || marker.get("declaration").isJsonNull()) {
+	private static SourceHints sourceHints(JsonObject marker, Map<String, JsonObject> declarationsByKey) {
+		JsonObject declaration = resolvedDeclaration(marker, declarationsByKey);
+		if (declaration == null) {
 			return SourceHints.NONE;
 		}
 		String markerKind = marker.has("marker_kind")
 			? marker.get("marker_kind").getAsString() : "UNKNOWN";
-		JsonObject declaration = marker.getAsJsonObject("declaration");
 		String sourceKind = sourceKind(markerKind, declaration).name();
 		String signature = declaration.has("source_signature")
 			? declaration.get("source_signature").getAsString() : "";
@@ -156,6 +173,20 @@ public class Wiz8Recover extends GhidraScript {
 		for (int i = 0; i < count; i++) references.add("value");
 		return SourceHints.of(markerKind, sourceKind, signature, semantic,
 			references.toArray(String[]::new), sourceFile);
+	}
+
+	private static JsonObject resolvedDeclaration(JsonObject marker,
+			Map<String, JsonObject> declarationsByKey) {
+		if (marker != null && marker.has("declaration") && !marker.get("declaration").isJsonNull()) {
+			return marker.getAsJsonObject("declaration");
+		}
+		if (marker == null || !marker.has("declaration_key")
+			|| !marker.get("declaration_key").isJsonArray()) {
+			return null;
+		}
+		JsonArray key = marker.getAsJsonArray("declaration_key");
+		if (key.size() < 2) return null;
+		return declarationsByKey.get(key.get(0).getAsString() + "\0" + key.get(1).getAsString());
 	}
 
 	private static SourceKind sourceKind(String markerKind, JsonObject declaration) {
@@ -297,8 +328,7 @@ public class Wiz8Recover extends GhidraScript {
 					default -> selections.add(args[i]);
 				}
 			}
-			if (sourceIndex == null) throw new IllegalArgumentException("--source-index is required");
-			if (target == null) throw new IllegalArgumentException("--target is required");
+			if (target == null || target.isBlank()) target = "WIZ8";
 			if (output == null) throw new IllegalArgumentException("--output is required");
 			if (selections.isEmpty() && !allFunctions) {
 				throw new IllegalArgumentException("select at least one function");

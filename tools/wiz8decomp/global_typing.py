@@ -13,9 +13,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from .config import Settings
 from .global_model import parse_global_definitions
-from .paths import atomic_json, repo_relative
 
 _SCHEMA = "wiz8.global-typing-v1"
 _ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\d*\])+)$")
@@ -38,7 +36,16 @@ def _strip_qualifiers(type_name: str) -> str:
     changed = True
     while changed:
         changed = False
-        for prefix in ("extern ", "const ", "volatile ", "static "):
+        for prefix in (
+            "extern ",
+            "const ",
+            "volatile ",
+            "static ",
+            "struct ",
+            "class ",
+            "enum ",
+            "union ",
+        ):
             if text.startswith(prefix):
                 text = text[len(prefix) :].lstrip()
                 changed = True
@@ -612,57 +619,3 @@ def apply_global_typing(program: Any, plan: Mapping[str, Any]) -> dict[str, Any]
         "skipped": skipped,
         "globals": result["rows"],
     }
-
-
-def run_global_typing(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    addresses: Sequence[int] | None = None,
-    limit: int | None = None,
-) -> dict[str, Any]:
-    """Report or apply source-backed GLOBAL listing types."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_global_typing_plan(
-            settings.repo_dir,
-            program,
-            target=target,
-            addresses=addresses,
-            limit=limit,
-        )
-        out_dir = settings.build_dir / "global-typing"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": [row for row in plan["globals"] if str(row["action"]).startswith("set-")][
-                :20
-            ],
-        }
-        if not apply:
-            return result
-
-        applied = apply_global_typing(program, plan)
-        dispose_sessions()
-        program.save("Source-backed GLOBAL typing", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["globals"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        return result

@@ -55,6 +55,74 @@ def _ghidra_project_check(settings: Settings) -> dict[str, Any]:
     }
 
 
+def _ghidra_source_projection_check(settings: Settings) -> dict[str, Any]:
+    """Label source-projection freshness separately from reviewed-seed origin."""
+
+    from .ghidra.workspace import resolve_seed_program, source_projection_freshness
+
+    try:
+        program = resolve_seed_program(settings, "wiz8")
+        freshness = source_projection_freshness(settings, program)
+    except (OSError, RuntimeError, ValueError) as error:
+        return {
+            "name": "ghidra-source-projection",
+            "ok": True,
+            "status": "unavailable",
+            "detail": str(error),
+        }
+    return {
+        "name": "ghidra-source-projection",
+        **freshness,
+        "program": program,
+    }
+
+
+def _product_inputs_check(settings: Settings) -> dict[str, Any]:
+    """Label product/library mount readiness without failing Ghidra inspection."""
+
+    from .build import ContainerBuild, prepared_mount_ready
+    from .extract.variants import EXTRACTED_NAMES, verify_extraction
+
+    build = ContainerBuild.from_settings(settings)
+    missing = [
+        str(mount.host)
+        for mount in build.mounts
+        if mount.container not in {"/repo", "/out"} and not prepared_mount_ready(mount)
+    ]
+    stale_recipes: list[dict[str, Any]] = []
+    extracted_root = settings.work_dir / "extracted"
+    if extracted_root.is_dir():
+        for role, name in EXTRACTED_NAMES.items():
+            destination = extracted_root / name
+            if not (destination / ".wiz8-extraction.json").is_file():
+                continue
+            try:
+                result = verify_extraction(settings, role)
+            except Exception as error:  # noqa: BLE001 - doctor remains read-only
+                stale_recipes.append({"role": role, "errors": [str(error)]})
+                continue
+            if not result.get("ok"):
+                stale_recipes.append({"role": role, "errors": result.get("errors") or []})
+    if missing:
+        status = "missing"
+        detail = "run `uv run wiz8 prepare`"
+    elif stale_recipes:
+        status = "stale-recipe"
+        named = ", ".join(row["role"] for row in stale_recipes)
+        detail = f"extraction recipe identity differs for {named}; run `uv run wiz8 extract`"
+    else:
+        status = "ready"
+        detail = None
+    return {
+        "name": "product-inputs",
+        "ok": True,
+        "status": status,
+        "detail": detail,
+        "missing": missing,
+        "stale_recipes": stale_recipes,
+    }
+
+
 def validate_environment(settings: Settings) -> dict[str, Any]:
     """Return the complete machine-dependent doctor report or fail loudly."""
 
@@ -96,6 +164,8 @@ def validate_environment(settings: Settings) -> dict[str, Any]:
         work_writable = False
     checks.append({"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)})
     checks.append(_ghidra_project_check(settings))
+    checks.append(_ghidra_source_projection_check(settings))
+    checks.append(_product_inputs_check(settings))
     required = {"7z": ["--help"], "innoextract": ["--version"], "cabextract": ["--version"]}
     optional = {"unshield": ["-V"], "wine": ["--version"], "git-lfs": ["version"]}
     for name, args in required.items():

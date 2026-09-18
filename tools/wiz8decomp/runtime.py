@@ -18,7 +18,7 @@ from reccmp.formats.pe import PEImage
 from .binary.linker_map import LinkerMap, SymbolResolution
 from .config import Settings
 from .display import runtime_display
-from .paths import atomic_write
+from .paths import write_if_changed
 
 
 def _managed_link(source: Path, destination: Path) -> None:
@@ -188,8 +188,8 @@ def stage_game(
                 raise RuntimeError(f"executable/MAP link timestamp mismatch; rebuild {executable}")
             identity = hashlib.sha256(executable_bytes + map_bytes).hexdigest()
             staged_map = stage / "diagnostics" / f"{executable.stem}-{identity}.map"
-            atomic_write(staged_map, map_bytes)
-        atomic_write(staged_executable, executable_bytes)
+            write_if_changed(staged_map, map_bytes)
+        write_if_changed(staged_executable, executable_bytes)
     return StagedGame(stage, staged_executable, staged_map, objects)
 
 

@@ -16,8 +16,10 @@ from ..paths import atomic_write
 
 __all__ = [
     "TranslationUnitInterval",
+    "assertion_containment_rows",
     "derive_intervals",
     "function_inventory",
+    "implementation_census_rows",
     "misplaced_function_rows",
     "original_unit_rows",
     "render_gameplay_map_csv",
@@ -279,6 +281,130 @@ MISPLACED_FIELDS = [
     "attribution",
 ]
 
+CENSUS_FIELDS = [
+    "address",
+    "canonical_name",
+    "ghidra_entry",
+    "source_state",
+    "implementation",
+    "asserted",
+    "ownership",
+    "hull",
+]
+
+CONTAINMENT_FIELDS = [
+    "call_site",
+    "source_path",
+    "line",
+    "expression",
+    "stored_containing",
+    "native_containing",
+    "status",
+]
+
+
+def implementation_census_rows(
+    gameplay: list[dict[str, str]],
+    layout: TranslationUnitLayout,
+    *,
+    identities: dict[int, tuple[Any, ...]] | None = None,
+    assertion_functions: set[int] | None = None,
+) -> list[dict[str, str]]:
+    """One row per retail function with implementation independent of ownership."""
+
+    identities = identities or {}
+    assertion_functions = assertion_functions or set()
+    ghidra_names = {int(row["address"], 16): row.get("symbol") or "" for row in gameplay}
+    addresses = set(ghidra_names) | set(identities)
+    rows: list[dict[str, str]] = []
+    for address in sorted(addresses):
+        bound = identities.get(address, ())
+        primary = next(
+            (item for item in bound if getattr(item, "kind", "") in {"definition", "declaration"}),
+            bound[0] if bound else None,
+        )
+        has_body = any(getattr(item, "is_definition", False) for item in bound) or any(
+            row.get("source_path") and int(row["address"], 16) == address for row in gameplay
+        )
+        declaration_only = bool(bound) and not has_body
+        if has_body:
+            implementation = "recovered"
+            source_state = "definition"
+        elif declaration_only or (
+            primary is not None and getattr(primary, "kind", "") == "declaration"
+        ):
+            implementation = "declaration-only"
+            source_state = "declaration"
+        else:
+            implementation = "missing"
+            source_state = "missing"
+        owner = layout.owner(address)
+        attribution = str(owner.get("attribution") or "unknown")
+        hull = (
+            "inside" if owner.get("interval_lower") and owner.get("interval_upper") else "unknown"
+        )
+        if attribution == "gap":
+            hull = "outside"
+        name = (
+            getattr(primary, "qualified_name", None)
+            or getattr(primary, "name", None)
+            or ghidra_names.get(address)
+            or ""
+        )
+        rows.append(
+            {
+                "address": _address(address),
+                "canonical_name": str(name),
+                "ghidra_entry": "yes" if address in ghidra_names else "no",
+                "source_state": source_state,
+                "implementation": implementation,
+                "asserted": "yes" if address in assertion_functions else "no",
+                "ownership": attribution,
+                "hull": hull,
+            }
+        )
+    return rows
+
+
+def assertion_containment_rows(
+    assertions: list[dict[str, str]],
+    containing: dict[int, int | None] | None = None,
+) -> list[dict[str, str]]:
+    """Compare stored assertion containment with current native function membership."""
+
+    containing = containing or {}
+    rows: list[dict[str, str]] = []
+    for row in assertions:
+        site_text = (row.get("call_site") or "").strip()
+        stored_text = (row.get("containing_function") or "").strip()
+        try:
+            site = int(site_text, 16)
+        except ValueError:
+            continue
+        native = containing.get(site)
+        native_text = f"{native:08x}" if isinstance(native, int) else ""
+        stored_norm = stored_text.lower().removeprefix("0x")
+        if native is None:
+            status = "unknown"
+        elif stored_norm and native_text == stored_norm:
+            status = "agree"
+        elif stored_norm:
+            status = "disagree"
+        else:
+            status = "blank"
+        rows.append(
+            {
+                "call_site": f"{site:08x}",
+                "source_path": row.get("source_path") or "",
+                "line": row.get("line") or "",
+                "expression": row.get("expression") or "",
+                "stored_containing": stored_norm,
+                "native_containing": native_text,
+                "status": status,
+            }
+        )
+    return rows
+
 
 def original_unit_rows(
     repo_dir: Path,
@@ -442,7 +568,7 @@ def _read_rows(path: Path) -> list[dict[str, str]]:
 def translation_unit_report(
     settings: Any, layout: TranslationUnitLayout | None = None
 ) -> dict[str, Any]:
-    from ..ghidra.query import function_inventory as ghidra_function_inventory
+    from ..ghidra.inspect import function_inventory as ghidra_function_inventory
 
     if layout is None:
         layout = assertion_only_layout(settings.repo_dir)
@@ -453,16 +579,56 @@ def translation_unit_report(
 
     unit_rows = original_unit_rows(settings.repo_dir, layout, gameplay)
     misplaced_rows = misplaced_function_rows(settings.repo_dir, layout, gameplay)
+    identities: dict[int, tuple[Any, ...]] = {}
+    try:
+        from ..source_index import address_bound_identities, try_load_source_index
+
+        if try_load_source_index(settings.repo_dir) is not None:
+            identities = address_bound_identities(settings.repo_dir, "WIZ8")
+    except Exception:  # noqa: BLE001 - census still works without a current index
+        identities = {}
+    assertion_functions = {
+        anchor.function
+        for anchors in layout.anchors_by_unit.values()
+        for anchor in anchors
+        if anchor.evidence == "assertion"
+    }
+    census_rows = implementation_census_rows(
+        gameplay,
+        layout,
+        identities=identities,
+        assertion_functions=assertion_functions,
+    )
+    assertions_path = settings.repo_dir / "evidence/observations/wiz8/assertions.csv"
+    assertions = _read_rows(assertions_path) if assertions_path.is_file() else []
+    containing: dict[int, int | None] = {}
+    try:
+        from ..ghidra.inspect import containing_functions
+
+        sites = []
+        for row in assertions:
+            try:
+                sites.append(int((row.get("call_site") or "").strip(), 16))
+            except ValueError:
+                continue
+        containing = containing_functions(settings, sites)
+    except Exception:  # noqa: BLE001 - containment stays unknown without live Ghidra
+        containing = {}
+    containment_rows = assertion_containment_rows(assertions, containing)
 
     report_dir = settings.build_dir / "reports" / "translation-units"
     interval_path = report_dir / "translation-unit-intervals.csv"
     gameplay_path = report_dir / "gameplay-translation-units.csv"
     original_path = report_dir / "original-translation-units.csv"
     misplaced_path = report_dir / "misplaced-functions.csv"
+    census_path = report_dir / "function-census.csv"
+    containment_path = report_dir / "assertion-containment.csv"
     atomic_write(interval_path, interval_csv)
     atomic_write(gameplay_path, gameplay_csv)
     atomic_write(original_path, _csv(unit_rows, ORIGINAL_UNIT_FIELDS))
     atomic_write(misplaced_path, _csv(misplaced_rows, MISPLACED_FIELDS))
+    atomic_write(census_path, _csv(census_rows, CENSUS_FIELDS))
+    atomic_write(containment_path, _csv(containment_rows, CONTAINMENT_FIELDS))
     status_counts = {
         key: len([row for row in unit_rows if row["status"] == key])
         for key in (
@@ -472,11 +638,16 @@ def translation_unit_report(
             "evidence-insufficient",
         )
     }
+    implementation_counts = {
+        key: len([row for row in census_rows if row["implementation"] == key])
+        for key in ("recovered", "declaration-only", "missing")
+    }
     return {
         "translation_units": len(intervals),
         "gaps": max(len(intervals) - 1, 0),
         "gameplay_functions": len(gameplay),
         "attribution": counts,
+        "implementation": implementation_counts,
         "anchors": {
             "unit_anchors": len(layout.unit_anchors),
             "conflicting_functions": len(layout.conflicts),
@@ -490,5 +661,7 @@ def translation_unit_report(
             str(gameplay_path.relative_to(settings.repo_dir)),
             str(original_path.relative_to(settings.repo_dir)),
             str(misplaced_path.relative_to(settings.repo_dir)),
+            str(census_path.relative_to(settings.repo_dir)),
+            str(containment_path.relative_to(settings.repo_dir)),
         ],
     }

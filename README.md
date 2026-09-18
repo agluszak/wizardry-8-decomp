@@ -45,7 +45,7 @@ public lane: ruff, pyright, repository validators and Python tests, with no prod
 compiler-backed source-index writer also validates synthetic-marker shape and cross-TU external
 declarations. The lint compile database is adapted to host paths and reccmp performs one cached native
 source-index collection; inspection commands consume that existing projection without refreshing it.
-`uv run wiz8 analyze source-index` explicitly regenerates selector metadata when needed.
+`uv run wiz8 check` refreshes selector metadata when the compiler-backed index is missing or stale.
 
 `uv run wiz8 run` stages the prepared game under `build/runtime/wiz8`, copies the already-built
 `Wiz8Runtime.exe` into it, and launches it with `/WINDOW`. Source variants stay immutable. The process

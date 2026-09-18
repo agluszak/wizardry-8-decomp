@@ -87,8 +87,9 @@ uv run wiz8 diagnostics
 `lint` catches incompatible declarations, conversions, overrides and narrow reconstruction errors;
 `diagnostics` is the broader non-gating lane. Cross-TU external declaration consistency is owned by
 the compiler-backed source-index writer, which `uv run wiz8 check` and `compare --build` refresh.
-Plain `compare` reads the existing projection. Do not pre-run `uv run wiz8 analyze source-index`
-unless debugging that projection itself.
+Plain `compare` reads the existing projection. Project established declarations into Ghidra with
+`uv run wiz8 ghidra sync`; do not pre-run `uv run wiz8 analyze source-index` unless debugging that
+projection itself.
 
 A redundant same-type cast means the canonical types already agree: remove it. Do not dismiss a gating
 diagnostic as pre-existing. Retail instructions, call sites and accepted source decide which model is

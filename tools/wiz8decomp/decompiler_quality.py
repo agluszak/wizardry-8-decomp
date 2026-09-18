@@ -363,7 +363,8 @@ def evaluate_corpus(
     """Decompile each address and aggregate metric counts."""
 
     from .ghidra.env import open_program
-    from .ghidra.semantic import decompile_c, dispose_sessions
+    from .ghidra.inspect import DecompileSession
+    from .ghidra.semantic import decompile_c
 
     source = markers if markers is not None else _function_markers(settings.repo_dir, "WIZ8")
     functions: list[dict[str, Any]] = []
@@ -371,6 +372,7 @@ def evaluate_corpus(
     failures = 0
 
     with open_program(settings, program_name) as program:
+        session = DecompileSession(program, profile=profile)
         try:
             for address in addresses:
                 marker = source.get(address)
@@ -386,7 +388,7 @@ def evaluate_corpus(
                     failures += 1
                     functions.append(row)
                     continue
-                rendered = decompile_c(program, function, profile=profile)
+                rendered = decompile_c(program, function, profile=profile, session=session)
                 text = rendered.get("decompiled")
                 completed = bool(rendered.get("completed")) and text is not None
                 metrics = score_decompiled(text if completed else None)
@@ -400,7 +402,7 @@ def evaluate_corpus(
                     totals.update(metrics)
                 functions.append(row)
         finally:
-            dispose_sessions()
+            session.close()
 
     ok = [row for row in functions if row.get("status") == "ok"]
     return {

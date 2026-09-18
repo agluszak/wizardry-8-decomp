@@ -102,7 +102,7 @@ def _load_index(repo_dir: Path) -> dict[str, Any]:
     except Exception as error:
         raise HeaderArchitectureError(
             "header architecture needs a generated build/source-index.json; "
-            f"run `uv run wiz8 analyze source-index` first ({error})"
+            f"run `uv run wiz8 check` first ({error})"
         ) from error
 
 

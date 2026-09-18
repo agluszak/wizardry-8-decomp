@@ -38,6 +38,11 @@ _PRODUCT_INPUT_SUFFIXES = frozenset(
 _LINT_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _LINT_HEADER_SUFFIXES = frozenset({".h", ".hpp", ".hxx"})
 PRODUCT_GENERATOR = "NMake Makefiles"
+_PRODUCT_MOUNT_SENTINELS = {
+    "/jpeg": "jpeglib.h",
+    "/zlib": "zlib.h",
+    "/infozip": "unzip.c",
+}
 JOM_PROGRAM = r"C:\jom\jom.exe"
 
 
@@ -232,10 +237,22 @@ def _configure(settings: Settings) -> None:
 
 def _product_cache_ready(build_dir: Path) -> bool:
     cache = build_dir / "CMakeCache.txt"
-    if not cache.is_file():
+    makefile = build_dir / "Makefile"
+    if not cache.is_file() or not makefile.is_file():
         return False
     content = cache.read_text(encoding="utf-8", errors="replace").replace("\r", "")
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in content
+
+
+def prepared_mount_ready(mount: Mount) -> bool:
+    """True when a product mount contains its required source tree, not just a directory."""
+
+    if mount.container in {"/repo", "/out"}:
+        return mount.host.exists()
+    sentinel = _PRODUCT_MOUNT_SENTINELS.get(mount.container)
+    if sentinel is None:
+        return mount.host.exists()
+    return (mount.host / sentinel).is_file()
 
 
 def _enable_jom_parallelism(build_dir: Path) -> list[str]:
@@ -313,12 +330,12 @@ def build_target(
         missing = [
             mount.host
             for mount in build.mounts
-            if mount.container not in {"/repo", "/out"} and not mount.host.exists()
+            if mount.container not in {"/repo", "/out"} and not prepared_mount_ready(mount)
         ]
         if missing:
             rendered = ", ".join(str(path) for path in missing)
             raise RuntimeError(
-                f"prepared build inputs are missing ({rendered}); run `wiz8 prepare`"
+                f"prepared build inputs are missing ({rendered}); run `uv run wiz8 prepare`"
             )
         _ensure_sr_assert_import(settings)
         if not _product_cache_ready(build.build_dir):
@@ -480,7 +497,7 @@ def _lint_selection(
 ) -> tuple[list[Path] | None, list[Path], list[Path]]:
     from .clang_tidy_lines import FILTER_ENV
     from .comparison import header_dependent_files
-    from .source_index import indexed_targets, warn_if_source_index_may_be_stale
+    from .source_index import indexed_targets, source_index_freshness, write_source_index
 
     repository = settings.repo_dir
     changed = [
@@ -503,11 +520,13 @@ def _lint_selection(
     dependent: set[Path] = set()
     if headers:
         database = repository / LINT_BUILD_DIR / "compile_commands.json"
-        for target in indexed_targets(repository, database):
-            if warn_if_source_index_may_be_stale(repository, target):
-                raise RuntimeError(
-                    "source index is stale; run `uv run wiz8 check` before linting header changes"
-                )
+        targets = list(indexed_targets(repository, database))
+        if any(
+            source_index_freshness(repository, target)["state"] in {"missing", "invalid", "stale"}
+            for target in targets
+        ):
+            write_source_index(settings)
+        for target in targets:
             dependent.update(header_dependent_files(settings, target, headers))
     selected = set(changed) | dependent
     return sorted(selected), changed, sorted(dependent - set(changed))

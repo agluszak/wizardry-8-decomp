@@ -175,3 +175,45 @@ def test_missing_program_validates_seed_before_import(
 
     with pytest.raises(RuntimeError, match="validated .*seed.gzf"):
         workspace.restore_seed(settings, object())
+
+
+def test_source_projection_freshness_never_when_unrecorded(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    settings.repo_dir.mkdir()
+    (settings.repo_dir / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
+        "    hash:\n      sha256: abc\n",
+        encoding="utf-8",
+    )
+    result = workspace.source_projection_freshness(settings, "wiz8-program")
+    assert result["ok"] is True
+    assert result["status"] == "never"
+    assert "reviewed-seed origin" in result["detail"]
+
+
+def test_source_projection_freshness_stale_after_index_change(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    settings.project_dir.mkdir(parents=True)
+    settings.repo_dir.mkdir()
+    (settings.repo_dir / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
+        "    hash:\n      sha256: abc\n",
+        encoding="utf-8",
+    )
+    build = settings.repo_dir / "build"
+    build.mkdir()
+    index = build / "source-index.json"
+    index.write_text(
+        '{"schema": "reccmp-source-index-v2", "markers": []}',
+        encoding="utf-8",
+    )
+    workspace._write_project_owner(settings)
+    workspace.record_source_projection(
+        settings,
+        "wiz8-program",
+        {"source_index_sha256": "old", "applied_ns": 1, "target": "WIZ8"},
+    )
+    result = workspace.source_projection_freshness(settings, "wiz8-program")
+    assert result["ok"] is True
+    assert result["status"] == "stale"
+    assert "wiz8 ghidra sync" in result["detail"]

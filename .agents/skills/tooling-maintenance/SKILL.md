@@ -16,6 +16,8 @@ Keep one owner for each concern:
 - CMake owns compilation/linking graphs; Python composes workflows around them.
 - reccmp owns matching and its native source-index collection/cache behavior.
 - Ghidra owns retail analysis; [ghidra-analysis](../ghidra-analysis/SKILL.md) defines live access.
+  `wiz8 ghidra sync` is the one established-source → ProgramDB apply path. `ghidra decompile` /
+  `ghidra asm` / `ghidra sym` are reads and must not compile, index, or synchronize.
 - runtime staging/debugging use the existing shared primitives; do not duplicate product launch trees.
 
 Delete a layer when upstream/native APIs already express the operation. Do not add wrappers merely to
@@ -37,8 +39,10 @@ not start a long analysis pass, mutate Ghidra, rebuild products, or replace user
 
 Doctor owns checks that can invalidate essentially every recovery conclusion before work starts:
 pinned tool/runtime versions, required inputs/work directory, repository hygiene, live Ghidra project
-ownership, and whether the live canonical Wiz8 program is provably based on the reviewed GZF tracked by
-the current revision. A live program with the same retail binary hash can still be stale analysis.
+ownership, whether the live canonical Wiz8 program is provably based on the reviewed GZF tracked by
+the current revision, and whether established source facts have been projected into that ProgramDB.
+A live program with the same retail binary hash can still be stale analysis. A current reviewed seed
+does not imply current source projection.
 
 Restoring a reviewed GZF records its archive hash in the checkout-owned project marker. A later manifest
 change therefore makes the previous live project detectably stale. Legacy/untracked live projects have
@@ -48,8 +52,11 @@ checkpoint reconciliation/replacement remains an explicit Ghidra state-managemen
 
 ## Source index
 
-`uv run wiz8 check` and `uv run wiz8 analyze source-index` refresh the compiler-backed index.
+`uv run wiz8 check` refreshes the compiler-backed index. `uv run wiz8 analyze source-index`
+is the index-only owner for debugging that projection; inspection and recovery do not run it.
 Inspection commands consume the existing projection and never refresh it implicitly.
+`wiz8 lint` refreshes a missing or stale index through that same owner when header
+dependency selection needs it; it does not require the entire `check` graph.
 
 The project may adapt the lint compile database to the host/analysis-image boundary, but collection and
 cache semantics belong to reccmp. Keep one native collection across configured link namespaces; do not
@@ -71,6 +78,11 @@ Do not add tests by default. Add a test for a concrete correctness bug or stable
 existing checks missed. Avoid tests of source spelling, documentation text, inventory counts, generated
 snapshots, deleted files or implementation-private helper order. Delete obsolete tests/helpers with
 the machinery they protected.
+
+Retired Ghidra apply/query surfaces (`analyze prototype-repair`, `report context`, `report data`,
+`report class`, `report flow`, `recover function`, `recover explain`, enrichment checkpoint/promote,
+`ghidra/query.py`, `legacy_classes_cleanup`) are deleted, not aliased. Keep Parameter ID as an
+explicit investigative collect-only analysis.
 
 ## Commands and output
 

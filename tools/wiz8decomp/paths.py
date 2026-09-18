@@ -44,6 +44,19 @@ def atomic_write(path: Path, data: str | bytes) -> None:
             os.unlink(temporary)
 
 
+def write_if_changed(path: Path, data: str | bytes) -> bool:
+    """Write ``data`` only when the existing file contents differ. Returns True if written."""
+
+    if path.is_file():
+        existing = (
+            path.read_bytes() if isinstance(data, bytes) else path.read_text(encoding="utf-8")
+        )
+        if existing == data:
+            return False
+    atomic_write(path, data)
+    return True
+
+
 def atomic_json(path: Path, value: Any) -> None:
     atomic_write(path, json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
 

@@ -188,15 +188,15 @@ def validate_identity(repo_dir: Path) -> dict[str, Any]:
 
 
 def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
-    from .source_index import project_targets
+    from .source_index import (
+        declaration_for_marker,
+        declarations_by_semantic_key,
+        project_targets,
+    )
 
     index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
     targets = project_targets(repo_dir)
-    declarations_by_key = {
-        (str(entry.get("target") or ""), str(entry.get("semantic_id") or "")): entry
-        for entry in index["declarations"]
-        if entry.get("semantic_id")
-    }
+    declarations_by_key = declarations_by_semantic_key(index)
 
     def namespace(source_file: str, target: str | None = None) -> str:
         """The link namespace owning a claim. Markers carry their target;
@@ -216,13 +216,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
     def marker_declaration(marker: dict[str, Any]) -> dict[str, Any]:
         """Resolve a v3 ``declaration_key`` or a legacy embedded declaration."""
 
-        embedded = marker.get("declaration")
-        if isinstance(embedded, dict) and embedded:
-            return embedded
-        key = marker.get("declaration_key")
-        if isinstance(key, (list, tuple)) and len(key) >= 2:
-            return declarations_by_key.get((str(key[0]), str(key[1]))) or {}
-        return {}
+        return declaration_for_marker(marker, declarations_by_key)
 
     claims: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for marker in index["markers"]:

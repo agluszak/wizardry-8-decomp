@@ -38,24 +38,18 @@ import yaml
 
 from .binary.demangle import DemanglerMissing, demangle
 from .config import Settings
-from .identity_lint import _declaration_address, _declaration_lines
 from .paths import atomic_write
 from .unresolved import unresolved_report
 
 COMPARISON_RESPONSE = Path("src/wiz8/CMakeFiles/WIZ8.dir/objects1.rsp")
 COMPARISON_LINK_DIR = Path("src/wiz8")
 GENERATED_ROOT = Path("generated/runtime-stubs")
-SOURCE_INDEX = Path("build/source-index.json")
 
 # Compiler/CRT support the runtime support object supplies directly. They are
 # data, not retail entities, and the VC6 CRT startup objects are not part of
 # the link.
 CRT_SUPPORT = {"__except_list", "__fltused"}
 
-MARKER = re.compile(
-    r"^\s*//\s*(?P<kind>FUNCTION|LIBRARY|SYNTHETIC|TEMPLATE|STUB):\s+"
-    r"WIZ8\s+(?P<address>0x[0-9a-fA-F]{6,8})\b"
-)
 ADDRESS_NAME = re.compile(r"^(?P<prefix>[^\s]+?)(?P<address>[0-9a-fA-F]{6,8})$")
 FUNCTION_SIGNATURE = re.compile(r"([~A-Za-z_][A-Za-z0-9_:<>~]*)\s*\((?P<parameters>[^()]*)\)")
 
@@ -65,86 +59,50 @@ class RuntimeStubError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class SourceFacts:
-    markers_by_address: dict[int, tuple[str, str]]
-    declaration_addresses: dict[str, tuple[str, str]]
-
-    @classmethod
-    def load(cls, repo_dir: Path) -> SourceFacts:
-        return cls(cls._markers(repo_dir), cls._declarations(repo_dir))
-
-    @staticmethod
-    def _markers(repo_dir: Path) -> dict[int, tuple[str, str]]:
-        markers: dict[int, tuple[str, str]] = {}
-        for root_name in ("src", "include"):
-            root = repo_dir / root_name
-            if not root.is_dir():
-                continue
-            for path in sorted(root.rglob("*")):
-                if path.suffix.lower() not in {".c", ".cpp", ".h", ".hpp"}:
-                    continue
-                source = path.relative_to(repo_dir).as_posix()
-                for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-                    match = MARKER.match(line)
-                    if match is None:
-                        continue
-                    markers.setdefault(
-                        int(match.group("address"), 16),
-                        (match.group("kind"), source),
-                    )
-        return markers
-
-    @staticmethod
-    def _declarations(repo_dir: Path) -> dict[str, tuple[str, str]]:
-        path = repo_dir / SOURCE_INDEX
-        if not path.is_file():
-            return {}
-        document = json.loads(path.read_text(encoding="utf-8"))
-        resolved: dict[str, tuple[str, str]] = {}
-        for entry in document.get("declarations", []):
-            semantic_id = entry.get("semantic_id") or ""
-            if not semantic_id:
-                continue
-            lines = _declaration_lines(repo_dir, entry)
-            if lines is None:
-                continue
-            address = _declaration_address(lines, entry["line"], entry["end_line"])
-            if address is None:
-                continue
-            resolved.setdefault(semantic_id, (address, entry["source_file"]))
-        return resolved
+class DeclaredCallable:
+    address: int
+    source_file: str
+    parameter_count: int
+    folded: bool
+    is_definition: bool
+    signature: str | None = None
 
 
 @dataclass(frozen=True)
-class GhidraIndex:
-    by_name: dict[str, tuple[tuple[str, int, int], ...]]
+class SourceFacts:
+    markers_by_address: dict[int, tuple[str, str]]
+    callables_by_name: dict[str, tuple[DeclaredCallable, ...]]
 
     @classmethod
-    def load(cls, settings: Settings) -> GhidraIndex:
-        from .ghidra.env import open_program
+    def load(cls, repo_dir: Path) -> SourceFacts:
+        from .source_index import address_bound_identities, try_load_source_index
 
-        by_name: dict[str, list[tuple[str, int, int]]] = defaultdict(list)
-        with open_program(settings, "wiz8") as program:
-            for function in program.getFunctionManager().getFunctions(True):
-                name = function.getName()
-                entry = function.getEntryPoint().getOffset()
-                count = len(list(function.getParameters()))
-                by_name[name].append((name, entry, count))
-                by_name[name.split("::")[-1]].append((name, entry, count))
-        return cls({name: tuple(sorted(set(values))) for name, values in by_name.items()})
-
-    def lookup(self, qualified: str, parameter_count: int) -> int | None:
-        candidates: tuple[tuple[str, int, int], ...] = self.by_name.get(qualified, ())
-        if not candidates:
-            candidates = self.by_name.get(qualified.split("::")[-1], ())
-        if not candidates:
-            return None
-        if len(candidates) == 1:
-            return candidates[0][1]
-        narrowed = [item for item in candidates if item[2] == parameter_count]
-        if len(narrowed) == 1:
-            return narrowed[0][1]
-        return None
+        if try_load_source_index(repo_dir) is None:
+            return cls({}, {})
+        try:
+            identities = address_bound_identities(repo_dir, "WIZ8")
+        except Exception:  # noqa: BLE001
+            return cls({}, {})
+        markers: dict[int, tuple[str, str]] = {}
+        by_name: dict[str, list[DeclaredCallable]] = {}
+        for address, bound in identities.items():
+            for identity in bound:
+                if identity.marker_kind:
+                    markers.setdefault(address, (identity.marker_kind, identity.source_file))
+                if identity.kind not in {"definition", "declaration"}:
+                    continue
+                declared = DeclaredCallable(
+                    address=address,
+                    source_file=identity.source_file,
+                    parameter_count=len(identity.parameter_types),
+                    folded=identity.folded,
+                    is_definition=identity.is_definition,
+                    signature=identity.source_signature,
+                )
+                for name in (identity.qualified_name, identity.name):
+                    if name:
+                        by_name.setdefault(name, []).append(declared)
+        return cls(markers, {name: tuple(values) for name, values in by_name.items()})
 
 
 @dataclass(frozen=True)
@@ -156,6 +114,7 @@ class ResolvedStub:
     requesters: tuple[str, ...]
     identity: str
     reason: str
+    source_file: str = ""
 
 
 def linked_objects(settings: Settings) -> list[Path]:
@@ -256,7 +215,6 @@ def resolve_stubs(
     objects: list[Path],
     facts: SourceFacts | None = None,
     text_range: tuple[int, int] | None = None,
-    ghidra: GhidraIndex | None = None,
 ) -> list[ResolvedStub]:
     repo_dir = settings.repo_dir
     facts = facts if facts is not None else SourceFacts.load(repo_dir)
@@ -294,36 +252,37 @@ def resolve_stubs(
             unqualified = qualified
         pending[symbol] = (qualified, unqualified, count, requesters)
 
-    decisions: dict[str, tuple[int | None, str, str]] = {}
-    lookup: list[str] = []
-    for symbol, (qualified, unqualified, _count, _requesters) in pending.items():
-        declared = facts.declaration_addresses.get(symbol)
-        if declared is not None and declared[0]:
-            decisions[symbol] = (int(declared[0], 16), "declaration", declared[1])
+    decisions: dict[str, tuple[int | None, str, str, str]] = {}
+    for symbol, (qualified, unqualified, count, requesters) in pending.items():
+        declared = _declared_callable(facts, qualified, unqualified, count)
+        if declared is not None:
+            if isinstance(declared, str):
+                raise RuntimeStubError(
+                    "runtime unresolved symbol disagrees with the source declaration\n\n"
+                    f"unresolved: {symbol}\n"
+                    f"demangled:  {qualified}\n"
+                    f"{declared}\n"
+                    f"requested by:\n  {', '.join(requesters)}"
+                )
+            decisions[symbol] = (
+                declared.address,
+                "declaration",
+                declared.source_file,
+                declared.source_file,
+            )
             continue
         candidate = (
             None if _is_constructor_or_destructor(qualified) else _address_from_name(unqualified)
         )
         if candidate is not None and text_range[0] <= candidate < text_range[1]:
-            decisions[symbol] = (candidate, "address-name", "")
+            decisions[symbol] = (candidate, "address-name", "", "")
             continue
-        lookup.append(symbol)
-
-    if lookup and ghidra is None:
-        ghidra = GhidraIndex.load(settings)
-    for symbol in lookup:
-        qualified, _unqualified, count, _requesters = pending[symbol]
-        candidate = ghidra.lookup(qualified, count) if ghidra is not None else None
-        decisions[symbol] = (
-            candidate,
-            "ghidra" if candidate is not None else "unmapped",
-            "",
-        )
+        decisions[symbol] = (None, "unmapped", "", "")
 
     stubs: list[ResolvedStub] = []
     for symbol in sorted(pending):
         qualified, unqualified, _count, requesters = pending[symbol]
-        address, identity, _source = decisions[symbol]
+        address, identity, source_file, _source = decisions[symbol]
         if address is not None:
             marker = facts.markers_by_address.get(address)
             if marker is not None:
@@ -339,10 +298,34 @@ def resolve_stubs(
                 stub=_stub_name(symbol, address),
                 requesters=requesters,
                 identity=identity,
-                reason="" if address is not None else "no retail address evidence",
+                reason="" if address is not None else "unmapped first-party callable",
+                source_file=source_file,
             )
         )
     return _dedupe_names(stubs)
+
+
+def _declared_callable(
+    facts: SourceFacts, qualified: str, unqualified: str, count: int
+) -> DeclaredCallable | str | None:
+    """Bind by explicit source name, or describe a signature/address disagreement."""
+
+    matches = facts.callables_by_name.get(qualified) or facts.callables_by_name.get(unqualified)
+    if not matches:
+        return None
+    unique = {item.address for item in matches}
+    if len(unique) == 1:
+        return matches[0]
+    counted = [item for item in matches if item.parameter_count == count]
+    counted_addresses = {item.address for item in counted}
+    if len(counted_addresses) == 1:
+        return counted[0]
+    details = "; ".join(
+        f"{item.source_file} @ 0x{item.address:08x} params={item.parameter_count}"
+        + (" folded" if item.folded else "")
+        for item in matches
+    )
+    return f"source declarations: {details}"
 
 
 def _dedupe_names(stubs: list[ResolvedStub]) -> list[ResolvedStub]:
@@ -366,6 +349,7 @@ def _dedupe_names(stubs: list[ResolvedStub]) -> list[ResolvedStub]:
                 requesters=stub.requesters,
                 identity=stub.identity,
                 reason=stub.reason,
+                source_file=stub.source_file,
             )
         )
     return output
@@ -391,6 +375,8 @@ def render_source(stubs: list[ResolvedStub]) -> str:
         )
         if stub.address is not None:
             lines.append(f"// STUB: WIZ8 0x{stub.address:08X}")
+        else:
+            lines.append(f"// STUB: WIZ8 unmapped {stub.symbol}")
         lines.extend(
             (
                 f'extern "C" void __cdecl {stub.stub}(void)',
@@ -497,8 +483,11 @@ def render_manifest(stubs: list[ResolvedStub]) -> dict[str, Any]:
             "symbol": stub.symbol,
             "stub": f"_{stub.stub}",
             "name": stub.name,
+            "identity": stub.identity,
             "requesters": list(stub.requesters),
         }
+        if stub.source_file:
+            entry["source_file"] = stub.source_file
         if stub.address is None:
             entry["unmapped"] = stub.reason
         entries.append(entry)

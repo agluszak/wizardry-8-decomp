@@ -6,8 +6,8 @@ establish that binding (correct ``GhidraClass`` parent + associated Structure)
 and keep dynamic storage — not copy Structures into ``/wiz8/classes`` or enable
 custom storage for ordinary methods.
 
-Custom storage remains available only for exceptional ABI cases via
-``--allow-custom-storage``; it is not the normal path for selecting a class type.
+Custom storage remains available only for exceptional ABI cases; it is not the
+normal path for selecting a class type.
 """
 
 from __future__ import annotations
@@ -25,8 +25,6 @@ from .class_binding import (
     find_class_structure,
     resolve_class_binding,
 )
-from .config import Settings
-from .paths import atomic_json, repo_relative
 from .prototype_repair import _normalize_ghidra, classify_pair
 from .source_index import source_functions
 
@@ -300,9 +298,9 @@ def apply_this_typing(
     *,
     allow_custom_storage: bool = False,
 ) -> dict[str, Any]:
-    """Apply planned class bindings; each row is its own top-level transaction."""
+    """Apply planned class bindings without nesting inside an outer batch transaction."""
 
-    import pyghidra
+    from .ghidra.mutations import program_transaction
 
     applied: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
@@ -315,7 +313,7 @@ def apply_this_typing(
         }:
             continue
         try:
-            with pyghidra.transaction(program, f"Bind class this at {row.get('address')}"):
+            with program_transaction(program, f"Bind class this at {row.get('address')}"):
                 result = apply_this_typing_row(
                     program, row, allow_custom_storage=allow_custom_storage
                 )
@@ -352,67 +350,3 @@ def apply_this_typing(
         "skipped": skipped,
         "functions": applied,
     }
-
-
-def run_class_this_typing(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    allow_custom_storage: bool = False,
-    addresses: Sequence[int] | None = None,
-) -> dict[str, Any]:
-    """Report or apply class-namespace bindings for typed automatic ``this``."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_this_typing_plan(
-            settings.repo_dir, program, target=target, addresses=addresses
-        )
-        out_dir = settings.build_dir / "class-this-typing"
-        report_path = out_dir / "report.json"
-        atomic_json(
-            report_path,
-            {
-                **plan,
-                "program": program_name,
-                "apply": apply,
-                "allow_custom_storage": allow_custom_storage,
-            },
-        )
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "allow_custom_storage": allow_custom_storage,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "missing_structure_classes": len(plan["missing_structures"]),
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": plan["functions"][:20],
-            "missing_structures_sample": plan["missing_structures"][:20],
-        }
-        if not apply:
-            return result
-
-        applied = apply_this_typing(program, plan, allow_custom_storage=allow_custom_storage)
-        dispose_sessions()
-        program.save("Bind class namespaces for automatic this", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["skipped"] = len(applied.get("skipped") or [])
-        result["sample"] = applied["functions"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        if applied.get("skipped"):
-            skip_path = out_dir / "skipped.json"
-            atomic_json(skip_path, applied["skipped"])
-            result["skipped_report"] = repo_relative(skip_path, settings.repo_dir)
-        return result

@@ -1,38 +1,31 @@
-# Source → Ghidra enrichment
+# Source → Ghidra projection
 
-Two related workflows project recovered source into the canonical Ghidra program.
-Both mutate reviewed analysis state. Neither is a prerequisite for ordinary
-inspection or body recovery. Score changes with
-`uv run wiz8 analyze decompiler-quality` (see
+`uv run wiz8 ghidra sync` is the one established-source/evidence → ProgramDB path.
+It mutates live analysis. It is not a prerequisite for ordinary inspection: address-based
+`ghidra decompile` / `ghidra asm` / `ghidra sym` read the existing ProgramDB even when
+working C++ or the source index is broken.
+
+Score decompiler effects with `uv run wiz8 analyze decompiler-quality` (see
 [analysis enrichment](analysis-enrichment.md)).
 
-## Periodic enrichment checkpoint (preferred)
-
-Use this when the live program should absorb **high-confidence** recovered facts
-without a full canonical regeneration ritual. Default mode is measurement-only.
+## Ordinary synchronization
 
 ```sh
-# Plan + quality sample (no writes)
-uv run wiz8 analyze enrichment-checkpoint
-
-# Apply source-backed calling conventions, re-score
-uv run wiz8 analyze enrichment-checkpoint --apply-conventions
-
-# Also project matched PDB/reccmp names, signatures, types, and source lines
-uv run wiz8 build WIZ8
-uv run wiz8 analyze enrichment-checkpoint --apply-conventions --import-source
+uv run wiz8 ghidra sync
 ```
 
-Then spot-check and, when intentionally reviewed, refresh the GZF:
+This refreshes compiler-backed source metadata, materializes independently established
+function entries, and applies names, prototypes, conventions, class/type/global/vtable
+and import facts in one native transaction. Spot-check with:
 
 ```sh
-uv run wiz8 report context ADDRESS...
+uv run wiz8 ghidra decompile ADDRESS...
 uv run wiz8 ghidra seed refresh wiz8
 ```
 
-Evidence boundary: only matched/source-backed entities belong in reviewed state.
-Do not point the importer at a derived/cached project. Soft Param-ID guesses are
-not part of this checkpoint.
+`seed refresh` is deliberate reviewed-checkpoint publication. It is not a second sync
+path. Evidence boundary: only established source/retail facts belong in reviewed state.
+Parameter ID guesses are not part of ordinary sync.
 
 ## Full canonical regeneration
 
@@ -46,32 +39,21 @@ the current recovered source/PDB as a dedicated state-management operation.
    uv run wiz8 build WIZ8
    ```
 
-3. Project matched source entities into the canonical live program:
+3. Project matched source entities after the established-fact pass:
 
    ```sh
-   uv run python - <<'PY'
-   from wiz8decomp.config import load_settings
-   from wiz8decomp.ghidra.reccmp_import import import_reccmp_source
-
-   print(import_reccmp_source(load_settings(), "wiz8"))
-   PY
+   uv run wiz8 ghidra sync --import-source
    ```
 
-   Or via the checkpoint:
-
-   ```sh
-   uv run wiz8 analyze enrichment-checkpoint --apply-conventions --import-source
-   ```
-
-   The importer matches recompiled entities to original addresses and applies
-   names, signatures, types and source lines. Review its statistics; known
-   unsupported insertion/type/parameter cases need interpretation rather than a
-   blanket zero-error requirement.
+   The optional importer matches recompiled entities to original addresses and
+   applies names, signatures, types and source lines. Review its statistics;
+   known unsupported insertion/type/parameter cases need interpretation rather
+   than a blanket zero-error requirement.
 
 4. Spot-check the affected identities, then export the reviewed checkpoint:
 
    ```sh
-   uv run wiz8 report context ADDRESS...
+   uv run wiz8 ghidra decompile ADDRESS...
    uv run wiz8 ghidra seed refresh wiz8
    ```
 

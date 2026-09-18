@@ -102,6 +102,7 @@ def _program_hash(project: Any, program_name: str) -> str | None:
 OWNER_MARKER = "checkout-owner.json"
 OWNER_SCHEMA = "wiz8.ghidra-owner"
 REVIEWED_SEEDS_KEY = "reviewed_seeds"
+SOURCE_PROJECTION_KEY = "source_projection"
 
 
 def _project_owner_record(settings: Settings) -> dict[str, Any]:
@@ -160,6 +161,81 @@ def record_project_seed(settings: Settings, seed: dict[str, Any]) -> None:
         }
     )
     atomic_json(marker, record)
+
+
+def record_source_projection(
+    settings: Settings, program_name: str, payload: dict[str, Any]
+) -> None:
+    """Record the last successful source/evidence projection into ProgramDB."""
+
+    check_project_owner(settings)
+    _write_project_owner(settings)
+    marker = settings.project_dir / OWNER_MARKER
+    record = _project_owner_record(settings)
+    projections = dict(record.get(SOURCE_PROJECTION_KEY) or {})
+    projections[program_name] = payload
+    record.update(
+        {
+            "schema": OWNER_SCHEMA,
+            "repo_dir": str(settings.repo_dir),
+            SOURCE_PROJECTION_KEY: projections,
+        }
+    )
+    atomic_json(marker, record)
+
+
+def source_projection_freshness(settings: Settings, program_name: str) -> dict[str, Any]:
+    """Compare recorded sync provenance with current source inputs. Does not open Ghidra."""
+
+    from ..source_index import source_index_freshness
+
+    index = source_index_freshness(settings.repo_dir)
+    record = _project_owner_record(settings)
+    projections = record.get(SOURCE_PROJECTION_KEY)
+    recorded = projections.get(program_name) if isinstance(projections, dict) else None
+    if not isinstance(recorded, dict):
+        return {
+            "ok": True,
+            "status": "never",
+            "detail": (
+                "live ProgramDB has not been synchronized from current source; "
+                "reviewed-seed origin does not imply source projection"
+            ),
+            "source_index": index,
+        }
+    index_path = settings.repo_dir / "build/source-index.json"
+    recorded_digest = recorded.get("source_index_sha256")
+    current_digest = None
+    if index_path.is_file():
+        from ..paths import sha256_file
+
+        current_digest = sha256_file(index_path)
+    applied_ns = recorded.get("applied_ns")
+    source_newer = False
+    if isinstance(applied_ns, int) and index["state"] != "missing":
+        source_newer = index["state"] == "stale" or (
+            index_path.is_file() and index_path.stat().st_mtime_ns > applied_ns
+        )
+    if current_digest is None or recorded_digest != current_digest or source_newer:
+        return {
+            "ok": True,
+            "status": "stale",
+            "detail": (
+                "source or source-index changed after the last `wiz8 ghidra sync`; "
+                "reviewed-seed origin is independent"
+            ),
+            "recorded_source_index_sha256": recorded_digest,
+            "current_source_index_sha256": current_digest,
+            "source_index": index,
+        }
+    return {
+        "ok": True,
+        "status": "current",
+        "detail": "ProgramDB reflects the current source-index identity",
+        "recorded_source_index_sha256": recorded_digest,
+        "current_source_index_sha256": current_digest,
+        "source_index": index,
+    }
 
 
 def project_seed_freshness(settings: Settings, seed: dict[str, Any]) -> dict[str, Any]:

@@ -24,8 +24,9 @@ instructions/P-code, parameters, references, data types and reviewed edits. Open
 once, inspect native objects, and filter before printing. Large output belongs in disposable `build/`
 artifacts. A custom query dispatcher or report schema is not required for exploratory work.
 
-`wiz8 report context ADDRESS...` remains an optional joined function/source/provenance
-view. `uv run wiz8 report translation-units` uses one `TranslationUnitResolver`.
+`wiz8 ghidra decompile ADDRESS...` and `wiz8 ghidra sym ADDRESS...` are the joined
+function/source/provenance reads. `uv run wiz8 report translation-units` uses one
+`TranslationUnitResolver`.
 Direct ownership comes only from reviewed assertion call sites whose containing
 function Ghidra resolved. Bounded interval inference is explicitly labelled and
 never incorporates guessed function starts from byte padding.

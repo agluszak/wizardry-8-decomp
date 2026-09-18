@@ -25,8 +25,6 @@ from .class_binding import (
     find_ghidra_class,
     legacy_enriched_structure,
 )
-from .config import Settings
-from .paths import atomic_json, repo_relative
 from .source_index import SourceIndex, load_source_index, source_functions
 
 _SCHEMA = "wiz8.class-structure-projection-v1"
@@ -415,69 +413,3 @@ def apply_structure_projection(
         description="Bind class Structures",
     )
     return {"applied": result["applied"], "errors": result["errors"], "classes": result["rows"]}
-
-
-def run_class_structure_projection(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    class_names: Sequence[str] | None = None,
-    type_this: bool = True,
-) -> dict[str, Any]:
-    """Report or apply class Structure binding, optionally chaining this-typing."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_structure_projection_plan(
-            settings.repo_dir, program, target=target, class_names=class_names
-        )
-        out_dir = settings.build_dir / "class-structures"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": plan["classes"][:20],
-        }
-        if not apply:
-            return result
-
-        applied = apply_structure_projection(program, plan)
-        dispose_sessions()
-        program.save("Bind class Structures to GhidraClass namespaces", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["classes"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-
-    if type_this and apply:
-        from .class_this_typing import run_class_this_typing
-
-        typing = run_class_this_typing(
-            settings,
-            target=target,
-            program_name=program_name,
-            apply=True,
-            allow_custom_storage=False,
-        )
-        result["this_typing"] = {
-            "applied": typing.get("applied"),
-            "apply_errors": typing.get("apply_errors"),
-            "skipped": typing.get("skipped"),
-            "counts": typing.get("counts"),
-            "actionable": typing.get("actionable"),
-        }
-    return result

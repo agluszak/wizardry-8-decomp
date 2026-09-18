@@ -9,6 +9,8 @@ import os
 import re
 import shlex
 import shutil
+from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -88,19 +90,58 @@ def _source_roots(config: dict[str, Any]) -> tuple[str, ...]:
 def load_source_index(repository: Path) -> dict[str, Any]:
     path = repository / "build/source-index.json"
     if not path.is_file():
-        raise SourceIndexError(f"{path} is missing; run `uv run wiz8 analyze source-index`")
+        raise SourceIndexError(f"{path} is missing; run `uv run wiz8 check`")
     document = json.loads(path.read_text(encoding="utf-8"))
     if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
         raise SourceIndexError(f"{path} has an unsupported source-index schema")
     return document
 
 
-def warn_if_source_index_may_be_stale(repository: Path, target: str) -> bool:
-    """Warn when source/configuration inputs postdate the existing index."""
+def try_load_source_index(repository: Path) -> dict[str, Any] | None:
+    """Return the existing compiler-backed index, or None when it cannot be read.
+
+    Read paths must not create, refresh, or compile this file.
+    """
+
+    path = repository / "build/source-index.json"
+    if not path.is_file():
+        return None
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
+        return None
+    return document
+
+
+def source_index_freshness(repository: Path, target: str = "WIZ8") -> dict[str, Any]:
+    """Label existing source-index state without compiling or regenerating it."""
+
     from .build import clang_configure_inputs
 
     path = repository / "build/source-index.json"
-    load_source_index(repository)
+    relative = "build/source-index.json"
+    if not path.is_file():
+        return {
+            "state": "missing",
+            "path": relative,
+            "detail": f"{relative} is missing; run `uv run wiz8 check`",
+        }
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        return {
+            "state": "invalid",
+            "path": relative,
+            "detail": f"{relative} could not be read: {error}",
+        }
+    if document.get("schema") not in _SOURCE_INDEX_SCHEMAS:
+        return {
+            "state": "invalid",
+            "path": relative,
+            "detail": f"{relative} has an unsupported source-index schema",
+        }
     indexed_at = path.stat().st_mtime_ns
     roots = indexed_targets(repository).get(target.upper(), ())
     inputs = list(clang_configure_inputs(repository))
@@ -112,12 +153,244 @@ def warn_if_source_index_may_be_stale(repository: Path, target: str) -> bool:
     )
     stale = any(item.is_file() and item.stat().st_mtime_ns > indexed_at for item in inputs)
     if stale:
+        return {
+            "state": "stale",
+            "path": relative,
+            "detail": (
+                "source or build inputs are newer than build/source-index.json; "
+                "native ProgramDB facts are still readable"
+            ),
+        }
+    return {"state": "current", "path": relative, "detail": None}
+
+
+def warn_if_source_index_may_be_stale(repository: Path, target: str) -> bool:
+    """Warn when source/configuration inputs postdate the existing index."""
+
+    freshness = source_index_freshness(repository, target)
+    if freshness["state"] in {"missing", "invalid"}:
+        load_source_index(repository)
+    if freshness["state"] == "stale":
         LOGGER.warning(
             "source index may be stale; source or build inputs are newer than "
             "build/source-index.json\n"
-            "         run `uv run wiz8 analyze source-index` to refresh selector metadata"
+            "         run `uv run wiz8 check` to refresh selector metadata"
         )
-    return stale
+        return True
+    return False
+
+
+@dataclass(frozen=True)
+class AddressBoundIdentity:
+    """One explicit retail-address binding from the compiler-backed source model."""
+
+    target: str
+    address: int
+    name: str
+    qualified_name: str
+    source_file: str
+    line: int
+    kind: str
+    marker_kind: str | None
+    semantic_id: str
+    calling_convention: str | None
+    return_type: str | None
+    parameter_types: tuple[str, ...]
+    has_this: bool
+    owning_class: str | None
+    source_signature: str | None
+    is_definition: bool
+    folded: bool
+    identity_alias: bool
+
+
+def _namespace_for_source(source_file: str, targets: dict[str, dict[str, Any]]) -> str:
+    for name, config in targets.items():
+        roots = config.get("source-root", ())
+        roots = (roots,) if isinstance(roots, str) else tuple(roots)
+        if any(
+            source_file == root or source_file.startswith(root.rstrip("/") + "/") for root in roots
+        ):
+            return name
+    return ""
+
+
+def declarations_by_semantic_key(
+    document: Mapping[str, Any],
+) -> dict[tuple[str, str], dict[str, Any]]:
+    """Map ``(target, semantic_id)`` to a Clang declaration record."""
+
+    return {
+        (str(entry.get("target") or ""), str(entry.get("semantic_id") or "")): entry
+        for entry in document.get("declarations") or []
+        if entry.get("semantic_id")
+    }
+
+
+def declaration_for_marker(
+    marker: Mapping[str, Any],
+    declarations_by_key: Mapping[tuple[str, str], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Resolve a v3 ``declaration_key`` or a legacy embedded declaration."""
+
+    embedded = marker.get("declaration")
+    if isinstance(embedded, dict) and embedded:
+        return dict(embedded)
+    key = marker.get("declaration_key")
+    if isinstance(key, (list, tuple)) and len(key) >= 2:
+        found = declarations_by_key.get((str(key[0]), str(key[1])))
+        return dict(found) if found else {}
+    return {}
+
+
+def bind_marker_declarations(document: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Copy markers with ``declaration`` filled from ``declaration_key`` when needed."""
+
+    keys = declarations_by_semantic_key(document)
+    bound: list[dict[str, Any]] = []
+    for marker in document.get("markers") or []:
+        row = dict(marker)
+        declaration = declaration_for_marker(row, keys)
+        if declaration:
+            row["declaration"] = declaration
+        bound.append(row)
+    return bound
+
+
+def _identity_from_declaration(
+    entry: dict[str, Any],
+    *,
+    target: str,
+    address: int,
+    identity_alias: bool,
+    marker_kind: str | None = None,
+    folded: bool = False,
+    kind: str | None = None,
+) -> AddressBoundIdentity:
+    qualified = str(entry.get("qualified_name") or "")
+    return AddressBoundIdentity(
+        target=target,
+        address=address,
+        name=qualified.rsplit("::", 1)[-1],
+        qualified_name=qualified,
+        source_file=str(entry.get("source_file") or ""),
+        line=int(entry.get("line") or 0),
+        kind=kind or ("definition" if entry.get("is_definition") else "declaration"),
+        marker_kind=marker_kind,
+        semantic_id=str(entry.get("semantic_id") or ""),
+        calling_convention=str(entry["calling_convention"])
+        if entry.get("calling_convention")
+        else None,
+        return_type=str(entry["return_type"]) if entry.get("return_type") else None,
+        parameter_types=tuple(str(item) for item in (entry.get("parameter_types") or ())),
+        has_this=bool(entry.get("has_this")),
+        owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
+        source_signature=str(entry["source_signature"]) if entry.get("source_signature") else None,
+        is_definition=bool(entry.get("is_definition")),
+        folded=folded,
+        identity_alias=identity_alias,
+    )
+
+
+def address_bound_identities(
+    repository: Path, target: str = "WIZ8"
+) -> dict[int, tuple[AddressBoundIdentity, ...]]:
+    """Every explicit (target, address) source binding, including declaration-only."""
+
+    from .identity_lint import _IDENTITY_ALIAS, _declaration_address, _declaration_lines
+
+    document = load_source_index(repository)
+    wanted = target.upper()
+    targets = project_targets(repository)
+    declarations_by_key = declarations_by_semantic_key(document)
+    grouped: dict[int, list[AddressBoundIdentity]] = {}
+
+    def add(identity: AddressBoundIdentity) -> None:
+        if identity.target != wanted:
+            return
+        grouped.setdefault(identity.address, []).append(identity)
+
+    for marker in document.get("markers") or []:
+        marker_target = str(marker.get("target") or "").upper()
+        if marker_target != wanted:
+            continue
+        address = int(marker["address"])
+        embedded = declaration_for_marker(marker, declarations_by_key)
+        marker_kind = str(marker.get("marker_kind") or "")
+        kind = {
+            "FUNCTION": "definition" if embedded.get("is_definition") else "declaration",
+            "GLOBAL": "global",
+            "VTABLE": "vtable",
+            "TEMPLATE": "template",
+            "SYNTHETIC": "synthetic",
+            "LIBRARY": "library",
+        }.get(marker_kind, marker_kind.lower() or "declaration")
+        if embedded:
+            add(
+                _identity_from_declaration(
+                    embedded,
+                    target=marker_target,
+                    address=address,
+                    identity_alias=bool(marker.get("folded")),
+                    marker_kind=marker_kind,
+                    folded=bool(marker.get("folded")),
+                    kind=kind,
+                )
+            )
+            continue
+        name = str(marker.get("marker_name") or "")
+        add(
+            AddressBoundIdentity(
+                target=marker_target,
+                address=address,
+                name=name.rsplit("::", 1)[-1],
+                qualified_name=name,
+                source_file=str(marker.get("source_file") or ""),
+                line=int(marker.get("line") or 0),
+                kind=kind,
+                marker_kind=marker_kind,
+                semantic_id="",
+                calling_convention=None,
+                return_type=None,
+                parameter_types=(),
+                has_this=False,
+                owning_class=None,
+                source_signature=None,
+                is_definition=marker_kind == "FUNCTION",
+                folded=bool(marker.get("folded")),
+                identity_alias=bool(marker.get("folded")),
+            )
+        )
+
+    seen_declarations: set[tuple[str, int, int]] = set()
+    for entry in document.get("declarations") or []:
+        lines = _declaration_lines(repository, entry)
+        if lines is None:
+            continue
+        address_text = _declaration_address(lines, entry["line"], entry["end_line"])
+        if address_text is None:
+            continue
+        key = (str(entry.get("source_file") or ""), int(entry["line"]), int(entry["end_line"]))
+        if key in seen_declarations:
+            continue
+        seen_declarations.add(key)
+        namespace = str(entry.get("target") or "") or _namespace_for_source(
+            str(entry.get("source_file") or ""), targets
+        )
+        alias = any(
+            _IDENTITY_ALIAS.search(line)
+            for line in lines[max(0, int(entry["line"]) - 6) : int(entry["end_line"])]
+        )
+        add(
+            _identity_from_declaration(
+                entry,
+                target=namespace.upper(),
+                address=int(address_text, 16),
+                identity_alias=alias,
+            )
+        )
+
+    return {address: tuple(identities) for address, identities in sorted(grouped.items())}
 
 
 def target_for_program(repository: Path, program_name: str) -> str:

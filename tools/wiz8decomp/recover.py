@@ -389,66 +389,6 @@ def suggest_includes(repo_dir: Path, diagnostics: list[str]) -> dict[str, list[s
     return found
 
 
-def recover_candidates(
-    settings: Settings,
-    selections: list[str],
-    *,
-    program_selector: str = "wiz8",
-) -> dict[str, Any]:
-    """Generate persistent source-aware candidates without mutating recovered source."""
-
-    from .ghidra.recovery import recover_functions
-    from .source_index import load_source_index
-
-    if not selections:
-        raise ValueError("pass one or more function selectors")
-    source_index = load_source_index(settings.repo_dir)
-    markers = source_index["markers"]
-    exported = recover_functions(settings, selections, program_selector=program_selector)
-    layout = None
-    if program_selector == "wiz8":
-        from .ghidra.unit_intervals import translation_unit_layout_if_available
-
-        layout = translation_unit_layout_if_available(settings)
-    output_dir = settings.build_dir / "recover" / "candidates"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    functions: list[dict[str, Any]] = []
-    for item in exported.get("exports", []):
-        address = int(str(item["entry"]), 0)
-        generated = item.get("generated_code")
-        row: dict[str, Any] = {"entry": f"0x{address:08x}"}
-        source_candidates = item.get("source_candidates")
-        if isinstance(source_candidates, list) and source_candidates:
-            row["source_candidates"] = source_candidates
-        placement = resolve_source_placement(settings.repo_dir, markers, address, layout=layout)
-        row["placement"] = placement
-        blockers = exported_blockers({"exports": [item]}).get(address, [])
-        projections: list[dict[str, str]] = []
-        source_blockers: list[str] = []
-        if isinstance(generated, str) and placement.get("source_file"):
-            source = (settings.repo_dir / placement["source_file"]).read_text(encoding="utf-8")
-            generated, projections, source_blockers = project_source_forms(generated, source)
-        if isinstance(generated, str):
-            from .paths import atomic_write
-
-            artifact = output_dir / f"{address:08x}.cpp"
-            atomic_write(artifact, generated.rstrip() + "\n")
-            row["candidate"] = str(artifact.relative_to(settings.repo_dir))
-            row["status"] = "generated"
-        else:
-            row["status"] = "unavailable"
-        if projections:
-            row["projections"] = projections
-        combined_blockers: list[Any] = [*blockers, *source_blockers]
-        defects = item.get("recovery", {}).get("defects", [])
-        if combined_blockers:
-            row["blockers"] = combined_blockers
-        if defects:
-            row["exporter_defects"] = defects
-        functions.append(row)
-    return {"schema": "wiz8.recovery-candidates", "functions": functions}
-
-
 def regress(
     settings: Settings,
     selections: list[str],
@@ -459,9 +399,9 @@ def regress(
     from .build import build_target
     from .comparison import compare_selected
     from .ghidra.env import open_program
-    from .ghidra.query import resolve_function_selectors as resolve_ghidra_selectors
     from .ghidra.recovery import recover_functions
-    from .source_index import load_source_index
+    from .ghidra.resolve import resolve_function_entries as resolve_ghidra_selectors
+    from .source_index import bind_marker_declarations, load_source_index
 
     with open_program(settings, program_selector) as program:
         addresses = resolve_ghidra_selectors(program, selections)
@@ -470,7 +410,7 @@ def regress(
 
     markers = {
         marker["address"]: marker
-        for marker in load_source_index(settings.repo_dir)["markers"]
+        for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
         if marker["marker_kind"] == "FUNCTION"
     }
 
@@ -710,11 +650,11 @@ def attribute_diagnostics(
 def _sweep_selection(
     settings: Settings, source_file: str | None, class_name: str | None
 ) -> list[dict[str, Any]]:
-    from .source_index import load_source_index
+    from .source_index import bind_marker_declarations, load_source_index
 
     markers = [
         marker
-        for marker in load_source_index(settings.repo_dir)["markers"]
+        for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
         if marker["marker_kind"] == "FUNCTION"
     ]
     if source_file is not None:

@@ -323,6 +323,11 @@ def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):
     assert row["effective_matching"] == 0.9
     assert row["difference"]["kind"] == "alignment_or_structure"
     assert row["reported_difference"]["kind"] == "branch_target"
+    assert row["first_difference"]["kind"] == "branch_target"
+    assert row["first_difference"]["original"]["name"] == "Widget::Run"
+    assert row["first_difference"]["original"]["address"] == "0x00401000"
+    assert row["artifacts"]["diff"] == "build/reports/compare/00401000.txt"
+    assert (tmp_path / row["artifacts"]["diff"]).is_file()
     assert row["instruction_window"]["original"][0]["divergence"]
 
 

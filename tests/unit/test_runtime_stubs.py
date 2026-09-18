@@ -18,10 +18,14 @@ import pytest
 from wiz8decomp.runtime_stubs import (
     COMPARISON_LINK_DIR,
     COMPARISON_RESPONSE,
+    DeclaredCallable,
     ResolvedStub,
+    RuntimeStubError,
+    SourceFacts,
     linked_objects,
     render_alias_object,
     render_source,
+    resolve_stubs,
 )
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
@@ -85,8 +89,83 @@ def test_generated_source_uses_stub_markers_and_never_function() -> None:
 
     assert "// STUB: WIZ8 0x00401000" in source
     assert "// STUB: WIZ8 0x00401010" in source
+    assert "// STUB: WIZ8 unmapped _missing_stdcall@4" in source
     assert "// FUNCTION:" not in source
     assert "WIZ8_RUNTIME_STUB" not in source  # the trap prints that, not the table
+
+
+def test_resolve_stubs_binds_declaration_by_qualified_name(monkeypatch) -> None:
+    facts = SourceFacts(
+        markers_by_address={},
+        callables_by_name={
+            "SetMonsterGroupHostility": (
+                DeclaredCallable(
+                    address=0x00547570,
+                    source_file="src/wiz8/engine_code/Monster.cpp",
+                    parameter_count=2,
+                    folded=False,
+                    is_definition=False,
+                    signature="void (int, int)",
+                ),
+            )
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.unresolved_report",
+        lambda *_args, **_kwargs: {
+            "by_symbol": {"?SetMonsterGroupHostility@@YAXHH@Z": ["caller.obj"]}
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.demangle",
+        lambda _symbols: {
+            "?SetMonsterGroupHostility@@YAXHH@Z": "void SetMonsterGroupHostility(int, int)"
+        },
+    )
+    stubs = resolve_stubs(
+        SimpleNamespace(repo_dir=Path("/repo")),
+        object_root=Path("/obj"),
+        map_path=Path("/map"),
+        objects=[Path("/obj/caller.obj")],
+        facts=facts,
+        text_range=(0x401000, 0x600000),
+    )
+    assert stubs[0].address == 0x00547570
+    assert stubs[0].identity == "declaration"
+    assert stubs[0].source_file.endswith("Monster.cpp")
+
+
+def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:
+    facts = SourceFacts(
+        markers_by_address={},
+        callables_by_name={
+            "SetMonsterGroupHostility": (
+                DeclaredCallable(0x00547570, "a.cpp", 2, False, False, None),
+                DeclaredCallable(0x005477D0, "b.cpp", 2, False, False, None),
+            )
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.unresolved_report",
+        lambda *_args, **_kwargs: {
+            "by_symbol": {"?SetMonsterGroupHostility@@YAXHH@Z": ["caller.obj"]}
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.demangle",
+        lambda _symbols: {
+            "?SetMonsterGroupHostility@@YAXHH@Z": "void SetMonsterGroupHostility(int, int)"
+        },
+    )
+    with pytest.raises(RuntimeStubError, match="disagrees with the source declaration"):
+        resolve_stubs(
+            SimpleNamespace(repo_dir=Path("/repo")),
+            object_root=Path("/obj"),
+            map_path=Path("/map"),
+            objects=[Path("/obj/caller.obj")],
+            facts=facts,
+            text_range=(0x401000, 0x600000),
+        )
 
 
 @pytest.mark.skipif(not HAVE_TOOLCHAIN, reason="docker and wine are required")

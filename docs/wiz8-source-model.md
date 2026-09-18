@@ -44,9 +44,10 @@ contradiction, surfaced rather than papered over. A gap may contain a unit's una
 invisible TU, or the next unit's head, and is never assigned heuristically. Other official builds
 (demo, 1.2.6, 1.2.8) contribute `cross-build` anchors through unique relocation-insensitive body
 matches, which can establish a retail hull for a unit whose retail path string is gone; ambiguous or
-non-unique matches stay unknown. The same layout drives `wiz8 report context`, `wiz8 recover`, and
-`wiz8 report translation-units`; the placement validator in `uv run wiz8 check` compares it against
-the current source-index placement and enforces every anchored function. The earlier provisional Video2
+non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`,
+`wiz8 recover`, and `wiz8 report translation-units`; the placement validator in
+`uv run wiz8 check` compares it against the current source-index placement and enforces every
+anchored function. The earlier provisional Video2
 exemptions are gone: the cursor, window and dirty-tile bodies were consolidated into
 `src/wiz8/engine_code/Video2.cpp` rather than kept in invented semantic units.
 
@@ -369,8 +370,8 @@ Use the authoritative surfaces instead:
 
 - C++ declarations, inheritance, `static_assert` layout checks, and function markers for the
   source-owned model;
-- `uv run wiz8 report context 0x<address> --program <program>` for joined identity, ownership,
-  assertion, and current Ghidra evidence;
+- `uv run wiz8 ghidra decompile 0x<address>` / `ghidra sym 0x<address>` for native identity,
+  ownership attachment, and current Ghidra evidence;
 - `uv run wiz8 analyze source-layouts` for an on-demand PDB-to-Ghidra layout comparison;
   it reports current disagreements and does not keep a committed failure baseline;
 - `uv run wiz8 compare <addresses>` for relocation-masked body proof;

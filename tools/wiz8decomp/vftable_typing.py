@@ -34,8 +34,7 @@ from pathlib import Path
 from typing import Any
 
 from .class_binding import _sanitize_class_parts
-from .config import Settings
-from .paths import atomic_json, repo_relative, sha256_file
+from .paths import sha256_file
 from .source_index import SourceIndex, load_source_index, source_functions
 
 _SCHEMA = "wiz8.vftable-typing-v2"
@@ -1451,96 +1450,3 @@ def apply_vftable_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
         "vftables": result["rows"],
         "vbtables": vbtable_result.get("vbtables") or [],
     }
-
-
-def run_vftable_typing(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    class_names: Sequence[str] | None = None,
-    limit: int | None = None,
-) -> dict[str, Any]:
-    """Report or apply typed vftable Structures."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_vftable_typing_plan(
-            settings.repo_dir,
-            program,
-            work_dir=settings.work_dir,
-            target=target,
-            class_names=class_names,
-            limit=limit,
-        )
-        from .vbtable_typing import collect_vbtable_typing_plan
-
-        vb_plan = collect_vbtable_typing_plan(
-            settings.repo_dir,
-            program,
-            work_dir=settings.work_dir,
-            target=target,
-            class_names=class_names,
-            limit=limit,
-        )
-        plan["vbtables"] = vb_plan.get("vbtables") or []
-        merged_counts = Counter(plan.get("counts") or {})
-        for key, value in (vb_plan.get("counts") or {}).items():
-            merged_counts[f"vbtable-{key}"] += int(value)
-        plan["counts"] = dict(sorted(merged_counts.items()))
-        plan["actionable"] = int(plan.get("actionable") or 0) + int(vb_plan.get("actionable") or 0)
-        # Bound the on-disk report: drop per-slot prototypes in the saved artifact sample.
-        compact = {
-            **plan,
-            "vftables": [
-                {k: v for k, v in row.items() if k != "slots"}
-                | {
-                    "slots": [
-                        {
-                            "index": s["index"],
-                            "target": s["target"],
-                            "name": s.get("name"),
-                            "fd_source": s.get("fd_source"),
-                        }
-                        for s in row.get("slots", [])
-                    ]
-                }
-                for row in plan["vftables"]
-            ],
-            "program": program_name,
-            "apply": apply,
-        }
-        out_dir = settings.build_dir / "vftable-typing"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, compact)
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": compact["vftables"][:15],
-            "vbtable_sample": (compact.get("vbtables") or [])[:15],
-        }
-        if not apply:
-            return result
-
-        applied = apply_vftable_typing(program, plan)
-        dispose_sessions()
-        program.save("Type known vftables", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["skipped_fallback"] = len(applied.get("skipped") or [])
-        result["sample"] = applied["vftables"][:15]
-        result["vbtable_sample"] = (applied.get("vbtables") or [])[:15]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        return result

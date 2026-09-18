@@ -16,9 +16,6 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from .config import Settings
-from .paths import atomic_json, repo_relative
-
 _SCHEMA = "wiz8.cosmic-forge-globals-v1"
 _OVERRIDES = Path("evidence/reviewed/wiz8/formats/cfdat-overrides.csv")
 
@@ -493,45 +490,3 @@ def apply_cosmic_forge_globals(program: Any, plan: dict[str, Any]) -> dict[str, 
         "skipped": skipped,
         "globals": result["rows"],
     }
-
-
-def run_cosmic_forge_globals(
-    settings: Settings,
-    *,
-    program_name: str = "wiz8",
-    apply: bool = False,
-) -> dict[str, Any]:
-    """Report or apply Cosmic Forge ``.cfdat`` destination typings."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_cosmic_forge_plan(settings.repo_dir, program)
-        out_dir = settings.build_dir / "cosmic-forge-globals"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": plan["globals"][:20],
-        }
-        if not apply:
-            return result
-        applied = apply_cosmic_forge_globals(program, plan)
-        dispose_sessions()
-        program.save("Type Cosmic Forge cfdat destinations", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["globals"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        return result

@@ -32,21 +32,45 @@ _STYLES = ("decompile", "normalize", "paramid")
 # the program's saved decompiler options (historical default).
 _PROFILES = ("program", "analysis", "recovery")
 
-# (program unique id, domain, style, profile, c_output) -> DecompInterface
-_sessions: dict[tuple[int, str, str], Any] = {}
-# (session key, function entry) -> DecompileResults
-_results: dict[tuple[int, str, str, str], Any] = {}
+
+def _session(
+    program: Any,
+    style: str,
+    *,
+    c_output: bool,
+    profile: str = "analysis",
+    session: Any | None = None,
+) -> Any:
+    """Decompiler interface for this command-local session."""
+
+    from .inspect import DecompileSession
+
+    if style not in _STYLES:
+        raise ValueError(f"unknown decompiler style: {style}")
+    if profile not in _PROFILES:
+        raise ValueError(f"unknown decompiler profile: {profile}")
+    active = session or DecompileSession(program, profile=profile)
+    return active.interface(style, c_output=c_output)
 
 
-def _domain_identity(program: Any) -> str:
-    """Project and domain path for one open ProgramDB clone."""
+def _decompile_result(
+    program: Any,
+    function: Any,
+    style: str,
+    *,
+    c_output: bool,
+    profile: str = "analysis",
+    session: Any | None = None,
+) -> Any:
+    from .inspect import DecompileSession
 
+    active = session or DecompileSession(program, profile=profile)
+    close = session is None
     try:
-        domain = program.getDomainFile()
-        locator = domain.getProjectLocator()
-        return f"{locator.getLocation()}::{locator.getName()}::{domain.getPathname()}"
-    except Exception:  # noqa: BLE001 - transient programs may have no domain file
-        return f"transient:{program.getName()}:{id(program)}"
+        return active.decompile(function, style, c_output=c_output)
+    finally:
+        if close:
+            active.close()
 
 
 def _node_key(node: Any) -> tuple[Any, ...] | None:
@@ -63,108 +87,17 @@ def _node_key(node: Any) -> tuple[Any, ...] | None:
     )
 
 
-def _apply_profile(options: Any, profile: str) -> None:
-    """Mutate ``DecompileOptions`` for a named enrichment/recovery profile."""
-
-    if profile == "program":
-        return
-    if profile == "analysis":
-        # Aggressive high-level reconstruction for reading / enrichment scoring.
-        options.setInferConstantPointers(True)
-        options.setRespectReadOnly(True)
-        options.setAnalyzeForLoops(True)
-        options.setSplitStructures(True)
-        options.setSplitArrays(True)
-        options.setSplitPointers(True)
-        options.setEliminateUnreachable(True)
-        return
-    if profile == "recovery":
-        # Fresh defaults plus explicit recovery knobs (every analysis knob set).
-        # Avoid grabFromProgram so saved analysis options cannot leak in.
-        options.setInferConstantPointers(False)
-        options.setRespectReadOnly(False)
-        options.setAnalyzeForLoops(False)
-        options.setSplitStructures(False)
-        options.setSplitArrays(False)
-        options.setSplitPointers(False)
-        options.setEliminateUnreachable(False)
-        return
-    raise ValueError(f"unknown decompiler profile: {profile}")
-
-
-def _session(program: Any, style: str, *, c_output: bool, profile: str = "program") -> Any:
-    """The persistent decompiler interface for `program` in `style`.
-
-    C generation is part of the key: toggling it resets an open interface, so
-    an extraction session (tree only) and a presentation session (tree plus C)
-    coexist rather than thrash one interface's configuration.
-    """
-
-    from ghidra.app.decompiler import DecompileOptions, DecompInterface
-
-    if style not in _STYLES:
-        raise ValueError(f"unknown decompiler style: {style}")
-    if profile not in _PROFILES:
-        raise ValueError(f"unknown decompiler profile: {profile}")
-    key = (
-        int(program.getUniqueProgramID()),
-        _domain_identity(program),
-        f"{style}:{profile}:{'c' if c_output else 'tree'}",
-    )
-    interface = _sessions.get(key)
-    if interface is not None:
-        return interface
-    options = DecompileOptions()
-    if profile != "recovery":
-        # ``program``: saved options only. ``analysis``: saved + analysis knobs.
-        options.grabFromProgram(program)
-    _apply_profile(options, profile)
-    interface = DecompInterface()
-    interface.setOptions(options)
-    interface.setSimplificationStyle(style)
-    if not c_output:
-        interface.toggleCCode(False)
-        interface.toggleSyntaxTree(True)
-    interface.openProgram(program)
-    _sessions[key] = interface
-    return interface
-
-
-def _decompile_result(
-    program: Any, function: Any, style: str, *, c_output: bool, profile: str = "program"
-) -> Any:
-    from ghidra.util.task import TaskMonitor
-
-    session_key = (
-        int(program.getUniqueProgramID()),
-        _domain_identity(program),
-        f"{style}:{profile}:{'c' if c_output else 'tree'}",
-    )
-    key = (*session_key, str(function.getEntryPoint()))
-    if key not in _results:
-        _results[key] = _session(
-            program, style, c_output=c_output, profile=profile
-        ).decompileFunction(function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY)
-    return _results[key]
-
-
-def dispose_sessions() -> None:
-    """Release every cached interface when the batch session closes."""
-
-    import contextlib
-
-    _results.clear()
-    while _sessions:
-        _, interface = _sessions.popitem()
-        # A dying JVM can make dispose fail; the process is exiting either way.
-        with contextlib.suppress(Exception):
-            interface.dispose()
-
-
 def _high_function(
-    program: Any, function: Any, style: str = "decompile", *, profile: str = "program"
+    program: Any,
+    function: Any,
+    style: str = "decompile",
+    *,
+    profile: str = "analysis",
+    session: Any | None = None,
 ) -> Any:
-    result = _decompile_result(program, function, style, c_output=False, profile=profile)
+    result = _decompile_result(
+        program, function, style, c_output=False, profile=profile, session=session
+    )
     high = result.getHighFunction() if result is not None else None
     if high is None:
         error = result.getErrorMessage() if result is not None else "no result"
@@ -174,10 +107,14 @@ def _high_function(
     return high
 
 
-def decompile_c(program: Any, function: Any, *, profile: str = "program") -> dict[str, Any]:
-    """Render C through the same persistent service used for HighFunction."""
+def decompile_c(
+    program: Any, function: Any, *, profile: str = "analysis", session: Any | None = None
+) -> dict[str, Any]:
+    """Render C through a command-local decompiler session."""
 
-    result = _decompile_result(program, function, "decompile", c_output=True, profile=profile)
+    result = _decompile_result(
+        program, function, "decompile", c_output=True, profile=profile, session=session
+    )
     completed = bool(result is not None and result.decompileCompleted())
     rendered = result.getDecompiledFunction() if completed else None
     return {
@@ -236,9 +173,10 @@ def _symbol_entry(symbol: Any) -> dict[str, Any]:
 def high_function(program: Any, argument: str) -> dict[str, Any]:
     """Prototype, parameters, locals and high variables of one function."""
 
-    from .query import _function, function_facts
+    from .inspect import function_facts
+    from .resolve import resolve_function
 
-    function = _function(program, argument)
+    function = resolve_function(program, argument)
     high = _high_function(program, function)
     prototype = high.getFunctionPrototype()
     parameters = [
@@ -264,9 +202,9 @@ def high_function(program: Any, argument: str) -> dict[str, Any]:
 def pcode(program: Any, argument: str, style: str = "decompile") -> dict[str, Any]:
     """The function's P-code stream in execution order, one entry per op."""
 
-    from .query import _function
+    from .resolve import resolve_function
 
-    function = _function(program, argument)
+    function = resolve_function(program, argument)
     high = _high_function(program, function, style)
     return _pcode_document(function, high, style)
 
@@ -596,9 +534,9 @@ def field_accesses(program: Any, argument: str, root: str) -> dict[str, Any]:
     a member's null test with the calls of the guarded successor block instead.
     """
 
-    from .query import _function
+    from .resolve import resolve_function
 
-    function = _function(program, argument)
+    function = resolve_function(program, argument)
     high = _high_function(program, function)
     symbol = _resolve_root(high, root)
     instances = _instances(symbol)
@@ -721,10 +659,10 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
     these accesses without regexing decompiler presentation.
     """
 
-    from .query import _address, _function
+    from .resolve import program_address, resolve_function
 
-    call_address = _address(program, argument)
-    function = _function(program, argument)
+    call_address = program_address(program, argument)
+    function = resolve_function(program, argument)
     high = _high_function(program, function, "normalize")
     operations = list(high.getPcodeOps())
     calls = [
@@ -997,10 +935,10 @@ def _callsite_facts(function: Any, high: Any, addresses: set[str] | None = None)
 def callsite(program: Any, argument: str) -> dict[str, Any]:
     """The CALL or CALLIND at one address, with normalized arguments."""
 
-    from .query import _address, _function
+    from .resolve import program_address, resolve_function
 
-    address = _address(program, argument)
-    function = _function(program, argument)
+    address = program_address(program, argument)
+    function = resolve_function(program, argument)
     high = _high_function(program, function)
     facts = _callsite_facts(function, high, {str(address)})
     sites = facts["sites"]

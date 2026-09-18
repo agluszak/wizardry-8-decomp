@@ -38,19 +38,19 @@ def _index() -> dict[str, Any]:
 
     These rules require a current index. `uv run wiz8 check` refreshes it before
     the repository suite; for a direct run after source changes, refresh with
-    `uv run wiz8 analyze source-index` first.
+    `uv run wiz8 check` first.
 
     Do not add an mtime-based staleness assert here: the writer preserves the
     file when regenerated content is byte-identical, so mtime comparison
     reports false staleness.
     """
     path = REPOSITORY / "build" / "source-index.json"
-    assert path.is_file(), f"{path} is missing; generate it with `uv run wiz8 analyze source-index`"
+    assert path.is_file(), f"{path} is missing; generate it with `uv run wiz8 check`"
     with path.open(encoding="utf-8") as handle:
         index = json.load(handle)
 
     assert index.get("markers") and index.get("classes") and index.get("declarations"), (
-        "source index is empty or truncated; regenerate it with `uv run wiz8 analyze source-index`"
+        "source index is empty or truncated; regenerate it with `uv run wiz8 check`"
     )
     return index
 

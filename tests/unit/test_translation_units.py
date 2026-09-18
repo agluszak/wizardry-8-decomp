@@ -6,6 +6,8 @@ from types import SimpleNamespace
 
 from wiz8decomp.ghidra.unit_intervals import TranslationUnitLayout
 from wiz8decomp.reports.translation_units import (
+    assertion_containment_rows,
+    implementation_census_rows,
     translation_unit_report,
 )
 
@@ -36,24 +38,29 @@ def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: 
     shutil.copyfile(repository / "build/source-index.json", tmp_path / "build/source-index.json")
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
-    from wiz8decomp.ghidra import query
+    from wiz8decomp.ghidra import inspect
     from wiz8decomp.source_index import source_functions
 
-    original = query.function_inventory
-    query.function_inventory = lambda _settings: [
+    original = inspect.function_inventory
+    original_containing = inspect.containing_functions
+    inspect.function_inventory = lambda _settings: [
         {"entry": f"0x{address:08x}", "name": function.name}
         for address, function in source_functions(tmp_path).items()
     ]
+    inspect.containing_functions = lambda *_args, **_kwargs: {}
     try:
         result = translation_unit_report(settings)
     finally:
-        query.function_inventory = original
+        inspect.function_inventory = original
+        inspect.containing_functions = original_containing
 
     assert result["outputs"] == [
         "build/reports/translation-units/translation-unit-intervals.csv",
         "build/reports/translation-units/gameplay-translation-units.csv",
         "build/reports/translation-units/original-translation-units.csv",
         "build/reports/translation-units/misplaced-functions.csv",
+        "build/reports/translation-units/function-census.csv",
+        "build/reports/translation-units/assertion-containment.csv",
     ]
     assert all((tmp_path / path).is_file() for path in result["outputs"])
 
@@ -135,7 +142,7 @@ def test_original_unit_statuses_and_misplaced_detection(tmp_path: Path) -> None:
             )
 
     from wiz8decomp import source_index
-    from wiz8decomp.ghidra import query
+    from wiz8decomp.ghidra import inspect
 
     def marker(address: int, source_file: str, name: str) -> SimpleNamespace:
         return SimpleNamespace(
@@ -145,15 +152,17 @@ def test_original_unit_statuses_and_misplaced_detection(tmp_path: Path) -> None:
         )
 
     original = source_index.source_functions
-    original_inventory = query.function_inventory
+    original_inventory = inspect.function_inventory
+    original_containing = inspect.containing_functions
     source_index.source_functions = lambda _repo, target="WIZ8": {
         0x401050: marker(0x401050, "src/wiz8/engine_code/Recovered.cpp", "RecoveredFn"),
         0x402050: marker(0x402050, "src/wiz8/engine_code/OtherUnit.cpp", "MisplacedFn"),
     }
-    query.function_inventory = lambda _settings: [
+    inspect.function_inventory = lambda _settings: [
         {"entry": "0x00401050", "name": "RecoveredFn"},
         {"entry": "0x00402050", "name": "MisplacedFn"},
     ]
+    inspect.containing_functions = lambda *_args, **_kwargs: {}
     try:
         settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
         from wiz8decomp.ghidra.unit_intervals import assertion_anchors
@@ -165,7 +174,8 @@ def test_original_unit_statuses_and_misplaced_detection(tmp_path: Path) -> None:
         )
     finally:
         source_index.source_functions = original
-        query.function_inventory = original_inventory
+        inspect.function_inventory = original_inventory
+        inspect.containing_functions = original_containing
 
     by_path = {
         row["original_path"]: row
@@ -194,3 +204,70 @@ def test_original_unit_statuses_and_misplaced_detection(tmp_path: Path) -> None:
         "absent": 1,
         "evidence-insufficient": 1,
     }
+
+
+def test_implementation_census_is_independent_of_ownership() -> None:
+    layout = TranslationUnitLayout([])
+    recovered = SimpleNamespace(
+        kind="definition",
+        qualified_name="RecoveredFn",
+        name="RecoveredFn",
+        is_definition=True,
+    )
+    declared = SimpleNamespace(
+        kind="declaration",
+        qualified_name="EquipMatchingPartnerItem",
+        name="EquipMatchingPartnerItem",
+        is_definition=False,
+    )
+    gameplay = [
+        {
+            "address": "00401050",
+            "symbol": "RecoveredFn",
+            "owner": "source",
+            "source_path": "src/wiz8/engine_code/Recovered.cpp",
+        },
+        {"address": "00403000", "symbol": "FUN_00403000", "owner": "", "source_path": ""},
+    ]
+    rows = implementation_census_rows(
+        gameplay,
+        layout,
+        identities={
+            0x401050: (recovered,),
+            0x51EB90: (declared,),
+        },
+        assertion_functions={0x401000},
+    )
+    by_address = {row["address"]: row for row in rows}
+    assert by_address["00401050"]["implementation"] == "recovered"
+    assert by_address["00401050"]["source_state"] == "definition"
+    assert by_address["0051eb90"]["implementation"] == "declaration-only"
+    assert by_address["0051eb90"]["ghidra_entry"] == "no"
+    assert by_address["00403000"]["implementation"] == "missing"
+    assert by_address["00403000"]["ghidra_entry"] == "yes"
+
+
+def test_assertion_containment_keeps_path_line_expression() -> None:
+    rows = assertion_containment_rows(
+        [
+            {
+                "call_site": "0051BA1A",
+                "containing_function": "0051BA00",
+                "source_path": r"C:\Projects\Wizardry 8\Engine Code\PC Item.cpp",
+                "line": "10",
+                "expression": "EquipMatchingPartnerItem",
+            },
+            {
+                "call_site": "0051BAA8",
+                "containing_function": "0051BA00",
+                "source_path": r"C:\Projects\Wizardry 8\Engine Code\PC Item.cpp",
+                "line": "20",
+                "expression": "x",
+            },
+        ],
+        containing={0x0051BA1A: 0x0051BA00, 0x0051BAA8: None},
+    )
+    assert rows[0]["status"] == "agree"
+    assert rows[0]["source_path"].endswith("PC Item.cpp")
+    assert rows[0]["line"] == "10"
+    assert rows[1]["status"] == "unknown"

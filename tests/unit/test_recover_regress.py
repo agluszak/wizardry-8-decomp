@@ -8,9 +8,6 @@ and line splicing with restoration semantics.
 from __future__ import annotations
 
 import pytest
-from typer.testing import CliRunner
-from wiz8decomp import command_support
-from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     block_end_line,
     compile_diagnostics,
@@ -21,68 +18,11 @@ from wiz8decomp.recover import (
     marker_span,
     place_address,
     project_source_forms,
-    recover_candidates,
     resolve_source_placement,
     splice_lines,
     suggest_includes,
     verify_marker_adjacency,
 )
-
-
-def test_recover_candidates_preserves_source_and_writes_each_candidate(
-    tmp_path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    from types import SimpleNamespace
-
-    from wiz8decomp import recover
-
-    source = tmp_path / "unit.cpp"
-    source.write_text("int existing;\n", encoding="utf-8")
-    settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
-    monkeypatch.setattr(
-        "wiz8decomp.source_index.load_source_index",
-        lambda *_args: {"markers": []},
-    )
-    monkeypatch.setattr(
-        "wiz8decomp.ghidra.recovery.recover_functions",
-        lambda *_args, **_kwargs: {
-            "exports": [
-                {
-                    "entry": "0x00401000",
-                    "generated_code": "void candidate() {}\n",
-                    "source_candidates": [
-                        {
-                            "semantic_id": "?candidate@@YAXXZ",
-                            "qualified_name": "candidate",
-                            "source_signature": "void candidate()",
-                            "source_file": "unit.cpp",
-                            "line": 2,
-                            "evidence": "exact qualified name and parameter count",
-                        }
-                    ],
-                    "recovery": {"blockers": [], "defects": []},
-                }
-            ]
-        },
-    )
-    monkeypatch.setattr(
-        recover,
-        "resolve_source_placement",
-        lambda *_args, **_kwargs: {
-            "status": "placed",
-            "source_file": "unit.cpp",
-            "after_line": 1,
-        },
-    )
-
-    result = recover_candidates(settings, ["0x00401000"])
-
-    assert source.read_text(encoding="utf-8") == "int existing;\n"
-    assert result["functions"][0]["candidate"] == "build/recover/candidates/00401000.cpp"
-    assert result["functions"][0]["source_candidates"][0]["semantic_id"] == ("?candidate@@YAXXZ")
-    assert (tmp_path / result["functions"][0]["candidate"]).read_text(encoding="utf-8") == (
-        "void candidate() {}\n"
-    )
 
 
 def test_exported_blocks_uses_structured_per_entry_results() -> None:
@@ -353,19 +293,6 @@ def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
     ]
     suggestions = suggest_includes(tmp_path, diagnostics)
     assert suggestions == {"W8Chunk": ["include/wiz8/chunk.h"]}
-
-
-def test_recover_function_command_generates_a_batch(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(command_support, "settings", lambda: object())
-
-    def fake_recover(settings, selectors, *, program_selector):
-        assert selectors == ["0x004a6970", "0x004a6980"]
-        return {"schema": "wiz8.recovery-candidates", "functions": []}
-
-    monkeypatch.setattr("wiz8decomp.recover.recover_candidates", fake_recover)
-    result = CliRunner().invoke(app, ["recover", "function", "0x004a6970", "0x004a6980"])
-    assert result.exit_code == 0
-    assert "wiz8.recovery-candidates" in result.stdout
 
 
 def test_verify_marker_adjacency_proves_the_span_start() -> None:
