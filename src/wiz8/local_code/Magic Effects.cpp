@@ -1560,7 +1560,7 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
     W8CombatSlot target;
     unsigned char verbose;
     unsigned int duration;
-    unsigned int absorbed;
+    int remaining;
     int affected;
     int character_index;
     int index;
@@ -1581,13 +1581,17 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
         target.iChar = character_index;
         if (effect->kind == 0x1d &&
             g_status_685170.buffers.characters[character_index].enchantments[5].value_08 != 0) {
-            absorbed = duration -
-                       g_status_685170.buffers.characters[character_index].enchantments[5].value_08;
+            /* Retail subtracts the shield with signed JLE on the leftover. */
+            remaining =
+                static_cast<int>(duration) -
+                static_cast<int>(
+                    g_status_685170.buffers.characters[character_index].enchantments[5].value_08);
             TickCharacterEnchantmentSlot(character_index, 5, duration);
-            if (absorbed > 0 &&
-                ResolveAttackOnTarget00551BA0(
-                    &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
-                    effect->definition.power_level, argument, absorbed, verbose, verbose, 0) == 0) {
+            if (remaining > 0 &&
+                ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
+                                              g_spell_records[effect->kind].realm,
+                                              effect->definition.power_level, argument, remaining,
+                                              verbose, verbose, 0) == 0) {
                 if (verbose == 0) {
                     ++affected;
                 }
@@ -1623,12 +1627,14 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
         if (effect->kind == 0x1d && monster_info->enchantments[5].value_08 != 0) {
-            absorbed = duration - monster_info->enchantments[5].value_08;
+            remaining = static_cast<int>(duration) -
+                        static_cast<int>(monster_info->enchantments[5].value_08);
             TickMonsterEnchantmentSlot(monster_info->location_id, 5, duration);
-            if (absorbed > 0 &&
-                ResolveAttackOnTarget00551BA0(
-                    &effect->Source, &target, condition, g_spell_records[effect->kind].realm,
-                    effect->definition.power_level, argument, absorbed, verbose, verbose, 0) == 0) {
+            if (remaining > 0 &&
+                ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
+                                              g_spell_records[effect->kind].realm,
+                                              effect->definition.power_level, argument, remaining,
+                                              verbose, verbose, 0) == 0) {
                 if (verbose == 0) {
                     ++affected;
                 }

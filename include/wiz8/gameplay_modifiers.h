@@ -33,6 +33,11 @@ struct W8EffectSlot {
 }; /* 0x11 */
 
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
+static_assert(offsetof(W8EffectSlot, active) == 0x00, "W8EffectSlot_active");
+static_assert(offsetof(W8EffectSlot, effect_id) == 0x01, "W8EffectSlot_effect_id");
+static_assert(offsetof(W8EffectSlot, amount) == 0x05, "W8EffectSlot_amount");
+static_assert(offsetof(W8EffectSlot, percent) == 0x09, "W8EffectSlot_percent");
+static_assert(offsetof(W8EffectSlot, duration_0d) == 0x0d, "W8EffectSlot_duration_0d");
 
 /* The 0x67-byte modifier accumulator. Its byte runs are fixed by the fold at
    0x0050F090: bytes 0x00..0x0b, 0x0c..0x12, 0x13..0x3b and 0x3c..0x41 are

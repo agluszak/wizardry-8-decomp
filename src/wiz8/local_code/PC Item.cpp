@@ -963,9 +963,11 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
    stays -1 when nothing was attempted. */
 #pragma clang diagnostic push
-/* The two quantity-notice paths end without casting anything and never assign
-   the result; retail reads the argument's own stack slot there, so the caller
-   sees the stale nonzero value it pushed rather than a failure. */
+/* Several early exits (empty quantity-kind notices, blocked casting aid,
+   casting-aid power reduced to zero) never assign `used`. Retail leaves that
+   local uninitialized; VC6 reuses the `character` parameter's stack slot for
+   it, so those paths happen to return the low byte of the pointer. Preserve
+   the unassigned local rather than encoding that slot reuse as semantics. */
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
 // FUNCTION: WIZ8 0x0051dde0
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
@@ -1032,10 +1034,14 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             /* A casting aid has to beat the difficulty of the character's own
                level in the skill that presents the spell. Each attempt that
                fails is retried one power lower, and the first roll that
-               succeeds ends the search. */
-            skill = record->spell_id != 0x58 && record->spell_id != 0x74
-                        ? g_item_spell_presentation[record->category]
-                        : -1;
+               succeeds ends the search.
+
+               Spells 0x58/'X' and 0x74/'t' set skill to -1 via
+               GetItemSpellPresentation. Unlike CastItemSpell0051EE70, which
+               skips difficulty and practice for those ids, retail UseItem
+               still evaluates skills[skill].level and can
+               PracticeCharacterSkill with skill == -1 when power hits zero. */
+            skill = GetItemSpellPresentation(record);
             power = 7;
             do {
                 if (GetItemUseDifficulty0051DCD0(character, skill, character->skills[skill].level,
