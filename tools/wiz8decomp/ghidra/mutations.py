@@ -46,7 +46,8 @@ def apply_rows(
                 result = dict(apply_one(program, row))
                 if result.get("error"):
                     raise RowApplyError(result)
-                applied.append(result)
+            # Count applied only after the transaction exits successfully.
+            applied.append(result)
         except RowApplyError as exc:
             errors.append(exc.payload)
         except Exception as exc:  # noqa: BLE001

@@ -63,9 +63,19 @@ def _sanitize_class_parts(owning_class: str) -> tuple[tuple[str, ...], str]:
 def is_ghidra_class(namespace: Any) -> bool:
     """True when ``namespace`` is a Ghidra ``GhidraClass`` (12.1.3+ listing API)."""
 
-    from ghidra.program.model.listing import GhidraClass  # type: ignore[import-not-found]
+    if namespace is None:
+        return False
+    ghidra_class_type: type | None
+    try:
+        from ghidra.program.model.listing import GhidraClass  # type: ignore[import-not-found]
 
-    return isinstance(namespace, GhidraClass)
+        ghidra_class_type = GhidraClass
+    except Exception:  # noqa: BLE001 — unit fakes / stubs before pyghidra
+        ghidra_class_type = None
+    if ghidra_class_type is not None and isinstance(namespace, ghidra_class_type):
+        return True
+    is_class = getattr(namespace, "isClass", None)
+    return bool(callable(is_class) and is_class())
 
 
 def find_ghidra_class(program: Any, owning_class: str) -> Any | None:
@@ -103,12 +113,22 @@ def ensure_ghidra_class(program: Any, owning_class: str) -> Any:
         namespace = child
     existing = symbols.getNamespace(class_name, namespace)
     if existing is not None:
-        if not is_ghidra_class(existing):
+        if is_ghidra_class(existing):
+            return existing
+        # PDB/reccmp often leaves a plain namespace with the class name.
+        # Convert it so VariableUtilities can bind the Structure.
+        convert = getattr(symbols, "convertNamespaceToClass", None)
+        if not callable(convert):
             raise RuntimeError(
                 f"namespace collision: {owning_class!r} exists as a plain namespace, "
-                "not a GhidraClass"
+                "not a GhidraClass (SymbolTable.convertNamespaceToClass unavailable)"
             )
-        return existing
+        converted = convert(existing)
+        if not is_ghidra_class(converted):
+            raise TypeError(
+                f"convertNamespaceToClass did not return a GhidraClass for {owning_class!r}"
+            )
+        return converted
     created = symbols.createClass(namespace, class_name, SourceType.IMPORTED)
     if not is_ghidra_class(created):
         raise TypeError(f"createClass did not return a GhidraClass for {owning_class!r}")
@@ -118,20 +138,22 @@ def ensure_ghidra_class(program: Any, owning_class: str) -> Any:
 def find_class_structure(program: Any, ghidra_class: Any) -> Any | None:
     """Structure Ghidra associates with ``ghidra_class``, or None."""
 
+    if ghidra_class is None or not is_ghidra_class(ghidra_class):
+        return None
+
     from ghidra.program.model.listing import VariableUtilities  # type: ignore[import-not-found]
 
-    if not is_ghidra_class(ghidra_class):
-        return None
     return VariableUtilities.findExistingClassStruct(ghidra_class, program.getDataTypeManager())
 
 
 def find_or_create_class_structure(program: Any, ghidra_class: Any) -> Any | None:
     """Existing class Structure, or Ghidra's placeholder (may be uncommitted)."""
 
+    if ghidra_class is None or not is_ghidra_class(ghidra_class):
+        return None
+
     from ghidra.program.model.listing import VariableUtilities  # type: ignore[import-not-found]
 
-    if not is_ghidra_class(ghidra_class):
-        return None
     return VariableUtilities.findOrCreateClassStruct(ghidra_class, program.getDataTypeManager())
 
 
@@ -139,7 +161,14 @@ def legacy_enriched_structure(program: Any, owning_class: str) -> Any | None:
     """Structure previously projected under ``/wiz8/classes``, if any."""
 
     manager = program.getDataTypeManager()
-    for name in (owning_class, _simple_name(owning_class)):
+    candidates = [owning_class.replace("::", "/")]
+    if "::" not in owning_class:
+        candidates.append(_simple_name(owning_class))
+    seen: set[str] = set()
+    for name in candidates:
+        if not name or name in seen:
+            continue
+        seen.add(name)
         data_type = manager.getDataType(f"{_LEGACY_ENRICHED_CATEGORY}{name}")
         if data_type is not None:
             return data_type

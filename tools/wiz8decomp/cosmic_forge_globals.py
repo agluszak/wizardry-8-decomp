@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
 
 _SCHEMA = "wiz8.cosmic-forge-globals-v1"
 _OVERRIDES = Path("evidence/reviewed/wiz8/formats/cfdat-overrides.csv")
@@ -154,16 +154,21 @@ def _is_structure_data_type(data_type: Any | None) -> bool:
         current = current.getBaseDataType()
         if current is None:
             return False
+    structure_types: tuple[type, ...] | None = None
     try:
         from ghidra.program.model.data import (  # type: ignore[import-not-found]
             Structure,
             Union,
         )
 
-        return isinstance(current, (Structure, Union))
+        structure_types = (Structure, Union)
     except Exception:  # noqa: BLE001 — unit tests without Ghidra
-        name = type(current).__name__
-        return name in {"Structure", "StructureDataType", "Union", "UnionDataType"}
+        structure_types = None
+    if structure_types is not None and isinstance(current, structure_types):
+        return True
+    # Name fallback for fakes and when the live type is not a Structure/Union.
+    name = type(current).__name__
+    return name in {"Structure", "StructureDataType", "Union", "UnionDataType"}
 
 
 def _is_named_structure(
@@ -309,6 +314,12 @@ def _cf_type_decision(
     ):
         return False, None
 
+    parsed = _parse_array_name(current_type) if current_type else None
+    if parsed is not None and _is_named_structure(parsed[0]):
+        # Reviewed array of a named type (e.g. W8AttributeMinimums[11]) is
+        # stronger than flattening to a Cosmic Forge scalar array.
+        return False, "preserve-reviewed"
+
     rank = _datatype_rank(
         current_type,
         element_type=element_type,
@@ -376,8 +387,12 @@ def collect_cosmic_forge_plan(repository: Path, program: Any) -> dict[str, Any]:
             data_type=current_dt,
         )
         needs_name = symbol is None or str(symbol.getName()).startswith("DAT_")
+        current_primary = str(symbol.getName()) if symbol is not None else None
+        owned_by_other = current_primary is not None and not needs_name and current_primary != name
         if skip_action == "preserve-reviewed":
             action = "preserve-reviewed"
+        elif owned_by_other:
+            action = "name-mismatch"
         elif needs_type and needs_name:
             action = "set-type-and-name"
         elif needs_type:
@@ -423,9 +438,19 @@ def _apply_cosmic_forge_row(program: Any, row: Mapping[str, Any]) -> dict[str, A
     action = str(row.get("action") or "")
     address = space.getAddress(int(row["address"], 0))
     if action in {"set-type", "set-type-and-name"}:
+        from .ghidra.listing_guards import ClearRangeError, clear_code_units_guarded
+
         data_type = _array_from_override(dict(row))
         end = address.add(data_type.getLength() - 1)
-        listing.clearCodeUnits(address, end, False)
+        try:
+            clear_code_units_guarded(
+                program,
+                address,
+                end,
+                expected_name=str(row.get("name") or row.get("ghidra_symbol") or "") or None,
+            )
+        except ClearRangeError as exc:
+            return {**dict(row), **exc.payload}
         listing.createData(address, data_type)
     if action in {"set-name", "set-type-and-name"}:
         set_primary_label(program, address, str(row["name"]), SourceType.IMPORTED)
@@ -451,9 +476,21 @@ def apply_cosmic_forge_globals(program: Any, plan: dict[str, Any]) -> dict[str, 
         _apply_cosmic_forge_row,
         description="Type Cosmic Forge cfdat destinations",
     )
+    errors: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for row in result["errors"]:
+        if row.get("error") in {
+            "clear-range-foreign-symbol",
+            "clear-range-name-mismatch",
+            "clear-range-unowned-start",
+        }:
+            skipped.append({**dict(row), "skipped": row.get("error")})
+        else:
+            errors.append(row)
     return {
         "applied": result["applied"],
-        "errors": result["errors"],
+        "errors": errors,
+        "skipped": skipped,
         "globals": result["rows"],
     }
 
@@ -482,7 +519,7 @@ def run_cosmic_forge_globals(
             "apply": apply,
             "counts": plan["counts"],
             "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
+            "report": repo_relative(report_path, settings.repo_dir),
             "sample": plan["globals"][:20],
         }
         if not apply:
@@ -496,5 +533,5 @@ def run_cosmic_forge_globals(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
         return result

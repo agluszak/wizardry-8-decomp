@@ -26,10 +26,14 @@ from .class_binding import (
     resolve_class_binding,
 )
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
+from .prototype_repair import _normalize_ghidra, classify_pair
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.class-this-typing-v1"
+# Soft conventions we may promote to thiscall for class-binding (stdcall is
+# common PDB noise for methods). Explicit cdecl/fastcall are hard-disagree.
+_THISCALL_SOFT = frozenset({"default", "unknown", "__stdcall", ""})
 
 
 class StorageIdentityError(RuntimeError):
@@ -124,7 +128,16 @@ def collect_this_typing_plan(
         else:
             binding = resolve_class_binding(program, owning)
             this_type = _this_type_name(function)
-            if binding["status"] == "missing-structure":
+            ghidra_cc = _normalize_ghidra(function.getCallingConventionName())
+            if function.hasCustomVariableStorage():
+                action = "skip-custom-storage"
+            elif (
+                ghidra_cc not in _THISCALL_SOFT
+                and ghidra_cc != "__thiscall"
+                and classify_pair(ghidra_cc, "__thiscall") == "hard-disagree"
+            ):
+                action = "convention-hard-disagree"
+            elif binding["status"] in {"missing-structure", "missing-class"}:
                 action = "missing-structure"
                 missing_structures[owning] += 1
             elif binding_agrees(binding, function) and function.getParentNamespace() is not None:
@@ -139,17 +152,18 @@ def collect_this_typing_plan(
         counts[action] += 1
         if action == "agree":
             continue
-        rows.append(
-            {
-                "address": f"0x{address:08x}",
-                "name": marker.name,
-                "owning_class": owning,
-                "ghidra_this": this_type,
-                "structure_path": (binding or {}).get("structure_path"),
-                "ghidra_class": (binding or {}).get("ghidra_class"),
-                "action": action,
-            }
-        )
+        row: dict[str, Any] = {
+            "address": f"0x{address:08x}",
+            "name": marker.name,
+            "owning_class": owning,
+            "ghidra_this": this_type,
+            "structure_path": (binding or {}).get("structure_path"),
+            "ghidra_class": (binding or {}).get("ghidra_class"),
+            "action": action,
+        }
+        if action == "convention-hard-disagree" and function is not None:
+            row["ghidra_convention"] = _normalize_ghidra(function.getCallingConventionName())
+        rows.append(row)
 
     return {
         "schema": _SCHEMA,
@@ -171,9 +185,6 @@ def apply_this_typing_row(
 ) -> dict[str, Any]:
     """Apply one class-binding repair. Prefer dynamic auto ``this``."""
 
-    from ghidra.program.model.data import PointerDataType  # type: ignore[import-not-found]
-    from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
-
     space = program.getAddressFactory().getDefaultAddressSpace()
     functions = program.getFunctionManager()
     action = row.get("action")
@@ -184,6 +195,25 @@ def apply_this_typing_row(
     function = functions.getFunctionAt(space.getAddress(address))
     if function is None:
         return {**row, "error": "missing-function"}
+
+    if function.hasCustomVariableStorage() and not allow_custom_storage:
+        # Ordinary path must never silence custom-storage ABI by clearing it.
+        return {
+            **row,
+            "error": "skip-custom-storage",
+            "skipped": "skip-custom-storage",
+        }
+
+    current_cc = _normalize_ghidra(function.getCallingConventionName())
+    if current_cc != "__thiscall":
+        soft_ok = current_cc in _THISCALL_SOFT
+        if not soft_ok and classify_pair(current_cc, "__thiscall") == "hard-disagree":
+            return {
+                **row,
+                "error": "convention-hard-disagree",
+                "ghidra_convention": current_cc,
+                "skipped": "convention-hard-disagree",
+            }
 
     try:
         ghidra_class = ensure_ghidra_class(program, owning)
@@ -200,11 +230,7 @@ def apply_this_typing_row(
     namespace_changed = ensure_function_class_namespace(function, ghidra_class)
 
     # Ordinary path: dynamic storage + thiscall so auto this uses the bound Structure.
-    if function.hasCustomVariableStorage() and not allow_custom_storage:
-        function.setCustomVariableStorage(False)
-    if function.getCallingConventionName() != "__thiscall":
-        # Do not override an explicit hard-disagree convention silently; only
-        # set thiscall when dynamic auto-this is the goal of this pass.
+    if current_cc != "__thiscall":
         function.setCallingConvention("__thiscall")
 
     pointee = auto_this_structure(function)
@@ -212,8 +238,8 @@ def apply_this_typing_row(
     expected = str(structure.getPathName())
     if path == expected:
         after = _storage_snapshot(function)
-        if not _storage_matches(before, after) and allow_custom_storage:
-            # Unexpected storage reshuffle under custom-storage experiments.
+        # Ordinary path must not change parameter/return storage ABI.
+        if not _storage_matches(before, after):
             raise StorageIdentityError(row, before, after)
         return {
             "address": row["address"],
@@ -236,6 +262,9 @@ def apply_this_typing_row(
         }
 
     # Exceptional ABI path: explicit custom storage (opt-in only).
+    from ghidra.program.model.data import PointerDataType  # type: ignore[import-not-found]
+    from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
+
     function.setCustomVariableStorage(True)
     parameters = list(function.getParameters())
     if not parameters:
@@ -292,7 +321,7 @@ def apply_this_typing(
                 )
                 if result.get("error"):
                     raise _RowApplyError(result)
-                applied.append(result)
+            applied.append(result)
         except StorageIdentityError as exc:
             errors.append(
                 {
@@ -305,7 +334,13 @@ def apply_this_typing(
         except _RowApplyError as exc:
             payload = exc.payload
             err = str(payload.get("error") or "")
-            if err in {"auto-this-unbound", "requires-custom-storage", "namespace-collision"}:
+            if err in {
+                "auto-this-unbound",
+                "requires-custom-storage",
+                "skip-custom-storage",
+                "convention-hard-disagree",
+                "namespace-collision",
+            }:
                 skipped.append({**payload, "skipped": err})
             else:
                 errors.append(payload)
@@ -358,7 +393,7 @@ def run_class_this_typing(
             "counts": plan["counts"],
             "actionable": plan["actionable"],
             "missing_structure_classes": len(plan["missing_structures"]),
-            "report": str(report_path.relative_to(settings.repo_dir)),
+            "report": repo_relative(report_path, settings.repo_dir),
             "sample": plan["functions"][:20],
             "missing_structures_sample": plan["missing_structures"][:20],
         }
@@ -375,9 +410,9 @@ def run_class_this_typing(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
         if applied.get("skipped"):
             skip_path = out_dir / "skipped.json"
             atomic_json(skip_path, applied["skipped"])
-            result["skipped_report"] = str(skip_path.relative_to(settings.repo_dir))
+            result["skipped_report"] = repo_relative(skip_path, settings.repo_dir)
         return result

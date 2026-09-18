@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.prototype-repair-v1"
@@ -142,9 +142,12 @@ def apply_source_conventions(
             continue
         try:
             function.setCallingConvention(source_cc)
-            # Source-backed convention is IMPORTED provenance so Param ID does
-            # not immediately overwrite it with an analysis guess.
-            function.setSignatureSource(SourceType.IMPORTED)
+            # Convention-only repair must not claim a full-signature IMPORTED
+            # contract. ANALYSIS marks the convention as non-default without
+            # implying Param ID should treat the whole prototype as imported.
+            # A future path that applies a complete source signature may set
+            # SourceType.IMPORTED at that point.
+            function.setSignatureSource(SourceType.ANALYSIS)
         except Exception as exc:  # noqa: BLE001 - surface per-row apply failures
             errors.append({**row, "error": str(exc)})
             continue
@@ -197,7 +200,7 @@ def run_prototype_repair(
         out_dir = settings.build_dir / "prototype-repair"
         report_path = out_dir / "report.json"
         atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result["report"] = str(report_path.relative_to(settings.repo_dir))
+        result["report"] = repo_relative(report_path, settings.repo_dir)
 
         if not apply:
             # Bound stdout: keep only summary counts plus a short sample.
@@ -214,5 +217,5 @@ def run_prototype_repair(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
         return result

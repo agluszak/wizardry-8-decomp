@@ -15,12 +15,22 @@ from typing import Any
 
 from .config import Settings
 from .global_model import parse_global_definitions
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
 
 _SCHEMA = "wiz8.global-typing-v1"
 _ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\d*\])+)$")
 _POINTER_SUFFIX = re.compile(r"^(?P<base>.+?)\s*(?P<stars>\*+)\s*$")
 _TEMPLATE = re.compile(r"<([^<>]+)>")
+_CLASS_LIKE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$")
+
+
+def _is_class_like_type_name(type_name: str) -> bool:
+    """True for simple ``Class`` / ``ns::Class`` spellings without pointer/array/template noise."""
+
+    text = type_name.strip()
+    if not text or any(ch in text for ch in "*[](<>"):
+        return False
+    return _CLASS_LIKE.fullmatch(text) is not None
 
 
 def _strip_qualifiers(type_name: str) -> str:
@@ -98,22 +108,43 @@ def _named_data_type(program: Any, name: str) -> Any | None:
     simple = text.split("::")[-1].strip()
     if not simple:
         return None
-    # Prefer the Structure Ghidra associates with the class namespace (usually
-    # ``/ClassName`` from reccmp). Legacy ``/wiz8/classes`` copies remain a
-    # fallback for migration only — category path is not provenance.
+
+    # Class-like spellings resolve through class_binding first. Never select a
+    # legacy ``/wiz8/classes`` path as the write target for apply.
+    if _is_class_like_type_name(text):
+        from .class_binding import (
+            find_class_structure,
+            find_ghidra_class,
+            is_legacy_enriched_path,
+            resolve_class_binding,
+        )
+
+        binding = resolve_class_binding(program, text)
+        path = binding.get("structure_path")
+        if binding.get("status") == "bound" and path and not is_legacy_enriched_path(str(path)):
+            data_type = manager.getDataType(str(path))
+            if data_type is not None:
+                return data_type
+        ghidra_class = find_ghidra_class(program, text)
+        if ghidra_class is not None:
+            structure = find_class_structure(program, ghidra_class)
+            if structure is not None:
+                structure_path = str(structure.getPathName())
+                if not is_legacy_enriched_path(structure_path):
+                    return structure
+        # Fall through to non-legacy handwritten paths only (never /wiz8/classes).
+
     candidates: list[str] = []
     if text != simple:
         candidates.append(f"/{text}")
     candidates.extend(
         (
             f"/{simple}",
-            f"/wiz8/classes/{simple}",
             f"/wiz8/sgp/{simple}",
             f"/Demangler/{simple}",
         )
     )
-    if text != simple:
-        candidates.append(f"/wiz8/classes/{text}")
+    # Legacy /wiz8/classes is evidence-only elsewhere; never a resolve write target.
     seen: set[str] = set()
     for path in candidates:
         if path in seen or "//" in path or path.endswith("/"):
@@ -126,6 +157,13 @@ def _named_data_type(program: Any, name: str) -> Any | None:
                 raise
             continue
         if data_type is not None:
+            from .class_binding import is_legacy_enriched_path
+
+            resolved_path = (
+                str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
+            )
+            if is_legacy_enriched_path(resolved_path):
+                continue
             return data_type
     builtin = _builtin_data_type(program, simple)
     if builtin is not None:
@@ -199,13 +237,29 @@ def _path_leaf(path: str | None) -> str | None:
     return text.rsplit("/", 1)[-1].strip() or None
 
 
-def _is_canonical_class_path(path: str | None) -> bool:
+def _is_legacy_enriched_path(path: str | None) -> bool:
+    """True for the former competing-universe ``/wiz8/classes/…`` category."""
+
     if not path:
         return False
     leaf_path = path
     while leaf_path.endswith("*"):
         leaf_path = leaf_path[:-1].rstrip()
     return leaf_path.startswith("/wiz8/classes/")
+
+
+def _is_canonical_class_path(path: str | None) -> bool:
+    """True for preferred bound/root class Structures (not legacy ``/wiz8/classes``).
+
+    ``/wiz8/classes/X`` must never be treated as more canonical than ``/X``.
+    """
+
+    if not path:
+        return False
+    leaf_path = path
+    while leaf_path.endswith("*"):
+        leaf_path = leaf_path[:-1].rstrip()
+    return leaf_path.startswith("/") and not _is_legacy_enriched_path(leaf_path)
 
 
 def resolve_data_type(program: Any, type_name: str) -> Any | None:
@@ -315,8 +369,9 @@ def _needs_type_update(
     """True when listing type should be replaced by the resolved DataType.
 
     When paths are available, prefer identity of ``getPathName()`` (and pointer
-    depth) over bare ``getName()``. A root ``/X`` Structure must still update
-    when the resolved type is canonical ``/wiz8/classes/X``.
+    depth) over bare ``getName()``. A legacy ``/wiz8/classes/X`` listing must
+    still update when the resolved type is the bound/root ``/X`` Structure;
+    the reverse must not.
     """
 
     if current_type is None:
@@ -334,7 +389,7 @@ def _needs_type_update(
             return False
         if (
             _is_canonical_class_path(resolved_path)
-            and not _is_canonical_class_path(current_path)
+            and _is_legacy_enriched_path(current_path)
             and _path_leaf(current_path) == _path_leaf(resolved_path)
         ):
             return True
@@ -501,11 +556,21 @@ def _apply_global_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
     action = str(row.get("action") or "")
     address = space.getAddress(int(row["address"], 0))
     if action in {"set-type", "set-type-and-name"}:
+        from .ghidra.listing_guards import ClearRangeError, clear_code_units_guarded
+
         resolved = resolve_data_type(program, str(row.get("source_type") or ""))
         if resolved is None:
             return {**dict(row), "error": "unresolved-type"}
         end = address.add(resolved.getLength() - 1)
-        listing.clearCodeUnits(address, end, False)
+        try:
+            clear_code_units_guarded(
+                program,
+                address,
+                end,
+                expected_name=str(row.get("name") or "") or None,
+            )
+        except ClearRangeError as exc:
+            return {**dict(row), **exc.payload}
         listing.createData(address, resolved)
     if action in {"set-name", "set-type-and-name"}:
         name = str(row.get("name") or "")
@@ -533,9 +598,17 @@ def apply_global_typing(program: Any, plan: Mapping[str, Any]) -> dict[str, Any]
         _apply_global_typing_row,
         description="Source-backed GLOBAL typing",
     )
+    errors: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for row in result["errors"]:
+        if row.get("error") == "clear-range-foreign-symbol":
+            skipped.append({**dict(row), "skipped": "clear-range-foreign-symbol"})
+        else:
+            errors.append(row)
     return {
         "applied": result["applied"],
-        "errors": result["errors"],
+        "errors": errors,
+        "skipped": skipped,
         "globals": result["rows"],
     }
 
@@ -573,7 +646,7 @@ def run_global_typing(
             "apply": apply,
             "counts": plan["counts"],
             "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
+            "report": repo_relative(report_path, settings.repo_dir),
             "sample": [row for row in plan["globals"] if str(row["action"]).startswith("set-")][
                 :20
             ],
@@ -590,5 +663,5 @@ def run_global_typing(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
         return result
