@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import shutil
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -34,8 +35,10 @@ def _outcomes_ok(report: dict[str, Any]) -> bool:
         return False
     outcomes = report.get("outcomes")
     if isinstance(outcomes, dict):
-        return bool(outcomes.get("safe_application")) and bool(outcomes.get("preserved_recovery"))
-    return bool(report.get("ok"))
+        return (
+            outcomes.get("safe_application") is True and outcomes.get("preserved_recovery") is True
+        )
+    return report.get("ok") is True
 
 
 def find_latest_promotable_run(root: Path) -> Path:
@@ -131,17 +134,15 @@ def _live_replacement_allowed(
     from .ghidra.workspace import project_seed_freshness
 
     freshness = project_seed_freshness(settings, seed)
-    status = str(freshness.get("status"))
-    project_file = settings.project_dir / f"{settings.project_name}.gpr"
-    live_exists = project_file.is_file()
     if force:
         return freshness
-    if not live_exists or status == "not-restored":
-        return freshness
-    raise RuntimeError(
-        f"live Ghidra project exists with freshness {status!r} ({freshness.get('detail')}); "
-        "refuse to overwrite without --force"
-    )
+    if settings.project_dir.exists():
+        raise RuntimeError(
+            f"live Ghidra project exists at {settings.project_dir} "
+            f"(freshness {freshness.get('status')!r}: {freshness.get('detail')}); "
+            "refuse to overwrite without --force"
+        )
+    return freshness
 
 
 def _verify_provenance(
@@ -183,37 +184,44 @@ def _verify_provenance(
     checks: list[tuple[str, Any, Any]] = [
         ("seed_sha256", manifest.get("seed_sha256"), current.get("seed_sha256")),
         ("binary_sha256", manifest.get("binary_sha256"), current.get("binary_sha256")),
-        (
-            "source_index_sha256",
-            manifest.get("source_index_sha256"),
-            current.get("source_index_sha256"),
-        ),
         ("ghidra_version", manifest.get("ghidra_version"), current.get("ghidra_version")),
         ("pyghidra_version", manifest.get("pyghidra_version"), current.get("pyghidra_version")),
-        ("reccmp_version", manifest.get("reccmp_version"), current.get("reccmp_version")),
     ]
+    for label, left_key, right_key in (
+        ("source_index_sha256", "source_index_sha256", "source_index_sha256"),
+        ("reccmp_git_rev", "reccmp_git_rev", "reccmp_git_rev"),
+        ("reccmp_version", "reccmp_version", "reccmp_version"),
+    ):
+        left = manifest.get(left_key)
+        right = current.get(right_key)
+        if left not in {None, ""} or right not in {None, ""}:
+            checks.append((label, left, right))
     candidate_tree = (
         (manifest.get("source_tree") or {}) if isinstance(manifest.get("source_tree"), dict) else {}
     )
     current_tree = (
         (current.get("source_tree") or {}) if isinstance(current.get("source_tree"), dict) else {}
     )
-    checks.append(
-        (
-            "source_tree",
-            candidate_tree.get("jj_commit_id") or candidate_tree.get("git_commit_id"),
-            current_tree.get("jj_commit_id") or current_tree.get("git_commit_id"),
-        )
-    )
-    if report.get("import_source") or manifest.get("pdb_sha256"):
+    tree_left = candidate_tree.get("jj_commit_id") or candidate_tree.get("git_commit_id")
+    tree_right = current_tree.get("jj_commit_id") or current_tree.get("git_commit_id")
+    if tree_left not in {None, ""} or tree_right not in {None, ""}:
+        checks.append(("source_tree", tree_left, tree_right))
+    if report.get("import_source") or manifest.get("pdb_sha256") or current.get("pdb_sha256"):
         checks.append(("pdb_sha256", manifest.get("pdb_sha256"), current.get("pdb_sha256")))
 
     for label, left, right in checks:
-        if left in {None, ""} or right in {None, ""}:
+        missing_left = left in {None, ""}
+        missing_right = right in {None, ""}
+        if missing_left and missing_right:
+            msg = f"input-manifest {label} missing on candidate and current"
+        elif missing_left:
+            msg = f"input-manifest {label} missing on candidate"
+        elif missing_right:
+            msg = f"input-manifest {label} missing on current"
+        elif left != right:
+            msg = f"input-manifest {label} {left} != current {right}"
+        else:
             continue
-        if left == right:
-            continue
-        msg = f"input-manifest {label} {left} != current {right}"
         if force:
             warnings.append(msg)
         else:
@@ -255,9 +263,9 @@ def run_enrichment_promote(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     stamp = time.strftime("%Y%m%dT%H%M%S")
-    staging = settings.work_dir / f"ghidra-project-staging-{stamp}"
+    staging = out_dir / f"staging-{uuid.uuid4().hex[:12]}"
     if staging.exists():
-        staging = settings.work_dir / f"ghidra-project-staging-{stamp}-{int(time.time())}"
+        staging = out_dir / f"staging-{uuid.uuid4().hex}"
     staging.mkdir(parents=True, exist_ok=False)
 
     staging_settings = settings.model_copy(update={"ghidra_project_dir_override": staging})
@@ -279,11 +287,10 @@ def run_enrichment_promote(
 
     aside: Path | None = None
     live = settings.project_dir
-    live_gpr = live / f"{settings.project_name}.gpr"
-    if live_gpr.is_file() or live.exists():
-        aside = settings.work_dir / f"ghidra-project-aside-{stamp}"
+    if live.exists():
+        aside = out_dir / f"aside-{stamp}"
         if aside.exists():
-            aside = settings.work_dir / f"ghidra-project-aside-{stamp}-{int(time.time())}"
+            aside = out_dir / f"aside-{stamp}-{uuid.uuid4().hex[:8]}"
         shutil.move(str(live), str(aside))
 
     try:

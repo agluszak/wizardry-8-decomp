@@ -22,6 +22,7 @@ class Settings(BaseModel):
     input_dir: Path = Field(alias="WIZ8_INPUT_DIR")
     work_dir: Path = Field(alias="WIZ8_WORK_DIR")
     ghidra_project_dir_override: Path | None = Field(default=None, alias="WIZ8_GHIDRA_PROJECT_DIR")
+    build_dir_override: Path | None = None
     repo_dir: Path = Field(default_factory=repository_root)
 
     @field_validator(
@@ -29,6 +30,7 @@ class Settings(BaseModel):
         "input_dir",
         "work_dir",
         "ghidra_project_dir_override",
+        "build_dir_override",
         mode="before",
     )
     @classmethod
@@ -42,7 +44,7 @@ class Settings(BaseModel):
 
     @property
     def build_dir(self) -> Path:
-        return self.repo_dir / "build"
+        return self.build_dir_override or (self.repo_dir / "build")
 
     @property
     def product_build_dir(self) -> Path:

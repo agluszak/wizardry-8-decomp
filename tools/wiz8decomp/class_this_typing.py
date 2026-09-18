@@ -31,9 +31,9 @@ from .prototype_repair import _normalize_ghidra, classify_pair
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.class-this-typing-v1"
-# Soft conventions we may promote to thiscall for class-binding (stdcall is
-# common PDB noise for methods). Explicit cdecl/fastcall are hard-disagree.
-_THISCALL_SOFT = frozenset({"default", "unknown", "__stdcall", ""})
+# Soft conventions we may promote to thiscall for class-binding. Explicit
+# stdcall/cdecl/fastcall are hard-disagree, same as prototype-repair.
+_THISCALL_SOFT = frozenset({"default", "unknown", ""})
 
 
 class StorageIdentityError(RuntimeError):

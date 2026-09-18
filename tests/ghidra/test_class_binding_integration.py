@@ -1,7 +1,8 @@
 """Integration probes for class binding on the lifecycle fixture program.
 
-Imports a prebuilt lifecycle PE into a disposable Ghidra project. Skips when the
-fixture binary or pyghidra/Ghidra is unavailable. Does not open live wiz8.
+Imports a prebuilt lifecycle PE into a disposable Ghidra project. CI runs this
+after ``wiz8 recover self-test`` (which builds the fixture) via ``tests/ghidra``.
+Does not open live wiz8.
 """
 
 from __future__ import annotations

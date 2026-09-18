@@ -89,7 +89,7 @@ def test_cleanup_accepts_exact_duplicate_for_replace_or_delete() -> None:
     )
     identity = {"W8Monster": {"bound_path": "/W8Monster", "status": "agree"}}
     row = classify_legacy_datatype(program, legacy, identity_map_or_bindings=identity)
-    assert row["action"] in {"safe-delete", "replace-then-delete"}
+    assert row["action"] == "replace-then-delete"
     assert row["bound_path"] == "/W8Monster"
 
 

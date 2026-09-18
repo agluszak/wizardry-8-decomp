@@ -27,6 +27,7 @@ def test_classify_pair_sets_thiscall_from_unknown() -> None:
 def test_classify_pair_hard_disagree() -> None:
     assert classify_pair("__cdecl", "__thiscall") == "hard-disagree"
     assert classify_pair("__stdcall", "__cdecl") == "hard-disagree"
+    assert classify_pair("__stdcall", "__thiscall") == "hard-disagree"
 
 
 def test_apply_source_conventions_uses_analysis_not_imported(monkeypatch) -> None:

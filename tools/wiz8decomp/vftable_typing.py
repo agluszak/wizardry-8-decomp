@@ -457,7 +457,7 @@ def collect_vftable_typing_plan(
     for item in prepared:
         record = item["record"]
         name = record.qualified_name
-        category, vftable_name, vftable_path, _sigs = _vftable_paths(name)
+        category, _vftable_name, vftable_path, _sigs = _vftable_paths(name)
         address = item["address"]
         slots = item["slots"]
         declared = item["declared"]
@@ -470,7 +470,7 @@ def collect_vftable_typing_plan(
                 break
         existing = manager.getDataType(vftable_path)
         data = listing.getDataAt(space.getAddress(address))
-        current_type = str(data.getDataType().getName()) if data is not None else None
+        current_type_path = str(data.getDataType().getPathName()) if data is not None else None
         has_defs = _vftable_has_function_definitions(existing)
         existing_slots = (
             int(existing.getNumComponents())
@@ -502,7 +502,7 @@ def collect_vftable_typing_plan(
             and has_defs
             and slots_match
             and defs_match
-            and current_type == vftable_name
+            and current_type_path == vftable_path
         ):
             action = "agree"
         elif existing is not None and has_defs and slots_match and defs_match:
@@ -525,7 +525,7 @@ def collect_vftable_typing_plan(
                 "census_slots": item.get("census_slots"),
                 "extent_source": item.get("extent_source"),
                 "slots": slots,
-                "current_type": current_type,
+                "current_type": current_type_path,
                 "has_function_definitions": has_defs,
                 "action": action,
             }
@@ -563,7 +563,6 @@ def _definition_from_declaration(
         CategoryPath,
         FunctionDefinitionDataType,
         ParameterDefinitionImpl,
-        PointerDataType,
     )
 
     definition = FunctionDefinitionDataType(CategoryPath(sigs_category), definition_name)
@@ -580,18 +579,11 @@ def _definition_from_declaration(
     if has_this and not convention:
         convention = "__thiscall"
     if has_this or convention == "__thiscall":
-        this_type = None
-        if owning:
-            this_type = _resolve_slot_type(program, f"{owning} *")
-            if this_type is None:
-                # Fall back to an unresolved class pointer via void* only if needed.
-                from ghidra.program.model.data import VoidDataType  # type: ignore[import-not-found]
-
-                this_type = PointerDataType(VoidDataType(), program.getDataTypeManager())
-        else:
-            from ghidra.program.model.data import VoidDataType  # type: ignore[import-not-found]
-
-            this_type = PointerDataType(VoidDataType(), program.getDataTypeManager())
+        if not owning:
+            raise ValueError("unresolved this type: missing owning class")
+        this_type = _resolve_slot_type(program, f"{owning} *")
+        if this_type is None:
+            raise ValueError(f"unresolved this type: {owning} *")
         params.append(ParameterDefinitionImpl("this", this_type, None))
 
     for index, spelling in enumerate(declaration.get("parameter_types") or ()):

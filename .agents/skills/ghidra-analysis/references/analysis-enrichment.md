@@ -48,9 +48,10 @@ directory layout.
 
 Acceptance cases (ordinary method, derived, secondary-base) should bind without
 custom storage. Full ProgramBuilder / lifecycle-fixture coverage is required for
-those shapes; unit tests document the policy and skip cleanly when the fixture
-project is unavailable (see `tests/unit/test_class_binding.py` and
-`tests/unit/test_enrichment_ghidra.py`).
+those shapes; CI gates that via ``tests/ghidra/test_class_binding_integration.py``
+after the recovery lifecycle self-test. Unit tests document the policy and skip
+cleanly when the fixture project is unavailable (see ``tests/unit/test_class_binding.py``
+and ``tests/unit/test_enrichment_ghidra.py``).
 
 ## Ordered work
 
@@ -84,12 +85,16 @@ tree.
 Report `outcomes`:
 
 - `safe_application` — no unexpected apply errors, import ok, inputs matched
-- `preserved_recovery` — quality/pain deltas report no new decompiler failures
+- `preserved_recovery` — True only when a mutated run measured quality/pain and
+  reported no decompiler regression; `null` when mutation happened without
+  measurement (not promotable)
 - `useful_improvement` — `null` if unmeasured; `true` only when measured debt/pain
   improved with evidence. Applied-row count alone does **not** make this true.
   Promotion may still be manually accepted when usefulness is inconclusive.
 
-CLI `ok` remains `safe_application and preserved_recovery` (nonzero exit when false).
+CLI `ok` remains `safe_application is True and preserved_recovery is True`
+(nonzero exit when false). Unmeasured mutated candidates freeze but are not
+promotable.
 
 When a disposable trial is accepted, promote **that** candidate — do not rerun
 with `--live`:
@@ -101,11 +106,14 @@ uv run wiz8 analyze enrichment-promote build/enrichment-checkpoint/run-<id>
 ```
 
 Promote verifies `candidate.gzf` against `candidate.sha256` (and report
-provenance: seed/binary/source-index/Ghidra/reccmp/source-tree, plus PDB when
-source import was used). It restores into a staging directory, verifies, then
-swaps the live project aside. If a live project already exists, promotion
-requires `--force`; seed freshness `current` is not treated as “untouched.”
-Promote does **not** refresh vendor GZF seeds.
+provenance: seed/binary/source-index/Ghidra/reccmp git pin/source-tree, plus PDB
+when source import was used or the candidate recorded a PDB hash). Missing
+current provenance for a required field is a refusal, not a pass. Staging and
+aside Ghidra projects live under `build/enrichment-promote/` (not `work_dir`).
+It restores into a staging directory, verifies, then swaps the live project
+aside. If a live project directory already exists, promotion requires `--force`;
+seed freshness `current` is not treated as “untouched.” Promote does **not**
+refresh vendor GZF seeds.
 
 ## Consolidation direction
 

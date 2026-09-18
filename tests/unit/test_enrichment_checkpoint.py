@@ -8,7 +8,9 @@ from pathlib import Path
 import pytest
 from wiz8decomp.enrichment_checkpoint import compute_outcomes
 from wiz8decomp.enrichment_promote import (
+    _live_replacement_allowed,
     _resolve_frozen_candidate,
+    _verify_provenance,
     find_latest_promotable_run,
     resolve_run_dir,
 )
@@ -52,8 +54,39 @@ def test_useful_improvement_none_when_unmeasured_even_with_applies() -> None:
         "steps": [],
         "prototype_repair": {"applied": 5},
     }
-    outcomes, _, _ = compute_outcomes(result, mutated=True, inputs_matched=True)
+    outcomes, _, preserved = compute_outcomes(result, mutated=True, inputs_matched=True)
     assert outcomes["useful_improvement"] is None
+    assert outcomes["preserved_recovery"] is None
+    assert "preservation unmeasured" in preserved
+
+
+def test_mutated_unmeasured_candidate_is_not_promotable(tmp_path: Path) -> None:
+    result = {
+        "steps": [
+            {"step": "class-this-typing", "result": {"apply": True, "apply_errors": 0}},
+        ],
+        "class_this_typing": {"applied": 3},
+    }
+    outcomes, _, preserved = compute_outcomes(result, mutated=True, inputs_matched=True)
+    assert outcomes["safe_application"] is True
+    assert outcomes["preserved_recovery"] is None
+    assert outcomes["useful_improvement"] is None
+    assert preserved == ["preservation unmeasured"]
+    assert outcomes["safe_application"] is True and outcomes["preserved_recovery"] is not True
+
+    root = tmp_path / "enrichment-checkpoint" / "run-unmeasured"
+    root.mkdir(parents=True)
+    report = {
+        "ok": False,
+        "disposable": True,
+        "outcomes": outcomes,
+        "candidate": {"sha256": "abc"},
+    }
+    (root / "report.json").write_text(json.dumps(report), encoding="utf-8")
+    (root / "candidate.gzf").write_bytes(b"gzf")
+    (root / "candidate.sha256").write_text("deadbeef  candidate.gzf\n", encoding="utf-8")
+    with pytest.raises(FileNotFoundError, match="no promotable"):
+        find_latest_promotable_run(tmp_path)
 
 
 def test_compute_outcomes_apply_errors_fail_safe_only() -> None:
@@ -160,3 +193,73 @@ def test_promote_refuses_sha_mismatch(tmp_path: Path) -> None:
     }
     with pytest.raises(RuntimeError, match="sha256 mismatch"):
         _resolve_frozen_candidate(run, report)
+
+
+def _promote_settings(tmp_path: Path):
+    from wiz8decomp.config import Settings
+
+    return Settings.model_validate(
+        {
+            "GHIDRA_INSTALL_DIR": str(tmp_path / "ghidra"),
+            "WIZ8_INPUT_DIR": str(tmp_path / "inputs"),
+            "WIZ8_WORK_DIR": str(tmp_path / "work"),
+            "WIZ8_GHIDRA_PROJECT_DIR": str(tmp_path / "project"),
+        }
+    )
+
+
+def test_live_replacement_requires_force_when_project_dir_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = _promote_settings(tmp_path)
+    settings.project_dir.mkdir(parents=True)
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.workspace.project_seed_freshness",
+        lambda *_a, **_k: {"status": "not-restored", "detail": "no gpr"},
+    )
+    with pytest.raises(RuntimeError, match="--force"):
+        _live_replacement_allowed(settings, {"sha256": "seed", "program": "wiz8"}, force=False)
+
+
+def test_verify_provenance_refuses_missing_current_pdb(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = _promote_settings(tmp_path)
+    monkeypatch.setattr(
+        "wiz8decomp.enrichment_checkpoint._collect_input_manifest",
+        lambda *_a, **_k: {
+            "seed_sha256": "aa",
+            "binary_sha256": "bb",
+            "ghidra_version": "12.1.3",
+            "pyghidra_version": "3.1.0",
+            "reccmp_git_rev": "abc",
+            "source_tree": {"git_commit_id": "c1"},
+        },
+    )
+    report = {
+        "expected_seed_sha256": "aa",
+        "seed_program": "wiz8",
+        "import_source": True,
+        "input_manifest": {
+            "seed_sha256": "aa",
+            "binary_sha256": "bb",
+            "ghidra_version": "12.1.3",
+            "pyghidra_version": "3.1.0",
+            "reccmp_git_rev": "abc",
+            "pdb_sha256": "deadbeef",
+            "source_tree": {"git_commit_id": "c1"},
+        },
+    }
+    current_seed = {"sha256": "aa", "program": "wiz8", "binary_sha256": "bb"}
+    with pytest.raises(RuntimeError, match="pdb_sha256 missing on current"):
+        _verify_provenance(settings, report, current_seed, force=False)
+
+
+def test_reccmp_provenance_records_uv_git_pin() -> None:
+    from wiz8decomp.config import repository_root
+    from wiz8decomp.enrichment_checkpoint import _reccmp_provenance
+
+    info = _reccmp_provenance(repository_root())
+    assert "reccmp_pin_error" not in info, info
+    assert info.get("reccmp_git_rev")
+    assert len(str(info["reccmp_git_rev"])) >= 7

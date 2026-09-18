@@ -242,7 +242,7 @@ def classify_legacy_datatype(
             "reason": "field-shape-mismatch",
         }
 
-    containing = 0
+    containing = None
     get_containing = getattr(program.getDataTypeManager(), "getDataTypesContaining", None)
     if callable(get_containing):
         try:
@@ -250,11 +250,10 @@ def classify_legacy_datatype(
         except Exception:  # noqa: BLE001
             containing = -1
 
-    action = "safe-delete" if containing == 0 else "replace-then-delete"
     return {
         "path": path,
         "name": name,
-        "action": action,
+        "action": "replace-then-delete",
         "bound_path": bound_path,
         "reason": "exact-duplicate" if exact_duplicate else "shape-agree",
         "containing": containing,
@@ -287,7 +286,7 @@ def collect_legacy_classes_cleanup_plan(
         counts[str(row["action"])] += 1
         rows.append(row)
 
-    actionable = counts["safe-delete"] + counts["replace-then-delete"]
+    actionable = counts["replace-then-delete"]
     return {
         "schema": _SCHEMA,
         "counts": dict(sorted(counts.items())),
@@ -300,7 +299,12 @@ def apply_legacy_classes_cleanup(
     program: Any,
     plan: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Replace containing refs then remove safe legacy types (one transaction each)."""
+    """Replace every bound equivalent via ``replaceDataType``, then confirm removal.
+
+    ``getDataTypesContaining`` only sees datatype containment. It does not prove
+    the type is unused by listing data or signatures, so it must not choose a
+    raw ``remove()`` path. ``replaceDataType`` updates all instances/references.
+    """
 
     from ghidra.util.task import TaskMonitor  # type: ignore[import-not-found]
 
@@ -308,7 +312,7 @@ def apply_legacy_classes_cleanup(
 
     def _apply_one(_program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
         action = row.get("action")
-        if action not in {"safe-delete", "replace-then-delete"}:
+        if action not in {"replace-then-delete", "safe-delete"}:
             return {**dict(row), "error": f"refused:{action}"}
         bound_path = row.get("bound_path")
         if not bound_path or is_legacy_path(str(bound_path)):
@@ -340,55 +344,35 @@ def apply_legacy_classes_cleanup(
                 pointee = PointerDataType(pointee, manager)
             replacement = pointee
 
-        containing = 0
-        get_containing = getattr(manager, "getDataTypesContaining", None)
-        if callable(get_containing):
-            try:
-                containing = len(list(cast(Iterable[Any], get_containing(legacy))))
-            except Exception:  # noqa: BLE001
-                containing = -1
-
-        if containing != 0:
-            try:
-                manager.replaceDataType(legacy, replacement, True)
-            except Exception as exc:  # noqa: BLE001
-                leftover = manager.getDataType(str(row["path"]))
-                if leftover is None:
-                    return {
-                        "path": row["path"],
-                        "action": action,
-                        "bound_path": bound_path,
-                        "removed": True,
-                        "replaced": True,
-                    }
-                return {**dict(row), "error": f"replace-failed:{exc}"}
+        try:
+            manager.replaceDataType(legacy, replacement, True)
+        except Exception as exc:  # noqa: BLE001
             leftover = manager.getDataType(str(row["path"]))
             if leftover is None:
                 return {
                     "path": row["path"],
-                    "action": action,
+                    "action": "replace-then-delete",
                     "bound_path": bound_path,
                     "removed": True,
                     "replaced": True,
                 }
-            legacy = leftover
-
-        removed = manager.remove(legacy, TaskMonitor.DUMMY)
-        if not removed:
-            if _is_pointer_wrapper_name(str(row.get("name") or "")):
-                return {
-                    "path": row["path"],
-                    "action": action,
-                    "bound_path": bound_path,
-                    "removed": False,
-                    "replaced": containing != 0,
-                }
-            return {**dict(row), "error": "remove-failed"}
+            return {**dict(row), "error": f"replace-failed:{exc}"}
+        leftover = manager.getDataType(str(row["path"]))
+        if leftover is None:
+            return {
+                "path": row["path"],
+                "action": "replace-then-delete",
+                "bound_path": bound_path,
+                "removed": True,
+                "replaced": True,
+            }
+        # replaceDataType is supposed to update every instance. If the legacy
+        # type remains, listing/signature uses may still exist — do not raw-remove.
         return {
-            "path": row["path"],
-            "action": action,
-            "bound_path": bound_path,
-            "removed": True,
+            **dict(row),
+            "error": "leftover-after-replace",
+            "replaced": True,
+            "removed": False,
         }
 
     rows = [

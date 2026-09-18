@@ -28,12 +28,14 @@ start with ``.`` (common for work dirs like ``.wiz8-work``).
 Outcomes are split:
 
 - ``safe_application``: no unexpected apply errors, import ok, inputs matched
-- ``preserved_recovery``: quality/pain deltas report no new decompiler failures
+- ``preserved_recovery``: True only when a mutated run actually measured quality
+  or pain and reported no decompiler regression; ``None`` when mutation happened
+  without measurement (not promotable); True for read-only runs
 - ``useful_improvement``: True only when measured debt/pain improved with evidence;
   ``None`` if unmeasured. Applied-row count alone is not useful improvement.
   Promotion may still be manually accepted when usefulness is inconclusive.
 
-CLI exit uses ``ok == safe_application and preserved_recovery``.
+CLI exit uses ``ok == (safe_application is True and preserved_recovery is True)``.
 """
 
 from __future__ import annotations
@@ -120,11 +122,13 @@ def _snapshot_step_reports(settings: Settings, steps_dir: Path, result: Mapping[
         src = Path(str(rel))
         if not src.is_absolute():
             src = settings.repo_dir / src
-        if src.is_file():
-            shutil.copy2(src, dest / src.name)
+        copied = dest / src.name
+        if src.is_file() and src.resolve() != copied.resolve():
+            shutil.copy2(src, copied)
         errors = src.parent / "apply-errors.json"
-        if errors.is_file():
-            shutil.copy2(errors, dest / "apply-errors.json")
+        error_dest = dest / "apply-errors.json"
+        if errors.is_file() and errors.resolve() != error_dest.resolve():
+            shutil.copy2(errors, error_dest)
 
 
 def _prepare_disposable_settings(
@@ -213,14 +217,19 @@ def compute_outcomes(
         preserved_reasons.append("pain_delta.ok is false (decompiler regression)")
 
     safe_application = not safe_reasons
-    preserved_recovery = not preserved_reasons
-
     quality_measured = isinstance(quality_delta, dict) or isinstance(pain_delta, dict)
+    preserved_recovery: bool | None
+    if mutated and not quality_measured:
+        preserved_reasons.append("preservation unmeasured")
+        preserved_recovery = None
+    else:
+        preserved_recovery = not preserved_reasons
+
     measured = mutated and quality_measured
     useful: bool | None
     if not measured:
         useful = None
-    elif not safe_application or not preserved_recovery:
+    elif not safe_application or preserved_recovery is not True:
         useful = False
     else:
         useful = _debt_improved(quality_delta if isinstance(quality_delta, dict) else None) or (
@@ -265,6 +274,40 @@ def _source_tree_identity(repo_dir: Path) -> dict[str, Any]:
     return identity
 
 
+def _configured_pdb(settings: Settings) -> Path:
+    """Same source-import PDB path as layout audit / ``reccmp-ghidra-import``."""
+
+    return settings.product_build_dir / "Wiz8.pdb"
+
+
+def _reccmp_provenance(repo_dir: Path) -> dict[str, Any]:
+    """Package version plus the uv git pin; ``0.1.7`` does not name a fork rev."""
+
+    info: dict[str, Any] = {}
+    try:
+        import reccmp
+
+        info["reccmp_version"] = getattr(reccmp, "__version__", None) or str(
+            getattr(reccmp, "VERSION", "") or ""
+        )
+    except Exception as exc:  # noqa: BLE001
+        info["reccmp_version_error"] = str(exc)
+    try:
+        import tomllib
+
+        with (repo_dir / "pyproject.toml").open("rb") as handle:
+            sources = tomllib.load(handle).get("tool", {}).get("uv", {}).get("sources", {})
+        pin = sources.get("reccmp") if isinstance(sources, dict) else None
+        if isinstance(pin, dict):
+            if pin.get("rev"):
+                info["reccmp_git_rev"] = str(pin["rev"])
+            if pin.get("git"):
+                info["reccmp_git"] = str(pin["git"])
+    except Exception as exc:  # noqa: BLE001
+        info["reccmp_pin_error"] = str(exc)
+    return info
+
+
 def _collect_input_manifest(
     settings: Settings,
     seed_info: dict[str, Any],
@@ -299,6 +342,14 @@ def _collect_input_manifest(
             manifest["source_index_path"] = str(source_index)
     if pdb_hash:
         manifest["pdb_sha256"] = pdb_hash
+    else:
+        pdb_path = _configured_pdb(settings)
+        if pdb_path.is_file():
+            manifest["pdb_sha256"] = sha256_file(pdb_path)
+            try:
+                manifest["pdb_path"] = repo_relative(pdb_path, settings.repo_dir)
+            except ValueError:
+                manifest["pdb_path"] = str(pdb_path)
     try:
         from .ghidra.env import validate_environment
 
@@ -309,14 +360,7 @@ def _collect_input_manifest(
                     manifest[key] = runtime[key]
     except Exception as exc:  # noqa: BLE001
         manifest["ghidra_env_error"] = str(exc)
-    try:
-        import reccmp
-
-        manifest["reccmp_version"] = getattr(reccmp, "__version__", None) or str(
-            getattr(reccmp, "VERSION", "")
-        )
-    except Exception as exc:  # noqa: BLE001
-        manifest["reccmp_version_error"] = str(exc)
+    manifest.update(_reccmp_provenance(settings.repo_dir))
     return manifest
 
 
@@ -435,7 +479,8 @@ def run_enrichment_checkpoint(
     result["input_manifest"] = input_manifest
 
     # Per-pass reports nest under the run directory when invoked from checkpoint.
-    step_settings = run_settings.model_copy(update={"build_dir": steps_dir})
+    # ``build_dir`` is a derived property; override the field that actually feeds it.
+    step_settings = run_settings.model_copy(update={"build_dir_override": steps_dir})
 
     if measure_quality:
         corpus = select_corpus(
@@ -722,7 +767,7 @@ def run_enrichment_checkpoint(
     )
     result["outcomes"] = outcomes
     result["inputs_matched"] = inputs_matched
-    ok = bool(outcomes["safe_application"]) and bool(outcomes["preserved_recovery"])
+    ok = outcomes["safe_application"] is True and outcomes["preserved_recovery"] is True
     result["ok"] = ok
     failure_reasons = safe_reasons + preserved_reasons
     if failure_reasons:

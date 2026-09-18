@@ -221,9 +221,10 @@ def test_ensure_ghidra_class_converts_plain_namespace(monkeypatch) -> None:
 
 
 # Ordinary / Derived / Secondary-base methods should bind without custom storage.
-# Full acceptance requires a ProgramBuilder or the imported lifecycle fixture
-# project (Base/Derived/Secondary). Unit CI without that fixture cannot prove
-# auto-this binding end-to-end; see test_enrichment_ghidra.py integration skips.
+# Full acceptance is the imported lifecycle fixture (Base/Derived/Secondary) under
+# ``tests/ghidra/test_class_binding_integration.py``, which CI runs after
+# ``wiz8 recover self-test``. Unit CI without that fixture cannot prove auto-this
+# binding end-to-end.
 
 
 def test_acceptance_shapes_require_lifecycle_fixture_documentation() -> None:
