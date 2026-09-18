@@ -686,7 +686,7 @@ void TryFinishNpcVoicePlayback(unsigned char force)
 }
 
 // FUNCTION: WIZ8 0x00525DD0
-unsigned char IsNpcScriptSessionActive(void)
+bool IsNpcScriptSessionActive(void)
 {
     return g_npc_scripting.quote_active != 0 || g_npc_scripting.portrait_message_active != 0;
 }
@@ -696,7 +696,7 @@ unsigned char IsNpcScriptSessionActive(void)
 // FUNCTION: WIZ8 0x00577A20
 unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
 {
-    if (IsNpcScriptSessionActive() == 0) {
+    if (!IsNpcScriptSessionActive()) {
         return 0;
     }
     TryFinishNpcVoicePlayback(0);
@@ -704,22 +704,22 @@ unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
 }
 
 // FUNCTION: WIZ8 0x00525DF0
-unsigned char ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
+bool ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
 {
     if (g_npc_scripting.scripted_scene_active != 0) {
-        return 0;
+        return false;
     }
     if (g_npc_scripting.quote_active == 0 && g_npc_scripting.portrait_message_active == 0 &&
         g_npc_scripting.message_lines.GetCount() == 0) {
-        return 0;
+        return false;
     }
     if (g_npc_scripting.npc == 0) {
-        return 0;
+        return false;
     }
     if (GetNpcGroupEntry(g_npc_scripting.npc) != 0 && require_group_entry == 0) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00525E50

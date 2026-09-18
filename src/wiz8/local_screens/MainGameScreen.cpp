@@ -163,7 +163,7 @@ unsigned char g_flag_00685070;
 unsigned char g_flag_00685071;
 
 // GLOBAL: WIZ8 0x00685072
-int g_value_00685072;
+W8ItemInstance* g_value_00685072;
 
 // GLOBAL: WIZ8 0x00685076
 unsigned char g_flag_00685076;
@@ -5635,9 +5635,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         }
                     } else if (g_status_685170.item_in_cursor == 0 ||
                                gXStatus.iCurrentCursor != 7 ||
-                               g_value_00685072 ==
-                                   // reinterpret-ok: g_value_00685072 stores an item pointer as int
-                                   reinterpret_cast<int>(&g_status_685170.item_in_hand_235b)) {
+                               g_value_00685072 == &g_status_685170.item_in_hand_235b) {
                         if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS) {
                             RefreshSelectedPartyPortrait(slot);
                         }
@@ -5649,7 +5647,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         } else {
                             force_to_party = 1;
                         }
-                        Function51BA00(slot, static_cast<char>(force_to_party));
+                        GiveHeldItemToCharacterOrParty(slot,
+                                                       static_cast<unsigned char>(force_to_party));
                         if (gXStatus.fItemSelectMode != 0) {
                             Function59D690();
                         }
@@ -5792,9 +5791,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 } else {
                     if (g_level_block->portrait_refresh_pending[slot] == 0) {
                         if (g_status_685170.item_in_cursor == 0 || gXStatus.iCurrentCursor != 7 ||
-                            g_value_00685072 ==
-                                // reinterpret-ok: g_value_00685072 stores an item pointer as int
-                                reinterpret_cast<int>(&g_status_685170.item_in_hand_235b)) {
+                            g_value_00685072 == &g_status_685170.item_in_hand_235b) {
                             help_text = gppStringList[0x74 / 4];
                         } else {
                             help_text = gppStringList[0x78 / 4];
@@ -5946,7 +5943,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 SetPrimarySurfaceTextureHint2Enabled(0);
                 return 1;
             }
-            Function51BA00(slot, 1);
+            GiveHeldItemToCharacterOrParty(slot, 1);
             if (gXStatus.fItemSelectMode != 0) {
                 Function59D690();
                 return 1;

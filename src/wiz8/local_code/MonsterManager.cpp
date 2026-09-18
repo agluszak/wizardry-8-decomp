@@ -138,7 +138,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     memset(monster_info->movement_watch_position, 0, sizeof(monster_info->movement_watch_position));
 
     if (PLAdoptAppend(record->unborn_26a != 0 ? gXStatus.plsUnbornMonsterList
-                                            : gXStatus.plsMonsterList,
+                                              : gXStatus.plsMonsterList,
                       monster_info) == -1) {
         free(monster_info);
         return 0;
@@ -999,7 +999,7 @@ unsigned int GetMonsterExperience(const W8MonsterRecord* record)
 }
 
 // FUNCTION: WIZ8 0x004e68c0
-unsigned char AnyMonsterDying(void)
+bool AnyMonsterDying(void)
 {
     unsigned int index;
     W8MonsterInfo* monster_info;
@@ -1007,10 +1007,10 @@ unsigned char AnyMonsterDying(void)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info != 0 && monster_info->monster->IsDying() != 0) {
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /* Reset the two generated runtime IDs and the live manager counts, then create

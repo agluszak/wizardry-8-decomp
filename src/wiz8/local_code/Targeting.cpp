@@ -2865,14 +2865,14 @@ void RefreshAllPartyTargets(void)
             (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-            unsigned char can_switch =
+            bool can_switch =
                 CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
 
-            if (can_switch != 0) {
+            if (can_switch) {
                 RefreshCombatTargetHighlights(party_slot, target);
             } else {
                 can_switch = CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0);
-                if (can_switch != 0) {
+                if (can_switch) {
                     RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0);
                 } else if (target->iType != W8_TARGET_KIND_NONE) {
                     W8CombatSlot action;

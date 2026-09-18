@@ -985,7 +985,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
             }
         }
     } else if (band != previous_band && band > W8_FATIGUE_BAND_DEEP) {
-        if (character->deep_fatigue_applied == 0) {
+        if (!character->deep_fatigue_applied) {
             ApplyCharacterEffect(character, g_effect_005ee598, 0, g_effect_argument_005ed8c8,
                                  g_effect_argument_005ed914);
             character->deep_fatigue_applied = 1;
