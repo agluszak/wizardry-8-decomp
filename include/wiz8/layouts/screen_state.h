@@ -42,8 +42,11 @@ struct W8ScreenStateRuntime {
     int parameter_2;   /* 0x0c */
     void* parameter_3; /* 0x10, the save payload the Please Wait
                                       screen's mode 2 hands to SaveGame */
-    int parameter_4;   /* 0x14, Camp's entry mode */
-    char name[0x80];   /* 0x18 */
+    /* 0x14: identifying PC for camp entry (gpIdentifyingPC); null when
+       camp opens without an identify/use-item handoff. Not the entry mode —
+       that lives on W8CampScreenState0069C0F4::entry_mode. */
+    struct W8Character* parameter_4;
+    char name[0x80]; /* 0x18 */
 };
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");

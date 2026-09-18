@@ -1387,8 +1387,7 @@ void ProcessMessageBoxQueue(void)
         OpenNpcDialogueTranscriptLayout();
         break;
     case W8_NPC_MSG_REMOVE_SCRIPT_ITEM:
-        RemoveNpcScriptItem(reinterpret_cast<W8ItemInstance*>(line->text), 0,
-                            -1); // reinterpret-ok: tagged item-slot pointer
+        RemoveNpcScriptItem(line->item, 0, -1);
         break;
     case W8_NPC_MSG_CLOSE_RESUME_NPC:
         CloseNpcDialogueIfActive();

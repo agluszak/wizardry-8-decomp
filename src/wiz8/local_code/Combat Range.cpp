@@ -67,8 +67,7 @@ float g_float_005ec35c = 12500.0f;
    The character becomes the source for the shared range test; a miss can
    queue the character's complaint event when `notify` asks for it. */
 // FUNCTION: WIZ8 0x00519920
-unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
-                                   char notify)
+bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context, char notify)
 {
     W8TargetSource source;
     W8MonsterGroup* group;
@@ -76,7 +75,7 @@ unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingCont
 
     index = GetMonsterGroupIndexByID(0x197, COMBAT_RANGE_CPP, group_id, 0);
     if (index == 0xffffffff) {
-        return 0;
+        return false;
     }
     group = GetMonsterGroupByListIndex(index);
     if (group == 0) {
@@ -89,9 +88,9 @@ unsigned char IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingCont
                                 g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
                                 g_effect_argument_005ed914);
         }
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /* The range category the slot's chosen action works at. Attacks take the

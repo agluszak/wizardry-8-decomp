@@ -144,7 +144,7 @@ static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
 extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
 extern int giReviewCharSlot;
 extern W8Character* g_value_0069c0f8;
-extern int g_camp_entry_parameter_0069c0fc;
+extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
 extern W8Character* g_camp_character_0069c100;
 extern unsigned char g_camp_character_pending_0069c104;
 extern unsigned int g_camp_item_region_set_0069c108;

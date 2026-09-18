@@ -18,7 +18,7 @@ static_assert(sizeof(W8ChunkHead) == 0x0c, "W8ChunkHead_size_must_be_0x0c");
    deletes heads; the vector destructor releases only its backing storage. */
 struct W8Chunk {
     int m_hFile;                            /* 0x00 */
-    unsigned char m_fWriting;               /* 0x04 */ // bool-byte-ok: RIFF open-mode flag packed before padding_05
+    bool m_fWriting;                        /* 0x04 */
     unsigned char padding_05[3];            /* 0x05 */
     W8GrowableVector<W8ChunkHead*> m_heads; /* 0x08 */
     W8GrowableVector<int> m_group_counts;   /* 0x18 */

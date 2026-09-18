@@ -2325,19 +2325,12 @@ unsigned char SetFlag603C60(void)
 }
 
 /* Release an srClass, leaving the renderer in 2D mode, or in the paired
-   mode when the +0x160 flag says otherwise. That flag is the first dword
-   past sizeof(srModelInstance); both stModelInstance and stModelInstance2D
-   store state_160 there. The four recovered callers pass g_level_block
-   slots (highlight_graphic from MainGameScreen, plus the formation-board
-   sprites released from RCSCommon). All are stModelInstance2D-family
-   sprites produced by CreateSpriteFromSurface - the formation slots in
-   MGSFormation.cpp, the highlight in the unrecovered dialogue-box draw at
-   0x00563FC0. */
+   mode when state_160 bit 0 says otherwise. Recovered callers pass
+   stModelInstance2D sprites (highlight / formation board). */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject004257F0(srClass* object)
 {
-    if ((reinterpret_cast<unsigned char*>(object)[0x160] & 1) !=
-        0) { /* reinterpret-ok: unresolved derived state_160 past srModelInstance */
+    if ((static_cast<stModelInstance2D*>(object)->state_160 & 1) != 0) {
         g_dword_6596ec = 2;
     } else {
         g_dword_6596f0 = 2;
@@ -2347,16 +2340,12 @@ void ReleaseObject004257F0(srClass* object)
 }
 
 /* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
-   word its +0x160 flag selects: the 2D-only word when the flag is set, the
-   paired words otherwise. The flag is the first dword past
-   sizeof(srModelInstance); both stModelInstance and stModelInstance2D store
-   state_160 there (see ReleaseObject004257F0). */
+   word its state_160 bit 0 selects. */
 // FUNCTION: WIZ8 0x00425840
 void RotateNodeInDegrees00425840(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
-    if ((reinterpret_cast<unsigned char*>(node)[0x160] & 1) !=
-        0) { /* reinterpret-ok: unresolved derived state_160 past srModelInstance */
+    if ((static_cast<stModelInstance2D*>(node)->state_160 & 1) != 0) {
         g_dword_6596ec = 2;
     } else {
         g_dword_6596f0 = 2;

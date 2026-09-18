@@ -198,12 +198,12 @@ void CatchUpCombatActor(W8CombatCharacterRow* row)
    they have to be free of the condition that forbids it and still hold a fifth
    of their stamina, the same fifth a run costs. */
 // FUNCTION: WIZ8 0x004ebc80
-unsigned char CanCharReBreathe(int party_slot)
+bool CanCharReBreathe(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
     if (!CharacterHasCondition(character, 0x1c)) {
-        return 0;
+        return false;
     }
     return character->stamina_max / 5 <= character->stamina;
 }

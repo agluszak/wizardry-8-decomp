@@ -813,7 +813,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event);
 void ClearCombatSelection(void); /* 0x0056A5A0 */
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState00593330(void);
-int IsScreenIdle(void);
+bool IsScreenIdle(void);
 bool IsModalOpen(void);
 
 void RequestRedraw(unsigned int mask);
