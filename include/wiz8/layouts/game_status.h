@@ -29,7 +29,7 @@ enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
-    unsigned char game_started; /* 0x000c */
+    bool game_started; /* 0x000c */
     /* 0x000d..0x0018: the three join counters the party-add entry advances:
        the regular-member, auxiliary and total counts. */
     int regular_member_count;

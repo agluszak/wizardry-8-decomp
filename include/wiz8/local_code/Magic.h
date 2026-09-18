@@ -107,6 +107,9 @@ void Function502460(void); /* 0x00502460 */
    sites push three arguments. */
 unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
                                           unsigned int power_level);
+/* 0x004FF410: the same chance for a bare skill figure rather than a caster,
+   which is what an item-use attempt has. */
+unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor);
 char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 

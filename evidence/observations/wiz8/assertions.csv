@@ -1226,9 +1226,9 @@ call_site,call_kind,containing_function,source_path,line,expression,message
 0051ab9b,direct,,C:\Projects\Wizardry 8\Local Code\Combat Range.cpp,1123,FALSE,CalcRangeDistance: ERROR - Invalid range category
 0051af62,direct,0051aec0,C:\Projects\Wizardry 8\Local Code\Combat Range.cpp,1432,ubMonsterQuadrant != QUADRANT_CENTER,
 0051b3db,direct,0051b320,C:\Projects\Wizardry 8\Local Code\Combat Range.cpp,1606,FALSE,
-0051ba1a,direct,,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,376,gStatus.fItemInCursor,
-0051baa8,direct,,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,404,gStatus.fGameStarted,
-0051badc,direct,,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,405,fCHAR_OCCUPIED(uiChar),
+0051ba1a,direct,0051ba00,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,376,gStatus.fItemInCursor,
+0051baa8,direct,0051ba00,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,404,gStatus.fGameStarted,
+0051badc,direct,0051ba00,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,405,fCHAR_OCCUPIED(uiChar),
 0051bc2d,register-indirect,0051bc00,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,404,gStatus.fGameStarted,
 0051bc60,register-indirect,0051bc00,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,405,fCHAR_OCCUPIED(uiChar),
 0051c057,direct,0051c020,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,564,uiItemNo < gXStatus.uiItemsInDatabase,

@@ -1582,6 +1582,10 @@ int g_effect_005ee5f0 = 0x1a;
 int g_effect_005ee5f8 = 28;
 // GLOBAL: WIZ8 0x005ee610
 int g_effect_005ee610 = 34;
+/* 0x005EE624: the character event an item use queues when the attempt ends
+   without casting anything. */
+// GLOBAL: WIZ8 0x005EE624
+int g_effect_005ee624 = 39;
 // GLOBAL: WIZ8 0x005EE628
 int g_effect_005ee628 = 40;
 // GLOBAL: WIZ8 0x005ee640
