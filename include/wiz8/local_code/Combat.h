@@ -25,7 +25,7 @@ struct W8MonsterInfo;
 struct W8CombatCharacterRow;
 
 void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
-bool AnyCharacterEngaged(void);            /* 0x004E7CA0 */
+bool AnyCharacterEngaged(void);                     /* 0x004E7CA0 */
 /* 0x004F96F0: whether the character knows any spell whose realm's sp_left
    still covers its spell_point_cost. */
 bool CharacterHasCastableSpell(W8Character* character);
@@ -38,6 +38,7 @@ void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting
    context, in the two forms the target-refresh pass asks. */
+// bool-byte-ok: retail returns al as unsigned char
 unsigned char CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
                                    int arg_4);
 unsigned char TryCharacterAction(int party_slot, int action, char commit);

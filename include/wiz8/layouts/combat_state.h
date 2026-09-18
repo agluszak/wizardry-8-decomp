@@ -101,7 +101,13 @@ struct W8CombatCharacterRow {
     int paired_item_id_7c;
     unsigned char flag_80; /* 0x80 */
     unsigned char flag_81; /* 0x81: toggled when an attack action is chosen */
-    unsigned char unknown_82[0x12];
+    unsigned char unknown_82[2];
+    /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
+       combat portrait strip draws while the slot is the hovered combat slot
+       (party_slots_170[4]); -1 draws nothing. */
+    int portrait_image_084;
+    int portrait_image_alternate_088;
+    unsigned char unknown_8c[8];
     /* 0x94: incremented when an out-of-combat action is repicked during
        combat; the eight rows are addressed with the established 0xd4 stride. */
     int pending_action_repick_count;

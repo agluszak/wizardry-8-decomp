@@ -61,6 +61,12 @@ void CreateConditionButtons(void);                               /* 0x0059BDB0 *
 void DisablePortraitControls0059BB40(void);                      /* 0x0059BB40 */
 void EnablePortraitAdvanceRegions0059BB70(void);                 /* 0x0059BB70 */
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 */
+/* The DrawMainGameScreen portrait tick: combat slots redraw their strip,
+   non-combat slots keep their level-advance buttons in sync, and the
+   condition buttons track each slot's highest condition or enchantment. */
+void RedrawCombatPortraits0059B720(void);
+void UpdatePortraitAdvanceButtons0059BC10(void);
+void UpdateConditionButtons0059C080(void);
 /* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
    the current layout. SyncMainGameModeRegions picks between them. */
 void DisableConditionButtons0059C030(void);

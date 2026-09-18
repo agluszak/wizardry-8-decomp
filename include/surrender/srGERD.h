@@ -97,14 +97,31 @@ public:
     long getHeight() const;
     long getWidth() const;
     void resetStatistics();
-    /* getStatistics buffer; the only proven field is the double at +0x10
-       that the 0x004289e0 render probe returns through ftol. */
+    /* getStatistics buffer. The render probes return the double at +0x10
+       through ftol; the 0x00427460 debug overlay prints the dword counters at
+       +0x08/+0x0c (the TT pair), +0x20 (PO), +0x24 (VO), +0x34 (PI),
+       +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
-        unsigned char unknown_00[0x10];
+        unsigned char unknown_00[8];
+        unsigned long value_08;
+        unsigned long value_0c;
         double value_10;
-        unsigned char unknown_18[0x64];
+        unsigned char unknown_18[8];
+        unsigned long value_20;
+        unsigned long value_24;
+        unsigned char unknown_28[0xc];
+        unsigned long value_34;
+        unsigned char unknown_38[4];
+        unsigned long value_3c;
+        unsigned char unknown_40[0xc];
+        unsigned long value_4c;
+        unsigned char unknown_50[0x18];
+        unsigned long value_68;
+        unsigned char unknown_6c[0x10];
     };
     void getStatistics(Statistics& statistics);
+    unsigned long getTextureCacheUsed() const;
+    unsigned long getResidentTextureMemUsed() const;
     void setClearColor(float red, float green, float blue, float alpha);
     void setAmbientLight(float red, float green, float blue, float alpha);
     void setFogColor(const srVector3T<float>& color);

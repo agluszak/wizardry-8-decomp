@@ -250,7 +250,6 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note);
 unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point);
 void SetAutomapCameraPoint0057FC70(srVector3T<float>* position);
 void SetAutomapButtonMode(int update);
-void Function427460(int x, int y);
 void RenderAutomapFrame00581030(void);
 void UpdateAutomapPageButtons00581200(void);
 void Function425C90(int left, int top, int right, int bottom);
@@ -1042,7 +1041,7 @@ void AutomapScreenFrame(void)
         SetAutomapCameraPoint0057FC70(&g_automap_position);
     if (GetTickCount() - g_automap_state->blink_time > 500) {
         if (g_automap_state->blink_enabled)
-            Function427460(0xdc, 0x32);
+            DrawVideoInspector00427460(0xdc, 0x32);
         g_automap_state->blink_time = GetTickCount();
     }
     RenderAutomapFrame00581030();

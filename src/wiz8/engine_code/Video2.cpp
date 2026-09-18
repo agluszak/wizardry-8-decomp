@@ -12,6 +12,9 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/TextBuffer.h"
@@ -224,6 +227,8 @@ extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
 unsigned char g_block_652ddc[0x12c0];
 // GLOBAL: WIZ8 0x006596e4
 unsigned int g_index_6596e4;
+// GLOBAL: WIZ8 0x006596d4
+int g_video_inspector_mode_6596d4;
 // GLOBAL: WIZ8 0x6596d8
 int g_dword_6596d8;
 // GLOBAL: WIZ8 0x006596ec
@@ -1903,6 +1908,91 @@ void PrintScreen(void)
     g_flag_659711 = 1;
 }
 
+/* The debug stats readout drawn over the primary surface: a black band plus
+   the frame-rate line always, the object/poly/vertex counters, texture and
+   pagefile memory in mode 2, or the scaled camera position in mode 3. */
+// FUNCTION: WIZ8 0x00427460
+void DrawVideoInspector00427460(int left, unsigned int top)
+{
+    DDSURFACEDESC description;
+    srGERD::Statistics statistics;
+    MEMORYSTATUS memory_status;
+    srVector3T<float> position;
+    unsigned int bottom;
+    unsigned char* row;
+    int rows;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+    /* Retail leaves the band height uninitialised for inspector modes outside
+       1..3 and reads that storage into bottom. */
+    int height;
+
+    if (g_video_inspector_mode_6596d4 == 1) {
+        height = 0xb;
+    } else if (g_video_inspector_mode_6596d4 == 2) {
+        height = 0x9a;
+    } else if (g_video_inspector_mode_6596d4 == 3) {
+        height = 0x2c;
+    }
+    bottom = top + height;
+    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    if (description.lpSurface != 0) {
+        if (top < bottom) {
+            row = static_cast<unsigned char*>(description.lpSurface) + description.lPitch * top +
+                  left * 2;
+            for (rows = bottom - top; rows != 0; --rows) {
+                memset(row, 0, 0x226);
+                row += description.lPitch;
+            }
+        }
+        DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    }
+    InvalidateRegion(left, top, left + 0x113, bottom, 0);
+    if (g_gerd_659634 != 0) {
+        g_gerd_659634->getStatistics(statistics);
+        SetFont(g_smfnt_font_683694);
+        SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_state_palettes_68ee1c[5]);
+        gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second_659704);
+        if (g_video_inspector_mode_6596d4 == 2) {
+            gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional_13c);
+            gprintfDirty(left, top + 0x14, L"PI: %d", statistics.value_34);
+            gprintfDirty(left, top + 0x1e, L"PO: %d", statistics.value_20);
+            gprintfDirty(left, top + 0x28, L"VI: %d", statistics.value_3c);
+            gprintfDirty(left, top + 0x32, L"VO: %d", statistics.value_24);
+            gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.value_68);
+            gprintfDirty(left, top + 0x46, L"TC: %d", statistics.value_4c);
+            gprintfDirty(left, top + 0x50, L"TT: %d", statistics.value_08, statistics.value_0c);
+            gprintfDirty(left, top + 0x5a, L"RM: %dK",
+                         g_gerd_659634->getResidentTextureMemUsed() >> 10);
+            gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd_659634->getTextureCacheUsed());
+            gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation00420F40(0));
+            memset(&memory_status, 0, sizeof(memory_status));
+            memory_status.dwLength = sizeof(memory_status);
+            GlobalMemoryStatus(&memory_status);
+            gprintfDirty(left, top + 0x78, L"MU: %dK",
+                         (memory_status.dwTotalPageFile - memory_status.dwAvailPageFile) >> 10);
+            gprintfDirty(left, top + 0x82, L"MM: %dK",
+                         static_cast<unsigned int>(g_decompressed_mesh_bytes) >> 10);
+            return;
+        }
+        if (g_video_inspector_mode_6596d4 == 3) {
+            float scaled;
+
+            GetCameraPosition(&position);
+            if (gfKeyState[0x70] != 0) {
+                position.x = position.x * g_world_cursor_scale_005ebf50;
+                scaled = position.y * g_world_cursor_scale_005ebf50;
+                position.y = position.z * g_world_cursor_scale_005ebf50;
+                position.z = scaled;
+            }
+            gprintfDirty(left, top + 0xa, L" X: %.2f", position.x);
+            gprintfDirty(left, top + 0x14, L" Y: %.2f", position.y);
+            gprintfDirty(left, top + 0x1e, L" Z: %.2f", position.z);
+        }
+    }
+#pragma clang diagnostic pop
+}
+
 // FUNCTION: WIZ8 0x004277d0
 void VideoInspectorEnable(void)
 {
@@ -3144,6 +3234,36 @@ void SetDisplayGamma(float value)
     srVector3T<float> gamma;
     gamma = value;
     g_gerd_659634->setGamma(gamma);
+}
+
+/* The option-4-suppressed variant of the render probe: with the positional
+   option forced off, draw the node between the dynamic scene's bracketing
+   passes, restore the option and return the sampled statistic. */
+// FUNCTION: WIZ8 0x00428830
+unsigned int MeasureNodeRender00428830(srNode* node)
+{
+    srGERD::Statistics statistics;
+    srNode::ProcessInfo process;
+
+    if (g_gerd_659634 != 0 && g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    }
+    g_gerd_659634->flushRenderers();
+    g_gerd_659634->resetStatistics();
+    g_gerd_659634->beginFrame();
+    srNode::lockSceneGraph();
+    process.renderer = g_gerd_659634;
+    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
+    node->process(process, static_cast<srNode::e_processType>(0));
+    g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
+    srNode::unlockSceneGraph();
+    g_gerd_659634->endFrame();
+    g_gerd_659634->flushRenderers();
+    g_gerd_659634->getStatistics(statistics);
+    if (g_gerd_659634 != 0 && !g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    }
+    return static_cast<unsigned int>(statistics.value_10);
 }
 
 /* Open the render-probe pass: force renderer option 4 off, reset the frame

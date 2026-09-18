@@ -348,15 +348,6 @@ void Function59CF50(int active);                                          /* 0x0
 void Function587C50(void);                                                /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);                                  /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);                                         /* 0x0058A8C0 */
-void Function598FA0(void);
-void Function59BC10(void);
-void Function59B720(void);
-void Function59C080(void);
-void Function587970(void);
-void Function58A760(void);
-void Function5989B0(void);
-void Function427460(int x, int y);
-int Function428830(srNode* node);
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
@@ -414,6 +405,15 @@ int GetKnockKnockSpellPower00586A70(int slot);
 void ProcessLockInteractMode(void)
 {
     g_lock_interaction_68f2c0->Process();
+}
+
+/* Redraw the lock interaction's tumbler, info and action panels. */
+// FUNCTION: WIZ8 0x00587970
+void RedrawLockInteractionPanels(void)
+{
+    g_lock_interaction_68f2c0->m_tumbler_panel_10->Redraw();
+    g_lock_interaction_68f2c0->m_info_panel_14->Redraw();
+    g_lock_interaction_68f2c0->m_action_panel_18->Redraw();
 }
 
 /* Re-arm the lock tumbler and action region sets while lock interact is up. */
@@ -2356,6 +2356,15 @@ void W8MainGameScreen::UseTrapItem()
 void UpdateMainGameScreen(void)
 {
     g_main_game_screen->Update();
+}
+
+/* Redraw the trap interaction's text, status and action panels. */
+// FUNCTION: WIZ8 0x0058A760
+void RedrawTrapInteractionPanels(void)
+{
+    g_main_game_screen->m_text_panel_00c->Redraw();
+    g_main_game_screen->m_status_panel_010->Redraw();
+    g_main_game_screen->m_action_panel_014->Redraw();
 }
 
 /* Same NPC-dialogue text-box-layout predicate as IsNpcDialogueTextBoxActive,
@@ -4335,25 +4344,25 @@ void DrawMainGameScreen(void)
             DrawDialog(g_modal_owner_0068edd0);
         }
         if (g_level_block->combat_end_notification != -1) {
-            Function598FA0();
+            UpdateSubMenuAutoClose00598FA0();
         }
         if (gXStatus.fCombatMode == 0) {
-            Function59BC10();
+            UpdatePortraitAdvanceButtons0059BC10();
         } else {
-            Function59B720();
+            RedrawCombatPortraits0059B720();
         }
-        Function59C080();
+        UpdateConditionButtons0059C080();
         if (gXStatus.fPartyMovementUi != 0 && g_flag_006840bc == 0) {
             DrawPartyMovementPanel();
         }
         DrawNpcQuoteBubble();
         if (gXStatus.fLockInteractMode != 0) {
-            Function587970();
+            RedrawLockInteractionPanels();
         }
         if (gXStatus.fTrapInteractMode != 0) {
-            Function58A760();
+            RedrawTrapInteractionPanels();
         }
-        Function5989B0();
+        UpdateMainGameButtons005989B0();
         RedrawPortraitQuoteBubbles();
         RenderAllTextFields();
         if (g_level_block->unknown_24c != 0) {
@@ -4367,7 +4376,7 @@ void DrawMainGameScreen(void)
             if (g_level_block->flag_24d != 0 && gXStatus.fSpellCastMode == 0 &&
                 gXStatus.fNpcDialogueMode == 0 && gXStatus.fItemSelectMode == 0 &&
                 gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
-                Function427460(0xdc, 0x32);
+                DrawVideoInspector00427460(0xdc, 0x32);
             }
             g_level_block->tick_274 = GetTickCount();
         }
@@ -4391,7 +4400,7 @@ void DrawMainGameScreen(void)
         if (g_flag_0068edda != 0) {
             for (node = g_world->level->firstChild(); node != 0; node = node->nextSibling()) {
                 if (node->getClassID() == 0x10004) {
-                    if (Function428830(node) == 0) {
+                    if (MeasureNodeRender00428830(node) == 0) {
                         node->setFlag(srNode::FLAG_DISABLE);
                     } else {
                         node->clearFlag(srNode::FLAG_DISABLE);

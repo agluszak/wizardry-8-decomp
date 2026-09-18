@@ -25,6 +25,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/cursor.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Strings.h"
@@ -2422,4 +2423,155 @@ void SetSubMenuButtonTooltips(int enabled)
     g_submenu_scroll_buttons_69b858[1]->SetTooltipEnabled(enabled);
     g_submenu_panel_buttons_69b860[0]->SetTooltipEnabled(enabled);
     g_submenu_panel_buttons_69b860[1]->SetTooltipEnabled(enabled);
+}
+
+/* Per-frame button refresh from DrawMainGameScreen: restate and draw the nine
+   bank buttons, gate the scroll arrows on an idle submenu, enable the
+   options/disk button outside modal modes, then refresh the panel, stance,
+   roof and layout-arrow sets. */
+// FUNCTION: WIZ8 0x005989B0
+void UpdateMainGameButtons005989B0(void)
+{
+    W8DialogButton** button;
+    int index;
+    bool enabled;
+
+    for (index = 0, button = g_submenu_buttons_69b8b0; button < &g_submenu_buttons_69b8b0[9];
+         ++button, ++index) {
+        UpdateSubMenuButton(index);
+        (*button)->Draw();
+    }
+    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+             ++button) {
+            (*button)->SetEnabled(1);
+        }
+    } else {
+        for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+             ++button) {
+            (*button)->SetEnabled(0);
+        }
+    }
+    for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+         ++button) {
+        (*button)->Draw();
+    }
+    UpdateSubMenuPanelButtons();
+    enabled = gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
+              gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 &&
+              gXStatus.fLockInteract == 0 && gXStatus.fTrapInteract == 0;
+    g_options_disk_button_69b8e4->SetEnabled(enabled);
+    g_options_disk_button_69b8e4->Draw();
+    UpdateCombatStanceButtons();
+    UpdateRoofButtons();
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+        gXStatus.fTrapInteractMode == 0) {
+        W8DialogButton* draw;
+        bool arrow_enabled;
+
+        arrow_enabled = g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS;
+        if (arrow_enabled) {
+            g_layout_arrow_buttons_69b884[0]->SetEnabled(1);
+        } else {
+            g_layout_arrow_buttons_69b884[0]->SetEnabled(0);
+        }
+        g_layout_arrow_buttons_69b884[2]->SetEnabled(arrow_enabled);
+        if (g_level_block->radar_map_visible == 0) {
+            g_layout_arrow_buttons_69b884[3]->SetVisible(1);
+            g_layout_arrow_buttons_69b884[0]->SetVisible(0);
+            draw = g_layout_arrow_buttons_69b884[3];
+        } else {
+            g_layout_arrow_buttons_69b884[0]->SetVisible(1);
+            g_layout_arrow_buttons_69b884[3]->SetVisible(0);
+            draw = g_layout_arrow_buttons_69b884[0];
+        }
+        draw->Draw();
+        if (g_level_block->action_panel_visible == 0) {
+            g_layout_arrow_buttons_69b884[4]->SetVisible(1);
+            g_layout_arrow_buttons_69b884[1]->SetVisible(0);
+            draw = g_layout_arrow_buttons_69b884[4];
+        } else {
+            g_layout_arrow_buttons_69b884[1]->SetVisible(1);
+            g_layout_arrow_buttons_69b884[4]->SetVisible(0);
+            draw = g_layout_arrow_buttons_69b884[1];
+        }
+        draw->Draw();
+        if (g_level_block->formation_board_visible == 0) {
+            g_layout_arrow_buttons_69b884[5]->SetVisible(1);
+            g_layout_arrow_buttons_69b884[2]->SetVisible(0);
+            g_layout_arrow_buttons_69b884[5]->Draw();
+            return;
+        }
+        g_layout_arrow_buttons_69b884[2]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[5]->SetVisible(0);
+        g_layout_arrow_buttons_69b884[2]->Draw();
+        return;
+    }
+    for (button = g_layout_arrow_buttons_69b884; button < &g_layout_arrow_buttons_69b884[6];
+         ++button) {
+        (*button)->SetVisible(0);
+    }
+}
+
+/* While the combat-end submenu is up and the cursor has left its row band,
+   run a 500 ms countdown; once it lapses, tear the panel and rows down like
+   the background right-click path. */
+// FUNCTION: WIZ8 0x00598FA0
+void UpdateSubMenuAutoClose00598FA0(void)
+{
+    int left;
+    int right;
+    W8TextControl** row;
+
+    left = gpSubMenuPanel->origin_x;
+    switch (g_submenu_entry_count_69b87e) {
+    case 0:
+    case 1:
+        goto check_clock;
+    case 2:
+        right = left + 0x2f;
+        break;
+    case 3:
+        right = left + 0x42;
+        break;
+    case 4:
+        right = left + 0x55;
+        break;
+    case 5:
+        right = left + 0x67;
+    }
+    if (IsCursorInRectangle(left, gpSubMenuPanel->origin_y, right,
+                            gpSubMenuPanel->origin_y + 0x1c) == 0) {
+    check_clock:
+        if (g_submenu_flag_69b8d4 == 0) {
+            g_submenu_clock_69b880 = SetCountdownClock(500);
+            g_submenu_flag_69b8d4 = 1;
+            return;
+        }
+        if (ClockIsTicking(g_submenu_clock_69b880) == 0) {
+            SetSubMenuButtonTooltips(1);
+            g_level_block->combat_end_notification = -1;
+            g_submenu_entry_count_69b87e = 0;
+            RegionSetDisable(0x27);
+            DisableRegionSetInput(0x27);
+            if (gpSubMenuPanel != 0) {
+                delete gpSubMenuPanel;
+                gpSubMenuPanel = 0;
+            }
+            row = g_submenu_rows_69b8ec;
+            do {
+                if (*row != 0) {
+                    delete *row;
+                    *row = 0;
+                }
+                ++row;
+            } while (row < &g_submenu_rows_69b8ec[5]);
+            RequestRedraw(0x200);
+        }
+    } else if (g_submenu_flag_69b8d4 != 0) {
+        g_submenu_clock_69b880 = SetCountdownClock(0);
+        g_submenu_flag_69b8d4 = 0;
+    }
 }
