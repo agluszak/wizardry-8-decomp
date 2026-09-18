@@ -327,7 +327,7 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 
 @pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])
 def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects_lint) -> None:
-    from wiz8decomp import build, config, subprocesses
+    from wiz8decomp import build, comparison, config
 
     events = []
     repository = Path("/repo")
@@ -340,9 +340,9 @@ def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects
         lambda _settings, **_kwargs: events.append(("lint",)) or {},
     )
     monkeypatch.setattr(
-        subprocesses,
-        "run",
-        lambda command, *, cwd: SimpleNamespace(stdout=f"{changed}\n"),
+        comparison,
+        "changed_files",
+        lambda _repository, _since=None: [repository / changed],
     )
 
     result = CliRunner().invoke(app, ["pr-check"])
