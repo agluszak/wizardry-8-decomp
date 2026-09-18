@@ -45,11 +45,14 @@ struct W8NpcState {
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
-    unsigned char unknown_1c;
+    /* 0x1c: raised by DismissNpcFromParty; the NPC timeout pass at
+       0x0050C7D0 clears it once the 0x1e accumulator passes 0x3c of the
+       caller's deci-minute units. */
+    unsigned char dismissed_flag;
     /* 0x1d: raised by CreateNpcRuntimeNode; the greeting quote (0) and the
        first-interaction paths lower it once the NPC has been greeted. */
     unsigned char greeting_pending;
-    unsigned char unknown_1e[4];
+    unsigned int dismissed_timer; /* 0x1e: elapsed accumulator for 0x1c */
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
     unsigned char flag_22;
@@ -87,15 +90,25 @@ struct W8NpcState {
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
     /* 0x0c5/0x0c6: the pending-restore flag and the level it belongs to. */
-    unsigned char pending_restore;
+    bool pending_restore;
     unsigned char pending_restore_level;
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char binding_unavailable;
-    unsigned char unknown_c8[2];
-    /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
-    unsigned short unknown_ca;
-    unsigned char unknown_cc[0x1c];
+    /* 0x0c8/0x0c9: two dialogue-action cooldown flags gating the dialogue
+       layout's 0x114/0x110 buttons; 0x0050C7D0 clears each once its clock
+       stamp at 0x0cc/0x0d0 is more than 0xa8c0 old. */
+    unsigned char flag_c8;
+    unsigned char flag_c9;
+    /* 0x0ca: the trade pool CreateNpcRuntimeNode copies from the record's word
+       at 0x002; the pay and sell interactions draw it down by the adjusted
+       price and it resets from the record once drained. */
+    unsigned short trade_pool_ca;
+    int clock_cc; /* 0x0cc: flag_c8's world-clock stamp */
+    int clock_d0; /* 0x0d0: flag_c9's world-clock stamp */
+    /* 0x0d4: per-service offered flags the interaction scan at 0x0050CA80
+       indexes by service slot. */
+    unsigned char service_flags[0x14];
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_e8;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
@@ -109,10 +122,10 @@ struct W8NpcState {
     short known_facts[14];
     /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */
     W8Dice item_count_dice_10e;
-    /* 0x112/0x113: the monster-binding release flag and the level it is
-       stamped for. */
-    unsigned char flag_112;
-    unsigned char flag_113;
+    /* 0x112/0x113: the pending monster-binding release flag and the level it
+       is stamped for, consumed by ReleaseNpcMonsterBindings0050C2E0. */
+    bool pending_release;
+    unsigned char pending_release_level;
     unsigned char marked_114;
     /* 0x115: the forty entry weights matching item_ids_30; only the slots
        whose table selector was set carry a weight. */

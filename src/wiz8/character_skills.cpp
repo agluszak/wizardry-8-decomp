@@ -11,10 +11,13 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/message_box.h"
 #include "wiz8/utility.h"
@@ -239,6 +242,95 @@ float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float bas
         return base;
     }
     return (level + level + 60.0f) * base * 0.01f;
+}
+
+/* The Valkyrie cheat-death trait fires instead of death while the character
+   is not already deep into unconsciousness: a notice, an unconscious stint
+   shortened by the profession-level scale, and hit points rolled back up -
+   from a scaled share of the maximum once per combat, a scaled share of the
+   current pool every other time. */
+// FUNCTION: WIZ8 0x00547A50
+void CheatDeathRevive00547A50(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    PostCharacterNotice(party_slot, gppStringList[0x173]);
+    SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
+                          character->condition_turns[W8_CONDITION_UNCONSCIOUS] -
+                              static_cast<int>(ScaleValueByProfessionLevel005479B0(
+                                  character, W8_TRAIT_CHEAT_DEATH, g_float_005ebc28)) +
+                              7,
+                          0, 0, 1);
+    if (g_combat_state != 0 && g_combat_state->characters[party_slot].cheat_death_used == 0) {
+        character->hp_current =
+            (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(
+                 character, W8_TRAIT_CHEAT_DEATH, character->hp_max * g_float_005ebc7c))) +
+             0x32) *
+            character->hp_max / 100;
+        g_combat_state->characters[party_slot].cheat_death_used = 1;
+    } else {
+        character->hp_current =
+            Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(
+                character, W8_TRAIT_CHEAT_DEATH, character->hp_current))) +
+            1;
+    }
+}
+
+/* Alchemist auto-brew candidates as {item_id, minimum alchemist profession
+   level, maximum level} triples; -1 in the maximum opens the top end and the
+   {-1,0,0} row terminates the walk. */
+// GLOBAL: WIZ8 0x00616FE0
+int g_alchemist_brew_recipes[][3] = {
+    {335, 1, 2},   {346, 2, 4},   {336, 3, 5},   {264, 4, -1},  {345, 5, 9},   {337, 6, 12},
+    {317, 6, 12},  {269, 3, 8},   {334, 6, 9},   {347, 6, 12},  {341, 10, 13}, {342, 11, 14},
+    {348, 13, 15}, {339, 17, -1}, {429, 18, -1}, {598, 5, 8},   {46, 6, 9},    {47, 7, 10},
+    {69, 10, 12},  {338, 11, 13}, {260, 13, 14}, {359, 2, 4},   {358, 3, 6},   {360, 4, 8},
+    {364, 12, 13}, {361, 14, -1}, {363, 15, -1}, {349, 4, 7},   {353, 7, 10},  {350, 8, 11},
+    {357, 8, 11},  {354, 12, 14}, {362, 12, 13}, {355, 14, 15}, {356, 16, -1}, {343, 10, 13},
+    {258, 12, 15}, {-1, 0, 0},
+};
+
+/* Brew one potion for a conscious alchemist whose cooldown has elapsed. The
+   table bands each potion by alchemist profession level (-1 opens the top
+   end); a random in-band entry is created, announced and stowed, then the
+   cooldown is re-armed. */
+// FUNCTION: WIZ8 0x00548E60
+void BrewAlchemistPotion00548E60(W8Character* character)
+{
+    W8ItemInstance item;
+    unsigned int slot = CharacterPointerToPartySlot(character);
+    unsigned int made = 0;
+    int alchemy;
+    const int* recipe;
+    unsigned int recipes;
+    unsigned int pick;
+
+    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        character->highest_condition < 0x11 &&
+        CharacterHasTrait00547940(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+        alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
+        recipes = 0;
+        for (recipe = &g_alchemist_brew_recipes[0][2]; recipe[-2] != -1; recipe += 3) {
+            if (recipe[-1] <= alchemy && (recipe[0] == -1 || alchemy <= recipe[0])) {
+                ++recipes;
+            }
+        }
+        pick = Random(recipes) + 1;
+        for (recipe = &g_alchemist_brew_recipes[0][2];
+             alchemy < recipe[-1] || (recipe[0] != -1 && recipe[0] < alchemy) || --pick != 0;
+             recipe += 3) {
+        }
+        ReplaceOrCreateItem(&item, recipe[-2], 0, 1, 1);
+        if (item.stack_count > 1) {
+            item.stack_count = 1;
+        }
+        ShowNoticef(slot, gppStringList[0x183], character->name, FormatItemDisplayName(&item, 1));
+        StoreItemWithCharacterOrParty(character, &item, 0, 0, 0);
+        made = 1;
+    }
+    if (made != 0) {
+        character->potion_brew_cooldown_0b65 = 0x168;
+    }
 }
 
 /* Skill ids fall into three bands. Below 0x18 and at 0x1c..0x21 they are

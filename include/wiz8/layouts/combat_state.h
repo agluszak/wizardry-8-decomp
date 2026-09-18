@@ -122,7 +122,12 @@ struct W8CombatCharacterRow {
     unsigned int phase_clock_stamp;
     unsigned char unknown_a0[4];
     unsigned char flag_a4; /* 0xa4: raised when switching to an attack */
-    unsigned char unknown_a5[0x2f];
+    unsigned char unknown_a5;
+    /* 0xa6: raised once the slot's cheat-death revival has fired in this
+       combat; a second trigger restores only the scaled sliver of current
+       hit points. */
+    unsigned char cheat_death_used;
+    unsigned char unknown_a7[0x2d];
 }; /* 0xd4 */
 
 static_assert(sizeof(W8CombatCharacterRow) == 0xd4, "W8CombatCharacterRow_must_be_0xd4");

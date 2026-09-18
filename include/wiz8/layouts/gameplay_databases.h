@@ -275,7 +275,11 @@ struct W8NpcDatabaseRecord {
     int kind;
     /* 0x05c: the disposition byte CreateNpcRuntimeNode starts the state with. */
     unsigned char disposition;
-    unsigned char unknown_05d[7];
+    /* 0x05d/0x05e: the signed scales the charm and talk interactions fold into
+       the disposition shift; the sub-one path negates the /5 quotient. */
+    signed char charm_scale_5d;
+    signed char talk_scale_5e;
+    unsigned char unknown_05f[5];
     /* 0x064: one-based index into g_item_tables selecting the record's item
        table; 0x0050B9E0 copies that table into the runtime state. The zero and
        past-the-end tests compare it signed. */
@@ -287,7 +291,12 @@ struct W8NpcDatabaseRecord {
     /* 0x06f: the minimum average party level the notice predicate at
        0x0050C870 requires before this NPC's group can be invited. */
     unsigned char min_party_level_6f;
-    unsigned char unknown_070[0x2d];
+    /* 0x070/0x074: the level this NPC restores its binding at and the
+       FindEntityByName key the restore moves its monster to - the default
+       pair copied into the runtime state's pending restore. */
+    char restore_level;
+    unsigned char unknown_071[3];
+    char restore_entity_name[0x29];
     unsigned char flag_9d; /* 0x09d: and only when this is clear */
     /* 0x09e: what the NPC is called, unless a fact substitutes another name.
        The wide RPC-character name at 0x0c4 bounds the string extent. */
@@ -336,6 +345,25 @@ static_assert(offsetof(W8LevelDatabaseRecord, gameplay_time_scale_054) == 0x54,
    both bodies that name a monster test for it, which is why it lives here
    rather than in either of them. */
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
+
+/* One slot of W8MonsterRecord::treasure_1c3. type selects direct item (0) or
+   item-table (1) drops; the entry only fires when count is nonzero and a
+   Random(100) roll stays under chance. */
+struct W8MonsterTreasureEntry {
+    unsigned char type;     /* 0x00 */
+    short count;            /* 0x01: nonzero gates the slot */
+    unsigned short item_id; /* 0x03: item id, or table id when type is 1 */
+    unsigned char chance;   /* 0x05 */
+    W8Dice dice;            /* 0x06: rolled once for the drop count */
+};
+static_assert(sizeof(W8MonsterTreasureEntry) == 10, "W8MonsterTreasureEntry_must_be_10");
+
+struct W8MonsterTreasureBlock {
+    unsigned char unknown_00[0x30];
+    W8MonsterTreasureEntry slots[8]; /* 0x30 */
+    W8Dice gold_dice;                /* 0x80: rolled once into AddPartyGold */
+};
+static_assert(sizeof(W8MonsterTreasureBlock) == 0x84, "W8MonsterTreasureBlock_must_be_0x84");
 
 struct W8MonsterRecord {
     wchar_t name_00[24]; /* 0x000: suffix after '#' removed at load */
@@ -426,7 +454,12 @@ struct W8MonsterRecord {
     /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
        stores the value itself as the selected monster index. */
     short value_1c1;
-    unsigned char unknown_1c3[0x84];
+    /* 0x1c3: the monster's treasure table. DropMonsterLoot fires each slot
+       whose count is nonzero once Random(100) stays under its chance, rolling
+       the slot dice for the drop count; type 0 creates the item id directly,
+       type 1 feeds the id to GenerateItemsFromTable. The gold dice lands in
+       AddPartyGold. */
+    W8MonsterTreasureBlock treasure_1c3;
     unsigned char attack_multiple_targets_247;
     /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
     unsigned char camouflage_248;

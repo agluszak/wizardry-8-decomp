@@ -32,6 +32,7 @@
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/npc_items.h"
 #include "wiz8/npc_script_file.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/item_tables.h"
@@ -65,7 +66,12 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srScene.h"
+#include "wiz8/surface2d.h"
 #include "wiz8/utility.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srMeshModel.h"
+#include "surrender/srShader.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
 #include "wiz8/layouts/screen_state.h"
@@ -174,6 +180,10 @@ signed char g_value_00685077;
 unsigned int g_mouselook_last_tick_0068edb0;
 // GLOBAL: WIZ8 0x0068edb4
 unsigned char g_mouselook_tick_init_0068edb4;
+
+/* GetTickCount base of the running surprise fade pulse. */
+// GLOBAL: WIZ8 0x0068edb8
+unsigned long g_surprise_fade_tick_base_0068edb8;
 // GLOBAL: WIZ8 0x0068edbc
 unsigned char g_flag_0068edbc;
 
@@ -186,12 +196,18 @@ float g_mouselook_pending_pitch_0068ede4;
 const float g_mouselook_smooth_max_005ee9a0 = 0.39269906f;
 // GLOBAL: WIZ8 0x005ee9a4
 const float g_mouselook_smooth_min_005ee9a4 = 0.006135923f;
+// GLOBAL: WIZ8 0x005ee9a8
+const float g_fade_resume_scale_005ee9a8 = -500.0f;
 
 // GLOBAL: WIZ8 0x0068edc8
 unsigned char g_flag_0068edc8;
 
 // GLOBAL: WIZ8 0x0068edc9
 unsigned char g_flag_0068edc9;
+
+/* Surprise fade direction: nonzero fades in, zero fades out. */
+// GLOBAL: WIZ8 0x0068edca
+unsigned char g_surprise_fade_in_0068edca;
 
 // GLOBAL: WIZ8 0x0068edd8
 unsigned char g_flag_0068edd8;
@@ -217,6 +233,14 @@ unsigned char g_build_level_links_0065bd2c;
 
 // GLOBAL: WIZ8 0x0068ede8
 int g_next_link_level_0068ede8;
+
+/* The surprise sequence's snapshot surface, 2D overlay and fade quad node. */
+// GLOBAL: WIZ8 0x0068edf0
+srColorSurfaceIFace* g_surprise_snapshot_surface_0068edf0;
+// GLOBAL: WIZ8 0x0068edf4
+stSurface2D* g_surprise_snapshot_overlay_0068edf4;
+// GLOBAL: WIZ8 0x0068edf8
+stModelInstance2D* g_surprise_fade_node_0068edf8;
 
 // GLOBAL: WIZ8 0x0068edd9
 unsigned char g_flag_0068edd9;
@@ -325,9 +349,6 @@ unsigned char g_flag_006840bb;
 
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
-void Function5A6970(void);
-unsigned char Function5A6790(void);
-void Function5A68C0(void);
 void Function50B3B0(int value);
 void Function59B4C0(void);
 void Function59B390(void);
@@ -350,7 +371,6 @@ unsigned char GetOpenDialogueFlag(void);                                  /* 0x0
 void RedrawTextBoxComplete(void);                                         /* 0x0058A8C0 */
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
-void Function5029A0(void);
 void Function57E0E0(int event, const POINT* point);
 void Function57DC20(void);
 void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed);
@@ -844,7 +864,7 @@ void W8LockInteraction::Process()
         }
         g_lock_interaction_68f2c0 = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -920,7 +940,7 @@ void W8LockInteraction::Process()
         gXStatus.fLockInteractMode = 0;
         EnablePanels(0);
         gXStatus.fLockInteract = 1;
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -2049,7 +2069,7 @@ void W8MainGameScreen::Update()
         }
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -2113,7 +2133,7 @@ void W8MainGameScreen::Update()
         }
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -2322,7 +2342,7 @@ void W8MainGameScreen::CastTrapSpell()
     panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
@@ -2344,7 +2364,7 @@ void W8MainGameScreen::UseTrapItem()
     panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
@@ -3291,7 +3311,7 @@ unsigned char ProcessMainGameInput(void)
                 if (HandleDialogueTextInput(&input) == 0 && Function591890(&input) == 0) {
                     if (g_main_game_mode_0068eddc == 3) {
                         if (gXStatus.fNpcDialogueMode != 0) {
-                            Function56E800(0);
+                            EndNpcDialogue(0);
                         }
                     } else if (g_main_game_mode_0068eddc == 5) {
                         Function5187E0();
@@ -3310,7 +3330,7 @@ unsigned char ProcessMainGameInput(void)
                         EndCombat004EA310(1);
                     }
                     if (gXStatus.fSurprisePossible != 0) {
-                        Function5029A0();
+                        RestoreSurpriseView005029A0();
                     }
                     g_status_685170.game_started = 0;
                     ClearHeldItemDisplay();
@@ -3350,7 +3370,7 @@ void DrainNpcDialogueDeferralInput(void)
                         switch (g_screen_state_00649f1c->value_fc) {
                         case 2:
                         case 3:
-                            Function56E800(0);
+                            EndNpcDialogue(0);
                             break;
                         case 1:
                             prior_layout = g_screen_state_00649f1c->value_104;
@@ -3471,14 +3491,14 @@ update_screen:
     }
     if (!g_level_block->flag_328) {
         if (g_level_block->review_transition_active) {
-            Function5A6970();
+            PumpReviewTransition005A6970();
             return;
         }
-    } else if (Function5A6790()) {
+    } else if (UpdateScreenFade005A6790()) {
         return;
     }
     if (!AnyCharacterActive() || g_party_moving_006850b5) {
-        Function5A68C0();
+        BeginPartyDeath005A68C0();
     }
     if (g_value_006840be != 0xffff) {
         Function50B3B0(static_cast<short>(g_value_006840be));
@@ -3767,7 +3787,7 @@ unsigned char MainGameScreenLeave(int leaving)
 
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode) {
-            Function56E800(0);
+            EndNpcDialogue(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
@@ -3800,7 +3820,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fReviewCharacterMode)
         CloseFormationPanel();
     if (gXStatus.fNpcDialogueMode)
-        Function56E800(0);
+        EndNpcDialogue(0);
     if (g_level_block->keyboard_menu_open)
         CloseKeyboardMenu();
     ReleasePortraitControls();
@@ -3922,6 +3942,69 @@ void OnQuitGameDialogClosed(W8DialogBase* dialog)
         }
         RequestExitScreen();
     }
+}
+
+/* Tear down whichever modal main-game mode is active - NPC dialogue, the
+   review overlay or the mode-6 hover panel - and return to the neutral
+   mode: autosave when the party is alive and stationary, end combat,
+   restore the surprise view, then request the screen transition. The mode-6
+   block re-checks the mode after the overlay release because the release
+   may leave it changed. */
+// FUNCTION: WIZ8 0x00560C60
+void ResetMainGameMode00560C60(void)
+{
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogue(0);
+        }
+        break;
+    case 5:
+        Function5187E0();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto mode_reset;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+mode_reset:
+    g_main_game_mode_0068eddc = 0;
+    if (IsMessageBoxActive()) {
+        Function5187E0();
+    }
+    if (gXStatus.fCombatMode != 0) {
+        EndCombat004EA310(1);
+    } else if (AnyCharacterActive() && g_party_moving_006850b5 == 0) {
+        AutoSaveIfAllowed(1);
+    }
+    if (gXStatus.fSurprisePossible != 0) {
+        RestoreSurpriseView005029A0();
+    }
+    g_status_685170.game_started = 0;
+    ClearHeldItemDisplay();
+    RequestScreenTransition();
+    SetPrimarySurfaceTextureHint2Enabled(0);
 }
 
 /* Ask for part of the screen to be redrawn. A request made while another
@@ -4669,7 +4752,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
 
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.unknown_026[0] != 0) {
-            Function56E800(0);
+            EndNpcDialogue(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
@@ -4743,7 +4826,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
 {
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode != 0) {
-            Function56E800(0);
+            EndNpcDialogue(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
@@ -5681,7 +5764,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
                     if (gXStatus.fNpcDialogueMode != 0) {
-                        Function56E800(0);
+                        EndNpcDialogue(0);
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5764,7 +5847,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
                     if (gXStatus.fNpcDialogueMode != 0) {
-                        Function56E800(0);
+                        EndNpcDialogue(0);
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5890,7 +5973,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
                     if (gXStatus.fNpcDialogueMode != 0) {
-                        Function56E800(0);
+                        EndNpcDialogue(0);
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -6467,7 +6550,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             if (g_main_game_mode_0068eddc == 3) {
                 if (gXStatus.fNpcDialogueMode != 0) {
-                    Function56E800(0);
+                    EndNpcDialogue(0);
                 }
             } else if (g_main_game_mode_0068eddc == 5) {
                 Function5187E0();
@@ -6637,7 +6720,7 @@ void OpenAutomapScreen(void)
     switch (g_main_game_mode_0068eddc) {
     case 3:
         if (gXStatus.fNpcDialogueMode != 0) {
-            Function56E800(0);
+            EndNpcDialogue(0);
         }
         break;
     case 5:
@@ -7073,6 +7156,306 @@ unsigned char IsNpcDialogueCursorActive(void)
     return g_screen_state_00649f1c->dialogue_cursor_flag;
 }
 
+/* TU-local NPC-dialogue text-box handlers dispatched by
+   NpcDialogueTextBoxRegionEvent below. */
+void NpcDialogueTextBoxLeftRelease(unsigned short x, unsigned short y);  /* 0x0056F530 */
+void NpcDialogueTextBoxRightRelease(unsigned short x, unsigned short y); /* 0x0056F6B0 */
+void NpcDialogueTextBoxDoubleClick(unsigned short x, unsigned short y);  /* 0x0056F840 */
+W8ItemInstance* Function5729C0(int index, char, char, char);             /* 0x005729C0 */
+void OnNpcAssayDialogClosed(W8DialogBase* dialog);                       /* 0x00572670 */
+void Function56FAC0(int index, int, int);                                /* 0x0056FAC0 */
+void Function5AD290(void);                                               /* 0x005AD290 */
+
+/* NPC-dialogue text-box body region event: button presses only arm the held
+   bits and all action happens on release - left release clicks, double-click
+   inserts-and-submits, right release learns a transcript keyword or opens the
+   item assay. Motion keeps value_1c4/0x1c8 as the last cursor point; on the
+   transcript layout it highlights the word under the cursor and on the main
+   text-box layout it tracks the hovered row into value_1cc. */
+// FUNCTION: WIZ8 0x0056F1D0
+unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8MainScreenState* state = g_screen_state_00649f1c;
+    unsigned short y;
+    int row;
+    int us_event = event->usEvent;
+
+    switch (us_event) {
+    case LEFT_BUTTON_DBL_CLK:
+        NpcDialogueTextBoxDoubleClick(static_cast<unsigned short>(event->uiParam),
+                                      static_cast<unsigned short>(event->uiParam >> 16));
+        break;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            NpcDialogueTextBoxLeftRelease(static_cast<unsigned short>(event->uiParam),
+                                          static_cast<unsigned short>(event->uiParam >> 16));
+        }
+        /* fall through */
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        break;
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        break;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            NoOp();
+            ClearNoticeWordHover(W8_DIALOGUE_LAYOUT_TRANSCRIPT, 1);
+            ClearTextSlot1D8(2);
+            break;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            state->value_1c4 = static_cast<unsigned short>(event->uiParam);
+            state->value_1c8 = static_cast<int>(event->uiParam >> 16);
+            NoOp();
+            if (state->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+                y = static_cast<unsigned short>(event->uiParam >> 16);
+                if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+                    row = (y - g_level_block->text_box_top) / 0xb;
+                    ClearTextSlot1D8(2);
+                    if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                        SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+                    }
+                    RedrawTextBox();
+                    state->value_1cc = row;
+                }
+            }
+            break;
+        }
+        if (static_cast<unsigned short>(event->uiParam) == state->value_1c4 &&
+            static_cast<int>(event->uiParam >> 16) == state->value_1c8) {
+            break;
+        }
+        state->value_1c4 = static_cast<unsigned short>(event->uiParam);
+        state->value_1c8 = static_cast<int>(event->uiParam >> 16);
+        if (state->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
+            HighlightNoticeWordAt(W8_DIALOGUE_LAYOUT_TRANSCRIPT,
+                                  static_cast<unsigned short>(event->uiParam),
+                                  static_cast<unsigned short>(event->uiParam >> 16));
+            break;
+        }
+        if (state->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+            y = static_cast<unsigned short>(event->uiParam >> 16);
+            if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+                row = (y - g_level_block->text_box_top) / 0xb;
+                if (row != state->value_1cc) {
+                    ClearTextSlot1D8(2);
+                    if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                        SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+                    }
+                    RedrawTextBox();
+                }
+                state->value_1cc = row;
+            }
+        }
+        break;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
+            NpcDialogueTextBoxRightRelease(static_cast<unsigned short>(event->uiParam),
+                                           static_cast<unsigned short>(event->uiParam >> 16));
+        }
+        break;
+    default:
+        return 0;
+    }
+    return 1;
+}
+
+/* Mouse-wheel over the NPC-dialogue text box: on the main text-box layout the
+   hovered row becomes the pending selection (reselecting on flag). */
+// FUNCTION: WIZ8 0x0056F490
+void NpcDialogueTextBoxWheelAt(short x, unsigned short y, unsigned char flag)
+{
+    W8MainScreenState* state = g_screen_state_00649f1c;
+    int row;
+
+    if (state->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+        if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+            row = (y - g_level_block->text_box_top) / 0xb;
+            if (row != state->value_1cc || flag != 0) {
+                ClearTextSlot1D8(2);
+                if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                    SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+                }
+                RedrawTextBox();
+            }
+            state->value_1cc = row;
+        }
+    }
+}
+
+/* Left release on the NPC-dialogue text box: on the transcript layout the
+   hovered word (flag_08 == 1) is consumed into the typed-input field, stripped
+   and appended after the current text; on the option layouts the hovered slot
+   commits through Function56FAC0. */
+// FUNCTION: WIZ8 0x0056F530
+void NpcDialogueTextBoxLeftRelease(unsigned short x, unsigned short y)
+{
+    W8NoticeWord* word;
+    wchar_t keyword[100];
+    wchar_t current[200];
+    wchar_t combined[200];
+    wchar_t empty[6];
+    int line;
+    int slot;
+
+    switch (g_screen_state_00649f1c->value_fc) {
+    default:
+        return;
+    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
+        word = HitTestNoticeWord(W8_DIALOGUE_LAYOUT_TRANSCRIPT, x, y, &line);
+        if (word == 0) {
+            return;
+        }
+        if (word->flag_08 != 1) {
+            return;
+        }
+        if (g_flag_006f0530 == 0) {
+            ResetUsedNoticeWords(W8_DIALOGUE_LAYOUT_TRANSCRIPT, 1);
+            empty[0] = 0;
+            SetInputFieldStringWith16BitString(0, empty);
+        }
+        word->flag_08 = 2;
+        CopyNoticeWordText(word, keyword, sizeof(keyword), W8_DIALOGUE_LAYOUT_TRANSCRIPT, line);
+        Get16BitStringFromField(0, current);
+        StripNpcKeywordPunctuation(keyword);
+        if (wcslen(current) == 0) {
+            SetInputFieldStringWith16BitString(0, keyword);
+        } else {
+            swprintf(combined, g_format_s_space_s_00617584, current, keyword);
+            SetInputFieldStringWith16BitString(0, combined);
+        }
+        RedrawTextBoxBody(1);
+        return;
+    case 1:
+    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
+        break;
+    }
+    slot = GetTextSlot1D8(2);
+    if (slot != -1) {
+        Function56FAC0(slot, g_flag_006f0530 != 0, 1);
+    }
+}
+
+/* Right release on the NPC-dialogue text box: on the transcript layout the
+   word under the cursor is learned as a dialogue keyword; on the main
+   text-box layout the committed slot's item opens the assay dialog for the
+   selected character. */
+// FUNCTION: WIZ8 0x0056F6B0
+void NpcDialogueTextBoxRightRelease(unsigned short x, unsigned short y)
+{
+    W8NoticeWord* word;
+    W8AssayDialog* dialog;
+    wchar_t keyword[100];
+    int line;
+    int slot;
+
+    switch (g_screen_state_00649f1c->value_fc) {
+    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
+        slot = GetTextSlot1D8(2);
+        if (slot != -1) {
+            Function56FAC0(slot, g_flag_006f0530 != 0, 1);
+            if (Function5729C0(slot, 0, 0, 1) != 0) {
+                dialog = new W8AssayDialog(
+                    Function5729C0(slot, 0, 0, 1),
+                    &g_status_685170.buffers.characters[g_status_685170.selected_character]);
+                dialog->SetText(&g_wchar_00689b34);
+                dialog->SetOrigin(g_info_dialog_x_005ef958, 0x48);
+                dialog->m_destroy_callback = OnNpcAssayDialogClosed;
+                OpenModal(dialog);
+            }
+        }
+        break;
+    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
+        word = HitTestNoticeWord(W8_DIALOGUE_LAYOUT_TRANSCRIPT, x, y, &line);
+        if (word != 0) {
+            CopyNoticeWordText(word, keyword, sizeof(keyword), W8_DIALOGUE_LAYOUT_TRANSCRIPT, line);
+            AddNpcDialogueKeyword(keyword, -1, 0);
+        }
+        break;
+    }
+}
+
+/* Double-click on the NPC-dialogue text box: on the transcript layout an
+   unused word under the cursor is consumed into the input field and the
+   pending input is submitted; on the main text-box layout the clicked row is
+   committed and re-highlighted. */
+// FUNCTION: WIZ8 0x0056F840
+void NpcDialogueTextBoxDoubleClick(unsigned short x, unsigned short y)
+{
+    W8MainScreenState* state = g_screen_state_00649f1c;
+    W8NoticeWord* word;
+    wchar_t keyword[100];
+    wchar_t current[200];
+    wchar_t combined[200];
+    wchar_t empty[6];
+    int line;
+    int row;
+    int slot;
+
+    switch (state->value_fc) {
+    case W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX:
+        if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+            row = (y - g_level_block->text_box_top) / 0xb;
+            ClearTextSlot1D8(2);
+            if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+            }
+            RedrawTextBox();
+            state->value_1cc = row;
+        }
+        slot = GetTextSlot1D8(2);
+        if (slot != -1) {
+            state->value_258 = -1;
+            Function56FAC0(slot, 0, 1);
+            if (state->value_108 != 0) {
+                Function5AD290();
+            }
+        }
+        if (state->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+            if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+                row = (y - g_level_block->text_box_top) / 0xb;
+                ClearTextSlot1D8(2);
+                if (row < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[2])) {
+                    SelectTextSlot1D8(g_level_block->text_lines[2] + row, 2);
+                }
+                RedrawTextBox();
+                state->value_1cc = row;
+            }
+        }
+        break;
+    case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
+        if (state->flag_250 == 0) {
+            word = HitTestNoticeWord(W8_DIALOGUE_LAYOUT_TRANSCRIPT, x, y, &line);
+            if (word != 0) {
+                if (g_flag_006f0530 == 0) {
+                    ResetUsedNoticeWords(W8_DIALOGUE_LAYOUT_TRANSCRIPT, 1);
+                    empty[0] = 0;
+                    SetInputFieldStringWith16BitString(0, empty);
+                }
+                if (word->flag_08 != 2) {
+                    word->flag_08 = 2;
+                    CopyNoticeWordText(word, keyword, sizeof(keyword),
+                                       W8_DIALOGUE_LAYOUT_TRANSCRIPT, line);
+                    Get16BitStringFromField(0, current);
+                    StripNpcKeywordPunctuation(keyword);
+                    if (wcslen(current) == 0) {
+                        SetInputFieldStringWith16BitString(0, keyword);
+                    } else {
+                        swprintf(combined, g_format_s_space_s_00617584, current, keyword);
+                        SetInputFieldStringWith16BitString(0, combined);
+                    }
+                    RedrawTextBoxBody(1);
+                }
+                HandleNpcDialogueInput();
+            }
+        }
+        break;
+    }
+}
+
 /* Whether the numbered action-key command may run in the current UI mode:
    dialogue, interaction, camp and surprise lock most of them out, the item
    and spell views admit only their own toggle, and combat commands check the
@@ -7334,6 +7717,153 @@ void TryMGSActionKey(int command)
     if (IsMGSActionKeyEnabled(command) != 0) {
         RunMGSActionKey(command);
     }
+}
+
+/* Create the surprise sequence's fullscreen fade quad: a black
+   CreateColoredPolygonSprite pinned at the origin with its blend shader
+   switched to alpha and material opacity zeroed, then start the pulse clock
+   fading in. */
+// FUNCTION: WIZ8 0x0056b4e0
+void CreateSurpriseFade0056B4E0(void)
+{
+    srShader shader;
+    srVector4T<float> color;
+
+    SetFlag603C4C(0);
+    color.x = 0.0f;
+    color.y = 0.0f;
+    color.z = 0.0f;
+    color.w = 0.0f;
+    g_surprise_fade_node_0068edf8 = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
+    PositionToolTipNode(g_surprise_fade_node_0068edf8, 0, 0, 0);
+    shader = static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())->getShader(0);
+    shader.value = (shader.value & ~0x6040) | 0xa0;
+    static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())->setShader(shader, 0);
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+        ->setOpacity(0.0);
+    g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+    g_surprise_fade_in_0068edca = 1;
+}
+
+/* Flip the fade direction mid-pulse. The tick base is backdated by the
+   fraction of the 500ms ramp already covered, so the reverse fade resumes
+   from the current opacity; outside the fade-in phase the node is simply
+   shown again and the pulse restarts. */
+// FUNCTION: WIZ8 0x0056b5f0
+void ReverseSurpriseFade0056B5F0(void)
+{
+    if (gXStatus.surprise_phase == 0) {
+        srMaterial* material = static_cast<srMaterial*>(
+            static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
+        float opacity = material->parms_18.diffuse.w;
+        unsigned long now = GetTickCount();
+        g_surprise_fade_in_0068edca = g_surprise_fade_in_0068edca == 0;
+        if (g_surprise_fade_in_0068edca != 0) {
+            g_surprise_fade_tick_base_0068edb8 =
+                now + static_cast<int>((g_float_005ebb38 - opacity) * g_fade_resume_scale_005ee9a8);
+        } else {
+            g_surprise_fade_tick_base_0068edb8 =
+                now + static_cast<int>(opacity * g_fade_resume_scale_005ee9a8);
+        }
+    } else {
+        g_surprise_fade_node_0068edf8->clearFlag(srNode::FLAG_DISABLE);
+        g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+        g_surprise_fade_in_0068edca = 1;
+    }
+}
+
+/* Release every resource the surprise sequence owns - the snapshot surface,
+   its 2D overlay and the fade node - and restore the flags they suppressed. */
+// FUNCTION: WIZ8 0x0056b690
+void DestroySurpriseFade0056B690(void)
+{
+    if (g_surprise_snapshot_overlay_0068edf4 != 0) {
+        g_surprise_snapshot_overlay_0068edf4->release();
+        g_surprise_snapshot_overlay_0068edf4 = 0;
+    }
+    if (g_surprise_snapshot_surface_0068edf0 != 0) {
+        g_surprise_snapshot_surface_0068edf0->release();
+        g_surprise_snapshot_surface_0068edf0 = 0;
+    }
+    if (g_surprise_fade_node_0068edf8 != 0) {
+        g_surprise_fade_node_0068edf8->release();
+        g_surprise_fade_node_0068edf8 = 0;
+    }
+    SetFlag603C4C(1);
+    g_flag_65970d = 1;
+}
+
+/* Advance the 500ms fade pulse. The ramp interpolates opacity over the
+   window in whichever direction g_surprise_fade_in_0068edca selects; at the
+   fade-in boundary the frame behind the quad is snapshotted into an overlay
+   surface (or released outright once the phase moved on), and at the
+   fade-out boundary the node is hidden or destroyed. Returns 1 once the
+   fade fully completed. */
+// FUNCTION: WIZ8 0x0056b6f0
+unsigned char UpdateSurpriseFade0056B6F0(void)
+{
+    bool done = false;
+    bool boundary = false;
+    float opacity;
+    unsigned long now = GetTickCount();
+
+    if (g_surprise_fade_tick_base_0068edb8 + 500 < now) {
+        if (g_surprise_fade_in_0068edca == 0) {
+            opacity = 0.0f;
+            done = true;
+        } else {
+            boundary = true;
+            opacity = 1.0f;
+            g_surprise_fade_in_0068edca = 0;
+            g_surprise_fade_tick_base_0068edb8 = now;
+        }
+    } else {
+        opacity = (now - g_surprise_fade_tick_base_0068edb8) * g_float_005ebc60;
+        if (g_surprise_fade_in_0068edca == 0) {
+            opacity = g_float_005ebb38 - opacity;
+        }
+    }
+
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+        ->setOpacity(opacity);
+
+    if (boundary) {
+        if (gXStatus.surprise_phase == 0) {
+            long pitch;
+            void* pixels = Function5498A0(0x1e0, 0, &pitch);
+            srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555,
+                                                             pixels, 0x280, 0x1e0, pitch);
+            g_surprise_snapshot_surface_0068edf0 = surface;
+            g_surprise_snapshot_overlay_0068edf4 =
+                SR_NEW(stSurface2D)(g_surprise_snapshot_surface_0068edf0, 0x280, 0x1e0,
+                                    g_scene_fullscreen_659644, 0x80);
+            g_surprise_snapshot_overlay_0068edf4->updateRectangle(g_gerd_659634, pixels, pitch, 0,
+                                                                  0, 0x280, 0x1e0);
+            Function549950(0x1e0, 0);
+            g_flag_65970d = 0;
+            g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+        } else {
+            g_surprise_snapshot_overlay_0068edf4->release();
+            g_surprise_snapshot_overlay_0068edf4 = 0;
+            g_surprise_snapshot_surface_0068edf0->release();
+            g_surprise_snapshot_surface_0068edf0 = 0;
+            g_flag_65970d = 1;
+        }
+        return done;
+    }
+    if (done != 0) {
+        if (gXStatus.surprise_phase == 0) {
+            g_surprise_fade_node_0068edf8->setFlag(srNode::FLAG_DISABLE);
+            return done;
+        }
+        g_surprise_fade_node_0068edf8->release();
+        g_surprise_fade_node_0068edf8 = 0;
+        SetFlag603C4C(1);
+    }
+    return done;
 }
 
 /* Which party portrait the pointer is over, if any. The slots are walked
@@ -7792,8 +8322,9 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
         }
     }
     selected = g_screen_state_00649f1c->dialogue_npc;
-    if (selected->unknown_1c != 0 && selected->unknown_ef[0] != GetNpcDispositionBand(selected)) {
-        selected->unknown_1c = 0;
+    if (selected->dismissed_flag != 0 &&
+        selected->unknown_ef[0] != GetNpcDispositionBand(selected)) {
+        selected->dismissed_flag = 0;
     }
 }
 
@@ -7827,7 +8358,6 @@ void SelectNpcDialogueCategory0(void);
 void SelectNpcDialogueCategory3(void);
 void SelectNpcDialogueCategoryAll(void);
 void SetNpcDialogueSubMode4(void);
-void Function5AD290(void);
 void RestockNpcTradeStock(void);
 void SetNpcDialogueSubMode3(void);
 void SetNpcDialogueSubMode2(void);
@@ -7835,13 +8365,11 @@ void SetNpcDialogueSubMode5(void);
 void SelectNpcTradeMode1(void);
 void SelectNpcTradeMode0(void);
 void OpenNpcItemAssay(void);
-void OnNpcAssayDialogClosed(W8DialogBase* dialog);
 void ConfirmNpcTradeSlot(void);
 void RequestNpcSpellService3(void);
 void RequestNpcSpellService41(void);
 void RequestNpcCharacterService(void);
 void Function575520(W8DialogBase* dialog);
-void Function56FAC0(int index, int, int);
 void Function5AE040(void);
 void Function572780(void);
 
@@ -8465,7 +8993,7 @@ void SetNpcDialogueHidden(char value)
 void CloseNpcDialogueIfActive(void)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
-        Function56E800(0);
+        EndNpcDialogue(0);
     }
 }
 
@@ -8584,7 +9112,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
                   : 0; // reinterpret-ok: the pending slot stores the pointer as an int
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode != 0) {
-            Function56E800(0);
+            EndNpcDialogue(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
         Function5187E0();
@@ -8768,6 +9296,152 @@ void CloseMainGameOverlays(void)
     }
 }
 
+/* Close the NPC dialogue mode: retire the active layout, destroy every
+   dialogue control and panel, clear the monsters' charm-effect flag and hand
+   the world back to the main-game loop. `suppress_cursor_restore` skips the
+   cursor/item and post-dialogue bark restore; camp mode forces it because the
+   camp flow owns the cursor afterwards. */
+// FUNCTION: WIZ8 0x0056E800
+void EndNpcDialogue(char suppress_cursor_restore)
+{
+    W8CharacterEvent* event;
+    unsigned int monster_index;
+    int slot;
+    int i;
+
+    if (gXStatus.fNpcDialogueMode == 0) {
+        return;
+    }
+    if (g_screen_state_00649f1c->flag_252 != 0) {
+        gXStatus.fNpcDialogueMode = 0;
+        ResumeMainGameWorld();
+        return;
+    }
+    if (gXStatus.fCampMode != 0) {
+        suppress_cursor_restore = 1;
+    }
+    if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        SetNpcDialogueHidden(0);
+    }
+    if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0) {
+        g_screen_state_00649f1c->dialogue_npc->dismissed_flag = 1;
+        g_screen_state_00649f1c->dialogue_npc->unknown_ef[0] =
+            GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
+        g_screen_state_00649f1c->dialogue_npc->dismissed_timer = 0;
+    }
+    gXStatus.fNpcDialogueMode = 0;
+    g_level_block->action_panel_visible = 0;
+    RegionSetDisable(0x15);
+    DisableRegionInput(0x52);
+    DisableRegionInput(0x53);
+    DisableRegionInput(0x54);
+    DisableRegionInput(0x55);
+    switch (g_screen_state_00649f1c->value_fc) {
+    case 1:
+        CloseNpcDialogueMode1Layout();
+        break;
+    case 2:
+        RegionSetDisable(0x18);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1b8->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->SetActive(0);
+        g_screen_state_00649f1c->dialogue_text_1a4->m_textBuffer.SetText(
+            &g_wchar_00689b34, g_wiz_text_bold_font_683664);
+        g_screen_state_00649f1c->value_104 = g_screen_state_00649f1c->value_fc;
+        g_screen_state_00649f1c->value_fc = W8_DIALOGUE_LAYOUT_NONE;
+        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+            SetNpcDialogueHidden(0);
+        }
+        break;
+    case 3:
+        CloseNpcDialogueTranscriptLayout();
+        break;
+    case 4:
+        CloseNpcDialogueOptionLayout();
+        break;
+    case 5:
+        RegionSetDisable(0x18);
+        RegionSetDisable(0x17);
+        g_screen_state_00649f1c->dialogue_text_188->SetEnabled(1);
+        g_screen_state_00649f1c->panel_1a8->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1ac->SetEnabled(0);
+        g_screen_state_00649f1c->panel_1bc->SetEnabled(0);
+        g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
+        g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
+    /* fall through */
+    case 6:
+        SetNpcDialogueLayoutMode(0);
+        break;
+    }
+    RegionSetDisable(0x18);
+    SelectTextBox(0);
+    g_level_block->flag_271 = 1;
+    ApplyMainGameModeFlag(gXStatus.fCampMode != 0 ? g_settings_6850c8.main_ui_mode
+                                                  : g_screen_state_00649f1c->value_f0,
+                          1);
+    for (i = 0; i < 7; ++i) {
+        Controls* panel =
+            // reinterpret-ok: retail destroys the contiguous Controls* slots panel_1a8..text_input_panel_1c0
+            reinterpret_cast<Controls**>(&g_screen_state_00649f1c->panel_1a8)[i];
+        if (panel != 0) {
+            delete panel;
+        }
+    }
+    for (i = 0; i < 0x27; ++i) {
+        W8Widget* widget =
+            // reinterpret-ok: retail destroys the contiguous W8Widget* slots dialogue_text_10c..dialogue_text_1a4
+            reinterpret_cast<W8Widget**>(&g_screen_state_00649f1c->dialogue_text_10c)[i];
+        if (widget != 0) {
+            delete widget;
+        }
+    }
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    for (monster_index = 0;
+         monster_index <
+         ILLength(reinterpret_cast<W8IList*>(
+             gXStatus.plsMonsterList)); // reinterpret-ok: retail lengths the monster PList as IList
+         ++monster_index) {
+        ClearMonsterEffect2DE(MonsterGetScriptPartByLocationIndex(monster_index));
+    }
+    GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
+    KillTextInputMode();
+    ResumeMainGameWorld();
+    if (suppress_cursor_restore == 0) {
+        if (g_screen_state_00649f1c->flag_1f9 == 0) {
+            SetTargetCursor(-1);
+        } else {
+            g_status_685170.item_in_hand_235b = g_screen_state_00649f1c->pending_item_1ed;
+            SetItemCursor(0);
+            g_screen_state_00649f1c->flag_1f9 = 0;
+        }
+        if (g_screen_state_00649f1c->flag_23c == 0 &&
+            g_screen_state_00649f1c->dialogue_npc->record->unknown_056 == 0 &&
+            g_screen_state_00649f1c->dialogue_npc->is_grouped == 0 &&
+            GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc) != 0) {
+            slot = GetRandomCharacter(1, 1, -1, -1);
+            if (slot != -1) {
+                event = QueueCharacterEvent(&g_status_685170.buffers.characters[slot],
+                                            g_special_event_0068c534, g_event_flag_005ed8e8,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                if (event != 0) {
+                    event->dispatch_delay_ms = 1000;
+                    event->dispatch_delay_start = GetTickCount();
+                }
+            }
+        }
+    }
+    FlushPendingNoticeLines005766B0();
+    if (g_screen_state_00649f1c->flag_23d != 0) {
+        g_gd_camera_65a0f8->SetPitch(g_screen_state_00649f1c->saved_camera_pitch_240);
+    }
+    if (g_screen_state_00649f1c->dialogue_npc->name_style == 0x0f && GetFact(0x3c) != 0) {
+        g_status_685170.flag_49bb = 1;
+        g_status_685170.value_49b7 = g_status_685170.world_clock;
+    }
+}
+
 /* Whether the open NPC dialogue transcript covers the party slot's
    portrait: dialogue mode up, panel invalidation not suppressed and the
    controller enabled, then the slot's band check. Portrait and
@@ -8852,14 +9526,14 @@ void ShowNpcDialogueTopicMenu(void)
         LeaveNpcDialogueLayout;
     g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
     g_screen_state_00649f1c->dialogue_text_114->SetEnabled(
-        g_screen_state_00649f1c->dialogue_npc->unknown_c8[0] == 0);
-    if (g_screen_state_00649f1c->dialogue_npc->unknown_c8[1] == 0) {
+        g_screen_state_00649f1c->dialogue_npc->flag_c8 == 0);
+    if (g_screen_state_00649f1c->dialogue_npc->flag_c9 == 0) {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
     } else {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
     }
     RequestRedraw(0x200);
-    Function58F6B0(3);
+    SelectTextBox(3);
 }
 
 /* Tear down the mode-3 transcript layout: fold the dialogue text controller
@@ -8944,7 +9618,7 @@ void CloseNpcDialogueOptionLayout(void)
         SetNpcDialogueHidden(0);
     }
     g_screen_state_00649f1c->flag_229 = 0;
-    Function58F6B0(3);
+    SelectTextBox(3);
     Function58BA60();
 }
 
@@ -9439,8 +10113,8 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             }
             fact_result = FindNpcScriptItemQuote(item->item_id, 0, &flag);
             if (fact_result == -1) {
-                Function50A570(g_screen_state_00649f1c->dialogue_npc, 3,
-                               g_screen_state_00649f1c->dialogue_speaker, item, 0);
+                ApplyNpcInteraction0050A570(g_screen_state_00649f1c->dialogue_npc, 3,
+                                            g_screen_state_00649f1c->dialogue_speaker, item, 0);
                 QueueNpcScriptLine(
                     GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0,
                     0, 0);
@@ -9583,7 +10257,7 @@ void CloseNpcDialogueForCamp(void)
         }
         break;
     }
-    Function56E800(0);
+    EndNpcDialogue(0);
     if (g_screen_state_00649f1c->flag_1f9 != 0) {
         g_status_685170.item_in_hand_235b = g_screen_state_00649f1c->pending_item_1ed;
         SetItemCursor(0);
@@ -9609,7 +10283,7 @@ void HandleNpcDialogueDeparture(int value)
         (info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc)) != 0) {
         info->monster->SetScript004C7F10("Guard.msf", 1);
     }
-    if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->unknown_1c == 0 ||
+    if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->dismissed_flag == 0 ||
          g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&
         g_screen_state_00649f1c->value_25c < 1) {
         if (g_screen_state_00649f1c->dialogue_npc->greeting_pending == 0) {
@@ -9952,7 +10626,7 @@ void OpenNpcDialogueTranscriptLayout(void)
         g_screen_state_00649f1c->dialogue_text_120->SetEnabled(0);
     }
     g_screen_state_00649f1c->value_25c++;
-    Function58F6B0(3);
+    SelectTextBox(3);
 }
 
 /* Open the mode-4 trade-option layout: the six option controls get their
@@ -10033,7 +10707,7 @@ void OpenNpcDialogueOptionLayout(void)
         g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(0);
     }
     g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
-    Function58F6B0(2);
+    SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
         ResetEditorStatusLine0058AA20(2);
     }
@@ -10099,7 +10773,7 @@ void OpenNpcDialogueMode5Layout(void)
     }
     g_screen_state_00649f1c->dialogue_text_118->SetEnabled(1);
     RequestRedraw(0x200);
-    Function58F6B0(2);
+    SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
         ResetEditorStatusLine0058AA20(2);
     }
@@ -10154,7 +10828,7 @@ void OpenNpcDialogueMode1Layout(void)
         g_screen_state_00649f1c->dialogue_text_11c->W8Widget::Invalidate(1);
     }
     RequestRedraw(0x200);
-    Function58F6B0(2);
+    SelectTextBox(2);
     if (gXStatus.fCampMode == 0) {
         ResetEditorStatusLine0058AA20(2);
     }
@@ -10384,7 +11058,7 @@ void LeaveNpcDialogueLayout(void)
             break;
         }
     }
-    Function56E800(0);
+    EndNpcDialogue(0);
 }
 
 // FUNCTION: WIZ8 0x00570530
@@ -10783,7 +11457,7 @@ void RequestNpcSpellService3(void)
 
     gXStatus.fCampMode = 1;
     CloseNpcDialogueMode1Layout();
-    Function56E800(0);
+    EndNpcDialogue(0);
     BeginSpellCast005A0110(3, location, mode);
 }
 
@@ -10795,7 +11469,7 @@ void RequestNpcSpellService41(void)
 
     gXStatus.fCampMode = 1;
     CloseNpcDialogueMode1Layout();
-    Function56E800(0);
+    EndNpcDialogue(0);
     BeginSpellCast005A0110(0x29, location, mode);
 }
 
@@ -10804,7 +11478,7 @@ void RequestNpcCharacterService(void)
 {
     gXStatus.fCampMode = 1;
     CloseNpcDialogueMode1Layout();
-    Function56E800(0);
+    EndNpcDialogue(0);
     OpenUseItemSelectView(g_status_685170.selected_character);
 }
 
@@ -10979,7 +11653,7 @@ unsigned char CombatBarRegionEvent(const InputAtom* event)
 
 resume_world:
     if (gXStatus.fSurprisePossible != 0) {
-        Function502790();
+        AcknowledgeSurprise00502790();
     }
     if (g_flag_006840bd == 0) {
         return 1;

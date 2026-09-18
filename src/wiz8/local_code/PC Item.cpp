@@ -741,13 +741,15 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
         }
         if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6]) <
                 minimum_caster_level) {
                 return false;
             }
         } else {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8]) <
                 minimum_caster_level) {
                 return false;
             }
@@ -782,7 +784,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
    category zero is dead weight, spell-less records fail unless they are the
    one exempt item, and an empty charge stack fails. */
 // FUNCTION: WIZ8 0x0051d800
-unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item)
+bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record;
 
@@ -1907,8 +1909,8 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0; index < (unsigned int)g_status_685170.party_item_count_1791;
-             ++index) {
+        for (unsigned int index = 0;
+             index < static_cast<unsigned int>(g_status_685170.party_item_count_1791); ++index) {
             W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
             if (item->item_id == item_id) {
                 total += item->stack_count == 0 ? 1 : item->stack_count;

@@ -25,10 +25,15 @@
 struct W8EffectSlot {
     unsigned char active; /* 0x00 */
     int effect_id;        /* 0x01 */
-    signed char amount;   /* 0x05 */
-    unsigned char unknown_06[3];
-    unsigned int percent;      /* 0x09 */
-    unsigned int duration_0d;  /* 0x0d: remaining lifetime, aged down in whole
+    /* 0x05: the condition code reads the low byte as a signed magnitude while
+       the spell ticks at 0x005526F0/0x00552EF0 read the whole dword as the
+       power level they pass to the difficulty and resistance calls. */
+    union {
+        signed char amount;
+        int power_05;
+    };
+    unsigned int percent;     /* 0x09 */
+    unsigned int duration_0d; /* 0x0d: remaining lifetime, aged down in whole
                                   minutes by AgeMonsterSight */
 }; /* 0x11 */
 

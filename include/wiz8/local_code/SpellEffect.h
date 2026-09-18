@@ -58,7 +58,11 @@ struct W8SpellEffectEntry {
        before releasing the effect. */
     W8TargetSource target_source_05c; /* 0x05c */
     W8CombatSlot target;              /* 0x090 */
-    unsigned char unknown_0b0[0x20];
+    unsigned char unknown_0b0[0x18];
+    /* 0x0c8: the resist-check power the control-aura scan passes to
+       the 0x00552410 resistance roll. */
+    int power_0c8;
+    unsigned char unknown_0cc[4];
     int argument; /* 0x0d0 */
     /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
     int value_0d4;
@@ -75,7 +79,9 @@ struct W8SpellEffectEntry {
     unsigned char flag_123;                         /* 0x123 */
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
-    unsigned char unknown_125;
+    /* 0x125: set once the control-aura scan has engaged at least one
+       monster. */
+    unsigned char triggered_125;
     W8SpellEffectResult result_126; /* 0x126 */
     unsigned char unknown_18e[0x3a];
 };
@@ -86,6 +92,8 @@ static_assert(sizeof(W8SpellEffectEntry) == 0x1c8, "W8SpellEffectEntry_must_be_0
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
+void TickSpellEffects(void); /* 0x00500E90: advance every queued spell effect
+                                once per elapsed aging minute */
 /* Advance every queued spell effect one frame. */
 void UpdateSpellEffects00500930(void);
 /* Fold one missile's accumulated damage and reports into the queued effect

@@ -191,7 +191,7 @@ unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(monster);
     }
-    return false;
+    return 0;
 }
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`

@@ -211,8 +211,13 @@ void Function5187E0(void);
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
                      char arg_6);
+unsigned char UpdateScreenFade005A6790(void);
+void BeginPartyDeath005A68C0(void);
+void PumpReviewTransition005A6970(void);
+void DrawPartyDeathScreen005A6A70(void);
+void EndReviewTransition005A6B20(void);
 /* Ending sequence picker run when that fade completes. */
-void Function5A6B90(void); /* 0x005A6B90 */
+void ShowEndingScreen005A6B90(void); /* 0x005A6B90 */
 /* 0x005A6580 */
 void BeginEndgameSequence005A6580(void);
 /* Camp and main-game notice dialogs ShowNoticeLine forwards into. */

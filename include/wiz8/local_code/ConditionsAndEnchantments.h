@@ -52,6 +52,10 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
 void ClearMonsterCondition(int location_id, int condition);
 void ClearMonsterEnchantmentSlot(int location_id, int slot);
 void ClearCharacterEnchantmentSlot(int party_slot, int slot);
+/* 0x005236A0: one condition's share of the aging tick; POISONED also drains
+   its strength argument pro rata over the remaining duration. */
+void TickCharacterCondition(unsigned int party_slot, unsigned int condition,
+                            unsigned int minutes);
 /* 0x00523B30/0x00524400: run one enchantment slot down by some turns,
    emptying it when nothing is left. */
 void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns);
@@ -60,6 +64,10 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns);
    condition's countdown is live. */
 void TickMonsterCondition(int location_id, int condition, unsigned int minutes);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
+/* 0x005248D0: the dying monster's side of the character binding records; for
+   each slot kind its binding mask still names, drop every party member's
+   record pointing back to the monster and lift the linked condition. */
+void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info);
 void RemoveAllConditionsFromParty(void);
 
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);

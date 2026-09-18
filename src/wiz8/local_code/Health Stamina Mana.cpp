@@ -139,7 +139,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     if (applied <= amount) {
         if (CharacterHasTrait00547940(character, 2) != 0 &&
             character->condition_turns[W8_CONDITION_EXHAUSTED] < 7) {
-            Function547A50(party_slot);
+            CheatDeathRevive00547A50(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
         }
@@ -331,7 +331,10 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
     srVector3T<float> location;
     srVector3T<float> offset;
 
-    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+    for (index = 0; index < ILLength(reinterpret_cast< // reinterpret-ok: W8PList and W8IList
+                                                       // share their data/capacity/count layout
+                                     W8IList*>(gXStatus.plsMonsterList));
+         ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);
@@ -1534,6 +1537,8 @@ int g_effect_argument_005ed8c8 = 0;
 unsigned int g_event_flag_005ed8e0 = 8;
 // GLOBAL: WIZ8 0x005ED8E4
 unsigned char g_character_event_flags_mask_005ed8e4 = 16;
+// GLOBAL: WIZ8 0x005ED8E8
+unsigned int g_event_flag_005ed8e8 = 0x20;
 // GLOBAL: WIZ8 0x005ED8EC
 unsigned int g_event_flag_005ed8ec = 0x40;
 // GLOBAL: WIZ8 0x005ED8F8
@@ -1582,8 +1587,14 @@ int g_effect_005ee5f0 = 0x1a;
 int g_effect_005ee5f8 = 28;
 // GLOBAL: WIZ8 0x005ee610
 int g_effect_005ee610 = 34;
+// GLOBAL: WIZ8 0x005EE618
+int g_effect_005ee618 = 36;
 // GLOBAL: WIZ8 0x005EE628
 int g_effect_005ee628 = 40;
+// GLOBAL: WIZ8 0x005EE630
+int g_effect_005ee630 = 42;
+// GLOBAL: WIZ8 0x005EE638
+int g_effect_005ee638 = 0x2c;
 // GLOBAL: WIZ8 0x005ee640
 int g_item_message_005ee640 = 46;
 // GLOBAL: WIZ8 0x005ee644
@@ -1594,6 +1605,8 @@ int g_item_message_005ee648 = 48;
 int g_item_message_005ee64c = 49;
 // GLOBAL: WIZ8 0x005EE654
 int g_effect_005ee654 = 51;
+// GLOBAL: WIZ8 0x005EE658
+int g_effect_005ee658 = 52;
 // GLOBAL: WIZ8 0x005ee664
 int g_item_message_005ee664 = 55;
 // GLOBAL: WIZ8 0x005ee68c
@@ -1744,6 +1757,8 @@ int g_special_event_0068c51c;
 int g_special_event_0068c52c;
 // GLOBAL: WIZ8 0x0068C530
 int g_special_event_0068c530;
+// GLOBAL: WIZ8 0x0068C534
+int g_special_event_0068c534;
 // GLOBAL: WIZ8 0x0068C538
 int g_special_event_0068c538;
 // GLOBAL: WIZ8 0x0068C544

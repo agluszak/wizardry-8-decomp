@@ -124,6 +124,7 @@ struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
+void SetFlag603C4C(unsigned char value); /* 0x004298E0 */
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
                                               char a4);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the

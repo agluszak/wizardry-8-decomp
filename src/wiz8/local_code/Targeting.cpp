@@ -96,7 +96,7 @@ void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource*
 }
 
 // FUNCTION: WIZ8 0x0053bea0
-unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
+bool TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (source->iChar == BAD_INDEX) {
@@ -115,7 +115,7 @@ unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_in
 }
 
 // FUNCTION: WIZ8 0x0053bf10
-unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect)
+bool TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         if (source->iMonsterID == BAD_INDEX) {
@@ -2029,7 +2029,8 @@ W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingConte
    The source block is built here rather than passed in, so this always asks on
    the character's own behalf. */
 // FUNCTION: WIZ8 0x00536d60
-unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
+unsigned char CanTargetMonsterGroup( // bool-byte-ok: retail returns al as unsigned char
+    int party_slot, W8MonsterGroup* group)
 {
     W8TargetSource source;
     int action;
@@ -2870,8 +2871,7 @@ void RefreshAllPartyTargets(void)
             (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
-            unsigned char can_switch =
-                CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
+            bool can_switch = CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 0, 0);
 
             if (can_switch != 0) {
                 RefreshCombatTargetHighlights(party_slot, target);

@@ -740,6 +740,8 @@ static_assert(offsetof(W8MainScreenState, last_notice_npc_kind) == 0x264,
 extern W8MainScreenState* g_screen_state_00649f1c;
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
 void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
+bool LoadCurrentLevelData(void);           /* 0x00560A20 */
+void ResetMainGameMode00560C60(void);      /* 0x00560C60 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -994,7 +996,12 @@ void UpdateNpcDialogueSubMode(void);    /* 0x00571F60 */
 /* 0x00575390: restate the five transcript category buttons so only the
    active dialogue_category_filter's button shows its secondary state. */
 void SyncDialogueCategoryButtons(void);
-void Function56E800(int);
+/* 0x0056E800: close the NPC dialogue mode - retire the active layout, destroy
+   every dialogue control and panel, clear the monsters' charm-effect flag and
+   hand the world back to the main-game loop. `suppress_cursor_restore` skips
+   the cursor/item and post-dialogue bark restore; camp mode forces it because
+   the camp flow owns the cursor afterwards. */
+void EndNpcDialogue(char suppress_cursor_restore);
 /* Whether an open NPC dialogue transcript covers the party slot's portrait:
    dialogue mode up, flag_252 clear, the controller enabled, and its top
    edge above the slot's band. Portrait and character-update paths skip the
@@ -1016,8 +1023,17 @@ void SetCombatAction(int value);    /* 0x0056A480 */
 void SetCombatSelection(int value); /* 0x00569F70 */
 void SetCombatTarget(int value);    /* 0x0056A2D0 */
 
-void RequestRedrawCombatBar(void);             /* 0x005699B0 */
-void UpdateScreenOverlays(int frame);          /* 0x0056AF20 */
+void RequestRedrawCombatBar(void);    /* 0x005699B0 */
+void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
+/* 0x0056B4E0: create the surprise fade overlay node and start the pulse. */
+void CreateSurpriseFade0056B4E0(void);
+/* 0x0056B5F0: flip the fade direction mid-pulse (surprise phase change). */
+void ReverseSurpriseFade0056B5F0(void);
+/* 0x0056B690: release the surprise snapshot surface, node and overlay. */
+void DestroySurpriseFade0056B690(void);
+/* 0x0056B6F0: advance the 500ms surprise fade pulse; returns 1 when the
+   overlay reaches opacity zero. */
+unsigned char UpdateSurpriseFade0056B6F0(void);
 void DisableMainRegionSet(void);               /* 0x00561FB0 */
 void EnableMainRegionSet(void);                /* 0x00561FA0 */
 unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
@@ -1039,6 +1055,9 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 
 unsigned char CombatBarRegionEvent(const InputAtom* event);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
+unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
+                                            struct W8Region* region);          /* 0x0056F1D0 */
+void NpcDialogueTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0056F490 */
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event);
 unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append);

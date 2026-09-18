@@ -53,8 +53,28 @@ void ReleaseMessageStorage(void);
 /* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
    translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
+int GetTextSlot1D8(int index);                                 /* 0x0058F990 */
 int GetTextSlot1E8(int index);                                 /* 0x0058FA60 */
+void SelectTextSlot1D8(int line, int index);                   /* 0x0058F8E0 */
+void SelectTextSlot1E8(int line, int index);                   /* 0x0058F9B0 */
+void ClearTextSlot1D8(int index);                              /* 0x0058F960 */
 void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
+/* The word-overlay hit-test family: each text-box line's entries_18 list holds
+   the W8NoticeWord records of its clickable words. flag_08 1 is the hovered
+   word and 2 a word already consumed into the input field; flag_09 marks a
+   state change for the overlay repaint. */
+void ResetUsedNoticeWords(int text_box, unsigned char redraw);                /* 0x00590150 */
+void ClearNoticeWordHover(int text_box, unsigned char redraw);                /* 0x005901D0 */
+void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y); /* 0x00590250 */
+W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y,
+                                int* line_out); /* 0x00590410 */
+void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* text, unsigned int size, int text_box,
+                        int line); /* 0x00590560 */
+unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
+                                              W8Region* region);                 /* 0x0059DB40 */
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
+unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
+                                          W8Region* region); /* 0x005A0F70 */
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
@@ -82,7 +102,8 @@ int GetTextBoxVisibleLineCount(void);                                           
 void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,
                            short text_box);
 
-void Function58F6B0(int value); /* 0x0058F6B0 */
+void SelectTextBox(short text_box);
+void RedrawTextBox(void); /* 0x0058AA00 */
 /* 0x0058C3A0: repaint visible text-box lines; skip_invalidate nonzero skips
    InvalidateRegion of the text rectangle. */
 void RedrawTextBoxBody(unsigned char skip_invalidate);

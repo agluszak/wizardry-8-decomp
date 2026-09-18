@@ -55,9 +55,7 @@ unsigned char CountLeadingPartySlots(void);
 char GetNpcDisposition(W8NpcState* npc);                                          /* 0x0050A280 */
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact);                            /* 0x0050DD10 */
 unsigned char FindNpcOfKind(int kind);                                            /* 0x0050DD80 */
-void Function55BB10(W8NpcState* npc);                                             /* 0x0055BB10 */
 unsigned char CanNpcJoinParty(W8NpcState* npc);                                   /* 0x0050C870 */
-void RestockNpcInventory(W8NpcState* npc);                                        /* 0x0055BCC0 */
 unsigned char UpdateNpcAt(int party_slot, int arg_2, srVector3T<float>* scratch); /* 0x0050B2F0 */
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc);                                /* 0x0050A3C0 */
 W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info,
@@ -85,19 +83,21 @@ void InitializeNpcItemTable(W8NpcState* npc);
 
 /* The NPC-side consequence pass the sight code runs when a marked NPC's
    binding is released. */
-void Function50CF70(W8NpcState* npc, int mode);
+void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode);
 /* 0x0050DBF0: the bound-NPC penalty the condition/enchantment rebuild folds
    into the character's modifier block while the slot's flag_fe is set. */
 void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBlock* target);
 /* 0x0050C560: place or move the NPC's monster at the named world entity. */
-unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, char* entity_name);
+unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, const char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
-bool Function50ABF0(Trigger* trigger);
+bool NotifyNpcTriggerActivation0050ABF0(Trigger* trigger);
 void ResetNpcBindingsForParty0050DB50(void);
 void ClearPendingNpcLevelFlags0050C270(void);
 void ReleaseNpcMonsterBindings0050C2E0(void);
 void ReleaseMarkedNpcBindings0050DA00(void);
+void AdvanceNpcTimers0050C7D0(unsigned int elapsed);
+void ProcessNpcPendingEvents0050CA80(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
 W8NpcState* GetNpcStateByKind(int kind);
@@ -114,8 +114,8 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
 char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
-void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item,
-                    unsigned int gold); /* 0x0050A570: every retail call pushes five */
+void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
+                                 unsigned int gold); /* 0x0050A570: every retail call pushes five */
 /* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);
@@ -124,8 +124,8 @@ void ClearNpcItemId(W8NpcState* npc, int item_id);
 W8NpcState* FindNpcStateByName(const char* name);
 W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc);
 const char* GetNpcDisplayName(W8NpcState* npc);
-void Function50C440(W8NpcState* npc, int value);                                   /* 0x0050C440 */
-void Function50C1C0(unsigned char name_style, int value, const char* entity_name); /* 0x0050C1C0 */
+void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level);
+void RestoreNamedNpcAtLevel0050C1C0(int kind, char level, const char* entity_name);
 unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
                                     W8ItemInstance* out); /* 0x0050BA80 */
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */

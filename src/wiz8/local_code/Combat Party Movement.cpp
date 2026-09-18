@@ -164,7 +164,7 @@ void UpdatePartyMovementControl(void)
    free phase, it comes down to whether a move is already pending; in the
    opening phase it is always allowed. */
 // FUNCTION: WIZ8 0x004f0800
-unsigned char CanPartyMove(void)
+bool CanPartyMove(void)
 {
     unsigned int status;
 

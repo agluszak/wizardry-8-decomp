@@ -1,16 +1,22 @@
 #include "wiz8/layouts/character.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/character_skills.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/local_code/SpellEffect.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -28,11 +34,29 @@
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/dice.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/utility.h"
+#include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/music_playlist.h"
+#include "wiz8/regions.h"
+#include "wiz8/sr_api.h"
+#include "random.h"
+#include "soundman.h"
+#include "timer.h"
 
 #define GAMEPLAYTIME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayTime.cpp"
 
@@ -43,6 +67,399 @@
  * ceilings, and the per-monster aging cycle tick at 0x00503990 - moved here
  * from Sight.cpp: the retail body pushes this file's path string.
  */
+
+/* The per-frame game-time driver: folds the elapsed milliseconds into the
+   world clock, fires the 120-second aging tick, the hourly item recharge,
+   the 2500ms camping-fatigue and 1400ms stamina ticks, and runs the surprise
+   sequence entry/transition while the party is eligible. */
+// FUNCTION: WIZ8 0x00502010
+void UpdateGameClock00502010(int elapsed)
+{
+    g_status_685170.world_clock +=
+        static_cast<int>((g_status_685170.world_clock_ms_18dc + elapsed) / 1000);
+    g_status_685170.world_clock_ms_18dc = (g_status_685170.world_clock_ms_18dc + elapsed) % 1000;
+
+    g_status_685170.aging_accumulator_238b += elapsed;
+    unsigned int aging_ticks;
+    if (g_flag_00685071 == 0) {
+        aging_ticks = g_status_685170.aging_accumulator_238b / 120000;
+        if (aging_ticks != 0) {
+            g_status_685170.aging_accumulator_238b %= 120000;
+            AdvanceTimedEffects00502D00(aging_ticks);
+        }
+    }
+
+    g_status_685170.item_recharge_ms_239d += elapsed;
+    unsigned int hours = g_status_685170.item_recharge_ms_239d / 3600000;
+    if (hours != 0) {
+        g_status_685170.item_recharge_ms_239d %= 3600000;
+        for (unsigned int slot = 0; slot < 8; ++slot) {
+            char uses = static_cast<char>(hours);
+            if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+                continue;
+            }
+            W8Character* character = &g_status_685170.buffers.characters[slot];
+            int i;
+            W8ItemInstance* item = character->equipment;
+            for (i = 0xc; i != 0; --i) {
+                if (item->item_id == 0x266) {
+                    AddItemUses(item, uses);
+                }
+                ++item;
+            }
+            item = character->backpack;
+            for (i = 8; i != 0; --i) {
+                if (item->item_id == 0x266) {
+                    AddItemUses(item, uses);
+                }
+                ++item;
+            }
+        }
+        for (unsigned int index = 0;
+             index < static_cast<unsigned int>(g_status_685170.party_item_count_1791); ++index) {
+            W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
+            if (item->item_id == 0x266) {
+                AddItemUses(item, static_cast<char>(hours));
+            }
+        }
+    }
+
+    if ((gXStatus.fCombatMode == 0 || aging_ticks != 0) && g_camera_sway_active_652da4 != 0) {
+        if (gXStatus.fCombatMode != 0) {
+            if (aging_ticks == 0) {
+                srAssertFail("uiTurnsElapsed > 0", GAMEPLAYTIME_CPP, 0x6d, 0);
+            }
+            g_status_685170.camp_tick_ms_2436 -= 4 * 0x9c4;
+            UpdateCampFatigue005044D0(4);
+        } else {
+            g_status_685170.camp_tick_ms_2436 += elapsed;
+            unsigned int camp_ticks = g_status_685170.camp_tick_ms_2436 / 0x9c4;
+            if (camp_ticks != 0) {
+                g_status_685170.camp_tick_ms_2436 -= camp_ticks * 0x9c4;
+                UpdateCampFatigue005044D0(static_cast<int>(camp_ticks));
+            }
+        }
+    } else {
+        g_status_685170.camp_tick_ms_2436 = 0;
+        g_status_685170.party_fatigued_2433 = 0;
+        g_status_685170.camp_fatigue_count_2498 = 0;
+    }
+
+    if (gXStatus.fCombatMode != 0) {
+        g_status_685170.stamina_tick_ms_2483 = 0;
+    } else {
+        g_status_685170.stamina_tick_ms_2483 += elapsed;
+        unsigned int stamina_ticks = g_status_685170.stamina_tick_ms_2483 / 0x578;
+        if (stamina_ticks != 0) {
+            g_status_685170.stamina_tick_ms_2483 %= 0x578;
+            UpdatePartyStamina00504670(static_cast<int>(stamina_ticks));
+        }
+
+        if (gXStatus.fSurprisePossible == 0 && AnyCharacterEngaged() == false &&
+            AnyCharacterActive() && g_status_685170.party_fatigued_2433 == 0 &&
+            HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0 &&
+            static_cast<char>(IsScreenIdle()) != 0) {
+            if (g_flag_006840bc != 0) {
+                ResumeMainGameWorld();
+            }
+            if (AnyCharacterEngaged() == false) {
+                gXStatus.surprise_unengaged = 1;
+                ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+            } else {
+                gXStatus.surprise_unengaged = 0;
+                ShowNoticef(0xc, gppStringList[0x790], 8);
+            }
+            SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
+            gXStatus.character_event_queue->CompleteAllActiveEvents();
+            for (unsigned int slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+                    SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
+                }
+            }
+            DisableMenuButtonBanks00598C70();
+            RequestRedraw(0xff);
+            gXStatus.fSurprisePossible = 1;
+            EnableRegionInput(0x137);
+            ActivateDialogRegion(0x137);
+            gXStatus.surprise_deadline_turns = 0;
+            CreateSurpriseFade0056B4E0();
+            gXStatus.surprise_phase = 0;
+            StartMusicResource0048FC10("Camping.MPL", 0, 1);
+            g_combat_countdown_6850b0 = 0;
+        }
+    }
+
+    if (gXStatus.fSurprisePossible == 0) {
+        return;
+    }
+    if (gXStatus.surprise_unengaged != 0 && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
+        SetViewDistance(12.0f);
+        SetNavigatorLinkMode00452F50(0);
+        g_game_time_accumulator_6598bc->ResetDurationScale();
+        ResetMonsterGeneratorTimers0048CBE0();
+        ReverseSurpriseFade0056B5F0();
+        gXStatus.surprise_phase = 2;
+        ReleaseMarkedNpcBindings0050DA00();
+        StartLevelMusic(1, 1);
+    }
+}
+
+/* The Camp key/button requests the surprise-possible camp state. Camping is
+   refused outright in combat and while a level vector or a level flag blocks
+   it; a blocking world-cursor node or a busy screen declines silently. */
+// FUNCTION: WIZ8 0x00502460
+void RequestCamp00502460(void)
+{
+    if (gXStatus.fSurprisePossible != 0) {
+        return;
+    }
+    if (gXStatus.fCombatMode != 0) {
+        ShowNotice(0xc, gppStringList[0x774], -1, 0xffffffff, 0);
+        return;
+    }
+    if (HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0) {
+        /* DispatchWorldCursorNodeCommand004D9080 declares a third `arg`
+           parameter that this caller never pushes; the command-3 path only
+           hands &arg to the node handlers as scratch storage. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
+        if (reinterpret_cast<unsigned char (*)(W8MonsterInfo*, int)>(
+                &DispatchWorldCursorNodeCommand004D9080)(0, 3) !=
+            0) { // reinterpret-ok: retail pushes two args; see above
+#pragma clang diagnostic pop
+            return;
+        }
+        if (static_cast<char>(IsScreenIdle()) == 0) {
+            return;
+        }
+        if (g_flag_006840bc != 0) {
+            ResumeMainGameWorld();
+        }
+        if (AnyCharacterEngaged() == false) {
+            gXStatus.surprise_unengaged = 1;
+            ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+        } else {
+            gXStatus.surprise_unengaged = 0;
+            ShowNoticef(0xc, gppStringList[0x790], 8);
+        }
+        SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
+        gXStatus.character_event_queue->CompleteAllActiveEvents();
+        for (unsigned int slot = 0; slot < 8; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+                SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
+            }
+        }
+        DisableMenuButtonBanks00598C70();
+        RequestRedraw(0xff);
+        gXStatus.fSurprisePossible = 1;
+        EnableRegionInput(0x137);
+        ActivateDialogRegion(0x137);
+        gXStatus.surprise_deadline_turns = 0;
+        CreateSurpriseFade0056B4E0();
+        gXStatus.surprise_phase = 0;
+        StartMusicResource0048FC10("Camping.MPL", 0, 1);
+        g_combat_countdown_6850b0 = 0;
+        return;
+    }
+    ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, 0);
+}
+
+/* Complete the pending character events, reset the occupied slots' portrait
+   poses to the startled frame, take the menu button banks down and request a
+   full redraw. The scripted ambush triggers call this to open the surprise
+   sequence. */
+// FUNCTION: WIZ8 0x005025F0
+void BeginSurprise005025F0(void)
+{
+    unsigned int i;
+
+    gXStatus.character_event_queue->CompleteAllActiveEvents();
+    for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
+        if (g_status_685170.buffers.party_rows[i].occupied != 0) {
+            SetPortraitTargetPose(&gXStatus.monster_manager_entries[i], 2);
+        }
+    }
+    DisableMenuButtonBanks00598C70();
+    RequestRedraw(0xff);
+}
+
+/* Advance the surprise fade/hold/resolve sequence while the party is locked
+   into fSurprisePossible. Phase 0 waits for the fade-in helper, widens sight,
+   and scales time from the level's +0x54 float; phase 1 holds until the
+   world clock reaches the deadline (unless surprise started unengaged);
+   phase 2 waits for the fade-out helper, then ends surprise and forwards
+   combat if needed. */
+// FUNCTION: WIZ8 0x00502650
+void UpdateSurpriseMode(void)
+{
+    float scale;
+    float level_scale;
+
+    if (gXStatus.fSurprisePossible == 0) {
+        return;
+    }
+    switch (gXStatus.surprise_phase) {
+    case 0:
+        if (UpdateSurpriseFade0056B6F0() != 0) {
+            gXStatus.surprise_deadline_turns = g_status_685170.world_clock + 0x7080;
+            DestroyUngroupedMonsters();
+            SetViewDistance(2880.0f);
+            SetNavigatorLinkMode00452F50(1);
+            level_scale = g_level_records[g_status_685170.current_level].gameplay_time_scale_054;
+            scale = g_float_005ebb38 / level_scale;
+            g_game_time_accumulator_6598bc->SetDurationScale(scale);
+            SetMonsterGeneratorDurationScale(scale);
+            gXStatus.surprise_phase = 1;
+        }
+        break;
+    case 1:
+        if (gXStatus.surprise_unengaged == 0 &&
+            static_cast<unsigned int>(g_status_685170.world_clock) >=
+                gXStatus.surprise_deadline_turns) {
+            SetViewDistance(12.0f);
+            SetNavigatorLinkMode00452F50(0);
+            g_game_time_accumulator_6598bc->ResetDurationScale();
+            ResetMonsterGeneratorTimers0048CBE0();
+            UpdateEnvironmentLight004834B0();
+            RefreshEnvironment00483560();
+            ReverseSurpriseFade0056B5F0();
+            gXStatus.surprise_phase = 2;
+            ReleaseMarkedNpcBindings0050DA00();
+            StartLevelMusic(1, 1);
+        }
+        break;
+    case 2:
+        if (UpdateSurpriseFade0056B6F0() != 0) {
+            EndSurprise00502860();
+            if (gXStatus.fCombatMode != 0) {
+                MonsterForward453160();
+            }
+        }
+        break;
+    }
+}
+
+/* The cancel command while surprise runs: while the ambush is unengaged and
+   the party is out of combat it reposts the surprise notice; once the fade
+   has reached phase 1 it performs the same restore as UpdateSurpriseMode's
+   deadline path - without the environment-light refresh - and moves the
+   sequence to phase 2. */
+// FUNCTION: WIZ8 0x00502790
+void AcknowledgeSurprise00502790(void)
+{
+    if (gXStatus.surprise_unengaged != 0 && gXStatus.fCombatMode == 0) {
+        ShowNotice(0xc, gppStringList[0x794], -1, 0xffffffff, 0);
+        return;
+    }
+    if (gXStatus.surprise_phase == 1) {
+        SetViewDistance(12.0f);
+        SetNavigatorLinkMode00452F50(0);
+        g_game_time_accumulator_6598bc->ResetDurationScale();
+        ResetMonsterGeneratorTimers0048CBE0();
+        ReverseSurpriseFade0056B5F0();
+        gXStatus.surprise_phase = 2;
+        ReleaseMarkedNpcBindings0050DA00();
+        StartLevelMusic(1, 1);
+    }
+}
+
+/* End the surprise sequence: post the outcome notice and, if the condition-13
+   rest event armed flag_2487 more than a world-clock day ago, clear the
+   condition and queue the rest-benefit event for that character. */
+// FUNCTION: WIZ8 0x00502860
+void EndSurprise00502860(void)
+{
+    gXStatus.fSurprisePossible = 0;
+    ResolveSurpriseWake005029E0();
+    ClearActiveRegionIfMatches(0x137);
+    DisableRegionInput(0x137);
+
+    const wchar_t* text;
+    if (gXStatus.surprise_unengaged == 0) {
+        if (gXStatus.surprise_deadline_turns == 0) {
+            text = gppStringList[0x793];
+        } else if (gXStatus.surprise_deadline_turns <
+                   static_cast<unsigned int>(g_status_685170.world_clock)) {
+            text = gppStringList[0x791];
+        } else {
+            text = gppStringList[0x792];
+        }
+    } else {
+        gXStatus.surprise_unengaged = 0;
+        text = AnyCharacterEngaged() ? gppStringList[0x795] : gppStringList[0x792];
+    }
+    ShowNotice(0xc, text, -1, 0xffffffff, 0);
+
+    if (g_status_685170.flag_2487 != 0 &&
+        0x15180 <
+            static_cast<unsigned int>(g_status_685170.world_clock) - g_status_685170.flag_2487) {
+        g_status_685170.flag_2487 = 0;
+        g_status_685170.skip_next_condition_reaction = 1;
+        int party_slot = reinterpret_cast<int>(
+            g_status_685170.value_248f); /* reinterpret-ok: the SET_CONDITION_13 event
+                parks its party-slot value in this pointer-sized field; the writer
+                stores line->text */
+        RemoveCharacterCondition(party_slot, 0x13, 0);
+        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee658, 0,
+                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        SetFact(0xb6, 1, 0);
+    }
+}
+
+/* Tear down the world-state overrides the surprise sequence installed:
+   restore default view distance and navigator link mode, reset the time
+   scale, restart the monster generator timers and release the fade overlay. */
+// FUNCTION: WIZ8 0x005029a0
+void RestoreSurpriseView005029A0(void)
+{
+    gXStatus.fSurprisePossible = 0;
+    gXStatus.surprise_unengaged = 0;
+    SetViewDistance(12.0f);
+    SetNavigatorLinkMode00452F50(0);
+    g_game_time_accumulator_6598bc->ResetDurationScale();
+    ResetMonsterGeneratorTimers0048CBE0();
+    DestroySurpriseFade0056B690();
+}
+
+/* The camp-wake resolution inside the surprise teardown: each surviving
+   character rolls against their senses attribute - failure applies the
+   groggy condition, success posts a notice. Then every occupied portrait is
+   posed awake with a randomized idle clock and the button banks re-enable. */
+// FUNCTION: WIZ8 0x005029e0
+void ResolveSurpriseWake005029E0(void)
+{
+    if (g_combat_state != 0 && g_combat_state->unknown_a52[0] != 0) {
+        for (unsigned int slot = 0; slot < 8; ++slot) {
+            W8Character* character = &g_status_685170.buffers.characters[slot];
+            if (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+                character->highest_condition >= 0x12) {
+                continue;
+            }
+            int roll = static_cast<int>(Random(100)) - 0x14 -
+                       static_cast<int>(character->attributes[6].effective * 0x46 / 100);
+            if (roll < 1) {
+                PostCharacterNotice(slot, gppStringList[0x243],
+                                    gppStringList[g_condition_notices_0061E570[60]]);
+            } else {
+                SetCharacterCondition(slot, 0xf, roll / 0x1e + 1, 0, 0, 0);
+            }
+        }
+    }
+
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
+        SetPortraitTargetPose(entry, 1);
+        if (Random(2) != 0) {
+            entry->portrait_idle_clock = SetCountdownClock(Random(5000) + 5000);
+        }
+        entry->portrait_pose_dirty = 1;
+        RequestRedraw(1 << slot);
+    }
+    EnableMenuButtonBanks00598C10();
+}
 
 /* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
    are one tick of the pool ceiling's share, twenty points of base and a
@@ -108,6 +525,445 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
     }
 }
 
+/* The 120-second aging tick: advances the wait-state machine while the
+   real/frame elapsed accumulators hold at zero, ages each living character
+   and monster, expires party and combat effect slots with expiry notices,
+   ticks queued spell effects once per minute and runs the NPC-side passes. */
+// FUNCTION: WIZ8 0x00502d00
+void AdvanceTimedEffects00502D00(unsigned int minutes)
+{
+    if (g_status_685170.real_elapsed_2391 + g_status_685170.frame_elapsed_2395 ==
+        g_float_005ebb34) {
+        if (g_status_685170.wait_state_2399 == 1 || g_status_685170.wait_state_2399 == 0) {
+            g_status_685170.wait_state_2399 = 2;
+            for (unsigned int slot = 0; slot < 8; ++slot) {
+                g_status_685170.buffers.party_rows[slot].movement_fatigue = 0;
+            }
+        } else if (g_status_685170.wait_state_2399 == 2) {
+            g_status_685170.wait_state_2399 = 3;
+        }
+    } else {
+        g_status_685170.wait_state_2399 =
+            g_status_685170.real_elapsed_2391 != g_float_005ebb34 ? 1 : 0;
+        g_status_685170.real_elapsed_2391 = g_float_005ebb34;
+        g_status_685170.frame_elapsed_2395 = g_float_005ebb34;
+    }
+
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            (character->highest_condition < 0x12 ||
+             (character->condition_turns[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
+            GameTurnsPassedChar00503100(slot, minutes);
+        }
+    }
+
+    if (gXStatus.fCombatMode != 0) {
+        W8CombatSlot target;
+        ResetCombatSlot(&target);
+        target.iType = W8_TARGET_KIND_PARTY;
+        TickSpellEffectSlots005526F0(g_combat_state->effect_slots, &target);
+        TickAreaDamageEffectSlots00552EF0(g_combat_state->effect_slots_85a);
+    }
+
+    for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info->highest_condition < 0x12) {
+            AgeMonsterSight(monster_info, minutes, 0);
+        }
+    }
+
+    bool party_changed = false;
+    bool combat_changed = false;
+    unsigned int i;
+    for (i = 0; i < 12; ++i) {
+        W8EffectSlot* slot = &g_status_685170.effect_slots_17af[i];
+        if (slot->active == 0) {
+            continue;
+        }
+        if (minutes < slot->duration_0d) {
+            slot->duration_0d -= minutes;
+            continue;
+        }
+        ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
+        if (GetViewDistance() != g_encounter_culling_rate) {
+            SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
+        }
+        ResetPartyEffectBlock(slot);
+        party_changed = true;
+    }
+
+    if (gXStatus.fCombatMode != 0) {
+        for (i = 0; i < 9; ++i) {
+            W8EffectSlot* slot = &g_combat_state->effect_slots[i];
+            if (slot->active == 0) {
+                continue;
+            }
+            if (minutes < slot->duration_0d) {
+                slot->duration_0d -= minutes;
+                continue;
+            }
+            ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
+            if (GetViewDistance() != g_encounter_culling_rate) {
+                SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
+            }
+            ResetPartyEffectBlock(slot);
+            combat_changed = true;
+        }
+        for (i = 0; i < 6; ++i) {
+            W8EffectSlot* slot = &g_combat_state->effect_slots_85a[i];
+            if (slot->active == 0) {
+                continue;
+            }
+            if (minutes < slot->duration_0d) {
+                slot->duration_0d -= minutes;
+                continue;
+            }
+            ShowNoticef(0xc, gppStringList[0x1b4], g_spell_records[slot->effect_id].display_name);
+            if (GetViewDistance() != g_encounter_culling_rate) {
+                SoundPlay("Data\\Sound\\Misc\\Spell Expiry.wav", 0);
+            }
+            ResetPartyEffectBlock(slot);
+            combat_changed = true;
+        }
+    }
+
+    if (party_changed) {
+        RequestRedraw(0x100);
+    }
+    if (combat_changed) {
+        RequestRedraw(0x8000);
+    }
+    for (unsigned int remaining = minutes; remaining != 0; --remaining) {
+        TickSpellEffects();
+    }
+    W8SpellEffectEntry* control = FindMonsterControlSpellEffect();
+    if (control != 0 && control->turns_remaining != 0) {
+        TickMonsterControlAura00551500(control);
+    }
+    if (party_changed || combat_changed) {
+        SoundPlay("Data\\Sound\\Misc\\GeneralMagic.wav", 0);
+    }
+    if (gXStatus.fSurprisePossible == 0) {
+        DetectMonsterGroups004E4AB0();
+    }
+    AdvanceNpcTimers0050C7D0(minutes * 10);
+    ProcessNpcPendingEvents0050CA80();
+}
+
+/* Advance one character's whole aging cycle by the elapsed minutes: the timed
+   damage/heal modifier bytes, the disease deterioration rolls, the
+   item-0x243/0x239 madness pair, the fractional health/stamina/spell-point
+   regeneration accumulators, and the finite condition and enchantment
+   countdowns. */
+// FUNCTION: WIZ8 0x00503100
+void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    bool diseased = false;
+    unsigned int realm;
+
+    unsigned int damage = character->bonus_1770.unknown_08[0];
+    if (damage != 0) {
+        damage = damage * minutes;
+        if (g_status_685170.wait_state_2399 != 3 || gXStatus.fCombatMode != 0) {
+            damage = damage + (damage >> 1);
+        }
+        ApplyDamageToCharacter(party_slot, damage, 1, 1, 0, static_cast<W8SpellEffectResult*>(0),
+                               0);
+    }
+
+    if (character->condition_turns[W8_CONDITION_DISEASED] != 0) {
+        diseased = true;
+        if (Random(character->attributes[W8_ATTRIBUTE_VITALITY].effective * 10) < minutes) {
+            switch (Random(4)) {
+            case 0: {
+                unsigned int condition;
+                switch (Random(5)) {
+                case 0:
+                    condition = W8_CONDITION_IRRITATED;
+                    break;
+                case 1:
+                    condition = W8_CONDITION_NAUSEATED;
+                    break;
+                case 2:
+                    condition = W8_CONDITION_SLOWED;
+                    break;
+                case 3:
+                    condition = W8_CONDITION_BLIND;
+                    break;
+                case 4:
+                    condition = W8_CONDITION_INSANE;
+                    break;
+                case 5:
+                    condition = W8_CONDITION_PARALYZED;
+                    break;
+                default:
+                    srAssertFail("FALSE", GAMEPLAYTIME_CPP, 0x333,
+                                 "GameTurnsPassedChar: ERROR - Invalid condition");
+                    condition = minutes;
+                    break;
+                }
+                SetCharacterCondition(party_slot, condition, W8_CONDITION_INDEFINITE, 0, 0, 1);
+                break;
+            }
+            case 1: {
+                unsigned int attribute = Random(7);
+                if (1 < character->attributes[attribute].value) {
+                    character->attributes[attribute].value =
+                        character->attributes[attribute].value - 1;
+                    int* attribute_counter = reinterpret_cast<
+                        int*>( // reinterpret-ok: attribute +0x08 dword counter is raw byte storage
+                        character->attributes[attribute].unknown_08);
+                    *attribute_counter = *attribute_counter + 1;
+                    ApplyAttributeChange(character, attribute);
+                    PostCharacterNotice(
+                        party_slot, gppStringList[0x270],
+                        gppStringList[g_character_description_first_ids_61e3a4[attribute]]);
+                }
+                break;
+            }
+            case 2:
+                if (static_cast<unsigned int>(character->hp_max) < 5) {
+                    break;
+                }
+                {
+                    unsigned int loss = Random(4) + 1;
+                    character->hp_max = character->hp_max - loss;
+                    character->hp_adjustment = character->hp_adjustment - loss;
+                    if (loss == 1) {
+                        PostCharacterNotice(party_slot, gppStringList[0x26e]);
+                    } else {
+                        PostCharacterNotice(party_slot, gppStringList[0x26f], loss);
+                    }
+                    unsigned int current = character->hp_current;
+                    if (1 < current) {
+                        if (loss >= current - 1) {
+                            loss = current - 1;
+                        }
+                        character->hp_current = current - loss;
+                    }
+                    RequestPartySlotRedraw(party_slot);
+                }
+                break;
+            case 3:
+                if (static_cast<unsigned int>(character->stamina_max) < 5) {
+                    break;
+                }
+                {
+                    unsigned int loss = Random(4) + 1;
+                    character->stamina_max = character->stamina_max - loss;
+                    character->fatigue_penalty_0b21 = character->fatigue_penalty_0b21 + loss;
+                    PostCharacterNotice(party_slot, gppStringList[0x271], loss);
+                    int stamina = character->stamina;
+                    if (1 < stamina) {
+                        if (loss >= stamina - 1U) {
+                            loss = stamina - 1U;
+                        }
+                        character->stamina = stamina - loss;
+                    }
+                    RequestPartySlotRedraw(party_slot);
+                }
+                break;
+            }
+        }
+    }
+
+    if (character->condition_turns[W8_CONDITION_INFATUATED] != 0) {
+        if (GetLevelBand(g_status_685170.current_level) == 9 ||
+            GetLevelBand(g_status_685170.current_level) == 0xa) {
+            if (character->condition_turns[W8_CONDITION_HEXED] == W8_CONDITION_INDEFINITE) {
+                RemoveCharacterCondition(party_slot, W8_CONDITION_HEXED, 1);
+            }
+        } else {
+            unsigned int hits = 0;
+            for (unsigned int roll = minutes; roll != 0; --roll) {
+                if (Random(4) == 0) {
+                    hits = hits + 1;
+                }
+            }
+            if (hits != 0) {
+                ApplyDamageToCharacter(party_slot, hits, 0, 1, 0,
+                                       static_cast<W8SpellEffectResult*>(0), 0);
+            }
+            if (character->condition_turns[W8_CONDITION_HEXED] == 0) {
+                SetCharacterCondition(party_slot, W8_CONDITION_HEXED, W8_CONDITION_INDEFINITE, 0, 0,
+                                      1);
+            }
+        }
+    }
+
+    W8ItemInstance* found;
+    W8Character* holder;
+    if (FindItemOnParty(0x243, &found, &holder, 2, static_cast<W8ItemInstance*>(0)) != 0 &&
+        found != &g_status_685170.item_in_hand_235b) {
+        if (holder == static_cast<W8Character*>(0) ||
+            FindItemOnCharacter(holder, 0x239, static_cast<W8ItemInstance**>(0), 0,
+                                static_cast<W8ItemInstance*>(0)) == 0) {
+            if (character->condition_turns[W8_CONDITION_INSANE] < W8_CONDITION_INDEFINITE) {
+                SetCharacterCondition(party_slot, W8_CONDITION_INSANE, W8_CONDITION_INDEFINITE, 0,
+                                      0, 1);
+            }
+        } else if (character->condition_turns[W8_CONDITION_INSANE] == W8_CONDITION_INDEFINITE) {
+            RemoveCharacterCondition(party_slot, W8_CONDITION_INSANE, 1);
+        }
+    }
+
+    signed char health_mod = static_cast<signed char>(character->bonus_1770.unknown_08[1]);
+    if (health_mod > 0) {
+        if (character->hp_current < static_cast<unsigned int>(character->hp_max)) {
+            HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes), 0);
+        }
+    } else if (health_mod < 0) {
+        ApplyDamageToCharacter(party_slot,
+                               -static_cast<int>(health_mod) * static_cast<int>(minutes), 0, 1, 0,
+                               static_cast<W8SpellEffectResult*>(0), 0);
+    }
+
+    signed char stamina_mod = static_cast<signed char>(character->bonus_1770.unknown_08[2]);
+    if (stamina_mod > 0) {
+        if (character->stamina < character->stamina_max) {
+            RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
+        }
+    } else if (stamina_mod < 0) {
+        FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * minutes), 0,
+                         static_cast<W8SpellEffectResult*>(0));
+    }
+
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
+        signed char spell_mod = static_cast<signed char>(character->bonus_1770.unknown_08[3]);
+        if (spell_mod > 0) {
+            if (character->sp_left[realm] < character->sp_max[realm]) {
+                RestoreCharacterRealmSpellPoints(
+                    party_slot, realm, static_cast<int>(spell_mod) * static_cast<int>(minutes));
+            }
+        } else if (spell_mod < 0) {
+            DrainCharacterRealmSpellPoints(party_slot, realm, -static_cast<int>(spell_mod), 1);
+        }
+    }
+
+    float health_scale;
+    if (gXStatus.fSurprisePossible != 0) {
+        health_scale = g_float_005ebb38;
+    } else if (g_status_685170.wait_state_2399 == 3 && gXStatus.fCombatMode == 0) {
+        health_scale = g_float_005ebc7c;
+    } else {
+        health_scale = g_float_005ebb34;
+    }
+    if (diseased) {
+        health_scale = health_scale * g_navigator_vertical_phase_step_005ebcc8;
+    }
+    float spell_scale = health_scale;
+    if (health_scale < g_float_005ebc7c) {
+        spell_scale = 0.5f;
+    }
+    float stamina_scale = 0.0f;
+
+    if (CharacterHasTrait00547940(character, W8_TRAIT_HEALTH_REGENERATION) != 0) {
+        if (health_scale == g_float_005ebb34) {
+            health_scale = ScaleValueByProfessionLevel005479B0(
+                               character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
+                           g_float_005ebc7c;
+        } else {
+            health_scale = ScaleValueByProfessionLevel005479B0(
+                               character, W8_TRAIT_HEALTH_REGENERATION, 16.67f) *
+                           health_scale;
+        }
+    }
+    if (CharacterHasTrait00547940(character, W8_TRAIT_STAMINA_REGENERATION) != 0 &&
+        gXStatus.fCombatMode != 0) {
+        stamina_scale =
+            ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
+    }
+    if (CharacterHasTrait00547940(character, 0x1a) != 0 && spell_scale > g_float_005ebb34) {
+        spell_scale = spell_scale * g_float_005ec340;
+    }
+    if (CharacterHasTrait00547940(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&
+        spell_scale > g_float_005ebb34) {
+        spell_scale = spell_scale * g_float_005ebccc;
+    }
+
+    if (health_scale > g_float_005ebb34 &&
+        character->hp_current < static_cast<unsigned int>(character->hp_max)) {
+        character->health_regen_accumulator_0b6d =
+            minutes * character->health_regen_rate_0b69 * health_scale +
+            character->health_regen_accumulator_0b6d;
+        HealCharacter(party_slot, static_cast<int>(character->health_regen_accumulator_0b6d), 0);
+        character->health_regen_accumulator_0b6d =
+            character->health_regen_accumulator_0b6d -
+            static_cast<unsigned int>(character->health_regen_accumulator_0b6d);
+    }
+    if (stamina_scale > g_float_005ebb34 && character->stamina < character->stamina_max) {
+        character->stamina_regen_accumulator_0b75 =
+            minutes * character->stamina_regen_rate_0b71 * stamina_scale +
+            character->stamina_regen_accumulator_0b75;
+        RestoreCharacterStamina(party_slot,
+                                static_cast<int>(character->stamina_regen_accumulator_0b75), 0);
+        character->stamina_regen_accumulator_0b75 =
+            character->stamina_regen_accumulator_0b75 -
+            static_cast<unsigned int>(character->stamina_regen_accumulator_0b75);
+    }
+    if (spell_scale > g_float_005ebb34) {
+        for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
+            if (character->sp_left[realm] < character->sp_max[realm]) {
+                character->spell_regen_rates_0b79[realm * 2 + 1] =
+                    minutes * character->spell_regen_rates_0b79[realm * 2] * spell_scale +
+                    character->spell_regen_rates_0b79[realm * 2 + 1];
+                RestoreCharacterRealmSpellPoints(
+                    party_slot, realm,
+                    static_cast<int>(character->spell_regen_rates_0b79[realm * 2 + 1]));
+                character->spell_regen_rates_0b79[realm * 2 + 1] =
+                    character->spell_regen_rates_0b79[realm * 2 + 1] -
+                    static_cast<unsigned int>(character->spell_regen_rates_0b79[realm * 2 + 1]);
+            }
+        }
+    }
+
+    if (character->hp_current >= static_cast<unsigned int>(character->hp_max)) {
+        character->health_regen_accumulator_0b6d = 0.0f;
+    }
+    if (character->stamina >= character->stamina_max) {
+        character->stamina_regen_accumulator_0b75 = 0.0f;
+    }
+    for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
+        if (character->sp_left[realm] >= character->sp_max[realm]) {
+            character->spell_regen_rates_0b79[realm * 2 + 1] = 0.0f;
+        }
+    }
+
+    for (unsigned int condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+        if (character->condition_turns[condition] != 0 &&
+            character->condition_turns[condition] < W8_CONDITION_INDEFINITE) {
+            TickCharacterCondition(party_slot, condition, minutes);
+        }
+    }
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        unsigned int turns = character->enchantments[slot].value_08;
+        if (turns != 0 && turns < W8_CONDITION_INDEFINITE) {
+            if (turns > minutes) {
+                character->enchantments[slot].value_08 = turns - minutes;
+            } else {
+                ClearCharacterEnchantmentSlot(party_slot, slot);
+            }
+        }
+    }
+
+    if (CharacterHasTrait00547940(character, W8_TRAIT_MAKE_POTIONS) != 0) {
+        if (gXStatus.fSurprisePossible != 0) {
+            if (character->potion_brew_cooldown_0b65 == 0) {
+                BrewAlchemistPotion00548E60(character);
+            }
+        } else if (character->potion_brew_cooldown_0b65 != 0) {
+            if (minutes >= character->potion_brew_cooldown_0b65) {
+                character->potion_brew_cooldown_0b65 = 0;
+            } else {
+                character->potion_brew_cooldown_0b65 =
+                    character->potion_brew_cooldown_0b65 - minutes;
+            }
+        }
+    }
+}
+
 /* Advance one monster's whole aging cycle by the elapsed minutes: the
    look-around timers, the sight bookkeeping around its last-seen position,
    the per-turn regeneration and fatigue bookkeeping, condition, enchantment
@@ -125,7 +981,11 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
         args[0] = 3;
         args[1] = monster_info->location_id;
-        Function5526F0(monster_info->pCombat->effect_slots_3e, args);
+        TickSpellEffectSlots005526F0(
+            monster_info->pCombat->effect_slots_3e,
+            reinterpret_cast<W8CombatSlot*>(args)); /* reinterpret-ok: retail
+               passes a two-int {iType, iMonsterID} block the callee reads as a
+               W8CombatSlot prefix */
         goto after_early;
     }
     monster = monster_info->monster;
@@ -369,7 +1229,7 @@ after_early: {
         if (heal_scale > g_float_005ebb34) {
             if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
                 monster_info->hp_regen_accumulator_4b =
-                    static_cast<float>(minutes) * monster_info->hp_regen_rate_47 * heal_scale +
+                    minutes * monster_info->hp_regen_rate_47 * heal_scale +
                     monster_info->hp_regen_accumulator_4b;
                 int healed = static_cast<int>(monster_info->hp_regen_accumulator_4b);
 
@@ -378,7 +1238,7 @@ after_early: {
             }
             if (monster_info->stamina < monster_info->stamina_max) {
                 monster_info->stamina_regen_accumulator_53 =
-                    static_cast<float>(minutes) * monster_info->stamina_regen_rate_4f * heal_scale +
+                    minutes * monster_info->stamina_regen_rate_4f * heal_scale +
                     monster_info->stamina_regen_accumulator_53;
                 int restored = static_cast<int>(monster_info->stamina_regen_accumulator_53);
 
@@ -457,57 +1317,143 @@ after_early: {
     }
 }
 
-/* Advance the surprise fade/hold/resolve sequence while the party is locked
-   into fSurprisePossible. Phase 0 waits for the fade-in helper, widens sight,
-   and scales time from the level's +0x54 float; phase 1 holds until
-   uiTurnsElapsed reaches the deadline (unless surprise started unengaged);
-   phase 2 waits for the fade-out helper, then ends surprise and forwards
-   combat if needed. */
-// FUNCTION: WIZ8 0x00502650
-void UpdateSurpriseMode(void)
+/* The camping fatigue tick: while a camp is active each character without
+   the rest item rolls fatigue dice whose sides grow with camp_fatigue_count;
+   stamina absorbs the roll first, overflow becomes damage. The first roll
+   raises the fatigued flag and posts the notice once. */
+// FUNCTION: WIZ8 0x005044d0
+void UpdateCampFatigue005044D0(int ticks)
 {
-    float scale;
-    float level_scale;
-
-    if (gXStatus.fSurprisePossible == 0) {
+    if (g_status_685170.value_2390 != 0) {
         return;
     }
-    switch (gXStatus.surprise_phase) {
-    case 0:
-        if (Function56B6F0() != 0) {
-            gXStatus.surprise_deadline_turns = g_status_685170.uiTurnsElapsed + 0x7080;
-            DestroyUngroupedMonsters();
-            SetViewDistance(2880.0f);
-            SetNavigatorLinkMode00452F50(1);
-            level_scale = g_level_records[g_status_685170.current_level].gameplay_time_scale_054;
-            scale = g_float_005ebb38 / level_scale;
-            g_game_time_accumulator_6598bc->SetDurationScale(scale);
-            SetMonsterGeneratorDurationScale(scale);
-            gXStatus.surprise_phase = 1;
-        }
-        break;
-    case 1:
-        if (gXStatus.surprise_unengaged == 0 &&
-            g_status_685170.uiTurnsElapsed >= gXStatus.surprise_deadline_turns) {
-            SetViewDistance(12.0f);
-            SetNavigatorLinkMode00452F50(0);
-            g_game_time_accumulator_6598bc->ResetDurationScale();
-            ResetMonsterGeneratorTimers0048CBE0();
-            UpdateEnvironmentLight004834B0();
-            RefreshEnvironment00483560();
-            Function56B5F0();
-            gXStatus.surprise_phase = 2;
-            ReleaseMarkedNpcBindings0050DA00();
-            StartLevelMusic(1, 1);
-        }
-        break;
-    case 2:
-        if (Function56B6F0() != 0) {
-            Function502860();
-            if (gXStatus.fCombatMode != 0) {
-                MonsterForward453160();
+    bool any_rolled = false;
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
+            character->highest_condition < 0x12 && character->race != 0xf &&
+            FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
+                                static_cast<W8ItemInstance*>(0)) == 0) {
+            W8Dice dice;
+            dice.count = static_cast<unsigned char>(ticks);
+            dice.sides =
+                static_cast<unsigned char>(g_status_685170.camp_fatigue_count_2498 / 6) + 2;
+            any_rolled = true;
+            dice.base = 0;
+            unsigned int amount = static_cast<unsigned int>(RollDice(&dice));
+            if (amount != 0) {
+                int stamina = character->stamina;
+                if (stamina < static_cast<int>(amount)) {
+                    if (stamina > 0) {
+                        amount -= stamina;
+                        FatigueCharacter(slot, stamina, 0, static_cast<W8SpellEffectResult*>(0));
+                    }
+                    char announce =
+                        gXStatus.fCombatMode == 0 || g_settings_6850c8.verbose_combat_messages == 0
+                            ? 0
+                            : 1;
+                    ApplyDamageToCharacter(slot, amount, 0, announce, 0,
+                                           static_cast<W8SpellEffectResult*>(0), 0);
+                } else {
+                    FatigueCharacter(slot, static_cast<int>(amount), 0,
+                                     static_cast<W8SpellEffectResult*>(0));
+                }
+            }
+            if (g_status_685170.party_fatigued_2433 == 0) {
+                g_status_685170.party_fatigued_2433 = 1;
+                ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, 0);
             }
         }
-        break;
+    }
+    if (any_rolled) {
+        g_status_685170.camp_fatigue_count_2498 += ticks;
+        return;
+    }
+    g_status_685170.camp_fatigue_count_2498 = 0;
+    g_status_685170.party_fatigued_2433 = 0;
+    g_status_685170.camp_tick_ms_2436 = 0;
+}
+
+/* The stamina-tick driver: refreshes the wait state from the level's
+   rest flags, then ticks each eligible character. While the party is
+   fatigued, characters lacking the rest item are skipped. */
+// FUNCTION: WIZ8 0x00504670
+void UpdatePartyStamina00504670(int ticks)
+{
+    if (static_cast<char>(GetLevelDataFlag8()) != 0) {
+        g_status_685170.wait_state_2399 = 1;
+    } else {
+        g_status_685170.wait_state_2399 = static_cast<char>(GetLevelDataFlag9()) != 0 ? 0 : 3;
+    }
+
+    for (unsigned int slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (character->highest_condition >= 0x12 &&
+            (character->condition_turns[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
+            continue;
+        }
+        if (g_status_685170.party_fatigued_2433 != 0 &&
+            FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
+                                static_cast<W8ItemInstance*>(0)) == 0) {
+            continue;
+        }
+        RegenCharacterStamina00504730(slot, static_cast<unsigned int>(ticks));
+    }
+}
+
+/* One character's stamina tick: the bonus block's signed regen modifier is
+   applied directly, then the fractional regen accumulator is scaled by the
+   wait state (camp halved, resting states reduced, surprise full), frost
+   quarters it and the trait rerolls it through the profession level. */
+// FUNCTION: WIZ8 0x00504730
+void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int frost = character->condition_turns[2];
+    signed char stamina_mod = static_cast<signed char>(character->bonus_1770.unknown_08[2]);
+    if (stamina_mod < 1) {
+        if (stamina_mod < 0) {
+            FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), 0,
+                             static_cast<W8SpellEffectResult*>(0));
+        }
+    } else if (character->stamina < character->stamina_max) {
+        RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(elapsed), 0);
+    }
+
+    float scale = g_float_005ebb38;
+    if (gXStatus.fSurprisePossible == 0) {
+        scale = g_float_005ebc7c;
+        if (g_status_685170.wait_state_2399 != 3) {
+            scale = g_float_005ebc3c;
+            if (g_status_685170.wait_state_2399 != 0 && g_status_685170.wait_state_2399 != 2) {
+                scale = g_float_005ebb34;
+            }
+        }
+    }
+    if (frost != 0) {
+        scale *= g_navigator_vertical_phase_step_005ebcc8;
+    }
+    if (CharacterHasTrait00547940(character, 0)) {
+        if (scale == g_float_005ebb34) {
+            if (gXStatus.fCombatMode != 0) {
+                scale = ScaleValueByProfessionLevel005479B0(character, 0, 3.3f);
+            }
+        } else {
+            scale *= g_float_005ec3b8;
+        }
+    }
+    if (scale > g_float_005ebb34 && character->stamina < character->stamina_max) {
+        character->stamina_regen_accumulator_0b75 +=
+            elapsed * character->stamina_regen_rate_0b71 * scale;
+        int amount = static_cast<int>(character->stamina_regen_accumulator_0b75);
+        RestoreCharacterStamina(party_slot, amount, 0);
+        character->stamina_regen_accumulator_0b75 -=
+            static_cast<float>(static_cast<int>(character->stamina_regen_accumulator_0b75));
+    }
+    if (character->stamina >= character->stamina_max) {
+        character->stamina_regen_accumulator_0b75 = g_float_005ebb34;
     }
 }

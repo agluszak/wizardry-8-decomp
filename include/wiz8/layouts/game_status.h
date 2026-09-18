@@ -29,7 +29,7 @@ enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
-    unsigned char game_started; /* 0x000c */
+    bool game_started; /* 0x000c */
     /* 0x000d..0x0018: the three join counters the party-add entry advances:
        the regular-member, auxiliary and total counts. */
     int regular_member_count;
@@ -51,7 +51,9 @@ struct W8GlobalStatus {
     int party_facing;
     unsigned int party_heading;
     int world_clock;
-    unsigned char unknown_18dc[4];
+    /* 0x18dc: the millisecond fraction folded into world_clock; the game-time
+       update carries it into whole seconds at 1000ms. */
+    unsigned int world_clock_ms_18dc;
     unsigned int party_order_slots[8];
     int current_level;
     /* 0x1904..0x1a03: the 0x100-byte STAT header block. Assertion evidence
@@ -78,7 +80,9 @@ struct W8GlobalStatus {
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
     unsigned char flags_2367[0x20];
     int game_time_ms;
-    unsigned char unknown_238b[4];
+    /* 0x238b: milliseconds toward the next 120-second aging tick; 0x00502010
+       folds each whole 120000ms into a 0x00502D00 call while 0x685071 holds. */
+    unsigned int aging_accumulator_238b;
     /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
        party movement, and scales the monster-sight threshold while set. */
     unsigned char search_mode;
@@ -91,7 +95,13 @@ struct W8GlobalStatus {
        pass sums them against zero. */
     float real_elapsed_2391;
     float frame_elapsed_2395;
-    unsigned char unknown_2399[8];
+    /* 0x2399: the wait-state machine 0x00502D00 advances while the summed
+       elapsed accumulators hold at zero; level flags 8/9 force states 1 and
+       0/3 through 0x00504670. */
+    unsigned int wait_state_2399;
+    /* 0x239d: milliseconds toward the hourly item recharge pass 0x00502010
+       runs over every character's carried stacks and the party pool. */
+    unsigned int item_recharge_ms_239d;
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
@@ -108,27 +118,39 @@ struct W8GlobalStatus {
     /* 0x2432: ShowNotice sets it under quote_audit_2431 when a notice wraps
        past seven lines; the audit reports those as "Long Quote". */
     unsigned char long_quote_2432;
-    unsigned char unknown_2433;
+    /* 0x2433: set by the camping fatigue tick the first time a character rolls
+       fatigue damage; it also posts the "party is tired" notice once and makes
+       the stamina driver skip characters lacking the rest item. */
+    unsigned char party_fatigued_2433;
     /* 0x2434: index of the party member the main-game selection flow is on.
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */
     unsigned char selected_party_member_2434;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
     unsigned char value_2435;
-    unsigned char unknown_2436[4];
+    /* 0x2436: milliseconds toward the next 2500ms camping tick; out of combat
+       each whole quantum drives one 0x005044D0 fatigue roll, in combat the
+       accumulator instead drains by 2500 per elapsed turn. */
+    unsigned int camp_tick_ms_2436;
     /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
     unsigned char rpc_races_243a[5];
     unsigned char unknown_243f[5];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
-    unsigned char unknown_2445[2];
+    unsigned char unknown_2445;
+    /* 0x2446: the pending kind-0x42 NPC event the 0x0050CA80 pass consumes:
+       a bound, flagged record clears it outright; otherwise the named
+       party slot takes condition 10 and fact 0x2a6 is raised. */
+    unsigned char flag_2446;
     int difficulty;
     unsigned char unknown_244b[8];
     wchar_t monster_name_buffer_2453[22];
     /* 0x247f: party-slot index read as a full dword by GetMonsterGroupName and
        the type-9 world-cursor handler. */
     int alternate_name_slot_247f;
-    unsigned char unknown_2483[4];
+    /* 0x2483: milliseconds toward the next 1400ms stamina tick; each whole
+       quantum drives one 0x00504670 pass over the party. */
+    unsigned int stamina_tick_ms_2483;
     unsigned char flag_2487;
     /* 0x2488: one-shot gate; when set, the next condition-change and
        condition-cleared reaction is swallowed and the flag cleared. */
@@ -141,7 +163,9 @@ struct W8GlobalStatus {
     wchar_t* value_248f;
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[4];
+    /* 0x2498: count of camping fatigue ticks survived; the fatigue roll uses
+       count/6+2 dice sides, so the camp grows harsher the longer it runs. */
+    unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
     unsigned char unknown_24a0[0xc80];

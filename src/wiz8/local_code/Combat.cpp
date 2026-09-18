@@ -198,7 +198,7 @@ void CatchUpCombatActor(W8CombatCharacterRow* row)
    they have to be free of the condition that forbids it and still hold a fifth
    of their stamina, the same fifth a run costs. */
 // FUNCTION: WIZ8 0x004ebc80
-unsigned char CanCharReBreathe(int party_slot)
+bool CanCharReBreathe(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
@@ -564,7 +564,7 @@ void EndCombat004EA310(int mode)
     }
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
         gXStatus.fItemSelectMode == 0) {
-        Function58F6B0(0);
+        SelectTextBox(0);
     }
     free(g_combat_state);
     g_combat_state = 0;
@@ -717,7 +717,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         memcpy(&g_status_685170.buffers.party_rows[party_slot].action_detail_045, data,
                sizeof(g_status_685170.buffers.party_rows[party_slot].action_detail_045));
     }
-    row->unknown_a5[2] = 1;
+    row->unknown_a7[0] = 1;
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     if (character->hp_current != 0 && character->highest_condition < 0xd && action_detail != -1) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {

@@ -3427,11 +3427,17 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             const char* name = NextTriggerRecipient(&recipient);
             if (action_230 == 0x41) {
-                PositionAmbientSoundByName0047A950((int)g_world, name);
+                PositionAmbientSoundByName0047A950(
+                    reinterpret_cast<int>(g_world), // reinterpret-ok: the world pointer travels
+                    name);                          // through the unused integer parameter
             } else if (action_230 == 0x42) {
-                StopAmbientSoundByName0047A9E0((int)g_world, name);
+                StopAmbientSoundByName0047A9E0(
+                    reinterpret_cast<int>(g_world), // reinterpret-ok: the world pointer travels
+                    name);                          // through the unused integer parameter
             } else {
-                ToggleAmbientSoundByName0047AA70((int)g_world, name);
+                ToggleAmbientSoundByName0047AA70(
+                    reinterpret_cast<int>(g_world), // reinterpret-ok: the world pointer travels
+                    name);                          // through the unused integer parameter
             }
             action_succeeded = true;
         }

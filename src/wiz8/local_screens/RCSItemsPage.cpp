@@ -296,7 +296,8 @@ void UseItem005BA4F0(W8ItemInstance* item)
     } else {
         if (IsUsableItemClass00522A00(item) == 0 || IsSpecialItemId004DA0F0(item) != 0) {
             g_flag_00685071 = 1;
-            g_value_00685072 = (int)item;
+            g_value_00685072 = reinterpret_cast<int>(item); /* reinterpret-ok: the
+                item-context global stores the instance pointer in an int slot */
             g_value_00685077 = static_cast<char>(giReviewCharSlot);
             GetOriginOfCharacterItem(giReviewCharSlot, item, &g_flag_00685076, &slot);
         } else {
@@ -872,7 +873,9 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
     if (event->usEvent == 0x100) {
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->item_id != -1 &&
             g_camp_screen_0069c0f4->entry_mode != 3) {
-            g_camp_entry_parameter_0069c0fc = (int)g_value_0069c0f8;
+            g_camp_entry_parameter_0069c0fc =
+                reinterpret_cast<int>(g_value_0069c0f8); /* reinterpret-ok: the entry
+                parameter slot stores the character pointer as an int */
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen_0069c0f4->realm_flags[1] != 0) {
                 RebuildCampItemList005A4A00();
@@ -994,7 +997,9 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
         }
         if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->item_id != -1 &&
             g_camp_screen_0069c0f4->entry_mode != 3) {
-            g_camp_entry_parameter_0069c0fc = (int)g_value_0069c0f8;
+            g_camp_entry_parameter_0069c0fc =
+                reinterpret_cast<int>(g_value_0069c0f8); /* reinterpret-ok: the entry
+                parameter slot stores the character pointer as an int */
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                 g_camp_screen_0069c0f4->realm_flags[1] != 0) {
                 RebuildCampItemList005A4A00();
@@ -1034,7 +1039,9 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
             if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
                 pool_index < (unsigned int)g_status_685170.party_item_count_1791 &&
                 g_camp_screen_0069c0f4->entry_mode != 3) {
-                g_camp_entry_parameter_0069c0fc = (int)g_value_0069c0f8;
+                g_camp_entry_parameter_0069c0fc =
+                reinterpret_cast<int>(g_value_0069c0f8); /* reinterpret-ok: the entry
+                parameter slot stores the character pointer as an int */
                 if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
                     g_camp_screen_0069c0f4->realm_flags[1] != 0) {
                     RebuildCampItemList005A4A00();

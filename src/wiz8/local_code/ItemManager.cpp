@@ -16,6 +16,8 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
@@ -1121,4 +1123,120 @@ W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int unkno
                      0);
     }
     return result;
+}
+
+/* Monster loot drop, driven by the death switch in MonsterManager. Non-NPC
+   records fire their treasure slots (count gate, Random(100) chance, dice for
+   the drop count; type 1 routes the id to GenerateItemsFromTable once per
+   roll) and roll the gold dice. NPC-bound monsters empty their state item
+   list instead: every zero-weight slot drops outright, then a weighted pick
+   rolls item_count_dice_10e items out of what remains; the NPC's gold field
+   pays out directly. One drop is adopted into plsItemList at the death
+   position; two or more are chained onto a container spawned with
+   SpawnItem - 0x23c by default, or value when the caller names one. */
+// FUNCTION: WIZ8 0x004f8cb0
+void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
+{
+    W8GrowableVector<W8WorldItem*> items(5);
+    if (monster_info != 0) {
+        W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+        srVector3T<float> position = monster_info->monster->GetPosition();
+        W8WorldItem* item;
+        int gold = 0;
+        int slot;
+        int roll;
+        int index;
+        unsigned int remaining;
+        int total_weight;
+        unsigned int take;
+        unsigned int taken;
+        int pick;
+        if ((record->flags_0d0 & 1) == 0) {
+            for (slot = 0; slot < 8; ++slot) {
+                W8MonsterTreasureEntry* entry = &record->treasure_1c3.slots[slot];
+                if (entry->count != 0 && Random(100) <= entry->chance) {
+                    int rolls = RollDice(&entry->dice);
+                    for (roll = 0; roll < rolls; ++roll) {
+                        if (entry->type == 0) {
+                            item = SpawnItem(entry->item_id, &position, 3, 0);
+                            if (item != 0) {
+                                items.Add(item);
+                            }
+                        } else if (entry->type == 1) {
+                            GenerateItemsFromTable(&items, entry->item_id, rolls);
+                        }
+                    }
+                }
+            }
+            gold = RollDice(&record->treasure_1c3.gold_dice);
+        } else {
+            W8NpcState* npc = GetNpcStateForMonsterInfo(monster_info, 1);
+            if (npc == 0) {
+                srAssertFail("pNPC", ITEM_MANAGER_CPP, 1459,
+                             FormatString("Monster %S marked as NPC with no NPC data", record));
+            }
+            for (index = 0; index < 40; ++index) {
+                if (npc->item_ids_30[index] != -1 && npc->item_weights_115[index] == 0) {
+                    item = SpawnItem(npc->item_ids_30[index], &position, 3, 0);
+                    if (item != 0) {
+                        items.Add(item);
+                    }
+                    npc->item_ids_30[index] = -1;
+                }
+            }
+            remaining = 0;
+            for (index = 0; index < 40; ++index) {
+                if (npc->item_ids_30[index] != -1) {
+                    ++remaining;
+                }
+            }
+            if (remaining != 0) {
+                total_weight = 0;
+                for (index = 0; index < 40; ++index) {
+                    if (npc->item_ids_30[index] != -1) {
+                        total_weight += static_cast<signed char>(npc->item_weights_115[index]);
+                    }
+                }
+                take = RollDice(&npc->item_count_dice_10e);
+                if (remaining < take) {
+                    take = remaining;
+                }
+                taken = 0;
+                while (taken < take) {
+                    pick = Random(40);
+                    if (npc->item_ids_30[pick] != -1 &&
+                        static_cast<short>(Random(total_weight)) <=
+                            static_cast<short>(
+                                static_cast<signed char>(npc->item_weights_115[pick]))) {
+                        item = SpawnItem(npc->item_ids_30[pick], &position, 3, 0);
+                        if (item != 0) {
+                            items.Add(item);
+                        }
+                        ++taken;
+                        npc->item_ids_30[pick] = -1;
+                    }
+                }
+            }
+            gold = npc->gold_80;
+        }
+        if (gold != 0) {
+            AddPartyGold(gold, 1);
+        }
+        if (items.GetCount() <= 1) {
+            item = *items.GetAt(0);
+            PLAdoptAppend(gXStatus.plsItemList, item);
+            item->position = position;
+        } else {
+            W8WorldItem* container;
+            int item_index;
+            if (value == -1) {
+                container = SpawnItem(0x23c, &position, 2, 1);
+            } else {
+                container = SpawnItem(value, &position, 3, 1);
+            }
+            for (item_index = 0; item_index < items.GetCount(); ++item_index) {
+                ItemInfoAddToGroup(container, *items.GetAt(item_index));
+            }
+        }
+    }
 }
