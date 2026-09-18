@@ -2,8 +2,6 @@
 
 extern unsigned char g_flag_6109f0;
 
-void Function4DFAE0(int value); /* 0x004DFAE0 */
-void RemoveAletheides(void);    /* 0x004E0430 */
 
 #include "wiz8/vector.h"
 

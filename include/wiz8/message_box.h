@@ -40,7 +40,7 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_GROUP_ACTION = 7,         /* argument: NPC party slot to dismiss */
     W8_NPC_MSG_JOURNAL_QUOTE = 8,        /* quote bubble + journal-entry.wav */
     W8_NPC_MSG_PORTRAIT_STRING = 9,      /* argument: gppStringList index */
-    W8_NPC_MSG_CALL_4DFAE0 = 0x0a,       /* Function4DFAE0(text) */
+    W8_NPC_MSG_CALL_4DFAE0 = 0x0a,       /* SpawnAlfieChaos004DFAE0(text) */
     W8_NPC_MSG_CALL_4DFB40 = 0x0b,       /* SpawnAlfieLife004DFB40 */
     W8_NPC_MSG_CALL_4DFB80 = 0x0c,       /* SpawnAlfieKnow004DFB80 */
     W8_NPC_MSG_FINISH_ACTION = 0x0d,     /* text null: clear targets, else scripted action */

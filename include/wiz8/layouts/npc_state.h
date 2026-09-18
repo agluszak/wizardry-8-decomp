@@ -48,7 +48,7 @@ struct W8NpcState {
     unsigned char unknown_1c;
     /* 0x1d: raised by CreateNpcRuntimeNode; the greeting quote (0) and the
        first-interaction paths lower it once the NPC has been greeted. */
-    unsigned char greeting_pending;
+    bool greeting_pending;
     unsigned char unknown_1e[4];
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
