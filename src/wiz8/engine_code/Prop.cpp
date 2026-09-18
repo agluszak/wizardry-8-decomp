@@ -967,7 +967,7 @@ void W8Prop::Method44C670()
             PathAISetValue004A9F60(path,
                                    (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
             PathAIApply004AA520(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24,
-                                static_cast<stModelInstance*>(mesh));
+                                mesh);
         }
         return;
     }
@@ -988,7 +988,7 @@ void W8Prop::Method44C670()
 
             PathAISetValue004A9F60(path,
                                    (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
-            PathAIApply004AA520(path, static_cast<stModelInstance*>(mesh));
+            PathAIApply004AA520(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
             position_03c = location;

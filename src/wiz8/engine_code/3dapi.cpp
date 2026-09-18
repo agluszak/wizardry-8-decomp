@@ -718,9 +718,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             if (camera_path != 0 && camera_path->active_14 != 0) {
                 path = camera_path->path_18;
                 PathAITick004AA1F0(path, 1);
-                PathAIApply004AA520(
-                    path, reinterpret_cast< // reinterpret-ok: path AI entry takes stModelInstance*
-                              stModelInstance*>(world->camera));
+                PathAIApply004AA520(path, world->camera);
                 {
                     srVector3T<double> location = world->camera->getLocation();
                     srVector3T<float> party_point;

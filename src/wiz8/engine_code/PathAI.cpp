@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
-#include "wiz8/engine_code/stModelInstance.h"
+#include "surrender/srNode.h"
 #include "surrender/srHeap.h"
 
 #include <math.h>
@@ -677,7 +677,7 @@ double g_double_005ec1e8 = 2.0;
 double g_double_005ec1f0 = 1.1920928955078125e-07;
 
 // FUNCTION: WIZ8 0x004aa520
-void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
+void PathAIApply004AA520(W8PathAI* path, srNode* target)
 {
     int index;
     float blend;
@@ -712,15 +712,15 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
     double yw;
     double zw;
 
-    if (instance == 0) {
+    if (target == 0) {
         return;
     }
     PathAIPosition004AA370(path, &position);
 
-    node = instance->firstChild();
+    node = target->firstChild();
     if (node == 0) {
         location.SetFromFloat(&position);
-        instance->setLocation(location);
+        target->setLocation(location);
     } else {
         do {
             location.SetFromFloat(&position);
@@ -795,9 +795,9 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
             }
         }
 
-        node = instance->firstChild();
+        node = target->firstChild();
         if (node == 0) {
-            instance->setRotation(rotation);
+            target->setRotation(rotation);
         } else {
             do {
                 node->setRotation(rotation);
@@ -807,10 +807,10 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
 
         if (path->scales_18 != 0) {
             scale_vector = &path->scales_18[index];
-            node = instance->firstChild();
+            node = target->firstChild();
             if (node == 0) {
                 location.SetFromFloat(scale_vector);
-                instance->setScale(location);
+                target->setScale(location);
             } else {
                 do {
                     location.SetFromFloat(scale_vector);
@@ -821,7 +821,7 @@ void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance)
         }
 
         if (path->unknown_3b != 0) {
-            instance->rotateX(1.5707963);
+            target->rotateX(1.5707963);
         }
     }
 }

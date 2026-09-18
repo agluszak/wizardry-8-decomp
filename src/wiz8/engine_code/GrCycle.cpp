@@ -695,8 +695,8 @@ void W8GrCycle::UpdateLights004A7150()
                 } else if ((representation->flag_064 == 0 && cycle_definition->value_3c == 0) ||
                            light->parentNode() == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
-                    light->m_positional_248 = 0;
-                    light->m_positional_250 = 1;
+                    light->m_path_index_248 = 0;
+                    light->m_path_direction_250 = 1;
                     light->Reset0049D070();
                 }
             }

@@ -104,6 +104,7 @@ extern float g_float_005ec38c;
 extern float g_float_005ec384;
 extern float g_float_005ec370;
 extern float g_float_005ec390;
+extern float g_float_005ec394;
 extern float g_float_005ec3b8;
 extern float g_float_005ec3bc;
 extern float g_float_005ec3c0;
@@ -149,6 +150,9 @@ extern float g_navigator_mode3_scale_005ebca4;
 extern float g_float_00603ab8;
 extern float g_float_00603abc;
 extern const float g_camera_snap_epsilon_005ebc2c;
+/* 0x005ED2E0: 0.2, the perpendicular-alignment threshold the obstacle slide
+   uses to pick a side. */
+extern const double g_double_005ed2e0;
 extern const float g_float_005ebca0;
 extern float g_movement_speed_step_005ed490;
 

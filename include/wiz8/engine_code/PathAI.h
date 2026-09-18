@@ -4,7 +4,7 @@
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 
-class stModelInstance;
+class srNode;
 class W8AnimRepBase005EC1D8;
 
 /* Engine Code\PathAI.cpp.  The assertion-backed `pPathAI` identity and the
@@ -47,10 +47,11 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction);
 void PathAIResetRecord004A9720(W8PathAI* path);
 unsigned char PathAIRecordFlag004A9740(const W8PathAI* path);
 void PathAIApplyToRep004A91F0(W8PathAI* path, W8AnimRepBase005EC1D8* representation);
-/* Places one model instance through a path. AnimObj.cpp and GrCycle.cpp are
-   both callers, so the declaration lives with the path's owner. */
-void PathAIApply004AA520(W8PathAI* path, stModelInstance* instance); /* 0x004AA520 */
-float PathAIGetScale004AAA50(W8PathAI* path);                        /* 0x004AAA50 */
+/* Places one srNode (model instance, light, camera, …) through a path. The
+   body only calls srNode child/location/rotation/scale APIs; retail callers
+   pass those node kinds interchangeably. */
+void PathAIApply004AA520(W8PathAI* path, srNode* node); /* 0x004AA520 */
+float PathAIGetScale004AAA50(W8PathAI* path);           /* 0x004AAA50 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
 void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);

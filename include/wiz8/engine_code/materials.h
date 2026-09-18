@@ -81,7 +81,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
 stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
                                            const W8MaterialRecord004B8A70* source,
                                            unsigned char required);
-unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model);
+bool MeshHasAnimatedTexture004B9AA0(srMeshModel* model);
 void SetModelAnimatedTextureFrame004B9B00(srModelInstance* instance, int frame);
 stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance);
 

@@ -3,10 +3,16 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/OctPreTree.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/geometry.h"
+#include "surrender/srModelInstance.h"
+#include "surrender/srMeshModel.h"
 
 #include <windows.h>
 #include <new>
+#include <stdlib.h>
 
 /* The previous 00497af0-004adb20 range spanned eight units that carry their
    own assertion-backed intervals -
@@ -18,9 +24,13 @@
    string in the image names this unit; the class ownership is nevertheless
    established by its definitions. */
 
-
 // GLOBAL: WIZ8 0x0060bfdc
 unsigned int g_light_update_flags_0060bfdc = 1;
+
+/* rand() normalization to a 0..1 flicker probability; only Update0049C960
+   uses it. */
+// GLOBAL: WIZ8 0x005ec1e4
+const float g_float_005ec1e4 = 3.0518509447574615e-05f;
 
 /* The parent-taking constructor never forwards the parent to srLight: the base
    runs with its own defaults and the node is linked afterwards, which is why
@@ -37,14 +47,14 @@ stLight::stLight(srNode* parent)
     }
     attenuation_model_150 = srLight::ATTENUATION_3DSTUDIO_MAX;
     m_owned_244 = 0;
-    m_positional_239 = 1;
-    m_positional_248 = 0;
-    m_positional_250 = 1;
+    m_direction_239 = 1;
+    m_path_index_248 = 0;
+    m_path_direction_250 = 1;
     m_positional_228.SetZero();
-    m_positional_240 = 0;
+    m_level_240 = 0;
     m_definition_234 = 0;
     m_positional_238 = 0;
-    m_positional_23c = m_positional_24c = GetTickCount() * 0.0025f;
+    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
 }
 
 /* Exactly two owned members. The definition is released through its own
@@ -78,16 +88,16 @@ stLight& stLight::operator=(const stLight& other)
         m_definition_234 = 0;
     }
     m_positional_238 = other.m_positional_238;
-    m_positional_239 = other.m_positional_239;
+    m_direction_239 = other.m_direction_239;
     if (other.m_owned_244 != 0) {
         m_owned_244 = ClonePathAI004A98C0(other.m_owned_244);
     } else {
         m_owned_244 = 0;
     }
-    m_positional_248 = other.m_positional_248;
-    m_positional_250 = other.m_positional_250;
-    m_positional_240 = other.m_positional_240;
-    m_positional_23c = m_positional_24c = GetTickCount() * 0.0025f;
+    m_path_index_248 = other.m_path_index_248;
+    m_path_direction_250 = other.m_path_direction_250;
+    m_level_240 = other.m_level_240;
+    m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
     m_prop_254 = other.m_prop_254;
     m_positional_23a = other.m_positional_23a;
     return *this;
@@ -158,6 +168,232 @@ void stLight::SetDefinitionTime0049C940(float time)
     }
 }
 
+/* Advance the light's definition-driven state by one update. A keyframed
+   (type 2) definition walks value_48 through the time table and lerps
+   intensity and diffuse color between the surrounding keys; a flags-driven
+   definition either oscillates intensity between intensity_28 and
+   intensity_to_2c (optionally lerping color toward color_to_*), ramps it
+   one way, or flickers the node disable flag and its prop's animated
+   texture at a per-update probability. Any owned path advances once the
+   elapsed seconds times the path rate exceed one whole step, wrapping or
+   ping-ponging at the ends. */
+// FUNCTION: WIZ8 0x0049C960
+void stLight::Update0049C960()
+{
+    if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
+        stLightDefinition005ECDA0* definition =
+            static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+        float time = definition->time_4c;
+        int count = definition->values_18.count;
+        int last = count - 1;
+        int* slot = definition->values_18.GetAt(last);
+        if (time <= *slot) {
+            definition->value_48 = 0;
+            if (definition->values_18.count != 1 && -1 < definition->values_18.count - 1) {
+                do {
+                    int next = definition->value_48 + 1;
+                    slot = definition->values_18.GetAt(next);
+                    if (*slot <= time) {
+                        definition->value_48 = next;
+                    } else {
+                        break;
+                    }
+                } while (definition->value_48 < count - 1);
+            }
+        } else {
+            slot = definition->values_18.GetAt(last);
+            time = *slot;
+            definition->value_48 = count - 2;
+        }
+        if (*definition->values_18.data <= time) {
+            int index = definition->value_48;
+            if (count - 2 <= index) {
+                return;
+            }
+            int* from = definition->values_18.GetAt(index);
+            int* to = definition->values_18.GetAt(index + 1);
+            float span = *to - *from;
+            float blend = g_float_005ebb38;
+            if (span != g_float_005ebb34) {
+                blend = (time - *from) / span;
+            }
+            float* key_from = definition->values_28.GetAt(index);
+            float* key_to = definition->values_28.GetAt(index + 1);
+            float inverse = g_float_005ebb38 - blend;
+            intensity_1d0 = inverse * *key_from + blend * *key_to;
+            index = definition->value_48;
+            srVector3T<float>* color_to = definition->values_38.GetAt(index + 1);
+            srVector3T<float>* color_from = definition->values_38.GetAt(index);
+            float red = color_from->x * inverse + color_to->x * blend;
+            float green = color_from->y * inverse + color_to->y * blend;
+            float blue = color_from->z * inverse + color_to->z * blend;
+            if (g_float_005ebb38 < red) {
+                red = 1.0f;
+            }
+            if (g_float_005ebb38 < green) {
+                green = 1.0f;
+            }
+            if (g_float_005ebb38 < blue) {
+                blue = 1.0f;
+            }
+            diffuse_1a4.x = red;
+            diffuse_1a4.y = green;
+            diffuse_1a4.z = blue;
+            return;
+        }
+        intensity_1d0 = g_float_005ebb34;
+        return;
+    }
+
+    unsigned long ticks = GetTickCount();
+    W8PathAI* path = m_owned_244;
+    float seconds = ticks * g_float_005ec128;
+    stLightDefinition005ECDBC* definition =
+        static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+    if (definition->period_30 < g_float_005ebc90) {
+        definition->period_30 = 1.0f;
+    }
+    unsigned int mode = definition->flags_08 & 3;
+    if (mode == 0) {
+        float step = (seconds - m_level_time_23c) * definition->rate_34;
+        if (g_float_005ebb34 < step) {
+            float level = m_level_240;
+            step = (g_float_005ebb38 / definition->period_30) * step;
+            if (m_direction_239 == '\0') {
+                level = level - step;
+                if (level < g_float_005ebb34) {
+                    m_direction_239 = 1;
+                    level = step + step + level;
+                }
+            } else {
+                level = step + level;
+                if (g_float_005ebb38 < level) {
+                    m_direction_239 = 0;
+                    level = level - (step + step);
+                }
+            }
+            float blend = g_float_005ebb34;
+            if (g_float_005ebb34 < level) {
+                blend = level;
+                if (g_float_005ebb38 <= level) {
+                    blend = g_float_005ebb38;
+                }
+            }
+            intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * blend +
+                            definition->intensity_28;
+            m_level_240 = blend;
+            if ((definition->flags_08 & 8) == 0) {
+                m_level_time_23c = seconds;
+            } else {
+                float inverse = g_float_005ebb38 - blend;
+                float red = blend * definition->color_to_1c + inverse * definition->color_10.x;
+                float green = blend * definition->color_to_20 + inverse * definition->color_10.y;
+                float blue = blend * definition->color_to_24 + inverse * definition->color_10.z;
+                if (g_float_005ebb38 < red) {
+                    red = 1.0f;
+                }
+                if (g_float_005ebb38 < green) {
+                    green = 1.0f;
+                }
+                if (g_float_005ebb38 < blue) {
+                    blue = 1.0f;
+                }
+                diffuse_1a4.x = red;
+                diffuse_1a4.y = green;
+                diffuse_1a4.z = blue;
+                m_level_time_23c = seconds;
+            }
+        }
+    } else if (mode == 3) {
+        float step = (seconds - m_level_time_23c) * definition->rate_34;
+        if (g_float_005ebb34 < step) {
+            float blend = (g_float_005ebb38 / definition->period_30) * step + m_level_240;
+            if (blend <= g_float_005ebb38) {
+                float level = blend;
+                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * level +
+                                definition->intensity_28;
+                m_level_240 = level;
+                if ((definition->flags_08 & 8) != 0) {
+                    float inverse = g_float_005ebb38 - blend;
+                    float red = blend * definition->color_to_1c + inverse * definition->color_10.x;
+                    float green =
+                        blend * definition->color_to_20 + inverse * definition->color_10.y;
+                    float blue = blend * definition->color_to_24 + inverse * definition->color_10.z;
+                    if (g_float_005ebb38 < red) {
+                        red = 1.0f;
+                    }
+                    if (g_float_005ebb38 < green) {
+                        green = 1.0f;
+                    }
+                    if (g_float_005ebb38 < blue) {
+                        blue = 1.0f;
+                    }
+                    diffuse_1a4.x = red;
+                    diffuse_1a4.y = green;
+                    diffuse_1a4.z = blue;
+                }
+                m_level_time_23c = seconds;
+            }
+        }
+    } else if ((definition->flags_08 & 1) == 1) {
+        W8Prop* prop = m_prop_254;
+        srModelInstance* instance = 0;
+        if (prop != 0) {
+            instance = prop->ToggleRepAnimationDefault();
+            srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+            if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
+                m_prop_254 = 0;
+                instance = 0;
+            }
+        }
+        if ((definition->flags_08 & 8) != 0) {
+            diffuse_1a4 = definition->color_10;
+        }
+        if (testFlag(FLAG_DISABLE) == 0) {
+            setFlag(FLAG_DISABLE);
+            if (instance != 0) {
+                SetModelAnimatedTextureFrame004B9B00(instance, 1);
+            }
+        } else {
+            int roll = rand();
+            if (roll * g_float_005ec1e4 < definition->flicker_chance_0c) {
+                if (testFlag(FLAG_DISABLE) == 0) {
+                    setFlag(FLAG_DISABLE);
+                    if (instance != 0) {
+                        SetModelAnimatedTextureFrame004B9B00(instance, 1);
+                    }
+                } else {
+                    clearFlag(FLAG_DISABLE);
+                    if (instance != 0) {
+                        SetModelAnimatedTextureFrame004B9B00(instance, 0);
+                    }
+                }
+            }
+        }
+    }
+    if ((path == 0) || (PathAIEntryCount004A9F20(path) == 0) ||
+        ((seconds - m_path_time_24c) * definition->path_value_38 < g_float_005ebb38)) {
+        return;
+    }
+    int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_value_38);
+    index = index * m_path_direction_250 + m_path_index_248;
+    if (index < static_cast<int>(PathAIEntryCount004A9F20(path))) {
+        if (index < 0) {
+            m_path_direction_250 = 1;
+            index = 0;
+        }
+    } else if ((definition->flags_08 & 0x20) != 0) {
+        m_path_direction_250 = -1;
+        index = static_cast<int>(PathAIEntryCount004A9F20(path)) - 2;
+    } else {
+        index = 0;
+    }
+    PathAISetValue004A9F60(path, static_cast<float>(index));
+    PathAIApply004AA520(path, this);
+    m_path_index_248 = index;
+    m_path_time_24c = seconds;
+}
+
 /* Restart the light-definition driven state when a Monster switches cycles.
    The definition at +0x234 is owned by stLight; type two resets its own pair
    of counters, while the other forms restore intensity and an optional
@@ -171,8 +407,8 @@ void stLight::Reset0049D070()
                 static_cast<stLightDefinition005ECDA0*>(m_definition_234);
             definition->time_4c = 0.0f;
             definition->value_48 = 0;
-            m_positional_248 = 0;
-            m_positional_250 = 1;
+            m_path_index_248 = 0;
+            m_path_direction_250 = 1;
         } else {
             stLightDefinition005ECDBC* definition =
                 static_cast<stLightDefinition005ECDBC*>(m_definition_234);
@@ -183,9 +419,9 @@ void stLight::Reset0049D070()
         }
     }
 
-    m_positional_240 = 0;
-    m_positional_24c = GetTickCount() * 0.0025f;
-    m_positional_23c = m_positional_24c;
+    m_level_240 = 0;
+    m_path_time_24c = GetTickCount() * 0.0025f;
+    m_level_time_23c = m_path_time_24c;
 }
 
 // TEMPLATE: WIZ8 0x0049DB10

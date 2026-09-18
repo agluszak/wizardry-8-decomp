@@ -2577,7 +2577,7 @@ stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
 /* getPolyTexture selects the layer and table up front, then returns one smart
    pointer per polygon. Report whether any selected texture is animated. */
 // FUNCTION: WIZ8 0x004b9aa0
-unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
+bool MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
 {
     if (model != 0) {
         srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);
@@ -2589,12 +2589,12 @@ unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
                 srTextureIFace* texture = textures[polygon].get();
 
                 if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
-                    return 1;
+                    return true;
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 /* The model instance's srModel::Client base supplies its mesh model. The first
