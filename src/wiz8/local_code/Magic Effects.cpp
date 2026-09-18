@@ -9,6 +9,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
@@ -222,12 +223,7 @@ void ResetCombatEffects(void)
             InvalidateMainGameEffectHud();
             RequestRedraw(0x800100);
         }
-        for (index = 0;
-             index <
-             ILLength(reinterpret_cast<W8IList*>(
-                 gXStatus
-                     .plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
-             ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fActive != 0 && monster_info->fInCombat != 0) {
                 slot = &monster_info->pCombat->effect_slots_3e[i];
@@ -255,12 +251,7 @@ void ResetCombatEffects(void)
             InvalidateMainGameEffectHud();
             RequestRedraw(0x800100);
         }
-        for (index = 0;
-             index <
-             ILLength(reinterpret_cast<W8IList*>(
-                 gXStatus
-                     .plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
-             ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fActive != 0 && monster_info->fInCombat != 0) {
                 slot = &monster_info->pCombat->effect_slots_d7[i];
@@ -553,7 +544,7 @@ void RecallCasterToSavedLocation(W8SpellEffectEntry* pQueue)
         srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 2685, 0);
     }
     caster = &g_status_685170.buffers.characters[pQueue->Source.iChar];
-    if (caster->has_saved_location != 0) {
+    if (caster->has_saved_location) {
         if (caster->saved_level == g_status_685170.current_level) {
             RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &caster->saved_location);
             point = caster->saved_location.position;
@@ -1574,8 +1565,6 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
     int character_index;
     int index;
     const wchar_t* notice;
-    const wchar_t* format;
-    const wchar_t* first;
 
     verbose = g_settings_6850c8.verbose_combat_messages;
     affected = 0;
@@ -1677,22 +1666,19 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
         AppendToLastTextLine(FormatWideString(L"%ld %s", affected, notice, -1), -1);
         SetTextBoxMode(1, -1);
     } else {
+        notice = gppStringList[g_condition_notices_0061E570[condition * 4 + 1]];
         if (target.iType == W8_TARGET_KIND_CHARACTER) {
-            notice = gppStringList[g_condition_notices_0061E570[condition * 4 + 1]];
-            format = L"%s %s";
-            first = g_status_685170.buffers.characters[character_index].name;
+            AppendToLastTextLine(
+                FormatWideString(L"%s %s", g_status_685170.buffers.characters[character_index].name,
+                                 notice, -1),
+                -1);
         } else if (target.iType == W8_TARGET_KIND_MONSTER) {
             monster_info = MonsterInfoFromID(0x486, MAGIC_EFFECTS_CPP, target.iMonsterID, 1);
-            notice = gppStringList[g_condition_notices_0061E570[condition * 4 + 1]];
-            format = L"%s %s";
-            first = GetMonsterName(monster_info, 0, 0);
+            AppendToLastTextLine(
+                FormatWideString(L"%s %s", GetMonsterName(monster_info, 0, 0), notice, -1), -1);
         } else {
-            notice = gppStringList[g_condition_notices_0061E570[condition * 4 + 1]];
-            format = L"%ld %s";
-            // reinterpret-ok: the "%ld" arm reuses the variadic slot for the count.
-            first = reinterpret_cast<const wchar_t*>(affected);
+            AppendToLastTextLine(FormatWideString(L"%ld %s", affected, notice, -1), -1);
         }
-        AppendToLastTextLine(FormatWideString(format, first, notice, -1), -1);
         SetTextBoxMode(1, -1);
     }
     effect->reported_124 = 1;
@@ -1727,8 +1713,6 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
         slot = &g_status_685170.effect_slots_17af[slot_index];
         slot->active = 1;
         slot->effect_id = effect->kind;
-        /* reinterpret-ok: the party slot's amount byte and its three pad
-           bytes take the whole dword argument in one store. */
         slot->amount = effect->argument;
         slot->duration_0d = duration;
         RebuildPartyEffectBlock0050E700();
@@ -1870,8 +1854,6 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             slot = &g_combat_state->effect_slots[slot_index];
             slot->active = 1;
             slot->effect_id = spell_id;
-            /* reinterpret-ok: the slot's amount byte and its three pad
-               bytes take the whole dword argument in one store. */
             slot->amount = effect->argument;
             slot->duration_0d = duration;
             RebuildPartyEffectBlock0050E700();
@@ -1968,8 +1950,6 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         slot = &g_combat_state->effect_slots_85a[slot_index];
         slot->active = 1;
         slot->effect_id = spell_id;
-        /* reinterpret-ok: the slot's amount byte and its three pad
-           bytes take the whole dword argument in one store. */
         slot->amount = effect->argument;
         slot->duration_0d = duration;
         RebuildPartyEffectBlock0050E700();
@@ -2255,8 +2235,7 @@ void DamageTargetsAndReport(W8SpellEffectEntry* effect)
                 AppendToLastTextLine(effect->reported_124 == 0 ? L" -- " : L", ", -1);
                 SetTextBoxMode(1, -1);
             }
-            if (effect->monster_ids_0e0.GetCount() + effect->target_indices_0f0.GetCount() ==
-                1) {
+            if (effect->monster_ids_0e0.GetCount() + effect->target_indices_0f0.GetCount() == 1) {
                 AppendToLastTextLine(FormatWideString(gppStringList[0x1a6], total, -1), -1);
             } else {
                 AppendToLastTextLine(FormatWideString(gppStringList[0x1a7], hits, total / hits, -1),
@@ -2617,8 +2596,6 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                     } else {
                         slot->active = 0;
                         slot->effect_id = 0;
-                        /* reinterpret-ok: the slot's amount byte and its three
-                           pad bytes clear as one dword. */
                         slot->amount = 0;
                         slot->duration_0d = 0;
                         RebuildPartyEffectBlock0050E700();
@@ -2645,8 +2622,6 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                             }
                             slot->active = 0;
                             slot->effect_id = 0;
-                            /* reinterpret-ok: the slot's amount byte and its three
-                               pad bytes clear as one dword. */
                             slot->amount = 0;
                             slot->duration_0d = 0;
                             RebuildMonsterDerivedStats(monster_info->location_id);

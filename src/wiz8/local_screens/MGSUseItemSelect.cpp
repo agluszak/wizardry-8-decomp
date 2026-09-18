@@ -17,9 +17,9 @@ int g_selected_use_item_line_0069b95c;
 // GLOBAL: WIZ8 0x0069B960
 W8TextControl* g_use_item_select_controls[9];
 // GLOBAL: WIZ8 0x0069B9A0
-int g_value_69b9a0;
+W8ItemInstance* g_value_69b9a0;
 // GLOBAL: WIZ8 0x0069B9A4
-int g_value_69b9a4;
+W8ItemInstance* g_value_69b9a4;
 
 // FUNCTION: WIZ8 0x0059CF30
 void SetValue69B988(int value)
@@ -119,9 +119,9 @@ unsigned char UseItemSelectControlRegionEvent(const InputAtom* event, W8Region* 
 }
 
 // FUNCTION: WIZ8 0x0059E0D0
-int GetSelectedOrFallbackValue0059E0D0(void)
+W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void)
 {
-    int value = g_value_69b9a4;
+    W8ItemInstance* value = g_value_69b9a4;
     if (value == 0) {
         value = g_value_69b9a0;
     }
@@ -135,7 +135,7 @@ void SelectCurrentUseItemLine0059E0E0(void)
 }
 
 // FUNCTION: WIZ8 0x0059E1E0
-void SetValue69B9A4(int value)
+void SetValue69B9A4(W8ItemInstance* value)
 {
     g_value_69b9a4 = value;
 }

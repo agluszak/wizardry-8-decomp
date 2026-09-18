@@ -58,8 +58,8 @@ struct TEXTINPUTNODE {
     unsigned char _padding0f;
     MOUSE_REGION region;
     INPUT_CALLBACK InputCallback;
-    unsigned char fUseInactiveTextFieldColor; // bool-byte-ok: Wizardry extension at +0x60
-    unsigned char fBlockMouseCallbacks;       // bool-byte-ok: Wizardry extension at +0x61
+    bool fUseInactiveTextFieldColor; /* Wizardry extension at +0x60 */
+    bool fBlockMouseCallbacks;       /* Wizardry extension at +0x61 */
     unsigned char _padding62[2];
     TEXTINPUTNODE* next;
     TEXTINPUTNODE* prev;
@@ -889,7 +889,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
 
     int field_index = MSYS_GetRegionUserData(region, 0);
     for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-        if (field->ubID == field_index && field->fBlockMouseCallbacks != 0)
+        if (field->ubID == field_index && field->fBlockMouseCallbacks)
             return;
     }
 
@@ -971,7 +971,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         return;
 
     for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-        if (field->ubID == field_index && field->fBlockMouseCallbacks != 0)
+        if (field->ubID == field_index && field->fBlockMouseCallbacks)
             return;
     }
 
@@ -1108,7 +1108,7 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
         colour = style->usDisabledTextFieldColor;
     else
         colour = style->usTextFieldColor;
-    if (field->fUseInactiveTextFieldColor != 0 && field != gpActive)
+    if (field->fUseInactiveTextFieldColor && field != gpActive)
         colour = style->usInactiveTextFieldColor;
 
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, colour);

@@ -786,8 +786,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                 srAssertFail("gXStatus.fItemSelectMode",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x2e0, 0);
             }
-            g_shared_action_detail_006840ab.item_use.item = reinterpret_cast<W8ItemInstance*>(
-                GetSelectedOrFallbackValue0059E0D0()); // reinterpret-ok: the selected use-item value arrives as an int
+            g_shared_action_detail_006840ab.item_use.item = GetSelectedOrFallbackValue0059E0D0();
             kind = 8;
             value_a = -1;
             target = &g_shared_target_0068408b;

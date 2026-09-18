@@ -126,7 +126,7 @@ unsigned char CanUseItemSpell004FAC40(int party_slot, int spell_id, unsigned int
 unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, W8CombatSlot* aim,
                                           unsigned int power);
 void TrackItemSpellSource00501D20(W8Character* character, int spell_id);
-char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
+bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences005019A0(W8Missile* missile);

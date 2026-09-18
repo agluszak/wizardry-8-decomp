@@ -54,6 +54,7 @@
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/NpcDialog.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -4463,9 +4464,7 @@ void RedrawCombatMonsterList(void)
     if (gXStatus.active_monster_count != 0) {
         SetFont(g_font_683660);
         group_list_index = 0;
-        list_length = ILLength(reinterpret_cast<W8IList*>(
-            gXStatus
-                .plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+        list_length = PLLength(gXStatus.plsMonsterGroupList);
         if (list_length != 0) {
             do {
                 monster_group = GetMonsterGroupByListIndex(group_list_index);
@@ -4527,9 +4526,7 @@ void RedrawCombatMonsterList(void)
                     }
                 }
                 group_list_index = group_list_index + 1;
-                list_length = ILLength(reinterpret_cast<W8IList*>(
-                    gXStatus
-                        .plsMonsterGroupList)); // reinterpret-ok: retail lengths the group PList as IList
+                list_length = PLLength(gXStatus.plsMonsterGroupList);
             } while (group_list_index < list_length);
         }
     }

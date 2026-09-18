@@ -116,8 +116,7 @@ void ResetMessageStorage(void)
                 record->entries_18 = PLCreate();
             } else {
                 W8PList* entries = record->entries_18;
-                // reinterpret-ok: retail counts the pointer-list through the IList API
-                unsigned int count = ILLength(reinterpret_cast<W8IList*>(entries));
+                unsigned int count = PLLength(entries);
                 unsigned int entry;
                 for (entry = 0; entry < count; ++entry) {
                     free(PLGet(entries, entry));
@@ -605,8 +604,7 @@ void AppendToLastTextLine(const wchar_t* text, int text_box)
     }
     W8PList* entries = line->entries_18;
     if (entries) {
-        // reinterpret-ok: retail counts the pointer-list through the IList API
-        unsigned int count = ILLength(reinterpret_cast<W8IList*>(entries));
+        unsigned int count = PLLength(entries);
         for (unsigned int entry = 0; entry < count; ++entry) {
             free(PLGet(entries, entry));
         }

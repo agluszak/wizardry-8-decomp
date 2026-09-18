@@ -45,6 +45,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Configuration.h"
@@ -331,7 +332,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
     srVector3T<float> location;
     srVector3T<float> offset;
 
-    for (index = 0; index < ILLength((W8IList*)gXStatus.plsMonsterList); ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);

@@ -2636,12 +2636,7 @@ int PickNextTargetableMonster(int party_slot)
     W8GrowableVector<int> targetable;
     unsigned int index;
 
-    for (index = 0;
-         index < ILLength(reinterpret_cast<W8IList*>(
-                     gXStatus.plsMonsterList)); // reinterpret-ok: retail passes the monster
-                                                // PList to ILLength; the two layouts share
-                                                // the length field.
-         ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (CanTargetMonster(party_slot, monster_info->location_id, 1, 0) != 0) {

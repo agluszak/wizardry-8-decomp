@@ -655,7 +655,7 @@ static void RebuildSpellCastingList(int spell_id)
                     SpellUsableNow(id, 0) != 0 &&
                     SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) !=
                         0 &&
-                    IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, id) == 0) {
+                    !IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, id)) {
                     if (IsSpellBlockedForCharacter(gpSCSV->caster, id) != 0) {
                         if (pass == 1 &&
                             ((gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
@@ -1401,7 +1401,7 @@ static void TryCommitSpellCast(void)
     if (gpSCSV->uiSpellToCast == 0x4b && gpSCSV->dialog_confirmed == 0) {
         if (IsModalOpen() == 0 &&
             g_status_685170.buffers.characters[g_status_685170.selected_character]
-                    .has_saved_location != 0) {
+                .has_saved_location) {
             ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult005A0AE0, 1, 1);
         }
     } else if (gpSCSV->uiSpellToCast == 0x49 && gpSCSV->dialog_confirmed == 0 &&
@@ -1438,7 +1438,7 @@ static void ShowSpellCastingError(int spell_id)
     } else if (SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), spell_id, 0) ==
                0) {
         ShowMainGameNoticeLine(gppStringList[0x7a1], SpellCastingNoticeClosed005A02F0, 1, 0);
-    } else if (IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, spell_id) != 0) {
+    } else if (IsTeleportCastMissingAnchor00501D00(gpSCSV->caster, spell_id)) {
         ShowMainGameNoticeLine(gppStringList[0x7a2], SpellCastingNoticeClosed005A02F0, 1, 0);
     } else if (IsSpellBlockedForCharacter(gpSCSV->caster, spell_id) != 0) {
         ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed005A02F0, 1, 0);

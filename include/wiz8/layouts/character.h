@@ -333,7 +333,7 @@ struct W8Character {
     unsigned char skill_costs_185c[4];
     unsigned char unknown_1860;
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
-    unsigned char has_saved_location; // bool-byte-ok: packed character layout flag byte
+    bool has_saved_location;
 }; /* 0x1862 */
 
 static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
