@@ -43,7 +43,8 @@ struct W8MonsterGroup {
     W8Disposition ubDisposition;
     unsigned char unknown_2b;
     /* 0x2c: selects which of the record's two name sets a member is displayed
-       under. GetMonsterName reads it and nothing recovered yet writes it. */
+       under. Group creation presets it for alternate-name records, and the
+       wandering-group detection pass sets it once the party spots the group. */
     unsigned char flag_2c;
     unsigned char unknown_2d[0x6e];
     /* 0x9b: which member of the group the party currently has picked out,
@@ -147,8 +148,10 @@ W8MonsterGroup* Function511A40(W8MonsterGroup* group, unsigned int monster_id); 
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
-bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
-void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x0050F630 */
+unsigned char
+MonsterGroupAllMembersDying00511850( // bool-byte-ok: retail returns al as unsigned char
+    W8MonsterGroup* monster_group);  /* 0x00511850 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */
 void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */

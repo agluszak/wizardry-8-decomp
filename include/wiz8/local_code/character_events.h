@@ -127,7 +127,7 @@ extern int g_special_event_0068c574;  /* 0x0068C574 */
 extern unsigned int g_value_0068c57c; /* 0x0068C57C */
 extern int g_special_event_0068c530;  /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
-extern int g_special_event_0068c534; /* 0x0068C534 */
+extern int g_special_event_0068c534;  /* 0x0068C534 */
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed8d8;
 extern unsigned int g_event_flag_005ed8e8; /* 0x005ED8E8 */

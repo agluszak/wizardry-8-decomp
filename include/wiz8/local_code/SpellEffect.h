@@ -105,7 +105,11 @@ struct W8SpellEffectEntry {
     union {
         W8SpellEffectDefinition definition;
         struct {
-            unsigned char unknown_0b0[0x20];
+            unsigned char unknown_0b0[0x18];
+            /* 0x0c8: the resist-check power the control-aura scan passes to
+               the 0x00552410 resistance roll. */
+            int power_0c8;
+            unsigned char unknown_0cc[4];
             int argument; /* 0x0d0 */
             /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
             unsigned int value_0d4;

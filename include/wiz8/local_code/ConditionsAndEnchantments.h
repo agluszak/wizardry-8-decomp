@@ -87,7 +87,7 @@ void RecomputeCharacterHighestCondition(int party_slot);
    over both dependence slots and the per-character tables; RecordMonsterKill
    runs it before the faction fallout. Its own TU sits in the gap after
    Conditions & Enchantments.cpp. */
-void Function5248D0(W8MonsterInfo* monster_info);
+void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info);
 
 unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
                                     char value_5, char value_6);

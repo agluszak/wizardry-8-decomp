@@ -2,6 +2,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/Targeting.h"
@@ -43,6 +44,7 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/layouts/npc_state.h"
+#include "wiz8/character_skills.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/3d_code/PList.h"
@@ -158,9 +160,6 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     return monster_info;
 }
 
-/* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
-   clean only three of the four dwords they push across the tail. */
-void Function508D70(unsigned int monster_list_index);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 
@@ -408,7 +407,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
                     gppStringList[g_condition_notices_0061E570[0x49]]);
     }
-    Function5248D0(monster_info);
+    ReleaseMonsterConditionBindings(monster_info);
     if (monster_info->summoned_2da == 1) {
         return;
     }
@@ -743,7 +742,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                 FormatNotice(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
                              GetMonsterName(monster_info, 0, 0));
             }
-            Function5248D0(monster_info);
+            ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->flag_253 = 1;
                 if (monster_info->monster->IsDying() == 0) {
@@ -1632,7 +1631,7 @@ void ProcessMonsterManagerFrame(void)
                     case 0x15:
                         if ((monster->flags_1dc & 0x100) == 0) {
                             monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-                            Function508D70(monster_list_index);
+                            HandleScriptedNpcDeath(monster_list_index);
                             if (monster_info->monster_group_id != 0) {
                                 RemoveMonster(monster_list_index, 0);
                             }
