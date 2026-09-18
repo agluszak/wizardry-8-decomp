@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/dice.h"
+#include "wiz8/local_code/SpellEffect.h"
 
 struct W8CombatSlot;
 struct W8MonsterInfo;
@@ -10,31 +11,6 @@ struct W8SpellEffectEntry;
 struct W8Character;
 struct W8EffectSlot;
 struct W8MonsterInfo;
-
-#pragma pack(push, 1)
-
-/* One spell effect definition, 0x30 bytes. A missile carries its own copy at
-   0x1fc. The radius at 0x00 bounds an area effect (0 for a single target),
-   the dice at 0x04 are rolled for the effect's size, the three values at
-   0x20 through 0x2c combine into its duration, and the percentage at 0x24
-   scales both. */
-struct W8SpellEffectDefinition {
-    float radius;     /* 0x00: an area effect reaches this far; 0 is single-target */
-    W8Dice magnitude; /* 0x04 */
-    /* 0x08: the percentage chance of each condition the effect can inflict,
-       rolled by ApplyEffectConditions. */
-    unsigned char condition_chances[0x10];
-    int power_level;        /* 0x18 */
-    int value_1c;           /* 0x1c */
-    int duration_scale;     /* 0x20 */
-    unsigned int percent;   /* 0x24 */
-    int duration_base;      /* 0x28 */
-    int duration_per_power; /* 0x2c */
-};
-
-#pragma pack(pop)
-
-static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_must_be_0x30");
 
 unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition); /* 0x00551A20 */
 unsigned int RollEffectDuration(W8SpellEffectDefinition* definition);  /* 0x005519C0 */
@@ -78,14 +54,30 @@ void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value);
 void ProcessSpellEffectTargets(W8SpellEffectEntry* effect); /* 0x0054BA00 */
 void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
 
+/* The queued-effect helpers ProcessSpellEffectTargets dispatches to. */
+char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition,
+                               char force);                              /* 0x0054DF00 */
+void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition); /* 0x0054E3F0 */
+void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect);          /* 0x0054E610 */
+void ReportSpellEffectResult(W8SpellEffectEntry* effect);                /* 0x0054E710 */
+void ApplyDamageToTargets(W8SpellEffectEntry* effect);                   /* 0x0054E950 */
+void DrainTargetsLife(W8SpellEffectEntry* effect);                       /* 0x0054EC80 */
+char HealTargets(W8SpellEffectEntry* effect);                            /* 0x0054F190 */
+char RestoreTargetsStamina(W8SpellEffectEntry* effect);                  /* 0x0054F520 */
+void FatigueTargets(W8SpellEffectEntry* effect);                         /* 0x0054F8C0 */
+void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, int chance,
+                                    int argument); /* 0x0054D5C0 */
+/* 0x00553910: the target's own turns left on a condition; condition seven
+   also hands its argument back through `argument`. */
+unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, int condition, int* argument);
+
 /* 0x0060CFFC: eight bytes per effect id; the leading dword names the monster
    visual resource, -1 means the effect has none. */
 extern const int g_effect_visual_table[149][2];
 
-void Function5526F0(W8EffectSlot* slots, const int* args); /* 0x005526F0 */
+void TickCombatEffectSlots(W8EffectSlot* slots, W8CombatSlot* target); /* 0x005526F0 */
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
 void ResetPartyEffectBlock(W8EffectSlot* slot);
-
 
 void ResetCombatEffects(void); /* 0x00552530 */
 void RecalculateCharacterResistances(W8Character* character);

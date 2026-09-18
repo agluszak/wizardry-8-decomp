@@ -345,6 +345,7 @@ void ResumeAllNavigators004531A0(void);
 void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 extern float g_navigator_vertical_phase_step_005ebcc8;
+extern float g_navigator_snap_angle_005ec2f0;
 extern unsigned char g_flag_006081e4;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_linked_radius_scale_005ebc98;

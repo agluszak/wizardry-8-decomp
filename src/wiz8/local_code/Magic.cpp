@@ -635,9 +635,9 @@ void UpdateSpellEffects00500930(void)
                 alive = false;
             }
         }
-        for (int monster_index = 0; monster_index < effect->monster_indices_0f0.GetCount() && alive;
+        for (int monster_index = 0; monster_index < effect->target_indices_0f0.GetCount() && alive;
              ++monster_index) {
-            int entry = *effect->monster_indices_0f0.GetAt(monster_index);
+            int entry = *effect->target_indices_0f0.GetAt(monster_index);
             if (gXStatus.monster_manager_entries[entry].field_0bd != 0) {
                 alive = false;
             }
@@ -676,18 +676,17 @@ void UpdateSpellEffects00500930(void)
             handled = true;
         } else {
             effect->flag_123 = 1;
-            if (MonsterCanAimSpell005474B0(effect->kind) != 0 &&
-                effect->target_source_05c.fBackfire == 0 &&
-                effect->target_source_05c.fReflection == 0) {
-                CollectHostileMonsters00547120(&effect->target_source_05c, &effect->values_0e0);
+            if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
+                effect->Source.fReflection == 0) {
+                CollectHostileMonsters00547120(&effect->Source, &effect->monster_ids_0e0);
             }
             ProcessSpellEffectTargets(effect);
-            if (TargetSourceIsMonster(&effect->source, 0) != 0) {
-                if (effect->source.iMonsterID == -1) {
+            if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {
+                if (effect->OrigSource.iMonsterID == -1) {
                     srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
                 }
-                unsigned int monster_list_index =
-                    MonsterGetIndexByLocationID(0x1505, MAGIC_CPP, effect->source.iMonsterID, 1);
+                unsigned int monster_list_index = MonsterGetIndexByLocationID(
+                    0x1505, MAGIC_CPP, effect->OrigSource.iMonsterID, 1);
                 W8MonsterInfo* monster_info =
                     MonsterGetScriptPartByLocationIndex(monster_list_index);
                 if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
@@ -851,8 +850,8 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
             SetTextBoxMode(1, -1);
         }
         target.point = position;
-        CastSpellFromSource(0x76, &effect->target_source_05c, &target, effect->argument,
-                            effect->value_0d4, 0, 0, 0, 0, 0, 0);
+        CastSpellFromSource(0x76, &effect->Source, &target, effect->argument, effect->value_0d4, 0,
+                            0, 0, 0, 0, 0);
     }
 }
 
@@ -2108,7 +2107,7 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
     failure = GetSpellFailureChance(budget, spell_id, (int)power_level);
 
     CastSpellFromSource(spell_id, &source, &monster_info->Target, power_level, 0, failure, 0,
-                        (int)&result, 0, 0, 0);
+                        &result, 0, 0, 0);
     return SpellCastFatigueCost(spell_id, result);
 }
 

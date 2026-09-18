@@ -58,6 +58,10 @@ void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
+/* 0x00590BD0: re-derive the text-box mode from the live screen state; 0xffff
+   asks for the automatic choice. */
+void RefreshTextBoxMode00590BD0(unsigned short mode);
+void SetKnockKnockTarget(int target); /* 0x0058A9C0 */
 
 /* 0x005905F0: merge text onto a box's last used line, re-posting the combined
    line so wrapping, highlighting and the link counts rebuild; -1 picks the box

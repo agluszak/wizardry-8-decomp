@@ -11,6 +11,8 @@ struct W8MonsterInfo;
 struct W8SpellEffectResult;
 
 W8Character* FindPartyMemberWithLowestResistance4(void);
+unsigned int FindPartySlotWithLowestHitPoints(void);
+unsigned int FindPartySlotWithLowestSpellPoints(void);
 
 void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);
@@ -21,6 +23,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
 void DamageCharacter(int party_slot, int damage, char announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
                                     char announce); /* 0x0052B6D0 */
+void DrainPartySpellPoints(int arg_1, int arg_2);   /* 0x0052B550 */
 unsigned int FatigueArmorPenalty(int fatigue_band);
 unsigned int SpellCastFatigueCost(int spell_id, int result);
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);

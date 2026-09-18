@@ -58,6 +58,11 @@ void EmptyAllCarriedItems(W8Character* character);
 unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
 int GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
+void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength,
+                          unsigned int percent); /* 0x00520B40 */
+/* 0x00520BC0: reveal one character's worn bindings; 0 none bound, 1 some
+   still hidden, 2 all revealed. */
+int RevealCharacterItemBindings(unsigned int party_slot, int strength, unsigned int percent);
 wchar_t* FormatItemDisplayName(const W8ItemInstance* item, unsigned char include_quantity);
 unsigned int GetItemStackValue(const W8ItemInstance* item);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
