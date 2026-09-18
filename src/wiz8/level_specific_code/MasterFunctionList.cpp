@@ -1,4 +1,5 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/level_specific_code/Arnika.h"
 #include "wiz8/level_specific_code/Monastery1.h"
 #include "wiz8/level_specific_code/Monastery2.h"
 #include "wiz8/level_specific_code/Trynnie1.h"
@@ -15,6 +16,7 @@
 #include "wiz8/level_specific_code/MtGigasOuter.h"
 #include "wiz8/level_specific_code/MtGigasTop.h"
 #include "wiz8/level_specific_code/CosmicCircle.h"
+#include "wiz8/level_specific_code/MartensBluff1.h"
 #include "wiz8/level_specific_code/MartensBluff2.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -616,11 +618,6 @@ bool Function4DEEA0(Trigger* trigger);
 bool Function4DEEF0(Trigger* trigger);
 bool Function4DEFB0(Trigger* trigger);
 bool Function4DF120(Trigger* trigger);
-bool Function4DF4A0(Trigger* trigger);
-bool Function4DF540(Trigger* trigger);
-bool Function4DF560(Trigger* trigger);
-bool Function4DF580(Trigger* trigger);
-bool Function4DF5A0(Trigger* trigger);
 bool Function4DF710(Trigger* trigger);
 bool Function4DF7E0(Trigger* trigger);
 bool Function4DFE60(Trigger* trigger);
@@ -644,15 +641,6 @@ bool Function4E10A0(Trigger* trigger);
 bool Function4E1120(Trigger* trigger);
 bool Function4E1180(Trigger* trigger);
 bool Function4E1340(Trigger* trigger);
-bool Function4E1740(Trigger* trigger);
-bool Function4E1930(Trigger* trigger);
-bool Function4E1970(Trigger* trigger);
-bool Function4E1DC0(Trigger* trigger);
-bool Function4E1F80(Trigger* trigger);
-bool Function4E2340(Trigger* trigger);
-bool Function4E2360(Trigger* trigger);
-bool Function4E23C0(Trigger* trigger);
-bool Function4E2420(Trigger* trigger);
 bool Function4E26F0(Trigger* trigger);
 bool Function4E2760(Trigger* trigger);
 
@@ -691,25 +679,25 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x74,
                          "Missing trigger 'ChaosMolori'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E2340;
+        pTrigger->activation_callback_360 = ArnikaChaosMolori004E2340;
         pTrigger = FindTriggerByName("Maddmook");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x78,
                          "Missing trigger 'Maddmook'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E2360;
+        pTrigger->activation_callback_360 = ArnikaMaddmook004E2360;
         pTrigger = FindTriggerByName("CMbox");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x7c,
                          "Missing trigger 'CMbox'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E2420;
+        pTrigger->activation_callback_360 = ArnikaCMbox004E2420;
         pTrigger = FindTriggerByName("AstralDominae");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x80,
                          "Missing trigger 'AstralDominae'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E23C0;
+        pTrigger->activation_callback_360 = ArnikaAstralDominae004E23C0;
         pTrigger = FindTriggerByName("BallSlot");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x84,
@@ -780,31 +768,31 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xbd,
                          "Missing trigger 'RedButton'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1740;
+        pTrigger->activation_callback_360 = ArnikaRedButton004E1740;
         pTrigger = FindTriggerByName("El1-TopButtons");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xc1,
                          "Missing trigger 'El1-TopButtons'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1930;
+        pTrigger->activation_callback_360 = ArnikaEl1TopButtons004E1930;
         pTrigger = FindTriggerByName("El1-BottomButtons");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xc5,
                          "Missing trigger 'El1-BottomButtons'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1970;
+        pTrigger->activation_callback_360 = ArnikaEl1BottomButtons004E1970;
         pTrigger = FindTriggerByName("GreenButton");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xca,
                          "Missing trigger 'GreenButton'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1DC0;
+        pTrigger->activation_callback_360 = ArnikaGreenButton004E1DC0;
         pTrigger = FindTriggerByName("Elevator-02");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xce,
                          "Missing trigger 'Elevator-02'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1F80;
+        pTrigger->activation_callback_360 = ArnikaElevator02Trigger004E1F80;
         pTrigger = FindTriggerByName("LazerScanner");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xd8,
@@ -901,7 +889,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x144,
                          "Missing trigger 'MR109'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF4A0;
+        pTrigger->activation_callback_360 = MartensBluff1Teleporter004DF4A0;
         pTrigger = FindTriggerByName("MR110");
         if (pTrigger != 0) {
 #pragma clang diagnostic push
@@ -939,25 +927,25 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x158,
                          "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF540;
+        pTrigger->activation_callback_360 = MartensBluff1ButtonGigas004DF540;
         pTrigger = FindTriggerByName("ButtonTrang");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x15c,
                          "Missing trigger 'ButtonTrang'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF560;
+        pTrigger->activation_callback_360 = MartensBluff1ButtonTrang004DF560;
         pTrigger = FindTriggerByName("ButtonRift");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x160,
                          "Missing trigger 'ButtonRift'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF580;
+        pTrigger->activation_callback_360 = MartensBluff1ButtonRift004DF580;
         pTrigger = FindTriggerByName("ButtonMaten");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x164,
                          "Missing trigger 'ButtonMaten'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF5A0;
+        pTrigger->activation_callback_360 = MartensBluff1ButtonMaten004DF5A0;
         pTrigger = FindTriggerByName("WireTrigger");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x168,
@@ -969,7 +957,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x16c,
                          "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4DF540;
+        pTrigger->activation_callback_360 = MartensBluff1ButtonGigas004DF540;
         pTrigger = FindTriggerByName("Controller");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x170,
