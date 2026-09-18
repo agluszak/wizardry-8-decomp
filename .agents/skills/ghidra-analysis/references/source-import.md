@@ -6,6 +6,13 @@ inspection or body recovery. Score changes with
 `uv run wiz8 analyze decompiler-quality` (see
 [analysis enrichment](analysis-enrichment.md)).
 
+Enrichment consumers share one class identity map (`class_binding`): the
+authoritative Structure is the one bound to the class's `GhidraClass` (typically
+`/ClassName` from reccmp). Do not treat a parallel `/wiz8/classes` copy set as
+the write target; leftover paths there are migration-only. Upstream reccmp still
+lacks `LF_PROCEDURE`/union/variadic import — curated callback/attribute passes
+remain until that lands.
+
 ## Periodic enrichment checkpoint (preferred)
 
 Use this when the live program should absorb **high-confidence** recovered facts

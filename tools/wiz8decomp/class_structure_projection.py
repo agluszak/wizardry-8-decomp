@@ -154,6 +154,34 @@ def _is_useful(structure: Any | None) -> bool:
     return length > 1 or components > 0
 
 
+def _decide_structure_action(
+    *,
+    bound: Any | None,
+    legacy: Any | None,
+    source: Any | None,
+    asserted_size: int | None,
+    source_size_ok: bool,
+    size_mismatched_source: Any | None,
+) -> str:
+    """Choose projection action by binding identity — never by component-count contests."""
+
+    if bound is not None and _is_useful(bound):
+        if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
+            return "legacy-duplicate"
+        return "agree"
+    if source is not None and _is_useful(source) and source_size_ok:
+        # Source already sits where findExistingClassStruct will find it once
+        # the GhidraClass exists — ensure_ghidra_class is enough.
+        return "agree" if bound is source else "bind-existing"
+    if size_mismatched_source is not None and not _is_useful(bound):
+        if asserted_size is not None and asserted_size > 1:
+            return "create-opaque"
+        return "size-mismatch"
+    if not _is_useful(bound) and asserted_size is not None and asserted_size > 1:
+        return "create-opaque"
+    return "no-layout-evidence"
+
+
 def collect_structure_projection_plan(
     repository: Path,
     program: Any,
@@ -188,7 +216,6 @@ def collect_structure_projection_plan(
         legacy = _wiz8_structure(program, owning_class)
         source = _find_named_structure(program, owning_class, asserted_size=asserted)
         bound_score = _richness(bound)
-        source_score = _richness(source)
         source_size_ok = source is None or asserted is None or int(source.getLength()) == asserted
         size_mismatched_source = None
         if asserted is not None and source is None:
@@ -196,28 +223,14 @@ def collect_structure_projection_plan(
             if candidate is not None and int(candidate.getLength()) != asserted:
                 size_mismatched_source = candidate
 
-        if bound is not None and _is_useful(bound):
-            action = "agree"
-            if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
-                action = "legacy-duplicate"
-        elif (
-            source is not None
-            and _is_useful(source)
-            and source_size_ok
-            and source_score > bound_score
-        ):
-            # Source already sits where findExistingClassStruct will find it once
-            # the GhidraClass exists — ensure_ghidra_class above is enough.
-            action = "agree" if bound is source else "bind-existing"
-        elif size_mismatched_source is not None and not _is_useful(bound):
-            if asserted is not None and asserted > 1:
-                action = "create-opaque"
-            else:
-                action = "size-mismatch"
-        elif not _is_useful(bound) and asserted is not None and asserted > 1:
-            action = "create-opaque"
-        else:
-            action = "no-layout-evidence"
+        action = _decide_structure_action(
+            bound=bound,
+            legacy=legacy,
+            source=source,
+            asserted_size=asserted,
+            source_size_ok=source_size_ok,
+            size_mismatched_source=size_mismatched_source,
+        )
 
         counts[action] += 1
         if action in {"agree", "legacy-duplicate"}:

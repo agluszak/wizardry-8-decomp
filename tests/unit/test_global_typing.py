@@ -74,8 +74,18 @@ def test_needs_type_update() -> None:
     assert _needs_type_update("uchar", "bool")
 
 
-def test_needs_type_update_prefers_canonical_class_path() -> None:
+def test_needs_type_update_prefers_root_over_legacy_wiz8() -> None:
+    # Legacy listing → bound/root resolved must update.
     assert _needs_type_update(
+        "W8Monster",
+        "W8Monster",
+        current_path="/wiz8/classes/W8Monster",
+        resolved_path="/W8Monster",
+        current_depth=0,
+        resolved_depth=0,
+    )
+    # Root listing → legacy resolved must NOT update.
+    assert not _needs_type_update(
         "W8Monster",
         "W8Monster",
         current_path="/W8Monster",
@@ -86,8 +96,8 @@ def test_needs_type_update_prefers_canonical_class_path() -> None:
     assert not _needs_type_update(
         "W8Monster *",
         "W8Monster *",
-        current_path="/wiz8/classes/W8Monster *",
-        resolved_path="/wiz8/classes/W8Monster *",
+        current_path="/W8Monster *",
+        resolved_path="/W8Monster *",
         current_depth=1,
         resolved_depth=1,
     )

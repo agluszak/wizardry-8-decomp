@@ -82,9 +82,17 @@ def _read_slots(
     max_slots: int | None = None,
     stop_before: set[int] | None = None,
 ) -> list[dict[str, Any]]:
+    """Read vftable slot targets from retail memory.
+
+    When ``max_slots`` is set (census extent), always emit exactly that many
+    entries. Missing Function / unreadable memory → ``unresolved: true`` with
+    null target/name as appropriate. Never silently shrink a census extent.
+    """
+
     memory = program.getMemory()
     space = program.getAddressFactory().getDefaultAddressSpace()
     functions = program.getFunctionManager()
+    census_mode = max_slots is not None
     limit = max_slots if max_slots is not None else _MAX_SLOTS
     slots: list[dict[str, Any]] = []
     for index in range(limit):
@@ -94,6 +102,17 @@ def _read_slots(
             break
         entry = space.getAddress(slot_addr)
         if not memory.contains(entry):
+            if census_mode:
+                slots.append(
+                    {
+                        "index": index,
+                        "target": None,
+                        "name": None,
+                        "prototype": None,
+                        "unresolved": True,
+                    }
+                )
+                continue
             break
         try:
             target = memory.getInt(entry) & 0xFFFFFFFF
@@ -102,9 +121,31 @@ def _read_slots(
                 type(exc)
             ):
                 raise
+            if census_mode:
+                slots.append(
+                    {
+                        "index": index,
+                        "target": None,
+                        "name": None,
+                        "prototype": None,
+                        "unresolved": True,
+                    }
+                )
+                continue
             break
         function = functions.getFunctionAt(space.getAddress(target))
         if function is None:
+            if census_mode:
+                slots.append(
+                    {
+                        "index": index,
+                        "target": f"0x{target:08x}",
+                        "name": None,
+                        "prototype": None,
+                        "unresolved": True,
+                    }
+                )
+                continue
             break
         slots.append(
             {
@@ -134,6 +175,53 @@ def _vftable_has_function_definitions(structure: Any) -> bool:
     if not components:
         return False
     return all(_points_to_function_definition(component.getDataType()) for component in components)
+
+
+def _component_function_definition(component: Any) -> Any | None:
+    data_type = component.getDataType() if component is not None else None
+    if data_type is None or not hasattr(data_type, "getDataType"):
+        return None
+    pointed = data_type.getDataType()
+    if pointed is None:
+        return None
+    while pointed is not None and "TypeDef" in type(pointed).__name__:
+        if not hasattr(pointed, "getBaseDataType"):
+            break
+        pointed = pointed.getBaseDataType()
+    if pointed is None:
+        return None
+    if "FunctionDefinition" in type(pointed).__name__ or hasattr(pointed, "getArguments"):
+        return pointed
+    return None
+
+
+def _slot_definitions_match_callees(
+    program: Any, structure: Any, slots: Sequence[dict[str, Any]]
+) -> bool:
+    """True when each stored FunctionDefinition matches the live callee contract."""
+
+    from .callback_typing import definition_matches_function
+
+    if structure is None or not hasattr(structure, "getDefinedComponents"):
+        return False
+    components = list(structure.getDefinedComponents())
+    if len(components) != len(slots):
+        return False
+    space = program.getAddressFactory().getDefaultAddressSpace()
+    functions = program.getFunctionManager()
+    for component, slot in zip(components, slots, strict=True):
+        if slot.get("unresolved") or not slot.get("target"):
+            return False
+        definition = _component_function_definition(component)
+        if definition is None:
+            return False
+        target = int(str(slot["target"]), 0)
+        function = functions.getFunctionAt(space.getAddress(target))
+        if function is None:
+            return False
+        if not definition_matches_function(definition, function):
+            return False
+    return True
 
 
 def collect_vftable_typing_plan(
@@ -240,13 +328,26 @@ def collect_vftable_typing_plan(
             else None
         )
         slots_match = existing_slots == len(slots)
+        has_unresolved = any(slot.get("unresolved") for slot in slots)
+        defs_match_callees = (
+            slots_match
+            and has_defs
+            and not has_unresolved
+            and _slot_definitions_match_callees(program, existing, slots)
+        )
         if covered_by is not None:
             action = "covered-by-sibling"
         elif not slots:
             action = "no-slots"
-        elif existing is not None and has_defs and slots_match and current_type == vftable_name:
+        elif (
+            existing is not None
+            and has_defs
+            and slots_match
+            and defs_match_callees
+            and current_type == vftable_name
+        ):
             action = "agree"
-        elif existing is not None and has_defs and slots_match:
+        elif existing is not None and has_defs and slots_match and defs_match_callees:
             action = "apply-existing"
         elif existing is not None:
             action = "upgrade-definitions"
@@ -298,6 +399,8 @@ def _slot_function_pointer(program: Any, simple: str, slot: dict[str, Any], fiel
     )
 
     manager = program.getDataTypeManager()
+    if slot.get("unresolved") or not slot.get("target"):
+        return PointerDataType(VoidDataType(), manager)
     space = program.getAddressFactory().getDefaultAddressSpace()
     target = int(slot["target"], 0)
     function = program.getFunctionManager().getFunctionAt(space.getAddress(target))
@@ -353,14 +456,19 @@ def _apply_data(program: Any, address: int, data_type: Any) -> None:
 
 
 def _retarget_class_vfptr(program: Any, class_name: str, vftable: Any) -> bool:
-    manager = program.getDataTypeManager()
-    simple = _simple_name(class_name)
-    # Only mutate projected ``/wiz8/classes`` Structures — never PDB/root ``/{simple}``.
-    structure = manager.getDataType(f"/wiz8/classes/{simple}")
+    """Retarget ``vfptr``/``vptr`` on the bound class Structure, if present."""
+
+    from .class_binding import find_class_structure, find_ghidra_class
+
+    ghidra_class = find_ghidra_class(program, class_name)
+    if ghidra_class is None:
+        return False
+    structure = find_class_structure(program, ghidra_class)
     if structure is None or not hasattr(structure, "getDefinedComponents"):
         return False
     from ghidra.program.model.data import PointerDataType  # type: ignore[import-not-found]
 
+    manager = program.getDataTypeManager()
     pointer = PointerDataType(vftable, manager)
     for component in structure.getDefinedComponents():
         field = component.getFieldName()
@@ -382,9 +490,12 @@ def _apply_vftable_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str,
             **dict(row),
             "error": "fallback-extent-not-actionable",
         }
+    slots = list(row.get("slots") or [])
+    if row.get("extent_source") == "census" and any(slot.get("unresolved") for slot in slots):
+        return {**dict(row), "error": "census-slot-unresolved"}
     simple = _simple_name(str(row["class"]))
     if action in {"create-and-apply", "upgrade-definitions"}:
-        structure = _build_vftable_structure(program, simple, row.get("slots") or [])
+        structure = _build_vftable_structure(program, simple, slots)
     else:
         structure = program.getDataTypeManager().getDataType(row["vftable"])
     if structure is None:

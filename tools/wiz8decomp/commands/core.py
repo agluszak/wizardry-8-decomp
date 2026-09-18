@@ -625,7 +625,7 @@ def class_this_typing_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Type this from existing /wiz8/classes Structures on source __thiscall methods."""
+    """Bind source __thiscall methods to the class Structure via GhidraClass."""
     from .. import command_support as cli
     from ..class_this_typing import run_class_this_typing
 
@@ -646,7 +646,10 @@ def class_this_typing_command(
 def class_structures_command(
     apply: Annotated[
         bool,
-        typer.Option("--apply", help="Write /wiz8/classes Structures into the live program."),
+        typer.Option(
+            "--apply",
+            help="Bind or create opaque class Structures in the live program.",
+        ),
     ] = False,
     skip_this_typing: Annotated[
         bool,
@@ -662,7 +665,7 @@ def class_structures_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Promote PDB/root class Structures into /wiz8/classes for typed this."""
+    """Reconcile source class Structures with native GhidraClass binding."""
     from .. import command_support as cli
     from ..class_structure_projection import run_class_structure_projection
 

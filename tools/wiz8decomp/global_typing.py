@@ -199,13 +199,29 @@ def _path_leaf(path: str | None) -> str | None:
     return text.rsplit("/", 1)[-1].strip() or None
 
 
-def _is_canonical_class_path(path: str | None) -> bool:
+def _is_legacy_enriched_path(path: str | None) -> bool:
+    """True for the former competing-universe ``/wiz8/classes/…`` category."""
+
     if not path:
         return False
     leaf_path = path
     while leaf_path.endswith("*"):
         leaf_path = leaf_path[:-1].rstrip()
     return leaf_path.startswith("/wiz8/classes/")
+
+
+def _is_canonical_class_path(path: str | None) -> bool:
+    """True for preferred bound/root class Structures (not legacy ``/wiz8/classes``).
+
+    ``/wiz8/classes/X`` must never be treated as more canonical than ``/X``.
+    """
+
+    if not path:
+        return False
+    leaf_path = path
+    while leaf_path.endswith("*"):
+        leaf_path = leaf_path[:-1].rstrip()
+    return leaf_path.startswith("/") and not _is_legacy_enriched_path(leaf_path)
 
 
 def resolve_data_type(program: Any, type_name: str) -> Any | None:
@@ -315,8 +331,9 @@ def _needs_type_update(
     """True when listing type should be replaced by the resolved DataType.
 
     When paths are available, prefer identity of ``getPathName()`` (and pointer
-    depth) over bare ``getName()``. A root ``/X`` Structure must still update
-    when the resolved type is canonical ``/wiz8/classes/X``.
+    depth) over bare ``getName()``. A legacy ``/wiz8/classes/X`` listing must
+    still update when the resolved type is the bound/root ``/X`` Structure;
+    the reverse must not.
     """
 
     if current_type is None:
@@ -334,7 +351,7 @@ def _needs_type_update(
             return False
         if (
             _is_canonical_class_path(resolved_path)
-            and not _is_canonical_class_path(current_path)
+            and _is_legacy_enriched_path(current_path)
             and _path_leaf(current_path) == _path_leaf(resolved_path)
         ):
             return True

@@ -2,6 +2,10 @@
 
 Curated families only: region/UI/dialog/monster callbacks already named in
 recovered headers. Speculative ``code *`` discovery is out of scope.
+
+Class field sites are owning-class identities resolved through
+``class_binding`` (bound/root Structure). Absolute ``/…`` paths remain for
+non-class SGP/GUI Structures. Legacy ``/wiz8/classes`` is migration-only.
 """
 
 from __future__ import annotations
@@ -9,6 +13,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from .class_binding import (
+    find_class_structure,
+    find_ghidra_class,
+    legacy_enriched_structure,
+    resolve_class_binding,
+)
 from .config import Settings
 from .paths import atomic_json
 
@@ -16,17 +26,15 @@ _SCHEMA = "wiz8.callback-typing-v1"
 _CATEGORY = "/wiz8/callbacks"
 
 # (typedef name, return type path-or-builtin, ((param_name, type path-or-builtin), ...),
-#  calling convention, field sites as (structure path, field name))
-# Field sites mutate only /wiz8/classes projections (or root SGP/GUI types that
-# are not class-projection targets). Root/PDB copies of Wizardry classes stay
-# untouched so projection comparisons remain meaningful.
+#  calling convention, field sites as (owning class OR absolute /path, field name))
+# Class sites resolve via class_binding; absolute paths are non-class Structures.
 _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
     {
         "name": "W8RegionCallback",
         "return": "uchar",
         "convention": "__cdecl",
         "params": (("event", "InputAtom *"), ("region", "W8Region *")),
-        "fields": (("/wiz8/classes/W8Region", "callback"),),
+        "fields": (("W8Region", "callback"),),
     },
     {
         "name": "GUI_CALLBACK",
@@ -43,8 +51,7 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "return": "void",
         "convention": "__cdecl",
         "params": (("dialog", "W8DialogBase *"),),
-        # Prefer projected class; missing-structure when not yet promoted.
-        "fields": (("/wiz8/classes/W8DialogBase", "m_destroy_callback"),),
+        "fields": (("W8DialogBase", "m_destroy_callback"),),
     },
     {
         "name": "W8ControlCallback",
@@ -52,11 +59,11 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "convention": "__cdecl",
         "params": (),
         "fields": (
-            ("/wiz8/classes/W8Widget", "m_primaryActivationCallback"),
-            ("/wiz8/classes/W8Widget", "m_leftButtonDownCallback"),
-            ("/wiz8/classes/W8Widget", "m_secondaryActivationCallback"),
-            ("/wiz8/classes/W8Widget", "m_rightButtonDownCallback"),
-            ("/wiz8/classes/W8Widget", "m_leftDoubleClickCallback"),
+            ("W8Widget", "m_primaryActivationCallback"),
+            ("W8Widget", "m_leftButtonDownCallback"),
+            ("W8Widget", "m_secondaryActivationCallback"),
+            ("W8Widget", "m_rightButtonDownCallback"),
+            ("W8Widget", "m_leftDoubleClickCallback"),
         ),
     },
     {
@@ -64,14 +71,14 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "return": "void",
         "convention": "__cdecl",
         "params": (("monster", "W8Monster *"),),
-        "fields": (("/wiz8/classes/W8Monster", "cycle_callback_230"),),
+        "fields": (("W8Monster", "cycle_callback_230"),),
     },
     {
         "name": "ActivationCallback",
         "return": "bool",
         "convention": "__cdecl",
         "params": (("trigger", "Trigger *"),),
-        "fields": (("/wiz8/classes/Trigger", "activation_callback_360"),),
+        "fields": (("Trigger", "activation_callback_360"),),
     },
     {
         "name": "MOUSE_CALLBACK",
@@ -115,7 +122,9 @@ def _resolve_type(program: Any, spelling: str) -> Any | None:
     return resolve_data_type(program, spelling)
 
 
-def _type_identity(data_type: Any) -> str:
+def type_identity(data_type: Any) -> str:
+    """Stable identity for DataType comparison (path preferred over bare name)."""
+
     if data_type is None:
         return ""
     path = getattr(data_type, "getPathName", None)
@@ -126,15 +135,39 @@ def _type_identity(data_type: Any) -> str:
     return str(data_type.getName()) if hasattr(data_type, "getName") else str(data_type)
 
 
-def _definition_matches_family(existing: Any, family: dict[str, Any], program: Any) -> bool:
+def _unwrap_typedefs(data_type: Any) -> Any:
+    current = data_type
+    while current is not None and "TypeDef" in type(current).__name__:
+        if not hasattr(current, "getBaseDataType"):
+            break
+        current = current.getBaseDataType()
+    return current
+
+
+def _pointee_data_type(data_type: Any) -> Any | None:
+    current = _unwrap_typedefs(data_type)
+    if current is None:
+        return None
+    is_pointer = getattr(current, "isPointer", None)
+    if callable(is_pointer):
+        if not is_pointer():
+            return None
+    elif "Pointer" not in type(current).__name__:
+        return None
+    if not hasattr(current, "getDataType"):
+        return None
+    return _unwrap_typedefs(current.getDataType())
+
+
+def definition_matches_family(existing: Any, family: Mapping[str, Any], program: Any) -> bool:
     """True when an existing FunctionDefinition matches the curated family."""
 
     if existing is None or not hasattr(existing, "getArguments"):
         return False
-    expected_return = _resolve_type(program, family["return"])
+    expected_return = _resolve_type(program, str(family["return"]))
     if expected_return is None:
         return False
-    if _type_identity(existing.getReturnType()) != _type_identity(expected_return):
+    if type_identity(existing.getReturnType()) != type_identity(expected_return):
         return False
     existing_args = list(existing.getArguments())
     expected_params = list(family["params"])
@@ -146,7 +179,7 @@ def _definition_matches_family(existing: Any, family: dict[str, Any], program: A
         expected_type = _resolve_type(program, spelling)
         if expected_type is None:
             return False
-        if _type_identity(arg.getDataType()) != _type_identity(expected_type):
+        if type_identity(arg.getDataType()) != type_identity(expected_type):
             return False
     convention = family.get("convention")
     if convention:
@@ -156,6 +189,80 @@ def _definition_matches_family(existing: Any, family: dict[str, Any], program: A
         if current is None or str(current) != str(convention):
             return False
     return True
+
+
+# Back-compat alias for callers/tests that still import the private name.
+_definition_matches_family = definition_matches_family
+
+
+def definition_matches_function(definition: Any, function: Any) -> bool:
+    """True when ``definition`` matches ``function``'s formal signature contract.
+
+    Compares return type, argument types/names (including explicit ``this`` when
+    present on the definition), and calling convention. Used by vftable typing
+    to reject stale FunctionDefinitions that only share a name/slot count.
+    """
+
+    if definition is None or function is None:
+        return False
+    if not hasattr(definition, "getArguments") or not hasattr(function, "getReturnType"):
+        return False
+    if type_identity(definition.getReturnType()) != type_identity(function.getReturnType()):
+        return False
+
+    def_args = list(definition.getArguments())
+    # Formal signature: prefer parameters as stored (auto this included when
+    # FunctionDefinition was built with formal=False).
+    fn_params = list(function.getParameters())
+    if len(def_args) != len(fn_params):
+        return False
+    for arg, param in zip(def_args, fn_params, strict=True):
+        if type_identity(arg.getDataType()) != type_identity(param.getDataType()):
+            return False
+        arg_name = str(arg.getName()) if hasattr(arg, "getName") else ""
+        param_name = str(param.getName()) if hasattr(param, "getName") else ""
+        if arg_name and param_name and arg_name != param_name:
+            return False
+
+    if hasattr(definition, "getCallingConvention") and hasattr(
+        function, "getCallingConventionName"
+    ):
+        def_cc = definition.getCallingConvention()
+        fn_cc = function.getCallingConventionName()
+        if def_cc is not None and fn_cc is not None and str(def_cc) != str(fn_cc):
+            return False
+    return True
+
+
+def _resolve_field_structure(program: Any, site: str) -> tuple[Any | None, str | None, str | None]:
+    """Resolve a field site to (structure, report_path, resolution).
+
+    ``site`` is either an absolute DataType path (``/…``) or a source owning-class
+    identity. Class sites prefer the bound Structure; legacy ``/wiz8/classes`` is
+    only a migration fallback.
+    """
+
+    if site.startswith("/"):
+        structure = program.getDataTypeManager().getDataType(site)
+        if structure is None or not hasattr(structure, "getDefinedComponents"):
+            return None, site, "absolute-missing"
+        return structure, site, "absolute"
+
+    binding = resolve_class_binding(program, site)
+    ghidra_class = find_ghidra_class(program, site)
+    if ghidra_class is not None:
+        structure = find_class_structure(program, ghidra_class)
+        if structure is not None and hasattr(structure, "getDefinedComponents"):
+            path = str(structure.getPathName())
+            return structure, path, "bound"
+
+    legacy = legacy_enriched_structure(program, site)
+    if legacy is not None and hasattr(legacy, "getDefinedComponents"):
+        path = str(legacy.getPathName())
+        return legacy, path, "legacy-enriched"
+
+    report = binding.get("structure_path") or binding.get("legacy_enriched_path") or site
+    return None, str(report) if report else site, binding.get("status") or "missing-structure"
 
 
 def _build_function_definition(program: Any, family: dict[str, Any]) -> Any:
@@ -193,7 +300,7 @@ def _ensure_function_definition(program: Any, family: dict[str, Any]) -> Any:
     manager = program.getDataTypeManager()
     path = f"{_CATEGORY}/{family['name']}"
     existing = manager.getDataType(path)
-    if existing is not None and _definition_matches_family(existing, family, program):
+    if existing is not None and definition_matches_family(existing, family, program):
         return existing
 
     manager.createCategory(CategoryPath(_CATEGORY))
@@ -201,17 +308,17 @@ def _ensure_function_definition(program: Any, family: dict[str, Any]) -> Any:
     return manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
 
 
-def _field_already_typed(component: Any, family_name: str) -> bool:
-    from ghidra.program.model.data import Pointer, TypeDef  # type: ignore[import-not-found]
+def _field_already_typed(component: Any, family: Mapping[str, Any], program: Any) -> bool:
+    """True when the field already points at a matching family FunctionDefinition."""
 
-    current = component.getDataType()
-    while isinstance(current, TypeDef):
-        current = current.getBaseDataType()
-    if isinstance(current, Pointer):
-        pointed = current.getDataType()
-        if pointed is not None and family_name in str(pointed.getName()):
-            return True
-    return False
+    pointed = _pointee_data_type(component.getDataType())
+    if pointed is None:
+        return False
+    expected_path = f"{_CATEGORY}/{family['name']}"
+    if type_identity(pointed) == expected_path:
+        return definition_matches_family(pointed, family, program)
+    # Path may differ after REPLACE; still accept a contract match on the pointee.
+    return definition_matches_family(pointed, family, program)
 
 
 def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
@@ -221,7 +328,7 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
     for family in _CALLBACK_FAMILIES:
         definition_path = f"{_CATEGORY}/{family['name']}"
         existing_def = program.getDataTypeManager().getDataType(definition_path)
-        typedef_ok = existing_def is not None and _definition_matches_family(
+        typedef_ok = existing_def is not None and definition_matches_family(
             existing_def, family, program
         )
         typedef_disagrees = existing_def is not None and not typedef_ok
@@ -242,14 +349,16 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
                 }
             )
             continue
-        for structure_path, field_name in family["fields"]:
-            structure = program.getDataTypeManager().getDataType(structure_path)
-            if structure is None or not hasattr(structure, "getDefinedComponents"):
+        for site, field_name in family["fields"]:
+            structure, structure_path, resolution = _resolve_field_structure(program, site)
+            if structure is None:
                 rows.append(
                     {
                         "family": family["name"],
                         "structure": structure_path,
                         "field": field_name,
+                        "site": site,
+                        "resolution": resolution,
                         "action": "missing-structure",
                     }
                 )
@@ -265,11 +374,13 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
                         "family": family["name"],
                         "structure": structure_path,
                         "field": field_name,
+                        "site": site,
+                        "resolution": resolution,
                         "action": "missing-field",
                     }
                 )
                 continue
-            already = _field_already_typed(component, family["name"])
+            already = _field_already_typed(component, family, program)
             current = component.getDataType()
             current_name = str(current.getName()) if hasattr(current, "getName") else str(current)
             if typedef_disagrees and already:
@@ -289,6 +400,8 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
                     "family": family["name"],
                     "structure": structure_path,
                     "field": field_name,
+                    "site": site,
+                    "resolution": resolution,
                     "offset": component.getOffset(),
                     "current_type": current_name,
                     "action": action,
@@ -351,7 +464,13 @@ def apply_callback_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
             }
         definition = program.getDataTypeManager().getDataType(path)
         pointer = PointerDataType(definition, program.getDataTypeManager())
-        structure = program.getDataTypeManager().getDataType(row["structure"])
+        site = str(row.get("site") or row["structure"])
+        structure, structure_path, _resolution = _resolve_field_structure(program, site)
+        if structure is None:
+            structure = program.getDataTypeManager().getDataType(row["structure"])
+            structure_path = row["structure"]
+        if structure is None:
+            return {**dict(row), "error": "missing-structure"}
         structure.replaceAtOffset(
             int(row["offset"]),
             pointer,
@@ -361,7 +480,7 @@ def apply_callback_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
         )
         return {
             "family": family["name"],
-            "structure": row["structure"],
+            "structure": structure_path,
             "field": row["field"],
             "type": str(pointer.getName()),
             "action": action,
