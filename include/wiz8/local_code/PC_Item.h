@@ -253,7 +253,7 @@ unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,
                                                     W8Character** found_character,
                                                     int include_backpack);
 void EmptyBackpackSlot00521AC0(W8Character* character, int slot);
-void EmptyPartyPoolEntry00521CD0(unsigned int index);
+void EmptyPartyPoolEntry00521CD0(int index);
 void UpgradeProfessionClassItem005218C0(W8Character* character);
 
 int __cdecl CompareItemsForPool(const void* first, const void* second);

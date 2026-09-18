@@ -699,9 +699,11 @@ enum { W8_ITEM_GENDER_MASK_ANY = 3 };
 /* An unused requirement slot. */
 enum { W8_ITEM_REQUIREMENT_NONE = 0xff };
 
-/* The two profession levels the casting categories read, by index into
-   W8Character::profession_levels. */
-enum { W8_CASTER_PROFESSION_CATEGORY_8 = 8, W8_CASTER_PROFESSION_CATEGORY_6 = 9 };
+/* The two profession levels the casting categories read, named by index into
+   W8Character::profession_levels (0x008d + 4 * index, so 0x0ad and 0x0b1). The
+   caster-item categories pair with them: CASTER_ITEM_6 reads index 9 through
+   the spell-source path and CASTER_ITEM_8 reads index 8. */
+enum { W8_CASTER_PROFESSION_INDEX_8 = 8, W8_CASTER_PROFESSION_INDEX_9 = 9 };
 
 /* 0x00521EF0 */
 
@@ -759,13 +761,15 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
         }
         if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]) <
                 minimum_caster_level) {
                 return false;
             }
         } else {
             minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8] <
+            if (static_cast<unsigned int>(
+                    character->profession_levels[W8_CASTER_PROFESSION_INDEX_8]) <
                 minimum_caster_level) {
                 return false;
             }
@@ -3387,8 +3391,8 @@ unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skil
             failure += (shortfall - skill_level) / 3;
         }
         minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
-        caster_level = skill == 0xc ? character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6]
-                                    : character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8];
+        caster_level = skill == 0xc ? character->profession_levels[W8_CASTER_PROFESSION_INDEX_9]
+                                    : character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
         adjusted_power = (minimum_caster_level - caster_level) - 1 + static_cast<int>(power);
         if (adjusted_power > 0) {
             return failure + g_spell_records[spell_id].spell_level * adjusted_power;
@@ -3535,6 +3539,149 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
     CalcAttacks(character);
 }
 
+/* Put an item in the party pool, and when the pool will not take it, leave it in
+   hand instead. The hand's own item is set aside first, so the newcomer can be
+   dropped exactly like any held item - except for the ones that may not be
+   discarded, which are announced instead - and the hand's item comes back
+   afterwards. */
+// FUNCTION: WIZ8 0x00522090
+unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce)
+{
+    unsigned char stored = AddItemToParty(item, announce, 0);
+    if (stored != 0) {
+        return stored;
+    }
+
+    bool hand_was_holding = g_status_685170.item_in_cursor != 0;
+    W8ItemInstance set_aside;
+    if (hand_was_holding) {
+        set_aside = g_status_685170.item_in_hand_235b;
+    }
+
+    g_held_item_source_006840c0 = -1;
+    g_held_item_origin_006840c4 = 0xff;
+    g_held_item_slot_006840c5 = 0xffff;
+    ClearHeldItemDisplay();
+    CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
+    if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 &
+         W8_ITEM_FLAG_NO_DISCARD) == 0) {
+        DropHeldItem(0);
+    } else {
+        ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+    }
+
+    if (hand_was_holding) {
+        g_status_685170.item_in_hand_235b = set_aside;
+    }
+    return stored;
+}
+
+/* Cast the spell an item carries and spend the uses it cost. The attempt is
+   refused outright when the record cannot carry a spell at all; the difficulty
+   comes from the skill that presents the spell, paced by the combat clock and
+   raised for an item nobody has identified yet; the sound is keyed by the
+   item's own resource name; and the effect's outcome decides whether the item
+   is marked used, reported as a finding, or practised on afterwards. */
+// FUNCTION: WIZ8 0x0051ee70
+int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned int power)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    unsigned int party_slot = CharacterPointerToPartySlot(character);
+    unsigned int spell_id = record->spell_id;
+    W8TargetSource target;
+    unsigned char rejected_spell;
+    unsigned int difficulty = 0;
+    int skill;
+    int effect;
+    int caster_figure;
+    int difficulty_kind;
+
+    /* A record with no spell, an off-hand-only class and the two casting-aid
+       classes are the ones the spell engine is told about rather than cast. */
+    rejected_spell = (record->spell_id == 0 || record->equip_class == 0xe ||
+                      (record->equip_class > 0x14 && record->equip_class < 0x17))
+                         ? 1
+                         : 0;
+    if (!CanUseItemSpell004FAC40(party_slot, spell_id, power, 1, rejected_spell)) {
+        return 0;
+    }
+
+    if (record->spell_id == 'X' || record->spell_id == 't') {
+        skill = -1;
+    } else {
+        skill = g_item_spell_presentation[record->category];
+        if (skill == -1) {
+            difficulty = 0;
+        } else {
+            difficulty = GetItemUseDifficulty0051DCD0(
+                character, skill, character->skills[skill].level, spell_id, power);
+            ScaleByCombatPace(party_slot, &difficulty);
+            if (item->identified == 0) {
+                difficulty += 0x1e;
+            }
+        }
+    }
+
+    SetTargetSourceToCharacter(party_slot, &target);
+    target.unknown_1d[4] = 1;
+    TrackItemSpellSource00501D20(character, spell_id);
+
+    if (skill == 9) {
+        difficulty_kind = 4;
+        caster_figure = character->level;
+    } else if (skill == 0xc) {
+        difficulty_kind = 2;
+        caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_9];
+    } else if (skill == 0x17) {
+        difficulty_kind = 3;
+        caster_figure = character->profession_levels[W8_CASTER_PROFESSION_INDEX_8];
+    } else {
+        difficulty_kind = 1;
+        caster_figure = character->level;
+    }
+    /* The spell engine reads the difficulty it worked out off the source's own
+       tail bytes: 0x1f here, and the flag above at 0x21. */
+    target.unknown_1d[2] =
+        static_cast<unsigned char>(GetSpellDifficulty(caster_figure, spell_id, power));
+
+    if (strlen(record->video_object_name + 0x18) != 0) {
+        // reinterpret-ok: SGP's String returns UINT8* and SoundPlay takes char*
+        SoundPlay(reinterpret_cast<char*>(
+                      String("Data\\Spells\\Sounds\\%s.wav", record->video_object_name + 0x18)),
+                  0);
+    }
+
+    effect = CastSpellFromSource(
+        spell_id, &target, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+        power, 0, static_cast<int>(difficulty), 0,
+        // reinterpret-ok: CastSpellFromSource out-arg is int*; retail reuses power
+        reinterpret_cast<int*>(&power), difficulty_kind, 0, 0);
+
+    if (effect == 1) {
+        if (g_settings_6850c8.verbose_combat_messages != 0 || item->identified == 0) {
+            FormatNotice(8, -1, gppStringList[0x7d0 / 4], GetItemDisplayName(item),
+                         g_spell_records[spell_id].display_name, power);
+            if (g_settings_6850c8.verbose_combat_messages == 0) {
+                SetTextBoxMode(1, -1);
+            }
+        }
+        item->unknown_07[0] = 1;
+    } else if (effect == 3) {
+        PostCharacterNotice(party_slot,
+                            FormatWideString(gppStringList[0x1a9], FormatItemDisplayName(item, 0)));
+    }
+
+    if (skill != -1) {
+        if (SpellAffectedTarget004F9AE0(
+                character, spell_id,
+                &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat, power)) {
+            PracticeCharacterSkill(character, skill,
+                                   g_spell_records[spell_id].spell_level + (power >> 1), 0);
+        }
+    }
+    return effect;
+}
+
 /* Split a stack of thrown weapons across the two hands. The source is the hand
    opposite the requested one and the destination is the requested hand, so the
    primary hand takes the larger half of the stack and the off hand the smaller;
@@ -3583,7 +3730,8 @@ void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_s
 }
 
 /* Close the hole one party-pool index leaves: everything after it moves down one
-   place and the count drops. The caller has already emptied the record, so an
+   place and the count drops. Retail allocates a full 500-entry scratch buffer
+   (0x1770 bytes) for the shift; the caller has already emptied the record, so an
    entry that still holds an item is left alone. */
 // FUNCTION: WIZ8 0x00521c20
 void RemovePartyPoolEntry00521C20(unsigned int index)
@@ -3606,8 +3754,10 @@ void RemovePartyPoolEntry00521C20(unsigned int index)
     RedistributePartyEncumbrance();
 }
 
-/* Empty one of a character's eight carried slots, wherever the slot's item came
-   from; the pool is only touched when the slot really was an entry of it. */
+/* Empty one of a character's eight carried slots. Retail compares the
+   resolved backpack entry to the global item-in-hand address before clearing;
+   that path is unreachable for a real character pointer but is emitted. When
+   the emptied entry also lives in the party pool, the hole is closed. */
 // FUNCTION: WIZ8 0x00521ac0
 void EmptyBackpackSlot00521AC0(W8Character* character, int slot)
 {
@@ -3640,12 +3790,12 @@ void EmptyBackpackSlot00521AC0(W8Character* character, int slot)
     }
 }
 
-/* Empty one entry of the packed party pool by index and close the hole. */
+/* Empty one entry of the packed party pool by index and close the hole.
+   Retail takes a signed index and rejects negatives with JL. */
 // FUNCTION: WIZ8 0x00521cd0
-void EmptyPartyPoolEntry00521CD0(unsigned int index)
+void EmptyPartyPoolEntry00521CD0(int index)
 {
-    if (static_cast<int>(index) < 0 ||
-        index >= static_cast<unsigned int>(g_status_685170.party_item_count_1791)) {
+    if (index < 0 || index >= g_status_685170.party_item_count_1791) {
         return;
     }
 
@@ -3661,7 +3811,7 @@ void EmptyPartyPoolEntry00521CD0(unsigned int index)
         RefreshAfterItemRecordChange(item, 0, 1);
     }
 
-    RemovePartyPoolEntry00521C20(index);
+    RemovePartyPoolEntry00521C20(static_cast<unsigned int>(index));
 }
 
 /* The whole-party counterpart of FindCharacterItemByDatabaseKind: the item in
@@ -3733,7 +3883,7 @@ void UpgradeProfessionClassItem005218C0(W8Character* character)
     int item_id;
     int message_id;
 
-    switch (character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8]) {
+    switch (character->profession_levels[W8_CASTER_PROFESSION_INDEX_8]) {
     case 0:
     case 2:
         return;
@@ -3823,9 +3973,11 @@ void UpgradeProfessionClassItem005218C0(W8Character* character)
 }
 
 /* Take every instance of one item id out of the party: the hand first, then
-   every member's slots, then the pool. The count flag decides whether the search
-   stops at the first one or clears the whole id; each record cleared also closes
-   the pool hole it left. */
+   every member's slots, then the pool. When remove_all is clear the search
+   stops at the first hit. When it is set, retail still only calls
+   FindItemOnCharacter once per party member before moving on, so a second copy
+   on the same character is not cleared in that pass; the pool walk that follows
+   does compact every matching pool entry. */
 // FUNCTION: WIZ8 0x005215d0
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
 {
@@ -3884,7 +4036,7 @@ unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
         if (pool[index].item_id != item_id) {
             continue;
         }
-        EmptyPartyPoolEntry00521CD0(static_cast<unsigned int>(index));
+        EmptyPartyPoolEntry00521CD0(index);
         if (!remove_all) {
             return 1;
         }

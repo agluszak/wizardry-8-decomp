@@ -8,6 +8,7 @@
 
 struct W8TargetSource;
 struct W8CombatSlot;
+struct W8PartySlotRow;
 struct W8Character;
 struct W8ItemInstance;
 struct W8MonsterInfo;
@@ -59,7 +60,6 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
-int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
 /* 0x004FA4D0: take the realm spell points one cast costs off the casting
    character; the dispatcher's multi-cast loop keeps going while it answers
    two. */
@@ -110,6 +110,22 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
 /* 0x004FF410: the same chance for a bare skill figure rather than a caster,
    which is what an item-use attempt has. */
 unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor);
+
+/* 0x004FF790: how hard this caster figure finds one spell at a power level, and
+   0x00501910: the combat-pace scale an item-use attempt applies to its own
+   difficulty. Both are defined in this unit. */
+int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus);
+unsigned int ScaleByCombatPace(int party_slot, unsigned int* value);
+
+/* Unresolved gap callees of the item-use spell path, all in this unit. Their
+   shapes come from the retail call sites: 0x004FAC40 takes five arguments,
+   0x004FB4C0 is CastSpellFromSource (eleven arguments), 0x004F9AE0 four and
+   0x00501D20 two. */
+unsigned char CanUseItemSpell004FAC40(int party_slot, int spell_id, unsigned int power, int arg_4,
+                                      unsigned char arg_5);
+unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, W8CombatSlot* aim,
+                                          unsigned int power);
+void TrackItemSpellSource00501D20(W8Character* character, int spell_id);
 char IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
