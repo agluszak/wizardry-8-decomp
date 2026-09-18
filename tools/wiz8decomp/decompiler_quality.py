@@ -7,6 +7,7 @@ enrichment changes can be scored without arguing about aesthetics.
 
 from __future__ import annotations
 
+import json
 import random
 import re
 from collections import Counter, defaultdict
@@ -57,6 +58,50 @@ _PATTERNS: dict[str, re.Pattern[str]] = {
         r"(?:\s*\*+|\s+)\s*\)"
     ),
 }
+
+
+def program_analysis_fingerprint(program: Any) -> dict[str, Any]:
+    """Compact saved-ProgramDB identity used to bind quality measurement to publication."""
+
+    from .ghidra.import_programs import HASH_OPTION
+
+    manager = program.getDataTypeManager()
+    datatype_count = (
+        int(manager.getDataTypeCount(True)) if hasattr(manager, "getDataTypeCount") else None
+    )
+    return {
+        "binary_sha256": program.getOptions("Program Information").getString(HASH_OPTION, None),
+        "function_count": int(program.getFunctionManager().getFunctionCount()),
+        "datatype_count": datatype_count,
+    }
+
+
+def require_quality_measurement(settings: Settings, program: Any, program_name: str) -> Path:
+    """Refuse seed publication unless a successful quality report matches this ProgramDB."""
+
+    path = settings.build_dir / "decompiler-quality" / "report.json"
+    if not path.is_file():
+        raise RuntimeError(
+            "run `uv run wiz8 analyze decompiler-quality` before `uv run wiz8 ghidra seed refresh`"
+        )
+    report = json.loads(path.read_text(encoding="utf-8"))
+    if str(report.get("program") or "") != program_name:
+        raise RuntimeError(
+            f"decompiler-quality report is for {report.get('program')!r}, not {program_name!r}"
+        )
+    summary = report.get("summary") or {}
+    if int(summary.get("failures") or 0) != 0:
+        raise RuntimeError("latest decompiler-quality report has decompiler failures")
+    if int(summary.get("ok") or 0) <= 0:
+        raise RuntimeError("latest decompiler-quality report measured no functions")
+    recorded = report.get("program_state") or {}
+    live = program_analysis_fingerprint(program)
+    if recorded != live:
+        raise RuntimeError(
+            "decompiler-quality report is not the current ProgramDB state; "
+            "re-run `uv run wiz8 analyze decompiler-quality` after the last `ghidra sync`"
+        )
+    return path
 
 
 def score_decompiled(text: str | None) -> dict[str, int]:
@@ -372,6 +417,7 @@ def evaluate_corpus(
     failures = 0
 
     with open_program(settings, program_name) as program:
+        program_state = program_analysis_fingerprint(program)
         session = DecompileSession(program, profile=profile)
         try:
             for address in addresses:
@@ -407,6 +453,7 @@ def evaluate_corpus(
     ok = [row for row in functions if row.get("status") == "ok"]
     return {
         "profile": profile,
+        "program_state": program_state,
         "functions": functions,
         "summary": {
             "requested": len(addresses),
@@ -583,6 +630,7 @@ def build_quality_report(
             "addresses": [f"0x{address:08x}" for address in corpus["addresses"]],
         },
         "summary": evaluation["summary"],
+        "program_state": evaluation.get("program_state"),
         "functions": evaluation["functions"],
     }
 

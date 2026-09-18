@@ -25,6 +25,7 @@ def pack_program_archive(
     output: Path,
     *,
     expected_binary_sha256: str | None = None,
+    require_quality: bool = False,
 ) -> dict[str, Any]:
     """Pack one project program to ``output`` without touching vendor seeds.
 
@@ -63,6 +64,10 @@ def pack_program_archive(
                 "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
                 "binary_sha256": actual_hash,
             }
+            if require_quality:
+                from ..decompiler_quality import require_quality_measurement
+
+                require_quality_measurement(settings, program, program_name)
         domain_file.packFile(File(str(temporary)), TaskMonitor.DUMMY)
     temporary.replace(output)
     return {
@@ -95,6 +100,7 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
         program_name,
         output,
         expected_binary_sha256=module["sha256"],
+        require_quality=True,
     )
     pack_seconds = packed["pack_seconds"]
 

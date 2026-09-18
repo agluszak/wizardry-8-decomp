@@ -217,3 +217,45 @@ def test_source_projection_freshness_stale_after_index_change(tmp_path: Path) ->
     assert result["ok"] is True
     assert result["status"] == "stale"
     assert "wiz8 ghidra sync" in result["detail"]
+
+
+def test_compiler_projection_stale_when_pdb_hash_changes(tmp_path: Path) -> None:
+    settings = _project_settings(tmp_path)
+    settings.project_dir.mkdir(parents=True)
+    settings.repo_dir.mkdir()
+    (settings.repo_dir / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    source-root: src/wiz8\n"
+        "    hash:\n      sha256: abc\n",
+        encoding="utf-8",
+    )
+    (settings.repo_dir / "pyproject.toml").write_text(
+        '[tool.uv.sources]\nreccmp = { git = "https://example.invalid/reccmp", rev = "abc123" }\n',
+        encoding="utf-8",
+    )
+    decomp = settings.repo_dir / "build" / "decomp"
+    decomp.mkdir(parents=True)
+    pdb = decomp / "Wiz8.pdb"
+    pdb.write_bytes(b"new")
+    index = settings.repo_dir / "build" / "source-index.json"
+    index.write_text(
+        '{"schema": "reccmp-source-index-v2", "markers": []}',
+        encoding="utf-8",
+    )
+    from wiz8decomp.paths import sha256_file
+
+    workspace._write_project_owner(settings)
+    workspace.record_source_projection(
+        settings,
+        "wiz8-program",
+        {
+            "source_index_sha256": sha256_file(index),
+            "applied_ns": index.stat().st_mtime_ns + 1,
+            "target": "WIZ8",
+            "complete": True,
+            "pdb_sha256": "old",
+            "reccmp_revision": "abc123",
+        },
+    )
+    result = workspace.source_projection_freshness(settings, "wiz8-program")
+    assert result["status"] == "current"
+    assert result["compiler_status"] == "stale"

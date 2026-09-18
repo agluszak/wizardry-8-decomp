@@ -119,3 +119,12 @@ def test_score_high_function_treats_typed_ptrsub_as_healthy() -> None:
     )
     counts = score_high_function(high)
     assert counts["suspicious_ptr_ops"] == 0
+
+
+def test_debt_total_weights_undefined_and_untyped_callind() -> None:
+    from wiz8decomp.high_function_debt import _HIGH_DEBT, debt_total
+
+    counts = {key: 1 for key in METRIC_KEYS}
+    expected = sum(4 if key in _HIGH_DEBT else 1 for key in METRIC_KEYS)
+    assert debt_total(counts) == expected
+    assert debt_total(counts) != sum(counts.values())

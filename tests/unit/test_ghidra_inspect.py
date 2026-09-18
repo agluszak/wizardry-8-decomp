@@ -43,6 +43,7 @@ def test_retired_commands_are_gone() -> None:
     assert runner.invoke(app, ["report", "flow", "--help"]).exit_code != 0
     assert runner.invoke(app, ["analyze", "enrichment-checkpoint", "--help"]).exit_code != 0
     assert runner.invoke(app, ["analyze", "prototype-repair", "--help"]).exit_code != 0
+    assert runner.invoke(app, ["analyze", "parameter-id", "--help"]).exit_code == 0
 
 
 def test_inspect_does_not_write_source_index(monkeypatch) -> None:

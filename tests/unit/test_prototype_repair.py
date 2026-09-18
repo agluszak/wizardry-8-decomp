@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import types
+from contextlib import nullcontext
 from types import SimpleNamespace
 
 from wiz8decomp.prototype_repair import apply_source_conventions, classify_pair
@@ -55,6 +56,10 @@ def test_apply_source_conventions_uses_analysis_not_imported(monkeypatch) -> Non
         sys.modules, "ghidra.program.model", types.ModuleType("ghidra.program.model")
     )
     monkeypatch.setitem(sys.modules, "ghidra.program.model.symbol", symbol_mod)
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.mutations.program_transaction",
+        lambda _program, _description: nullcontext(),
+    )
 
     plan = {
         "functions": [

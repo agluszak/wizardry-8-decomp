@@ -192,3 +192,25 @@ def test_convention_only_apply_uses_analysis_not_imported(monkeypatch) -> None:
     assert result["applied_types"] is False
     assert sources == ["ANALYSIS"]
     assert "IMPORTED" not in sources
+
+
+def test_iat_cell_type_failure_is_an_apply_error(monkeypatch) -> None:
+    from wiz8decomp.surrender_iat_typing import _apply_surrender_iat_row
+
+    monkeypatch.setattr(
+        "wiz8decomp.surrender_iat_typing._data_iat_pointer", lambda *_a, **_k: object()
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.surrender_iat_typing._apply_iat_cell_type", lambda *_a, **_k: False
+    )
+    result = _apply_surrender_iat_row(
+        object(),
+        {
+            "action": "set-iat-cell",
+            "address": "0x005eb02c",
+            "kind": "data",
+            "iat_cell": "data-pointer",
+            "decorated_name": "?g_sr@@3PAVsrCore@@A",
+        },
+    )
+    assert result["error"] == "iat-cell-not-typed"

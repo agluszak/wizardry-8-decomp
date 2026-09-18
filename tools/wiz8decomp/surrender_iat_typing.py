@@ -454,7 +454,7 @@ def _apply_iat_cell_type(program: Any, address: int, data_type: Any) -> bool:
     try:
         clear_code_units_guarded(program, start, end, expected_name=None, address_owned=True)
         listing.createData(start, data_type)
-    except ClearRangeError:
+    except (ClearRangeError, Exception):  # noqa: BLE001 — cell typing is all-or-nothing
         return False
     return True
 
@@ -555,15 +555,8 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
 
 
 def _apply_surrender_iat_row(program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
-    from ghidra.program.model.listing import (  # type: ignore[import-not-found]
-        Function,
-        ParameterImpl,
-    )
-    from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
-
     action = row.get("action")
     address = int(str(row["address"]), 0)
-    iat_typed = False
     if action == "set-iat-cell" and row.get("iat_cell") == "data-pointer":
         item = {
             "kind": str(row.get("kind") or ""),
@@ -580,14 +573,22 @@ def _apply_surrender_iat_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
         if pointer is None:
             return {**dict(row), "error": "unresolved-iat-type"}
         iat_typed = _apply_iat_cell_type(program, address, pointer)
+        if not iat_typed:
+            return {**dict(row), "error": "iat-cell-not-typed"}
         return {
             "address": row["address"],
             "decorated_name": row.get("decorated_name"),
             "action": action,
-            "iat_cell_typed": iat_typed,
+            "iat_cell_typed": True,
         }
     if action not in {"set-from-surrender", "set-iat-cell"}:
         return {**dict(row), "error": f"unexpected-action:{action}"}
+    from ghidra.program.model.listing import (  # type: ignore[import-not-found]
+        Function,
+        ParameterImpl,
+    )
+    from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
+
     function = _function_for_iat(program, address)
     applied_types = False
     convention = str(row.get("convention") or "")
@@ -631,15 +632,15 @@ def _apply_surrender_iat_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
                 function.setSignatureSource(SourceType.ANALYSIS)
             # Full resolved ABI claims IMPORTED; convention-only stays ANALYSIS.
     pointer = _callable_iat_pointer(program, function, parsed)
-    if pointer is not None:
-        iat_typed = _apply_iat_cell_type(program, address, pointer)
+    if pointer is not None and not _apply_iat_cell_type(program, address, pointer):
+        return {**dict(row), "error": "iat-cell-not-typed", "applied_types": applied_types}
     return {
         "address": row["address"],
         "decorated_name": row.get("decorated_name"),
         "convention": convention,
         "action": action,
         "applied_types": applied_types,
-        "iat_cell_typed": iat_typed,
+        "iat_cell_typed": pointer is not None,
     }
 
 

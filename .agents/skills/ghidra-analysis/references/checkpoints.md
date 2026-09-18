@@ -39,11 +39,14 @@ project concurrently.
 After a coherent reviewed analysis batch, close the program session and export accepted state:
 
 ```sh
+uv run wiz8 analyze decompiler-quality
 uv run wiz8 ghidra seed refresh wiz8
 ```
 
-This updates the tracked reviewed GZF checkpoint. It is a sharing operation, not a per-function or
-per-signature step and not a substitute for saving the live program.
+`seed refresh` updates the tracked reviewed GZF checkpoint. It requires a successful
+`decompiler-quality` report tied to the current ProgramDB fingerprint. It is a sharing
+operation, not a per-function or per-signature step and not a substitute for saving the
+live program.
 
 Other checkouts whose live project was restored from the previous reviewed GZF will then fail the
 freshness preflight until they explicitly reconcile or replace that live state.

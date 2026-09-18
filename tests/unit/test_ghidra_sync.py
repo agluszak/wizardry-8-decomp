@@ -5,6 +5,7 @@ from wiz8decomp.ghidra.sync import (
     _explicit_parameter_types,
     _has_function_overlap,
     _parameter_names_from_signature,
+    _projection_complete,
 )
 
 
@@ -14,6 +15,30 @@ def test_function_overlap_is_a_hard_sync_conflict() -> None:
     )
     assert not _has_function_overlap([{"error": "unresolved-signature"}])
     assert not _has_function_overlap([])
+
+
+def test_projection_complete_rejects_hard_apply_errors() -> None:
+    assert _projection_complete([], [], [{"step": "globals", "result": {"applied": 1}}])
+    assert not _projection_complete(
+        [{"error": "function-overlap"}],
+        [],
+        [{"step": "globals", "result": {"applied": 1}}],
+    )
+    assert not _projection_complete(
+        [],
+        [{"action": "unresolved-signature", "error": "parse-failed"}],
+        [],
+    )
+    assert not _projection_complete(
+        [],
+        [],
+        [{"step": "vbtables", "result": {"error": "boom"}}],
+    )
+    assert not _projection_complete(
+        [],
+        [],
+        [{"step": "surrender-iat", "result": {"errors": [{"error": "iat-cell-not-typed"}]}}],
+    )
 
 
 def test_explicit_parameter_types_drop_this_pointer() -> None:
