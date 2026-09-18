@@ -1,11 +1,25 @@
 #include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_code/ButtonSound.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/regions.h"
+#include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
+#include "wiz8/xstatus.h"
+#include "input.h"
+
+#include <new>
+#include <wchar.h>
+
+#define MGS_SPELL_ICONS_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSSpellIcons.cpp"
 
 /* Local Screens\MGSSpellIcons.cpp. The vector destructor emission at
    0x005B1B70 is the last one before the compiler's MGSSpellIcons.cpp to
@@ -18,6 +32,13 @@ unsigned int g_spell_icon_count_69c25c;
 /* Child spell-icon text controls under g_spell_icon_strip_69c2b0. */
 // GLOBAL: WIZ8 0x0069C264
 W8TextControl* g_spell_icon_rows_69c264[12];
+/* Duration cached while an effect-icon help string is shown. */
+// GLOBAL: WIZ8 0x0069C260
+unsigned int g_effect_icon_help_duration_69c260;
+/* L"%s :  " used only to size the help buffer before the real L"%s: " copy. */
+// GLOBAL: WIZ8 0x0064DA8C
+const wchar_t g_format_s_spaced_colon_0064da8c[] = L"%s :  ";
+extern const wchar_t g_format_s_colon_00648164[];
 /* Right-side combat-effect icon rows under g_combat_effect_right_panel_69c2b8. */
 // GLOBAL: WIZ8 0x0069C294
 W8TextControl* g_combat_effect_right_rows_69c294[6];
@@ -140,4 +161,218 @@ void InvalidateMainGameEffectHud(void)
         ClearSurfaceRect(0x7f, 0x14, 0x201, 0x28);
         InvalidateRegion(0x7f, 0x14, 0x201, 0x28, 0);
     }
+}
+
+// FUNCTION: WIZ8 0x005AED90
+void ShowPartyEffectIconHelp(int slot_index)
+{
+    W8SpellRuntimeRecord* records = g_spell_records;
+    W8EffectSlot* slot = &g_status_685170.effect_slots_17af[slot_index];
+    signed char amount = slot->amount;
+    unsigned int duration = slot->duration_0d;
+    int effect_id = slot->effect_id;
+    wchar_t* name;
+    wchar_t* detail;
+    unsigned int name_len;
+    unsigned int detail_len;
+    wchar_t* text;
+
+    g_effect_icon_help_duration_69c260 = duration;
+    name = FormatWideString(g_format_s_spaced_colon_0064da8c, records[effect_id].display_name);
+    name_len = wcslen(name);
+    detail =
+        FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration_69c260);
+    detail_len = wcslen(detail);
+    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
+    if (text == 0) {
+        srAssertFail("pText", MGS_SPELL_ICONS_CPP, 0x15c, 0);
+    }
+    wcscpy(text, FormatWideString(g_format_s_colon_00648164, records[effect_id].display_name));
+    wcscat(text,
+           FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration_69c260));
+    SetRegionHelpText(text);
+    operator delete(text);
+}
+
+// FUNCTION: WIZ8 0x005AF300
+void ShowCombatLeftEffectIconHelp(int slot_index)
+{
+    W8SpellRuntimeRecord* records = g_spell_records;
+    W8EffectSlot* slot = &g_combat_state->effect_slots[slot_index];
+    signed char amount = slot->amount;
+    unsigned int duration = slot->duration_0d;
+    int effect_id = slot->effect_id;
+    wchar_t* name;
+    wchar_t* detail;
+    unsigned int name_len;
+    unsigned int detail_len;
+    wchar_t* text;
+
+    g_effect_icon_help_duration_69c260 = duration;
+    name = FormatWideString(g_format_s_spaced_colon_0064da8c, records[effect_id].display_name);
+    name_len = wcslen(name);
+    detail = FormatWideString(gppStringList[0x1e74 / 4], amount);
+    detail_len = wcslen(detail);
+    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
+    if (text == 0) {
+        srAssertFail("pText", MGS_SPELL_ICONS_CPP, 0x2e1, 0);
+    }
+    wcscpy(text, FormatWideString(g_format_s_colon_00648164, records[effect_id].display_name));
+    wcscat(text, FormatWideString(gppStringList[0x1e74 / 4], amount));
+    SetRegionHelpText(text);
+    operator delete(text);
+}
+
+// FUNCTION: WIZ8 0x005AF410
+void ShowCombatRightEffectIconHelp(int slot_index)
+{
+    W8SpellRuntimeRecord* records = g_spell_records;
+    W8EffectSlot* slot = &g_combat_state->effect_slots_85a[slot_index];
+    signed char amount = slot->amount;
+    unsigned int duration = slot->duration_0d;
+    int effect_id = slot->effect_id;
+    wchar_t* name;
+    wchar_t* detail;
+    unsigned int name_len;
+    unsigned int detail_len;
+    wchar_t* text;
+
+    g_effect_icon_help_duration_69c260 = duration;
+    name = FormatWideString(g_format_s_spaced_colon_0064da8c, records[effect_id].display_name);
+    name_len = wcslen(name);
+    detail =
+        FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration_69c260);
+    detail_len = wcslen(detail);
+    text = static_cast<wchar_t*>(operator new((name_len + detail_len) * 2 + 2));
+    if (text == 0) {
+        srAssertFail("pText", MGS_SPELL_ICONS_CPP, 0x30d, 0);
+    }
+    wcscpy(text, FormatWideString(g_format_s_colon_00648164, records[effect_id].display_name));
+    wcscat(text,
+           FormatWideString(gppStringList[0x1e70 / 4], amount, g_effect_icon_help_duration_69c260));
+    SetRegionHelpText(text);
+    operator delete(text);
+}
+
+/* Top-row party effect icons: map callback_id onto the Nth active party
+   effect slot and refresh help on enter. */
+// FUNCTION: WIZ8 0x005AEEA0
+unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int match = 0;
+    int slot_index = 0;
+    W8EffectSlot* slot;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    slot = g_status_685170.effect_slots_17af;
+    do {
+        if (slot->active != 0) {
+            if (match == region->callback_id) {
+                break;
+            }
+            match = match + 1;
+        }
+        slot = slot + 1;
+        slot_index = slot_index + 1;
+    } while (slot < &g_status_685170.effect_slots_17af[12]);
+
+    if (slot_index != 12 && event->usEvent == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            ShowPartyEffectIconHelp(slot_index);
+            return 1;
+        }
+        if (g_effect_icon_help_duration_69c260 !=
+            g_status_685170.effect_slots_17af[slot_index].duration_0d) {
+            ShowPartyEffectIconHelp(slot_index);
+            ResetRegionHelp(0);
+        }
+    }
+    return 0;
+}
+
+/* Left combat-effect strip (nine slots at g_combat_state->effect_slots). */
+// FUNCTION: WIZ8 0x005AF530
+unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int match;
+    unsigned int slot_index;
+    W8EffectSlot* slot;
+
+    if (gXStatus.fCombatMode != 0) {
+        PushButtonSoundScheme005587C0(0, 1);
+        match = 0;
+        slot_index = 0;
+        slot = g_combat_state->effect_slots;
+        do {
+            if (slot->active != 0) {
+                if (match == region->callback_id) {
+                    break;
+                }
+                match = match + 1;
+            }
+            slot_index = slot_index + 1;
+            slot = slot + 1;
+        } while (slot_index < 9);
+
+        if (slot_index != 9 && event->usEvent == MOUSE_POS) {
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+                return 1;
+            }
+            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                ShowCombatLeftEffectIconHelp(slot_index);
+                return 1;
+            }
+            if (g_effect_icon_help_duration_69c260 !=
+                g_combat_state->effect_slots[slot_index].duration_0d) {
+                ShowCombatLeftEffectIconHelp(slot_index);
+                ResetRegionHelp(0);
+            }
+        }
+    }
+    return 0;
+}
+
+/* Right combat-effect strip (six slots at g_combat_state->effect_slots_85a). */
+// FUNCTION: WIZ8 0x005AF5E0
+unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned int match;
+    unsigned int slot_index;
+    W8EffectSlot* slot;
+
+    if (gXStatus.fCombatMode != 0) {
+        PushButtonSoundScheme005587C0(0, 1);
+        match = 0;
+        slot_index = 0;
+        slot = g_combat_state->effect_slots_85a;
+        do {
+            if (slot->active != 0) {
+                if (match == region->callback_id) {
+                    break;
+                }
+                match = match + 1;
+            }
+            slot_index = slot_index + 1;
+            slot = slot + 1;
+        } while (slot_index < 6);
+
+        if (slot_index != 6 && event->usEvent == MOUSE_POS) {
+            if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+                return 1;
+            }
+            if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+                ShowCombatRightEffectIconHelp(slot_index);
+                return 1;
+            }
+            if (g_effect_icon_help_duration_69c260 !=
+                g_combat_state->effect_slots_85a[slot_index].duration_0d) {
+                ShowCombatRightEffectIconHelp(slot_index);
+                ResetRegionHelp(0);
+            }
+        }
+    }
+    return 0;
 }

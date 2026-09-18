@@ -8,11 +8,10 @@ original-TU sources and annotates whether each outlier address also carries
 FOLDED, TEMPLATE, or SYNTHETIC marker evidence so agents can review suspicious
 ownership manually.
 
-``NotifyLinkedModel005AA400`` (0x005AA400 in ``stMeshModel.cpp``) is the
-regression fixture: its empty body sits more than a megabyte from that TU's
-other recovered functions because retail ICF placed the stub amid OptionsScreen
-material. Presence in the report is expected; it is not automatic proof the
-symbol is mis-owned.
+The report is informational only: presence in the listing is a review signal,
+not automatic proof a symbol is mis-owned. Regression coverage for
+folded/template/synthetic annotation lives in unit tests with synthetic
+markers, not a hard-coded production fixture address.
 """
 
 from __future__ import annotations
@@ -28,8 +27,6 @@ from ..source_units import ORIGINAL_TU, source_unit_records
 
 DEFAULT_MIN_GAP = 0x100000
 DEFAULT_MIN_PEERS = 3
-FIXTURE_ADDRESS = 0x005AA400
-FIXTURE_SOURCE = "src/wiz8/engine_code/stMeshModel.cpp"
 _HEADER_SUFFIXES = (".h", ".hpp", ".hxx", ".inl")
 
 
@@ -150,14 +147,6 @@ def placement_outlier_report(
         min_gap=min_gap,
         min_peers=min_peers,
     )
-    fixture = next(
-        (
-            row
-            for row in outliers
-            if int(row["address"], 16) == FIXTURE_ADDRESS and row["source_file"] == FIXTURE_SOURCE
-        ),
-        None,
-    )
     artifact_dir = repo_dir / "build" / "reports" / "placement-outliers"
     artifact_dir.mkdir(parents=True, exist_ok=True)
     artifact = artifact_dir / "outliers.json"
@@ -171,12 +160,6 @@ def placement_outlier_report(
         ),
         "min_gap_bytes": min_gap,
         "min_peers": min_peers,
-        "fixture": {
-            "address": f"0x{FIXTURE_ADDRESS:08x}",
-            "source_file": FIXTURE_SOURCE,
-            "present": fixture is not None,
-            "row": fixture,
-        },
         "outlier_count": len(outliers),
         "outliers": outliers,
     }
@@ -185,7 +168,6 @@ def placement_outlier_report(
         "schema": "wiz8.placement-outliers-v1",
         "informational": True,
         "outlier_count": len(outliers),
-        "fixture_present": fixture is not None,
         "artifact": str(artifact.relative_to(repo_dir)),
         "outliers": outliers,
     }

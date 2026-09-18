@@ -23,6 +23,10 @@ void ClearHighlightIfItIs(const int* item);
 #include "wiz8/layouts/main_game_screen.h"
 /* MainGameScreen.cpp GLOBAL at 0x006068E4: the "%s" display format. */
 extern const wchar_t g_format_s_006068e4[];
+/* MainGameScreen.cpp GLOBAL at 0x0061C3E0: the "%s: %s" display format. */
+extern const wchar_t g_format_s_colon_s_0061c3e0[];
+/* MainGameScreen.cpp GLOBAL at 0x006481B4: the "%s: %s (%d)" display format. */
+extern const wchar_t g_format_s_colon_s_paren_d_006481b4[];
 /* MainGameScreen.cpp GLOBAL at 0x0064BAB0: the "%d%%" display format. */
 extern const wchar_t g_format_d_percent_0064bab0[];
 
@@ -218,6 +222,9 @@ public:
        always covered). Callers use it to skip portrait work on rows the
        open transcript covers. */
     unsigned char IsSlotPortraitTranscriptCovered(unsigned int party_slot); /* 0x0055E410 */
+    /* Put a clicked transcript keyword into the dialogue field; when the same
+       entry is already selected, also run HandleNpcDialogueInput. */
+    void SelectTranscriptKeywordAtPoint(int x, int y); /* 0x0055E490 */
     /* Re-apply the category filter, rebuild the expansion and restate the
        scroll widgets. */
     void SetTranscriptCategoryFilter(signed char category); /* 0x0055E7C0 */
@@ -897,13 +904,22 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event,
 /* Help 36: combat monster-list hit rows beside the radar map. */
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
-/* Help 23: the 3D world view — hover picks, left/right click aims/interacts,
-   and mouselook toggle. */
 /* Forward mouse events to W8MainScreenState control slots indexed by
    callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */
-void Function568390(int value);                                      /* 0x00568390 */
+/* Party portrait event regions (callback_id 0..7): complete the slot's active
+   character event, or finish NPC voice playback for slots 0/1. */
+unsigned char PartyPortraitEventRegionEvent(const InputAtom* event,
+                                            struct W8Region* region); /* 0x0052FD80 */
+/* NPC quote-bubble hit region: left-down finishes voice playback. */
+unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event); /* 0x00576650 */
+/* Surprise / combat-bar overlay: button and mapped-key input resume the world. */
+unsigned char CombatBarRegionEvent(const InputAtom* event); /* 0x005699D0 */
+/* Dialogue transcript text area: select keywords, scroll, and click-to-speak. */
+unsigned char DialogueTranscriptRegionEvent(const InputAtom* event,
+                                            struct W8Region* region); /* 0x0055E690 */
+void Function568390(int value);                                       /* 0x00568390 */
 void Function569390(unsigned char enable); /* 0x00569390: formation board */
 void ToggleMainGamePause(void);            /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and
@@ -965,14 +981,16 @@ void HandleNpcDialogueInput(void);                                              
 /* While NPC dialogue is up, pump MOUSE_POS into MSYS and drain Escape /
    left-click: Escape backs out of the current dialogue layout (or unhides
    a suppressed panel), left-click finishes in-progress NPC voice. */
-void ProcessNpcDialogueFrameInput(void);                       /* 0x00575C50 */
-void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data); /* 0x00575E60 */
-void OnNpcDialogClosed(W8DialogBase* dialog);                  /* 0x00576E20 */
-void Function5ADB10(int value);                                /* 0x005ADB10 */
-void Function58BA60(void);                                     /* 0x0058BA60 */
-void Function575710(void);                                     /* 0x00575710 */
-unsigned char Function56B6F0(void);                            /* 0x0056B6F0 */
-void Function56B5F0(void);                                     /* 0x0056B5F0 */
+void ProcessNpcDialogueFrameInput(void); /* 0x00575C50 */
+/* Replace or space-append a keyword into dialogue field 0. */
+void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append); /* 0x00574F90 */
+void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data);        /* 0x00575E60 */
+void OnNpcDialogClosed(W8DialogBase* dialog);                         /* 0x00576E20 */
+void Function5ADB10(int value);                                       /* 0x005ADB10 */
+void Function58BA60(void);                                            /* 0x0058BA60 */
+void Function575710(void);                                            /* 0x00575710 */
+unsigned char Function56B6F0(void);                                   /* 0x0056B6F0 */
+void Function56B5F0(void);                                            /* 0x0056B5F0 */
 /* 0x00571660: learn one keyword into the dialogue transcript. category -1
    auto-classifies the text against items, NPC/named-monster names and the
    place-name table; a nonzero play_chime rings the keyword chime. */

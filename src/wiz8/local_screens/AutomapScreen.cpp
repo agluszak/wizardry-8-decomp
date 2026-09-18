@@ -285,6 +285,26 @@ inline unsigned int PackAutomapCell(const srVector3T<float>& position)
 
 } // namespace
 
+/* Full-screen automap background: arm on left-down, dismiss on left-up. */
+// FUNCTION: WIZ8 0x00581790
+unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* region)
+{
+    switch (event->usEvent) {
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        break;
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            RequestScreenTransition();
+            return 1;
+        }
+        break;
+    default:
+        return 0;
+    }
+    return 1;
+}
+
 /* Rebuild the automap view for the level that just loaded: release every
    note, size the query range from the level, seed the cell grid from the
    octree bounds (or a fixed cube when there is no octree), and mark the

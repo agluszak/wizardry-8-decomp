@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input.h"
 #include "wiz8/vector.h"
 #include "wiz8/engine_code/stHash.hpp"
 
@@ -28,6 +29,8 @@ public:
     virtual ~MGSKeyboard();
 
     int FindBinding(int command) const;
+    /* Match a live InputAtom against the binding table; returns command or -1. */
+    int FindCommandForEvent(const InputAtom* event) const; /* 0x0055D2A0 */
     MGSKeyBinding* GetBinding(int index) const;
     unsigned char IsCommandPressed(unsigned int command) const;
     void Clear();
@@ -135,6 +138,7 @@ enum W8MGSCommand {
 };
 
 struct Controls;
+struct W8Region;
 class W8TextControl;
 
 /* The keyboard-action menu the main screen opens for a party slot: a panel,
@@ -175,3 +179,8 @@ void RefreshKeyboardMenuRows(void); /* 0x00593360 */
 void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row); /* 0x005935E0 */
 /* Invalidate (when asked) then redraw the menu panel. */
 void RedrawKeyboardMenuPanel(unsigned char invalidate); /* 0x005936F0 */
+/* Region callback the thirteen keyboard-menu rows share. */
+unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* region); /* 0x00594760 */
+/* Region callback for the keyboard-menu background: right-up closes the menu. */
+unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event,
+                                                W8Region* region); /* 0x005949A0 */

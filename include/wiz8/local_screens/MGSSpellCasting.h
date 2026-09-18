@@ -16,6 +16,12 @@ void ResetSpellCastingSelection005A0B90(void);                               /* 
 void CommitSpellCastingSelection005A0BC0(void);                              /* 0x005A0BC0 */
 void SetSpellCastingMode005A1330(W8MainUiMode value);                        /* 0x005A1330 */
 int GetSpellCastingSelection005A1350(void);                                  /* 0x005A1350 */
+
+struct W8Region;
+unsigned char SpellRealmButtonRegionEvent(const InputAtom* event,
+                                          W8Region* region);                      /* 0x005A0C80 */
+unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region); /* 0x005A0E50 */
+
 /* 0x0069BF3C: live spell-casting view, or null when the panel is closed. */
 struct W8SpellCastingView;
 extern W8SpellCastingView* gpSCSV;

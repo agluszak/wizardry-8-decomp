@@ -46,6 +46,9 @@
 #include "wiz8/world_cursor.h"
 #include "wiz8/xstatus.h"
 
+#include "himage.h"
+#include "vsurface.h"
+
 #define SPELLCASTING_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSSpellCasting.cpp"
 
 /* The first realm skill id; character->skill_unlocks[first + realm] counts
@@ -91,6 +94,13 @@ struct W8SpellCastingView {
 
 static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
 
+/* Realm-name string ids for the spell-casting realm-button tooltips. */
+// GLOBAL: WIZ8 0x0064C840
+int g_spell_realm_help_string_ids_0064c840[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};
+
+// GLOBAL: WIZ8 0x0064C934
+const wchar_t g_format_s_parens_s_colon_d_0064c934[] = L"%s (%s: %d)";
+
 // GLOBAL: WIZ8 0x0069BF3C
 W8SpellCastingView* gpSCSV;
 
@@ -121,6 +131,7 @@ void SelectSpellPowerLevel005A0570(void);
 void SelectSpellPowerLevel005A0660(void);
 void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog);
+void PreviewSpellPowerPipHover005A0910(int power_level);
 static void UpdateSpellRealmPointDisplays(void);
 static void UpdateSpellPowerPips(void);
 static void RefreshSpellPowerPip(int pip);
@@ -1089,6 +1100,51 @@ void SelectSpellPowerLevel005A06F0(int power_level)
     gpSCSV->spell_name->m_textBuffer.SetText(text, g_font_683660);
 }
 
+/* Hover preview for a power pip: clears the spell-name plate and shows the
+   cast cost for the hovered level (or restores the selected cost / empty
+   label when the pointer leaves). Only power classes 0 and 1 participate. */
+// FUNCTION: WIZ8 0x005A0910
+void PreviewSpellPowerPipHover005A0910(int power_level)
+{
+    W8TextControl* spell_name;
+    Controls* panel;
+    const wchar_t* text;
+
+    if (power_level < 7) {
+        if ((gpSCSV->iSpellPowerClass == 0 || gpSCSV->iSpellPowerClass == 1) &&
+            (power_level == -1 || (gpSCSV->power_pips[power_level]->m_active != 0 &&
+                                   gpSCSV->power_pips[power_level]->m_enabled != 0))) {
+            spell_name = gpSCSV->spell_name;
+            panel = gpSCSV->panels[2];
+            ColorFillVideoSurfaceArea(
+                -0xe, spell_name->m_left + panel->origin_x, spell_name->m_top + panel->origin_y,
+                spell_name->m_right + panel->origin_x, spell_name->m_bottom + panel->origin_y,
+                Get16BPPColor(0x10101));
+            spell_name->Invalidate(0);
+            if (power_level != -1) {
+                spell_name->m_textBuffer.SetRenderMode(6);
+                text = FormatWideString(
+                    g_format_d_0060aa20,
+                    (power_level + 1) * g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
+                spell_name->m_textBuffer.SetText(text, g_font_683660);
+                return;
+            }
+            if (gpSCSV->iSpellPowerClass == 0) {
+                spell_name->m_textBuffer.SetRenderMode(4);
+                if (gpSCSV->iSpellPower != -1) {
+                    text = FormatWideString(
+                        g_format_d_0060aa20,
+                        (gpSCSV->iSpellPower + 1) *
+                            g_spell_records[gpSCSV->uiSpellToCast].spell_point_cost);
+                    spell_name->m_textBuffer.SetText(text, g_font_683660);
+                    return;
+                }
+                spell_name->m_textBuffer.SetText(&g_wchar_00689b34, g_font_683660);
+            }
+        }
+    }
+}
+
 /* The confirmation dialog's destroy callback: a cancelled dialog unwinds the
    whole spell selection. */
 // FUNCTION: WIZ8 0x005A0AE0
@@ -1143,6 +1199,103 @@ void CommitSpellCastingSelection005A0BC0(void)
         }
     }
     TryCommitSpellCast();
+}
+
+/* Realm button/icon region callback (catalog ids 0..5): presses the matching
+   realm button, invalidates its icon, and on enter sets the realm tooltip
+   (plain name when disabled, or name with skill level when enabled). */
+// FUNCTION: WIZ8 0x005A0C80
+unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event = event->usEvent;
+
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            gpSCSV->realm_buttons[region->callback_id]->OnLeftButtonDown(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_UP) {
+            gpSCSV->realm_buttons[region->callback_id]->OnLeftButtonUp(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            }
+            return 1;
+        }
+    } else if (us_event == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            gpSCSV->realm_buttons[region->callback_id]->OnMouseLeave(0);
+            gpSCSV->realm_icons[region->callback_id]->Invalidate(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            unsigned int realm = region->callback_id;
+            gpSCSV->realm_buttons[realm]->OnMouseEnter(0);
+            if (gpSCSV->realm_buttons[realm]->m_enabled == 0) {
+                SetRegionHelpText(gppStringList[g_spell_realm_help_string_ids_0064c840[realm]]);
+            } else {
+                SetRegionHelpText(FormatWideString(
+                    g_format_s_parens_s_colon_d_0064c934,
+                    gppStringList[g_spell_realm_help_string_ids_0064c840[realm]],
+                    gppStringList[0xb4 / 4],
+                    g_status_685170.buffers.characters[g_status_685170.selected_character]
+                        .skills[W8_SKILL_FIRST_REALM + realm]
+                        .level));
+            }
+            gpSCSV->realm_icons[realm]->Invalidate(0);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Power-pip / cancel-button region callback. callback_id indexes the contiguous
+   control pointers from power_pips[0] (ids 0..8 and cancel at 10). While
+   flag_570 is set the handler swallows input. */
+// FUNCTION: WIZ8 0x005A0E50
+unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
+{
+    int us_event;
+    unsigned int callback_id;
+
+    if (gpSCSV->flag_570 != 0) {
+        return 1;
+    }
+
+    us_event = event->usEvent;
+    if (us_event <= LEFT_BUTTON_REPEAT) {
+        if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
+            (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonDown(0);
+            region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+            return 1;
+        }
+        if (us_event == LEFT_BUTTON_UP) {
+            (&gpSCSV->power_pips[0])[region->callback_id]->OnLeftButtonUp(0);
+            callback_id = region->callback_id;
+            if (callback_id < 7 && ((&gpSCSV->power_pips[0])[callback_id]->m_stateFlags &
+                                    g_W8TextControlMask005ED570) == 0) {
+                PreviewSpellPowerPipHover005A0910(callback_id);
+            }
+            if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+                region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+            }
+            return 1;
+        }
+    } else if (us_event == MOUSE_POS) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            PreviewSpellPowerPipHover005A0910(-1);
+            (&gpSCSV->power_pips[0])[region->callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
+            PreviewSpellPowerPipHover005A0910(region->callback_id);
+            (&gpSCSV->power_pips[0])[region->callback_id]->OnMouseEnter(0);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x005A1140

@@ -39,6 +39,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
 
@@ -1788,6 +1789,110 @@ void CreateMainGameInterfaceButtons(void)
     CreateCombatStanceButtons();
     CreateRoofButtons();
     CreateLayoutArrowButtons();
+}
+
+// FUNCTION: WIZ8 0x00598CD0
+unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event, W8Region* region)
+{
+    unsigned short us_event;
+    W8TextControl** row;
+
+    if (g_level_block->combat_end_notification == -1) {
+        return 0;
+    }
+    us_event = event->usEvent;
+    if (us_event == RIGHT_BUTTON_DOWN) {
+        return 1;
+    }
+    if (us_event == RIGHT_BUTTON_UP) {
+        SetSubMenuButtonTooltips(1);
+        g_level_block->combat_end_notification = -1;
+        g_submenu_entry_count_69b87e = 0;
+        RegionSetDisable(0x27);
+        DisableRegionSetInput(0x27);
+        if (gpSubMenuPanel != 0) {
+            delete gpSubMenuPanel;
+            gpSubMenuPanel = 0;
+        }
+        row = g_submenu_rows_69b8ec;
+        do {
+            if (*row != 0) {
+                delete *row;
+                *row = 0;
+            }
+            ++row;
+        } while (row < &g_submenu_rows_69b8ec[5]);
+        RequestRedraw(0x200);
+        return 1;
+    }
+    if (us_event != MOUSE_POS) {
+        return 0;
+    }
+    if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+        return 1;
+    }
+    return (region->flags >> 4) & 1;
+}
+
+// FUNCTION: WIZ8 0x00598DB0
+unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8PartySlotRow* party_row;
+    W8ItemInstance* item;
+    wchar_t* name;
+    int slot;
+
+    if (g_level_block->combat_end_notification == -1) {
+        return 0;
+    }
+    RequestRedraw(0x80000000);
+    switch (event->usEvent) {
+    case RIGHT_BUTTON_DOWN:
+        g_submenu_rows_69b8ec[region->callback_id]->OnRightButtonDown(0);
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_DOWN:
+        g_submenu_rows_69b8ec[region->callback_id]->OnLeftButtonDown(0);
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case LEFT_BUTTON_UP:
+        g_submenu_rows_69b8ec[region->callback_id]->OnLeftButtonUp(0);
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+        }
+        return 1;
+    case RIGHT_BUTTON_UP:
+        g_submenu_rows_69b8ec[region->callback_id]->OnRightButtonUp(0);
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0) {
+            region->flags &= ~W8_REGION_RIGHT_BUTTON_HELD;
+        }
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_submenu_rows_69b8ec[region->callback_id]->OnMouseLeave(0);
+            return 1;
+        }
+        if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+            return 0;
+        }
+        if (g_level_block->combat_end_notification == 3 &&
+            g_submenu_entries_69b868[region->callback_id] == 2) {
+            SetRegionHelpForceEnabled004F27C0(1);
+            slot = g_status_685170.selected_character;
+            if (CanPartySlotUseRecordedItem(slot) == 0) {
+                SetRegionHelpText(gppStringList[0x174 / 4]);
+            } else {
+                party_row = &g_status_685170.buffers.party_rows[slot];
+                item = FindCharacterItemAt(slot, party_row->item_origin, party_row->item_slot);
+                name = FormatItemDisplayName(item, 0);
+                SetRegionHelpText(
+                    FormatWideString(g_format_s_colon_s_0061c3e0, gppStringList[0x174 / 4], name));
+            }
+        }
+        g_submenu_rows_69b8ec[region->callback_id]->OnMouseEnter(0);
+        return 1;
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x00596FE0

@@ -1965,15 +1965,15 @@ void RefreshTargetMarker(void)
    reach - occupied, actually dead, still reachable while down, and not yet
    beyond reach. */
 // FUNCTION: WIZ8 0x0053C2C0
-char IsDeadCharacterTargetable(int party_slot)
+bool IsDeadCharacterTargetable(int party_slot)
 {
     if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
-        return 0;
+        return false;
     }
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     if (character->hp_current > 0 ||
         character->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0) {
-        return 0;
+        return false;
     }
     return character->condition_turns[W8_CONDITION_BEYOND_REACH] <= 0;
 }

@@ -150,7 +150,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot); /* 0x0053CDF0 */
 int PickNextTargetableMonster(int party_slot);
 /* 0x0053C2C0: whether the slot holds a dead character still reachable for a
    targeting mode that admits one. */
-char IsDeadCharacterTargetable(int party_slot);
+bool IsDeadCharacterTargetable(int party_slot);
 
 /* 0x005360B0: the faction table index for a name, -1 when none matches. */
 char FindFactionByName(const char* name);

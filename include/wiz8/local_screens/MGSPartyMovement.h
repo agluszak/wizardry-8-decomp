@@ -1,6 +1,9 @@
 #pragma once
 
+#include "input.h"
+
 struct Controls;
+struct W8Region;
 class W8TextBuffer;
 class W8TextControl;
 
@@ -25,5 +28,7 @@ void DisablePartyMovementRegions(void); /* 0x005A19A0 */
 unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed); /* 0x005A1EB0 */
 
 void InvalidatePartyMovementPanel(void); /* 0x005A1DD0 */
-void DisableFreeTurnButton(void);        /* 0x005A1E90 */
-void EnableFreeTurnButton(void);         /* 0x005A1EA0 */
+/* Free-turn / cancel-party-movement button region callback (ids 0 and 1). */
+unsigned char FreeTurnButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x005A1DE0 */
+void DisableFreeTurnButton(void);                                                  /* 0x005A1E90 */
+void EnableFreeTurnButton(void);                                                   /* 0x005A1EA0 */
