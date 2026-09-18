@@ -207,11 +207,23 @@ def _decompile(program: Any, argument: str) -> dict[str, Any]:
 
 
 def _class_fields(program: Any, names: list[str]) -> dict[str, Any]:
-    manager = program.getDataTypeManager()
+    from ..class_binding import find_class_structure, find_ghidra_class
+
     classes = []
     for name in names:
-        data_type = manager.getDataType(f"/wiz8/classes/{name}")
+        data_type = None
+        ghidra_class = find_ghidra_class(program, name)
+        if ghidra_class is not None:
+            data_type = find_class_structure(program, ghidra_class)
+        if data_type is None:
+            manager = program.getDataTypeManager()
+            simple = name.split("::")[-1]
+            for path in (f"/{simple}", f"/{name}", f"/Demangler/{simple}"):
+                data_type = manager.getDataType(path)
+                if data_type is not None:
+                    break
         fields = []
+        path = str(data_type.getPathName()) if data_type is not None else None
         if data_type is not None and hasattr(data_type, "getDefinedComponents"):
             for component in data_type.getDefinedComponents():
                 if component.getFieldName() is not None:
@@ -223,7 +235,7 @@ def _class_fields(program: Any, names: list[str]) -> dict[str, Any]:
                             "type": component.getDataType().getDisplayName(),
                         }
                     )
-        classes.append({"name": name, "fields": fields})
+        classes.append({"name": name, "path": path, "fields": fields})
     return {"classes": classes}
 
 

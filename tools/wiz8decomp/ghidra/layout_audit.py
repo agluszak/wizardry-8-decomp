@@ -10,6 +10,8 @@ def audit_source_layouts(program: Any, source_index: dict[str, Any]) -> dict[str
 
     from ghidra.program.model.data import Pointer, Structure, TypeDef
 
+    from ..class_binding import find_class_structure, find_ghidra_class
+
     def unwrap(data_type: Any) -> Any:
         while isinstance(data_type, TypeDef):
             data_type = data_type.getBaseDataType()
@@ -43,6 +45,20 @@ def audit_source_layouts(program: Any, source_index: dict[str, Any]) -> dict[str
             else:
                 spans.append((offset, component.getLength(), component.getDataType()))
         return spans
+
+    def bound_structure(class_name: str) -> Any | None:
+        ghidra_class = find_ghidra_class(program, class_name)
+        if ghidra_class is not None:
+            found = find_class_structure(program, ghidra_class)
+            resolved = structure(found)
+            if resolved is not None:
+                return resolved
+        simple = class_name.split("::")[-1]
+        for path in (f"/{simple}", f"/{class_name}", f"/Demangler/{simple}"):
+            resolved = structure(data_types.get(path))
+            if resolved is not None:
+                return resolved
+        return None
 
     data_types = {
         str(data_type.getPathName()): data_type
@@ -111,9 +127,10 @@ def audit_source_layouts(program: Any, source_index: dict[str, Any]) -> dict[str
                     expected=expected_depth,
                     actual=actual_depth,
                 )
-        original = structure(data_types.get("/wiz8/classes/" + name))
+        # Compare PDB rebuilt layout to the bound class Structure (not /wiz8/classes).
+        original = bound_structure(name)
         if original is None:
-            fail("missing-ghidra-class", name)
+            fail("missing-bound-class", name)
             continue
         source_spans = flatten(rebuilt)
         for component in original.getDefinedComponents():
