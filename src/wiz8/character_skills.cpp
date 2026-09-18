@@ -132,7 +132,7 @@ void FlushDeferredSkillNotices(void)
         }
     }
     if (have_line == 0) {
-        delete text;
+        delete[] text;
         delete extra;
     } else {
         extra->count = static_cast<signed char>(count);

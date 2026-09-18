@@ -188,7 +188,7 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
     distance = source_monster->GetDistanceToMonster004C7DD0(target_monster);
     source_record = GetMonsterDataForInfo(source);
     if (source_record->kind_0cb == 4) {
-        ranged_bonus = source_record->missile_value_24f * 5;
+        ranged_bonus = source_record->effective_level_24f * 5;
         if (ranged_bonus > 0x7d) {
             ranged_bonus = 0x7d;
         }
@@ -200,7 +200,7 @@ unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
         observer_position, target_position, observer_yaw, source->attributes[4], ranged_bonus,
         static_cast<unsigned char>(source->condition_turns[12] != 0),
         static_cast<unsigned char>(source_record->kind_0cb == 12),
-        static_cast<int>(target_record->missile_value_24f), penalty_modifier,
+        static_cast<int>(target_record->effective_level_24f), penalty_modifier,
         static_cast<int>(record->state_04), 0, distance);
     if (threshold < distance) {
         return 0;
@@ -688,7 +688,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
             player_distance = monster->GetDistanceToPlayer004C7CB0();
             if (record->kind_0cb == 4) {
-                int bonus = record->missile_value_24f * 5;
+                int bonus = record->effective_level_24f * 5;
 
                 fade_flag = static_cast<unsigned char>(bonus > 0x7d ? 0x7d : bonus);
             } else {
@@ -809,7 +809,7 @@ after_sight:
                             character->attributes[6].effective,
                             static_cast<unsigned char>(character->skills[15].level),
                             character->condition_turns[12] != 0, character->current_profession == 6,
-                            record->missile_value_24f, npc_fade_flag,
+                            record->effective_level_24f, npc_fade_flag,
                             static_cast<int>(monster_info->party_threat.state_04),
                             g_status_685170.party_modifiers_22e3.flag_4a, distance);
 

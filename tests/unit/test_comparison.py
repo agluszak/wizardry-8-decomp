@@ -160,6 +160,7 @@ def test_changed_files_uses_git_without_jj_workspace(tmp_path, monkeypatch):
     monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
     monkeypatch.setattr(comparison, "run", fake_run)
     monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
     assert changed_files(tmp_path) == [tmp_path / "One.cpp", tmp_path / "gone.cpp"]
 
 
@@ -173,6 +174,37 @@ def test_changed_files_uses_github_base_ref_for_git(tmp_path, monkeypatch):
     monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
     monkeypatch.setattr(comparison, "run", fake_run)
     monkeypatch.setenv("GITHUB_BASE_REF", "develop")
+    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
+
+
+def test_changed_files_uses_github_event_before_for_push(tmp_path, monkeypatch):
+    (tmp_path / "One.cpp").write_text("")
+
+    before = "abc123def4567890abc123def4567890abc123de"
+
+    def fake_run(command, *, cwd):
+        assert command == ["git", "diff", "--name-only", "--no-renames", before]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    monkeypatch.setenv("GITHUB_EVENT_BEFORE", before)
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
+
+
+def test_changed_files_ignores_all_zero_github_event_before(tmp_path, monkeypatch):
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert command == ["git", "diff", "--name-only", "--no-renames", "HEAD^"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    monkeypatch.setenv("GITHUB_EVENT_BEFORE", "0" * 40)
     assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
 
 
@@ -199,6 +231,23 @@ def test_changed_files_prefers_git_when_jj_executable_missing(tmp_path, monkeypa
     monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
     monkeypatch.setattr(comparison, "run", fake_run)
     monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
+
+
+def test_changed_files_uses_jj_in_workspace(tmp_path, monkeypatch):
+    (tmp_path / ".jj").mkdir()
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert cwd == tmp_path
+        assert command == ["jj", "diff", "--name-only", "--color=never"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    monkeypatch.delenv("GITHUB_EVENT_BEFORE", raising=False)
     assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
 
 

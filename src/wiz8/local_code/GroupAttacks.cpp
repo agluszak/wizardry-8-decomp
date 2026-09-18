@@ -104,19 +104,19 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
 
         monster_info = MonsterInfoFromID(0xb0, GROUP_ATTACKS_CPP, pSource->iMonsterID, 1);
         record = GetMonsterDataForInfo(monster_info);
-        if (record->missile_value_24f < 0x10) {
-            value = record->missile_value_24f;
+        if (record->effective_level_24f < 0x10) {
+            value = record->effective_level_24f;
         } else {
             value = 0xf;
         }
         uiMinRoll = (static_cast<unsigned int>(monster_info->stamina) *
-                     (record->missile_value_24f + value)) /
+                     (record->effective_level_24f + value)) /
                     static_cast<unsigned int>(monster_info->stamina_max);
         if (uiMinRoll == 0) {
             uiMinRoll = 1;
         }
         uiBounds[0] = (static_cast<unsigned int>(monster_info->stamina) *
-                       (record->missile_value_24f + value + 5)) /
+                       (record->effective_level_24f + value + 5)) /
                       static_cast<unsigned int>(monster_info->stamina_max);
         if (uiBounds[0] == 0) {
             uiBounds[0] = 1;

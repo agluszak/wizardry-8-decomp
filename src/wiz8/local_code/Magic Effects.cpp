@@ -193,7 +193,7 @@ void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, 
         monster = GetMonsterDataForInfo(monster_info);
         resistance =
             monster_info->modifiers_1db.resistance_bonus[realm] + monster->resistances[realm];
-        level = monster->missile_value_24f;
+        level = monster->effective_level_24f;
     } else {
         character = &g_status_685170.buffers.characters[target->iChar];
         resistance = character->resistances[realm].total;
@@ -233,7 +233,7 @@ char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_
         monster = GetMonsterDataForInfo(monster_info);
         resistance =
             monster_info->modifiers_1db.resistance_bonus[realm] + monster->resistances[realm];
-        level = monster->missile_value_24f;
+        level = monster->effective_level_24f;
         highest_condition = monster_info->highest_condition;
     } else {
         if (target->iType != W8_TARGET_KIND_CHARACTER) {

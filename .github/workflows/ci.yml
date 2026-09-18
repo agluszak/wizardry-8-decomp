@@ -33,6 +33,7 @@ jobs:
       WIZ8_WORK_DIR: /tmp/wiz8-work
       WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
       WIZ8_RUNTIME_DISPLAY: virtual
+      GITHUB_EVENT_BEFORE: ${{ github.event.before }}
       TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner }}
       LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner) }}
     steps:
@@ -40,12 +41,24 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Push lint selects against event.before / HEAD^; keep one parent as
+          # a fallback when event.before is unavailable (e.g. force-push zero).
+          fetch-depth: 2
 
       - name: Fetch PR comparison baseline
         if: github.event_name == 'pull_request'
         run: |
           git fetch --no-tags --depth=1 origin \
             "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF"
+
+      - name: Fetch push comparison baseline
+        if: >-
+          github.event_name == 'push' &&
+          github.event.before != '0000000000000000000000000000000000000000'
+        run: |
+          # fetch-depth: 2 only guarantees HEAD^ for a single-commit tip; a
+          # multi-commit push needs the explicit before SHA for changed_files().
+          git fetch --no-tags --depth=1 origin "${{ github.event.before }}"
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

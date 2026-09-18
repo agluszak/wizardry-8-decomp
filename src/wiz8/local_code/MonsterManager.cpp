@@ -221,7 +221,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         MonsterSetFacing004C5B60(monster_info->monster, monster_info->derived_23);
         RebuildMonsterDerivedStats(monster_info->location_id);
         monster_info->monster->movement_0c0.value_008 =
-            static_cast<unsigned int>(record->missile_value_24f) * 0x10000U +
+            static_cast<unsigned int>(record->effective_level_24f) * 0x10000U +
             monster_info->location_id;
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
         monster_info->monster->flag_216 = 0;
@@ -1661,7 +1661,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
             srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
         }
         record = MonsterDBFromSpeciesInline(monster_info->monster_species);
-        monster_level = record->unknown_250[1];
+        monster_level = record->display_level_251;
         health_knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
             float adjusted_knowledge =

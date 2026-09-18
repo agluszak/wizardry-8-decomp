@@ -62,7 +62,15 @@ def changed_files(repository: Path, since: str | None = None) -> list[Path]:
         baseline = since
         if baseline is None:
             base_branch = os.environ.get("GITHUB_BASE_REF")
-            baseline = f"origin/{base_branch}" if base_branch else "HEAD^"
+            if base_branch:
+                baseline = f"origin/{base_branch}"
+            else:
+                # Push events expose the previous tip; shallow checkouts often
+                # lack HEAD^ so prefer the explicit before SHA when present.
+                # Workflow must fetch that SHA — fetch-depth: 2 alone does not
+                # guarantee github.event.before for multi-commit pushes.
+                before = os.environ.get("GITHUB_EVENT_BEFORE", "").strip()
+                baseline = before if before and set(before) != {"0"} else "HEAD^"
         elif baseline.endswith("@origin"):
             baseline = f"origin/{baseline.removesuffix('@origin')}"
         command = ["git", "diff", "--name-only", "--no-renames", baseline]

@@ -9,15 +9,24 @@ access sites below are for the current recovered source model.
 
 | Offset | Member | Recovered access sites | Present evidence |
 |---:|---|---|---|
-| `0x0fc` | `value_0fc` | `Screens.cpp`, `MainGameScreen.cpp` | gates two portrait-refresh paths, but the opposite branch shapes do not yet establish a stable positive name |
 | `0x108` | `flag_108` | `Screens.cpp`, `MainGameScreen.cpp` | cleared during level-block initialization and set when a portrait refresh is scheduled |
+| `0x158` | `unknown_158` | `ApplyMainGameModeFlag` in `MainGameScreen.cpp` | repeatedly compared while choosing main-game mode region enable/disable paths; authored role still unsettled |
 | `0x271` | `flag_271` | `Screens.cpp`, `mipe.cpp`, `MGSSpellCasting.cpp`, `MainGameScreen.cpp` | toggles across MIPE, spell-casting, and main-game panel transitions; the shared abstraction remains unresolved |
 | `0x272` | `flag_272` | `Screens.cpp`, `mipe.cpp` | inverse of `flag_271` in the recovered MIPE transitions, with no independent consumer yet |
-| `0x2e8` | `value_2e8` | `Screens.cpp`, `MGSTextBox.cpp` | initialized from `g_font_683660` and returned by the text-box accessor; the exact font role is unresolved |
 | `0x314` | `flag_314` | `Screens.cpp`, `MainGameScreen.cpp` | controls a combat-portrait/target presentation path; nearby anonymous callees still own the exact mode semantics |
-| `0x326` | `flag_326` | `Screens.cpp`, `MGSRadarMap.cpp` | initialized clear and gates a radar-map update path |
-| `0x327` | `flag_327` | `Screens.cpp`, `MainGameScreen.cpp`, `ReviewCharacterScreen.cpp`, `Combat.cpp`, `Health Stamina Mana.cpp` | set by the endgame transition and suppresses ordinary main-game/combat presentation updates |
 | `0x328` | `flag_328` | `Screens.cpp`, `MainGameScreen.cpp` | selects one of two adjacent per-frame dispatch paths; only one recovered behavioral consumer exists |
+
+## Settled named members (no longer inventory gaps)
+
+These were previously listed as unresolved `value_*` / `flag_*` placeholders and now have
+evidence-backed names in source:
+
+| Offset | Member | Notes |
+|---:|---|---|
+| `0x0fc` | `main_ui_mode` | portraits / formation / radar preference used across mode switches |
+| `0x2e8` | `text_box_font` | `g_font_683660` while the main text box is live |
+| `0x326` | `radar_map_alternate` | radar uses alternate frame art while hovered |
+| `0x327` | `review_transition_active` | set while leaving into review; suppresses ordinary presentation updates |
 
 ## Initialization-only or single recovered consumer
 
@@ -32,12 +41,15 @@ semantic name would currently overstate the evidence:
 - `0x2e4 unknown_2e4[0]` is the only byte within that range touched by
   recovered source, in `Screens.cpp`.
 - `0x24d flag_24d` has one recovered write in `MainGameScreen.cpp`.
+- `0x160 unknown_160`, `0x164 unknown_164`, and `0x168 unknown_168` currently
+  show layout offsets from a single recovered consumer; do not name them from
+  that alone.
 
 ## No direct recovered source access
 
 The following storage is covered by the layout but has no direct field access
 in checked-in recovered bodies: `unknown_000[0xf0]`, `unknown_0f1[3]`,
-`unknown_0f8[4]`, `unknown_111[3]`, `unknown_158`, `unknown_15a[0x12]`,
+`unknown_0f8[4]`, `unknown_111[3]`, `unknown_15a[0x12]`,
 `value_19c`, `unknown_1f9[3]`, `unknown_211[3]`,
 `unknown_219[7]`, `unknown_22c[0xc]`, `unknown_24c`, `unknown_24e[2]`,
 `unknown_262[2]`, `unknown_273`, `unknown_290[0x10]`, `unknown_2b8[8]`,

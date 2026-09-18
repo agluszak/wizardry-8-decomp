@@ -441,13 +441,13 @@ unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* targ
         if (MonsterAttackReachesMonster(monster_info, record, 0, target_info) == 0) {
             return 0;
         }
-        target_level = GetMonsterDataForInfo(target_info)->missile_value_24f;
+        target_level = GetMonsterDataForInfo(target_info)->effective_level_24f;
         hp_percent = target_info->hp_current * 100 / target_info->hp_max;
         out_of_formation = monster_info->modifiers_1db.out_of_formation;
     } else {
         return 0;
     }
-    if (target_level > record->missile_value_24f && (hp_percent < 40 || out_of_formation != 0)) {
+    if (target_level > record->effective_level_24f && (hp_percent < 40 || out_of_formation != 0)) {
         return 1;
     }
     return 0;

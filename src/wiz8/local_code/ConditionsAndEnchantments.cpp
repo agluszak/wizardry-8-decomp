@@ -313,7 +313,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
             target->iChar != -1) {
             int* hate = &monster_info->pCombat->character_hate[target->iChar];
             record = GetMonsterDataForInfo(monster_info);
-            *hate += (record->missile_value_24f * (unsigned int)condition) / 3;
+            *hate += (record->effective_level_24f * static_cast<unsigned int>(condition)) / 3;
         }
         handled = 1;
     } else {
