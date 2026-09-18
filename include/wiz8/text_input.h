@@ -10,7 +10,8 @@ void InitTextInputMode(void);
 void InitTextInputModeWithScheme(int mode);
 void KillTextInputMode(void);
 char AddTextInputField(int left, int top, int width, int height, int priority, const wchar_t* text,
-                       unsigned char capacity, short input_type, unsigned char flag);
+                       unsigned char capacity, short input_type,
+                       unsigned char use_inactive_text_field_color);
 void RemoveTextInputField(int index);
 unsigned char GetTextInputFieldLength(int index);
 void SetActiveField(char index);

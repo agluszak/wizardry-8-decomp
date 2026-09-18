@@ -59,7 +59,7 @@ struct TEXTINPUTNODE {
     MOUSE_REGION region;
     INPUT_CALLBACK InputCallback;
     unsigned char fUseInactiveTextFieldColor; // bool-byte-ok: Wizardry extension at +0x60
-    unsigned char fBlockMouseCallbacks;        // bool-byte-ok: Wizardry extension at +0x61
+    unsigned char fBlockMouseCallbacks;       // bool-byte-ok: Wizardry extension at +0x61
     unsigned char _padding62[2];
     TEXTINPUTNODE* next;
     TEXTINPUTNODE* prev;
