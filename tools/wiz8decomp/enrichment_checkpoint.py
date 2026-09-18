@@ -9,19 +9,30 @@ mutate a disposable restored project by default:
 - ``--import-source``: full ``reccmp-ghidra-import`` projection
 - ``--live``: opt-in to mutate the canonical checkout Ghidra project instead
 
-Reviewed GZF refresh remains a separate ``wiz8 ghidra seed refresh`` step.
+Promote an accepted disposable candidate with
+``wiz8 analyze enrichment-promote`` (do not treat a second ``--live`` apply as
+equivalent). Reviewed GZF refresh remains a separate
+``wiz8 ghidra seed refresh`` step.
 
 Quality before/after reuse one pinned oracle corpus under
 ``build/enrichment-checkpoint/`` (``corpus.json``, ``before.json``,
 ``after.json``, ``delta.json``, ``report.json``). Optional pain scoring pins
-``pain-corpus.json`` once and reuses those addresses for after/delta. Any new
-decompiler failure or unexpected apply error hard-gates the trial
-(``ok == false`` → nonzero CLI exit).
+``pain-corpus.json`` once and reuses those addresses for after/delta.
+
+Outcomes are split:
+
+- ``safe_application``: no unexpected apply errors, import ok, inputs matched
+- ``preserved_recovery``: quality/pain deltas report no new decompiler failures
+- ``useful_improvement``: debt improved or actionable applies landed (None if
+  not measured)
+
+CLI exit uses ``ok == safe_application and preserved_recovery``.
 """
 
 from __future__ import annotations
 
 import json
+import uuid
 from typing import Any
 
 from .callback_typing import run_callback_typing
@@ -67,25 +78,32 @@ def _step_summary(result: dict[str, Any]) -> dict[str, Any]:
     return summary
 
 
-def _prepare_disposable_settings(settings: Settings, program_name: str) -> Settings:
+def _prepare_disposable_settings(
+    settings: Settings, program_name: str, *, run_id: str
+) -> tuple[Settings, dict[str, Any]]:
     """Restore a unique disposable Ghidra project under the work directory.
 
     Each run gets its own directory so concurrent checkouts cannot delete one
-    another's candidates. Old runs are left in place for inspection.
+    another's candidates. Old runs are left in place for inspection / promote.
     """
 
-    import uuid
-
     from .ghidra.env import open_project
-    from .ghidra.workspace import restore_seed
+    from .ghidra.workspace import restore_seed, seed_record
 
-    run_id = uuid.uuid4().hex[:12]
+    seed = seed_record(settings, program_name, validate_archive=False)
     project_dir = settings.work_dir / "enrichment-checkpoint" / f"run-{run_id}" / "ghidra-project"
     project_dir.mkdir(parents=True, exist_ok=False)
     derived = settings.model_copy(update={"ghidra_project_dir_override": project_dir})
     with open_project(derived, create=True) as project:
-        restore_seed(derived, project, program_name)
-    return derived
+        restored = restore_seed(derived, project, program_name)
+    seed_info = {
+        "program": str(seed["program"]),
+        "sha256": str(seed["sha256"]),
+        "binary_sha256": str(seed["binary_sha256"]),
+        "restore_status": restored.get("status"),
+        "seed_freshness": restored.get("seed_freshness"),
+    }
+    return derived, seed_info
 
 
 def _stage_apply_failed(step: dict[str, Any]) -> bool:
@@ -93,6 +111,81 @@ def _stage_apply_failed(step: dict[str, Any]) -> bool:
     if not result.get("apply"):
         return False
     return int(result.get("apply_errors") or 0) > 0
+
+
+def _applied_count(result: dict[str, Any]) -> int:
+    total = 0
+    for key in (
+        "prototype_repair",
+        "class_structures",
+        "class_this_typing",
+        "vftable_typing",
+        "global_typing",
+        "callback_typing",
+        "cosmic_forge_globals",
+        "function_attributes",
+    ):
+        step = result.get(key)
+        if isinstance(step, dict) and step.get("applied") is not None:
+            total += int(step["applied"])
+    return total
+
+
+def compute_outcomes(
+    result: dict[str, Any],
+    *,
+    mutated: bool,
+    inputs_matched: bool,
+) -> tuple[dict[str, bool | None], list[str], list[str]]:
+    """Split validation into safe / preserved / useful outcomes."""
+
+    safe_reasons: list[str] = []
+    if not inputs_matched:
+        safe_reasons.append("inputs did not match expected reviewed seed")
+    if isinstance(result.get("reccmp_import"), dict) and result["reccmp_import"].get("ok") is False:
+        safe_reasons.append("reccmp-ghidra-import failed")
+    for step in result.get("steps") or []:
+        if _stage_apply_failed(step):
+            safe_reasons.append(
+                f"{step.get('step')} reported apply_errors="
+                f"{(step.get('result') or {}).get('apply_errors')}"
+            )
+
+    preserved_reasons: list[str] = []
+    quality_delta = result.get("quality_delta")
+    if isinstance(quality_delta, dict) and quality_delta.get("ok") is False:
+        preserved_reasons.append("quality_delta.ok is false (decompiler regression)")
+    pain_delta = result.get("pain_delta")
+    if isinstance(pain_delta, dict) and pain_delta.get("ok") is False:
+        preserved_reasons.append("pain_delta.ok is false (decompiler regression)")
+
+    safe_application = not safe_reasons
+    preserved_recovery = not preserved_reasons
+
+    measured = mutated and (
+        isinstance(quality_delta, dict)
+        or isinstance(pain_delta, dict)
+        or _applied_count(result) > 0
+    )
+    useful: bool | None
+    if not measured:
+        useful = None
+    elif not safe_application or not preserved_recovery:
+        useful = False
+    else:
+        debt_improved = False
+        if isinstance(quality_delta, dict):
+            debt_improved = int(quality_delta.get("debt_total_delta") or 0) < 0
+        if isinstance(pain_delta, dict) and int(pain_delta.get("debt_total_delta") or 0) < 0:
+            debt_improved = True
+        useful = debt_improved or _applied_count(result) > 0
+
+    outcomes: dict[str, bool | None] = {
+        "safe_application": safe_application,
+        "preserved_recovery": preserved_recovery,
+        "useful_improvement": useful,
+    }
+    return outcomes, safe_reasons, preserved_reasons
 
 
 def run_enrichment_checkpoint(
@@ -113,10 +206,12 @@ def run_enrichment_checkpoint(
 
     out_dir = settings.build_dir / "enrichment-checkpoint"
     steps: list[dict[str, Any]] = []
+    run_id = uuid.uuid4().hex[:12]
     result: dict[str, Any] = {
         "schema": _SCHEMA,
         "program": program_name,
         "target": target,
+        "run_id": run_id,
         "apply_conventions": apply_conventions,
         "apply_enrichment": apply_enrichment,
         "import_source": import_source,
@@ -128,15 +223,41 @@ def run_enrichment_checkpoint(
     before_report: dict[str, Any] | None = None
     pain_corpus: dict[str, Any] | None = None
     mutated = apply_conventions or apply_enrichment or import_source
+    inputs_matched = True
+    seed_info: dict[str, Any] | None = None
 
     run_settings = settings
+    run_dir = settings.work_dir / "enrichment-checkpoint" / f"run-{run_id}"
     if mutated and not live:
-        run_settings = _prepare_disposable_settings(settings, program_name)
+        run_settings, seed_info = _prepare_disposable_settings(
+            settings, program_name, run_id=run_id
+        )
         result["ghidra_project"] = str(run_settings.project_dir)
+        result["run_dir"] = str(run_dir)
         result["disposable"] = True
+        result["expected_seed_sha256"] = seed_info["sha256"]
+        result["seed_program"] = seed_info["program"]
+        result["seed"] = seed_info
+        inputs_matched = seed_info.get("restore_status") in {
+            "restored",
+            "already-restored",
+        } and bool(seed_info.get("sha256"))
     else:
+        from .ghidra.workspace import seed_record
+
+        seed = seed_record(settings, program_name, validate_archive=False)
+        seed_info = {
+            "program": str(seed["program"]),
+            "sha256": str(seed["sha256"]),
+            "binary_sha256": str(seed["binary_sha256"]),
+        }
         result["ghidra_project"] = str(run_settings.project_dir)
+        result["run_dir"] = str(run_dir)
         result["disposable"] = False
+        result["expected_seed_sha256"] = seed_info["sha256"]
+        result["seed_program"] = seed_info["program"]
+        result["seed"] = seed_info
+        run_dir.mkdir(parents=True, exist_ok=True)
 
     if measure_quality:
         corpus = select_corpus(
@@ -389,24 +510,14 @@ def run_enrichment_checkpoint(
                     "decompiler_regressions": pain_delta["decompiler_regressions"],
                 }
 
-    failure_reasons: list[str] = []
-    quality_delta = result.get("quality_delta")
-    if isinstance(quality_delta, dict) and quality_delta.get("ok") is False:
-        failure_reasons.append("quality_delta.ok is false (decompiler regression)")
-    pain_delta = result.get("pain_delta")
-    if isinstance(pain_delta, dict) and pain_delta.get("ok") is False:
-        failure_reasons.append("pain_delta.ok is false (decompiler regression)")
-    if isinstance(result.get("reccmp_import"), dict) and result["reccmp_import"].get("ok") is False:
-        failure_reasons.append("reccmp-ghidra-import failed")
-    for step in steps:
-        if _stage_apply_failed(step):
-            failure_reasons.append(
-                f"{step.get('step')} reported apply_errors="
-                f"{(step.get('result') or {}).get('apply_errors')}"
-            )
-
-    ok = not failure_reasons
+    outcomes, safe_reasons, preserved_reasons = compute_outcomes(
+        result, mutated=mutated, inputs_matched=inputs_matched
+    )
+    result["outcomes"] = outcomes
+    result["inputs_matched"] = inputs_matched
+    ok = bool(outcomes["safe_application"]) and bool(outcomes["preserved_recovery"])
     result["ok"] = ok
+    failure_reasons = safe_reasons + preserved_reasons
     if failure_reasons:
         result["failure_reasons"] = failure_reasons
 
@@ -414,18 +525,24 @@ def run_enrichment_checkpoint(
         "Review build/enrichment-checkpoint/{corpus,before,after,delta,report}.json.",
         "Spot-check affected identities with `uv run wiz8 report context ADDRESS...`.",
         (
-            "When a disposable trial is accepted, reproduce with `--live` only if "
-            "intentionally mutating the checkout project, then run "
-            "`uv run wiz8 ghidra seed refresh wiz8`."
+            "When a disposable trial is accepted (outcomes.safe_application and "
+            "preserved_recovery), promote that exact candidate with "
+            "`uv run wiz8 analyze enrichment-promote --from-latest` "
+            "(or pass the run directory). Do not rerun with `--live`."
         ),
     ]
     path = out_dir / "report.json"
     atomic_json(path, result)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    atomic_json(run_dir / "report.json", result)
     result["report"] = str(path.relative_to(settings.repo_dir))
     # Bound stdout: drop nested step payloads.
     return {
         "schema": _SCHEMA,
         "ok": ok,
+        "outcomes": outcomes,
+        "run_id": run_id,
+        "run_dir": result.get("run_dir"),
         "report": result["report"],
         "apply_conventions": apply_conventions,
         "apply_enrichment": apply_enrichment,
@@ -433,6 +550,9 @@ def run_enrichment_checkpoint(
         "live": live,
         "disposable": result.get("disposable"),
         "ghidra_project": result.get("ghidra_project"),
+        "expected_seed_sha256": result.get("expected_seed_sha256"),
+        "seed_program": result.get("seed_program"),
+        "inputs_matched": inputs_matched,
         "failure_reasons": result.get("failure_reasons"),
         "corpus": result.get("corpus"),
         "quality_before": result.get("quality_before"),

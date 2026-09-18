@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from time import perf_counter
 from typing import Any
 
@@ -18,6 +19,61 @@ from .workspace import (
 )
 
 
+def pack_program_archive(
+    settings: Settings,
+    program_name: str,
+    output: Path,
+    *,
+    expected_binary_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Pack one project program to ``output`` without touching vendor seeds.
+
+    ``settings.project_dir`` selects which Ghidra project is opened (live or a
+    disposable override). Callers that refresh reviewed GZFs should use
+    ``export_project`` instead.
+    """
+
+    import pyghidra
+
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.parent / f".{output.name}.{os.getpid()}.partial"
+    if temporary.exists():
+        temporary.unlink()
+
+    pack_started = perf_counter()
+    with open_project(settings) as project:
+        from ghidra.util.task import TaskMonitor
+        from java.io import File
+
+        domain_file = project.getProjectData().getFile("/" + program_name)
+        if domain_file is None:
+            raise RuntimeError(f"Ghidra program is missing: {program_name}")
+        with pyghidra.program_context(project, "/" + program_name) as program:
+            actual_hash = program.getOptions("Program Information").getString(HASH_OPTION, None)
+            if expected_binary_sha256 is not None and actual_hash != expected_binary_sha256:
+                raise RuntimeError(
+                    f"program binary hash metadata mismatch for {program_name}: "
+                    f"{actual_hash} != {expected_binary_sha256}"
+                )
+            program_summary = {
+                "function_count": program.getFunctionManager().getFunctionCount(),
+                "memory_block_count": len(program.getMemory().getBlocks()),
+                "language": str(program.getLanguageID()),
+                "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
+                "binary_sha256": actual_hash,
+            }
+        domain_file.packFile(File(str(temporary)), TaskMonitor.DUMMY)
+    temporary.replace(output)
+    return {
+        "program": program_name,
+        "path": str(output),
+        "sha256": sha256_file(output),
+        "pack_seconds": round(perf_counter() - pack_started, 3),
+        **program_summary,
+    }
+
+
 def export_project(settings: Settings, selector: str | None = None) -> dict[str, Any]:
     """Pack an intentionally reviewed canonical project checkpoint."""
 
@@ -30,46 +86,28 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     previous_records = seed_records(settings)
     runtime = validate_environment(settings)
 
-    import pyghidra
-
     output_dir = settings.repo_dir / "vendor" / "ghidra" / "exports"
     output_dir.mkdir(parents=True, exist_ok=True)
     output = output_dir / f"{program_name}.gzf"
-    temporary = output_dir / f".{program_name}.{os.getpid()}.gzf.partial"
-    if temporary.exists():
-        temporary.unlink()
 
-    pack_started = perf_counter()
-    with open_project(settings) as project:
-        from ghidra.util.task import TaskMonitor
-        from java.io import File
-
-        domain_file = project.getProjectData().getFile("/" + program_name)
-        if domain_file is None:
-            raise RuntimeError(f"canonical Ghidra program is missing: {program_name}")
-        with pyghidra.program_context(project, "/" + program_name) as program:
-            actual_hash = program.getOptions("Program Information").getString(HASH_OPTION, None)
-            if actual_hash != module["sha256"]:
-                raise RuntimeError(
-                    f"canonical program binary hash metadata mismatch for {program_name}"
-                )
-            program_summary = {
-                "function_count": program.getFunctionManager().getFunctionCount(),
-                "memory_block_count": len(program.getMemory().getBlocks()),
-                "language": str(program.getLanguageID()),
-                "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
-            }
-        domain_file.packFile(File(str(temporary)), TaskMonitor.DUMMY)
-    temporary.replace(output)
-    pack_seconds = perf_counter() - pack_started
+    packed = pack_program_archive(
+        settings,
+        program_name,
+        output,
+        expected_binary_sha256=module["sha256"],
+    )
+    pack_seconds = packed["pack_seconds"]
 
     record = {
         "program": program_name,
         "path": output.relative_to(settings.repo_dir).as_posix(),
-        "sha256": sha256_file(output),
+        "sha256": packed["sha256"],
         "binary_sha256": module["sha256"],
         **runtime,
-        **program_summary,
+        "function_count": packed["function_count"],
+        "memory_block_count": packed["memory_block_count"],
+        "language": packed["language"],
+        "compiler_spec": packed["compiler_spec"],
     }
     records = [item for item in previous_records if item.get("program") != program_name]
     records.append(record)
@@ -82,8 +120,8 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
     report = {
         "schema": "wiz8.ghidra-seed-build",
         "seed": record,
-        "pack_seconds": round(pack_seconds, 3),
-        "total_seconds": round(pack_seconds, 3),
+        "pack_seconds": pack_seconds,
+        "total_seconds": pack_seconds,
     }
     atomic_json(
         settings.build_dir / "reports" / "ghidra-seed-refresh" / f"seed-{program_name}.json",

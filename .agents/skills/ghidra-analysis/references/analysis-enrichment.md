@@ -36,16 +36,49 @@ Custom storage is an exceptional ABI operation, not the normal way to pick a
 class Structure. Synthetic `wiz8::classes::…` namespaces must not be invented
 to justify a directory layout.
 
+Acceptance cases (ordinary method, derived, secondary-base) should bind without
+custom storage. Fixture coverage for those shapes is **in progress** in this
+follow-up (`tests/unit/test_class_binding.py` plus lifecycle integration skips).
+
 ## Ordered work
 
 | Step | Goal | Status |
 | --- | --- | --- |
-| Foundation | Source class ↔ `GhidraClass` ↔ Structure binding; auto `this` without custom storage | `class_binding` + rewritten `class-this-typing` / `class-structures` |
+| Foundation | Source class ↔ `GhidraClass` ↔ Structure binding; auto `this` without custom storage | `class_binding` + rewritten `class-this-typing` / `class-structures`; fixtures in progress |
 | 10 | Objective decompiler-quality benchmark (oracle + pain) | `wiz8 analyze decompiler-quality` |
 | 1 | Calling-convention / prototype repair before Param ID | `prototype-repair` (source-backed); heuristics report-only except census vtable thiscall |
-| 2 | Owned enrichment candidate (unique run dir, hard-fail deltas) | `enrichment-checkpoint` (disposable by default; `--live` opt-in) |
+| 2 | Owned enrichment candidate (unique run dir, outcome split) | `enrichment-checkpoint` (disposable by default) + `enrichment-promote` |
 | 5–8 | Globals, callbacks, CF, attributes | existing passes; consolidate onto shared resolver next |
 | 9 | Dual decompiler profiles | Python `semantic.py` profiles; Java recovery still uses program options |
+
+## Promote candidate
+
+Disposable trials write `work_dir/enrichment-checkpoint/run-<id>/` (project +
+`report.json`) and mirror the report under `build/enrichment-checkpoint/`.
+
+Report `outcomes`:
+
+- `safe_application` — no unexpected apply errors, import ok, inputs matched
+- `preserved_recovery` — quality/pain deltas report no new decompiler failures
+- `useful_improvement` — `null` if unmeasured; else debt improved or actionable applies landed without regression
+
+CLI `ok` remains `safe_application and preserved_recovery` (nonzero exit when false).
+
+When a disposable trial is accepted, promote **that** candidate — do not rerun
+with `--live`:
+
+```sh
+uv run wiz8 analyze enrichment-promote --from-latest
+# or:
+uv run wiz8 analyze enrichment-promote "$WIZ8_WORK_DIR/enrichment-checkpoint/run-<id>"
+```
+
+Promote packs the candidate program to a temporary GZF under
+`build/enrichment-promote/`, moves the live project aside when present, restores
+into a fresh checkout `ghidra-project/`, and records reviewed-seed provenance.
+It refuses stale/untracked/unknown live freshness without `--force`, and refuses
+candidates whose recorded seed sha256/program disagree with the current
+manifest. It does **not** refresh vendor GZF seeds.
 
 ## Consolidation direction (before claiming the enrichment loop is complete)
 

@@ -3,6 +3,10 @@
 Also mark high-confidence thunks: pure single-``JMP`` bodies and classic MSVC
 ``ADD``/``SUB ECX,imm`` adjustors. Thunk apply is gated separately from
 varargs/noreturn.
+
+Leaf-name noreturn candidates (``srAssertFail``, etc. without a source
+``FUNCTION`` marker) stay report-only (``report-noreturn``); ``--apply`` does
+not set noreturn from the leaf name alone.
 """
 
 from __future__ import annotations
@@ -163,14 +167,16 @@ def collect_function_attribute_plan(
             continue
         name = function.getName()
         address = int(function.getEntryPoint().getOffset())
+        # Leaf-name fatals without a source FUNCTION marker stay report-only.
+        # --apply must not set noreturn from the name alone.
         if name in _NORETURN_NAMES and not function.hasNoReturn() and address not in seen_addresses:
-            counts["set-noreturn"] += 1
+            counts["report-noreturn"] += 1
             seen_addresses.add(address)
             rows.append(
                 {
                     "address": f"0x{address:08x}",
                     "name": name,
-                    "action": "set-noreturn",
+                    "action": "report-noreturn",
                     "has_varargs": bool(function.hasVarArgs()),
                     "has_noreturn": False,
                     "source_variadic": False,
@@ -237,6 +243,8 @@ def apply_function_attributes(
 
     for row in plan.get("functions", []):
         action = str(row.get("action") or "")
+        if action == "report-noreturn":
+            continue
         if action == "set-thunk":
             if not apply_thunks:
                 continue

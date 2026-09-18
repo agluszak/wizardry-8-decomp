@@ -366,6 +366,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
     analyze_app.command("prototype-repair")(prototype_repair_command)
     analyze_app.command("enrichment-checkpoint")(enrichment_checkpoint_command)
+    analyze_app.command("enrichment-promote")(enrichment_promote_command)
     analyze_app.command("class-this-typing")(class_this_typing_command)
     analyze_app.command("class-structures")(class_structures_command)
     analyze_app.command("global-typing")(global_typing_command)
@@ -491,7 +492,8 @@ def enrichment_checkpoint_command(
             help=(
                 "Apply source-safe enrichment stages (class/this/vftable/globals/"
                 "callbacks/CF/attributes; thunks stay off). Uses a disposable "
-                "restored project unless --live."
+                "restored project unless --live. Promote accepted candidates with "
+                "`wiz8 analyze enrichment-promote`."
             ),
         ),
     ] = False,
@@ -511,7 +513,8 @@ def enrichment_checkpoint_command(
             "--live",
             help=(
                 "Opt-in: apply mutations to the canonical checkout Ghidra project "
-                "instead of a disposable restore under work_dir/enrichment-checkpoint/."
+                "instead of a disposable restore under work_dir/enrichment-checkpoint/. "
+                "Prefer disposable apply + enrichment-promote for accepted candidates."
             ),
         ),
     ] = False,
@@ -552,6 +555,51 @@ def enrichment_checkpoint_command(
         measure_quality=not skip_quality,
         measure_pain=measure_pain,
         live=live,
+    )
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+def enrichment_promote_command(
+    run_dir: Annotated[
+        Path | None,
+        typer.Argument(
+            help=(
+                "Disposable enrichment-checkpoint run directory containing report.json "
+                "and ghidra-project/."
+            ),
+        ),
+    ] = None,
+    from_latest: Annotated[
+        bool,
+        typer.Option(
+            "--from-latest",
+            help=(
+                "Promote the newest work_dir/enrichment-checkpoint/run-* whose report "
+                "has safe_application and preserved_recovery."
+            ),
+        ),
+    ] = False,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Replace live project even when seed freshness is stale/untracked/unknown.",
+        ),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Promote a tested disposable enrichment candidate into the checkout live project."""
+    from .. import command_support as cli
+    from ..enrichment_promote import run_enrichment_promote
+
+    payload = run_enrichment_promote(
+        cli.settings(),
+        run_dir=run_dir,
+        from_latest=from_latest,
+        force=force,
+        program_name=program,
     )
     cli.emit(payload)
     if payload.get("ok") is False:

@@ -38,7 +38,7 @@ def test_mov_ecx_jmp_helper_removed() -> None:
 
 def test_w8monster_binding_uses_native_class_structure(wiz8_program: Any) -> None:
     binding = resolve_class_binding(wiz8_program, "W8Monster")
-    if binding["status"] == "missing-structure":
+    if binding["status"] in {"missing-structure", "missing-class"}:
         pytest.skip("no bound W8Monster Structure in live program")
     path = str(binding["structure_path"] or "")
     assert not path.startswith("/wiz8/classes/"), path
@@ -80,7 +80,10 @@ def test_bind_class_this_does_not_enable_custom_storage(wiz8_program: Any) -> No
             }
         ]
     }
-    with pyghidra.transaction(program, "test class binding"):
+    with (
+        pytest.raises(RuntimeError, match="abort-test-transaction"),
+        pyghidra.transaction(program, "test class binding"),
+    ):
         result = apply_this_typing(program, plan, allow_custom_storage=False)
         assert candidate.hasCustomVariableStorage() is False
         # Applied, skipped (auto-this-unbound), or errored — never custom storage.

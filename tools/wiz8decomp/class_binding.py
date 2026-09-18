@@ -49,8 +49,32 @@ def _sanitize_class_parts(owning_class: str) -> tuple[tuple[str, ...], str]:
     return tuple(parts[:-1]), parts[-1]
 
 
+def find_ghidra_class(program: Any, owning_class: str) -> Any | None:
+    """Look up an existing ``GhidraClass`` for ``owning_class`` without creating."""
+
+    parent_parts, class_name = _sanitize_class_parts(owning_class)
+    symbols = program.getSymbolTable()
+    namespace = program.getGlobalNamespace()
+    for part in parent_parts:
+        child = symbols.getNamespace(part, namespace)
+        if child is None:
+            return None
+        namespace = child
+    existing = symbols.getNamespace(class_name, namespace)
+    if existing is None:
+        return None
+    # Prefer an actual GhidraClass; a plain namespace with the same name is not enough.
+    is_class = getattr(existing, "isClass", None)
+    if callable(is_class) and not is_class():
+        return None
+    return existing
+
+
 def ensure_ghidra_class(program: Any, owning_class: str) -> Any:
-    """Return the ``GhidraClass`` for ``owning_class``, creating namespaces/class as needed."""
+    """Return the ``GhidraClass`` for ``owning_class``, creating namespaces/class as needed.
+
+    Requires an open Ghidra transaction. Prefer :func:`find_ghidra_class` for reports.
+    """
 
     from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
 
@@ -96,11 +120,24 @@ def legacy_enriched_structure(program: Any, owning_class: str) -> Any | None:
 
 
 def resolve_class_binding(program: Any, owning_class: str) -> dict[str, Any]:
-    """Report the live class ↔ Structure binding for one source class identity."""
+    """Report the live class ↔ Structure binding for one source class identity.
 
-    ghidra_class = ensure_ghidra_class(program, owning_class)
-    structure = find_class_structure(program, ghidra_class)
+    Read-only: does not create namespaces or classes. Apply paths that need a
+    missing ``GhidraClass`` must call :func:`ensure_ghidra_class` in a transaction.
+    """
+
     legacy = legacy_enriched_structure(program, owning_class)
+    ghidra_class = find_ghidra_class(program, owning_class)
+    if ghidra_class is None:
+        return {
+            "owning_class": owning_class,
+            "ghidra_class": None,
+            "structure_path": None,
+            "structure_length": None,
+            "legacy_enriched_path": (str(legacy.getPathName()) if legacy is not None else None),
+            "status": "missing-class",
+        }
+    structure = find_class_structure(program, ghidra_class)
     path = str(structure.getPathName()) if structure is not None else None
     status = "bound"
     if structure is None:

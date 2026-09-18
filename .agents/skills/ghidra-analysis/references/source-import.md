@@ -23,12 +23,18 @@ uv run wiz8 build WIZ8
 uv run wiz8 analyze enrichment-checkpoint --apply-conventions --import-source
 ```
 
-Then spot-check and, when intentionally reviewed, refresh the GZF:
+Then promote the exact disposable candidate (preferred) or refresh a reviewed GZF
+only after intentional live review:
 
 ```sh
 uv run wiz8 report context ADDRESS...
-uv run wiz8 ghidra seed refresh wiz8
+uv run wiz8 analyze enrichment-promote --from-latest
+# optional reviewed-seed publish after further live review:
+# uv run wiz8 ghidra seed refresh wiz8
 ```
+
+Do not treat a second `--live` checkpoint apply as equivalent to promoting the
+tested candidate. See [analysis enrichment](analysis-enrichment.md).
 
 Evidence boundary: only matched/source-backed entities belong in reviewed state.
 Do not point the importer at a derived/cached project. Soft Param-ID guesses are

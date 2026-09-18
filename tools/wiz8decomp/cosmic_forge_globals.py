@@ -154,16 +154,21 @@ def _is_structure_data_type(data_type: Any | None) -> bool:
         current = current.getBaseDataType()
         if current is None:
             return False
+    structure_types: tuple[type, ...] | None = None
     try:
         from ghidra.program.model.data import (  # type: ignore[import-not-found]
             Structure,
             Union,
         )
 
-        return isinstance(current, (Structure, Union))
+        structure_types = (Structure, Union)
     except Exception:  # noqa: BLE001 — unit tests without Ghidra
-        name = type(current).__name__
-        return name in {"Structure", "StructureDataType", "Union", "UnionDataType"}
+        structure_types = None
+    if structure_types is not None and isinstance(current, structure_types):
+        return True
+    # Name fallback for fakes and when the live type is not a Structure/Union.
+    name = type(current).__name__
+    return name in {"Structure", "StructureDataType", "Union", "UnionDataType"}
 
 
 def _is_named_structure(

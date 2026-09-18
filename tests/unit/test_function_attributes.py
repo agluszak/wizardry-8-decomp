@@ -1,9 +1,12 @@
-"""Tests for thunk body classification helpers."""
+"""Tests for thunk body classification and noreturn apply gating."""
 
 from __future__ import annotations
 
 from wiz8decomp import function_attributes
-from wiz8decomp.function_attributes import _is_ecx_immediate_adjust
+from wiz8decomp.function_attributes import (
+    _is_ecx_immediate_adjust,
+    apply_function_attributes,
+)
 
 
 class _FakeScalar:
@@ -72,3 +75,93 @@ def test_ecx_immediate_adjust_rejects_generic_object(monkeypatch) -> None:
         lambda obj: isinstance(obj, _FakeScalar),
     )
     assert _is_ecx_immediate_adjust(_Instr("ADD", op_objects=[object()])) is False
+
+
+def test_apply_skips_report_noreturn_leaf_candidates() -> None:
+    class _Fn:
+        def __init__(self) -> None:
+            self.noreturn = False
+
+        def setNoReturn(self, value: bool) -> None:
+            self.noreturn = value
+
+        def setVarArgs(self, value: bool) -> None:
+            raise AssertionError("unexpected varargs")
+
+    fn = _Fn()
+
+    class _Space:
+        def getAddress(self, _value: int):
+            return object()
+
+    class _Functions:
+        def getFunctionAt(self, _addr):
+            return fn
+
+    program = type(
+        "P",
+        (),
+        {
+            "getAddressFactory": lambda self: type(
+                "A", (), {"getDefaultAddressSpace": lambda s: _Space()}
+            )(),
+            "getFunctionManager": lambda self: _Functions(),
+        },
+    )()
+    plan = {
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "srAssertFail",
+                "action": "report-noreturn",
+            }
+        ]
+    }
+    result = apply_function_attributes(program, plan, apply_attributes=True)
+    assert result["applied"] == 0
+    assert fn.noreturn is False
+
+
+def test_apply_still_sets_source_backed_noreturn() -> None:
+    class _Fn:
+        def __init__(self) -> None:
+            self.noreturn = False
+
+        def setNoReturn(self, value: bool) -> None:
+            self.noreturn = value
+
+        def setVarArgs(self, _value: bool) -> None:
+            return None
+
+    fn = _Fn()
+
+    class _Space:
+        def getAddress(self, _value: int):
+            return object()
+
+    class _Functions:
+        def getFunctionAt(self, _addr):
+            return fn
+
+    program = type(
+        "P",
+        (),
+        {
+            "getAddressFactory": lambda self: type(
+                "A", (), {"getDefaultAddressSpace": lambda s: _Space()}
+            )(),
+            "getFunctionManager": lambda self: _Functions(),
+        },
+    )()
+    plan = {
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "FatalError",
+                "action": "set-noreturn",
+            }
+        ]
+    }
+    result = apply_function_attributes(program, plan, apply_attributes=True)
+    assert result["applied"] == 1
+    assert fn.noreturn is True

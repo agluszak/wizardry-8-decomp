@@ -124,7 +124,7 @@ def collect_this_typing_plan(
         else:
             binding = resolve_class_binding(program, owning)
             this_type = _this_type_name(function)
-            if binding["status"] == "missing-structure":
+            if binding["status"] in {"missing-structure", "missing-class"}:
                 action = "missing-structure"
                 missing_structures[owning] += 1
             elif binding_agrees(binding, function) and function.getParentNamespace() is not None:

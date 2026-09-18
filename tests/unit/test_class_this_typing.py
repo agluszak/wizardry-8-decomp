@@ -1,33 +1,22 @@
-"""Tests for class-binding helpers used by automatic ``this`` typing."""
+"""Tests for class-binding helpers used by automatic ``this`` typing.
+
+Broader class-binding coverage lives in ``test_class_binding.py``.
+"""
 
 from __future__ import annotations
 
-from wiz8decomp.class_binding import _sanitize_class_parts, binding_agrees
+from wiz8decomp.class_this_typing import _storage_matches
 
 
-def test_sanitize_class_parts_splits_namespaces() -> None:
-    assert _sanitize_class_parts("W8Monster") == ((), "W8Monster")
-    assert _sanitize_class_parts("ns::Inner::Type") == (("ns", "Inner"), "Type")
-
-
-def test_binding_agrees_requires_matching_structure_path(monkeypatch) -> None:
-    binding = {"status": "bound", "structure_path": "/W8Monster"}
-
-    class _Pointee:
-        def getPathName(self) -> str:
-            return "/W8Monster"
-
-    class _Fn:
-        pass
-
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: _Pointee(),
-    )
-    assert binding_agrees(binding, _Fn())
-
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: type("P", (), {"getPathName": lambda self: "/wiz8/classes/W8Monster"})(),
-    )
-    assert not binding_agrees(binding, _Fn())
+def test_storage_matches_compares_parameter_slots() -> None:
+    before = {
+        "return_storage": "EAX:4",
+        "parameters": [{"ordinal": 0, "name": "this", "storage": "ECX:4"}],
+    }
+    after = {
+        "return_storage": "EAX:4",
+        "parameters": [{"ordinal": 0, "name": "this", "storage": "ECX:4"}],
+    }
+    assert _storage_matches(before, after)
+    after["parameters"][0]["storage"] = "Stack[0x4]:4"
+    assert not _storage_matches(before, after)
