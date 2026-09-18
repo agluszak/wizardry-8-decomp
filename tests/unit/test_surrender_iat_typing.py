@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from wiz8decomp.surrender_iat_typing import (
     _external_or_import_thunk,
     _function_for_iat,
+    _iat_cell_matches_data_type,
     _imported_data_value_type,
     load_surrender_imports,
     normalize_msvc_type,
@@ -192,3 +193,19 @@ def test_convention_only_apply_uses_analysis_not_imported(monkeypatch) -> None:
     assert result["applied_types"] is False
     assert sources == ["ANALYSIS"]
     assert "IMPORTED" not in sources
+
+
+def test_iat_cell_matches_existing_pointer_shape() -> None:
+    data_type = SimpleNamespace(getPathName=lambda: "/srCore *", getLength=lambda: 4)
+    listing = SimpleNamespace(
+        getDefinedDataAt=lambda _address: SimpleNamespace(getDataType=lambda: data_type)
+    )
+    program = SimpleNamespace(
+        getListing=lambda: listing,
+        getAddressFactory=lambda: SimpleNamespace(
+            getDefaultAddressSpace=lambda: SimpleNamespace(getAddress=lambda value: value)
+        ),
+    )
+    assert _iat_cell_matches_data_type(program, 0x005EB02C, data_type)
+    other = SimpleNamespace(getPathName=lambda: "/void *", getLength=lambda: 4)
+    assert not _iat_cell_matches_data_type(program, 0x005EB02C, other)

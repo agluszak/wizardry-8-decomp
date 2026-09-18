@@ -81,8 +81,9 @@ the machinery they protected.
 
 Retired Ghidra apply/query surfaces (`analyze prototype-repair`, `report context`, `report data`,
 `report class`, `report flow`, `recover function`, `recover explain`, enrichment checkpoint/promote,
-`ghidra/query.py`, `legacy_classes_cleanup`) are deleted, not aliased. Keep Parameter ID as an
-explicit investigative collect-only analysis.
+`ghidra/query.py`, `legacy_classes_cleanup`, `convention_heuristics`, `prototype_repair` collect/apply,
+`parameter_id` planner) are deleted, not aliased. Native Ghidra Parameter ID may be used on disposable
+copies; it is never a project apply path.
 
 ## Commands and output
 

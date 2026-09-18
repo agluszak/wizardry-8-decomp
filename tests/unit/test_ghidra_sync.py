@@ -5,6 +5,8 @@ from wiz8decomp.ghidra.sync import (
     _explicit_parameter_types,
     _has_function_overlap,
     _parameter_names_from_signature,
+    _stored_signature_matches,
+    _type_key,
 )
 
 
@@ -43,6 +45,39 @@ def test_parameter_names_come_from_the_source_signature() -> None:
         "equip_slot",
     ]
     assert _parameter_names_from_signature("void fn(void)", 0) == []
+
+
+def test_stored_signature_matches_ignores_auto_this() -> None:
+    ret = SimpleNamespace(getPathName=lambda: "/void")
+    integer = SimpleNamespace(getPathName=lambda: "/int")
+    auto = SimpleNamespace(
+        getName=lambda: "this",
+        getDataType=lambda: SimpleNamespace(getPathName=lambda: "/W8Character *"),
+        isAutoParameter=lambda: True,
+    )
+    stored = SimpleNamespace(
+        getName=lambda: "item_id",
+        getDataType=lambda: integer,
+        isAutoParameter=lambda: False,
+    )
+    function = SimpleNamespace(getReturnType=lambda: ret, getParameters=lambda: [auto, stored])
+    desired = SimpleNamespace(getName=lambda: "item_id", getDataType=lambda: integer)
+    assert _type_key(ret) == "/void"
+    assert _stored_signature_matches(function, ret, [desired])
+    wrong = SimpleNamespace(getName=lambda: "item_id", getDataType=lambda: ret)
+    assert not _stored_signature_matches(function, ret, [wrong])
+    placeholder_stored = SimpleNamespace(
+        getName=lambda: "param_3",
+        getDataType=lambda: integer,
+        isAutoParameter=lambda: False,
+    )
+    placeholder_desired = SimpleNamespace(getName=lambda: "param_2", getDataType=lambda: integer)
+    function = SimpleNamespace(
+        getReturnType=lambda: ret, getParameters=lambda: [placeholder_stored]
+    )
+    assert _stored_signature_matches(function, ret, [placeholder_desired])
+    omitted = SimpleNamespace(getName=lambda: "param_1", getDataType=lambda: integer)
+    assert _stored_signature_matches(function, ret, [placeholder_desired, omitted])
 
 
 def test_apply_rows_does_not_nest_when_a_transaction_is_open() -> None:

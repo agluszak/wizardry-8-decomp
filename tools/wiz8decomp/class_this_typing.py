@@ -25,13 +25,20 @@ from .class_binding import (
     find_class_structure,
     resolve_class_binding,
 )
-from .prototype_repair import _normalize_ghidra, classify_pair
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.class-this-typing-v1"
 # Soft conventions we may promote to thiscall for class-binding. Explicit
-# stdcall/cdecl/fastcall are hard-disagree, same as prototype-repair.
+# stdcall/cdecl/fastcall stay as-is rather than being overridden.
 _THISCALL_SOFT = frozenset({"default", "unknown", ""})
+
+
+def _normalize_ghidra(name: str | None) -> str:
+    return str(name or "unknown")
+
+
+def _thiscall_hard_disagree(convention: str) -> bool:
+    return convention not in _THISCALL_SOFT and convention != "__thiscall"
 
 
 class StorageIdentityError(RuntimeError):
@@ -129,11 +136,7 @@ def collect_this_typing_plan(
             ghidra_cc = _normalize_ghidra(function.getCallingConventionName())
             if function.hasCustomVariableStorage():
                 action = "skip-custom-storage"
-            elif (
-                ghidra_cc not in _THISCALL_SOFT
-                and ghidra_cc != "__thiscall"
-                and classify_pair(ghidra_cc, "__thiscall") == "hard-disagree"
-            ):
+            elif _thiscall_hard_disagree(ghidra_cc):
                 action = "convention-hard-disagree"
             elif binding["status"] in {"missing-structure", "missing-class"}:
                 action = "missing-structure"
@@ -203,15 +206,13 @@ def apply_this_typing_row(
         }
 
     current_cc = _normalize_ghidra(function.getCallingConventionName())
-    if current_cc != "__thiscall":
-        soft_ok = current_cc in _THISCALL_SOFT
-        if not soft_ok and classify_pair(current_cc, "__thiscall") == "hard-disagree":
-            return {
-                **row,
-                "error": "convention-hard-disagree",
-                "ghidra_convention": current_cc,
-                "skipped": "convention-hard-disagree",
-            }
+    if _thiscall_hard_disagree(current_cc):
+        return {
+            **row,
+            "error": "convention-hard-disagree",
+            "ghidra_convention": current_cc,
+            "skipped": "convention-hard-disagree",
+        }
 
     try:
         ghidra_class = ensure_ghidra_class(program, owning)

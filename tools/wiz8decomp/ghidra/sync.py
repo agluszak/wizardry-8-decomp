@@ -116,7 +116,12 @@ def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
     convention = identity.calling_convention
     if convention in {"__cdecl", "__stdcall", "__fastcall", "__thiscall"}:
         current = str(function.getCallingConventionName() or "unknown")
-        if current != convention:
+        has_auto_this = any(
+            bool(parameter.isAutoParameter()) for parameter in function.getParameters()
+        )
+        if current != convention and not (
+            convention == "__thiscall" and current == "__cdecl" and not has_auto_this
+        ):
             try:
                 function.setCallingConvention(convention)
                 function.setSignatureSource(SourceType.ANALYSIS)
@@ -197,15 +202,126 @@ def _explicit_parameter_types(identity: Any) -> tuple[str, ...]:
     return tuple(types)
 
 
+def _resolved_structured_signature(program: Any, identity: Any) -> dict[str, Any]:
+    from ghidra.program.model.listing import ParameterImpl
+
+    from ..global_typing import resolve_data_type
+
+    return_spelling = identity.return_type or "void"
+    if return_spelling == "void":
+        from ghidra.program.model.data import VoidDataType
+
+        return_type = VoidDataType()
+    else:
+        return_type = resolve_data_type(program, return_spelling)
+    if return_type is None:
+        return {"error": f"unresolved-return:{return_spelling}"}
+    parameters = []
+    spellings = _explicit_parameter_types(identity)
+    names = _parameter_names_from_signature(identity.source_signature, len(spellings))
+    for index, spelling in enumerate(spellings):
+        data_type = resolve_data_type(program, spelling)
+        if data_type is None:
+            return {"error": f"unresolved-parameter:{spelling}"}
+        parameters.append(ParameterImpl(names[index], data_type, program))
+    return {"return_type": return_type, "parameters": parameters}
+
+
+def _is_placeholder_parameter_name(name: str) -> bool:
+    return name.startswith("param_") and name[6:].isdigit()
+
+
+def _parameter_names_agree(current: str, desired: str) -> bool:
+    if current == desired:
+        return True
+    return _is_placeholder_parameter_name(desired)
+
+
+def _return_types_agree(current: Any, desired: Any) -> bool:
+    if _type_key(current) == _type_key(desired):
+        return True
+    if current is None or desired is None:
+        return False
+    if "Pointer" in type(current).__name__ or (
+        callable(getattr(current, "isPointer", None)) and current.isPointer()
+    ):
+        pointee = current.getDataType() if hasattr(current, "getDataType") else None
+        return _type_key(pointee) == _type_key(desired)
+    return False
+
+
+def _unused_source_parameters_omitted(existing: list[Any], parameters: list[Any]) -> bool:
+    """True when Ghidra kept a prefix or suffix of the source parameters.
+
+    Unused thiscall/event integers are often dropped from ProgramDB even after
+    an IMPORTED apply; rewriting them every sync does not stick.
+    """
+
+    if len(existing) >= len(parameters):
+        return False
+    if all(
+        _parameter_names_agree(current.getName(), desired.getName())
+        and _type_key(current.getDataType()) == _type_key(desired.getDataType())
+        for current, desired in zip(existing, parameters, strict=False)
+    ) and all(
+        _is_placeholder_parameter_name(parameter.getName())
+        for parameter in parameters[len(existing) :]
+    ):
+        return True
+    omitted = len(parameters) - len(existing)
+    leading = parameters[:omitted]
+    trailing = parameters[omitted:]
+    if not all(_is_placeholder_parameter_name(parameter.getName()) for parameter in leading):
+        return False
+    return all(
+        _parameter_names_agree(current.getName(), desired.getName())
+        and _type_key(current.getDataType()) == _type_key(desired.getDataType())
+        for current, desired in zip(existing, trailing, strict=True)
+    )
+
+
+def _stored_signature_matches(function: Any, return_type: Any, parameters: list[Any]) -> bool:
+    existing = [
+        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
+    ]
+    if not _return_types_agree(function.getReturnType(), return_type):
+        return False
+    if len(existing) > len(parameters):
+        # Source declared fewer parameters than ProgramDB already stores. Do not
+        # strip recovered parameters every sync when Ghidra will restore them.
+        return True
+    if len(existing) == len(parameters) and all(
+        _parameter_names_agree(current.getName(), desired.getName())
+        and _type_key(current.getDataType()) == _type_key(desired.getDataType())
+        for current, desired in zip(existing, parameters, strict=True)
+    ):
+        return True
+    return _unused_source_parameters_omitted(existing, parameters)
+
+
 def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
+    structured = _resolved_structured_signature(program, identity)
+    if not structured.get("error"):
+        if _stored_signature_matches(function, structured["return_type"], structured["parameters"]):
+            return {"applied": False}
+        applied = _apply_structured_signature(program, function, structured)
+        if not applied.get("error"):
+            return applied
+        structured = applied
+    source = function.getSignatureSource()
+    source_name = getattr(source, "name", None)
+    if callable(source_name):
+        try:
+            source_name = source_name()
+        except TypeError:
+            source_name = None
+    if str(source_name or source) == "IMPORTED":
+        return {"applied": False}
     parsed = _apply_parsed_signature(program, function, identity.source_signature)
     if not parsed.get("error"):
         return parsed
-    structured = _apply_structured_signature(program, function, identity)
-    if not structured.get("error"):
-        return structured
     return {
-        "error": "; ".join(part for part in (parsed.get("error"), structured.get("error")) if part)
+        "error": "; ".join(part for part in (structured.get("error"), parsed.get("error")) if part)
     }
 
 
@@ -252,42 +368,14 @@ def _apply_parsed_signature(program: Any, function: Any, signature: str | None) 
         return {"error": f"apply-failed:{exc}"}
 
 
-def _apply_structured_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
-    from ghidra.program.model.listing import Function, ParameterImpl
+def _apply_structured_signature(
+    program: Any, function: Any, resolved: dict[str, Any]
+) -> dict[str, Any]:
+    from ghidra.program.model.listing import Function
     from ghidra.program.model.symbol import SourceType
 
-    from ..global_typing import resolve_data_type
-
-    return_spelling = identity.return_type or "void"
-    if return_spelling == "void":
-        from ghidra.program.model.data import VoidDataType
-
-        return_type = VoidDataType()
-    else:
-        return_type = resolve_data_type(program, return_spelling)
-    if return_type is None:
-        return {"error": f"unresolved-return:{return_spelling}"}
-    parameters = []
-    spellings = _explicit_parameter_types(identity)
-    names = _parameter_names_from_signature(identity.source_signature, len(spellings))
-    for index, spelling in enumerate(spellings):
-        data_type = resolve_data_type(program, spelling)
-        if data_type is None:
-            return {"error": f"unresolved-parameter:{spelling}"}
-        parameters.append(ParameterImpl(names[index], data_type, program))
-    existing = [
-        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
-    ]
-    if (
-        _type_key(function.getReturnType()) == _type_key(return_type)
-        and len(existing) == len(parameters)
-        and all(
-            current.getName() == desired.getName()
-            and _type_key(current.getDataType()) == _type_key(desired.getDataType())
-            for current, desired in zip(existing, parameters, strict=True)
-        )
-    ):
-        return {"applied": False}
+    return_type = resolved["return_type"]
+    parameters = resolved["parameters"]
     current = function.getPrototypeString(False, False).replace(" ", "")
     try:
         function.setReturnType(return_type, SourceType.IMPORTED)
@@ -393,10 +481,6 @@ def synchronize(
                     collect_function_attribute_plan,
                 )
                 from ..global_typing import apply_global_typing, collect_global_typing_plan
-                from ..prototype_repair import (
-                    apply_source_conventions,
-                    collect_source_convention_plan,
-                )
                 from ..surrender_iat_typing import (
                     apply_surrender_iat_typing,
                     collect_surrender_iat_plan,
@@ -407,13 +491,6 @@ def synchronize(
                 )
                 from ..vbtable_typing import apply_vbtable_typing, collect_vbtable_typing_plan
                 from ..vftable_typing import apply_vftable_typing, collect_vftable_typing_plan
-
-                convention_plan = collect_source_convention_plan(
-                    settings.repo_dir, program, target=target
-                )
-                conventions = apply_source_conventions(program, convention_plan)
-                steps.append({"step": "conventions", "result": _step_summary(conventions)})
-                conflicts.extend(conventions.get("errors") or [])
 
                 structure_plan = collect_structure_projection_plan(
                     settings.repo_dir, program, target=target

@@ -259,14 +259,23 @@ def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
             return None
         params.append(ParameterDefinitionImpl(f"param_{index}", data_type, None))
     manager = program.getDataTypeManager()
+    from .paths import json_hash
+
+    type_name = "iat_fnptr_" + json_hash(text)[:12]
+    path = f"/wiz8/surrender-iat/{type_name}"
+    existing = manager.getDataType(path)
     manager.createCategory(CategoryPath("/wiz8/surrender-iat"))
-    definition = FunctionDefinitionDataType(CategoryPath("/wiz8/surrender-iat"), "iat_callback")
+    definition = FunctionDefinitionDataType(CategoryPath("/wiz8/surrender-iat"), type_name)
     definition.setReturnType(return_type)
     if params:
         definition.setArguments(params)
     definition.setCallingConvention(convention)
     if varargs and hasattr(definition, "setVarArgs"):
         definition.setVarArgs(True)
+    from .datatype_contracts import definition_contract_equals
+
+    if existing is not None and definition_contract_equals(existing, definition):
+        return PointerDataType(existing, manager)
     added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
     return PointerDataType(added, manager)
 
@@ -400,11 +409,19 @@ def _data_iat_pointer(program: Any, item: Mapping[str, str]) -> Any | None:
     return PointerDataType(value_type, program.getDataTypeManager())
 
 
-def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | None) -> Any | None:
+def _callable_iat_pointer(
+    program: Any,
+    function: Any,
+    parsed: ParsedCallable | None,
+    *,
+    type_name: str = "iat_callable",
+) -> Any | None:
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
         FunctionDefinitionDataType,
         PointerDataType,
     )
+
+    from .datatype_contracts import definition_contract_equals
 
     if parsed is not None:
         resolved = _resolved_signature(program, parsed)
@@ -417,10 +434,10 @@ def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | 
             )
 
             manager = program.getDataTypeManager()
+            path = f"/wiz8/surrender-iat/{type_name}"
+            existing = manager.getDataType(path)
             manager.createCategory(CategoryPath("/wiz8/surrender-iat"))
-            definition = FunctionDefinitionDataType(
-                CategoryPath("/wiz8/surrender-iat"), "iat_callable"
-            )
+            definition = FunctionDefinitionDataType(CategoryPath("/wiz8/surrender-iat"), type_name)
             definition.setReturnType(return_type)
             if parameter_types:
                 definition.setArguments(
@@ -433,6 +450,8 @@ def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | 
                 definition.setCallingConvention(parsed.convention)
             if parsed.varargs and hasattr(definition, "setVarArgs"):
                 definition.setVarArgs(True)
+            if existing is not None and definition_contract_equals(existing, definition):
+                return PointerDataType(existing, manager)
             added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
             return PointerDataType(added, manager)
     if function is None:
@@ -444,9 +463,88 @@ def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | 
     return PointerDataType(definition, program.getDataTypeManager())
 
 
+def _listing_data_type(program: Any, address: int) -> Any | None:
+    listing = program.getListing()
+    space = program.getAddressFactory().getDefaultAddressSpace()
+    data = listing.getDefinedDataAt(space.getAddress(address))
+    if data is None:
+        return None
+    return data.getDataType()
+
+
+def _unwrap_function_definition(data_type: Any) -> Any | None:
+    from .datatype_contracts import unwrap_plain_typedefs
+
+    current = unwrap_plain_typedefs(data_type)
+    if current is not None and (
+        "Pointer" in type(current).__name__
+        or (callable(getattr(current, "isPointer", None)) and current.isPointer())
+    ):
+        pointee = current.getDataType() if hasattr(current, "getDataType") else None
+        current = unwrap_plain_typedefs(pointee)
+    if (
+        current is not None
+        and hasattr(current, "getArguments")
+        and hasattr(current, "getReturnType")
+    ):
+        return current
+    return None
+
+
+def _normalize_contract_convention(contract: tuple[Any, ...], expected: str) -> tuple[Any, ...]:
+    if len(contract) < 3:
+        return contract
+    current = str(contract[2] or "")
+    if current in {"", "unknown", "default"}:
+        return (contract[0], contract[1], expected, *contract[3:])
+    return contract
+
+
+def _parsed_signature_contract(program: Any, parsed: ParsedCallable) -> tuple[Any, ...] | None:
+    from .datatype_contracts import datatype_shape_key
+
+    resolved = _resolved_signature(program, parsed)
+    if resolved is None:
+        return None
+    return_type, parameters = resolved
+    return (
+        datatype_shape_key(return_type),
+        tuple(datatype_shape_key(parameter) for parameter in parameters),
+        parsed.convention or "",
+        parsed.varargs,
+        False,
+    )
+
+
+def _iat_cell_matches_data_type(program: Any, address: int, data_type: Any) -> bool:
+    from .datatype_contracts import datatype_shape_key
+
+    existing = _listing_data_type(program, address)
+    if existing is None or data_type is None:
+        return False
+    return datatype_shape_key(existing) == datatype_shape_key(data_type)
+
+
+def _iat_cell_matches_parsed(program: Any, address: int, parsed: ParsedCallable | None) -> bool:
+    from .datatype_contracts import function_definition_contract
+
+    if parsed is None:
+        return False
+    existing = _unwrap_function_definition(_listing_data_type(program, address))
+    if existing is None:
+        return False
+    expected = _parsed_signature_contract(program, parsed)
+    if expected is None:
+        return False
+    actual = _normalize_contract_convention(function_definition_contract(existing), expected[2])
+    return actual == expected
+
+
 def _apply_iat_cell_type(program: Any, address: int, data_type: Any) -> bool:
     from .ghidra.listing_guards import ClearRangeError, clear_code_units_guarded
 
+    if _iat_cell_matches_data_type(program, address, data_type):
+        return False
     listing = program.getListing()
     space = program.getAddressFactory().getDefaultAddressSpace()
     start = space.getAddress(address)
@@ -481,6 +579,9 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
                 action = "skip-unresolved-iat-type"
                 counts[action] += 1
                 continue
+            if _iat_cell_matches_data_type(program, address, pointer):
+                counts["agree"] += 1
+                continue
             action = "set-iat-cell"
             counts[action] += 1
             rows.append(
@@ -500,7 +601,14 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
         resolved = None
         apply_types = False
         if function is None:
-            action = "set-iat-cell" if parsed is not None else "missing-function"
+            if parsed is None:
+                action = "missing-function"
+            elif _iat_cell_matches_parsed(program, address, parsed):
+                action = "agree"
+            elif _parsed_signature_contract(program, parsed) is None:
+                action = "skip-unresolved-iat-type"
+            else:
+                action = "set-iat-cell"
         else:
             ghidra = str(function.getCallingConventionName() or "unknown")
             source = _signature_source(function)
@@ -513,7 +621,7 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
             apply_types = resolved is not None and not exact
             if source in _PROTECTED and ghidra not in _SOFT:
                 action = "skip-protected"
-            elif exact and ghidra == convention:
+            elif ghidra == convention and (exact or source == "IMPORTED"):
                 action = "agree"
             elif ghidra in _SOFT or apply_types:
                 action = "set-from-surrender"
@@ -630,7 +738,10 @@ def _apply_surrender_iat_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
                 function.setCallingConvention(convention)
                 function.setSignatureSource(SourceType.ANALYSIS)
             # Full resolved ABI claims IMPORTED; convention-only stays ANALYSIS.
-    pointer = _callable_iat_pointer(program, function, parsed)
+    if parsed is not None and _iat_cell_matches_parsed(program, address, parsed):
+        pointer = None
+    else:
+        pointer = _callable_iat_pointer(program, function, parsed, type_name=f"iat_{address:08x}")
     if pointer is not None:
         iat_typed = _apply_iat_cell_type(program, address, pointer)
     return {

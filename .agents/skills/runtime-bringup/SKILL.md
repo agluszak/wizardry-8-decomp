@@ -42,7 +42,9 @@ a build-generated `// STUB:` trap that prints
 `WIZ8_RUNTIME_STUB address=... symbol=... name=...` and breaks before touching the caller's stack.
 `uv run wiz8 build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail
 body removes its stub on the next build. If stubgen maps an unresolved spelling to an already recovered
-address, fix the declaration/linkage/signature; never add a handwritten fake body.
+address, fix the declaration/linkage/signature; never add a handwritten fake body. Unchanged stub
+files and staged executables keep their bytes and timestamps. `build runtime-test` reports `phases_ms`
+for configure/regenerate/prereq compile/index/stubs/link.
 
 ## Recover the failing behavior
 
