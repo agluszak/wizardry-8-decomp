@@ -17,6 +17,9 @@
 // TEMPLATE: WIZ8 0x004216A0
 // srVector3T<float>::operator+=
 
+// TEMPLATE: WIZ8 0x004216D0
+// srVector3T<float>::operator-=
+
 // TEMPLATE: WIZ8 0x00421700
 // srVector3T<float>::Length
 

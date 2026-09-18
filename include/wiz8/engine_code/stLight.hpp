@@ -30,17 +30,17 @@ public:
     {
         type_04 = 1;
         flags_08 = other.flags_08;
-        value_0c = other.value_0c;
+        flicker_chance_0c = other.flicker_chance_0c;
         color_10.x = other.color_10.x;
         color_10.y = other.color_10.y;
         color_10.z = other.color_10.z;
-        value_1c = other.value_1c;
-        value_20 = other.value_20;
-        value_24 = other.value_24;
+        color_to_1c = other.color_to_1c;
+        color_to_20 = other.color_to_20;
+        color_to_24 = other.color_to_24;
         intensity_28 = other.intensity_28;
-        value_2c = other.value_2c;
-        value_30 = other.value_30;
-        value_34 = other.value_34;
+        intensity_to_2c = other.intensity_to_2c;
+        period_30 = other.period_30;
+        rate_34 = other.rate_34;
         path_value_38 = other.path_value_38;
         value_3c = other.value_3c;
         value_40 = other.value_40;
@@ -61,16 +61,24 @@ public:
         return false;
     }
 
+    /* flags_08 bits 0-1 select the update mode (0 oscillating intensity, 1
+       flicker, 3 one-way ramp); bit 3 lerps diffuse toward the target color,
+       bit 5 ping-pongs the path direction at the ends. */
     unsigned int flags_08;
-    unsigned int value_0c;
+    /* Per-update flicker probability, compared against rand()/32768. */
+    float flicker_chance_0c;
     srVector3T<float> color_10;
-    unsigned int value_1c;
-    unsigned int value_20;
-    unsigned int value_24;
+    /* The diffuse color the intensity sweep lerps toward under flag bit 3. */
+    float color_to_1c;
+    float color_to_20;
+    float color_to_24;
     float intensity_28;
-    float value_2c;
-    unsigned int value_30;
-    unsigned int value_34;
+    /* The intensity the sweep lerps toward. */
+    float intensity_to_2c;
+    /* Sweep period divisor; Update clamps it up to 1.0 when below ~0.0001. */
+    float period_30;
+    /* Elapsed-time multiplier applied to the sweep step. */
+    float rate_34;
     float path_value_38;
     int value_3c;
     int value_40;
@@ -174,17 +182,23 @@ public:
        independent displacement loads. */
     srVector3T<float> m_positional_228;  /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
-    unsigned char m_positional_238;      /* 0x238 */
-    unsigned char m_positional_239;      /* 0x239 */
-    unsigned char m_positional_23a;      /* 0x23a */
+    unsigned char m_positional_238; /* 0x238 */
+    /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
+    unsigned char m_direction_239;
+    unsigned char m_positional_23a; /* 0x23a */
     unsigned char m_padding_23b;
-    float m_positional_23c;         /* 0x23c */
-    unsigned long m_positional_240; /* 0x240 */
-    W8PathAI* m_owned_244;          /* 0x244 */
-    unsigned long m_positional_248; /* 0x248 */
-    float m_positional_24c;         /* 0x24c */
-    unsigned long m_positional_250; /* 0x250 */
-    W8Prop* m_prop_254;             /* 0x254 */
+    /* GetTickCount()/1000 timestamp of the last intensity/color update. */
+    float m_level_time_23c;
+    /* Current 0..1 sweep level driving intensity_1d0 and the color lerp. */
+    float m_level_240;
+    W8PathAI* m_owned_244; /* 0x244 */
+    /* Current path entry index, advanced by m_path_direction_250. */
+    int m_path_index_248;
+    /* GetTickCount()/1000 timestamp of the last path advance. */
+    float m_path_time_24c;
+    /* Path step direction, +1 or -1 under the ping-pong flag. */
+    int m_path_direction_250;
+    W8Prop* m_prop_254; /* 0x254 */
 };
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");

@@ -158,17 +158,17 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 record.create = 1;
 
                 FileRead(hFile, &definition->flags_08, 4, 0);
-                FileRead(hFile, &definition->value_0c, 4, 0);
+                FileRead(hFile, &definition->flicker_chance_0c, 4, 0);
                 FileRead(hFile, &definition->color_10.x, 4, 0);
                 FileRead(hFile, &definition->color_10.y, 4, 0);
                 FileRead(hFile, &definition->color_10.z, 4, 0);
-                FileRead(hFile, &definition->value_1c, 4, 0);
-                FileRead(hFile, &definition->value_20, 4, 0);
-                FileRead(hFile, &definition->value_24, 4, 0);
+                FileRead(hFile, &definition->color_to_1c, 4, 0);
+                FileRead(hFile, &definition->color_to_20, 4, 0);
+                FileRead(hFile, &definition->color_to_24, 4, 0);
                 FileRead(hFile, &definition->intensity_28, 4, 0);
-                FileRead(hFile, &definition->value_2c, 4, 0);
-                FileRead(hFile, &definition->value_30, 4, 0);
-                FileRead(hFile, &definition->value_34, 4, 0);
+                FileRead(hFile, &definition->intensity_to_2c, 4, 0);
+                FileRead(hFile, &definition->period_30, 4, 0);
+                FileRead(hFile, &definition->rate_34, 4, 0);
                 FileRead(hFile, &definition->path_value_38, 4, 0);
                 FileRead(hFile, &definition->value_3c, 4, 0);
                 FileRead(hFile, &definition->value_40, 4, 0);
@@ -196,10 +196,10 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                     light->m_owned_244 = path;
                 }
                 record.intensity = definition->intensity_28;
-                if (definition->value_2c < definition->intensity_28) {
+                if (definition->intensity_to_2c < definition->intensity_28) {
                     float swap = definition->intensity_28;
-                    definition->intensity_28 = definition->value_2c;
-                    definition->value_2c = swap;
+                    definition->intensity_28 = definition->intensity_to_2c;
+                    definition->intensity_to_2c = swap;
                 }
             }
             if (record.visible == 0) {

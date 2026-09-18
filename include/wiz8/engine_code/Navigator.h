@@ -73,6 +73,22 @@ struct W8NavigatorAttachment {
     void GetNextPosition00456660(srVector3T<float>* position);
     void InitializeSegment004563E0(const srVector3T<float>* source,
                                    const srVector3T<float>* destination);
+    /* Step `position` forward along the recorded route by the 2-D `distance`,
+       consuming waypoints the step covers; returns zero once the route's last
+       waypoint is reached. */
+    unsigned char AdvanceAlongPathPositions00456830(float distance,
+                                                    srVector3T<float>* position); /* 0x00456830 */
+    /* Whether `position`'s plan-view distance to the hop leaving the current
+       index stays under the path height interpolated along that segment. */
+    unsigned char CheckPositionHopHeight00456CB0(const srVector3T<float>* position); /* 0x00456CB0 */
+    /* The two-segment form of the hop-height check used on predicted
+       positions: the nearer of the current or following segment wins. */
+    unsigned char CheckPredictedHopHeight00456DD0(const srVector3T<float>* position); /* 0x00456DD0 */
+    /* Move `position` toward the route's next waypoint by up to `distance`,
+       spilling into the following segment; returns nonzero once `distance`
+       exceeded the remainder of the live segment. */
+    unsigned char AdvancePositionTowardWaypoint00456F60(srVector3T<float>* position,
+                                                      float distance); /* 0x00456F60 */
 };
 
 class W8Navigator;
@@ -213,6 +229,9 @@ public:
     unsigned short SetMovementTargetToNavigator004526C0(W8Navigator* target,
                                                         double separation); /* 0x004526C0 */
     void LinkGroupNavigator00452BD0(W8Navigator* target, double separation, int value);
+    /* Whether `other` belongs to this navigator's link group: either side may
+       nominate the shared linked navigator directly. */
+    bool IsLinkedToNavigator00452E10(W8Navigator* other); /* 0x00452E10 */
     /* Stop this navigator, clear its movement/target state, and either mark
        the linked movement stopped or re-sync the collected group. */
     void ResetMovementAndGroupState00452C90();               /* 0x00452C90 */

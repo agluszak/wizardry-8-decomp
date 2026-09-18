@@ -13,6 +13,7 @@ class GDPreProp;
 class OctPrePathLog;
 struct CondPathNode;
 class OctPreTree;
+class W8Monster;
 struct W8LevelFile;
 struct W8LevelFileNamedPosition;
 
@@ -32,21 +33,90 @@ static_assert(sizeof(W8PreProp) == 0x48, "W8PreProp_must_be_0x48");
 static_assert(offsetof(W8PreProp, num_stop_meshes_40) == 0x40, "W8PreProp_num_stop_meshes_40");
 static_assert(offsetof(W8PreProp, pStopMeshes) == 0x44, "W8PreProp_pStopMeshes");
 
+struct W8NavigatorMovementState;
+
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
    and later releases it with delete. Its constructor's entire effect is
    LoadPathParameters004CCCB0 - reading Data\Monsters\pathparms.txt into the
-   path-tuning globals - so the class is the path-parameter owner. Its 0x58
-   bytes of storage have no proven semantic fields. */
+   path-tuning globals - so the class is the path-parameter owner. The object
+   doubles as the per-step steering context StepAlongPath hands to the
+   0x004CAE50-0x004CCB60 method cluster: InitializeSteeringContext004CAE50
+   seeds it from the movement state each step, the steering helpers accumulate
+   into force_38, and IntegrateSteering004CB090 applies the result. */
 class W8PathParameters {
 public:
     W8PathParameters(); /* 0x004CAE40 */
 
+    /* Seeds the context from `movement`: the owning monster, its radius, the
+       speed limit (the linked navigator's movement scale when linked), the
+       normalized velocity or a yaw-derived default direction, the right-hand
+       perpendicular, and cleared force/query state. */
+    void InitializeSteeringContext004CAE50(W8NavigatorMovementState* movement); /* 0x004CAE50 */
+    /* Lazily fills nearby_locations_50/nearby_count_4c with the location ids
+       inside a radius-scaled box around the movement position; the cached
+       result is returned on repeat calls. */
+    unsigned char QueryNearbyNavigators004CAFC0(); /* 0x004CAFC0 */
+    /* Applies force_38 for one time step: clamps it to acceleration_0c,
+       integrates velocity toward speed_limit_08, resolves the heading, snaps
+       the new position against the path mesh and falls back to sliding or
+       stopping when the snap fails. */
+    void IntegrateSteering004CB090(); /* 0x004CB090 */
+    /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
+       arc, accelerating or decelerating the angular velocity in
+       unknown_01c. */
+    void UpdateYawSteering004CB520(float time_step, char use_turn_rate); /* 0x004CB520 */
+    /* Predicts a collision with another navigator or the party inside the
+       prediction window; returns nonzero when one is found ahead. */
+    unsigned char PredictNavigatorCollision004CB620(); /* 0x004CB620 */
+    /* Steers around geometry: brakes and deflects force_38 perpendicular to a
+       clipped span, pushes toward the next waypoint when it falls behind the
+       heading, or uses directional clearance for oversized radii. */
+    unsigned char HandleObstacleAhead004CBB70(); /* 0x004CBB70 */
+    /* Adds the seek force toward target_14 scaled by
+       g_path_acceleration_factor_0060f9e8 into force_38, clamped to
+       acceleration_0c; with a stopped movement it instead pushes along the
+       2-D target direction and zeroes speed_limit_08. */
+    void AccumulateSeekForce004CC1A0(); /* 0x004CC1A0 */
+    /* Scales speed_limit_08 down by target distance through the approach
+       profile, then accumulates the seek force. */
+    void SeekWithApproachSpeed004CC420(); /* 0x004CC420 */
+    /* Adds a repulsion force from every linked navigator inside the combined
+       radius into force_38. */
+    void AccumulateGroupRepulsion004CC4C0(); /* 0x004CC4C0 */
+    /* Steers around the linked leader: lateral pass targets, following
+       distance, or a blocked-path fallback that reseeds target_14. */
+    unsigned char SteerAroundLeader004CC680(char allow_path_fallback); /* 0x004CC680 */
+    /* The full per-step driver for a navigator at the start of its route:
+       obstacle, collision, leader and waypoint steering, group repulsion,
+       then integration. */
+    void SteerFromPathStart004CCAD0(W8NavigatorMovementState* movement,
+                                    char alternate); /* 0x004CCAD0 */
+    /* The mid-route driver: additionally predicts the hop height along the
+       path and advances the target past waypoints the step covers, returning
+       the advance result. */
+    unsigned char SteerAlongPath004CCB60(W8NavigatorMovementState* movement,
+                                         char alternate); /* 0x004CCB60 */
+
 private:
-    unsigned char positional_00[0x58];
+    W8NavigatorMovementState* movement_00;
+    unsigned char unknown_04[4];
+    float speed_limit_08;
+    float acceleration_0c;
+    float velocity_length_10;
+    srVector3T<float> target_14;
+    srVector3T<float> direction_20;
+    srVector3T<float> perpendicular_2c;
+    srVector3T<float> force_38;
+    float radius_44;
+    unsigned char nearby_queried_48;
+    unsigned char blocked_49;
+    unsigned char unknown_4a[2];
+    unsigned int nearby_count_4c;
+    int* nearby_locations_50;
+    W8Monster* monster_54;
 };
 
 static_assert(sizeof(W8PathParameters) == 0x58, "W8PathParameters_must_be_0x58");
-struct W8NavigatorMovementState;
 struct W8NavigatorAttachment;
 
 /* OctPath.cpp's two compact graph records. Surface zero and edge zero are
@@ -56,7 +126,11 @@ struct W8PathSurface {
     unsigned short index_02;
     srVector3T<float> position_04;
     unsigned short parent_10;
-    unsigned char positional_12[0x0a];
+    unsigned char positional_12[0x02];
+    unsigned int positional_14;
+    /* A* heuristic: distance to the goal scaled by g_float_005ec394, cached by
+       FindPath while the surface is open. */
+    float heuristic_18;
     float cost_1c;
     float remaining_cost_20;
     unsigned short first_edge_24;
@@ -283,6 +357,30 @@ public:
     unsigned char ProbeWaypointSegment00462750(const srVector3T<float>* from,
                                                const srVector3T<float>* to);
     unsigned int ComputeWaypointNeighborMask004667A0(const int* cell, unsigned int path_value);
+    /* Sums the blocked-direction unit vectors among the directions `delta`
+       points toward and normalizes the result into `direction`; zero when
+       `mask` is fully open or nothing wanted is blocked. */
+    unsigned char ComputeFreeDirection004664F0(unsigned int mask,
+                                               const srVector3T<float>* delta,
+                                               srVector3T<float>* direction);
+    /* Resolves the path cell under `position`, reads its neighbor mask and
+       computes the free-direction vector away from `delta`; zero when the
+       heading has no free neighbor. */
+    unsigned char GetNeighborSlideDirection00466600(const srVector3T<float>* position,
+                                                    const srVector3T<float>* delta,
+                                                    srVector3T<float>* direction);
+    /* The same free-direction query against the stored waypoint neighbor mask
+       rather than a live cell lookup. */
+    unsigned char GetObstacleDirection00466990(const srVector3T<float>* delta,
+                                               srVector3T<float>* direction);
+    /* A* from the attachment's start to its destination over the surface
+       graph; returns the destination surface index, zero when unreachable. */
+    unsigned int FindPath00460B80(W8NavigatorAttachment* attachment, unsigned int flags);
+    /* Depth-first patrol search from `waypoint`: accumulates per-link path
+       costs against the randomized patrol_distance target, tracking the
+       argmin-key fallback nodes, and returns the reached endpoint or zero.
+       Retail names it in the "Too many links" assert. */
+    unsigned short RecursePatrolLinks00461D10(unsigned short waypoint);
     float MeasureDirectionalPath0045AC70(const int* cell, int direction, unsigned int height,
                                          float distance);
     float CompareDirectionalClearance0045AAC0(const srVector3T<float>* position,
@@ -326,7 +424,10 @@ public:
        destroys the service at octree teardown. */
     ~W8PathingService(); /* 0x00457B10 */
 
-    unsigned int m_positional_000;
+    /* The active edge-filter mask for patrol/path searches. ConfigureForLevel
+       loads it from the octree header; BuildPatrolPath stores its `flags` here
+       for FindPatrolPath. */
+    unsigned int path_flags_000;
     int size_004; /* 0x04 */
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
@@ -405,9 +506,22 @@ public:
     unsigned short value_1d6;
     unsigned short value_1d8;
     unsigned char path_direction_valid_1da;
-    unsigned char m_positional_1db[0x39];
+    unsigned char m_positional_1db;
+    /* Patrol-search state laid down by BuildPatrolPath and consulted by the
+       recursive FindPatrolPath: the argmin-key candidate node, the accepted
+       min/max start-to-destination range, the randomized target path cost,
+       the start and destination positions, and the best alternate
+       candidate's cost. */
+    unsigned int patrol_node_1dc;
+    float patrol_min_1e0;
+    float patrol_max_1e4;
+    float patrol_distance_1e8;
+    srVector3T<float> patrol_start_1ec;
+    srVector3T<float> patrol_destination_1f8;
+    unsigned char m_positional_204[0x0c];
+    float patrol_cost_210;
     W8PathParameters* path_parameters_214; /* 0x214 */
-    int m_positional_218;
+    W8NavigatorAttachment* linked_attachment_218;
     /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
        first by name and names the other four in its own failure messages: a
        lookup, a frame, a key and a value array, sized from the two counts.
