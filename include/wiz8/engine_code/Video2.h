@@ -145,6 +145,12 @@ bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
    coordinates; positional snaps to the renderer's pixel grid. */
 void PositionToolTipNode(srNode* node, int x, int y, char positional);
+/* 0x00427460: the debug stats readout - frame rate always, the full counter
+   block in inspector mode 2, or the scaled camera position in mode 3. */
+void DrawVideoInspector00427460(int left, unsigned int top);
+/* 0x00428830: the option-4-suppressed render probe - draws the node between
+   the dynamic scene's bracketing passes and returns the sampled statistic. */
+unsigned int MeasureNodeRender00428830(srNode* node);
 /* 0x00424EB0: build the 2D polygon-brush model instance over a surface;
    RenderAutomapMarkers' item-marker factory calls it cross-TU. */
 srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, double width,

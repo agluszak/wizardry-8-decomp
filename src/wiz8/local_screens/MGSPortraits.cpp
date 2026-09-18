@@ -8,6 +8,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -195,6 +196,65 @@ void TickPartyPortraitFx(void)
         if (dirty != 0 && entry->field_0d0 == 0) {
             RequestRedraw(1u << (slot & 0x1f));
         }
+    }
+}
+
+/* Draw each occupied, living and eligible party slot's combat portrait in the
+   side strip once the slot's dirty flag is raised: the normal frame, or the
+   alternate while the slot is the hovered combat slot, then the can't-act
+   badge or the party-member target marker. The slot currently acting is drawn
+   by the action panel instead. */
+// FUNCTION: WIZ8 0x0059B720
+void RedrawCombatPortraits0059B720(void)
+{
+    int portrait_x;
+    int badge_x;
+    int row_y;
+    int portrait_image;
+    int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* party_row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
+        W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
+
+        if (party_row->occupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD ||
+            combat_row->portrait_image_084 == -1 || entry->field_0d1 == 0 ||
+            slot == g_level_block->combat_slot) {
+            continue;
+        }
+        if ((slot & 1) == 0) {
+            portrait_x = 0x19;
+            badge_x = 0x19;
+        } else {
+            portrait_x = 0x253;
+            badge_x = 0x25b;
+        }
+        row_y = (slot >> 1) * 0x55;
+        if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+            g_level_block->portrait_refresh_pending[slot] == 0) {
+            ClearSurfaceRect(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58);
+            InvalidateRegion(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58, 0);
+        }
+        if (g_level_block->party_slots_170[4] == -1 || g_level_block->party_slots_170[4] != slot) {
+            portrait_image = combat_row->portrait_image_084;
+        } else {
+            portrait_image = combat_row->portrait_image_alternate_088;
+        }
+        DrawCatalogImageAndInvalidate(-0xe, 0x8a, 0, portrait_image, portrait_x, row_y + 0x44, 2,
+                                      0);
+        if (CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) == 0) {
+            DrawCatalogImageAndInvalidate(-0xe, 0x8b, 0, 0, badge_x, row_y + 0x37, 2, 0);
+        } else if (party_row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
+            DrawCatalogImageAndInvalidate(
+                -0xe, 0x8c, 0,
+                g_status_685170.buffers.party_rows[party_row->target_in_combat.iChar]
+                    .party_order_index,
+                badge_x, row_y + 0x38, 2, 0);
+        }
+        entry->field_0d1 = 0;
     }
 }
 
@@ -916,6 +976,30 @@ void RedrawPanel69B940(void)
     g_panel_69b940->Invalidate(0);
 }
 
+/* Keep each slot's level-advance control active exactly while its character
+   may advance, no NPC dialogue is up and the slot row still allows it;
+   activating one invalidates the panel, and the panel redraws afterward. */
+// FUNCTION: WIZ8 0x0059BC10
+void UpdatePortraitAdvanceButtons0059BC10(void)
+{
+    int slot;
+    W8TextControl** control;
+
+    for (slot = 0, control = g_portrait_controls_0069b920;
+         control < &g_portrait_controls_0069b920[8]; ++slot, ++control) {
+        if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
+            g_status_685170.buffers.party_rows[slot].flag_103 != 0) {
+            if (!(*control)->m_active) {
+                (*control)->SetActive(true);
+                g_panel_69b940->Invalidate(0);
+            }
+        } else if ((*control)->m_active) {
+            (*control)->SetActive(false);
+        }
+    }
+    g_panel_69b940->Redraw();
+}
+
 /* Open the character screen for giLevelUpChar when that portrait button fires. */
 // FUNCTION: WIZ8 0x0059BCA0
 void OnLevelButtonActivate(void)
@@ -1141,6 +1225,72 @@ unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* regio
         break;
     }
     return 0;
+}
+
+/* Per-frame condition-button refresh: while a slot is empty, mid-refresh or
+   suppressed its button stays hidden (and a tracked highlight is dropped);
+   otherwise the icon tracks the slot's highest condition or top enchantment
+   and the button stays live, then the panel redraws. */
+// FUNCTION: WIZ8 0x0059C080
+void UpdateConditionButtons0059C080(void)
+{
+    int image;
+    int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        W8ConditionButton* button = g_condition_buttons_0069b900[slot];
+        W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
+        image = 0;
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            g_level_block->portrait_refresh_pending[slot] == 0 && entry->field_0d0 == 0) {
+            image = g_status_685170.buffers.characters[slot].highest_condition;
+            if (image == 0) {
+                image = g_status_685170.buffers.characters[slot].enchantment_top;
+                if (image != 0) {
+                    if (button->m_image_object_bc != image) {
+                        button->m_image_object_bc = image;
+                        button->Invalidate(0);
+                    }
+                    if (button->m_condition_b8 != 1) {
+                        button->m_condition_b8 = 1;
+                        button->Invalidate(0);
+                    }
+                }
+            } else {
+                if (button->m_image_object_bc != image) {
+                    button->m_image_object_bc = image;
+                    button->Invalidate(0);
+                }
+                if (button->m_condition_b8 != 0) {
+                    button->m_condition_b8 = 0;
+                    button->Invalidate(0);
+                }
+            }
+        }
+        if (image == 0) {
+            if (button->m_active) {
+                button->SetActive(false);
+                button->Invalidate(0);
+                if (g_level_block->portrait_refresh_pending[slot] == 0 && entry->field_0d0 == 0) {
+                    ClearSurfaceRect(button->m_left + g_condition_buttons_panel_0069b944->origin_x,
+                                     button->m_top + g_condition_buttons_panel_0069b944->origin_y,
+                                     button->m_right + g_condition_buttons_panel_0069b944->origin_x,
+                                     button->m_bottom +
+                                         g_condition_buttons_panel_0069b944->origin_y);
+                }
+                if (g_level_block->condition_highlight_party_slot == slot) {
+                    g_level_block->condition_highlight_party_slot = -1;
+                    DismissHighlightOverlay();
+                    RequestRedraw(0x8000);
+                    RequestRedraw(0xff);
+                }
+            }
+        } else if (!button->m_active) {
+            button->SetActive(true);
+            button->Invalidate(0);
+        }
+    }
+    g_condition_buttons_panel_0069b944->Redraw();
 }
 
 /* Forward left-button and hover events to the condition button for the
