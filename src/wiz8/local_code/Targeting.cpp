@@ -46,6 +46,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srCamera.h"
 #include "Types.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/engine_code/Cursor3d.h"
@@ -2973,6 +2974,55 @@ void RefreshMonsterTargetCounts005398D0(void)
             group->selectable_member_count = selectable_count;
         }
     }
+}
+
+/* Whether `monster` is closer than `max_distance` to the player and its
+   elevated centre or either animation-bound corner still projects on the world
+   camera. Callers pass a camera `position`, but retail distance uses
+   GetDistanceToPlayer. */
+// FUNCTION: WIZ8 0x0053A060
+bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
+                                            float max_distance)
+{
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    srVector3T<double> input;
+    srVector3T<float> center;
+    srVector3T<float> projected;
+
+    if (monster->GetDistanceToPlayer004C7CB0() < max_distance) {
+        monster->GetAnimationBounds(&minimum, &maximum);
+        center = monster->movement_0c0.position_040;
+        center.y += monster->movement_0c0.height_offset_0b8;
+        projected = monster->GetPosition();
+        minimum.x += projected.x;
+        minimum.y += projected.y;
+        minimum.z += projected.z;
+        maximum.x += projected.x;
+        maximum.y += projected.y;
+        maximum.z += projected.z;
+        input.x = center.x;
+        input.y = center.y;
+        input.z = center.z;
+        if (g_world->camera->project(projected, input) !=
+            srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+            input.x = minimum.x;
+            input.y = minimum.y;
+            input.z = minimum.z;
+            if (g_world->camera->project(projected, input) !=
+                srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                input.x = maximum.x;
+                input.y = maximum.y;
+                input.z = maximum.z;
+                if (g_world->camera->project(projected, input) !=
+                    srCamera::PROJECTION_RESULT_POSITIONAL_0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 /* Any live monster visible to the camera within the far-clip range, resuming

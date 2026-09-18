@@ -1,8 +1,10 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/3d.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/OctPreTree.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/stHash.hpp"
@@ -373,9 +375,9 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
     return 1;
 }
 
-/* One-instance form of the lit-marker path FinalizeWorldScenes walks: mark the
-   first-child chain, then bake the dynamic scene's light children. */
-// FUNCTION: WIZ8 0x0046f4a0
+/* Bake dynamic-scene lights into one not-yet-lit model instance. state_178
+   bit 1 is the lit marker; the first-child walk matches SetChainValue15C. */
+// FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
                                                          srNode* dynamic_scene)
 {
@@ -383,16 +385,120 @@ unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instan
 
     if ((instance->state_178 & 2) == 0) {
         instance->state_178 |= 2;
-        /* Retail inlines this walk rather than calling SetChainValue15C. */
         char* chain =
-            reinterpret_cast<char*>(instance); // reinterpret-ok: first_child_/exclusion_mask layout
-        for (; chain != 0;
-             chain = *reinterpret_cast<char**>(chain + 0x134)) { // reinterpret-ok: +0x134 link
-            *reinterpret_cast<int*>(chain + 0x15c) = 1; // reinterpret-ok: exclusion_mask_15c
+            reinterpret_cast< // reinterpret-ok: attachment fields are addressed by byte offset past the object
+                char*>(instance);
+        for (; chain != 0; chain = *reinterpret_cast< // reinterpret-ok: next-link field at +0x134
+                                   char**>(chain + 0x134)) {
+            *reinterpret_cast< // reinterpret-ok: flag field at +0x15c
+                int*>(chain + 0x15c) = 1;
         }
         BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
     }
     return 1;
+}
+
+/* Walk every live world mesh (octree mesh table, or the update-mesh chain when
+   there is no octree) and point its vertex-light table index at `table`, then
+   raise flags_3a0 bit 1 so the next bake uses that table. */
+// FUNCTION: WIZ8 0x0046F760
+void SetWorldMeshVertexLightTable0046F760(W8World* world, int table)
+{
+    if (world->octree == 0) {
+        for (stMeshModel* model = static_cast<stMeshModel*>(world->update_mesh_source->model());
+             model != 0; model = model->next) {
+            model->vertex_light_table_3b0 = table;
+            model->flags_3a0 |= 2;
+        }
+    } else {
+        for (unsigned int mesh = 0; mesh < world->octree->m_meshCount_1b4; ++mesh) {
+            srModelInstance* instance = world->psrMeshes[mesh];
+            if (instance != 0) {
+                for (stMeshModel* model = static_cast<stMeshModel*>(instance->model()); model != 0;
+                     model = model->next) {
+                    model->vertex_light_table_3b0 = table;
+                    model->flags_3a0 |= 2;
+                }
+            }
+        }
+    }
+}
+
+/* True when the camera projects the AABB midpoint or any of its eight corners
+   and the octree has line of sight from eye to that point. */
+// FUNCTION: WIZ8 0x0046F820
+unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<float>* lower,
+                               const srVector3T<float>* upper)
+{
+    srVector3T<float> point;
+
+    point = (*lower + *upper) * g_double_005ebe80;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point = *upper;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point = *lower;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = lower->x;
+    point.y = upper->y;
+    point.z = upper->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = lower->x;
+    point.y = upper->y;
+    point.z = lower->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = upper->x;
+    point.y = upper->y;
+    point.z = lower->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = upper->x;
+    point.y = lower->y;
+    point.z = upper->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = lower->x;
+    point.y = lower->y;
+    point.z = upper->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    point.x = upper->x;
+    point.y = lower->y;
+    point.z = lower->z;
+    if (ProjectPointThroughCamera004BE940(&point) != 0) {
+        if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0046F510

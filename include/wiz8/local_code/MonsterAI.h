@@ -34,8 +34,8 @@ unsigned char MonsterGroupCanEngage(W8MonsterGroup* monster_group); /* 0x0053192
    monster scan, `hostility` selects the class (three and four are wildcards),
    and `within_reach` also requires the target inside engagement range. */
 unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
-                                      int within_reach);              /* 0x00534850 */
-float GetGroupNearestDistance(W8MonsterGroup* group, float furthest); /* 0x005324B0 */
+                                      int within_reach); /* 0x00534850 */
+float GetGroupNearestDistance(W8MonsterGroup* group);    /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
 extern const int g_special_attack_table[32][2];
@@ -55,7 +55,7 @@ unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_
                                          W8CombatSlot* slot); /* 0x005353E0 */
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
-unsigned char MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
                                            int hostility, int within_reach); /* 0x005347A0 */
 /* The out-of-combat sweep: refreshes sight, alerts same-faction groups of
    groups already fighting, and enters combat for the groups that should. */
@@ -75,11 +75,11 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info,
                                   W8MonsterRecord* record); /* 0x00531C00 */
 /* Whether the monster can flee at all: it has a flee chance, a flee
    animation, enough of its stat left, and somewhere to run. */
-unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                              char exclude_special); /* 0x00534A40 */
 /* Whether the monster may cast `spell_id` now; `needs_target` also demands
    something to aim it at. */
-unsigned char IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
+bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
                                      char needs_target); /* 0x00532550 */
 /* Which of the monster's ten spells to cast, weighted by the spell table. */
 int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record); /* 0x00533260 */

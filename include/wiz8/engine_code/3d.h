@@ -34,12 +34,16 @@ void FinalizeStaticScene0046F3A0(srScene* scene);
 stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model);
 
 unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene);
+/* Mark an instance lit and bake dynamic-scene lights once (state_178 bit 1). */
 unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
                                                          srNode* dynamic_scene); /* 0x0046F4A0 */
 unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
                                                  char walk_chain);
 void SetSceneMeshShaderBit3_0046E640(srNode* node, int argument);
 void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument);
+/* 0x0046F760: assign every live world's mesh vertex-light table index and
+   mark the mesh dirty for rebake (automap lighting uses table 1). */
+void SetWorldMeshVertexLightTable0046F760(W8World* world, int table);
 
 void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third);
@@ -66,7 +70,8 @@ unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
-unsigned char ShowTargetMarker(void* eye, void* lower, void* upper); /* 0x0046F820 */
+unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<float>* lower,
+                               const srVector3T<float>* upper); /* 0x0046F820 */
 
 void WorldUpdateLights(W8World* world);
 float WorldGetValue78(W8World* world);

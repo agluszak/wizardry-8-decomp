@@ -214,7 +214,7 @@ void UpdateMonsterGroups(char staggered)
         if (monster_info == 0 || monster_info->monster == 0) {
             continue;
         }
-        nearest_distance = GetGroupNearestDistance(monster_group, 999999.0f);
+        nearest_distance = GetGroupNearestDistance(monster_group);
         if (staggered != 0 && group_list_index % 20 != g_monster_group_tick % 20 &&
             (WorldGetFarClip(GetWorld()) < nearest_distance ||
              group_list_index % 5 != g_monster_group_tick % 5)) {
@@ -228,7 +228,7 @@ void UpdateMonsterGroups(char staggered)
         if (monster_group->flag_28 != 0 && monster_group->fInCombat == 0) {
             double far_clip;
             if (monster_group->leader_group_id == 0) {
-                Function5113A0(monster_group);
+                RefreshMonsterGroupHostility005113A0(monster_group);
             }
             far_clip = WorldGetFarClip(GetWorld());
             if (nearest_distance <= far_clip + far_clip) {
@@ -1320,7 +1320,7 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
    and fire spells under camera sway pass, and `needs_target` also demands a
    target to aim at. */
 // FUNCTION: WIZ8 0x00532550
-unsigned char IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char needs_target)
+bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char needs_target)
 {
     if (spell_id == 0) {
         return 0;
@@ -2119,7 +2119,7 @@ void CheckMonsterGroupsLeaveCombat(void)
             leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->value_9f, 1);
             if (GetMonsterGroupFlagC8(group->group_id) != 0 && leader != 0 &&
                 leader->fActive != 0) {
-                nearest = GetGroupNearestDistance(group, 999999.0f);
+                nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
                         GetMonsterCombatMoveRange(leader) * g_float_005ebc64;
                 minimum = GetRangeConstant5EC360() + g_float_005ee77c;
@@ -2202,7 +2202,7 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
 // FUNCTION: WIZ8 0x005347A0
-unsigned char MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
+bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
                                            int hostility, int within_reach)
 {
     unsigned int index;
@@ -2291,7 +2291,7 @@ unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_onl
    non-summoning attacks - somewhere to run. Summoning rows flee at the party
    instead and may not be offered as a special action. */
 // FUNCTION: WIZ8 0x00534A40
-unsigned char CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                              char exclude_special)
 {
     W8GrowableVector<W8CombatSlot> targets;
@@ -2388,8 +2388,8 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
         }
         break;
     case W8_MONSTER_ACTION_FLEE:
-        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind_0e3][0] ==
-            W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
+        if (g_special_attack_table[GetMonsterDataForInfo(monster_info)->special_attack_kind_0e3]
+                                  [0] == W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
             return 0;
         }
         spell_id = W8_AI_SPELL_PLACE;
@@ -2400,13 +2400,15 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
     return MonsterSpellHasPartyTarget(monster_info, spell_id, &monster_info->Target) != 0;
 }
 
-/* How near the nearest member of a group has come. */
+/* How near the nearest member of a group has come. The search starts at
+   999999 and keeps the smallest player distance any member reports. */
 // FUNCTION: WIZ8 0x005324b0
-float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
+float GetGroupNearestDistance(W8MonsterGroup* group)
 {
     unsigned int index;
     int location_id;
     W8MonsterInfo* monster_info;
+    float furthest = 999999.0f;
     float distance;
 
     if (group == 0) {
@@ -2740,8 +2742,7 @@ unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
         }
         if (monster_group->ubDisposition == DISP_HOSTILE &&
             MonsterGroupHasRenderableMember(monster_group, 1) != 0) {
-            if (GetGroupNearestDistance(monster_group, 999999.0f) <=
-                CalcRangeDistance(W8_RANGE_EXTREME)) {
+            if (GetGroupNearestDistance(monster_group) <= CalcRangeDistance(W8_RANGE_EXTREME)) {
                 return 1;
             }
         }

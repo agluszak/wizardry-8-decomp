@@ -86,6 +86,16 @@ unsigned char CreateOptionsDiskButton(void); /* 0x00597A30 */
 unsigned char CreateCombatStanceButtons(void); /* 0x00597B90 */
 /* Create the three roof/viewpoint buttons. */
 unsigned char CreateRoofButtons(void); /* 0x00597EE0 */
+/* Draw roof chrome, mark the three buttons dirty, sync state, and request the
+   0x100000 redraw bit. */
+void RedrawRoofButtons(void); /* 0x00598060 */
+/* Sync roof-button visibility/enabled/pressed state and Draw each button. */
+void UpdateRoofButtons(void); /* 0x005980B0 */
+/* Press the roof button that matches g_settings_6850c8.main_ui_mode. */
+void SyncRoofButtonPressedState(void); /* 0x00598150 */
+/* Draw layout-arrow chrome and sync the six raise/lower arrows against the
+   live action-panel / formation-board / radar-map visibility flags. */
+void RedrawLayoutArrowButtons(void); /* 0x00598490 */
 /* Create the six layout-arrow buttons. */
 unsigned char CreateLayoutArrowButtons(void); /* 0x005982D0 */
 /* MainGameScreenEnter's interface-button bank: submenu, scroll, panel,
@@ -94,6 +104,18 @@ void CreateMainGameInterfaceButtons(void); /* 0x00598AB0 */
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */
 void DrawSubMenuCharacterAction(void); /* 0x00596FE0 */
+/* Sync enable/press of the two sub-menu panel buttons, then Draw them. */
+void UpdateSubMenuPanelButtons(void); /* 0x00597790 */
+/* Redraw the bottom sub-menu chrome, bank buttons, panel buttons, character
+   action caption, and scroll arrows (redraw bit 0x1000). */
+void RedrawSubMenuButtons(void); /* 0x00598810 */
+/* Redraw the options-disk button (redraw bit 0x40000). */
+void RedrawOptionsDiskButton(void); /* 0x00597AF0 */
+/* Mark combat-stance buttons dirty and refresh which stance is shown
+   (redraw bit 0x80000). */
+void RedrawCombatStanceButtons(void); /* 0x00597D30 */
+/* Show the active continuous/manual combat-stance button for the live mode. */
+void UpdateCombatStanceButtons(void); /* 0x00597D70 */
 
 /* The scroll-arrow callbacks are one-argument thunks over the shared handler:
    up steps toward lower slots, down toward higher, both wrapping and skipping

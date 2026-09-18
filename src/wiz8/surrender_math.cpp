@@ -20,8 +20,17 @@
 // TEMPLATE: WIZ8 0x00421700
 // srVector3T<float>::Length
 
+// TEMPLATE: WIZ8 0x00421730
+// srVector3T<float>::LengthSquared
+
+// TEMPLATE: WIZ8 0x00421750
+// srVector3T<float>::SetLength
+
 // TEMPLATE: WIZ8 0x004218E0
 // DotProduct<float>
+
+// TEMPLATE: WIZ8 0x004219A0
+// operator-<float>(srVector3T<float> const &,srVector3T<float> const &)
 
 // TEMPLATE: WIZ8 0x00438C00
 // operator+<float>(srVector3T<float> const &,srVector3T<float> const &)

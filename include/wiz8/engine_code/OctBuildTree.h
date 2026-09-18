@@ -68,6 +68,11 @@ struct W8OctBuildTree00446390 {
     unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
                                                  srVector3T<float>* plane_point,
                                                  unsigned long mode);
+    /* 0x00446D80: unrecovered build-tree segment collect used when
+       geometry_index_00 is live and positional_04 is not. */
+    int CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
+                                           const srVector3T<float>* to, float half_angle,
+                                           float extent, unsigned short kind);
 
     W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists_9c;

@@ -32,7 +32,9 @@ struct W8WorldItem {
        record, so on disk it only records that another entry follows. */
     int saved_marker;  /* 0x2d */
     W8WorldItem* next; /* 0x31 */
-    int unknown_35;
+    /* 0x35: vertical velocity while flag bit 1 (falling) is set; cleared on
+       ground settle. */
+    float vertical_velocity_35;
     int sector_id; /* 0x39 */
     unsigned char unknown_3d[0x70];
 }; /* 0xad */

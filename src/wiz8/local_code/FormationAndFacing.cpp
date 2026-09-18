@@ -242,6 +242,40 @@ void RestoreCombatFormation(void)
     }
 }
 
+/* When set during combat, camera yaw updates party_heading only and leaves
+   party_facing alone. Cleared, the free-look path also writes party_facing. */
+// GLOBAL: WIZ8 0x0069B7D4
+static unsigned char g_combat_preserve_party_facing_0069b7d4;
+
+/* Sync party facing/heading from the camera yaw and refresh the formation
+   compass. Level-data flag 6 and combat-with-preserve skip writing facing. */
+// FUNCTION: WIZ8 0x005552F0
+void SyncPartyFacingFromCamera(void)
+{
+    unsigned int yaw;
+    unsigned int flag6;
+
+    yaw = static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN;
+    flag6 = GetLevelDataFlag6();
+    if ((gXStatus.fCombatMode == 0 || g_combat_preserve_party_facing_0069b7d4 == 0) &&
+        static_cast<unsigned char>(flag6) == 0) {
+        g_status_685170.party_facing = static_cast<int>(yaw);
+        if (yaw != g_status_685170.party_heading) {
+            g_status_685170.party_heading = yaw;
+            UpdateFormationCompass();
+            if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN != yaw) {
+                SetCameraYawDegrees(static_cast<float>(yaw));
+            }
+        }
+    } else if (yaw != g_status_685170.party_heading) {
+        g_status_685170.party_heading = yaw;
+        UpdateFormationCompass();
+        if (static_cast<unsigned int>(GetCameraYawDegrees()) % W8_DEGREES_PER_TURN != yaw) {
+            SetCameraYawDegrees(static_cast<float>(yaw));
+        }
+    }
+}
+
 /* Turn the party to a new heading, moving the camera with it unless it is
    already looking that way. */
 // FUNCTION: WIZ8 0x005553c0

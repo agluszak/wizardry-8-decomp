@@ -862,7 +862,7 @@ void SetSpellCastingPanelsActive005A0270(unsigned char active)
             }
             panel->Redraw();
             if (text_pending) {
-                Function58CC10();
+                RedrawTextBoxScrollChrome();
             }
         }
     }

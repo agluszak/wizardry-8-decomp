@@ -83,7 +83,11 @@ void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned ch
                            short text_box);
 
 void Function58F6B0(int value); /* 0x0058F6B0 */
-void Function58CC10(void);      /* 0x0058CC10 */
+/* 0x0058C3A0: repaint visible text-box lines; skip_invalidate nonzero skips
+   InvalidateRegion of the text rectangle. */
+void RedrawTextBoxBody(unsigned char skip_invalidate);
+/* 0x0058CC10: redraw text-box scroll up/down buttons and thumb, then body. */
+void RedrawTextBoxScrollChrome(void);
 /* 0x0058B300: append text to a box's current line. Retail callers disagree on
    arity - the box argument is optional. */
 void AppendTextBoxLine0058B300(const wchar_t* text, ...);

@@ -20,13 +20,18 @@ extern unsigned int g_combat_effect_right_count_69c2ac;
 unsigned char CreateSpellIconHudControls(void); /* 0x005AE9D0 */
 /* Tear down the icon rows and destroy the three HUD panels. */
 void DestroySpellIconHudControls(void); /* 0x005AEB20 */
+/* Drop and rebuild the spell-icon rows on the existing top strip. */
+void RefreshSpellIconHudRows(void); /* 0x005AEBE0 */
+/* Rebuild the top-strip spell-icon text controls from active party effects. */
+void RebuildSpellIconHudRows(void); /* 0x005AEC70 */
 /* Drop the combat-effect icon rows without destroying their parent panels. */
 void DestroyCombatEffectHudRows(void); /* 0x005AF210 */
+/* Tear down combat-effect rows, rebuild them in combat, and enable/redraw the
+   flanking panels (honoring portrait-refresh pending on slots 0/1). */
+void RefreshCombatEffectHud(void); /* 0x005AEF30 */
 /* Clear and invalidate the main-game effect strip while it is up. */
 void InvalidateMainGameEffectHud(void); /* 0x005AF2D0 */
 
-/* Party / combat effect-icon region help + hover handlers (catalog rows for
-   the three HUD strips CreateSpellIconHudControls allocates). */
 void ShowPartyEffectIconHelp(int slot_index);       /* 0x005AED90 */
 void ShowCombatLeftEffectIconHelp(int slot_index);  /* 0x005AF300 */
 void ShowCombatRightEffectIconHelp(int slot_index); /* 0x005AF410 */

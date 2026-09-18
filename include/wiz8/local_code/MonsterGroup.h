@@ -89,7 +89,7 @@ unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         char follow_leader); /* 0x0050FBA0 */
 /* Whether the group is loaded, in combat, and still has members; hostile
    groups are live on that alone, others also need CombatAllowsLiveGroups. */
-unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group); /* 0x00510B30 */
+bool IsMonsterGroupLive(W8MonsterGroup* monster_group); /* 0x00510B30 */
 /* The Nth live combat group in plsMonsterGroupList order; null when none. */
 W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index); /* 0x00510AC0 */
 /* Channel-12 notices summarizing a group's name, count, and visibility. */
@@ -147,8 +147,10 @@ void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char 
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
 unsigned char MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
 void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);                      /* 0x0050F630 */
-void Function5113A0(W8MonsterGroup* monster_group);                               /* 0x005113A0 */
-void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);                      /* 0x0050F720 */
+/* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
+   default disposition on the intelligence-squared cooldown. */
+void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */
+void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
 /* Marks every live member of the group and of its allied groups for removal. */
 void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
 /* Nonzero when the group - or one of its allied groups - has a member whose

@@ -12,7 +12,7 @@ template <class T> class srVector3T;
    UpdateCameraPathState0048F2F0 toggles. */
 struct W8CameraPath {
     char name_00[0x14];
-    unsigned char active_14;
+    bool active_14;
     unsigned char unknown_15[3];
     W8PathAI* path_18;
 };

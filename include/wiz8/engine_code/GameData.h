@@ -23,36 +23,66 @@ void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move
    (it is the body previously read as a bare `add ecx,0xc4` adjustor). */
 struct W8LevelDataRecord {
     unsigned int flags; /* 0x00 */
-    unsigned char unknown_04[8];
+    /* 0x04/0x08: prop ids filled by the motion collision path; ToggleBoundProps
+       flips setting-6e props referenced here. */
+    int primary_contact_prop_id;   /* 0x04 */
+    int secondary_contact_prop_id; /* 0x08 */
     signed char sound_environment_0c;
     signed char sound_environment_alt_0d;
-    unsigned char unknown_0e[6];
-    float camera_scale_14; /* 0x14 */
-    unsigned char unknown_18[0x0c];
+    unsigned char pad_0e[2];
+    float footstep_accumulator_10; /* 0x10 */
+    float camera_scale_14;         /* 0x14 */
+    /* 0x18/0x1c: residual segment length and facing metric from the nearest
+       contact during UpdateWorldCameraAndPaths. */
+    float residual_contact_length_18; /* 0x18 */
+    float contact_facing_1c;          /* 0x1c */
+    float speed_20;                   /* 0x20 */
     /* 0x24/0x28: pending elapsed times ConsumeLevelElapsedTime0041F170 hands
        to the movement/fatigue pass, then clears. */
     float real_elapsed_24;
     float frame_elapsed_28;
     float movement_limit_2c;
     float movement_progress_30;
-    unsigned char unknown_34[0x0c];
-    srVector3T<float> vector_40;         /* 0x40 */
-    srVector3T<float> camera_forward_4c; /* 0x4c */
-    unsigned char unknown_58[0x0c];
+    srVector3T<float> camera_position_34;       /* 0x34 */
+    srVector3T<float> vector_40;                /* 0x40 */
+    srVector3T<float> camera_forward_4c;        /* 0x4c */
+    srVector3T<float> vector_58;                /* 0x58 */
     srVector3T<float> vector_64;                /* 0x64 */
     srVector3T<float> vector_70;                /* 0x70 */
     srVector3T<float> scaled_camera_forward_7c; /* 0x7c */
-    float vector_88[3];                         /* 0x88 */
-    unsigned char unknown_94[0x0c];
-    srVector3T<float> vector_a0; /* 0xa0 */
-    unsigned char unknown_ac[0x18];
-    W8IntervalGate interval_gate_c4; /* 0xc4 */
-    unsigned char flag_ec;           /* 0xec */
-    unsigned char flag_ed;           /* 0xed */
+    srVector3T<float> vector_88;                /* 0x88 */
+    srVector3T<float> vector_94;                /* 0x94 */
+    srVector3T<float> vector_a0;                /* 0xa0 */
+    /* 0xac: contact surface normal; 0xb8: scalar stored beside it (retail
+       constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
+    srVector3T<float> contact_normal_ac; /* 0xac */
+    float contact_normal_scale_b8;       /* 0xb8 */
+    unsigned char unknown_bc[8];         /* 0xbc */
+    W8IntervalGate interval_gate_c4;     /* 0xc4 */
+    unsigned char flag_ec;               /* 0xec */
+    unsigned char flag_ed;               /* 0xed */
     unsigned char pad_ee[2];
-    int value_f0; /* 0xf0 */
+    float value_f0; /* 0xf0 */
 
+    W8LevelDataRecord();  /* 0x0041FD10 */
     ~W8LevelDataRecord(); /* 0x00421890 */
+    /* 0x0041FE20: when the camera sits outside the game-data AABB, push
+       vector_a0 toward the box, clear environ vector_24, and optionally start
+       party movement; returns non-zero when a clamp fired. */
+    unsigned char ClampCameraToBounds0041FE20(const srVector3T<float>* minimum,
+                                              const srVector3T<float>* maximum);
+    /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
+    unsigned char ToggleBoundProps0041FF00();
+    /* 0x00420470: integrate camera_forward into vector_64/vector_70. */
+    unsigned char IntegrateCameraForward00420470();
+    /* 0x00420810: rotate vector_40 by the saved yaw matrix and refresh
+       vector_a0; returns the updated fast-move latch. */
+    unsigned char ApplySavedMotionMatrix00420810(unsigned char prior_fast, unsigned char fast_move,
+                                                 const srMatrix3T<float>* saved);
+    /* 0x0041FF90: advance movement progress / footstep state for one tick. */
+    void UpdateMotionProgress0041FF90(unsigned char fast_move, unsigned char moved);
+    /* 0x00420A60: accumulate footstep distance and optionally play a step. */
+    unsigned char UpdateFootstepFromMotion00420A60();
 };
 
 struct W8OctBuildTree00446390;
@@ -73,7 +103,9 @@ struct W8EnvironRecord {
     unsigned char value_05;
     unsigned char pad_06[2];
     int value_08;
-    int unknown_0c;
+    /* Per-frame scale copied from the level camera_scale; 0x00421850 multiplies
+       vector_24 by it when advancing the camera under environment load. */
+    float scale_0c;
     float value_10;
     float value_14;
     float value_18;
@@ -87,6 +119,8 @@ struct W8EnvironRecord {
     float value_40;
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
+    /* 0x00421850: add vector_24 * scale_0c into `position`. */
+    void AddScaledMotion00421850(srVector3T<float>* position);
 };
 
 static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
@@ -138,6 +172,26 @@ struct W8GameData {
     void ProcessCrossedSurface(W8GDSurface* surface); /* 0x0041C770 */
     /* Builds the octree trace model and answers its scene node. */
     srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
+    /* 0x0041F330: apply world-render camera-motion flags into `rotation` and
+       mirror the result into `saved`. Retail call sites pass the owning
+       W8GameData in ECX even though the body reads only globals. */
+    void ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<float>* rotation,
+                                        srMatrix3T<float>* saved);
+    /* 0x0041F5F0: advance the camera position under the same flag set; writes
+       the delta into `delta` and answers whether the position changed. */
+    unsigned char ApplyCameraMotion0041F5F0(unsigned int flags, srVector3T<float>* position,
+                                            srVector3T<float>* delta, srMatrix3T<float>* saved);
+    /* 0x0041AB40: advance camera under environment-load motion, tracing
+       props/octree/geometry and applying crossed surfaces. */
+    unsigned char AdvanceEnvironmentMotion0041AB40();
+    /* 0x0041BD60: push the motion delta away from nearby active monsters. */
+    unsigned char ProbeMonstersAlongMotion0041BD60(srVector3T<float>* direction,
+                                                   srVector3T<float>* position, int mode);
+    /* 0x0041B770: probe active collidable props along the motion segment;
+       returns the nearest hit surface and may adjust `direction`. */
+    W8GDSurface* ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
+                                               srVector3T<float>* position, float* scratch,
+                                               float* nearest_distance);
 
     W8OctBuildTree00446390* geometry_index_00;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
@@ -215,6 +269,14 @@ static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
 
 #pragma pack(pop)
 
+static_assert(offsetof(W8LevelDataRecord, primary_contact_prop_id) == 0x04,
+              "W8LevelDataRecord_primary_contact_prop_id");
+static_assert(offsetof(W8LevelDataRecord, residual_contact_length_18) == 0x18,
+              "W8LevelDataRecord_residual_contact_length_18");
+static_assert(offsetof(W8LevelDataRecord, contact_normal_ac) == 0xac,
+              "W8LevelDataRecord_contact_normal_ac");
+static_assert(offsetof(W8LevelDataRecord, contact_normal_scale_b8) == 0xb8,
+              "W8LevelDataRecord_contact_normal_scale_b8");
 static_assert(sizeof(W8LevelDataRecord) == 0xf4, "W8LevelDataRecord_must_be_0xf4");
 
 extern W8LevelDataRecord* g_level_data_00652dac;
@@ -287,3 +349,20 @@ int GetCameraYawDegrees(void);
    world, true for a loaded world without an octree. */
 bool HasCameraLineOfSight(const srVector3T<float>* position);
 void PlacePartyAtPoint(const srVector3T<float>* point);
+/* 0x00420E20: start/stop the sustained movement footstep loop. */
+void UpdateLevelMovementAudio00420E20(void);
+/* 0x004EF9A0: unrecovered sway/override follow-up; stubbed by name. */
+void HandleLevelOverride004EF9A0(void);
+
+extern unsigned char g_level_motion_fast_00652dcd;
+extern bool g_level_footstep_pending_00652db9;
+extern float g_camera_motion_clamp_00603ac0;
+extern float g_camera_motion_divisor_00603ac4;
+extern int g_level_footstep_sound_00603ad4;
+extern float g_level_footstep_time_00652dd0;
+extern const double g_motion_delta_epsilon_005ebc50;
+extern const double g_motion_vector_epsilon_005ebc48;
+extern const float g_footstep_fall_threshold_005ebcd4;
+extern unsigned char g_environment_motion_active_00603ad1;
+extern unsigned char g_environ_ground_latch_00652db8;
+extern srVector3T<float> g_origin_652940;

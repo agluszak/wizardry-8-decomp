@@ -1531,6 +1531,85 @@ unsigned char CreateOptionsDiskButton(void)
     return 1;
 }
 
+/* Redraw the options-disk chrome and button; disabled under dialogue / lock /
+   trap / camp interact modes. */
+// FUNCTION: WIZ8 0x00597AF0
+void RedrawOptionsDiskButton(void)
+{
+    bool enabled;
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 2, 0, 0x1c2, 2, 0);
+    g_options_disk_button_69b8e4->m_dirty = 1;
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
+        gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
+        gXStatus.fTrapInteract == 0) {
+        enabled = 1;
+    } else {
+        enabled = 0;
+    }
+    g_options_disk_button_69b8e4->SetEnabled(enabled);
+    g_options_disk_button_69b8e4->Draw();
+}
+
+/* 0x004ED460: whether continuous-combat stance may advance past the pending
+   NPC-script / engagement gate. */
+unsigned char Function4ED460(void);
+
+/* Pick which of the five combat-stance buttons is visible for the live combat
+   / continuous-combat state, then enable and Draw that one. */
+// FUNCTION: WIZ8 0x00597D70
+void UpdateCombatStanceButtons(void)
+{
+    unsigned int stance;
+    unsigned char index;
+    bool enabled;
+    W8DialogButton** button;
+
+    if (gXStatus.fCombatMode == 0) {
+        for (button = g_combat_stance_buttons_69b89c; button < &g_combat_stance_buttons_69b89c[5];
+             ++button) {
+            (*button)->SetVisible(0);
+        }
+        return;
+    }
+
+    if (g_settings_6850c8.continuous_combat == 0) {
+        stance = g_combat_state->flag_000 != 0 ? 3U : 0U;
+    } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
+                Function4ED460() != 0) ||
+               g_combat_state->unknown_a52[0] != 0) {
+        stance = (static_cast<unsigned int>(-(g_combat_state->flag_001 != 0)) & 0xfffffffdU) + 4;
+    } else {
+        stance = 2;
+    }
+
+    for (index = 0; index < 5; ++index) {
+        g_combat_stance_buttons_69b89c[index]->SetVisible(index == stance);
+    }
+    if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+        gXStatus.fReviewCharacterMode == 0) {
+        enabled = 1;
+    } else {
+        enabled = 0;
+    }
+    g_combat_stance_buttons_69b89c[stance]->SetEnabled(enabled);
+    g_combat_stance_buttons_69b89c[stance]->Draw();
+}
+
+/* Dirties the five combat-stance buttons and refreshes which one is live. */
+// FUNCTION: WIZ8 0x00597D30
+void RedrawCombatStanceButtons(void)
+{
+    W8DialogButton** button;
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 3, 0x262, 0x1c2, 2, 0);
+    for (button = g_combat_stance_buttons_69b89c; button < &g_combat_stance_buttons_69b89c[5];
+         ++button) {
+        (*button)->m_dirty = 1;
+    }
+    UpdateCombatStanceButtons();
+}
+
 // FUNCTION: WIZ8 0x00597E70
 void MainGameCombatConfirmButton(W8DialogButton* button)
 {
@@ -1658,6 +1737,91 @@ unsigned char CreateRoofButtons(void)
     return 1;
 }
 
+/* Draw the roof chrome strip, mark each roof button dirty, sync enable/press
+   state, and raise redraw bit 0x100000 for the second pass. */
+// FUNCTION: WIZ8 0x00598060
+void RedrawRoofButtons(void)
+{
+    W8DialogButton** button;
+
+    DrawCatalogImage(-0xe, 0x85, 0, 0, 0, 0, 2, 0);
+    for (button = g_roof_buttons_69b8d8; button < &g_options_disk_button_69b8e4; ++button) {
+        (*button)->m_dirty = 1;
+    }
+    UpdateRoofButtons();
+    RequestRedraw(0x100000);
+}
+
+/* Visibility and enablement for the three roof buttons, then Draw. The third
+   button (radar) hides under NPC/spell/item/lock/trap modes; the first two
+   disable under NPC dialogue or camp. */
+// FUNCTION: WIZ8 0x005980B0
+void UpdateRoofButtons(void)
+{
+    bool visible;
+    bool enabled;
+    W8DialogButton** button;
+
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+        gXStatus.fTrapInteractMode == 0) {
+        visible = 1;
+    } else {
+        visible = 0;
+    }
+    g_roof_buttons_69b8d8[2]->SetVisible(visible);
+    if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fCampMode == 0) {
+        g_roof_buttons_69b8d8[0]->SetEnabled(1);
+        enabled = 1;
+    } else {
+        g_roof_buttons_69b8d8[0]->SetEnabled(0);
+        enabled = 0;
+    }
+    g_roof_buttons_69b8d8[1]->SetEnabled(enabled);
+    SyncRoofButtonPressedState();
+    for (button = g_roof_buttons_69b8d8; button < &g_options_disk_button_69b8e4; ++button) {
+        (*button)->Draw();
+    }
+}
+
+/* Mirror g_settings_6850c8.main_ui_mode onto the three roof buttons' pressed
+   state (portraits / formation / radar). */
+// FUNCTION: WIZ8 0x00598150
+void SyncRoofButtonPressedState(void)
+{
+    if (g_settings_6850c8.main_ui_mode == 0) {
+        if (g_roof_buttons_69b8d8[0]->IsPressed() == 0) {
+            g_roof_buttons_69b8d8[0]->SetPressed(1);
+        }
+        if (g_roof_buttons_69b8d8[1]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[1]->SetPressed(0);
+        }
+        if (g_roof_buttons_69b8d8[2]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[2]->SetPressed(0);
+        }
+    } else if (g_settings_6850c8.main_ui_mode == 1) {
+        if (g_roof_buttons_69b8d8[1]->IsPressed() == 0) {
+            g_roof_buttons_69b8d8[1]->SetPressed(1);
+        }
+        if (g_roof_buttons_69b8d8[0]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[0]->SetPressed(0);
+        }
+        if (g_roof_buttons_69b8d8[2]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[2]->SetPressed(0);
+        }
+    } else if (g_settings_6850c8.main_ui_mode == 2) {
+        if (g_roof_buttons_69b8d8[2]->IsPressed() == 0) {
+            g_roof_buttons_69b8d8[2]->SetPressed(1);
+        }
+        if (g_roof_buttons_69b8d8[0]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[0]->SetPressed(0);
+        }
+        if (g_roof_buttons_69b8d8[1]->IsPressed() != 0) {
+            g_roof_buttons_69b8d8[1]->SetPressed(0);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00598670
 void MainGameLayoutRadarButton(W8DialogButton* button)
 {
@@ -1667,14 +1831,14 @@ void MainGameLayoutRadarButton(W8DialogButton* button)
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
         }
-        g_settings_6850c8.field_02a = 0;
+        g_settings_6850c8.formation_radar_map_preference = 0;
         SetRadarMapVisible(0);
         return;
     }
-    g_settings_6850c8.field_02a = 1;
+    g_settings_6850c8.formation_radar_map_preference = 1;
     if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.field_029 = 0;
-        g_settings_6850c8.field_02b = 0;
+        g_settings_6850c8.formation_action_panel_preference = 0;
+        g_settings_6850c8.formation_board_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
@@ -1690,29 +1854,29 @@ void MainGameLayoutActionPanelButton(W8DialogButton* button)
                 g_level_block->formation_board_visible == 0) {
                 ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             }
-            g_settings_6850c8.field_029 = 0;
+            g_settings_6850c8.formation_action_panel_preference = 0;
             SetActionPanelVisible(0);
             return;
         }
         if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-            g_settings_6850c8.field_02c = 0;
+            g_settings_6850c8.portraits_action_panel_preference = 0;
         }
         SetActionPanelVisible(0);
         return;
     }
     if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.field_02a = 0;
-        g_settings_6850c8.field_029 = 1;
-        g_settings_6850c8.field_02b = 0;
+        g_settings_6850c8.formation_radar_map_preference = 0;
+        g_settings_6850c8.formation_action_panel_preference = 1;
+        g_settings_6850c8.formation_board_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
     if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-        g_settings_6850c8.field_02c = 1;
+        g_settings_6850c8.portraits_action_panel_preference = 1;
         SetActionPanelVisible(1);
         return;
     }
-    g_settings_6850c8.field_029 = 1;
+    g_settings_6850c8.formation_action_panel_preference = 1;
     SetActionPanelVisible(1);
 }
 
@@ -1724,18 +1888,84 @@ void MainGameLayoutFormationButton(W8DialogButton* button)
             ApplyMainGameModeFlag(W8_MAIN_UI_MODE_RADAR, 1);
             return;
         }
-        g_settings_6850c8.field_02b = 0;
-        Function569390(0);
+        g_settings_6850c8.formation_board_preference = 0;
+        SetFormationBoardVisible(0);
         return;
     }
-    g_settings_6850c8.field_02b = 1;
+    g_settings_6850c8.formation_board_preference = 1;
     if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
-        g_settings_6850c8.field_02a = 0;
-        g_settings_6850c8.field_029 = 0;
+        g_settings_6850c8.formation_radar_map_preference = 0;
+        g_settings_6850c8.formation_action_panel_preference = 0;
         ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 1);
         return;
     }
-    Function569390(1);
+    SetFormationBoardVisible(1);
+}
+
+/* Draw the left layout-arrow strip, mark each arrow dirty, then raise/lower
+   the paired arrows from the live action-panel / formation / radar flags.
+   Modal NPC/spell/item/lock/trap modes hide the whole bank. */
+// FUNCTION: WIZ8 0x00598490
+void RedrawLayoutArrowButtons(void)
+{
+    W8DialogButton** button;
+    bool enabled;
+    W8DialogButton* draw_button;
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 0, 0, 0x166, 2, 0);
+    for (button = g_layout_arrow_buttons_69b884; button < &g_layout_arrow_buttons_69b884[6];
+         ++button) {
+        (*button)->m_dirty = 1;
+    }
+    if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fSpellCastMode != 0 ||
+        gXStatus.fItemSelectMode != 0 || gXStatus.fLockInteractMode != 0 ||
+        gXStatus.fTrapInteractMode != 0) {
+        for (button = g_layout_arrow_buttons_69b884; button < &g_layout_arrow_buttons_69b884[6];
+             ++button) {
+            (*button)->SetVisible(0);
+        }
+        return;
+    }
+
+    enabled = g_settings_6850c8.main_ui_mode != 0;
+    if (enabled) {
+        g_layout_arrow_buttons_69b884[0]->SetEnabled(1);
+    } else {
+        g_layout_arrow_buttons_69b884[0]->SetEnabled(0);
+    }
+    g_layout_arrow_buttons_69b884[2]->SetEnabled(enabled);
+
+    if (g_level_block->radar_map_visible == 0) {
+        g_layout_arrow_buttons_69b884[3]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[0]->SetVisible(0);
+        draw_button = g_layout_arrow_buttons_69b884[3];
+    } else {
+        g_layout_arrow_buttons_69b884[0]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[3]->SetVisible(0);
+        draw_button = g_layout_arrow_buttons_69b884[0];
+    }
+    draw_button->Draw();
+
+    if (g_level_block->action_panel_visible == 0) {
+        g_layout_arrow_buttons_69b884[4]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[1]->SetVisible(0);
+        draw_button = g_layout_arrow_buttons_69b884[4];
+    } else {
+        g_layout_arrow_buttons_69b884[1]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[4]->SetVisible(0);
+        draw_button = g_layout_arrow_buttons_69b884[1];
+    }
+    draw_button->Draw();
+
+    if (g_level_block->formation_board_visible != 0) {
+        g_layout_arrow_buttons_69b884[2]->SetVisible(1);
+        g_layout_arrow_buttons_69b884[5]->SetVisible(0);
+        g_layout_arrow_buttons_69b884[2]->Draw();
+        return;
+    }
+    g_layout_arrow_buttons_69b884[5]->SetVisible(1);
+    g_layout_arrow_buttons_69b884[2]->SetVisible(0);
+    g_layout_arrow_buttons_69b884[5]->Draw();
 }
 
 // FUNCTION: WIZ8 0x005982D0
@@ -2006,6 +2236,104 @@ void DrawSubMenuCharacterAction(void)
     }
     gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1d1,
             (UINT16*)text);
+}
+
+/* Enable the fight/review panel buttons from combat engagement and mode
+   flags, then Draw both. */
+// FUNCTION: WIZ8 0x00597790
+void UpdateSubMenuPanelButtons(void)
+{
+    bool enabled;
+    W8DialogButton** button;
+
+    if (gXStatus.fCombatMode == 0 || g_combat_state->flag_001 == 0 ||
+        gXStatus.fSurprisePossible != 0 || gXStatus.fLockInteractMode != 0 ||
+        gXStatus.fTrapInteractMode != 0 || gXStatus.fNpcDialogueMode != 0 ||
+        gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0 ||
+        g_level_block->combat_end_notification != -1) {
+        enabled = 0;
+    } else {
+        enabled = AnyCharacterEngaged() != 0;
+    }
+    g_submenu_panel_buttons_69b860[0]->SetEnabled(enabled);
+
+    if (gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
+        gXStatus.fTrapInteractMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+        g_level_block->combat_end_notification == -1 && AnyCharacterEngaged() != 0) {
+        g_submenu_panel_buttons_69b860[1]->SetEnabled(1);
+        if (gXStatus.fReviewCharacterMode == 0) {
+            if (g_submenu_panel_buttons_69b860[1]->IsPressed() != 0) {
+                g_submenu_panel_buttons_69b860[1]->SetPressed(0);
+            }
+        } else if (g_submenu_panel_buttons_69b860[1]->IsPressed() == 0) {
+            g_submenu_panel_buttons_69b860[1]->SetPressed(1);
+        }
+    } else {
+        g_submenu_panel_buttons_69b860[1]->SetEnabled(0);
+    }
+
+    for (button = g_submenu_panel_buttons_69b860; button < &g_submenu_panel_buttons_69b860[2];
+         ++button) {
+        (*button)->Draw();
+    }
+}
+
+/* Redraw the bottom sub-menu strip: bank chrome, the nine bank buttons, panel
+   chrome/buttons, character-action caption, and the scroll arrows. */
+// FUNCTION: WIZ8 0x00598810
+void RedrawSubMenuButtons(void)
+{
+    W8DialogButton** button;
+    int index;
+    int frame;
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 4, 0x1e, 0x1c2, 2, 0);
+    frame = gXStatus.fCombatMode == 0 ? 8 : 9;
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, frame, 0xc4, 0x1c2, 2, 0);
+
+    for (button = g_submenu_buttons_69b8b0; button < &g_submenu_buttons_69b8b0[9]; ++button) {
+        (*button)->m_dirty = 1;
+    }
+    for (index = 0, button = g_submenu_buttons_69b8b0; button < &g_submenu_buttons_69b8b0[9];
+         ++button, ++index) {
+        UpdateSubMenuButton(index);
+        (*button)->Draw();
+    }
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 7, 0x210, 0x1c2, 2, 0);
+    for (button = g_submenu_panel_buttons_69b860; button < &g_submenu_panel_buttons_69b860[2];
+         ++button) {
+        (*button)->m_dirty = 1;
+    }
+    UpdateSubMenuPanelButtons();
+
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 5, 0x124, 0x1c2, 2, 0);
+    DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
+    if (g_status_685170.buffers.party_rows[g_status_685170.selected_character].occupied) {
+        DrawSubMenuCharacterAction();
+    }
+
+    for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+         ++button) {
+        (*button)->m_dirty = 1;
+    }
+    if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+             ++button) {
+            (*button)->SetEnabled(1);
+        }
+    } else {
+        for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+             ++button) {
+            (*button)->SetEnabled(0);
+        }
+    }
+    for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
+         ++button) {
+        (*button)->Draw();
+    }
 }
 
 // FUNCTION: WIZ8 0x00597550

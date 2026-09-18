@@ -252,13 +252,12 @@ void SetAutomapCameraPoint0057FC70(srVector3T<float>* position);
 void SetAutomapButtonMode(int update);
 void Function427460(int x, int y);
 void RenderAutomapFrame00581030(void);
-void Function46F760(W8World* world, int value);
 void UpdateAutomapPageButtons00581200(void);
 void Function425C90(int left, int top, int right, int bottom);
-void UpdateAutomapBounds00580380(void);
 void Function474FB0(int value);
 void ResetAutomapLighting(void);
 void LightAutomapCell(const srVector3T<float>* position);
+unsigned int LightPendingAutomapCells005807B0(unsigned int max_count);
 int RestoreAutomapRect(W8ScreenRect* rect);
 void SetAutomapLayer00580F20(int layer);
 stModelInstance2D* CreateAutomapItemMarker005833E0(int item_id);
@@ -380,6 +379,34 @@ void ResetAutomapView005817D0(void)
     if (cell > 1) {
         g_bits_68f288->Set(cell - 1);
     }
+}
+
+/* Pack `position` into a cell key (retrying one cell higher on miss). When the
+   record table knows the cell, mark it visited and return 1 only if that bit
+   was newly raised — used by the world camera update to gate automap lighting. */
+// FUNCTION: WIZ8 0x00581B30
+bool AutomapHasCellAt00581B30(const srVector3T<float>* position)
+{
+    srVector3T<float> relative(position->x - g_automap_grid_origin_0068f240.x,
+                               position->y - g_automap_grid_origin_0068f240.y,
+                               position->z - g_automap_grid_origin_0068f240.z);
+    unsigned int key = PackAutomapCell(relative);
+    int cell = g_record_68f284->Lookup(&key);
+    if (cell > 1) {
+        if (!g_bits_68f288->Set(cell - 1)) {
+            return 1;
+        }
+        return 0;
+    }
+    relative.y = position->y + g_float_64b914 - g_automap_grid_origin_0068f240.y;
+    key = PackAutomapCell(relative);
+    cell = g_record_68f284->Lookup(&key);
+    if (cell > 1) {
+        if (!g_bits_68f288->Set(cell - 1)) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0057E490
@@ -640,7 +667,7 @@ unsigned char AutomapScreenEnter(void)
     g_world->camera->setProjectionType(static_cast<srCamera::e_project>(1));
     RestoreAutomapCameraPosition();
     UpdateWorldMesh004BAF60(g_world);
-    Function46F760(g_world, 1);
+    SetWorldMeshVertexLightTable0046F760(g_world, 1);
     g_light_update_flags_0060bfdc &= ~1u;
     SetWorldModelPickingEnabled(0);
     if (!g_automap_state) {
@@ -1037,7 +1064,7 @@ void RestoreAutomapWorldSettings(void)
     g_flag_65970d = g_automap_saved_render_flags[3];
     g_world->camera->setRotation(0.0, 0.0, 0.0);
     g_world->camera->flags_138.value &= ~1ul;
-    Function46F760(g_world, 0);
+    SetWorldMeshVertexLightTable0046F760(g_world, 0);
     g_light_update_flags_0060bfdc |= 1u;
     SetResidentTexturePolicy(g_resident_texture_policy_659714);
     SetWorldModelPickingEnabled(1);
@@ -1416,6 +1443,70 @@ void ResetAutomapLighting(void)
         }
     }
     g_bits_68f28c->ClearAll();
+}
+
+/* Light up to `max_count` visited cells that have not yet been processed into
+   vertex lights. Returns how many cells were lit; a zero answer means the
+   pending set is empty. */
+// FUNCTION: WIZ8 0x005807B0
+unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
+{
+    unsigned int lit = 0;
+    unsigned int bit = 0;
+    if (g_automap_cell_count_0068f27c != 0) {
+        do {
+            if (max_count <= lit) {
+                return lit;
+            }
+            if (0x20 < g_automap_cell_count_0068f27c) {
+                while (bit < static_cast<unsigned int>(g_automap_cell_count_0068f27c - 0x20) &&
+                       g_bits_68f288->puiIndex[bit >> 5] == 0) {
+                    bit = bit + 0x20;
+                }
+            }
+            if (g_bits_68f288->Test(bit) != 0) {
+                srVector3T<float> cell;
+                cell.x = 0.0f;
+                cell.y = 0.0f;
+                cell.z = 0.0f;
+                if (g_block_68f280 != 0 ||
+                    bit < static_cast<unsigned int>(g_automap_cell_count_0068f27c)) {
+                    unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
+                    float half = g_float_64b914 * g_float_005ebc7c;
+                    cell.x = (key >> 0x15) * g_float_64b914 + half;
+                    cell.y = (key & 0x3ff) * g_float_64b914 + half;
+                    cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
+                }
+                srVector3T<float> position;
+                position.x = cell.x + g_automap_grid_origin_0068f240.x;
+                position.y = cell.y + g_automap_grid_origin_0068f240.y;
+                position.z = cell.z + g_automap_grid_origin_0068f240.z;
+                if (g_bits_68f28c->Test(bit) == 0) {
+                    g_bits_68f28c->Set(bit);
+                    LightAutomapCell(&position);
+                    lit = lit + 1;
+                }
+            }
+            bit = bit + 1;
+        } while (bit < static_cast<unsigned int>(g_automap_cell_count_0068f27c));
+    }
+    return lit;
+}
+
+/* When the automap dirty flag is set, switch meshes onto table-1 lights, light
+   a short batch of pending visited cells, clear the flag once nothing remains,
+   then restore table 0. */
+// FUNCTION: WIZ8 0x00580760
+void RefreshDirtyAutomap00580760(void)
+{
+    if (g_automap_state != 0 && g_automap_state->unknown_0f9[0] != 0) {
+        SetWorldMeshVertexLightTable0046F760(g_world, 1);
+        unsigned int lit = LightPendingAutomapCells005807B0(10);
+        if (lit == 0) {
+            g_automap_state->unknown_0f9[0] = 0;
+        }
+        SetWorldMeshVertexLightTable0046F760(g_world, 0);
+    }
 }
 
 /* Recompute the explored-bounds box from the visited-cell bitmap: mark new

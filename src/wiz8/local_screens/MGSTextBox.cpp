@@ -1,6 +1,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/sgp_wide_text.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/layouts/game_status.h"
@@ -21,6 +22,12 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/layouts/combat_state.h"
+#include "wiz8/video_object_catalog.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/fonts.h"
+#include "wiz8/utility.h"
+#include "vobject_blitters.h"
+#include "Font.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -1493,17 +1500,330 @@ void SetTextBoxMode(unsigned char mode, int value)
     }
 }
 
-/* Redraw the whole text box: its frame, its body, and its frame again on top -
-   the second panel is drawn after the body rather than with the first. The two
-   panels are Local Code\\Controls.cpp's Controls, and the null rectangle is how
-   that class spells "all of it"; the screen holds them at 0x0c and 0x14. */
+/* 0x0058FFC0: draw clickable notice-word overlays for one painted line. */
+void Function58FFC0(W8MessageStorageRecord* line, int x, int y);
+
+/* Paint one message-storage line at (x, y). slot_1d8_match / slot_1e8_match
+   select alternate palettes for the editor slot highlights; skip_invalidate
+   is forwarded from RedrawTextBoxBody and skips the word-overlay pass when
+   set. Retail reuses the leading bytes of the level block as a wchar scratch. */
+// FUNCTION: WIZ8 0x0058D2C0
+void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char slot_1d8_match,
+                     unsigned char slot_1e8_match, unsigned char skip_invalidate)
+{
+    unsigned short* palette;
+    int draw_x;
+    int length;
+    int width;
+    wchar_t* scratch = g_level_block->text_paint_scratch_000;
+
+    if (line->wString == 0) {
+        srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x584, 0);
+    }
+    if (skip_invalidate != 0) {
+        Function58FFC0(line, x, y);
+        return;
+    }
+
+    palette = g_font_state_palettes_68ee1c[3];
+    if (slot_1e8_match == 0) {
+        if (slot_1d8_match != 0) {
+            palette = g_font_state_palettes_68ee1c[0];
+            if (static_cast<char>(line->font_palette) != 5) {
+                palette = g_font_state_palettes_68ee1c[5];
+            }
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+            if (line->value_14 == -1) {
+                mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+            } else {
+                wcsncpy(scratch, line->wString, line->value_14);
+                scratch[line->value_14] = 0;
+                mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+            }
+        } else if (line->highlight_color == 0xff) {
+            if (line->font_palette < 0xf) {
+                palette = g_font_state_palettes_68ee1c[line->font_palette];
+            } else {
+                palette = g_level_block->palette_2ec;
+            }
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+            if (line->value_14 == -1) {
+                mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+            } else {
+                wcsncpy(scratch, line->wString, line->value_14);
+                scratch[line->value_14] = 0;
+                mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+            }
+        } else {
+            draw_x = x;
+            if (line->highlight_start != 0) {
+                if (line->font_palette < 0xf) {
+                    palette = g_font_state_palettes_68ee1c[line->font_palette];
+                } else {
+                    palette = g_level_block->palette_2ec;
+                }
+                SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+                wcsncpy(scratch, line->wString, line->highlight_start);
+                scratch[line->highlight_start] = 0;
+                mprintf(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                draw_x += StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
+            }
+            if (line->highlight_stop < line->highlight_start) {
+                srAssertFail("pTextLine->ubStopChar >= pTextLine->ubStartChar", MGS_TEXT_BOX_CPP,
+                             0x5da, 0);
+            }
+            if (line->value_14 == -1 ||
+                line->highlight_stop <= static_cast<unsigned int>(line->value_14)) {
+                length = line->highlight_stop - line->highlight_start;
+            } else {
+                length = line->value_14 - line->highlight_start;
+            }
+            if (length > 0) {
+                if (line->highlight_color < 0xf) {
+                    palette = g_font_state_palettes_68ee1c[line->highlight_color];
+                } else {
+                    palette = g_level_block->palette_2ec;
+                }
+                SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+                wcsncpy(scratch, line->wString + line->highlight_start, length);
+                scratch[length] = 0;
+                mprintf(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+                draw_x += StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
+            }
+            if (wcslen(line->wString) < line->highlight_stop) {
+                srAssertFail("wcslen(pTextLine->wString) >= pTextLine->ubStopChar",
+                             MGS_TEXT_BOX_CPP, 0x5ef,
+                             FormatString("DrawTextMessage: ERROR - String length %d, stop %d",
+                                          wcslen(line->wString), line->highlight_stop));
+            }
+            if (line->value_14 == -1) {
+                length = static_cast<int>(wcslen(line->wString)) - line->highlight_stop;
+            } else {
+                length = line->value_14 - line->highlight_stop;
+            }
+            if (length > 0) {
+                unsigned char palette_index;
+                if (line->value_14 == -1 ||
+                    line->highlight_stop <= static_cast<unsigned int>(line->value_14)) {
+                    palette_index = line->font_palette;
+                } else {
+                    palette_index = line->highlight_color;
+                }
+                if (palette_index < 0xf) {
+                    palette = g_font_state_palettes_68ee1c[palette_index];
+                } else {
+                    palette = g_level_block->palette_2ec;
+                }
+                SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+                wcsncpy(scratch, line->wString + line->highlight_stop, length);
+                scratch[length] = 0;
+                mprintf(draw_x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+            }
+        }
+    } else {
+        SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+        if (line->value_14 == -1) {
+            mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
+        } else {
+            wcsncpy(scratch, line->wString, line->value_14);
+            scratch[line->value_14] = 0;
+            mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
+        }
+    }
+
+    if (line->value_14 != -1) {
+        wcscpy(scratch, line->wString + line->value_14);
+        width = StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
+        mprintf(g_level_block->text_box_right - width, y, Wiz8ToSgpWideText(g_format_s_006068e4),
+                scratch);
+        Function58FFC0(line, x, y);
+        return;
+    }
+    Function58FFC0(line, x, y);
+}
+
+/* Repaint the visible text-box window. When skip_invalidate is clear, also
+   invalidate the text rectangle first. */
+// FUNCTION: WIZ8 0x0058C3A0
+void RedrawTextBoxBody(unsigned char skip_invalidate)
+{
+    short text_box;
+    unsigned int shown;
+    unsigned int scroll;
+    unsigned int editor_lines;
+    unsigned int rows;
+    unsigned int row;
+    int y_offset;
+    int x;
+    int line_index;
+    W8MessageStorageRecord* line;
+    bool can_scroll_down;
+
+    if (skip_invalidate == 0) {
+        InvalidateRegion(g_level_block->text_box_left, g_level_block->text_box_top,
+                         g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
+    }
+
+    text_box = g_status_685170.text_line_cursor_1795;
+    shown = g_status_685170.text_box_lines_shown_49a7[text_box];
+    if (shown == 0) {
+        return;
+    }
+
+    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+        g_level_block->dialogue_text_input->text_box != text_box) {
+        editor_lines = 0;
+    } else {
+        editor_lines = g_level_block->dialogue_text_input->line_count;
+    }
+
+    g_level_block->text_lines[4 + text_box] = FindStoppedTextLine();
+
+    scroll = g_level_block->text_lines[text_box];
+    rows = (shown - scroll) + editor_lines;
+    if (rows < 7) {
+        if (rows == 0) {
+            return;
+        }
+    } else {
+        rows = 7;
+    }
+
+    if (g_level_block->action_panel_visible == 0 && g_level_block->flag_272 == 0) {
+        can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
+                          GetTextBoxLineCount(text_box);
+        if (!can_scroll_down &&
+            ClockIsTicking(g_message_storage_68f2d8[text_box][scroll + rows - 1].clock_08) == 0) {
+            return;
+        }
+    }
+
+    SaveFontSettings();
+    SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
+                      g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFont(g_level_block->text_box_font);
+
+    y_offset = 0;
+    for (row = 0; row < rows; ++row) {
+        line_index = static_cast<int>(scroll + row);
+        if (static_cast<unsigned int>(line_index) < 0x15e) {
+            line = &g_message_storage_68f2d8[text_box][line_index];
+            if (line->wString == 0) {
+                srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x43d, 0);
+            }
+            if (line->wString != 0) {
+                if (text_box == 3 || g_level_block->flag_271 == 0) {
+                    x = g_level_block->text_box_left;
+                } else {
+                    x = g_level_block->text_box_left +
+                        ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
+                         StringPixLength(Wiz8ToSgpWideText(line->wString),
+                                         g_level_block->text_box_font) /
+                             2);
+                }
+                DrawTextBoxLine(
+                    line, x, g_level_block->text_box_top + y_offset,
+                    line_index - line->link_10 == g_level_block->text_slots_1d8[text_box],
+                    line_index - line->link_10 == g_level_block->text_slots_1e8[text_box],
+                    skip_invalidate);
+            }
+        }
+        y_offset += 0xb;
+    }
+
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    RestoreFontSettings();
+}
+
+/* Redraw the text-box scroll chrome (up/down buttons and thumb) when the
+   action panel is raised, invalidate the chrome strip, then repaint the body. */
+// FUNCTION: WIZ8 0x0058CC10
+void RedrawTextBoxScrollChrome(void)
+{
+    SGPRect saved_clip;
+    SGPRect clip;
+    short text_box;
+    unsigned int scroll;
+    unsigned int line_count;
+    int visible;
+    int thumb_y;
+
+    GetClippingRect(&saved_clip);
+    clip = saved_clip;
+    clip.iBottom = 0x1db;
+    SetClippingRect(&clip);
+
+    if (g_level_block->action_panel_visible != 0) {
+        text_box = g_status_685170.text_line_cursor_1795;
+        scroll = g_level_block->text_lines[text_box];
+        if (scroll == 0) {
+            g_level_block->text_content_region = 0x56;
+        } else if (g_level_block->text_content_region == 0x56) {
+            g_level_block->text_content_region = 0x57;
+        }
+
+        switch (g_level_block->text_content_region) {
+        case 0x57:
+            DrawCatalogImage(-0xe, 0x86, 0, 0, g_level_block->text_box_right + 5, 0x16b, 2, 0);
+            break;
+        case 0x58:
+            DrawCatalogImage(-0xe, 0x86, 0, 1, g_level_block->text_box_right + 5, 0x16b, 2, 0);
+            break;
+        case -1:
+        case 0x56:
+            DrawCatalogImage(-0xe, 0x86, 0, 3, g_level_block->text_box_right + 5, 0x16b, 2, 0);
+            g_level_block->text_content_region = -1;
+            break;
+        }
+
+        line_count = GetTextBoxLineCount(text_box);
+        visible = GetTextBoxVisibleLineCount();
+        if (scroll + static_cast<unsigned int>(visible) < line_count) {
+            if (g_level_block->dialogue_content_region == 0x59) {
+                g_level_block->dialogue_content_region = 0x5a;
+            }
+        } else {
+            g_level_block->dialogue_content_region = 0x59;
+        }
+
+        switch (g_level_block->dialogue_content_region) {
+        case 0x5a:
+            DrawCatalogImage(-0xe, 0x86, 0, 8, g_level_block->text_box_right + 5, 0x1ad, 2, 0);
+            break;
+        case 0x5b:
+            DrawCatalogImage(-0xe, 0x86, 0, 9, g_level_block->text_box_right + 5, 0x1ad, 2, 0);
+            break;
+        case -1:
+        case 0x59:
+            DrawCatalogImage(-0xe, 0x86, 0, 0xb, g_level_block->text_box_right + 5, 0x1ad, 2, 0);
+            g_level_block->dialogue_content_region = -1;
+            break;
+        }
+
+        if (line_count > static_cast<unsigned int>(visible)) {
+            thumb_y = static_cast<int>(scroll * 0x28 / (line_count - visible)) + 0x17b;
+            DrawCatalogImage(-0xe, 0x86, 0, 4, g_level_block->text_box_right + 5, thumb_y, 2, 0);
+        }
+    }
+
+    InvalidateRegion(g_level_block->text_box_right + 5, 0x16b, g_level_block->text_box_right + 0x1e,
+                     0x1c1, 0);
+    RedrawTextBoxBody(0);
+    if (g_level_block->dialogue_text_input_open != 0 && g_level_block->dialogue_text_input != 0) {
+        g_level_block->dialogue_text_input->dirty = 1;
+    }
+    SetClippingRect(&saved_clip);
+}
+
+/* Invalidate the text and action panels around a status-panel text refresh. */
 // FUNCTION: WIZ8 0x0058a8c0
 void RedrawTextBoxComplete(void)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 
     screen->m_text_panel_00c->Invalidate(0);
-    RedrawTextBoxBody();
+    screen->m_status_panel_010->RefreshStatusTexts();
     screen->m_action_panel_014->Invalidate(0);
 }
 

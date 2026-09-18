@@ -21,7 +21,7 @@ extern unsigned char g_flag_00609c8c;
 /* 0x00450780: the three-argument assert the main-game code paths use; it
    forwards to the four-argument SurRender export. */
 void ReportAssertion(const char* expression, const char* source_path, long line);
-void Function44FC20(W8World* world, unsigned int flags);
+void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags);
 void ApplyWorldUpdateFlags(W8World* world, unsigned int flags);
 /* Retail call sites push world/x/y; the body ignores them and reads the
    renderer's selected prop index. */

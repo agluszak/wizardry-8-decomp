@@ -46,7 +46,8 @@ int GetAtomCursorX00428580(const InputAtom* atom);
 int GetAtomCursorY004285A0(const InputAtom* atom);
 
 void PositionMouseCursor(int x, int y, unsigned char reset_tick);
-/* 0x00428220: GetTickCount() minus the last PositionMouseCursor stamp. */
+/* 0x00428220: milliseconds since PositionMouseCursor last stamped the move
+   tick. */
 unsigned int GetMillisecondsSinceCursorMove(void);
 /* 0x00428520: whether the current cursor hotspot is inside the inclusive
    rectangle (left, top, right, bottom). */

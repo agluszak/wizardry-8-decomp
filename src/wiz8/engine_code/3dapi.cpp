@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/GrObject.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/monster_generators.h"
 #include "wiz8/engine_code/Environment.h"
@@ -14,7 +15,9 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/NPCManager.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrCycle.h"
@@ -36,6 +39,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/UpdateMesh.h"
 #include "wiz8/engine_code/stLight.hpp"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stParticle.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -56,6 +60,7 @@
 
 #include "FileMan.h"
 #include "input.h"
+#include "soundman.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -69,6 +74,12 @@
 
 // GLOBAL: WIZ8 0x00607d7c
 unsigned char g_renderer_ready_00607d7c = 1;
+
+// GLOBAL: WIZ8 0x00607d80
+int g_game_data_runtime_pending_00607d80 = 1;
+
+// GLOBAL: WIZ8 0x005ec240
+const double g_double_005ec240 = 250000.0;
 
 class W8AmbientSound;
 
@@ -606,6 +617,139 @@ void DestroyWorld(W8World* world)
     }
     free(world);
 }
+
+/* Per-frame camera / camera-path update for one world. Main-game frames the
+   primary world, then the sky world with flag 0x40 so the motion pass is
+   skipped there. Function-local statics keep the last refresh position and the
+   last applied rotation; their atexit thunks are at 0x00450070 / 0x00450060. */
+// FUNCTION: WIZ8 0x0044FC20
+void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
+{
+    static srVector3T<float> s_last_automap_refresh_position;
+    static srMatrix3T<float> s_saved_camera_rotation;
+    srVector3T<float> camera_position;
+    srVector3T<float> navigator_position;
+    srVector3T<float> delta;
+    srVector3T<double> render_position;
+    srMatrix3T<float> rotation;
+    srMatrix3T<float> path_rotation;
+    srMatrix3T<float> motion_saved;
+    W8CameraPath* camera_path;
+    W8PathAI* path;
+    char sound_environment;
+    char sound_environment_secondary;
+    float yaw;
+    float pitch;
+    int camera_count;
+    int index;
+    float dx;
+    float dy;
+    float dz;
+
+    RefreshDirtyAutomap00580760();
+    GetCameraPosition(&camera_position);
+    if (g_game_data_runtime_pending_00607d80 != 0 && world->m_owned_04c != 0) {
+        UpdateGameDataRuntime0041F260();
+        g_game_data_runtime_pending_00607d80 = 0;
+    }
+    if (world->m_owned_04c != 0) {
+        if (g_level_flags_00652da8 != 0) {
+            *g_level_flags_00652da8 &= ~0x200u;
+        }
+        if (world->m_owned_04c != 0 && (flags & 0x40) == 0) {
+            world->camera->getRotation(rotation);
+            world->m_owned_04c->ApplyCameraMotionFlags0041F330(flags, &rotation, &motion_saved);
+            world->camera->setRotation(rotation);
+            s_saved_camera_rotation = rotation;
+            yaw = GetCameraYawInDegrees();
+            pitch = GetCameraPitchInDegrees();
+            g_startup_world_659c0c->SetAngles004538F0(yaw);
+            g_startup_world_659c0c->SetPitch(pitch);
+            if (world->m_owned_04c->ApplyCameraMotion0041F5F0(flags, &camera_position, &delta,
+                                                              &motion_saved) != 0) {
+                camera_position.x = camera_position.x + delta.x;
+                camera_position.y = camera_position.y + delta.y;
+                camera_position.z = camera_position.z + delta.z;
+                navigator_position.x = camera_position.x;
+                navigator_position.y = camera_position.y - g_default_world_height_00603ac8;
+                navigator_position.z = camera_position.z;
+                if (world->camera_light != 0) {
+                    render_position.x = camera_position.x;
+                    render_position.y = camera_position.y;
+                    render_position.z = camera_position.z;
+                    static_cast<srNode*>(world->camera_light)->setLocation(render_position);
+                }
+                render_position.x = camera_position.x;
+                render_position.y = camera_position.y;
+                render_position.z = camera_position.z;
+                static_cast<srNode*>(world->camera)->setLocation(render_position);
+                g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+                dx = camera_position.x - s_last_automap_refresh_position.x;
+                dy = camera_position.y - s_last_automap_refresh_position.y;
+                dz = camera_position.z - s_last_automap_refresh_position.z;
+                if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
+                    s_last_automap_refresh_position = camera_position;
+                    camera_position.y = camera_position.y - g_default_world_height_00603ac8;
+                    if (AutomapHasCellAt00581B30(&camera_position) != 0) {
+                        SetWorldMeshVertexLightTable0046F760(g_world, 1);
+                        UpdateAutomapBounds00580380();
+                        SetWorldMeshVertexLightTable0046F760(g_world, 0);
+                    }
+                }
+                DispatchWorldCursorNodeCommand004D9080(0, 0, 0);
+                GetLevelSoundEnvironment0041FCE0(&sound_environment, &sound_environment_secondary);
+                if (sound_environment >= 0) {
+                    Sound3DSetEnvironment(sound_environment);
+                }
+            }
+        } else {
+            world->camera->setRotation(s_saved_camera_rotation);
+        }
+    } else {
+        world->camera->setRotation(s_saved_camera_rotation);
+    }
+    SetCameraSwayMode(world->camera, 0);
+    camera_count = static_cast<int>(
+        ILLength(reinterpret_cast< // reinterpret-ok: camera PList shares ILLength count word
+                 W8IList*>(world->plsCameras)));
+    if (world->plsCameras != 0 && camera_count != 0) {
+        for (index = 0; index < camera_count; ++index) {
+            camera_path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
+            if (camera_path != 0 && camera_path->active_14 != 0) {
+                path = camera_path->path_18;
+                PathAITick004AA1F0(path, 1);
+                PathAIApply004AA520(
+                    path, reinterpret_cast< // reinterpret-ok: path AI entry takes stModelInstance*
+                              stModelInstance*>(world->camera));
+                {
+                    srVector3T<double> location = world->camera->getLocation();
+                    srVector3T<float> party_point;
+                    party_point.x = static_cast<float>(location.x);
+                    party_point.y = static_cast<float>(location.y);
+                    party_point.z = static_cast<float>(location.z);
+                    PlacePartyAtPoint(&party_point);
+                }
+                world->camera->getRotation(path_rotation);
+                if (g_world_659ab8 != 0 && g_world_659ab8->camera != 0) {
+                    g_world_659ab8->camera->setRotation(path_rotation);
+                }
+                ApplyCameraRotation(&path_rotation);
+                if (path->flag_1c != 0) {
+                    if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
+                        UpdateCameraPathState0048F2F0(world, camera_path, 0.0f);
+                    }
+                } else if (path->position >= g_double_005ebc30) {
+                    UpdateCameraPathState0048F2F0(world, camera_path, 0.0f);
+                }
+            }
+        }
+    }
+}
+
+// SYNTHETIC: WIZ8 0x00450060
+// `dynamic atexit destructor for 's_saved_camera_rotation''
+// SYNTHETIC: WIZ8 0x00450070
+// `dynamic atexit destructor for 's_last_automap_refresh_position''
 
 /* Note that the renderer is up. Eight bytes and no branch. */
 // FUNCTION: WIZ8 0x00451010

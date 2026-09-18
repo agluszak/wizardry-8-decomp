@@ -34,10 +34,10 @@ struct W8GameSettings {
     int camera_rotation_mode;
     int camera_rotation_style;
     int tooltip_delay_ms;
-    unsigned char field_029;
-    unsigned char field_02a;
-    unsigned char field_02b;
-    unsigned char field_02c;
+    unsigned char formation_action_panel_preference;
+    unsigned char formation_radar_map_preference;
+    unsigned char formation_board_preference;
+    unsigned char portraits_action_panel_preference;
     unsigned char unknown_02d[0x1];
     unsigned char sound_effects_volume;
     unsigned char music_volume;

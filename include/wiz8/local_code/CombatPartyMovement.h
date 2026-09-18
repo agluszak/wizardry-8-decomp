@@ -4,6 +4,7 @@ void SetPendingMoveKind(int kind);                         /* 0x004F0520 */
 unsigned char GetPartyHasteSteps(unsigned int* out_steps); /* 0x004F0010 */
 void CompletePartyMovementTurns(void);                     /* 0x004F06B0 */
 void BeginFreeTurnPhase(void);                             /* 0x004F0630 */
+void BeginPartyMovement(void);                             /* 0x004EFBE0 */
 void CancelPartyMovement(void);                            /* 0x004F0860 */
 void InterruptActivePartyMovement(void);                   /* 0x004F0990 */
 unsigned char CanPartyMove(void);                          /* 0x004F0800 */

@@ -13,6 +13,7 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
@@ -33,6 +34,8 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 
 /*
  * Local Code\Combat Range.cpp.
@@ -191,6 +194,349 @@ unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
     return false;
 }
 
+/* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
+   counts only those it is hostile to. In combat with unknown_015 set the
+   hostile filter is forced on. Party members are tested inline; other monsters
+   defer to MonsterAttackReachesMonster. */
+// FUNCTION: WIZ8 0x00519c00
+unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
+                                         char hostile_only)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    char disposition_needed;
+    char crossable;
+    int party_slot;
+    int sight_index;
+    int action_kind;
+    unsigned int index;
+    unsigned int count;
+    unsigned int steps;
+    W8RangeCategory range;
+    W8MonsterInfo* other;
+    W8MonsterRecord* attack_record;
+
+    if (monster_info->fInCombat == 0 || monster_info->pCombat->unknown_015 == 0) {
+        disposition_needed = hostile_only;
+    } else {
+        disposition_needed = 1;
+    }
+    disposition_needed = static_cast<char>((disposition_needed != 0) + 1);
+
+    for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+        if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+            continue;
+        }
+        if (character->hp_current == 0) {
+            continue;
+        }
+        if (character->highest_condition >= 0x12) {
+            continue;
+        }
+        if (MonsterVsCharDisposition(party_slot, monster_info) != disposition_needed) {
+            continue;
+        }
+        if (monster_info->player_visibility.state_04 != 1) {
+            continue;
+        }
+
+        action_kind = monster_info->action_kind;
+        if (action_kind == 0) {
+            attack_record = GetMonsterDataForInfo(monster_info);
+            if (attack_record->attacks[attack].range_category < W8_RANGE_LONG ||
+                attack_record->attacks[attack].range_category > W8_RANGE_EXTREME) {
+                sight_index = 0;
+            } else {
+                sight_index = GetSightCondition37A(monster_info);
+            }
+        } else if (action_kind == 2) {
+            sight_index = GetSightCondition37CIndex(monster_info);
+        } else if (action_kind == 3) {
+            sight_index = 2;
+        } else {
+            sight_index = 0;
+        }
+        if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+            continue;
+        }
+
+        switch (monster_info->action_kind) {
+        case 0:
+            if (attack >= W8_MAX_MONSTER_ATTACKS) {
+                srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_RANGE_CPP, 0x3b5, 0);
+            }
+            if (record->attacks[attack].fHasAttack == 0) {
+                srAssertFail("pMonsterDB->Attack[uiAttack].fHasAttack", COMBAT_RANGE_CPP, 0x3b6, 0);
+            }
+            range = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
+            break;
+        case 2:
+            range = g_spell_records[monster_info->action_detail].range_category;
+            break;
+        case 3:
+            range = W8_RANGE_LONG;
+            break;
+        case 8:
+            range = W8_RANGE_TOUCH;
+            break;
+        default:
+            range = W8_RANGE_NONE;
+            break;
+        }
+        if (range == W8_RANGE_NONE) {
+            continue;
+        }
+        if (gXStatus.fCombatMode != 0 && range >= W8_RANGE_TOUCH && range < W8_RANGE_LONG) {
+            for (crossable = CountRowsBetween(party_slot, monster_info); crossable != 0;
+                 --crossable) {
+                if (range == W8_RANGE_TOUCH) {
+                    goto next_party_slot;
+                }
+                range = static_cast<W8RangeCategory>(static_cast<int>(range) - 1);
+            }
+        }
+        if (range != W8_RANGE_NONE) {
+            steps = 0;
+            switch (range) {
+            case W8_RANGE_TOUCH:
+                steps = 2;
+                break;
+            case W8_RANGE_SHORT:
+                steps = 4;
+                break;
+            case W8_RANGE_LONG:
+                steps = 25;
+                break;
+            case W8_RANGE_EXTREME:
+                steps = 50;
+                break;
+            default:
+                srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
+                             "CalcRangeDistance: ERROR - Invalid range category");
+            }
+            if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
+                steps * g_world_scale_005ebc40) {
+                return 1;
+            }
+        }
+    next_party_slot:;
+    }
+
+    count = ILLength(reinterpret_cast<W8IList*>(
+        gXStatus.plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
+    for (index = 0; index < count; ++index) {
+        other = MonsterGetScriptPartByLocationIndex(index);
+        GetMonsterDataForInfo(other);
+        if (other != monster_info && other->fActive != 0 && other->fInCombat != 0 &&
+            other->hp_current != 0 && other->highest_condition < 0x12 &&
+            MonsterHostility00546F80(monster_info, other) == disposition_needed &&
+            MonsterAttackReachesMonster(monster_info, record, attack, other) != 0) {
+            return 1;
+        }
+        count = ILLength(reinterpret_cast<W8IList*>(
+            gXStatus.plsMonsterList)); // reinterpret-ok: retail ILLength over the monster PList
+    }
+    return 0;
+}
+
+/* Whether the monster's attack `attack` reaches the character in `party_slot`,
+   given what it can see and how far away they stand. Combat mode shortens
+   touch/short reach by CountRowsBetween. */
+// FUNCTION: WIZ8 0x0051a2f0
+unsigned char MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                            unsigned int attack, int party_slot)
+{
+    int sight_index;
+    int action_kind;
+    unsigned int steps;
+    W8RangeCategory range;
+    char crossable;
+    W8MonsterRecord* attack_record;
+
+    if (monster_info->player_visibility.state_04 != 1) {
+        return 0;
+    }
+
+    action_kind = monster_info->action_kind;
+    if (action_kind == 0) {
+        attack_record = GetMonsterDataForInfo(monster_info);
+        if (attack_record->attacks[attack].range_category < W8_RANGE_LONG ||
+            attack_record->attacks[attack].range_category > W8_RANGE_EXTREME) {
+            sight_index = 0;
+        } else {
+            sight_index = GetSightCondition37A(monster_info);
+        }
+    } else if (action_kind == 2) {
+        sight_index = GetSightCondition37CIndex(monster_info);
+    } else if (action_kind == 3) {
+        sight_index = 2;
+    } else {
+        sight_index = 0;
+    }
+    if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+        return 0;
+    }
+
+    switch (monster_info->action_kind) {
+    case 0:
+        if (attack >= W8_MAX_MONSTER_ATTACKS) {
+            srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_RANGE_CPP, 0x3b5, 0);
+        }
+        if (record->attacks[attack].fHasAttack == 0) {
+            srAssertFail("pMonsterDB->Attack[uiAttack].fHasAttack", COMBAT_RANGE_CPP, 0x3b6, 0);
+        }
+        range = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
+        break;
+    case 2:
+        range = g_spell_records[monster_info->action_detail].range_category;
+        break;
+    case 3:
+        range = W8_RANGE_LONG;
+        break;
+    case 8:
+        range = W8_RANGE_TOUCH;
+        break;
+    default:
+        range = W8_RANGE_NONE;
+        break;
+    }
+    if (range == W8_RANGE_NONE) {
+        return 0;
+    }
+    if (gXStatus.fCombatMode != 0 && range >= W8_RANGE_TOUCH && range < W8_RANGE_LONG) {
+        for (crossable = CountRowsBetween(party_slot, monster_info); crossable != 0; --crossable) {
+            if (range == W8_RANGE_TOUCH) {
+                return 0;
+            }
+            range = static_cast<W8RangeCategory>(static_cast<int>(range) - 1);
+        }
+    }
+    if (range == W8_RANGE_NONE) {
+        return 0;
+    }
+    steps = 0;
+    switch (range) {
+    case W8_RANGE_TOUCH:
+        steps = 2;
+        break;
+    case W8_RANGE_SHORT:
+        steps = 4;
+        break;
+    case W8_RANGE_LONG:
+        steps = 25;
+        break;
+    case W8_RANGE_EXTREME:
+        steps = 50;
+        break;
+    default:
+        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
+                     "CalcRangeDistance: ERROR - Invalid range category");
+    }
+    if (monster_info->monster->GetDistanceToPlayer004C7CB0() <= steps * g_world_scale_005ebc40) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Whether the monster's attack `attack` reaches another monster. Untargetable
+   attackers never reach; the same monster always does. Sight comes from the
+   mon-to-mon visibility row rather than the party record. */
+// FUNCTION: WIZ8 0x0051a510
+unsigned char MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                          unsigned int attack, W8MonsterInfo* target)
+{
+    W8VisibilityRecord* visibility;
+    int sight_index;
+    int action_kind;
+    unsigned int steps;
+    W8RangeCategory range;
+    W8MonsterRecord* attack_record;
+
+    if (record->untargetable_24a != 0) {
+        return 0;
+    }
+    if (target == monster_info) {
+        return 1;
+    }
+    visibility = FindMonToMonVisibility(monster_info, target);
+    if (visibility == 0) {
+        return 0;
+    }
+    if (visibility->state_04 != 1) {
+        return 0;
+    }
+
+    action_kind = monster_info->action_kind;
+    if (action_kind == 0) {
+        attack_record = GetMonsterDataForInfo(monster_info);
+        if (attack_record->attacks[attack].range_category < W8_RANGE_LONG ||
+            attack_record->attacks[attack].range_category > W8_RANGE_EXTREME) {
+            sight_index = 0;
+        } else {
+            sight_index = GetSightCondition37A(monster_info);
+        }
+    } else if (action_kind == 2) {
+        sight_index = GetSightCondition37CIndex(monster_info);
+    } else if (action_kind == 3) {
+        sight_index = 2;
+    } else {
+        sight_index = 0;
+    }
+    if (visibility->sight_flags_05[sight_index] == 0) {
+        return 0;
+    }
+
+    switch (monster_info->action_kind) {
+    case 0:
+        if (attack >= W8_MAX_MONSTER_ATTACKS) {
+            srAssertFail("uiAttack < MAX_MONSTER_ATTACKS", COMBAT_RANGE_CPP, 0x3b5, 0);
+        }
+        if (record->attacks[attack].fHasAttack == 0) {
+            srAssertFail("pMonsterDB->Attack[uiAttack].fHasAttack", COMBAT_RANGE_CPP, 0x3b6, 0);
+        }
+        range = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
+        break;
+    case 2:
+        range = g_spell_records[monster_info->action_detail].range_category;
+        break;
+    case 3:
+        range = W8_RANGE_LONG;
+        break;
+    case 8:
+        range = W8_RANGE_TOUCH;
+        break;
+    default:
+        return 0;
+    }
+    if (range == W8_RANGE_NONE) {
+        return 0;
+    }
+    steps = 0;
+    switch (range) {
+    case W8_RANGE_TOUCH:
+        steps = 2;
+        break;
+    case W8_RANGE_SHORT:
+        steps = 4;
+        break;
+    case W8_RANGE_LONG:
+        steps = 25;
+        break;
+    case W8_RANGE_EXTREME:
+        steps = 50;
+        break;
+    default:
+        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
+                     "CalcRangeDistance: ERROR - Invalid range category");
+    }
+    if (monster_info->monster->GetDistanceToMonster004C7DD0(target->monster) <=
+        steps * g_world_scale_005ebc40) {
+        return 1;
+    }
+    return 0;
+}
+
 /* The furthest range category among a monster's three attacks. Asking for the
    close-quarters band only considers the two categories inside it. */
 // FUNCTION: WIZ8 0x0051a800
@@ -206,6 +552,82 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
             if ((close_quarters_only == 0 || category < W8_RANGE_LONG) && (int)category > best) {
                 best = static_cast<W8RangeCategory>(category);
             }
+        }
+    }
+    return best;
+}
+
+/* Furthest attack band, optionally raised to long for certain special-attack
+   kinds, then the furthest castable spell band when the gates allow. */
+// FUNCTION: WIZ8 0x0051a840
+W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
+                                            char skip_capability_checks, int* out_sight)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    W8RangeCategory best = W8_RANGE_NONE;
+    int attack;
+    int spell;
+
+    for (attack = 0; attack < W8_MAX_MONSTER_ATTACKS; ++attack) {
+        if (record->attacks[attack].fHasAttack != 0 &&
+            static_cast<int>(record->attacks[attack].range_category) > best) {
+            best = static_cast<W8RangeCategory>(record->attacks[attack].range_category);
+        }
+    }
+
+    if (best >= W8_RANGE_LONG && best <= W8_RANGE_EXTREME) {
+        *out_sight = GetSightCondition37A(monster_info);
+    } else {
+        *out_sight = 0;
+    }
+
+    if (skip_capability_checks == 0) {
+        if (record->prefer_ranged_actions_1b9 != 1) {
+            return best;
+        }
+        if (record->flee_chance_0e1 < 0x50) {
+            if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
+                return best;
+            }
+            goto consider_spells;
+        }
+    }
+
+    if (record->special_attack_kind_0e3 != 0 &&
+        g_special_attack_table[record->special_attack_kind_0e3][0] != 6) {
+        if (skip_capability_checks == 0 && CanMonsterFlee(monster_info, record, 1) == 0) {
+            if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
+                return best;
+            }
+            goto consider_spells;
+        }
+        if (best < W8_RANGE_LONG) {
+            best = W8_RANGE_LONG;
+            *out_sight = W8_RANGE_LONG;
+        }
+    }
+
+    if (skip_capability_checks != 0) {
+        goto consider_spells;
+    }
+    if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
+        return best;
+    }
+
+consider_spells:
+    for (spell = 0; spell < 10; ++spell) {
+        unsigned int spell_id = record->spells_14d[spell];
+
+        if (MonsterCanAimSpell005474B0(spell_id) == 0) {
+            continue;
+        }
+        if (skip_capability_checks == 0 &&
+            IsSpellUsableByMonster(monster_info, static_cast<int>(spell_id), 1) == 0) {
+            continue;
+        }
+        if (static_cast<int>(best) < static_cast<int>(g_spell_records[spell_id].range_category)) {
+            best = g_spell_records[spell_id].range_category;
+            *out_sight = GetSightCondition37CIndex(monster_info);
         }
     }
     return best;
@@ -300,11 +722,11 @@ float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category)
     return steps * g_world_scale_005ebc40 + g_startup_world_659c0c->movement_0c0.value_0b0;
 }
 
-/* Close a gap of rows one row at a time, stopping when either the gap or the
-   number of rows that could be crossed runs out. A gap that cannot be closed
-   at all is marked unreachable. */
+/* Shrink a short-range category by the formation rows CountRowsBetween says
+   stand between the monster and `party_slot`. Exhausting the category marks it
+   unreachable (-1). */
 // FUNCTION: WIZ8 0x0051abe0
-void CloseFormationGap(int from_position, int to_position, int* rows_apart)
+void CloseFormationGap(W8MonsterInfo* monster_info, int party_slot, int* rows_apart)
 {
     char crossable;
 
@@ -314,7 +736,7 @@ void CloseFormationGap(int from_position, int to_position, int* rows_apart)
     if (*rows_apart < 0 || *rows_apart >= 2) {
         return;
     }
-    crossable = CountRowsBetween(to_position, from_position);
+    crossable = CountRowsBetween(party_slot, monster_info);
     if (crossable == 0) {
         return;
     }
@@ -344,6 +766,68 @@ bool AnyoneStandsAhead(unsigned char position)
         }
     }
     return found != 0;
+}
+
+/* How many formation rows between `party_slot` and the monster block a short
+   reach. Same row answers zero; otherwise one when the monster's row is
+   occupied, plus one more when the gap is exactly two rows and either that
+   row or the front rank screens. */
+// FUNCTION: WIZ8 0x0051aec0
+char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
+{
+    unsigned char monster_quadrant = static_cast<unsigned char>(GetMonsterQuadrant(monster_info));
+    signed char party_quadrant = g_status_685170.formation.positions[party_slot].bQuadrant;
+    char rows = 0;
+    unsigned int index;
+    signed char slot;
+    int gap;
+    char found_front;
+
+    if (monster_quadrant == static_cast<unsigned char>(party_quadrant)) {
+        return 0;
+    }
+
+    for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
+        slot = g_status_685170.formation.bOccupantChar[monster_quadrant][index];
+        if (slot != -1 &&
+            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+            ++rows;
+        }
+    }
+    if (rows != 0) {
+        rows = 1;
+    }
+
+    if (monster_quadrant == 4) {
+        srAssertFail("ubMonsterQuadrant != QUADRANT_CENTER", COMBAT_RANGE_CPP, 0x598, 0);
+    }
+    if (party_quadrant == 4) {
+        return rows;
+    }
+
+    gap = static_cast<int>(monster_quadrant) - party_quadrant;
+    if (gap < 0) {
+        gap = -gap;
+    }
+    if (gap != 2) {
+        return rows;
+    }
+    if (rows != 0) {
+        return static_cast<char>(rows + 1);
+    }
+
+    found_front = 0;
+    for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
+        slot = g_status_685170.formation.bOccupantChar[4][index];
+        if (slot != -1 &&
+            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+            ++found_front;
+        }
+    }
+    if (found_front != 0) {
+        return static_cast<char>(rows + 1);
+    }
+    return rows;
 }
 
 /* Whether the front rank stands between two positions. Only positions exactly

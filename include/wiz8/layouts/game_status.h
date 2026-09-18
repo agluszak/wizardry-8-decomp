@@ -54,7 +54,12 @@ struct W8GlobalStatus {
     unsigned char unknown_18dc[4];
     unsigned int party_order_slots[8];
     int current_level;
-    unsigned char status_header_block_1904[0x100];
+    /* 0x1904..0x1a03: the 0x100-byte STAT header block. Assertion evidence
+       names the dword at +0xd4 uiTurnsElapsed; the surrounding bytes remain a
+       save/load blob. */
+    unsigned char status_header_prefix_1904[0xd4];
+    unsigned int uiTurnsElapsed; /* 0x19d8 */
+    unsigned char status_header_suffix_19dc[0x28];
     W8LevelProgressRow level_progress[W8_LEVEL_COUNT];
     unsigned char unknown_2013[0x294];
     /* 0x22a7: CamPos staged by recall when the anchor is on another level;
@@ -197,6 +202,16 @@ static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
               "W8GlobalStatus_party_facing_offset");
 static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
               "W8GlobalStatus_current_level_offset");
+static_assert(offsetof(W8GlobalStatus, status_header_prefix_1904) == 0x1904,
+              "W8GlobalStatus_status_header_prefix_offset");
+static_assert(offsetof(W8GlobalStatus, uiTurnsElapsed) == 0x19d8,
+              "W8GlobalStatus_uiTurnsElapsed_offset");
+static_assert(offsetof(W8GlobalStatus, status_header_suffix_19dc) == 0x19dc,
+              "W8GlobalStatus_status_header_suffix_offset");
+static_assert(offsetof(W8GlobalStatus, level_progress) == 0x1a04,
+              "W8GlobalStatus_level_progress_offset");
+static_assert(offsetof(W8GlobalStatus, iron_man) == 0x2429, "W8GlobalStatus_iron_man_offset");
+static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435, "W8GlobalStatus_value_2435_offset");
 static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");

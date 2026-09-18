@@ -18,7 +18,7 @@ unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_k
    kind 2 defers to MonsterCanAimSpell005474B0. */
 unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
                                           unsigned int* spell_power_level);
-unsigned char MonsterCanAimSpell005474B0(int spell_id);
+bool MonsterCanAimSpell005474B0(int spell_id);
 unsigned char CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
 void RecountCombatMonsters(void);                                          /* 0x00546E70 */

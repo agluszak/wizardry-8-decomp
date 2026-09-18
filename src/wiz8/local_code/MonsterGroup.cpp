@@ -1,7 +1,9 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/xstatus.h"
@@ -242,6 +244,67 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
     return disposition;
 }
 
+/* Out-of-combat disposition refresh for a loaded group that still has a live
+   member. Unaligned non-NPC neutrals that carry a finite hostility radius and
+   can see the party within that scaled distance are promoted to hostile first.
+   Then the default disposition is reapplied unless the group's value_cb stamp
+   is still inside the intelligence-squared cooldown and the faction band has
+   not moved since that stamp. */
+// FUNCTION: WIZ8 0x005113A0
+void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group)
+{
+    W8MonsterRecord* record;
+    W8MonsterInfo* monster_info;
+    unsigned int index;
+    int cooldown;
+
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
+    }
+    record = MonsterDBFromSpecies(monster_group->monster_id);
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x82b, 0);
+    }
+    index = 0;
+    if (ILLength(monster_group->monsters) == 0) {
+        return;
+    }
+    while (true) {
+        monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x830, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
+        if (monster_info != 0 && monster_info->monster->IsDying() == 0) {
+            break;
+        }
+        index = index + 1;
+        if (index < ILLength(monster_group->monsters)) {
+            continue;
+        }
+        return;
+    }
+    if (monster_group->ubDisposition != DISP_HOSTILE && (record->flags_0d0 & 1) == 0 &&
+        record->faction_id_25f == 0 && record->hostility_radius_25b != 0 &&
+        record->hostility_radius_25b != -1 &&
+        GetGroupNearestDistance(monster_group) <=
+            record->hostility_radius_25b * g_world_scale_005ebc40 &&
+        MonsterGroupHasVisibleTarget(monster_group, 1, 3, 0) != 0) {
+        SetMonsterGroupHostility(monster_group, DISP_HOSTILE, 0);
+    }
+    cooldown = IntegerPower(record->attribute_values_d1[1], 2) * 0x3c;
+    if (monster_group->value_cb != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock - monster_group->value_cb) <=
+            static_cast<unsigned int>(cooldown)) {
+        if (record->faction_id_25f == 0) {
+            return;
+        }
+        if (static_cast<unsigned int>(monster_group->value_cb) >=
+            static_cast<unsigned int>(GetFactionValue(static_cast<char>(record->faction_id_25f)))) {
+            return;
+        }
+    }
+    SetMonsterGroupHostility(monster_group, MonsterGroupCalcDefaultDisposition(monster_group), 0);
+    monster_group->value_cb = g_status_685170.world_clock;
+}
+
 /* The group at one list index. Indices from 10000 to 19999 select the encounter
    list, biased by 10000; anything else selects the loaded group list. An index
    past the end of its list answers null quietly, while an index inside it that
@@ -478,7 +541,7 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
    group flagged at +0x2A is live on that alone; any other group also has to
    pass the global gate at 0x00547510. */
 // FUNCTION: WIZ8 0x00510b30
-unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
+bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
         monster_group->member_count != 0) {

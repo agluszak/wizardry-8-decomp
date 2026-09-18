@@ -319,10 +319,15 @@ struct W8LevelDatabaseRecord {
     int minimum_encounter_budget;  /* 0x48 */
     int encounter_budget_period;   /* 0x4c: elapsed-time divisor */
     int encounter_culling_seconds; /* 0x50 */
-    /* 0x54: divisor UpdateSurpriseMode uses when accelerating gameplay time. */
+    /* 0x54: float divisor the surprise transition uses when scaling game time
+       and monster-generator duration. */
     float gameplay_time_scale_054;
     unsigned char unknown_058[0x80];
 }; /* 0xd8 */
+
+static_assert(sizeof(W8LevelDatabaseRecord) == 0xd8, "W8LevelDatabaseRecord_size_must_be_0xd8");
+static_assert(offsetof(W8LevelDatabaseRecord, gameplay_time_scale_054) == 0x54,
+              "W8LevelDatabaseRecord_gameplay_time_scale_054_offset");
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
    runtime record size; source-consumed fields are typed here and the reviewed

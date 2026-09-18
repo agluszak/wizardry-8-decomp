@@ -1987,7 +1987,7 @@ void CampScreenFrame(void)
     }
     if (gXStatus.unknown_026[1] && g_suspended_screen_id != W8_SCREEN_CHARACTER &&
         !gXStatus.fCombatMode && !IsScreenTransitionPending()) {
-        Function4EF1F0();
+        RefreshLevelUpReadyNotices();
     }
     POINT point;
     SGPMouseGetPos(&point);

@@ -27,6 +27,7 @@
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/AutomapScreen.h"
@@ -1262,4 +1263,52 @@ void DragSelectionWithCursor0057DF80(void)
         }
     }
     g_mipe_state_0068f100->drag_anchor = cursor;
+}
+
+/* Monster-generator index that last satisfied
+   AnyMonsterGeneratorMarkerWithinReach. */
+// GLOBAL: WIZ8 0x0064A1E0
+static int g_last_reachable_mongen_marker_0064a1e0 = -1;
+
+/* Any monster-generator marker item within reach of the camera (radius
+   250000), resuming the scan at the last match. */
+// FUNCTION: WIZ8 0x0057E3C0
+bool AnyMonsterGeneratorMarkerWithinReach(void)
+{
+    srVector3T<float> camera;
+    int count;
+    int index;
+    W8MonsterGenerator* generator;
+    W8Item* marker;
+
+    if (g_world == 0 || g_world->camera == 0) {
+        return 0;
+    }
+    GetCameraPosition(&camera);
+    count = GetMonsterGeneratorCount();
+    if (0 <= g_last_reachable_mongen_marker_0064a1e0 &&
+        g_last_reachable_mongen_marker_0064a1e0 < count) {
+        generator = GetMonsterGenerator(g_last_reachable_mongen_marker_0064a1e0);
+        if (generator == 0) {
+            marker = 0;
+        } else {
+            marker = generator->marker_item;
+        }
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+            return 1;
+        }
+    }
+    for (index = 0; index < count; ++index) {
+        generator = GetMonsterGenerator(index);
+        if (generator == 0) {
+            marker = 0;
+        } else {
+            marker = generator->marker_item;
+        }
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+            g_last_reachable_mongen_marker_0064a1e0 = index;
+            return 1;
+        }
+    }
+    return 0;
 }

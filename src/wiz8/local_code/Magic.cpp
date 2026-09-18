@@ -1067,6 +1067,23 @@ void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
     }
 }
 
+/* Whether the character knows any spell whose realm's remaining points still
+   cover that spell's cost. */
+// FUNCTION: WIZ8 0x004f96f0
+bool CharacterHasCastableSpell(W8Character* character)
+{
+    int spell_id;
+
+    for (spell_id = 0; spell_id < 0x72; ++spell_id) {
+        if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
+            g_spell_records[spell_id].spell_point_cost <=
+                character->sp_left[g_spell_records[spell_id].realm]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* Learned, and the remaining points in the spell's realm cover its cost. */
 // FUNCTION: WIZ8 0x004f9750
 bool CanCharacterCastSpell(W8Character* character, int spell_id)
