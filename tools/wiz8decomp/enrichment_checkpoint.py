@@ -695,7 +695,7 @@ def run_enrichment_checkpoint(
             frozen = _freeze_candidate(
                 run_settings,
                 run_dir=run_dir,
-                program_name=program_name,
+                program_name=str(seed_info.get("program") or program_name),
                 seed_info=seed_info,
             )
             result["candidate"] = {

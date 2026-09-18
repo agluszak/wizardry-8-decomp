@@ -338,8 +338,13 @@ def apply_structure_projection(
         elif action == "create-class":
             size = int(row.get("asserted_size") or 0)
             source_path = (row.get("source") or {}).get("path")
-            ensure_ghidra_class(_program, owning)
-            result = find_class_structure(_program, ensure_ghidra_class(_program, owning))
+            ghidra_class = ensure_ghidra_class(_program, owning)
+            result = find_class_structure(_program, ghidra_class)
+            if result is None and source_path:
+                # Class namespace now exists; bind the evidence Structure already at
+                # the preferred path (findExistingClassStruct can lag until refresh).
+                candidate = _program.getDataTypeManager().getDataType(str(source_path))
+                result = _as_structure(candidate)
             if result is None:
                 if size > 1:
                     result = _create_opaque(_program, owning, size)

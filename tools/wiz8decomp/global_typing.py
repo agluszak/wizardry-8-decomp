@@ -556,11 +556,16 @@ def _apply_global_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
     action = str(row.get("action") or "")
     address = space.getAddress(int(row["address"], 0))
     if action in {"set-type", "set-type-and-name"}:
+        from .ghidra.listing_guards import ClearRangeError, clear_code_units_guarded
+
         resolved = resolve_data_type(program, str(row.get("source_type") or ""))
         if resolved is None:
             return {**dict(row), "error": "unresolved-type"}
         end = address.add(resolved.getLength() - 1)
-        listing.clearCodeUnits(address, end, False)
+        try:
+            clear_code_units_guarded(program, address, end)
+        except ClearRangeError as exc:
+            return {**dict(row), **exc.payload}
         listing.createData(address, resolved)
     if action in {"set-name", "set-type-and-name"}:
         name = str(row.get("name") or "")
@@ -588,9 +593,17 @@ def apply_global_typing(program: Any, plan: Mapping[str, Any]) -> dict[str, Any]
         _apply_global_typing_row,
         description="Source-backed GLOBAL typing",
     )
+    errors: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for row in result["errors"]:
+        if row.get("error") == "clear-range-foreign-symbol":
+            skipped.append({**dict(row), "skipped": "clear-range-foreign-symbol"})
+        else:
+            errors.append(row)
     return {
         "applied": result["applied"],
-        "errors": result["errors"],
+        "errors": errors,
+        "skipped": skipped,
         "globals": result["rows"],
     }
 

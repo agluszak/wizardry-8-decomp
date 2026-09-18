@@ -1,11 +1,21 @@
 """Create typed vftable Structures and apply them at known vtable addresses.
 
 For each source-index class with a ``vtable_address``, read the retail slot
-targets, build per-slot ``FunctionDefinition`` types from the callee signature
-(including an explicit ``this`` for ``__thiscall``), and install a
-``/wiz8/vftables/ClassName_vftable`` Structure whose fields are pointers to
-those definitions. Class ``vfptr``/``vptr`` fields are retargeted to pointers
-of that Structure when present.
+targets, build per-slot ``FunctionDefinition`` types from the preferred slot
+ABI contract, and install a namespace-safe Structure under ``/wiz8/vftables/``
+whose fields are pointers to those definitions. Class ``vfptr``/``vptr``
+fields are retargeted to pointers of that Structure when present.
+
+Slot FunctionDefinitions prefer a source-backed declaration (source-index
+``FUNCTION`` at the slot target, or a live callee whose signature source is
+already ``IMPORTED``/``USER_DEFINED``) over cloning an analysis-only
+implementation signature. When no declaration is available the FD falls back
+to ``FunctionDefinitionDataType(function, False)``.
+
+Deferred (not finished forever): secondary / construction / for-clause
+vtables and true base-subobject slot ABI remain out of scope here. Primary
+source-index ``vtable_address`` tables with census extents are the current
+contract surface.
 """
 
 from __future__ import annotations
@@ -16,20 +26,38 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from .class_binding import _sanitize_class_parts
 from .config import Settings
-from .paths import atomic_json, repo_relative
-from .source_index import SourceIndex, load_source_index
+from .paths import atomic_json, repo_relative, sha256_file
+from .source_index import SourceIndex, load_source_index, source_functions
 
 _SCHEMA = "wiz8.vftable-typing-v1"
 _CATEGORY = "/wiz8/vftables"
 _MAX_SLOTS = 256
 _SAFE_FIELD = re.compile(r"[^0-9A-Za-z_]+")
-# Confirmed MSVC census slot counts keyed by resolved binary path.
+# Confirmed MSVC census slot counts keyed by binary content hash (or path fallback).
 _CENSUS_SLOT_CACHE: dict[str, dict[int, int]] = {}
+_SOURCE_BACKED_SIG = frozenset({"IMPORTED", "USER_DEFINED"})
 
 
 def _simple_name(qualified: str) -> str:
     return qualified.split("::")[-1]
+
+
+def _vftable_paths(qualified: str) -> tuple[str, str, str, str]:
+    """Return ``(category, structure_name, structure_path, sigs_category)``.
+
+    Namespace parts become category segments under ``/wiz8/vftables/`` so
+    ``ns::Class`` and ``other::Class`` do not collide on ``Class_vftable``.
+    """
+
+    parent_parts, leaf = _sanitize_class_parts(qualified)
+    if parent_parts:
+        category = f"{_CATEGORY}/{'/'.join(parent_parts)}"
+    else:
+        category = _CATEGORY
+    structure_name = f"{leaf}_vftable"
+    return category, structure_name, f"{category}/{structure_name}", f"{category}/{leaf}_sigs"
 
 
 def _canonical_matching_binary(repo_dir: Path, work_dir: Path) -> Path:
@@ -46,7 +74,10 @@ def census_vftable_slot_counts(repo_dir: Path, work_dir: Path) -> dict[int, int]
     """Confirmed census vftable ``slot_count`` by absolute address (process-cached)."""
 
     binary = _canonical_matching_binary(repo_dir, work_dir)
-    cache_key = str(binary.resolve()) if binary.exists() else str(binary)
+    if binary.is_file():
+        cache_key = sha256_file(binary)
+    else:
+        cache_key = str(binary)
     cached = _CENSUS_SLOT_CACHE.get(cache_key)
     if cached is not None:
         return cached
@@ -158,6 +189,60 @@ def _read_slots(
     return slots
 
 
+def _signature_source_name(function: Any) -> str | None:
+    if function is None or not hasattr(function, "getSignatureSource"):
+        return None
+    source = function.getSignatureSource()
+    if source is None:
+        return None
+    return str(getattr(source, "name", None) or source)
+
+
+def _function_signature_source_backed(function: Any) -> bool:
+    name = _signature_source_name(function)
+    return name in _SOURCE_BACKED_SIG if name is not None else False
+
+
+def _declaration_payload(declaration: Any) -> dict[str, Any]:
+    return {
+        "return_type": declaration.return_type,
+        "parameter_types": list(declaration.parameter_types),
+        "calling_convention": declaration.calling_convention,
+        "has_this": bool(declaration.has_this),
+        "owning_class": declaration.owning_class,
+        "is_variadic": bool(declaration.is_variadic),
+    }
+
+
+def annotate_slot_fd_sources(
+    program: Any,
+    slots: list[dict[str, Any]],
+    source_by_address: Mapping[int, Any],
+) -> None:
+    """Stamp each slot with ``fd_source`` / optional ``declaration`` payload."""
+
+    space = program.getAddressFactory().getDefaultAddressSpace()
+    functions = program.getFunctionManager()
+    for slot in slots:
+        if slot.get("unresolved") or not slot.get("target"):
+            slot["fd_source"] = None
+            continue
+        target = int(str(slot["target"]), 0)
+        marker = source_by_address.get(target)
+        declaration = marker.declaration if marker is not None else None
+        if declaration is not None and getattr(marker, "marker_kind", None) == "FUNCTION":
+            slot["fd_source"] = "source-declaration"
+            slot["declaration"] = _declaration_payload(declaration)
+            continue
+        function = functions.getFunctionAt(space.getAddress(target))
+        if _function_signature_source_backed(function):
+            slot["fd_source"] = "source-declaration"
+            slot.pop("declaration", None)
+            continue
+        slot["fd_source"] = "callee-implementation"
+        slot.pop("declaration", None)
+
+
 def _points_to_function_definition(data_type: Any) -> bool:
     if data_type is None or not hasattr(data_type, "getDataType"):
         return False
@@ -236,6 +321,7 @@ def collect_vftable_typing_plan(
     """Plan vftable Structure creation for source classes with vtable addresses."""
 
     index = SourceIndex.from_dict(load_source_index(repository))
+    source_by_address = source_functions(repository, target)
     wanted = None
     if class_names is not None:
         wanted = {_simple_name(name) for name in class_names} | set(class_names)
@@ -290,6 +376,7 @@ def collect_vftable_typing_plan(
                 stop_before=sibling_starts,
             )
             extent_source = "fallback"
+        annotate_slot_fd_sources(program, slots, source_by_address)
         prepared.append(
             {
                 "record": record,
@@ -305,9 +392,7 @@ def collect_vftable_typing_plan(
     for item in prepared:
         record = item["record"]
         name = record.qualified_name
-        simple = _simple_name(name)
-        vftable_name = f"{simple}_vftable"
-        vftable_path = f"{_CATEGORY}/{vftable_name}"
+        category, vftable_name, vftable_path, _sigs = _vftable_paths(name)
         address = item["address"]
         slots = item["slots"]
         declared = item["declared"]
@@ -361,6 +446,7 @@ def collect_vftable_typing_plan(
                 "class": name,
                 "address": f"0x{address:08x}",
                 "vftable": vftable_path,
+                "vftable_category": category,
                 "slot_count": len(slots),
                 "declared_slots": declared,
                 "census_slots": item.get("census_slots"),
@@ -387,8 +473,73 @@ def collect_vftable_typing_plan(
     }
 
 
-def _slot_function_pointer(program: Any, simple: str, slot: dict[str, Any], field: str) -> Any:
-    """Build ``Pointer(FunctionDefinition)`` from the slot target's signature."""
+def _resolve_slot_type(program: Any, spelling: str) -> Any | None:
+    from .callback_typing import _resolve_type
+
+    return _resolve_type(program, spelling)
+
+
+def _definition_from_declaration(
+    program: Any,
+    *,
+    definition_name: str,
+    sigs_category: str,
+    declaration: Mapping[str, Any],
+) -> Any:
+    from ghidra.program.model.data import (  # type: ignore[import-not-found]
+        CategoryPath,
+        FunctionDefinitionDataType,
+        ParameterDefinitionImpl,
+        PointerDataType,
+    )
+
+    definition = FunctionDefinitionDataType(CategoryPath(sigs_category), definition_name)
+    return_spelling = str(declaration.get("return_type") or "void")
+    return_type = _resolve_slot_type(program, return_spelling)
+    if return_type is None:
+        raise ValueError(f"unresolved return type: {return_spelling}")
+    definition.setReturnType(return_type)
+
+    params: list[Any] = []
+    convention = str(declaration.get("calling_convention") or "")
+    has_this = bool(declaration.get("has_this"))
+    owning = declaration.get("owning_class")
+    if has_this or convention == "__thiscall":
+        this_type = None
+        if owning:
+            this_type = _resolve_slot_type(program, f"{owning} *")
+            if this_type is None:
+                # Fall back to an unresolved class pointer via void* only if needed.
+                from ghidra.program.model.data import VoidDataType  # type: ignore[import-not-found]
+
+                this_type = PointerDataType(VoidDataType(), program.getDataTypeManager())
+        else:
+            from ghidra.program.model.data import VoidDataType  # type: ignore[import-not-found]
+
+            this_type = PointerDataType(VoidDataType(), program.getDataTypeManager())
+        params.append(ParameterDefinitionImpl("this", this_type, None))
+
+    for index, spelling in enumerate(declaration.get("parameter_types") or ()):
+        data_type = _resolve_slot_type(program, str(spelling))
+        if data_type is None:
+            raise ValueError(f"unresolved param type: {spelling}")
+        params.append(ParameterDefinitionImpl(f"param_{index}", data_type, None))
+    if params:
+        definition.setArguments(params)
+    if convention:
+        definition.setCallingConvention(convention)
+    if declaration.get("is_variadic") and hasattr(definition, "setVarArgs"):
+        definition.setVarArgs(True)
+    return definition
+
+
+def _slot_function_pointer(
+    program: Any,
+    qualified_class: str,
+    slot: dict[str, Any],
+    field: str,
+) -> Any:
+    """Build ``Pointer(FunctionDefinition)`` from the preferred slot ABI contract."""
 
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
         CategoryPath,
@@ -398,40 +549,77 @@ def _slot_function_pointer(program: Any, simple: str, slot: dict[str, Any], fiel
         VoidDataType,
     )
 
+    _category, _structure_name, _path, sigs_category = _vftable_paths(qualified_class)
+    _, leaf = _sanitize_class_parts(qualified_class)
     manager = program.getDataTypeManager()
     if slot.get("unresolved") or not slot.get("target"):
+        slot["fd_source"] = None
         return PointerDataType(VoidDataType(), manager)
     space = program.getAddressFactory().getDefaultAddressSpace()
     target = int(slot["target"], 0)
     function = program.getFunctionManager().getFunctionAt(space.getAddress(target))
     if function is None:
+        slot["fd_source"] = None
         return PointerDataType(VoidDataType(), manager)
 
-    # Formal signature includes an explicit ``this`` for __thiscall methods —
-    # required for FunctionDefinition-typed function pointers (Ghidra #5484).
-    try:
-        definition = FunctionDefinitionDataType(function, False)
-    except Exception as exc:
-        raise RuntimeError(
-            "FunctionDefinitionDataType(function, False) failed for "
-            f"{function.getName(True)} at {slot.get('target')}: {exc}"
-        ) from exc
-    definition.setName(f"{simple}_{field}")
-    definition.setCategoryPath(CategoryPath(f"{_CATEGORY}/{simple}_sigs"))
+    definition_name = f"{leaf}_{field}"
+    definition = None
+    fd_source = slot.get("fd_source") or "callee-implementation"
+    declaration = slot.get("declaration")
+    if isinstance(declaration, Mapping):
+        try:
+            definition = _definition_from_declaration(
+                program,
+                definition_name=definition_name,
+                sigs_category=sigs_category,
+                declaration=declaration,
+            )
+            fd_source = "source-declaration"
+        except Exception:  # noqa: BLE001 — unresolved types → callee fallback
+            definition = None
+            fd_source = "callee-implementation"
+
+    if definition is None and fd_source == "source-declaration" and not declaration:
+        # Live signature already source-backed; clone formal signature.
+        try:
+            definition = FunctionDefinitionDataType(function, False)
+            fd_source = "source-declaration"
+        except Exception as exc:
+            raise RuntimeError(
+                "FunctionDefinitionDataType(function, False) failed for "
+                f"{function.getName(True)} at {slot.get('target')}: {exc}"
+            ) from exc
+
+    if definition is None:
+        try:
+            definition = FunctionDefinitionDataType(function, False)
+        except Exception as exc:
+            raise RuntimeError(
+                "FunctionDefinitionDataType(function, False) failed for "
+                f"{function.getName(True)} at {slot.get('target')}: {exc}"
+            ) from exc
+        fd_source = "callee-implementation"
+
+    definition.setName(definition_name)
+    definition.setCategoryPath(CategoryPath(sigs_category))
     added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
+    slot["fd_source"] = fd_source
     return PointerDataType(added, manager)
 
 
-def _build_vftable_structure(program: Any, simple: str, slots: list[dict[str, Any]]) -> Any:
+def _build_vftable_structure(
+    program: Any, qualified_class: str, slots: list[dict[str, Any]]
+) -> Any:
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
         CategoryPath,
         DataTypeConflictHandler,
         StructureDataType,
     )
 
+    category, structure_name, _path, _sigs = _vftable_paths(qualified_class)
     manager = program.getDataTypeManager()
-    manager.createCategory(CategoryPath(_CATEGORY))
-    structure = StructureDataType(CategoryPath(_CATEGORY), f"{simple}_vftable", 0)
+    manager.createCategory(CategoryPath(category))
+    structure = StructureDataType(CategoryPath(category), structure_name, 0)
     used: set[str] = set()
     for slot in slots:
         name = _field_name(int(slot["index"]), slot.get("name"))
@@ -441,18 +629,20 @@ def _build_vftable_structure(program: Any, simple: str, slots: list[dict[str, An
             name = f"{base}_{suffix}"
             suffix += 1
         used.add(name)
-        pointer = _slot_function_pointer(program, simple, slot, name)
+        pointer = _slot_function_pointer(program, qualified_class, slot, name)
         structure.add(pointer, 4, name, slot.get("target"))
     return manager.addDataType(structure, DataTypeConflictHandler.REPLACE_HANDLER)
 
 
-def _apply_data(program: Any, address: int, data_type: Any) -> None:
-    listing = program.getListing()
+def _apply_data(
+    program: Any, address: int, data_type: Any, *, expected_name: str | None = None
+) -> None:
+    from .ghidra.listing_guards import clear_code_units_guarded
+
     space = program.getAddressFactory().getDefaultAddressSpace()
     start = space.getAddress(address)
     end = start.add(data_type.getLength() - 1)
-    listing.clearCodeUnits(start, end, False)
-    listing.createData(start, data_type)
+    clear_code_units_guarded(program, start, end, expected_name=expected_name)
 
 
 def _retarget_class_vfptr(program: Any, class_name: str, vftable: Any) -> bool:
@@ -482,6 +672,8 @@ def _retarget_class_vfptr(program: Any, class_name: str, vftable: Any) -> bool:
 
 
 def _apply_vftable_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
+    from .ghidra.listing_guards import ClearRangeError
+
     action = row.get("action")
     if action not in {"create-and-apply", "apply-existing", "upgrade-definitions"}:
         return {**dict(row), "error": f"unexpected-action:{action}"}
@@ -493,15 +685,18 @@ def _apply_vftable_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str,
     slots = list(row.get("slots") or [])
     if row.get("extent_source") == "census" and any(slot.get("unresolved") for slot in slots):
         return {**dict(row), "error": "census-slot-unresolved"}
-    simple = _simple_name(str(row["class"]))
+    qualified = str(row["class"])
     if action in {"create-and-apply", "upgrade-definitions"}:
-        structure = _build_vftable_structure(program, simple, slots)
+        structure = _build_vftable_structure(program, qualified, slots)
     else:
         structure = program.getDataTypeManager().getDataType(row["vftable"])
     if structure is None:
         return {**dict(row), "error": "missing-vftable-structure"}
-    _apply_data(program, int(row["address"], 0), structure)
-    vfptr = _retarget_class_vfptr(program, str(row["class"]), structure)
+    try:
+        _apply_data(program, int(row["address"], 0), structure)
+    except ClearRangeError as exc:
+        return {**dict(row), **exc.payload}
+    vfptr = _retarget_class_vfptr(program, qualified, structure)
     return {
         "class": row["class"],
         "address": row["address"],
@@ -510,6 +705,9 @@ def _apply_vftable_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str,
         "vfptr_retargeted": vfptr,
         "action": action,
         "function_definitions": _vftable_has_function_definitions(structure),
+        "fd_sources": dict(
+            Counter(slot.get("fd_source") for slot in slots if slot.get("fd_source"))
+        ),
     }
 
 
@@ -518,7 +716,8 @@ def apply_vftable_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
 
     Rows whose extent came from the sibling-stop fallback (no census slot count)
     are skipped on apply — dry-run may still plan them with
-    ``extent_source: "fallback"``.
+    ``extent_source: "fallback"``. Census rows with unresolved slots are skipped
+    (``census-slot-unresolved``) rather than counted as apply errors.
     """
 
     from .ghidra.mutations import apply_rows
@@ -528,12 +727,18 @@ def apply_vftable_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
         for row in plan.get("vftables", [])
         if row.get("action") in {"create-and-apply", "apply-existing", "upgrade-definitions"}
     ]
-    actionable = [row for row in rows if row.get("extent_source") != "fallback"]
-    skipped = [
-        {**dict(row), "skipped": "fallback-extent-not-actionable"}
-        for row in rows
-        if row.get("extent_source") == "fallback"
-    ]
+    actionable: list[Mapping[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for row in rows:
+        if row.get("extent_source") == "fallback":
+            skipped.append({**dict(row), "skipped": "fallback-extent-not-actionable"})
+            continue
+        if row.get("extent_source") == "census" and any(
+            slot.get("unresolved") for slot in (row.get("slots") or [])
+        ):
+            skipped.append({**dict(row), "skipped": "census-slot-unresolved"})
+            continue
+        actionable.append(row)
     result = apply_rows(
         program,
         actionable,
@@ -580,7 +785,12 @@ def run_vftable_typing(
                 {k: v for k, v in row.items() if k != "slots"}
                 | {
                     "slots": [
-                        {"index": s["index"], "target": s["target"], "name": s.get("name")}
+                        {
+                            "index": s["index"],
+                            "target": s["target"],
+                            "name": s.get("name"),
+                            "fd_source": s.get("fd_source"),
+                        }
                         for s in row.get("slots", [])
                     ]
                 }

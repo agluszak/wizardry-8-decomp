@@ -118,7 +118,7 @@ exist; do not expand them as a second declaration source.
 2. **Compiler projection** — extend reccmp importer gaps (callbacks/unions/variadics) upstream; retire overlapping handwritten declaration parsers only after that lands.
 3. **Type graph projection** — identity map + field reconciliation onto bound Structures (`wiz8 analyze type-graph`). Nested Pointer/Array/Structure/FunctionDef refs remap through `class_binding`; equal-richness disagreements are `conflict` (never richer-wins). Opaque shells + rich evidence → `reconcile-fields`. *(done)*
 4. **Legacy `/wiz8/classes` cleanup** — dry-run inventory always (`wiz8 analyze legacy-classes-cleanup`); gated apply with `--apply` or enrichment `--cleanup-legacy-classes`. Refuses size/shape mismatches and bound-still-legacy paths; never vendor GZF rewrite. *(done)*
-5. **Vtable slots as ABI declarations** — census extents preserved (unresolved slots marked, never silently truncated); agree requires live callee FunctionDefinition contracts; apply refuses unresolved census rows.
+5. **Vtable slots as ABI declarations** — census extents preserved (unresolved slots marked, never silently truncated); agree requires live callee FunctionDefinition contracts; apply skips unresolved census rows (`census-slot-unresolved`) rather than counting them as errors. Namespace-safe `/wiz8/vftables/…` paths and source-declaration preference for slot FunctionDefinitions landed; secondary/construction/for-clause vtables and true subobject slot ABI remain deferred (see Deferred).
 6. **One runner owns the experiment** — unique run directory, shared open `Program`, promote the tested candidate (not an unverified `--live` rerun).
 7. **Validation** — safe application / preserved recovery / useful improvement as separate outcomes.
 
@@ -145,6 +145,7 @@ uv run wiz8 analyze enrichment-promote --from-latest
 - **RTTI on `Wiz8.exe`**: retail is `/GR-`. Optional probes on RTTI-bearing modules only.
 - **FID as DB enrichment**: after prototypes and class bindings land.
 - Retiring all legacy path fallbacks from `global_typing` / `callback_typing` once a promoted seed is clean.
+- **Secondary / construction / for-clause vtables** and true base-subobject virtual-slot ABI (primary source-index `vtable_address` tables only for now).
 
 ## Enrichment discipline
 

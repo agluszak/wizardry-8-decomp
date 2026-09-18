@@ -142,9 +142,12 @@ def apply_source_conventions(
             continue
         try:
             function.setCallingConvention(source_cc)
-            # Source-backed convention is IMPORTED provenance so Param ID does
-            # not immediately overwrite it with an analysis guess.
-            function.setSignatureSource(SourceType.IMPORTED)
+            # Convention-only repair must not claim a full-signature IMPORTED
+            # contract. ANALYSIS marks the convention as non-default without
+            # implying Param ID should treat the whole prototype as imported.
+            # A future path that applies a complete source signature may set
+            # SourceType.IMPORTED at that point.
+            function.setSignatureSource(SourceType.ANALYSIS)
         except Exception as exc:  # noqa: BLE001 - surface per-row apply failures
             errors.append({**row, "error": str(exc)})
             continue

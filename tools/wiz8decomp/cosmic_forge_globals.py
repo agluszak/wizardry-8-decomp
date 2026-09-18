@@ -428,9 +428,14 @@ def _apply_cosmic_forge_row(program: Any, row: Mapping[str, Any]) -> dict[str, A
     action = str(row.get("action") or "")
     address = space.getAddress(int(row["address"], 0))
     if action in {"set-type", "set-type-and-name"}:
+        from .ghidra.listing_guards import ClearRangeError, clear_code_units_guarded
+
         data_type = _array_from_override(dict(row))
         end = address.add(data_type.getLength() - 1)
-        listing.clearCodeUnits(address, end, False)
+        try:
+            clear_code_units_guarded(program, address, end)
+        except ClearRangeError as exc:
+            return {**dict(row), **exc.payload}
         listing.createData(address, data_type)
     if action in {"set-name", "set-type-and-name"}:
         set_primary_label(program, address, str(row["name"]), SourceType.IMPORTED)
@@ -456,9 +461,17 @@ def apply_cosmic_forge_globals(program: Any, plan: dict[str, Any]) -> dict[str, 
         _apply_cosmic_forge_row,
         description="Type Cosmic Forge cfdat destinations",
     )
+    errors: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    for row in result["errors"]:
+        if row.get("error") == "clear-range-foreign-symbol":
+            skipped.append({**dict(row), "skipped": "clear-range-foreign-symbol"})
+        else:
+            errors.append(row)
     return {
         "applied": result["applied"],
-        "errors": result["errors"],
+        "errors": errors,
+        "skipped": skipped,
         "globals": result["rows"],
     }
 
