@@ -214,7 +214,7 @@ W8World* g_world;
 // GLOBAL: WIZ8 0x00659AB8
 W8World* g_world_659ab8;
 // GLOBAL: WIZ8 0x652da4
-unsigned char g_camera_sway_active_652da4;
+bool g_camera_sway_active_652da4;
 // GLOBAL: WIZ8 0x5ebb1c
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 // GLOBAL: WIZ8 0x5ebb20
@@ -781,6 +781,23 @@ void ResetTransientRenderScenes(void)
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
     PurgeInactiveSceneInstances(g_scene_overlay1_659658);
     InvalidateRegion(0, 0, 640, 480, 0);
+}
+
+/* Same dirty-block / transient-scene reset as ResetTransientRenderScenes, but
+   the full-screen invalidate uses flag 1 (the all-bits redraw path). */
+// FUNCTION: WIZ8 0x00423150
+void ClearVideoDirtyBlocks00423150(void)
+{
+    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
+    unsigned int active = g_index_6596e4;
+    g_flags_6596e8[active ^ 1] = 0;
+    g_flags_6596e8[active] = 0;
+    g_dword_6596d8 = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
+    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
+    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
+    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+    InvalidateRegion(0, 0, 640, 480, 1);
 }
 
 // FUNCTION: WIZ8 0x004277e0
@@ -1476,7 +1493,8 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
     }
 }
 
-/* Milliseconds since PositionMouseCursor last stamped g_cursor_move_tick_659698. */
+/* Milliseconds since the cursor last moved (or was repositioned with the
+   reset-tick arm). */
 // FUNCTION: WIZ8 0x00428220
 unsigned int GetMillisecondsSinceCursorMove(void)
 {

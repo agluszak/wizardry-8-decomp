@@ -1,5 +1,6 @@
 #pragma once
 
+struct W8Item;
 struct W8WorldItem;
 struct W8ItemInstance;
 struct W8MonsterInfo;
@@ -18,6 +19,14 @@ unsigned char ReleaseItemLists(void);
 extern int g_world_item_cursor;
 
 void DropHeldItem(int arg_1); /* 0x004F7610 */
-void Function4F7480(void);
-unsigned char Function4F8650(void);
+/* Walk the world-item list: settle bad sectors, advance falling items, and
+   activate/deactivate relative to the camera. */
+void UpdateNearbyWorldItems(void); /* 0x004F7480 */
+/* Advance one falling world item (flag bit 1) toward the ground. */
+unsigned char AdvanceFallingWorldItem(W8WorldItem* item); /* 0x004F9240 */
+/* Whether one world item is close enough to a point and in sight. */
+bool IsWorldItemWithinReach(W8Item* owner, const float* from,
+                                     float radius); /* 0x004F8560 */
+/* Whether any live world item is visible to the camera within reach. */
+bool AnyWorldItemVisible(void); /* 0x004F8650 */
 void Function4F8CB0(W8MonsterInfo* monster_info, int value);

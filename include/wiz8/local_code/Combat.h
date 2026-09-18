@@ -25,10 +25,10 @@ struct W8MonsterInfo;
 struct W8CombatCharacterRow;
 
 void CatchUpCombatActor(W8CombatCharacterRow* row); /* 0x004ECEB0 */
-unsigned char AnyCharacterEngaged(void);            /* 0x004E7CA0 */
+bool AnyCharacterEngaged(void);            /* 0x004E7CA0 */
 /* 0x004F96F0: whether the character knows any spell whose realm's sp_left
    still covers its spell_point_cost. */
-unsigned char CharacterHasCastableSpell(W8Character* character);
+bool CharacterHasCastableSpell(W8Character* character);
 void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target); /* 0x004ECC80 */
 void Function4EA5C0(int party_slot);                                          /* 0x004EA5C0 */
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,

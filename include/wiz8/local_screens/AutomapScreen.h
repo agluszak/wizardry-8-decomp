@@ -34,6 +34,16 @@ unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
 unsigned char CanUseCurrentAutomapTool(void);
 
+/* 0x00580380: recompute the automap's visible world bounds from lit cells. */
+void UpdateAutomapBounds00580380(void);
+/* 0x00580760: when the automap dirty flag is set, light a batch of pending
+   visited cells through the table-1 vertex lights, then clear the flag once
+   the batch finds nothing left. */
+void RefreshDirtyAutomap00580760(void);
+/* 0x00581B30: pack `position` into a cell key, mark it visited if known, and
+   return 1 only when that mark was newly set (retry one cell higher on miss). */
+bool AutomapHasCellAt00581B30(const srVector3T<float>* position);
+
 void ResetAutomapView005817D0(void);
 bool SaveAutomapNotes(int handle); /* 0x00581CE0 */
 bool LoadAutomapNotes(int handle); /* 0x00581E60 */
@@ -45,7 +55,6 @@ void RenderAutomapMarkers00582930(void);
 void CreateAutomapButtons00583BC0(void);
 
 unsigned char ReadAutomapNodes00584DD0(int hFile);
-void RedrawTextBoxBody(void);
 unsigned char AutomapScreenInitialize(void);
 unsigned char AutomapScreenEnter(void);
 void AutomapScreenFrame(void);

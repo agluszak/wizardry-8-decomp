@@ -63,6 +63,12 @@ void ShowMonsterGeneratorStatus005781F0(void);
 void ShowMonsterGeneratorEditor005782D0(void);
 
 void ToggleMipePanel0057D740(void);
+void DragSelectionWithCursor0057DF80(void);
+
+/* Any armed monster-generator marker within reach of the camera; sticky
+   index resumes the scan at the last hit. Used with AnyWorldItemVisible to
+   gate world-model picking. */
+bool AnyMonsterGeneratorMarkerWithinReach(void); /* 0x0057E3C0 */
 
 unsigned char GetFlag68F105(void);
 unsigned char GetFlag68F104(void);

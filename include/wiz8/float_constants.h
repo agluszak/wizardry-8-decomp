@@ -157,6 +157,9 @@ extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
+/* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
+   automap cell refresh in UpdateWorldCameraAndPaths0044FC20. */
+extern const double g_double_005ec240;
 /* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
    from. */
 extern const double g_double_005ed7b0;

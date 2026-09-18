@@ -34,6 +34,7 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
 bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group);
 bool IsSightRangeOverridden(void);
 bool GetSightCondition37A(const W8MonsterInfo* monster);
+char GetSightCondition37CIndex(const W8MonsterInfo* monster); /* 0x00505E80 */
 
 extern float g_sight_default_005ec254;
 

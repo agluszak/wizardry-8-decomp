@@ -96,7 +96,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 extern unsigned char g_flag_6596f4;
 /* 0x00652DA4: set while the swaying camera view is active; see
    SetCameraSwayMode in 3dapi.cpp. */
-extern unsigned char g_camera_sway_active_652da4;
+extern bool g_camera_sway_active_652da4;
 extern int g_screenshot_index_659724;
 extern int g_screenshot_page_659728;
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom);
@@ -252,6 +252,7 @@ void ResetVideoFrameState00422B10(void);
 void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled);
 unsigned char ClearPrimarySurface(void);
 void ResetTransientRenderScenes(void);
+void ClearVideoDirtyBlocks00423150(void); /* 0x00423150 */
 void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog);
 void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);

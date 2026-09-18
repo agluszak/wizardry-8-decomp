@@ -29,10 +29,15 @@
 #include "surrender/srCore.h"
 #include "FileMan.h"
 
+#include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/geometry.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/xstatus.h"
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
@@ -42,6 +47,15 @@
    from. */
 // GLOBAL: WIZ8 0x005ed7b0
 extern const double g_double_005ed7b0 = 1.0 / 360.0;
+
+/* 0x005ED7B8: camera distance inside which inactive world items are activated. */
+// GLOBAL: WIZ8 0x005ed7b8
+float g_float_005ed7b8 = 20000.0f;
+
+/* 0x0064A1CD: when set, skip activating world items that already carry flag
+   bit 0. */
+// GLOBAL: WIZ8 0x0064a1cd
+unsigned char g_byte_0064a1cd = 1;
 
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
@@ -745,6 +759,53 @@ void DeactivateWorldItem(W8WorldItem* item)
     --gXStatus.item_manager_pending;
 }
 
+/* Walk every world item: repair invalid sectors, advance falling ones, then
+   activate inactive items near the camera and deactivate active ones that have
+   drifted beyond the far range. */
+// FUNCTION: WIZ8 0x004f7480
+void UpdateNearbyWorldItems(void)
+{
+    srVector3T<float> camera;
+    unsigned int index;
+    unsigned int count;
+
+    WorldGetCameraLocation(GetWorld(), &camera);
+    count = PLLength(gXStatus.plsItemList);
+    for (index = 0; index < count; ++index) {
+        W8WorldItem* item = ItemInfo(index);
+
+        if (item->sector_id < -1) {
+            item->sector_id = -1;
+            SettleWorldItem(item);
+        }
+        if (ItemHasFlags(item, 2)) {
+            AdvanceFallingWorldItem(item);
+        }
+        if (item->unknown_08 == 0) {
+            if (DistanceBetweenPoints004BE6D0(&item->position, &camera) < g_float_005ed7b8) {
+                if (g_byte_0064a1cd != 0) {
+                    if (item == 0) {
+                        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 0x3e6, 0);
+                    }
+                    if (ItemHasFlags(item, 1)) {
+                        goto next_item;
+                    }
+                }
+                ActivateItem(item);
+            }
+        } else {
+            srVector3T<float> location;
+
+            item->owner->m_pRep->GetLocation004B8890(&location);
+            if (DistanceBetweenPoints004BE6D0(&location, &camera) > g_float_005ec360) {
+                DeactivateWorldItem(item);
+            }
+        }
+    next_item:
+        count = PLLength(gXStatus.plsItemList);
+    }
+}
+
 /* Push every live world item back to its sector and free the whole list. The
    list is reduced from its head until empty and then destroyed; only the
    destroy failure keeps the global pointing at it. */
@@ -799,7 +860,7 @@ unsigned char ReleaseItemLists(void)
    sight of the party's eye. The distance is compared before the trace, so a
    far item is never traced to. */
 // FUNCTION: WIZ8 0x004f8560
-unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
+bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
 {
     srVector3T<float> position;
     float lower[3];
@@ -825,6 +886,138 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
     return 0;
 }
 
+/* plsItemList index that last satisfied AnyWorldItemVisible. */
+// GLOBAL: WIZ8 0x00618E70
+static int g_last_visible_world_item_00618e70 = -1;
+
+/* Any live world item visible to the camera within g_double_005ec030, resuming
+   the scan at the last match. */
+// FUNCTION: WIZ8 0x004f8650
+bool AnyWorldItemVisible(void)
+{
+    srVector3T<float> camera;
+    srVector3T<float> position;
+    srVector3T<float> eye;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    int count;
+    int index;
+
+    if (g_world == 0 || g_world->camera == 0) {
+        return 0;
+    }
+    GetCameraPosition(&camera);
+    count = PLLength(gXStatus.plsItemList);
+    if (0 <= g_last_visible_world_item_00618e70 && g_last_visible_world_item_00618e70 < count) {
+        W8WorldItem* item = static_cast<W8WorldItem*>(
+            PLGet(gXStatus.plsItemList, g_last_visible_world_item_00618e70));
+        if (item->owner != 0) {
+            item->owner->m_pRep->GetLocation004B8890(&position);
+            GetCameraPosition(&eye);
+            srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
+                                    position.z - camera.z);
+            if (delta.Length() < static_cast<float>(g_double_005ec030)) {
+                item->owner->GetCachedLocalBounds(&lower.x, &upper.x);
+                lower.x += position.x;
+                lower.y += position.y;
+                lower.z += position.z;
+                upper.x += position.x;
+                upper.y += position.y;
+                upper.z += position.z;
+                if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
+                    return 1;
+                }
+            }
+        }
+    }
+    for (index = 0; index < count; ++index) {
+        W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
+
+        if (item->owner != 0) {
+            item->owner->m_pRep->GetLocation004B8890(&position);
+            GetCameraPosition(&eye);
+            srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
+                                    position.z - camera.z);
+            if (delta.Length() < static_cast<float>(g_double_005ec030)) {
+                item->owner->GetCachedLocalBounds(&lower.x, &upper.x);
+                lower.x += position.x;
+                lower.y += position.y;
+                lower.z += position.z;
+                upper.x += position.x;
+                upper.y += position.y;
+                upper.z += position.z;
+                if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
+                    g_last_visible_world_item_00618e70 = index;
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/* Advance one falling world item (flag bit 1) toward the ground for this
+   frame. Clears the falling flag once it has landed or the settle misses. */
+// FUNCTION: WIZ8 0x004f9240
+unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
+{
+    srVector3T<float> probe;
+    unsigned char hit;
+    float ground;
+    float previous_y;
+    float dt;
+    int sector;
+
+    if (!ItemHasFlags(item, 2)) {
+        return 0;
+    }
+
+    previous_y = item->position.y;
+    probe.x = item->position.x;
+    probe.z = item->position.z;
+    probe.y = previous_y + g_world_scale_005ebc40;
+    dt = g_game_time_accumulator_6598bc->GetValue28();
+    if (g_camera_snap_epsilon_005ebc2c < item->vertical_velocity_35) {
+        probe.y = dt * item->vertical_velocity_35 + probe.y;
+    }
+
+    ground = g_octree_6598a4->SettleToGround(&probe, &hit, 1, 250.0f);
+    if (hit == 0 || fabs(ground - previous_y) < g_camera_snap_epsilon_005ebc2c) {
+        item->flags &= ~2u;
+        item->vertical_velocity_35 = 0.0f;
+        return 0;
+    }
+
+    sector = g_octree_6598a4->current_prop;
+    if (sector != item->sector_id) {
+        if (item->sector_id >= 0) {
+            RemoveItemFromSector(item->sector_id, item);
+        }
+        if (sector >= 0) {
+            AddItemToSector(sector, item);
+        }
+        item->sector_id = sector;
+    }
+
+    if (previous_y <= ground) {
+        item->vertical_velocity_35 = (ground - previous_y) / dt;
+        probe.y = ground;
+    } else {
+        item->vertical_velocity_35 =
+            dt * g_navigator_gravity_00603acc * g_float_005ebc7c + item->vertical_velocity_35;
+        probe.y = probe.y - dt * item->vertical_velocity_35;
+        if (probe.y < ground) {
+            probe.y = ground;
+        }
+    }
+
+    if (item->owner != 0) {
+        item->owner->SetLocation0049F720(&probe);
+    }
+    item->position = probe;
+    return 1;
+}
+
 /* Drop one item onto the ground below where it is. The search starts one world
    unit up so an item already resting does not settle into the floor; landing
    moves it between sectors and clears its saved-marker flag. */
@@ -840,7 +1033,7 @@ unsigned char SettleWorldItem(W8WorldItem* item)
     start.y = item->position.y + g_world_scale_005ebc40;
 
     item->flags &= ~2u;
-    item->unknown_35 = 0;
+    item->vertical_velocity_35 = 0.0f;
 
     g_octree_6598a4->SettleToGround(&start, &hit, 1, 250.0f);
     if (hit == 0) {

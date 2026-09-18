@@ -98,6 +98,32 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
     return 1;
 }
 
+/* Map a monster's disposition band onto the party character: while the
+   character carries condition thirteen the hostile and friendly bands swap;
+   otherwise the monster's band is returned unchanged. */
+// FUNCTION: WIZ8 0x00546f10
+char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
+{
+    unsigned char disposition;
+
+    if (g_status_685170.buffers.characters[character_slot].condition_turns[13] == 0) {
+        return monster_info->ubDisposition;
+    }
+    disposition = monster_info->ubDisposition;
+    switch (disposition) {
+    case 0:
+        return 0;
+    case 1:
+        return 2;
+    case 2:
+        return 1;
+    default:
+        srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x69,
+                     "MonsterVsCharDisposition: ERROR - Invalid attack mode");
+        return 0;
+    }
+}
+
 /* Whether a party action aims at enemies: the four melee kinds do, as do
    spells (and item-spells) whose target type sits in the enemy band. */
 // FUNCTION: WIZ8 0x00547310
@@ -181,7 +207,7 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not
    one of the two self-only kinds, and carrying a middle target type. */
 // FUNCTION: WIZ8 0x005474B0
-unsigned char MonsterCanAimSpell005474B0(int spell_id)
+bool MonsterCanAimSpell005474B0(int spell_id)
 {
     if (spell_id > 0x95) {
         srAssertFail("iType < SPELL_COUNT",
@@ -212,7 +238,7 @@ const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
 // GLOBAL: WIZ8 0x0061ec14
 const int g_monster_special_attack_name_ids_61ec14[12] = {0,    1598, 1599, 1600, 1601, 1602,
-                                                   1603, 1604, 1605, 1606, 1607, 1608};
+                                                          1603, 1604, 1605, 1606, 1607, 1608};
 
 // FUNCTION: WIZ8 0x00547570
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)

@@ -33,6 +33,8 @@ extern W8CombatSlot g_shared_target_0068408b;
 extern W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 unsigned char GetFactionFlag(char faction);
+/* One faction's last band-change world-clock stamp. */
+int GetFactionValue(char faction); /* 0x005360f0 */
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
 unsigned char MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
@@ -113,8 +115,8 @@ unsigned char AnyMonsterVisible0053A1D0(void);
 void UpdateTargetMarkerHighlight0053B1D0(void);
 
 class W8Monster;
-/* 0x0053A060: whether `monster` sits within `max_distance` of `position` and
-   still projects on screen. */
+/* 0x0053A060: whether `monster` is within `max_distance` of the player and
+   still projects on screen. `position` is unused by retail. */
 bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
                                             float max_distance);
 void RefreshSpellTargetHighlightsAtRange(void);

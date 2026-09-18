@@ -87,6 +87,7 @@ float GetHeadingToCamera004BE650(const srVector3T<float>* position);
 unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
 
 extern float g_camera_level_forward_scale_603aac;
+extern float g_camera_max_yaw_velocity_609ea4;
 extern const float g_negative_one_005ebc38;
 extern const double g_camera_pi_005ec2a0;
 extern const float g_camera_transition_epsilon_005ebc84;

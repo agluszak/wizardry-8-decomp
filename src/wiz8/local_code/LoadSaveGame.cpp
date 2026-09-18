@@ -425,7 +425,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     if (header.next_trigger_id == 0) {
         g_status_685170.next_trigger_id_2356 = 1;
     }
-    memcpy(g_status_685170.status_header_block_1904, header.status_block,
+    memcpy(g_status_685170.status_header_prefix_1904, header.status_block,
            sizeof(header.status_block));
     return 1;
 }
@@ -487,7 +487,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     header.next_monster_location_id = g_status_685170.next_monster_location_id_234e;
     header.next_world_item_id = g_status_685170.next_world_item_id_2352;
     header.next_trigger_id = g_status_685170.next_trigger_id_2356;
-    memcpy(header.status_block, g_status_685170.status_header_block_1904,
+    memcpy(header.status_block, g_status_685170.status_header_prefix_1904,
            sizeof(header.status_block));
     if (!chunks->Write(&header, sizeof(header), &count)) {
         chunks->ReleaseCurrentChunk();

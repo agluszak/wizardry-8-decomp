@@ -222,7 +222,7 @@ struct W8MonsterInfo {
        The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
        byte, and 0x004e4500 frees it and nulls the field again. */
     W8MonsterCombatState* pCombat;
-    unsigned char fActive; /* 0x14: live-entry gate in 0x004e5c00 */
+    bool fActive; /* 0x14: live-entry gate in 0x004e5c00 */
     /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
        "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
        the pair that allocates and releases pCombat. */

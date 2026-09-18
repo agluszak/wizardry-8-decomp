@@ -78,7 +78,7 @@ extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 
 /* Whether anybody in the party is engaged with something. */
 // FUNCTION: WIZ8 0x004e7ca0
-unsigned char AnyCharacterEngaged(void)
+bool AnyCharacterEngaged(void)
 {
     unsigned int party_slot;
 

@@ -3,7 +3,10 @@
 #include "surrender/srMath.h"
 #include "wiz8/layouts/party_formation.h"
 
+unsigned int TurnPartyTo(unsigned int degrees); /* 0x005553C0 */
 void TurnPartyToImmediate(unsigned int degrees, char snap);
+/* Sync party facing/heading from the camera yaw and refresh the compass. */
+void SyncPartyFacingFromCamera(void); /* 0x005552F0 */
 
 extern double g_facing_tolerance_005ee858;
 extern float g_facing_tolerance_005ebcf4;

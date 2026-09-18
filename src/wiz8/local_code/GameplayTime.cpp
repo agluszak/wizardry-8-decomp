@@ -14,26 +14,25 @@
 #include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
-#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/OctPath.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/float_constants.h"
-#include "wiz8/layouts/game_status.h"
-#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/monster_generators.h"
-#include "wiz8/monster_runtime.h"
-#include "wiz8/engine_code/Spells.h"
-#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/NPCManager.h"
+#include "wiz8/monster_runtime.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/engine_code/Spells.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/gameplay_databases.h"
 
 #define GAMEPLAYTIME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayTime.cpp"
 
@@ -44,60 +43,6 @@
  * ceilings, and the per-monster aging cycle tick at 0x00503990 - moved here
  * from Sight.cpp: the retail body pushes this file's path string.
  */
-
-/* Advance the surprise-mode phase while fSurprisePossible is set: phase 0
-   accelerates time and pulls the camera out, phase 1 waits on world_clock then
-   restores the normal view, phase 2 finishes through Function502860 (and
-   combat cleanup). MainGameScreenFrame calls this every tick. */
-// FUNCTION: WIZ8 0x00502650
-void UpdateSurpriseMode(void)
-{
-    float scale;
-
-    if (gXStatus.fSurprisePossible == 0) {
-        return;
-    }
-
-    if (gXStatus.surprise_phase_913 == 0) {
-        if (Function56B6F0() != 0) {
-            gXStatus.surprise_deadline_90f = g_status_685170.world_clock + 0x7080;
-            DestroyUngroupedMonsters();
-            SetViewDistance(2880.0f);
-            SetNavigatorLinkMode00452F50(1);
-            scale = g_float_005ebb38 /
-                    g_level_records[g_status_685170.current_level].gameplay_time_scale_054;
-            g_game_time_accumulator_6598bc->SetDurationScale(scale);
-            SetMonsterGeneratorDurationScale(scale);
-            gXStatus.surprise_phase_913 = 1;
-            gXStatus.surprise_busy_90e = 0;
-        }
-    } else if (gXStatus.surprise_phase_913 == 1) {
-        if (gXStatus.surprise_busy_90e == 0 &&
-            static_cast<unsigned int>(g_status_685170.world_clock) >=
-                static_cast<unsigned int>(gXStatus.surprise_deadline_90f)) {
-            SetViewDistance(12.0f);
-            SetNavigatorLinkMode00452F50(0);
-            g_game_time_accumulator_6598bc->ResetDurationScale();
-            ResetMonsterGeneratorTimers0048CBE0();
-            UpdateEnvironmentLight004834B0();
-            RefreshEnvironment00483560();
-            Function56B5F0();
-            gXStatus.surprise_phase_913 = 2;
-            gXStatus.surprise_busy_90e = 0;
-            ReleaseMarkedNpcBindings0050DA00();
-            StartLevelMusic(1, 1);
-            return;
-        }
-    } else if (gXStatus.surprise_phase_913 == 2) {
-        if (Function56B6F0() != 0) {
-            Function502860();
-            if (gXStatus.fCombatMode != 0) {
-                MonsterForward453160();
-                return;
-            }
-        }
-    }
-}
 
 /* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
    are one tick of the pool ceiling's share, twenty points of base and a
@@ -509,5 +454,60 @@ after_early: {
                 }
             }
         }
+    }
+}
+
+/* Advance the surprise fade/hold/resolve sequence while the party is locked
+   into fSurprisePossible. Phase 0 waits for the fade-in helper, widens sight,
+   and scales time from the level's +0x54 float; phase 1 holds until
+   uiTurnsElapsed reaches the deadline (unless surprise started unengaged);
+   phase 2 waits for the fade-out helper, then ends surprise and forwards
+   combat if needed. */
+// FUNCTION: WIZ8 0x00502650
+void UpdateSurpriseMode(void)
+{
+    float scale;
+    float level_scale;
+
+    if (gXStatus.fSurprisePossible == 0) {
+        return;
+    }
+    switch (gXStatus.surprise_phase) {
+    case 0:
+        if (Function56B6F0() != 0) {
+            gXStatus.surprise_deadline_turns = g_status_685170.uiTurnsElapsed + 0x7080;
+            DestroyUngroupedMonsters();
+            SetViewDistance(2880.0f);
+            SetNavigatorLinkMode00452F50(1);
+            level_scale = g_level_records[g_status_685170.current_level].gameplay_time_scale_054;
+            scale = g_float_005ebb38 / level_scale;
+            g_game_time_accumulator_6598bc->SetDurationScale(scale);
+            SetMonsterGeneratorDurationScale(scale);
+            gXStatus.surprise_phase = 1;
+        }
+        break;
+    case 1:
+        if (gXStatus.surprise_unengaged == 0 &&
+            g_status_685170.uiTurnsElapsed >= gXStatus.surprise_deadline_turns) {
+            SetViewDistance(12.0f);
+            SetNavigatorLinkMode00452F50(0);
+            g_game_time_accumulator_6598bc->ResetDurationScale();
+            ResetMonsterGeneratorTimers0048CBE0();
+            UpdateEnvironmentLight004834B0();
+            RefreshEnvironment00483560();
+            Function56B5F0();
+            gXStatus.surprise_phase = 2;
+            ReleaseMarkedNpcBindings0050DA00();
+            StartLevelMusic(1, 1);
+        }
+        break;
+    case 2:
+        if (Function56B6F0() != 0) {
+            Function502860();
+            if (gXStatus.fCombatMode != 0) {
+                MonsterForward453160();
+            }
+        }
+        break;
     }
 }

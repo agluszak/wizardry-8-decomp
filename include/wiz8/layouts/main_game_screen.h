@@ -58,7 +58,7 @@ struct W8DialogueTextState {
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
     unsigned char unknown_2c;      /* 0x2c: never consumed by the retail cluster */
-    unsigned char dirty;           /* 0x2d: cursor/text redraw pending */
+    bool dirty;           /* 0x2d: cursor/text redraw pending */
     unsigned char unknown_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
 };
@@ -67,11 +67,15 @@ static_assert(offsetof(W8DialogueTextState, saved_scroll_line) == 0x30,
               "W8DialogueTextState_saved_scroll_line");
 
 struct W8LevelRuntimeBlock {
-    unsigned char unknown_000[0xf0];
+    /* 0x000: notice/list paint scratch. DrawTextBoxLine and the monster-list
+       formatter reuse the leading 0xf0 bytes as wchar_t storage. */
+    wchar_t text_paint_scratch_000[0xf0 / sizeof(wchar_t)];
     unsigned char flag_0f0; /* 0x0f0 */
     unsigned char unknown_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
-    unsigned char unknown_0f8[4];
+    /* Snapshot of redraw_flags taken before the two redraw passes; the second
+       pass consumes this copy while the live word may still change. */
+    unsigned int saved_redraw_flags;           /* 0x0f8 */
     W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
@@ -82,7 +86,7 @@ struct W8LevelRuntimeBlock {
     int portrait_refresh_mode[8];  /* 0x134 */
     unsigned char pick_changed_154;
     unsigned char action_panel_visible;
-    unsigned char formation_board_visible; /* 0x156: formation board shown */
+    bool formation_board_visible; /* 0x156: formation board shown */
     unsigned char radar_map_visible;
     unsigned char unknown_158;
     unsigned char text_scroll_drag_idle; /* 0x159: cleared while thumb is dragged */
@@ -116,7 +120,7 @@ struct W8LevelRuntimeBlock {
        producers beyond ClearTextSlot*. */
     int text_slots_1d8[4];
     int text_slots_1e8[4];
-    unsigned char dialogue_text_input_open;
+    bool dialogue_text_input_open;
     unsigned char unknown_1f9[3];
     /* GOG retail retains the complete editor consumer path, but has no writer
        that raises this gate and no allocation/store producer for the pointer.
@@ -236,8 +240,12 @@ struct W8LevelRuntimeBlock {
 };
 #pragma pack(pop)
 
+static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch_000) == 0x0,
+              "W8LevelRuntimeBlock_text_paint_scratch_000");
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
 static_assert(offsetof(W8LevelRuntimeBlock, flag_0f0) == 0x0f0, "W8LevelRuntimeBlock_flag_0f0");
+static_assert(offsetof(W8LevelRuntimeBlock, saved_redraw_flags) == 0x0f8,
+              "W8LevelRuntimeBlock_saved_redraw_flags");
 static_assert(offsetof(W8LevelRuntimeBlock, main_ui_mode) == 0x0fc,
               "W8LevelRuntimeBlock_main_ui_mode");
 static_assert(offsetof(W8LevelRuntimeBlock, portrait_refresh_pending) == 0x109,

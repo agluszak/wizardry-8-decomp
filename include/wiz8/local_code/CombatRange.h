@@ -14,7 +14,10 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 
 unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
                              W8TargetingContext context, int arg_5);
-char CountRowsBetween(int from_position, int to_position); /* 0x0051AEC0 */
+/* How many formation rows between `party_slot` and the monster block a short
+   reach: zero when they share a row, otherwise occupants ahead of the monster
+   and (when the gap is exactly two rows) the front rank. */
+char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info); /* 0x0051AEC0 */
 unsigned char IsCurrentTargetInRange(int party_slot, int action, W8TargetingContext context);
 /* 0x005194E0: whether `party_slot` may aim at `monster_info` under mode `arg_2`. */
 unsigned char CanPartyMemberAimAtMonster(int party_slot, int action, W8MonsterInfo* monster_info,
@@ -39,9 +42,11 @@ unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
 unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                          int attack, W8CombatSlot* target);
 /* The furthest range band the monster can act at: its attacks first, then its
-   castable spells when the AI kind reaches for them. `out_sight` receives the
-   sight-condition slot the band's target needs to be seen under. */
-W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info, char arg_2,
+   castable spells. `skip_capability_checks` (callers pass 1 for reach/info)
+   bypasses prefer-ranged/flee/usability gates; otherwise those gates apply.
+   `out_sight` receives the sight-condition slot the band's target needs. */
+W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
+                                            char skip_capability_checks,
                                             int* out_sight); /* 0x0051A840 */
 /* 0x00519AC0: the range category the weapon in `hand` attacks at; `hand` of 2
    asks for the better of the two. */

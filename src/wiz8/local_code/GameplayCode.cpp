@@ -34,6 +34,13 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/MGSPortraits.h"
+#include "wiz8/message_box.h"
+#include "wiz8/engine_code/Levels.h"
+
+#include <new>
+#include <wchar.h>
 
 /*
  * Local Code\GameplayCode.cpp.
@@ -221,6 +228,82 @@ void CalcXPGoal(W8Character* character)
         value = value * 12 / 10;
     }
     character->experience_goal = character->experience_previous_goal + value;
+}
+
+/* Refresh which party members are ready to level up: raise the pending flag,
+   post a notice the first time each ready slot is seen, and clear the marker
+   when a slot is no longer ready. Skipped while flag_2497 is set or the saved
+   level is in band 0xe. */
+// FUNCTION: WIZ8 0x004ef1f0
+void RefreshLevelUpReadyNotices(void)
+{
+    int party_slot;
+
+    if (g_status_685170.flag_2497 != 0 || GetLevelBand(g_status_685170.current_level) == 0xe) {
+        return;
+    }
+
+    gXStatus.unknown_026[1] = 0;
+    for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        unsigned char* ready_flag = &gXStatus.monster_manager_entries[party_slot].field_0e8;
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+        if (row->occupied == 0) {
+            if (character->hp_current != 0) {
+                if (*ready_flag != 0) {
+                    RequestPartySlotRedraw(party_slot);
+                }
+                *ready_flag = 0;
+                row->flag_103 = 0;
+            }
+        } else if (character->hp_current != 0) {
+            if (character->highest_condition > 0x11 ||
+                character->experience < character->experience_goal) {
+                if (character->hp_current != 0) {
+                    if (*ready_flag != 0) {
+                        RequestPartySlotRedraw(party_slot);
+                    }
+                    *ready_flag = 0;
+                    row->flag_103 = 0;
+                }
+            } else {
+                gXStatus.unknown_026[1] = 1;
+                if (*ready_flag == 0) {
+                    if (row->flag_103 == 0) {
+                        wchar_t* text;
+                        int* extra;
+                        size_t length;
+
+                        *ready_flag = 1;
+                        text = static_cast<wchar_t*>(operator new(0x400));
+                        text[0] = L' ';
+                        text[1] = 0xb4;
+                        text[2] = GetTable647CCCEntry(static_cast<char>(row->party_order_index));
+                        text[3] = L' ';
+                        swprintf(text + 4, g_format_s_006068e4, character->name);
+                        length = wcslen(text);
+                        text[length] = L' ';
+                        text[length + 1] = 0xb5;
+                        text[length + 2] = L' ';
+                        swprintf(text + length + 3, gppStringList[0x1dcc / 4], text);
+                        extra = static_cast<int*>(operator new(4));
+                        *extra = party_slot;
+                        AddMessageBoxLine(W8_NPC_MSG_LEVEL_UP, text, extra);
+                        QueueNpcMessageLine(W8_NPC_MSG_PARTY_MEMBER_EVENT, party_slot);
+                    } else {
+                        *ready_flag = 1;
+                    }
+                } else if (row->flag_103 != 0) {
+                    *ready_flag = 1;
+                }
+            }
+        }
+
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+            EnablePortraitAdvanceRegions0059BB70();
+        }
+    }
 }
 
 /* Whether one party slot has earned its next level: occupied, alive, in shape

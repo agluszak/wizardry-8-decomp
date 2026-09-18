@@ -7,15 +7,29 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/Navigator.h"
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/engine_code/AmbientSound.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/local_code/CombatPartyMovement.h"
+#include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/Noise.h"
+#include "wiz8/xstatus.h"
+#include "soundman.h"
 #include "wiz8/local_code/Gameloop.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "surrender/srCamera.h"
 #include "random.h"
 
@@ -30,6 +44,8 @@
 unsigned int* g_level_flags_00652da8;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
+// GLOBAL: WIZ8 0x00652da7
+unsigned char g_flag_00652da7;
 
 // FUNCTION: WIZ8 0x00420bd0
 float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
@@ -126,6 +142,1002 @@ void UpdateGameDataRuntime0041F260()
     }
     g_game_time_accumulator_6598bc->Update();
 }
+
+/* Apply world-render camera-motion flags into `rotation` and mirror the yaw
+   rotation into `saved`. ECX is the owning W8GameData; the body reads only
+   globals. */
+// FUNCTION: WIZ8 0x0041F330
+void W8GameData::ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<float>* rotation,
+                                                srMatrix3T<float>* saved)
+{
+    float pitch_input;
+    float yaw_input;
+    unsigned short timer_flags;
+    unsigned int level_flags;
+    W8LevelDataRecord* level;
+    W8EnvironRecord* environ_record;
+
+    if (g_environ_00652DB4 == 0) {
+        environ_record = new W8EnvironRecord;
+        if (environ_record != 0) {
+            environ_record->value_00 = 0;
+            environ_record->value_04 = 0;
+            environ_record->value_08 = 0;
+            environ_record->value_14 = -g_navigator_gravity_00603acc;
+            environ_record->value_10 = 0;
+            environ_record->value_18 = 0;
+            environ_record->value_20 = 1.0f;
+            environ_record->vector_24.Set(0.0, 0.0, 0.0);
+            environ_record->value_1c = 0.05f;
+            environ_record->value_30 = g_default_world_height_00603ac8;
+            environ_record->value_40 = 1.0f;
+            environ_record->value_34 =
+                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
+            /* Retail stores g_float_00603abc at +0x38 and g_float_00603ab8 at
+               +0x3c (RescaleToReference's pairing); GDFileIO's default-bank
+               init currently spells the reverse before FileRead overwrites. */
+            environ_record->value_3c = g_float_00603ab8;
+            environ_record->value_38 = g_float_00603abc;
+        }
+        g_environ_00652DB4 = environ_record;
+        if (g_environ_00652DB4 == 0) {
+            ShutdownWithErrorBox("TrackRotation: Could not allocate gpEnviron.\n");
+        }
+    }
+
+    timer_flags = g_game_time_accumulator_6598bc->m_flags;
+    if ((timer_flags & 8) != 0) {
+        return;
+    }
+    if (g_shared_timer_paused != 0 && (timer_flags & 1) == 0) {
+        return;
+    }
+    if (g_shared_timer_flag_d1 != 0) {
+        return;
+    }
+    if ((timer_flags & 0x10) != 0) {
+        return;
+    }
+
+    if ((g_gd_camera_65a0f8->m_positional_000 & 0x80) != 0) {
+        g_gd_camera_65a0f8->m_positional_000 &= ~0x80u;
+        MarkRendererReady();
+    }
+
+    if (g_level_data_00652dac != 0) {
+        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_9;
+        level = g_level_data_00652dac;
+        if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
+            level_flags = level->flags;
+            flags &= 0xff00;
+            if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
+                level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+            }
+        } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) != 0) {
+            if ((level_flags & W8_LEVEL_FLAG_8) != 0) {
+                flags |= 0x80u;
+            } else {
+                flags &= ~0x80u;
+            }
+        } else if ((flags & 0x80) != 0) {
+            level->flags = level_flags | W8_LEVEL_FLAG_8;
+        } else {
+            level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+        }
+    }
+
+    pitch_input = 0.0f;
+    yaw_input = 0.0f;
+    if ((flags & 0x800) != 0) {
+        pitch_input = 0.1745329350233078f;
+    } else if ((flags & 0x400) != 0) {
+        pitch_input = -0.1745329350233078f;
+    }
+    if ((flags & 0x100) != 0) {
+        yaw_input = -0.1745329350233078f;
+    } else if ((flags & 0x200) != 0) {
+        yaw_input = 0.1745329350233078f;
+    }
+    if ((flags & 0x2000) != 0) {
+        g_camera_max_yaw_velocity_609ea4 = 0.116355285f;
+        yaw_input = yaw_input * g_float_005ebc3c;
+    } else {
+        g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
+    }
+
+    if ((pitch_input != g_float_005ebb34 || yaw_input != g_float_005ebb34) &&
+        (g_level_data_00652dac->flags & W8_LEVEL_FLAG_6) == 0) {
+        g_navigator_position_changed_659c11 = 1;
+    }
+    if (g_flag_00652da7 != 0) {
+        g_gd_camera_65a0f8->SetManualControlActive(1);
+    }
+    g_gd_camera_65a0f8->ApplyPitchInput(pitch_input);
+    g_gd_camera_65a0f8->ApplyYawInput(yaw_input);
+    g_gd_camera_65a0f8->Update(g_game_time_accumulator_6598bc->GetValue28());
+    if ((flags & 0x1000) == 0) {
+        g_gd_camera_65a0f8->GetRotationMatrix(rotation);
+    }
+    *saved = g_gd_camera_65a0f8->m_yaw_rotation;
+}
+
+// GLOBAL: WIZ8 0x00652dcd
+unsigned char g_level_motion_fast_00652dcd;
+// GLOBAL: WIZ8 0x00652db9
+bool g_level_footstep_pending_00652db9;
+// GLOBAL: WIZ8 0x00603ac0
+float g_camera_motion_clamp_00603ac0 = 1125.0f;
+// GLOBAL: WIZ8 0x00603ac4
+float g_camera_motion_divisor_00603ac4 = 3000.0f;
+// GLOBAL: WIZ8 0x00603ad4
+int g_level_footstep_sound_00603ad4 = -1;
+// GLOBAL: WIZ8 0x00652dd0
+float g_level_footstep_time_00652dd0;
+// GLOBAL: WIZ8 0x005ebc50
+const double g_motion_delta_epsilon_005ebc50 = 0.10000000149011612;
+// GLOBAL: WIZ8 0x005ebcd4
+const float g_footstep_fall_threshold_005ebcd4 = -250.0f;
+// GLOBAL: WIZ8 0x00652940
+srVector3T<float> g_origin_652940;
+
+/* Advance the camera under world-render motion flags. ECX is the owning
+   W8GameData; the body mostly reads globals. Zero elapsed (`camera_scale_14`)
+   returns before the motion helpers. */
+// FUNCTION: WIZ8 0x0041F5F0
+unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector3T<float>* position,
+                                                    srVector3T<float>* delta,
+                                                    srMatrix3T<float>* saved)
+{
+    unsigned short timer_flags;
+    unsigned int level_flags;
+    W8LevelDataRecord* level;
+    float forward_scale;
+    float component;
+    char fast_move;
+    char moved;
+    srVector3T<float> new_position;
+    srVector3T<float> from_origin;
+
+    if (g_level_data_00652dac == 0) {
+        level = new W8LevelDataRecord;
+        g_level_flags_00652da8 = &level->flags;
+        g_level_data_00652dac = level;
+        if (g_level_flags_00652da8 == 0) {
+            ShutdownWithErrorBox("TrackMovement: Could not allocate gpMovement.\n");
+        }
+        PauseSharedGameTimers00439BC0();
+        g_shared_timer_flag_d2 = 1;
+        g_level_motion_fast_00652dcd = 0;
+    }
+
+    timer_flags = g_game_time_accumulator_6598bc->m_flags;
+    if ((timer_flags & 8) != 0 || (g_shared_timer_paused != 0 && (timer_flags & 1) == 0) ||
+        g_shared_timer_flag_d1 != 0) {
+        if (g_shared_timer_flag_d2 == 0) {
+            return 0;
+        }
+        if ((timer_flags & 1) != 0) {
+            return 0;
+        }
+        g_shared_timer_flag_d2 = 0;
+        if (g_shared_timer_flag_d1 == 0) {
+            ResumeSharedGameTimers00439CA0();
+        }
+    }
+
+    level = g_level_data_00652dac;
+    level_flags = level->flags;
+    if ((((level_flags & W8_LEVEL_FLAG_6) != 0 && (level_flags & W8_LEVEL_FLAG_4) != 0) &&
+         ((level_flags & W8_LEVEL_FLAG_0) == 0 && g_byte_00659a64 == 0)) ||
+        (g_game_time_accumulator_6598bc->m_flags & 0x10) != 0) {
+        return 0;
+    }
+
+    if (AnyCharacterEngaged() == 0 || ((level_flags = level->flags) & 0xc0) != 0) {
+        level_flags = level->flags;
+        flags &= 0xff00;
+        if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
+            level_flags &= ~W8_LEVEL_FLAG_8;
+            level->flags = level_flags;
+        }
+    } else if ((level_flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
+        if ((flags & 0x80) == 0) {
+            level->flags = level_flags & ~W8_LEVEL_FLAG_8;
+        } else {
+            level->flags = level_flags | W8_LEVEL_FLAG_8;
+        }
+    } else if ((level_flags & W8_LEVEL_FLAG_8) == 0) {
+        flags &= ~0x80u;
+    } else {
+        flags |= 0x80u;
+    }
+
+    level = g_level_data_00652dac;
+    forward_scale = g_camera_level_forward_scale_603aac;
+    level->flags &= 0xffffffec;
+    level->camera_scale_14 = g_game_time_accumulator_6598bc->GetValue28();
+    level->camera_position_34 = *position;
+    level->vector_64.SetZero();
+    level->vector_a0.SetZero();
+    level->vector_40.SetZero();
+    level->sound_environment_0c = -1;
+    level->sound_environment_alt_0d = -1;
+
+    if (g_level_data_00652dac->camera_scale_14 == g_float_005ebb34) {
+        return 0;
+    }
+
+    if (flags == 0) {
+        g_level_data_00652dac->vector_40.Set(0.0f, 0.0f, 0.0f);
+        level->vector_70.SetZero();
+    }
+
+    delta->Set(0.0f, 0.0f, 0.0f);
+    level = g_level_data_00652dac;
+    if ((flags & 4) != 0) {
+        component = forward_scale + g_level_data_00652dac->vector_40.z;
+        g_level_data_00652dac->vector_40.z = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.z = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.z = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+    level = g_level_data_00652dac;
+    if ((flags & 8) != 0) {
+        component = g_level_data_00652dac->vector_40.z - forward_scale;
+        g_level_data_00652dac->vector_40.z = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.z = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.z = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+    level = g_level_data_00652dac;
+    if ((flags & 1) != 0) {
+        component = g_level_data_00652dac->vector_40.x - forward_scale;
+        g_level_data_00652dac->vector_40.x = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.x = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.x = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+    level = g_level_data_00652dac;
+    if ((flags & 2) != 0) {
+        component = forward_scale + g_level_data_00652dac->vector_40.x;
+        g_level_data_00652dac->vector_40.x = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.x = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.x = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+    level = g_level_data_00652dac;
+    if ((flags & 0x10) != 0 && (g_environment_load_flag_00603ad0 == 0 || g_environ_00652DB4 == 0)) {
+        component = forward_scale + g_level_data_00652dac->vector_40.y;
+        g_level_data_00652dac->vector_40.y = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.y = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.y = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+    level = g_level_data_00652dac;
+    if ((flags & 0x20) != 0 && g_environment_load_flag_00603ad0 == 0) {
+        component = g_level_data_00652dac->vector_40.y - forward_scale;
+        g_level_data_00652dac->vector_40.y = component;
+        if (component > g_camera_motion_clamp_00603ac0) {
+            level->vector_40.y = g_camera_motion_clamp_00603ac0;
+        } else if (component < -g_camera_motion_clamp_00603ac0) {
+            level->vector_40.y = -g_camera_motion_clamp_00603ac0;
+        }
+    }
+
+    fast_move = 0;
+    if ((flags & 0x80) != 0) {
+        fast_move = 1;
+    }
+    if (g_level_data_00652dac->vector_40.Length() > g_camera_motion_clamp_00603ac0) {
+        g_level_data_00652dac->vector_40.SetLength(g_camera_motion_clamp_00603ac0);
+    }
+    g_level_motion_fast_00652dcd = g_level_data_00652dac->ApplySavedMotionMatrix00420810(
+        g_level_motion_fast_00652dcd, fast_move, saved);
+
+    if (g_environment_load_flag_00603ad0 == 0) {
+        *delta = g_level_data_00652dac->vector_a0;
+        moved = static_cast<float>(g_motion_delta_epsilon_005ebc50) < delta->Length();
+        g_level_data_00652dac->UpdateMotionProgress0041FF90(g_level_motion_fast_00652dcd, moved);
+        if (moved == 0) {
+            goto after_move;
+        }
+    } else {
+        moved = AdvanceEnvironmentMotion0041AB40();
+        g_level_data_00652dac->UpdateMotionProgress0041FF90(g_level_motion_fast_00652dcd, moved);
+        *delta = g_level_data_00652dac->vector_a0;
+        if (delta->Length() <= static_cast<float>(g_motion_delta_epsilon_005ebc50)) {
+            if (moved == 0) {
+                goto after_move;
+            }
+        } else {
+            moved = 1;
+        }
+    }
+
+    new_position.Set(position->x + delta->x, position->y + delta->y, position->z + delta->z);
+    from_origin = new_position - g_origin_652940;
+    if (sqrtf(DotProduct(from_origin, from_origin)) != static_cast<float>(g_zero_005ebb40)) {
+        MarkRendererReady();
+        g_gd_camera_65a0f8->m_position_08c = new_position;
+    }
+
+after_move:
+    if (g_environ_00652DB4->value_05 == 0) {
+        g_level_footstep_pending_00652db9 = 1;
+    } else if (g_level_footstep_pending_00652db9 != 0) {
+        if (g_level_data_00652dac->vector_64.y <= g_footstep_fall_threshold_005ebcd4) {
+            PlayFootstep0047A440(g_level_data_00652dac->sound_environment_0c,
+                                 g_level_data_00652dac->sound_environment_alt_0d, 1);
+            g_level_data_00652dac->footstep_accumulator_10 = 0;
+        }
+        g_level_footstep_pending_00652db9 = 0;
+    }
+    UpdateLevelMovementAudio00420E20();
+    if (moved == 0) {
+        g_level_data_00652dac->flags &= ~W8_LEVEL_FLAG_9;
+    } else {
+        g_level_data_00652dac->flags |= W8_LEVEL_FLAG_9;
+    }
+    return moved;
+}
+
+// GLOBAL: WIZ8 0x005ebc48
+const double g_motion_vector_epsilon_005ebc48 = 5.0;
+// GLOBAL: WIZ8 0x00603ad1
+unsigned char g_environment_motion_active_00603ad1 = 1;
+// GLOBAL: WIZ8 0x00652db8
+unsigned char g_environ_ground_latch_00652db8;
+
+// FUNCTION: WIZ8 0x00421850
+void W8EnvironRecord::AddScaledMotion00421850(srVector3T<float>* position)
+{
+    position->x = vector_24.x * scale_0c + position->x;
+    position->y = vector_24.y * scale_0c + position->y;
+    position->z = vector_24.z * scale_0c + position->z;
+}
+
+// FUNCTION: WIZ8 0x0041FE20
+unsigned char W8LevelDataRecord::ClampCameraToBounds0041FE20(const srVector3T<float>* minimum,
+                                                             const srVector3T<float>* maximum)
+{
+    unsigned char clamped = 0;
+    unsigned char below_min_y = 0;
+
+    if (camera_position_34.y < minimum->y) {
+        if (g_status_685170.value_2390 != 0) {
+            vector_a0.y = maximum->y - minimum->y;
+        }
+        clamped = 1;
+        below_min_y = 1;
+    }
+    if (camera_position_34.x < minimum->x) {
+        clamped = 1;
+        vector_a0.x = maximum->x - minimum->x;
+    }
+    if (camera_position_34.z < minimum->z) {
+        clamped = 1;
+        vector_a0.z = maximum->z - minimum->z;
+    }
+    if (maximum->x < camera_position_34.x) {
+        clamped = 1;
+        vector_a0.x = minimum->x - maximum->x;
+    }
+    if (camera_position_34.z <= maximum->z) {
+        if (clamped == 0) {
+            return 0;
+        }
+    } else {
+        clamped = 1;
+        vector_a0.z = minimum->z - maximum->z;
+    }
+
+    g_environ_00652DB4->vector_24.SetZero();
+    if (below_min_y != 0) {
+        if (g_status_685170.value_2390 != 0) {
+            g_level_override_00652dba = 0;
+            return clamped;
+        }
+        BeginPartyMovement();
+    }
+    return clamped;
+}
+
+// GLOBAL: WIZ8 0x005ebc5c
+const float g_monster_motion_push_005ebc5c = 1.05f;
+
+/* Probe active collidable props along the motion segment. On a hit, rewrites
+   the caller's position into world space, may nudge `direction`, and latches
+   plane / level-data contact fields used by the collision response pass. */
+// FUNCTION: WIZ8 0x0041B770
+W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
+                                                       srVector3T<float>* position, float* scratch,
+                                                       float* nearest_distance)
+{
+    W8GDSurface* nearest_surface;
+    W8GDSurface* surface;
+    W8Prop* prop;
+    GDProp* gd_prop;
+    W8LevelDataRecord* level;
+    int* objects;
+    unsigned int count;
+    unsigned int index;
+    int surface_index;
+    int hit_prop_id;
+    unsigned char direction_zero;
+    float hit_distance;
+    float slope;
+    float along_length;
+    float residual_length;
+    float facing;
+    srVector3T<float> prop_delta;
+    srVector3T<float> adjusted_direction;
+    srVector3T<float> probe;
+    srVector3T<float> test_direction;
+    srVector3T<float> hit_point;
+    srVector3T<float> normal;
+    srVector3T<float> projected;
+    srVector3T<float> residual;
+    srVector3T<float> along_normal;
+
+    nearest_surface = 0;
+    if (g_world->collidable_props->GetCount() == 0) {
+        return 0;
+    }
+    /* Function-local static plane ResolveCollision reads through value_38;
+       atexit thunk at 0x0041BD50. Declared after the early-out so the guard
+       matches retail control flow. */
+    static srVector4T<float> s_prop_hit_plane_00652d90;
+    objects = 0;
+    count = static_cast<unsigned int>(
+        positional_04->CollectObjectsAlongSegment(&objects, position, direction, 504.0f, 8));
+    for (index = 0; index < count; ++index) {
+        prop = *g_world->collidable_props->GetAt(objects[index]);
+        if (prop->GetSetting6C() != 0) {
+            gd_prop = prop->m_gd_prop;
+            prop->flags_1c |= 0x10;
+            if (gd_prop == 0) {
+                prop->BuildOrRefreshPathingRepresentation();
+                gd_prop = prop->m_gd_prop;
+                if (gd_prop == 0) {
+                    return 0;
+                }
+            }
+            prop->GetDelta0044E130(&prop_delta, position);
+            adjusted_direction.x = direction->x - prop_delta.x;
+            adjusted_direction.y = direction->y - prop_delta.y;
+            adjusted_direction.z = direction->z - prop_delta.z;
+            probe = *position;
+            if (adjusted_direction.x != g_float_005ebb34 ||
+                adjusted_direction.y != g_float_005ebb34 ||
+                adjusted_direction.z != g_float_005ebb34) {
+                direction_zero = 0;
+            } else {
+                direction_zero = 1;
+            }
+            test_direction = adjusted_direction;
+            for (surface_index = 0; surface_index < gd_prop->m_surface_count_14; ++surface_index) {
+                surface = &gd_prop->m_pGDSurfaces[surface_index];
+                surface->value_38 = 0;
+                if (direction_zero != 0) {
+                    test_direction.x = surface->normal_24[0];
+                    test_direction.y = surface->normal_24[1];
+                    test_direction.z = surface->normal_24[2];
+                }
+                if (surface->TestSegment0041CF90(&probe, &test_direction, &hit_distance,
+                                                 gd_prop->m_pVertices) != 0) {
+                    if (hit_distance < *nearest_distance) {
+                        *nearest_distance = hit_distance;
+                        hit_point = probe;
+                        scratch[0] = prop_delta.x;
+                        scratch[1] = prop_delta.y;
+                        scratch[2] = prop_delta.z;
+                        nearest_surface = surface;
+                        hit_prop_id = objects[index];
+                    }
+                    probe = *position;
+                }
+            }
+        }
+        level = g_level_data_00652dac;
+    }
+    if (nearest_surface != 0) {
+        s_prop_hit_plane_00652d90.x = nearest_surface->plane_24[0];
+        s_prop_hit_plane_00652d90.y = nearest_surface->plane_24[1];
+        s_prop_hit_plane_00652d90.z = nearest_surface->plane_24[2];
+        s_prop_hit_plane_00652d90.w = nearest_surface->plane_24[3];
+        slope = nearest_surface->slope_48;
+        projected.Set(scratch[0], scratch[1], scratch[2]);
+        residual.Set(scratch[0], scratch[1], scratch[2]);
+        along_normal.Set(scratch[0], scratch[1], scratch[2]);
+        normal.Set(s_prop_hit_plane_00652d90.x, s_prop_hit_plane_00652d90.y,
+                   s_prop_hit_plane_00652d90.z);
+        if (g_float_005ebc58 < normal.LengthSquared()) {
+            along_normal = normal * (DotProduct(along_normal, normal) / normal.LengthSquared());
+        }
+        along_length = along_normal.Length();
+        residual = (residual - along_normal) * static_cast<double>(slope);
+        residual_length = residual.Length();
+        if (projected.Length() <= g_float_005ebb38) {
+            facing = 0.0f;
+        } else {
+            facing = DotProduct(projected, normal) / projected.Length();
+            if (facing < g_float_005ebb34) {
+                along_length = -along_length;
+            }
+        }
+        level = g_level_data_00652dac;
+        if (level->primary_contact_prop_id == -1) {
+            level->primary_contact_prop_id = hit_prop_id;
+        } else if (level->primary_contact_prop_id != hit_prop_id &&
+                   level->secondary_contact_prop_id != hit_prop_id) {
+            level->secondary_contact_prop_id = hit_prop_id;
+        }
+        if ((level->flags & 1) == 0 || level->residual_contact_length_18 < residual_length) {
+            level->flags |= 1;
+            level->vector_88 = projected;
+            level->residual_contact_length_18 = residual_length;
+            *direction += along_normal - residual;
+            level->vector_94 = residual;
+            level->vector_58 = residual / static_cast<double>(level->camera_scale_14);
+        }
+        if (level->contact_facing_1c < facing) {
+            level->contact_facing_1c = facing;
+            level->contact_normal_ac = normal;
+        }
+        s_prop_hit_plane_00652d90.w = s_prop_hit_plane_00652d90.w - along_length;
+        nearest_surface->value_38 = reinterpret_cast< // reinterpret-ok: value_38 holds plane*
+            unsigned int>(&s_prop_hit_plane_00652d90);
+        position->x = hit_point.x + scratch[0];
+        position->y = hit_point.y + scratch[1];
+        position->z = hit_point.z + scratch[2];
+    }
+    return nearest_surface;
+}
+
+// SYNTHETIC: WIZ8 0x0041BD50
+// `dynamic atexit destructor for 's_prop_hit_plane_00652d90''
+
+// FUNCTION: WIZ8 0x0041BD60
+unsigned char W8GameData::ProbeMonstersAlongMotion0041BD60(srVector3T<float>* direction,
+                                                           srVector3T<float>* position, int)
+{
+    int* objects;
+    unsigned int count;
+    unsigned int index;
+    unsigned int monster_list_index;
+    W8MonsterInfo* monster_info;
+    W8Monster* monster;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    srVector3T<float> velocity;
+    srVector3T<float> monster_position;
+    srVector3T<float> adjustment;
+    float extent;
+    float adjusted_x;
+    float adjusted_z;
+    float horizontal;
+    float dx;
+    float dy;
+    float dz;
+    float planar;
+    float radius;
+    float push;
+    float length_squared;
+    float scale;
+    double time_scale;
+    unsigned char hit;
+
+    objects = 0;
+    hit = 0;
+    extent = direction->Length() + g_runtime_world_scale_6081e8 + g_world_scale_005ebc40;
+    lower.Set(position->x - extent, position->y - extent, position->z - extent);
+    upper.Set(position->x + extent, position->y + extent, position->z + extent);
+    count = static_cast<unsigned int>(
+        g_octree_6598a4->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_LOCATION, -1));
+    if (count == 0) {
+        return 0;
+    }
+    for (index = 0; index < count; ++index) {
+        if (objects[index] == 0) {
+            return hit;
+        }
+        monster_list_index = MonsterGetIndexByLocationID(
+            0x3a6, "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", objects[index], 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info != 0 && monster_info->monster != 0 &&
+            monster_info->monster->state_088 != 0) {
+            monster = monster_info->monster;
+            time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+            monster->GetVelocity(&velocity);
+            adjusted_x = direction->x - velocity.x * static_cast<float>(time_scale);
+            adjusted_z = direction->z - velocity.z * static_cast<float>(time_scale);
+            horizontal = sqrtf(adjusted_x * adjusted_x + adjusted_z * adjusted_z);
+            monster_position = monster->GetPosition();
+            dx = monster_position.x - (adjusted_x + position->x);
+            dy = monster_position.y - position->y;
+            dz = monster_position.z - (adjusted_z + position->z);
+            planar = sqrtf(dz * dz + dx * dx);
+            radius = monster->radius_084;
+            if (monster_info->fInCombat != 0) {
+                radius = radius + g_world_scale_005ebc40;
+            }
+            float abs_dy = dy;
+            // reinterpret-ok: retail clears the sign bit of the spilled dy float
+            *reinterpret_cast<unsigned int*>(&abs_dy) &= 0x7fffffffu;
+            if (abs_dy < g_float_005ebc64 && planar < radius + g_world_scale_005ebc40) {
+                push = g_monster_motion_push_005ebc5c - (planar - radius) * g_float_005ebc60;
+                if (g_monster_motion_push_005ebc5c < push) {
+                    push = g_monster_motion_push_005ebc5c;
+                }
+                length_squared = dz * dz + dx * dx;
+                adjustment.x = dx;
+                adjustment.y = dy;
+                adjustment.z = dz;
+                // reinterpret-ok: retail zeros the push y spill after storing dy
+                *reinterpret_cast<unsigned int*>(&adjustment.y) = 0;
+                if (length_squared != static_cast<float>(g_zero_005ebb40)) {
+                    scale = -(push * horizontal) / sqrtf(length_squared);
+                    adjustment.x = dx * scale;
+                    adjustment.z = dz * scale;
+                }
+                hit = 1;
+                direction->x = adjustment.x + direction->x;
+                direction->y = adjustment.y + direction->y;
+                direction->z = adjustment.z + direction->z;
+            }
+        }
+    }
+    return hit;
+}
+
+/* Environment-load camera advance: integrate level vectors, clamp environ
+   gravity into the path, then walk up to five collision attempts against
+   props/octree/geometry before committing crossed surfaces. */
+// FUNCTION: WIZ8 0x0041AB40
+unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
+{
+    W8LevelDataRecord* level;
+    W8EnvironRecord* environ_record;
+    srVector3T<float> camera_position;
+    srVector3T<float> adjusted_position;
+    srVector3T<float> motion_delta;
+    srVector3T<float> environ_delta;
+    srVector3T<float> probe_position;
+    srVector3T<float> hit_position;
+    srVector3T<float> gravity;
+    srVector3T<float> scaled;
+    W8GDSurface* nearest_surface;
+    W8GDSurface* surface;
+    W8GDSurface* collisions[101];
+    int* octree_hits;
+    int* geometry_hits;
+    int hit_count;
+    int collision_count;
+    int attempt;
+    int index;
+    int crossed_count;
+    float nearest_distance;
+    float hit_distance;
+    float motion_length;
+    float scale;
+    float scratch[3];
+    unsigned char first_pass;
+    unsigned char exhausted;
+    unsigned char forced_exit;
+    unsigned char prop_hit;
+    srVector3T<float> geometry_from;
+    srVector3T<float> geometry_to;
+
+    octree_hits = 0;
+    geometry_hits = 0;
+    prop_hit = 0;
+    if (g_level_data_00652dac->ClampCameraToBounds0041FE20(&minimum_08, &maximum_14) != 0) {
+        return 0;
+    }
+
+    level = g_level_data_00652dac;
+    level->flags &= ~3u;
+    level->vector_64.x = level->vector_64.x + level->vector_58.x;
+    level->vector_64.y = level->vector_64.y + level->vector_58.y;
+    level->vector_64.z = level->vector_64.z + level->vector_58.z;
+    level->vector_94.Set(level->vector_58.x * level->camera_scale_14,
+                         level->vector_58.y * level->camera_scale_14,
+                         level->vector_58.z * level->camera_scale_14);
+    level->vector_a0 += level->vector_94;
+    level->residual_contact_length_18 = 0.0f;
+    level->contact_facing_1c = 0.0f;
+
+    level = g_level_data_00652dac;
+    camera_position = level->camera_position_34;
+    adjusted_position = camera_position;
+    if (geometry_index_00 == 0 && positional_04 == 0) {
+        if (static_cast<float>(g_motion_delta_epsilon_005ebc50) < level->vector_a0.Length()) {
+            return 1;
+        }
+        return 0;
+    }
+
+    g_environ_ground_latch_00652db8 = g_environ_00652DB4->value_04;
+    g_environment_motion_active_00603ad1 = 1;
+    if (level->vector_64.Length() <= static_cast<float>(g_motion_vector_epsilon_005ebc48)) {
+        level->flags &= ~4u;
+    } else {
+        level->flags |= 4u;
+    }
+
+    environ_record = g_environ_00652DB4;
+    environ_record->value_20 = environ_record->value_1c;
+    environ_record->value_05 = 0;
+    environ_record->scale_0c = level->camera_scale_14;
+    gravity.Set(environ_record->value_10, environ_record->value_14, environ_record->value_18);
+    scaled = gravity * static_cast<double>(environ_record->scale_0c);
+    environ_record->vector_24 += scaled;
+    if (g_camera_motion_divisor_00603ac4 < environ_record->vector_24.Length()) {
+        environ_record->vector_24.SetLength(g_camera_motion_divisor_00603ac4);
+    }
+    environ_record->AddScaledMotion00421850(&adjusted_position);
+
+    if (level->camera_scale_14 == g_float_005ebb34) {
+        level->vector_64.SetZero();
+    } else {
+        level->vector_64 = level->vector_a0 / static_cast<double>(level->camera_scale_14);
+    }
+
+    environ_delta = level->vector_a0;
+    camera_position.x = adjusted_position.x;
+    camera_position.y =
+        (g_world_scale_005ebc40 - g_environ_00652DB4->value_30) + adjusted_position.y;
+    camera_position.z = adjusted_position.z;
+    motion_delta = environ_delta;
+    adjusted_position.y = camera_position.y;
+
+    if (total_surface_count_44 != 0) {
+        if (bits_5c == 0) {
+            IntegrateTriggers();
+        } else {
+            bits_5c->ClearAll();
+        }
+    }
+
+    level = g_level_data_00652dac;
+    nearest_distance = 1.0e8f;
+    hit_position.Set(0.0f, 0.0f, 0.0f);
+    level->secondary_contact_prop_id = -1;
+    level->primary_contact_prop_id = -1;
+    level->flags &= ~2u;
+    level->contact_normal_ac.x = 0.0f;
+    level->contact_normal_ac.y = 0.0f;
+    level->contact_normal_ac.z = 0.0f;
+    collision_count = 0;
+    level->contact_facing_1c = 0.0f;
+    first_pass = 1;
+    nearest_surface = 0;
+    forced_exit = 0;
+    exhausted = 0;
+    attempt = 0;
+
+    for (;;) {
+        attempt = attempt + 1;
+        if (attempt < 6) {
+            g_environment_motion_active_00603ad1 = 1;
+            probe_position = camera_position;
+            first_pass = 1;
+            nearest_surface = 0;
+            nearest_distance = 1.0e8f;
+            if (geometry_index_00 == 0) {
+                if (positional_04 != 0) {
+                    if (attempt < 3) {
+                        ProbeMonstersAlongMotion0041BD60(&motion_delta, &probe_position, 1);
+                    }
+                    nearest_surface = ProbePropsAlongMotion0041B770(&motion_delta, &probe_position,
+                                                                    scratch, &nearest_distance);
+                    prop_hit = nearest_surface != 0;
+                    if (prop_hit != 0) {
+                        hit_position = probe_position;
+                    }
+                    probe_position = camera_position;
+                    hit_count = positional_04->CollectObjectsAlongSegment(
+                        &octree_hits, &camera_position, &motion_delta, 1000.0f, 3);
+                } else {
+                    hit_count = 0;
+                }
+            } else {
+                geometry_to = motion_delta;
+                geometry_from = camera_position;
+                nearest_surface = 0;
+                hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
+                    &geometry_hits, &geometry_from, &geometry_to, 1.57079637f, 2000.0f, 3);
+            }
+            if (((hit_count == 0 && prop_hit == 0) || g_environment_motion_active_00603ad1 == 0)) {
+                exhausted = 1;
+            }
+        } else {
+            g_environment_motion_active_00603ad1 = 0;
+            exhausted = 1;
+            forced_exit = 1;
+            probe_position = camera_position;
+            if ((g_level_data_00652dac->flags & 2) != 0 &&
+                g_level_data_00652dac->ToggleBoundProps0041FF00() == 0) {
+                environ_delta.Set(0.0f, 0.0f, 0.0f);
+            }
+        }
+
+        while ((hit_count != 0 || prop_hit != 0) && g_environment_motion_active_00603ad1 != 0) {
+            if (hit_count != 0) {
+                probe_position = camera_position;
+                for (index = 0; index < hit_count; ++index) {
+                    if (positional_04 == 0) {
+                        surface =
+                            reinterpret_cast< // reinterpret-ok: geometry collect stores surface*
+                                W8GDSurface*>(geometry_hits[index]);
+                    } else {
+                        surface = &surfaces_38[octree_hits[index]];
+                    }
+                    surface->value_38 = 0;
+                    if ((surface->flags_00 & 0x1080) == 0 &&
+                        surface->TestSegment0041CF90(&probe_position, &motion_delta, &hit_distance,
+                                                     vertices_24) != 0) {
+                        if (hit_distance < nearest_distance) {
+                            nearest_distance = hit_distance;
+                            hit_position = probe_position;
+                            nearest_surface = surface;
+                        }
+                        probe_position = camera_position;
+                    }
+                }
+                if (first_pass != 0) {
+                    if (nearest_surface == 0) {
+                        exhausted = 1;
+                    }
+                    first_pass = 0;
+                }
+            }
+
+            if (nearest_surface == 0) {
+                hit_count = 0;
+                prop_hit = 0;
+            } else {
+                g_environment_motion_active_00603ad1 = nearest_surface->ResolveCollision0041DC10(
+                    &camera_position, &hit_position, &motion_delta, collision_count);
+                probe_position.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
+                probe_position.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
+                probe_position.z = (camera_position.z + motion_delta.z) - adjusted_position.z;
+                collisions[collision_count] = nearest_surface;
+                collision_count = collision_count + 1;
+                if (99 < collision_count) {
+                    srAssertFail("lCollisions < 100",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x253, 0);
+                }
+                if (g_environment_motion_active_00603ad1 == 0) {
+                    hit_count = 0;
+                    prop_hit = 0;
+                } else {
+                    probe_position = camera_position;
+                    nearest_surface = 0;
+                    nearest_distance = 1.0e8f;
+                    if (positional_04 == 0) {
+                        if (geometry_index_00 != 0) {
+                            geometry_hits = 0;
+                            hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
+                                &geometry_hits, &geometry_from, &geometry_to, 1.57079637f, 2000.0f,
+                                3);
+                        } else {
+                            hit_count = 0;
+                        }
+                    } else {
+                        if (attempt < 3) {
+                            ProbeMonstersAlongMotion0041BD60(&motion_delta, &probe_position, 1);
+                        }
+                        nearest_surface = ProbePropsAlongMotion0041B770(
+                            &motion_delta, &probe_position, scratch, &nearest_distance);
+                        prop_hit = nearest_surface != 0;
+                        if (prop_hit != 0) {
+                            hit_position = probe_position;
+                        }
+                        probe_position = camera_position;
+                        hit_count = positional_04->CollectObjectsAlongSegment(
+                            &octree_hits, &camera_position, &motion_delta, 1000.0f, 3);
+                    }
+                }
+            }
+        }
+
+        if (exhausted != 0) {
+            if (positional_04 != 0) {
+                probe_position = adjusted_position;
+                motion_delta = environ_delta;
+                hit_count = positional_04->CollectObjectsAlongSegment(
+                    &octree_hits, &adjusted_position, &environ_delta, 1000.0f, 3);
+                crossed_count = 0;
+                for (index = 0; index < hit_count; ++index) {
+                    surface = &surfaces_38[octree_hits[index]];
+                    if ((surface->flags_00 & 0x1080) != 0 &&
+                        surface->TestSegment0041CF90(&probe_position, &motion_delta, &hit_distance,
+                                                     vertices_24) != 0) {
+                        if (0 < crossed_count) {
+                            for (int swap = 0; swap < crossed_count; ++swap) {
+                                W8GDSurface* prior = collisions[swap];
+                                if (fabsf(surface->distance_34) < fabsf(prior->distance_34)) {
+                                    collisions[swap] = surface;
+                                    surface = prior;
+                                }
+                            }
+                        }
+                        collisions[crossed_count] = surface;
+                        crossed_count = crossed_count + 1;
+                    }
+                }
+                for (index = 0; index < crossed_count; ++index) {
+                    ProcessCrossedSurface(collisions[index]);
+                }
+            }
+
+            level = g_level_data_00652dac;
+            g_environment_motion_active_00603ad1 = 0;
+            motion_length = environ_delta.Length();
+            if (motion_length <= g_float_005ebc3c ||
+                (fabsf(environ_delta.y + motion_length) / motion_length <=
+                     g_camera_snap_epsilon_005ebc2c &&
+                 g_negative_one_005ebc38 <= environ_delta.y)) {
+                environ_delta.Set(0.0f, 0.0f, 0.0f);
+            } else {
+                g_environment_motion_active_00603ad1 = 1;
+            }
+
+            scale = static_cast<float>(g_double_005ebc30) / g_level_data_00652dac->camera_scale_14;
+            level->vector_64.x = environ_delta.x * scale;
+            level->vector_64.y = environ_delta.y * scale;
+            level->vector_64.z = environ_delta.z * scale;
+            level->vector_a0 = environ_delta;
+            if (g_environment_motion_active_00603ad1 == 0) {
+                if ((g_level_data_00652dac->flags & 4) != 0 && forced_exit == 0) {
+                    g_environ_ground_latch_00652db8 = 1;
+                }
+            } else {
+                g_environ_ground_latch_00652db8 = 0;
+            }
+            g_environ_00652DB4->value_04 = g_environ_ground_latch_00652db8;
+
+            if (total_surface_count_44 != 0) {
+                index = bits_58->NextSetBit(1);
+                while (index != 0) {
+                    unsigned int trigger_index = static_cast<unsigned int>(index - 1);
+                    if (bits_5c->Test(trigger_index) == 0) {
+                        if (trigger_table_50 != 0) {
+                            trigger_table_50[trigger_index]->FinishAction();
+                        }
+                        bits_58->Clear(trigger_index);
+                    }
+                    index = bits_58->NextSetBit(0);
+                }
+            }
+            return g_environment_motion_active_00603ad1;
+        }
+
+        environ_delta.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
+        environ_delta.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
+        environ_delta.z = (camera_position.z + motion_delta.z) - adjusted_position.z;
+        camera_position = adjusted_position;
+        if (0 < collision_count) {
+            for (index = 0; index < collision_count; ++index) {
+                collisions[index]->flags_00 &= ~8u;
+            }
+        }
+        collision_count = 0;
+        motion_delta = environ_delta;
+    }
+}
+
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is
    proven, so it keeps its address. */
@@ -366,7 +1378,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->value_04 = current->value_04;
             record->value_05 = current->value_05;
             record->value_08 = current->value_08;
-            record->unknown_0c = current->unknown_0c;
+            record->scale_0c = current->scale_0c;
             record->value_20 = current->value_20;
             record->vector_24 = current->vector_24;
             g_environ_00652DB4 = record;
@@ -378,7 +1390,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->value_04 = current->value_04;
             record->value_05 = current->value_05;
             record->value_08 = current->value_08;
-            record->unknown_0c = current->unknown_0c;
+            record->scale_0c = current->scale_0c;
             record->value_20 = current->value_20;
             record->vector_24 = current->vector_24;
             g_environ_00652DB4 = record;
@@ -578,9 +1590,9 @@ unsigned char HasLevelDataVector(void)
         return 0;
     }
     if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_0) != 0 &&
-        (g_level_data_00652dac->vector_88[0] != g_float_005ebb34 ||
-         g_level_data_00652dac->vector_88[1] != g_float_005ebb34 ||
-         g_level_data_00652dac->vector_88[2] != g_float_005ebb34)) {
+        (g_level_data_00652dac->vector_88.x != g_float_005ebb34 ||
+         g_level_data_00652dac->vector_88.y != g_float_005ebb34 ||
+         g_level_data_00652dac->vector_88.z != g_float_005ebb34)) {
         return 1;
     }
     return 0;
@@ -701,16 +1713,12 @@ void ResetLevelDataVectors0041F0D0(void)
 
 /* Camera facade, move timer and the party placement entry. */
 
-// GLOBAL: WIZ8 0x00652da7
-unsigned char g_flag_00652da7;
 // GLOBAL: WIZ8 0x005ebc18
 const double g_double_005ebc18 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebcf0
 const float g_float_005ebcf0 = 57.295784f;
 // GLOBAL: WIZ8 0x005ebca0
 const float g_float_005ebca0 = 6.0f;
-// GLOBAL: WIZ8 0x00652940
-srVector3T<float> g_origin_652940;
 
 // FUNCTION: WIZ8 0x0041FCE0
 void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary)
@@ -943,6 +1951,349 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
         g_gd_camera_65a0f8->m_position_08c.x = point->x;
         g_gd_camera_65a0f8->m_position_08c.y = point->y;
         g_gd_camera_65a0f8->m_position_08c.z = point->z;
+    }
+}
+
+// FUNCTION: WIZ8 0x0041FD10
+W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
+{
+    flags = 0;
+    camera_scale_14 = 0;
+    sound_environment_0c = 0;
+    sound_environment_alt_0d = 0;
+    residual_contact_length_18 = 0.0f;
+    contact_facing_1c = 0.0f;
+    speed_20 = 0;
+    real_elapsed_24 = 0;
+    frame_elapsed_28 = 0;
+    movement_limit_2c = 0;
+    movement_progress_30 = 0;
+    flag_ec = 0;
+    flag_ed = 0;
+    value_f0 = 0;
+    footstep_accumulator_10 = -2000.0f;
+    primary_contact_prop_id = -1;
+    secondary_contact_prop_id = -1;
+    camera_position_34.SetZero();
+    vector_40.SetZero();
+    camera_forward_4c.SetZero();
+    vector_58.SetZero();
+    vector_64.SetZero();
+    vector_70.SetZero();
+    scaled_camera_forward_7c.SetZero();
+    vector_88.SetZero();
+    vector_94.SetZero();
+    vector_a0.SetZero();
+    contact_normal_ac = srVector3T<float>();
+    contact_normal_scale_b8 = 0.0f;
+    memset(unknown_bc, 0, sizeof(unknown_bc));
+    contact_normal_scale_b8 = 1.0f;
+    g_level_override_00652dba = 0;
+}
+
+// FUNCTION: WIZ8 0x00420470
+unsigned char W8LevelDataRecord::IntegrateCameraForward00420470()
+{
+    float forward_length;
+    float limit;
+    float delta_length;
+    float scale;
+    bool cleared_vector_70;
+    srVector3T<float> adjustment;
+    srVector3T<float> combined;
+
+    cleared_vector_70 = false;
+    forward_length = camera_forward_4c.Length();
+    limit = g_environ_00652DB4->value_38 * camera_scale_14;
+    if (limit <= vector_40.Length()) {
+        adjustment = camera_forward_4c;
+        if (g_float_005ebc58 < vector_70.LengthSquared()) {
+            adjustment =
+                vector_70 * (DotProduct(adjustment, vector_70) / vector_70.LengthSquared());
+        }
+        adjustment -= camera_forward_4c;
+        delta_length = adjustment.Length();
+        limit = g_environ_00652DB4->value_20 * limit;
+        if (delta_length <= limit) {
+            if (delta_length < limit * g_camera_snap_epsilon_005ebc2c) {
+                adjustment.Set(0.0f, 0.0f, 0.0f);
+            }
+        } else {
+            adjustment.SetLength(limit);
+        }
+        scale = g_environ_00652DB4->value_3c * g_environ_00652DB4->value_20;
+        vector_70 *= scale;
+    } else {
+        if (forward_length < limit) {
+            vector_64.SetZero();
+            return 0;
+        }
+        limit = g_environ_00652DB4->value_20 * limit;
+        adjustment.Set(-camera_forward_4c.x, -camera_forward_4c.y, -camera_forward_4c.z);
+        if (limit < forward_length) {
+            adjustment.SetLength(limit);
+        }
+        vector_70.SetZero();
+        cleared_vector_70 = true;
+    }
+
+    combined.Set(camera_forward_4c.x + vector_70.x, camera_forward_4c.y + vector_70.y,
+                 camera_forward_4c.z + vector_70.z);
+    combined.Set(combined.x + adjustment.x, combined.y + adjustment.y, combined.z + adjustment.z);
+    vector_64 = combined;
+    vector_70 = combined;
+    if (cleared_vector_70) {
+        if (DotProduct(vector_40, adjustment) > g_camera_transition_epsilon_005ebc84) {
+            vector_64.SetZero();
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00420810
+unsigned char W8LevelDataRecord::ApplySavedMotionMatrix00420810(unsigned char prior_fast,
+                                                                unsigned char fast_move,
+                                                                const srMatrix3T<float>* saved)
+{
+    float horizontal;
+    float clamp_scale;
+    float vertical;
+
+    if (prior_fast != 0 && fast_move == 0) {
+        vector_40.SetZero();
+        vector_70.SetZero();
+    }
+    vector_40 = saved->Transform(vector_40);
+    vector_70.x = vector_40.x * camera_scale_14;
+    vector_70.y = vector_40.y * camera_scale_14;
+    vector_70.z = vector_40.z * camera_scale_14;
+    if (IntegrateCameraForward00420470() == 0) {
+        return 0;
+    }
+
+    horizontal = sqrtf(vector_64.z * vector_64.z + vector_64.x * vector_64.x);
+    if (fast_move == 0) {
+        clamp_scale = g_camera_level_forward_scale_603aac;
+        if (prior_fast == 0) {
+            if (clamp_scale < horizontal) {
+                vector_64.x = (clamp_scale / horizontal) * vector_64.x;
+                vector_64.z = (clamp_scale / horizontal) * vector_64.z;
+            }
+        } else if (g_camera_level_forward_scale_603aac < horizontal) {
+            clamp_scale = g_camera_default_forward_scale_603ab0;
+            if (clamp_scale < horizontal) {
+                vector_64.x = (clamp_scale / horizontal) * vector_64.x;
+                vector_64.z = (clamp_scale / horizontal) * vector_64.z;
+            }
+        } else {
+            prior_fast = 0;
+        }
+    } else {
+        prior_fast = 1;
+        clamp_scale = g_camera_default_forward_scale_603ab0;
+        if (clamp_scale < horizontal) {
+            vector_64.x = (clamp_scale / horizontal) * vector_64.x;
+            vector_64.z = (clamp_scale / horizontal) * vector_64.z;
+        }
+    }
+
+    if (g_environment_load_flag_00603ad0 == 0) {
+        vertical = vector_64.y;
+        if (vertical > g_camera_level_forward_scale_603aac) {
+            vertical = g_camera_level_forward_scale_603aac;
+        } else if (vertical < -g_camera_level_forward_scale_603aac) {
+            vertical = -g_camera_level_forward_scale_603aac;
+        }
+    } else {
+        vertical = vector_64.y;
+        if (vertical > g_camera_forward_scale_603ab4) {
+            vertical = g_camera_forward_scale_603ab4;
+        } else if (vertical < -g_camera_forward_scale_603ab4) {
+            vertical = -g_camera_forward_scale_603ab4;
+        }
+    }
+    vector_64.y = vertical;
+    vector_a0.x = vector_64.x * camera_scale_14;
+    vector_a0.y = vector_64.y * camera_scale_14;
+    vector_a0.z = vector_64.z * camera_scale_14;
+    return prior_fast;
+}
+
+// FUNCTION: WIZ8 0x00420A60
+unsigned char W8LevelDataRecord::UpdateFootstepFromMotion00420A60()
+{
+    float dx;
+    float dy;
+    float dz;
+    float distance;
+    char large_radius;
+
+    if ((flags & W8_LEVEL_FLAG_0) == 0) {
+        dx = scaled_camera_forward_7c.x;
+        dy = scaled_camera_forward_7c.y;
+        dz = scaled_camera_forward_7c.z;
+    } else {
+        dx = scaled_camera_forward_7c.x - vector_88.x;
+        dy = scaled_camera_forward_7c.y - vector_88.y;
+        dz = scaled_camera_forward_7c.z - vector_88.z;
+    }
+    if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 || (flags & W8_LEVEL_FLAG_4) == 0) {
+        return 0;
+    }
+    distance = sqrtf(dx * dx + dy * dy + dz * dz) + footstep_accumulator_10;
+    footstep_accumulator_10 = distance;
+    if (g_float_005ebcdc < distance) {
+        if (g_status_685170.search_mode == 0 && (flags & W8_LEVEL_FLAG_8) == 0) {
+            large_radius = 0;
+        } else {
+            large_radius = 1;
+        }
+        AlertCombatNoise004F1150(large_radius);
+        if (sound_environment_0c >= 0 && sound_environment_alt_0d >= 0) {
+            PlayFootstep0047A440(sound_environment_0c, sound_environment_alt_0d, 0);
+            while (g_float_005ebcdc < footstep_accumulator_10) {
+                footstep_accumulator_10 -= g_float_005ebcdc;
+            }
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0041FF90
+void W8LevelDataRecord::UpdateMotionProgress0041FF90(unsigned char fast_move, unsigned char moved)
+{
+    bool allow_override;
+    float length;
+    float scale;
+    srVector3T<float> projected;
+    srVector3T<float> gravity;
+    srVector3T<float> environ_vector;
+
+    allow_override = true;
+    if ((flags & W8_LEVEL_FLAG_0) == 0) {
+        vector_58.SetZero();
+        vector_94.SetZero();
+        if (g_float_005ebb34 < vector_64.y) {
+            length = vector_64.Length();
+            if (fast_move == 0) {
+                if (g_camera_level_forward_scale_603aac < length) {
+                    vector_64.SetLength(g_camera_level_forward_scale_603aac);
+                    vector_a0.x = vector_64.x * camera_scale_14;
+                    vector_a0.y = vector_64.y * camera_scale_14;
+                    vector_a0.z = vector_64.z * camera_scale_14;
+                }
+            } else if (g_camera_default_forward_scale_603ab0 < length) {
+                vector_64.SetLength(g_camera_default_forward_scale_603ab0);
+                vector_a0.x = vector_64.x * camera_scale_14;
+                vector_a0.y = vector_64.y * camera_scale_14;
+                vector_a0.z = vector_64.z * camera_scale_14;
+            }
+        }
+    }
+    if (moved == 0) {
+        if ((flags & W8_LEVEL_FLAG_NO_SOUND_ENVIRONMENT) != 0 || (flags & W8_LEVEL_FLAG_4) == 0) {
+            allow_override = false;
+        }
+        camera_forward_4c.SetZero();
+        scaled_camera_forward_7c.SetZero();
+        footstep_accumulator_10 = 1800.0f;
+    } else {
+        camera_forward_4c.x = vector_64.x - vector_58.x;
+        camera_forward_4c.y = vector_64.y - vector_58.y;
+        camera_forward_4c.z = vector_64.z - vector_58.z;
+        scaled_camera_forward_7c.x = camera_forward_4c.x * camera_scale_14;
+        scaled_camera_forward_7c.y = camera_forward_4c.y * camera_scale_14;
+        scaled_camera_forward_7c.z = camera_forward_4c.z * camera_scale_14;
+        allow_override = UpdateFootstepFromMotion00420A60() != 0;
+        camera_forward_4c.x -= g_environ_00652DB4->vector_24.x;
+        camera_forward_4c.y -= g_environ_00652DB4->vector_24.y;
+        camera_forward_4c.z -= g_environ_00652DB4->vector_24.z;
+        projected = vector_58;
+        gravity.Set(g_environ_00652DB4->value_10, g_environ_00652DB4->value_14,
+                    g_environ_00652DB4->value_18);
+        ProjectVectorOntoVector00421440(&projected, &gravity);
+        environ_vector = g_environ_00652DB4->vector_24;
+        if (environ_vector.Length() < projected.Length()) {
+            g_environ_00652DB4->vector_24 = projected;
+        }
+        vector_40.SetZero();
+        vector_70.SetZero();
+    }
+
+    vector_64 = vector_a0 * (static_cast<float>(g_double_005ebc30) / camera_scale_14);
+    speed_20 = vector_a0.Length();
+    if (speed_20 < g_camera_transition_epsilon_005ebc84) {
+        speed_20 = 0;
+        vector_a0.SetZero();
+        vector_64.SetZero();
+    }
+    if ((flags & W8_LEVEL_FLAG_MOVEMENT_ACTIVE) == 0) {
+        if ((flags & W8_LEVEL_FLAG_8) == 0) {
+            real_elapsed_24 += speed_20;
+        } else {
+            frame_elapsed_28 += speed_20;
+        }
+    } else if ((flags & W8_LEVEL_FLAG_4) != 0) {
+        if ((flags & W8_LEVEL_FLAG_8) == 0) {
+            real_elapsed_24 += speed_20;
+        } else {
+            frame_elapsed_28 += speed_20;
+        }
+        scale = movement_progress_30;
+        movement_progress_30 = speed_20 + scale;
+        if (movement_limit_2c < speed_20 + scale) {
+            camera_forward_4c.SetZero();
+            scaled_camera_forward_7c.SetZero();
+            footstep_accumulator_10 = 2000.0f;
+            flags |= W8_LEVEL_FLAG_6;
+            if (gXStatus.fPartyMovementMode != 0) {
+                UpdateActivePartyMovement();
+            }
+        }
+    }
+
+    if (g_camera_sway_active_652da4 == 0) {
+        if (g_level_override_00652dba == 0) {
+            if (allow_override && value_f0 < g_float_005ebc3c) {
+                g_level_override_00652dba = 1;
+            }
+        } else if (allow_override && g_float_005ebcd8 < value_f0) {
+            HandleLevelOverride004EF9A0();
+        }
+        value_f0 = -(vector_64.y / g_camera_motion_divisor_00603ac4);
+        return;
+    }
+    value_f0 = 0;
+}
+
+// FUNCTION: WIZ8 0x00420E20
+void UpdateLevelMovementAudio00420E20(void)
+{
+    float now;
+
+    if (g_level_data_00652dac == 0) {
+        return;
+    }
+    if (((g_gd_camera_65a0f8->m_positional_000 >> 6) & 1) == 0 ||
+        (g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 ||
+        g_level_data_00652dac->vector_64.x != g_float_005ebb34 ||
+        g_level_data_00652dac->vector_64.y != g_float_005ebb34 ||
+        g_level_data_00652dac->vector_64.z != g_float_005ebb34) {
+        if (g_level_footstep_sound_00603ad4 != -1) {
+            SoundSetFadeVolume(g_level_footstep_sound_00603ad4, 0, 500, 1);
+            g_level_footstep_sound_00603ad4 = -1;
+        }
+        return;
+    }
+    now = g_game_time_accumulator_6598bc->GetValue30();
+    if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time_00652dd0 &&
+        (g_level_footstep_time_00652dd0 = now,
+         g_level_footstep_sound_00603ad4 == -1 ||
+             SoundIsPlaying(g_level_footstep_sound_00603ad4) == 0)) {
+        g_level_footstep_sound_00603ad4 =
+            PlayFootstep0047A440(g_level_data_00652dac->sound_environment_0c,
+                                 g_level_data_00652dac->sound_environment_alt_0d, 2);
     }
 }
 

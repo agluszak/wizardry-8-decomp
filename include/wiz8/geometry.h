@@ -38,6 +38,14 @@ struct W8GDSurface {
     float value_40;
     unsigned int positional_44;
     float slope_48; /* face slope; generated surfaces derive it from normal_24[1] */
+
+    /* 0x0041CF90: unrecovered segment-vs-surface test used by env motion. */
+    unsigned char TestSegment0041CF90(srVector3T<float>* from, const srVector3T<float>* direction,
+                                      float* hit_distance, srVector3T<float>* vertices);
+    /* 0x0041DC10: unrecovered collision response for a hit surface. */
+    unsigned char ResolveCollision0041DC10(const srVector3T<float>* origin,
+                                           const srVector3T<float>* hit_point,
+                                           srVector3T<float>* direction, int collision_index);
 };
 
 static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
