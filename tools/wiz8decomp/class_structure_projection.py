@@ -20,15 +20,13 @@ from pathlib import Path
 from typing import Any
 
 from .class_binding import (
-    _sanitize_class_parts,
     ensure_ghidra_class,
     find_class_structure,
     find_ghidra_class,
-    is_ghidra_class,
     legacy_enriched_structure,
 )
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, repo_relative
 from .source_index import SourceIndex, load_source_index, source_functions
 
 _SCHEMA = "wiz8.class-structure-projection-v1"
@@ -60,11 +58,9 @@ def _thiscall_owning_classes(repository: Path, target: str) -> Counter[str]:
 
 
 def _as_structure(data_type: Any) -> Any | None:
-    from ghidra.program.model.data import Structure, TypeDef  # type: ignore[import-not-found]
+    from .datatype_contracts import as_structure
 
-    while isinstance(data_type, TypeDef):
-        data_type = data_type.getBaseDataType()
-    return data_type if isinstance(data_type, Structure) else None
+    return as_structure(data_type)
 
 
 def _structure_path_tier(path: str, simple: str, name: str) -> int:
@@ -157,6 +153,36 @@ def _is_useful(structure: Any | None) -> bool:
     return length > 1 or components > 0
 
 
+def _decide_structure_action(
+    *,
+    bound: Any | None,
+    legacy: Any | None,
+    source: Any | None,
+    asserted_size: int | None,
+    source_size_ok: bool,
+    size_mismatched_source: Any | None,
+) -> str:
+    """Choose projection action by binding identity — never by component-count contests."""
+
+    if bound is not None and _is_useful(bound):
+        if asserted_size is not None and int(bound.getLength()) != asserted_size:
+            return "conflict"
+        if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
+            return "legacy-duplicate"
+        return "agree"
+    if source is not None and _is_useful(source) and source_size_ok:
+        # Source already sits where findExistingClassStruct will find it once
+        # the GhidraClass exists — ensure_ghidra_class is enough at apply time.
+        return "agree" if bound is source else "bind-existing"
+    if size_mismatched_source is not None and not _is_useful(bound):
+        if asserted_size is not None and asserted_size > 1:
+            return "create-opaque"
+        return "size-mismatch"
+    if not _is_useful(bound) and asserted_size is not None and asserted_size > 1:
+        return "create-opaque"
+    return "no-layout-evidence"
+
+
 def collect_structure_projection_plan(
     repository: Path,
     program: Any,
@@ -186,39 +212,16 @@ def collect_structure_projection_plan(
         asserted = (
             int(source_class.asserted_size) if source_class and source_class.asserted_size else None
         )
+        # Collect/plan is read-only: never create GhidraClass here.
         ghidra_class = find_ghidra_class(program, owning_class)
-        if ghidra_class is None:
-            # Collect is read-only: do not create GhidraClass here (needs a
-            # transaction). Apply paths call ensure_ghidra_class per row.
-            symbols = program.getSymbolTable()
-            parent_parts, class_name = _sanitize_class_parts(owning_class)
-            namespace = program.getGlobalNamespace()
-            collision = False
-            for part in (*parent_parts, class_name):
-                child = symbols.getNamespace(part, namespace)
-                if child is None:
-                    break
-                namespace = child
-            else:
-                collision = not is_ghidra_class(namespace)
-            if collision:
-                counts["namespace-collision"] += 1
-                rows.append(
-                    {
-                        "class": owning_class,
-                        "methods": method_count,
-                        "action": "namespace-collision",
-                        "asserted_size": asserted,
-                    }
-                )
-                continue
-            bound = None
-        else:
-            bound = _as_structure(find_class_structure(program, ghidra_class))
+        bound = (
+            _as_structure(find_class_structure(program, ghidra_class))
+            if ghidra_class is not None
+            else None
+        )
         legacy = _wiz8_structure(program, owning_class)
         source = _find_named_structure(program, owning_class, asserted_size=asserted)
         bound_score = _richness(bound)
-        source_score = _richness(source)
         source_size_ok = source is None or asserted is None or int(source.getLength()) == asserted
         size_mismatched_source = None
         if asserted is not None and source is None:
@@ -226,28 +229,34 @@ def collect_structure_projection_plan(
             if candidate is not None and int(candidate.getLength()) != asserted:
                 size_mismatched_source = candidate
 
-        if bound is not None and _is_useful(bound):
-            action = "agree"
-            if legacy is not None and str(legacy.getPathName()) != str(bound.getPathName()):
-                action = "legacy-duplicate"
-        elif (
-            source is not None
-            and _is_useful(source)
-            and source_size_ok
-            and source_score > bound_score
-        ):
-            # Source already sits where findExistingClassStruct will find it once
-            # the GhidraClass exists — ensure_ghidra_class above is enough.
-            action = "agree" if bound is source else "bind-existing"
-        elif size_mismatched_source is not None and not _is_useful(bound):
-            if asserted is not None and asserted > 1:
-                action = "create-opaque"
+        if ghidra_class is None:
+            if (
+                source is not None
+                and _is_useful(source)
+                and source_size_ok
+                or asserted is not None
+                and asserted > 1
+            ):
+                action = "create-class"
             else:
-                action = "size-mismatch"
-        elif not _is_useful(bound) and asserted is not None and asserted > 1:
-            action = "create-opaque"
+                action = "missing-class"
         else:
-            action = "no-layout-evidence"
+            action = _decide_structure_action(
+                bound=bound,
+                legacy=legacy,
+                source=source,
+                asserted_size=asserted,
+                source_size_ok=source_size_ok,
+                size_mismatched_source=size_mismatched_source,
+            )
+            # bind-existing must land on the planner-selected evidence Structure.
+            if (
+                action == "bind-existing"
+                and source is not None
+                and bound is not None
+                and str(bound.getPathName()) != str(source.getPathName())
+            ):
+                action = "conflict"
 
         counts[action] += 1
         if action in {"agree", "legacy-duplicate"}:
@@ -278,7 +287,7 @@ def collect_structure_projection_plan(
         "schema": _SCHEMA,
         "target": target,
         "counts": dict(sorted(counts.items())),
-        "actionable": counts["create-opaque"] + counts["bind-existing"],
+        "actionable": (counts["create-opaque"] + counts["bind-existing"] + counts["create-class"]),
         "classes": rows,
     }
 
@@ -326,11 +335,41 @@ def apply_structure_projection(
             if size <= 1:
                 return {**dict(row), "error": "invalid-asserted-size"}
             result = _create_opaque(_program, owning, size)
+        elif action == "create-class":
+            size = int(row.get("asserted_size") or 0)
+            source_path = (row.get("source") or {}).get("path")
+            ghidra_class = ensure_ghidra_class(_program, owning)
+            result = find_class_structure(_program, ghidra_class)
+            if result is None and source_path:
+                # Class namespace now exists; bind the evidence Structure already at
+                # the preferred path (findExistingClassStruct can lag until refresh).
+                candidate = _program.getDataTypeManager().getDataType(str(source_path))
+                result = _as_structure(candidate)
+            if result is None:
+                if size > 1:
+                    result = _create_opaque(_program, owning, size)
+                else:
+                    return {**dict(row), "error": "missing-bound-structure"}
+            elif source_path and str(result.getPathName()) != str(source_path):
+                return {
+                    **dict(row),
+                    "error": "bind-path-mismatch",
+                    "bound_path": str(result.getPathName()),
+                    "evidence_path": source_path,
+                }
         elif action == "bind-existing":
             ensure_ghidra_class(_program, owning)
             result = find_class_structure(_program, ensure_ghidra_class(_program, owning))
             if result is None:
                 return {**dict(row), "error": "missing-bound-structure"}
+            evidence_path = (row.get("source") or {}).get("path")
+            if evidence_path and str(result.getPathName()) != str(evidence_path):
+                return {
+                    **dict(row),
+                    "error": "bind-path-mismatch",
+                    "bound_path": str(result.getPathName()),
+                    "evidence_path": evidence_path,
+                }
         else:
             return {**dict(row), "error": f"unexpected-action:{action}"}
         return {
@@ -344,7 +383,7 @@ def apply_structure_projection(
     rows = [
         row
         for row in plan.get("classes", [])
-        if row.get("action") in {"create-opaque", "bind-existing"}
+        if row.get("action") in {"create-opaque", "bind-existing", "create-class"}
     ]
     result = apply_rows(
         program,
@@ -384,7 +423,7 @@ def run_class_structure_projection(
             "apply": apply,
             "counts": plan["counts"],
             "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
+            "report": repo_relative(report_path, settings.repo_dir),
             "sample": plan["classes"][:20],
         }
         if not apply:
@@ -399,7 +438,7 @@ def run_class_structure_projection(
         if applied["errors"]:
             error_path = out_dir / "apply-errors.json"
             atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
+            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
 
     if type_this and apply:
         from .class_this_typing import run_class_this_typing

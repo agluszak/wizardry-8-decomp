@@ -123,3 +123,16 @@ def test_is_named_structure_prefers_datatype_over_spelling() -> None:
     assert _is_named_structure("ReviewedBlob")
     assert not _is_named_structure("uchar[60]")
     assert not _is_named_structure("void *")
+
+
+def test_cf_preserves_named_element_array() -> None:
+    needs_type, skip = _cf_type_decision(
+        status="typed",
+        current_type="W8AttributeMinimums[11]",
+        current_length=308,
+        size=308,
+        element_type="int",
+        element_count=77,
+    )
+    assert needs_type is False
+    assert skip == "preserve-reviewed"

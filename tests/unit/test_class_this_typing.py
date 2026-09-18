@@ -1,164 +1,185 @@
-"""Tests for class-binding helpers used by automatic ``this`` typing."""
+"""Tests for class-binding helpers used by automatic ``this`` typing.
+
+Broader class-binding coverage lives in ``test_class_binding.py``.
+"""
 
 from __future__ import annotations
 
-import contextlib
-import sys
-import types
+from types import SimpleNamespace
 from typing import Any
-from unittest.mock import MagicMock
 
-from wiz8decomp.class_binding import _sanitize_class_parts, binding_agrees
-from wiz8decomp.class_this_typing import apply_this_typing
-
-
-def test_sanitize_class_parts_splits_namespaces() -> None:
-    assert _sanitize_class_parts("W8Monster") == ((), "W8Monster")
-    assert _sanitize_class_parts("ns::Inner::Type") == (("ns", "Inner"), "Type")
+from wiz8decomp.class_this_typing import (
+    _storage_matches,
+    apply_this_typing_row,
+)
 
 
-def test_binding_agrees_requires_matching_structure_path(monkeypatch) -> None:
-    binding = {"status": "bound", "structure_path": "/W8Monster"}
-
-    class _Pointee:
-        def getPathName(self) -> str:
-            return "/W8Monster"
-
-    class _Fn:
-        pass
-
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: _Pointee(),
-    )
-    assert binding_agrees(binding, _Fn())
-
-    monkeypatch.setattr(
-        "wiz8decomp.class_binding.auto_this_structure",
-        lambda _fn: type("P", (), {"getPathName": lambda self: "/wiz8/classes/W8Monster"})(),
-    )
-    assert not binding_agrees(binding, _Fn())
-
-
-def test_mov_ecx_jmp_helper_removed() -> None:
-    import wiz8decomp.function_attributes as fa
-
-    assert not hasattr(fa, "_thiscall_mov_jmp_thunk_target")
-
-
-def _stub_pyghidra_transaction(monkeypatch) -> None:
-    module = sys.modules.get("pyghidra")
-    if module is None:
-        module = types.ModuleType("pyghidra")
-        monkeypatch.setitem(sys.modules, "pyghidra", module)
-    monkeypatch.setattr(
-        module,
-        "transaction",
-        lambda *_a, **_k: contextlib.nullcontext(),
-        raising=False,
-    )
-
-
-def test_this_typing_without_allow_custom_storage_does_not_enable_custom(
-    monkeypatch,
-) -> None:
-    """Gated custom-storage refusal is a skip, not an apply error."""
-
-    def fake_row(
-        _program: Any,
-        row: dict[str, Any],
-        *,
-        allow_custom_storage: bool = False,
-    ) -> dict[str, Any]:
-        assert allow_custom_storage is False
-        return {
-            **row,
-            "error": "requires-custom-storage",
-            "hint": "custom storage required; refused without allow_custom_storage",
-        }
-
-    _stub_pyghidra_transaction(monkeypatch)
-    monkeypatch.setattr(
-        "wiz8decomp.class_this_typing.apply_this_typing_row",
-        fake_row,
-    )
-
-    plan = {
-        "functions": [
-            {
-                "address": "0x00401000",
-                "name": "W8Monster::Tick",
-                "owning_class": "W8Monster",
-                "ghidra_this": "undefined *",
-                "action": "bind-class-this",
-            }
-        ]
+def test_storage_matches_compares_parameter_slots() -> None:
+    before = {
+        "return_storage": "EAX:4",
+        "parameters": [{"ordinal": 0, "name": "this", "storage": "ECX:4"}],
     }
-    result = apply_this_typing(MagicMock(), plan, allow_custom_storage=False)
-    assert result["applied"] == 0
-    assert result["errors"] == []
-    assert len(result["skipped"]) == 1
-    assert result["skipped"][0]["skipped"] == "requires-custom-storage"
-    assert result["skipped"][0]["error"] == "requires-custom-storage"
-
-
-def test_this_typing_auto_this_unbound_is_skipped(monkeypatch) -> None:
-    def fake_row(
-        _program: Any,
-        row: dict[str, Any],
-        *,
-        allow_custom_storage: bool = False,
-    ) -> dict[str, Any]:
-        return {**row, "error": "auto-this-unbound", "structure_path": "/W8Monster"}
-
-    _stub_pyghidra_transaction(monkeypatch)
-    monkeypatch.setattr(
-        "wiz8decomp.class_this_typing.apply_this_typing_row",
-        fake_row,
-    )
-
-    plan = {
-        "functions": [
-            {
-                "address": "0x00402000",
-                "name": "W8Monster::Draw",
-                "owning_class": "W8Monster",
-                "action": "bind-class-this",
-            }
-        ]
+    after = {
+        "return_storage": "EAX:4",
+        "parameters": [{"ordinal": 0, "name": "this", "storage": "ECX:4"}],
     }
-    result = apply_this_typing(MagicMock(), plan, allow_custom_storage=False)
-    assert result["errors"] == []
-    assert len(result["skipped"]) == 1
-    assert result["skipped"][0]["skipped"] == "auto-this-unbound"
+    assert _storage_matches(before, after)
+    after["parameters"][0]["storage"] = "Stack[0x4]:4"
+    assert not _storage_matches(before, after)
 
 
-def test_this_typing_namespace_collision_is_skipped(monkeypatch) -> None:
-    def fake_row(
-        _program: Any,
-        row: dict[str, Any],
-        *,
-        allow_custom_storage: bool = False,
-    ) -> dict[str, Any]:
-        return {**row, "error": "namespace-collision", "hint": "plain namespace"}
+class _FakeParam:
+    def __init__(self) -> None:
+        self._storage = "ECX:4 (auto)"
+        self._name = "this"
+        self._dt = "W8Monster *"
 
-    _stub_pyghidra_transaction(monkeypatch)
-    monkeypatch.setattr(
-        "wiz8decomp.class_this_typing.apply_this_typing_row",
-        fake_row,
+    def getOrdinal(self) -> int:
+        return 0
+
+    def getName(self) -> str:
+        return self._name
+
+    def getVariableStorage(self):
+        return self._storage
+
+    def getDataType(self):
+        return self._dt
+
+
+class _FakeReturn:
+    def getVariableStorage(self):
+        return "EAX:4"
+
+
+class _FakeFunction:
+    def __init__(self, *, custom: bool = False, convention: str = "__thiscall") -> None:
+        self._custom = custom
+        self._convention = convention
+        self._params = [_FakeParam()]
+        self._cleared_custom = False
+        self._set_convention: str | None = None
+        self._parent = SimpleNamespace(getName=lambda _q=True: "W8Monster", equals=lambda _o: True)
+
+    def hasCustomVariableStorage(self) -> bool:
+        return self._custom
+
+    def setCustomVariableStorage(self, value: bool) -> None:
+        self._cleared_custom = value is False
+        self._custom = value
+
+    def getCallingConventionName(self) -> str:
+        return self._convention
+
+    def setCallingConvention(self, name: str) -> None:
+        self._set_convention = name
+        self._convention = name
+
+    def getParameters(self):
+        return list(self._params)
+
+    def getReturn(self):
+        return _FakeReturn()
+
+    def getParentNamespace(self):
+        return self._parent
+
+    def setParentNamespace(self, ns: Any) -> None:
+        self._parent = ns
+
+
+def test_ordinary_path_skips_custom_storage_without_clearing(monkeypatch) -> None:
+    fn = _FakeFunction(custom=True, convention="__thiscall")
+    space = SimpleNamespace(getAddress=lambda _a: object())
+    program = SimpleNamespace(
+        getAddressFactory=lambda: SimpleNamespace(getDefaultAddressSpace=lambda: space),
+        getFunctionManager=lambda: SimpleNamespace(getFunctionAt=lambda _a: fn),
+        getDataTypeManager=lambda: object(),
     )
-
-    plan = {
-        "functions": [
-            {
-                "address": "0x00403000",
-                "name": "Controls::Draw",
-                "owning_class": "Controls",
-                "action": "bind-class-this",
-            }
-        ]
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.ensure_ghidra_class",
+        lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("must not ensure")),
+    )
+    row = {
+        "address": "0x00401000",
+        "name": "W8Monster::method",
+        "owning_class": "W8Monster",
+        "action": "bind-class-this",
     }
-    result = apply_this_typing(MagicMock(), plan, allow_custom_storage=False)
-    assert result["errors"] == []
-    assert len(result["skipped"]) == 1
-    assert result["skipped"][0]["skipped"] == "namespace-collision"
+    result = apply_this_typing_row(program, row, allow_custom_storage=False)
+    assert result.get("error") == "skip-custom-storage"
+    assert fn._cleared_custom is False
+    assert fn.hasCustomVariableStorage() is True
+
+
+def test_convention_hard_disagree_skips_without_override(monkeypatch) -> None:
+    fn = _FakeFunction(custom=False, convention="__fastcall")
+    space = SimpleNamespace(getAddress=lambda _a: object())
+    structure = SimpleNamespace(getPathName=lambda: "/W8Monster")
+    ghidra_class = SimpleNamespace(getName=lambda _q=True: "W8Monster")
+    program = SimpleNamespace(
+        getAddressFactory=lambda: SimpleNamespace(getDefaultAddressSpace=lambda: space),
+        getFunctionManager=lambda: SimpleNamespace(getFunctionAt=lambda _a: fn),
+        getDataTypeManager=lambda: object(),
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.ensure_ghidra_class",
+        lambda *_a, **_k: ghidra_class,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.find_class_structure",
+        lambda *_a, **_k: structure,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.ensure_function_class_namespace",
+        lambda *_a, **_k: False,
+    )
+    row = {
+        "address": "0x00401000",
+        "name": "W8Monster::method",
+        "owning_class": "W8Monster",
+        "action": "bind-class-this",
+    }
+    result = apply_this_typing_row(program, row, allow_custom_storage=False)
+    assert result.get("error") == "convention-hard-disagree"
+    assert fn._set_convention is None
+    assert fn.getCallingConventionName() == "__fastcall"
+
+
+def test_stdcall_may_promote_to_thiscall(monkeypatch) -> None:
+    fn = _FakeFunction(custom=False, convention="__stdcall")
+    space = SimpleNamespace(getAddress=lambda _a: object())
+    structure = SimpleNamespace(getPathName=lambda: "/W8Monster")
+    ghidra_class = SimpleNamespace(getName=lambda _q=True: "W8Monster")
+    pointee = SimpleNamespace(getPathName=lambda: "/W8Monster")
+    program = SimpleNamespace(
+        getAddressFactory=lambda: SimpleNamespace(getDefaultAddressSpace=lambda: space),
+        getFunctionManager=lambda: SimpleNamespace(getFunctionAt=lambda _a: fn),
+        getDataTypeManager=lambda: object(),
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.ensure_ghidra_class",
+        lambda *_a, **_k: ghidra_class,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.find_class_structure",
+        lambda *_a, **_k: structure,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.ensure_function_class_namespace",
+        lambda *_a, **_k: False,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.class_this_typing.auto_this_structure",
+        lambda *_a, **_k: pointee,
+    )
+    row = {
+        "address": "0x00401000",
+        "name": "W8Monster::method",
+        "owning_class": "W8Monster",
+        "action": "bind-class-this",
+    }
+    result = apply_this_typing_row(program, row, allow_custom_storage=False)
+    assert result.get("error") is None
+    assert fn._set_convention == "__thiscall"
+    assert result["action"] == "bind-class-this"
