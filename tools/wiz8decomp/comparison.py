@@ -54,7 +54,7 @@ def addresses_from_files(repository: Path, target: str, paths: Iterable[Path]) -
 def changed_files(repository: Path, since: str | None = None) -> list[Path]:
     """Select changed paths with jj locally and Git in plain CI checkouts."""
 
-    if resolve_executable("jj") is not None:
+    if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
         command = ["jj", "diff", "--name-only", "--color=never"]
         if since is not None:
             command.extend(("--from", since))
@@ -124,7 +124,8 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
             continue
         file_dependencies = {str(path) for path in unit.get("file_dependencies", [])}
         if headers & file_dependencies:
-            affected.update((file_dependencies | {source}) & marker_files)
+            affected.add(source)
+            affected.update(file_dependencies & marker_files)
     return [repository / path for path in sorted(affected - headers)]
 
 

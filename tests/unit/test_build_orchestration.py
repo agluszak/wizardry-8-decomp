@@ -45,6 +45,7 @@ def test_clang_configuration_reuses_existing_ninja_tree(tmp_path: Path, monkeypa
     output.mkdir(parents=True)
     (output / "CMakeCache.txt").write_text("configured")
     (output / "build.ninja").write_text("ninja")
+    (output / "compile_commands.json").write_text("[]")
     monkeypatch.setattr(
         build, "run", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError)
     )
@@ -53,6 +54,24 @@ def test_clang_configuration_reuses_existing_ninja_tree(tmp_path: Path, monkeypa
 
     assert actual == output
     assert "--volume" in prefix
+
+
+def test_clang_configuration_reruns_when_inputs_are_newer(tmp_path: Path, monkeypatch) -> None:
+    output = tmp_path / build.LINT_BUILD_DIR
+    output.mkdir(parents=True)
+    (output / "CMakeCache.txt").write_text("configured")
+    (output / "build.ninja").write_text("ninja")
+    (output / "compile_commands.json").write_text("[]")
+    inventory = tmp_path / "CMakeLists.txt"
+    inventory.write_text("project(wiz8)\n")
+    os.utime(output / "compile_commands.json", ns=(1_000_000_000, 1_000_000_000))
+    os.utime(inventory, ns=(2_000_000_000, 2_000_000_000))
+    commands = []
+    monkeypatch.setattr(build, "run", lambda command, **_kwargs: commands.append(command))
+
+    build.configure_clang(_settings(tmp_path))
+
+    assert len(commands) == 1
 
 
 def test_forced_clang_configuration_is_incremental_not_fresh(tmp_path: Path, monkeypatch) -> None:

@@ -99,11 +99,11 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
     configured: list[bool] = []
 
-    def configure(_settings: Settings, *, force: bool = False) -> None:
-        assert force is True
-        configured.append(True)
+    def configure(_settings: Settings, *, force: bool = False, **_kwargs):
+        configured.append(force)
         database.parent.mkdir(parents=True, exist_ok=True)
         database.write_text("[]\n", encoding="utf-8")
+        return database.parent, []
 
     class FakeIndex:
         markers: tuple[()] = ()
@@ -138,7 +138,7 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
     source_index.write_source_index(settings)
 
-    assert configured == [True]
+    assert configured == [False]
     assert collected == [{"force": False}]
 
 

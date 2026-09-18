@@ -355,14 +355,38 @@ def build_target(
         }
 
 
+def clang_configure_inputs(repository: Path) -> tuple[Path, ...]:
+    """Return the CMake inputs that shape the Clang compile database."""
+
+    candidates: list[Path] = [repository / "CMakeLists.txt"]
+    candidates.extend(sorted((repository / "cmake").glob("*.cmake")))
+    candidates.extend(sorted(repository.glob("src/*/CMakeLists.txt")))
+    candidates.extend(sorted(repository.glob("src/*/sources.cmake")))
+    return tuple(path for path in candidates if path.is_file())
+
+
+def _clang_configuration_current(repository: Path, output: Path) -> bool:
+    required = (
+        output / "CMakeCache.txt",
+        output / "build.ninja",
+        output / "compile_commands.json",
+    )
+    if any(not path.is_file() for path in required):
+        return False
+    configured_at = (output / "compile_commands.json").stat().st_mtime_ns
+    return not any(
+        path.stat().st_mtime_ns > configured_at for path in clang_configure_inputs(repository)
+    )
+
+
 def configure_clang(
     settings: Settings, *, full_diagnostics: bool = False, force: bool = False
 ) -> tuple[Path, list[str]]:
-    """Configure the compiler-backed source projection when it is missing."""
+    """Configure the compiler-backed source projection when stale or missing."""
     output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
     output.mkdir(parents=True, exist_ok=True)
     prefix = clang_container_prefix(settings, output)
-    if not force and (output / "CMakeCache.txt").is_file() and (output / "build.ninja").is_file():
+    if not force and _clang_configuration_current(settings.repo_dir, output):
         return output, prefix
 
     configure_command = [
@@ -451,21 +475,19 @@ def lint_required(repository: Path, changed_paths: list[Path]) -> bool:
     )
 
 
-def _changed_paths(repository: Path, since: str | None) -> list[Path]:
-    from .comparison import changed_files
-
-    return changed_files(repository, since)
-
-
 def _lint_selection(
-    settings: Settings, since: str | None, changed_paths: list[Path]
+    settings: Settings, changed_paths: list[Path]
 ) -> tuple[list[Path] | None, list[Path], list[Path]]:
     from .clang_tidy_lines import FILTER_ENV
-    from .comparison import changed_source_files, header_dependent_files
-    from .source_index import indexed_targets
+    from .comparison import header_dependent_files
+    from .source_index import indexed_targets, warn_if_source_index_may_be_stale
 
     repository = settings.repo_dir
-    changed = changed_source_files(repository, since)
+    changed = [
+        path
+        for path in changed_paths
+        if path.suffix.casefold() in _LINT_SOURCE_SUFFIXES and path.is_file()
+    ]
     deleted_source = any(
         path.suffix.casefold() in _LINT_SOURCE_SUFFIXES and not path.is_file()
         for path in changed_paths
@@ -477,10 +499,16 @@ def _lint_selection(
     ):
         return None, changed, []
 
-    database = repository / LINT_BUILD_DIR / "compile_commands.json"
+    headers = [path for path in changed if path.suffix.casefold() in _LINT_HEADER_SUFFIXES]
     dependent: set[Path] = set()
-    for target in indexed_targets(repository, database):
-        dependent.update(header_dependent_files(settings, target, changed))
+    if headers:
+        database = repository / LINT_BUILD_DIR / "compile_commands.json"
+        for target in indexed_targets(repository, database):
+            if warn_if_source_index_may_be_stale(repository, target):
+                raise RuntimeError(
+                    "source index is stale; run `uv run wiz8 check` before linting header changes"
+                )
+            dependent.update(header_dependent_files(settings, target, headers))
     selected = set(changed) | dependent
     return sorted(selected), changed, sorted(dependent - set(changed))
 
@@ -563,14 +591,18 @@ def _lint_cache_inputs(
     recovered: list[str],
     vendor: list[str],
 ) -> set[Path]:
-    inputs = set(changed_paths)
     if selected is not None:
-        inputs.update(selected)
-    else:
-        for filename in (*recovered, *vendor):
-            relative = compile_database_relative(filename, repository)
-            if relative is not None:
-                inputs.add(repository / relative)
+        return set(selected)
+
+    inputs = {
+        path
+        for path in changed_paths
+        if path.suffix.casefold() in _LINT_SOURCE_SUFFIXES or _full_lint_change(repository, path)
+    }
+    for filename in (*recovered, *vendor):
+        relative = compile_database_relative(filename, repository)
+        if relative is not None:
+            inputs.add(repository / relative)
     return inputs
 
 
@@ -683,17 +715,14 @@ def lint(
         }
 
     from .clang_tidy_lines import redundant_cast_line_filter
-    from .source_index import write_source_index
+    from .comparison import changed_files
 
     repository = settings.repo_dir
-    source_index = write_source_index(settings)
-    changes = (
-        list(changed_paths) if changed_paths is not None else _changed_paths(repository, since)
-    )
-    selected, changed, dependent = _lint_selection(settings, since, changes)
+    changes = list(changed_paths) if changed_paths is not None else changed_files(repository, since)
     output = repository / LINT_BUILD_DIR
-    configured = (output / "CMakeCache.txt").is_file() and (output / "build.ninja").is_file()
+    configured = _clang_configuration_current(repository, output)
     output, prefix = configure_clang(settings)
+    selected, changed, dependent = _lint_selection(settings, changes)
     recovered, vendor = _lint_compile_files(output, repository, selected)
     cast_lines = redundant_cast_line_filter(repository)
     image_id = _docker_image_id()
@@ -720,7 +749,6 @@ def lint(
         "vendor_file_count": len(vendor),
         "changed_file_count": len(changed),
         "dependent_file_count": len(dependent),
-        "source_index_cached": bool(source_index.get("cached")),
         "files": files,
     }
     log = _write_lint_selection_log(repository, log_result)
@@ -742,7 +770,7 @@ def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) 
 
 
 def check(repository: Path) -> dict[str, Any]:
-    """Fast public validation: Python/repository gates, no compiler lane."""
+    """Fast public validation: cheap host gates before compiler-backed indexing."""
 
     from .cast_lint import validate_cast_markers
     from .global_model import validate_type_consistency
@@ -758,6 +786,17 @@ def check(repository: Path) -> dict[str, Any]:
 
     settings = load_settings()
     assert settings is not None
+    cheap_commands = (
+        ("format", ["ruff", "format", "--check", "."]),
+        ("ruff", ["ruff", "check", "."]),
+        ("types", ["pyright"]),
+    )
+    gates: list[dict[str, str]] = []
+    for name, command in cheap_commands:
+        log = Path("build/logs") / f"check-{name}.json"
+        run(command, cwd=repository, log_path=repository / log)
+        gates.append({"name": name, "status": "passed", "log": str(log)})
+
     # The repository suite and later comparisons read this projection; its
     # writer also validates synthetic markers and cross-TU declarations.
     source_index = write_source_index(settings)
@@ -773,20 +812,17 @@ def check(repository: Path) -> dict[str, Any]:
         ("source-oracle", lambda: validate_source_oracle_ownership(repository)),
         ("structures", lambda: validate_structures(repository)),
     )
-    commands = (
-        ("format", ["ruff", "format", "--check", "."]),
-        ("ruff", ["ruff", "check", "."]),
-        ("types", ["pyright"]),
-        ("tests", ["pytest", "tests/unit", "tests/repository"]),
-    )
-    gates: list[dict[str, str]] = []
     for name, action in validators:
         action()
         gates.append({"name": name, "status": "passed"})
-    for name, command in commands:
-        log = Path("build/logs") / f"check-{name}.json"
-        run(command, cwd=repository, log_path=repository / log)
-        gates.append({"name": name, "status": "passed", "log": str(log)})
+
+    tests_log = Path("build/logs/check-tests.json")
+    run(
+        ["pytest", "tests/unit", "tests/repository"],
+        cwd=repository,
+        log_path=repository / tests_log,
+    )
+    gates.append({"name": "tests", "status": "passed", "log": str(tests_log)})
     return {
         "status": "passed",
         "source_index": source_index["path"],

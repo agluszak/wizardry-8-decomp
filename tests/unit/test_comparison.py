@@ -7,6 +7,7 @@ import pytest
 from wiz8decomp import comparison
 from wiz8decomp.comparison import (
     addresses_from_files,
+    changed_files,
     changed_source_files,
     compare_selected,
     selected_addresses,
@@ -124,9 +125,10 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("since", [None, "main"])
-def test_changed_source_files_preserves_spaces_and_ignores_removed_files(
+def test_changed_source_files_uses_jj_when_workspace_and_executable_exist(
     tmp_path, monkeypatch, since
 ):
+    (tmp_path / ".jj").mkdir()
     for name in ["One.cpp", "Two Words.h", "README.md"]:
         (tmp_path / name).write_text("")
 
@@ -138,11 +140,66 @@ def test_changed_source_files_preserves_spaces_and_ignores_removed_files(
         assert command == expected
         return SimpleNamespace(stdout="One.cpp\nTwo Words.h\nREADME.md\nremoved.cpp\n")
 
+    monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
     monkeypatch.setattr(comparison, "run", fake_run)
     assert changed_source_files(tmp_path, since) == [
         tmp_path / "One.cpp",
         tmp_path / "Two Words.h",
     ]
+
+
+def test_changed_files_uses_git_without_jj_workspace(tmp_path, monkeypatch):
+    for name in ["One.cpp", "gone.cpp"]:
+        (tmp_path / name).write_text("")
+
+    def fake_run(command, *, cwd):
+        assert cwd == tmp_path
+        assert command == ["git", "diff", "--name-only", "--no-renames", "HEAD^"]
+        return SimpleNamespace(stdout="One.cpp\ngone.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp", tmp_path / "gone.cpp"]
+
+
+def test_changed_files_uses_github_base_ref_for_git(tmp_path, monkeypatch):
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert command == ["git", "diff", "--name-only", "--no-renames", "origin/develop"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.setenv("GITHUB_BASE_REF", "develop")
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
+
+
+def test_changed_files_normalizes_main_at_origin_for_git(tmp_path, monkeypatch):
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert command == ["git", "diff", "--name-only", "--no-renames", "origin/main"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda name: f"/bin/{name}")
+    monkeypatch.setattr(comparison, "run", fake_run)
+    assert changed_files(tmp_path, "main@origin") == [tmp_path / "One.cpp"]
+
+
+def test_changed_files_prefers_git_when_jj_executable_missing(tmp_path, monkeypatch):
+    (tmp_path / ".jj").mkdir()
+    (tmp_path / "One.cpp").write_text("")
+
+    def fake_run(command, *, cwd):
+        assert command == ["git", "diff", "--name-only", "--no-renames", "HEAD^"]
+        return SimpleNamespace(stdout="One.cpp\n")
+
+    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
+    monkeypatch.setattr(comparison, "run", fake_run)
+    monkeypatch.delenv("GITHUB_BASE_REF", raising=False)
+    assert changed_files(tmp_path) == [tmp_path / "One.cpp"]
 
 
 def test_compare_selected_uses_one_in_process_comparison(tmp_path, monkeypatch):

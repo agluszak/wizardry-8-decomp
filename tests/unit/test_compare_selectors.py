@@ -100,6 +100,10 @@ def test_changed_header_selects_transitive_consumers_and_inline_bodies(
             ],
         },
         {
+            "source_file": "src/wiz8/markerless.cpp",
+            "file_dependencies": ["include/wiz8/shared.h"],
+        },
+        {
             "source_file": "src/wiz8/other.cpp",
             "file_dependencies": ["include/wiz8/outer.h"],
         },
@@ -111,7 +115,11 @@ def test_changed_header_selects_transitive_consumers_and_inline_bodies(
     index_path.write_text(json.dumps(index))
     settings = Settings.model_construct(repo_dir=tmp_path)
     dependents = header_dependent_files(settings, "WIZ8", [tmp_path / "include/wiz8/shared.h"])
-    assert set(dependents) == {tmp_path / "src/wiz8/unit.cpp", tmp_path / "include/wiz8/inline.h"}
+    assert set(dependents) == {
+        tmp_path / "src/wiz8/unit.cpp",
+        tmp_path / "src/wiz8/markerless.cpp",
+        tmp_path / "include/wiz8/inline.h",
+    }
     assert selected_addresses(tmp_path, "WIZ8", [], dependents) == [0x401000, 0x401020]
 
 

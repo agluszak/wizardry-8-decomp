@@ -97,12 +97,13 @@ def load_source_index(repository: Path) -> dict[str, Any]:
 
 def warn_if_source_index_may_be_stale(repository: Path, target: str) -> bool:
     """Warn when source/configuration inputs postdate the existing index."""
+    from .build import clang_configure_inputs
 
     path = repository / "build/source-index.json"
     load_source_index(repository)
     indexed_at = path.stat().st_mtime_ns
     roots = indexed_targets(repository).get(target.upper(), ())
-    inputs = list(_cmake_configure_inputs(repository))
+    inputs = list(clang_configure_inputs(repository))
     inputs.extend(
         candidate
         for root in roots
@@ -152,25 +153,6 @@ def source_functions(repository: Path, target: str = "WIZ8") -> dict[int, Source
     )
 
 
-def _cmake_configure_inputs(repository: Path) -> tuple[Path, ...]:
-    """Fingerprint every CMake/toolchain input that shapes the lint compile DB.
-
-    The previous short inventory missed CompileSettings.cmake, the clang-cl
-    toolchain, and the extension source-model fragments, so `analyze
-    source-index` could consume a stale database after a compile-setting edit.
-    Collect the actual inputs instead of maintaining another partial list.
-    """
-    candidates: list[Path] = [repository / "CMakeLists.txt"]
-    candidates.extend(sorted((repository / "cmake").glob("*.cmake")))
-    candidates.extend(sorted(repository.glob("src/*/CMakeLists.txt")))
-    candidates.append(repository / "src/wiz8/sources.cmake")
-    seen: list[Path] = []
-    for path in candidates:
-        if path.is_file() and path not in seen:
-            seen.append(path)
-    return tuple(seen)
-
-
 def _compile_db_files(database: Path, repository: Path) -> set[str]:
     try:
         entries = json.loads(database.read_text(encoding="utf-8"))
@@ -218,9 +200,10 @@ def indexed_targets(repository: Path, database: Path | None = None) -> dict[str,
 
 def _source_index_input_digest(repository: Path, database: Path) -> str:
     """Fingerprint inputs whose unchanged projection can safely be reused."""
+    from .build import clang_configure_inputs
 
     digest = hashlib.sha256(b"wiz8-source-index-inputs-v1\0")
-    candidates = {repository / "reccmp-project.yml", *_cmake_configure_inputs(repository)}
+    candidates = {repository / "reccmp-project.yml", *clang_configure_inputs(repository)}
     roots = indexed_targets(repository, database if database.is_file() else None)
     for source_roots in roots.values():
         for root in source_roots:
@@ -747,19 +730,14 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
     database = repository / LINT_BUILD_DIR / "compile_commands.json"
     index_path = repository / "build/source-index.json"
     stamp = repository / "build/reccmp-source/source-index-inputs.sha256"
-    if not force and database.is_file() and index_path.is_file() and stamp.is_file():
+    configure_clang(settings)
+    if not database.is_file():
+        raise FileNotFoundError(f"clang configuration did not produce {database}")
+    if not force and index_path.is_file() and stamp.is_file():
         digest = _source_index_input_digest(repository, database)
         if stamp.read_text(encoding="utf-8").strip() == digest:
             validate_cross_tu_declarations(repository)
             return _source_index_result(load_source_index(repository), cached=True)
-
-    inventories = _cmake_configure_inputs(repository)
-    if not database.is_file() or any(
-        path.is_file() and path.stat().st_mtime > database.stat().st_mtime for path in inventories
-    ):
-        configure_clang(settings, force=True)
-    if not database.is_file():
-        raise FileNotFoundError(f"clang configuration did not produce {database}")
     roots = indexed_targets(repository, database)
     targets = {
         target: tuple(

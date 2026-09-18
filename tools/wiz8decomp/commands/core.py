@@ -49,14 +49,12 @@ def pr_check_command(
     """Run every validation lane required by the files changed in a PR."""
     from .. import command_support as cli
     from ..build import check, lint, lint_required
+    from ..comparison import changed_files
     from ..config import repository_root
-    from ..subprocesses import run
 
     repository = repository_root()
-    changed = run(
-        ["jj", "diff", "--from", base, "--name-only", "--color=never"], cwd=repository
-    ).stdout.splitlines()
-    changed_paths = [repository / path for path in changed]
+    changed_paths = changed_files(repository, base)
+    changed = [path.relative_to(repository).as_posix() for path in changed_paths]
     result: dict[str, Any] = {
         "status": "passed",
         "base": base,
