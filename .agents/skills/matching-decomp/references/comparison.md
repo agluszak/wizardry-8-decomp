@@ -22,9 +22,11 @@ uv run wiz8 compare 0x0044e010
 
 Pass `--build` after source edits to build current inputs; without it the command reads the existing
 comparison product and source index. Both paths return structured selected results.
-Mismatch details include `difference`, `reason`/`location` where available, and a bounded
-`instruction_window`; use the first meaningful divergence already reported. Whole-image comparison
-is diagnostic, not a substitute for selected-function evidence.
+Mismatch details include `first_difference` (named original/recompiled entities and instruction
+indexes), `difference`, `reason`/`location` where available, a bounded `instruction_window`, and an
+`artifacts.diff` path under `build/reports/compare/`. Use that first meaningful divergence; do not
+scrape JSON for a second renderer. Whole-image comparison is diagnostic, not a substitute for
+selected-function evidence.
 
 Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. The comparison link uses `/OPT:NOICF`
 and `/FIXED:NO` (base relocations retained); retail folding can therefore produce a `call_target`

@@ -20,21 +20,6 @@ def self_test_command() -> None:
     cli.emit(verify_lifecycle_fixture(cli.settings()))
 
 
-@app.command("function")
-def function_command(
-    selectors: Annotated[
-        list[str],
-        typer.Argument(help="Function addresses, ranges, or exact reviewed Ghidra names."),
-    ],
-    program: str = typer.Option("wiz8", "--program"),
-) -> None:
-    """Generate persistent source-aware C++ candidates for a function batch."""
-    from .. import command_support as cli
-    from ..recover import recover_candidates
-
-    cli.emit(recover_candidates(cli.settings(), list(selectors), program_selector=program))
-
-
 @app.command("sweep")
 def sweep_command(
     file: Annotated[
@@ -61,21 +46,6 @@ def sweep_command(
             program_selector=program,
         )
     )
-
-
-@app.command("explain")
-def explain_command(
-    selectors: Annotated[
-        list[str],
-        typer.Argument(help="Function addresses, ranges, or exact source-owned names."),
-    ],
-    program: str = typer.Option("wiz8", "--program"),
-) -> None:
-    """Trace structured recovery facts for one function."""
-    from .. import command_support as cli
-    from ..ghidra.recovery import explain_functions
-
-    cli.emit(explain_functions(cli.settings(), selectors, program_selector=program))
 
 
 @app.command("regress")

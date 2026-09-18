@@ -19,9 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .config import Settings
 from .ghidra.mutations import apply_rows
-from .paths import atomic_json
 
 _SCHEMA = "wiz8.surrender-iat-typing-v2"
 _IMPORTS = Path("evidence/observations/surrender/wiz8-sr-imports.csv")
@@ -654,37 +652,3 @@ def apply_surrender_iat_typing(program: Any, plan: dict[str, Any]) -> dict[str, 
     return apply_rows(
         program, rows, _apply_surrender_iat_row, description="Apply SurRender IAT signatures"
     )
-
-
-def run_surrender_iat_typing(
-    settings: Settings, *, program_name: str = "wiz8", apply: bool = False
-) -> dict[str, Any]:
-    import pyghidra
-
-    from .ghidra.env import open_program
-
-    with open_program(settings, program_name) as program:
-        plan = collect_surrender_iat_plan(settings.repo_dir, program)
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "audit": plan.get("audit") or {},
-            "actionable": plan["actionable"],
-        }
-        if apply:
-            applied = apply_surrender_iat_typing(program, plan)
-            program.save("Apply SurRender IAT signatures", pyghidra.task_monitor())
-            result["applied"] = applied.get("applied")
-            result["errors"] = applied.get("errors")
-            result["apply_errors"] = len(applied.get("errors") or [])
-            if applied.get("errors"):
-                error_path = settings.build_dir / "surrender-iat" / "apply-errors.json"
-                atomic_json(error_path, applied["errors"])
-                result["apply_errors_report"] = str(error_path)
-        else:
-            result["planned"] = len(plan["imports"])
-            result["imports"] = plan["imports"][:50]
-        atomic_json(settings.build_dir / "surrender-iat" / "plan.json", plan)
-        return result

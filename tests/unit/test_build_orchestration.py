@@ -111,3 +111,75 @@ def test_runtime_product_freshness_uses_input_mtimes(
     build.warn_if_product_may_be_stale(settings, "runtime")
 
     assert ("runtime build may be stale" in caplog.text) is warns
+
+
+def test_product_cache_without_makefile_is_not_ready(tmp_path: Path) -> None:
+    (tmp_path / "CMakeCache.txt").write_text("CMAKE_GENERATOR:INTERNAL=NMake Makefiles\n")
+    assert build._product_cache_ready(tmp_path) is False
+    (tmp_path / "Makefile").write_text("all:\n")
+    assert build._product_cache_ready(tmp_path) is True
+
+
+def test_empty_library_mount_is_not_ready(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    jpeg = settings.work_dir / "fid/sources/unpacked/ijg-jpeg-6/jpeg-6"
+    jpeg.mkdir(parents=True)
+    mount = build.Mount(jpeg, "/jpeg")
+    assert build.prepared_mount_ready(mount) is False
+    (jpeg / "jpeglib.h").write_text("/* jpeg */\n")
+    assert build.prepared_mount_ready(mount) is True
+
+
+def test_lint_selection_refreshes_stale_source_index(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    header = tmp_path / "include/wiz8/item.h"
+    header.parent.mkdir(parents=True)
+    header.write_text("struct W8Item;\n")
+    events: list[str] = []
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.source_index_freshness",
+        lambda *_args, **_kwargs: {"state": "stale", "detail": "newer source"},
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.indexed_targets",
+        lambda *_args, **_kwargs: ["WIZ8"],
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.source_index.write_source_index",
+        lambda *_args, **_kwargs: events.append("write") or {},
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.comparison.header_dependent_files",
+        lambda *_args, **_kwargs: set(),
+    )
+
+    selected, changed, dependent = build._lint_selection(settings, [header])
+
+    assert events == ["write"]
+    assert changed == [header]
+    assert selected == [header]
+    assert dependent == []
+
+
+def test_product_inputs_names_stale_extraction_recipe(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp import doctor
+
+    settings = _settings(tmp_path)
+    extracted = settings.work_dir / "extracted" / "gog-base"
+    extracted.mkdir(parents=True)
+    (extracted / ".wiz8-extraction.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        "wiz8decomp.build.prepared_mount_ready",
+        lambda _mount: True,
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.extract.variants.verify_extraction",
+        lambda *_args, **_kwargs: {
+            "ok": False,
+            "errors": ["receipt implementation_revision differs from the current recipe"],
+        },
+    )
+    result = doctor._product_inputs_check(settings)
+    assert result["ok"] is True
+    assert result["status"] == "stale-recipe"
+    assert "gog-media" in (result["detail"] or "")

@@ -223,7 +223,8 @@ def run_high_function_debt(
 
     from .decompiler_quality import _resolve_function
     from .ghidra.env import open_program
-    from .ghidra.semantic import _high_function, dispose_sessions
+    from .ghidra.inspect import DecompileSession
+    from .ghidra.semantic import _high_function
 
     address_list = list(addresses) if addresses is not None else None
     recovered = {
@@ -244,6 +245,7 @@ def run_high_function_debt(
     totals: Counter[str] = Counter()
     failures = 0
     with open_program(settings, program_name) as program:
+        session = DecompileSession(program, profile=profile)
         try:
             for address in corpus["addresses"]:
                 function = _resolve_function(program, address)
@@ -261,7 +263,7 @@ def run_high_function_debt(
                 row["name"] = function.getName(True)
                 row["callers"] = _caller_count(function)
                 try:
-                    high = _high_function(program, function, profile=profile)
+                    high = _high_function(program, function, profile=profile, session=session)
                     metrics = score_high_function(high)
                     row["status"] = "ok"
                     row["metrics"] = metrics
@@ -277,7 +279,7 @@ def run_high_function_debt(
                     failures += 1
                 functions.append(row)
         finally:
-            dispose_sessions()
+            session.close()
 
     functions.sort(key=lambda row: (-int(row.get("priority") or 0), str(row.get("address") or "")))
     destination = settings.build_dir / "high-function-debt"

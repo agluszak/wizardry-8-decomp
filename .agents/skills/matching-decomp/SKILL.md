@@ -24,14 +24,17 @@ source use [source oracles](references/source-oracles.md). Read only the referen
 
 1. Identify the requested entity and its existing C++/header/TU owner. Search source and accepted
    oracles before recovering anything new. Reuse reviewed evidence unless missing, stale or contradictory.
-2. Consult `uv run wiz8 report context ADDRESS...` when TU/source/provenance context helps. Uncertain
-   placement blocks insertion, not investigation.
+2. Inspect native analysis with `uv run wiz8 ghidra decompile ADDRESS...`, `ghidra asm ADDRESS...`,
+   or `ghidra sym ADDRESS...`. These reads do not compile source. Uncertain placement blocks insertion,
+   not investigation. If ProgramDB is missing an established declaration, run `uv run wiz8 ghidra sync`.
 3. Before writing a nontrivial body, do the source-model audit below: establish parameter contracts,
    search for existing abstractions/inlined helpers, and settle touched ownership/lifetime/type facts.
-4. Inspect only unanswered retail facts. Use the Ghidra-analysis skill rather than rediscovering or
-   wrapping native APIs.
-5. Correct established analysis facts before relying on them. For type/layout changes follow
-   type-modeling and update the canonical declarations/consumers as one coherent batch.
+4. Inspect only unanswered retail facts. Capstone, objdump and raw-byte inspection remain valid for
+   independent verification. When falling back because of a tooling defect, record the specific missing
+   information in the task handoff.
+5. Correct established analysis facts before relying on them. Project them with `wiz8 ghidra sync`;
+   for type/layout source changes follow type-modeling and update the canonical declarations/consumers
+   as one coherent batch.
 6. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
    spelling merely to manipulate registers/CFG/score.
 7. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
@@ -40,8 +43,8 @@ source use [source oracles](references/source-oracles.md). Read only the referen
    appropriate object/data/vtable modality from the comparison reference. Stop when no evidence-backed
    source correction remains.
 
-`uv run wiz8 recover function ADDRESS...` is an optional candidate generator. It writes disposable
-artifacts; it does not edit source, build or compare and is never a prerequisite.
+`uv run wiz8 ghidra decompile ADDRESS...` writes disposable C/candidate/listing artifacts under
+`build/ghidra/`. It does not edit source, build or compare and is never a prerequisite.
 
 ## Before writing source
 

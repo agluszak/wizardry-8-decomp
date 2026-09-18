@@ -15,7 +15,7 @@ from reccmp.project.detect import RecCmpProject, RecCmpTarget
 from reccmp.source import SourceIndexError
 
 from .config import Settings
-from .paths import atomic_json
+from .paths import atomic_json, atomic_write
 from .subprocesses import resolve_executable, run
 
 LOGGER = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ def header_dependent_files(settings: Settings, target: str, changed: Iterable[Pa
     dependencies = index.get("translation_unit_dependencies")
     if not isinstance(dependencies, list):
         raise SourceIndexError(
-            "source index lacks header dependency metadata; run `uv run wiz8 analyze source-index`"
+            "source index lacks header dependency metadata; run `uv run wiz8 check`"
         )
     roots = indexed_targets(repository)[target.upper()]
     marker_files = {
@@ -286,7 +286,27 @@ def _function_result(entity: ReccmpComparedEntity) -> dict[str, Any]:
     if analysis.effective_reasons:
         result["effective_reasons"] = list(analysis.effective_reasons)
     if analysis.difference is not None:
-        result["difference"] = asdict(analysis.difference)
+        difference = analysis.difference
+        result["difference"] = asdict(difference)
+        original_side = difference.orig
+        recompiled_side = difference.recomp
+        result["first_difference"] = {
+            "kind": difference.kind,
+            "original": {
+                "name": entity.name,
+                "address": f"0x{entity.orig_addr:08x}",
+                "instruction_index": original_side.instruction_index,
+                "location": original_side.address,
+            },
+            "recompiled": {
+                "name": entity.name,
+                "address": (
+                    f"0x{entity.recomp_addr:08x}" if entity.recomp_addr is not None else None
+                ),
+                "instruction_index": recompiled_side.instruction_index,
+                "location": recompiled_side.address,
+            },
+        }
     if analysis.inconclusive_reason is not None:
         result["reason"] = analysis.inconclusive_reason
     if analysis.inconclusive_location is not None:
@@ -372,6 +392,10 @@ def compare_selected(
                 if difference.get("kind") == "branch_target" and not _paired_branch_witness(window):
                     row["reported_difference"] = difference
                     row["difference"] = {"kind": "alignment_or_structure"}
+        if row["status"] in {"mismatch", "inconclusive"}:
+            artifact = _write_compare_artifact(repository, row)
+            if artifact:
+                row["artifacts"] = {"diff": artifact}
         functions.append(row)
 
     exact = sum(row["status"] == "exact" for row in functions)
@@ -388,6 +412,50 @@ def compare_selected(
         "header_emissions": emitted,
         "functions": functions,
     }
+
+
+def _write_compare_artifact(repository: Path, row: dict[str, Any]) -> str | None:
+    """Write the first difference and instruction window next to other reports."""
+
+    address = str(row.get("address") or "").removeprefix("0x")
+    if not address:
+        return None
+    first = row.get("first_difference") or {}
+    original = first.get("original") or {}
+    recompiled = first.get("recompiled") or {}
+    lines = [
+        f"{row.get('name') or ''} {row.get('address')}".strip(),
+        f"status={row.get('status')}",
+        f"kind={first.get('kind') or (row.get('difference') or {}).get('kind') or ''}",
+        (
+            "original="
+            f"{original.get('name') or row.get('name')} "
+            f"{original.get('address') or row.get('address')} "
+            f"index={original.get('instruction_index')}"
+        ),
+        (
+            "recompiled="
+            f"{recompiled.get('name') or row.get('name')} "
+            f"{recompiled.get('address') or row.get('recompiled')} "
+            f"index={recompiled.get('instruction_index')}"
+        ),
+    ]
+    if row.get("reason"):
+        lines.append(f"reason={row['reason']}")
+    window = row.get("instruction_window") or {}
+    for side in ("original", "recomp"):
+        instructions = window.get(side) or []
+        if not instructions:
+            continue
+        lines.append(f"[{side}]")
+        for item in instructions:
+            marker = ">>" if item.get("divergence") else "  "
+            lines.append(
+                f"{marker} {item.get('address', '')}  {item.get('instruction', '')}".rstrip()
+            )
+    path = repository / "build" / "reports" / "compare" / f"{address}.txt"
+    atomic_write(path, "\n".join(lines) + "\n")
+    return str(path.relative_to(repository))
 
 
 def _paired_branch_witness(window: dict[str, list[dict[str, Any]]]) -> bool:

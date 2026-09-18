@@ -16,8 +16,6 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from .config import Settings
-from .paths import atomic_json, repo_relative
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.prototype-repair-v1"
@@ -161,61 +159,3 @@ def apply_source_conventions(
             }
         )
     return {"applied": len(applied), "errors": errors, "functions": applied}
-
-
-def run_prototype_repair(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    addresses: Sequence[int] | None = None,
-    promote_default_cdecl: bool = True,
-) -> dict[str, Any]:
-    """Report (and optionally apply) source-backed calling-convention repairs."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    actions = {"set-from-source"}
-    if promote_default_cdecl:
-        actions.add("promote-default-cdecl")
-    allowed = frozenset(actions)
-
-    with open_program(settings, program_name) as program:
-        plan = collect_source_convention_plan(
-            settings.repo_dir, program, target=target, addresses=addresses
-        )
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "hard_disagree": plan["hard_disagree"],
-            "missing_function": plan["missing_function"],
-        }
-        out_dir = settings.build_dir / "prototype-repair"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result["report"] = repo_relative(report_path, settings.repo_dir)
-
-        if not apply:
-            # Bound stdout: keep only summary counts plus a short sample.
-            result["sample"] = plan["functions"][:20]
-            return result
-
-        with pyghidra.transaction(program, "Source-backed calling convention repair"):
-            applied = apply_source_conventions(program, plan, actions=allowed)
-        dispose_sessions()
-        program.save("Source-backed calling convention repair", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["functions"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        return result

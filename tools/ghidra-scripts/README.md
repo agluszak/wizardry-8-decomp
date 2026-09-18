@@ -37,14 +37,14 @@ translation units, or global-data definitions.
 The existing exporter commands are:
 
 ```sh
-uv run wiz8 recover function 0x004a5e50 0x004a5f20
+uv run wiz8 ghidra decompile 0x004a5e50 0x004a5f20
 uv run wiz8 recover regress 0x004a5e50 0x004a5f20
-uv run wiz8 recover explain 0x004a5e50
 ```
 
-The ordinary command writes one persistent candidate artifact per selected function. It does not
-splice recovered sources, build, or compare. The host loads this source bundle in the checkout-scoped
-PyGhidra session, supplies `build/source-index.json`, and reads one structured result. This command
+Ordinary inspection writes disposable C/listing artifacts under `build/ghidra/` and may attach a
+source-aware candidate when the Java exporter can render one. It does not splice recovered sources,
+build, or compare. The host loads this source bundle in the checkout-scoped PyGhidra session, supplies
+an existing `build/source-index.json` when present, and reads one structured result. This command
 interface is specific to candidate generation; do not extend it into a general Ghidra access protocol.
 Separate `analyzeHeadless` invocation is reserved for existing disposable compiler fixtures and
 source-layout verification, not a prerequisite for direct analysis in the live project.

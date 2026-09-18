@@ -11,6 +11,8 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   vtables, comments, decompiler state and original-binary TU evidence. Git/C++ owns recovered source,
   declarations, source placement, matching annotations and build configuration. Reviewed provenance
   explains accepted identities without duplicating either model. Generated `build/` projections are disposable.
+  Project established source facts with `uv run wiz8 ghidra sync`; inspect with `ghidra decompile` /
+  `ghidra asm` / `ghidra sym`. Those reads do not compile, index, or synchronize.
 - Search source and accepted oracles before declaring or implementing. One entity has one canonical
   owner and one evidence-backed type. Cross-TU functions/globals are declared in the owning header;
   callers include it. No local `.cpp` externs except actual C/OS/vendor interfaces without an existing
@@ -119,7 +121,9 @@ not each textual edit, and reuse a successful result until a relevant input chan
 - layout/vtable/lifecycle/ABI: affected comparison bundle plus relevant compile/layout and `vtable` checks;
 - runtime behavior: relevant existing scenario and the requested observable result;
 - Python/tooling: focused tests/lint/type checks appropriate to the changed owner;
-- prose/skill-only changes: inspect the diff.
+- prose/skill-only changes: inspect the diff;
+- Ghidra inspection: `uv run wiz8 ghidra decompile ADDRESS...` / `asm` / `sym`; project facts with
+  `uv run wiz8 ghidra sync` when ProgramDB is missing an established declaration.
 
 For a substantial recovery batch, focused compares run during development are not the final audit. After
 the last source edit run `uv run wiz8 compare --changed` and account for every new or materially changed
@@ -151,10 +155,12 @@ clone, sibling or baseline checkout unless explicitly requested; each existing c
 
 For a genuinely new recovery task, adopt the intended base and run `uv run wiz8 doctor` before relying
 on retail/Ghidra analysis. Doctor validates checkout-local Ghidra ownership and reviewed-seed freshness
-in addition to the machine/toolchain checks. `stale`, `untracked`, or `unknown` Ghidra freshness blocks
-recovery; a matching retail binary hash alone does not prove the live analysis is current. Rerun doctor
-after a rebase/merge that changes the reviewed Ghidra manifest/checkpoint. Follow the ghidra-analysis
-skill for reconciliation; doctor never repairs or overwrites live analysis.
+in addition to the machine/toolchain checks, and reports source-projection freshness separately. A
+current reviewed seed does not imply current source declarations have been projected. `stale`,
+`untracked`, or `unknown` Ghidra freshness blocks recovery; a matching retail binary hash alone does
+not prove the live analysis is current. Rerun doctor after a rebase/merge that changes the reviewed
+Ghidra manifest/checkpoint. Follow the ghidra-analysis skill for reconciliation; doctor never repairs
+or overwrites live analysis.
 
 Keep one mutable change per coherent task by default. Fetch/rebase from `main@origin` only when upstream
 work is needed or immediately before authorized integration. After a rebase or merge, run

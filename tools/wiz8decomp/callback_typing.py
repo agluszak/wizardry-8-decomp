@@ -9,9 +9,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .config import Settings
-from .paths import atomic_json
-
 _SCHEMA = "wiz8.callback-typing-v1"
 _CATEGORY = "/wiz8/callbacks"
 
@@ -400,46 +397,3 @@ def apply_callback_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
         "fields": result["rows"],
         "created": sorted(created),
     }
-
-
-def run_callback_typing(
-    settings: Settings,
-    *,
-    program_name: str = "wiz8",
-    apply: bool = False,
-) -> dict[str, Any]:
-    """Report or apply curated callback field typings."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_callback_typing_plan(program)
-        out_dir = settings.build_dir / "callback-typing"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
-            "sample": plan["fields"][:20],
-        }
-        if not apply:
-            return result
-
-        applied = apply_callback_typing(program, plan)
-        dispose_sessions()
-        program.save("Type curated callback fields", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["created"] = applied["created"]
-        result["sample"] = applied["fields"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
-        return result

@@ -206,8 +206,9 @@ Unrecovered identities remain Ghidra entities. No editable table repeats either 
 Atomic supporting facts live in `evidence/reviewed/wiz8/claims.csv`. A claim names an entity by kind
 and stable key, then records one predicate, origin, optional authority/confidence, reference and
 details. Multiple sources for one address are multiple claims, not duplicate function identities.
-`uv run wiz8 ghidra index` exports the disposable function/type/vtable views and validates that every
-claim resolves; `uv run wiz8 evidence validate-index` repeats that check against the current export.
+`uv run wiz8 evidence validate-ghidra` resolves every provenance claim against live
+Ghidra function entries; `uv run wiz8 evidence validate` checks source-index and claim
+schemas without requiring a Ghidra export.
 An analysis-only `accepted-identity` claim may carry a name until an owned declaration supersedes it.
 Claims do not restate source-owned functions, classes, fields, layouts, or vtables. C++ owns those
 facts, Ghidra owns unpromoted analysis, and reccmp pairs the original and rebuilt entities. Full

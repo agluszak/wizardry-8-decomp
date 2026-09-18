@@ -116,6 +116,23 @@ def open_program(settings: Settings, selector: str = "wiz8") -> Iterator[Any]:
             yield program
 
 
+def save_program(program: Any, comment: str) -> None:
+    """Flush ProgramDB to the checkout-owned DomainFile, or raise if it stays dirty."""
+
+    import pyghidra
+    from ghidra.util.task import TaskMonitor
+
+    if not program.isChanged():
+        return
+    program.save(comment, pyghidra.task_monitor())
+    if program.isChanged():
+        domain = program.getDomainFile()
+        if domain is not None:
+            domain.save(TaskMonitor.DUMMY)
+    if program.isChanged():
+        raise RuntimeError(f"Ghidra ProgramDB still dirty after save ({comment})")
+
+
 @contextmanager
 def open_live_program(settings: Settings, program_name: str) -> Iterator[Any]:
     """Open one already-imported project program that has no tracked seed record.

@@ -32,6 +32,122 @@ def restore_command(program: str = "wiz8") -> None:
     cli.emit(action())
 
 
+@app.command("sync")
+def sync_command(
+    program: str = typer.Option("wiz8", "--program"),
+    import_source: bool = typer.Option(
+        False,
+        "--import-source",
+        help="Also run reccmp PDB import after established source facts are applied.",
+    ),
+) -> None:
+    """Project established source/evidence facts into the live ProgramDB."""
+    from .. import command_support as cli
+    from ..ghidra.sync import synchronize
+
+    payload = synchronize(cli.settings(), program_selector=program, import_source=import_source)
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+@app.command("decompile")
+def decompile_command(
+    selectors: Annotated[
+        list[str],
+        typer.Argument(help="Function addresses, ranges, or exact Ghidra names."),
+    ],
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Decompile selected functions from native ProgramDB without compiling source."""
+    from .. import command_support as cli
+    from ..ghidra.inspect import decompile_functions
+
+    payload = decompile_functions(cli.settings(), list(selectors), program_selector=program)
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+@app.command("asm")
+def asm_command(
+    selectors: Annotated[
+        list[str],
+        typer.Argument(help="Function addresses, ranges, or exact Ghidra names."),
+    ],
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Write annotated assembly for selected functions without decompiling."""
+    from .. import command_support as cli
+    from ..ghidra.inspect import assemble_functions
+
+    payload = assemble_functions(cli.settings(), list(selectors), program_selector=program)
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+@app.command("sym")
+def sym_command(
+    selectors: Annotated[
+        list[str],
+        typer.Argument(help="Addresses to resolve as functions, data, fields, or imports."),
+    ],
+    program: str = typer.Option("wiz8", "--program"),
+    interpret: str | None = typer.Option(
+        None, "--as", help="Interpret the first bytes as float, u32, i32, u16, or i16."
+    ),
+) -> None:
+    """Resolve identity, field, import, and data facts without decompiling."""
+    from .. import command_support as cli
+    from ..ghidra.inspect import lookup_symbols
+
+    payload = lookup_symbols(
+        cli.settings(), list(selectors), program_selector=program, interpret=interpret
+    )
+    cli.emit(payload)
+    if payload.get("ok") is False:
+        raise typer.Exit(code=1)
+
+
+@app.command("class")
+def class_command(
+    names: Annotated[
+        list[str],
+        typer.Argument(help="Reviewed Ghidra class names."),
+    ],
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Report class fields and vtable references from live ProgramDB."""
+    from .. import command_support as cli
+    from ..ghidra.env import open_program
+    from ..ghidra.inspect import class_report
+
+    def action():
+        with open_program(cli.settings(), program) as live:
+            return class_report(live, list(names))
+
+    cli.emit(action())
+
+
+@app.command("flow")
+def flow_command(
+    selector: Annotated[str, typer.Argument(help="Function address or reviewed Ghidra name")],
+    root: str = typer.Option(..., "--root", help="Parameter or receiver root to trace."),
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Answer one rooted field-flow question from HighFunction P-code."""
+    from .. import command_support as cli
+    from ..ghidra.env import open_program
+    from ..ghidra.semantic import field_accesses
+
+    def action():
+        with open_program(cli.settings(), program) as live:
+            return field_accesses(live, selector, root)
+
+    cli.emit(action())
+
+
 @app.command("import")
 def import_command(
     program: str | None = typer.Argument(None),

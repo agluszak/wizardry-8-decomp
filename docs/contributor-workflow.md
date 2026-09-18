@@ -34,9 +34,11 @@ uv run wiz8 doctor
 
 `doctor` is the recovery preflight for the adopted revision. In addition to machine/tooling checks, it
 verifies checkout-local Ghidra ownership and whether the live canonical Wiz8 program is provably based
-on the reviewed GZF tracked by this revision. `not-restored` is safe; `stale`, `untracked`, or `unknown`
-means retail-derived recovery must stop until Ghidra state is explicitly reconciled/refreshed. Doctor
-never repairs or overwrites the live project.
+on the reviewed GZF tracked by this revision. Source-projection freshness is a separate check: a current
+seed does not imply current declarations have been projected. `not-restored` is safe; `stale`,
+`untracked`, or `unknown` means retail-derived recovery must stop until Ghidra state is explicitly
+reconciled/refreshed. Doctor never repairs or overwrites the live project. Project established source
+facts with `uv run wiz8 ghidra sync`.
 
 If a later rebase/merge changes the reviewed Ghidra manifest/checkpoint, rerun doctor before using
 Ghidra again.

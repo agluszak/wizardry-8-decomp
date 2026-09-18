@@ -20,8 +20,11 @@ from wiz8decomp.global_typing import (
 def test_strip_and_template_mapping() -> None:
     assert _strip_qualifiers("const float") == "float"
     assert _strip_qualifiers("static const float") == "float"
+    assert _strip_qualifiers("struct W8Character *") == "W8Character *"
+    assert _strip_qualifiers("class W8ItemInstance *") == "W8ItemInstance *"
     assert _ghidra_type_name("srVector3T<float>") == "srVector3T[float]"
     assert _ghidra_type_name("const W8Foo *") == "W8Foo *"
+    assert _ghidra_type_name("struct W8Character *") == "W8Character *"
 
 
 def test_named_data_type_prefers_root_class_structure() -> None:

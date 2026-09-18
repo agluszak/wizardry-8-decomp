@@ -12,8 +12,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from .config import Settings
-from .paths import atomic_json
 from .source_index import source_functions
 
 _SCHEMA = "wiz8.function-attributes-v1"
@@ -274,71 +272,3 @@ def apply_function_attributes(
         except Exception as exc:  # noqa: BLE001
             errors.append({**row, "error": str(exc)})
     return {"applied": len(applied), "errors": errors, "functions": applied}
-
-
-def run_function_attributes(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    apply_thunks: bool = False,
-    addresses: Sequence[int] | None = None,
-) -> dict[str, Any]:
-    """Report or apply source-backed function attributes.
-
-    ``apply`` writes varargs/noreturn only. ``apply_thunks`` writes planned
-    pure-``JMP`` thunks (ecx-adjustors stay report-only). Either flag may be
-    set independently.
-    """
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_function_attribute_plan(
-            settings.repo_dir, program, target=target, addresses=addresses
-        )
-        out_dir = settings.build_dir / "function-attributes"
-        report_path = out_dir / "report.json"
-        atomic_json(
-            report_path,
-            {
-                **plan,
-                "program": program_name,
-                "apply": apply,
-                "apply_thunks": apply_thunks,
-            },
-        )
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "apply_thunks": apply_thunks,
-            "counts": plan["counts"],
-            "actionable": plan["actionable"],
-            "report": str(report_path.relative_to(settings.repo_dir)),
-            "sample": plan["functions"][:20],
-        }
-        if not apply and not apply_thunks:
-            return result
-
-        with pyghidra.transaction(program, "Source-backed function attributes"):
-            applied = apply_function_attributes(
-                program,
-                plan,
-                apply_attributes=apply,
-                apply_thunks=apply_thunks,
-            )
-        dispose_sessions()
-        program.save("Source-backed function attributes", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["functions"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = str(error_path.relative_to(settings.repo_dir))
-        return result

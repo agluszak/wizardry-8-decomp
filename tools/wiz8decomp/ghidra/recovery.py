@@ -18,6 +18,57 @@ def _program_name(settings: Settings, selector: str) -> str:
     return resolve_seed_program(settings, selector)
 
 
+def _source_index_arguments(settings: Settings, program_selector: str) -> list[str]:
+    from ..source_index import target_for_program, try_load_source_index
+
+    arguments: list[str] = []
+    try:
+        arguments.extend(["--target", target_for_program(settings.repo_dir, program_selector)])
+    except Exception:  # noqa: BLE001 - recovery still works from native ProgramDB
+        arguments.extend(["--target", "WIZ8"])
+    if try_load_source_index(settings.repo_dir) is not None:
+        arguments.extend(["--source-index", str(settings.build_dir / "source-index.json")])
+    return arguments
+
+
+def recover_on_program(
+    settings: Settings,
+    program: Any,
+    selections: list[str],
+    *,
+    program_selector: str,
+    explain: bool = False,
+    include_body: bool = False,
+) -> dict[int, dict[str, Any]]:
+    """Run the Java recovery renderer against an already-open program.
+
+    Does not compile source or refresh the source index.
+    """
+
+    if not selections:
+        return {}
+    from .resolve import resolve_function_entries
+
+    normalized = [
+        f"0x{address:08x}" for address in resolve_function_entries(program, list(selections))
+    ]
+    args = _source_index_arguments(settings, program_selector)
+    if explain:
+        args.append("--explain")
+    if include_body:
+        args.append("--include-body")
+    args.extend(normalized)
+    result = _execute_script(settings, program, "Wiz8Recover.java", args)
+    exported: dict[int, dict[str, Any]] = {}
+    for item in result.get("exports") or []:
+        entry = item.get("entry")
+        if isinstance(entry, str):
+            exported[int(entry, 0)] = item
+            recovery = item.get("recovery") if isinstance(item.get("recovery"), dict) else {}
+            exported[int(entry, 0)]["defects"] = list(recovery.get("defects") or [])
+    return exported
+
+
 def _recover(
     settings: Settings,
     selections: list[str],
@@ -28,21 +79,14 @@ def _recover(
 ) -> dict[str, Any]:
     if not selections:
         raise ValueError("pass at least one function address or range")
-    from ..source_index import target_for_program, write_source_index
     from .env import open_program
-    from .query import resolve_function_selectors
+    from .resolve import resolve_function_entries
 
-    write_source_index(settings)
     with open_program(settings, program_selector) as program:
         normalized = [
-            f"0x{address:08x}" for address in resolve_function_selectors(program, list(selections))
+            f"0x{address:08x}" for address in resolve_function_entries(program, list(selections))
         ]
-        args = [
-            "--source-index",
-            str(settings.build_dir / "source-index.json"),
-            "--target",
-            target_for_program(settings.repo_dir, program_selector),
-        ]
+        args = _source_index_arguments(settings, program_selector)
         if explain:
             args.append("--explain")
         if include_body:
@@ -136,11 +180,11 @@ def explain_functions(
     """Format structured recovery facts for addresses, ranges, or mixed selections."""
 
     from .env import open_program
-    from .query import resolve_function_selectors
+    from .resolve import resolve_function_entries
 
     with open_program(settings, program_selector) as program:
         normalized = [
-            f"0x{address:08x}" for address in resolve_function_selectors(program, selections)
+            f"0x{address:08x}" for address in resolve_function_entries(program, selections)
         ]
     result = _recover(settings, normalized, program_selector=program_selector, explain=True)
     functions: list[dict[str, Any]] = []

@@ -52,8 +52,10 @@ address, fix the declaration/linkage/signature; never add a handwritten fake bod
    loading. The harness may inject input/events externally; matching source must never gain test-only
    branches. Menu/new-game scenarios use the real input path, not downstream-handler bypasses.
 3. At failure, recover the nearest missing/wrong framework boundary instead of hard-coding a
-   screen-specific bypass. Use [matching-decomp](../matching-decomp/SKILL.md) for source recovery,
-   [ghidra-analysis](../ghidra-analysis/SKILL.md) for unanswered retail facts, and
+   screen-specific bypass. Mapped `STUB` traps name a retail address when identity is established;
+   inspect that function with `uv run wiz8 ghidra decompile ADDRESS` / `ghidra asm ADDRESS`, search
+   existing helpers, then recover a coherent body. Use [matching-decomp](../matching-decomp/SKILL.md)
+   for source recovery, [ghidra-analysis](../ghidra-analysis/SKILL.md) for unanswered retail facts, and
    [type-modeling](../type-modeling/SKILL.md) when the failure exposes an ABI/layout defect.
 4. Validate the relevant behavior with the existing deterministic harness and the requested observable
    result. Prefer stable semantic observations over coordinates, arbitrary sleeps, incidental call

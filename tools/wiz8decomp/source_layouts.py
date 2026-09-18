@@ -31,8 +31,7 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     source_index = settings.build_dir / "source-index.json"
     if not source_index.is_file():
         raise ValueError(
-            f"source index does not exist: {source_index}; "
-            "run `uv run wiz8 analyze source-index` first"
+            f"source index does not exist: {source_index}; run `uv run wiz8 check` first"
         )
     seed = seed_record(settings, "wiz8")
     digest = hashlib.sha256()

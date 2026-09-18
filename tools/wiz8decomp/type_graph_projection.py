@@ -52,7 +52,6 @@ from .class_structure_projection import (
     _simple_name,
     _thiscall_owning_classes,
 )
-from .config import Settings
 from .datatype_contracts import (
     has_legacy_nested_ref,
     is_legacy_path,
@@ -64,7 +63,6 @@ from .datatype_contracts import (
     unwrap_plain_typedefs,
     walk_datatype_refs,
 )
-from .paths import atomic_json, repo_relative
 from .source_index import SourceIndex, load_source_index
 
 _SCHEMA = "wiz8.type-graph-projection-v1"
@@ -707,52 +705,3 @@ def apply_type_graph_projection(
         description="Type-graph projection",
     )
     return {"applied": result["applied"], "errors": result["errors"], "classes": result["rows"]}
-
-
-def run_type_graph_projection(
-    settings: Settings,
-    *,
-    target: str = "WIZ8",
-    program_name: str = "wiz8",
-    apply: bool = False,
-    class_names: Sequence[str] | None = None,
-) -> dict[str, Any]:
-    """Report or apply type-graph projection; write ``build/type-graph-projection/``."""
-
-    import pyghidra
-
-    from .ghidra.env import open_program
-    from .ghidra.semantic import dispose_sessions
-
-    with open_program(settings, program_name) as program:
-        plan = collect_type_graph_plan(
-            settings.repo_dir, program, target=target, class_names=class_names
-        )
-        out_dir = settings.build_dir / "type-graph-projection"
-        report_path = out_dir / "report.json"
-        atomic_json(report_path, {**plan, "program": program_name, "apply": apply})
-        result: dict[str, Any] = {
-            "schema": _SCHEMA,
-            "program": program_name,
-            "apply": apply,
-            "counts": plan["counts"],
-            "field_counts": plan["field_counts"],
-            "actionable": plan["actionable"],
-            "plan_hash": plan["plan_hash"],
-            "report": repo_relative(report_path, settings.repo_dir),
-            "sample": plan["classes"][:20],
-        }
-        if not apply:
-            return result
-
-        applied = apply_type_graph_projection(program, plan)
-        dispose_sessions()
-        program.save("Type-graph projection onto class_binding", pyghidra.task_monitor())
-        result["applied"] = applied["applied"]
-        result["apply_errors"] = len(applied["errors"])
-        result["sample"] = applied["classes"][:20]
-        if applied["errors"]:
-            error_path = out_dir / "apply-errors.json"
-            atomic_json(error_path, applied["errors"])
-            result["apply_errors_report"] = repo_relative(error_path, settings.repo_dir)
-        return result

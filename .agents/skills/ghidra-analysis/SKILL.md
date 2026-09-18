@@ -23,7 +23,9 @@ uv run wiz8 doctor
 Do not infer freshness from the program name, retail binary hash, an existing `ghidra-project/`, or the
 fact that `open_program()` can find a program. A checkout can retain an older live analysis after a
 newer reviewed GZF lands. `doctor` checks checkout ownership plus the reviewed-seed provenance recorded
-when the project was restored; it does not repair or replace analysis state.
+when the project was restored, and reports source-projection freshness separately. A current seed does
+not imply current source declarations have been projected. Doctor does not repair or replace analysis
+state. Project established source facts with `uv run wiz8 ghidra sync`.
 
 The Ghidra freshness states are intentional:
 
@@ -97,15 +99,18 @@ already known to be false.
 ## Analysis enrichment
 
 Whole-program decompiler quality comes from enriching the analysis database, not from pretty-printer
-tweaks. Follow [analysis enrichment](references/analysis-enrichment.md) for the ordered roadmap
-(benchmark → calling conventions → source projection → class Structures → globals/callbacks →
-attributes → dual decompiler profiles). Score enrichment changes with
-`uv run wiz8 analyze decompiler-quality` before promoting them into reviewed state.
+tweaks. Follow [analysis enrichment](references/analysis-enrichment.md) for class-binding and
+projection rules. Apply established facts with `uv run wiz8 ghidra sync`. Score the result with
+`uv run wiz8 analyze decompiler-quality` before promoting live state into a reviewed GZF.
+
+Routine recovery does not need this skill merely to obtain C, assembly, or symbol names; those reads
+are `uv run wiz8 ghidra decompile|asm|sym ADDRESS...`. Class layout and rooted P-code field flow are
+`ghidra class NAME` and `ghidra flow ADDRESS --root NAME`.
 
 ## Checkpoints and bulk projection
 
 Ordinary analysis edits need `program.save`, not a GZF ritual. Read
 [checkpoints](references/checkpoints.md) only when sharing/restoring/reconciling reviewed Ghidra state.
-Read [source import](references/source-import.md) for periodic high-confidence enrichment
-checkpoints and for full canonical regeneration from the rebuilt source/PDB. Those are
-state-management operations, not prerequisites for normal inspection or recovery.
+Read [source import](references/source-import.md) for `ghidra sync` and for full canonical
+regeneration from the rebuilt source/PDB. Those are state-management operations, not prerequisites
+for normal inspection or recovery.

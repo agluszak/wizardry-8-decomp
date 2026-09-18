@@ -185,6 +185,21 @@ def test_staging_keeps_the_map_for_each_executable_snapshot(
     assert first.map.read_text() == first_map
 
 
+def test_staging_skips_rewriting_an_identical_executable(
+    tmp_path: Path, synthetic_pe: Path
+) -> None:
+    settings = _settings(tmp_path)
+    executable = settings.product_build_dir / "Wiz8Runtime.exe"
+    executable.write_bytes(synthetic_pe.read_bytes())
+    map_file = executable.with_suffix(".map")
+    map_file.write_text(" Timestamp is 12345678\n")
+    first = stage_game(settings, name="wiz8", executable=executable)
+    stamped = first.executable.stat().st_mtime_ns
+    second = stage_game(settings, name="wiz8", executable=executable)
+    assert second.executable == first.executable
+    assert second.executable.stat().st_mtime_ns == stamped
+
+
 def test_staging_refuses_mismatched_map_before_replacing_executable(
     tmp_path: Path, synthetic_pe: Path
 ) -> None:

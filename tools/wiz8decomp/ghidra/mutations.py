@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from typing import Any
 
 
@@ -14,6 +15,40 @@ class RowApplyError(Exception):
         self.payload = dict(payload)
 
 
+def transaction_is_open(program: Any) -> bool:
+    """True when ``program`` already has a Ghidra transaction."""
+
+    for name in ("getCurrentTransactionInfo", "getCurrentTransaction"):
+        getter = getattr(program, name, None)
+        if getter is None:
+            continue
+        try:
+            value = getter()
+        except Exception:  # noqa: BLE001
+            value = None
+        if value is not None:
+            return True
+    return False
+
+
+@contextmanager
+def program_transaction(program: Any, description: str) -> Iterator[None]:
+    """Start a transaction only when the program is not already in one.
+
+    Ghidra aborts the entire outer transaction if a nested one rolls back.
+    Batch owners such as ``ghidra sync`` therefore hold one transaction, and
+    per-row helpers must not nest.
+    """
+
+    if transaction_is_open(program):
+        yield
+        return
+    import pyghidra
+
+    with pyghidra.transaction(program, description):
+        yield
+
+
 def apply_rows(
     program: Any,
     rows: Sequence[Mapping[str, Any]],
@@ -21,14 +56,12 @@ def apply_rows(
     *,
     description: str,
 ) -> dict[str, Any]:
-    """Apply each row in its own ``pyghidra.transaction``.
+    """Apply each row, isolating failures without aborting an outer batch.
 
-    On exception the row's transaction rolls back and the failure is recorded
-    without aborting the remaining rows. If ``apply_one`` returns a mapping with
-    an ``error`` key, that row is treated as a failure and rolled back.
+    Standalone callers still get a per-row transaction that rolls back on
+    error. When a batch transaction is already open, failures are recorded
+    without ``endTransaction(..., false)``.
     """
-
-    import pyghidra
 
     applied: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
@@ -42,11 +75,10 @@ def apply_rows(
             or "?"
         )
         try:
-            with pyghidra.transaction(program, f"{description}: {label}"):
+            with program_transaction(program, f"{description}: {label}"):
                 result = dict(apply_one(program, row))
                 if result.get("error"):
                     raise RowApplyError(result)
-            # Count applied only after the transaction exits successfully.
             applied.append(result)
         except RowApplyError as exc:
             errors.append(exc.payload)
