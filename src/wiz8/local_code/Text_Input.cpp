@@ -14,6 +14,7 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
@@ -38,9 +39,11 @@
 
 typedef void (*INPUT_CALLBACK)(unsigned char index, int active);
 
-/* The allocation at 0x005D39B0 is 0x6c bytes. Repeated traversal fixes the
-   scalar fields and links, while calls into the pinned SGP oracle fix
-   0x10-0x5b as one ordinary MOUSE_REGION. */
+/* The allocation at 0x005D39B0 is 0x6c bytes. Sir-Tech's released
+   Text_Input.c establishes the inherited members through InputCallback.
+   Retail traversal and rendering then identify two Wizardry additions:
+   +0x60 selects the alternate inactive-field background, and +0x61 suppresses
+   both mouse callbacks. 0x62-0x63 only align the following list links. */
 struct TEXTINPUTNODE {
     unsigned char ubID;
     unsigned char _padding01;
@@ -55,9 +58,9 @@ struct TEXTINPUTNODE {
     unsigned char _padding0f;
     MOUSE_REGION region;
     INPUT_CALLBACK InputCallback;
-    unsigned char flag_60;
-    unsigned char blocks_mouse_callback;
-    unsigned char value_62[2];
+    unsigned char fUseInactiveTextFieldColor; // bool-byte-ok: Wizardry extension at +0x60
+    unsigned char fBlockMouseCallbacks;       // bool-byte-ok: Wizardry extension at +0x61
+    unsigned char _padding62[2];
     TEXTINPUTNODE* next;
     TEXTINPUTNODE* prev;
 };
@@ -81,7 +84,7 @@ struct TextInputColors {
     unsigned char ubDisabledShadowColor;
     unsigned char _padding13;
     unsigned short usDisabledTextFieldColor;
-    unsigned short usWizardryInactiveColor;
+    unsigned short usInactiveTextFieldColor;
 };
 
 struct STACKTEXTINPUTNODE {
@@ -91,6 +94,25 @@ struct STACKTEXTINPUTNODE {
 };
 
 static_assert(sizeof(TEXTINPUTNODE) == 0x6c, "text input field must match the retail allocation");
+static_assert(offsetof(TEXTINPUTNODE, ubID) == 0x00, "TEXTINPUTNODE.ubID");
+static_assert(offsetof(TEXTINPUTNODE, _padding01) == 0x01, "TEXTINPUTNODE._padding01");
+static_assert(offsetof(TEXTINPUTNODE, usInputType) == 0x02, "TEXTINPUTNODE.usInputType");
+static_assert(offsetof(TEXTINPUTNODE, ubMaxChars) == 0x04, "TEXTINPUTNODE.ubMaxChars");
+static_assert(offsetof(TEXTINPUTNODE, _padding05) == 0x05, "TEXTINPUTNODE._padding05");
+static_assert(offsetof(TEXTINPUTNODE, szString) == 0x08, "TEXTINPUTNODE.szString");
+static_assert(offsetof(TEXTINPUTNODE, ubStrLen) == 0x0c, "TEXTINPUTNODE.ubStrLen");
+static_assert(offsetof(TEXTINPUTNODE, fEnabled) == 0x0d, "TEXTINPUTNODE.fEnabled");
+static_assert(offsetof(TEXTINPUTNODE, fUserField) == 0x0e, "TEXTINPUTNODE.fUserField");
+static_assert(offsetof(TEXTINPUTNODE, _padding0f) == 0x0f, "TEXTINPUTNODE._padding0f");
+static_assert(offsetof(TEXTINPUTNODE, region) == 0x10, "TEXTINPUTNODE.region");
+static_assert(offsetof(TEXTINPUTNODE, InputCallback) == 0x5c, "TEXTINPUTNODE.InputCallback");
+static_assert(offsetof(TEXTINPUTNODE, fUseInactiveTextFieldColor) == 0x60,
+              "TEXTINPUTNODE.fUseInactiveTextFieldColor");
+static_assert(offsetof(TEXTINPUTNODE, fBlockMouseCallbacks) == 0x61,
+              "TEXTINPUTNODE.fBlockMouseCallbacks");
+static_assert(offsetof(TEXTINPUTNODE, _padding62) == 0x62, "TEXTINPUTNODE._padding62");
+static_assert(offsetof(TEXTINPUTNODE, next) == 0x64, "TEXTINPUTNODE.next");
+static_assert(offsetof(TEXTINPUTNODE, prev) == 0x68, "TEXTINPUTNODE.prev");
 static_assert(sizeof(TextInputColors) == 0x18, "text input style must match the retail allocation");
 static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
@@ -175,7 +197,7 @@ void SetTextInputScheme(int mode)
     if (mode == 0) {
         pColors->usFont = (short)g_font12point1_683648;
         pColors->usTextFieldColor = Get16BPPColor(0x00c8c8);
-        pColors->usWizardryInactiveColor = Get16BPPColor(0xffffff);
+        pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0x513d18);
         pColors->usBrighterColor = Get16BPPColor(0x878a88);
         pColors->fBevelling = 1;
@@ -185,7 +207,7 @@ void SetTextInputScheme(int mode)
     } else if (mode == 1) {
         pColors->usFont = (short)g_wiz_text_mono_font_683630;
         pColors->usTextFieldColor = Get16BPPColor(0x632a1e);
-        pColors->usWizardryInactiveColor = Get16BPPColor(0x0a0a0a);
+        pColors->usInactiveTextFieldColor = Get16BPPColor(0x0a0a0a);
         pColors->usDarkerColor = Get16BPPColor(0);
         pColors->usBrighterColor = Get16BPPColor(0);
         pColors->fBevelling = 1;
@@ -199,7 +221,7 @@ void SetTextInputScheme(int mode)
     } else if (mode == 2) {
         pColors->usFont = (short)g_wiz_text_mono_font_683630;
         pColors->usTextFieldColor = Get16BPPColor(0xffffff);
-        pColors->usWizardryInactiveColor = Get16BPPColor(0xffffff);
+        pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0);
         pColors->usBrighterColor = Get16BPPColor(0);
         pColors->fBevelling = 1;
@@ -282,7 +304,8 @@ void KillTextInputMode(void)
 
 // FUNCTION: WIZ8 0x005D39B0
 char AddTextInputField(int left, int top, int width, int height, int priority, const wchar_t* text,
-                       unsigned char capacity, short input_type, unsigned char flag)
+                       unsigned char capacity, short input_type,
+                       unsigned char use_inactive_text_field_color)
 {
     TEXTINPUTNODE* field = (TEXTINPUTNODE*)malloc(sizeof(TEXTINPUTNODE));
     memset(field, 0, sizeof(TEXTINPUTNODE));
@@ -325,7 +348,7 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
                       (signed char)priority, MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
                       MouseClickedInTextRegionCallback);
     MSYS_SetRegionUserData(&field->region, 0, field->ubID);
-    field->flag_60 = flag;
+    field->fUseInactiveTextFieldColor = use_inactive_text_field_color;
     return field->ubID;
 }
 
@@ -866,7 +889,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
 
     int field_index = MSYS_GetRegionUserData(region, 0);
     for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-        if (field->ubID == field_index && field->blocks_mouse_callback != 0)
+        if (field->ubID == field_index && field->fBlockMouseCallbacks != 0)
             return;
     }
 
@@ -948,7 +971,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         return;
 
     for (TEXTINPUTNODE* field = gpTextInputHead; field != 0; field = field->next) {
-        if (field->ubID == field_index && field->blocks_mouse_callback != 0)
+        if (field->ubID == field_index && field->fBlockMouseCallbacks != 0)
             return;
     }
 
@@ -1085,8 +1108,8 @@ void RenderBackgroundField(TEXTINPUTNODE* field)
         colour = style->usDisabledTextFieldColor;
     else
         colour = style->usTextFieldColor;
-    if (field->flag_60 != 0 && field != gpActive)
-        colour = style->usWizardryInactiveColor;
+    if (field->fUseInactiveTextFieldColor != 0 && field != gpActive)
+        colour = style->usInactiveTextFieldColor;
 
     ColorFillVideoSurfaceArea(-14, left, top, right, bottom, colour);
     InvalidateRegion(left, top, right, bottom, 0);
@@ -1401,6 +1424,6 @@ void SetInputFieldBlocksMouseCallback(unsigned char field_id, unsigned char bloc
                 return;
             }
         }
-        field->blocks_mouse_callback = blocks;
+        field->fBlockMouseCallbacks = blocks;
     }
 }
