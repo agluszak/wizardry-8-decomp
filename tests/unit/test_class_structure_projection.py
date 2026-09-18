@@ -44,10 +44,12 @@ def test_richness_and_usefulness() -> None:
     assert _is_useful(rich)
 
 
-def test_structure_path_tier_prefers_root_then_demangler() -> None:
+def test_structure_path_tier_prefers_identity_path() -> None:
     assert _structure_path_tier("/W8Monster", "W8Monster", "W8Monster") == 0
-    assert _structure_path_tier("/Demangler/W8Monster", "W8Monster", "W8Monster") == 1
-    assert _structure_path_tier("/other/W8Monster", "W8Monster", "W8Monster") == 2
+    assert _structure_path_tier("/Demangler/W8Monster", "W8Monster", "W8Monster") == 3
+    assert _structure_path_tier("/other/W8Monster", "W8Monster", "W8Monster") == 4
+    assert _structure_path_tier("/ns/Foo", "Foo", "ns::Foo") == 0
+    assert _structure_path_tier("/Foo", "Foo", "ns::Foo") == 2
 
 
 def test_decide_agrees_when_bound_is_useful() -> None:

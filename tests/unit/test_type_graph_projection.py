@@ -223,7 +223,7 @@ def test_datatype_shape_distinguishes_pointer_pointee() -> None:
     assert datatype_shape_key(a) != datatype_shape_key(b)
 
 
-def test_union_with_nested_legacy_is_conflict() -> None:
+def test_union_with_nested_legacy_remaps() -> None:
     class _FakeUnion:
         def __init__(self, path: str, member: object) -> None:
             self._path = path
@@ -241,7 +241,7 @@ def test_union_with_nested_legacy_is_conflict() -> None:
     legacy = _FakePointer("/wiz8/classes/Foo *", _FakeStructure("/wiz8/classes/Foo", 4, []))
     union = _FakeUnion("/MaybeFoo", legacy)
     bound = _FakeStructure("/Owner", 4, [_FakeComponent(0, 4, "u", union)])
-    assert decide_field_action(bound, bound) == "conflict"
+    assert decide_field_action(bound, bound) == "remap-nested"
 
 
 def test_legacy_pointer_agrees_after_identity_normalization() -> None:
@@ -253,3 +253,16 @@ def test_legacy_pointer_agrees_after_identity_normalization() -> None:
     assert not structures_field_shape_agree(left, right)
     assert structures_field_shape_agree(left, right, identity_map=identity)
     assert decide_field_action(left, right, identity_map=identity) == "remap-nested"
+
+
+def test_class_key_from_path_does_not_invent_namespaces() -> None:
+    from wiz8decomp.type_graph_projection import _class_key_from_path
+
+    identities = {"Foo", "alpha::Bar", "stLight"}
+    assert _class_key_from_path("/wiz8/classes/ns/Foo") == "ns::Foo"
+    assert _class_key_from_path("/alpha/Bar", source_identities=identities) == "alpha::Bar"
+    assert _class_key_from_path("/Foo", source_identities=identities) == "Foo"
+    assert _class_key_from_path("/Demangler/Foo", source_identities=identities) == "Foo"
+    assert _class_key_from_path("/Demangler/Foo") is None
+    assert _class_key_from_path("/foo/bar/Baz", source_identities=identities) is None
+    assert _class_key_from_path("/stLight", source_identities=identities) == "stLight"

@@ -377,6 +377,9 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("vftable-typing")(vftable_typing_command)
     analyze_app.command("cosmic-forge-globals")(cosmic_forge_globals_command)
     analyze_app.command("convention-heuristics")(convention_heuristics_command)
+    analyze_app.command("high-function-debt")(high_function_debt_command)
+    analyze_app.command("parameter-id")(parameter_id_command)
+    analyze_app.command("surrender-iat")(surrender_iat_command)
 
 
 def source_index_command() -> None:
@@ -598,7 +601,24 @@ def enrichment_promote_command(
         bool,
         typer.Option(
             "--force",
+            help="Alias of --replace-live. Does not bypass provenance checks.",
+        ),
+    ] = False,
+    replace_live: Annotated[
+        bool,
+        typer.Option(
+            "--replace-live",
             help="Replace a live Ghidra project (moved aside). Required when live exists.",
+        ),
+    ] = False,
+    allow_provenance_mismatch: Annotated[
+        bool,
+        typer.Option(
+            "--allow-provenance-mismatch",
+            help=(
+                "Allow Ghidra/reccmp/source-tree/PDB provenance mismatches. "
+                "Never bypasses reviewed-seed or retail-binary hashes."
+            ),
         ),
     ] = False,
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
@@ -612,6 +632,8 @@ def enrichment_promote_command(
         run_dir=run_dir,
         from_latest=from_latest,
         force=force,
+        replace_live=replace_live,
+        allow_provenance_mismatch=allow_provenance_mismatch,
         program_name=program,
     )
     cli.emit(payload)
@@ -638,7 +660,7 @@ def class_this_typing_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Type this from existing /wiz8/classes Structures on source __thiscall methods."""
+    """Type this from the bound GhidraClass Structure on source __thiscall methods."""
     from .. import command_support as cli
     from ..class_this_typing import run_class_this_typing
 
@@ -659,7 +681,7 @@ def class_this_typing_command(
 def class_structures_command(
     apply: Annotated[
         bool,
-        typer.Option("--apply", help="Write /wiz8/classes Structures into the live program."),
+        typer.Option("--apply", help="Write bound class Structures into the live program."),
     ] = False,
     skip_this_typing: Annotated[
         bool,
@@ -675,7 +697,7 @@ def class_structures_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Promote PDB/root class Structures into /wiz8/classes for typed this."""
+    """Reconcile source class layouts onto native GhidraClass Structures."""
     from .. import command_support as cli
     from ..class_structure_projection import run_class_structure_projection
 
@@ -849,7 +871,7 @@ def vftable_typing_command(
     program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
     target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
 ) -> None:
-    """Create named vftable Structures at known class vtable addresses."""
+    """Create named vftable/vbtable Structures at known class table addresses."""
     from .. import command_support as cli
     from ..vftable_typing import run_vftable_typing
 
@@ -916,6 +938,103 @@ def convention_heuristics_command(
             addresses=addresses,
             limit=limit,
         )
+
+    cli.emit(action())
+
+
+def high_function_debt_command(
+    limit: Annotated[
+        int,
+        typer.Option(min=1, help="Maximum functions to decompile."),
+    ] = 200,
+    seed: Annotated[int, typer.Option(help="Stable corpus sample seed.")] = 1,
+    corpus_kind: Annotated[
+        str,
+        typer.Option(help="oracle or pain (default pain)."),
+    ] = "pain",
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Explicit address; repeatable."),
+    ] = None,
+    profile: Annotated[
+        str,
+        typer.Option(help="Decompiler option profile: analysis, recovery, or program."),
+    ] = "analysis",
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Census HighFunction residuals; rank by debt times caller fanout."""
+    from .. import command_support as cli
+    from ..high_function_debt import run_high_function_debt
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_high_function_debt(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            limit=limit,
+            seed=seed,
+            addresses=addresses,
+            corpus_kind=corpus_kind,
+            profile=profile,
+        )
+
+    cli.emit(action())
+
+
+def parameter_id_command(
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply",
+            help="Commit HighFunction params for DEFAULT/ANALYSIS unrecovered functions.",
+        ),
+    ] = False,
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Limit to these addresses; repeatable."),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        typer.Option(min=1, help="Optional cap on planned functions."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Targeted Parameter ID; never overwrites IMPORTED/USER_DEFINED signatures."""
+    from .. import command_support as cli
+    from ..parameter_id import run_parameter_id
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        return run_parameter_id(
+            cli.settings(),
+            target=target,
+            program_name=program,
+            apply=apply,
+            addresses=addresses,
+            limit=limit,
+        )
+
+    cli.emit(action())
+
+
+def surrender_iat_command(
+    apply: Annotated[
+        bool,
+        typer.Option(
+            "--apply", help="Write SurRender conventions and resolved types onto IAT thunks."
+        ),
+    ] = False,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+) -> None:
+    """Project SurRender retail ABI signatures onto Wiz8 import thunks."""
+    from .. import command_support as cli
+    from ..surrender_iat_typing import run_surrender_iat_typing
+
+    def action():
+        return run_surrender_iat_typing(cli.settings(), program_name=program, apply=apply)
 
     cli.emit(action())
 

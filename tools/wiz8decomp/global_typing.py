@@ -109,8 +109,41 @@ def _named_data_type(program: Any, name: str) -> Any | None:
     if not simple:
         return None
 
-    # Class-like spellings resolve through class_binding first. Never select a
-    # legacy ``/wiz8/classes`` path as the write target for apply.
+    candidates: list[str] = []
+    if "::" in text:
+        parts = [part.strip() for part in text.split("::") if part.strip()]
+        if parts:
+            candidates.append("/" + "/".join(parts))
+        candidates.append(f"/{text}")
+    candidates.extend(
+        (
+            f"/{simple}",
+            f"/wiz8/sgp/{simple}",
+            f"/Demangler/{simple}",
+        )
+    )
+    seen: set[str] = set()
+    for path in candidates:
+        if path in seen or "//" in path or path.endswith("/"):
+            continue
+        seen.add(path)
+        try:
+            data_type = manager.getDataType(path)
+        except Exception as exc:
+            if "Paths must have non-empty elements" not in str(exc):
+                raise
+            continue
+        if data_type is not None:
+            from .class_binding import is_legacy_enriched_path
+
+            resolved_path = (
+                str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
+            )
+            if is_legacy_enriched_path(resolved_path):
+                continue
+            return data_type
+
+    # Class Structures resolve through GhidraClass after the exact datatype path.
     if _is_class_like_type_name(text):
         from .class_binding import (
             find_class_structure,
@@ -132,43 +165,11 @@ def _named_data_type(program: Any, name: str) -> Any | None:
                 structure_path = str(structure.getPathName())
                 if not is_legacy_enriched_path(structure_path):
                     return structure
-        # Fall through to non-legacy handwritten paths only (never /wiz8/classes).
 
-    candidates: list[str] = []
-    if text != simple:
-        candidates.append(f"/{text}")
-    candidates.extend(
-        (
-            f"/{simple}",
-            f"/wiz8/sgp/{simple}",
-            f"/Demangler/{simple}",
-        )
-    )
-    # Legacy /wiz8/classes is evidence-only elsewhere; never a resolve write target.
-    seen: set[str] = set()
-    for path in candidates:
-        if path in seen or "//" in path or path.endswith("/"):
-            continue
-        seen.add(path)
-        try:
-            data_type = manager.getDataType(path)
-        except Exception as exc:
-            if "Paths must have non-empty elements" not in str(exc):
-                raise
-            continue
-        if data_type is not None:
-            from .class_binding import is_legacy_enriched_path
-
-            resolved_path = (
-                str(data_type.getPathName()) if hasattr(data_type, "getPathName") else path
-            )
-            if is_legacy_enriched_path(resolved_path):
-                continue
-            return data_type
     builtin = _builtin_data_type(program, simple)
     if builtin is not None:
         return builtin
-    return _builtin_data_type(program, text)
+    return None
 
 
 def _data_type_path(data_type: Any | None) -> str | None:

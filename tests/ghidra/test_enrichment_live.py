@@ -39,6 +39,20 @@ def test_w8monster_binding_uses_native_class_structure(wiz8_program: Any) -> Non
     assert binding["ghidra_class"].endswith("W8Monster")
 
 
+def test_callback_plan_does_not_target_legacy_paths(wiz8_program: Any) -> None:
+    from wiz8decomp.callback_typing import collect_callback_typing_plan
+    from wiz8decomp.datatype_contracts import is_legacy_path
+
+    plan = collect_callback_typing_plan(wiz8_program)
+    for row in plan["fields"]:
+        path = row.get("structure")
+        if path:
+            assert not is_legacy_path(str(path)), row
+        owner = row.get("owner")
+        if owner:
+            assert not is_legacy_path(str(owner)), row
+
+
 def test_bind_class_this_does_not_enable_custom_storage(wiz8_program: Any) -> None:
     import pyghidra
 

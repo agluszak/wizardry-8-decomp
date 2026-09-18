@@ -351,21 +351,6 @@ def settings_typedef_blocks_remap(data_type: Any) -> bool:
     return False
 
 
-def union_blocks_remap(data_type: Any) -> bool:
-    """True when a Union still contains a legacy/reference requiring migration.
-
-    Unions are not cloned with member remapping; leftover nested legacy is a
-    conflict rather than a silent dirty graph.
-    """
-
-    for nested in walk_datatype_refs(data_type):
-        if _kind_name(nested) != "union":
-            continue
-        if has_legacy_nested_ref(nested):
-            return True
-    return False
-
-
 def has_legacy_nested_ref(data_type: Any) -> bool:
     for nested in walk_datatype_refs(data_type):
         if is_legacy_path(type_identity(nested)):

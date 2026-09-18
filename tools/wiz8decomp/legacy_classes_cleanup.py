@@ -16,7 +16,7 @@ from .class_binding import (
     find_ghidra_class,
     resolve_class_binding,
 )
-from .class_structure_projection import _simple_name
+from .class_structure_projection import _identity_category_paths, _simple_name
 from .config import Settings
 from .datatype_contracts import (
     as_structure,
@@ -94,6 +94,34 @@ def _qualified_from_legacy_path(path: str) -> str:
     return rest.replace("/", "::")
 
 
+def _named_non_legacy_structure(
+    program: Any, lookup: str, leaf: str
+) -> tuple[Any | None, str | None, str]:
+    """Bound Structure by category path when no GhidraClass exists yet.
+
+    Reviewed seeds often still have a PDB ``/ClassName`` next to a leftover
+    ``/wiz8/classes/ClassName`` while the function parent is a plain Namespace.
+    """
+
+    manager = program.getDataTypeManager()
+    seen: set[str] = set()
+    for name in (lookup, leaf):
+        if not name:
+            continue
+        for path in _identity_category_paths(name):
+            if path in seen or is_legacy_path(path):
+                continue
+            seen.add(path)
+            bound = as_structure(manager.getDataType(path))
+            if bound is None:
+                continue
+            bound_path = str(bound.getPathName())
+            if is_legacy_path(bound_path):
+                continue
+            return bound, bound_path, "named-structure"
+    return None, None, "missing-class"
+
+
 def _bound_for_legacy(
     program: Any,
     leaf: str,
@@ -103,6 +131,7 @@ def _bound_for_legacy(
 ) -> tuple[Any | None, str | None, str]:
     """Resolve non-legacy bound Structure for a legacy type."""
 
+    lookup = qualified or leaf
     if identity_map_or_bindings:
         keys: list[str] = []
         if qualified and qualified in identity_map_or_bindings:
@@ -127,17 +156,13 @@ def _bound_for_legacy(
             if bound_path and not is_legacy_path(str(bound_path)):
                 bound = program.getDataTypeManager().getDataType(str(bound_path))
                 return bound, str(bound_path), "identity-map"
-            status = str(row.get("status") or "")
-            if status in {"missing-class", "no-bound", "legacy-enriched-path"}:
-                return None, None, status or "no-bound"
-            return None, None, "no-bound"
+            return _named_non_legacy_structure(program, lookup, leaf)
 
-    lookup = qualified or leaf
     binding = resolve_class_binding(program, lookup)
     if binding.get("status") == "missing-class" and lookup != leaf:
         binding = resolve_class_binding(program, leaf)
     if binding.get("status") == "missing-class":
-        return None, None, "missing-class"
+        return _named_non_legacy_structure(program, lookup, leaf)
     path = binding.get("structure_path")
     if path and is_legacy_path(str(path)):
         return None, str(path), "bound-still-legacy"
@@ -146,10 +171,10 @@ def _bound_for_legacy(
         return bound, str(path), "binding"
     ghidra_class = find_ghidra_class(program, lookup) or find_ghidra_class(program, leaf)
     if ghidra_class is None:
-        return None, None, "no-bound"
+        return _named_non_legacy_structure(program, lookup, leaf)
     bound = find_class_structure(program, ghidra_class)
     if bound is None:
-        return None, None, "no-bound"
+        return _named_non_legacy_structure(program, lookup, leaf)
     bound_path = str(bound.getPathName())
     if is_legacy_path(bound_path):
         return None, bound_path, "bound-still-legacy"
@@ -242,22 +267,12 @@ def classify_legacy_datatype(
             "reason": "field-shape-mismatch",
         }
 
-    containing = 0
-    get_containing = getattr(program.getDataTypeManager(), "getDataTypesContaining", None)
-    if callable(get_containing):
-        try:
-            containing = len(list(cast(Iterable[Any], get_containing(data_type))))
-        except Exception:  # noqa: BLE001
-            containing = -1
-
-    action = "safe-delete" if containing == 0 else "replace-then-delete"
     return {
         "path": path,
         "name": name,
-        "action": action,
+        "action": "replace-then-delete",
         "bound_path": bound_path,
         "reason": "exact-duplicate" if exact_duplicate else "shape-agree",
-        "containing": containing,
     }
 
 
@@ -287,7 +302,7 @@ def collect_legacy_classes_cleanup_plan(
         counts[str(row["action"])] += 1
         rows.append(row)
 
-    actionable = counts["safe-delete"] + counts["replace-then-delete"]
+    actionable = counts["replace-then-delete"]
     return {
         "schema": _SCHEMA,
         "counts": dict(sorted(counts.items())),
@@ -300,15 +315,23 @@ def apply_legacy_classes_cleanup(
     program: Any,
     plan: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Replace containing refs then remove safe legacy types (one transaction each)."""
+    """Replace every bound equivalent via ``replaceDataType``, then confirm removal.
 
-    from ghidra.util.task import TaskMonitor  # type: ignore[import-not-found]
+    ``getDataTypesContaining`` only sees datatype containment. It does not prove
+    the type is unused by listing data or signatures, so it must not choose a
+    raw ``remove()`` path. ``replaceDataType`` updates all instances/references.
+
+    The third ``replaceDataType`` argument is ``updateCategoryPath``. ``True``
+    *moves* the bound Structure into ``/wiz8/classes`` (same name, new path),
+    which is the opposite of a merge. Always pass ``False`` so ``/ClassName``
+    stays the surviving identity.
+    """
 
     from .ghidra.mutations import apply_rows
 
     def _apply_one(_program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
         action = row.get("action")
-        if action not in {"safe-delete", "replace-then-delete"}:
+        if action != "replace-then-delete":
             return {**dict(row), "error": f"refused:{action}"}
         bound_path = row.get("bound_path")
         if not bound_path or is_legacy_path(str(bound_path)):
@@ -340,62 +363,38 @@ def apply_legacy_classes_cleanup(
                 pointee = PointerDataType(pointee, manager)
             replacement = pointee
 
-        containing = 0
-        get_containing = getattr(manager, "getDataTypesContaining", None)
-        if callable(get_containing):
-            try:
-                containing = len(list(cast(Iterable[Any], get_containing(legacy))))
-            except Exception:  # noqa: BLE001
-                containing = -1
-
-        if containing != 0:
-            try:
-                manager.replaceDataType(legacy, replacement, True)
-            except Exception as exc:  # noqa: BLE001
-                leftover = manager.getDataType(str(row["path"]))
-                if leftover is None:
-                    return {
-                        "path": row["path"],
-                        "action": action,
-                        "bound_path": bound_path,
-                        "removed": True,
-                        "replaced": True,
-                    }
-                return {**dict(row), "error": f"replace-failed:{exc}"}
+        try:
+            manager.replaceDataType(legacy, replacement, False)
+        except Exception as exc:  # noqa: BLE001
             leftover = manager.getDataType(str(row["path"]))
             if leftover is None:
                 return {
                     "path": row["path"],
-                    "action": action,
+                    "action": "replace-then-delete",
                     "bound_path": bound_path,
                     "removed": True,
                     "replaced": True,
                 }
-            legacy = leftover
-
-        removed = manager.remove(legacy, TaskMonitor.DUMMY)
-        if not removed:
-            if _is_pointer_wrapper_name(str(row.get("name") or "")):
-                return {
-                    "path": row["path"],
-                    "action": action,
-                    "bound_path": bound_path,
-                    "removed": False,
-                    "replaced": containing != 0,
-                }
-            return {**dict(row), "error": "remove-failed"}
+            return {**dict(row), "error": f"replace-failed:{exc}"}
+        leftover = manager.getDataType(str(row["path"]))
+        if leftover is None:
+            return {
+                "path": row["path"],
+                "action": "replace-then-delete",
+                "bound_path": bound_path,
+                "removed": True,
+                "replaced": True,
+            }
+        # replaceDataType is supposed to update every instance. If the legacy
+        # type remains, listing/signature uses may still exist — do not raw-remove.
         return {
-            "path": row["path"],
-            "action": action,
-            "bound_path": bound_path,
-            "removed": True,
+            **dict(row),
+            "error": "leftover-after-replace",
+            "replaced": True,
+            "removed": False,
         }
 
-    rows = [
-        row
-        for row in plan.get("types", [])
-        if row.get("action") in {"safe-delete", "replace-then-delete"}
-    ]
+    rows = [row for row in plan.get("types", []) if row.get("action") == "replace-then-delete"]
     rows.sort(
         key=lambda row: (
             -str(row.get("name") or "").count("*"),
@@ -412,6 +411,7 @@ def apply_legacy_classes_cleanup(
     # Best-effort empty category removal after successful deletes.
     try:
         from ghidra.program.model.data import CategoryPath  # type: ignore[import-not-found]
+        from ghidra.util.task import TaskMonitor  # type: ignore[import-not-found]
 
         manager = program.getDataTypeManager()
         cat = manager.getCategory(CategoryPath(_LEGACY_CATEGORY))

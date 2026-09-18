@@ -222,11 +222,21 @@ public final class RecoveryEngine {
 			function.getEntryPoint().getOffset(), owner, name);
 	}
 
+	private static void applyRecoveryProfile(DecompileOptions options) {
+		// Compiled-in defaults plus explicit recovery knobs. Do not copy the
+		// program's saved analysis options: those can leak split/loop/readonly
+		// settings into recovery export.
+		options.setInferConstantPointers(false);
+		options.setRespectReadOnly(false);
+		options.setAnalyzeForLoops(false);
+		options.setEliminateUnreachable(false);
+		options.setSplitStructures(false);
+		options.setSplitArrays(false);
+		options.setSplitPointers(false);
+	}
+
 	private static DecompInterface openDecompiler(Program program, DecompileOptions options) {
-		// Take the program's saved decompiler options rather than compiled-in
-		// defaults, exactly as Ghidra's own CppExporter does, so rendering is
-		// deterministic and matches what a reviewer sees in the CodeBrowser.
-		options.grabFromProgram(program);
+		applyRecoveryProfile(options);
 		options.setCommentStyle(DecompileOptions.CommentStyleEnum.CPPStyle);
 		DecompInterface decompiler = new DecompInterface();
 		decompiler.setOptions(options);

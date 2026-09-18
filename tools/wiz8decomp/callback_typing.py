@@ -15,18 +15,16 @@ from .paths import atomic_json
 _SCHEMA = "wiz8.callback-typing-v1"
 _CATEGORY = "/wiz8/callbacks"
 
-# (typedef name, return type path-or-builtin, ((param_name, type path-or-builtin), ...),
-#  calling convention, field sites as (structure path, field name))
-# Field sites mutate only /wiz8/classes projections (or root SGP/GUI types that
-# are not class-projection targets). Root/PDB copies of Wizardry classes stay
-# untouched so projection comparisons remain meaningful.
+# Field sites are (class identity or absolute non-class path, field name).
+# Wizardry classes resolve through GhidraClass → find_class_structure().
+# Absolute SGP/GUI types such as /_GUI_BUTTON stay path lookups.
 _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
     {
         "name": "W8RegionCallback",
         "return": "uchar",
         "convention": "__cdecl",
         "params": (("event", "InputAtom *"), ("region", "W8Region *")),
-        "fields": (("/wiz8/classes/W8Region", "callback"),),
+        "fields": (("W8Region", "callback"),),
     },
     {
         "name": "GUI_CALLBACK",
@@ -43,8 +41,7 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "return": "void",
         "convention": "__cdecl",
         "params": (("dialog", "W8DialogBase *"),),
-        # Prefer projected class; missing-structure when not yet promoted.
-        "fields": (("/wiz8/classes/W8DialogBase", "m_destroy_callback"),),
+        "fields": (("W8DialogBase", "m_destroy_callback"),),
     },
     {
         "name": "W8ControlCallback",
@@ -52,11 +49,11 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "convention": "__cdecl",
         "params": (),
         "fields": (
-            ("/wiz8/classes/W8Widget", "m_primaryActivationCallback"),
-            ("/wiz8/classes/W8Widget", "m_leftButtonDownCallback"),
-            ("/wiz8/classes/W8Widget", "m_secondaryActivationCallback"),
-            ("/wiz8/classes/W8Widget", "m_rightButtonDownCallback"),
-            ("/wiz8/classes/W8Widget", "m_leftDoubleClickCallback"),
+            ("W8Widget", "m_primaryActivationCallback"),
+            ("W8Widget", "m_leftButtonDownCallback"),
+            ("W8Widget", "m_secondaryActivationCallback"),
+            ("W8Widget", "m_rightButtonDownCallback"),
+            ("W8Widget", "m_leftDoubleClickCallback"),
         ),
     },
     {
@@ -64,14 +61,14 @@ _CALLBACK_FAMILIES: tuple[dict[str, Any], ...] = (
         "return": "void",
         "convention": "__cdecl",
         "params": (("monster", "W8Monster *"),),
-        "fields": (("/wiz8/classes/W8Monster", "cycle_callback_230"),),
+        "fields": (("W8Monster", "cycle_callback_230"),),
     },
     {
         "name": "ActivationCallback",
         "return": "bool",
         "convention": "__cdecl",
         "params": (("trigger", "Trigger *"),),
-        "fields": (("/wiz8/classes/Trigger", "activation_callback_360"),),
+        "fields": (("Trigger", "activation_callback_360"),),
     },
     {
         "name": "MOUSE_CALLBACK",
@@ -115,47 +112,63 @@ def _resolve_type(program: Any, spelling: str) -> Any | None:
     return resolve_data_type(program, spelling)
 
 
-def _type_identity(data_type: Any) -> str:
-    if data_type is None:
-        return ""
-    path = getattr(data_type, "getPathName", None)
-    if callable(path):
-        text = str(path())
-        if text:
-            return text
-    return str(data_type.getName()) if hasattr(data_type, "getName") else str(data_type)
+def _resolve_field_owner(program: Any, owner: str) -> Any | None:
+    """Bound Structure for a class identity, or absolute non-legacy path lookup."""
+
+    from .class_binding import (
+        find_class_structure,
+        find_ghidra_class,
+        is_legacy_enriched_path,
+    )
+    from .datatype_contracts import is_legacy_path
+
+    if owner.startswith("/"):
+        if is_legacy_path(owner):
+            return None
+        return program.getDataTypeManager().getDataType(owner)
+    ghidra_class = find_ghidra_class(program, owner)
+    if ghidra_class is None:
+        return None
+    structure = find_class_structure(program, ghidra_class)
+    if structure is None:
+        return None
+    if is_legacy_enriched_path(str(structure.getPathName())):
+        return None
+    return structure
+
+
+def _unwrap_function_definition(data_type: Any) -> Any | None:
+    from ghidra.program.model.data import Pointer, TypeDef  # type: ignore[import-not-found]
+
+    current = data_type
+    while isinstance(current, TypeDef):
+        current = current.getBaseDataType()
+    if isinstance(current, Pointer):
+        current = current.getDataType()
+        while isinstance(current, TypeDef):
+            current = current.getBaseDataType()
+    if current is None:
+        return None
+    if hasattr(current, "getArguments") and hasattr(current, "getReturnType"):
+        return current
+    return None
 
 
 def _definition_matches_family(existing: Any, family: dict[str, Any], program: Any) -> bool:
-    """True when an existing FunctionDefinition matches the curated family."""
+    """True when an existing FunctionDefinition matches the curated ABI contract.
+
+    Parameter names are not ABI.
+    """
+
+    from .datatype_contracts import definition_contract_equals
 
     if existing is None or not hasattr(existing, "getArguments"):
         return False
-    expected_return = _resolve_type(program, family["return"])
-    if expected_return is None:
+    try:
+        expected = _build_function_definition(program, family)
+    except ValueError:
         return False
-    if _type_identity(existing.getReturnType()) != _type_identity(expected_return):
-        return False
-    existing_args = list(existing.getArguments())
-    expected_params = list(family["params"])
-    if len(existing_args) != len(expected_params):
-        return False
-    for arg, (name, spelling) in zip(existing_args, expected_params, strict=True):
-        if str(arg.getName()) != name:
-            return False
-        expected_type = _resolve_type(program, spelling)
-        if expected_type is None:
-            return False
-        if _type_identity(arg.getDataType()) != _type_identity(expected_type):
-            return False
-    convention = family.get("convention")
-    if convention:
-        if not hasattr(existing, "getCallingConvention"):
-            return False
-        current = existing.getCallingConvention()
-        if current is None or str(current) != str(convention):
-            return False
-    return True
+    return definition_contract_equals(existing, expected)
 
 
 def _build_function_definition(program: Any, family: dict[str, Any]) -> Any:
@@ -201,17 +214,9 @@ def _ensure_function_definition(program: Any, family: dict[str, Any]) -> Any:
     return manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
 
 
-def _field_already_typed(component: Any, family_name: str) -> bool:
-    from ghidra.program.model.data import Pointer, TypeDef  # type: ignore[import-not-found]
-
-    current = component.getDataType()
-    while isinstance(current, TypeDef):
-        current = current.getBaseDataType()
-    if isinstance(current, Pointer):
-        pointed = current.getDataType()
-        if pointed is not None and family_name in str(pointed.getName()):
-            return True
-    return False
+def _field_already_typed(component: Any, family: Mapping[str, Any], program: Any) -> bool:
+    pointed = _unwrap_function_definition(component.getDataType())
+    return _definition_matches_family(pointed, dict(family), program)
 
 
 def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
@@ -242,18 +247,20 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
                 }
             )
             continue
-        for structure_path, field_name in family["fields"]:
-            structure = program.getDataTypeManager().getDataType(structure_path)
+        for owner, field_name in family["fields"]:
+            structure = _resolve_field_owner(program, owner)
             if structure is None or not hasattr(structure, "getDefinedComponents"):
                 rows.append(
                     {
                         "family": family["name"],
-                        "structure": structure_path,
+                        "owner": owner,
+                        "structure": None,
                         "field": field_name,
                         "action": "missing-structure",
                     }
                 )
                 continue
+            structure_path = str(structure.getPathName())
             component = None
             for candidate in structure.getDefinedComponents():
                 if candidate.getFieldName() == field_name:
@@ -263,16 +270,22 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
                 rows.append(
                     {
                         "family": family["name"],
+                        "owner": owner,
                         "structure": structure_path,
                         "field": field_name,
                         "action": "missing-field",
                     }
                 )
                 continue
-            already = _field_already_typed(component, family["name"])
+            already = _field_already_typed(component, family, program)
+            compiler_backed = (
+                _unwrap_function_definition(component.getDataType()) is not None and not already
+            )
             current = component.getDataType()
             current_name = str(current.getName()) if hasattr(current, "getName") else str(current)
-            if typedef_disagrees and already:
+            if compiler_backed:
+                action = "compiler-backed"
+            elif typedef_disagrees and already:
                 action = "repair-typedef"
             elif typedef_disagrees:
                 action = "repair-and-set-field"
@@ -287,6 +300,7 @@ def collect_callback_typing_plan(program: Any) -> dict[str, Any]:
             rows.append(
                 {
                     "family": family["name"],
+                    "owner": owner,
                     "structure": structure_path,
                     "field": field_name,
                     "offset": component.getOffset(),
@@ -351,7 +365,12 @@ def apply_callback_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
             }
         definition = program.getDataTypeManager().getDataType(path)
         pointer = PointerDataType(definition, program.getDataTypeManager())
-        structure = program.getDataTypeManager().getDataType(row["structure"])
+        structure_path = row.get("structure")
+        if not structure_path:
+            return {**dict(row), "error": "missing-structure"}
+        structure = program.getDataTypeManager().getDataType(str(structure_path))
+        if structure is None:
+            return {**dict(row), "error": "missing-structure"}
         structure.replaceAtOffset(
             int(row["offset"]),
             pointer,
@@ -361,7 +380,8 @@ def apply_callback_typing(program: Any, plan: dict[str, Any]) -> dict[str, Any]:
         )
         return {
             "family": family["name"],
-            "structure": row["structure"],
+            "owner": row.get("owner"),
+            "structure": structure_path,
             "field": row["field"],
             "type": str(pointer.getName()),
             "action": action,
