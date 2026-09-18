@@ -15,7 +15,7 @@ Every pull request and push to `main` uses only public or tracked repository inp
 - runs `uv run wiz8 doctor`, `uv run wiz8 check`, and `uv run wiz8 lint`;
 - runs the VC6/Ghidra recovery lifecycle self-test;
 - restores the reviewed tracked Ghidra checkpoint through the normal live PyGhidra project-opening
-  path.
+  path, then runs `tests/ghidra` live enrichment integration tests (excluded from `wiz8 check`).
 
 The public steps never receive the GOG URL or game files. The workflow intentionally uses
 `pull_request`, not `pull_request_target`.

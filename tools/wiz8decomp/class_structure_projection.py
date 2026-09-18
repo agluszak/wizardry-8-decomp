@@ -20,8 +20,11 @@ from pathlib import Path
 from typing import Any
 
 from .class_binding import (
+    _sanitize_class_parts,
     ensure_ghidra_class,
     find_class_structure,
+    find_ghidra_class,
+    is_ghidra_class,
     legacy_enriched_structure,
 )
 from .config import Settings
@@ -183,8 +186,35 @@ def collect_structure_projection_plan(
         asserted = (
             int(source_class.asserted_size) if source_class and source_class.asserted_size else None
         )
-        ghidra_class = ensure_ghidra_class(program, owning_class)
-        bound = _as_structure(find_class_structure(program, ghidra_class))
+        ghidra_class = find_ghidra_class(program, owning_class)
+        if ghidra_class is None:
+            # Collect is read-only: do not create GhidraClass here (needs a
+            # transaction). Apply paths call ensure_ghidra_class per row.
+            symbols = program.getSymbolTable()
+            parent_parts, class_name = _sanitize_class_parts(owning_class)
+            namespace = program.getGlobalNamespace()
+            collision = False
+            for part in (*parent_parts, class_name):
+                child = symbols.getNamespace(part, namespace)
+                if child is None:
+                    break
+                namespace = child
+            else:
+                collision = not is_ghidra_class(namespace)
+            if collision:
+                counts["namespace-collision"] += 1
+                rows.append(
+                    {
+                        "class": owning_class,
+                        "methods": method_count,
+                        "action": "namespace-collision",
+                        "asserted_size": asserted,
+                    }
+                )
+                continue
+            bound = None
+        else:
+            bound = _as_structure(find_class_structure(program, ghidra_class))
         legacy = _wiz8_structure(program, owning_class)
         source = _find_named_structure(program, owning_class, asserted_size=asserted)
         bound_score = _richness(bound)

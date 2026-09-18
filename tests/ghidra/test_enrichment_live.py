@@ -1,7 +1,7 @@
-"""Live-Ghidra class-binding checks.
+"""Live-Ghidra enrichment checks.
 
-Marked ``integration`` so they can be selected explicitly. They skip when the
-checkout-owned wiz8 program is unavailable (plain unit CI without restore).
+These open the checkout-owned wiz8 program and must run only after
+``wiz8 ghidra restore`` (see CI). They are excluded from ``wiz8 check``.
 """
 
 from __future__ import annotations
@@ -30,15 +30,9 @@ def wiz8_program():
         pytest.skip(f"live wiz8 Ghidra program unavailable: {exc}")
 
 
-def test_mov_ecx_jmp_helper_removed() -> None:
-    import wiz8decomp.function_attributes as fa
-
-    assert not hasattr(fa, "_thiscall_mov_jmp_thunk_target")
-
-
 def test_w8monster_binding_uses_native_class_structure(wiz8_program: Any) -> None:
     binding = resolve_class_binding(wiz8_program, "W8Monster")
-    if binding["status"] == "missing-structure":
+    if binding["status"] in {"missing-structure", "missing-class"}:
         pytest.skip("no bound W8Monster Structure in live program")
     path = str(binding["structure_path"] or "")
     assert not path.startswith("/wiz8/classes/"), path
@@ -80,9 +74,12 @@ def test_bind_class_this_does_not_enable_custom_storage(wiz8_program: Any) -> No
             }
         ]
     }
-    with pyghidra.transaction(program, "test class binding"):
+    with (
+        pytest.raises(RuntimeError, match="abort-test-transaction"),
+        pyghidra.transaction(program, "test class binding"),
+    ):
         result = apply_this_typing(program, plan, allow_custom_storage=False)
         assert candidate.hasCustomVariableStorage() is False
-        # Applied, skipped (auto-this-unbound), or errored — never custom storage.
+        # Applied, skipped (gated), or errored — never custom storage.
         assert result["applied"] + len(result["skipped"]) + len(result["errors"]) == 1
         raise RuntimeError("abort-test-transaction")

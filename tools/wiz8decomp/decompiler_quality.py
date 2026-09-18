@@ -452,12 +452,17 @@ def write_report(
 def compute_quality_delta(
     before: Mapping[str, Any],
     after: Mapping[str, Any],
+    *,
+    max_debt_total_delta: int = 0,
 ) -> dict[str, Any]:
     """Per-function metric deltas and per-metric totals delta.
 
-    Metric vectors are authoritative; ``debt_total`` is informational only.
     A status change from ``ok`` to ``decompiler-failure`` / missing is a hard
     regression: that row's debt fields are ``None`` and the trial is ``ok: false``.
+
+    Aggregate ``debt_total_delta`` is part of the gate: an increase above
+    ``max_debt_total_delta`` (default 0) fails ``ok``. Pass a reviewed positive
+    allowance only when a measured debt increase is intentionally accepted.
     """
 
     before_rows = {
@@ -526,14 +531,20 @@ def compute_quality_delta(
     before_failures = int(before_summary.get("failures") or 0)
     after_failures = int(after_summary.get("failures") or 0)
     failure_delta = after_failures - before_failures
-    ok = failure_delta <= 0 and not decompiler_regressions
+    debt_total_delta = after_debt - before_debt
+    ok = (
+        failure_delta <= 0
+        and not decompiler_regressions
+        and debt_total_delta <= max_debt_total_delta
+    )
     return {
         "schema": "wiz8.decompiler-quality-delta-v1",
         "ok": ok,
         "totals_delta": totals_delta,
         "debt_total_before": before_debt,
         "debt_total_after": after_debt,
-        "debt_total_delta": after_debt - before_debt,
+        "debt_total_delta": debt_total_delta,
+        "max_debt_total_delta": max_debt_total_delta,
         "failures_before": before_failures,
         "failures_after": after_failures,
         "failure_delta": failure_delta,

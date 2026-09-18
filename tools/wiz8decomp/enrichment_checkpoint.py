@@ -68,10 +68,13 @@ def _step_summary(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def _prepare_disposable_settings(settings: Settings, program_name: str) -> Settings:
-    """Restore a unique disposable Ghidra project under the work directory.
+    """Restore a unique disposable Ghidra project under the build directory.
 
     Each run gets its own directory so concurrent checkouts cannot delete one
     another's candidates. Old runs are left in place for inspection.
+
+    Prefer ``build/`` over ``work_dir``: Ghidra rejects project path elements
+    that start with ``.`` (common for work dirs like ``.wiz8-work``).
     """
 
     import uuid
@@ -80,7 +83,7 @@ def _prepare_disposable_settings(settings: Settings, program_name: str) -> Setti
     from .ghidra.workspace import restore_seed
 
     run_id = uuid.uuid4().hex[:12]
-    project_dir = settings.work_dir / "enrichment-checkpoint" / f"run-{run_id}" / "ghidra-project"
+    project_dir = settings.build_dir / "enrichment-checkpoint" / f"run-{run_id}" / "ghidra-project"
     project_dir.mkdir(parents=True, exist_ok=False)
     derived = settings.model_copy(update={"ghidra_project_dir_override": project_dir})
     with open_project(derived, create=True) as project:
@@ -392,10 +395,10 @@ def run_enrichment_checkpoint(
     failure_reasons: list[str] = []
     quality_delta = result.get("quality_delta")
     if isinstance(quality_delta, dict) and quality_delta.get("ok") is False:
-        failure_reasons.append("quality_delta.ok is false (decompiler regression)")
+        failure_reasons.append("quality_delta.ok is false (decompiler regression or debt increase)")
     pain_delta = result.get("pain_delta")
     if isinstance(pain_delta, dict) and pain_delta.get("ok") is False:
-        failure_reasons.append("pain_delta.ok is false (decompiler regression)")
+        failure_reasons.append("pain_delta.ok is false (decompiler regression or debt increase)")
     if isinstance(result.get("reccmp_import"), dict) and result["reccmp_import"].get("ok") is False:
         failure_reasons.append("reccmp-ghidra-import failed")
     for step in steps:

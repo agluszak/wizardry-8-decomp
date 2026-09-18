@@ -185,7 +185,13 @@ def apply_this_typing_row(
     if function is None:
         return {**row, "error": "missing-function"}
 
-    ghidra_class = ensure_ghidra_class(program, owning)
+    try:
+        ghidra_class = ensure_ghidra_class(program, owning)
+    except RuntimeError as exc:
+        message = str(exc)
+        if "namespace collision" in message:
+            return {**row, "error": "namespace-collision", "hint": message}
+        raise
     structure = find_class_structure(program, ghidra_class)
     if structure is None:
         return {**row, "error": "missing-structure"}
@@ -299,7 +305,7 @@ def apply_this_typing(
         except _RowApplyError as exc:
             payload = exc.payload
             err = str(payload.get("error") or "")
-            if err in {"auto-this-unbound", "requires-custom-storage"}:
+            if err in {"auto-this-unbound", "requires-custom-storage", "namespace-collision"}:
                 skipped.append({**payload, "skipped": err})
             else:
                 errors.append(payload)

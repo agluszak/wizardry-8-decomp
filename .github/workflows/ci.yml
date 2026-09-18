@@ -135,6 +135,9 @@ jobs:
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
 
+      - name: Run Ghidra enrichment integration tests
+        run: uv run pytest -q tests/ghidra
+
       - name: Download and verify licensed GOG input
         if: env.LICENSED_INPUTS == 'true'
         env:

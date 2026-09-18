@@ -120,6 +120,68 @@ def test_compute_quality_delta_ok_to_failure_is_hard_regression() -> None:
     assert row["decompiler_regression"] is True
 
 
+def test_compute_quality_delta_positive_debt_fails_gate() -> None:
+    zero = {key: 0 for key in METRIC_KEYS}
+    before = {
+        "summary": {"totals": {**zero, "undefined": 2}, "failures": 0},
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "Foo",
+                "status": "ok",
+                "metrics": {**zero, "undefined": 2},
+            }
+        ],
+    }
+    after = {
+        "summary": {"totals": {**zero, "undefined": 5}, "failures": 0},
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "Foo",
+                "status": "ok",
+                "metrics": {**zero, "undefined": 5},
+            }
+        ],
+    }
+    delta = compute_quality_delta(before, after)
+    assert delta["ok"] is False
+    assert delta["failure_delta"] == 0
+    assert delta["decompiler_regressions"] == []
+    assert delta["debt_total_delta"] == 3
+    assert delta["max_debt_total_delta"] == 0
+
+
+def test_compute_quality_delta_debt_allowance_permits_reviewed_increase() -> None:
+    zero = {key: 0 for key in METRIC_KEYS}
+    before = {
+        "summary": {"totals": {**zero, "undefined": 2}, "failures": 0},
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "Foo",
+                "status": "ok",
+                "metrics": {**zero, "undefined": 2},
+            }
+        ],
+    }
+    after = {
+        "summary": {"totals": {**zero, "undefined": 5}, "failures": 0},
+        "functions": [
+            {
+                "address": "0x00401000",
+                "name": "Foo",
+                "status": "ok",
+                "metrics": {**zero, "undefined": 5},
+            }
+        ],
+    }
+    delta = compute_quality_delta(before, after, max_debt_total_delta=3)
+    assert delta["ok"] is True
+    assert delta["debt_total_delta"] == 3
+    assert delta["max_debt_total_delta"] == 3
+
+
 def test_pain_corpus_filters_to_mismatch_inconclusive(monkeypatch) -> None:
     from pathlib import Path
 
