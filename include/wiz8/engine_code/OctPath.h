@@ -112,7 +112,7 @@ private:
     unsigned char blocked_49;
     unsigned char unknown_4a[2];
     unsigned int nearby_count_4c;
-    int* nearby_locations_50;
+    unsigned long* nearby_locations_50;
     W8Monster* monster_54;
 };
 
@@ -360,8 +360,7 @@ public:
     /* Sums the blocked-direction unit vectors among the directions `delta`
        points toward and normalizes the result into `direction`; zero when
        `mask` is fully open or nothing wanted is blocked. */
-    unsigned char ComputeFreeDirection004664F0(unsigned int mask,
-                                               const srVector3T<float>* delta,
+    unsigned char ComputeFreeDirection004664F0(unsigned int mask, const srVector3T<float>* delta,
                                                srVector3T<float>* direction);
     /* Resolves the path cell under `position`, reads its neighbor mask and
        computes the free-direction vector away from `delta`; zero when the
@@ -477,7 +476,7 @@ public:
     unsigned char m_positional_08d[3];
     unsigned int planner_location_090;
     unsigned int path_candidate_count_094;
-    int* path_candidates_098;
+    unsigned long* path_candidates_098;
     unsigned char flag_09c; /* 0x9c */
     unsigned char m_positional_09d[3];
     unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */

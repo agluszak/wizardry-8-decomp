@@ -117,7 +117,7 @@ char g_octree_point_extension_00606810[] = ".pts";
 char g_octree_file_search_wildcard_006068a0[] = "*";
 
 // GLOBAL: WIZ8 0x00659890
-int* g_octree_state_00659890;
+unsigned long* g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
 srNode* g_octree_trace_node_00659894;
 // GLOBAL: WIZ8 0x00659898
@@ -2248,9 +2248,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
                 goto done;
             }
             if (test_props != 0) {
-                g_octree_state_00659890 =
-                    (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                        aliases the internal u32 id buffer */
+                g_octree_state_00659890 = m_aulGDObjs;
                 m_gd_result_count_1b8 = 0;
                 unsigned long before = m_gd_result_count_1b8;
                 CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
@@ -2600,7 +2598,7 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
                                char noise_adjust)
 {
     unsigned int index = 0;
-    int* ids = 0;
+    unsigned long* ids = 0;
     unsigned int best_index = 0;
     double best = -1.0;
     float segment_length = 0.0f;
@@ -3188,8 +3186,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     int error_1;
 
     W8OctreeTrace trace(from, to);
-    g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+    g_octree_state_00659890 = m_aulGDObjs;
     m_gd_result_count_1b8 = 0;
     m_owned_194->ClearAll();
     cell[0] = static_cast<int>((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
@@ -3200,12 +3197,10 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     end_cell[2] = static_cast<int>((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
     span = abs(cell[2] - end_cell[2]) + abs(cell[1] - end_cell[1]) + abs(cell[0] - end_cell[0]);
     if (span < 2) {
-        g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+        g_octree_state_00659890 = m_aulGDObjs;
         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
         if (span != 0) {
-            g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+            g_octree_state_00659890 = m_aulGDObjs;
             CollectObjectsInCell(end_cell, W8_OCTREE_KIND_PROP);
         }
     } else {
@@ -3224,40 +3219,30 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
             error_1 = walk.error_38;
             error_0 = walk.error_2c;
             do {
-                g_octree_state_00659890 =
-                    (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+                g_octree_state_00659890 = m_aulGDObjs;
                 CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                 if (error_0 < error_1) {
                     if (error_0 < 0) {
                         error_0 += walk.error_reset_30;
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
-                        g_octree_state_00659890 =
-                            (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+                        g_octree_state_00659890 = m_aulGDObjs;
                         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                         if (error_1 < 0) {
                             cell[cell[3]] += step[cell[3]];
                             error_1 += walk.error_reset_3c;
-                            g_octree_state_00659890 =
-                                (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+                            g_octree_state_00659890 = m_aulGDObjs;
                             CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                         }
                     }
                 } else if (error_1 < 0) {
                     cell[cell[3]] += step[cell[3]];
-                    g_octree_state_00659890 =
-                        (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+                    g_octree_state_00659890 = m_aulGDObjs;
                     error_1 += walk.error_reset_3c;
                     CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                     if (error_0 < 0) {
                         cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
                         error_0 += walk.error_reset_30;
-                        g_octree_state_00659890 =
-                            (int*)m_aulGDObjs; /* c-style-cast-ok: the shared query state
-                    aliases the internal u32 id buffer */
+                        g_octree_state_00659890 = m_aulGDObjs;
                         CollectObjectsInCell(cell, W8_OCTREE_KIND_PROP);
                     }
                 }
@@ -4590,7 +4575,7 @@ void W8Octree::UnregisterLocationObject(unsigned int location_id, int kind)
    `delta` segment grown by `extent`; the extent takes the segment length as a
    floor. `*results` carries the destination buffer in and out. */
 // FUNCTION: WIZ8 0x0042ed60
-int W8Octree::CollectObjectsAlongSegment(int** results, const srVector3T<float>* origin,
+int W8Octree::CollectObjectsAlongSegment(unsigned long** results, const srVector3T<float>* origin,
                                          const srVector3T<float>* delta, float extent,
                                          unsigned short kind)
 {
@@ -4602,8 +4587,7 @@ int W8Octree::CollectObjectsAlongSegment(int** results, const srVector3T<float>*
 
     g_octree_state_00659890 = *results;
     if (g_octree_state_00659890 == 0) {
-        g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the internal
-            query buffer is the same u32 id store the caller buffer aliases */
+        g_octree_state_00659890 = m_aulGDObjs;
         *results = g_octree_state_00659890;
     }
     m_gd_result_count_1b8 = 0;
@@ -4656,7 +4640,7 @@ int W8Octree::CollectObjectsAlongSegment(int** results, const srVector3T<float>*
    uses it to list the location ids near a mover. */
 
 // FUNCTION: WIZ8 0x0042ef00
-unsigned int W8Octree::QueryLocationsInBox(int** results, const srVector3T<float>* lower,
+unsigned int W8Octree::QueryLocationsInBox(unsigned long** results, const srVector3T<float>* lower,
                                            const srVector3T<float>* upper, unsigned short exclusion)
 {
     unsigned int excluded = 0xffffffff;
@@ -4676,7 +4660,7 @@ unsigned int W8Octree::QueryLocationsInBox(int** results, const srVector3T<float
 unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
                                         const srVector3T<float>* upper)
 {
-    int* objects = 0;
+    unsigned long* objects = 0;
     unsigned int count =
         static_cast<unsigned int>(QueryObjects(&objects, lower, upper, W8_OCTREE_KIND_SURFACE, -1));
     unsigned int index = 0;
@@ -4772,7 +4756,7 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
    coordinates and the inclusive cell box is clipped against the three grid
    dimensions. Returns the collected entry count. */
 // FUNCTION: WIZ8 0x0042f280
-int W8Octree::QueryObjects(int** objects, const srVector3T<float>* lower,
+int W8Octree::QueryObjects(unsigned long** objects, const srVector3T<float>* lower,
                            const srVector3T<float>* upper, unsigned short kind, int excluded)
 {
     int start[3];
@@ -4781,8 +4765,7 @@ int W8Octree::QueryObjects(int** objects, const srVector3T<float>* lower,
 
     g_octree_state_00659890 = *objects;
     if (g_octree_state_00659890 == 0) {
-        g_octree_state_00659890 = (int*)m_aulGDObjs; /* c-style-cast-ok: the internal
-            query buffer is the same u32 id store the caller buffer aliases */
+        g_octree_state_00659890 = m_aulGDObjs;
         *objects = g_octree_state_00659890;
     }
     m_gd_result_count_1b8 = 0;
@@ -5407,7 +5390,7 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
 {
     float source_y = position->y;
     unsigned int found = 0;
-    int* candidates = 0;
+    unsigned long* candidates = 0;
     unsigned int columns = 3;
     if (count > 10) {
         columns = 5;
@@ -5431,7 +5414,7 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
         high.x = expand + position->x;
         high.y = expand + position->y;
         high.z = expand + position->z;
-        candidates = static_cast<int*>(operator new(0x400));
+        candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
             the shared query count field is stored unsigned */
@@ -5546,7 +5529,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     int found_i = 9999;
     int found_j = 9999;
     float source_y = source->y;
-    int* candidates = 0;
+    unsigned long* candidates = 0;
     float camera_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     bool placed = false;
     float separation =
@@ -5576,7 +5559,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
         high.x = expand + source->x;
         high.y = expand + source->y;
         high.z = expand + source->z;
-        candidates = static_cast<int*>(operator new(0x400));
+        candidates = static_cast<unsigned long*>(operator new(0x400));
         monsters = static_cast<unsigned int>(QueryObjects(
             &candidates, &low, &high, W8_OCTREE_KIND_LOCATION, -1)); /* c-style-cast-ok:
             the shared query count field is stored unsigned */

@@ -512,7 +512,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
     srVector3T<float> bounds_min;
     srVector3T<float> bounds_max;
     srVector3T<float> position;
-    int* location_ids;
+    unsigned long* location_ids;
     unsigned int count;
     unsigned int i;
     unsigned int index;

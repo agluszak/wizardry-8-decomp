@@ -7,12 +7,13 @@
 struct W8IList;
 struct W8MonsterRecord;
 struct W8MonsterGroup;
+struct W8MonsterInfo;
 
 /* The dispositions a group or member carries, spelled by the MONSTERS.SLF
    parser and the 0x00530f10 assertion. */
 enum { DISP_NEUTRAL = 0, DISP_HOSTILE = 1, DISP_FRIENDLY = 2 };
 
-unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value);
+bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 
 #pragma pack(push, 1)
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
@@ -136,7 +137,7 @@ void ReleaseMonsterGroup(W8MonsterGroup* group);
 W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* group);
 void RefreshMonsterGroup(W8MonsterGroup* monster_group);
 void DetachMonsterGroup(W8MonsterGroup* monster_group);
-void SetMonsterGroupMode(W8MonsterGroup* monster_group, int value);
+void SetMonsterGroupMode(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id at
@@ -145,8 +146,8 @@ W8MonsterGroup* Function511A40(W8MonsterGroup* group, unsigned int monster_id); 
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
-unsigned char MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
-void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);                      /* 0x0050F630 */
+bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */
 void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */

@@ -1122,7 +1122,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
         --monster_group->member_count;
         RequestRedrawParty();
         if (monster_group->member_count == 0) {
-            DestroyMonsterGroup(monster_group, reinterpret_cast<int>(monster_info));
+            DestroyMonsterGroup(monster_group, monster_info);
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {

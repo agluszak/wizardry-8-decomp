@@ -37,8 +37,8 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
                                          char hostile_only); /* 0x00519C00 */
 /* The sight-condition slot a range band needs the observer's sight flags
    checked under: zero inside long range, the current condition beyond it. */
-unsigned char RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
-                                              W8RangeCategory range_category); /* 0x00519BE0 */
+bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
+                                     W8RangeCategory range_category); /* 0x00519BE0 */
 unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                          int attack, W8CombatSlot* target);
 /* The furthest range band the monster can act at: its attacks first, then its

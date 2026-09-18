@@ -45,7 +45,7 @@ int GetItemInHand(void);
 
 void SetHandType(W8Character* character, unsigned int equip_slot);
 unsigned int GetEquipmentBindingDifficulty(int character_index);
-unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
+bool CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id); /* 0x0051C8F0 */
 bool ItemHasQuantityKindFour(int item_id);
 int GetPairedEquipSlot(int equip_slot);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
@@ -72,7 +72,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
 void UnequipUnusableItems(W8Character* character); /* 0x0051D960 */
 void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char refresh);
 void EmptyAllCarriedItems(W8Character* character);
-unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
+bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 unsigned char GetItemSpell(const W8ItemInstance* item);
 int GetItemSpellRange(const W8ItemInstance* item); /* 0x005207E0 */
 void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength,
@@ -198,7 +198,7 @@ void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot)
 void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
-unsigned char CanUseItemForAction(int party_slot, const W8ItemInstance* item);
+bool CanUseItemForAction(int party_slot, const W8ItemInstance* item);
 
 /* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
    handler. 0x0051E980 scans the merge-kind table for the related

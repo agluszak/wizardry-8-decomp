@@ -226,7 +226,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
    it. Every retail call site pushes only the two parameters, so the second
    doubles as the out-of-combat override and the default-case return. */
 // FUNCTION: WIZ8 0x005001e0
-unsigned char SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
+bool SpellUsableNow(int spell_id, unsigned char allow_out_of_combat)
 {
     W8SpellUsage usable_when;
     bool lock_or_trap;

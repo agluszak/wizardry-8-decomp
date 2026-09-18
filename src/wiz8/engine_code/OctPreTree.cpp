@@ -1524,7 +1524,7 @@ OctPreTree::InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNod
 char OctPreTree::TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
                                             const srVector3T<float>* maximum)
 {
-    int* ids = 0;
+    unsigned long* ids = 0;
     srVector3T<float> bounds[2];
     srVector3T<float> triangle[3];
     unsigned char hit = 0;

@@ -568,7 +568,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
     W8Prop* prop;
     GDProp* gd_prop;
     W8LevelDataRecord* level;
-    int* objects;
+    unsigned long* objects;
     unsigned int count;
     unsigned int index;
     int surface_index;
@@ -711,7 +711,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
 unsigned char W8GameData::ProbeMonstersAlongMotion0041BD60(srVector3T<float>* direction,
                                                            srVector3T<float>* position, int)
 {
-    int* objects;
+    unsigned long* objects;
     unsigned int count;
     unsigned int index;
     unsigned int monster_list_index;
@@ -819,7 +819,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     W8GDSurface* nearest_surface;
     W8GDSurface* surface;
     W8GDSurface* collisions[101];
-    int* octree_hits;
+    unsigned long* octree_hits;
     int* geometry_hits;
     int hit_count;
     int collision_count;
