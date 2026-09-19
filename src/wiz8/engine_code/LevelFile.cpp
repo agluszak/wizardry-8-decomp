@@ -258,9 +258,9 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
             ReportBuildStatus00497690(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
                        String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
-                              (double)pPosition->position_81.x,
-                              (double)pPosition->position_81.y,
-                              (double)pPosition->position_81.z)));
+                              static_cast<double>(pPosition->position_81.x),
+                              static_cast<double>(pPosition->position_81.y),
+                              static_cast<double>(pPosition->position_81.z))));
         }
     }
 
