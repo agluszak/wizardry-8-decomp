@@ -9,6 +9,7 @@
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/layouts/combat_state.h"

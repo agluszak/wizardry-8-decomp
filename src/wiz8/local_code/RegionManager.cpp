@@ -20,6 +20,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/ButtonSound.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/utility.h"
 #include "wiz8/sr_api.h"
 #include "input.h"

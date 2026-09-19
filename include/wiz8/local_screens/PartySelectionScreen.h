@@ -17,13 +17,6 @@ extern unsigned int g_party_selection_import_list_region_set_69c50c;    /* 0x006
 extern unsigned char g_portrait_frame_flags_0061cbc0[0x50];
 extern int g_value_68de50; /* 0x0068DE50: Wizardry-7 import ending selector */
 
-void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
-                                 int party_slot);
-/* 0x0052EBE0: blit one animated portrait frame and its transition, returning
-   whether a frame was drawn. */
-char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
-                                char animate);
-
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */
 unsigned char PartySelectionScreenEnter(void);
