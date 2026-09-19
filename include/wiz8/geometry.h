@@ -100,7 +100,7 @@ inline void SetPlaneFromThreePoints(float* plane, const srVector3T<float>* first
 
     float scale =
         g_float_005ebb38 /
-        (float)sqrt((double)(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]));
+        static_cast<float>(sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]));
     plane[0] *= scale;
     plane[1] *= scale;
     plane[2] *= scale;

@@ -910,7 +910,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     sprintf(action_name, "%s", entry->sub_entries->text + 4);
                     target = FindNpcStateByName(action_name);
                     if (target != 0) {
-                        Function50A570(target, 4, 0, 0, entry->operand_01);
+                        ApplyNpcInteraction0050A570(target, 4, 0, 0, entry->operand_01);
                     }
                 } break;
                 case 22:
@@ -1635,7 +1635,7 @@ void ProcessMessageBoxQueue(void)
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
         g_status_685170.flag_2487 = 1;
         g_status_685170.value_248b = g_status_685170.world_clock;
-        g_status_685170.value_248f = line->text;
+        g_status_685170.value_248f.text = line->text;
         break;
     }
     case W8_NPC_MSG_SHOW_DIALOGUE_PANEL:

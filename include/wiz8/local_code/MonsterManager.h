@@ -353,7 +353,7 @@ struct W8MonsterInfo {
     int fatigue_band;                      /* 0x242: derived from stamina */
     unsigned char unknown_246;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
-    unsigned char unknown_24c;
+    unsigned char condition_binding_mask_24c;
     unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
     unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
     float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
@@ -479,8 +479,8 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
-void Function4E4AB0(void); /* 0x004E4AB0 */
-void Function4E6CE0(void); /* 0x004E6CE0 */
+void DetectMonsterGroups004E4AB0(void); /* 0x004E4AB0 */
+void Function4E6CE0(void);              /* 0x004E6CE0 */
 /* The kill bookkeeping a monster's death runs: credit the killer, post the
    "%s %s!" notice, clear conditions the dead monster sourced, apply the
    faction fallout, and bank the kill count and experience when it fought. */

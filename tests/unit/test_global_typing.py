@@ -25,6 +25,10 @@ def test_strip_and_template_mapping() -> None:
     assert _ghidra_type_name("srVector3T<float>") == "srVector3T[float]"
     assert _ghidra_type_name("const W8Foo *") == "W8Foo *"
     assert _ghidra_type_name("struct W8Character *") == "W8Character *"
+    assert (
+        _ghidra_type_name("W8GrowableVector<class W8Character *>")
+        == "W8GrowableVector[W8Character *]"
+    )
 
 
 def test_named_data_type_prefers_root_class_structure() -> None:
@@ -216,6 +220,7 @@ def test_resolve_data_type_wraps_each_trailing_star(monkeypatch) -> None:
         resolved = gt.resolve_data_type(program, spelling)
         assert resolved is not None
         assert _pointer_depth(resolved) == 2, spelling
+    assert _pointer_depth(gt.resolve_data_type(program, "const char &")) == 1
 
 
 def test_resolve_template_spelling_does_not_become_array(monkeypatch) -> None:

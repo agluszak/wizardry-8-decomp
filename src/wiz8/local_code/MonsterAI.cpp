@@ -833,7 +833,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     unsigned int chance;
     unsigned char rating;
     unsigned int spell;
-    int chosen;
+    W8CombatSlot chosen;
     float hp_ratio;
     unsigned char backs_off;
     srVector3T<float> position;
@@ -1045,7 +1045,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
 {
     unsigned int hp_percent;
     unsigned int result = 0;
-    int chosen;
+    W8CombatSlot chosen;
     float distance;
 
     hp_percent = monster_info->hp_current * 100 / monster_info->hp_max;

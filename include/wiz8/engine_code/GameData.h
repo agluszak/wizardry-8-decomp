@@ -310,7 +310,6 @@ void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
-unsigned int GetLevelDataFlag8(void);
 unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
 void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary);

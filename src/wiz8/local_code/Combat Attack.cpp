@@ -532,9 +532,7 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
             }
         }
     }
-    for (unsigned int monster_index = 0;
-         // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-         monster_index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+    for (unsigned int monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
          ++monster_index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -1284,6 +1282,8 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
 /* What the target's armour starts from before the situational modifier: the
    character's total, or ten minus the monster record's evasion - unless the
    monster is out of formation, which costs it a flat five. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // retail assertion returns
 // FUNCTION: WIZ8 0x00542ee0
 int GetTargetArmorClass00542EE0(W8CombatSlot* target, int attack_mode)
 {
@@ -1305,11 +1305,11 @@ int GetTargetArmorClass00542EE0(W8CombatSlot* target, int attack_mode)
         base = g_status_685170.buffers.characters[target->iChar].armor_class_total;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0xec8, 0);
-        // reinterpret-ok: unknown target kinds hand the record pointer back as the armour base
-        base = reinterpret_cast<int>(target);
+        /* Retail continues with the uninitialized base after the assertion. */
     }
     return GetTargetArmorClassModifier005468D0(target, attack_mode) + base;
 }
+#pragma clang diagnostic pop
 
 /* The armour class a hit at one location must beat: the base above plus the
    location and attack-mode terms each target kind carries, with the
@@ -1694,8 +1694,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         int fumble_chance;
         if (redirect_chance < 100) {
             fumble_chance = static_cast<int>(pow(100 - redirect_chance, 3.0) * 1e-5 + 0.5);
-            // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-            unsigned int target_count = ILLength(reinterpret_cast<W8IList*>(fumble_list));
+            unsigned int target_count = PLLength(fumble_list);
             if (target_count == 0) {
                 srAssertFail("uiNumTargets > 0", COMBAT_ATTACK_CPP, 0x11d0, 0);
             }
@@ -1711,8 +1710,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
                 report = &local_report;
             }
-            // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-            unsigned int choices = ILLength(reinterpret_cast<W8IList*>(fumble_list));
+            unsigned int choices = PLLength(fumble_list);
             if (choices == 0) {
                 srAssertFail("uiChoices > 0", COMBAT_ATTACK_CPP, 0x127e, 0);
             }
@@ -3307,8 +3305,7 @@ void BuildCharacterTargetList00543DC0(int party_slot, int action, W8PList* out_l
         }
     }
     unsigned int monster_list_index = 0;
-    // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-    while (monster_list_index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList))) {
+    while (monster_list_index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
             monster_info->fInCombat != 0 &&
@@ -3342,8 +3339,7 @@ void BuildMonsterTargetList00544010(W8MonsterInfo* monster_info, W8MonsterRecord
         }
     }
     unsigned int monster_list_index = 0;
-    // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-    while (monster_list_index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList))) {
+    while (monster_list_index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* candidate = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (candidate->fActive != 0 && candidate->hp_current != 0 && candidate->fInCombat != 0) {
             if (candidate == monster_info) {
@@ -3594,10 +3590,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         ScatterMissileAimPoint005454C0(&source_position.x, &target_position.x, accuracy, blind);
     }
     missile = FireMissile004A2D30(missile_type, &source_position, &target_position, 0, target_flag,
-                                  use_default_accuracy,
-                                  // the missile speed crosses the uint ABI slot as raw float bits
-                                  // reinterpret-ok: literal callers push 0x47435000 the same way
-                                  *reinterpret_cast<unsigned int*>(&speed));
+                                  use_default_accuracy, speed);
     if (missile != NULL) {
         missile->m_Source = *source;
         missile->combat_slot_260 = *target;
@@ -4118,8 +4111,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             int fumble_chance;
             if (redirect_chance < 100) {
                 fumble_chance = static_cast<int>(pow(100 - redirect_chance, 3.0) * 1e-5 + 0.5);
-                // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-                unsigned int target_count = ILLength(reinterpret_cast<W8IList*>(fumble_list));
+                unsigned int target_count = PLLength(fumble_list);
                 if (target_count == 0) {
                     srAssertFail("uiNumTargets > 0", COMBAT_ATTACK_CPP, 0x11d0, 0);
                 }
@@ -4143,8 +4135,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                     memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
                     report = &local_report;
                 }
-                // reinterpret-ok: W8PList and W8IList share one {data,capacity,count} layout
-                unsigned int choices = ILLength(reinterpret_cast<W8IList*>(fumble_list));
+                unsigned int choices = PLLength(fumble_list);
                 if (choices == 0) {
                     srAssertFail("uiChoices > 0", COMBAT_ATTACK_CPP, 0x127e, 0);
                 }

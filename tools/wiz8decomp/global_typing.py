@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,24 @@ _ARRAY_SUFFIX = re.compile(r"^(?P<base>.+?)(?P<arrays>(?:\[\d*\])+)$")
 _POINTER_SUFFIX = re.compile(r"^(?P<base>.+?)\s*(?P<stars>\*+)\s*$")
 _TEMPLATE = re.compile(r"<([^<>]+)>")
 _CLASS_LIKE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(::[A-Za-z_][A-Za-z0-9_]*)*$")
+_FUNCTION_POINTER = re.compile(r"^(?P<result>.+?)\s*\(\s*\*\s*\)\s*\((?P<arguments>.*)\)$")
+_ARRAY_POINTER = re.compile(r"^(?P<base>.+?)\s*\(\s*\*\s*\)\s*(?P<array>\[\d+\])$")
+
+
+def _split_type_arguments(text: str) -> list[str]:
+    arguments = []
+    start = 0
+    depth = 0
+    for index, char in enumerate(text):
+        if char in "(<[":
+            depth += 1
+        elif char in ")>]":
+            depth -= 1
+        elif char == "," and depth == 0:
+            arguments.append(text[start:index].strip())
+            start = index + 1
+    arguments.append(text[start:].strip())
+    return arguments
 
 
 def _is_class_like_type_name(type_name: str) -> bool:
@@ -56,6 +75,7 @@ def _ghidra_type_name(type_name: str) -> str:
     """Map C++ template spelling to Ghidra's ``T[Args]`` Structure names."""
 
     text = _strip_qualifiers(type_name)
+    text = re.sub(r"\b(?:class|struct|union|enum)\s+", "", text)
     while True:
         updated = _TEMPLATE.sub(r"[\1]", text)
         if updated == text:
@@ -281,6 +301,53 @@ def resolve_data_type(program: Any, type_name: str) -> Any | None:
     text = _ghidra_type_name(type_name)
     if not text:
         return None
+
+    array_pointer = _ARRAY_POINTER.fullmatch(text)
+    if array_pointer is not None:
+        element_array = resolve_data_type(
+            program, array_pointer.group("base") + array_pointer.group("array")
+        )
+        if element_array is None:
+            return None
+        return PointerDataType(element_array, program.getDataTypeManager())
+
+    callback = _FUNCTION_POINTER.fullmatch(text)
+    if callback is not None:
+        from ghidra.program.model.data import (  # type: ignore[import-not-found]
+            CategoryPath,
+            FunctionDefinitionDataType,
+            ParameterDefinitionImpl,
+            VoidDataType,
+        )
+
+        result_spelling = callback.group("result")
+        result = (
+            VoidDataType()
+            if result_spelling == "void"
+            else resolve_data_type(program, result_spelling)
+        )
+        if result is None:
+            return None
+        parameters = []
+        argument_spellings = _split_type_arguments(callback.group("arguments"))
+        if argument_spellings != ["void"] and argument_spellings != [""]:
+            for index, spelling in enumerate(argument_spellings):
+                argument = resolve_data_type(program, spelling)
+                if argument is None:
+                    return None
+                parameters.append(ParameterDefinitionImpl(f"arg_{index}", argument, None))
+        name = "callback_" + sha256(text.encode()).hexdigest()[:16]
+        definition = FunctionDefinitionDataType(CategoryPath("/wiz8/source-callbacks"), name)
+        definition.setReturnType(result)
+        if parameters:
+            definition.setArguments(parameters)
+        return PointerDataType(definition, program.getDataTypeManager())
+
+    if text.endswith("&"):
+        referent = resolve_data_type(program, text[:-1].rstrip())
+        if referent is None:
+            return None
+        return PointerDataType(referent, program.getDataTypeManager())
 
     pointer = _POINTER_SUFFIX.match(text)
     if pointer is not None:

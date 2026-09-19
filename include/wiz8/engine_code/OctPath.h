@@ -467,7 +467,7 @@ public:
     W8HashTable<unsigned int, unsigned int>* m_pPathValues_064; /* 0x64 */
     const char* level_name;                                     /* 0x68 */
     W8PathHeapHandle* path_heap_06c;                            /* 0x6c */
-    unsigned int m_positional_070;                              /* 0x70: starts 0x501502f9 */
+    float path_cost_limit_070;                                  /* 0x70: starts 1.0e10f */
     W8HashTable<unsigned int, int>* m_pVisitedCells_074;        /* 0x74 */
     unsigned int probe_cell_key_078;                            /* 0x78 */
     srVector3T<float> probe_position_07c;                       /* 0x7c */

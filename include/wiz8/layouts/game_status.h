@@ -27,6 +27,13 @@ struct W8StatusBuffers {
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
+/* The pending condition event writes text here, while the delayed clear
+   consumes the same dword as a party slot. */
+union W8PendingConditionValue {
+    wchar_t* text;
+    int party_slot;
+};
+
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
     bool game_started; /* 0x000c */
@@ -51,7 +58,7 @@ struct W8GlobalStatus {
     int party_facing;
     unsigned int party_heading;
     int world_clock;
-    unsigned char unknown_18dc[4];
+    unsigned int world_clock_ms_18dc;
     unsigned int party_order_slots[8];
     int current_level;
     /* 0x1904..0x1a03: the 0x100-byte STAT header block. Assertion evidence
@@ -78,7 +85,7 @@ struct W8GlobalStatus {
     /* 0x2367: per-slot flags the character-load path consults at 0x006874D7. */
     unsigned char flags_2367[0x20];
     int game_time_ms;
-    unsigned char unknown_238b[4];
+    unsigned int aging_accumulator_238b;
     /* 0x238f: search mode toggle. Mirrors the submenu search button, slows
        party movement, and scales the monster-sight threshold while set. */
     unsigned char search_mode;
@@ -91,7 +98,8 @@ struct W8GlobalStatus {
        pass sums them against zero. */
     float real_elapsed_2391;
     float frame_elapsed_2395;
-    unsigned char unknown_2399[8];
+    unsigned int wait_state_2399;
+    unsigned int item_recharge_ms_239d;
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
@@ -108,14 +116,14 @@ struct W8GlobalStatus {
     /* 0x2432: ShowNotice sets it under quote_audit_2431 when a notice wraps
        past seven lines; the audit reports those as "Long Quote". */
     unsigned char long_quote_2432;
-    unsigned char unknown_2433;
+    unsigned char party_fatigued_2433;
     /* 0x2434: index of the party member the main-game selection flow is on.
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */
     unsigned char selected_party_member_2434;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
     unsigned char value_2435;
-    unsigned char unknown_2436[4];
+    unsigned int camp_tick_ms_2436;
     /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
     unsigned char rpc_races_243a[5];
     unsigned char unknown_243f[5];
@@ -124,14 +132,14 @@ struct W8GlobalStatus {
     /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
        handled at a cursor node; later uses take the Mystical Shaman branch. */
     unsigned char use_item_latch_2445;
-    unsigned char unknown_2446;
+    unsigned char flag_2446;
     int difficulty;
     unsigned char unknown_244b[8];
     wchar_t monster_name_buffer_2453[22];
     /* 0x247f: party-slot index read as a full dword by GetMonsterGroupName and
        the type-9 world-cursor handler. */
     int alternate_name_slot_247f;
-    unsigned char unknown_2483[4];
+    unsigned int stamina_tick_ms_2483;
     unsigned char flag_2487;
     /* 0x2488: one-shot gate; when set, the next condition-change and
        condition-cleared reaction is swallowed and the flag cleared. */
@@ -141,10 +149,10 @@ struct W8GlobalStatus {
        0x2493 with the world clock. */
     unsigned char flag_248a;
     unsigned int value_248b;
-    wchar_t* value_248f;
+    W8PendingConditionValue value_248f;
     int value_2493;
     unsigned char flag_2497;
-    unsigned char unknown_2498[4];
+    unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
     unsigned char unknown_24a0[0xc80];

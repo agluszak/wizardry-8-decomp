@@ -140,7 +140,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     if (applied <= amount) {
         if (CharacterHasTrait00547940(character, 2) != 0 &&
             character->condition_turns[W8_CONDITION_EXHAUSTED] < 7) {
-            Function547A50(party_slot);
+            CheatDeathRevive00547A50(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
         }

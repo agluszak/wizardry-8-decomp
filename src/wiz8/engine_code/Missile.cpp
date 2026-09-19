@@ -397,11 +397,11 @@ void UpdateWorldMissiles004A27C0(W8World* world)
 // FUNCTION: WIZ8 0x004A2D30
 W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
                                srVector3T<float>* target, unsigned int value_4,
-                               unsigned int value_5, unsigned int value_6, unsigned int value_7)
+                               unsigned int value_5, unsigned int value_6, float speed)
 {
     return CreateMissile004A28D0(missile_table_index, source, GetHeadingAngle(source, target),
                                  GetElevationAngle(source, target), value_4, value_5, value_6,
-                                 value_7);
+                                 speed);
 }
 
 /* The missile and spell representations use the same ordinary AnimObj

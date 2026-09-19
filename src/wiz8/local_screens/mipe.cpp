@@ -94,7 +94,7 @@ void ToggleMipePanel0057D740(void)
         g_level_block->flag_272 = 0;
         ResetEditorStatusLine0058AA20(-1);
         if (gXStatus.fCombatMode != 0) {
-            Function58F6B0(1);
+            SelectTextBox(1);
         }
         ReleaseWorldCursor004909C0();
         g_flag_68f105 = 0;
@@ -127,7 +127,7 @@ void ToggleMipePanel0057D740(void)
 
     g_level_block->flag_271 = 0;
     g_level_block->flag_272 = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ResetEditorStatusLine0058AA20(-1);
     g_flag_68f105 = 1;
     ResetEditorStatusLine0058AA20(-1);
@@ -249,7 +249,7 @@ void ShowMonsterSpeedStatus00577F10(void)
         WriteGameLogAmount(8, L"No monster available.");
         return;
     }
-    path = (W8PathAI*)MonsterGetObject0C(g_mipe_state_0068f100->monster);
+    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state_0068f100->monster));
     if (path != 0 && PathAIRecordFlag004A9740(path) == 0) {
         speed = PathAIGetScale004AAA50(path);
     } else {
@@ -485,7 +485,7 @@ void AdjustMonsterSpeed00579BF0(unsigned short key)
     if (g_mipe_state_0068f100->monster == 0) {
         return;
     }
-    path = (W8PathAI*)MonsterGetObject0C(g_mipe_state_0068f100->monster);
+    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state_0068f100->monster));
     if (path == 0) {
         factor = 1.0f;
         speed = MonsterGetNavigatorValue120(g_mipe_state_0068f100->monster);
@@ -1039,7 +1039,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         } while (slot < 6);
         return 1;
     case 0x33:
-        g_mipe_state_0068f100->generator->generation_enabled = g_mipe_state_0068f100->generator->generation_enabled == 0;
+        g_mipe_state_0068f100->generator->generation_enabled =
+            g_mipe_state_0068f100->generator->generation_enabled == 0;
         ShowMonsterGeneratorEditor005782D0();
         return 1;
     case 0x34:
@@ -1313,10 +1314,7 @@ void UpdateMipeSelection0057DC20(void)
             }
         }
         IListClear(&g_mipe_state_0068f100->monster_ids);
-        for (index = 0; index < static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                                    gXStatus.plsMonsterList))); // reinterpret-ok: retail spells the
-             // IList length on the W8PList (0x5e2c70)
-             ++index) {
+        for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterList)); ++index) {
             info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
             if (info->fActive != 0 && info->monster_group_id == group_id) {
                 SetMonsterHighlight(0, info->location_id, 1);

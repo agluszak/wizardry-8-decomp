@@ -2096,6 +2096,7 @@ template <class T> T ReadHeader(const unsigned char* header, unsigned int offset
 
 template <class T> void WriteMember(W8Octree* octree, unsigned int offset, T value)
 {
+    // reinterpret-ok: writes packed octree members at their serialized byte offsets
     memcpy(reinterpret_cast<unsigned char*>(octree) + offset, &value, sizeof(value));
 }
 
@@ -3034,18 +3035,18 @@ void W8Octree::AddCollidablePropBounds(int index, const W8BoundingBox* bounds)
         minimum[axis] = static_cast<int>(
             ((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     }
-    minimum[0] =
-        static_cast<int>(((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
-    minimum[1] =
-        static_cast<int>(((bounds->minimum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
-    minimum[2] =
-        static_cast<int>(((bounds->minimum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
-    maximum[0] =
-        static_cast<int>(((bounds->maximum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
-    maximum[1] =
-        static_cast<int>(((bounds->maximum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
-    maximum[2] =
-        static_cast<int>(((bounds->maximum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    minimum[0] = static_cast<int>(
+        ((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    minimum[1] = static_cast<int>(
+        ((bounds->minimum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    minimum[2] = static_cast<int>(
+        ((bounds->minimum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    maximum[0] = static_cast<int>(
+        ((bounds->maximum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    maximum[1] = static_cast<int>(
+        ((bounds->maximum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    maximum[2] = static_cast<int>(
+        ((bounds->maximum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
 
     prop_key = PackOctreeObjectKey(W8_OCTREE_KIND_PROP, index + 1);
     for (x = minimum[0]; x <= maximum[0]; ++x) {
@@ -4080,6 +4081,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     static_cast<float>(
                                                         ReadHeader<unsigned long>(header, 0xac)),
                                                     ReadHeader<unsigned long>(header, 0xb4),
+                                                    // reinterpret-ok: packed octree header stores a float vector at byte offset 0x0e
                                                     reinterpret_cast<const float*>(header + 0x0e),
                                                     m_owned_0c0);
                                                 fLoaded = pathing_180->Load00458CE0(hOctFile);
@@ -4284,11 +4286,8 @@ void W8Octree::Initialize(const void* raw_header)
             WriteMember(this, 0xa4 + axis * 4, ReadHeader<unsigned long>(header, 0x56 + axis * 4));
         }
 
-        WriteMember(this, 0x64,
-                    ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xa8) *
-                        ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xac));
-        WriteMember(this, 0x68,
-                    ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xac));
+        WriteMember(this, 0x64, m_leaf_grid_dim_y_0a8 * m_leaf_grid_dim_z_0ac);
+        WriteMember(this, 0x68, m_leaf_grid_dim_z_0ac);
         WriteMember(this, 0x44, ReadHeader<unsigned short>(header, 0x62));
         WriteMember(this, 0x58, ReadHeader<unsigned short>(header, 0x64));
         WriteMember(this, 0x46, ReadHeader<unsigned short>(header, 0x60));

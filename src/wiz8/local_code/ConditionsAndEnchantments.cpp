@@ -98,8 +98,8 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
             if (!cleared && slot_kind == 0) {
                 for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* bound = MonsterGetScriptPartByLocationIndex(index);
-                    if (bound->value_344 == monster_info->location_id) {
-                        bound->value_344 = -1;
+                    if (bound->insanity_summon_344 == monster_info->location_id) {
+                        bound->insanity_summon_344 = -1;
                         break;
                     }
                 }
@@ -1029,8 +1029,8 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
 
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, 1));
-    monster_info->unknown_24c =
-        static_cast<unsigned char>(monster_info->unknown_24c | (1 << dependence_slot));
+    monster_info->condition_binding_mask_24c = static_cast<unsigned char>(
+        monster_info->condition_binding_mask_24c | (1 << dependence_slot));
     if (dependence_slot == 1) {
         RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, 1)));

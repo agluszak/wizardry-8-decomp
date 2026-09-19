@@ -646,11 +646,17 @@ void SetCombatAction(int value);    /* 0x0056A480 */
 void SetCombatSelection(int value); /* 0x00569F70 */
 void SetCombatTarget(int value);    /* 0x0056A2D0 */
 
-void RequestRedrawCombatBar(void);    /* 0x005699B0 */
-void UpdateScreenOverlays(int frame); /* 0x0056AF20 */
-void DisableMainRegionSet(void);      /* 0x00561FB0 */
-void EnableMainRegionSet(void);       /* 0x00561FA0 */
-void OpenUseItemSelectView(int slot); /* 0x0059C930 */
+void RequestRedrawCombatBar(void);              /* 0x005699B0 */
+void UpdateScreenOverlays(int frame);           /* 0x0056AF20 */
+bool LoadCurrentLevelData(void);                /* 0x00560A20 */
+void ResetMainGameMode00560C60(void);           /* 0x00560C60 */
+void CreateSurpriseFade0056B4E0(void);          /* 0x0056B4E0 */
+void ReverseSurpriseFade0056B5F0(void);         /* 0x0056B5F0 */
+void DestroySurpriseFade0056B690(void);         /* 0x0056B690 */
+unsigned char UpdateSurpriseFade0056B6F0(void); /* 0x0056B6F0 */
+void DisableMainRegionSet(void);                /* 0x00561FB0 */
+void EnableMainRegionSet(void);                 /* 0x00561FA0 */
+void OpenUseItemSelectView(int slot);           /* 0x0059C930 */
 void Function598AE0(void);
 void Function59B270(void);
 void Function59C9C0(void);

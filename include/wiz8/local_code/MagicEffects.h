@@ -80,6 +80,8 @@ float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int
 extern const int g_effect_visual_table[149][2];
 
 void TickCombatEffectSlots(W8EffectSlot* slots, W8CombatSlot* target); /* 0x005526F0 */
+void TickRadiusBlastEffectSlots(W8EffectSlot* slots);                  /* 0x00552EF0 */
+void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect);  /* 0x00551500 */
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
 void ResetPartyEffectBlock(W8EffectSlot* slot);
 

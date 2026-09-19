@@ -64,7 +64,8 @@ struct W8CharacterAttribute {
     /* 0x04: the value after equipment and effects. Resistance recalculation
        reads this one, not the base, and only above a threshold of 0x50. */
     unsigned int effective;
-    unsigned char unknown_08[0xc];
+    int change_counter_08;
+    unsigned char unknown_0c[8];
 }; /* 0x14 */
 
 /* One skill record, indexed directly by skill id. PracticeCharacterSkill

@@ -2090,7 +2090,7 @@ void W8Monster::ProcessScript004C80E0()
                 if (GetProjectilePosition004C77F0(&source) == 0) {
                     GetMappedPosition004C72A0(&source);
                 }
-                FireMissile004A2D30(owner, &source, &target, 0, 0, 1, 0x47435000);
+                FireMissile004A2D30(owner, &source, &target, 0, 0, 1, 50000.0f);
                 break;
             }
             case MONSCR_GIVE:

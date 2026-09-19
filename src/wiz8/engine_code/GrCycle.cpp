@@ -806,7 +806,7 @@ void W8GrCycle::ResetRepresentation004A7420()
     if (target == 0) {
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
     }
-    PathAIResetRecord004A9720((W8PathAI*)m_pAI);
+    PathAIResetRecord004A9720(static_cast<W8PathAI*>(m_pAI));
     target->flag_06e = 1;
     target->flag_064 = 0;
     target->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
@@ -1224,7 +1224,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signe
     }
     if (m_pAI != 0) {
         target = GetRepresentation();
-        PathAIApplyToRep004A91F0((W8PathAI*)m_pAI, target);
+        PathAIApplyToRep004A91F0(static_cast<W8PathAI*>(m_pAI), target);
     }
     target = GetRepresentation();
     return target->SetCycleFrameLod(cycle, frame, lod);
@@ -1234,7 +1234,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signe
 unsigned char W8GrCycle::ReplacePath004A8400(W8PathAI* path)
 {
     if (m_pAI != 0) {
-        DestroyOwnedPathAI004A9110((W8PathAI*)m_pAI);
+        DestroyOwnedPathAI004A9110(static_cast<W8PathAI*>(m_pAI));
     }
     m_pAI = path;
     return 1;
@@ -1503,9 +1503,9 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
 
 template <> srVector3T<double>* srVector3T<double>::SetFromFloat(const srVector3T<float>* source)
 {
-    x = (double)source->x;
-    y = (double)source->y;
-    z = (double)source->z;
+    x = source->x;
+    y = source->y;
+    z = source->z;
     return this;
 }
 

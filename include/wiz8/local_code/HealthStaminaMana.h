@@ -19,6 +19,7 @@ void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
+void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount);
 void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                       W8SpellEffectResult* report_to);
 /* 0x0052C500: run one queued fatigue op. The op is a combat slot: a

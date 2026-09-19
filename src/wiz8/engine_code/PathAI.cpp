@@ -20,8 +20,8 @@
    this overload only satisfies the local call and owns no separate address. */
 void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 {
-    (void)path;
-    (void)representation;
+    static_cast<void>(path);
+    static_cast<void>(representation);
 }
 
 /* identity-alias: retail folds this empty body with the SYNTHETIC at

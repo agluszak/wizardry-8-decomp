@@ -967,8 +967,8 @@ unsigned char W8PathingService::HandlePathEdgeTransition00460350(W8NavigatorMove
 
 /* Measure the route between two points for the noise line-of-sight query. A
    throwaway attachment is built over (from, to); a positive `range` budget is
-   parked in m_positional_070 as raw float bits while the path builds, and both
-   exits restore the 0x501502f9 sentinel. On success `range` receives the
+   held in path_cost_limit_070 while the path builds, and both
+   exits restore the 1.0e10f limit. On success `range` receives the
    measured path length and `hops` the count of hop segments whose link is
    gated by a door. */
 // FUNCTION: WIZ8 0x004604B0
@@ -978,11 +978,10 @@ unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<f
 {
     W8NavigatorAttachment attachment(from, to);
     if (*range > g_float_005ebb34) {
-        m_positional_070 = *reinterpret_cast<unsigned int*>(range); /* reinterpret-ok: the field
-            parks the in-range float's raw bits beside its integer sentinels */
+        path_cost_limit_070 = *range;
     }
     if (BuildAttachmentPath00460950(&attachment, 0) == 0) {
-        m_positional_070 = 0x501502f9;
+        path_cost_limit_070 = 1.0e10f;
         return 0;
     }
 
@@ -1009,7 +1008,7 @@ unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<f
         }
         ++attachment.value_04;
     }
-    m_positional_070 = 0x501502f9;
+    path_cost_limit_070 = 1.0e10f;
     return 1;
 }
 
@@ -1170,9 +1169,7 @@ unsigned int W8PathingService::FindPath00460B80(W8NavigatorAttachment* attachmen
                             m_pSurfaces_048[usNextNode].cost_1c =
                                 m_pEdges_04c[link].distance_08 + m_pSurfaces_048[current].cost_1c;
                             W8PathSurface* surfaces = m_pSurfaces_048;
-                            if (surfaces[usNextNode].cost_1c <
-                                *reinterpret_cast<float*>(&m_positional_070)) { /* reinterpret-ok:
-                                    the limit is parked as raw float bits beside integer sentinels */
+                            if (surfaces[usNextNode].cost_1c < path_cost_limit_070) {
                                 float dx = surfaces[end].position_04.x -
                                            surfaces[usNextNode].position_04.x;
                                 settled = false;
@@ -1200,9 +1197,7 @@ unsigned int W8PathingService::FindPath00460B80(W8NavigatorAttachment* attachmen
                             float cost =
                                 m_pEdges_04c[link].distance_08 + m_pSurfaces_048[current].cost_1c;
                             if ((cost + g_float_005ebc88 < m_pSurfaces_048[usNextNode].cost_1c) &&
-                                (cost <
-                                 *reinterpret_cast<float*>(&m_positional_070))) { /* reinterpret-ok:
-                                    the limit is parked as raw float bits beside integer sentinels */
+                                (cost < path_cost_limit_070)) {
                                 float reduction = m_pSurfaces_048[usNextNode].cost_1c - cost;
                                 m_pSurfaces_048[usNextNode].parent_10 = usCurrent;
                                 W8PathSurface* surfaces = m_pSurfaces_048;
@@ -3303,7 +3298,7 @@ W8PathingService::W8PathingService()
     level_name = 0;
     flag_08c = 0;
     path_heap_06c = 0;
-    m_positional_070 = 0x501502f9;
+    path_cost_limit_070 = 1.0e10f;
     flag_1c8 = 0;
     flag_1c9 = 0;
     flag_1ca = 0;
