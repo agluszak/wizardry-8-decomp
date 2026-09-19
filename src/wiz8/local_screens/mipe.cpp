@@ -168,7 +168,7 @@ void ToggleMipePanel0057D740(void)
     g_mipe_state_0068f100 = static_cast<W8MipeState*>(malloc(sizeof(W8MipeState)));
     memset(g_mipe_state_0068f100, 0, sizeof(W8MipeState));
     IListInit(&g_mipe_state_0068f100->monster_ids);
-    g_mipe_state_0068f100->monster_ids.capacity = 1000000;
+    g_mipe_state_0068f100->selected_group_id = W8_MIPE_NO_GROUP;
     g_mipe_state_0068f100->selecting = 0;
     g_mipe_state_0068f100->value_34 = 1.0f;
     g_mipe_state_0068f100->speed_step = 0.020000000f;
@@ -1295,13 +1295,13 @@ void UpdateMipeSelection0057DC20(void)
     location_id = PickNearestMonsterUnderCursor005396D0(point.x, point.y);
     if (g_mipe_choose_group_0064a1cc != 0) {
         if (location_id == -1) {
-            group_id = 1000000;
+            group_id = W8_MIPE_NO_GROUP;
         } else {
             group_id = MonsterGetScriptPartByLocationIndex(
                            MonsterGetIndexByLocationID(0x10bb, MIPE_CPP, location_id, 1))
                            ->monster_group_id;
         }
-        if (group_id == g_mipe_state_0068f100->value_0c) {
+        if (group_id == g_mipe_state_0068f100->selected_group_id) {
             return;
         }
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state_0068f100->monster_ids));
@@ -1329,7 +1329,7 @@ void UpdateMipeSelection0057DC20(void)
             }
             g_mipe_state_0068f100->monster = info->monster;
         }
-        g_mipe_state_0068f100->value_0c = group_id;
+        g_mipe_state_0068f100->selected_group_id = group_id;
         SetWorldCursorGroupId004916A0(group_id);
         return;
     }
