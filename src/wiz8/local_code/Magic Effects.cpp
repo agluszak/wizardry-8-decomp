@@ -25,6 +25,7 @@
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
+#include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/character_skills.h"

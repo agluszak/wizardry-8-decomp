@@ -332,7 +332,10 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
     srVector3T<float> location;
     srVector3T<float> offset;
 
-    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+    for (index = 0; index < ILLength(reinterpret_cast< // reinterpret-ok: W8PList and W8IList
+                                                       // share their data/capacity/count layout
+                                     W8IList*>(gXStatus.plsMonsterList));
+         ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);
@@ -1436,3 +1439,11 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
         return 0;
     return &g_status_685170.buffers.characters[selected];
 }
+// GLOBAL: WIZ8 0x005EE618
+int g_effect_005ee618 = 36;
+// GLOBAL: WIZ8 0x005EE630
+int g_effect_005ee630 = 42;
+// GLOBAL: WIZ8 0x005EE638
+int g_effect_005ee638 = 0x2c;
+// GLOBAL: WIZ8 0x005EE658
+int g_effect_005ee658 = 52;

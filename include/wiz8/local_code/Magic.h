@@ -85,7 +85,8 @@ int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int 
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
 /* Whether the party as a whole is under one particular condition. */
-bool PartyHasCondition(int condition_id); /* 0x005012B0 */
+bool PartyHasCondition(int condition_id);                                    /* 0x005012B0 */
+int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
 
 /* 0x004FAE70: whether a spellcasting-blocked condition stops this character
    casting this spell. */
@@ -119,7 +120,6 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 /* 0x004FF790: how hard this caster figure finds one spell at a power level, and
    0x00501910: the combat-pace scale an item-use attempt applies to its own
    difficulty. Both are defined in this unit. */
-int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus);
 unsigned int ScaleByCombatPace(int party_slot, unsigned int* value);
 
 /* Unresolved gap callees of the item-use spell path, all in this unit. Their

@@ -10,6 +10,7 @@
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
+#include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
@@ -1130,6 +1131,41 @@ void CreateMainGameInterfaceButtons(void)
     CreateLayoutArrowButtons();
 }
 
+/* Re-enable the button banks the surprise sequence took down: submenu scroll
+   arrows, the options disk, roof buttons and the layout arrows. */
+// FUNCTION: WIZ8 0x00598c10
+void EnableMenuButtonBanks00598C10(void)
+{
+    int i;
+    for (i = 0; i < 2; ++i) {
+        g_submenu_scroll_buttons_69b858[i]->SetEnabled(1);
+    }
+    g_options_disk_button_69b8e4->SetEnabled(1);
+    for (i = 0; i < 3; ++i) {
+        g_roof_buttons_69b8d8[i]->SetEnabled(1);
+    }
+    for (i = 0; i < 6; ++i) {
+        g_layout_arrow_buttons_69b884[i]->SetEnabled(1);
+    }
+}
+
+/* Disable the same button banks while the surprise sequence runs. */
+// FUNCTION: WIZ8 0x00598c70
+void DisableMenuButtonBanks00598C70(void)
+{
+    int i;
+    for (i = 0; i < 2; ++i) {
+        g_submenu_scroll_buttons_69b858[i]->SetEnabled(0);
+    }
+    g_options_disk_button_69b8e4->SetEnabled(0);
+    for (i = 0; i < 3; ++i) {
+        g_roof_buttons_69b8d8[i]->SetEnabled(0);
+    }
+    for (i = 0; i < 6; ++i) {
+        g_layout_arrow_buttons_69b884[i]->SetEnabled(0);
+    }
+}
+
 // FUNCTION: WIZ8 0x00598CD0
 unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -1681,37 +1717,5 @@ void UpdateSubMenuAutoClose00598FA0(void)
     } else if (g_submenu_flag_69b8d4 != 0) {
         g_submenu_clock_69b880 = SetCountdownClock(0);
         g_submenu_flag_69b8d4 = 0;
-    }
-}
-
-// FUNCTION: WIZ8 0x00598c10
-void EnableMenuButtonBanks00598C10(void)
-{
-    int i;
-    for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons_69b858[i]->SetEnabled(1);
-    }
-    g_options_disk_button_69b8e4->SetEnabled(1);
-    for (i = 0; i < 3; ++i) {
-        g_roof_buttons_69b8d8[i]->SetEnabled(1);
-    }
-    for (i = 0; i < 6; ++i) {
-        g_layout_arrow_buttons_69b884[i]->SetEnabled(1);
-    }
-}
-
-// FUNCTION: WIZ8 0x00598c70
-void DisableMenuButtonBanks00598C70(void)
-{
-    int i;
-    for (i = 0; i < 2; ++i) {
-        g_submenu_scroll_buttons_69b858[i]->SetEnabled(0);
-    }
-    g_options_disk_button_69b8e4->SetEnabled(0);
-    for (i = 0; i < 3; ++i) {
-        g_roof_buttons_69b8d8[i]->SetEnabled(0);
-    }
-    for (i = 0; i < 6; ++i) {
-        g_layout_arrow_buttons_69b884[i]->SetEnabled(0);
     }
 }
