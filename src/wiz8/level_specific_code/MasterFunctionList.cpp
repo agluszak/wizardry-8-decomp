@@ -601,7 +601,6 @@ unsigned char ShowLevelMessage004D9960(int message_id)
    are declared here rather than in the published header. */
 void EnsureTrynnie1KilledVar004DA670(void);
 void Function4DEB40(void);
-void Function4E06D0(void);
 bool Trynnie2GoodaVineA004D9D70(Trigger* trigger);
 bool Trynnie2GoodaVineB004D9DA0(Trigger* trigger);
 bool Trynnie2GiveZulu004D9DD0(Trigger* trigger);
@@ -620,14 +619,6 @@ bool Function4DF120(Trigger* trigger);
 bool Function4DF710(Trigger* trigger);
 bool Function4DF7E0(Trigger* trigger);
 bool Function4E05F0(Trigger* trigger);
-bool Function4E0880(Trigger* trigger);
-bool Function4E0A80(Trigger* trigger);
-bool Function4E0DC0(Trigger* trigger);
-bool Function4E1040(Trigger* trigger);
-bool Function4E10A0(Trigger* trigger);
-bool Function4E1120(Trigger* trigger);
-bool Function4E1180(Trigger* trigger);
-bool Function4E1340(Trigger* trigger);
 bool Function4E26F0(Trigger* trigger);
 bool Function4E2760(Trigger* trigger);
 
@@ -713,37 +704,37 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x90,
                          "Missing trigger 'Mookholo'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0DC0;
+        pTrigger->activation_callback_360 = ArnikaMookholo004E0DC0;
         pTrigger = FindTriggerByName("MookFrontDoor");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x9c,
                          "Missing trigger 'MookFrontDoor'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1040;
+        pTrigger->activation_callback_360 = ArnikaMookFrontDoor004E1040;
         pTrigger = FindTriggerByName("YellowButton");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa0,
                          "Missing trigger 'YellowButton'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E10A0;
+        pTrigger->activation_callback_360 = ArnikaYellowButton004E10A0;
         pTrigger = FindTriggerByName("Vaultalarmdoor");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa4,
                          "Missing trigger 'Vaultalarmdoor'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1120;
+        pTrigger->activation_callback_360 = ArnikaVaultAlarmDoor004E1120;
         pTrigger = FindTriggerByName("Exitbutton");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xa8,
                          "Missing trigger 'Exitbutton'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1180;
+        pTrigger->activation_callback_360 = ArnikaExitButton004E1180;
         pTrigger = FindTriggerByName("GenVault-2-door");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xac,
                          "Missing trigger 'GenVault-2-door'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E1340;
+        pTrigger->activation_callback_360 = ArnikaGenVaultDoor004E1340;
         pTrigger = FindTriggerByName("ARN11");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xb8,
@@ -785,15 +776,15 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xd8,
                          "Missing trigger 'LazerScanner'! It's not in the LVL file!");
         }
-        pTrigger->activation_callback_360 = Function4E0880;
+        pTrigger->activation_callback_360 = ArnikaLazerScanner004E0880;
         pTrigger = FindTriggerByName("ScannerDoor");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0xdc,
                          "Missing trigger 'ScannerDoor'! It's not in the LVL file!");
         }
         pTrigger->m_lData1 = 0;
-        pTrigger->activation_callback_360 = Function4E0A80;
-        Function4E06D0();
+        pTrigger->activation_callback_360 = ArnikaScannerDoor004E0A80;
+        ArnikaLevelSetup004E06D0();
         return;
     case 1:
         pTrigger = FindTriggerByName("RampUp");
