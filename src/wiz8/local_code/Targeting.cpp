@@ -2196,8 +2196,7 @@ W8TargetingContext GetValidatedTargetingContext(int party_slot, W8TargetingConte
    The source block is built here rather than passed in, so this always asks on
    the character's own behalf. */
 // FUNCTION: WIZ8 0x00536d60
-unsigned char CanTargetMonsterGroup( // bool-byte-ok: retail returns al as unsigned char
-    int party_slot, W8MonsterGroup* group)
+bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
 {
     W8TargetSource source;
     int action;
@@ -2439,9 +2438,7 @@ done:
    group, spells and item casts ask the spell record - and the stored target
    has to both match that need and still be in range. */
 // FUNCTION: WIZ8 0x00536f60
-unsigned char
-TargetIsInPlay(int party_slot, int value,
-               W8TargetingContext context) // bool-byte-ok: retail returns al as unsigned char
+bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
 {
     W8TargetingContext resolved;
     W8ActionDetailBlock* detail_block;
@@ -2528,8 +2525,7 @@ TargetIsInPlay(int party_slot, int value,
    untargetable flag is checked last rather than first, so an action needing
    nothing still reaches a monster carrying it. */
 // FUNCTION: WIZ8 0x00536ad0
-unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
-                               int reason) // bool-byte-ok: retail returns al as unsigned char
+bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, int reason)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x1ce, TARGETING_CPP, location_id, 1));
@@ -2690,9 +2686,7 @@ enum {
    Out of combat the one-monster kind answers yes without looking, since
    anything in the level can be walked up to. */
 // FUNCTION: WIZ8 0x0053d010
-unsigned char
-SpellHasAnyValidTarget(int party_slot, int spell_id,
-                       unsigned char normalize) // bool-byte-ok: retail returns al as unsigned char
+bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
 {
     unsigned int index;
 
@@ -3195,7 +3189,7 @@ bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T
 /* Any live monster visible to the camera within the far-clip range, resuming
    the scan at the last match. */
 // FUNCTION: WIZ8 0x0053A1D0
-unsigned char AnyMonsterVisible0053A1D0(void) // bool-byte-ok: retail returns al as unsigned char
+bool AnyMonsterVisible0053A1D0(void)
 {
     srVector3T<float> camera;
     float limit;
