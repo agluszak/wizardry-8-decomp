@@ -28,6 +28,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSFormation.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
@@ -655,6 +656,28 @@ void KeyboardMenuSelectEquip(void);
 void KeyboardMenuOpenSpellView(void);
 void KeyboardMenuCastRecordedSpell(void);
 void KeyboardMenuUseRecordedItem(void);
+
+// FUNCTION: WIZ8 0x00592C70
+void OpenKeyboardMenuForSlot(int slot)
+{
+    memset(g_keyboard_menu_rows_69b820, 0, sizeof(g_keyboard_menu_rows_69b820));
+    g_value_64c1c8 = slot;
+    g_keyboard_menu_panel_69b804 = 0;
+    g_level_block->keyboard_menu_open = 1;
+    SelectPartyCharacter(g_value_64c1c8);
+    if (BuildKeyboardMenu() == 0) {
+        CloseKeyboardMenu();
+        return;
+    }
+    UpdateScreenOverlays(0);
+    gXStatus.monster_manager_entries[slot].field_0d0 = 1;
+    RegionSetDisable(slot + 7);
+    DisableRegionSetInput(slot + 7);
+    DisableRegionInput(slot + 0x5a);
+    DisableRegionInput(slot + 0xa);
+    EnableKeyboardMenuInput();
+    RequestRedraw(1 << slot);
+}
 
 // FUNCTION: WIZ8 0x00592E60
 __forceinline void CloseKeyboardMenu(void)

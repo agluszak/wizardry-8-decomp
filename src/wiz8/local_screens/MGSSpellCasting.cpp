@@ -35,6 +35,7 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"

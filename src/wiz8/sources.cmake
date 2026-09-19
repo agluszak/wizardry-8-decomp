@@ -184,6 +184,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/mipe.cpp
     src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
+    src/wiz8/local_screens/MGSPortraitCombat.cpp
     src/wiz8/local_screens/MGSButtons.cpp
     src/wiz8/local_screens/MGSSpellCasting.cpp
     src/wiz8/local_screens/PartySelectionScreen.cpp
