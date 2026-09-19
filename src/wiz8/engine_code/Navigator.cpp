@@ -547,7 +547,7 @@ void W8Navigator::SetNavigationMode(int mode)
     switch (mode) {
     case 1:
         path = CreateRecord004A9750(0);
-        PathAISetFlag3A004A9B90(path, 1);
+        PathAISetAnimated004A9B90(path, 1);
         SetPathAI(path);
         /* Falls into mode four's body: the retail block ends where mode four's
            jump-table entry lands. */
@@ -559,14 +559,14 @@ void W8Navigator::SetNavigationMode(int mode)
     case 3:
     case 5:
         path = CreateRecord004A9750(0);
-        PathAISetFlag3A004A9B90(path, 1);
+        PathAISetAnimated004A9B90(path, 1);
         SetPathAI(path);
         movement_0c0.pitch_enabled_074 = 1;
         movement_0c0.roll_enabled_075 = 0;
         break;
     case 6:
         path = CreateRecord004A9750(0);
-        PathAISetFlag3A004A9B90(path, 1);
+        PathAISetAnimated004A9B90(path, 1);
         SetPathAI(path);
         movement_0c0.pitch_enabled_074 = 1;
         movement_0c0.roll_enabled_075 = 1;

@@ -450,49 +450,37 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
             return 1;
         }
     }
-    point.x = lower->x;
-    point.y = upper->y;
-    point.z = upper->z;
+    point.Set(lower->x, upper->y, upper->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
-    point.x = lower->x;
-    point.y = upper->y;
-    point.z = lower->z;
+    point.Set(lower->x, upper->y, lower->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
-    point.x = upper->x;
-    point.y = upper->y;
-    point.z = lower->z;
+    point.Set(upper->x, upper->y, lower->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
-    point.x = upper->x;
-    point.y = lower->y;
-    point.z = upper->z;
+    point.Set(upper->x, lower->y, upper->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
-    point.x = lower->x;
-    point.y = lower->y;
-    point.z = upper->z;
+    point.Set(lower->x, lower->y, upper->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
         }
     }
-    point.x = upper->x;
-    point.y = lower->y;
-    point.z = lower->z;
+    point.Set(upper->x, lower->y, lower->z);
     if (ProjectPointThroughCamera004BE940(&point) != 0) {
         if (g_octree_6598a4->HasLineOfSight(eye, &point, 1) != 0) {
             return 1;
@@ -672,9 +660,9 @@ void WorldUpdateProps(W8World* world)
     for (index = 0; index < count; index++) {
         prop = (W8Prop*)PLGet(world->plsProps, index);
         if (prop) {
-            prop->Method44D360(world);
-            prop->Method44C030();
-            prop->Method44C830(world);
+            prop->DetachAnimationInstances0044D360(world);
+            prop->UpdatePropAnimation0044C030();
+            prop->AttachAnimationInstances0044C830(world);
         }
     }
 }

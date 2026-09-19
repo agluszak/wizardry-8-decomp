@@ -115,7 +115,7 @@ W8GameTimer::~W8GameTimer()
 }
 
 // FUNCTION: WIZ8 0x00439a60
-int W8GameTimer::Method00439A60()
+int W8GameTimer::GetTime00439A60()
 {
     return ReadClock();
 }

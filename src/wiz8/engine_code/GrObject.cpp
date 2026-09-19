@@ -11,8 +11,8 @@
 // FUNCTION: WIZ8 0x004b6900
 W8GrObject::W8GrObject()
 {
-    unknown_004 = 0;
-    unknown_008 = -1;
+    kind_004 = 0;
+    id_008 = -1;
     m_pAI = 0;
     m_plsSoundEvents = 0;
 }
@@ -28,8 +28,8 @@ W8GrObject::W8GrObject()
 // FUNCTION: WIZ8 0x004b69a0
 W8GrObject::W8GrObject(const W8GrObject& other)
 {
-    unknown_004 = other.unknown_004;
-    unknown_008 = other.unknown_008;
+    kind_004 = other.kind_004;
+    id_008 = other.id_008;
     if (other.m_pAI != 0) {
         m_pAI = CloneAIRecord004A91C0(other.m_pAI);
     } else {

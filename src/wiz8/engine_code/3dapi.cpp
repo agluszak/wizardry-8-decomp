@@ -730,7 +730,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                     g_world_659ab8->camera->setRotation(path_rotation);
                 }
                 ApplyCameraRotation(&path_rotation);
-                if (path->flag_1c != 0) {
+                if (path->discrete_mode_1c != 0) {
                     if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
                         UpdateCameraPathState0048F2F0(world, camera_path, 0.0f);
                     }

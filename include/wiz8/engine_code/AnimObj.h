@@ -28,7 +28,7 @@ struct W8AnimObj {
     unsigned char flag_05;     /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char unknown_06[2];
     float playback_scale_08; /* 0x08 */
-    unsigned char flag_0c;   /* 0x0c: copied onto prop flag_0a5 */
+    unsigned char flag_0c;   /* 0x0c: copied onto prop random_play_0a5 */
     unsigned char unknown_0d[3];
     /* Serialized as a float; 0x004A0320 copies its four-byte representation. */
     float value_10; /* 0x10 */

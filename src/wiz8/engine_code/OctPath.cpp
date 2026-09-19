@@ -4947,9 +4947,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
             colors[marker_vertex].y = colors[marker_vertex].y <= g_float_005ebb34 ? 1.0f : 0.0f;
             colors[marker_vertex].z = colors[marker_vertex].z <= g_float_005ebb34 ? 1.0f : 0.0f;
         } else if ((source->flags_00 & 0x40) != 0) {
-            colors[marker_vertex].x = 0.0f;
-            colors[marker_vertex].y = 0.0f;
-            colors[marker_vertex].z = 0.0f;
+            colors[marker_vertex].SetZero();
         }
 
         unsigned short edge_index = source->first_edge_24;
@@ -4994,9 +4992,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                     colors[destination_vertex].z =
                         colors[destination_vertex].z <= g_float_005ebb34 ? 1.0f : 0.0f;
                 } else if ((source->flags_00 & 0x40) != 0) {
-                    colors[destination_vertex].x = 0.0f;
-                    colors[destination_vertex].y = 0.0f;
-                    colors[destination_vertex].z = 0.0f;
+                    colors[destination_vertex].SetZero();
                 }
                 rendered_waypoints_05c->SetAndGrow(destination_index);
                 ++marker_count;
@@ -5044,9 +5040,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
                 vertices[base_vertex + 5] = destination->position_04 - offset;
 
                 for (index = 0; index < 6; ++index) {
-                    colors[base_vertex + index].x = 0.0f;
-                    colors[base_vertex + index].y = 0.0f;
-                    colors[base_vertex + index].z = 0.0f;
+                    colors[base_vertex + index].SetZero();
                 }
                 if ((edge->flags_00 & 0x80000000) == 0) {
                     for (index = 0; index < 3; ++index) {
@@ -5430,8 +5424,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
         textures[index] = g_path_texture_00652dc0;
     }
     for (index = 0; index < vertex_count; ++index) {
-        texture_coordinates[index].x = 0.0f;
-        texture_coordinates[index].y = 0.0f;
+        texture_coordinates[index].SetZero();
         materials[index] = g_path_material_00652dbc;
         shade_indices[index] = index;
     }
@@ -5492,9 +5485,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
         colors[index].z = 0.0f;
     }
     for (index = 10; index < 0x1f9; ++index) {
-        colors[index].x = 0.0f;
-        colors[index].y = 0.0f;
-        colors[index].z = 1.0f;
+        colors[index].Set(0.0, 0.0, 1.0);
     }
 
     waypoint_mesh_054 = CreateModelInstance0046F5C0(model);
@@ -6185,20 +6176,14 @@ void W8PathParameters::InitializeSteeringContext004CAE50(W8NavigatorMovementStat
     if (movement->velocity_034.x == g_float_005ebb34 &&
         movement->velocity_034.y == g_float_005ebb34 &&
         movement->velocity_034.z == g_float_005ebb34) {
-        direction_20.x = 0.0f;
-        direction_20.y = 0.0f;
-        direction_20.z = 1.0f;
+        direction_20.Set(0.0, 0.0, 1.0);
         direction_20.RotateAboutY(sin(movement->yaw), cos(movement->yaw));
     } else {
         direction_20 = movement->velocity_034;
         direction_20.Normalize();
     }
-    perpendicular_2c.x = direction_20.z;
-    perpendicular_2c.y = 0.0f;
-    perpendicular_2c.z = -direction_20.x;
-    force_38.x = 0.0f;
-    force_38.y = 0.0f;
-    force_38.z = 0.0f;
+    perpendicular_2c.Set(direction_20.z, 0.0, -direction_20.x);
+    force_38.SetZero();
     blocked_49 = 0;
     nearby_queried_48 = 0;
 }
@@ -6215,12 +6200,10 @@ unsigned char W8PathParameters::QueryNearbyNavigators004CAFC0()
     }
     extent = radius_44 * g_float_005ebc28;
     nearby_queried_48 = 1;
-    lower.x = movement_00->position_040.x - extent;
-    lower.y = movement_00->position_040.y - extent;
-    lower.z = movement_00->position_040.z - extent;
-    upper.x = extent + movement_00->position_040.x;
-    upper.y = extent + movement_00->position_040.y;
-    upper.z = extent + movement_00->position_040.z;
+    lower.Set(movement_00->position_040.x - extent, movement_00->position_040.y - extent,
+              movement_00->position_040.z - extent);
+    upper.Set(extent + movement_00->position_040.x, extent + movement_00->position_040.y,
+              extent + movement_00->position_040.z);
     nearby_locations_50 = 0;
     nearby_count_4c = g_octree_6598a4->QueryLocationsInBox(&nearby_locations_50, &lower, &upper,
                                                            movement_00->location_id_004);
@@ -6244,9 +6227,7 @@ void W8PathParameters::IntegrateSteering004CB090()
     if (blocked_49 == 0) {
         force_38.y = 0.0f;
         if (speed_limit_08 <= g_float_005ebb34) {
-            velocity.x = 0.0f;
-            velocity.y = 0.0f;
-            velocity.z = 0.0f;
+            velocity.SetZero();
             velocity_length_10 = 0.0f;
             movement_00->target_yaw =
                 NormalizeAngle(static_cast<float>(atan2(force_38.x, force_38.z)));
@@ -6272,9 +6253,7 @@ void W8PathParameters::IntegrateSteering004CB090()
         if (movement_00->target_yaw != movement_00->yaw) {
             UpdateYawSteering004CB520(step, 1);
             movement_00->yaw = movement_00->target_yaw;
-            velocity.z = velocity_length_10;
-            velocity.x = 0.0f;
-            velocity.y = 0.0f;
+            velocity.Set(0.0, 0.0, velocity_length_10);
             velocity.RotateAboutY(sin(movement_00->target_yaw), cos(movement_00->target_yaw));
         }
         position = movement_00->position_040 + velocity * step;
@@ -6287,10 +6266,8 @@ void W8PathParameters::IntegrateSteering004CB090()
             if (direction == '\0') {
                 blocked_49 = 1;
             } else {
-                scale = slide.x * delta.x + slide.z * delta.z + slide.y * delta.y;
-                slide.x = delta.x * scale + slide.x;
-                slide.y = delta.y * scale + slide.y;
-                slide.z = scale * delta.z + slide.z;
+                scale = DotProduct(slide, delta);
+                slide += delta * scale;
                 position = movement_00->position_040 + slide;
                 snapped =
                     g_octree_6598a4->pathing_180->SnapWaypointPosition00462E60(&position, '\0');
@@ -6309,9 +6286,7 @@ void W8PathParameters::IntegrateSteering004CB090()
             return;
         }
     }
-    velocity.x = 0.0f;
-    velocity.y = 0.0f;
-    velocity.z = 0.0f;
+    velocity.SetZero();
     position = movement_00->position_040;
     g_octree_6598a4->pathing_180->FindPathCell00459D60(&position, 0, '\x01');
     movement_00->velocity_034 = velocity;
@@ -6392,18 +6367,13 @@ unsigned char W8PathParameters::PredictNavigatorCollision004CB620()
             }
             navigator = monster;
             position = navigator->GetPosition();
-            delta.x = position.x - movement_00->position_040.x;
-            delta.y = position.y - movement_00->position_040.y;
-            delta.z = position.z - movement_00->position_040.z;
-            if (g_float_005ebb34 <
-                delta.x * direction_20.x + delta.y * direction_20.y + delta.z * direction_20.z) {
+            delta = position - movement_00->position_040;
+            if (g_float_005ebb34 < DotProduct(delta, direction_20)) {
                 navigator->GetVelocity(&other_velocity);
                 relative = movement_00->velocity_034 - other_velocity;
                 relative.Normalize();
-                approach = delta.x * relative.x + delta.z * relative.z + delta.y * relative.y;
-                approach =
-                    approach - (monster->radius_084 * approach) /
-                                   sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
+                approach = DotProduct(delta, relative);
+                approach = approach - (monster->radius_084 * approach) / delta.Length();
                 if (g_float_005ebb34 < approach && approach < nearest) {
                     lateral = relative.z * delta.x + -relative.x * delta.z;
                     combined = monster->radius_084 + radius_44;
@@ -6418,21 +6388,16 @@ unsigned char W8PathParameters::PredictNavigatorCollision004CB620()
     }
     if (movement_00->unknown_076[0] != '\0') {
         position = g_startup_world_659c0c->GetPosition();
-        delta.x = position.x - movement_00->position_040.x;
-        delta.y = position.y - movement_00->position_040.y;
-        delta.z = position.z - movement_00->position_040.z;
+        delta = position - movement_00->position_040;
         combined = g_path_party_boundary_radius_0060fa0c * g_world_scale_005ebc40;
         approach = radius_44 * g_float_005ebc28 + combined;
-        if (approach * approach > delta.x * delta.x + delta.y * delta.y + delta.z * delta.z) {
-            approach =
-                delta.x * direction_20.x + delta.y * direction_20.y + delta.z * direction_20.z;
+        if (approach * approach > delta.LengthSquared()) {
+            approach = DotProduct(delta, direction_20);
             if (approach > g_float_005ebb34) {
                 relative = movement_00->velocity_034 - g_level_data_00652dac->camera_forward_4c;
                 relative.Normalize();
-                approach = delta.x * relative.x + delta.z * relative.z + delta.y * relative.y;
-                approach =
-                    approach - (combined * approach) /
-                                   sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
+                approach = DotProduct(delta, relative);
+                approach = approach - (combined * approach) / delta.Length();
                 if (approach > g_float_005ebb34 && approach < nearest) {
                     lateral = delta.x * relative.z + delta.z * -relative.x;
                     combined = combined + radius_44;
@@ -6479,8 +6444,8 @@ unsigned char W8PathParameters::HandleObstacleAhead004CBB70()
         if (g_octree_6598a4->pathing_180->GetNeighborSlideDirection00466600(
                 &movement_00->position_040, &direction_20, &escape) != '\0') {
             movement_00->attachment_0ac->GetNextPosition00456660(&waypoint);
-            waypoint.x = waypoint.x - movement_00->position_040.x;
-            waypoint.z = waypoint.z - movement_00->position_040.z;
+            waypoint -= movement_00->position_040;
+            waypoint.y = 0.0f;
             if ((escape.z * waypoint.x + waypoint.z * -escape.x) *
                     (escape.z * direction_20.x + -escape.x * direction_20.z) <
                 g_zero_005ebb40) {
@@ -6491,9 +6456,7 @@ unsigned char W8PathParameters::HandleObstacleAhead004CBB70()
                     waypoint.x = waypoint.x * scale;
                     waypoint.z = waypoint.z * scale;
                 }
-                force_38.x = waypoint.x + force_38.x;
-                force_38.y = force_38.y + 0.0f;
-                force_38.z = waypoint.z + force_38.z;
+                force_38 += waypoint;
                 return 1;
             }
         }
@@ -6515,17 +6478,14 @@ unsigned char W8PathParameters::HandleObstacleAhead004CBB70()
                     steer = g_path_obstacle_steering_factor_0060fa10 * steer;
                     if (g_octree_6598a4->pathing_180->GetObstacleDirection00466990(
                             &direction_20, &escape) != '\0') {
-                        side = escape.x * perpendicular_2c.x + escape.y * perpendicular_2c.y +
-                               escape.z * perpendicular_2c.z;
+                        side = DotProduct(escape, perpendicular_2c);
                         if (g_double_005ed2e0 <= fabs(side)) {
                             if (side < g_float_005ebb34) {
                                 steer = -steer;
                             }
                         } else {
                             escape.Normalize();
-                            if (escape.x * perpendicular_2c.x + escape.y * perpendicular_2c.y +
-                                    escape.z * perpendicular_2c.z <
-                                g_float_005ebb34) {
+                            if (DotProduct(escape, perpendicular_2c) < g_float_005ebb34) {
                                 steer = -steer;
                             }
                         }
@@ -6561,28 +6521,25 @@ void W8PathParameters::AccumulateSeekForce004CC1A0()
     float scale;
 
     if (velocity_length_10 == g_float_005ebb34) {
-        desired.x = target_14.x - movement_00->position_040.x;
-        desired.z = target_14.z - movement_00->position_040.z;
+        desired = target_14 - movement_00->position_040;
+        desired.y = 0.0f;
         scale = desired.x * desired.x + desired.z * desired.z;
         if (scale != g_zero_005ebb40) {
             scale = static_cast<float>(g_double_005ebc30) / sqrt(scale);
-            desired.x = desired.x * scale;
-            desired.z = desired.z * scale;
+            desired *= scale;
         }
-        if (desired.x * direction_20.x + direction_20.y * 0.0f + desired.z * direction_20.z <
-            g_zero_005ebb40) {
+        if (DotProduct(desired, direction_20) < g_zero_005ebb40) {
             speed_limit_08 = 0.0f;
-            desired.y = 0.0f;
             force_38 += desired * acceleration_0c;
             return;
         }
     }
     desired = target_14 - movement_00->position_040;
+    desired.y = 0.0f;
     scale = desired.x * desired.x + desired.z * desired.z;
     if (scale != g_zero_005ebb40) {
         scale = speed_limit_08 / sqrt(scale);
-        desired.x = desired.x * scale;
-        desired.z = desired.z * scale;
+        desired *= scale;
     }
     seek.Set(desired.x - movement_00->velocity_034.x, 0.0 - movement_00->velocity_034.y,
              desired.z - movement_00->velocity_034.z);
@@ -6638,9 +6595,7 @@ void W8PathParameters::AccumulateGroupRepulsion004CC4C0()
                 continue;
             }
             position = monster->GetPosition();
-            delta.x = position.x - movement_00->position_040.x;
-            delta.y = position.y - movement_00->position_040.y;
-            delta.z = position.z - movement_00->position_040.z;
+            delta = position - movement_00->position_040;
             distance = delta.Length();
             combined = (radius_44 + radius_44 + monster->radius_084) * g_float_005ed2e8;
             if (distance < combined * g_float_005ec52c) {
@@ -6680,9 +6635,7 @@ unsigned char W8PathParameters::SteerAroundLeader004CC680(char allow_path_fallba
     if (leader->movement_0c0.velocity_034.x == g_float_005ebb34 &&
         leader->movement_0c0.velocity_034.y == g_float_005ebb34 &&
         leader->movement_0c0.velocity_034.z == g_float_005ebb34) {
-        heading.x = 0.0f;
-        heading.y = 0.0f;
-        heading.z = 1.0f;
+        heading.Set(0.0, 0.0, 1.0);
         heading.RotateAboutY(sin(leader->movement_0c0.yaw), cos(leader->movement_0c0.yaw));
     } else {
         heading = leader->movement_0c0.velocity_034;
@@ -6773,9 +6726,7 @@ unsigned char W8PathParameters::SteerAlongPath004CCB60(W8NavigatorMovementState*
     if (HandleObstacleAhead004CBB70() == '\0') {
         if (g_float_005ebb34 < velocity_length_10) {
             reach = g_path_prediction_time_0060f9f4 * velocity_length_10;
-            ahead.x = direction_20.x * reach + movement_00->position_040.x;
-            ahead.y = direction_20.y * reach + movement_00->position_040.y;
-            ahead.z = reach * direction_20.z + movement_00->position_040.z;
+            ahead = movement_00->position_040 + direction_20 * reach;
             if (movement->attachment_0ac->CheckPredictedHopHeight00456DD0(&ahead) == '\0') {
                 target_14 = movement_00->position_040;
                 advanced = movement->attachment_0ac->AdvancePositionTowardWaypoint00456F60(

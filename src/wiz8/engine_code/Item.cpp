@@ -212,9 +212,9 @@ void W8ItemRep::RefreshBounds()
 W8Item::W8Item()
 {
     trigger_018 = 0;
-    unknown_004 = 2;
+    kind_004 = 2;
     m_pRep = new W8ItemRep;
-    unknown_008 = IncrementValue60DFAC();
+    id_008 = IncrementValue60DFAC();
     value_01c = SetCountdownClock(0);
 }
 

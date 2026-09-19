@@ -29,8 +29,9 @@ class W8PropRepresentation : public W8AnimRep005ED050 {
 public:
     /* Default construction is inlined at Prop::Prop. */
     W8PropRepresentation()
-        : animation(0), animation_speed(0.0f), value_0a0(0), flag_0a4(0), flag_0a5(0),
-          value_0a8(0.5f), flag_0ac(0), flag_0ad(0), slots(5), flag_0c0(0xff), flag_0c1(0xff)
+        : animation(0), animation_speed(0.0f), frame_index_0a0(0), animation_running_0a4(0),
+          random_play_0a5(0), play_chance_0a8(0.5f), flag_0ac(0), flag_0ad(0), slots(5),
+          flag_0c0(0xff), flag_0c1(0xff)
     {
     }
     W8PropRepresentation(const W8PropRepresentation& other);
@@ -46,14 +47,14 @@ public:
 
     W8AnimObj* animation;  /* 0x98 */
     float animation_speed; /* 0x9c */
-    /* 0xa0: integer path position accumulator.  Method44C030 adds the elapsed
+    /* 0xa0: integer path position accumulator.  UpdatePropAnimation0044C030 adds the elapsed
        frame count to it with a dword add, compares it against the animation's
        value_16, and FILD-converts it for PathAISetValue004A9F60. */
-    int value_0a0;
-    unsigned char flag_0a4; /* 0xa4 */
-    unsigned char flag_0a5; /* 0xa5 */
+    int frame_index_0a0;
+    bool animation_running_0a4; /* 0xa4 */
+    bool random_play_0a5;       /* 0xa5 */
     unsigned char unknown_0a6[2];
-    float value_0a8;        /* 0xa8: constructed as 0.5 */
+    float play_chance_0a8;  /* 0xa8: constructed as 0.5 */
     unsigned char flag_0ac; /* 0xac */
     unsigned char flag_0ad; /* 0xad */
     unsigned char unknown_0ae[2];
@@ -80,8 +81,8 @@ public:
         return static_cast<W8PropRepresentation*>(m_pRep);
     }
 
-    void Method44D360(W8World* world);
-    void Method44C030();
+    void DetachAnimationInstances0044D360(W8World* world);
+    void UpdatePropAnimation0044C030();
     /* Re-apply every animation path and roll the position snapshots forward.
        `world` is only used by the pWorld assertion. */
     void ApplyAnimationPaths0044C200(W8World* world);
@@ -93,7 +94,7 @@ public:
        committing it - clamped for transitive animations, wrapping or bouncing
        for the looping kinds. */
     char NextAnimationValue0044C600();
-    void Method44C670(); /* 0x0044C670 */
+    void ApplyAnimationFrame0044C670(); /* 0x0044C670 */
     /* Restore the rep's persisted animation state: five saved bytes plus one
        discarded byte, clamped to the loaded animation's frame count, with
        path values re-synced while a running animation is active. */
@@ -111,7 +112,7 @@ public:
     void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
-    void Method44C830(W8World* world);
+    void AttachAnimationInstances0044C830(W8World* world);
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);
     srModelInstance* ToggleRepAnimationDefault();
@@ -141,11 +142,11 @@ public:
     Trigger* trigger_18;   /* 0x18 */
     unsigned int flags_1c; /* 0x1c */
     char* m_name;          /* 0x20 */
-    /* 0x24: Method44C030 stores the animation timer's progress here, then
+    /* 0x24: UpdatePropAnimation0044C030 stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
     float unknown_024;
     W8GameTimer* m_animation_timer; /* 0x28 */
-    srVector3T<float> position_02c; /* 0x2c: written by Method44C670 */
+    srVector3T<float> position_02c; /* 0x2c: written by ApplyAnimationFrame0044C670 */
     GDProp* m_gd_prop;              /* 0x38 */
     srVector3T<float> position_03c; /* 0x3c */
     /* Prop::Prop writes two identity bases here as nine floats each. */

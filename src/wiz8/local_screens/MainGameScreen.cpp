@@ -3193,7 +3193,7 @@ unsigned char MainGameScreenEnter(void)
         if ((timer->m_flags & 8) != 0 || (g_shared_timer_paused && (timer->m_flags & 1) == 0) ||
             g_shared_timer_flag_d1) {
             timer->m_flags &= ~8;
-            timer->m_start = timer->Method00439A60() - timer->m_start;
+            timer->m_start = timer->GetTime00439A60() - timer->m_start;
             timer->SetDuration(-1.0f);
         }
     }
@@ -3817,7 +3817,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if ((g_gameplay_timer_685067->m_flags & 8) == 0) {
         g_gameplay_timer_685067->m_flags |= 8;
         g_gameplay_timer_685067->m_start =
-            g_gameplay_timer_685067->Method00439A60() - g_gameplay_timer_685067->m_start;
+            g_gameplay_timer_685067->GetTime00439A60() - g_gameplay_timer_685067->m_start;
     }
 
     if (static_cast<unsigned char>(leaving)) {

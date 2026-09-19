@@ -1069,13 +1069,13 @@ void W8TriggerEvent::Update()
                 return;
             }
             timer_008.m_flags = flags | 8;
-            timer_008.m_start = timer_008.Method00439A60() - timer_008.m_start;
+            timer_008.m_start = timer_008.GetTime00439A60() - timer_008.m_start;
             return;
         }
         if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
             g_shared_timer_flag_d1 != 0) {
             timer_008.m_flags = flags & ~8;
-            timer_008.m_start = timer_008.Method00439A60() - timer_008.m_start;
+            timer_008.m_start = timer_008.GetTime00439A60() - timer_008.m_start;
             timer_008.SetDuration(-1.0f);
         }
     }

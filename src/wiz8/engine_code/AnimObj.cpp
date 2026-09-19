@@ -220,8 +220,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
             if (!success) {
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x1c5, 0);
             }
-            path->flag_1c = 1;
-            path->flag_3a = 0;
+            path->discrete_mode_1c = 1;
+            path->animated_3a = 0;
             path->speed = animation->playback_scale_08;
             animation->path_24 = path;
             animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
@@ -282,8 +282,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                     srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x217, 0);
                 }
                 PListInsert(animation->paths_34[channel], entry, path);
-                path->flag_1c = 1;
-                path->flag_3a = 0;
+                path->discrete_mode_1c = 1;
+                path->animated_3a = 0;
                 path->speed = animation->playback_scale_08;
                 animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
             }
@@ -820,8 +820,7 @@ stLightDefinition* stLightDefinition005ECDA0::Clone() const
 // FUNCTION: WIZ8 0x004a2580
 bool stLightDefinition005ECDA0::IsEnabledForSubcycle(unsigned char subcycle)
 {
-    if (*values_18.GetAt(0) <= time_4c &&
-        time_4c <= *values_18.GetAt(values_18.GetCount() - 1)) {
+    if (*values_18.GetAt(0) <= time_4c && time_4c <= *values_18.GetAt(values_18.GetCount() - 1)) {
         return true;
     }
     return false;

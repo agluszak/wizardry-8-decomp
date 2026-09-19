@@ -222,7 +222,7 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path)
 
 /* A deep copy. Everything the source owns is rebuilt: each node point gets its
    own srHeap allocation, and both trailing arrays are reallocated and copied
-   element by element at the node count. Nothing is shared, and flag_3c is the
+   element by element at the node count. Nothing is shared, and timed_3c is the
    one field the copy does not carry over. */
 // FUNCTION: WIZ8 0x004a98c0
 W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
@@ -239,7 +239,7 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
     copy->value_10 = source->value_10;
-    copy->flag_1c = source->flag_1c;
+    copy->discrete_mode_1c = source->discrete_mode_1c;
     copy->point_index = source->point_index;
     copy->interpolation_fraction = source->interpolation_fraction;
     copy->last_update_tick = source->last_update_tick;
@@ -247,8 +247,8 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->distance_travelled = source->distance_travelled;
     copy->total_length = source->total_length;
     copy->looping = source->looping;
-    copy->flag_39 = source->flag_39;
-    copy->flag_3a = source->flag_3a;
+    copy->step_by_node_39 = source->step_by_node_39;
+    copy->animated_3a = source->animated_3a;
     copy->unknown_3b = source->unknown_3b;
     if (source->nodes_0c != 0) {
         count = source->nodes_0c->GetCount();
@@ -370,16 +370,16 @@ unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* po
 }
 
 // FUNCTION: WIZ8 0x004a9b90
-void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value)
+void PathAISetAnimated004A9B90(W8PathAI* path, unsigned char value)
 {
-    path->flag_3a = value;
+    path->animated_3a = value;
 }
 
 // FUNCTION: WIZ8 0x004a9ba0
 void PathAIEnableTimedMode004A9BA0(W8PathAI* path)
 {
-    path->flag_3a = 1;
-    path->flag_3c = 1;
+    path->animated_3a = 1;
+    path->timed_3c = 1;
 }
 
 // FUNCTION: WIZ8 0x004a9c20
@@ -458,7 +458,7 @@ void PathAISetValue004A9F60(W8PathAI* path, float value)
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x46e, 0);
     }
-    if (path->flag_3a != 0) {
+    if (path->animated_3a != 0) {
         path->position = 0.0f;
         path->interpolation_fraction = 0;
         path->distance_travelled = 0;
@@ -571,10 +571,10 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
         srAssertFail("pPathAI", PATH_AI_CPP, 0x520, 0);
     }
     now = GetTickCount();
-    if (path->flag_1c == 0 && path->flag_3a != 0) {
+    if (path->discrete_mode_1c == 0 && path->animated_3a != 0) {
         elapsed = now - path->last_update_tick;
         if (path->last_update_tick < now) {
-            if (path->flag_3c != 0) {
+            if (path->timed_3c != 0) {
                 PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
             } else {
                 point_count = (float)path->nodes_0c->count;
@@ -585,7 +585,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
             return 1;
         }
     } else {
-        if (path->flag_39 == 0) {
+        if (path->step_by_node_39 == 0) {
             amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
         } else {
             amount = g_negative_one_005ebc38;
@@ -630,8 +630,8 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
     if (path->position < g_float_005ebb34) {
         srAssertFail("pPathAI->flPosition>=0.0f", PATH_AI_CPP, 0x5e8, 0);
     }
-    if (path->flag_3a == 0) {
-        if (path->flag_1c == 0) {
+    if (path->animated_3a == 0) {
+        if (path->discrete_mode_1c == 0) {
             index =
                 static_cast<int>((path->nodes_0c->count - 1) * path->position + g_double_005ebe80);
         } else {
@@ -643,9 +643,7 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
         if (index >= 0) {
             first = *path->nodes_0c->GetAt(index);
             if (first != 0) {
-                value->x = first->x;
-                value->y = first->y;
-                value->z = first->z;
+                *value = *first;
             }
         }
         return;
@@ -656,16 +654,12 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
         second = *path->nodes_0c->GetAt(index + 1);
         first = *path->nodes_0c->GetAt(index);
         first_weight = g_float_005ebb38 - path->interpolation_fraction;
-        value->x = first->x * first_weight + second->x * path->interpolation_fraction;
-        value->y = first->y * first_weight + second->y * path->interpolation_fraction;
-        value->z = first->z * first_weight + second->z * path->interpolation_fraction;
+        *value = *first * first_weight + *second * path->interpolation_fraction;
         return;
     }
     first = *path->nodes_0c->GetAt(index);
     if (first != 0) {
-        value->x = first->x;
-        value->y = first->y;
-        value->z = first->z;
+        *value = *first;
     }
 }
 
@@ -706,7 +700,7 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
     }
 
     if (0 < path->nodes_0c->count) {
-        if (path->flag_1c == 0) {
+        if (path->discrete_mode_1c == 0) {
             blend = path->interpolation_fraction;
             index = path->point_index;
         } else {
@@ -764,7 +758,7 @@ void PathAISetScale004AA9C0(W8PathAI* path, float value)
 }
 
 // FUNCTION: WIZ8 0x004aa9d0
-void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value)
+void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6dc, 0);
@@ -773,12 +767,12 @@ void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004aaa10
-void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value)
+void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6ee, 0);
     }
-    path->flag_1c = value;
+    path->discrete_mode_1c = value;
 }
 
 // FUNCTION: WIZ8 0x004a9750

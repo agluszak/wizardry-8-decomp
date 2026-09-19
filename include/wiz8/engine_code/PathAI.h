@@ -23,7 +23,7 @@ struct W8PathAI {
        srVector3T<float> each in the render array. */
     srMatrix3T<float>* rotations_14; /* 0x14 */
     srVector3T<float>* scales_18;    /* 0x18 */
-    unsigned char flag_1c;           /* 0x1c */
+    unsigned char discrete_mode_1c;  /* 0x1c */
     unsigned char unknown_1d[3];
     unsigned int point_index;      /* 0x20 */
     float interpolation_fraction;  /* 0x24 */
@@ -32,10 +32,10 @@ struct W8PathAI {
     float distance_travelled;      /* 0x30 */
     float total_length;            /* 0x34 */
     unsigned char looping;         /* 0x38 */
-    unsigned char flag_39;         /* 0x39 */
-    unsigned char flag_3a;         /* 0x3a */
+    unsigned char step_by_node_39; /* 0x39 */
+    unsigned char animated_3a;     /* 0x3a */
     unsigned char unknown_3b;
-    unsigned char flag_3c; /* 0x3c */
+    unsigned char timed_3c; /* 0x3c */
     unsigned char unknown_3d[3];
 };
 
@@ -54,7 +54,7 @@ void PathAIApply004AA520(W8PathAI* path, srNode* node); /* 0x004AA520 */
 float PathAIGetScale004AAA50(W8PathAI* path);           /* 0x004AAA50 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
-void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);
+void PathAISetAnimated004A9B90(W8PathAI* path, unsigned char value);
 void PathAIEnableTimedMode004A9BA0(W8PathAI* path);
 void PathAIResetTick004A9C20(W8PathAI* path);
 float PathAIGetValue004A9E70(W8PathAI* path);
@@ -65,9 +65,9 @@ void PathAISetValue004A9F60(W8PathAI* path, float value);
 void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount);
 int PathAITick004AA1F0(W8PathAI* path, signed char direction);
 void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value);
-void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value);
+void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value);
 void PathAISetScale004AA9C0(W8PathAI* path, float value);
-void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
+void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
 unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point);
 
