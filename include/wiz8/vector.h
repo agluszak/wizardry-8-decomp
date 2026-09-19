@@ -24,6 +24,18 @@ public:
         }
     }
 
+    /* 0x004ED900: the copy is sized to the source's live count rather than
+       its capacity. */
+    W8GrowableVector(const W8GrowableVector& other)
+    {
+        data = new T[other.count];
+        count = other.count;
+        capacity = other.count;
+        for (int index = 0; index < count; ++index) {
+            data[index] = other.data[index];
+        }
+    }
+
     virtual ~W8GrowableVector()
     {
         delete[] data;

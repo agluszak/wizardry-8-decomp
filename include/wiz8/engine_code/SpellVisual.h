@@ -68,7 +68,7 @@ public:
     /* Set once the host's animation no longer needs ticking, or forced when
        the owning effect releases it; the world updater deletes a finished
        visual as soon as auto_release also permits it. */
-    unsigned char finished; /* 0x1e4 */
+    bool finished; /* 0x1e4 */
     unsigned char flag_1e5;
     /* Held at 0 while a spell effect owns the visual; the releasing pass in
        Local Code\Magic.cpp sets it back to 1, which lets

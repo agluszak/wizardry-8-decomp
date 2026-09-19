@@ -46,7 +46,11 @@ struct W8TargetSource {
                                             SpellTargetString reads */
     unsigned char fReflection;   /* 0x1b */
     unsigned char fBackfire;     /* 0x1c */
-    unsigned char unknown_1d[0x17];
+    unsigned char unknown_1d;
+    /* 0x1e: the attack's target ended up different from the one the slot row
+       aimed at - a fumble reroll or a guardian interception replaced it. */
+    unsigned char target_diverted;
+    unsigned char unknown_1f[0x15];
 }; /* 0x34 */
 
 /* The target-kind domain a combat slot's leading field takes. The kinds that

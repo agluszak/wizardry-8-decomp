@@ -404,7 +404,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
                 }
             }
         }
-        if (source->fBackfire == 0 && source->fReflection == 0 && source->unknown_1d[1] == 0 &&
+        if (source->fBackfire == 0 && source->fReflection == 0 && source->target_diverted == 0 &&
             quiet == 0) {
             monster_info->condition_target_304 = *source;
             if (monster_info->fInCombat != 0 && TargetSourceIsCharacter(source, 0) != 0 &&
@@ -905,7 +905,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
     if (!TargetSourceIsCharacter(attacker, 0) && !TargetSourceIsMonster(attacker, 0)) {
         return;
     }
-    if (attacker->fBackfire == 0 && attacker->fReflection == 0 && attacker->unknown_1d[1] == 0 &&
+    if (attacker->fBackfire == 0 && attacker->fReflection == 0 && attacker->target_diverted == 0 &&
         quiet == 0 && monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
@@ -1400,18 +1400,19 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
     return best_slot;
 }
 
-/* Applies one queued fatigue op: kind 1 fatigues party slot op[1], kind 3
-   fatigues the monster spawned from location id op[2]. */
+/* Applies one queued fatigue op: a character target fatigues that party
+   slot, a monster target fatigues the monster spawned from its location
+   id. */
 // FUNCTION: WIZ8 0x0052C500
-void ApplyQueuedFatigue(int* op, unsigned int amount)
+void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3)
 {
-    if (op[0] == 1) {
-        FatigueCharacter(op[1], amount, 0, 0);
+    if (op->iType == W8_TARGET_KIND_CHARACTER) {
+        FatigueCharacter(op->iChar, amount, 0, 0);
         return;
     }
-    if (op[0] == 3) {
+    if (op->iType == W8_TARGET_KIND_MONSTER) {
         unsigned int location_index =
-            MonsterGetIndexByLocationID(0x771, HEALTH_STAMINA_MANA_CPP, op[2], 1);
+            MonsterGetIndexByLocationID(0x771, HEALTH_STAMINA_MANA_CPP, op->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(location_index);
         FatigueMonster(monster_info, amount, 0);
     }

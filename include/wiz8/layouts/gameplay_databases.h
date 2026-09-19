@@ -59,14 +59,27 @@ enum { W8_MAX_MONSTER_ATTACKS = 3 };
    attack block. */
 struct W8MonsterAttack {
     unsigned char fHasAttack; /* 0x00 */
-    unsigned char unknown_01[2];
+    /* 0x01: exact name from the Combat Attack.cpp assertion, which wants it
+       other than MON_WEAPON_NAME_UNARMED; indexes the announcement verb table
+       at 0x0061EB4C. */
+    unsigned char ubWeaponNameIndex;
+    /* 0x02: the weapon type; the announcement reports "weapon type is NONE"
+       when it is zero and indexes the name-id table at 0x0061EB02. */
+    unsigned char weapon_type_02;
     unsigned char range_category; /* 0x03 */
-    unsigned char unknown_04;
+    /* 0x04: the attack's innate attack-score value; the monster score formula
+       adds it alongside the modifier hit bonus and re-reads it inside the
+       surprise repick penalty. */
+    unsigned char attack_score_04;
     unsigned char missile_values_05[0x10]; /* 0x05 */
     unsigned short attack_modes;           /* 0x15 */
-    int missile_value_17;                  /* 0x17 */
+    /* 0x17: the attack's damage dice, packed; the missile path copies it
+       into the attack block and the melee path rolls it. */
+    W8Dice damage_dice;
     unsigned char missile_value_1b;
-    unsigned char unknown_1c;
+    /* 0x1c: the attack's weapon class, handed signed to BlockedForSpecialReason
+       the way a character's weapon_sound_class_0c5 is. */
+    signed char weapon_class_1c;
     signed char missile_type; /* 0x1d */
     unsigned char unknown_1e[4];
 }; /* 0x22 */
@@ -403,7 +416,10 @@ struct W8MonsterRecord {
     /* 0x15f: the percentage of hits that land on each of the seven monster
        hit locations; the total is reported when it falls short of 100. */
     unsigned char hit_location_chances_15f[7];
-    unsigned char unknown_166[0x10];
+    /* 0x166/0x16d: the monster's armour per hit location and per attack mode,
+       the terms TargetArmorClassAtLocation subtracts on top of evasion_ac_15d. */
+    signed char armor_class_by_location[7];
+    signed char armor_class_by_attack_mode[9];
     /* 0x176: the monster's own resistance per realm, read alongside the
        gameplay-modifier bonus wherever a character would read
        W8CharacterResistance::total. */

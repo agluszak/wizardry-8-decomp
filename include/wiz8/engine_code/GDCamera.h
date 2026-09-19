@@ -92,4 +92,4 @@ extern float g_camera_forward_scale_603ab4;
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
-unsigned char IsCameraTransitionActive00420E10(void);
+bool IsCameraTransitionActive00420E10(void);

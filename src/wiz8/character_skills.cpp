@@ -10,6 +10,7 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Strings.h"
@@ -18,6 +19,7 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/message_box.h"
 #include "wiz8/utility.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/combat_state.h"
@@ -238,7 +240,22 @@ float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float bas
     if (level > 0x14) {
         return base;
     }
-    return (level + level + 60.0f) * base * 0.01f;
+    float scaled = (level * 2.0f + 60.0f) * base;
+    return scaled * g_movement_speed_step_005ed490;
+}
+
+/* The monster-record counterpart: the flat value scaled by the record's
+   effective level with the same full-value-above-twenty curve. */
+// FUNCTION: WIZ8 0x00547a00
+float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int, float base)
+{
+    unsigned int level = record->effective_level_24f;
+
+    if (level > 0x14) {
+        return base;
+    }
+    float scaled = (level * 2.0f + 60.0f) * base;
+    return scaled * g_movement_speed_step_005ed490;
 }
 
 /* Skill ids fall into three bands. Below 0x18 and at 0x1c..0x21 they are
@@ -525,6 +542,97 @@ unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
         value = 1;
     }
     return value;
+}
+
+/* Practice one skill: mark it practiced, unlock it if the character newly
+   qualifies, then roll every usage point against the value-scaled chance -
+   (100 - value) * base_level_0a / 100, halved again for magic-realm skills -
+   and bank a level on every eighth success. A leveled skill refreshes its
+   effective level through the same profession-bonus path ApplySkillChange
+   uses, then reports immediately on the idle main-game screen or defers the
+   notice into the portrait slot's per-skill flag array. */
+// FUNCTION: WIZ8 0x00553F10
+void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_points,
+                            unsigned char suppress_notification)
+{
+    bool improved;
+    unsigned int slot;
+    unsigned int threshold;
+
+    improved = false;
+    if (usage_points != 0 &&
+        g_profession_skill_availability[skill_id][character->current_profession] != 0) {
+        W8CharacterSkill* skill = &character->skills[skill_id];
+        skill->available_13 = true;
+        if (skill->flag_00 == 0) {
+            if (IsCharacterSkillAvailable(character, skill_id, NULL) == 0) {
+                return;
+            }
+            skill->flag_00 = 1;
+            if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
+                ResetCharacterScreenSkill(skill_id);
+            }
+        }
+        if (usage_points != 0) {
+            do {
+                if (skill->value_02 < 100) {
+                    threshold = (100 - (skill->value_02 * 100) / 100) * skill->base_level_0a / 100;
+                    if (g_skill_attributes[skill_id].category == 4) {
+                        threshold = threshold / 2;
+                    }
+                    if (threshold == 0) {
+                        threshold = 1;
+                    }
+                    if (Random(100) < threshold) {
+                        ++skill->practice_count_0e;
+                        if (skill->practice_count_0e >= 8) {
+                            ++skill->value_02;
+                            skill->practice_count_0e = 0;
+                            skill->improved_12 = 1;
+                            improved = true;
+                        }
+                    }
+                }
+            } while (--usage_points != 0);
+            if (improved) {
+                RefreshCharacterSkillAvailability00553CD0(character);
+                int level = skill->value_02;
+                if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+                    unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
+                    if (bonus == 0) {
+                        bonus = 1;
+                    }
+                    level += bonus;
+                }
+                level += static_cast<signed char>(character->bonus_1770.unknown_13[skill_id]);
+                if (level > 0x7d) {
+                    level = 0x7d;
+                } else if (level < 0) {
+                    level = 0;
+                }
+                skill->level = level;
+                UnequipUnusableItems(character);
+                RecalculateCharacterDerivedStats(character);
+                slot = CharacterPointerToPartySlot(character);
+                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 && g_flag_0068506e == 0 &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() != 0 &&
+                    suppress_notification == 0) {
+                    wchar_t* text = new wchar_t[0x200];
+                    memset(text, 0, 0x400);
+                    unsigned int length = 0;
+                    AppendSkillIncreaseNoticeText(text, &length, slot, 0, skill_id);
+                    W8SkillNoticePayload* extra = new W8SkillNoticePayload;
+                    extra->count = 1;
+                    extra->party_slots[0] = static_cast<signed char>(slot);
+                    extra->skills[0] = static_cast<signed char>(skill_id);
+                    AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
+                    return;
+                }
+                gXStatus.monster_manager_entries[slot].unknown_0e9[1 + skill_id] = 1;
+                g_deferred_skill_notices_0068506d = 1;
+            }
+        }
+    }
 }
 
 /* Rebuilds all six resistance channels from scratch.

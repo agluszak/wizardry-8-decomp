@@ -87,7 +87,7 @@ srCamera* g_game_camera_65a0fc;
 GDCamera* g_gd_camera_65a0f8;
 
 // FUNCTION: WIZ8 0x00420e10
-unsigned char IsCameraTransitionActive00420E10(void)
+bool IsCameraTransitionActive00420E10(void)
 {
     return g_gd_camera_65a0f8->m_transition_active;
 }

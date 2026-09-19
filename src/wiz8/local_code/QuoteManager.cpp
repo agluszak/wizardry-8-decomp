@@ -197,6 +197,8 @@ unsigned int g_value_005ed8fc = 20;
 int g_effect_argument_005ed8d0 = 2;
 // GLOBAL: WIZ8 0x005ED8D4
 int g_effect_argument_005ed8d4 = 1;
+// GLOBAL: WIZ8 0x005ED8D8
+int g_effect_argument_005ed8d8 = 2;
 // GLOBAL: WIZ8 0x005ED914
 int g_effect_argument_005ed914 = 127;
 // GLOBAL: WIZ8 0x005EE590

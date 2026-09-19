@@ -622,7 +622,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     W8MonsterInfo* member;
     W8MonsterGroup* group;
     W8Character* caster;
-    W8MissileAttackBlock attack_block;
+    W8SpellEffectDefinition attack_block;
     W8EffectSlot* effect_slot;
     unsigned int weights[4];
     unsigned int duration;
@@ -727,15 +727,15 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     }
     if (effect->value_0d4 != 0 && Random(100) < effect->value_0d4) {
         ClearAttackBlock(&attack_block);
-        attack_block.unknown_20[0] = effect->argument;
+        attack_block.duration_scale = effect->argument;
         switch (tier) {
         case 0:
         case 1:
             spell_id = tier == 1 ? 0x3d : 0x38;
-            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
-            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
-            duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
-                       attack_block.unknown_20[2];
+            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
+            duration = attack_block.duration_per_power * attack_block.duration_scale +
+                       attack_block.duration_base;
             if (duration != 9999) {
                 duration = duration + 1;
                 {
@@ -748,7 +748,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                         duration = duration + 1;
                     }
                 }
-                AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+                AdjustIntegerByPercent(&duration, attack_block.percent);
             }
             switch (spell_id) {
             case 0x13:
@@ -776,18 +776,18 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                 srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
                 slot = 0;
             }
-            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.unknown_20[0],
+            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.duration_scale,
                                           duration, 0);
             break;
         case 2:
         case 3:
             spell_id = tier == 2 ? 0x1a : 0x20;
-            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
-            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
+            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells_00616d84[index] == spell_id) {
-                    duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
-                               attack_block.unknown_20[2];
+                    duration = attack_block.duration_per_power * attack_block.duration_scale +
+                               attack_block.duration_base;
                     if (duration != 9999) {
                         duration = duration + 1;
                         {
@@ -800,7 +800,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                                 duration = duration + 1;
                             }
                         }
-                        AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+                        AdjustIntegerByPercent(&duration, attack_block.percent);
                     }
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
@@ -808,7 +808,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     }
                     effect_slot->active = 1;
                     effect_slot->effect_id = spell_id;
-                    effect_slot->amount = attack_block.unknown_20[0];
+                    effect_slot->amount = attack_block.duration_scale;
                     effect_slot->duration_0d = duration;
                     RebuildMonsterDerivedStats(summon->location_id);
                     break;
@@ -4046,15 +4046,11 @@ void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
                                            RollDice(&dice));
     if (amount > 0) {
         ApplyDamageToCharacter(party_slot, amount, 0, verbose, verbose, &result, 0);
-        // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1a.
-        *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x76]) += result.amount;
+        g_combat_state->attack_report.notice_values[3] += result.amount;
         while (result.reports.GetCount() > 0) {
             report = *result.reports.GetAt(0);
             result.reports.RemoveAt(0);
-            // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
-            reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
-                &g_combat_state->unknown_9a4[0x5a])
-                ->Add(report);
+            g_combat_state->attack_report.reports.Add(report);
         }
     }
 }
@@ -4081,8 +4077,7 @@ void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSourc
     amount = ApplyDamageReduction(monster_info, record, damage);
     if (amount > 0) {
         ApplyDamageToMonster(monster_info, amount, source, 0, verbose, verbose, 0, 0);
-        // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1a.
-        *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x76]) += amount;
+        g_combat_state->attack_report.notice_values[3] += amount;
     }
 }
 
@@ -4103,15 +4098,11 @@ void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source
             ApplyDamageToCharacter(party_slot, amount, 0, 1, 1, 0, 1);
         } else {
             amount = ApplyDamageToCharacter(party_slot, amount, 0, 0, 0, &result, 0);
-            // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1e.
-            *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x7a]) += amount;
+            g_combat_state->attack_report.notice_values[4] += amount;
             while (result.reports.GetCount() > 0) {
                 report = *result.reports.GetAt(0);
                 result.reports.RemoveAt(0);
-                // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
-                reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
-                    &g_combat_state->unknown_9a4[0x5a])
-                    ->Add(report);
+                g_combat_state->attack_report.reports.Add(report);
             }
         }
     }
@@ -4137,16 +4128,66 @@ void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSou
             ApplyDamageToMonster(monster_info, amount, source, 0, 1, 1, 0, 1);
         } else {
             amount = ApplyDamageToMonster(monster_info, amount, source, 0, 0, 0, &result, 0);
-            // reinterpret-ok: the running combat damage total lives inside the opaque combat-state block at +0xa1e.
-            *reinterpret_cast<int*>(&g_combat_state->unknown_9a4[0x7a]) += amount;
+            g_combat_state->attack_report.notice_values[4] += amount;
             while (result.reports.GetCount() > 0) {
                 report = *result.reports.GetAt(0);
                 result.reports.RemoveAt(0);
-                // reinterpret-ok: the pending damage-report vector lives inside the opaque combat-state block at +0x9fe.
-                reinterpret_cast<W8GrowableVector<W8SpellDamageReport*>*>(
-                    &g_combat_state->unknown_9a4[0x5a])
-                    ->Add(report);
+                g_combat_state->attack_report.reports.Add(report);
             }
+        }
+    }
+}
+
+/* The character-side difficulty scaler: on easy a party character's value
+   grows to seven fifths and on hard it shrinks to three fifths; a turncoated
+   character fights for the monsters, so the scaling flips. Normal difficulty
+   leaves the value alone. */
+// FUNCTION: WIZ8 0x0055cc00
+void ScaleValueForCharacterDifficulty(int party_slot, int* value)
+{
+    if (g_status_685170.buffers.characters[party_slot].condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        }
+    } else {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        }
+    }
+}
+
+/* The monster-side counterpart: a hostile monster scales like a turncoated
+   character and a friendly one like a party character. */
+// FUNCTION: WIZ8 0x0055ccb0
+void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
+{
+    if (monster_info->ubDisposition == DISP_HOSTILE) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        }
+    } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 3 * 20) / 100;
+            break;
         }
     }
 }

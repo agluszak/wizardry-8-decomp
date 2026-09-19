@@ -320,7 +320,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         handled = 0;
     }
     if (TargetSourceIsCharacter(target, 0) != 0 || TargetSourceIsMonster(target, 0) != 0) {
-        if (target->fBackfire == 0 && target->fReflection == 0 && target->unknown_1d[1] == 0) {
+        if (target->fBackfire == 0 && target->fReflection == 0 && target->target_diverted == 0) {
             monster_info->condition_target_304 = *target;
         }
     }

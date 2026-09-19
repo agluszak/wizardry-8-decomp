@@ -70,9 +70,17 @@ struct W8SpellEffectResult {
     /* The derived collection: retail construction writes the
        W8Vector<W8SpellDamageReport*> vftable at 0x005ECE4C. */
     W8Vector<W8SpellDamageReport*> reports; /* 0x58 */
-    /* 0x68..0xa2: the retail initializer clears the whole 0xa2-byte block;
-       no field past the reports vector has been proven. */
-    unsigned char unknown_68[0x3a];
+    /* 0x68..0x7c: the per-kind totals the notice pass folds into its messages;
+       [3] and [4] are the running damage totals the character and monster
+       damage paths add to. */
+    unsigned int notice_values[6];
+    unsigned char flag_80; /* 0x80 */
+    /* 0x81: raised when the swing missed entirely, which is what lets the
+       notice pass distinguish "missed" from "no effect". */
+    unsigned char missed;
+    /* 0x82: the target the attack actually struck - the accidental-fire path
+       replaces it with the rerolled victim. */
+    W8CombatSlot target;
 };
 #pragma pack(pop)
 

@@ -202,7 +202,7 @@ void ToggleMipePanel0057D740(void)
     visible = 0;
     while (item_index < gXStatus.uiItemsInDatabase) {
         if (g_item_records[item_index].equip_class == g_mipe_category_0068f114 &&
-            g_item_records[item_index].unknown_0cb[0] == 0) {
+            g_item_records[item_index].unknown_0cb == 0) {
             if (visible == selection) {
                 break;
             }

@@ -664,10 +664,6 @@ void RedrawOptionsDiskButton(void)
     g_options_disk_button_69b8e4->Draw();
 }
 
-/* 0x004ED460: whether continuous-combat stance may advance past the pending
-   NPC-script / engagement gate. */
-unsigned char Function4ED460(void);
-
 /* Pick which of the five combat-stance buttons is visible for the live combat
    / continuous-combat state, then enable and Draw that one. */
 // FUNCTION: WIZ8 0x00597D70
@@ -690,7 +686,7 @@ void UpdateCombatStanceButtons(void)
         stance = g_combat_state->flag_000 != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
                 Function4ED460() != 0) ||
-               g_combat_state->unknown_a52[0] != 0) {
+               g_combat_state->party_surprised_a52 != 0) {
         stance = (static_cast<unsigned int>(-(g_combat_state->flag_001 != 0)) & 0xfffffffdU) + 4;
     } else {
         stance = 2;

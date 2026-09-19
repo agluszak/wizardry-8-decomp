@@ -159,8 +159,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
     float angle;
     W8Missile* missile;
 
-    // reinterpret-ok: the effect definition shares the 0x30-byte record shape.
-    ClearAttackBlock(reinterpret_cast<W8MissileAttackBlock*>(&effect));
+    ClearAttackBlock(&effect);
     effect.magnitude.base = 0;
     effect.magnitude.count = 2;
     effect.magnitude.sides = 6;
@@ -287,8 +286,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
              g_spikeball_gate_683530->IsFinished())) {
             g_spikeball_gate_683530->Arm();
             g_spikeball_count_683534 = g_spikeball_count_683534 + 1;
-            // reinterpret-ok: the effect definition shares the 0x30-byte shape.
-            ClearAttackBlock(reinterpret_cast<W8MissileAttackBlock*>(&effect));
+            ClearAttackBlock(&effect);
             effect.magnitude.base = 0;
             effect.magnitude.count = 2;
             effect.magnitude.sides = 6;

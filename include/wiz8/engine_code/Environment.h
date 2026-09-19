@@ -151,6 +151,7 @@ extern srVector3T<float> g_celestial_origin_65ad88;
 extern W8GrowableVector<stLight*> g_environment_lights_0065b998;
 
 void SetGameTimeDays(int value);
+void AdvanceEnvironmentTime00482A20(int elapsed); /* 0x00482A20 */
 void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 /* Arm the lighting transition. Duration is in milliseconds: negative fades the
    world out, positive fades it back in over abs(duration); zero applies the

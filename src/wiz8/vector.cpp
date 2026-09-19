@@ -127,6 +127,9 @@ class W8SpellDamageReport;
 // SYNTHETIC: WIZ8 0x00546dc0
 // W8GrowableVector<W8TargetSource>::`scalar deleting destructor'
 
+// TEMPLATE: WIZ8 0x00546da0
+// W8GrowableVector<W8TargetSource>::~W8GrowableVector<W8TargetSource>
+
 // TEMPLATE: WIZ8 0x00546df0
 // W8GrowableVector<W8TargetSource>::Grow
 

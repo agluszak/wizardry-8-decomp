@@ -15,9 +15,10 @@
 
 #define OCTPREPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPrePath.cpp"
 
-/* The vertical-link slack LinkPathNodes multiplies the cell size by. */
+/* The vertical-link slack LinkPathNodes multiplies the cell size by. Retail
+   Combat.cpp reads it directly, so it is not file-static. */
 // GLOBAL: WIZ8 0x005ED300
-static float g_prepath_link_height_5ed300 = 1.1f;
+float g_prepath_link_height_5ed300 = 1.1f;
 
 /* OctPrePathLog is a build-time ASCII density map of the path grid: one row of
    space-padded characters per z cell, one column per x cell, plus a parallel

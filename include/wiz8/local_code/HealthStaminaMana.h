@@ -6,6 +6,7 @@
 
 class W8Monster;
 struct W8Character;
+struct W8CombatSlot;
 struct W8Dice;
 struct W8MonsterInfo;
 struct W8SpellEffectResult;
@@ -20,6 +21,12 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
 void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                       W8SpellEffectResult* report_to);
+/* 0x0052C500: run one queued fatigue op. The op is a combat slot: a
+   character target fatigues that party slot, a monster target resolves the
+   monster from its location id. Retail callers pass a third argument the
+   body never reads. */
+void ApplyQueuedFatigue(W8CombatSlot* op, unsigned int amount, int arg_3);
+unsigned int CharacterActionFatigueCost(int party_slot, int action_kind);
 void DamageCharacter(int party_slot, int damage, char announce); /* 0x0052B7E0 */
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount,
                                     char announce); /* 0x0052B6D0 */

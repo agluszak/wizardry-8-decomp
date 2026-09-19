@@ -1502,7 +1502,7 @@ void ProcessMonsterManagerFrame(void)
                 TryStartMonsterCycle2(monster_info, monster, query_state);
                 if (MonsterQuery(monster, 7) != 0) {
                     if (gXStatus.fCombatMode != 0 && query_state == 0x12) {
-                        monster_info->pCombat->unknown_13d[8] = 1;
+                        monster_info->pCombat->unknown_145[0] = 1;
                     }
                     switch (query_state) {
                     case 1:

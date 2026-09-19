@@ -176,7 +176,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
    cast it, it has to have somewhere to aim, it has to be able to act, and the
    two combat gates have to agree. */
 // FUNCTION: WIZ8 0x004fb0a0
-bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
+bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_level)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8CombatSlot* combat_slot;

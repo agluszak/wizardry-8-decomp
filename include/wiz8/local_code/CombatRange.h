@@ -3,10 +3,13 @@
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
+template <class T> class srVector3T;
+
 struct W8MonsterInfo;
 struct W8MonsterRecord;
 struct W8CombatSlot;
 struct W8Character;
+class W8Monster;
 
 /* Local Code\Combat Range.cpp: the party's own world position and the trace
    wrapper that decides whether a line of sight counts as unobstructed. */
@@ -14,6 +17,9 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 
 unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
                              W8TargetingContext context, int arg_5);
+/* Whether `party_slot`'s action `action` may aim at party member `target_char`. */
+unsigned char CanPartyMemberAimAtCharacter005197C0(int party_slot, int action, int target_char,
+                                                   int arg_4);
 /* How many formation rows between `party_slot` and the monster block a short
    reach: zero when they share a row, otherwise occupants ahead of the monster
    and (when the gap is exactly two rows) the front rank. */
@@ -38,12 +44,19 @@ unsigned char MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8Monster
    counts only those it is hostile to. */
 unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned int attack,
                                          char hostile_only); /* 0x00519C00 */
+/* The base missile speed a range category grants `source`, in world units. */
+float CalcRangeDistance(int range_category, W8TargetSource* source); /* 0x0051AA30 */
 /* The sight-condition slot a range band needs the observer's sight flags
    checked under: zero inside long range, the current condition beyond it. */
 bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster,
                                      W8RangeCategory range_category); /* 0x00519BE0 */
 unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                         int attack, W8CombatSlot* target);
+                                         unsigned int attack,
+                                         W8CombatSlot* target); /* 0x00519F80 */
+/* The location id of the nearest live, in-combat group member the monster can
+   see under check `kind`, or -1 when none qualify. */
+int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id,
+                                   int kind); /* 0x0051AD60 */
 /* The furthest range band the monster can act at: its attacks first, then its
    castable spells. `skip_capability_checks` (callers pass 1 for reach/info)
    bypasses prefer-ranged/flee/usability gates; otherwise those gates apply.
@@ -72,3 +85,16 @@ float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category);
 /* 0x0051A730: the range category one monster action works at. */
 W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
                                               const W8MonsterRecord* record, unsigned int attack);
+/* 0x00519BA0: the furthest range category any of the character's hands can
+   reach at. */
+W8RangeCategory GetBestHandRangeCategory(const W8Character* character);
+/* 0x0051B0A0: collect the party slots the slot could reach and strike under
+   `relationship`, and pick one at random; -1 when none qualify. */
+int Function51B0A0(int party_slot, char relationship);
+/* 0x0051B320: write `out` the world point the monster steps toward for the
+   given sight slot. */
+void Function51B320(W8Monster* monster, int sight, srVector3T<float>* out);
+/* 0x00518E30: whether the slot has any attack of `category` that reaches a
+   valid target in the scanned group for `hand`; the condition interrupt uses
+   it to tell usable attacks from merely reachable ones. */
+char Function518E30(int party_slot, int category, int flag, char hand);

@@ -28,13 +28,17 @@ int GetTargetNeededForSpellHostile(int spell_id);
    monster kinds that keep it. */
 bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id);
 /* 0x004FB0A0: everything that has to hold before a monster may start
-   casting. */
-bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id);
+   casting. The retail caller passes the chosen power level as a third
+   argument the body never reads. */
+bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_level);
 unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
 /* 0x00500330: the power level the monster can afford for the spell, out of
    its database base plus its runtime bonus. */
 unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                           int spell_id);
+/* 0x004FA4D0: one step of the queued spell-cast action; answers 0/1/2 while
+   the per-step point draw lands in `out_points`. */
+int Function4FA4D0(int party_slot, int spell_id, int power_level, int* out_points, char arg_5);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);
@@ -130,5 +134,7 @@ bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); 
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences005019A0(W8Missile* missile);
+/* Whether every queued effect still has time left on it. */
+bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */
 
 #endif

@@ -84,7 +84,12 @@ struct W8CharacterSkill {
        profession-skill assignment scales, before the spent points land on
        value_02. */
     unsigned int base_level_0a;
-    unsigned char unknown_0e[5];
+    /* 0x0e: successful increase rolls; every eighth one raises value_02 by one
+       and resets the count - PracticeCharacterSkill's practice tally. */
+    unsigned int practice_count_0e;
+    /* 0x12: set when practice raises value_02; the flag the skill-increase
+       notices key off. */
+    unsigned char improved_12;
     bool available_13;
     unsigned char unknown_14[0x12];
 }; /* 0x26 */

@@ -553,7 +553,7 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds0041FE20(const srVector3T<fl
 }
 
 // GLOBAL: WIZ8 0x005ebc5c
-const float g_monster_motion_push_005ebc5c = 1.05f;
+extern const float g_monster_motion_push_005ebc5c = 1.05f;
 
 /* Probe active collidable props along the motion segment. On a hit, rewrites
    the caller's position into world space, may nudge `direction`, and latches

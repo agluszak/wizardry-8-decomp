@@ -391,6 +391,8 @@ void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
+bool MonsterHasPendingCycle(W8Monster* monster);            /* 0x004C5710 */
+unsigned char MonsterHasCycle19Flag3(W8Monster* monster);   /* 0x004C5EE0 */
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);

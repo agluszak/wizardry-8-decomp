@@ -2,6 +2,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSFormation.h"
@@ -759,4 +760,168 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
         PostCharacterNotice(slot_a, gppStringList[0x938 / 4],
                             &g_formation_row_names_00649e54[row][0]);
     }
+}
+
+/* Whether the monster currently faces the party's own position, inside the
+   usual facing tolerance - the mirror of IsPartyLookingAt. */
+// FUNCTION: WIZ8 0x00555a60
+int IsMonsterFacingParty(W8MonsterInfo* monster_info)
+{
+    srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
+    float facing = monster_info->monster->GetYaw();
+
+    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Whether the first monster faces the second, inside the usual tolerance. */
+// FUNCTION: WIZ8 0x00555b00
+int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second)
+{
+    srVector3T<float> second_position = second->monster->GetPosition();
+    srVector3T<float> first_position = first->monster->GetPosition();
+    float bearing = NormalizeAngle(GetHeadingAngle(&first_position, &second_position));
+    float facing = first->monster->GetYaw();
+
+    if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Whether the second monster is looking away from the first, measured the
+   shortest way round like IsPartyLookingAwayFrom. */
+// FUNCTION: WIZ8 0x00555de0
+int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second)
+{
+    srVector3T<float> first_position = first->monster->GetPosition();
+    srVector3T<float> second_position = second->monster->GetPosition();
+    float bearing = NormalizeAngle(GetHeadingAngle(&second_position, &first_position));
+    float facing = second->monster->GetYaw();
+
+    if (static_cast<float>(g_facing_tolerance_005ee858) <= ShortestAngleDistance(bearing, facing)) {
+        return 1;
+    }
+    return 0;
+}
+
+/* The monster's bearing off the camera direction folded into one of the four
+   screen sides - the same 0..3 facing values the formation positions carry.
+   The three checks below expand the same switch, which is why all of them
+   carry the one assert line. */
+// FUNCTION: WIZ8 0x00555960
+bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
+{
+    srVector3T<float> camera_position;
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    signed char side;
+    int angle;
+
+    GetCameraPosition(&camera_position);
+    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
+    angle -= g_status_685170.party_facing;
+    if (angle < 0) {
+        angle += 0x168;
+    }
+    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    case 0:
+        side = 0;
+        break;
+    case 1:
+        side = 1;
+        break;
+    case 2:
+        side = 2;
+        break;
+    case 3:
+        side = 3;
+        break;
+    default:
+        srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
+        return true;
+    }
+    return side == g_status_685170.formation.positions[party_slot].facing;
+}
+
+/* Turn the character's formation facing toward the side the monster is on. */
+// FUNCTION: WIZ8 0x00555820
+void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
+{
+    srVector3T<float> camera_position;
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    signed char side;
+    int angle;
+
+    GetCameraPosition(&camera_position);
+    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
+    angle -= g_status_685170.party_facing;
+    if (angle < 0) {
+        angle += 0x168;
+    }
+    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    case 0:
+        side = 0;
+        break;
+    case 1:
+        side = 1;
+        break;
+    case 2:
+        side = 2;
+        break;
+    case 3:
+        side = 3;
+        break;
+    default:
+        srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
+        return;
+    }
+    if (g_status_685170.formation.positions[party_slot].facing != side) {
+        g_status_685170.formation.positions[party_slot].facing = side;
+        RefreshFormationBoard();
+    }
+}
+
+/* Whether the monster sits on the side opposite the one the character faces -
+   the being-snuck-up-on test. */
+// FUNCTION: WIZ8 0x00555c60
+int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot)
+{
+    srVector3T<float> camera_position;
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    signed char side;
+    int angle;
+    int difference;
+
+    GetCameraPosition(&camera_position);
+    angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &monster_position)));
+    angle -= g_status_685170.party_facing;
+    if (angle < 0) {
+        angle += 0x168;
+    }
+    switch (((angle + 0x2d) % 0x168) / 0x5a) {
+    case 0:
+        side = 0;
+        break;
+    case 1:
+        side = 1;
+        break;
+    case 2:
+        side = 2;
+        break;
+    case 3:
+        side = 3;
+        break;
+    default:
+        srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
+        return 0;
+    }
+    difference = side - g_status_685170.formation.positions[party_slot].facing;
+    if (difference < 0) {
+        difference = -difference;
+    }
+    return difference == 2;
 }

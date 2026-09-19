@@ -3,6 +3,7 @@
 struct W8MonsterInfo;
 struct W8MonsterGroup;
 struct W8TargetSource;
+struct W8CombatSlot;
 struct W8Character;
 union W8ActionDetailBlock;
 template <class T> class W8GrowableVector;
@@ -32,6 +33,16 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* Give every other same-faction group that can see this one its disposition -
    one group going hostile brings the rest of its faction with it. */
 void AlertSameFactionGroups(W8MonsterGroup* monster_group); /* 0x005478A0 */
+
+/* 0x005471D0: record the aimed target slot for the action's source, so the
+   hostility sweep can see what the actor is doing. */
+void Function5471D0(W8TargetSource* source, W8CombatSlot* target);
+/* 0x00547CB0: write the fatigue the slot's pending pray costs, or -1 when it
+   cannot be paid; the flag picks the check flavor. */
+int Function547CB0(int party_slot, int* out_cost, char check);
+/* 0x00547FE0: the fatigue the slot's pending turn-undead costs, zero when it
+   cannot be carried out. */
+int Function547FE0(int party_slot);
 
 /* 0x0061EC14: gppStringList indices naming each monster special-attack kind,
    indexed by W8MonsterRecord::special_attack_kind_0e3; slot zero is unused. */

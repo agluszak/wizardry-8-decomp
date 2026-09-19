@@ -4,6 +4,7 @@
 
 struct W8Character;
 struct W8MonsterInfo;
+struct W8MonsterRecord;
 
 /* Character attributes in the order used by W8Character::attributes and the
    race/profession minimum tables. */
@@ -126,6 +127,7 @@ unsigned char CanPartySlotTurnUndead(int party_slot);
    use flag is clear, and a live hostile monster is in play. */
 unsigned char CanPartySlotPray(int party_slot);
 float ScaleValueByProfessionLevel005479B0(W8Character* character, int trait, float base);
+float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int trait, float base);
 /* 0x005539E0: rebuild the effective attributes from the modifier block's
    seven adjustment bytes and every skill's base level from the attribute
    pair g_skill_attributes names. */

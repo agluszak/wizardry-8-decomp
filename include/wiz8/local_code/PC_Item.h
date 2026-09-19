@@ -141,6 +141,7 @@ bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item
 bool DropItemInHand(int arg_1);                                                    /* 0x0051BE50 */
 void BindEquippedItem(W8Character* character, int equip_slot);                     /* 0x0051D0D0 */
 bool CanUnequipSlotItem(const W8Character* character, int equip_slot);             /* 0x0051D1C0 */
+bool AreAllHandSlotsEmpty(const W8Character* character);                           /* 0x0051F8D0 */
 bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
                         char ignore_worn_items); /* 0x0051CEA0 */
 /* 0x0051F2F0: merges the held stack into one existing stack, announcing on

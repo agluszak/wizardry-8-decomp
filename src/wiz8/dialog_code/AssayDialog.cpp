@@ -315,7 +315,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (m_item->identified != 0) {
         count = 0;
         for (index = 0; index < 0x10; ++index) {
-            if (record->unknown_050[index] != 0) {
+            if (record->missile_values_050[index] != 0) {
                 if (count == 0) {
                     wcscpy(g_assay_entry_text, &g_wchar_00689b34);
                 } else if (wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space_00619794) <
@@ -329,7 +329,8 @@ unsigned char W8AssayDialog::PopulateText()
                 if (wcslen(g_assay_entry_text) + 1 + wcslen(L" ") < 0x101) {
                     wcscat(g_assay_entry_text, L" ");
                 }
-                text = FormatWideString(g_format_d_percent_0064bab0, record->unknown_050[index]);
+                text = FormatWideString(g_format_d_percent_0064bab0,
+                                        record->missile_values_050[index]);
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }
@@ -342,7 +343,7 @@ unsigned char W8AssayDialog::PopulateText()
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }
-                    text = FormatWideString(L" %d)", record->unknown_050[0x10]);
+                    text = FormatWideString(L" %d)", record->missile_value_060);
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }
@@ -352,11 +353,11 @@ unsigned char W8AssayDialog::PopulateText()
         if (count != 0) {
             m_text_area.AddEntry(gppStringList[0x2358 / 4], g_assay_entry_text, 10, 0xf, 0);
         }
-        if (record->unknown_050[0x11] != 0xff) {
+        if (record->slays_kind_061 != 0xff) {
             m_text_area.AddEntry(
                 gppStringList[0x2360 / 4],
-                gppStringList[g_special_category_name_ids_61ea78[record->unknown_050[0x11]]], 10,
-                0xf, 0);
+                gppStringList[g_special_category_name_ids_61ea78[record->slays_kind_061]], 10, 0xf,
+                0);
         }
         if (record->equip_class == 5 && m_character != 0 &&
             IsItemWornByCharacter(m_character, m_item)) {
