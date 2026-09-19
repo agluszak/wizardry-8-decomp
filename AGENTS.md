@@ -22,6 +22,9 @@ This is a Jujutsu repository for evidence-driven matching decompilation.
   class- or member-level visibility. Follow `docs/libraries/surrender-import-visibility.md`.
 - Type disagreement is a source-model defect, not a cast-site problem. Do not conceal it with casts,
   integer/pointer substitution, duplicate declarations, wrappers or aliases.
+- Fix defects at their owner rather than suppressing symptoms. A recomp-only/runtime-only failure means
+  some source, ABI, ownership, resource, analysis or control-flow model is wrong until evidence proves
+  otherwise; do not add guards, ignores, shims or alternate paths just to make the symptom disappear.
 - Do not invent aggregate/class boundaries from adjacency, shared initialization, repeated offsets or
   convenient access patterns; do not split a proven object for local convenience. Repository-owned
   Wizardry and SurRender code is unconditional C++; `extern "C"` requires proven C linkage.
@@ -95,10 +98,18 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 ## Scope and completion
 
-Complete the requested coherent task. Do not turn focused recovery into repository-wide cleanup merely
+Fix forward. When a check fails or the work exposes a concrete repository defect, fix the defect instead
+of investigating whether it predates the current change. Do not spend time on blame/provenance archaeology;
+use history only when it provides evidence needed to choose the correct fix. This applies to concrete
+problems encountered during the task, not as an excuse for an unrelated repository-wide audit.
+
+Complete the requested coherent task. Prefer repairing or extending the existing owner/path over creating
+a parallel mechanism. Repository-owned APIs and formats have no compatibility contract: update current
+producers and consumers together rather than adding old/new modes, migrations or shims. Delete replaced
+scaffolding and obsolete infrastructure. Do not turn focused recovery into repository-wide cleanup merely
 because a pattern exists elsewhere. Expand only when a shared owner/ABI/layout requires it, the source
-model would otherwise become inconsistent, or the task explicitly requests an audit. Keep exploratory
-scripts disposable.
+model would otherwise become inconsistent, a concrete failure encountered during the task needs repair,
+or the task explicitly requests an audit. Keep exploratory scripts disposable.
 
 Do not incidentally edit `src/sgp` while recovering Wizardry/SurRender code. An SGP source change needs
 its own accepted-source/retail evidence and required modification notice; a generated-code mismatch by
