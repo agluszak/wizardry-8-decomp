@@ -6,6 +6,8 @@
 #include "wiz8/layouts/targeting.h"
 #include "wiz8/vector.h"
 
+#include <stddef.h>
+
 class W8SpellVisual;
 class W8Missile;
 
@@ -124,6 +126,19 @@ struct W8SpellEffectEntry {
 #pragma pack(pop)
 
 static_assert(sizeof(W8SpellEffectEntry) == 0x1c8, "W8SpellEffectEntry_must_be_0x1c8");
+static_assert(offsetof(W8SpellEffectEntry, OrigSource) == 0x008, "W8SpellEffectEntry_OrigSource");
+static_assert(offsetof(W8SpellEffectEntry, Source) == 0x05c, "W8SpellEffectEntry_Source");
+static_assert(offsetof(W8SpellEffectEntry, target) == 0x090, "W8SpellEffectEntry_target");
+static_assert(offsetof(W8SpellEffectEntry, definition) == 0x0b0, "W8SpellEffectEntry_definition");
+static_assert(offsetof(W8SpellEffectEntry, monster_ids_0e0) == 0x0e0,
+              "W8SpellEffectEntry_monster_ids");
+static_assert(offsetof(W8SpellEffectEntry, target_indices_0f0) == 0x0f0,
+              "W8SpellEffectEntry_target_indices");
+static_assert(offsetof(W8SpellEffectEntry, spell_visuals) == 0x100,
+              "W8SpellEffectEntry_spell_visuals");
+static_assert(offsetof(W8SpellEffectEntry, missiles) == 0x110, "W8SpellEffectEntry_missiles");
+static_assert(offsetof(W8SpellEffectEntry, reported_124) == 0x124, "W8SpellEffectEntry_reported");
+static_assert(offsetof(W8SpellEffectEntry, result_126) == 0x126, "W8SpellEffectEntry_result");
 
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
