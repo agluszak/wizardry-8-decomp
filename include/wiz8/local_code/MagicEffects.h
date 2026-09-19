@@ -70,6 +70,10 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
 /* 0x00553910: the target's own turns left on a condition; condition seven
    also hands its argument back through `argument`. */
 unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, int condition, int* argument);
+/* 0x0054FF20: heading from a world point toward the nearest live monster, or
+   the camera-facing yaw for a hostile disposition - also the fallback when
+   no monster is near. */
+float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int exclusion);
 
 /* 0x0060CFFC: eight bytes per effect id; the leading dword names the monster
    visual resource, -1 means the effect has none. */

@@ -68,6 +68,11 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
 void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
                                    unsigned int duration, unsigned int percent);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
+/* 0x00524780: record a bound monster in a party member's condition record -
+   the level the binding was made on and the monster's location id, with the
+   record's flag byte raised. Slot one also retires the monster's group and
+   its allies. */
+void BindMonsterToCharacter00524780(int party_slot, int record, int location_id);
 void RemoveAllConditionsFromParty(void);
 
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);

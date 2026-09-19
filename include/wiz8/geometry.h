@@ -200,6 +200,9 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
 float GetCameraFacingYaw004BE5C0(srVector3T<float>* position);
+/* 0x004BE650: a second camera-facing yaw over a point, recovered shape
+   identical to GetCameraFacingYaw004BE5C0. */
+float Function4BE650(srVector3T<float>* position);
 /* Euclidean distance between two world-space points. */
 float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first,
                                     const srVector3T<float>* second);

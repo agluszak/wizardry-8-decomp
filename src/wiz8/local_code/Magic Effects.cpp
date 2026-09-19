@@ -45,9 +45,16 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/fact_state.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/geometry.h"
 #include "wiz8/local_code/Noise.h"
+#include "wiz8/local_code/Sight.h"
 #include "soundman.h"
 
 /*
@@ -89,6 +96,15 @@ const int g_effect_visual_table[149][2] = {
     {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
     {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
     {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+};
+
+/* 0x00616F4C: the monster group the Insanity effect summons - one row of four
+   per power level, the column the elemental realm the caster's realm skills
+   weighted the roll toward. */
+// GLOBAL: WIZ8 0x00616f4c
+const int g_insanity_group_ids_00616f4c[8][4] = {
+    {24, 23, 21, 22}, {24, 23, 21, 22}, {28, 27, 25, 26}, {32, 31, 29, 30},
+    {36, 35, 33, 34}, {40, 39, 37, 38}, {44, 43, 41, 42}, {48, 47, 45, 46},
 };
 
 /* 0x0061E208: the affliction spell's weighted pick - the index is the
@@ -528,6 +544,276 @@ int GetConditionDisplaySlot(int condition)
         srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 3339, 0);
         return 0;
     }
+}
+
+/* A heading from a world point toward the nearest live monster, or the
+   camera-facing yaw for a hostile disposition - which is also the fallback
+   when the extreme-range box query turns up no monster at all. */
+// FUNCTION: WIZ8 0x0054ff20
+float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int exclusion)
+{
+    W8Monster* nearest;
+    W8Monster* monster;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    srVector3T<float> position;
+    unsigned long* location_ids;
+    double nearest_distance;
+    float distance;
+    float range;
+    unsigned int count;
+    unsigned int index;
+
+    nearest = 0;
+    nearest_distance = 0.0;
+    lower = point;
+    upper = point;
+    range = CalcRangeDistance(W8_RANGE_EXTREME);
+    if (disposition == W8_DISPOSITION_HOSTILE) {
+        return Function4BE650(&point);
+    }
+    lower.x -= range;
+    lower.y -= range;
+    lower.z -= range;
+    upper.x += range;
+    upper.y += range;
+    upper.z += range;
+    location_ids = static_cast<unsigned long*>(operator new(0x400));
+    count = g_octree_6598a4->QueryLocationsInBox(&location_ids, &lower, &upper,
+                                                 static_cast<unsigned short>(exclusion));
+    if (count == 0) {
+        operator delete(location_ids);
+        return Function4BE650(&point);
+    }
+    for (index = 0; index < count; ++index) {
+        monster = GetMonsterByLocationID(location_ids[index]);
+        position = monster->GetPosition();
+        distance = sqrtf((position.x - point.x) * (position.x - point.x) +
+                         (position.y - point.y) * (position.y - point.y) +
+                         (position.z - point.z) * (position.z - point.z));
+        if (distance < nearest_distance || index == 0) {
+            nearest_distance = distance;
+            nearest = monster;
+        }
+    }
+    operator delete(location_ids);
+    position = nearest->GetPosition();
+    return GetHeadingAngle(&point, &position);
+}
+
+/* The Insanity effect, spell 0x3c: a hostile monster's phantom double is
+   summoned to draw attacks away from the party. When the target already has
+   the bound-monster record set the effect only reports; otherwise the caster's
+   four elemental realm skills (plus a base twenty each) weight which of the
+   four phantom kinds appears, a turncoated or backfired source flips the
+   phantom's disposition, and on a secondary roll the new group also picks up
+   the matching summon enchantment. */
+// FUNCTION: WIZ8 0x005500c0
+void ApplyInsanityEffect(W8SpellEffectEntry* effect)
+{
+    W8MonsterInfo* target_info;
+    W8MonsterInfo* summon;
+    W8MonsterInfo* member;
+    W8MonsterGroup* group;
+    W8Character* caster;
+    W8MissileAttackBlock attack_block;
+    W8EffectSlot* effect_slot;
+    unsigned int weights[4];
+    unsigned int duration;
+    unsigned int roll;
+    W8Disposition disposition;
+    int spell_id;
+    int slot;
+    int tier;
+    unsigned int index;
+
+    if (TargetSourceIsCharacter(&effect->Source, 0) &&
+        GetConditionRecordFlag(effect->Source.iChar, 0) != 0) {
+        if (g_settings_6850c8.verbose_combat_messages != 0) {
+            PostCharacterNotice(effect->Source.iChar, gppStringList[0x6a0 / 4]);
+        } else {
+            AppendToLastTextLine(L" -- ", -1);
+            SetTextBoxMode(1, -1);
+            AppendToLastTextLine(gppStringList[0x6a0 / 4], -1);
+        }
+        effect->reported_124 = 1;
+        return;
+    }
+    if (TargetSourceIsMonster(&effect->Source, 0)) {
+        target_info = MonsterInfoFromID(0x9b0, MAGIC_EFFECTS_CPP, effect->Source.iMonsterID, 1);
+        if (target_info->value_344 != -1) {
+            return;
+        }
+    }
+    weights[0] = 20;
+    weights[1] = 20;
+    weights[2] = 20;
+    weights[3] = 20;
+    if (TargetSourceIsCharacter(&effect->Source, 0)) {
+        caster = &g_status_685170.buffers.characters[effect->Source.iChar];
+        weights[0] = caster->skills[28].level + 20;
+        weights[1] = caster->skills[29].level + 20;
+        weights[2] = caster->skills[30].level + 20;
+        weights[3] = caster->skills[31].level + 20;
+    }
+    if (g_camera_sway_active_652da4) {
+        weights[0] = 0;
+    }
+    roll = Random(weights[0] + weights[1] + weights[2] + weights[3]);
+    tier = 0;
+    for (index = 0; index < 4; ++index) {
+        if (roll < weights[index]) {
+            tier = index;
+            break;
+        }
+        roll -= weights[index];
+    }
+    if (TargetSourceIsCharacter(&effect->Source, 0)) {
+        disposition =
+            (g_status_685170.buffers.characters[effect->Source.iChar].condition_turns[13] == 0) + 1;
+    } else if (TargetSourceIsMonster(&effect->Source, 0)) {
+        disposition = target_info->ubDisposition;
+    } else {
+        disposition = W8_DISPOSITION_HOSTILE;
+    }
+    if (effect->Source.fBackfire != 0) {
+        disposition = (disposition == W8_DISPOSITION_HOSTILE) + 1;
+    }
+    group = CreateGroup(g_insanity_group_ids_00616f4c[effect->argument][tier], 1,
+                        &effect->target.point, 1, 0, 1);
+    if (group == 0) {
+        srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
+    }
+    summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->value_9f, 1);
+    summon->monster->SetAngles004538F0(
+        HeadingTowardNearestMonster(effect->target.point, disposition, summon->location_id));
+    SetMonsterGroupHostility(group, disposition, 0);
+    if (disposition == W8_DISPOSITION_FRIENDLY) {
+        for (index = 0; index < group->member_count; ++index) {
+            member =
+                MonsterInfoFromID(0xfdb, MAGIC_EFFECTS_CPP, IListGetAt(group->monsters, index), 1);
+            if (member == 0) {
+                srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xfdc, 0);
+            }
+            if (member->value_2da == 0) {
+                member->value_2da = 1;
+                SetMonsterSpellIcon(member->monster, 0x27, 1);
+            }
+        }
+    } else {
+        for (index = 0; index < group->member_count; ++index) {
+            member =
+                MonsterInfoFromID(0xfdb, MAGIC_EFFECTS_CPP, IListGetAt(group->monsters, index), 1);
+            if (member == 0) {
+                srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0xfdc, 0);
+            }
+            if (member->value_2da == 0) {
+                member->value_2da = 2;
+                SetMonsterSpellIcon(member->monster, 0x27, 1);
+            }
+        }
+    }
+    RefreshAllSight();
+    if (TargetSourceIsCharacter(&effect->Source, 0)) {
+        BindMonsterToCharacter00524780(effect->Source.iChar, 0, summon->location_id);
+    } else if (TargetSourceIsMonster(&effect->Source, 0)) {
+        target_info->value_344 = summon->location_id;
+    }
+    if (effect->value_0d4 != 0 && Random(100) < effect->value_0d4) {
+        ClearAttackBlock(&attack_block);
+        attack_block.unknown_20[0] = effect->argument;
+        switch (tier) {
+        case 0:
+        case 1:
+            spell_id = tier == 1 ? 0x3d : 0x38;
+            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
+            duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
+                       attack_block.unknown_20[2];
+            if (duration != 9999) {
+                duration = duration + 1;
+                {
+                    unsigned int roll = Random(4);
+                    if (roll == 0) {
+                        if (1 < duration) {
+                            duration = duration + 1;
+                        }
+                    } else if (roll == 1 && duration < 3) {
+                        duration = duration + 1;
+                    }
+                }
+                AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+            }
+            switch (spell_id) {
+            case 0x13:
+                slot = 1;
+                break;
+            case 0x15:
+                slot = 2;
+                break;
+            case 0x1b:
+                slot = 3;
+                break;
+            case 0x36:
+                slot = 4;
+                break;
+            case 0x38:
+                slot = 5;
+                break;
+            case 0x3d:
+                slot = 6;
+                break;
+            case 0x41:
+                slot = 7;
+                break;
+            default:
+                srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
+                slot = 0;
+            }
+            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.unknown_20[0],
+                                          duration, 0);
+            break;
+        case 2:
+        case 3:
+            spell_id = tier == 2 ? 0x1a : 0x20;
+            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
+            for (index = 0; index < 12; ++index) {
+                if (g_being_effect_slot_spells_00616d84[index] == spell_id) {
+                    duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
+                               attack_block.unknown_20[2];
+                    if (duration != 9999) {
+                        duration = duration + 1;
+                        {
+                            unsigned int roll = Random(4);
+                            if (roll == 0) {
+                                if (1 < duration) {
+                                    duration = duration + 1;
+                                }
+                            } else if (roll == 1 && duration < 3) {
+                                duration = duration + 1;
+                            }
+                        }
+                        AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+                    }
+                    effect_slot = &summon->effect_slots_10f[index];
+                    if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
+                        SetMonsterSpellIcon(summon->monster, g_effect_visual_table[spell_id][0], 1);
+                    }
+                    effect_slot->active = 1;
+                    effect_slot->effect_id = spell_id;
+                    effect_slot->amount = attack_block.unknown_20[0];
+                    effect_slot->duration_0d = duration;
+                    RebuildMonsterDerivedStats(summon->location_id);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    SetMonsterGroupNavigatorDirty(group, 0);
+    MonsterGroupEnterCombat(group);
+    effect->unknown_125 = 1;
 }
 
 /* Return the casting character to the CamPos spell 0x4b stored. Nothing
@@ -2404,6 +2690,84 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
     }
 }
 
+/* The lure effect, spell 0x26: every hostile monster in the world-far-clip
+   box around the target point that the effect can see and that is not already
+   spoken for gets a resistance roll. A monster that fails is switched to the
+   controlled state - its whole group when the party is out of combat, just
+   itself in combat - and one that resists is switched the other way. The
+   0x400-byte query buffer is not freed, matching retail. */
+// FUNCTION: WIZ8 0x00551500
+void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
+{
+    W8MonsterInfo* monster_info;
+    W8CombatSlot target;
+    srVector3T<float> center;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    srVector3T<float> eye;
+    unsigned long* location_ids;
+    unsigned int count;
+    unsigned int index;
+    float far_clip;
+
+    far_clip = static_cast<float>(WorldGetFarClip(GetWorld()));
+    center = effect->target.point;
+    center.y += g_default_world_height_00603ac8 * g_float_005ebc7c;
+    lower.x = center.x - far_clip;
+    lower.y = center.y - far_clip;
+    lower.z = center.z - far_clip;
+    upper.x = center.x + far_clip;
+    upper.y = center.y + far_clip;
+    upper.z = center.z + far_clip;
+    location_ids = static_cast<unsigned long*>(operator new(0x400));
+    count = g_octree_6598a4->QueryLocationsInBox(&location_ids, &lower, &upper, 0);
+    for (index = 0; index < count; ++index) {
+        monster_info = MonsterInfoFromID(0xc7c, MAGIC_EFFECTS_CPP, location_ids[index], 1);
+        if (monster_info->monster->IsDying() != 0) {
+            continue;
+        }
+        if ((gXStatus.fCombatMode == 0 && monster_info->monster->linked_navigator_05c != 0) ||
+            monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
+            continue;
+        }
+        eye = monster_info->monster->movement_0c0.position_040;
+        eye.y += monster_info->monster->movement_0c0.height_offset_0b8;
+        if (g_octree_6598a4->HasLineOfSight(&eye, &center, 1) == 0) {
+            continue;
+        }
+        if (monster_info->control_state < 0 || monster_info->control_state >= 2) {
+            continue;
+        }
+        if (monster_info->condition_turns[0xc] != 0 || monster_info->highest_condition >= 0xf) {
+            SetMonsterControlState(monster_info, 0);
+            continue;
+        }
+        ResetCombatSlot(&target);
+        target.iType = W8_TARGET_KIND_MONSTER;
+        target.iMonsterID = monster_info->location_id;
+        if (MonsterResistsSpellEffect(&target, effect->definition.power_level) == 0) {
+            if (gXStatus.fCombatMode != 0) {
+                SetMonsterControlState(monster_info, 1);
+            } else {
+                SetMonsterGroupControlState(
+                    GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                        0xcbb, MAGIC_EFFECTS_CPP, monster_info->monster_group_id, 1)),
+                    1);
+            }
+            effect->unknown_125 = 1;
+        } else {
+            if (gXStatus.fCombatMode != 0) {
+                SetMonsterControlState(monster_info, 2);
+            } else {
+                SetMonsterGroupControlState(
+                    GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                        0xcaf, MAGIC_EFFECTS_CPP, monster_info->monster_group_id, 1)),
+                    2);
+            }
+        }
+    }
+}
+
 /* The reveal-item effect on a character target: an ordinary condition-nine
    cure pass first, then the binding reveal. Only a character target produces
    bindings to report; a result of one or two appends the matching line and,
@@ -3073,10 +3437,6 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
     } while (true);
 }
 
-/* Same-TU bodies still unrecovered; the dispatcher already calls them. */
-void Function5500C0(W8SpellEffectEntry* effect); /* 0x005500C0 */
-void Function551500(W8SpellEffectEntry* effect); /* 0x00551500 */
-
 /* The per-frame spell effect dispatcher. A queued effect that needed aiming
    and was never armed is dropped up front; everything else routes on the
    spell id. Backfired effects invert the helpful spells - cures and buffs
@@ -3316,7 +3676,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         InflictConditionAttack0054D5C0(effect, 0x10, 100, 0);
         break;
     case 0x26:
-        Function551500(effect);
+        ApplyMonsterControlToNearbyMonsters(effect);
         break;
     case 0x27:
         level = effect->argument;
@@ -3359,7 +3719,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         }
         break;
     case 0x3c:
-        Function5500C0(effect);
+        ApplyInsanityEffect(effect);
         break;
     case 0x45:
         InflictConditionAttack0054D5C0(effect, 9, 100, 0);

@@ -98,7 +98,7 @@ struct W8SpellEffectEntry {
             unsigned char unknown_0b0[0x20];
             int argument; /* 0x0d0 */
             /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
-            int value_0d4;
+            unsigned int value_0d4;
             /* 0x0d8: the lingering-condition turns the 0x23 branch seeds from
                the rolled argument plus the target's existing count. */
             int value_0d8;
