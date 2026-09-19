@@ -4,13 +4,13 @@
 
 extern const wchar_t g_combat_log_format_00617664[]; /* 0x00617664 */
 
-void ChooseAction(int party_slot, int action, int detail, const void* data, int a,
+void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data, int a,
                   int b); /* 0x004E7CC0 */
 void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target,
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
-void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, const void* data,
-                              int notify); /* 0x004E8000 */
+void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
+                              const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
 void EndCombat004EA310(int mode);          /* 0x004EA310 */
 void Function4E8370(void);                 /* 0x004E8370 */
 void UpdateCombat004E8EA0(void);           /* 0x004E8EA0 */
@@ -69,8 +69,8 @@ char CreateCharacterBreathEffect(int party_slot);
 /* 0x004EBFE0: the character's committed breath attack against the marker
    lists plus every hostile monster; returns the action outcome code. */
 int ExecuteCharacterSpecialAttack(int party_slot);
-void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
-                            int notify); /* 0x004E7EE0 */
+void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+                            int arg_5, int notify); /* 0x004E7EE0 */
 int IsPartyEngaged(void);                /* 0x004E7E70 */
 int GetEngagementCount(void);            /* 0x004ED2B0 */
 void RecordCharacterDeath(int party_slot);

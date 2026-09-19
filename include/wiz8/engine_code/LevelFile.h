@@ -13,14 +13,31 @@
 
 #pragma pack(push, 1)
 
+struct W8ReadMeshFace;
+
+/* One serialized path keyframe: position, an axis/angle rotation. The scaled
+   variant appended a per-frame scale vector. */
+struct W8LevelFilePathNode { /* 0x1c */
+    srVector3T<float> position_00;
+    float angle_0c;
+    srVector3T<float> axis_10;
+};
+
+struct W8LevelFileScaledPathNode { /* 0x28 */
+    srVector3T<float> position_00;
+    float angle_0c;
+    srVector3T<float> axis_10;
+    srVector3T<float> scale_1c;
+};
+
 struct W8LevelFilePathAI {
     unsigned char version_00;
     unsigned char scaled_01; /* == 2 -> pScaledPaths */
     unsigned char unknown_02[4];
     unsigned char unknown_06[4];
     int path_count_0a;
-    void* pScaledPaths; /* 0x0e: path_count_0a records of 10 floats */
-    void* pPaths;       /* 0x12: path_count_0a records of 7 floats */
+    W8LevelFileScaledPathNode* pScaledPaths; /* 0x0e: path_count_0a records */
+    W8LevelFilePathNode* pPaths;             /* 0x12: path_count_0a records */
 };
 
 struct W8LevelFileCompressedFace { /* 0x21 */
@@ -42,15 +59,15 @@ struct W8LevelFileMesh {
     unsigned char unknown_3c[4]; /* version > 3 && field_38 != 0 */
     char lod_mode_40;            /* flags_0c & 1 */
     unsigned char unknown_41;
-    short num_lods_42;    /* flags_0c & 1 */
-    void** lod_shorts_44; /* flags_0c & 2: num_lods_42 elements of num_vertices_04 * 6 */
-    void**
+    short num_lods_42;     /* flags_0c & 1 */
+    short** lod_shorts_44; /* flags_0c & 2: num_lods_42 elements of num_vertices_04 * 3 shorts */
+    float**
         lods_48; /* flags_0c & 1 && !(flags_0c & 2): num_lods_42 elements of num_vertices_04 * 0xc */
-    void*
+    float*
         pstVertices; /* 0x4c: !(flags_0c & 1): num_vertices_04 * 0x18 allocated, 0x12a..0xc read each */
-    void* pstCompFaces; /* 0x50: flags_0c & 4: num_faces_08 * W8LevelFileCompressedFace */
-    void* pstFaces;     /* 0x54: 0x52 allocated each, W8ReadMeshFace (0x29) read each */
-    float lod_scale_58; /* flags_0c & 1 && lod_mode_40 > 1 */
+    W8LevelFileCompressedFace* pstCompFaces; /* 0x50: flags_0c & 4: num_faces_08 records */
+    W8ReadMeshFace* pstFaces;                /* 0x54: 0x52 allocated each, 0x29 read each */
+    float lod_scale_58;                      /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
 struct W8LevelFileLight {
@@ -215,12 +232,12 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     char particle_system_7cf[0x80]; /* version_00 > 2 */
     unsigned char door_kind_84f;    /* !(flags_81 & 1) */
     void* pType1_850;               /* door_kind_84f == 1: 0x1c record */
-    void* pPlane_854;               /* door_kind_84f == 2: 0x30 record */
+    W8LevelFilePlane* pPlane_854;   /* door_kind_84f == 2: 0x30 record */
     unsigned char field_858;        /* !(flags_81 & 1) */
     void* pRecord_859;              /* field_858 != 0: 0x85 record */
     unsigned char field_85d;
     unsigned char kind_85e;               /* field_85d != 0 */
-    void* pDoor_85f;                      /* kind_85e == 1 */
+    W8LevelFileDoor* pDoor_85f;           /* kind_85e == 1 */
     W8LevelFileLinkedRecord* pRecord_863; /* kind_85e == 2 */
 };
 
@@ -236,7 +253,7 @@ struct W8LevelFileFrame {
     unsigned char flags_00;
     W8LevelFileMesh mesh_01; /* 0x5c */
     short num_textures_5d;
-    void* pTextures_5f; /* num_textures_5d * 0x12a */
+    W8MaterialRecord004B8A70* pTextures_5f; /* num_textures_5d * 0x12a */
 };
 
 struct W8LevelFileLODMesh {
@@ -256,6 +273,12 @@ struct W8LevelFileTransform { /* 0x1c */
     W8LevelFilePathAI pathAI_06;
 };
 
+/* One serialized bounds pair: minimum then maximum corner. */
+struct W8LevelFileBounds { /* 0x18 */
+    srVector3T<float> minimum_00;
+    srVector3T<float> maximum_0c;
+};
+
 /* Serialized AnimObj embedded in a prop record; distinct from the runtime
    W8AnimObj (0x4c, AnimObj.h). */
 struct W8LevelFileAnimObj { /* 0x5f */
@@ -273,7 +296,7 @@ struct W8LevelFileAnimObj { /* 0x5f */
     unsigned char unknown_11[0x32];
     char* abHowMany;                      /* 0x43: num_anims_01 bytes */
     unsigned char num_bound_box_47;       /* version_00 > 6 */
-    void* pBoundBox;                      /* 0x48: num_bound_box_47 * 0x18 */
+    W8LevelFileBounds* pBoundBox;         /* 0x48: num_bound_box_47 * 0x18 */
     unsigned char num_anim_lights_4c;     /* version_00 > 7 */
     W8LevelFileAnimLight* pAnimLights_4d; /* num_anim_lights_4c * 0x25 */
     unsigned char has_path_ai_51;         /* version_00 > 8 && kind_06 == 0 */
@@ -396,6 +419,9 @@ struct W8LevelFile {
 #pragma pack(pop)
 
 static_assert(sizeof(W8LevelFileCompressedFace) == 0x21, "W8LevelFileCompressedFace_must_be_0x21");
+static_assert(sizeof(W8LevelFilePathNode) == 0x1c, "W8LevelFilePathNode_must_be_0x1c");
+static_assert(sizeof(W8LevelFileScaledPathNode) == 0x28, "W8LevelFileScaledPathNode_must_be_0x28");
+static_assert(sizeof(W8LevelFileBounds) == 0x18, "W8LevelFileBounds_must_be_0x18");
 static_assert(sizeof(W8LevelFilePathAI) == 0x16, "W8LevelFilePathAI_must_be_0x16");
 static_assert(sizeof(W8LevelFileMesh) == 0x5c, "W8LevelFileMesh_must_be_0x5c");
 static_assert(sizeof(W8LevelFileLight) == 0x44, "W8LevelFileLight_must_be_0x44");

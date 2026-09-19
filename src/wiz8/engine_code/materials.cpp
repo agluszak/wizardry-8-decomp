@@ -416,9 +416,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
             maximum.z = -1e7f;
             redundant = 0;
             for (i = 1; i < mesh->num_vertices_04; ++i) {
-                const float* source = reinterpret_cast<
-                    const float*>(/* reinterpret-ok: packed serialized vertex records */
-                                  static_cast<const char*>(mesh->pstVertices) + (i - 1) * 0xc);
+                const float* source = mesh->pstVertices + (i - 1) * 3;
                 vertices[i].position_0c.x = source[0] * g_world_scale_005ebc40;
                 vertices[i].position_0c.y = source[1] * g_world_scale_005ebc40;
                 vertices[i].position_0c.z = source[2] * g_world_scale_005ebc40;
@@ -481,7 +479,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
             ReportBuildStatus00497690(6, message);
             ReportBuildStatus00497690(6, "\nReading GameData...\n");
             sprintf(message, "%s.wgd", stem);
-            value = ReadGameData00447570(message, (void*)1);
+            value = ReadGameData00447570(message, true);
             if (value == 0) {
                 ReportBuildStatus00497690(7, "\n Error -- Cannot load or find game data.\n");
             } else {
@@ -1267,7 +1265,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
     ordinal = 1;
     if (1 < poly_total) {
         polygon = polygons + 1;
-        face = static_cast<W8ReadMeshFace*>(mesh->pstFaces);
+        face = mesh->pstFaces;
         do {
             if (last_percent < static_cast<int>((static_cast<float>(ordinal) * 100.0f /
                                                  static_cast<float>(poly_total)))) {
@@ -1679,9 +1677,9 @@ int PropReceivesLight00495E90(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFi
     }
     bound = 0;
     if (prop->anim_obj_53.num_bound_box_47 != 0) {
-        const float* boxes = static_cast<const float*>(prop->anim_obj_53.pBoundBox);
+        const W8LevelFileBounds* boxes = prop->anim_obj_53.pBoundBox;
         do {
-            memcpy(bounds, boxes + bound * 6, 0x18);
+            memcpy(bounds, boxes + bound, 0x18);
             for (corner_x = 0; corner_x < 2; ++corner_x) {
                 float x = bounds[corner_x * 3] * g_world_scale_005ebc40;
                 for (corner_y = 0; corner_y < 2; ++corner_y) {

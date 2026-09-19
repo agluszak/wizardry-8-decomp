@@ -24,7 +24,7 @@ class stMeshModel;
 class srMeshModel;
 class srClass;
 
-bool IsTextureInReadMeshScratch(const void* texture);
+bool IsTextureInReadMeshScratch(const srTextureIFace* texture);
 unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance** instance,
                                           int positional_0, int positional_1, const char* name,
                                           unsigned char load_materials);

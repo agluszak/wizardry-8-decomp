@@ -1231,7 +1231,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signe
 }
 
 // FUNCTION: WIZ8 0x004a8400
-unsigned char W8GrCycle::ReplacePath004A8400(void* path)
+unsigned char W8GrCycle::ReplacePath004A8400(W8PathAI* path)
 {
     if (m_pAI != 0) {
         DestroyOwnedPathAI004A9110((W8PathAI*)m_pAI);

@@ -952,8 +952,8 @@ unsigned char ReleaseItemLists(void)
 bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
 {
     srVector3T<float> position;
-    float lower[3];
-    float upper[3];
+    srVector3T<float> lower;
+    srVector3T<float> upper;
     srVector3T<float> eye;
 
     owner->m_pRep->GetLocation004B8890(&position);
@@ -961,14 +961,14 @@ bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
 
     srVector3T<float> delta(position.x - from[0], position.y - from[1], position.z - from[2]);
     if (delta.LengthSquared() < radius * radius) {
-        owner->GetCachedLocalBounds(lower, upper);
-        lower[0] += position.x;
-        lower[1] += position.y;
-        lower[2] += position.z;
-        upper[0] += position.x;
-        upper[1] += position.y;
-        upper[2] += position.z;
-        if (TraceToBounds(&eye, lower, upper)) {
+        owner->GetCachedLocalBounds(&lower.x, &upper.x);
+        lower.x += position.x;
+        lower.y += position.y;
+        lower.z += position.z;
+        upper.x += position.x;
+        upper.y += position.y;
+        upper.z += position.z;
+        if (ShowTargetMarker(&eye, &lower, &upper)) {
             return 1;
         }
     }

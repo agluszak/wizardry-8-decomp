@@ -51,7 +51,7 @@ float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */
 // FUNCTION: WIZ8 0x00447570
-W8GameData* ReadGameData00447570(const char* path, void* parent)
+W8GameData* ReadGameData00447570(const char* path, bool secondary)
 {
     HANDLE file = CreateFileA(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     W8GameData* game_data;
@@ -61,7 +61,7 @@ W8GameData* ReadGameData00447570(const char* path, void* parent)
     if (file == INVALID_HANDLE_VALUE) {
         return 0;
     }
-    game_data = new W8GameData(0, parent);
+    game_data = new W8GameData(0, secondary);
     if (game_data == 0) {
         srAssertFail("pGameData", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xa7, 0);
     }
@@ -152,7 +152,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->positional_0c = -1;
     surface->positional_10 = -1;
     surface->positional_14 = -1;
-    surface->value_38 = 0;
+    surface->hit_plane_38 = 0;
     ++overflow_surface_count_3c;
 
     surface = &overflow_surfaces_48[overflow_surface_count_3c];
@@ -170,7 +170,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->positional_0c = -1;
     surface->positional_10 = -1;
     surface->positional_14 = -1;
-    surface->value_38 = 0;
+    surface->hit_plane_38 = 0;
     ++overflow_surface_count_3c;
 }
 
@@ -423,7 +423,7 @@ void W8GameData::ReadProcessedGameData(int handle)
    environment bank, and the previous level-data teardown. The zero stores
    below follow the image order rather than field order. */
 // FUNCTION: WIZ8 0x00449010
-W8GameData::W8GameData(int handle, void* parent)
+W8GameData::W8GameData(int handle, bool secondary)
 {
     geometry_index_00 = 0;
     positional_04 = 0;
@@ -456,7 +456,7 @@ W8GameData::W8GameData(int handle, void* parent)
     value_88 = 0;
     minimum_08 = 1.0e8f;
     maximum_14 = -1.0e8f;
-    if (parent == 0) {
+    if (!secondary) {
         MoveTimer(4);
         if (g_game_time_accumulator_6598bc == 0) {
             g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910();

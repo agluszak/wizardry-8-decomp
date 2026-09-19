@@ -33,6 +33,7 @@ class stParticle;
 class stGroundShadow;
 struct W8AnimObj;
 struct W8AniMesh;
+struct W8PathAI;
 
 void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
 
@@ -157,7 +158,7 @@ public:
     srModelInstance* SelectCycleFrameLod004A8360(signed char cycle, signed char frame,
                                                  signed char lod);
     srModelInstance* GetCurrentModelInstance004A8250();
-    unsigned char ReplacePath004A8400(void* path);
+    unsigned char ReplacePath004A8400(W8PathAI* path);
     void SubmitTargetValue004A84A0();
 
 public:

@@ -1682,9 +1682,9 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
         for (int i = count; i != 0; --i, ++t) {
             float a[10], b[10];
             if (t->pathAI_06.scaled_01 == 2) {
-                float* src = static_cast<float*>(t->pathAI_06.pScaledPaths) + first * 10;
+                const W8LevelFileScaledPathNode* src = t->pathAI_06.pScaledPaths + first;
                 memcpy(a, src, sizeof(a));
-                src = static_cast<float*>(t->pathAI_06.pScaledPaths) + last * 10;
+                src = t->pathAI_06.pScaledPaths + last;
                 memcpy(b, src, sizeof(b));
                 if (g_camera_snap_epsilon_005ebc2c < fabsf(a[7] - b[7]) ||
                     g_camera_snap_epsilon_005ebc2c < fabsf(a[8] - b[8]) ||
@@ -1692,9 +1692,9 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
                     differ = 1;
                 }
             } else {
-                float* src = static_cast<float*>(t->pathAI_06.pPaths) + first * 7;
+                const W8LevelFilePathNode* src = t->pathAI_06.pPaths + first;
                 memcpy(a, src, 7 * sizeof(float));
-                src = static_cast<float*>(t->pathAI_06.pPaths) + last * 7;
+                src = t->pathAI_06.pPaths + last;
                 memcpy(b, src, 7 * sizeof(float));
             }
             if (g_float_005ebc7c < fabsf(a[0] - b[0]) || g_float_005ebc7c < fabsf(a[1] - b[1]) ||

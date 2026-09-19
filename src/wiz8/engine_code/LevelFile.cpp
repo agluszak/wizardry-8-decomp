@@ -535,7 +535,7 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
         return 0;
     }
     if ((pMesh->flags_0c & 1) == 0) {
-        pMesh->pstVertices = malloc(pMesh->num_vertices_04 * 0x18);
+        pMesh->pstVertices = static_cast<float*>(malloc(pMesh->num_vertices_04 * 0x18));
         if (pMesh->pstVertices == 0) {
             srAssertFail("pMesh->pstVertices", LEVELFILE_CPP, 0x29a, 0);
         }
@@ -547,12 +547,12 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
         fSuccess &= FileRead(hFile, &pMesh->lod_mode_40, 1, 0);
         fSuccess &= FileRead(hFile, &pMesh->num_lods_42, 2, 0);
         if ((pMesh->flags_0c & 2) == 0) {
-            void** pLods = static_cast<void**>(malloc(pMesh->num_lods_42 * 4));
+            float** pLods = static_cast<float**>(malloc(pMesh->num_lods_42 * 4));
             if (pLods == 0) {
                 return 0;
             }
             for (i = 0; i < pMesh->num_lods_42; ++i) {
-                pLods[i] = malloc(pMesh->num_vertices_04 * 0xc);
+                pLods[i] = static_cast<float*>(malloc(pMesh->num_vertices_04 * 0xc));
                 if (pLods[i] == 0) {
                     return 0;
                 }
@@ -566,12 +566,12 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
             if (pMesh->lod_mode_40 > 1) {
                 FileRead(hFile, &pMesh->lod_scale_58, 4, 0);
             }
-            void** pLods = static_cast<void**>(malloc(pMesh->num_lods_42 * 4));
+            short** pLods = static_cast<short**>(malloc(pMesh->num_lods_42 * 4));
             if (pLods == 0) {
                 return 0;
             }
             for (i = 0; i < pMesh->num_lods_42; ++i) {
-                pLods[i] = malloc(pMesh->num_vertices_04 * 6);
+                pLods[i] = static_cast<short*>(malloc(pMesh->num_vertices_04 * 6));
                 if (pLods[i] == 0) {
                     return 0;
                 }
@@ -584,14 +584,15 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
         }
     }
     if ((pMesh->flags_0c & 4) != 0) {
-        pMesh->pstCompFaces = malloc(pMesh->num_faces_08 * 0x21);
+        pMesh->pstCompFaces =
+            static_cast<W8LevelFileCompressedFace*>(malloc(pMesh->num_faces_08 * 0x21));
         if (pMesh->pstCompFaces == 0) {
             srAssertFail("pMesh->pstCompFaces", LEVELFILE_CPP, 0x2a7, 0);
         }
         memset(pMesh->pstCompFaces, 0, pMesh->num_faces_08 * 0x21);
         return FileRead(hFile, pMesh->pstCompFaces, pMesh->num_faces_08 * 0x21, 0);
     }
-    pMesh->pstFaces = malloc(pMesh->num_faces_08 * 0x52);
+    pMesh->pstFaces = static_cast<W8ReadMeshFace*>(malloc(pMesh->num_faces_08 * 0x52));
     if (pMesh->pstFaces == 0) {
         srAssertFail("pMesh->pstFaces", LEVELFILE_CPP, 0x2b2, 0);
     }
@@ -640,7 +641,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
             fSuccess &= FileWrite(hFile, &pMesh->lod_scale_58, 4, 0);
         }
         if ((pMesh->flags_0c & 2) == 0) {
-            void** pLods = pMesh->lods_48;
+            float** pLods = pMesh->lods_48;
             if (pLods == 0) {
                 return 0;
             }
@@ -655,7 +656,7 @@ bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh)
                 free(pLods[i]);
             }
         } else {
-            void** pLods = pMesh->lod_shorts_44;
+            short** pLods = pMesh->lod_shorts_44;
             if (pLods == 0) {
                 return 0;
             }
@@ -1270,12 +1271,12 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= FileRead(hFile, pSuper->pType1_850, 0x1c, 0);
         }
     } else if (pSuper->door_kind_84f == 2) {
-        pSuper->pPlane_854 = malloc(0x30);
+        pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(0x30));
         if (pSuper->pPlane_854 != 0) {
             fSuccess &= FileRead(hFile, pSuper->pPlane_854, 0x30, 0);
             g_level_file_6833fc
                 ->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
-                static_cast<W8LevelFilePlane*>(pSuper->pPlane_854);
+                pSuper->pPlane_854;
             ++g_level_file_6833fc->num_invisible_planes_1665;
         }
     }
@@ -1467,14 +1468,15 @@ bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI)
     fSuccess &= FileRead(hFile, &pPathAI->path_count_0a, 4, 0);
     if (pPathAI->scaled_01 == 2) {
         if (pPathAI->path_count_0a != 0) {
-            pPathAI->pScaledPaths = malloc(pPathAI->path_count_0a * 0x28);
+            pPathAI->pScaledPaths =
+                static_cast<W8LevelFileScaledPathNode*>(malloc(pPathAI->path_count_0a * 0x28));
             if (pPathAI->pScaledPaths == 0) {
                 srAssertFail("pPathAI->pScaledPaths", LEVELFILE_CPP, 0x732, 0);
             }
             fSuccess &= FileRead(hFile, pPathAI->pScaledPaths, pPathAI->path_count_0a * 0x28, 0);
         }
     } else if (pPathAI->path_count_0a != 0) {
-        pPathAI->pPaths = malloc(pPathAI->path_count_0a * 0x1c);
+        pPathAI->pPaths = static_cast<W8LevelFilePathNode*>(malloc(pPathAI->path_count_0a * 0x1c));
         if (pPathAI->pPaths == 0) {
             srAssertFail("pPathAI->pPaths", LEVELFILE_CPP, 0x73d, 0);
         }
@@ -1567,7 +1569,8 @@ header_done:
     if (pAnimObj->version_00 > 6) {
         fSuccess &= FileRead(hFile, &pAnimObj->num_bound_box_47, 1, 0);
         if (pAnimObj->num_bound_box_47 != 0) {
-            pAnimObj->pBoundBox = malloc(pAnimObj->num_bound_box_47 * 0x18);
+            pAnimObj->pBoundBox =
+                static_cast<W8LevelFileBounds*>(malloc(pAnimObj->num_bound_box_47 * 0x18));
             if (pAnimObj->pBoundBox == 0) {
                 srAssertFail("pAnimObj->pBoundBox", LEVELFILE_CPP, 0x7b3, 0);
             }
@@ -1639,7 +1642,8 @@ header_done:
                                         ReadMeshFile004D1110(hFile, &pFrame->mesh_01) &
                                         FileRead(hFile, &pFrame->num_textures_5d, 2, 0);
                             if (pFrame->num_textures_5d != 0) {
-                                pFrame->pTextures_5f = malloc(pFrame->num_textures_5d * 0x12a);
+                                pFrame->pTextures_5f = static_cast<W8MaterialRecord004B8A70*>(
+                                    malloc(pFrame->num_textures_5d * 0x12a));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
                                         "pAnimObj->pMorphs[i].LODMesh.pFrames[i2].pTextures",
@@ -1648,12 +1652,11 @@ header_done:
                                 memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                    unsigned char* pTexture =
-                                        static_cast<unsigned char*>(pFrame->pTextures_5f) +
-                                        j * 0x12a;
+                                    W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
-                                    if (pTexture[0] > 3) {
-                                        fTextures &= FileRead(hFile, pTexture + 0x11a, 0x10, 0);
+                                    if (pTexture->version_00 > 3) {
+                                        fTextures &=
+                                            FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
                                     }
                                     if (fTextures == 0) {
                                         return 0;
@@ -1711,7 +1714,8 @@ header_done:
                                 return 0;
                             }
                             if (pFrame->num_textures_5d != 0) {
-                                pFrame->pTextures_5f = malloc(pFrame->num_textures_5d * 0x12a);
+                                pFrame->pTextures_5f = static_cast<W8MaterialRecord004B8A70*>(
+                                    malloc(pFrame->num_textures_5d * 0x12a));
                                 if (pFrame->pTextures_5f == 0) {
                                     srAssertFail(
                                         "pAnimObj->pTransforms[i].LODMesh.pFrames[i2].pTextures",
@@ -1720,12 +1724,11 @@ header_done:
                                 memset(pFrame->pTextures_5f, 0, pFrame->num_textures_5d * 0x12a);
                                 unsigned char fTextures = 1;
                                 for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                    unsigned char* pTexture =
-                                        static_cast<unsigned char*>(pFrame->pTextures_5f) +
-                                        j * 0x12a;
+                                    W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
                                     fTextures = FileRead(hFile, pTexture, 0x11a, 0);
-                                    if (pTexture[0] > 3) {
-                                        fTextures &= FileRead(hFile, pTexture + 0x11a, 0x10, 0);
+                                    if (pTexture->version_00 > 3) {
+                                        fTextures &=
+                                            FileRead(hFile, pTexture->texture_modes_11a, 0x10, 0);
                                     }
                                     if (fTextures == 0) {
                                         return 0;
@@ -1862,11 +1865,11 @@ header_done:
                             }
                             fSuccess = 1;
                             for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                unsigned char* pTexture =
-                                    static_cast<unsigned char*>(pFrame->pTextures_5f) + j * 0x12a;
+                                W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
-                                if (pTexture[0] > 3) {
-                                    fSuccess &= FileWrite(hFile, pTexture + 0x11a, 0x10, 0);
+                                if (pTexture->version_00 > 3) {
+                                    fSuccess &=
+                                        FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
                                 }
                                 if (fSuccess == 0) {
                                     return 0;
@@ -1921,11 +1924,11 @@ header_done:
                             }
                             fSuccess = 1;
                             for (j = 0; j < pFrame->num_textures_5d; ++j) {
-                                unsigned char* pTexture =
-                                    static_cast<unsigned char*>(pFrame->pTextures_5f) + j * 0x12a;
+                                W8MaterialRecord004B8A70* pTexture = pFrame->pTextures_5f + j;
                                 fSuccess = FileWrite(hFile, pTexture, 0x11a, 0);
-                                if (pTexture[0] > 3) {
-                                    fSuccess &= FileWrite(hFile, pTexture + 0x11a, 0x10, 0);
+                                if (pTexture->version_00 > 3) {
+                                    fSuccess &=
+                                        FileWrite(hFile, pTexture->texture_modes_11a, 0x10, 0);
                                 }
                                 if (fSuccess == 0) {
                                     return 0;

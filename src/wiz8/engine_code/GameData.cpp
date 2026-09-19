@@ -593,7 +593,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
     if (g_world->collidable_props->GetCount() == 0) {
         return 0;
     }
-    /* Function-local static plane ResolveCollision reads through value_38;
+    /* Function-local static plane ResolveCollision reads through hit_plane_38;
        atexit thunk at 0x0041BD50. Declared after the early-out so the guard
        matches retail control flow. */
     static srVector4T<float> s_prop_hit_plane_00652d90;
@@ -627,7 +627,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
             test_direction = adjusted_direction;
             for (surface_index = 0; surface_index < gd_prop->m_surface_count_14; ++surface_index) {
                 surface = &gd_prop->m_pGDSurfaces[surface_index];
-                surface->value_38 = 0;
+                surface->hit_plane_38 = 0;
                 if (direction_zero != 0) {
                     test_direction.x = surface->normal_24[0];
                     test_direction.y = surface->normal_24[1];
@@ -695,8 +695,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
             level->contact_normal_ac = normal;
         }
         s_prop_hit_plane_00652d90.w = s_prop_hit_plane_00652d90.w - along_length;
-        nearest_surface->value_38 = reinterpret_cast< // reinterpret-ok: value_38 holds plane*
-            unsigned int>(&s_prop_hit_plane_00652d90);
+        nearest_surface->hit_plane_38 = &s_prop_hit_plane_00652d90;
         position->x = hit_point.x + scratch[0];
         position->y = hit_point.y + scratch[1];
         position->z = hit_point.z + scratch[2];
@@ -983,7 +982,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                     } else {
                         surface = &surfaces_38[octree_hits[index]];
                     }
-                    surface->value_38 = 0;
+                    surface->hit_plane_38 = 0;
                     if ((surface->flags_00 & 0x1080) == 0 &&
                         surface->TestSegment0041CF90(&probe_position, &motion_delta, &hit_distance,
                                                      vertices_24) != 0) {

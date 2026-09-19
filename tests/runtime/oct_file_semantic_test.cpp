@@ -545,7 +545,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     WriteEmptySibling("NewLevel.PVL");
 
     OctPreTree* tree = new OctPreTree();
-    W8GameData* game_data = new W8GameData(0, 0);
+    W8GameData* game_data = new W8GameData(0, false);
     if (tree == 0 || game_data == 0) {
         goto restore;
     }

@@ -778,7 +778,8 @@ srModelInstance* AnimObjDispatchList004A1560(W8AnimObj* animation, signed char l
 }
 
 // FUNCTION: WIZ8 0x004a1660
-void* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index, unsigned int entry_index)
+W8AniMesh* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index,
+                                unsigned int entry_index)
 {
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x2bd, 0);
@@ -786,7 +787,7 @@ void* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index, unsigne
     if (animation->flag_05 == 0) {
         return animation->entries_18[list_index];
     }
-    return PLGet(animation->meshes_28[list_index], entry_index & 0xff);
+    return static_cast<W8AniMesh*>(PLGet(animation->meshes_28[list_index], entry_index & 0xff));
 }
 
 // FUNCTION: WIZ8 0x004A2220

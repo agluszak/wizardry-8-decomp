@@ -2055,7 +2055,8 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
    types aim at the world; anything else either needs no aim at all or has to
    pass the slot check. */
 // FUNCTION: WIZ8 0x00534290
-bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
+unsigned char CanMonsterAimSpell( // bool-byte-ok: retail passes callee byte through
+    W8MonsterInfo* monster_info, int spell_id)
 {
     W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
 

@@ -1661,7 +1661,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
     }
 
     if (animation->flag_05 == 0) {
-        W8AniMesh* mesh = static_cast<W8AniMesh*>(AnimObjEntry004A1660(animation, 2, 0));
+        W8AniMesh* mesh = AnimObjEntry004A1660(animation, 2, 0);
         unsigned char value_count = AniMeshValue004B64F0(mesh);
         stModelInstance* frame = GetAniMeshFrame004B6550(mesh, 0);
         srVector3T<float> minimum;
