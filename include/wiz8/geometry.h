@@ -14,6 +14,17 @@ enum W8GDSurfaceFlags {
     W8_GD_SURFACE_PATHFINDING = 0x00000040,
 };
 
+/* Axis-aligned minimum/maximum box used by Wizardry's runtime/build geometry.
+   The region builder stores counted 0x18-byte arrays of these and the octree
+   consumes one complete pair through AddCollidablePropBounds. Original source
+   spelling is not recovered. */
+struct W8BoundingBox {
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+};
+
+static_assert(sizeof(W8BoundingBox) == 0x18, "W8BoundingBox_must_be_0x18");
+
 struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;

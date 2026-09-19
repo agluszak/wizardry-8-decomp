@@ -25,6 +25,7 @@ struct W8GameData;
 struct W8NavigatorMovementState;
 struct W8OctBuildNode00446330;
 struct W8OctPreTreeGeometry;
+struct W8BoundingBox;
 
 /* The 0x30-byte ray state the octree line/probe walks share: a segment
    (start_00, end_0c), a fixed-length march step_18 (end-start scaled by
@@ -275,7 +276,7 @@ public:
     /* Whether prop `offset` past prop_sun_base_184 has its sunlight bit; a
        negative offset checkpoints the shared index into the base. */
     int TestPropSunBit(int offset);
-    void AddCollidablePropBounds(int index, const srVector3T<float>* bounds);
+    void AddCollidablePropBounds(int index, const W8BoundingBox* bounds);
     void VisitPointCopy0042E620(unsigned short location_id, srVector3T<float>* position);
     /* Writes the cell coordinates and returns `point`, or null when the
        position is outside the octree bounds. */

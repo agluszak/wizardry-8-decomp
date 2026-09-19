@@ -3,8 +3,10 @@
 
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/stHash.hpp"
+#include "wiz8/geometry.h"
 
 class BitArray;
+struct W8LevelFileBounds;
 struct W8VersionedLevelParticleRecord;
 
 extern float g_float_005ec52c;
@@ -63,12 +65,12 @@ extern unsigned short g_value_65be6c;
 #pragma pack(push, 1)
 
 /* The region builder advances these preprocessing records by 0xbf bytes. The
-   established tail is a byte count followed by an unaligned pointer to pairs
-   of minimum/maximum vectors. */
+   established tail is a byte count followed by an unaligned pointer to
+   0x18-byte minimum/maximum boxes. */
 struct W8OctRegionGeometryRecord004B3F90 {
     unsigned char positional_000[0x9a];
     unsigned char bounds_count_09a;
-    srVector3T<float>* bounds_09b;
+    W8LevelFileBounds* bounds_09b;
     unsigned char positional_09f[0x20];
 };
 
@@ -101,7 +103,7 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     void FinalizeRegionMapping004B2A20();
     void AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial);
     void ValidatePolygonRegions004B3330();
-    void ValidateRegionBounds004B35B0(const srVector3T<float>* region_bounds);
+    void ValidateRegionBounds004B35B0(const W8BoundingBox* region_bounds);
     /* SortGeometry: welds duplicate vertices, drops degenerate polygons,
        repacks both arrays and re-inserts every polygon with mode 2. */
     unsigned char SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry);

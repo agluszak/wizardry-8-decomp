@@ -6,6 +6,7 @@
 #include <windows.h>
 
 #include "wiz8/utility.h"
+#include "wiz8/geometry.h"
 #include "wiz8/3d_code/IList.h"
 
 #include "wiz8/engine_code/AnimObj.h"
@@ -397,13 +398,6 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
     return 1;
 }
 
-struct W8PropBounds004BC5E0 {
-    srVector3T<float> minimum;
-    srVector3T<float> maximum;
-};
-
-static_assert(sizeof(W8PropBounds004BC5E0) == 0x18, "W8PropBounds004BC5E0_size_must_be_0x18");
-
 // FUNCTION: WIZ8 0x004BC5E0
 unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
                                      unsigned char mark_model_instances)
@@ -412,7 +406,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
        this one vector across the complete prop loop. */
     W8GrowableVector<stModelInstance*> model_instances(5);
     W8Prop* prop;
-    W8PropBounds004BC5E0 bounds;
+    W8BoundingBox bounds;
     int count;
     int index;
     int collidable_index;
@@ -448,7 +442,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
                 prop->GetBounds0044DD60(&bounds.minimum, &bounds.maximum);
                 pWorld->collidable_props->Add(prop);
                 if (pWorld->octree != 0) {
-                    pWorld->octree->AddCollidablePropBounds(collidable_index, &bounds.minimum);
+                    pWorld->octree->AddCollidablePropBounds(collidable_index, &bounds);
                     ++collidable_index;
                 }
             }
