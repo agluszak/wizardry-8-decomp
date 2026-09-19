@@ -1262,6 +1262,71 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
     return 0;
 }
 
+/* Spell-list text-box body region event: the hovered row is recomputed from
+   the cursor position for every event and drives SelectSpellCastingRow when it
+   changes. Left release casts the hovered spell; right release opens the
+   spell-info dialog with the target cursor saved for restore on close; leaving
+   the box clears the hover row. The held bits are armed on button down but are
+   never cleared on release. */
+// FUNCTION: WIZ8 0x005A0F70
+unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8SpellInfoDialog* dialog;
+    int line;
+
+    if (g_status_685170.selected_character == -1) {
+        return 0;
+    }
+    if (gpSCSV->iSpellRealm == -1) {
+        return 0;
+    }
+    line = g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
+           (GetAtomCursorY004285A0(event) - region->y1) / 0xb;
+    if (line >= static_cast<int>(gpSCSV->uiSpellsInList) || line < -1) {
+        line = -1;
+    }
+    if (line != gpSCSV->selected_spell_index) {
+        SelectSpellCastingRow(line);
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if (line == -1) {
+            return 1;
+        }
+        SelectSpellCastingListRow005A1150(line);
+        return 1;
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            SelectSpellCastingRow(-1);
+        }
+        return 0;
+    default:
+        return 0;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if (line == -1) {
+            return 1;
+        }
+        g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
+        dialog = new W8SpellInfoDialog(gpSCSV->uiSpells[line]);
+        dialog->SetText(&g_wchar_00689b34);
+        dialog->m_destroy_callback = RestoreTargetCursor59D930;
+        OpenModal(dialog);
+        return 1;
+    }
+}
+
 // FUNCTION: WIZ8 0x005A1140
 unsigned char IgnoreSpellCastingInput(const InputAtom* input)
 {
@@ -1408,63 +1473,4 @@ static void ShowSpellCastingError(int spell_id)
         ShowMainGameNoticeLine(gppStringList[0x79f], SpellCastingNoticeClosed005A02F0, 1, 0);
     }
     gpSCSV->override_spell_104 = 0;
-}
-
-// FUNCTION: WIZ8 0x005A0F70
-unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* region)
-{
-    W8SpellInfoDialog* dialog;
-    int line;
-
-    if (g_status_685170.selected_character == -1) {
-        return 0;
-    }
-    if (gpSCSV->iSpellRealm == -1) {
-        return 0;
-    }
-    line = g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
-           (GetAtomCursorY004285A0(event) - region->y1) / 0xb;
-    if (line >= static_cast<int>(gpSCSV->uiSpellsInList) || line < -1) {
-        line = -1;
-    }
-    if (line != gpSCSV->selected_spell_index) {
-        SelectSpellCastingRow(line);
-    }
-    switch (event->usEvent) {
-    case LEFT_BUTTON_UP:
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
-            return 1;
-        }
-        if (line == -1) {
-            return 1;
-        }
-        SelectSpellCastingListRow005A1150(line);
-        return 1;
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        return 1;
-    case RIGHT_BUTTON_DOWN:
-        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
-        return 1;
-    case MOUSE_POS:
-        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            SelectSpellCastingRow(-1);
-        }
-        return 0;
-    default:
-        return 0;
-    case RIGHT_BUTTON_UP:
-        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
-            return 1;
-        }
-        if (line == -1) {
-            return 1;
-        }
-        g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
-        dialog = new W8SpellInfoDialog(gpSCSV->uiSpells[line]);
-        dialog->SetText(&g_wchar_00689b34);
-        dialog->m_destroy_callback = RestoreTargetCursor59D930;
-        OpenModal(dialog);
-        return 1;
-    }
 }

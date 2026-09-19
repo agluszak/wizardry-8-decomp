@@ -147,7 +147,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
    are deliberately resolved through the canonical lookup path rather than
    treated as list indices. */
 // FUNCTION: WIZ8 0x00511850
-bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group)
+unsigned char MonsterGroupAllMembersDying00511850(
+    W8MonsterGroup* monster_group) // bool-byte-ok: retail returns al as unsigned char
 {
     unsigned int index;
     unsigned int monster_list_index;

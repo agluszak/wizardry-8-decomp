@@ -18,7 +18,11 @@ env:
   GHIDRA_ARCHIVE: ghidra_12.1.3_PUBLIC_20260817.zip
   GHIDRA_SHA256: 93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54
   GOG_INSTALLER_NAME: setup_wizardry_8_2001_12_23_(22306).exe
+  GOG_RELEASE_ASSET_NAME: setup_wizardry_8_2001_12_23_.22306.exe
   GOG_INSTALLER_SHA256: 48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
+  GOG_INPUT_REPO: agluszak/wiz8-ci-inputs
+  GOG_RELEASE_TAG: gog-22306
+  GOG_CACHE_VERSION: v1-aes256cbc-pbkdf2-200000
 
 jobs:
   ci:
@@ -138,18 +142,101 @@ jobs:
       - name: Run Ghidra enrichment integration tests
         run: uv run pytest -q tests/ghidra
 
-      - name: Download and verify licensed GOG input
+      - name: Restore encrypted GOG installer cache
+        id: gog-cache
         if: env.LICENSED_INPUTS == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-gog-cache
+          key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
+
+      - name: Fetch and encrypt GOG installer on cache miss
+        if: env.LICENSED_INPUTS == 'true' && steps.gog-cache.outputs.cache-hit != 'true'
         env:
-          WIZ8_GOG_URL: ${{ secrets.WIZ8_GOG_URL }}
+          GH_TOKEN: ${{ secrets.WIZ8_INPUTS_TOKEN }}
+          WIZ8_CACHE_KEY: ${{ secrets.WIZ8_CACHE_KEY }}
         run: |
-          if [ -z "$WIZ8_GOG_URL" ]; then
-            echo "WIZ8_GOG_URL repository secret is required for licensed CI" >&2
+          set -euo pipefail
+
+          if [ -z "$GH_TOKEN" ]; then
+            echo "WIZ8_INPUTS_TOKEN repository secret is required for a licensed cache miss" >&2
             exit 1
           fi
-          installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
-          uvx --from gdown==5.2.1 gdown --fuzzy "$WIZ8_GOG_URL" -O "$installer" --quiet
+          if [ -z "$WIZ8_CACHE_KEY" ]; then
+            echo "WIZ8_CACHE_KEY repository secret is required for licensed CI" >&2
+            exit 1
+          fi
+
+          cache_dir="$RUNNER_TEMP/wiz8-gog-cache"
+          download_dir="$RUNNER_TEMP/wiz8-gog-download"
+          downloaded="$download_dir/$GOG_RELEASE_ASSET_NAME"
+          installer="$download_dir/$GOG_INSTALLER_NAME"
+          encrypted="$cache_dir/$GOG_INSTALLER_NAME.enc"
+
+          rm -rf "$cache_dir" "$download_dir"
+          mkdir -p "$cache_dir" "$download_dir"
+
+          gh release download "$GOG_RELEASE_TAG" \
+            --repo "$GOG_INPUT_REPO" \
+            --pattern "$GOG_RELEASE_ASSET_NAME" \
+            --dir "$download_dir"
+
+          test -s "$downloaded"
+          mv "$downloaded" "$installer"
           echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
+
+          openssl enc \
+            -aes-256-cbc \
+            -pbkdf2 \
+            -iter 200000 \
+            -salt \
+            -in "$installer" \
+            -out "$encrypted" \
+            -pass env:WIZ8_CACHE_KEY
+
+          rm -rf "$download_dir"
+          test -s "$encrypted"
+
+      - name: Save encrypted GOG installer cache
+        if: >-
+          env.LICENSED_INPUTS == 'true' &&
+          steps.gog-cache.outputs.cache-hit != 'true' &&
+          github.event_name != 'pull_request' &&
+          github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-gog-cache
+          key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
+
+      - name: Materialize licensed GOG input
+        if: env.LICENSED_INPUTS == 'true'
+        env:
+          WIZ8_CACHE_KEY: ${{ secrets.WIZ8_CACHE_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$WIZ8_CACHE_KEY" ]; then
+            echo "WIZ8_CACHE_KEY repository secret is required for licensed CI" >&2
+            exit 1
+          fi
+
+          encrypted="$RUNNER_TEMP/wiz8-gog-cache/$GOG_INSTALLER_NAME.enc"
+          installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
+
+          test -s "$encrypted"
+          mkdir -p "$WIZ8_INPUT_DIR"
+
+          openssl enc \
+            -d \
+            -aes-256-cbc \
+            -pbkdf2 \
+            -iter 200000 \
+            -in "$encrypted" \
+            -out "$installer" \
+            -pass env:WIZ8_CACHE_KEY
+
+          echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
+
           cat > config/local-inputs.yml <<EOF
           schema: wiz8.local-inputs
           inputs:
@@ -272,7 +359,12 @@ jobs:
         if: always() && env.LICENSED_INPUTS == 'true'
         run: |
           wineserver -k || true
-          rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" config/local-inputs.yml
+          rm -rf \
+            "$WIZ8_INPUT_DIR" \
+            "$WIZ8_WORK_DIR" \
+            "$RUNNER_TEMP/wiz8-gog-cache" \
+            "$RUNNER_TEMP/wiz8-gog-download" \
+            config/local-inputs.yml
 
   comment-reccmp-status:
     name: Comment reccmp status

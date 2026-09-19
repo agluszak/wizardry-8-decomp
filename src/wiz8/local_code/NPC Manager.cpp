@@ -102,7 +102,7 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
 
 /* Test a placement near the party without retaining the position. */
 // FUNCTION: WIZ8 0x0050b2d0
-unsigned char CanPlaceNpcNearParty(int party_slot)
+bool CanPlaceNpcNearParty(int party_slot)
 {
     srVector3T<float> position;
 
@@ -618,7 +618,7 @@ void MarkNpcOfKind(int kind)
 }
 
 // FUNCTION: WIZ8 0x0050C870
-unsigned char CanNpcJoinParty(W8NpcState* npc)
+bool CanNpcJoinParty(W8NpcState* npc)
 {
     int band;
     int row;
@@ -1643,8 +1643,7 @@ const float g_float_005ec29c = 0.7853981256484985f;
 /* Probe the navigator from the party eye at three height bands, reporting
    whether any band reaches. */
 // FUNCTION: WIZ8 0x0050B2F0
-unsigned char ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/,
-                                         srVector3T<float>* position_out)
+bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<float>* position_out)
 {
     srVector3T<float> party_position;
     float yaw;
