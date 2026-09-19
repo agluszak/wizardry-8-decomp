@@ -48,7 +48,10 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);  
 void AimAtCharacter(int actor, int character_slot, W8TargetingContext context); /* 0x00538670 */
 void AimAtCharacterIndirect(int actor, int character_slot,
                             W8TargetingContext context); /* 0x005386C0 */
-void AimAtPlace(int actor);                              /* 0x00538710 */
+void AimAtMonsterLocation00537950(int party_slot, int location_id,
+                                  int allow_single_target); /* 0x00537950 */
+void AimAtPlace(int actor);                                 /* 0x00538710 */
+void AimAtGroundTarget00538770(int party_slot);             /* 0x00538770 */
 /* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
 void Function53C130(int party_slot, char enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
@@ -141,6 +144,9 @@ bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
+/* 0x00536A20: what the interface has to ask the player to pick for one
+   action - a fixed kind for most, the spell's answer for casts and item use. */
+int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock* detail_block);
 /* 0x00537380: the target kind the slot's current action needs in the effective
    targeting context, with the main-screen selection state folded in. */
 int GetTargetNeededForCurrentAction(int party_slot);

@@ -155,9 +155,11 @@ void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x0
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
 /* Marks every live member of the group and of its allied groups for removal. */
 void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
+/* 0x005117D0: write the control state onto every live member of the group. */
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state);
 /* Nonzero when the group - or one of its allied groups - has a member whose
    highest condition is in the 0x0d..0x11 incapacitated band. */
-char Function511D40(int group_id); /* 0x00511D40 */
+bool MonsterGroupHasIncapacitatedMember(int group_id); /* 0x00511D40 */
 
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 

@@ -457,7 +457,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             return 1;
         }
     }
-    if (Function511D40(monster_info->monster_group_id) != 0) {
+    if (MonsterGroupHasIncapacitatedMember(monster_info->monster_group_id)) {
         *decision = 0;
         return 0;
     }
@@ -1334,7 +1334,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char need
     if (DispatchWorldCursorNodeCommand004D9080(monster_info, 4, 0) != 0) {
         return 0;
     }
-    if (spell_id == 0x3c && monster_info->value_344 != -1) {
+    if (spell_id == 0x3c && monster_info->insanity_summon_344 != -1) {
         return 0;
     }
     if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE &&
@@ -1725,7 +1725,7 @@ unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
             return 0;
         }
         if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15 && record->kind_0cb != 0x1c &&
-            target->value_2da == 0) {
+            target->summoned_2da == 0) {
             return 0;
         }
         break;

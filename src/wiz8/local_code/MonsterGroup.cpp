@@ -807,6 +807,45 @@ void RebindMonsterGroupScripts(void)
     }
 }
 
+/* Writes a control state onto every live member of the group; the Lure
+   effect uses it to flip a whole out-of-combat group at once. */
+// FUNCTION: WIZ8 0x005117D0
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state)
+{
+    for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
+        int location_id = IListGetAt(monster_group->monsters, index);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x818, MONSTER_GROUP_CPP, location_id, 1));
+        if (info != 0 && info->monster->IsDying() == 0) {
+            SetMonsterControlState(info, control_state);
+        }
+    }
+}
+
+/* Nonzero when the group - or, recursing, one of its allied groups - has a
+   member whose highest condition is in the 0x0d..0x11 incapacitated band. */
+// FUNCTION: WIZ8 0x00511D40
+bool MonsterGroupHasIncapacitatedMember(int group_id)
+{
+    W8MonsterGroup* group =
+        GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(0x961, MONSTER_GROUP_CPP, group_id, 1));
+    unsigned int index;
+    for (index = 0; index < ILLength(group->monsters); ++index) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x967, MONSTER_GROUP_CPP, IListGetAt(group->monsters, index), 1));
+        if (info->highest_condition > 0xd && info->highest_condition < 0x12) {
+            return true;
+        }
+    }
+    for (index = 0; index < 4; ++index) {
+        if (group->allied_group_ids[index] != 0 &&
+            MonsterGroupHasIncapacitatedMember(group->allied_group_ids[index])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* The mean position of a group's members, recomputed only while the group is
    loaded and cached on the group itself; an unloaded group answers with
    whatever it last held. The out-parameter is optional, so the same call both

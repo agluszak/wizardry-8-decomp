@@ -278,7 +278,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel::TriMesh mesh;
     srGERD* renderer = info.renderer;
 
-    if ((alignment_flags_148 & 1) == 0) {
+    if ((alignment_flags_148.value & 1) == 0) {
         applyWorldSpaceMatrix(*renderer);
     } else {
         srMatrix4T<float> view;

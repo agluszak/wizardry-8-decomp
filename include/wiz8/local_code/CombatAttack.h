@@ -42,7 +42,9 @@ struct W8MissileAttackBlock {
     unsigned char missile_values_08[0x10];
     int monster_value_18;
     int missile_value_1c;
-    unsigned char unknown_20[0x10];
+    /* 0x20: four dwords; the Insanity effect path uses them as its scratch
+       power/percent/duration values. */
+    int unknown_20[4];
 };
 
 static_assert(sizeof(W8MissileAttackBlock) == 0x30, "W8MissileAttackBlock_size_must_be_0x30");

@@ -30,14 +30,6 @@
 #include <wchar.h>
 #include "wiz8/local_screens/IntroScreen.h"
 
-/* Unrecovered static-catalog callbacks store the retail VA so matching WIZ8
-   does not pull in runtime_stubs (/FORCE:UNRESOLVED would collapse them to
-   image base). Recovered callbacks keep their function names. WorldView
-   0x00567800 remains deliberately unrecovered until its Ghidra boundary is
-   repaired. */
-#define W8_UNRECOVERED_REGION_CB(va)                                                               \
-    reinterpret_cast<W8RegionCallback>(va) /* reinterpret-ok: retail region callback VA */
-
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
 enum { W8_REGION_MODE_MASK = 0xf };
 
@@ -378,7 +370,7 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 0, 0, 0, 0, CombatRightEffectIconRegionEvent, 0, 1, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, MonsterListRegionEvent, 0, 1, 0, 36, 0},
-    {0x00000001, 0, 0, 0, 0, W8_UNRECOVERED_REGION_CB(0x00567800), 0, 0, 0, 23, 0},
+    {0x00000001, 0, 0, 0, 0, WorldViewRegionEvent, 0, 0, 0, 23, 0},
 
     {0x00000001, 0, 0, 0, 0, CampLevelUpButtonRegionEvent, 0, 1, 0, 1984, 0},
     {0x00000001, 0, 0, 0, 0, CampDismissButtonRegionEvent, 0, 1, 0, 2387, 0},

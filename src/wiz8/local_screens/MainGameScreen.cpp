@@ -78,6 +78,7 @@
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/MonsterInfoDialog.h"
 #include "wiz8/dialog_code/PortraitQuote.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
@@ -356,25 +357,23 @@ unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
 void Function57E0E0(int event, const POINT* point);
 void Function57DC20(void);
-void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed);
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
 int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y);
 int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance);
-void OpenMonsterInfoDialog0056AD60(int location_id);
-void AimAtMonsterLocation00537950(int party_slot, int location_id, int allow_single_target);
-void AimAtGroundTarget00538770(int party_slot);
+
 unsigned char InteractWithWorldItem004F7910(int runtime_id);
-void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
-                                   const srVector3T<float>* maximum);
 extern unsigned char g_flag_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
 // GLOBAL: WIZ8 0x00616eb0
 double g_world_cursor_extent_table_00616eb0[18];
-/* Per spell-power index into g_world_cursor_extent_table_00616eb0. */
+/* Per spell-power index into g_world_cursor_extent_table_00616eb0. The
+   Insanity cursor reads it byte-indexed by the power field, and the dword
+   table at 0x00616f4c immediately after it is a separate Magic Effects global,
+   so the bound ends at eight rather than running into that table. */
 // GLOBAL: WIZ8 0x00616f41
-signed char g_spell_power_extent_index_00616f41[16];
+signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 0, 1, 1, 2, 2};
 void Function4E8EA0(void);
 void StartCombat(int surprise);
 
@@ -6521,6 +6520,277 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
     return 1;
 }
 
+/* Region 23: the 3D world view. Mouse-move refreshes the combat hover, the
+   world-item hover and the portrait strip; left-up runs the targeting, item
+   and monster dispatch; right-down opens monster info or the assay dialog or
+   toggles the mouselook latch. */
+// FUNCTION: WIZ8 0x00567800
+unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
+{
+    POINT cursor_pos;
+    int cursor_x;
+    int cursor_y;
+    int needed;
+    int slot;
+    unsigned int us_event;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    if (IsMessageBoxActive() != 0 || gXStatus.fReviewCharacterMode != 0 ||
+        g_level_runtime_flag_0065ba70 != 0) {
+        return 0;
+    }
+    needed = GetTargetNeededForCurrentAction(g_status_685170.selected_character);
+    us_event = event->usEvent;
+    if (us_event > RIGHT_BUTTON_DOWN) {
+        if (us_event == RIGHT_BUTTON_UP) {
+            if (g_flag_0068edd8 != 0 && g_settings_6850c8.mouselook_toggle == 0) {
+                WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
+                                 g_mouselook_cursor_pos_0068edc0.y);
+                SetFlag603C60();
+                g_flag_0068edd8 = 0;
+                g_flag_0068edd9 = 0;
+                gfTrackMousePos = 0;
+                g_flag_00652da7 = 0;
+                return 1;
+            }
+            if (GetFlag68F105() == 0) {
+                return 1;
+            }
+            SGPMouseGetPos(&cursor_pos);
+            Function57E0E0(RIGHT_BUTTON_UP, &cursor_pos);
+            return 1;
+        }
+        if (us_event != MOUSE_POS) {
+            return 0;
+        }
+        cursor_y = GetAtomCursorY004285A0(event);
+        cursor_x = GetAtomCursorX00428580(event);
+        if (GetFlag68F105() != 0) {
+            Function57DC20();
+        } else {
+            int hover;
+            if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != 3 &&
+                gXStatus.iTargetingMode != 4 && gXStatus.iTargetingMode != 6 &&
+                gXStatus.active_monster_count != 0 && IsWorldCursorVisible() == 0 &&
+                g_flag_0068edd8 == 0) {
+                hover = PickNearestMonsterUnderCursor005396D0(cursor_x, cursor_y);
+            } else {
+                hover = -1;
+            }
+            SetCombatSelection(hover);
+            if (g_level_block->highlighted_item == -1) {
+                if (gXStatus.item_manager_pending != 0 && IsWorldCursorVisible() == 0 &&
+                    g_flag_0068edd8 == 0) {
+                    hover = PickNearestItemUnderCursor004F7370(cursor_x, cursor_y, 5000.0f);
+                } else {
+                    hover = -1;
+                }
+                SetCombatTarget(hover);
+            }
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0 && g_modal_owner_0068edd0 == 0) {
+            for (slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    g_level_block->portrait_refresh_pending[slot] != 0 &&
+                    IsPartyPortraitUnderCursor00561980(slot) != 0) {
+                    return 0;
+                }
+            }
+            UpdateWorldViewCursor0056A5D0(event, needed);
+            return 1;
+        }
+        SetCombatSelection(-1);
+        SetCombatTarget(-1);
+        SetCombatAction(-1);
+        SetTargetCursor(GetTargetingCursorForState(0));
+        return 1;
+    }
+    if (us_event == RIGHT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        if (GetFlag68F105() != 0) {
+            SGPMouseGetPos(&cursor_pos);
+            Function57E0E0(RIGHT_BUTTON_DOWN, &cursor_pos);
+            return 1;
+        }
+        if (g_level_block->highlighted_item != -1 && gXStatus.fSpellCastMode == 0 &&
+            gXStatus.fNpcDialogueMode == 0 && gXStatus.fItemSelectMode == 0 &&
+            gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+            (g_settings_6850c8.ctrl_right_click_info == 0 ||
+             g_monster_combat_timer_enabled_006f0531 != 0)) {
+            OpenMonsterInfoDialog0056AD60(g_level_block->highlighted_item);
+            return 1;
+        }
+        if (g_status_685170.item_in_cursor == 0 && g_level_block->selected_item != -1 &&
+            gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+            gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+            gXStatus.fTrapInteractMode == 0 &&
+            (g_settings_6850c8.ctrl_right_click_info == 0 ||
+             g_monster_combat_timer_enabled_006f0531 != 0)) {
+            W8WorldItem* world_item = ItemInfo(ItemIndex(g_level_block->selected_item));
+            PartyAttemptsToIdentifyItem(&world_item->item, 0);
+            OpenAssayDialog0056AE20(&world_item->item, -1);
+            return 1;
+        }
+        if (IsWorldCursorVisible() == 0 && gXStatus.fNpcDialogueMode == 0) {
+            if (g_settings_6850c8.mouselook_toggle != 0) {
+                if (g_flag_0068edd8 != 0) {
+                    WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
+                                     g_mouselook_cursor_pos_0068edc0.y);
+                    SetFlag603C60();
+                    g_flag_0068edd8 = 0;
+                    g_flag_0068edd9 = 0;
+                    gfTrackMousePos = 0;
+                    g_flag_00652da7 = 0;
+                    return 1;
+                }
+            } else if (g_flag_0068edd8 != 0) {
+                return 1;
+            }
+            SGPMouseGetPos(&g_mouselook_cursor_pos_0068edc0);
+            ClearFlag603C60();
+            SetMouseCursorHotspot(0, 0);
+            WarpSystemCursor(0x140, 0xf0);
+            g_flag_0068edd8 = 1;
+            g_flag_0068edd9 = 0;
+            g_flag_00652da7 = 1;
+            gfTrackMousePos = 1;
+        }
+        return 1;
+    }
+    if (us_event == LEFT_BUTTON_DOWN) {
+        if (g_flag_0068edd8 != 0) {
+            return 0;
+        }
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (GetFlag68F105() == 0) {
+            return 1;
+        }
+        SGPMouseGetPos(&cursor_pos);
+        Function57E0E0(LEFT_BUTTON_DOWN, &cursor_pos);
+        return 1;
+    }
+    if (us_event != LEFT_BUTTON_UP) {
+        return 0;
+    }
+    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+        return 1;
+    }
+    if (g_flag_0068edd8 != 0) {
+        return 1;
+    }
+    region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+    if (FinishNpcVoiceIfSessionActive00577A20() != 0) {
+        return 1;
+    }
+    if (gXStatus.iTargetingMode == 3 || (needed == 3 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        if (IsWorldCursorVisible() == 0) {
+            InitializeWorldCursor00490210();
+        }
+        SetWorldCursorRange00491650(
+            CalcRangeDistanceFromParty0051AB50(static_cast<W8RangeCategory>(GetCharActionRange(
+                g_status_685170.selected_character, 0, W8_TARGETING_CONTEXT_CURRENT))));
+        if (gpSCSV != 0 && GetActionSpellLikeId(g_status_685170.selected_character,
+                                                W8_TARGETING_CONTEXT_CURRENT) == 0x3c) {
+            signed char extent_index;
+            srVector3T<float> minimum;
+            srVector3T<float> maximum;
+            if (gpSCSV->iSpellPower == -1) {
+                extent_index = 2;
+            } else {
+                extent_index = g_spell_power_extent_index_00616f41[gpSCSV->iSpellPower];
+            }
+            minimum.x = static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6]);
+            minimum.y =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 1]);
+            minimum.z =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 2]);
+            maximum.x =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 3]);
+            maximum.y =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 4]);
+            maximum.z =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 5]);
+            SetWorldCursorExtents00492190(&minimum, &maximum);
+        }
+    } else if (gXStatus.iTargetingMode == 4 ||
+               (needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        AimAtGroundTarget00538770(g_status_685170.selected_character);
+    } else if (g_level_block->highlighted_item == -1) {
+        if (g_status_685170.item_in_cursor != 0 &&
+            ForwardSelectedPropIndex004503B0(GetWorld(), GetAtomCursorX00428580(event),
+                                             GetAtomCursorY004285A0(event)) == -1) {
+            if (g_flag_006840bc == 0) {
+                DropItemInHand(1);
+            }
+        } else if (g_level_block->selected_item != -1) {
+            if (g_flag_006840bc == 0 &&
+                InteractWithWorldItem004F7910(g_level_block->selected_item) != 0) {
+                g_level_block->selected_item = -1;
+                VideoRemoveToolTip();
+                SetTargetingMode(0);
+            }
+        } else if (g_flag_006840bc == 0) {
+            ForwardActivateSelectedProp00451150(GetWorld(), 2, GetAtomCursorX00428580(event),
+                                                GetAtomCursorY004285A0(event));
+        }
+    } else {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x16c2, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+        unsigned char assign = 1;
+        if (gXStatus.fCombatMode == 0) {
+            if (needed != 2 && needed != 1 && needed != 5) {
+                assign = 0;
+                if ((gXStatus.iCurrentCursor == 6 || g_status_685170.item_in_cursor != 0) &&
+                    g_status_685170.selected_character != -1 &&
+                    CanPartyMemberAimAtMonster(g_status_685170.selected_character, 2, monster_info,
+                                               6, 0) != 0) {
+                    if ((GetMonsterDataForInfo(monster_info)->flags_0d0 & 1) == 0) {
+                        ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                    } else {
+                        W8ItemInstance* item = 0;
+                        if (g_status_685170.item_in_cursor != 0) {
+                            item = &g_status_685170.item_in_hand_235b;
+                        }
+                        if (monster_info->highest_condition < 0xf) {
+                            W8NpcState* npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                0x16fe, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1));
+                            QueueNpcScriptNotice(npc, item, -1, 0, 0);
+                            SetCombatSelection(-1);
+                        } else {
+                            ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                        }
+                    }
+                }
+            }
+        } else if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+            ShowNotice(0xc, gppStringList[0x1f74 / 4], -1, -1, 0);
+            assign = 0;
+        } else if (g_flag_006f0530 != 0) {
+            for (slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    g_status_685170.buffers.characters[slot].hp_current != 0) {
+                    AimAtMonsterLocation00537950(slot, g_level_block->highlighted_item, 0);
+                }
+            }
+            assign = 0;
+        }
+        if (assign != 0) {
+            if (g_status_685170.selected_character == -1) {
+                srAssertFail("gStatus.iSelectedCharacter != -1", MAIN_GAME_SCREEN_CPP, 0x16db, 0);
+            }
+            AimAtMonsterLocation00537950(g_status_685170.selected_character,
+                                         g_level_block->highlighted_item, 1);
+        }
+    }
+    if (GetFlag68F105() == 0) {
+        return 1;
+    }
+    SGPMouseGetPos(&cursor_pos);
+    Function57E0E0(LEFT_BUTTON_UP, &cursor_pos);
+    return 1;
+}
+
 /* Help 36: combat monster-list rows. Hit-test by 11-pixel row, hover via
    SetCombatAction, left-up aims, right-up posts the group info notice. */
 // FUNCTION: WIZ8 0x00568100
@@ -6579,6 +6849,70 @@ void ClearCombatSelection(void)
     SetCombatTarget(-1);
     SetCombatAction(-1);
     SetTargetCursor(GetTargetingCursorForState(0));
+}
+
+/* Refresh the target cursor as the mouse moves over the world view. A
+   highlighted monster checks targetability and the mode flags; a picked prop
+   checks whether its trigger takes the in-cursor item or shows a message;
+   otherwise the cursor comes from the current targeting state. */
+// FUNCTION: WIZ8 0x0056a5d0
+void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed)
+{
+    int cursor = gXStatus.iCurrentCursor;
+    if (cursor == W8_CURSOR_INVALID_TARGET) {
+        return;
+    }
+    if (g_level_block->highlighted_item == -1) {
+        if (gXStatus.iTargetingMode == 0) {
+            if (g_level_block->selected_item != -1) {
+                if (g_flag_006840bc == 0) {
+                    SetTargetCursor(5);
+                    return;
+                }
+                SetTargetCursor(cursor);
+                return;
+            }
+            int cursor_y = GetAtomCursorY004285A0(event);
+            int cursor_x = GetAtomCursorX00428580(event);
+            int prop_index = ForwardSelectedPropIndex004503B0(g_world, cursor_x, cursor_y);
+            if (prop_index > -1) {
+                W8Prop* prop = static_cast<W8Prop*>(PLGet(g_world->plsProps, prop_index));
+                if (g_flag_006840bc == 0) {
+                    if (prop != 0) {
+                        if (prop->TriggerRequiresItem0044E380() &&
+                            g_status_685170.item_in_cursor != 0) {
+                            SetTargetCursor(0x10);
+                            return;
+                        }
+                        SetTargetCursor(prop->TriggerHasActionMessage0044E360() ? 13 : 5);
+                        return;
+                    }
+                    SetTargetCursor(5);
+                    return;
+                }
+                SetTargetCursor(cursor);
+                return;
+            }
+        }
+        cursor = 0;
+    } else {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x1e1a, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+        MonsterGetScriptPartByLocationIndex(monster_index);
+        if (!CanTargetMonster(g_status_685170.selected_character, g_level_block->highlighted_item,
+                              1, 0)) {
+            SetTargetCursor(cursor);
+            return;
+        }
+        if (target_needed == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
+            gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+            gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
+            SetTargetCursor(W8_CURSOR_VALID_TARGET);
+            return;
+        }
+        cursor = 1;
+    }
+    SetTargetCursor(GetTargetingCursorForState(cursor));
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */
@@ -8143,6 +8477,27 @@ void InvalidateMainGameScreen005670A0(W8DialogBase* dialog)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = 0xffffffff;
     }
+}
+
+/* Open the monster information dialog over the main game screen for the
+   highlighted monster: only while the entry is live, not dying and still has
+   hit points. Closing leaves the whole screen dirty via the destroy
+   callback. */
+// FUNCTION: WIZ8 0x0056ad60
+void OpenMonsterInfoDialog0056AD60(int location_id)
+{
+    unsigned int monster_index =
+        MonsterGetIndexByLocationID(0x1fa3, MAIN_GAME_SCREEN_CPP, location_id, 1);
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+    if (monster_info->fActive == 0 || monster_info->monster->IsDying() != 0 ||
+        monster_info->hp_current == 0) {
+        return;
+    }
+    W8MonsterInfoDialog* dialog = new W8MonsterInfoDialog(location_id);
+    dialog->SetText(&g_wchar_00689b34);
+    dialog->m_destroy_callback = InvalidateMainGameScreen005670A0;
+    g_modal_owner_0068edd0 = dialog;
+    ActivateDialogRegion(0x138);
 }
 
 /* Open the assay dialog over the main game screen. A live modal dialog is
