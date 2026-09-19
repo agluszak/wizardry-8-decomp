@@ -246,7 +246,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
 
 /* The same batch's remaining bodies, recovered together with them. */
 void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
-unsigned int SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
+unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
 void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);
 void RemovePartyPoolEntry00521C20(unsigned int index);
 unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,

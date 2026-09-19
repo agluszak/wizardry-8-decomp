@@ -2474,9 +2474,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     monster_info = MonsterInfoFromID(0xad1, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
     if (effect->Source.fBackfire != 0) {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (static_cast<unsigned int>(monster->attribute_values_d1[4]) +
-                           static_cast<unsigned int>(monster->attribute_values_d1[1])) /
-                              2) {
+        if (Random(100) < (monster->attribute_values_d1[4] + monster->attribute_values_d1[1]) / 2) {
             QueueNpcScriptLine(0x16, 0, 0, 0);
         }
         return;
@@ -2541,9 +2539,7 @@ void ResolveCharmRefusal(W8SpellEffectEntry* effect)
         QueueDialogueNpcRefusal00576DA0();
     } else {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (static_cast<unsigned int>(monster->attribute_values_d1[4]) +
-                           static_cast<unsigned int>(monster->attribute_values_d1[1])) /
-                              2) {
+        if (Random(100) < (monster->attribute_values_d1[4] + monster->attribute_values_d1[1]) / 2) {
             QueueNpcScriptLine(0x16, 0, 0, 0);
             return;
         }
