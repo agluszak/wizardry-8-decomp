@@ -2087,18 +2087,6 @@ void DestroyBitArray(BitArray*& bits)
     }
 }
 
-template <class T> T ReadHeader(const unsigned char* header, unsigned int offset)
-{
-    T result;
-    memcpy(&result, header + offset, sizeof(result));
-    return result;
-}
-
-template <class T> void WriteMember(W8Octree* octree, unsigned int offset, T value)
-{
-    memcpy(reinterpret_cast<unsigned char*>(octree) + offset, &value, sizeof(value));
-}
-
 } // namespace
 
 /* Follow one child bit per axis and level through the compact 9-word branch
@@ -3699,7 +3687,7 @@ bool W8Octree::SetPathStem(const char* path)
 // FUNCTION: WIZ8 0x0042bc10
 W8Octree::W8Octree(const char* path, W8GameData** game_data)
 {
-    unsigned char header[0xf5];
+    W8OctFileHeader header;
     char acMessage[256];
     int hOctFile;
     unsigned int uiRead;
@@ -3734,7 +3722,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     if (hOctFile == 0) {
         srAssertFail("hOctFile", OCTREE_CPP, 0xa3, "ReadOctFile: Couldn't open octree file.");
     }
-    fSuccess = FileRead(hOctFile, header, 0xf5, &uiRead);
+    fSuccess = FileRead(hOctFile, &header, sizeof(header), &uiRead);
     g_octree_bytes_read_00659888 += uiRead;
     fLoaded = 0;
     if (fSuccess != 0) {
@@ -3745,7 +3733,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         }
         fLoaded = 0;
         if (fSuccess != 0) {
-            Initialize(header);
+            Initialize(&header);
             name_length = strlen(path) + 1;
             if (name_length != 1) {
                 if (m_owned_0c0 != 0) {
@@ -3762,13 +3750,13 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 }
             }
 
-            block = malloc((ReadHeader<unsigned long>(header, 0x6a) * 9 + 0x12) * 4);
+            block = malloc((header.branch_count_6a * 9 + 0x12) * 4);
             m_owned_09c = static_cast<W8OctPreTreeBranch*>(block);
             if (block == 0) {
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
             } else {
-                fSuccess = FileRead(hOctFile, block, ReadHeader<unsigned long>(header, 0x6a) * 0x24,
+                fSuccess = FileRead(hOctFile, block, header.branch_count_6a * 0x24,
                                     &uiRead);
                 if (fSuccess == 0) {
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
@@ -3777,14 +3765,14 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             g_octree_bytes_read_00659888 += uiRead;
             fLoaded = 0;
             if (fSuccess != 0) {
-                block = malloc((ReadHeader<unsigned long>(header, 0x6e) * 5 + 10) * 8);
+                block = malloc((header.leaf_count_6e * 5 + 10) * 8);
                 m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(block);
                 if (block == 0) {
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
                 } else {
                     fSuccess = FileRead(hOctFile, block,
-                                        ReadHeader<unsigned long>(header, 0x6e) * 0x28, &uiRead);
+                                        header.leaf_count_6e * 0x28, &uiRead);
                     if (fSuccess == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
                     }
@@ -3792,7 +3780,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 g_octree_bytes_read_00659888 += uiRead;
                 fLoaded = 0;
                 if (fSuccess != 0) {
-                    block = malloc(ReadHeader<unsigned long>(header, 0x82) * 4 + 8);
+                    block = malloc(header.leaf_polygon_stream_len_82 * 4 + 8);
                     m_owned_0d0 = static_cast<unsigned long*>(block);
                     if (block == 0) {
                         fLoaded = 0;
@@ -3800,7 +3788,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                "ReadOctFile: Couldn't allocate polygon index list for leaves.");
                     } else {
                         fLoaded = FileRead(hOctFile, block,
-                                           ReadHeader<unsigned long>(header, 0x82) * 4, &uiRead);
+                                           header.leaf_polygon_stream_len_82 * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage,
                                    "ReadOctFile: Couldn't read polygon index list for leaves.");
@@ -3833,29 +3821,29 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
     fSuccess = 0;
     if (fLoaded != 0) {
-        block = malloc(ReadHeader<unsigned long>(header, 0x72) * 4 + 8);
+        block = malloc(header.polygon_count_72 * 4 + 8);
         m_aulPolyLookup = static_cast<unsigned long*>(block);
         if (block == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
         } else {
             fLoaded =
-                FileRead(hOctFile, block, ReadHeader<unsigned long>(header, 0x72) * 4, &uiRead);
+                FileRead(hOctFile, block, header.polygon_count_72 * 4, &uiRead);
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
             }
             g_octree_bytes_read_00659888 += uiRead;
             fSuccess = 0;
             if (fLoaded != 0) {
-                if (ReadHeader<unsigned long>(header, 0x92) != 0) {
-                    block = malloc(ReadHeader<unsigned long>(header, 0x92) * 2 + 4);
+                if (header.region_list_len_92 != 0) {
+                    block = malloc(header.region_list_len_92 * 2 + 4);
                     m_owned_148 = static_cast<unsigned short*>(block);
                     if (block == 0) {
                         fSuccess = 0;
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
                         goto finish;
                     }
-                    fLoaded = FileRead(hOctFile, block, ReadHeader<unsigned long>(header, 0x92) * 2,
+                    fLoaded = FileRead(hOctFile, block, header.region_list_len_92 * 2,
                                        &uiRead);
                     if (fLoaded == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
@@ -3864,8 +3852,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 }
                 fSuccess = 0;
                 if (fLoaded != 0) {
-                    if (ReadHeader<unsigned long>(header, 0x86) != 0) {
-                        block = malloc(ReadHeader<unsigned long>(header, 0x86) * 4 + 8);
+                    if (header.gd_surface_stream_len_86 != 0) {
+                        block = malloc(header.gd_surface_stream_len_86 * 4 + 8);
                         m_owned_12c = static_cast<unsigned long*>(block);
                         if (block == 0) {
                             fSuccess = 0;
@@ -3873,7 +3861,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                             goto finish;
                         }
                         fLoaded = FileRead(hOctFile, block,
-                                           ReadHeader<unsigned long>(header, 0x86) * 4, &uiRead);
+                                           header.gd_surface_stream_len_86 * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
                         }
@@ -3881,8 +3869,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     }
                     fSuccess = 0;
                     if (fLoaded != 0) {
-                        if (ReadHeader<unsigned long>(header, 0x8a) != 0) {
-                            block = malloc(ReadHeader<unsigned long>(header, 0x8a) * 2 + 4);
+                        if (header.trigger_count_8a != 0) {
+                            block = malloc(header.trigger_count_8a * 2 + 4);
                             m_owned_130 = static_cast<unsigned short*>(block);
                             if (block == 0) {
                                 fSuccess = 0;
@@ -3891,7 +3879,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                             }
                             fLoaded =
                                 FileRead(hOctFile, block,
-                                         ReadHeader<unsigned long>(header, 0x8a) * 2, &uiRead);
+                                         header.trigger_count_8a * 2, &uiRead);
                             if (fLoaded == 0) {
                                 strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
                             }
@@ -3899,9 +3887,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         }
                         fSuccess = 0;
                         if (fLoaded != 0) {
-                            if (ReadHeader<unsigned short>(header, 0x96) > 1) {
+                            if (header.region_count_96 > 1) {
                                 block =
-                                    malloc((ReadHeader<unsigned short>(header, 0x96) + 2) * 0xe8);
+                                    malloc((header.region_count_96 + 2) * 0xe8);
                                 spatial_000.owned_5c = static_cast<W8OctRegionVolume*>(block);
                                 if (block == 0) {
                                     fSuccess = 0;
@@ -3910,7 +3898,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                     goto finish;
                                 }
                                 fLoaded = FileRead(hOctFile, block,
-                                                   ReadHeader<unsigned short>(header, 0x96) * 0xe8,
+                                                   header.region_count_96 * 0xe8,
                                                    &uiRead);
                                 if (fLoaded == 0) {
                                     strcpy(acMessage, "ReadOctFile: Couldn't read region array.");
@@ -3927,9 +3915,9 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 }
                                 fSuccess = 0;
                                 if (fLoaded != 0) {
-                                    if (ReadHeader<unsigned long>(header, 0x66) != 0) {
+                                    if (header.submesh_count_66 != 0) {
                                         block = malloc(
-                                            (ReadHeader<unsigned long>(header, 0x66) + 1) * 0x10);
+                                            (header.submesh_count_66 + 1) * 0x10);
                                         m_pSubmeshes = static_cast<W8OctSubmesh*>(block);
                                         if (block == 0) {
                                             fLoaded = 0;
@@ -3938,7 +3926,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                         } else {
                                             fLoaded = FileRead(
                                                 hOctFile, block,
-                                                (ReadHeader<unsigned long>(header, 0x66) + 1) *
+                                                (header.submesh_count_66 + 1) *
                                                     0x10,
                                                 &uiRead);
                                             if (fLoaded == 0) {
@@ -3953,7 +3941,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 limit = 0;
                                                 scan = &m_pSubmeshes[0].polygon_count_0c;
                                                 remaining =
-                                                    ReadHeader<unsigned long>(header, 0x66) + 1;
+                                                    header.submesh_count_66 + 1;
                                                 do {
                                                     if (limit < *scan) {
                                                         limit = *scan;
@@ -4070,25 +4058,23 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                         }
                                         fSuccess = 0;
                                         if (fLoaded != 0) {
-                                            if (ReadHeader<unsigned long>(header, 0x7e) != 0) {
+                                            if (header.path_nodes_7e != 0) {
                                                 pathing_180 = new W8PathingService();
                                                 if (pathing_180 == 0) {
                                                     goto finish;
                                                 }
                                                 pathing_180->ConfigureForLevel(
-                                                    ReadHeader<unsigned long>(header, 0x7e),
-                                                    static_cast<float>(
-                                                        ReadHeader<unsigned long>(header, 0xac)),
-                                                    ReadHeader<unsigned long>(header, 0xb4),
+                                                    header.path_nodes_7e, header.region_cell_ac,
+                                                    header.path_clearance_b4,
                                                     reinterpret_cast< // reinterpret-ok: bounds_0e is serialized min/max vector pairs
-                                                        const W8BoundingBox*>(header + 0x0e),
+                                                        const W8BoundingBox*>(&header.bounds_0e[0]),
                                                     m_owned_0c0);
                                                 fLoaded = pathing_180->Load00458CE0(hOctFile);
                                             }
                                             fSuccess = 0;
                                             if (fLoaded != 0) {
                                                 if (m_ulNumProps != 0 &&
-                                                    ReadHeader<char>(header, 0xb8) != 0) {
+                                                    header.prop_sun_bits_b8 != 0) {
                                                     m_pPropSunBits = new BitArray(m_ulNumProps);
                                                     if (m_pPropSunBits == 0) {
                                                         srAssertFail(
@@ -4132,7 +4118,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 finish:
     g_octree_game_data_00652db0 = 0;
     *game_data = 0;
-    if (fSuccess != 0 && ReadHeader<unsigned long>(header, 0x86) != 0) {
+    if (fSuccess != 0 && header.gd_surface_stream_len_86 != 0) {
         pGameData = new W8GameData(hOctFile, false);
         if (pGameData == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate submesh array.");
@@ -4259,62 +4245,65 @@ void W8Octree::Reset()
     current_prop = -1;
 }
 
-/* ReadOctFile calls this after Reset. The file header is packed and several
-   values are intentionally unaligned, so each read is copied rather than
-   reached through an incorrectly aligned C++ record. Positional writes retain
-   the proven offsets until the corresponding octree concepts are named. */
+/* ReadOctFile calls this after Reset. The 0xf5-byte packed record has one
+   canonical source model shared with WriteOctFile. Two mismatched retail
+   reads are preserved below rather than normalized to the like-named fields. */
 // FUNCTION: WIZ8 0x0042d2a0
-void W8Octree::Initialize(const void* raw_header)
+void W8Octree::Initialize(const W8OctFileHeader* header)
 {
-    const unsigned char* header = static_cast<const unsigned char*>(raw_header);
     unsigned int axis;
 
     if (header != 0) {
-        WriteMember(this, 0x04, ReadHeader<unsigned long>(header, 0x02));
-        WriteMember(this, 0x08, ReadHeader<unsigned long>(header, 0x06));
-        WriteMember(this, 0x70, ReadHeader<unsigned long>(header, 0x0a));
+        spatial_000.extent_04 = header->extent_02;
+        spatial_000.cell_size_08 = header->cell_size_06;
+        spatial_000.node_extent_70 = header->node_extent_0a;
+
+        m_positional_27c = 0;
+        m_positional_280 = 0;
+        m_positional_284 = 0;
+        m_positional_288 = 0;
+        m_positional_28c = 0;
+        m_positional_290 = 0;
         for (axis = 0; axis < 3; ++axis) {
-            WriteMember(this, 0x27c + axis * 4, 0UL);
-            WriteMember(this, 0x288 + axis * 4, 0UL);
-            WriteMember(this, 0x0c + axis * 4, ReadHeader<unsigned long>(header, 0x0e + axis * 4));
-            WriteMember(this, 0x18 + axis * 4, ReadHeader<unsigned long>(header, 0x1a + axis * 4));
-            WriteMember(this, 0x24 + axis * 4, ReadHeader<unsigned long>(header, 0x26 + axis * 4));
-            WriteMember(this, 0x30 + axis * 4, ReadHeader<unsigned long>(header, 0x32 + axis * 4));
-            WriteMember(this, 0x78 + axis * 4, ReadHeader<unsigned long>(header, 0x3e + axis * 4));
-            WriteMember(this, 0x84 + axis * 4, ReadHeader<unsigned long>(header, 0x4a + axis * 4));
-            WriteMember(this, 0xa4 + axis * 4, ReadHeader<unsigned long>(header, 0x56 + axis * 4));
+            (&spatial_000.minimum_0c.x)[axis] = (&header->bounds_0e[0].x)[axis];
+            (&spatial_000.maximum_18.x)[axis] = (&header->bounds_0e[1].x)[axis];
+            (&spatial_000.clipped_minimum_24.x)[axis] = (&header->bounds_0e[2].x)[axis];
+            (&spatial_000.clipped_maximum_30.x)[axis] = (&header->bounds_0e[3].x)[axis];
+            (&spatial_000.working_minimum_78.x)[axis] = (&header->bounds_0e[4].x)[axis];
+            (&spatial_000.working_maximum_84.x)[axis] = (&header->bounds_0e[5].x)[axis];
+            (&m_leaf_grid_dim_x_0a4)[axis] = header->grid_dims_56[axis];
         }
 
-        WriteMember(this, 0x64,
-                    ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xa8) *
-                        ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xac));
-        WriteMember(this, 0x68,
-                    ReadHeader<unsigned long>(reinterpret_cast<unsigned char*>(this), 0xac));
-        WriteMember(this, 0x44, ReadHeader<unsigned short>(header, 0x62));
-        WriteMember(this, 0x58, ReadHeader<unsigned short>(header, 0x64));
-        WriteMember(this, 0x46, ReadHeader<unsigned short>(header, 0x60));
-        WriteMember(this, 0x52, ReadHeader<unsigned short>(header, 0x62));
-        WriteMember(this, 0x74, ReadHeader<unsigned long>(header, 0x66));
-        m_root_mesh_count_1a8 = ReadHeader<unsigned long>(header, 0x9a);
-        m_kind1_submesh_count_1ac = ReadHeader<unsigned long>(header, 0xa2);
-        m_meshCount_1b4 = ReadHeader<unsigned long>(header, 0x9e);
-        WriteMember(this, 0xb4, ReadHeader<unsigned long>(header, 0x6a));
-        WriteMember(this, 0xb8, ReadHeader<unsigned long>(header, 0x6e));
-        WriteMember(this, 0x3c, ReadHeader<unsigned long>(header, 0x72));
-        WriteMember(this, 0xc8, ReadHeader<unsigned long>(header, 0x76));
-        WriteMember(this, 0x40, ReadHeader<unsigned long>(header, 0x7a));
-        m_leaf_polygon_stream_len_0cc = ReadHeader<unsigned long>(header, 0x82);
-        m_gd_surface_stream_len_124 = ReadHeader<unsigned long>(header, 0x86);
-        m_trigger_count_128 = ReadHeader<unsigned long>(header, 0x8a);
-        m_region_list_len_138 = ReadHeader<unsigned long>(header, 0x92);
-        WriteMember(this, 0x54, ReadHeader<unsigned long>(header, 0xa6));
-        m_region_cell_178 = ReadHeader<float>(header, 0xac);
-        m_path_clearance_17c = ReadHeader<unsigned long>(header, 0xb4);
-        WriteMember(this, 0x60, ReadHeader<unsigned long>(header, 0xb9));
-        m_ulNumProps = ReadHeader<unsigned long>(header, 0xbd);
-        m_usMeshParticlesLen_0e8 = ReadHeader<unsigned short>(header, 0xc5);
-        m_usMeshPropsLen_0f4 = ReadHeader<unsigned short>(header, 0xc7);
-        m_ulNumParticles = ReadHeader<unsigned long>(header, 0xc1);
+        spatial_000.leaf_grid_stride_x_64 = m_leaf_grid_dim_y_0a8 * m_leaf_grid_dim_z_0ac;
+        spatial_000.leaf_grid_stride_y_68 = m_leaf_grid_dim_z_0ac;
+        spatial_000.depth_44 = header->depth_62;
+        spatial_000.region_id_bound_58 = header->region_id_bound_64;
+        /* Retail reads the high word of grid dim z here, not region_count_96. */
+        spatial_000.region_count_46 =
+            static_cast<unsigned short>(header->grid_dims_56[2] >> 16);
+        /* Retail likewise derives leaf_level_52 from depth_62, not leaf_level_98. */
+        spatial_000.leaf_level_52 = header->depth_62;
+        spatial_000.submesh_count_74 = header->submesh_count_66;
+        m_root_mesh_count_1a8 = header->root_mesh_count_9a;
+        m_kind1_submesh_count_1ac = header->kind1_submesh_count_a2;
+        m_meshCount_1b4 = header->mesh_total_9e;
+        m_branch_count_0b4 = header->branch_count_6a;
+        m_leaf_count_0b8 = header->leaf_count_6e;
+        spatial_000.polygon_count_3c = header->polygon_count_72;
+        m_vertex_count_0c8 = header->vertex_count_76;
+        spatial_000.item_count_40 = header->surface_count_7a;
+        m_leaf_polygon_stream_len_0cc = header->leaf_polygon_stream_len_82;
+        m_gd_surface_stream_len_124 = header->gd_surface_stream_len_86;
+        m_trigger_count_128 = header->trigger_count_8a;
+        m_region_list_len_138 = header->region_list_len_92;
+        spatial_000.region_grid_cell_54 = header->region_grid_cell_a6;
+        m_region_cell_178 = header->region_cell_ac;
+        m_path_clearance_17c = header->path_clearance_b4;
+        spatial_000.max_region_radius_60 = header->max_region_radius_b9;
+        m_ulNumProps = header->prop_count_bd;
+        m_usMeshParticlesLen_0e8 = header->particle_len_c5;
+        m_usMeshPropsLen_0f4 = header->prop_len_c7;
+        m_ulNumParticles = header->particle_count_c1;
 
         if (m_ulNumParticles != 0) {
             m_linked_particles_0fc = new BitArray(m_ulNumParticles);
@@ -4329,21 +4318,21 @@ void W8Octree::Initialize(const void* raw_header)
             m_papProps = static_cast<W8Prop**>(malloc(m_ulNumProps * 4 + 8));
         }
 
-        m_owned_190 = new BitArray(ReadHeader<unsigned long>(header, 0x72));
-        m_owned_154 = new BitArray(ReadHeader<unsigned short>(header, 0x64) + 1);
-        m_projected_regions_15c = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_current_regions_160 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_previous_regions_164 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_owned_194 = new BitArray(ReadHeader<unsigned long>(header, 0x7a) < 5000
+        m_owned_190 = new BitArray(header->polygon_count_72);
+        m_owned_154 = new BitArray(header->region_id_bound_64 + 1);
+        m_projected_regions_15c = new BitArray(header->submesh_count_66 + 1);
+        m_current_regions_160 = new BitArray(header->submesh_count_66 + 1);
+        m_previous_regions_164 = new BitArray(header->submesh_count_66 + 1);
+        m_owned_194 = new BitArray(header->surface_count_7a < 5000
                                        ? 5000
-                                       : ReadHeader<unsigned long>(header, 0x7a));
-        m_accumulated_regions_198 = new BitArray(ReadHeader<unsigned long>(header, 0x66) + 1);
-        m_owned_19c = new BitArray(ReadHeader<unsigned long>(header, 0x72));
+                                       : header->surface_count_7a);
+        m_accumulated_regions_198 = new BitArray(header->submesh_count_66 + 1);
+        m_owned_19c = new BitArray(header->polygon_count_72);
 
         object_registry = new W8OctreeObjectRegistry;
         m_pRegionLinks_150 = new W8HashTable<unsigned int, unsigned short>;
 
-        unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
+        unsigned int visited_size = header->region_id_bound_64 + 1;
         m_pfRegsVisited = static_cast<unsigned char*>(malloc(visited_size));
         if (m_pfRegsVisited == 0) {
             srAssertFail("m_pfRegsVisited", "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp",
@@ -4358,7 +4347,7 @@ void W8Octree::Initialize(const void* raw_header)
         srAssertFail("m_aulGDObjs", "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", 0x372,
                      "InitOctree: Couldn't allocate m_aulGDObjs.");
     }
-    WriteMember(this, 0x6c, static_cast<unsigned short>(3));
+    spatial_000.level_kind_6c = 3;
     m_fAccumulating = 1;
     ToggleUpdateSuspension00434020(0);
 }
