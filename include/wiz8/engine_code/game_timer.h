@@ -33,7 +33,7 @@ public:
         }
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
-    int Method00439A60();
+    int GetTime00439A60();
     void SetMode(int mode);
     void SetDuration(float duration);
     void Restart();

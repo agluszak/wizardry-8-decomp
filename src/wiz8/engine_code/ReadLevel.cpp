@@ -178,8 +178,8 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                     if (!path_success) {
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
                     }
-                    path->flag_1c = 1;
-                    path->flag_3a = 0;
+                    path->discrete_mode_1c = 1;
+                    path->animated_3a = 0;
                     path->speed = definition->path_value_38;
                 }
             }
@@ -621,10 +621,10 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 active = 0;
             }
             if (options[2] == '1') {
-                PathAISetFlag3A004A9B90(path, 1);
+                PathAISetAnimated004A9B90(path, 1);
             }
             if (options[3] == '1') {
-                PathAISetFlag38004AA9D0(path, 1);
+                PathAISetLooping004AA9D0(path, 1);
             }
             if (!active) {
                 group->flag_28 = 0;

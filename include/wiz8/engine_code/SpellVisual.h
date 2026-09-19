@@ -95,7 +95,7 @@ inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(othe
     scale_1e8 = other.scale_1e8;
     location_id_1ec = 0;
     host = static_cast<W8SpellEmitterHost*>(other.host->Clone());
-    unknown_008 = IncrementValue60DFAC();
+    id_008 = IncrementValue60DFAC();
 }
 
 void DestroyAllSpellVisuals(W8World* world); /* 0x004AC3D0 */

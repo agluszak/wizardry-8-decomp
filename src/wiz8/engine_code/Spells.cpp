@@ -716,8 +716,8 @@ W8SpellVisual::W8SpellVisual()
     : mode_1d8(W8_SPELL_VISUAL_NONE), host(0), finished(0), flag_1e5(0), auto_release(1),
       fixed_transform(0), scale_1e8(1.0f), location_id_1ec(0)
 {
-    W8GrObject::unknown_004 = 1;
-    unknown_008 = IncrementValue60DFAC();
+    W8GrObject::kind_004 = 1;
+    id_008 = IncrementValue60DFAC();
     host = new W8SpellEmitterHost;
     if (host == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x3c0, 0);
