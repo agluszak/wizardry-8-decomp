@@ -15,7 +15,10 @@ def settings():
     return resolved
 
 
-def emit(value: Any) -> None:
+def emit(value: Any, *, as_json: bool = False, text: str | None = None) -> None:
     """Emit the one public, agent-facing result representation."""
 
+    if text is not None and not as_json:
+        sys.stdout.write(text if text.endswith("\n") else text + "\n")
+        return
     sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")

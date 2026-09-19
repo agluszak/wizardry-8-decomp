@@ -266,3 +266,148 @@ def test_class_key_from_path_does_not_invent_namespaces() -> None:
     assert _class_key_from_path("/Demangler/Foo") is None
     assert _class_key_from_path("/foo/bar/Baz", source_identities=identities) is None
     assert _class_key_from_path("/stLight", source_identities=identities) == "stLight"
+
+
+def test_rebuild_fields_uses_replace_within_extent(monkeypatch) -> None:
+    from wiz8decomp.type_graph_projection import TypeGraphConflict, _rebuild_fields_from_evidence
+
+    monkeypatch.setattr(
+        "wiz8decomp.type_graph_projection._remap_datatype",
+        lambda _program, data_type, _identity: data_type,
+    )
+
+    class Component(_FakeComponent):
+        pass
+
+    class GrowingStructure(_FakeStructure):
+        def __init__(self, path: str, length: int, components=None):
+            super().__init__(path, length, components)
+            self.replaced: list[tuple[int, int]] = []
+
+        def clearAtOffset(self, offset: int) -> None:
+            self._components = [item for item in self._components if item.getOffset() != offset]
+
+        def replaceAtOffset(self, offset, data_type, length, name, comment) -> None:
+            self.replaced.append((offset, length))
+            self._components.append(_FakeComponent(offset, length, name, data_type))
+
+        def insertAtOffset(self, offset, data_type, length, name, comment) -> None:
+            self._length += length
+            raise AssertionError("insertAtOffset would grow an opaque shell")
+
+    bound = GrowingStructure("/Foo", 840, [])
+    evidence = _FakeStructure(
+        "/Demangler/Foo",
+        840,
+        [
+            _FakeComponent(
+                0, 4, "x", SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
+            )
+        ],
+    )
+    _rebuild_fields_from_evidence(bound, evidence, object(), {})
+    assert bound.getLength() == 840
+    assert bound.replaced == [(0, 4)]
+
+    mismatch = GrowingStructure("/Foo", 16, [])
+    try:
+        _rebuild_fields_from_evidence(mismatch, evidence, object(), {})
+    except TypeGraphConflict as exc:
+        assert "structure-length-mismatch" in str(exc)
+    else:
+        raise AssertionError("expected size mismatch")
+
+
+def test_rebuild_rejects_overlap_and_keeps_padding(monkeypatch) -> None:
+    from wiz8decomp.type_graph_projection import TypeGraphConflict, _rebuild_fields_from_evidence
+
+    monkeypatch.setattr(
+        "wiz8decomp.type_graph_projection._remap_datatype",
+        lambda _program, data_type, _identity: data_type,
+    )
+
+    class GrowingStructure(_FakeStructure):
+        def __init__(self, path: str, length: int, components=None):
+            super().__init__(path, length, components)
+            self.replaced: list[tuple[int, int]] = []
+
+        def clearAtOffset(self, offset: int) -> None:
+            self._components = [item for item in self._components if item.getOffset() != offset]
+
+        def replaceAtOffset(self, offset, data_type, length, name, comment) -> None:
+            self.replaced.append((offset, length))
+            self._components.append(_FakeComponent(offset, length, name, data_type))
+
+    int_type = SimpleNamespace(getPathName=lambda: "/int", getLength=lambda: 4)
+    padded = GrowingStructure("/Foo", 0x40, [])
+    evidence = _FakeStructure(
+        "/Demangler/Foo",
+        0x40,
+        [_FakeComponent(0, 4, "x", int_type)],
+    )
+    _rebuild_fields_from_evidence(padded, evidence, object(), {})
+    assert padded.getLength() == 0x40
+    assert padded.replaced == [(0, 4)]
+
+    overlapping = GrowingStructure("/Bar", 0x40, [])
+    bad = _FakeStructure(
+        "/Demangler/Bar",
+        0x40,
+        [
+            _FakeComponent(0, 8, "a", int_type),
+            _FakeComponent(4, 8, "b", int_type),
+        ],
+    )
+    try:
+        _rebuild_fields_from_evidence(overlapping, bad, object(), {})
+    except TypeGraphConflict as exc:
+        assert "field-overlap" in str(exc)
+    else:
+        raise AssertionError("expected overlap")
+    assert overlapping.replaced == []
+
+
+def test_remap_replaces_function_definition_when_contract_changes(monkeypatch) -> None:
+    from wiz8decomp.type_graph_projection import _remap_structure_fields
+
+    class Fd:
+        def __init__(self, path: str, ret: str):
+            self._path = path
+            self._ret = ret
+
+        def getPathName(self) -> str:
+            return self._path
+
+        def getLength(self) -> int:
+            return 0
+
+        def getReturnType(self):
+            return SimpleNamespace(getPathName=lambda: self._ret, getLength=lambda: 4)
+
+        def getArguments(self):
+            return []
+
+        def getCallingConvention(self):
+            return "__cdecl"
+
+        def hasVarArgs(self):
+            return False
+
+        def hasNoReturn(self):
+            return False
+
+    current = Fd("/cb", "/void")
+    remapped = Fd("/cb", "/int")
+    replaced: list[object] = []
+
+    class Owner(_FakeStructure):
+        def replaceAtOffset(self, offset, data_type, length, name, comment) -> None:
+            replaced.append(data_type)
+
+    bound = Owner("/Owner", 4, [_FakeComponent(0, 4, "cb", current)])
+    monkeypatch.setattr(
+        "wiz8decomp.type_graph_projection._remap_datatype",
+        lambda _program, data_type, _identity: remapped if data_type is current else data_type,
+    )
+    assert _remap_structure_fields(bound, object(), {}) == 1
+    assert replaced == [remapped]

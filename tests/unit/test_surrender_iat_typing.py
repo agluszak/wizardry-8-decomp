@@ -90,6 +90,18 @@ def test_imported_data_value_type_for_object_and_static_pointer() -> None:
     )
 
 
+def test_iat_data_pointer_depth_matches_imported_value() -> None:
+    from wiz8decomp.surrender_iat_typing import iat_data_pointer_levels
+
+    assert iat_data_pointer_levels("class srCore srCore") == 1
+    assert (
+        iat_data_pointer_levels(
+            "protected: static class srTriMeshPipeline * srTriMeshPipeline::pipe"
+        )
+        == 2
+    )
+
+
 def test_function_for_iat_ignores_ordinary_caller() -> None:
     ordinary = SimpleNamespace(isExternal=lambda: False, isThunk=lambda: False)
     ref = SimpleNamespace(getFromAddress=lambda: 0x401000)
@@ -214,3 +226,109 @@ def test_iat_cell_type_failure_is_an_apply_error(monkeypatch) -> None:
         },
     )
     assert result["error"] == "iat-cell-not-typed"
+
+
+def test_iat_callable_names_are_unique_per_import() -> None:
+    from wiz8decomp.surrender_iat_typing import (
+        iat_callable_definition_name,
+        iat_callback_definition_name,
+    )
+
+    first = iat_callable_definition_name("?srExit@@YAHXZ", 0x005EBAF4)
+    second = iat_callable_definition_name("?srAssertFail@@YAXPBD0H0ZZ", 0x005EBB00)
+    assert first != second
+    assert first == "005ebaf4_srExit"
+    assert second == "005ebb00_srAssertFail"
+    assert "iat_callable" not in {first, second}
+    void_cb = iat_callback_definition_name("void", ("char *",), "__cdecl", False)
+    int_cb = iat_callback_definition_name("int", ("char *",), "__cdecl", False)
+    same = iat_callback_definition_name("void", ("char *",), "__cdecl", False)
+    assert void_cb != int_cb
+    assert void_cb == same
+
+
+def test_audit_ghidra_rejects_typed_but_wrong_signature() -> None:
+    from wiz8decomp.surrender_iat_typing import ParsedCallable, _audit_ghidra
+
+    class Param:
+        def __init__(self, display: str, auto: bool = False):
+            self._display = display
+            self._auto = auto
+
+        def getDataType(self):
+            return SimpleNamespace(getDisplayName=lambda: self._display)
+
+        def isAutoParameter(self):
+            return self._auto
+
+    function = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param("int"), Param("char *")],
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "void"),
+        hasVarArgs=lambda: False,
+    )
+    parsed = ParsedCallable(
+        convention="__cdecl",
+        return_type="void",
+        parameters=("char *", "char *"),
+        varargs=False,
+        has_function_pointer_param=False,
+    )
+    audit = _audit_ghidra(function, parsed, "__cdecl")
+    assert "exact" not in audit
+    assert "wrong_parameter_type" in audit
+
+    void_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=list,
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "int"),
+        hasVarArgs=lambda: False,
+    )
+    void_parsed = ParsedCallable(
+        convention="__cdecl",
+        return_type="void",
+        parameters=(),
+        varargs=False,
+        has_function_pointer_param=False,
+    )
+    void_audit = _audit_ghidra(void_fn, void_parsed, "__cdecl")
+    assert "wrong_return" in void_audit
+    assert "exact" not in void_audit
+
+    varargs_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=list,
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "void"),
+        hasVarArgs=lambda: False,
+    )
+    varargs_parsed = ParsedCallable(
+        convention="__cdecl",
+        return_type="void",
+        parameters=(),
+        varargs=True,
+        has_function_pointer_param=False,
+    )
+    varargs_audit = _audit_ghidra(varargs_fn, varargs_parsed, "__cdecl")
+    assert "wrong_varargs" in varargs_audit
+    assert "exact" not in varargs_audit
+
+    method = SimpleNamespace(
+        getCallingConventionName=lambda: "__thiscall",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param("int")],
+        getReturnType=lambda: SimpleNamespace(getDisplayName=lambda: "void"),
+        hasVarArgs=lambda: False,
+    )
+    method_parsed = ParsedCallable(
+        convention="__thiscall",
+        return_type="void",
+        parameters=("int",),
+        varargs=False,
+        has_function_pointer_param=False,
+    )
+    method_audit = _audit_ghidra(method, method_parsed, "__thiscall")
+    assert "wrong_this" in method_audit
+    assert "exact" not in method_audit

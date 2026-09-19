@@ -183,14 +183,9 @@ def _parameter_names_from_signature(signature: str | None, count: int) -> list[s
 
 
 def _explicit_parameter_types(identity: Any) -> tuple[str, ...]:
-    types = list(identity.parameter_types or ())
-    if not identity.has_this or not types:
-        return tuple(types)
-    owner = str(identity.owning_class or "").replace(" ", "")
-    first = types[0].replace(" ", "")
-    if owner and (first == f"{owner}*" or first.endswith(f"::{owner}*")):
-        types = types[1:]
-    return tuple(types)
+    """Source-declared explicit parameters. Implicit this is not inferred from type spelling."""
+
+    return tuple(identity.parameter_types or ())
 
 
 def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
@@ -282,9 +277,11 @@ def _apply_structured_signature(program: Any, function: Any, identity: Any) -> d
             and _type_key(current.getDataType()) == _type_key(desired.getDataType())
             for current, desired in zip(existing, parameters, strict=True)
         )
+        and bool(function.hasVarArgs()) == bool(getattr(identity, "is_variadic", False))
     ):
         return {"applied": False}
     current = function.getPrototypeString(False, False).replace(" ", "")
+    wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
     try:
         function.setReturnType(return_type, SourceType.IMPORTED)
         function.replaceParameters(
@@ -293,6 +290,9 @@ def _apply_structured_signature(program: Any, function: Any, identity: Any) -> d
             SourceType.IMPORTED,
             *parameters,
         )
+        if wanted_cc:
+            function.setCallingConvention(wanted_cc)
+        function.setVarArgs(bool(getattr(identity, "is_variadic", False)))
         function.setSignatureSource(SourceType.IMPORTED)
     except Exception as exc:  # noqa: BLE001
         return {"error": f"apply-failed:{exc}"}

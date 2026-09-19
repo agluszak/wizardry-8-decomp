@@ -41,19 +41,30 @@ def test_projection_complete_rejects_hard_apply_errors() -> None:
     )
 
 
-def test_explicit_parameter_types_drop_this_pointer() -> None:
+def test_explicit_parameter_types_keep_explicit_owner_pointer() -> None:
     identity = SimpleNamespace(
         has_this=True,
-        owning_class="W8Character",
-        parameter_types=("W8Character *", "int"),
+        owning_class="Node",
+        parameter_types=("Node *", "int"),
     )
-    assert _explicit_parameter_types(identity) == ("int",)
+    assert _explicit_parameter_types(identity) == ("Node *", "int")
     free = SimpleNamespace(
         has_this=False,
         owning_class=None,
         parameter_types=("W8Character *", "W8ItemInstance *", "int", "int"),
     )
     assert _explicit_parameter_types(free) == free.parameter_types
+    const_method = SimpleNamespace(has_this=True, parameter_types=("int",))
+    static_method = SimpleNamespace(has_this=False, parameter_types=("int",))
+    ctor = SimpleNamespace(has_this=True, parameter_types=())
+    dtor = SimpleNamespace(has_this=True, parameter_types=())
+    variadic = SimpleNamespace(has_this=False, parameter_types=("char *",), is_variadic=True)
+    assert _explicit_parameter_types(const_method) == ("int",)
+    assert _explicit_parameter_types(static_method) == ("int",)
+    assert _explicit_parameter_types(ctor) == ()
+    assert _explicit_parameter_types(dtor) == ()
+    assert _explicit_parameter_types(variadic) == ("char *",)
+    assert variadic.is_variadic is True
 
 
 def test_parameter_names_come_from_the_source_signature() -> None:

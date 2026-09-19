@@ -12,6 +12,7 @@ types or overwrite ``USER_DEFINED`` signatures. Full resolved ABI uses
 from __future__ import annotations
 
 import csv
+import hashlib
 import re
 from collections import Counter
 from collections.abc import Mapping
@@ -35,6 +36,8 @@ _CALLABLE = frozenset(
 )
 _DATA_KINDS = frozenset({"global-object", "vftable"})
 _GHIDRA_MODELS = frozenset({"__cdecl", "__stdcall", "__fastcall", "__thiscall"})
+_IAT_FUNCTIONS = "/wiz8/surrender-iat/functions"
+_IAT_CALLBACKS = "/wiz8/surrender-iat/callbacks"
 _SOFT = frozenset({"default", "unknown"})
 _PROTECTED = frozenset({"USER_DEFINED"})
 _CALLING_CONVENTION = re.compile(r"__(?:thiscall|stdcall|cdecl|fastcall)")
@@ -48,6 +51,7 @@ _FN_PTR = re.compile(
     r"^(?P<ret>.+?)\s*\(\s*(?P<cc>__(?:cdecl|stdcall|thiscall|fastcall)\s*)?\*\s*\)\s*"
     r"\((?P<args>.*)\)\s*$"
 )
+_IAT_NAME_SAFE = re.compile(r"[^A-Za-z0-9_]+")
 
 
 @dataclass(frozen=True)
@@ -221,9 +225,54 @@ def _type_display(data_type: Any | None) -> str:
     return str(data_type)
 
 
+def _types_agree(actual: str, expected: str) -> bool:
+    left = normalize_msvc_type(actual)
+    right = normalize_msvc_type(expected)
+    if left.casefold() == right.casefold():
+        return True
+    return left.replace(" ", "") == right.replace(" ", "")
+
+
 def _is_undefined_type(data_type: Any | None) -> bool:
     name = _type_display(data_type).casefold()
     return name.startswith("undefined") or name in {"void *", "void*"}
+
+
+def _sanitize_iat_name(text: str) -> str:
+    cleaned = _IAT_NAME_SAFE.sub("_", text).strip("_")
+    return cleaned[:80]
+
+
+def _iat_symbol_leaf(decorated_name: str | None) -> str:
+    text = str(decorated_name or "").lstrip("?")
+    leaf = text.split("@", 1)[0]
+    return _sanitize_iat_name(leaf) or "import"
+
+
+def iat_callable_definition_name(decorated_name: str | None, address: int) -> str:
+    """Stable FunctionDefinition identity for one imported callable."""
+
+    return f"{address:08x}_{_iat_symbol_leaf(decorated_name)}"
+
+
+def iat_callback_definition_name(
+    return_type: str,
+    parameters: tuple[str, ...],
+    convention: str,
+    varargs: bool,
+) -> str:
+    """Share a callback FunctionDefinition only when the complete contract matches."""
+
+    payload = "|".join(
+        (
+            convention,
+            normalize_msvc_type(return_type),
+            *(normalize_msvc_type(part) for part in parameters),
+            "..." if varargs else "",
+        )
+    )
+    digest = hashlib.sha1(payload.encode("utf-8")).hexdigest()[:12]
+    return f"iat_callback_{digest}"
 
 
 def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
@@ -259,8 +308,14 @@ def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
             return None
         params.append(ParameterDefinitionImpl(f"param_{index}", data_type, None))
     manager = program.getDataTypeManager()
-    manager.createCategory(CategoryPath("/wiz8/surrender-iat"))
-    definition = FunctionDefinitionDataType(CategoryPath("/wiz8/surrender-iat"), "iat_callback")
+    manager.createCategory(CategoryPath(_IAT_CALLBACKS))
+    definition_name = iat_callback_definition_name(
+        match.group("ret").strip() or "void",
+        tuple(parts),
+        convention,
+        varargs,
+    )
+    definition = FunctionDefinitionDataType(CategoryPath(_IAT_CALLBACKS), definition_name)
     definition.setReturnType(return_type)
     if params:
         definition.setArguments(params)
@@ -323,19 +378,33 @@ def _audit_ghidra(function: Any, parsed: ParsedCallable | None, convention: str)
     if ghidra_cc != convention:
         audit["wrong_cc"] = "1"
     parameters = _explicit_parameters(function)
+    thiscall = convention == "__thiscall" or (
+        parsed is not None and parsed.convention == "__thiscall"
+    )
+    if thiscall:
+        autos = [
+            parameter
+            for parameter in function.getParameters()
+            if hasattr(parameter, "isAutoParameter") and parameter.isAutoParameter()
+        ]
+        if not autos:
+            audit["wrong_this"] = "1"
     if any(_is_undefined_type(parameter.getDataType()) for parameter in parameters):
         audit["undefined_pointer_or_param"] = "1"
-    if parsed is not None and len(parameters) != len(parsed.parameters):
-        audit["wrong_parameter_count"] = "1"
     return_type = function.getReturnType() if hasattr(function, "getReturnType") else None
     if parsed is not None:
-        wanted = normalize_msvc_type(parsed.return_type)
-        actual = normalize_msvc_type(_type_display(return_type))
-        if (
-            wanted not in {"void", ""}
-            and actual.casefold() != wanted.casefold()
-            and actual.replace(" ", "") != wanted.replace(" ", "")
-        ):
+        if len(parameters) != len(parsed.parameters):
+            audit["wrong_parameter_count"] = "1"
+        else:
+            for parameter, expected in zip(parameters, parsed.parameters, strict=True):
+                actual = _type_display(parameter.getDataType() if parameter is not None else None)
+                if not _types_agree(actual, expected):
+                    audit["wrong_parameter_type"] = "1"
+                    break
+        actual_varargs = bool(function.hasVarArgs()) if hasattr(function, "hasVarArgs") else False
+        if actual_varargs != bool(parsed.varargs):
+            audit["wrong_varargs"] = "1"
+        if not _types_agree(_type_display(return_type), parsed.return_type):
             audit["wrong_return"] = "1"
     elif _is_undefined_type(return_type):
         audit["wrong_return"] = "1"
@@ -347,11 +416,23 @@ def _audit_ghidra(function: Any, parsed: ParsedCallable | None, convention: str)
             "wrong_cc",
             "undefined_pointer_or_param",
             "wrong_parameter_count",
+            "wrong_parameter_type",
+            "wrong_varargs",
             "wrong_return",
+            "wrong_this",
         )
     ):
         audit["exact"] = "1"
     return audit
+
+
+def iat_data_pointer_levels(signature: str) -> int | None:
+    """IAT cell pointer depth for a data import: object ``T`` is ``T*``, ``T*`` is ``T**``."""
+
+    value = _imported_data_value_type(signature)
+    if not value:
+        return None
+    return 1 + value.count("*")
 
 
 def _imported_data_value_type(signature: str) -> str | None:
@@ -400,7 +481,79 @@ def _data_iat_pointer(program: Any, item: Mapping[str, str]) -> Any | None:
     return PointerDataType(value_type, program.getDataTypeManager())
 
 
-def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | None) -> Any | None:
+def _unwrap_function_definition(data_type: Any) -> Any | None:
+    current = data_type
+    while (
+        current is not None
+        and hasattr(current, "getDataType")
+        and (
+            "Pointer" in type(current).__name__
+            or (callable(getattr(current, "isPointer", None)) and current.isPointer())
+        )
+    ):
+        current = current.getDataType()
+    if current is None:
+        return None
+    if "FunctionDefinition" in type(current).__name__ or (
+        hasattr(current, "getArguments") and hasattr(current, "getReturnType")
+    ):
+        return current
+    return None
+
+
+def _iat_cell_function_definition(program: Any, address: int) -> Any | None:
+    listing = program.getListing()
+    space = program.getAddressFactory().getDefaultAddressSpace()
+    data = listing.getDataAt(space.getAddress(address))
+    if data is None or not hasattr(data, "getDataType"):
+        return None
+    return _unwrap_function_definition(data.getDataType())
+
+
+def _parsed_contract_key(parsed: ParsedCallable) -> tuple[Any, ...]:
+    return (
+        parsed.convention,
+        normalize_msvc_type(parsed.return_type),
+        tuple(normalize_msvc_type(part) for part in parsed.parameters),
+        bool(parsed.varargs),
+    )
+
+
+def _definition_contract_key(definition: Any) -> tuple[Any, ...] | None:
+    if definition is None:
+        return None
+    parameters = list(definition.getArguments()) if hasattr(definition, "getArguments") else []
+    convention = ""
+    if hasattr(definition, "getCallingConvention"):
+        current = definition.getCallingConvention()
+        convention = str(current) if current is not None else ""
+    return (
+        convention,
+        normalize_msvc_type(_type_display(definition.getReturnType())),
+        tuple(
+            normalize_msvc_type(_type_display(argument.getDataType())) for argument in parameters
+        ),
+        bool(definition.hasVarArgs()) if hasattr(definition, "hasVarArgs") else False,
+    )
+
+
+def _iat_cell_matches_parsed(program: Any, address: int, parsed: ParsedCallable | None) -> bool:
+    if parsed is None:
+        return False
+    existing = _iat_cell_function_definition(program, address)
+    if existing is None:
+        return False
+    return _definition_contract_key(existing) == _parsed_contract_key(parsed)
+
+
+def _callable_iat_pointer(
+    program: Any,
+    function: Any,
+    parsed: ParsedCallable | None,
+    *,
+    decorated_name: str | None = None,
+    address: int | None = None,
+) -> Any | None:
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
         FunctionDefinitionDataType,
         PointerDataType,
@@ -417,10 +570,9 @@ def _callable_iat_pointer(program: Any, function: Any, parsed: ParsedCallable | 
             )
 
             manager = program.getDataTypeManager()
-            manager.createCategory(CategoryPath("/wiz8/surrender-iat"))
-            definition = FunctionDefinitionDataType(
-                CategoryPath("/wiz8/surrender-iat"), "iat_callable"
-            )
+            manager.createCategory(CategoryPath(_IAT_FUNCTIONS))
+            definition_name = iat_callable_definition_name(decorated_name, int(address or 0))
+            definition = FunctionDefinitionDataType(CategoryPath(_IAT_FUNCTIONS), definition_name)
             definition.setReturnType(return_type)
             if parameter_types:
                 definition.setArguments(
@@ -499,6 +651,7 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
         function = _function_for_iat(program, address)
         resolved = None
         apply_types = False
+        cell_matches = _iat_cell_matches_parsed(program, address, parsed)
         if function is None:
             action = "set-iat-cell" if parsed is not None else "missing-function"
         else:
@@ -509,16 +662,22 @@ def collect_surrender_iat_plan(repository: Path, program: Any) -> dict[str, Any]
             for key in audit:
                 if key not in {"ghidra_cc", "signature_source"}:
                     audit_counts[key] += 1
+            if parsed is not None and not cell_matches:
+                audit_counts["iat-cell-mismatch"] += 1
             exact = "exact" in audit
             apply_types = resolved is not None and not exact
             if source in _PROTECTED and ghidra not in _SOFT:
-                action = "skip-protected"
-            elif exact and ghidra == convention:
+                action = "skip-protected" if cell_matches else "set-iat-cell"
+            elif exact and ghidra == convention and cell_matches:
                 action = "agree"
+            elif exact and ghidra == convention:
+                action = "set-iat-cell"
             elif ghidra in _SOFT or apply_types:
                 action = "set-from-surrender"
-            elif ghidra == convention:
+            elif ghidra == convention and cell_matches:
                 action = "agree"
+            elif ghidra == convention:
+                action = "set-iat-cell"
             else:
                 action = "hard-disagree"
         counts[action] += 1
@@ -631,7 +790,13 @@ def _apply_surrender_iat_row(program: Any, row: Mapping[str, Any]) -> dict[str, 
                 function.setCallingConvention(convention)
                 function.setSignatureSource(SourceType.ANALYSIS)
             # Full resolved ABI claims IMPORTED; convention-only stays ANALYSIS.
-    pointer = _callable_iat_pointer(program, function, parsed)
+    pointer = _callable_iat_pointer(
+        program,
+        function,
+        parsed,
+        decorated_name=str(row.get("decorated_name") or "") or None,
+        address=address,
+    )
     if pointer is not None and not _apply_iat_cell_type(program, address, pointer):
         return {**dict(row), "error": "iat-cell-not-typed", "applied_types": applied_types}
     return {

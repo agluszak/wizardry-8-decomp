@@ -14,8 +14,11 @@ import ghidra.app.util.demangler.microsoft.MicrosoftDemangler;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
+import ghidra.program.model.data.FunctionDefinition;
+import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.TypeDef;
+import ghidra.program.model.listing.Data;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Program;
@@ -32,10 +35,10 @@ import ghidra.program.model.symbol.SymbolType;
  * A class's tables are its namespace's {@code vftable} symbols: the
  * for-clause-free symbol is the complete-object table, and a
  * {@code vftable{for_'Base'}} symbol belongs to the base subobject whose
- * component type the for-clause names. Vftables carry no length record, so
- * a table is bounded by the next curated symbol (user-defined or imported)
- * or the next vftable symbol; dynamic analysis labels inside a table do not
- * end it. Slot contents are read from program memory.
+ * original base identity the for-clause names. Derived-specific subobject
+ * views store that identity in their datatype description rather than in
+ * the view's display name. Typed vftable Structures supply table extent and
+ * slot contracts; the implementation address remains separate evidence.
  *
  * A leading structure component is a base subobject on either of two
  * grounds: the repository's {@code base}/{@code base_*} field convention
@@ -52,11 +55,17 @@ final class VtableResolver {
 		final String name;
 		final DataType returnType;
 		final Function function;
+		final FunctionDefinition contract;
 
 		Slot(String name, DataType returnType, Function function) {
+			this(name, returnType, function, null);
+		}
+
+		Slot(String name, DataType returnType, Function function, FunctionDefinition contract) {
 			this.name = name;
 			this.returnType = returnType;
 			this.function = function;
+			this.contract = contract;
 		}
 	}
 
@@ -198,7 +207,69 @@ final class VtableResolver {
 		if (!(componentType instanceof Structure)) {
 			return null;
 		}
-		return forClauseTable(namespace, componentType.getName());
+		Structure componentStructure = (Structure) componentType;
+		Address vtableAddress = parseSubobjectVtable(componentStructure.getDescription());
+		if (vtableAddress != null) {
+			Symbol primary = program.getSymbolTable().getPrimarySymbol(vtableAddress);
+			if (primary != null) {
+				return primary;
+			}
+		}
+		return forClauseTable(namespace, subobjectBaseName(componentStructure));
+	}
+
+	/**
+	 * Original base identity for a subobject component. Derived-specific views
+	 * keep {@code Base_at_0xN} as a unique datatype name; the description names
+	 * the canonical base that {@code vftable{for Base}} refers to.
+	 */
+	static String subobjectBaseName(Structure structure) {
+		String parsed = parseSubobjectBase(structure.getDescription());
+		return parsed != null ? parsed : structure.getName();
+	}
+
+	/** Parse {@code wiz8.subobject-view derived=... base=... offset=... [vtable=...]}; else null. */
+	static String parseSubobjectField(String description, String key) {
+		if (description == null) {
+			return null;
+		}
+		String text = description.trim();
+		final String prefix = "wiz8.subobject-view ";
+		if (!text.startsWith(prefix)) {
+			return null;
+		}
+		for (String part : text.substring(prefix.length()).split("\\s+")) {
+			if (part.startsWith(key)) {
+				return part.substring(key.length());
+			}
+		}
+		return null;
+	}
+
+	static String parseSubobjectBase(String description) {
+		String base = parseSubobjectField(description, "base=");
+		if (base == null) {
+			return null;
+		}
+		int slash = base.lastIndexOf("::");
+		return slash >= 0 ? base.substring(slash + 2) : base;
+	}
+
+	private Address parseSubobjectVtable(String description) {
+		String value = parseSubobjectField(description, "vtable=");
+		if (value == null || value.isEmpty()) {
+			return null;
+		}
+		try {
+			if (value.startsWith("0x") || value.startsWith("0X")) {
+				return program.getAddressFactory().getDefaultAddressSpace()
+					.getAddress(Long.parseLong(value.substring(2), 16));
+			}
+			return program.getAddressFactory().getAddress(value);
+		}
+		catch (Exception ignored) {
+			return null;
+		}
 	}
 
 	/** The unique {@code vftable{for_'typeName'}} table, else null. */
@@ -245,6 +316,20 @@ final class VtableResolver {
 	 */
 	Slot slot(Symbol table, long slotOffset) {
 		Function concrete = slotFunction(table, slotOffset);
+		FunctionDefinition contract = typedSlotContract(table, slotOffset);
+		if (contract != null) {
+			boolean pure = concrete != null &&
+				SpecialNames.normalize(concrete.getName()).equals("purecall");
+			Function implementation = (concrete != null && !pure) ? concrete : null;
+			String name = contract.getName();
+			if (name == null || name.isEmpty()) {
+				name = implementation != null ? implementation.getName() : null;
+			}
+			DataType returnType = contract.getReturnType();
+			if (name != null) {
+				return new Slot(name, returnType, implementation, contract);
+			}
+		}
 		if (concrete != null && !SpecialNames.normalize(concrete.getName()).equals("purecall")) {
 			return new Slot(concrete.getName(), concrete.getReturnType(), concrete);
 		}
@@ -294,14 +379,15 @@ final class VtableResolver {
 	}
 
 	/**
-	 * Vftables have no length record; the table ends at the next curated
-	 * symbol (user-defined or imported) or the next vftable symbol. A
-	 * dynamic analysis label inside the table is an artifact of an inbound
-	 * reference, not a boundary. A slot read past the bound would silently
-	 * name a neighbour's entry.
+	 * Prefer the typed vftable Structure's established extent. Neighboring
+	 * symbols remain a fallback when the table is still untyped.
 	 */
 	private boolean slotInsideTable(Address tableStart, long slotOffset) {
 		Address slotEnd = tableStart.add(slotOffset + 4);
+		int typedLength = typedTableLength(tableStart);
+		if (typedLength > 0) {
+			return slotOffset >= 0 && slotOffset + 4 <= typedLength;
+		}
 		Address bound = tableBounds.get(tableStart);
 		if (bound != null) {
 			return slotEnd.compareTo(bound) <= 0;
@@ -318,6 +404,41 @@ final class VtableResolver {
 		}
 		unboundedTables.put(tableStart, Boolean.TRUE);
 		return true;
+	}
+
+	private int typedTableLength(Address tableStart) {
+		Data data = program.getListing().getDataAt(tableStart);
+		if (data == null) {
+			return -1;
+		}
+		DataType type = resolve(data.getDataType());
+		if (type instanceof Structure structure && structure.getLength() > 0) {
+			return structure.getLength();
+		}
+		return -1;
+	}
+
+	private FunctionDefinition typedSlotContract(Symbol table, long slotOffset) {
+		if (slotOffset < 0 || slotOffset > Integer.MAX_VALUE) {
+			return null;
+		}
+		Data data = program.getListing().getDataAt(table.getAddress());
+		if (data == null) {
+			return null;
+		}
+		DataType type = resolve(data.getDataType());
+		if (!(type instanceof Structure structure)) {
+			return null;
+		}
+		DataTypeComponent component = structure.getComponentAt((int) slotOffset);
+		if (component == null || component.getOffset() != slotOffset) {
+			return null;
+		}
+		DataType slotType = resolve(component.getDataType());
+		if (slotType instanceof Pointer pointer) {
+			slotType = resolve(pointer.getDataType());
+		}
+		return slotType instanceof FunctionDefinition definition ? definition : null;
 	}
 
 	private static boolean boundsTable(Symbol symbol) {
@@ -356,12 +477,12 @@ final class VtableResolver {
 	/** Whether a for-clause vftable of the owning class names this component's type. */
 	private boolean forClauseEvidence(Structure structure, DataTypeComponent component) {
 		DataType componentType = resolve(component.getDataType());
-		if (!(componentType instanceof Structure)) {
+		if (!(componentType instanceof Structure componentStructure)) {
 			return false;
 		}
 		Namespace namespace = classNamespace(structure);
 		return namespace != null &&
-			forClauseTable(namespace, componentType.getName()) != null;
+			forClauseTable(namespace, subobjectBaseName(componentStructure)) != null;
 	}
 
 	/** Whether a component starting at exactly {@code offset} is a base subobject. */

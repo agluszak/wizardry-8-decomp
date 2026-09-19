@@ -53,6 +53,7 @@ from .class_structure_projection import (
     _thiscall_owning_classes,
 )
 from .datatype_contracts import (
+    datatype_shape_key,
     has_legacy_nested_ref,
     is_legacy_path,
     is_opaque_structure,
@@ -539,24 +540,57 @@ def _rebuild_fields_from_evidence(
     program: Any,
     identity: Mapping[str, Mapping[str, Any]],
 ) -> None:
-    """Replace bound field layout with evidence fields (types remapped)."""
+    """Replace bound field layout within the established extent."""
 
-    # Clear existing defined components then insert remapped evidence fields.
-    components = list(bound.getDefinedComponents())
-    # Delete from high offset to low to avoid shifting.
-    for component in sorted(components, key=lambda c: c.getOffset(), reverse=True):
-        bound.deleteAtOffset(component.getOffset())
-
+    original_length = int(bound.getLength())
+    evidence_length = int(evidence.getLength())
+    if original_length != evidence_length:
+        raise TypeGraphConflict(f"structure-length-mismatch:{original_length}->{evidence_length}")
+    desired: list[tuple[int, int, Any, str, Any]] = []
     for component in evidence.getDefinedComponents():
         remapped = _remap_datatype(program, component.getDataType(), identity)
-        name = component.getFieldName()
-        bound.insertAtOffset(
-            component.getOffset(),
-            remapped,
-            component.getLength(),
-            name,
-            component.getComment(),
+        offset = int(component.getOffset())
+        length = int(component.getLength())
+        if offset < 0 or length <= 0:
+            raise TypeGraphConflict(f"invalid-field:{offset}+{length}")
+        if offset + length > original_length:
+            raise TypeGraphConflict(f"field-exceeds-extent:{offset}+{length}>{original_length}")
+        desired.append(
+            (
+                offset,
+                length,
+                remapped,
+                component.getFieldName(),
+                component.getComment(),
+            )
         )
+    desired.sort(key=lambda row: row[0])
+    previous_end = 0
+    for offset, length, _data_type, _name, _comment in desired:
+        if offset < previous_end:
+            raise TypeGraphConflict(f"field-overlap:{offset}")
+        previous_end = offset + length
+    components = list(bound.getDefinedComponents())
+    for component in sorted(components, key=lambda item: item.getOffset(), reverse=True):
+        if hasattr(bound, "clearAtOffset"):
+            bound.clearAtOffset(component.getOffset())
+        else:
+            bound.deleteAtOffset(component.getOffset())
+            if hasattr(bound, "growStructure") and int(bound.getLength()) < original_length:
+                bound.growStructure(original_length - int(bound.getLength()))
+    for offset, length, remapped, name, comment in desired:
+        bound.replaceAtOffset(offset, remapped, length, name, comment)
+    if int(bound.getLength()) != original_length:
+        raise TypeGraphConflict(
+            f"structure-length-changed:{original_length}->{int(bound.getLength())}"
+        )
+    expected = {offset: length for offset, length, _data_type, _name, _comment in desired}
+    actual = {
+        int(component.getOffset()): int(component.getLength())
+        for component in bound.getDefinedComponents()
+    }
+    if actual != expected:
+        raise TypeGraphConflict("structure-offsets-changed")
 
 
 def _remap_structure_fields(
@@ -570,7 +604,11 @@ def _remap_structure_fields(
     for component in list(bound.getDefinedComponents()):
         current = component.getDataType()
         remapped = _remap_datatype(program, current, identity)
-        if remapped is current or type_identity(remapped) == type_identity(current):
+        if remapped is current:
+            continue
+        if datatype_shape_key(remapped, identity_map=identity) == datatype_shape_key(
+            current, identity_map=identity
+        ):
             continue
         bound.replaceAtOffset(
             component.getOffset(),

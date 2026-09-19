@@ -58,13 +58,14 @@ def decompile_command(
         typer.Argument(help="Function addresses, ranges, or exact Ghidra names."),
     ],
     program: str = typer.Option("wiz8", "--program"),
+    as_json: bool = typer.Option(False, "--json", help="Emit the structured result as JSON."),
 ) -> None:
     """Decompile selected functions from native ProgramDB without compiling source."""
     from .. import command_support as cli
-    from ..ghidra.inspect import decompile_functions
+    from ..ghidra.inspect import decompile_functions, format_decompile_text
 
     payload = decompile_functions(cli.settings(), list(selectors), program_selector=program)
-    cli.emit(payload)
+    cli.emit(payload, as_json=as_json, text=format_decompile_text(payload))
     if payload.get("ok") is False:
         raise typer.Exit(code=1)
 
@@ -76,13 +77,14 @@ def asm_command(
         typer.Argument(help="Function addresses, ranges, or exact Ghidra names."),
     ],
     program: str = typer.Option("wiz8", "--program"),
+    as_json: bool = typer.Option(False, "--json", help="Emit the structured result as JSON."),
 ) -> None:
-    """Write annotated assembly for selected functions without decompiling."""
+    """Write annotated assembly for selected functions or bounded address windows."""
     from .. import command_support as cli
-    from ..ghidra.inspect import assemble_functions
+    from ..ghidra.inspect import assemble_functions, format_asm_text
 
     payload = assemble_functions(cli.settings(), list(selectors), program_selector=program)
-    cli.emit(payload)
+    cli.emit(payload, as_json=as_json, text=format_asm_text(payload))
     if payload.get("ok") is False:
         raise typer.Exit(code=1)
 
@@ -97,15 +99,16 @@ def sym_command(
     interpret: str | None = typer.Option(
         None, "--as", help="Interpret the first bytes as float, u32, i32, u16, or i16."
     ),
+    as_json: bool = typer.Option(False, "--json", help="Emit the structured result as JSON."),
 ) -> None:
     """Resolve identity, field, import, and data facts without decompiling."""
     from .. import command_support as cli
-    from ..ghidra.inspect import lookup_symbols
+    from ..ghidra.inspect import format_sym_text, lookup_symbols
 
     payload = lookup_symbols(
         cli.settings(), list(selectors), program_selector=program, interpret=interpret
     )
-    cli.emit(payload)
+    cli.emit(payload, as_json=as_json, text=format_sym_text(payload))
     if payload.get("ok") is False:
         raise typer.Exit(code=1)
 
@@ -117,17 +120,16 @@ def class_command(
         typer.Argument(help="Reviewed Ghidra class names."),
     ],
     program: str = typer.Option("wiz8", "--program"),
+    as_json: bool = typer.Option(False, "--json", help="Emit the structured result as JSON."),
 ) -> None:
-    """Report class fields and vtable references from live ProgramDB."""
+    """Report class fields, unknown regions, base subobjects, and vtable slots."""
     from .. import command_support as cli
     from ..ghidra.env import open_program
-    from ..ghidra.inspect import class_report
+    from ..ghidra.inspect import class_report, format_class_text
 
-    def action():
-        with open_program(cli.settings(), program) as live:
-            return class_report(live, list(names))
-
-    cli.emit(action())
+    with open_program(cli.settings(), program) as live:
+        payload = class_report(live, list(names))
+    cli.emit(payload, as_json=as_json, text=format_class_text(payload))
 
 
 @app.command("flow")

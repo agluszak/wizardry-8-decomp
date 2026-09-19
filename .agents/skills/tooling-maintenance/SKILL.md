@@ -92,7 +92,8 @@ Exploratory scripts are disposable under `build/` or stdin Python.
 
 Filter before printing. Large listings and diagnostic detail belong in named `build/` artifacts; the
 command result should expose the useful bounded answer/path. Do not dump whole internal graphs merely
-because the caller is an agent.
+because the caller is an agent. `ghidra decompile` / `asm` / `sym` / `class` print compact text by
+default; `--json` serializes that same result rather than running a second path.
 
 ## Verification
 
