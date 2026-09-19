@@ -151,8 +151,8 @@ void RefreshAllSight(void)
 
 /* Whether one monster can see another in combat once line of sight is clear. */
 // FUNCTION: WIZ8 0x005058a0
-unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
-                                   W8VisibilityRecord* record)
+bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
+                          W8VisibilityRecord* record)
 {
     W8MonsterRecord* target_record;
     W8Monster* source_monster;
