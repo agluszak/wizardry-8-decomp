@@ -236,9 +236,8 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
    pre-tree conversion pass. */
 // FUNCTION: WIZ8 0x004afda0
 OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
-                                                     srVector3T<float>* maximum,
-                                                     unsigned short item_limit,
-                                                     unsigned long path_capacity, short extent_mode)
+                                 srVector3T<float>* maximum, unsigned short item_limit,
+                                 unsigned long path_capacity, short extent_mode)
     : W8OctBuildTree00446390(leaf_size, minimum, maximum, item_limit, extent_mode)
 {
     active_f4 = 1;
@@ -273,9 +272,8 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
    inserted geometry kind, and route the point or box through the ordinary
    recursive region-map walk. */
 // FUNCTION: WIZ8 0x004b06e0
-unsigned char
-OctBuildPreTree::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
-                                                           short value, short mode)
+unsigned char OctBuildPreTree::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
+                                                               short value, short mode)
 {
     W8OctSpatialState working(&spatial_00);
     if (spatial_00.root_90 == 0) {
@@ -298,8 +296,8 @@ OctBuildPreTree::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geomet
    recursive call. */
 // FUNCTION: WIZ8 0x004b07e0
 unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
-                                                                 const srVector3T<float>* geometry,
-                                                                 short value, short mode)
+                                                       const srVector3T<float>* geometry,
+                                                       short value, short mode)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsometimes-uninitialized"
@@ -332,12 +330,10 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
                         intersects = BoundsOverlap0046D470(&child.minimum_0c, geometry);
                     }
 
-                    W8OctBuildNode00446330* parent =
-                        static_cast<W8OctBuildNode00446330*>(spatial->root_90);
+                    W8OctBuildNode00446330* parent = spatial->root_90;
                     child.root_90 = parent->children_00[child_index];
                     if (intersects != 0 && child.root_90 != 0) {
-                        W8OctBuildNode00446330* node =
-                            static_cast<W8OctBuildNode00446330*>(child.root_90);
+                        W8OctBuildNode00446330* node = child.root_90;
                         unsigned short region = node->positional_28;
                         if (region != 0) {
                             if (mode == 6) {
@@ -357,7 +353,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
             }
         }
     } else {
-        W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(child.root_90);
+        W8OctBuildNode00446330* node = child.root_90;
         unsigned short region = node->positional_28;
         if (region != 0) {
             if (mode == 6) {
@@ -471,7 +467,7 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
 
     if (spatial->depth_44 == spatial_00.leaf_level_52) {
         g_value_65be58 = 0;
-        W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(spatial->root_90);
+        W8OctBuildNode00446330* node = spatial->root_90;
         node->CollectLinkedSurfaces004AF8F0(spatial_00.leaf_level_52, spatial_00.depth_44, 2);
 
         unsigned long unique_count = 0;
@@ -538,8 +534,7 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
     for (int x = 0; x != 2; ++x) {
         for (int y = 0; y != 2; ++y) {
             for (int z = 0; z != 2; ++z, ++child_index) {
-                W8OctBuildNode00446330* parent =
-                    static_cast<W8OctBuildNode00446330*>(spatial->root_90);
+                W8OctBuildNode00446330* parent = spatial->root_90;
                 W8OctBuildNode00446330* node = parent->children_00[child_index];
                 if (node != 0) {
                     child.minimum_0c.x = x * child.extent_04 + spatial->minimum_0c.x;
@@ -563,7 +558,7 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
 // FUNCTION: WIZ8 0x004b23f0
 W8OctBuildNode00446330* OctBuildPreTree::FindNode004B23F0(unsigned int path)
 {
-    W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(spatial_00.root_90);
+    W8OctBuildNode00446330* node = spatial_00.root_90;
     unsigned int active_levels = path >> 24;
     unsigned char x = (unsigned char)(path >> 16);
     unsigned char y = (unsigned char)(path >> 8);
@@ -591,7 +586,7 @@ W8OctBuildNode00446330* OctBuildPreTree::FindNode004B23F0(unsigned int path)
    the other three bytes are the x/y/z cell coordinates. */
 // FUNCTION: WIZ8 0x004b2450
 unsigned char OctBuildPreTree::MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node,
-                                                                     unsigned int path)
+                                                           unsigned int path)
 {
     int cell[4];
     cell[0] = path & 0xff000000;
@@ -646,8 +641,7 @@ unsigned char OctBuildPreTree::MergeAdjacentRegion004B2450(W8OctBuildNode0044633
    node. Every packed path is re-keyed in the region table and the surviving
    center becomes the population-weighted average of both groups. */
 // FUNCTION: WIZ8 0x004b25c0
-unsigned char OctBuildPreTree::MergeRegion004B25C0(W8OctBuildNode00446330* node,
-                                                             const int* cell)
+unsigned char OctBuildPreTree::MergeRegion004B25C0(W8OctBuildNode00446330* node, const int* cell)
 {
     unsigned long neighbor_path = ((cell[1] * 0x100 + cell[2]) * 0x100 + cell[3]) + cell[0];
     W8OctBuildNode00446330* neighbor = FindNode004B23F0(neighbor_path);
@@ -801,8 +795,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* 
         for (int x = 0; x != 2; ++x) {
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z, ++child_index) {
-                    W8OctBuildNode00446330* parent =
-                        static_cast<W8OctBuildNode00446330*>(spatial->root_90);
+                    W8OctBuildNode00446330* parent = spatial->root_90;
                     W8OctBuildNode00446330* node = parent->children_00[child_index];
                     if (node != 0) {
                         child.minimum_0c.x = x * child.extent_04 + spatial->minimum_0c.x;
@@ -820,7 +813,7 @@ void OctBuildPreTree::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* 
         return;
     }
 
-    W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(spatial->root_90);
+    W8OctBuildNode00446330* node = spatial->root_90;
     if (node->positional_28 != 0) {
         return;
     }
@@ -977,8 +970,9 @@ void OctBuildPreTree::ValidateRegionBounds004B35B0(const W8BoundingBox* region_b
    regions lead the compact list, followed by one null-terminated list per
    region; the lookup table stores each region's offset into that list. */
 // FUNCTION: WIZ8 0x004b3820
-unsigned char OctBuildPreTree::BuildParticleRegions004B3820(
-    const W8LevelFileParticleSystem* particles, int particle_count)
+unsigned char
+OctBuildPreTree::BuildParticleRegions004B3820(const W8LevelFileParticleSystem* particles,
+                                              int particle_count)
 {
     particle_count_11c = particle_count;
     positional_12c = new W8HashTable<unsigned short, short>;
@@ -1128,9 +1122,9 @@ unsigned char OctBuildPreTree::BuildParticleRegions004B3820(
    table. The first call owns the shared scratch list; the final call appends
    the second bank, emits the compact lookup/list pair, and releases scratch. */
 // FUNCTION: WIZ8 0x004b3f90
-unsigned char OctBuildPreTree::BuildGeometryRegions004B3F90(
-    const W8LevelFileProp* records, int record_count, int base_index,
-    unsigned char finalize)
+unsigned char OctBuildPreTree::BuildGeometryRegions004B3F90(const W8LevelFileProp* records,
+                                                            int record_count, int base_index,
+                                                            unsigned char finalize)
 {
     if (finalize == 0) {
         positional_130 = new W8HashTable<unsigned short, short>;
@@ -1149,7 +1143,8 @@ unsigned char OctBuildPreTree::BuildGeometryRegions004B3F90(
             W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
             for (unsigned char bounds_index = 0; bounds_index < record.anim_obj_53.num_bound_box_47;
                  ++bounds_index) {
-                const srVector3T<float>* bounds = &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
+                const srVector3T<float>* bounds =
+                    &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
                 for (int x = 0; x != 2; ++x) {
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
@@ -1188,7 +1183,8 @@ unsigned char OctBuildPreTree::BuildGeometryRegions004B3F90(
         aggregate[1].z = -1000000.0f;
         for (unsigned char bounds_index = 0; bounds_index < record.anim_obj_53.num_bound_box_47;
              ++bounds_index) {
-            const srVector3T<float>* bounds = &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
+            const srVector3T<float>* bounds =
+                &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
             for (int endpoint = 0; endpoint != 2; ++endpoint) {
                 srVector3T<float> point;
                 point = bounds[endpoint] * g_world_scale_005ebc40;
@@ -1352,7 +1348,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree004B4640()
     tree->m_positional_13c = 0;
     tree->m_trigger_count_128 = 0;
 
-    W8OctBuildNode00446330* root = static_cast<W8OctBuildNode00446330*>(spatial_00.root_90);
+    W8OctBuildNode00446330* root = spatial_00.root_90;
     root->ConvertToOctPreTree004AFA30(0, tree);
     delete root;
     spatial_00.root_90 = 0;

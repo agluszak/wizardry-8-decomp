@@ -18,11 +18,7 @@
 /* identity-alias: as in Bink.cpp, retail shares one no-op stub at 0x004023a0
    across arities (PathAIApplyToRep004A91F0 calls it with two arguments), so
    this overload only satisfies the local call and owns no separate address. */
-void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
-{
-    static_cast<void>(path);
-    static_cast<void>(representation);
-}
+void NoOp(W8AIRecord*, W8AnimRepBase005EC1D8*) {}
 
 /* identity-alias: retail folds this empty body with the SYNTHETIC at
    0x004023a0 in vc6_runtime.cpp. */
@@ -30,20 +26,19 @@ void NoOp(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 void NoOp(void) {}
 
 // FUNCTION: WIZ8 0x004a9260
-unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
+unsigned char PathAIUpdate004A9260(W8AIRecord* record, signed char direction)
 {
-    if (path == 0) {
+    if (record == 0) {
         return 0;
     }
-    switch (path->kind_00) {
+    switch (record->kind_00) {
     case 0:
-        return static_cast<unsigned char>(PathAITick004AA1F0(path, direction));
+        return static_cast<unsigned char>(
+            PathAITick004AA1F0(static_cast<W8PathAI*>(record), direction));
     case 1:
         return 0;
     case 3:
-        return UpdateMissileAI004A4CF0(
-            reinterpret_cast< // reinterpret-ok: the kind byte selects the tagged record type
-                W8AIMissile*>(path));
+        return UpdateMissileAI004A4CF0(static_cast<W8AIMissile*>(record));
     default:
         return 0;
     }
@@ -140,20 +135,21 @@ void PathAIResetRecord004A9720(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9740
-unsigned char PathAIRecordFlag004A9740(const W8PathAI* path)
+unsigned char PathAIRecordFlag004A9740(const W8AIRecord* record)
 {
-    return path->kind_00;
+    return record->kind_00;
 }
 
 // FUNCTION: WIZ8 0x004a91f0
-void PathAIApplyToRep004A91F0(W8PathAI* path, W8AnimRepBase005EC1D8* representation)
+void PathAIApplyToRep004A91F0(W8AIRecord* record, W8AnimRepBase005EC1D8* representation)
 {
-    if (path->kind_00 != 0) {
-        if (path->kind_00 == 3) {
-            NoOp(path, representation);
+    if (record->kind_00 != 0) {
+        if (record->kind_00 == 3) {
+            NoOp(record, representation);
         }
         return;
     }
+    W8PathAI* path = static_cast<W8PathAI*>(record);
     if (path == 0 || representation == 0) {
         srAssertFail("pPathAI&&pRep", PATH_AI_CPP, 0x595, 0);
     }
@@ -294,12 +290,12 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
 /* Clone whichever AI record the tag selects. An unknown tag copies nothing and
    returns null rather than aliasing the source. */
 // FUNCTION: WIZ8 0x004a91c0
-void* CloneAIRecord004A91C0(void* record)
+W8AIRecord* CloneAIRecord004A91C0(const W8AIRecord* record)
 {
     if (record == 0) {
         return 0;
     }
-    switch (*static_cast<const unsigned char*>(record)) {
+    switch (record->kind_00) {
     case 0:
         return ClonePathAI004A98C0(static_cast<const W8PathAI*>(record));
     case 3:

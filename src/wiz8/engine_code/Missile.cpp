@@ -638,7 +638,7 @@ void W8Missile::StartIfHostActive()
     }
     if (GetAnimationState004A4640(2) == 0 || flag_1e1 == 0) {
         if (m_pAI != 0) {
-            PathAIUpdate004A9260(static_cast<W8PathAI*>(m_pAI), 1);
+            PathAIUpdate004A9260(m_pAI, 1);
         }
         TickAnimation(1.0f);
     } else {

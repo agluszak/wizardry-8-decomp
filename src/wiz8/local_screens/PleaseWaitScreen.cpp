@@ -134,8 +134,7 @@ unsigned char PleaseWaitScreenEnter(void)
         case 2:
             g_load_descriptor_69b7c8->parameter = g_status_685170.current_level;
             strcpy(g_load_descriptor_69b7c8->name, g_current_screen_state.name);
-            g_load_descriptor_69b7c8->save_payload =
-                static_cast<W8SaveScreenshot*>(g_current_screen_state.parameter_3);
+            g_load_descriptor_69b7c8->save_payload = g_current_screen_state.parameter_3.screenshot;
             break;
         case 3:
             g_load_descriptor_69b7c8->parameter = g_current_screen_state.parameter;

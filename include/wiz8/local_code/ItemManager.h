@@ -1,5 +1,7 @@
 #pragma once
 
+#include "surrender/srMath.h"
+
 struct W8Item;
 struct W8WorldItem;
 struct W8ItemInstance;
@@ -30,7 +32,8 @@ void UpdateNearbyWorldItems(void); /* 0x004F7480 */
 /* Advance one falling world item (flag bit 1) toward the ground. */
 unsigned char AdvanceFallingWorldItem(W8WorldItem* item); /* 0x004F9240 */
 /* Whether one world item is close enough to a point and in sight. */
-bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius); /* 0x004F8560 */
+bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from,
+                            float radius); /* 0x004F8560 */
 /* Whether any live world item is visible to the camera within reach. */
 bool AnyWorldItemVisible(void);                               /* 0x004F8650 */
 void DropMonsterLoot(W8MonsterInfo* monster_info, int value); /* 0x004F8CB0 */

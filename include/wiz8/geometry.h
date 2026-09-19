@@ -33,6 +33,9 @@ struct W8GDSurface {
     int positional_10;
     int positional_14;
     int vertex_indices_18[3];
+    /* Tagged plane/normal overlay: srVector4T/srVector3T cannot be union
+       members under VC6 (C2620, user-provided ctor), so the arms stay raw
+       floats and the vector types live on the consumers. */
     union {
         float plane_24[4];
         struct {
@@ -76,7 +79,7 @@ static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
    the Newell and distance loops; the three-point copy lowers as unrolled
    vector assignment in one TU and a component countdown in the other.
    Counted fors are the authored form. No Wiz8 COMDAT. */
-inline void SetPlaneFromThreePoints(float* plane, const srVector3T<float>* first,
+inline void SetPlaneFromThreePoints(srVector4T<float>* plane, const srVector3T<float>* first,
                                     const srVector3T<float>* second, const srVector3T<float>* third)
 {
     srVector3T<float> vertices[3];
@@ -84,34 +87,33 @@ inline void SetPlaneFromThreePoints(float* plane, const srVector3T<float>* first
     vertices[1] = *second;
     vertices[2] = *third;
 
-    plane[0] = 0.0f;
-    plane[1] = 0.0f;
-    plane[2] = 0.0f;
-    plane[3] = 0.0f;
+    plane->x = 0.0f;
+    plane->y = 0.0f;
+    plane->z = 0.0f;
+    plane->w = 0.0f;
 
     for (int index = 0; index < 3; ++index) {
         const srVector3T<float>& current = vertices[index];
         const srVector3T<float>& next = vertices[(index + 1) % 3];
         const srVector3T<float>& previous = vertices[(index + 2) % 3];
-        plane[0] += current.y * (next.z - previous.z);
-        plane[1] += current.z * (next.x - previous.x);
-        plane[2] += current.x * (next.y - previous.y);
+        plane->x += current.y * (next.z - previous.z);
+        plane->y += current.z * (next.x - previous.x);
+        plane->z += current.x * (next.y - previous.y);
     }
 
-    float scale =
-        g_float_005ebb38 /
-        static_cast<float>(sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]));
-    plane[0] *= scale;
-    plane[1] *= scale;
-    plane[2] *= scale;
+    srVector3T<float> normal(plane->x, plane->y, plane->z);
+    float scale = g_float_005ebb38 / normal.Length();
+    plane->x *= scale;
+    plane->y *= scale;
+    plane->z *= scale;
 
     float distances[3];
     for (int vertex_index = 0; vertex_index < 3; ++vertex_index) {
-        distances[vertex_index] = plane[0] * vertices[vertex_index].x +
-                                  plane[1] * vertices[vertex_index].y +
-                                  plane[2] * vertices[vertex_index].z;
+        distances[vertex_index] = plane->x * vertices[vertex_index].x +
+                                  plane->y * vertices[vertex_index].y +
+                                  plane->z * vertices[vertex_index].z;
     }
-    plane[3] = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+    plane->w = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
 }
 
 /* Signed plane distance n·p + w. Independent TUs: 3d.cpp PointInsideFrustum
@@ -217,6 +219,6 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
 }
 
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
-void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
+void BuildTrianglePlane00449A40(srVector4T<float>* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
 #endif

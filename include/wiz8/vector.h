@@ -24,6 +24,8 @@ public:
         }
     }
 
+    /* The copy is sized to the source's live count rather than its capacity.
+       The concrete int body at 0x004ED900 is an ordinary template emission. */
     W8GrowableVector(const W8GrowableVector& other)
     {
         data = new T[other.count];

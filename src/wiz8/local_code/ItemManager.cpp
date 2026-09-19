@@ -951,7 +951,7 @@ unsigned char ReleaseItemLists(void)
    sight of the party's eye. The distance is compared before the trace, so a
    far item is never traced to. */
 // FUNCTION: WIZ8 0x004f8560
-bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
+bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float radius)
 {
     srVector3T<float> position;
     srVector3T<float> lower;
@@ -961,9 +961,9 @@ bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
     owner->m_pRep->GetLocation004B8890(&position);
     GetCameraPosition(&eye);
 
-    srVector3T<float> delta(position.x - from[0], position.y - from[1], position.z - from[2]);
+    srVector3T<float> delta(position.x - from->x, position.y - from->y, position.z - from->z);
     if (delta.LengthSquared() < radius * radius) {
-        owner->GetCachedLocalBounds(&lower.x, &upper.x);
+        owner->GetCachedLocalBounds(&lower, &upper);
         lower.x += position.x;
         lower.y += position.y;
         lower.z += position.z;
@@ -1008,7 +1008,7 @@ bool AnyWorldItemVisible(void)
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->owner->GetCachedLocalBounds(&lower.x, &upper.x);
+                item->owner->GetCachedLocalBounds(&lower, &upper);
                 lower.x += position.x;
                 lower.y += position.y;
                 lower.z += position.z;
@@ -1030,7 +1030,7 @@ bool AnyWorldItemVisible(void)
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->owner->GetCachedLocalBounds(&lower.x, &upper.x);
+                item->owner->GetCachedLocalBounds(&lower, &upper);
                 lower.x += position.x;
                 lower.y += position.y;
                 lower.z += position.z;

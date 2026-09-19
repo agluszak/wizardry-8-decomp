@@ -404,7 +404,7 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
                 if (m_mode_008 == 2 &&
                     m_character_018.experience_goal <= m_character_018.experience) {
                     g_pending_screen_state.mode = 3;
-                    g_pending_screen_state.parameter_3 = m_original_014;
+                    g_pending_screen_state.parameter_3.character = m_original_014;
                     SetPendingScreenState(W8_SCREEN_CHARACTER);
                 }
             }
@@ -737,7 +737,7 @@ unsigned char CharacterScreenEnter(void)
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_palette_wiz_text_bold_68ee0c);
     g_character_screen_0069c2e8 = new W8CharacterScreen(
-        g_current_screen_state.mode, static_cast<W8Character*>(g_current_screen_state.parameter_3));
+        g_current_screen_state.mode, g_current_screen_state.parameter_3.character);
     g_character_screen_0069c2e8->BuildControls();
     if (!g_status_685170.game_started &&
         (g_current_screen_state.mode == 0 || g_current_screen_state.mode == 2)) {

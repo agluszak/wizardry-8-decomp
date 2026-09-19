@@ -44,8 +44,6 @@ float g_float_005ec5c0 = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x005ec5c4
 float g_float_005ec5c4 = 0.699999988079071f;
 
-template <> srVector3T<double>* srVector3T<double>::SetFromFloat(const srVector3T<float>* source);
-
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
    the enum runs 1..3. The stored-to object is whatever GrCycle's primary vtable
@@ -1224,7 +1222,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signe
     }
     if (m_pAI != 0) {
         target = GetRepresentation();
-        PathAIApplyToRep004A91F0(static_cast<W8PathAI*>(m_pAI), target);
+        PathAIApplyToRep004A91F0(m_pAI, target);
     }
     target = GetRepresentation();
     return target->SetCycleFrameLod(cycle, frame, lod);
@@ -1499,14 +1497,6 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
             m_ground_shadow->setFlag(srNode::FLAG_DISABLE);
         }
     }
-}
-
-template <> srVector3T<double>* srVector3T<double>::SetFromFloat(const srVector3T<float>* source)
-{
-    x = source->x;
-    y = source->y;
-    z = source->z;
-    return this;
 }
 
 // TEMPLATE: WIZ8 0x004a90e0

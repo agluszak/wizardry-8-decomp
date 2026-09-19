@@ -95,8 +95,6 @@
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 
-template <> void srFlags<int>::set(int bit, int on);
-
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
 // GLOBAL: WIZ8 0x0060bfe0
@@ -176,8 +174,8 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
                                                                    {-37.5f, 75.0f, 0.0f},
                                                                    {37.5f, 75.0f, 0.0f},
                                                                    {112.5f, 75.0f, 0.0f}}};
-// GLOBAL: WIZ8 0x0060e914
-float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
+// GLOBAL: WIZ8 0x0060e918
+float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 
 // GLOBAL: WIZ8 0x005ec04c
@@ -3710,7 +3708,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
                 mesh_scale =
-                    distance_scale * g_monster_attachment_scales_0060e914[attachment_layout];
+                    distance_scale * g_monster_attachment_scales_0060e918[attachment_layout - 1];
                 widened_scale = mesh_scale;
                 mesh->setScale(widened_scale);
                 if ((flags_1dc & 0x400) == 0) {
@@ -3759,7 +3757,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
-                mesh_scale = distance_scale * g_monster_attachment_scales_0060e914[chunk_count];
+                mesh_scale = distance_scale * g_monster_attachment_scales_0060e918[chunk_count - 1];
                 widened = mesh_scale;
                 mesh->setScale(widened);
                 widened.SetFromFloat(&location);
@@ -4426,14 +4424,6 @@ unsigned char W8Monster::IsDying()
 
 // TEMPLATE: WIZ8 0x004CA880
 // srFlags<int>::set
-template <> void srFlags<int>::set(int bit, int on)
-{
-    if (on != 0) {
-        value |= 1 << bit;
-        return;
-    }
-    value &= ~(1u << bit);
-}
 
 /* Resolve mapped vertex zero on the current model and transform it into world
    space. Models without that mapping use the Navigator position plus the
@@ -4569,7 +4559,7 @@ void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
 // FUNCTION: WIZ8 0x004c5b30
-void* MonsterGetObject0C(W8Monster* monster)
+W8AIRecord* MonsterGetObject0C(W8Monster* monster)
 {
     if (monster != 0) {
         return monster->m_pAI;

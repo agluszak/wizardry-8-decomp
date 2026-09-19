@@ -1517,7 +1517,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
         } else {
             marker = generator->marker_item;
         }
-        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
             return 1;
         }
     }
@@ -1528,7 +1528,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
         } else {
             marker = generator->marker_item;
         }
-        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
             g_last_reachable_mongen_marker_0064a1e0 = index;
             return 1;
         }

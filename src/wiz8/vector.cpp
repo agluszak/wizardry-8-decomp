@@ -7,7 +7,7 @@
 // W8GrowableVector<int>::Grow
 
 // TEMPLATE: WIZ8 0x004ed900
-// W8GrowableVector<int>::W8GrowableVector(const W8GrowableVector<int>&)
+// W8GrowableVector<int>::W8GrowableVector
 
 // TEMPLATE: WIZ8 0x004d99e0
 // W8GrowableVector<T*>::RemoveAt

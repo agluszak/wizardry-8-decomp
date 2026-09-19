@@ -11,8 +11,15 @@ class W8AnimRepBase005EC1D8;
    five consumers below establish these offsets; unresolved members remain
    address-qualified rather than receiving speculative pathfinding names. */
 
-struct W8PathAI {
+/* The tagged AI record family W8GrObject stores at +0x0c: the leading byte
+   selects the record type, kind 0 being W8PathAI and kind 3 being
+   Missile.cpp's W8AIMissile. The dispatcher entry points below take this base;
+   operations on record-specific tails keep the concrete type. */
+struct W8AIRecord {
     unsigned char kind_00; /* 0x00 */
+};
+
+struct W8PathAI : W8AIRecord {
     unsigned char unknown_01[3];
     /* Normalized for interpolated movement, point units in discrete mode. */
     float position;                                 /* 0x04 */
@@ -43,10 +50,12 @@ static_assert(sizeof(W8GrowableVector<srVector3T<float>*>) == 0x10,
               "PathAI_vector_size_must_be_0x10");
 static_assert(sizeof(W8PathAI) == 0x40, "W8PathAI_size_must_be_0x40");
 
-unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction);
+/* Tagged-record dispatchers: the body switches on kind_00 and hands the
+   record to the path or missile implementation. */
+unsigned char PathAIUpdate004A9260(W8AIRecord* record, signed char direction);
 void PathAIResetRecord004A9720(W8PathAI* path);
-unsigned char PathAIRecordFlag004A9740(const W8PathAI* path);
-void PathAIApplyToRep004A91F0(W8PathAI* path, W8AnimRepBase005EC1D8* representation);
+unsigned char PathAIRecordFlag004A9740(const W8AIRecord* record);
+void PathAIApplyToRep004A91F0(W8AIRecord* record, W8AnimRepBase005EC1D8* representation);
 /* Places one srNode (model instance, light, camera, …) through a path. The
    body only calls srNode child/location/rotation/scale APIs; retail callers
    pass those node kinds interchangeably. */
@@ -81,12 +90,9 @@ W8PathAI* CreateRecord004A9750(int unused);
    node vector and both trailing arrays. */
 void DestroyOwnedPathAI004A9110(W8PathAI* path);
 
-/* The AI records W8GrObject holds at +0x0c are a tagged family: the leading
-   byte selects the record type, kind 0 being W8PathAI and kind 3 being
-   Missile.cpp's W8AIMissile. This is the dispatcher every copy goes through, so
-   the pointer is deliberately untyped here - the tag, not the declaration,
-   decides which record it is. */
-void* CloneAIRecord004A91C0(void* record);
+/* The dispatcher every AI-record copy goes through; the kind_00 tag, not the
+   declaration, decides which concrete record it clones. */
+W8AIRecord* CloneAIRecord004A91C0(const W8AIRecord* record);
 W8PathAI* ClonePathAI004A98C0(const W8PathAI* path);
 
 void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float value);

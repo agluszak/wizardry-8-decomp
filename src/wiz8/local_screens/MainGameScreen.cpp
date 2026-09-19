@@ -344,7 +344,7 @@ double g_world_cursor_extent_table_00616eb0[18];
    Insanity cursor reads it byte-indexed by the power field; the eleven bytes
    run to 0x00616f4c, where the separate Magic Effects dword table starts. */
 // GLOBAL: WIZ8 0x00616f41
-signed char g_spell_power_extent_index_00616f41[11] = {0, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0};
+signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 1, 1, 2, 2, 0};
 void StartCombat(int surprise);
 
 void ServiceNpcDialogue0056E510(void);
@@ -1130,7 +1130,7 @@ void W8LockInteraction::BeginUnlock()
 // FUNCTION: WIZ8 0x00587cf0
 W8MainGameTextKeyHandler::W8MainGameTextKeyHandler(Controls* panel, int left, int top, int right,
                                                    int bottom, int line_count,
-                                                   unsigned short* field_ac,
+                                                   const unsigned short* field_ac,
                                                    unsigned int* region_set)
     : W8Widget(panel, 0xffffffff, left, top, right - 0x13, bottom),
       m_range_038(panel->origin_x - 0x12 + right, panel->origin_y + top, right + panel->origin_x,
@@ -5146,7 +5146,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3.character =
+                    &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5229,7 +5230,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3.character =
+                    &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5353,7 +5355,8 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3.character =
+                    &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -7342,9 +7345,9 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
         CloseNpcDialogueForCamp();
     }
     g_pending_screen_state.parameter_2 = party_slot;
-    g_pending_screen_state.parameter_3 = g_status_685170.buffers.characters + party_slot;
+    g_pending_screen_state.parameter_3.character = g_status_685170.buffers.characters + party_slot;
     g_pending_screen_state.parameter_4 =
-        flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
+        flag != 0 ? g_pending_screen_state.parameter_3.character : 0;
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode != 0) {
             EndNpcDialogueSession0056E800(0);

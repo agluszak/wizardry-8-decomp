@@ -330,15 +330,15 @@ void W8Item::UpdateAnimation0049F730()
 }
 
 // FUNCTION: WIZ8 0x0049FB30
-unsigned char W8Item::GetCachedLocalBounds(float* lower, float* upper)
+unsigned char W8Item::GetCachedLocalBounds(srVector3T<float>* lower, srVector3T<float>* upper)
 {
     W8ItemRep* rep = static_cast<W8ItemRep*>(m_pRep);
-    lower[0] = rep->bounds_minimum.x;
-    lower[1] = rep->bounds_minimum.y;
-    lower[2] = rep->bounds_minimum.z;
-    upper[0] = rep->bounds_maximum.x;
-    upper[1] = rep->bounds_maximum.y;
-    upper[2] = rep->bounds_maximum.z;
+    lower->x = rep->bounds_minimum.x;
+    lower->y = rep->bounds_minimum.y;
+    lower->z = rep->bounds_minimum.z;
+    upper->x = rep->bounds_maximum.x;
+    upper->y = rep->bounds_maximum.y;
+    upper->z = rep->bounds_maximum.z;
     return true;
 }
 
@@ -356,14 +356,14 @@ static const float g_item_bounds_vertical_factor_005ecd88 = 0.66f;
 // FUNCTION: WIZ8 0x0049FBA0
 unsigned char W8Item::GetSearchPosition(srVector3T<float>* location)
 {
-    float lower[3];
-    float upper[3];
+    srVector3T<float> lower;
+    srVector3T<float> upper;
 
-    if (GetCachedLocalBounds(lower, upper) == 0) {
+    if (GetCachedLocalBounds(&lower, &upper) == 0) {
         return 0;
     }
     m_pRep->GetLocation004B8890(location);
-    location->y += (upper[1] - lower[1]) * g_item_bounds_vertical_factor_005ecd88;
+    location->y += (upper.y - lower.y) * g_item_bounds_vertical_factor_005ecd88;
     return 1;
 }
 
@@ -435,9 +435,9 @@ bool W8Item::IsSelected()
 // FUNCTION: WIZ8 0x0049FFA0
 float W8Item::DistanceToCamera(W8World* world)
 {
-    float lower[3];
-    float upper[3];
-    if (!GetCachedLocalBounds(lower, upper)) {
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    if (!GetCachedLocalBounds(&lower, &upper)) {
         return -1.0f;
     }
     srVector3T<double> camera = world->camera->getLocation();
@@ -446,7 +446,7 @@ float W8Item::DistanceToCamera(W8World* world)
     srVector3T<float> center = m_pRep->location_004;
     /* Unlike the selection-point helper, retail offsets Z by half the Z
        extent here, not Y by 0.66 of the Y extent. */
-    center.z += (upper[2] - lower[2]) * 0.5f;
+    center.z += (upper.z - lower.z) * 0.5f;
     return (camera_location - center).Length();
 }
 
@@ -479,7 +479,7 @@ unsigned char RunItemTrigger004A0070(W8Item* item)
 }
 
 // FUNCTION: WIZ8 0x004A00C0
-bool GetItemWorldBounds(W8Item* item, float* lower, float* upper)
+bool GetItemWorldBounds(W8Item* item, srVector3T<float>* lower, srVector3T<float>* upper)
 {
     if (item == 0) {
         return false;
@@ -487,11 +487,7 @@ bool GetItemWorldBounds(W8Item* item, float* lower, float* upper)
     item->GetCachedLocalBounds(lower, upper);
     srVector3T<float> location;
     item->m_pRep->GetLocation004B8890(&location);
-    lower[0] += location.x;
-    lower[1] += location.y;
-    lower[2] += location.z;
-    upper[0] += location.x;
-    upper[1] += location.y;
-    upper[2] += location.z;
+    *lower += location;
+    *upper += location;
     return true;
 }

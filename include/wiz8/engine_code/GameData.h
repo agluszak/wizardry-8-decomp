@@ -12,6 +12,7 @@ void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
+#include "wiz8/layouts/world.h"
 
 /* The current level-data record at 0x00652DAC — a 0xf4-byte allocation whose
    first 0xac bytes mix flag, counter and camera-vector state. GameData.cpp
@@ -328,7 +329,7 @@ float GetCameraYawInDegrees();
 float GetCameraYawRadians();
 float GetCameraPitchInDegrees();
 float GetCameraPitchRadians();
-void GetCameraOrientation(float* angle, float* pitch);
+void GetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch);
 void BeginManualCameraControl();
 void LevelCamera();
 void CameraLookAt(const srVector3T<float>* position);     /* 0x00420F90 */
@@ -336,7 +337,8 @@ void CameraSnapToTarget(const srVector3T<float>* target); /* 0x00420FB0 */
 void TurnCameraToDegrees(float degrees);
 void SetCameraYawDegrees(float degrees);
 void ApplyCameraRotation(srMatrix3T<float>* rotation);
-void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation);
+void SetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
+                          srMatrix3T<float>* rotation);
 /* 0x00420F40: camera yaw in whole degrees plus an optional yaw-rotation
    matrix copy. */
 int GetCameraYawAndRotation00420F40(srMatrix3T<float>* rotation);
@@ -347,7 +349,8 @@ unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
 /* 0x00421570: restore a saved yaw/pitch into the game camera, reading the
    world camera node's current rotation first and fetching the updated matrix
    (both into the same dead local in retail). */
-void RestoreWorldCameraOrientation00421570(float* angle, float* pitch, W8World* world);
+void RestoreWorldCameraOrientation00421570(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
+                                           W8World* world);
 void GetCameraPosition(srVector3T<float>* position);
 int GetCameraYawDegrees(void);
 /* 0x004215E0: point-visibility query through the world octree; false with no

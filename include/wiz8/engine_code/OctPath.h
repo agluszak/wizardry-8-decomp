@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/stHeap.hpp"
 #include "wiz8/engine_code/stHash.hpp"
+#include "wiz8/geometry.h"
 
 #include <stddef.h>
 
@@ -164,6 +165,24 @@ static_assert(sizeof(W8FileWaypoint) == 0x10, "W8FileWaypoint_must_be_0x10");
    walks the zero-terminated lookup run starting at lookup_index: each lookup
    names a key, each key packs two region halfwords, and the key's parallel
    value word carries the height in its low half. */
+/* The four-cell X/Z rectangle a conditional path covers, written by
+   FindPathHandle from the low and high halves of its node keys. */
+struct W8PathGridBounds {
+    unsigned short min_x;
+    unsigned short max_x;
+    unsigned short min_z;
+    unsigned short max_z;
+};
+
+/* The vertical span a conditional path covers: the minimum and maximum are
+   filled by FindPathHandle; the middle slot stays a caller-managed sentinel
+   (GDProp keeps its bound midpoint there). */
+struct W8PathVerticalRange {
+    float minimum;
+    float sentinel;
+    float maximum;
+};
+
 struct GDPropCondPaths {
     char name[0x40];
     unsigned int lookup_index; /* 0x40 */
@@ -258,8 +277,8 @@ static_assert(sizeof(W8PathSearchNode) == 0x2c, "W8PathSearchNode_must_be_0x2c")
 class W8PathingService {
 public:
     W8PathingService(); /* 0x004578E0 */
-    unsigned int FindPathHandle(const char* path_name, unsigned short* path_bounds,
-                                float* path_range); /* 0x00457CF0 */
+    unsigned int FindPathHandle(const char* path_name, W8PathGridBounds* path_bounds,
+                                W8PathVerticalRange* path_range); /* 0x00457CF0 */
     /* Neither takes a prop: both walk the service's own surface and edge
        tables, and their receiver is the service. */
     /* The two operations W8Octree::AdvanceNavigator delegates to: it loads
@@ -352,8 +371,8 @@ public:
                                           const srVector3T<float>* velocity, float maximum);
     void ProbeWaypointArc00462570(const srVector3T<float>* from, const srVector3T<float>* to);
     void GetPathGridStepDirections0045AEE0(const W8PathGridWalk* walk, int* directions);
-    void BuildPathGridWalk0045AF60(const float* from, const float* to, const float* origin,
-                                   W8PathGridWalk* walk);
+    void BuildPathGridWalk0045AF60(const srVector2T<float>* from, const srVector2T<float>* to,
+                                   const srVector2T<float>* origin, W8PathGridWalk* walk);
     unsigned char ProbeWaypointSegment00462750(const srVector3T<float>* from,
                                                const srVector3T<float>* to);
     unsigned int ComputeWaypointNeighborMask004667A0(const int* cell, unsigned int path_value);
@@ -409,11 +428,11 @@ public:
                                                unsigned int direction);
     void EditTeleportalLink(const srVector3T<float>* destination,
                             const srVector3T<float>* source); /* 0x0045F2D0 */
-    /* Takes the size, two loose values, the six-float bounds block out of the
-       octree header, and the level name the octree already owns. */
-    void ConfigureForLevel(int size, float grid_scale, int path_clearance, const float* bounds,
-                           const char* name); /* 0x00458A50 */
-    unsigned char Load00458CE0(int handle);   /* 0x00458CE0 */
+    /* Takes the size, two loose values, the bounds block out of the octree
+       header, and the level name the octree already owns. */
+    void ConfigureForLevel(int size, float grid_scale, int path_clearance,
+                           const W8BoundingBox* bounds, const char* name); /* 0x00458A50 */
+    unsigned char Load00458CE0(int handle);                                /* 0x00458CE0 */
     unsigned char WritePathNodes00458AD0(unsigned int handle);
     unsigned char SaveWaypointSnapshot00459400(unsigned char force);
     unsigned char WriteWaypointFile00459540();
@@ -444,7 +463,8 @@ public:
     /* Path probe-clearance height, raw float bits from the octree
        header word; only ConfigureForLevel writes it. */
     int path_clearance_028; /* 0x28 */
-    float level_bounds[6];  /* 0x2c */
+    float level_bounds[6];  /* 0x2c: serialized minimum/maximum pair; the ctor's
+                             counted six-store loop proves the authored array */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */

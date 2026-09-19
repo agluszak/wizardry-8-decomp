@@ -18,7 +18,7 @@ enum { W8_MONSTER_HIT_LOCATIONS = 7, W8_MONSTER_BODY_TYPES = 6 };
 
 /* 0x0061E7B0: gppStringList indices naming each character hit location,
    paired with a second form the missile hit does not use. */
-extern const unsigned short g_pc_hit_location_labels[W8_PC_HIT_LOCATIONS + 1][2];
+extern const unsigned short g_pc_hit_location_labels[5][2];
 /* 0x0061EA24: gppStringList indices naming each monster hit location for
    each body type. */
 extern const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIONS]

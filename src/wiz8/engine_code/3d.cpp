@@ -944,7 +944,7 @@ unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
 void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third)
 {
-    SetPlaneFromThreePoints(&plane->x, first, second, third);
+    SetPlaneFromThreePoints(plane, first, second, third);
 }
 
 /* Point-in-triangle test by even-odd crossing on the plane perpendicular to
@@ -1066,16 +1066,16 @@ unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float 
 }
 
 // FUNCTION: WIZ8 0x0046d920
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const float* bounds)
+bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8BoundingBox* bounds)
 {
     for (short x = 0; x < 2; ++x) {
         for (short y = 0; y < 2; ++y) {
             for (short z = 0; z < 2; ++z) {
                 short plane = 0;
                 while (true) {
-                    if (bounds[x * 3] * volume->planes_88[plane].x +
-                            bounds[y * 3 + 1] * volume->planes_88[plane].y +
-                            bounds[z * 3 + 2] * volume->planes_88[plane].z +
+                    if ((&bounds->minimum)[x].x * volume->planes_88[plane].x +
+                            (&bounds->minimum)[y].y * volume->planes_88[plane].y +
+                            (&bounds->minimum)[z].z * volume->planes_88[plane].z +
                             volume->planes_88[plane].w <
                         g_float_005ebb34) {
                         break;
@@ -1089,8 +1089,9 @@ unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const
     }
     for (short corner = 0; corner < 8; ++corner) {
         const srVector3T<float>* point = &volume->points_1c[corner + 1];
-        if (bounds[0] <= point->x && point->x < bounds[3] && bounds[1] <= point->y &&
-            point->y < bounds[4] && bounds[2] <= point->z && point->z < bounds[5]) {
+        if (bounds->minimum.x <= point->x && point->x < bounds->maximum.x &&
+            bounds->minimum.y <= point->y && point->y < bounds->maximum.y &&
+            bounds->minimum.z <= point->z && point->z < bounds->maximum.z) {
             return 1;
         }
     }

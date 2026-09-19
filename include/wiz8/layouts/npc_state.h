@@ -89,7 +89,7 @@ struct W8NpcState {
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
     /* 0x0c5/0x0c6: the pending-restore flag and the level it belongs to. */
-    unsigned char pending_restore;
+    bool pending_restore;
     unsigned char pending_restore_level;
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
