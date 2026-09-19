@@ -91,10 +91,11 @@ struct W8LevelFileItemRecord { /* 0x44 */
     unsigned char unknown_00[0x44];
 };
 
-/* Serialized clipping-plane entry. Its 0x50-byte stride is established by the
-   level reader/writer; no field semantics are recovered yet. */
+/* Serialized clipping-plane entry. ReadWorldClipPlanes consumes the same
+   section as a 64-byte name followed by a four-float position record. */
 struct W8LevelFileClippingPlaneRecord { /* 0x50 */
-    unsigned char unknown_00[0x50];
+    char name_00[0x40];
+    srVector4T<float> serialized_position_40;
 };
 
 struct W8LevelFileLight {
@@ -493,9 +494,9 @@ struct W8LevelFile {
     int nTriggers;                       /* 0x680 */
     W8LevelFileTrigger* pTriggers;       /* 0x684: nTriggers * 6 */
     unsigned char unknown_688[4];
-    int nClippingPlanes;                              /* 0x68c */
-    unsigned char unknown_690;                        /* read when nClippingPlanes != 0 */
-    W8LevelFileClippingPlaneRecord* pClippingPlanes; /* 0x691: nClippingPlanes records */
+    int nClippingPlanes;                                   /* 0x68c */
+    unsigned char clipping_plane_version_690;              /* nClippingPlanes != 0 */
+    W8LevelFileClippingPlaneRecord* pClippingPlanes;       /* 0x691: nClippingPlanes records */
     unsigned char unknown_695[0xc];
     int nParticleSystems;                        /* 0x6a1 */
     W8LevelFileParticleSystem* pParticleSystems; /* 0x6a5: nParticleSystems * 0x226 */
