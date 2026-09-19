@@ -2213,6 +2213,23 @@ done:
     return entry->operand_01;
 }
 
+// FUNCTION: WIZ8 0x005294c0
+unsigned char GetNpcQuoteText(W8NpcState* npc, int type, wchar_t* output)
+{
+    W8NpcScriptFile* script_file = npc->script_file;
+    W8NpcScriptQuote* record;
+
+    if (type >= script_file->quote_count) {
+        return 0;
+    }
+    record = &script_file->quotes[type];
+    if (record->subquotes == 0) {
+        return 0;
+    }
+    swprintf(output, L"%S", record->subquotes[0]);
+    return 1;
+}
+
 /* Repost the NPC's current quote bubble after a modal sub-dialog closes, or
    clear it when the dialogue NPC/script went away. */
 // FUNCTION: WIZ8 0x00529510

@@ -9,7 +9,7 @@ bool IsNpcScriptSessionActive(void);
 bool ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);
 /* 0x005294C0: format the bound NPC's quote for one event type into the wide
    output. */
-unsigned char GetNpcQuoteText(W8NpcState* npc, unsigned int type, wchar_t* output);
+unsigned char GetNpcQuoteText(W8NpcState* npc, int type, wchar_t* output);
 
 bool IsPartySlotEligible00524A10(int slot);
 void ClearNpcMessageQueue(void); /* 0x00524C50 */
