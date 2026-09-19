@@ -2146,7 +2146,7 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 variation = (float)atof(token) * g_world_scale_005ebc40;
                 home = formation;
-                if (home.x == 0.0f && home.y == 0.0f && home.z == 0.0f) {
+                if (home.IsZero()) {
                     srVector3T<float> current = GetPosition();
                     home = current;
                     formation = home;
@@ -2815,7 +2815,7 @@ unsigned char W8Monster::GetPatrolPoint004CA360(srVector3T<float>* point)
         return 0;
     }
     if (vector_29c.GetCount() == 0) {
-        if (formation.x == 0.0f && formation.y == 0.0f && formation.z == 0.0f) {
+        if (formation.IsZero()) {
             srVector3T<float> position = GetPosition();
             formation = position;
         }
