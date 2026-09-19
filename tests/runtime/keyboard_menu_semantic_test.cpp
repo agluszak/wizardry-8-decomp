@@ -203,21 +203,21 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        hover slots populated and the twelve rows live. portrait_refresh_pending
        stays raised so the surface-rect path, which needs a real panel, is
        skipped; the row deletes and the field clears are the observable part. */
-    saved_entry_flag = gXStatus.monster_manager_entries[0].field_0d0;
+    saved_entry_flag = gXStatus.monster_manager_entries[0].keyboard_menu_open;
     saved_keyboard_open = g_level_block->keyboard_menu_open;
     saved_combat_slot = g_level_block->combat_slot;
     saved_hover_slot = g_level_block->hover_combat_slot;
     saved_flag_31c = g_level_block->flag_31c;
     saved_pending0 = g_level_block->portrait_refresh_pending[0];
 
-    gXStatus.monster_manager_entries[0].field_0d0 = 1;
+    gXStatus.monster_manager_entries[0].keyboard_menu_open = 1;
     g_level_block->keyboard_menu_open = 1;
     g_level_block->combat_slot = 3;
     g_level_block->flag_31c = 1;
     g_level_block->portrait_refresh_pending[0] = 1;
     CloseKeyboardMenu();
     result->close_cleared_open_flag = g_level_block->keyboard_menu_open == 0;
-    result->close_cleared_slot_flag = gXStatus.monster_manager_entries[0].field_0d0 == 0;
+    result->close_cleared_slot_flag = gXStatus.monster_manager_entries[0].keyboard_menu_open == 0;
     result->close_deleted_rows =
         g_keyboard_menu_rows_69b820[0] == 0 && g_keyboard_menu_rows_69b820[11] == 0;
     result->close_reset_combat_slot =
@@ -364,7 +364,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->pick_changed_154 = saved_pick_changed;
     g_level_block->clock_214 = saved_clock_214;
 
-    gXStatus.monster_manager_entries[0].field_0d0 = saved_entry_flag;
+    gXStatus.monster_manager_entries[0].keyboard_menu_open = saved_entry_flag;
     g_level_block->keyboard_menu_open = saved_keyboard_open;
     g_level_block->combat_slot = saved_combat_slot;
     g_level_block->hover_combat_slot = saved_hover_slot;

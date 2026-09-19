@@ -20,6 +20,9 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc);
 void RestockNpcInventory(W8NpcState* npc); /* 0x0055BCC0 */
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
+bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item);
+int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
+                                unsigned char identified);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
 void DecayNpcInventory(W8NpcState* npc);
 

@@ -310,7 +310,9 @@ def _declared_callable(
 ) -> DeclaredCallable | str | None:
     """Bind by explicit source name, or describe a signature/address disagreement."""
 
-    matches = facts.callables_by_name.get(qualified) or facts.callables_by_name.get(unqualified)
+    matches = facts.callables_by_name.get(qualified)
+    if not matches and "::" not in qualified:
+        matches = facts.callables_by_name.get(unqualified)
     if not matches:
         return None
     unique = {item.address for item in matches}

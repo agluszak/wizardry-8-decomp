@@ -17,9 +17,6 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 
 unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
                              W8TargetingContext context, int arg_5);
-/* Whether `party_slot`'s action `action` may aim at party member `target_char`. */
-unsigned char CanPartyMemberAimAtCharacter005197C0(int party_slot, int action, int target_char,
-                                                   int arg_4);
 /* How many formation rows between `party_slot` and the monster block a short
    reach: zero when they share a row, otherwise occupants ahead of the monster
    and (when the gap is exactly two rows) the front rank. */

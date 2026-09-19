@@ -3297,7 +3297,7 @@ void BuildCharacterTargetList00543DC0(int party_slot, int action, W8PList* out_l
             } else {
                 if ((row->target_out_of_combat.iType == W8_TARGET_KIND_CHARACTER &&
                      row->target_out_of_combat.iChar == i) ||
-                    CanPartyMemberAimAtCharacter005197C0(party_slot, action, i, 0) == 0) {
+                    CharacterActionReachesSlot(party_slot, action, i, 0) == 0) {
                     continue;
                 }
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_CHARACTER, i, -1);
