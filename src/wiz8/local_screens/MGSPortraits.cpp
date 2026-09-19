@@ -1017,7 +1017,7 @@ void OnLevelButtonActivate(void)
         srAssertFail("fCHAR_OCCUPIED(giLevelUpChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x988, 0);
     }
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+    g_pending_screen_state.parameter_3.character = &g_status_685170.buffers.characters[slot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }

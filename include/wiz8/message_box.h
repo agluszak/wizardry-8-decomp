@@ -123,8 +123,15 @@ struct W8MessageBoxLine {
     };
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */
     unsigned char suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
-    void* extra;                    /* 0x1c: caller payload; category-dependent, not one type */
-    W8NpcState* npc;                /* 0x20: speaking NPC, copied from g_npc_scripting.npc */
+    /* 0x1c: per-kind caller payload: SKILL_NOTICES hands a
+       W8SkillNoticePayload*, LEVEL_UP an int party-slot pointer, other kinds
+       a raw pointer forwarded to SetNpcQuoteBubbleVisible. */
+    union {
+        W8SkillNoticePayload* skill_notices;
+        int* level_up_slot;
+        void* raw;
+    } extra;
+    W8NpcState* npc; /* 0x20: speaking NPC, copied from g_npc_scripting.npc */
 };
 
 static_assert(sizeof(W8MessageBoxLine) == 0x24, "W8MessageBoxLine_must_be_0x24");

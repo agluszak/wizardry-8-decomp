@@ -4,6 +4,7 @@ unsigned char LoadMissileDatabase(void);
 void ReleaseMissileDatabase(void);
 
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/local_code/Targeting.h"
@@ -19,8 +20,7 @@ class W8Missile;
    it steers (CopyAIMissile004A53A0 deliberately leaves it unset), +0x10 the
    half-tick baseline, +0x14 the elapsed flight clock, +0x18 the early-impact
    limit and +0x1c a trailing flag. */
-struct W8AIMissile {
-    unsigned char kind_00;
+struct W8AIMissile : W8AIRecord {
     unsigned char flag_01;
     unsigned char unknown_02[2];
     float value_04;

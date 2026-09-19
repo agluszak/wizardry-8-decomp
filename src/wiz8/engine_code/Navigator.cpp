@@ -1251,7 +1251,7 @@ W8NavigatorAttachment::CheckPositionHopHeight00456CB0(const srVector3T<float>* p
     from.y = position_4c[base].z;
     to.x = position_4c[end].x;
     to.y = position_4c[end].z;
-    distance = PointToSegmentDistance2D00437760(&point.x, &from.x, &to.x, '\0', &fraction);
+    distance = PointToSegmentDistance2D00437760(&point, &from, &to, '\0', &fraction);
     surfaces = g_octree_6598a4->pathing_180->m_pSurfaces_048;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale_005ebc40;
     to_height = (surfaces[path_values_50[end]].flags_00 >> 0xc) * g_world_scale_005ebc40;
@@ -1283,15 +1283,14 @@ W8NavigatorAttachment::CheckPredictedHopHeight00456DD0(const srVector3T<float>* 
     from.y = position_4c[value_04 - 1].z;
     to.x = position_4c[value_04].x;
     to.y = position_4c[value_04].z;
-    distance = PointToSegmentDistance2D00437760(&point.x, &from.x, &to.x, '\0', &fraction);
+    distance = PointToSegmentDistance2D00437760(&point, &from, &to, '\0', &fraction);
     base = value_04 - 1;
     if (value_04 < path_position_index_08 && path_values_50[value_04 + 1] != 0) {
         from.x = to.x;
         from.y = to.y;
         to.x = position_4c[value_04 + 1].x;
         to.y = position_4c[value_04 + 1].z;
-        other_distance =
-            PointToSegmentDistance2D00437760(&point.x, &from.x, &to.x, '\0', other_fraction);
+        other_distance = PointToSegmentDistance2D00437760(&point, &from, &to, '\0', other_fraction);
         if (other_distance < distance) {
             base = value_04;
             fraction = other_fraction[0];
@@ -1328,7 +1327,7 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
     from.y = position_4c[value_04 - 1].z;
     to.x = position_4c[value_04].x;
     to.y = position_4c[value_04].z;
-    PointToSegmentDistance2D00437760(&point.x, &from.x, &to.x, '\x01', &fraction);
+    PointToSegmentDistance2D00437760(&point, &from, &to, '\x01', &fraction);
     dir_x = to.x - from.x;
     dir_z = to.y - from.y;
     remainder = (g_float_005ebb38 - fraction) * srVector2T<float>(dir_x, dir_z).Length();

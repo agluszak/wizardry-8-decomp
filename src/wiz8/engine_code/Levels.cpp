@@ -770,8 +770,8 @@ unsigned char UnloadLevel(const char* save_directory)
 // FUNCTION: WIZ8 0x0042AF60
 unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
 {
-    float saved_angle[6];
-    float saved_pitch[6];
+    W8CameraAngleRecord saved_angle;
+    W8CameraAngleRecord saved_pitch;
     srVector3T<float> saved_position;
     unsigned char restore = 0;
 

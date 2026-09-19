@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_GDPROP_H
 
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/engine_code/OctPath.h"
 #include "wiz8/geometry.h"
 
 #include <stddef.h>
@@ -15,6 +16,7 @@ class OctPreTree;
 struct W8GameData;
 struct W8LevelFileAnimObj;
 struct W8LevelFileMesh;
+struct W8LevelFileScaledPathNode;
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
@@ -48,12 +50,12 @@ public:
         m_owner_24 = 0;
         m_links_0c = 0;
         m_waypoints_10 = 0;
-        m_path_sentinel_2c = -10000000.0f;
+        m_path_range_28.sentinel = -10000000.0f;
         m_list_54 = 0;
-        m_path_bound_52 = 0;
-        m_path_bound_50 = 0;
-        m_path_bound_4e = 0;
-        m_path_bound_4c = 0;
+        m_path_bounds_4c.max_z = 0;
+        m_path_bounds_4c.min_z = 0;
+        m_path_bounds_4c.max_x = 0;
+        m_path_bounds_4c.min_x = 0;
     }
     GDProp(srModelInstance* instance, const char* path_name, unsigned short prop_number,
            unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B6E00 */
@@ -71,11 +73,11 @@ public:
     char BoundsOverlap004B7620(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
     /* Appends the index to the waypoint list when the grid point lies inside
        the path bounds; the list grows ten entries at a time. */
-    unsigned char RegisterPathSurface004B7730(unsigned int index, const int* point);
+    unsigned char RegisterPathSurface004B7730(unsigned int index, const srVector2i* point);
     /* Appends the index to the link list when the segment touches the path
        bounds (one-cell tolerance on the crossed sides). */
-    unsigned char RegisterPathVertex004B7830(unsigned int index, const int* point,
-                                             const int* second);
+    unsigned char RegisterPathVertex004B7830(unsigned int index, const srVector2i* point,
+                                             const srVector2i* second);
 
 private:
     void Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
@@ -85,32 +87,28 @@ private:
     /* Appends the mesh's vertices/faces transformed by one animation path
        record (position/angle/axis/scale floats); called once per transform
        channel by ApplyAnimFrame004B7C00. */
-    void TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* mesh);
+    void TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node,
+                                       W8LevelFileMesh* mesh);
 
-    unsigned short m_flags_00;          /* 0x00 */
-    unsigned short m_prop_number_02;    /* 0x02 */
-    unsigned int m_path_handle_04;      /* 0x04 */
-    unsigned short m_link_count_08;     /* 0x08 */
-    unsigned short m_waypoint_count_0a; /* 0x0a */
-    unsigned short* m_links_0c;         /* 0x0c; released by CRT free */
-    unsigned short* m_waypoints_10;     /* 0x10; released by CRT free */
-    int m_surface_count_14;             /* 0x14; m_pGDSurfaces count */
-    int m_vertex_count_18;              /* 0x18; m_pVertices count */
-    W8GDSurface* m_pGDSurfaces;         /* 0x1c */
-    srVector3T<float>* m_pVertices;     /* 0x20 */
-    Trigger* m_owner_24;                /* 0x24: installed by 0x004B7470 */
-    float m_path_range_28;              /* 0x28 */
-    float m_path_sentinel_2c;           /* 0x2c */
-    float m_path_range_30;              /* 0x30 */
+    unsigned short m_flags_00;           /* 0x00 */
+    unsigned short m_prop_number_02;     /* 0x02 */
+    unsigned int m_path_handle_04;       /* 0x04 */
+    unsigned short m_link_count_08;      /* 0x08 */
+    unsigned short m_waypoint_count_0a;  /* 0x0a */
+    unsigned short* m_links_0c;          /* 0x0c; released by CRT free */
+    unsigned short* m_waypoints_10;      /* 0x10; released by CRT free */
+    int m_surface_count_14;              /* 0x14; m_pGDSurfaces count */
+    int m_vertex_count_18;               /* 0x18; m_pVertices count */
+    W8GDSurface* m_pGDSurfaces;          /* 0x1c */
+    srVector3T<float>* m_pVertices;      /* 0x20 */
+    Trigger* m_owner_24;                 /* 0x24: installed by 0x004B7470 */
+    W8PathVerticalRange m_path_range_28; /* 0x28 */
     /* Vertex AABB cached by ComputeBounds004B7500 and tested by
        BoundsOverlap004B7620. */
-    srVector3T<float> m_bound_min_34; /* 0x34 */
-    srVector3T<float> m_bound_max_40; /* 0x40 */
-    unsigned short m_path_bound_4c;   /* 0x4c */
-    unsigned short m_path_bound_4e;   /* 0x4e */
-    unsigned short m_path_bound_50;   /* 0x50 */
-    unsigned short m_path_bound_52;   /* 0x52 */
-    W8PList* m_list_54;               /* 0x54 */
+    srVector3T<float> m_bound_min_34;  /* 0x34 */
+    srVector3T<float> m_bound_max_40;  /* 0x40 */
+    W8PathGridBounds m_path_bounds_4c; /* 0x4c */
+    W8PList* m_list_54;                /* 0x54 */
 }; /* 0x58 */
 
 /* OctPreTree.cpp's per-prop path record element: the GDProp plus the frame

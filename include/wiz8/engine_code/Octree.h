@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/stHash.hpp"
+#include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 
 class GDProp;
@@ -74,13 +75,16 @@ float PointToSegmentDistance00437540(srVector3T<float>* point, const srVector3T<
                                      const srVector3T<float>* to, char clamp_point, float* out_t);
 /* XY-plane sibling over two-component vectors; the pathfinding code measures
    edge distances in plan view. */
-float PointToSegmentDistance2D00437760(float* point, const float* from, const float* to,
-                                       char clamp_point, float* out_t); /* 0x00437760 */
+float PointToSegmentDistance2D00437760(srVector2T<float>* point, const srVector2T<float>* from,
+                                       const srVector2T<float>* to, char clamp_point,
+                                       float* out_t); /* 0x00437760 */
 /* Grow `minimum`/`maximum` to include `point`, returning whether any bound
    moved. */
-char GrowBoundsByPoint(const float* point, float* minimum, float* maximum); /* 0x004378F0 */
-/* Whether `point` lies within `radius` of the six-float bounds box. */
-char SphereNearBounds(const float* point, float radius, const float* bounds); /* 0x004386A0 */
+char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimum,
+                       srVector3T<float>* maximum); /* 0x004378F0 */
+/* Whether `point` lies within `radius` of the bounds box. */
+char SphereNearBounds(const srVector3T<float>* point, float radius,
+                      const W8BoundingBox* bounds); /* 0x004386A0 */
 
 /* The mesh's polygon index arrays are the same raw 12-byte records as the
    float vectors and retail routes both through 0x004374E0; the inline integer
@@ -507,7 +511,9 @@ public:
     unsigned long m_gd_surface_stream_len_124;
     unsigned long m_trigger_count_128;
     unsigned long* m_owned_12c;
-    void* m_owned_130;
+    /* Trigger list: serialized as 2-byte elements (ReadOctFile allocates
+       count * 2 + 4) even though WriteOctFile emits them four bytes wide. */
+    unsigned short* m_owned_130;
     unsigned long m_positional_134;
     unsigned long m_region_list_len_138;
     unsigned long m_positional_13c;

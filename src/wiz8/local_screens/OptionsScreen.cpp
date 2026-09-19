@@ -550,7 +550,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     RequestScreenTransition();
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
-    g_pending_screen_state.parameter_3 =
+    g_pending_screen_state.parameter_3.screenshot =
         new W8SaveScreenshot(g_options_screen_0069c254->m_save_slots.data[0]->screenshot);
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }

@@ -497,9 +497,9 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
             if (instance != 0) {
                 srModel* model = instance->model();
                 if (model != 0) {
-                    srVector3T<float> bounds[2];
-                    model->getBoundingBox(bounds[0], bounds[1]);
-                    if (SphereNearBounds(&point->x, radius, &bounds[0].x) != 0) {
+                    W8BoundingBox bounds;
+                    model->getBoundingBox(bounds.minimum, bounds.maximum);
+                    if (SphereNearBounds(point, radius, &bounds) != 0) {
                         out->Add(instance);
                     }
                 }
@@ -3034,18 +3034,18 @@ void W8Octree::AddCollidablePropBounds(int index, const W8BoundingBox* bounds)
         minimum[axis] = static_cast<int>(
             ((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     }
-    minimum[0] =
-        static_cast<int>(((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
-    minimum[1] =
-        static_cast<int>(((bounds->minimum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
-    minimum[2] =
-        static_cast<int>(((bounds->minimum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
-    maximum[0] =
-        static_cast<int>(((bounds->maximum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
-    maximum[1] =
-        static_cast<int>(((bounds->maximum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
-    maximum[2] =
-        static_cast<int>(((bounds->maximum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    minimum[0] = static_cast<int>(
+        ((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    minimum[1] = static_cast<int>(
+        ((bounds->minimum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    minimum[2] = static_cast<int>(
+        ((bounds->minimum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    maximum[0] = static_cast<int>(
+        ((bounds->maximum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+    maximum[1] = static_cast<int>(
+        ((bounds->maximum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+    maximum[2] = static_cast<int>(
+        ((bounds->maximum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
 
     prop_key = PackOctreeObjectKey(W8_OCTREE_KIND_PROP, index + 1);
     for (x = minimum[0]; x <= maximum[0]; ++x) {
@@ -3883,7 +3883,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     if (fLoaded != 0) {
                         if (ReadHeader<unsigned long>(header, 0x8a) != 0) {
                             block = malloc(ReadHeader<unsigned long>(header, 0x8a) * 2 + 4);
-                            m_owned_130 = block;
+                            m_owned_130 = static_cast<unsigned short*>(block);
                             if (block == 0) {
                                 fSuccess = 0;
                                 strcpy(acMessage, "ReadOctFile: Couldn't allocate Trigger list.");
@@ -4080,7 +4080,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     static_cast<float>(
                                                         ReadHeader<unsigned long>(header, 0xac)),
                                                     ReadHeader<unsigned long>(header, 0xb4),
-                                                    reinterpret_cast<const float*>(header + 0x0e),
+                                                    reinterpret_cast< // reinterpret-ok: bounds_0e is serialized min/max vector pairs
+                                                        const W8BoundingBox*>(header + 0x0e),
                                                     m_owned_0c0);
                                                 fLoaded = pathing_180->Load00458CE0(hOctFile);
                                             }
@@ -5244,35 +5245,35 @@ float PointToSegmentDistance00437540(srVector3T<float>* point, const srVector3T<
 }
 
 // FUNCTION: WIZ8 0x00437760
-float PointToSegmentDistance2D00437760(float* point, const float* from, const float* to,
-                                       char clamp_point, float* out_t)
+float PointToSegmentDistance2D00437760(srVector2T<float>* point, const srVector2T<float>* from,
+                                       const srVector2T<float>* to, char clamp_point, float* out_t)
 {
-    float dx = to[0] - from[0];
-    float dy = to[1] - from[1];
-    float offset_x = point[0] - from[0];
-    float offset_y = point[1] - from[1];
+    float dx = to->x - from->x;
+    float dy = to->y - from->y;
+    float offset_x = point->x - from->x;
+    float offset_y = point->y - from->y;
     float t = (offset_x * dx + offset_y * dy) / (dx * dx + dy * dy);
     if (static_cast<float>(g_zero_005ebb40) < t) {
         if (t <= static_cast<float>(g_double_005ebc30)) {
             offset_x = offset_x - dx * t;
             offset_y = offset_y - dy * t;
         } else {
-            offset_x = point[0] - to[0];
-            offset_y = point[1] - to[1];
+            offset_x = point->x - to->x;
+            offset_y = point->y - to->y;
         }
     }
     if (clamp_point != 0) {
         if (static_cast<float>(g_zero_005ebb40) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
-                point[0] = to[0];
-                point[1] = to[1];
+                point->x = to->x;
+                point->y = to->y;
             } else {
-                point[0] = dx * t + from[0];
-                point[1] = dy * t + from[1];
+                point->x = dx * t + from->x;
+                point->y = dy * t + from->y;
             }
         } else {
-            point[0] = from[0];
-            point[1] = from[1];
+            point->x = from->x;
+            point->y = from->y;
         }
     }
     if (out_t != 0) {
@@ -5290,73 +5291,74 @@ float PointToSegmentDistance2D00437760(float* point, const float* from, const fl
 }
 
 /* Grow `minimum`/`maximum` to include `point`, returning whether any bound
-   moved. Retail's second comparison tests point[2] where point[1] is meant
+   moved. Retail's second comparison tests point->z where point->y is meant
    (0x0043790F FCOMPs [ECX+8]) - the proven quirk stays. */
 // FUNCTION: WIZ8 0x004378f0
-char GrowBoundsByPoint(const float* point, float* minimum, float* maximum)
+char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimum,
+                       srVector3T<float>* maximum)
 {
     char changed = 0;
-    if (*minimum > *point) {
-        *minimum = *point;
+    if (minimum->x > point->x) {
+        minimum->x = point->x;
         changed = 1;
     }
-    if (minimum[1] > point[2]) {
-        minimum[1] = point[1];
+    if (minimum->y > point->z) {
+        minimum->y = point->y;
         changed = 1;
     }
-    if (minimum[2] > point[2]) {
-        minimum[2] = point[2];
+    if (minimum->z > point->z) {
+        minimum->z = point->z;
         changed = 1;
     }
-    if (*maximum < *point) {
-        *maximum = *point;
+    if (maximum->x < point->x) {
+        maximum->x = point->x;
         changed = 1;
     }
-    if (maximum[1] < point[1]) {
-        maximum[1] = point[1];
+    if (maximum->y < point->y) {
+        maximum->y = point->y;
         changed = 1;
     }
-    if (maximum[2] < point[2]) {
-        maximum[2] = point[2];
+    if (maximum->z < point->z) {
+        maximum->z = point->z;
         return 1;
     }
     return changed;
 }
 
-/* Whether `point` lies within `radius` of the six-float bounds box, as the
-   squared distance from the box-clamped point. Retail's z clamp picks
-   bounds[2] (the minimum) where bounds[5] is meant when the point sits above
-   the box (0x0043871B FLDs [ECX+8]) - the proven quirk stays. */
+/* Whether `point` lies within `radius` of the bounds box, as the squared
+   distance from the box-clamped point. Retail's z clamp picks bounds->minimum.z
+   where bounds->maximum.z is meant when the point sits above the box
+   (0x0043871B FLDs [ECX+8]) - the proven quirk stays. */
 // FUNCTION: WIZ8 0x004386a0
-char SphereNearBounds(const float* point, float radius, const float* bounds)
+char SphereNearBounds(const srVector3T<float>* point, float radius, const W8BoundingBox* bounds)
 {
     float closest_x;
     float closest_y;
     float closest_z;
-    if (point[0] < bounds[0]) {
-        closest_x = bounds[0];
-    } else if (point[0] <= bounds[3]) {
-        closest_x = point[0];
+    if (point->x < bounds->minimum.x) {
+        closest_x = bounds->minimum.x;
+    } else if (point->x <= bounds->maximum.x) {
+        closest_x = point->x;
     } else {
-        closest_x = bounds[3];
+        closest_x = bounds->maximum.x;
     }
-    if (point[1] < bounds[1]) {
-        closest_y = bounds[1];
-    } else if (point[1] <= bounds[4]) {
-        closest_y = point[1];
+    if (point->y < bounds->minimum.y) {
+        closest_y = bounds->minimum.y;
+    } else if (point->y <= bounds->maximum.y) {
+        closest_y = point->y;
     } else {
-        closest_y = bounds[4];
+        closest_y = bounds->maximum.y;
     }
-    if (point[2] < bounds[2]) {
-        closest_z = bounds[2];
-    } else if (point[2] < bounds[5]) {
-        closest_z = point[2];
+    if (point->z < bounds->minimum.z) {
+        closest_z = bounds->minimum.z;
+    } else if (point->z < bounds->maximum.z) {
+        closest_z = point->z;
     } else {
-        closest_z = bounds[2];
+        closest_z = bounds->minimum.z;
     }
-    float distance_squared = (point[1] - closest_y) * (point[1] - closest_y) +
-                             (point[0] - closest_x) * (point[0] - closest_x) +
-                             (point[2] - closest_z) * (point[2] - closest_z);
+    float distance_squared = (point->y - closest_y) * (point->y - closest_y) +
+                             (point->x - closest_x) * (point->x - closest_x) +
+                             (point->z - closest_z) * (point->z - closest_z);
     return distance_squared < radius * radius;
 }
 

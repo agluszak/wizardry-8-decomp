@@ -170,16 +170,16 @@ float MonsterDistanceToCamera004BE710(W8World* world, W8Monster* monster)
 // FUNCTION: WIZ8 0x004BE7C0
 float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item)
 {
-    float lower[3];
-    float upper[3];
-    if (!item->GetCachedLocalBounds(lower, upper)) {
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    if (!item->GetCachedLocalBounds(&lower, &upper)) {
         return -1.0f;
     }
     srVector3T<double> camera = world->camera->getLocation();
     srVector3T<float> camera_location;
     camera_location.SetFromDouble(&camera);
     srVector3T<float> center = item->m_pRep->location_004;
-    center.z += (upper[2] - lower[2]) * 0.5f;
+    center.z += (upper.z - lower.z) * 0.5f;
     return (camera_location - center).Length();
 }
 

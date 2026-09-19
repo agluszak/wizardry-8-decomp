@@ -178,7 +178,7 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
 // FUNCTION: WIZ8 0x004466d0
 W8OctBuildTree00446390::~W8OctBuildTree00446390()
 {
-    delete static_cast<W8OctBuildNode00446330*>(spatial_00.root_90);
+    delete spatial_00.root_90;
     if (g_oct_build_scratch_00659a48 != 0) {
         free(g_oct_build_scratch_00659a48);
     }
@@ -255,7 +255,7 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
     }
 
     if (working->extent_04 <= working->cell_size_08) {
-        W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(working->root_90);
+        W8OctBuildNode00446330* node = working->root_90;
         ++node->leaf_kind_2a;
         if (positional_b8 < node->leaf_kind_2a) {
             positional_b8 = node->leaf_kind_2a;
@@ -288,12 +288,9 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
                     child.minimum_0c.z = working->minimum_0c.z + z * half_extent;
                     child.maximum_18.z = child.minimum_0c.z + half_extent;
 
-                    if (TestSpatialTriangle0046CE60(
-                            &child.minimum_0c,
-                            static_cast<const srVector3T<float>*>(working->owned_98),
-                            plane_point) != 0) {
-                        W8OctBuildNode00446330* node =
-                            static_cast<W8OctBuildNode00446330*>(working->root_90);
+                    if (TestSpatialTriangle0046CE60(&child.minimum_0c, working->owned_98,
+                                                    plane_point) != 0) {
+                        W8OctBuildNode00446330* node = working->root_90;
                         if (node->children_00[octant] == 0) {
                             if (use_owned_nodes_b4 == 0) {
                                 node->children_00[octant] = new W8OctBuildNode00446330;

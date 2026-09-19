@@ -12,6 +12,10 @@ class W8AnimRepBase005EC1D8;
    lifecycle; only the pointer is needed here. */
 class W8SoundEvent;
 
+/* PathAI.h owns the tagged AI record family this slot points at (kind 0
+   W8PathAI, kind 3 W8AIMissile). */
+struct W8AIRecord;
+
 /* GrObject.cpp owns this base.  The original Item.cpp assertion
    `pMissile->GrObject::GetAI()` independently establishes the class name. */
 // VTABLE: WIZ8 0x005ed090
@@ -27,7 +31,7 @@ public:
     unsigned char kind_004; /* 0x04 */
     unsigned char unknown_005[3];
     int id_008;                                        /* 0x08 */
-    void* m_pAI;                                       /* 0x0c: GrObject::GetAI() assertion */
+    W8AIRecord* m_pAI;                                 /* 0x0c: GrObject::GetAI() assertion */
     W8GrowableVector<W8SoundEvent*>* m_plsSoundEvents; /* 0x10 */
     /* +0x14 remains deliberately uninitialized and unowned by this base.
        Prop and Item construct and destroy their own representation here; both

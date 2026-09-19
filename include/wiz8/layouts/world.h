@@ -34,10 +34,16 @@ struct W8WorldCameraEntry {
    RestoreWorldCameraState reads (3dapi.cpp, assertions pWorld / CamPos).
    Two six-float records follow the point: pitch at +0x0c and yaw/angle at
    +0x24. Recall stores this same object on the character at +0x17d7. */
+/* Six-float CamPos angle record: [0] is the live angle, the tail is serialized
+   padding. GetCameraOrientation/SetCameraOrientation take these; their array
+   typedef decays to float* so callers with scalar floats keep their authored
+   shape. */
+typedef float W8CameraAngleRecord[6];
+
 struct W8WorldCameraState {
     srVector3T<float> position;
-    float pitch[6];
-    float yaw[6];
+    W8CameraAngleRecord pitch;
+    W8CameraAngleRecord yaw;
 };
 static_assert(sizeof(W8WorldCameraState) == 0x3c, "W8WorldCameraState_size");
 

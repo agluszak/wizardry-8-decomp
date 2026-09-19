@@ -82,8 +82,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     if (positional_04 != 0) {
         if (m_ppTriggers == 0) {
             g_integrated_trigger_count_00659a58 = 0;
-            m_ppTriggers =
-                static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
+            m_ppTriggers = static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
             if (m_ppTriggers == 0) {
                 srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
@@ -153,7 +152,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->positional_10 = -1;
     surface->positional_14 = -1;
     surface->hit_plane_38 = 0;
-     ++m_iNumTrigSurfaces;
+    ++m_iNumTrigSurfaces;
 
     surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
@@ -171,7 +170,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->positional_10 = -1;
     surface->positional_14 = -1;
     surface->hit_plane_38 = 0;
-     ++m_iNumTrigSurfaces;
+    ++m_iNumTrigSurfaces;
 }
 
 // FUNCTION: WIZ8 0x00448840
@@ -211,9 +210,8 @@ void W8GameData::IntegrateTriggers()
 
     int end = m_iNumSurfaces + m_iNumTrigSurfaces;
     for (int index = m_iNumSurfaces; index < end; ++index) {
-        W8GDSurface* surface = index < m_iNumSurfaces
-                                   ? &m_pSurfaces[index]
-                                   : &m_pTrigSurfaces[index - m_iNumSurfaces];
+        W8GDSurface* surface =
+            index < m_iNumSurfaces ? &m_pSurfaces[index] : &m_pTrigSurfaces[index - m_iNumSurfaces];
         geometry_index_00->InsertSurface00446820(surface, 3);
     }
     bits_58 = new BitArray(m_iNumTriggers);
@@ -332,8 +330,8 @@ void W8GameData::ReadProcessedGameData(int handle)
     }
 
     if (m_iNumInterfaces != 0) {
-        m_pInterfaces = static_cast<W8GDInterface*>(
-            malloc((m_iNumInterfaces * 3 + 3) * sizeof(unsigned int)));
+        m_pInterfaces =
+            static_cast<W8GDInterface*>(malloc((m_iNumInterfaces * 3 + 3) * sizeof(unsigned int)));
         if (m_pInterfaces == 0) {
             srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
@@ -345,14 +343,13 @@ void W8GameData::ReadProcessedGameData(int handle)
     }
 
     if (m_iNumStates != 0) {
-        m_pStates = static_cast<W8GDInterfaceState*>(
-            malloc((m_iNumStates * 3 + 3) * sizeof(unsigned int)));
+        m_pStates =
+            static_cast<W8GDInterfaceState*>(malloc((m_iNumStates * 3 + 3) * sizeof(unsigned int)));
         if (m_pStates == 0) {
             srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
                          "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
-        if (FileRead(handle, m_pStates, m_iNumStates * 0xc, &bytes_read) ==
-            0) {
+        if (FileRead(handle, m_pStates, m_iNumStates * 0xc, &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a5,
                          "ReadProcessedGameData: Couldn't read switch state info.");
         }
@@ -364,8 +361,8 @@ void W8GameData::ReadProcessedGameData(int handle)
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
         }
-        if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int),
-                     &bytes_read) == 0) {
+        if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int), &bytes_read) ==
+            0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4b0,
                          "ReadProcessedGameData: Couldn't read conditional poly list.");
         }
@@ -547,9 +544,11 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
 // FUNCTION: WIZ8 0x004498c0
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface)
 {
-    BuildTrianglePlane00449A40(surface->plane_24, &vertices[surface->vertex_indices_18[0]],
-                               &vertices[surface->vertex_indices_18[1]],
-                               &vertices[surface->vertex_indices_18[2]]);
+    BuildTrianglePlane00449A40(
+        reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
+            the union's plane arm is a 4-float vector */
+        &vertices[surface->vertex_indices_18[0]], &vertices[surface->vertex_indices_18[1]],
+        &vertices[surface->vertex_indices_18[2]]);
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
@@ -601,7 +600,7 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
 /* Header-visible SetPlaneFromThreePoints. This TU unrolls the three-point
    copy; 0x0046D660 lowers the same assignments as a component countdown. */
 // FUNCTION: WIZ8 0x00449a40
-void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
+void BuildTrianglePlane00449A40(srVector4T<float>* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
@@ -722,18 +721,15 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
-    if (m_iNumInterfaces != 0 &&
-        FileWrite(handle, m_pInterfaces, m_iNumInterfaces * 0xc, 0) == 0) {
+    if (m_iNumInterfaces != 0 && FileWrite(handle, m_pInterfaces, m_iNumInterfaces * 0xc, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
-    if (m_iNumStates != 0 &&
-        FileWrite(handle, m_pStates, m_iNumStates * 0xc, 0) == 0) {
+    if (m_iNumStates != 0 && FileWrite(handle, m_pStates, m_iNumStates * 0xc, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
-    if (m_iNumCondPolys != 0 &&
-        FileWrite(handle, m_piCondPolys, m_iNumCondPolys * 4, 0) == 0) {
+    if (m_iNumCondPolys != 0 && FileWrite(handle, m_piCondPolys, m_iNumCondPolys * 4, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
         return 0;
     }
