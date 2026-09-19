@@ -10,6 +10,7 @@ from wiz8decomp.cast_lint import (
     CastGateError,
     _added_c_style_casts,
     _added_format_off,
+    _raw_offset_violations,
     _sgp_notice_violations,
     added_lines_without_marker,
     validate_cast_markers,
@@ -222,6 +223,74 @@ def test_format_off_marker_with_reason_passes() -> None:
     assert _added_format_off(diff) == []
 
 
+def test_literal_byte_offset_into_typed_object_is_reported(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "int f(W8Record* record) {\n"
+        "    return *reinterpret_cast<int*>(\n"
+        "        reinterpret_cast<char*>(record) + 0x24);\n"
+        "}\n"
+    )
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -0,0 +1,4 @@",
+        "+int f(W8Record* record) {",
+        "+    return *reinterpret_cast<int*>(",
+        "+        reinterpret_cast<char*>(record) + 0x24);",
+        "+}",
+    )
+
+    assert _raw_offset_violations(tmp_path, diff) == [
+        {
+            "file": "src/wiz8/example.cpp",
+            "line": 3,
+            "text": "reinterpret_cast<char*>(record) + 0x24",
+        }
+    ]
+
+
+def test_raw_offset_marker_allows_unresolved_layout(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "int f(W8Record* record) {\n"
+        "    return *reinterpret_cast<int*>(\n"
+        "        reinterpret_cast<char*>(record) + 0x24); "
+        "// raw-offset-ok: unresolved vendor tail\n"
+        "}\n"
+    )
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -0,0 +1,4 @@",
+        "+int f(W8Record* record) {",
+        "+    return *reinterpret_cast<int*>(",
+        "+        reinterpret_cast<char*>(record) + 0x24); // raw-offset-ok: unresolved vendor tail",
+        "+}",
+    )
+
+    assert _raw_offset_violations(tmp_path, diff) == []
+
+
+def test_variable_byte_offset_is_not_a_layout_escape(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "char* advance(W8Record* record, int offset) {\n"
+        "    return reinterpret_cast<char*>(record) + offset;\n"
+        "}\n"
+    )
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -0,0 +1,3 @@",
+        "+char* advance(W8Record* record, int offset) {",
+        "+    return reinterpret_cast<char*>(record) + offset;",
+        "+}",
+    )
+
+    assert _raw_offset_violations(tmp_path, diff) == []
+
+
 def test_changed_pristine_sgp_source_is_reported(tmp_path: Path) -> None:
     source = tmp_path / "src/sgp/LibraryDataBase.c"
     source.parent.mkdir(parents=True)
@@ -274,6 +343,36 @@ def test_git_checkout_enforces_the_gate(tmp_path: Path) -> None:
 
     source.write_text(
         "int f() { return reinterpret_cast<int>(g); } // reinterpret-ok: test boundary\n"
+    )
+    assert validate_cast_markers(tmp_path)["ok"] is True
+
+
+def test_git_checkout_enforces_raw_offset_gate(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
+    (tmp_path / "src/wiz8").mkdir(parents=True)
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.write_text("int f() { return 0; }\n")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+
+    source.write_text(
+        "int f(W8Record* record) {\n"
+        "    return *reinterpret_cast<int*>(\n"
+        "        reinterpret_cast<char*>(record) + 0x24); "
+        "// reinterpret-ok: unresolved object storage\n"
+        "}\n"
+    )
+    with pytest.raises(CastGateError, match="raw-offset-ok"):
+        validate_cast_markers(tmp_path)
+
+    source.write_text(
+        "int f(W8Record* record) {\n"
+        "    return *reinterpret_cast<int*>(\n"
+        "        reinterpret_cast<char*>(record) + 0x24); "
+        "// reinterpret-ok: unresolved object storage; raw-offset-ok: unresolved vendor tail\n"
+        "}\n"
     )
     assert validate_cast_markers(tmp_path)["ok"] is True
 

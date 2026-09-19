@@ -90,6 +90,9 @@ printing and put large disposable output under `build/`. Detailed operational re
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require an attached `reinterpret-ok: <reason>` comment; a marker never justifies
   hiding known type disagreement.
+- Do not convert a typed object to `char*`/`unsigned char*` and add a literal byte offset when the
+  layout has a named field. The source-hygiene gate requires direct member access; only genuinely
+  unresolved/external layouts may add `raw-offset-ok: <reason>` alongside the ordinary cast evidence.
 - New C-style casts in recovered C++ are gated. Prefer the evidence-backed typed model or the specific
   C++ cast that states the proven conversion; a genuinely unavoidable historical C/ABI spelling needs
   attached `c-style-cast-ok: <reason>` comment. Cast comments may immediately precede the statement or

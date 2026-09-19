@@ -1720,7 +1720,6 @@ unsigned char InitializeSpellDatabase(void)
    uninitialised on the failed-read path. Suppress only this diagnostic. */
     int handle;
     unsigned int index;
-    int offset = 0;
     unsigned char ok;
     int allocation_count;
     unsigned int row_count;
@@ -1749,11 +1748,9 @@ unsigned char InitializeSpellDatabase(void)
         }
         ok = 0;
         if (FileSeek(handle, 0x101, FILE_SEEK_FROM_CURRENT) &&
-            FileRead(handle, reinterpret_cast<unsigned char*>(g_spell_records) + offset,
-                     sizeof(W8SpellRuntimeRecord), 0)) {
+            FileRead(handle, &g_spell_records[index], sizeof(W8SpellRuntimeRecord), 0)) {
             ok = 1;
         }
-        offset += sizeof(W8SpellRuntimeRecord);
     }
     if (ok == 0) {
     discard:

@@ -5,8 +5,28 @@
 
 class stTextureFile;
 
+/* The 18-byte Truevision TGA file header consumed by the texture loader. */
+#pragma pack(push, 1)
+struct W8TgaHeader {
+    unsigned char id_length;
+    unsigned char color_map_type;
+    unsigned char image_type;
+    unsigned short color_map_origin;
+    unsigned short color_map_length;
+    unsigned char color_map_entry_size;
+    unsigned short x_origin;
+    unsigned short y_origin;
+    unsigned short width;
+    unsigned short height;
+    unsigned char pixel_depth;
+    unsigned char image_descriptor;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8TgaHeader) == 18, "W8TgaHeader_must_be_18");
+
 srColorSurface* LoadSurface0047C090(int handle);
-void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsigned char* header);
+void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const W8TgaHeader* header);
 
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
    srTextureFile (id 0x2112) whose 17-slot vtable is:
