@@ -271,7 +271,7 @@ class W8Octree {
 public:
     W8Octree(const char* path, W8GameData** game_data);
     void Reset();
-    void Initialize(const void* header);
+    void Initialize(const W8OctFileHeader* header);
     ~W8Octree();
     void AddLoadedProp(W8Prop* prop);
     void AddLoadedParticle(stParticle* particle);

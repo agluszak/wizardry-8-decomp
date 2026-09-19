@@ -198,8 +198,8 @@ struct W8OctSubmeshBuild {
     srVector2T<float>* uv_map_30;
 };
 
-/* The 0xf5-byte NewLevel.oct file header WriteOctFile emits field by field;
-   ReadOctFile's WriteMember calls give the authoritative byte offsets.  The
+/* The 0xf5-byte NewLevel.oct file header shared by WriteOctFile and
+   ReadOctFile. The offsetof assertions pin the authoritative byte offsets. The
    seven consecutive vectors hold the spatial state's minimum, maximum,
    clipped and working bounds plus the octree's +0xa4 vector.  +0xb4 is left
    unwritten by retail; ReadOctFile still loads it into +0x17c. */

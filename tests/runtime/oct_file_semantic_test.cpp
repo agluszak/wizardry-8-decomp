@@ -362,8 +362,8 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     return ok;
 }
 
-/* Compares the serialized header fields that ReadOctFile's WriteMember table
-   restores onto the loaded octree.  Two fields do not round-trip by name:
+/* Compares the serialized header fields that ReadOctFile restores onto the
+   loaded octree. Two fields do not round-trip by name:
    +0x46 loads from the high word of grid dim z (header 0x60) and +0x52 loads
    from depth (header 0x62) - the asymmetry is retail's, so the check asserts
    exactly what the reader produces. */
