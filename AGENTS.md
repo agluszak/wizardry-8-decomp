@@ -53,6 +53,13 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 - Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored circa-2000
   C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub or approximate retail behavior.
+- Never promote compiler output into an authored source construct. A concrete template emission proves
+  only that the primary template was instantiated for those arguments; it never proves an explicit
+  specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,
+  a deleting destructor does not prove a handwritten wrapper, and folded functions do not prove aliases.
+  Keep template behavior in the primary template unless an accepted original-source oracle directly
+  establishes otherwise. Recovered Wizardry/SurRender source gates new explicit specializations and
+  instantiations without a comment waiver; an oracle-backed exception must change that reviewed gate.
 - Compiler-owned storage reuse is not source evidence. Never alias a parameter/local or add overlapping
   source variables merely to reproduce stack-slot, register, spill or temporary reuse. Introduce the
   logical source variables even when that lowers comparison score.
