@@ -119,6 +119,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/local_code/ButtonSound.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "vobject_blitters.h"
 #include "random.h"
 

@@ -113,6 +113,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/UpdateMesh.cpp
     src/wiz8/engine_code/stGroundShadow.cpp
     src/wiz8/local_code/GameplayDatabase.cpp
+    "src/wiz8/local_code/Gameplay Init.cpp"
     src/wiz8/dialog_code/DialogInterface.cpp
     src/wiz8/dialog_code/PortraitQuote.cpp
     src/wiz8/3d_code/IList.cpp
