@@ -49,6 +49,7 @@
 #include "surrender/srCamera.h"
 #include "Types.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/3d.h"
 #include <math.h>

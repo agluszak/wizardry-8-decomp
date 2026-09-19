@@ -25,6 +25,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/TextBuffer.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/utility.h"
 #include "Font.h"
