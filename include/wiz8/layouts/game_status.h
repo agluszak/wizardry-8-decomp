@@ -121,7 +121,10 @@ struct W8GlobalStatus {
     unsigned char unknown_243f[5];
     /* Character creation skips the loose CHR collision check when set. */
     unsigned char skip_loose_character_check_2444;
-    unsigned char unknown_2445[2];
+    /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
+       handled at a cursor node; later uses take the Mystical Shaman branch. */
+    unsigned char use_item_latch_2445;
+    unsigned char unknown_2446;
     int difficulty;
     unsigned char unknown_244b[8];
     wchar_t monster_name_buffer_2453[22];
@@ -218,6 +221,8 @@ static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_for
 static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
 static_assert(offsetof(W8GlobalStatus, skip_loose_character_check_2444) == 0x2444,
               "W8GlobalStatus_skip_loose_character_check_offset");
+static_assert(offsetof(W8GlobalStatus, use_item_latch_2445) == 0x2445,
+              "W8GlobalStatus_use_item_latch_offset");
 static_assert(offsetof(W8GlobalStatus, selected_party_member_2434) == 0x2434,
               "W8GlobalStatus_selected_party_member_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
