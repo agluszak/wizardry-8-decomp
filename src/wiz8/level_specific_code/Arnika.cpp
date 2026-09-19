@@ -1,21 +1,29 @@
 #include "wiz8/level_specific_code/Arnika.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/cursor.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/Factions.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/xstatus.h"
 #include "wiz8/layouts/game_status.h"
 #include "surrender/srMath.h"
+#include "soundman.h"
 
 #define ARNIKA_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Arnika.cpp"
 
@@ -55,6 +63,399 @@ bool g_red_button_armed_613dcc = true;
 W8Prop* g_el01_button_prop_6835ec;
 // GLOBAL: WIZ8 0x006835F0
 W8Prop* g_el02_button_prop_6835f0;
+
+// GLOBAL: WIZ8 0x006835CC
+W8Prop* g_lazer_prop_6835cc;
+// GLOBAL: WIZ8 0x006835D0
+W8Prop* g_exit_door_prop_6835d0;
+// GLOBAL: WIZ8 0x006835D4
+Trigger* g_exit_door_trigger_6835d4;
+// GLOBAL: WIZ8 0x006835D8
+int g_laser_scanning_6835d8;
+// GLOBAL: WIZ8 0x006835DC
+stSound3D* g_warning_loop_6835dc;
+// GLOBAL: WIZ8 0x006835E0
+stSound3D* g_warning_oneshot_6835e0;
+// GLOBAL: WIZ8 0x006835E4
+W8IntervalGate* g_warning_gate_6835e4;
+// GLOBAL: WIZ8 0x006835E8
+W8Monster* g_mookholo_monster_6835e8;
+
+/* Level init: clears the laser-scanner and exit-door caches, runs both
+   elevator setups, then restores the laser scan, the warning sound, the
+   Screg flag and the inside-the-inn NPC teleport from the persisted
+   location variables and fact 0xc1. */
+// FUNCTION: WIZ8 0x004E06D0
+void ArnikaLevelSetup004E06D0(void)
+{
+    srVector3T<float> position;
+    W8NpcState* npc;
+    W8MonsterInfo* monster_info;
+    Trigger* pTrigger;
+
+    g_lazer_prop_6835cc = 0;
+    g_exit_door_prop_6835d0 = 0;
+    g_exit_door_trigger_6835d4 = 0;
+    ArnikaElevator1Setup004E13B0();
+    ArnikaElevator2Setup004E1A10();
+    g_flag_006834dd = 0;
+    if (GetLocationVarIDByName("LaserScanning") != -1 &&
+        GetLocationVarValueByName("LaserScanning") != 0) {
+        pTrigger = FindTriggerByName("LazerScanner");
+        if (pTrigger != 0) {
+            if (pTrigger->m_bRepType != 2) {
+                srAssertFail("m_bRepType == TRIGGER_REP_PROP",
+                             "..\\Engine Code\\Include\\Trigger.h", 0x3ed, 0);
+            }
+            g_lazer_prop_6835cc = pTrigger->m_pProp;
+            g_laser_scanning_6835d8 = 1;
+            BeginScriptedWorldAction();
+            g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+        }
+    }
+    if (GetLocationVarIDByName("WarningSound") != -1) {
+        int value = GetLocationVarValueByName("WarningSound");
+        if (value != 0) {
+            ArnikaWarningSound004E0AC0(value);
+        }
+    }
+    if (GetLocationVarIDByName("ScregActive") != -1 &&
+        GetLocationVarValueByName("ScregActive") == 1) {
+        npc = GetNpcStateByKind(0x17);
+        if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 ||
+            monster_info->monster == 0) {
+            SetTriggerVariableByName00444030("ScregActive", 0);
+        }
+    }
+    if (GetFact(0xc1) != 0) {
+        npc = GetNpcStateByKind(0x18);
+        if (npc != 0) {
+            monster_info = GetNpcMonsterInfo(npc);
+            if (monster_info != 0 && monster_info->monster != 0 &&
+                FindEntityByName("Inside_Inn", &position, 0, 0) != 0) {
+                monster_info->monster->SetPosition(&position);
+            }
+        }
+    }
+}
+
+/* LazerScanner trigger: caches the scanner prop, refuses while its rep is
+   still animating or the HLL door is already open, then arms the scan. */
+// FUNCTION: WIZ8 0x004E0880
+bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
+{
+    if (pTrigger->m_bRepType != 2) {
+        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.h", 0x3ed,
+                     0);
+    }
+    g_lazer_prop_6835cc = pTrigger->m_pProp;
+    if (g_lazer_prop_6835cc->Rep()->flag_06d != 0) {
+        return 0;
+    }
+    if (GetLocationVarIDByName("HLLDoorOpen") != -1) {
+        return 0;
+    }
+    g_laser_scanning_6835d8 = 1;
+    BeginScriptedWorldAction();
+    g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+    return 1;
+}
+
+/* Laser-scan master: a positive command re-arms the scan, -1 persists the
+   state into LaserScanning, and a zero tick drops the scan once the prop's
+   rep stops animating. */
+// FUNCTION: WIZ8 0x004E0960
+void ArnikaLaserScanMaster004E0960(int command)
+{
+    if (command != 0) {
+        if (command == -1) {
+            if (GetLocationVarIDByName("LaserScanning") == -1) {
+                CreateLocationVar("LaserScanning", g_laser_scanning_6835d8);
+            } else {
+                SetTriggerVariableByName00444030("LaserScanning", g_laser_scanning_6835d8);
+            }
+            return;
+        }
+        g_laser_scanning_6835d8 = 1;
+        BeginScriptedWorldAction();
+        g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
+        return;
+    }
+    g_flag_006834dc = 0;
+    if (g_lazer_prop_6835cc == 0) {
+        g_flag_006834dc = 1;
+        return;
+    }
+    if (g_lazer_prop_6835cc->Rep()->flag_06d != 0) {
+        return;
+    }
+    g_flag_006834dc = 1;
+    ClearMainGameTargetState();
+    g_laser_scanning_6835d8 = 0;
+}
+
+/* ScannerDoor trigger: the 0x27b key item opens the HLL door once. */
+// FUNCTION: WIZ8 0x004E0A80
+bool ArnikaScannerDoor004E0A80(Trigger* pTrigger)
+{
+    if (FindItemOnParty(0x27b, 0, 0, 2, 0) == 0) {
+        return 0;
+    }
+    if (GetLocationVarIDByName("HLLDoorOpen") == -1) {
+        CreateLocationVar("HLLDoorOpen", 1);
+    }
+    return 1;
+}
+
+/* Warning-sound master: a positive command starts the ULLspawn alarm for
+   that many seconds (or just the one-shot above 0x1e), -1 persists the
+   remaining time into WarningSound, and a zero tick runs the countdown and
+   stops the looped VOC when it expires. */
+// FUNCTION: WIZ8 0x004E0AC0
+void ArnikaWarningSound004E0AC0(int command)
+{
+    srVector3T<float> position;
+
+    g_flag_006834dc = 0;
+    if (command != 0) {
+        if (GetLocationVarIDByName("WarningSound") == -1) {
+            CreateLocationVar("WarningSound", 0x1e);
+        }
+        if (command == -1) {
+            if (g_warning_gate_6835e4 != 0) {
+                SetTriggerVariableByName00444030(
+                    "WarningSound", static_cast<int>(g_warning_gate_6835e4->GetElapsedSeconds()));
+            } else {
+                SetTriggerVariableByName00444030("WarningSound", 0x3e8);
+            }
+            return;
+        }
+        if (FindEntityByName("ULLspawn", &position, 0, 0) == 0) {
+            return;
+        }
+        g_warning_gate_6835e4 = 0;
+        if (command <= 0x1e) {
+            g_warning_gate_6835e4 = new W8IntervalGate(static_cast<float>(command), 0, 1);
+        } else {
+            g_warning_oneshot_6835e0 = CreateAndPlaySoundNode(
+                "Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_002.wav", position, 1.0f,
+                100.0f, 0);
+        }
+        g_warning_loop_6835dc =
+            CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
+                                   position, 1.0f, 75.0f, 1);
+        if (g_warning_loop_6835dc != 0 || g_warning_oneshot_6835e0 != 0) {
+            g_master_functions_006834d8->Add(ArnikaWarningSound004E0AC0);
+        }
+    }
+    if (g_warning_oneshot_6835e0 != 0) {
+        if (g_warning_oneshot_6835e0->IsPlaying()) {
+            return;
+        }
+        g_warning_oneshot_6835e0 = 0;
+    }
+    if (g_warning_gate_6835e4 == 0) {
+        g_warning_gate_6835e4 = new W8IntervalGate(30.0f, 0, 1);
+        return;
+    }
+    if (!g_warning_gate_6835e4->IsFinished()) {
+        g_warning_gate_6835e4->PollElapsedIntervals();
+        if (!g_warning_gate_6835e4->IsFinished()) {
+            return;
+        }
+    }
+    g_flag_006834dc = 1;
+    g_warning_loop_6835dc->Stop();
+    delete g_warning_gate_6835e4;
+    g_warning_gate_6835e4 = 0;
+    SetTriggerVariableByName00444030("WarningSound", 0);
+}
+
+/* Mookholo trigger: spawns the Screg ambush once while neither ScregActive
+   nor MookDoorOpen is set, then hands the spawned monster to the fade-out
+   watch and queues the NPC notice. */
+// FUNCTION: WIZ8 0x004E0DC0
+bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
+{
+    srVector3T<float> position;
+    W8MonsterGroup* group;
+    W8MonsterInfo* info;
+    int location_id;
+
+    if (gXStatus.fCombatMode != 0) {
+        return 0;
+    }
+    if (GetLocationVarIDByName("ScregActive") != -1 &&
+        GetLocationVarValueByName("ScregActive") != 0) {
+        return 0;
+    }
+    if (GetLocationVarIDByName("MookDoorOpen") != -1 &&
+        GetLocationVarValueByName("MookDoorOpen") != 0) {
+        return 0;
+    }
+    if (FindEntityByName("Mookholo", &position, 0, 0) != 0) {
+        group = SpawnMonsters(0xb, 1, &position, 0, 1, 0, 0);
+        if (GetLocationVarIDByName("ScregActive") != -1) {
+            SetTriggerVariableByName00444030("ScregActive", 1);
+        } else {
+            CreateLocationVar("ScregActive", 1);
+        }
+        location_id = IListGetAt(group->monsters, 0);
+        if (location_id != 0) {
+            info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x193, ARNIKA_CPP, location_id, 1));
+            if (info != 0) {
+                g_mookholo_monster_6835e8 = info->monster;
+                g_flag_6109f0 = 0;
+                g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
+            }
+            QueueNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                     0x199, ARNIKA_CPP, location_id, 1)),
+                                 0, -1, 0, 0);
+        }
+    }
+    return 1;
+}
+
+/* Mookholo watch: the 0xEFFFFFFF toggle re-arms the wait, and a zero tick
+   fades the spawned monster out once g_flag_6109f0 signals the NPC notice
+   finished. */
+// FUNCTION: WIZ8 0x004E0F70
+void ArnikaMookholoWatch004E0F70(int command)
+{
+    if (command != 0) {
+        if (command == static_cast<int>(0xEFFFFFFF)) {
+            g_flag_6109f0 = 0;
+            g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
+        }
+        return;
+    }
+    g_flag_006834dc = 0;
+    if (g_flag_6109f0 != 0) {
+        g_flag_006834dc = 1;
+        if (g_mookholo_monster_6835e8 != 0) {
+            g_mookholo_monster_6835e8->BeginFadeOutAndRemove004C5040(3);
+            g_mookholo_monster_6835e8 = 0;
+        }
+    }
+}
+
+/* MookFrontDoor trigger: asserts the Mookholo trigger exists and opens the
+   Mook door by latching MookDoorOpen. */
+// FUNCTION: WIZ8 0x004E1040
+bool ArnikaMookFrontDoor004E1040(Trigger* pTrigger)
+{
+    Trigger* pMookHolo = FindTriggerByName("Mookholo");
+
+    if (pMookHolo == 0) {
+        srAssertFail("pMookHolo", ARNIKA_CPP, 0x1ee,
+                     "Missing trigger 'Mookholo'! It's not in the LVL file!");
+    }
+    if (GetLocationVarIDByName("MookDoorOpen") != -1) {
+        SetTriggerVariableByName00444030("MookDoorOpen", 1);
+    } else {
+        CreateLocationVar("MookDoorOpen", 1);
+    }
+    return 1;
+}
+
+/* YellowButton trigger: raises the "nothing happened" flag, spawns the
+   bank guards at Bguards and puts the first on the guard script. */
+// FUNCTION: WIZ8 0x004E10A0
+bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
+{
+    srVector3T<float> position;
+    W8MonsterGroup* group;
+    W8MonsterInfo* info;
+
+    g_flag_00606994 = 1;
+    if (FindEntityByName("Bguards", &position, 0, 0) != 0) {
+        group = SpawnMonsters(0xc, 6, &position, 1, 1, 0, 0);
+        if (group != 0) {
+            info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->value_9f, 1));
+            info->monster->SetScript004C7F10("guard.msf", 1);
+        }
+    }
+    return 1;
+}
+
+/* Vaultalarmdoor trigger: raises the "nothing happened" flag, plays the
+   vault alarm, turns every guard group hostile and records fact 0xe0. */
+// FUNCTION: WIZ8 0x004E1120
+bool ArnikaVaultAlarmDoor004E1120(Trigger* pTrigger)
+{
+    W8MonsterGroup* group;
+
+    g_flag_00606994 = 1;
+    SoundPlay("Data\\Sound\\Ambients\\VaultAlarm.wav", 0);
+    group = FindNextExistingMonsterByID(0xc, 0);
+    while (group != 0) {
+        SetMonsterGroupHostility(group, 1, 0);
+        group = FindNextExistingMonsterByID(0xc, group);
+    }
+    SetFact(0xe0, 1, 0);
+    return 1;
+}
+
+/* Exitbutton trigger: caches the exit-door trigger and prop, toggles the
+   Teleporting location variable, arms the teleport watch when a teleport
+   starts and records facts 0xcd and 0xe0. */
+// FUNCTION: WIZ8 0x004E1180
+bool ArnikaExitButton004E1180(Trigger* pTrigger)
+{
+    g_exit_door_trigger_6835d4 = pTrigger;
+    if (pTrigger->m_bRepType != 2) {
+        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.h", 0x3ed,
+                     0);
+    }
+    g_exit_door_prop_6835d0 = pTrigger->m_pProp;
+    if (GetLocationVarIDByName("Teleporting") == -1) {
+        CreateLocationVar("Teleporting", 1);
+        g_master_functions_006834d8->Add(ArnikaTeleportWatch004E1300);
+    } else if (GetLocationVarValueByName("Teleporting") == 0) {
+        SetTriggerVariableByName00444030("Teleporting", 1);
+        g_master_functions_006834d8->Add(ArnikaTeleportWatch004E1300);
+    } else {
+        SetTriggerVariableByName00444030("Teleporting", 0);
+    }
+    g_flag_00606994 = 1;
+    SetFact(0xcd, 1, 0);
+    SetFact(0xe0, 1, 0);
+    return 1;
+}
+
+/* Teleport watch: once the exit-door prop's rep finishes animating, runs
+   the cached trigger and teleports the party to ARN11. */
+// FUNCTION: WIZ8 0x004E1300
+void ArnikaTeleportWatch004E1300(int command)
+{
+    g_flag_006834dc = 0;
+    if (g_exit_door_prop_6835d0->Rep()->flag_06d != 0) {
+        return;
+    }
+    g_flag_006834dc = 1;
+    g_exit_door_trigger_6835d4->Run(-1);
+    g_exit_door_trigger_6835d4->RunDestination00440DD0("ARN11");
+}
+
+/* GenVault-2-door trigger: spawns the vault golem once at the Golem
+   entity. */
+// FUNCTION: WIZ8 0x004E1340
+bool ArnikaGenVaultDoor004E1340(Trigger* pTrigger)
+{
+    srVector3T<float> position;
+
+    if (FindEntityByName("Golem", &position, 0, 0) != 0) {
+        if (GetLocationVarIDByName("GolemSpawned") != -1) {
+            return 0;
+        }
+        CreateLocationVar("GolemSpawned", 1);
+        SpawnMonsters(0x31, 1, &position, 1, 1, 0, 0);
+        SoundPlay("Data\\Sound\\Ambients\\Temp Transporting.wav", 0);
+    }
+    return 1;
+}
 
 /* Elevator-1 setup: resolves the seven triggers, restores El01State,
    El01Moving and RedButtonDown from the location variables, re-arms the
