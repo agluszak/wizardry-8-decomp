@@ -8,7 +8,7 @@ varargs/noreturn.
 from __future__ import annotations
 
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -228,47 +228,42 @@ def apply_function_attributes(
     candidates remain report-only.
     """
 
-    space = program.getAddressFactory().getDefaultAddressSpace()
-    functions = program.getFunctionManager()
-    applied: list[dict[str, Any]] = []
-    errors: list[dict[str, Any]] = []
+    from .ghidra.mutations import apply_rows
 
+    def apply_one(_program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
+        action = str(row.get("action") or "")
+        space = _program.getAddressFactory().getDefaultAddressSpace()
+        functions = _program.getFunctionManager()
+        function = functions.getFunctionAt(space.getAddress(int(row["address"], 0)))
+        if function is None:
+            return {**dict(row), "error": "missing-function"}
+        if action != "set-thunk":
+            if "set-varargs" in action:
+                function.setVarArgs(True)
+            if "set-noreturn" in action:
+                function.setNoReturn(True)
+        else:
+            target = functions.getFunctionAt(space.getAddress(int(row["thunk_target"], 0)))
+            if target is None:
+                return {**dict(row), "error": "missing-thunk-target"}
+            function.setThunkedFunction(target)
+        return {
+            "address": row["address"],
+            "name": row.get("name"),
+            "action": action,
+            "thunk_kind": row.get("thunk_kind"),
+        }
+
+    rows: list[Mapping[str, Any]] = []
     for row in plan.get("functions", []):
         action = str(row.get("action") or "")
         if action == "set-thunk":
-            if not apply_thunks:
-                continue
-            # Collect still reports ecx-adjustor candidates; apply only pure JMP.
-            if row.get("thunk_kind") != "pure-jmp":
+            if not apply_thunks or row.get("thunk_kind") != "pure-jmp":
                 continue
         elif apply_attributes and (action.startswith("set-") or "+" in action):
             pass
         else:
             continue
-        function = functions.getFunctionAt(space.getAddress(int(row["address"], 0)))
-        if function is None:
-            errors.append({**row, "error": "missing-function"})
-            continue
-        try:
-            if action != "set-thunk":
-                if "set-varargs" in action:
-                    function.setVarArgs(True)
-                if "set-noreturn" in action:
-                    function.setNoReturn(True)
-            else:
-                target = functions.getFunctionAt(space.getAddress(int(row["thunk_target"], 0)))
-                if target is None:
-                    errors.append({**row, "error": "missing-thunk-target"})
-                    continue
-                function.setThunkedFunction(target)
-            applied.append(
-                {
-                    "address": row["address"],
-                    "name": row.get("name"),
-                    "action": action,
-                    "thunk_kind": row.get("thunk_kind"),
-                }
-            )
-        except Exception as exc:  # noqa: BLE001
-            errors.append({**row, "error": str(exc)})
-    return {"applied": len(applied), "errors": errors, "functions": applied}
+        rows.append(row)
+    result = apply_rows(program, rows, apply_one, description="Apply function attributes")
+    return {"applied": result["applied"], "errors": result["errors"], "functions": result["rows"]}

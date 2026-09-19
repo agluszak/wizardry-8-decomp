@@ -104,6 +104,8 @@ class StagedGame:
     executable: Path
     map: Path | None
     objects: Path | None
+    executable_written: bool = True
+    map_written: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -111,6 +113,8 @@ class StagedGame:
             "executable": str(self.executable),
             "map": str(self.map) if self.map is not None else None,
             "objects": str(self.objects) if self.objects is not None else None,
+            "executable_written": self.executable_written,
+            "map_written": self.map_written,
         }
 
 
@@ -171,6 +175,7 @@ def stage_game(
 
     staged_executable = stage / executable.name
     staged_map = None
+    map_written = False
     # The linker writes both files while holding this same lock. Publish the
     # complete executable only after its MAP snapshot is safely in place.
     with build_lock(settings):
@@ -188,9 +193,16 @@ def stage_game(
                 raise RuntimeError(f"executable/MAP link timestamp mismatch; rebuild {executable}")
             identity = hashlib.sha256(executable_bytes + map_bytes).hexdigest()
             staged_map = stage / "diagnostics" / f"{executable.stem}-{identity}.map"
-            write_if_changed(staged_map, map_bytes)
-        write_if_changed(staged_executable, executable_bytes)
-    return StagedGame(stage, staged_executable, staged_map, objects)
+            map_written = write_if_changed(staged_map, map_bytes)
+        executable_written = write_if_changed(staged_executable, executable_bytes)
+    return StagedGame(
+        stage,
+        staged_executable,
+        staged_map,
+        objects,
+        executable_written=executable_written,
+        map_written=map_written,
+    )
 
 
 def run_product(

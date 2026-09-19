@@ -31,13 +31,27 @@ def transaction_is_open(program: Any) -> bool:
     return False
 
 
+def auto_parameters(function: Any) -> list[Any]:
+    """Ghidra's synthetic parameters for ``function``: thiscall ``this``, return storage.
+
+    ``Function.replaceParameters`` silently ignores a call that omits them, so
+    every prototype rewrite must carry the existing auto parameters over.
+    """
+
+    return [
+        parameter for parameter in function.getParameters() if bool(parameter.isAutoParameter())
+    ]
+
+
 @contextmanager
 def program_transaction(program: Any, description: str) -> Iterator[None]:
     """Start a transaction only when the program is not already in one.
 
-    Ghidra aborts the entire outer transaction if a nested one rolls back.
-    Batch owners such as ``ghidra sync`` therefore hold one transaction, and
-    per-row helpers must not nest.
+    Nested Ghidra transactions are not savepoints: rolling one back aborts the
+    outer transaction. ``ghidra sync`` therefore does not hold a batch
+    transaction; each apply row owns a top-level transaction that can roll
+    back independently. This guard still refuses to nest if a caller already
+    opened a transaction.
     """
 
     if transaction_is_open(program):
@@ -56,11 +70,11 @@ def apply_rows(
     *,
     description: str,
 ) -> dict[str, Any]:
-    """Apply each row, isolating failures without aborting an outer batch.
+    """Apply each row in its own transaction and record failures without aborting the batch.
 
-    Standalone callers still get a per-row transaction that rolls back on
-    error. When a batch transaction is already open, failures are recorded
-    without ``endTransaction(..., false)``.
+    An ``error`` result or exception rolls that row back. Other rows keep their
+    committed mutations. Do not wrap a whole ``ghidra sync`` in an outer
+    transaction; nested rollback would discard successful rows.
     """
 
     applied: list[dict[str, Any]] = []

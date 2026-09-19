@@ -77,6 +77,34 @@ def _ghidra_source_projection_check(settings: Settings) -> dict[str, Any]:
     }
 
 
+def _ghidra_compiler_projection_check(settings: Settings) -> dict[str, Any]:
+    """Label compiler/PDB projection freshness separately from source facts."""
+
+    from .ghidra.workspace import resolve_seed_program, source_projection_freshness
+
+    try:
+        program = resolve_seed_program(settings, "wiz8")
+        freshness = source_projection_freshness(settings, program)
+    except (OSError, RuntimeError, ValueError) as error:
+        return {
+            "name": "ghidra-compiler-projection",
+            "ok": True,
+            "status": "unavailable",
+            "detail": str(error),
+        }
+    return {
+        "name": "ghidra-compiler-projection",
+        "ok": True,
+        "status": freshness.get("compiler_status"),
+        "detail": freshness.get("compiler_detail"),
+        "recorded_pdb_sha256": freshness.get("recorded_pdb_sha256"),
+        "current_pdb_sha256": freshness.get("current_pdb_sha256"),
+        "recorded_reccmp_revision": freshness.get("recorded_reccmp_revision"),
+        "current_reccmp_revision": freshness.get("current_reccmp_revision"),
+        "program": program,
+    }
+
+
 def _product_inputs_check(settings: Settings) -> dict[str, Any]:
     """Label product/library mount readiness without failing Ghidra inspection."""
 
@@ -165,6 +193,7 @@ def validate_environment(settings: Settings) -> dict[str, Any]:
     checks.append({"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)})
     checks.append(_ghidra_project_check(settings))
     checks.append(_ghidra_source_projection_check(settings))
+    checks.append(_ghidra_compiler_projection_check(settings))
     checks.append(_product_inputs_check(settings))
     required = {"7z": ["--help"], "innoextract": ["--version"], "cabextract": ["--version"]}
     optional = {"unshield": ["-V"], "wine": ["--version"], "git-lfs": ["version"]}

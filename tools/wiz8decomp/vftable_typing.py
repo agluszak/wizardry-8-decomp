@@ -63,6 +63,38 @@ def _subobject_view_paths(derived: str, base: str, offset: int) -> tuple[str, st
     return category, name, f"{category}/{name}"
 
 
+_SUBOBJECT_VIEW_PREFIX = "wiz8.subobject-view"
+_SUBOBJECT_VIEW_DESCRIPTION = re.compile(
+    r"^wiz8\.subobject-view derived=(?P<derived>\S+) base=(?P<base>\S+) "
+    r"offset=(?P<offset>0x[0-9a-fA-F]+|\d+)"
+    r"(?: vtable=(?P<vtable>\S+))?$"
+)
+
+
+def encode_subobject_view(derived: str, base: str, offset: int, vtable: str | None = None) -> str:
+    """Description both Python and Java consume for a derived-specific base view."""
+
+    text = f"{_SUBOBJECT_VIEW_PREFIX} derived={derived} base={base} offset=0x{offset:x}"
+    if vtable:
+        return f"{text} vtable={vtable}"
+    return text
+
+
+def parse_subobject_view(description: str | None) -> dict[str, Any] | None:
+    if not description:
+        return None
+    match = _SUBOBJECT_VIEW_DESCRIPTION.match(str(description).strip())
+    if match is None:
+        return None
+    offset_text = match.group("offset")
+    return {
+        "derived": match.group("derived"),
+        "base": match.group("base"),
+        "offset": int(offset_text, 0),
+        "vtable": match.group("vtable"),
+    }
+
+
 def _vftable_paths(
     qualified: str,
     base_class: str | None = None,
@@ -1240,6 +1272,47 @@ def _retarget_class_vfptr(program: Any, class_name: str, vftable: Any, *, offset
     return _retarget_named_pointer_field(program, class_name, vftable, _VFPTR_NAMES, offset=offset)
 
 
+def _copy_structure_settings(destination: Any, source: Any) -> None:
+    if hasattr(source, "isPackingEnabled") and hasattr(destination, "setPackingEnabled"):
+        destination.setPackingEnabled(bool(source.isPackingEnabled()))
+        if source.isPackingEnabled() and hasattr(source, "getExplicitPackingValue"):
+            value = source.getExplicitPackingValue()
+            if value and hasattr(destination, "setExplicitPackingValue"):
+                destination.setExplicitPackingValue(value)
+    if hasattr(source, "isDefaultAligned") and source.isDefaultAligned():
+        if hasattr(destination, "setToDefaultAligned"):
+            destination.setToDefaultAligned()
+        elif hasattr(destination, "setDefaultAligned"):
+            destination.setDefaultAligned()
+    elif hasattr(source, "getExplicitMinimumAlignment") and hasattr(
+        destination, "setExplicitMinimumAlignment"
+    ):
+        destination.setExplicitMinimumAlignment(source.getExplicitMinimumAlignment())
+
+
+def _fill_subobject_view(
+    view: Any,
+    base_struct: Any,
+    pointer: Any,
+) -> bool:
+    """Copy Base's established bytes into the view and attach the derived vfptr."""
+
+    vfptr_attached = False
+    for item in base_struct.getDefinedComponents():
+        field = item.getFieldName()
+        data_type = pointer if field in _VFPTR_NAMES else item.getDataType()
+        if field in _VFPTR_NAMES:
+            vfptr_attached = True
+        view.replaceAtOffset(
+            int(item.getOffset()),
+            data_type,
+            int(item.getLength()),
+            field,
+            item.getComment(),
+        )
+    return vfptr_attached
+
+
 def install_derived_base_view(
     program: Any,
     *,
@@ -1247,11 +1320,14 @@ def install_derived_base_view(
     base: str,
     offset: int,
     vftable: Any,
+    vtable_address: int | None = None,
 ) -> bool:
     """Replace the Base component inside Derived with a Derived-specific subobject view.
 
-    Canonical ``/Base`` is left untouched. The view copies Base's layout and points
-    its vfptr at ``Derived_vftable_for_Base``.
+    Canonical ``/Base`` is left untouched. The view occupies the same established
+    bytes as the Base subobject, preserves its fields and trailing padding, and
+    points its vfptr at ``Derived_vftable_for_Base``. Original base identity and
+    containing-object offset are stored in the datatype description for Java.
     """
 
     from ghidra.program.model.data import (  # type: ignore[import-not-found]
@@ -1294,33 +1370,37 @@ def install_derived_base_view(
     if current_path != base_path and current_name != base_name and not already_view:
         return False
     manager = program.getDataTypeManager()
-    if already_view:
-        from ghidra.program.model.data import PointerDataType  # type: ignore[import-not-found]
-
-        if current is None or not hasattr(current, "getDefinedComponents"):
-            return False
-        pointer = PointerDataType(vftable, manager)
-        for item in current.getDefinedComponents():
-            if item.getFieldName() in _VFPTR_NAMES:
-                current.replaceAtOffset(
-                    int(item.getOffset()), pointer, 4, item.getFieldName(), item.getComment()
-                )
-                return True
-        return True
-    category, view_name, _path = _subobject_view_paths(derived, base, offset)
-    manager.createCategory(CategoryPath(category))
-    view = StructureDataType(CategoryPath(category), view_name, 0)
     pointer = PointerDataType(vftable, manager)
-    for item in base_struct.getDefinedComponents():
-        field = item.getFieldName()
-        data_type = pointer if field in _VFPTR_NAMES else item.getDataType()
-        view.insertAtOffset(
-            int(item.getOffset()),
-            data_type,
-            int(item.getLength()),
-            field,
-            item.getComment(),
-        )
+    category, view_name, _path = _subobject_view_paths(derived, base, offset)
+    wanted_length = int(base_struct.getLength())
+    if wanted_length <= 0:
+        return False
+    vtable_token = None
+    if vtable_address is not None:
+        vtable_token = f"0x{int(vtable_address):x}"
+    elif vftable is not None and hasattr(vftable, "getPathName"):
+        vtable_token = str(vftable.getPathName())
+    description = encode_subobject_view(derived, base, offset, vtable=vtable_token)
+    if already_view and current is not None and hasattr(current, "getDefinedComponents"):
+        if int(current.getLength()) != wanted_length:
+            return False
+        if hasattr(current, "clearAtOffset"):
+            for item in sorted(
+                current.getDefinedComponents(), key=lambda row: int(row.getOffset()), reverse=True
+            ):
+                current.clearAtOffset(int(item.getOffset()))
+        attached = _fill_subobject_view(current, base_struct, pointer)
+        if hasattr(current, "setDescription"):
+            current.setDescription(description)
+        return int(current.getLength()) == wanted_length and attached
+    manager.createCategory(CategoryPath(category))
+    view = StructureDataType(CategoryPath(category), view_name, wanted_length)
+    _copy_structure_settings(view, base_struct)
+    attached = _fill_subobject_view(view, base_struct, pointer)
+    if hasattr(view, "setDescription"):
+        view.setDescription(description)
+    if int(view.getLength()) != wanted_length or not attached:
+        return False
     added = manager.addDataType(view, DataTypeConflictHandler.REPLACE_HANDLER)
     derived_struct.replaceAtOffset(
         offset, added, added.getLength(), component.getFieldName(), component.getComment()
@@ -1375,9 +1455,14 @@ def _apply_vftable_typing_row(program: Any, row: Mapping[str, Any]) -> dict[str,
             base=str(base_class),
             offset=offset,
             vftable=structure,
+            vtable_address=int(row["address"], 0),
         )
         if not subobject_view:
-            vfptr = _retarget_class_vfptr(program, qualified, structure, offset=offset)
+            return {
+                **dict(row),
+                "error": "subobject-vfptr-not-attached",
+                "subobject_view": False,
+            }
     elif role == "base":
         vfptr = False
     else:

@@ -365,6 +365,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
     analyze_app.command("high-function-debt")(high_function_debt_command)
+    analyze_app.command("parameter-id")(parameter_id_command)
 
 
 def source_index_command() -> None:
@@ -467,6 +468,37 @@ def high_function_debt_command(
             corpus_kind=corpus_kind,
             profile=profile,
         )
+
+    cli.emit(action())
+
+
+def parameter_id_command(
+    address: Annotated[
+        list[str] | None,
+        typer.Option(help="Explicit address; repeatable. Default: whole program."),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        typer.Option(min=1, help="Stop after this many actionable unrecovered functions."),
+    ] = None,
+    program: Annotated[str, typer.Option(help="Ghidra program selector.")] = "wiz8",
+    target: Annotated[str, typer.Option(help="reccmp target id.")] = "WIZ8",
+) -> None:
+    """Collect-only Parameter ID planning. Does not mutate ProgramDB."""
+    from .. import command_support as cli
+    from ..ghidra.env import open_program
+    from ..parameter_id import collect_parameter_id_plan
+
+    def action():
+        addresses = [int(value, 0) for value in address] if address else None
+        with open_program(cli.settings(), program) as live:
+            return collect_parameter_id_plan(
+                cli.settings().repo_dir,
+                live,
+                target=target,
+                addresses=addresses,
+                limit=limit,
+            )
 
     cli.emit(action())
 

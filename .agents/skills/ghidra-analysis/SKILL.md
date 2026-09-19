@@ -100,12 +100,13 @@ already known to be false.
 
 Whole-program decompiler quality comes from enriching the analysis database, not from pretty-printer
 tweaks. Follow [analysis enrichment](references/analysis-enrichment.md) for class-binding and
-projection rules. Apply established facts with `uv run wiz8 ghidra sync`. Score the result with
-`uv run wiz8 analyze decompiler-quality` before promoting live state into a reviewed GZF.
+projection rules. Apply established facts with `uv run wiz8 ghidra sync`. Score the exact live
+ProgramDB with `uv run wiz8 analyze decompiler-quality` before `ghidra seed refresh`.
 
 Routine recovery does not need this skill merely to obtain C, assembly, or symbol names; those reads
-are `uv run wiz8 ghidra decompile|asm|sym ADDRESS...`. Class layout and rooted P-code field flow are
-`ghidra class NAME` and `ghidra flow ADDRESS --root NAME`.
+are `uv run wiz8 ghidra decompile|asm|sym ADDRESS...`. They print compact text by default (`--json`
+keeps the structured result). Missing source metadata does not block native reads. Class layout and
+rooted P-code field flow are `ghidra class NAME` and `ghidra flow ADDRESS --root NAME`.
 
 ## Checkpoints and bulk projection
 

@@ -2710,9 +2710,13 @@ final class Msvc6Patterns {
 		}
 
 		VtableResolver.Slot slot = vtableSlot(receiverClass, subobjectOffset, slotOffset);
-		if (slot == null || (slot.function != null &&
+		if (slot == null) {
+			return null;
+		}
+		if (slot.function != null &&
 			!(slot.function.getParentNamespace() instanceof GhidraClass) &&
-			!session.emission(slot.function).isDeletingWrapper())) {
+			!session.emission(slot.function).isDeletingWrapper() &&
+			slot.contract == null) {
 			return null;
 		}
 		return new VirtualCall(receiver, slot);

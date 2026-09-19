@@ -43,8 +43,11 @@ source use [source oracles](references/source-oracles.md). Read only the referen
    appropriate object/data/vtable modality from the comparison reference. Stop when no evidence-backed
    source correction remains.
 
-`uv run wiz8 ghidra decompile ADDRESS...` writes disposable C/candidate/listing artifacts under
-`build/ghidra/`. It does not edit source, build or compare and is never a prerequisite.
+`uv run wiz8 ghidra decompile ADDRESS...` prints readable C with address, ProgramDB prototype,
+attached source declaration, source-index freshness, ABI warnings, and artifact paths. Named
+source/ProgramDB defects (`programdb-prototype-empty`, `source-parameter-count-mismatch`, and
+related kinds) are also prepended as `// defect:` comments. `--json` serializes that same result.
+The command does not edit source, build or compare and is never a prerequisite.
 
 ## Before writing source
 
