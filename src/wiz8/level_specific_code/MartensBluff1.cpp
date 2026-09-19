@@ -5,15 +5,27 @@
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/stParticle.h"
+#include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/local_code/HealthStaminaMana.h"
+#include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/location_variables.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/string_database.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/dice.h"
+#include "wiz8/utility.h"
 #include "surrender/srMath.h"
+#include "surrender/srCamera.h"
+#include "soundman.h"
 #include "random.h"
 
 #define MARTENSBLUFF1_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\MartensBluff1.cpp"
@@ -29,8 +41,239 @@
 
 // GLOBAL: WIZ8 0x00683558
 bool g_teleport_running_683558;
+// GLOBAL: WIZ8 0x0068355C
+Trigger* g_door_controller_68355c;
+// GLOBAL: WIZ8 0x00683560
+stSound3D* g_gas_sound_00_683560;
+// GLOBAL: WIZ8 0x00683564
+stSound3D* g_gas_sound_01_683564;
 // GLOBAL: WIZ8 0x00683568
 W8IntervalGate* g_transport_gate_683568;
+
+/* The level-5 entry point called from InitializeLevelMasterFunctions004D6C50:
+   caches the J-Doorcontroller trigger, seeds DialState, kicks the Trang
+   transporter, raises the MR101 lift flag when the party is already beside it
+   and starts or stops the two GasSpray particles' air-escaping loops from the
+   saved gas state. */
+// FUNCTION: WIZ8 0x004DEB40
+void MartensBluff1Setup004DEB40(void)
+{
+    srVector3T<float> position;
+    srVector3T<float> trigger_position;
+    Trigger* pTrigger;
+    stParticle* particle;
+    int dial_state;
+
+    FindTriggerByName("Gas-Switch");
+    g_door_controller_68355c = FindTriggerByName("J-Doorcontroller");
+    g_gas_sound_00_683560 = 0;
+    g_gas_sound_01_683564 = 0;
+    g_teleport_running_683558 = 0;
+    if (g_door_controller_68355c != 0 && GetLocationVarIDByName("DialState") == -1) {
+        Random(8);
+        Random(8);
+        Random(8);
+        CreateLocationVar("DialState", 0x470111);
+    }
+    MartensBluff1Transporter004DF260(static_cast<int>(0xEFFFFFFF));
+    position = GetWorld()->camera->getLocation();
+    pTrigger = FindTriggerByName("MR101");
+    if (pTrigger != 0 && pTrigger->flag_0a0_11 != 0) {
+        pTrigger->GetPosition(&trigger_position);
+        if ((trigger_position - position).Length() < g_double_005ec150) {
+            FindTriggerByName("Lift2Marten2");
+            if (GetLocationVarIDByName("LiftArrived") == -1) {
+                CreateLocationVar("LiftArrived", 1);
+                ShowString(gppStringList[0x1c6c / 4]);
+            }
+        }
+    }
+    if (g_door_controller_68355c != 0) {
+        dial_state = 0;
+        if (GetLocationVarIDByName("DialState") != -1) {
+            dial_state = GetLocationVarValueByName("DialState");
+        }
+        particle = FindRegisteredParticle0049ADB0("GasSpray-00");
+        if (particle != 0) {
+            if ((dial_state & 0xf0000000) == 0) {
+                particle->SetActive(0);
+            } else {
+                particle->getLocation(position);
+                g_gas_sound_00_683560 = CreateAndPlaySoundNode(
+                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+            }
+        }
+        particle = FindRegisteredParticle0049ADB0("GasSpray-01");
+        if (particle != 0) {
+            if ((dial_state & 0xf0000000) == 0) {
+                particle->SetActive(0);
+            } else {
+                particle->getLocation(position);
+                g_gas_sound_01_683564 = CreateAndPlaySoundNode(
+                    "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+            }
+        }
+    }
+}
+
+/* The "F-Handlock" trap callback: already-unlocked or the right hand item
+   (0x26f) opens it; otherwise it shocks the whole party for 2d4+1. */
+// FUNCTION: WIZ8 0x004DEDB0
+bool MartensBluff1FHandlock004DEDB0(Trigger* pTrigger)
+{
+    W8Dice dice;
+
+    if (pTrigger->flag_364 != 0) {
+        return true;
+    }
+    if (g_status_685170.item_in_cursor != 0 && GetItemInHand() == 0x26f) {
+        return true;
+    }
+    SetDice(&dice, 2, 4, 1);
+    ApplyRolledHealthChangeToParty(&dice, 0, 1);
+    SoundPlay("Data\\Sound\\Ambients\\Electricity 04.wav", 0);
+    g_flag_00606994 = 1;
+    return false;
+}
+
+/* The "Dial-A" callback: advance the lowest DialState digit modulo 8. */
+// FUNCTION: WIZ8 0x004DEE10
+bool MartensBluff1DialA004DEE10(Trigger* pTrigger)
+{
+    int state;
+
+    if (g_door_controller_68355c == 0) {
+        return false;
+    }
+    state = GetLocationVarValueByName("DialState");
+    state = ((state & 0xf) + 1) % 8 | (state & 0xfffffff0);
+    SetTriggerVariableByName00444030("DialState", state);
+    return true;
+}
+
+/* The "Dial-B" callback: advance the second DialState digit modulo 8. */
+// FUNCTION: WIZ8 0x004DEE50
+bool MartensBluff1DialB004DEE50(Trigger* pTrigger)
+{
+    int state;
+
+    if (g_door_controller_68355c == 0) {
+        return false;
+    }
+    state = GetLocationVarValueByName("DialState");
+    state = (((state >> 4) & 0xf) + 1) % 8 << 4 | (state & 0xffffff0f);
+    SetTriggerVariableByName00444030("DialState", state);
+    return true;
+}
+
+/* The "Dial-C" callback: advance the third DialState digit modulo 8. */
+// FUNCTION: WIZ8 0x004DEEA0
+bool MartensBluff1DialC004DEEA0(Trigger* pTrigger)
+{
+    int state;
+
+    if (g_door_controller_68355c == 0) {
+        return false;
+    }
+    state = GetLocationVarValueByName("DialState");
+    state = (((state >> 8) & 0xf) + 1) % 8 << 8 | (state & 0xfffff0ff);
+    SetTriggerVariableByName00444030("DialState", state);
+    return true;
+}
+
+/* The "Gas-Switch" callback: toggles the 0x1000 gas-disable digit of
+   DialState. Re-enabling only clears the digit; disabling also stops the two
+   GasSpray particles and their looping sounds. */
+// FUNCTION: WIZ8 0x004DEEF0
+bool MartensBluff1GasSwitch004DEEF0(Trigger* pTrigger)
+{
+    stParticle* particle;
+    int state;
+
+    if (g_door_controller_68355c == 0) {
+        return false;
+    }
+    state = GetLocationVarValueByName("DialState");
+    if ((state & 0xf000) != 0) {
+        state &= ~0xf000;
+        SetTriggerVariableByName00444030("DialState", state);
+        return true;
+    }
+    state = (state & 0xfff0fff) | 0x1000;
+    particle = FindRegisteredParticle0049ADB0("GasSpray-00");
+    if (particle != 0) {
+        particle->SetActive(0);
+    }
+    particle = FindRegisteredParticle0049ADB0("GasSpray-01");
+    if (particle != 0) {
+        particle->SetActive(0);
+    }
+    if (g_gas_sound_00_683560 != 0) {
+        g_gas_sound_00_683560->Stop();
+        g_gas_sound_00_683560 = 0;
+    }
+    if (g_gas_sound_01_683564 != 0) {
+        g_gas_sound_01_683564->Stop();
+        g_gas_sound_01_683564 = 0;
+    }
+    SetTriggerVariableByName00444030("DialState", state);
+    return true;
+}
+
+/* The "J-Doorcontroller" callback: opens while the three dialed digits match
+   the combination stored in bits 16-27 of DialState. A wrong code sprays gas
+   (unless the gas switch disabled it) and casts spell 0x25 at the party. */
+// FUNCTION: WIZ8 0x004DEFB0
+bool MartensBluff1JDoorController004DEFB0(Trigger* pTrigger)
+{
+    srVector3T<float> position;
+    stParticle* particle;
+    int state;
+
+    if (g_door_controller_68355c == 0 || pTrigger->flag_364 != 0) {
+        return false;
+    }
+    state = GetLocationVarValueByName("DialState");
+    if ((state >> 0x10 & 0xfff) == (state & 0xfff)) {
+        return true;
+    }
+    if ((state & 0xf000) != 0) {
+        return false;
+    }
+    g_flag_00606994 = 1;
+    particle = FindRegisteredParticle0049ADB0("GasSpray-00");
+    if (particle != 0) {
+        particle->SetActive(1);
+        particle->getLocation(position);
+        g_gas_sound_00_683560 = CreateAndPlaySoundNode(
+            "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+    }
+    particle = FindRegisteredParticle0049ADB0("GasSpray-01");
+    if (particle != 0) {
+        particle->SetActive(1);
+        particle->getLocation(position);
+        g_gas_sound_01_683564 = CreateAndPlaySoundNode(
+            "Data\\Sound\\Ambients\\Air_Escaping_Loop.wav", position, 0.3f, 30.0f, 1);
+    }
+    position = GetWorld()->camera->getLocation();
+    PointCastSpell(position, 0x25, 5);
+    state |= 0x10000000;
+    SetTriggerVariableByName00444030("DialState", state);
+    return false;
+}
+
+/* The "Controller" callback: toggles fact 0x42. */
+// FUNCTION: WIZ8 0x004DF120
+bool MartensBluff1Controller004DF120(Trigger* pTrigger)
+{
+    if (GetFact(0x42) == 0) {
+        SetFact(0x42, 1, 0);
+    } else {
+        SetFact(0x42, 0, 0);
+    }
+    g_flag_00606994 = 1;
+    return true;
+}
 
 /* The Trang transporter spawn: while fact 0x43 is unset and combat is off it
    finds the two ANTRHACAX entities, plays the transporter sound at the first,
@@ -275,5 +518,46 @@ bool MartensBluff1TeleportState004DF5C0(int new_state)
 set_state:
     SetTriggerVariableByName00444030("TeleporterState", new_state);
     g_teleport_running_683558 = 0;
+    return true;
+}
+
+/* The "WireTrigger" callback: latches TeleporterState 1 (returning false when
+   it is already nonzero) and replays the ButtonGigas sequence under the
+   teleport-running guard. */
+// FUNCTION: WIZ8 0x004DF710
+bool MartensBluff1WireTrigger004DF710(Trigger* pTrigger)
+{
+    Trigger* pTelTrigger;
+
+    g_flag_00606994 = 1;
+    pTelTrigger = FindTriggerByName("MR109");
+    if (pTelTrigger == 0) {
+        srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x329,
+                     "Missing trigger 'MR109'! It's not in the LVL file!");
+    }
+    if (GetLocationVarIDByName("TeleporterState") == -1) {
+        CreateLocationVar("TeleporterState", 1);
+    } else {
+        if (GetLocationVarValueByName("TeleporterState") != 0) {
+            return false;
+        }
+        SetTriggerVariableByName00444030("TeleporterState", 1);
+    }
+    g_teleport_running_683558 = 1;
+    pTelTrigger = FindTriggerByName("ButtonGigas");
+    if (pTelTrigger == 0) {
+        srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x336,
+                     "Missing trigger 'ButtonGigas'! It's not in the LVL file!");
+    }
+    pTelTrigger->Run(-1);
+    g_teleport_running_683558 = 0;
+    return true;
+}
+
+/* The "MartenBook" callback: latches fact 0x268. */
+// FUNCTION: WIZ8 0x004DF7E0
+bool MartensBluff1MartenBook004DF7E0(Trigger* pTrigger)
+{
+    SetFact(0x268, 1, 0);
     return true;
 }
