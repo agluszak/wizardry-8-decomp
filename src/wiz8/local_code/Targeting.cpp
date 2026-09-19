@@ -56,6 +56,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group;
 // GLOBAL: WIZ8 0x006840b3

@@ -31,6 +31,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
 

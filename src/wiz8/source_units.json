@@ -20,7 +20,6 @@
     "src/wiz8/engine_code/IntervalGate.cpp",
     "src/wiz8/engine_code/MonsterLight.cpp",
     "src/wiz8/engine_code/OctRegionPolygon.cpp",
-    "src/wiz8/engine_code/bounds.cpp",
     "src/wiz8/engine_code/game_timer.cpp",
     "src/wiz8/engine_code/stGroundShadow.cpp",
     "src/wiz8/engine_code/stLight.cpp",

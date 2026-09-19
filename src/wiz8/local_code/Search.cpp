@@ -15,6 +15,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/layouts/character.h"

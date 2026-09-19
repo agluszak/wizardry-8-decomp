@@ -47,6 +47,7 @@
 #include "DEBUG.H"
 #include "random.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include <math.h>
