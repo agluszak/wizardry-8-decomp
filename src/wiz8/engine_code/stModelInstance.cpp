@@ -232,6 +232,10 @@ stModelInstance2D::~stModelInstance2D()
     }
 }
 
+/* Deliberately not a whole W8ModelInstanceRenderState assignment. Retail
+   copies the 2D fields around the parent/state work and leaves the upper two
+   bytes of state_0c untouched; GrCycle's separate whole-block copy is a
+   different operation. */
 // FUNCTION: WIZ8 0x0047F290
 stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
 {

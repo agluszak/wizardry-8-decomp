@@ -4510,14 +4510,13 @@ void ApplySavedRedrawInvalidates(void)
    .data; separate `int x = 0` definitions land in .bss and fail datacmp. */
 struct W8ActiveViewport647F40 {
     int sentinel_647f40;
-    int left;
-    int top;
-    int right;
-    int bottom;
+    W8ScreenRect viewport_647f44;
 };
 
+static_assert(sizeof(W8ActiveViewport647F40) == 0x14, "W8ActiveViewport647F40_size");
+
 // GLOBAL: WIZ8 0x00647f40
-W8ActiveViewport647F40 g_active_viewport_647f40 = {-1, 0, 0, 0, 0};
+W8ActiveViewport647F40 g_active_viewport_647f40 = {-1, {0, 0, 0, 0}};
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */
@@ -4531,12 +4530,11 @@ void SetViewportMode(int mode)
     }
     rect = &g_viewport_modes_647d30[mode];
     SetRegionBounds(0xe6, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
-    g_active_viewport_647f40.left = rect->left;
-    g_active_viewport_647f40.top = rect->top;
-    g_active_viewport_647f40.right = rect->right;
-    g_active_viewport_647f40.bottom = rect->bottom;
-    SetViewport(g_active_viewport_647f40.left, g_active_viewport_647f40.top,
-                g_active_viewport_647f40.right, g_active_viewport_647f40.bottom);
+    g_active_viewport_647f40.viewport_647f44 = *rect;
+    SetViewport(g_active_viewport_647f40.viewport_647f44.left,
+                g_active_viewport_647f40.viewport_647f44.top,
+                g_active_viewport_647f40.viewport_647f44.right,
+                g_active_viewport_647f40.viewport_647f44.bottom);
     g_level_block->camera_mode_100 = mode;
 }
 

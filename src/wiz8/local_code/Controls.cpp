@@ -2181,10 +2181,7 @@ void Controls::Invalidate(const W8ControlsRect* rect)
     edge = m_dirtyRect.left;
     m_fWholeAreaDirty = 0;
     if (edge == -1) {
-        m_dirtyRect.left = rect->left;
-        m_dirtyRect.top = rect->top;
-        m_dirtyRect.right = rect->right;
-        m_dirtyRect.bottom = rect->bottom;
+        m_dirtyRect = *rect;
         RequestRedraw(0x80000000);
         return;
     }
