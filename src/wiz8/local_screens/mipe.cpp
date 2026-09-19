@@ -1419,7 +1419,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
                 SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 0.0f, 0.5f);
                 RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);
             }
-            g_mipe_cube_0068f12c = Function48E3E0(point->x, point->y);
+            g_mipe_cube_0068f12c = PickWorldCursorNodeAtScreenPoint0048E3E0(point->x, point->y);
             if (g_mipe_cube_0068f12c != 0) {
                 SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 1.0f, 0.0f);
                 RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);
