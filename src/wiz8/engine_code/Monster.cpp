@@ -4194,7 +4194,7 @@ bool MonsterHasPendingCycle(W8Monster* monster)
 /* Compare the cycle's selected frame against the renderer's typed current-model
    slot.  Prop.cpp independently compares that slot with srModelInstance values. */
 // FUNCTION: WIZ8 0x004c56f0
-unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
+bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
 {
     srModelInstance* current = cycle->GetCurrentModelInstance004A8250();
     return current == GetValue65962C();

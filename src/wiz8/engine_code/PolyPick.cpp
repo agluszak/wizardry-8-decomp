@@ -8,6 +8,8 @@
 #include "wiz8/engine_code/PolyPick.h"
 
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Item.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 
@@ -141,6 +143,44 @@ float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first, const srVect
 {
     srVector3T<float> delta = *first - *second;
     return delta.Length();
+}
+
+/* The monster twin of W8Item::DistanceToCamera - animation bounds for the Z
+   offset and the monster's GrCycle-tail rep for the centre. Used by the
+   monster-list scans in Targeting.cpp. */
+// FUNCTION: WIZ8 0x004BE710
+float MonsterDistanceToCamera004BE710(W8World* world, W8Monster* monster)
+{
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    if (!monster->GetAnimationBounds(&minimum, &maximum)) {
+        return -1.0f;
+    }
+    srVector3T<double> camera = world->camera->getLocation();
+    srVector3T<float> camera_location;
+    camera_location.SetFromDouble(&camera);
+    srVector3T<float> center = monster->m_pRep->location_004;
+    center.z += (maximum.z - minimum.z) * 0.5f;
+    return (camera_location - center).Length();
+}
+
+/* The free-function twin of W8Item::DistanceToCamera - same bounds lookup and
+   Z-offset centre, taking the item pointer explicitly for the item-list
+   scans in ItemManager.cpp. */
+// FUNCTION: WIZ8 0x004BE7C0
+float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item)
+{
+    float lower[3];
+    float upper[3];
+    if (!item->GetCachedLocalBounds(lower, upper)) {
+        return -1.0f;
+    }
+    srVector3T<double> camera = world->camera->getLocation();
+    srVector3T<float> camera_location;
+    camera_location.SetFromDouble(&camera);
+    srVector3T<float> center = item->m_pRep->location_004;
+    center.z += (upper[2] - lower[2]) * 0.5f;
+    return (camera_location - center).Length();
 }
 
 // FUNCTION: WIZ8 0x004BE870

@@ -14,6 +14,7 @@
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/ReadMesh.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -453,6 +454,28 @@ float W8Item::DistanceToCamera(W8World* world)
 void W8Item::LightRadarBlip()
 {
     value_01c = SetCountdownClock(10000);
+}
+
+/* Fire the item's trigger with no source and report its action state. States
+   1 and 4 propagate; a finished trigger, a missing trigger or a missing item
+   collapse to 1/0. */
+// FUNCTION: WIZ8 0x004A0070
+unsigned char RunItemTrigger004A0070(W8Item* item)
+{
+    Trigger* trigger;
+
+    if (item == 0) {
+        return 0;
+    }
+    trigger = item->trigger_018;
+    if (trigger == 0) {
+        return 1;
+    }
+    trigger->Run(-1);
+    if (trigger->action_state_232 == 1 || trigger->action_state_232 == 4) {
+        return trigger->action_state_232;
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004A00C0

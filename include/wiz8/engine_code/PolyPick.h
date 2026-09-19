@@ -14,6 +14,14 @@ float GetCameraFacingYaw004BE5C0(srVector3T<float>* position);
 /* Euclidean distance between two world-space points. */
 float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first,
                                     const srVector3T<float>* second);
+struct W8World;
+struct W8Item;
+class W8Monster;
+/* 0x004BE710: the monster twin - animation bounds and the GrCycle-tail rep. */
+float MonsterDistanceToCamera004BE710(W8World* world, W8Monster* monster);
+/* 0x004BE7C0: free-function twin of W8Item::DistanceToCamera for the item-list
+   scans in ItemManager.cpp. */
+float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item);
 unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
                                         const srVector3T<float>* minimum,
                                         const srVector3T<float>* maximum);

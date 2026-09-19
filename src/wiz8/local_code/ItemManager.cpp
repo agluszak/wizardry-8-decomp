@@ -39,10 +39,16 @@
 #include "wiz8/geometry.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/dialog_code/DialogBase.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
+
+/* 0x004F7C50: the item-picker destroy callback InteractWithWorldItem installs;
+   not yet recovered. */
+void Function4F7C50(W8DialogBase* dialog);
 
 /* 0x005ED7B0: 1/360, the half-degree step random item angles are built
    from. */
@@ -760,6 +766,40 @@ void DeactivateWorldItem(W8WorldItem* item)
     --gXStatus.item_manager_pending;
 }
 
+/* The runtime id of the nearest active world item the cursor is hovering over
+   and whose screen distance stays inside `max_distance`, or -1. The cursor
+   coordinates are carried but unused - the hover test is IsSelected. */
+// FUNCTION: WIZ8 0x004f7370
+int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance)
+{
+    int result;
+    float best_distance;
+    unsigned int index;
+
+    result = -1;
+    best_distance = 999999.0f;
+    for (index = 0; index < PLLength(gXStatus.plsItemList); ++index) {
+        W8WorldItem* item = ItemInfo(index);
+        float distance;
+
+        if (item->unknown_08 == 0) {
+            continue;
+        }
+        if (static_cast<W8ItemRep*>(item->owner->m_pRep)->flags & 4) {
+            continue;
+        }
+        if (!item->owner->IsSelected()) {
+            continue;
+        }
+        distance = ItemDistanceToCamera004BE7C0(GetWorld(), item->owner);
+        if (distance < max_distance && distance < best_distance) {
+            result = item->runtime_id;
+            best_distance = distance;
+        }
+    }
+    return result;
+}
+
 /* Walk every world item: repair invalid sectors, advance falling ones, then
    activate inactive items near the camera and deactivate active ones that have
    drifted beyond the far range. */
@@ -805,6 +845,54 @@ void UpdateNearbyWorldItems(void)
     next_item:
         count = PLLength(gXStatus.plsItemList);
     }
+}
+
+/* Interact with one world item by runtime id. Records flagged 0x20 open the
+   trigger item-picker instead of being taken; otherwise the item's trigger
+   runs, the instance copies into the cursor hand, and the world entry is
+   stripped back out of its sector and the list. */
+// FUNCTION: WIZ8 0x004f7910
+unsigned char InteractWithWorldItem004F7910(int runtime_id)
+{
+    unsigned char result = 1;
+    int index = ItemIndex(runtime_id);
+    W8WorldItem* item = ItemInfo(index);
+
+    if (item == 0) {
+        srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 857, 0);
+    }
+    if (g_item_records[item->item.item_id].flags_041 & 0x20) {
+        W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
+        if (dialog != 0) {
+            dialog->SetItemGroup005CF0C0(item);
+            dialog->m_destroy_callback = Function4F7C50;
+        }
+        g_modal_owner_0068edd0 = dialog;
+        return 1;
+    }
+    if (item->owner->trigger_018 != 0) {
+        result = RunItemTrigger004A0070(item->owner);
+        if (result == 0) {
+            return result;
+        }
+    }
+    if ((static_cast<W8ItemRep*>(item->owner->m_pRep)->flags & 4) == 0) {
+        CopyItemInstance(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
+    }
+    index = ItemIndex(runtime_id);
+    item = ItemInfo(index);
+    if (item->sector_id > -1) {
+        RemoveItemFromSector(item->sector_id, item);
+    }
+    if (item->unknown_08 != 0) {
+        DeactivateWorldItem(item);
+    }
+    FreeWorldItemGroup(item);
+    void* status = PLRemoveAt(gXStatus.plsItemList, index);
+    if (status == 0) {
+        srAssertFail("fStatus", ITEM_MANAGER_CPP, 893, 0);
+    }
+    return result;
 }
 
 /* Push every live world item back to its sector and free the whole list. The

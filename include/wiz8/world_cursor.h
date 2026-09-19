@@ -97,6 +97,7 @@ void ShowWorldCursor00490B10(void);
 /* Clamp and install an action-range distance into the live world cursor, then
    invalidate last_published_34 so the next update republishes. */
 void SetWorldCursorRange00491650(float distance); /* 0x00491650 */
+void SetWorldCursorGroupId004916A0(int group_id); /* 0x004916A0 */
 /* Arm footprint placement: the target resolver ground-probes the two fixed
    offsets instead of the probe box. */
 void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,

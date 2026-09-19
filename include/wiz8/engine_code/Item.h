@@ -74,6 +74,8 @@ static_assert(offsetof(W8Item, trigger_018) == 0x18, "W8Item_trigger_offset");
 static_assert(offsetof(W8Item, value_01c) == 0x1c, "W8Item_value_01c_offset");
 
 bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** item, bool anonymous_mesh);
+/* Run the item's trigger, if any, and report its action state. */
+unsigned char RunItemTrigger004A0070(W8Item* item); /* 0x004A0070 */
 bool GetItemWorldBounds(W8Item* item, float* lower, float* upper);
 
 bool LoadItemFromFile(const W8ReadLevelInfo* context, const char* name, W8Item** item,

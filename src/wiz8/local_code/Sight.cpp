@@ -949,10 +949,10 @@ after_sight:
 
 final_sight_flags:
     if (monster_info->party_threat.flag_25 == 0) {
-        monster_info->party_threat.unknown_05[0] = 0;
-        monster_info->party_threat.unknown_05[1] = 0;
+        monster_info->party_threat.sight_flags_05[0] = 0;
+        monster_info->party_threat.sight_flags_05[1] = 0;
         return;
     }
-    monster->GetPlayerToMonsterSightFlags004C4A20(monster_info->party_threat.unknown_05,
-                                                  monster_info->party_threat.unknown_05 + 1, 0);
+    monster->GetPlayerToMonsterSightFlags004C4A20(monster_info->party_threat.sight_flags_05,
+                                                  monster_info->party_threat.sight_flags_05 + 1, 0);
 }

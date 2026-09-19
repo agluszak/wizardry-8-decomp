@@ -63,6 +63,96 @@ float g_float_005ec35c = 12500.0f;
    an empty place. Both live inside the block Formation & Facing.cpp saves and
    restores whole. */
 
+/* Whether `party_slot` may aim at `monster_info`. The monster must be a live
+   threat; with no targeting/combat/spell/item mode outstanding the pick is a
+   plain sighting and the ranged aim flag applies, otherwise the slot's chosen
+   action supplies the range category (a combat melee band loses the formation
+   rows between slot and monster) and selects the aim flag. An allowed aim
+   then has to pass the band distance to the monster. */
+// FUNCTION: WIZ8 0x005194e0
+bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info, int context,
+                                char notify_failure)
+{
+    W8ActionDetailBlock* detail_block;
+    unsigned char flag;
+    int action;
+    int detail;
+    int range;
+    char rows;
+
+    if (monster_info->party_threat.state_04 != 1) {
+        return 0;
+    }
+    if (gXStatus.iTargetingMode == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
+        gXStatus.fItemSelectMode == 0) {
+        range = W8_RANGE_TOUCH;
+        flag = 1;
+    } else {
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+        ChooseCombatAction(party_slot, context, &action, &detail, 0, &detail_block);
+        switch (action) {
+        case W8_ACTION_ATTACK:
+        case W8_ACTION_BERSERK:
+            range = GetCharAttackRange(character, hand);
+            break;
+        case W8_ACTION_BREATHE:
+            range = W8_RANGE_LONG;
+            break;
+        case W8_ACTION_PROTECT:
+            range = W8_RANGE_TOUCH;
+            break;
+        case W8_ACTION_CAST_SPELL:
+            if (detail == 0) {
+                range = W8_RANGE_NONE;
+                break;
+            }
+            range = g_spell_records[detail].range_category;
+            break;
+        case W8_ACTION_USE_ITEM:
+            range = GetItemSpellRange(detail_block->item_use.item);
+            break;
+        default:
+            range = W8_RANGE_NONE;
+            break;
+        }
+        if (range == W8_RANGE_NONE) {
+            return 0;
+        }
+        ChooseCombatAction(party_slot, context, &detail, 0, 0, 0);
+        flag = detail == W8_ACTION_TURN_UNDEAD ||
+               (detail > W8_ACTION_PROTECT && detail < W8_ACTION_EQUIP);
+        if (gXStatus.fCombatMode != 0 && range >= 0 && range < 2) {
+            rows = CountRowsBetween(party_slot, monster_info);
+            while (rows != 0) {
+                if (range == 0) {
+                    goto cannot_aim;
+                }
+                --range;
+                --rows;
+            }
+        }
+        if (range == W8_RANGE_NONE) {
+            goto cannot_aim;
+        }
+    }
+    if (monster_info->party_threat.sight_flags_05[flag] == 0) {
+        goto cannot_aim;
+    }
+    if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
+        monster_info->monster->GetDistanceToPlayer004C7CB0()) {
+        goto cannot_aim;
+    }
+    return 1;
+cannot_aim:
+    if (notify_failure != 0) {
+        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                            g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+    }
+    return 0;
+}
+
 /* Whether `party_slot`'s action can reach any member of `group_id` at all.
    The character becomes the source for the shared range test; a miss can
    queue the character's complaint event when `notify` asks for it. */

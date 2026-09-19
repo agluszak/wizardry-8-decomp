@@ -557,6 +557,15 @@ void SetWorldCursorRange00491650(float distance)
     }
 }
 
+/* Store the selected monster group id on the world cursor. */
+// FUNCTION: WIZ8 0x004916a0
+void SetWorldCursorGroupId004916A0(int group_id)
+{
+    if (g_world_cursor_0065ba8c != 0) {
+        g_world_cursor_0065ba8c->value_4c = group_id;
+    }
+}
+
 /* Toggle the 3D world cursor: release it if one exists, or initialize one
    if none does. Both branches tail-call into the respective functions. */
 // FUNCTION: WIZ8 0x00490af0

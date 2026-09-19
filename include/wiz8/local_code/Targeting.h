@@ -68,6 +68,8 @@ void SetTargetToCharacter(int character_slot, W8TargetingContext context);
 
 void SetTargetingMode(int state);
 void SetMonsterHighlight(int party_slot, int location_id, char on);
+/* Location id of the nearest hovered live monster, or -1. */
+int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y); /* 0x005396D0 */
 char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight);
 void UpdateAllMonsterHighlights(int party_slot, int location_id);
 /* Cursor-table index for SetTargetCursor, including slots 10..12. Not a

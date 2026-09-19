@@ -183,7 +183,10 @@ struct W8MonsterCombatState {
 struct W8PartyThreatRecord {
     unsigned char unknown_00[4];
     unsigned char state_04; /* 0x28a: live-threat gate for the group sight query */
-    unsigned char unknown_05[2];
+    /* 0x28b: the sight-flag pair GetPlayerToMonsterSightFlags writes;
+       CanPartyMemberAimAtMonster indexes it by the resolved action's
+       ranged flag. */
+    unsigned char sight_flags_05[2];
     unsigned char flag_07;                /* 0x28d */
     int last_seen_clock_08;               /* 0x28e: cleared by the per-turn reset */
     srVector3T<float> camera_position_0c; /* 0x292 */

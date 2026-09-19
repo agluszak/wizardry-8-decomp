@@ -31,7 +31,7 @@ static_assert(sizeof(W8MipeMonsterEntry) == 0x32, "W8MipeMonsterEntry_size");
 struct W8MipeState {
     W8IList monster_ids; /* 0x00 */
 
-    unsigned char unknown_0c[4];
+    int value_0c;            /* 0x0c: group id of the last group pick; 1000000 = none */
     unsigned char selecting; /* 0x10 */
     unsigned char unknown_11[0x13];
     srVector3T<float> drag_anchor; /* 0x24 */
@@ -63,7 +63,12 @@ void ShowMonsterGeneratorStatus005781F0(void);
 void ShowMonsterGeneratorEditor005782D0(void);
 
 void ToggleMipePanel0057D740(void);
+/* Per-tick world-view pick while selecting: generator markers in mode 0x15,
+   otherwise monster hover with single/group select semantics. */
+void UpdateMipeSelection0057DC20(void);
 void DragSelectionWithCursor0057DF80(void);
+/* MIPE's world-view input dispatch: cube drag, cube pick, action menu. */
+unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point);
 
 /* Any armed monster-generator marker within reach of the camera; sticky
    index resumes the scan at the last hit. Used with AnyWorldItemVisible to

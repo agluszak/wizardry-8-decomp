@@ -199,5 +199,4 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
-
 #endif

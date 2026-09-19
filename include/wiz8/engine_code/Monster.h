@@ -322,7 +322,7 @@ unsigned char MonsterGetWorldAnimationBounds004CA4F0(W8Monster* monster, srVecto
 unsigned char LoadMonsterCycle004C5910(const W8GrCycleLoadContext* context, const char* mon_name,
                                        W8Monster** monster, int cycle, int value);
 
-unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
+bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location);
 void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* location);
 void UpdateMonster(W8Monster* monster);
