@@ -1139,3 +1139,43 @@ int ArnikaPedestalItem004E24E0(int* previous_item)
     *previous_item = previous;
     return item;
 }
+
+/* The "BallSlot" activation callback: on the first ball insert it creates
+   item 0x240 and hands it to the kind-0x16 NPC's script notice queue. */
+// FUNCTION: WIZ8 0x004E26F0
+bool ArnikaBallSlot004E26F0(Trigger* pTrigger)
+{
+    W8ItemInstance item;
+    W8NpcState* npc;
+
+    if (GetLocationVarIDByName("BallInserted") == -1) {
+        CreateLocationVar("BallInserted", 1);
+        npc = GetNpcStateByKind(0x16);
+        ReplaceOrCreateItem(&item, 0x240, 1, 1, 0);
+        QueueNpcScriptNotice(npc, &item, -1, 0, 0);
+    }
+    g_flag_00606994 = 1;
+    return true;
+}
+
+/* The "Flightrecordertrigger" activation callback: outside NPC dialogue it
+   queues the kind-0x14 NPC's script notice, passing the held item when the
+   cursor holds one. */
+// FUNCTION: WIZ8 0x004E2760
+bool ArnikaFlightRecorder004E2760(Trigger* pTrigger)
+{
+    W8ItemInstance* item;
+    W8NpcState* npc;
+
+    if (gXStatus.fNpcDialogueMode != 0) {
+        return false;
+    }
+    g_flag_00606994 = 1;
+    npc = GetNpcStateByKind(0x14);
+    item = 0;
+    if (g_status_685170.item_in_cursor != 0) {
+        item = &g_status_685170.item_in_hand_235b;
+    }
+    QueueNpcScriptNotice(npc, item, -1, 0, 0);
+    return false;
+}

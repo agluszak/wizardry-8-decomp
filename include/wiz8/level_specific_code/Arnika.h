@@ -34,3 +34,5 @@ bool ArnikaMaddmook004E2360(Trigger* pTrigger);
 bool ArnikaAstralDominae004E23C0(Trigger* pTrigger);
 bool ArnikaCMbox004E2420(Trigger* pTrigger);
 int ArnikaPedestalItem004E24E0(int* previous_item);
+bool ArnikaBallSlot004E26F0(Trigger* pTrigger);
+bool ArnikaFlightRecorder004E2760(Trigger* pTrigger);
