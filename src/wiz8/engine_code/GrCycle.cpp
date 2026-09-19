@@ -1344,7 +1344,7 @@ const char* W8GrCycle::GetRegisteredName004A8650() const
 }
 
 // FUNCTION: WIZ8 0x004a8700
-unsigned char W8GrCycle::IsSoleRegisteredCycleForName004A8700() const
+bool W8GrCycle::IsSoleRegisteredCycleForName004A8700() const
 {
     int name_index;
 
