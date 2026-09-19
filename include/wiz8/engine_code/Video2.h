@@ -214,6 +214,8 @@ extern srScene* g_scene_overlay1_659658;
 extern srScene* g_scene_square_65965c;
 extern srColorSurface* g_primary_color_surface_659660;
 void DrawColorSurface00425590(srColorSurface* surface, int x, int y);
+srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
+                        unsigned char positional_3); /* 0x00424A90 */
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
 extern unsigned char g_flag_65beaf;

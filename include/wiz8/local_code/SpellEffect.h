@@ -120,7 +120,9 @@ struct W8SpellEffectEntry {
     unsigned char flag_123;                         /* 0x123 */
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
-    unsigned char unknown_125;
+    /* 0x125: set by a handler that actually landed its effect; the result
+       report picks its message from this flag. */
+    unsigned char applied_125;
     W8SpellEffectResult result_126; /* 0x126 */
 };
 #pragma pack(pop)

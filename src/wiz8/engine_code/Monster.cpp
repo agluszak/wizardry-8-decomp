@@ -20,6 +20,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/mipe.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -64,12 +65,18 @@
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/fonts.h"
 #include "surrender/srCamera.h"
 #include "surrender/srTimer.h"
 #include "surrender/srScene.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srCore.h"
+#include "surrender/srColorSurface.h"
+#include "surrender/srPixelConvert.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srShader.h"
 #include "Random.h"
+#include "Font.h"
 #include "FileMan.h"
 #include "soundman.h"
 #include "wiz8/music_playlist.h"
@@ -85,6 +92,8 @@
 #include "input.h"
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
+
+template <> void srFlags<int>::set(int bit, int on);
 
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
@@ -4413,6 +4422,17 @@ unsigned char W8Monster::IsDying()
     return dying;
 }
 
+// TEMPLATE: WIZ8 0x004CA880
+// srFlags<int>::set
+template <> void srFlags<int>::set(int bit, int on)
+{
+    if (on != 0) {
+        value |= 1 << bit;
+        return;
+    }
+    value &= ~(1u << bit);
+}
+
 /* Resolve mapped vertex zero on the current model and transform it into world
    space. Models without that mapping use the Navigator position plus the
    Monster's vertical offset. */
@@ -5026,6 +5046,108 @@ int W8Monster::GetDamageStageCount004C6A50()
         return (*instances.GetAt(0))->damage_stage_tables_188.capacity;
     }
     return 0;
+}
+
+/* Floating damage feedback: render the amount into a scratch ARGB1555
+   surface, wrap it in a camera-facing poster ahead of the monster, and fire a
+   ten-particle blood burst at the same spot. The poster scales with camera
+   distance so the number stays legible. */
+// FUNCTION: WIZ8 0x004C6C30
+void W8Monster::SpawnDamageNumber(unsigned int amount)
+{
+    if (((flags_1dc >> 0xa) & 1) != 0) {
+        return;
+    }
+
+    srColorSurface* surface =
+        SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555, 0x100, 0x100);
+    surface->fill(0);
+    unsigned char* data = static_cast<unsigned char*>(surface->getDataPtr());
+    if (data != 0) {
+        wchar_t text[20];
+        srVector3T<float> position;
+        srVector3T<float> camera_position;
+        srVector3T<float> facing;
+        srVector3T<double> location;
+        srVector4T<float> colour;
+        srMatrix3T<float> rotation;
+        srMatrix3T<double> world;
+        stModelInstance* poster;
+        stParticle* particle;
+        srMaterial* material;
+        srShader shader;
+        float distance;
+        float scale;
+        float pitch;
+        float yaw;
+
+        SaveFontSettings();
+        SetFontDestBuffer(FontDestBuffer, 0, 0, surface->getWidth(), surface->getHeight(),
+                          static_cast<unsigned char>(FontDestWrap));
+        SetFont(g_monster_damage_font_683608);
+        swprintf(text, g_format_d_0060aa20, amount);
+        gprintf_buffer(data, surface->getPitch(), g_monster_damage_font_683608,
+                       0x80 - StringPixLength(text, g_monster_damage_font_683608) / 2,
+                       0x80 - GetFontHeight(g_monster_damage_font_683608) / 2, text);
+        RestoreFontSettings();
+
+        GetMappedPosition004C72A0(&position);
+        facing = GetPosition();
+        pitch = GetElevationToCamera004BE520(&facing);
+        facing = GetPosition();
+        yaw = GetHeadingToCamera004BE650(&facing);
+        OffsetPositionByYawPitch00421170(500.0f, &position, yaw, pitch);
+        GetCameraPosition(&camera_position);
+        distance = (position - camera_position).Length();
+        if (distance > g_float_005ec260) {
+            distance = g_float_005ec260;
+        }
+        scale = (distance * 0.0002f + g_float_005ebb38) * 375.0f;
+        poster = static_cast<stModelInstance*>(VideoMakePoster(surface, scale, scale, 1));
+        if (poster != 0) {
+            poster->alignment_flags_148.set(0, 1);
+            location.SetFromFloat(&position);
+            poster->setLocation(location);
+            poster->setParent(g_world->dynamic_scene, 1);
+            m_pRep->linked_runtime_objects_614.Add(poster);
+
+            particle = new stParticle(g_world->dynamic_scene, 0xa);
+            material = SR_NEW(srMaterial);
+            colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
+            material->setEmissive(colour);
+            material->setDiffuse(colour);
+            particle->SetRetainedObject0049ACA0(material);
+            particle->SetTexture0049AB00(
+                LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", 1));
+            shader.value = 0x100c4b3;
+            particle->SetRenderFlags004925A0(shader);
+            particle->value_140 = 20.0;
+            particle->value_1ac = 0;
+            particle->value_234.Set(0.0f, 0.0f, 0.0f);
+            particle->value_208 = 1.5707963f;
+            particle->value_20c = 1.5707963f;
+            particle->value_1c8 = 1;
+            particle->value_1a8 = 1;
+            particle->value_1bc = 2;
+            particle->value_1b0 = 1;
+            particle->value_1cc = 10000;
+            particle->value_1b8 = 3;
+            particle->value_214 = 1000.0f;
+            particle->value_218 = 3000.0f;
+            particle->state_184 = 8;
+            particle->active_190 = true;
+            particle->value_1a4 = 2;
+            particle->value_240 = 1000.0f;
+            location.SetFromFloat(&position);
+            particle->setLocation(location);
+            GetCurrentModelInstance004A8250()->getRotation(rotation);
+            rotation.RotateAboutY(sin(g_camera_pi_005ec2a0), cos(g_camera_pi_005ec2a0));
+            world.vectors[0].SetFromFloat(&rotation.vectors[0]);
+            world.vectors[1].SetFromFloat(&rotation.vectors[1]);
+            world.vectors[2].SetFromFloat(&rotation.vectors[2]);
+            particle->rotate(world);
+        }
+    }
 }
 
 /* Resolve the database-controlled render gate after the Monster's transient

@@ -241,7 +241,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     flag_1a1 = 1;
     retained_14c = 0;
     state_184 = 0;
-    active_190 = 0;
+    active_190 = false;
     unknown_191 = 0;
     value_188 = 0;
     allocation_254 = new unsigned long[texture_frame_count_15c];
@@ -909,7 +909,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
         if (callback_26c != 0) {
             callback_26c->RestoreAnimation();
         }
-        if (active_190 != 0) {
+        if (active_190) {
             release();
         }
         return;

@@ -433,7 +433,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         ClearHighlightIfItIs(&monster_info->location_id);
         UpdateMonsterDamageAppearance(monster_info);
         if (monster_info->monster != 0) {
-            Function4C6C30(monster_info->monster, amount);
+            monster_info->monster->SpawnDamageNumber(amount);
         }
     }
     return amount;

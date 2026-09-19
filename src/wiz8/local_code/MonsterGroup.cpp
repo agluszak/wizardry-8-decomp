@@ -821,6 +821,30 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
     }
 }
 
+/* Nonzero when the group - or, recursing, one of its allied groups - has a
+   member whose highest condition is in the 0x0d..0x11 incapacitated band. */
+// FUNCTION: WIZ8 0x00511D40
+bool MonsterGroupHasIncapacitatedMember(int group_id)
+{
+    W8MonsterGroup* group =
+        GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(0x961, MONSTER_GROUP_CPP, group_id, 1));
+    unsigned int index;
+    for (index = 0; index < ILLength(group->monsters); ++index) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x967, MONSTER_GROUP_CPP, IListGetAt(group->monsters, index), 1));
+        if (info->highest_condition > 0xd && info->highest_condition < 0x12) {
+            return true;
+        }
+    }
+    for (index = 0; index < 4; ++index) {
+        if (group->allied_group_ids[index] != 0 &&
+            MonsterGroupHasIncapacitatedMember(group->allied_group_ids[index])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* The mean position of a group's members, recomputed only while the group is
    loaded and cached on the group itself; an unloaded group answers with
    whatever it last held. The out-parameter is optional, so the same call both

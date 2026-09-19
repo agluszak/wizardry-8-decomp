@@ -530,7 +530,7 @@ W8GrCycle::~W8GrCycle()
                 delete event;
                 owner->SetActive(1);
                 owner->state_184 = 1;
-                owner->active_190 = 1;
+                owner->active_190 = true;
             }
         }
         delete m_plsParticles;

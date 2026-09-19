@@ -154,9 +154,10 @@ public:
     virtual unsigned char GetAnimationCenter(srVector3T<float>* center);
     virtual void SetPosition(const srVector3T<float>* position) override;
 
-    int Query(int query);                      /* 0x004C4660 */
-    void SetRuntimeValueA6(signed char value); /* 0x004C6C00 */
-    unsigned char IsDying();                   /* 0x004CA4C0 */
+    int Query(int query);                        /* 0x004C4660 */
+    void SetRuntimeValueA6(signed char value);   /* 0x004C6C00 */
+    void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
+    unsigned char IsDying();                     /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>* instances);
@@ -422,7 +423,6 @@ void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 
-void Function4C6C30(W8Monster* monster, unsigned int amount); /* 0x004C6C30 */
 W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 compares exactly prefix_length characters and then uses the same
