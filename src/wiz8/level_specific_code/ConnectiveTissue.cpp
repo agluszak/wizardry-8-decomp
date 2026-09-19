@@ -23,7 +23,7 @@
 // FUNCTION: WIZ8 0x004E05F0
 bool ConnectiveTissueLiche004E05F0(Trigger* pTrigger)
 {
-    W8MonsterGenerator* generator;
+    MonGen* generator;
 
     if (GetItemInHand() != 0x15d && pTrigger->action_230 == 0) {
         ShowLevelMessage004D9960(6);

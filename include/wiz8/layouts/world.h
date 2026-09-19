@@ -16,7 +16,7 @@ class W8Octree;
 struct W8Quad;
 class W8Missile;
 class W8SpellVisual;
-struct W8MonsterGenerator;
+struct MonGen;
 class stLight;
 class W8Prop;
 class Trigger;
@@ -82,7 +82,7 @@ struct W8World {
     W8GrowableVector<W8Missile*>* missiles;
     W8GrowableVector<stLight*>* lights_to_update;
     W8GrowableVector<W8Prop*>* collidable_props;
-    W8GrowableVector<W8MonsterGenerator*>* monster_generators;
+    W8GrowableVector<MonGen*>* monster_generators;
     W8GrowableVector<Trigger*>* triggers;
     W8GrowableVector<stParticle*>* particles;
     W8GrowableVector<W8NamedPosition*>* named_positions;

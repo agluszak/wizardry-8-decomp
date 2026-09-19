@@ -119,9 +119,18 @@ struct W8LevelFileDoor { /* 0x99 */
    the +0x2609/+0x260d registry of the level workspace. */
 struct W8LevelFileLinkedRecord {
     unsigned char kind_00;
+    /* 0x1b0-byte payload: the linked region's 36 scaled vertex triples,
+       forwarded as a unit to W8GameData's linked-record pass. */
     unsigned char unknown_01[0x1b0];
-    unsigned char unknown_1b1[2];
-    int value_1b3;
+    /* 0x1b1: the AddTriggerPlane overload at 0x00448C60 compares each of the
+       twelve generated surfaces against this byte and links the matching one
+       to a new environment record. */
+    signed char linked_face_1b1;
+    unsigned char unknown_1b2;
+    /* 0x1b3: float factor handed to the environment-record builder
+       (0x00448E60), which multiplies the surface normal by it. */
+    float value_1b3;
+    /* 0x1b7: float factor applied to the new environment record's +0x34. */
     float value_1b7;
 };
 
@@ -326,16 +335,56 @@ struct W8LevelFileProp { /* 0xbf */
     unsigned char unknown_be;
 };
 
+/* The 0x225-byte particle body shared by the level file's particle systems
+   and the world file's particle records. ReadWorldParticles reads it
+   standalone after taking the version byte itself; the level file keeps it
+   embedded behind the version byte. Its 0x225-byte extent and every named
+   offset come directly from the version-sized reads and subsequent uses in
+   0x004BD0D0. */
+struct W8LevelParticleRecord004BD0D0 {
+    char name[64];                      /* 0x000 */
+    srVector3T<float> location;         /* 0x040 */
+    float rotation_angle;               /* 0x04c */
+    srVector3T<float> rotation_axis;    /* 0x050 */
+    unsigned char positional_05c[0x0c]; /* 0x05c */
+    unsigned int particle_count;        /* 0x068 */
+    float source_06c;                   /* 0x06c */
+    float source_070;                   /* 0x070 */
+    float source_074;                   /* 0x074 */
+    int has_acceleration;               /* 0x078 */
+    srVector3T<float> acceleration;     /* 0x07c */
+    int positional_088;                 /* 0x088 */
+    int bounds_mode;                    /* 0x08c */
+    srVector3T<float> bounds_origin;    /* 0x090 */
+    float bounds_radius;                /* 0x09c */
+    srVector3T<float> bounds_extent;    /* 0x0a0 */
+    unsigned int lifetime;              /* 0x0ac */
+    int velocity_mode;                  /* 0x0b0 */
+    unsigned int emission_interval;     /* 0x0b4 */
+    int positional_0b8;                 /* 0x0b8 */
+    int placement_mode;                 /* 0x0bc */
+    float placement_0c0;                /* 0x0c0 */
+    float placement_0c4;                /* 0x0c4 */
+    float placement_0c8;                /* 0x0c8 */
+    float particle_value;               /* 0x0cc */
+    int flutter_mode;                   /* 0x0d0 */
+    float flutter_value;                /* 0x0d4 */
+    float flutter_period;               /* 0x0d8 */
+    int direction_mode;                 /* 0x0dc */
+    float direction_0e0;                /* 0x0e0 */
+    float direction_0e4;                /* 0x0e4 */
+    int initially_active;               /* 0x0e8 */
+    W8MaterialRecord004B8A70 material;  /* 0x0ec */
+    short value_216;                    /* 0x216, version >= 2 */
+    int state_218;                      /* 0x218, version >= 3 */
+    unsigned char value_21c;            /* 0x21c, version >= 3 */
+    int start_frame_21d;                /* 0x21d, unaligned, version >= 4 */
+    int end_frame_221;                  /* 0x221, version >= 4 */
+};
+
 struct W8LevelFileParticleSystem { /* 0x226 */
     char version_00;
-    char name_01[0x40];
-    float position_41[3];
-    unsigned char unknown_04d[0x1ca];
-    unsigned char unknown_217[2]; /* version_00 >= 2 */
-    unsigned char unknown_219[4]; /* version_00 >= 3 */
-    unsigned char unknown_21d;    /* version_00 >= 3 */
-    unsigned char unknown_21e[4]; /* version_00 >= 4 */
-    unsigned char unknown_222[4]; /* version_00 >= 4 */
+    W8LevelParticleRecord004BD0D0 particle_01;
 };
 
 struct W8LevelFileNamedPosition { /* 0x9d */
@@ -456,8 +505,14 @@ static_assert(offsetof(W8LevelFileProp, usFrame_Pos) == 0xb8, "W8LevelFileProp_u
 static_assert(offsetof(W8LevelFileProp, flag_bc) == 0xbc, "W8LevelFileProp_flag_bc");
 static_assert(offsetof(W8LevelFileProp, unknown_bd) == 0xbd, "W8LevelFileProp_unknown_bd");
 static_assert(offsetof(W8LevelFileProp, unknown_be) == 0xbe, "W8LevelFileProp_unknown_be");
+static_assert(sizeof(W8LevelParticleRecord004BD0D0) == 0x225,
+              "W8LevelParticleRecord004BD0D0_must_be_0x225");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
+static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
+              "W8LevelFileParticleSystem_position_41");
+static_assert(offsetof(W8LevelFileParticleSystem, particle_01.value_216) == 0x217,
+              "W8LevelFileParticleSystem_value_217");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");

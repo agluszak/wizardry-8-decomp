@@ -101,7 +101,7 @@ public:
     W8CharacterCreationState* m_creation_state_064;
     int m_mode_068;
     unsigned char m_prepared_06c;
-    unsigned char m_dirty_06d;
+    bool m_dirty_06d;
     unsigned char pad_06e[2];
 
     void AddEntry(W8CharacterPageEntry* entry); /* 0x005AFFC0 */
@@ -225,8 +225,8 @@ static_assert(sizeof(W8CharacterPage005EF778) == 0xa0, "W8CharacterPage005EF778_
 struct W8CharacterSpellEntry {
     int realm;
     unsigned int spell;
-    unsigned char selectable;
-    unsigned char selected;
+    bool fSelectable;
+    bool selected;
     unsigned char pad_00a[2];
 };
 static_assert(sizeof(W8CharacterSpellEntry) == 0xc, "W8CharacterSpellEntry_size");
@@ -263,7 +263,7 @@ public:
 private:
     void UpdateSpellLists();
     W8CharacterSpellList* m_realms_074[6];
-    W8CharacterSpellEntry m_spell_data_08c[114];
+    W8CharacterSpellEntry m_SpellData[114];
     W8GameTimer m_animation_timer_5e4;
     unsigned int m_animation_frames_608[6];
     unsigned int m_last_selected_620;

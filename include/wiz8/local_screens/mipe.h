@@ -11,7 +11,7 @@ class Trigger;
 class W8Monster;
 class W8Prop;
 class W8WorldCursorNode;
-struct W8MonsterGenerator;
+struct MonGen;
 
 extern int g_mipe_cube_serial_006850ba;
 
@@ -44,7 +44,7 @@ struct W8MipeState {
     W8Monster* monster;            /* 0x48 */
     float speed_step;              /* 0x4c */
     Trigger* trigger;              /* 0x50 */
-    W8MonsterGenerator* generator; /* 0x54 */
+    MonGen* generator; /* 0x54 */
     W8Prop* prop;                  /* 0x58 */
     unsigned char unknown_5c[5];
     unsigned char flag_61; /* 0x61: initialised to 0xff */

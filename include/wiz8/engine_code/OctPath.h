@@ -451,13 +451,13 @@ public:
     unsigned int* path_nodes_044; /* 0x44: serialized key/value pairs */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
-    W8PathSurface* m_pSurfaces_048;     /* 0x48 */
-    W8PathEdge* m_pEdges_04c;           /* 0x4c */
-    W8FileWaypoint* m_pFileWayPoints;   /* 0x50 */
-    stModelInstance* waypoint_mesh_054; /* 0x54 */
-    BitArray* visible_waypoints_058;    /* 0x58 */
-    BitArray* rendered_waypoints_05c;   /* 0x5c */
-    BitArray* collected_waypoints_060;  /* 0x60 */
+    W8PathSurface* m_pSurfaces_048;        /* 0x48 */
+    W8PathEdge* m_pEdges_04c;              /* 0x4c */
+    W8FileWaypoint* m_pFileWayPoints;      /* 0x50 */
+    stModelInstance* m_pPathModelInstance; /* 0x54 */
+    BitArray* visible_waypoints_058;       /* 0x58 */
+    BitArray* rendered_waypoints_05c;      /* 0x5c */
+    BitArray* collected_waypoints_060;     /* 0x60 */
     /* Two hash indexes the loader builds and 0x00457B10 destroys. The path
        value words are bitfields (height in the low half, state flags in the
        high bits), so 0x64 takes unsigned values; 0x74 is the visited-cell set

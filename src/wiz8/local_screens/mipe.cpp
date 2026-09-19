@@ -335,7 +335,7 @@ void ShowMonsterGeneratorStatus005781F0(void)
 // FUNCTION: WIZ8 0x005782d0
 void ShowMonsterGeneratorEditor005782D0(void)
 {
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     W8EncounterTableRuntime* table;
     const char* state;
     int chance;
@@ -346,21 +346,21 @@ void ShowMonsterGeneratorEditor005782D0(void)
     ResetEditorStatusLine0058AA20(-1);
     WriteGameLogAmount(6, L"Edit Monster Generator");
     WriteGameLogAmount(0xf, L"1) Name: %hs", g_mipe_state_0068f100->generator->name);
-    if (g_mipe_state_0068f100->generator->value_1c == -1) {
+    if (g_mipe_state_0068f100->generator->encounter_table_index == -1) {
         WriteGameLogAmount(0xf, L"2) Table: Not Selected");
     } else {
-        table = GetEncounterTable(g_mipe_state_0068f100->generator->value_1c);
+        table = GetEncounterTable(g_mipe_state_0068f100->generator->encounter_table_index);
         WriteGameLogAmount(0xf, L"2) Table: %hs", table->name);
     }
     state = "On";
-    if (g_mipe_state_0068f100->generator->flag_44 == 0) {
+    if (g_mipe_state_0068f100->generator->generation_enabled == 0) {
         state = "Off";
     }
     WriteGameLogAmount(0xf, L"3) Toggle Active [%s]", state);
     generator = g_mipe_state_0068f100->generator;
     if ((generator->flags >> 3 & 1) == 0) {
-        interval = generator->value_06;
-        chance = (char)generator->flag_04;
+        interval = generator->custom_interval_seconds;
+        chance = generator->custom_spawn_chance;
         format = L" Custom: %d (4-/5+) chance every %d (6-/7+) s";
         color = 5;
     } else {
@@ -838,8 +838,8 @@ int HandleCubeScaleKey0057A800(unsigned short key)
 // FUNCTION: WIZ8 0x0057aa00
 int HandleMonsterGeneratorKey0057AA00(unsigned short key)
 {
-    W8MonsterGenerator* generator;
-    W8MonsterGenerator* other;
+    MonGen* generator;
+    MonGen* other;
     srVector3T<float> anchor;
     srVector3T<float> position;
     char name[12];
@@ -863,7 +863,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         }
         g_mipe_mongen_visible_0068f0fe = 1;
         ShowMonsterGeneratorStatus005781F0();
-        generator = new W8MonsterGenerator();
+        generator = new MonGen();
         if (generator == 0) {
             srAssertFail("pMongen", MIPE_CPP, 0xa24,
                          "mipe.cpp: Out of memory creating monster generator");
@@ -880,18 +880,18 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         if (0 < count) {
             do {
                 other = GetMonsterGenerator(index);
-                if (other->node_18 != 0) {
-                    static_cast<W8ItemRep*>(other->node_18->m_pRep)->SetFlags(0x10, 0);
-                    other->node_18->SetHighlight(false);
+                if (other->marker_item != 0) {
+                    static_cast<W8ItemRep*>(other->marker_item->m_pRep)->SetFlags(0x10, 0);
+                    other->marker_item->SetHighlight(false);
                 }
                 ++index;
                 count = GetMonsterGeneratorCount();
             } while (index < count);
         }
         g_mipe_state_0068f100->generator = generator;
-        if (generator->node_18 != 0) {
-            static_cast<W8ItemRep*>(generator->node_18->m_pRep)->SetFlags(0x10, 1);
-            generator->node_18->SetHighlight(true);
+        if (generator->marker_item != 0) {
+            static_cast<W8ItemRep*>(generator->marker_item->m_pRep)->SetFlags(0x10, 1);
+            generator->marker_item->SetHighlight(true);
         }
         return 1;
     case 0x32:
@@ -944,7 +944,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     W8PList* list;
     W8EncounterTableRuntime* table;
     W8EncounterTableRuntime* entry;
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     int current_index;
     int count;
     int index;
@@ -982,7 +982,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         WriteGameLogAmount(0xf, L"%S", g_mipe_state_0068f100->generator->name);
         return 1;
     case 0x32:
-        current_index = g_mipe_state_0068f100->generator->value_1c;
+        current_index = g_mipe_state_0068f100->generator->encounter_table_index;
         if (current_index < 0) {
             g_mipe_table_base_0068f120 = 0;
             g_mipe_table_row_0068f118 = 0;
@@ -1039,14 +1039,14 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         } while (slot < 6);
         return 1;
     case 0x33:
-        g_mipe_state_0068f100->generator->flag_44 = g_mipe_state_0068f100->generator->flag_44 == 0;
+        g_mipe_state_0068f100->generator->generation_enabled = g_mipe_state_0068f100->generator->generation_enabled == 0;
         ShowMonsterGeneratorEditor005782D0();
         return 1;
     case 0x34:
         generator = g_mipe_state_0068f100->generator;
         if ((generator->flags >> 3 & 1) == 0) {
-            if ('\0' < (char)generator->flag_04) {
-                generator->flag_04 = (char)generator->flag_04 - 10;
+            if ('\0' < generator->custom_spawn_chance) {
+                generator->custom_spawn_chance = generator->custom_spawn_chance - 10;
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
             }
@@ -1059,8 +1059,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     case 0x35:
         generator = g_mipe_state_0068f100->generator;
         if ((generator->flags >> 3 & 1) == 0) {
-            if ((char)generator->flag_04 < 'd') {
-                generator->flag_04 = (char)generator->flag_04 + '\n';
+            if (generator->custom_spawn_chance < 'd') {
+                generator->custom_spawn_chance = generator->custom_spawn_chance + '\n';
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
             }
@@ -1073,8 +1073,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     case 0x36:
         generator = g_mipe_state_0068f100->generator;
         if ((generator->flags >> 3 & 1) == 0) {
-            if (0 < generator->value_06) {
-                generator->value_06 = generator->value_06 - 10;
+            if (0 < generator->custom_interval_seconds) {
+                generator->custom_interval_seconds = generator->custom_interval_seconds - 10;
                 g_mipe_state_0068f100->generator->Reset();
                 ShowMonsterGeneratorEditor005782D0();
                 return 1;
@@ -1088,7 +1088,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     case 0x37:
         generator = g_mipe_state_0068f100->generator;
         if ((generator->flags >> 3 & 1) == 0) {
-            generator->value_06 = generator->value_06 + 10;
+            generator->custom_interval_seconds = generator->custom_interval_seconds + 10;
             g_mipe_state_0068f100->generator->Reset();
             ShowMonsterGeneratorEditor005782D0();
             return 1;
@@ -1245,7 +1245,7 @@ static unsigned char g_mipe_choose_group_0064a1cc;
 void UpdateMipeSelection0057DC20(void)
 {
     POINT point;
-    W8MonsterGenerator* picked;
+    MonGen* picked;
     W8MonsterInfo* info;
     W8Item* marker;
     float best_distance;
@@ -1261,7 +1261,7 @@ void UpdateMipeSelection0057DC20(void)
         picked = 0;
         best_distance = 999999.0f;
         for (index = 0; index < GetMonsterGeneratorCount(); ++index) {
-            W8MonsterGenerator* entry = GetMonsterGenerator(index);
+            MonGen* entry = GetMonsterGenerator(index);
             float distance;
 
             marker = entry->marker_item;
@@ -1503,7 +1503,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
     srVector3T<float> camera;
     int count;
     int index;
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     W8Item* marker;
 
     if (g_world == 0 || g_world->camera == 0) {

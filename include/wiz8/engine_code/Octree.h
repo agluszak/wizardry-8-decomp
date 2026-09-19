@@ -334,7 +334,7 @@ public:
     /* Reset the shared buffer and collect one cell's leaf object ids. */
     int ProbeCellForTrace(const int* cell); /* 0x00435B00 */
     /* Reset vs append variants collecting one cell's leaf polygon references
-       (mapped through m_owned_0d4 into (mesh<<16)|polygon keys). */
+       (mapped through m_aulPolyLookup into (mesh<<16)|polygon keys). */
     int ProbeCellForBlockers(const int* cell);       /* 0x00435C40 */
     int ProbeCellForBlockersAppend(const int* cell); /* 0x00435DA0 */
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace
@@ -475,7 +475,7 @@ public:
     unsigned long* m_owned_0d0;
     /* ReadOctFile's allocation assertion calls this the "Poly Lookup table":
        polygon index to (kind<<16)|id object key. */
-    unsigned long* m_owned_0d4;
+    unsigned long* m_aulPolyLookup;
     W8OctSubmesh* m_pSubmeshes;
     /* Six original member names, from ReadOctFile's own assertion text at
        0x0042C68A, 0x0042C70C, 0x0042C7AB, 0x0042C850, 0x0042C8F5 and
@@ -644,7 +644,7 @@ public:
     /* Serializes the finished octree to NewLevel.oct. */
     unsigned char WriteOctFile004683F0(W8OctPreTreeGeometry* geometry, W8GameData* game_data);
     /* Partitions the geometry into submesh records, emits the OctMeshModel
-       array and fills m_pSubmeshes/m_owned_0d4. */
+       array and fills m_pSubmeshes/m_aulPolyLookup. */
     OctMeshModel* CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry);
     unsigned long SplitMeshes00469670(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
     unsigned long AllocateSubMesh0046A790(W8OctSubmeshBuild* records);

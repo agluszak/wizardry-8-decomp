@@ -34,7 +34,7 @@
 
 /* Engine Code\MonGen.cpp. InitializeEncounterTables at 0x0048A7A0 asserts
    this unit (line 211) and the 0x0048A7A0-0x0048C110 hard hull is bounded to
-   it. W8MonsterGenerator's destructor and helper before the hull and the
+   it. MonGen's destructor and helper before the hull and the
    encounter/timer bodies after it are attribution gaps placed here
    provisionally; no assertion names their unit. */
 
@@ -61,24 +61,24 @@ static W8EncounterCompanionRecord GetEncounterCompanion(const W8MonsterRecord* r
 }
 
 // FUNCTION: WIZ8 0x0048A680
-W8MonsterGenerator::W8MonsterGenerator()
+MonGen::MonGen()
 {
     flags = 0;
-    flag_04 = 100;
-    value_06 = 100;
-    value_08 = 0xffff;
-    node_18 = 0;
-    value_1c = -1;
+    custom_spawn_chance = 100;
+    custom_interval_seconds = 100;
+    unknown_08 = 0xffff;
+    marker_item = 0;
+    encounter_table_index = -1;
     m_pTimer = 0;
     memset(name, 0, sizeof(name));
-    flag_44 = 1;
+    generation_enabled = 1;
 }
 
 // FUNCTION: WIZ8 0x0048bdc0
-W8MonsterGenerator* FindMonGenByName(const char* name)
+MonGen* FindMonGenByName(const char* name)
 {
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
-    W8MonsterGenerator* generator;
+    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
+    MonGen* generator;
     int index = 0;
 
     if (generators->GetCount() > 0) {
@@ -251,7 +251,7 @@ enum { W8_ENCOUNTER_STALE_SECONDS = 36000 };
    retail falls back to raw rarity plus the day/night condition. A random
    candidate is moved to slot zero because GenerateEncounter consumes slot zero. */
 // FUNCTION: WIZ8 0x0048B9A0
-int W8MonsterGenerator::SelectEncounterCandidates(W8EncounterTableRuntime* table,
+int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
                                                   W8GrowableVector<int>* candidates)
 {
     int rarity_roll;
@@ -322,7 +322,7 @@ int W8MonsterGenerator::SelectEncounterCandidates(W8EncounterTableRuntime* table
    normal difficulty and weak tiny encounters toward the upper half; novice and
    expert take the corresponding fixed extremes in those branches. */
 // FUNCTION: WIZ8 0x0048BC30
-int W8MonsterGenerator::RollEncounterGroupSize(W8MonsterRecord* record)
+int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
 {
     W8Dice* dice = &record->group_size_dice_0c1;
     float relative_level = record->display_level_251 / GetAveragePartyMemberLevel();
@@ -365,7 +365,7 @@ int W8MonsterGenerator::RollEncounterGroupSize(W8MonsterRecord* record)
    group as a live random encounter. The bit-5 form is only valid for hostile
    factions while one of the three story facts is set. */
 // FUNCTION: WIZ8 0x0048AD20
-unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* position)
+unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 {
     W8GrowableVector<int> candidates;
     W8EncounterCompanionRecord companion_records[2];
@@ -381,11 +381,11 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
     int companion_count = 0;
     int index;
 
-    if ((flags & W8_MONGEN_DISABLED) != 0 || value_1c == -1) {
+    if ((flags & W8_MONGEN_DISABLED) != 0 || encounter_table_index == -1) {
         return 0;
     }
 
-    table = *g_encounter_tables.GetAt(value_1c);
+    table = *g_encounter_tables.GetAt(encounter_table_index);
     if (SelectEncounterCandidates(table, &candidates) == 0) {
         return 0;
     }
@@ -494,13 +494,13 @@ unsigned char W8MonsterGenerator::GenerateEncounter(const srVector3T<float>* pos
    or over the active-encounter budget. A forced roll bypasses the spatial and
    chance tests but not the global-mode and budget gates. */
 // FUNCTION: WIZ8 0x0048B200
-unsigned char W8MonsterGenerator::CanGenerateEncounter(unsigned char force)
+unsigned char MonGen::CanGenerateEncounter(unsigned char force)
 {
     srVector3T<float> camera;
     float distance;
 
     if (g_generator_save_flag != 0 || g_flag_006840bc != 0 || gXStatus.fCombatMode != 0 ||
-        gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 || flag_44 == 0) {
+        gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 || generation_enabled == 0) {
         return 0;
     }
 
@@ -538,7 +538,7 @@ unsigned char W8MonsterGenerator::CanGenerateEncounter(unsigned char force)
     }
 
     int chance = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_interval_min
-                                                               : static_cast<signed char>(flag_04);
+                                                               : custom_spawn_chance;
     return Chance(chance) != 0;
 }
 
@@ -601,10 +601,10 @@ void DespawnAllActiveMonsterGroups0048C9F0(void)
 void ResetMonsterGeneratorTimers0048CBE0(void)
 {
     g_encounter_culling_scale_fast = 1.0f;
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
 
     for (int index = 0; index < generators->count; ++index) {
-        W8MonsterGenerator* generator = *generators->GetAt(index);
+        MonGen* generator = *generators->GetAt(index);
 
         generator->m_pTimer->ResetDurationScale();
     }
@@ -675,9 +675,9 @@ int GetMonsterGeneratorCount(void)
    vector's own bounds-checked read, which would otherwise fall back to element
    zero. */
 // FUNCTION: WIZ8 0x0048bd90
-W8MonsterGenerator* GetMonsterGenerator(int index)
+MonGen* GetMonsterGenerator(int index)
 {
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
 
     if (index >= generators->GetCount()) {
         return 0;
@@ -698,7 +698,7 @@ W8EncounterTableRuntime* GetEncounterTable(int index)
 /* Appends through the world's ordinary growable vector. Add is header-visible,
    so VC6 expands both it and Grow into this caller just as the image does. */
 // FUNCTION: WIZ8 0x0048be30
-void AddMonsterGenerator(W8MonsterGenerator* generator)
+void AddMonsterGenerator(MonGen* generator)
 {
     g_world->monster_generators->Add(generator);
 }
@@ -711,7 +711,7 @@ void AddMonsterGenerator(W8MonsterGenerator* generator)
 void DestroyMonsterGenerators(void)
 {
     int count = g_world->monster_generators->GetCount();
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     int index;
 
     if (count < 1) {
@@ -729,7 +729,7 @@ void DestroyMonsterGenerators(void)
    random-encounter budget is always clamped to the current level after loading,
    and the culling span is finally reset from that level's database row. */
 // FUNCTION: WIZ8 0x0048c110
-unsigned char W8MonsterGenerator::LoadAll(int save_handle)
+unsigned char MonGen::LoadAll(int save_handle)
 {
     W8LevelDatabaseRecord* level;
     unsigned char success;
@@ -757,7 +757,7 @@ unsigned char W8MonsterGenerator::LoadAll(int save_handle)
 
     success = FileRead(save_handle, &count, 4, 0);
     for (index = 0; index < count && success != 0; ++index) {
-        W8MonsterGenerator* generator = new W8MonsterGenerator;
+        MonGen* generator = new MonGen;
         if (generator == 0) {
             srAssertFail("pMonGen", MON_GEN_CPP, 0x48a, "MonGen::LoadAll() out of memory");
         }
@@ -782,8 +782,8 @@ unsigned char W8MonsterGenerator::LoadAll(int save_handle)
 void LoadMonsterGenerators(int handle)
 {
     char name[32];
-    W8MonsterGenerator* generator;
-    unsigned char flag_44;
+    MonGen* generator;
+    unsigned char generation_enabled;
     unsigned int flags;
     int version;
     int count;
@@ -795,19 +795,19 @@ void LoadMonsterGenerators(int handle)
     FileRead(handle, &count, 4, 0);
     for (index = 0; index < count; ++index) {
         FileRead(handle, name, sizeof(name), 0);
-        FileRead(handle, &flag_44, 1, 0);
+        FileRead(handle, &generation_enabled, 1, 0);
         FileRead(handle, &flags, 4, 0);
 
         generator = 0;
         for (search = 0; search < g_world->monster_generators->GetCount(); ++search) {
-            W8MonsterGenerator* candidate = *g_world->monster_generators->GetAt(search);
+            MonGen* candidate = *g_world->monster_generators->GetAt(search);
             if (strncmp(name, candidate->name, sizeof(name)) == 0) {
                 generator = candidate;
                 break;
             }
         }
         if (generator != 0) {
-            generator->flag_44 = flag_44;
+            generator->generation_enabled = generation_enabled;
             generator->flags = flags;
         }
 
@@ -832,7 +832,7 @@ void LoadMonsterGenerators(int handle)
 void RunMonsterGenerators(void)
 {
     int count = g_world->monster_generators->GetCount();
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     int index;
 
     for (index = 0; index < count; ++index) {
@@ -904,7 +904,7 @@ void UnloadEncounterTables(void)
 // FUNCTION: WIZ8 0x0048c3b0
 void SaveMonsterGenerators(int handle)
 {
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     int count;
     int version;
     int index;
@@ -917,7 +917,7 @@ void SaveMonsterGenerators(int handle)
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
         FileWrite(handle, generator->name, 0x20, 0);
-        FileWrite(handle, &generator->flag_44, 1, 0);
+        FileWrite(handle, &generator->generation_enabled, 1, 0);
         FileWrite(handle, &generator->flags, 4, 0);
         generator->m_pTimer->Save(handle);
     }
@@ -928,21 +928,21 @@ void SaveMonsterGenerators(int handle)
    +0x18. The leading byte is written uninitialised - a one-byte local the
    original never assigns. Preserved as found. */
 // FUNCTION: WIZ8 0x0048b520
-void W8MonsterGenerator::Save(int handle)
+void MonGen::Save(int handle)
 {
     unsigned char leading;
 
     FileWrite(handle, &leading, 1, 0);
     FileWrite(handle, name, 0x20, 0);
-    FileWrite(handle, &flag_44, 1, 0);
+    FileWrite(handle, &generation_enabled, 1, 0);
     FileWrite(handle, &flags, 4, 0);
-    FileWrite(handle, &flag_04, 1, 0);
-    FileWrite(handle, &value_06, 2, 0);
-    FileWrite(handle, &value_08, 2, 0);
+    FileWrite(handle, &custom_spawn_chance, 1, 0);
+    FileWrite(handle, &custom_interval_seconds, 2, 0);
+    FileWrite(handle, &unknown_08, 2, 0);
     FileWrite(handle, &state_0c.x, 4, 0);
     FileWrite(handle, &state_0c.y, 4, 0);
     FileWrite(handle, &state_0c.z, 4, 0);
-    FileWrite(handle, &value_1c, 4, 0);
+    FileWrite(handle, &encounter_table_index, 4, 0);
     m_pTimer->Save(handle);
 }
 
@@ -953,21 +953,21 @@ void W8MonsterGenerator::Save(int handle)
    record is reported bad; the timer is rearmed either way, and the armed bit is
    always cleared on the way out so a loaded generator starts disarmed. */
 // FUNCTION: WIZ8 0x0048b5e0
-unsigned char W8MonsterGenerator::Load(int handle)
+unsigned char MonGen::Load(int handle)
 {
     unsigned char version;
     unsigned char ok;
-    unsigned char loaded;
+    bool loaded;
 
     ok = FileRead(handle, &version, 1, 0);
     if (static_cast<signed char>(version) >= 3) {
         ok = ok && FileRead(handle, name, 0x20, 0);
-        ok = ok && FileRead(handle, &flag_44, 1, 0);
+        ok = ok && FileRead(handle, &generation_enabled, 1, 0);
     }
-    loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &flag_04, 1, 0) &&
-             FileRead(handle, &value_06, 2, 0) && FileRead(handle, &value_08, 2, 0) &&
+    loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &custom_spawn_chance, 1, 0) &&
+             FileRead(handle, &custom_interval_seconds, 2, 0) && FileRead(handle, &unknown_08, 2, 0) &&
              FileRead(handle, &state_0c.x, 4, 0) && FileRead(handle, &state_0c.y, 4, 0) &&
-             FileRead(handle, &state_0c.z, 4, 0) && FileRead(handle, &value_1c, 4, 0);
+             FileRead(handle, &state_0c.z, 4, 0) && FileRead(handle, &encounter_table_index, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
         m_pTimer->Load(handle);
@@ -982,10 +982,10 @@ unsigned char W8MonsterGenerator::Load(int handle)
    generator that is not in the list is left alone entirely, so this is safe to
    call on one that has already been removed. */
 // FUNCTION: WIZ8 0x0048beb0
-void RemoveMonsterGenerator(W8MonsterGenerator* generator)
+void RemoveMonsterGenerator(MonGen* generator)
 {
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
-    W8MonsterGenerator* removed;
+    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
+    MonGen* removed;
     int index = generators->IndexOf(generator);
 
     if (index == -1) {
@@ -1000,7 +1000,7 @@ void RemoveMonsterGenerator(W8MonsterGenerator* generator)
    fraction, so the mean is the interval itself. Bit 3 selects the shared
    default interval; a clear bit uses the generator's custom +0x06 interval. */
 // FUNCTION: WIZ8 0x0048b420
-void W8MonsterGenerator::Reset()
+void MonGen::Reset()
 {
     short interval;
     float jitter;
@@ -1014,7 +1014,7 @@ void W8MonsterGenerator::Reset()
         m_pTimer->m_flags &= 0xfffd;
     }
     interval =
-        (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval : value_06;
+        (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval : custom_interval_seconds;
     jitter = interval * g_generator_jitter_fraction;
     m_pTimer->SetDuration(static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval -
                           jitter);
@@ -1023,7 +1023,7 @@ void W8MonsterGenerator::Reset()
 
 /* Loads the generator's marker from Data\\Items3D\\Bitmaps and hands it over.
    Written once because the arm path and the reload below both compile it. */
-static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* generator)
+static __inline void LoadMonsterGeneratorMarkerInline(MonGen* generator)
 {
     W8ReadLevelInfo context;
     W8Item* marker = 0;
@@ -1035,7 +1035,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
     if (!LoadItemFromFile(&context, "mongen", &marker, false)) {
         srAssertFail("fSuccess", MON_GEN_CPP, 0x309, "Couldn't load mongen.itm");
     }
-    generator->node_18 = marker;
+    generator->marker_item = marker;
     if (marker != 0) {
         marker->SetLocation0049F720(&generator->state_0c);
         marker->ApplyRepTransform0049FAA0();
@@ -1047,7 +1047,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
    disarming drops the flag and notifies the world. Both directions are no-ops
    when the flag already reads as asked. */
 // FUNCTION: WIZ8 0x0048b770
-void W8MonsterGenerator::SetActive(unsigned char active, W8Item* node)
+void MonGen::SetActive(unsigned char active, W8Item* node)
 {
     (void)node;
     if (((flags >> 2) & 1) == active) {
@@ -1055,16 +1055,16 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8Item* node)
     }
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-        if (node_18 != 0) {
-            node_18->DetachMesh0049FA30(g_world);
+        if (marker_item != 0) {
+            marker_item->DetachMesh0049FA30(g_world);
         }
         return;
     }
     flags |= W8_MONGEN_ARMED;
-    if (node_18 == 0) {
+    if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    node_18->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh0049F900(g_world);
 }
 
 /* Writes the encounter subsystem's own state to a save, ahead of the generator
@@ -1104,14 +1104,14 @@ void RollRandomEncounters(void)
         DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.GetCount() - 1));
     }
 
-    W8GrowableVector<W8MonsterGenerator*> generators(*g_world->monster_generators);
+    W8GrowableVector<MonGen*> generators(*g_world->monster_generators);
     int count = generators.GetCount();
     if (count > 1) {
         for (int remaining = count; remaining > 0; --remaining) {
             int first = Random(count);
             int second = Random(count);
             if (first != second) {
-                W8MonsterGenerator* swap = *generators.GetAt(first);
+                MonGen* swap = *generators.GetAt(first);
                 generators.SetAt(first, *generators.GetAt(second));
                 generators.SetAt(second, swap);
             }
@@ -1119,7 +1119,7 @@ void RollRandomEncounters(void)
     }
 
     for (int index = 0; index < count; ++index) {
-        W8MonsterGenerator* generator = *generators.GetAt(index);
+        MonGen* generator = *generators.GetAt(index);
         if (generator->CanGenerateEncounter(1) != 0) {
             generator->GenerateEncounter(&generator->state_0c);
         }
@@ -1132,7 +1132,7 @@ void RollRandomEncounters(void)
 void SetMonsterGeneratorDurationScale(float scale)
 {
     g_encounter_culling_scale_fast = scale;
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+    W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
 
     for (int index = 0; index < generators->GetCount(); ++index) {
         (*generators->GetAt(index))->m_pTimer->SetDurationScale(scale);
@@ -1144,26 +1144,26 @@ void SetMonsterGeneratorDurationScale(float scale)
    inside the first node's guard rather than beside it. The generator's own
    storage is not freed here - the callers do that. */
 // FUNCTION: WIZ8 0x0048a6c0
-W8MonsterGenerator::~W8MonsterGenerator()
+MonGen::~MonGen()
 {
-    if (node_18 != 0) {
+    if (marker_item != 0) {
         if ((flags >> 2 & 1) != 0) {
             flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-            node_18->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh0049FA30(g_world);
         }
-        delete node_18;
+        delete marker_item;
     }
     delete m_pTimer;
 }
 
 /* Moves the generator. The scene is only told when the generator has a marker. */
 // FUNCTION: WIZ8 0x0048b730
-void W8MonsterGenerator::SetState(const srVector3T<float>* state)
+void MonGen::SetState(const srVector3T<float>* state)
 {
     state_0c = *state;
-    if (node_18 != 0) {
-        node_18->SetLocation0049F720(state);
-        node_18->ApplyRepTransform0049FAA0();
+    if (marker_item != 0) {
+        marker_item->SetLocation0049F720(state);
+        marker_item->ApplyRepTransform0049FAA0();
     }
 }
 
@@ -1173,7 +1173,7 @@ void W8MonsterGenerator::SetState(const srVector3T<float>* state)
    what installs the first. The state application afterwards is the same body
    SetActive is, inlined, including its own conditional second load. */
 // FUNCTION: WIZ8 0x0048b850
-void W8MonsterGenerator::Reload(int unused, unsigned char active)
+void MonGen::Reload(int unused, unsigned char active)
 {
     (void)unused;
     LoadMonsterGeneratorMarkerInline(this);
@@ -1182,20 +1182,20 @@ void W8MonsterGenerator::Reload(int unused, unsigned char active)
     }
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-        if (node_18 != 0) {
-            node_18->DetachMesh0049FA30(g_world);
+        if (marker_item != 0) {
+            marker_item->DetachMesh0049FA30(g_world);
         }
         return;
     }
     flags |= W8_MONGEN_ARMED;
-    if (node_18 == 0) {
+    if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    node_18->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh0049F900(g_world);
 }
 
 // FUNCTION: WIZ8 0x0048cc30
-void W8MonsterGenerator::SetName(const char* new_name)
+void MonGen::SetName(const char* new_name)
 {
     strncpy(name, new_name, sizeof(name));
     name[sizeof(name) - 1] = '\0';
@@ -1204,9 +1204,9 @@ void W8MonsterGenerator::SetName(const char* new_name)
 /* Store the table index and mark HARASSMENT tables with bit 5. Retail never
    clears that bit here when a later table is not HARASSMENT. */
 // FUNCTION: WIZ8 0x0048cc50
-void W8MonsterGenerator::SetEncounterTable(int index)
+void MonGen::SetEncounterTable(int index)
 {
-    value_1c = index;
+    encounter_table_index = index;
     if (index < g_encounter_tables.GetCount()) {
         W8EncounterTableRuntime* table = *g_encounter_tables.GetAt(index);
         if (table != 0 && strncmp(table->name, "HARASSMENT", 10) == 0) {

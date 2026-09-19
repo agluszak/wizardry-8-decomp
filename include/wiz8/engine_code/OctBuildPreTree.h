@@ -6,8 +6,8 @@
 #include "wiz8/geometry.h"
 
 class BitArray;
-struct W8LevelFileBounds;
-struct W8VersionedLevelParticleRecord;
+struct W8LevelFileParticleSystem;
+struct W8LevelFileProp;
 
 extern float g_float_005ec52c;
 extern float g_float_005ebc28;
@@ -62,32 +62,18 @@ extern W8GDSurface** g_pointer_65be68;
 extern unsigned short* g_pointer_65be5c;
 extern unsigned short g_value_65be6c;
 
-#pragma pack(push, 1)
-
-/* The region builder advances these preprocessing records by 0xbf bytes. The
-   established tail is a byte count followed by an unaligned pointer to
-   0x18-byte minimum/maximum boxes. */
-struct W8OctRegionGeometryRecord004B3F90 {
-    unsigned char positional_000[0x9a];
-    unsigned char bounds_count_09a;
-    W8LevelFileBounds* bounds_09b;
-    unsigned char positional_09f[0x20];
-};
-
-#pragma pack(pop)
-
-static_assert(sizeof(W8OctRegionGeometryRecord004B3F90) == 0xbf,
-              "W8OctRegionGeometryRecord004B3F90_must_be_0xbf");
-
-struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
-    W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T<float>* minimum,
+/* Retail assertion text gives the class and member names directly:
+   "OctBuildPreTree::m_ppPolyList too long.", "m_pulRegPaths" and
+   "m_psrvRegCenters" in Engine Code\OctBuildPreTree.cpp. */
+struct OctBuildPreTree : W8OctBuildTree00446390 {
+    OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
                               srVector3T<float>* maximum, unsigned short item_limit,
                               unsigned long path_capacity, short extent_mode);
     OctPreTree* BuildOctPreTree004B4640();
     unsigned short BuildRegions004B19F0();
-    unsigned char BuildParticleRegions004B3820(const W8VersionedLevelParticleRecord* particles,
+    unsigned char BuildParticleRegions004B3820(const W8LevelFileParticleSystem* particles,
                                                int particle_count);
-    unsigned char BuildGeometryRegions004B3F90(const W8OctRegionGeometryRecord004B3F90* records,
+    unsigned char BuildGeometryRegions004B3F90(const W8LevelFileProp* records,
                                                int record_count, int base_index,
                                                unsigned char finalize);
 
@@ -120,12 +106,12 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     unsigned short selected_depth_c0;
     unsigned short padding_c2;
     unsigned long level_counts_c4[10];
-    unsigned long* region_paths_ec;
+    unsigned long* m_pulRegPaths;
     unsigned long region_path_count_f0;
     unsigned char active_f4;
     unsigned char padding_f5[3];
     BitArray* region_bits_f8;
-    srVector3T<float>* region_centers_fc;
+    srVector3T<float>* m_psrvRegCenters;
     unsigned long positional_100;
     unsigned short* mesh_particle_lookup_104;
     unsigned short* mesh_particles_108;
@@ -146,8 +132,7 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     unsigned long positional_13c;
 };
 
-static_assert(sizeof(W8OctBuildPreTree004AFDA0) == 0x140,
-              "W8OctBuildPreTree004AFDA0_must_be_0x140");
+static_assert(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");
 
 int GetValue65BE60(void);
 

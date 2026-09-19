@@ -79,7 +79,7 @@ unsigned char g_byte_00659a64;
 // TEMPLATE: WIZ8 0x0044efe0
 // W8GrowableVector<unsigned char*>::W8GrowableVector
 
-/* Prop::Prop() - GrObject base, then m_pRep / m_animation_timer and two identity
+/* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
    scalar field stores, the capacity-5 slot vector, then the PropRep vtable. */
 // FUNCTION: WIZ8 0x0044bc00
@@ -92,7 +92,7 @@ W8Prop::W8Prop()
     kind_004 = 4;
     id_008 = IncrementValue60DFAC();
     m_pRep = new W8PropRepresentation();
-    m_animation_timer = new W8GameTimer();
+    m_pTimer = new W8GameTimer();
     position_02c.SetZero();
     position_03c.SetZero();
     rotation_048.SetIdentity();
@@ -101,9 +101,8 @@ W8Prop::W8Prop()
     if (m_pRep == 0) {
         srAssertFail("m_pRep", PROP_CPP, 0x30e, "Prop::Prop() out of memory allocating m_pRep");
     }
-    if (m_animation_timer == 0) {
-        srAssertFail("m_animation_timer", PROP_CPP, 0x30f,
-                     "Prop::Prop() out of memory allocating m_animation_timer");
+    if (m_pTimer == 0) {
+        srAssertFail("m_pTimer", PROP_CPP, 0x30f, "Prop::Prop() out of memory allocating m_pTimer");
     }
 }
 
@@ -181,8 +180,8 @@ W8Prop::~W8Prop()
         delete[] m_name;
         m_name = 0;
     }
-    delete m_animation_timer;
-    m_animation_timer = 0;
+    delete m_pTimer;
+    m_pTimer = 0;
     delete m_gd_prop;
     m_gd_prop = 0;
 }
@@ -220,8 +219,8 @@ void W8Prop::SetAnimationSpeed(float speed)
 {
     if (speed > 0.0f) {
         Rep()->animation_speed = speed;
-        if (m_animation_timer != 0) {
-            m_animation_timer->SetDuration(1.0f / speed);
+        if (m_pTimer != 0) {
+            m_pTimer->SetDuration(1.0f / speed);
         }
     }
 }
@@ -278,7 +277,7 @@ Trigger* W8Prop::GetGDPropValue24()
 void W8Prop::SetSetting6C(unsigned char value)
 {
     if (Rep()->active == 0) {
-        m_animation_timer->Restart();
+        m_pTimer->Restart();
     }
     Rep()->active = value;
 }
@@ -583,7 +582,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
         return;
     }
 
-    m_animation_timer->Restart();
+    m_pTimer->Restart();
     if (update_animation == 0) {
         return;
     }
@@ -647,7 +646,7 @@ void W8Prop::UpdatePropAnimation0044C030()
             rep->flag_064 = rep->counter_095;
             rep->flag_06e = 3;
         }
-        m_animation_timer->Restart();
+        m_pTimer->Restart();
         rep->flag_06d = 1;
     }
     if (rep->flag_06d == 0) {
@@ -659,7 +658,7 @@ void W8Prop::UpdatePropAnimation0044C030()
         flags_1c &= ~0x20;
         return;
     }
-    unknown_024 = m_animation_timer->GetProgress();
+    unknown_024 = m_pTimer->GetProgress();
     BuildOrRefreshPathingRepresentation();
     frames = static_cast<int>(unknown_024);
     unknown_024 -= frames;
@@ -1437,7 +1436,7 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
     success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(info, prop);
     if (success) {
         *prop_out = prop;
-        prop->m_animation_timer->SetDuration(
+        prop->m_pTimer->SetDuration(
             g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
         prop->ApplyAnimationFrame0044C670();
     }

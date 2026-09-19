@@ -13,8 +13,6 @@ void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move
 
 #include "wiz8/geometry.h"
 
-#pragma pack(push, 1)
-
 /* The current level-data record at 0x00652DAC — a 0xf4-byte allocation whose
    first 0xac bytes mix flag, counter and camera-vector state. GameData.cpp
    establishes the flag word and optional vector; Camera.cpp establishes the
@@ -129,17 +127,18 @@ static_assert(sizeof(W8EnvironRecord) == 0x44, "W8EnvironRecord_must_be_0x44");
 class BitArray;
 
 /* Switch-interface record, 0xc bytes in the processed level data: the count
-   and first index of the interface's state records in
-   W8GameData::interface_states_6c. Field +0 is the interface's own id. */
+   and first index of the interface's state records in W8GameData::m_pStates.
+   Field +0 is the interface's own id. Retail's SetInterfaceState assertion
+   names the first-index member iStates. */
 struct W8GDInterface {
     int id_00;
     int state_count_04;
-    int state_first_08;
+    int iStates;
 };
 
 /* One switch-interface state, 0xc bytes: the group id the selected state is
    compared against, and the count/first-index slice of conditional-poly
-   surface indexes in W8GameData::cond_polys_74. */
+   surface indexes in W8GameData::m_piCondPolys. */
 struct W8GDInterfaceState {
     int group_00;
     int poly_count_04;
@@ -201,48 +200,51 @@ struct W8GameData {
     W8Octree* positional_04;
     srVector3T<float> minimum_08;
     srVector3T<float> maximum_14;
-    int vertex_count_20;
-    srVector3T<float>* vertices_24;
-    int surface_count_28;
+    /* Member names through m_ppEnvirons are proven by retail assertion strings
+       in ReadProcessedGameData/SetInterfaceState; each m_iNum* count pairs the
+       proven array member it counts. */
+    int m_iNumVertices;
+    srVector3T<float>* m_pVertices;
+    int m_iNumSurfaces;
     int positional_2c_00;
     int positional_2c_04;
     int integrated_surface_count_34;
-    W8GDSurface* surfaces_38;
-    int overflow_surface_count_3c;
-    int overflow_vertex_count_40;
-    int total_surface_count_44;
-    W8GDSurface* overflow_surfaces_48;
-    srVector3T<float>* overflow_vertices_4c;
-    Trigger** trigger_table_50;
+    W8GDSurface* m_pSurfaces;
+    int m_iNumTrigSurfaces;
+    int m_iNumTrigVertices;
+    int m_iNumTriggers;
+    W8GDSurface* m_pTrigSurfaces;
+    srVector3T<float>* m_pTrigVertices;
+    Trigger** m_ppTriggers;
     int value_54;
     BitArray* bits_58;
     BitArray* bits_5c;
-    int interface_count_60;
-    W8GDInterface* interfaces_64;
-    int interface_state_count_68;
-    W8GDInterfaceState* interface_states_6c;
-    int cond_poly_count_70;
-    int* cond_polys_74;
-    int count_78;
-    void** array_7c;
-    int environ_count_80;
-    W8EnvironRecord** environs_84;
+    int m_iNumInterfaces;
+    W8GDInterface* m_pInterfaces;
+    int m_iNumStates;
+    W8GDInterfaceState* m_pStates;
+    int m_iNumCondPolys;
+    int* m_piCondPolys;
+    int m_iNumNames;
+    char** m_ppNames;
+    int m_iNumEnvirons;
+    W8EnvironRecord** m_ppEnvirons;
     unsigned char value_88;
     unsigned char pad_89[3];
 
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
-    /* 1-based ordinal of the +0x7c pointer-table entry whose name matches,
-       else -1. */
+    /* 1-based ordinal of the m_ppNames entry whose name matches, else -1. */
     int FindPointerByName004482A0(const char* name); /* 0x004482A0 */
     /* Registers one invisible-plane record; the OctBuild driver feeds it the
        level file's plane table. */
     void AddLevelPlane004485F0(W8LevelFilePlane* plane); /* 0x004485F0 */
-    /* Copies the level linked record into a scratch entry and forwards to the
-       0x00448C60 helper. Callers currently pass a base pointer at
-       linked_record - 0x4f until that owning layout is recovered. */
-    void AddLinkedRecord00448BF0(unsigned char kind, int value, float scalar,
-                                 void* record); /* 0x00448BF0 */
+    /* Copies the linked record's 0x1b0-byte payload into a scratch entry and
+       forwards to the 0x00448C60 helper. Retail call sites pass record + 1
+       (the payload), the +0x1b3 float, the +0x1b7 scalar and a pointer to the
+       +0x1b1 face byte. */
+    void AddLinkedRecord00448BF0(const void* payload, float value, float scalar,
+                                 const signed char* face); /* 0x00448BF0 */
     /* Compiles the read game data into the shared build arrays. */
     void CompileGameData00449D10(); /* 0x00449D10 */
 
@@ -257,7 +259,7 @@ struct W8GameData {
        props when set. */
     unsigned char TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag,
                            char gate); /* 0x0041C140 */
-    /* Ray-test `count` surfaces - all of surfaces_38 when `surface_ids` is
+    /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
        value_88, flag and mode filters apply; a closer hit stores index_04
        into value_54, the contact into the record's end_0c and the distance
@@ -267,8 +269,6 @@ struct W8GameData {
 };
 
 static_assert(sizeof(W8GameData) == 0x8c, "W8GameData_must_be_0x8c");
-
-#pragma pack(pop)
 
 static_assert(offsetof(W8LevelDataRecord, primary_contact_prop_id) == 0x04,
               "W8LevelDataRecord_primary_contact_prop_id");

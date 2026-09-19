@@ -33,8 +33,8 @@ public:
     int rows_04;
     float scale_08;
     float minimum_0c[3];
-    char** path_strings_18;
-    char** link_strings_1c;
+    char** m_pPathStrings;
+    char** m_pLinkStrings;
 };
 
 static_assert(sizeof(OctPrePathLog) == 0x20, "OctPrePathLog_must_be_0x20");
@@ -51,25 +51,25 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
         minimum_0c[0] = bounds[0];
         minimum_0c[1] = bounds[1];
         minimum_0c[2] = bounds[2];
-        path_strings_18 = static_cast<char**>(malloc(rows_04 << 2));
-        if (path_strings_18 == 0) {
+        m_pPathStrings = static_cast<char**>(malloc(rows_04 << 2));
+        if (m_pPathStrings == 0) {
             ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
             return;
         }
         for (int i = 0; i < rows_04; ++i) {
-            path_strings_18[i] = static_cast<char*>(malloc(width_00 + 1));
-            memset(path_strings_18[i], ' ', width_00);
-            path_strings_18[i][width_00] = 0;
+            m_pPathStrings[i] = static_cast<char*>(malloc(width_00 + 1));
+            memset(m_pPathStrings[i], ' ', width_00);
+            m_pPathStrings[i][width_00] = 0;
         }
-        link_strings_1c = static_cast<char**>(malloc(rows_04 << 2));
-        if (link_strings_1c == 0) {
+        m_pLinkStrings = static_cast<char**>(malloc(rows_04 << 2));
+        if (m_pLinkStrings == 0) {
             ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
             return;
         }
         for (int j = 0; j < rows_04; ++j) {
-            link_strings_1c[j] = static_cast<char*>(malloc(width_00 + 1));
-            memset(link_strings_1c[j], ' ', width_00);
-            link_strings_1c[j][width_00] = 0;
+            m_pLinkStrings[j] = static_cast<char*>(malloc(width_00 + 1));
+            memset(m_pLinkStrings[j], ' ', width_00);
+            m_pLinkStrings[j][width_00] = 0;
         }
     }
 }
@@ -85,14 +85,14 @@ void OctPrePathLog::MarkPathNode(W8PrePathNode* node)
             ++links;
         }
     }
-    char* cell = path_strings_18[row] + column;
+    char* cell = m_pPathStrings[row] + column;
     if (*cell == ' ') {
         *cell = '1';
-        link_strings_1c[row][column] = links + '0';
+        m_pLinkStrings[row][column] = links + '0';
         return;
     }
     ++*cell;
-    link_strings_1c[row][column] = links + '0';
+    m_pLinkStrings[row][column] = links + '0';
 }
 
 // FUNCTION: WIZ8 0x004CCFD0
@@ -116,17 +116,17 @@ PrePathing::~PrePathing()
         free(path_node_list_240);
     }
     if (path_log_244 != 0) {
-        if (path_log_244->path_strings_18 != 0 && path_log_244->link_strings_1c != 0) {
+        if (path_log_244->m_pPathStrings != 0 && path_log_244->m_pLinkStrings != 0) {
             for (int i = 0; i < path_log_244->rows_04; ++i) {
-                if (path_log_244->path_strings_18[i] != 0) {
-                    free(path_log_244->path_strings_18[i]);
+                if (path_log_244->m_pPathStrings[i] != 0) {
+                    free(path_log_244->m_pPathStrings[i]);
                 }
-                if (path_log_244->link_strings_1c[i] != 0) {
-                    free(path_log_244->link_strings_1c[i]);
+                if (path_log_244->m_pLinkStrings[i] != 0) {
+                    free(path_log_244->m_pLinkStrings[i]);
                 }
             }
-            free(path_log_244->path_strings_18);
-            free(path_log_244->link_strings_1c);
+            free(path_log_244->m_pPathStrings);
+            free(path_log_244->m_pLinkStrings);
         }
         delete path_log_244;
     }

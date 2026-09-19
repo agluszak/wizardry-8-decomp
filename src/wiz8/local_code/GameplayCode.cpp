@@ -247,7 +247,7 @@ void RefreshLevelUpReadyNotices(void)
     gXStatus.unknown_026[1] = 0;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        unsigned char* ready_flag = &gXStatus.monster_manager_entries[party_slot].field_0e8;
+        bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
         W8Character* character = &g_status_685170.buffers.characters[party_slot];
 
         if (row->occupied == 0) {

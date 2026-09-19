@@ -97,10 +97,10 @@ unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* 
 {
     short index = 0;
     do {
-        if (g_octree_game_data_00652db0->vertex_count_20 < vertex_indices[index]) {
+        if (g_octree_game_data_00652db0->m_iNumVertices < vertex_indices[index]) {
             return 0;
         }
-        output[index] = g_octree_game_data_00652db0->vertices_24[vertex_indices[index]];
+        output[index] = g_octree_game_data_00652db0->m_pVertices[vertex_indices[index]];
         ++index;
     } while (index < 3);
     return 1;
@@ -900,7 +900,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     motion_delta = environ_delta;
     adjusted_position.y = camera_position.y;
 
-    if (total_surface_count_44 != 0) {
+    if (m_iNumTriggers != 0) {
         if (bits_5c == 0) {
             IntegrateTriggers();
         } else {
@@ -980,12 +980,12 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                             reinterpret_cast< // reinterpret-ok: geometry collect stores surface*
                                 W8GDSurface*>(geometry_hits[index]);
                     } else {
-                        surface = &surfaces_38[octree_hits[index]];
+                        surface = &m_pSurfaces[octree_hits[index]];
                     }
                     surface->hit_plane_38 = 0;
                     if ((surface->flags_00 & 0x1080) == 0 &&
                         surface->TestSegment0041CF90(&probe_position, &motion_delta, &hit_distance,
-                                                     vertices_24) != 0) {
+                                                     m_pVertices) != 0) {
                         if (hit_distance < nearest_distance) {
                             nearest_distance = hit_distance;
                             hit_position = probe_position;
@@ -1059,10 +1059,10 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                     &octree_hits, &adjusted_position, &environ_delta, 1000.0f, 3);
                 crossed_count = 0;
                 for (index = 0; index < hit_count; ++index) {
-                    surface = &surfaces_38[octree_hits[index]];
+                    surface = &m_pSurfaces[octree_hits[index]];
                     if ((surface->flags_00 & 0x1080) != 0 &&
                         surface->TestSegment0041CF90(&probe_position, &motion_delta, &hit_distance,
-                                                     vertices_24) != 0) {
+                                                     m_pVertices) != 0) {
                         if (0 < crossed_count) {
                             for (int swap = 0; swap < crossed_count; ++swap) {
                                 W8GDSurface* prior = collisions[swap];
@@ -1107,13 +1107,13 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
             }
             g_environ_00652DB4->value_04 = g_environ_ground_latch_00652db8;
 
-            if (total_surface_count_44 != 0) {
+            if (m_iNumTriggers != 0) {
                 index = bits_58->NextSetBit(1);
                 while (index != 0) {
                     unsigned int trigger_index = static_cast<unsigned int>(index - 1);
                     if (bits_5c->Test(trigger_index) == 0) {
-                        if (trigger_table_50 != 0) {
-                            trigger_table_50[trigger_index]->FinishAction();
+                        if (m_ppTriggers != 0) {
+                            m_ppTriggers[trigger_index]->FinishAction();
                         }
                         bits_58->Clear(trigger_index);
                     }
@@ -1169,8 +1169,8 @@ int W8GameData::TestPropSurfaces(int count, unsigned long* ids, W8OctreeTrace* t
 // FUNCTION: WIZ8 0x0041c140
 unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_flag, char gate)
 {
-    W8GDSurface* saved_surfaces = surfaces_38;
-    srVector3T<float>* saved_vertices = vertices_24;
+    W8GDSurface* saved_surfaces = m_pSurfaces;
+    srVector3T<float>* saved_vertices = m_pVertices;
     unsigned char hit = 0;
     GDProp* gd_prop;
     W8Prop* prop;
@@ -1186,8 +1186,8 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
     } else {
         gd_prop = static_cast<GDProp*>(*g_oct_pre_tree_659c74->props_3b8->GetAt(prop_id));
     }
-    surfaces_38 = gd_prop->m_pGDSurfaces;
-    vertices_24 = gd_prop->m_pVertices;
+    m_pSurfaces = gd_prop->m_pGDSurfaces;
+    m_pVertices = gd_prop->m_pVertices;
     if (g_oct_pre_tree_659c74 == 0) {
         if (gate == 0 || (gd_prop->m_flags_00 & 4) == 0) {
             srVector3T<float> start = trace->start_00;
@@ -1209,12 +1209,12 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
     } else {
         hit = TestTraceResult(gd_prop->m_surface_count_14, 0, trace, skip_flag, 0);
     }
-    surfaces_38 = saved_surfaces;
-    vertices_24 = saved_vertices;
+    m_pSurfaces = saved_surfaces;
+    m_pVertices = saved_vertices;
     return hit;
 }
 
-/* Ray the trace record against `count` surfaces: all of surfaces_38 in order
+/* Ray the trace record against `count` surfaces: all of m_pSurfaces in order
    when `surface_ids` is null, else just the listed indexes. The value_88 flag
    admits flag-4 surfaces only, 0x1080-marked surfaces are skipped outright,
    `skip_flag` drops 0x8000-marked ones, and a nonzero positional_44 needs a
@@ -1239,9 +1239,9 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
         do {
             W8GDSurface* surface;
             if (surface_ids == 0) {
-                surface = surfaces_38 + index;
+                surface = m_pSurfaces + index;
             } else {
-                surface = surfaces_38 + *id;
+                surface = m_pSurfaces + *id;
             }
             if (((value_88 == 0 || (surface->flags_00 & 4) != 0) &&
                  (surface->flags_00 & 0x1080) == 0 &&
@@ -1282,9 +1282,9 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                         contact = trace->start_00;
                     }
                     srVector3T<float> vertices[3];
-                    vertices[0] = vertices_24[surface->vertex_indices_18[0]];
-                    vertices[1] = vertices_24[surface->vertex_indices_18[1]];
-                    vertices[2] = vertices_24[surface->vertex_indices_18[2]];
+                    vertices[0] = m_pVertices[surface->vertex_indices_18[0]];
+                    vertices[1] = m_pVertices[surface->vertex_indices_18[1]];
+                    vertices[2] = m_pVertices[surface->vertex_indices_18[2]];
                     if (PointInsideTriangle0046D530(vertices, surface->flags_00 & 3, &contact) !=
                             0 &&
                         hit_distance < trace->hit_limit_24) {
@@ -1320,36 +1320,36 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
    polygons clear surface flag 0x10 while every other state's polygons set
    it. Asserts the interface id and the state slice bounds. */
 // FUNCTION: WIZ8 0x0041c680
-char W8GameData::SetInterfaceState(int interface_id, int state)
+char W8GameData::SetInterfaceState(int iID, int state)
 {
-    int state_count;
+    int iStates;
     int poly_count;
     W8GDInterface* interface_rec;
     W8GDInterfaceState* states;
     int* polys;
 
-    if (interface_id == 0 || interface_count_60 <= interface_id) {
+    if (iID == 0 || m_iNumInterfaces <= iID) {
         srAssertFail("iID && iID < m_iNumInterfaces",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x4e0, 0);
     }
-    interface_rec = interfaces_64 + interface_id;
-    state_count = interface_rec->state_count_04;
-    if (interface_state_count_68 < interface_rec->state_first_08 + state_count) {
+    interface_rec = m_pInterfaces + iID;
+    iStates = interface_rec->state_count_04;
+    if (m_iNumStates < interface_rec->iStates + iStates) {
         srAssertFail("(m_pInterfaces[iID].iStates + iStates) <= m_iNumStates",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x4e2, 0);
     }
-    states = interface_states_6c + interface_rec->state_first_08;
-    for (; state_count != 0; --state_count) {
+    states = m_pStates + interface_rec->iStates;
+    for (; iStates != 0; --iStates) {
         poly_count = states->poly_count_04;
-        polys = cond_polys_74 + states->poly_first_08;
+        polys = m_piCondPolys + states->poly_first_08;
         if (states->group_00 == state) {
             for (; poly_count != 0; --poly_count) {
-                surfaces_38[*polys].flags_00 &= ~0x10;
+                m_pSurfaces[*polys].flags_00 &= ~0x10;
                 ++polys;
             }
         } else {
             for (; poly_count != 0; --poly_count) {
-                surfaces_38[*polys].flags_00 |= 0x10;
+                m_pSurfaces[*polys].flags_00 |= 0x10;
                 ++polys;
             }
         }
@@ -1373,7 +1373,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
     if ((surface->flags_00 & 0x1000) != 0) {
         if (surface->distance_34 > 0.0f) {
             current = g_environ_00652DB4;
-            record = environs_84[surface->trigger_index_08];
+            record = m_ppEnvirons[surface->trigger_index_08];
             record->value_04 = current->value_04;
             record->value_05 = current->value_05;
             record->value_08 = current->value_08;
@@ -1384,8 +1384,8 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             return;
         }
         current = g_environ_00652DB4;
-        if (current == environs_84[surface->trigger_index_08]) {
-            record = environs_84[0];
+        if (current == m_ppEnvirons[surface->trigger_index_08]) {
+            record = m_ppEnvirons[0];
             record->value_04 = current->value_04;
             record->value_05 = current->value_05;
             record->value_08 = current->value_08;
@@ -1400,11 +1400,11 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
     if (surface->distance_34 < 0.0f) {
         direction = -1;
     }
-    if (trigger_table_50 == 0 || bits_5c->Set(surface->trigger_index_08) != 0 ||
+    if (m_ppTriggers == 0 || bits_5c->Set(surface->trigger_index_08) != 0 ||
         bits_58->Set(surface->trigger_index_08) != 0) {
         return;
     }
-    trigger = trigger_table_50[surface->trigger_index_08];
+    trigger = m_ppTriggers[surface->trigger_index_08];
     if (trigger->initial_action_22a == 0x10 && surface->value_40 > 0.0f) {
         surface->value_40 = 0.0f;
         if (direction == 1) {
@@ -1661,8 +1661,8 @@ void W8GameData::ReleaseLevelData0041A9E0()
 void ResetCurrentEnvironment0041AA40(void)
 {
     if (g_environ_00652DB4 != 0) {
-        if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->environs_84 != 0) {
-            g_environ_00652DB4 = g_octree_game_data_00652db0->environs_84[0];
+        if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->m_ppEnvirons != 0) {
+            g_environ_00652DB4 = g_octree_game_data_00652db0->m_ppEnvirons[0];
         }
         g_environ_00652DB4->vector_24.Set(0.0f, 0.0f, 0.0f);
         if (g_environment_load_flag_00603ad0 != 0) {

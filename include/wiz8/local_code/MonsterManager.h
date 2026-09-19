@@ -66,34 +66,76 @@ struct W8MonsterManagerEntry {
     int portrait_idle_clock;
     unsigned char portrait_pose_animation_active;
     unsigned char portrait_pose_dirty;
-    unsigned char portrait_frame_dirty;
-    unsigned char field_09c;
-    unsigned char field_09d;
-    unsigned char field_09e;
-    int field_09f;
-    int field_0a3;
-    int field_0a7;
-    unsigned char field_0ab;
-    int field_0ac;
-    int field_0b0;
-    int field_0b4;
-    int field_0b8;
-    unsigned char field_0bc;
-    unsigned char field_0bd;
-    int field_0be;
-    int field_0c2;
-    int field_0c6;
-    int field_0ca;
-    unsigned char field_0ce;
-    unsigned char field_0cf;
-    unsigned char field_0d0;
-    unsigned char field_0d1;
-    int field_0d2;
-    unsigned short field_0d6;
+    bool portrait_frame_dirty;
+    /* 0x09c..0x0ab: the floating damage-number splat animation. The poster at
+       0x0059AC40 opens it with the hit's amount, accumulates further hits into
+       the amount while it is already up, picks the normal splat catalog object
+       (0x90/0x91 = damage_splat_anim.sti / damage_splat_anim2.sti), and switches
+       to the death variant (0x92 = death_splat_anim.sti, 0x1e frames instead of
+       8) when the character's hit points are gone. The ticker at 0x0059B1A0
+       steps the frame once per portrait_fx_clock expiry; the frame is -1 while
+       the splat waits for a forced portrait refresh or for the effect-icon
+       animation to finish. At death-variant frame 0xd the reveal flag lets the
+       portrait swap to the dead graphic underneath the splat. */
+    bool damage_splat_active;
+    bool damage_splat_death_variant;
+    bool dead_portrait_revealed;
+    int damage_splat_amount;
+    int damage_splat_frame;
+    int damage_splat_end_frame;
+    unsigned char damage_splat_catalog;
+    /* 0x0ac..0x0bc: the last-drawn portrait vitals so 0x0059A3A0 can raise the
+       dirty flag only when the computed bars or the numeric hit-point display
+       actually changed; 0x0059A540 redraws them and clears it. */
+    int cached_hp_bar;
+    int cached_stamina_bar;
+    int cached_spell_bar;
+    int cached_hp;
+    bool portrait_stats_dirty;
+    /* 0x0bd..0x0c6: the spell/condition effect-icon flash over the portrait.
+       The setup at 0x0059AF40 derives the icon's catalog base from the spell's
+       realm and takes the frame count from the same record, shares the
+       portrait_fx_clock cadence with the damage splat, and likewise uses -1 as
+       the deferred-start frame. */
+    bool effect_icon_active;
+    int effect_icon_frame;
+    int effect_icon_catalog;
+    int effect_icon_end_frame;
+    /* 0x0ca: the shared 100 ms frame clock both portrait animations tick on;
+       the ticker rearms it whenever it expires. */
+    int portrait_fx_clock;
+    /* 0x0ce: set when the keyboard SELECT_PC command pins the pending portrait
+       refresh, so the formation sync at 0x0059B2D0 does not auto-release it. */
+    bool portrait_refresh_pinned;
+    /* 0x0cf: marks a pending portrait refresh that was auto-issued for an
+       in-flight splat/icon animation or portrait event, so the formation sync
+       may release it even while the slot is under the cursor. */
+    bool auto_portrait_refresh;
+    /* 0x0d0: the keyboard menu is open on this slot's portrait; region input is
+       disabled and the menu panel redraws with the portrait. */
+    bool keyboard_menu_open;
+    /* 0x0d1: the combat side-strip portrait needs redrawing; set by hover and
+       combat-state changes, cleared by the combat portrait redraw. */
+    bool combat_portrait_dirty;
+    /* 0x0d2/0x0d6: the acting combatant's portrait pulse - a countdown clock
+       rearms the 1..0xc brightness phase in 0x0059B4C0. */
+    int acting_portrait_pulse_clock;
+    unsigned short acting_portrait_pulse;
     W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
-    unsigned char field_0e8;
-    unsigned char unknown_0e9[0x2a];
-    unsigned char field_113;             /* 0x113: pose/direction threshold comparisons */
+    /* 0x0e8: the character has reached its experience goal; set once to post
+       the level-up notice line and cleared when the character is no longer
+       ready to advance. */
+    bool level_up_ready;
+    /* 0x0e9: edge latch mirroring the character's condition_turns[19]: the
+       periodic party sync copies it in and the reaction pass fires the
+       condition-change event once while the latch is still clear. */
+    unsigned char condition_19_latch;
+    /* 0x0ea: per-skill "increased" notice flags posted by PracticeCharacterSkill
+       and drained into W8_NPC_MSG_SKILL_NOTICES message lines. */
+    unsigned char skill_notice_pending[W8_SKILL_COUNT];
+    /* 0x113: set around SwapItemInstances so the autoswap-weapons check does
+       not fire on the intermediate item states. */
+    bool item_swap_in_progress;
     unsigned int pending_event_type_114; /* 0x114: last queued portrait event type */
 }; /* 0x118 */
 #pragma pack(pop)
@@ -113,6 +155,32 @@ static_assert(offsetof(W8MonsterManagerEntry, quote.width) == 0x21,
               "W8MonsterManagerEntry_quote_width_offset");
 static_assert(offsetof(W8MonsterManagerEntry, quote.height) == 0x23,
               "W8MonsterManagerEntry_quote_height_offset");
+static_assert(offsetof(W8MonsterManagerEntry, active_character_event) == 0x71,
+              "W8MonsterManagerEntry_active_character_event_offset");
+static_assert(offsetof(W8MonsterManagerEntry, damage_splat_active) == 0x9c,
+              "W8MonsterManagerEntry_damage_splat_active_offset");
+static_assert(offsetof(W8MonsterManagerEntry, damage_splat_amount) == 0x9f,
+              "W8MonsterManagerEntry_damage_splat_amount_offset");
+static_assert(offsetof(W8MonsterManagerEntry, damage_splat_catalog) == 0xab,
+              "W8MonsterManagerEntry_damage_splat_catalog_offset");
+static_assert(offsetof(W8MonsterManagerEntry, cached_hp_bar) == 0xac,
+              "W8MonsterManagerEntry_cached_hp_bar_offset");
+static_assert(offsetof(W8MonsterManagerEntry, portrait_stats_dirty) == 0xbc,
+              "W8MonsterManagerEntry_portrait_stats_dirty_offset");
+static_assert(offsetof(W8MonsterManagerEntry, effect_icon_active) == 0xbd,
+              "W8MonsterManagerEntry_effect_icon_active_offset");
+static_assert(offsetof(W8MonsterManagerEntry, portrait_fx_clock) == 0xca,
+              "W8MonsterManagerEntry_portrait_fx_clock_offset");
+static_assert(offsetof(W8MonsterManagerEntry, highlighted_monsters) == 0xd8,
+              "W8MonsterManagerEntry_highlighted_monsters_offset");
+static_assert(offsetof(W8MonsterManagerEntry, level_up_ready) == 0xe8,
+              "W8MonsterManagerEntry_level_up_ready_offset");
+static_assert(offsetof(W8MonsterManagerEntry, skill_notice_pending) == 0xea,
+              "W8MonsterManagerEntry_skill_notice_pending_offset");
+static_assert(offsetof(W8MonsterManagerEntry, item_swap_in_progress) == 0x113,
+              "W8MonsterManagerEntry_item_swap_in_progress_offset");
+static_assert(offsetof(W8MonsterManagerEntry, pending_event_type_114) == 0x114,
+              "W8MonsterManagerEntry_pending_event_type_offset");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);

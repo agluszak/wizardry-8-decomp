@@ -255,10 +255,10 @@ void W8SpellVisual::SetCycle(signed char cycle)
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
 
             if (event->cycle_00 == cycle) {
-                event->particle_08->SetActive(1);
-                event->particle_08->value_188 = 0;
+                event->m_pstParticles->SetActive(1);
+                event->m_pstParticles->value_188 = 0;
             } else {
-                event->particle_08->SetActive(0);
+                event->m_pstParticles->SetActive(0);
             }
         }
     }

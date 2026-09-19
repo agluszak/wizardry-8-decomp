@@ -101,7 +101,7 @@ public:
     int cycle_00;
     signed char subcycle_04;
     unsigned char unknown_05[3];
-    stParticle* particle_08;
+    stParticle* m_pstParticles;
     srVector3T<float> position_0c;
     /* 0x004A7E50 composes this into the model instance's own rotation with
        MultiplyBy, which is what makes it a matrix rather than 0x24

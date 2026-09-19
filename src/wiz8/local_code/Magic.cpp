@@ -638,7 +638,7 @@ void UpdateSpellEffects00500930(void)
         for (int monster_index = 0; monster_index < effect->target_indices_0f0.GetCount() && alive;
              ++monster_index) {
             int entry = *effect->target_indices_0f0.GetAt(monster_index);
-            if (gXStatus.monster_manager_entries[entry].field_0bd != 0) {
+            if (gXStatus.monster_manager_entries[entry].effect_icon_active != 0) {
                 alive = false;
             }
         }

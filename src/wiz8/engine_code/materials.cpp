@@ -365,7 +365,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
     W8OctPreTreeVertex* vertices;
     W8LevelFile* level;
     W8GameData* value;
-    W8OctBuildPreTree004AFDA0* build_tree;
+    OctBuildPreTree* build_tree;
     OctPreTree* tree;
     OctMeshModel* submeshes;
     BitArray* sun_bits;
@@ -492,7 +492,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                 }
                 ReportBuildStatus00497690(6, "\nBuilding OctBuildPreTree ---------------------\n");
-                build_tree = new W8OctBuildPreTree004AFDA0(
+                build_tree = new OctBuildPreTree(
                     g_option_min_leaf_size_0060ac80, &minimum, &maximum,
                     g_option_max_path_nodes_0060ac84, g_option_max_leaf_count_0060ac88, 0);
                 if (build_tree != 0) {
@@ -594,16 +594,12 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                     for (i = 0; i < level->num_linked_records_2609; ++i) {
                         W8LevelFileLinkedRecord* record = level->linked_records_260d[i];
-                        value->AddLinkedRecord00448BF0(
-                            record->unknown_01[0], record->value_1b3, record->value_1b7,
-                            reinterpret_cast<char*>(
-                                record) /* reinterpret-ok: owning record base reached by
-                            fixed byte offset */
-                                - 0x4f);
+                        value->AddLinkedRecord00448BF0(record->unknown_01, record->value_1b3,
+                                                       record->value_1b7, &record->linked_face_1b1);
                     }
                     value->geometry_index_00 = build_tree;
                     value->CompileGameData00449D10();
-                    for (i = 0; i < value->surface_count_28; ++i) {
+                    for (i = 0; i < value->m_iNumSurfaces; ++i) {
                         W8OctRegionPolygon* surface = g_gd_polygons_0065bd38 + i;
                         if (build_tree->InsertSurface004B02F0(surface, 3) == 0) {
                             sprintf(message,
@@ -629,24 +625,11 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     build_tree->RemapNodeRegions004B16B0(0, 0);
                     ReportBuildStatus00497690(6,
                                               "\nInserting props and particles into regions... \n");
-                    build_tree->BuildParticleRegions004B3820(
-                        reinterpret_cast<
-                            W8VersionedLevelParticleRecord*>(/* reinterpret-ok: same 0x226
-                        serialized particle record viewed by the builder */
-                                                             level->pParticleSystems),
-                        level->nParticleSystems);
-                    build_tree->BuildGeometryRegions004B3F90(
-                        reinterpret_cast<
-                            W8OctRegionGeometryRecord004B3F90*>(/* reinterpret-ok: level prop
-                        records share the region-geometry prefix the callee reads */
-                                                                level->pProps),
-                        level->nProps, 0, 0);
-                    build_tree->BuildGeometryRegions004B3F90(
-                        reinterpret_cast<
-                            W8OctRegionGeometryRecord004B3F90*>(/* reinterpret-ok: level bitmap
-                        records share the region-geometry prefix the callee reads */
-                                                                level->pBitmaps),
-                        level->nBitmaps, level->nProps, 1);
+                    build_tree->BuildParticleRegions004B3820(level->pParticleSystems,
+                                                           level->nParticleSystems);
+                    build_tree->BuildGeometryRegions004B3F90(level->pProps, level->nProps, 0, 0);
+                    build_tree->BuildGeometryRegions004B3F90(level->pBitmaps, level->nBitmaps,
+                                                             level->nProps, 1);
                     (static_cast<W8OctBuildNode00446330*>(build_tree->spatial_00.root_90))
                         ->RearrangeNodePolys004AF7B0(0, build_tree->spatial_00.depth_44);
                     for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {

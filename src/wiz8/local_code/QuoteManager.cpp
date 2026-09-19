@@ -1186,7 +1186,7 @@ void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
         g_level_block->portrait_refresh_pending[party_slot] == 0 &&
         event_type != static_cast<unsigned int>(g_special_event_0068c568)) {
         RefreshSelectedPartyPortrait(party_slot);
-        record->field_0cf = 1;
+        record->auto_portrait_refresh = 1;
         record->portrait_event_active = active;
         return;
     }
@@ -1994,8 +1994,8 @@ int UpdateCharacterEventState(void)
                             int direction = ChooseDifferentMonsterDirection004C2E00(
                                                 (short)record->portrait_frame - 6) +
                                             6;
-                            if (g_value_0068c57c <= record->field_113 &&
-                                record->field_113 <= g_value_0068c554) {
+                            if (g_value_0068c57c <= record->pending_event_type_114 &&
+                                record->pending_event_type_114 <= g_value_0068c554) {
                                 direction = 8;
                             }
                             record->previous_portrait_frame = record->portrait_frame;
@@ -2017,7 +2017,7 @@ int UpdateCharacterEventState(void)
             IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
             continue;
         }
-        if (record->portrait_frame_dirty == 0 && record->field_0bd == 0 &&
+        if (record->portrait_frame_dirty == 0 && record->effect_icon_active == 0 &&
             (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
              record->portrait_event_active != 0)) {
             if (record->portrait_pose_animation_active == 0) {
@@ -2050,7 +2050,7 @@ int UpdateCharacterEventState(void)
                 }
             }
             if ((record->portrait_pose_animation_active != 0 || record->portrait_pose_dirty != 0) &&
-                record->field_0cf == 0) {
+                record->auto_portrait_refresh == 0) {
                 RefreshPartySlotDisplay(party_slot);
             }
         }
