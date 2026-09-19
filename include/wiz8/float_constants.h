@@ -47,6 +47,7 @@ extern const float g_world_scale_005ebc40;
 extern const float g_float_005ec510;
 extern const float g_float_005ec020;
 extern float g_float_005ec1a8;
+extern float g_float_005ec260;
 extern float g_float_005ec2f8;
 /* 0x005EC35C: read as GetRangeConstant5EC35C's return and as OctPath's
    waypoint query vertical extent. */

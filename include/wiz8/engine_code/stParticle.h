@@ -67,7 +67,7 @@ public:
     unsigned int state_184;
     unsigned int value_188;
     unsigned int active_particle_count_18c;
-    unsigned char active_190;
+    bool active_190;
     unsigned char unknown_191;
     unsigned char trigger_flag_192;
     unsigned char unknown_193;

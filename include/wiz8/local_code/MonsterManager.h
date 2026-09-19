@@ -285,7 +285,9 @@ struct W8MonsterInfo {
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
     W8CombatSlot Target;
-    int value_2da; /* 0x2da: nonzero gate in 0x004e5c00 */
+    /* 0x2da: summon marker - 0 ordinary, 1 friendly summon, 2 hostile summon;
+       nonzero raises the summoned spell icon and feeds the slain cleanup. */
+    int summoned_2da;
     /* 0x2de: the monster is under the effect the magic code clears by name;
        clearing it posts a notice and drops the visual. The NPC price-check
        dispatch reads it signed (MOVSX) as a percentage discount on the quoted
@@ -318,8 +320,11 @@ struct W8MonsterInfo {
     /* 0x304: the condition's own target source, copied in whole by the
        condition setter. */
     W8TargetSource condition_target_304;
-    int movement_watch_position[3];       /* 0x338: creator clears as one unit */
-    int value_344;                        /* 0x344: creator initializes to -1 */
+    int movement_watch_position[3]; /* 0x338: creator clears as one unit */
+    /* 0x344: location id of the phantom an Insanity effect summoned against
+       this monster, -1 while none is bound; a bound monster cannot be picked
+       again. */
+    int insanity_summon_344;
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;
     unsigned char has_missile_37a;

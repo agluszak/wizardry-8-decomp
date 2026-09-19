@@ -959,7 +959,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     if (monster_info->effect_2de > 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_CHARMED, 1);
     }
-    if (monster_info->value_2da != 0) {
+    if (monster_info->summoned_2da != 0) {
         SetMonsterSpellIcon(monster, SPELL_ICON_SUMMONED, 1);
     }
     if (record_version >= 2) {

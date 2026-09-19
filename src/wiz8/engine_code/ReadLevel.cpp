@@ -850,7 +850,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         }
         particle->value_138 = record.value_21c;
         particle->state_184 = record.state_218;
-        particle->active_190 = 0;
+        particle->active_190 = false;
 
         LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
                              &render_flags.value, 1);

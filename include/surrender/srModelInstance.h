@@ -41,7 +41,7 @@ public:
     unsigned long getExclusionMask() const;
     int isAligned() const
     {
-        return (int)(alignment_flags_148 & 1);
+        return (int)(alignment_flags_148.value & 1);
     }
     void setAlignAngle(double angle);
     /* Header-visible in Wiz8: the EXE does not import these. SR.DLL still
@@ -61,22 +61,26 @@ public:
             scale = (float)(1.0 / sqrt((double)length_squared));
             align_axis_14c *= scale;
         }
-        alignment_flags_148 |= 1;
+        alignment_flags_148.value |= 1;
     }
     void setAlignment(int enabled)
     {
         if (enabled != 0) {
-            alignment_flags_148 |= 1;
+            alignment_flags_148.value |= 1;
             return;
         }
-        alignment_flags_148 &= ~1u;
+        alignment_flags_148.value &= ~1u;
     }
     void setExclusionMask(unsigned long mask);
+
+    /* Monster.cpp 0x004c6c30 calls `set` on this member - the receiver of
+       0x004ca880 is the flag word itself - so the original member was a flag
+       object reachable outside the class. */
+    srFlags<int> alignment_flags_148;
 
 protected:
     virtual ~srModelInstance() override;
 
-    unsigned long alignment_flags_148;
     srVector3T<float> align_axis_14c;
     float align_angle_158;
     unsigned long exclusion_mask_15c;

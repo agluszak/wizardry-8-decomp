@@ -135,8 +135,8 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     memset(&monster_info->modifiers_1db, 0, sizeof(monster_info->modifiers_1db));
     monster_info->fMotionless = 0;
     monster_info->flag_255 = 0;
-    monster_info->value_2da = 0;
-    monster_info->value_344 = -1;
+    monster_info->summoned_2da = 0;
+    monster_info->insanity_summon_344 = -1;
     memset(monster_info->movement_watch_position, 0, sizeof(monster_info->movement_watch_position));
 
     if (PLAdoptAppend(record->unborn_26a != 0 ? gXStatus.plsUnbornMonsterList
@@ -619,7 +619,8 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->fActive != 0 && monster_info->hp_current > 0 &&
-            monster_info->condition_turns[W8_CONDITION_DEAD] == 0 && monster_info->value_2da != 0) {
+            monster_info->condition_turns[W8_CONDITION_DEAD] == 0 &&
+            monster_info->summoned_2da != 0) {
             if (forced_cleanup == 0) {
                 FormatNotice(9, 0, gppStringList[W8_NOTICE_MONSTER_SLAIN],
                              GetMonsterName(monster_info, 0, 0));
@@ -1651,7 +1652,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         }
     }
 
-    if (monster_info->value_2da == 1) {
+    if (monster_info->summoned_2da == 1) {
         health_knowledge = 125;
     } else {
         float average_party_level = GetAveragePartyMemberLevel();

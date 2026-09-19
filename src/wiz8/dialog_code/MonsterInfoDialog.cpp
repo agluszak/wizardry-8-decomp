@@ -138,7 +138,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         (npc = GetNpcStateByKind(record->npc_kind_0cd)) != 0 && npc->record->has_group != 0) {
         is_npc = 1;
     }
-    if (monster_info->value_2da == 1) {
+    if (monster_info->summoned_2da == 1) {
         knowledge = 0x7d;
     } else {
         knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
@@ -270,7 +270,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         wcscat(text, gppStringList[0x145]);
         ++count;
     }
-    if (monster_info->value_2da != 0) {
+    if (monster_info->summoned_2da != 0) {
         if (count > 0) {
             wcscat(text, g_comma_space_00619794);
         }
@@ -341,9 +341,11 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         }
     }
     if (0x31 < knowledge && record->special_attack_kind_0e3 != 0) {
-        m_text_area_ec.AddEntry(gppStringList[0x142],
-                                gppStringList[g_monster_special_attack_name_ids_61ec14[record->special_attack_kind_0e3]],
-                                10, 0xf, 0);
+        m_text_area_ec.AddEntry(
+            gppStringList[0x142],
+            gppStringList
+                [g_monster_special_attack_name_ids_61ec14[record->special_attack_kind_0e3]],
+            10, 0xf, 0);
     }
 
     if (9 < knowledge) {
