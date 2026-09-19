@@ -687,30 +687,6 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
     srVector3T<double> location;
     srMatrix3T<float> rotation;
     srMatrix3T<float> next;
-    W8Quaternion first;
-    W8Quaternion second;
-    W8Quaternion adjusted;
-    double amount;
-    double dot;
-    double angle;
-    double sine;
-    double w;
-    double x;
-    double y;
-    double z;
-    double scale;
-    double sx;
-    double sy;
-    double sz;
-    double xx;
-    double xy;
-    double xz;
-    double yy;
-    double yz;
-    double zz;
-    double xw;
-    double yw;
-    double zw;
 
     if (target == 0) {
         return;
@@ -746,52 +722,7 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
         if (g_float_005ebb34 < blend) {
             next = path->rotations_14[index + 1];
             if (!(rotation == next)) {
-                first.SetFromMatrix(rotation);
-                second.SetFromMatrix(next);
-                amount = blend;
-                adjusted = second;
-                dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
-                      first.v.z * second.v.z;
-                if (dot < g_zero_005ebb40) {
-                    dot = -dot;
-                    adjusted.v = -adjusted.v;
-                    adjusted.w = -adjusted.w;
-                }
-                if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
-                    dot = g_double_005ebc30 - amount;
-                } else {
-                    angle = acos(dot);
-                    sine = sin(angle);
-                    dot = sin((g_double_005ebc30 - amount) * angle) / sine;
-                    amount = sin(angle * amount) / sine;
-                }
-                adjusted.v = dot * first.v + amount * adjusted.v;
-                w = first.w * dot + adjusted.w * amount;
-                x = adjusted.v.x;
-                y = adjusted.v.y;
-                z = adjusted.v.z;
-                scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
-                sx = scale * x;
-                sy = scale * y;
-                sz = scale * z;
-                xw = sx * w;
-                yw = sy * w;
-                zw = sz * w;
-                xx = sx * x;
-                xy = sx * y;
-                xz = sx * z;
-                yy = sy * y;
-                yz = sy * z;
-                zz = sz * z;
-                rotation.vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
-                rotation.vectors[1].x = static_cast<float>(xy + zw);
-                rotation.vectors[2].x = static_cast<float>(xz - yw);
-                rotation.vectors[0].y = static_cast<float>(xy - zw);
-                rotation.vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
-                rotation.vectors[2].y = static_cast<float>(yz + xw);
-                rotation.vectors[0].z = static_cast<float>(xz + yw);
-                rotation.vectors[1].z = static_cast<float>(yz - xw);
-                rotation.vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+                W8Quaternion::InterpolateRotation(rotation, next, blend, &rotation);
             }
         }
 

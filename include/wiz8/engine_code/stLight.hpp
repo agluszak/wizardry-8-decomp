@@ -3,6 +3,8 @@
 #include "surrender/srLight.h"
 #include "wiz8/vector.h"
 
+#include <stddef.h>
+
 class W8Prop;
 class Trigger;
 struct W8PathAI;
@@ -86,6 +88,28 @@ public:
 
 static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
               "stLightDefinition005ECDBC_size_must_be_0x44");
+static_assert(offsetof(stLightDefinition005ECDBC, flags_08) == 0x08,
+              "stLightDefinition005ECDBC_flags_08");
+static_assert(offsetof(stLightDefinition005ECDBC, flicker_chance_0c) == 0x0c,
+              "stLightDefinition005ECDBC_flicker_chance_0c");
+static_assert(offsetof(stLightDefinition005ECDBC, color_10) == 0x10,
+              "stLightDefinition005ECDBC_color_10");
+static_assert(offsetof(stLightDefinition005ECDBC, color_to_1c) == 0x1c,
+              "stLightDefinition005ECDBC_color_to_1c");
+static_assert(offsetof(stLightDefinition005ECDBC, intensity_28) == 0x28,
+              "stLightDefinition005ECDBC_intensity_28");
+static_assert(offsetof(stLightDefinition005ECDBC, intensity_to_2c) == 0x2c,
+              "stLightDefinition005ECDBC_intensity_to_2c");
+static_assert(offsetof(stLightDefinition005ECDBC, period_30) == 0x30,
+              "stLightDefinition005ECDBC_period_30");
+static_assert(offsetof(stLightDefinition005ECDBC, rate_34) == 0x34,
+              "stLightDefinition005ECDBC_rate_34");
+static_assert(offsetof(stLightDefinition005ECDBC, path_value_38) == 0x38,
+              "stLightDefinition005ECDBC_path_value_38");
+static_assert(offsetof(stLightDefinition005ECDBC, value_3c) == 0x3c,
+              "stLightDefinition005ECDBC_value_3c");
+static_assert(offsetof(stLightDefinition005ECDBC, value_40) == 0x40,
+              "stLightDefinition005ECDBC_value_40");
 
 // VTABLE: WIZ8 0x005ecda0
 class stLightDefinition005ECDA0 : public stLightDefinition {
@@ -111,6 +135,22 @@ public:
 
 static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
               "stLightDefinition005ECDA0_size_must_be_0x58");
+static_assert(offsetof(stLightDefinition005ECDA0, values_08) == 0x08,
+              "stLightDefinition005ECDA0_values_08");
+static_assert(offsetof(stLightDefinition005ECDA0, values_18) == 0x18,
+              "stLightDefinition005ECDA0_values_18");
+static_assert(offsetof(stLightDefinition005ECDA0, values_28) == 0x28,
+              "stLightDefinition005ECDA0_values_28");
+static_assert(offsetof(stLightDefinition005ECDA0, values_38) == 0x38,
+              "stLightDefinition005ECDA0_values_38");
+static_assert(offsetof(stLightDefinition005ECDA0, value_48) == 0x48,
+              "stLightDefinition005ECDA0_value_48");
+static_assert(offsetof(stLightDefinition005ECDA0, time_4c) == 0x4c,
+              "stLightDefinition005ECDA0_time_4c");
+static_assert(offsetof(stLightDefinition005ECDA0, value_50) == 0x50,
+              "stLightDefinition005ECDA0_value_50");
+static_assert(offsetof(stLightDefinition005ECDA0, value_54) == 0x54,
+              "stLightDefinition005ECDA0_value_54");
 
 /*
  * stLight owns the 0x10006 registry identity, so the class that supplies it -
@@ -182,7 +222,7 @@ public:
        independent displacement loads. */
     srVector3T<float> m_positional_228;  /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
-    unsigned char m_positional_238; /* 0x238 */
+    unsigned char m_positional_238;      /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction_239;
     unsigned char m_positional_23a; /* 0x23a */

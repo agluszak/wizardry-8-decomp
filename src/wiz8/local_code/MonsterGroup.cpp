@@ -86,7 +86,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
                 if (radius < ally_radius) {
                     radius = ally_radius;
                 }
-                for (index = 0; index < static_cast<unsigned int>(ally->member_count); ++index) {
+                for (index = 0; index < ally->member_count; ++index) {
                     location_ids[count++] = IListGetAt(ally->monsters, index);
                 }
             }
@@ -544,7 +544,7 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
 bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
-        monster_group->member_count != 0) {
+        monster_group->member_count > 0) {
         if (monster_group->ubDisposition != 1 && CombatAllowsLiveGroups() == 0) {
             return 0;
         }
@@ -565,7 +565,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
     if (count != 0) {
         do {
             group = GetMonsterGroupByListIndex(group_list_index);
-            if (group->flag_28 != 0 && group->fInCombat != 0 && group->member_count != 0 &&
+            if (group->flag_28 != 0 && group->fInCombat != 0 && group->member_count > 0 &&
                 (group->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
                 if (index == 0) {
                     return group;
