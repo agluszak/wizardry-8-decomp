@@ -43,6 +43,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/utility.h"
 

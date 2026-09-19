@@ -17,6 +17,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/video_object_catalog.h"
 
 #include "Button System.h"

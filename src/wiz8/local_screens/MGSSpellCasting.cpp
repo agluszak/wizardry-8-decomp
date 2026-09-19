@@ -34,6 +34,7 @@
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -758,7 +759,7 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
             Function5879A0(0);
         }
     } else {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
     }
     if (gXStatus.fSpellCastMode == 0) {
         OpenSpellCastingView(g_status_685170.selected_character);

@@ -9,6 +9,7 @@
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Configuration.h"

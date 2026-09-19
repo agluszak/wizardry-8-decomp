@@ -25,6 +25,7 @@
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
@@ -187,6 +188,8 @@ int g_effect_argument_005ed8c8 = 0;
 unsigned int g_event_flag_005ed8e0 = 8;
 // GLOBAL: WIZ8 0x005ED8E4
 unsigned char g_character_event_flags_mask_005ed8e4 = 16;
+// GLOBAL: WIZ8 0x005ED8E8
+unsigned int g_event_flag_005ed8e8 = 0x20;
 // GLOBAL: WIZ8 0x005ED8EC
 unsigned int g_event_flag_005ed8ec = 0x40;
 // GLOBAL: WIZ8 0x005ED8F8
@@ -409,6 +412,8 @@ int g_special_event_0068c51c;
 int g_special_event_0068c52c;
 // GLOBAL: WIZ8 0x0068C530
 int g_special_event_0068c530;
+// GLOBAL: WIZ8 0x0068C534
+int g_special_event_0068c534;
 // GLOBAL: WIZ8 0x0068C538
 int g_special_event_0068c538;
 // GLOBAL: WIZ8 0x0068C544

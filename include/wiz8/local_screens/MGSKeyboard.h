@@ -184,3 +184,5 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
 /* Region callback for the keyboard-menu background: right-up closes the menu. */
 unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event,
                                                 W8Region* region); /* 0x005949A0 */
+/* Dispatch a bound MGS command number through the keyboard system. */
+void DispatchMGSCommand(int command); /* 0x00591960 */

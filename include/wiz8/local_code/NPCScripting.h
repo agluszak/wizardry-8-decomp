@@ -114,9 +114,6 @@ extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
 extern unsigned char g_flag_68506f;
 
 void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
-/* True when an NPC quote/portrait session is active: finish voice playback and
-   report that the click was consumed. */
-unsigned char FinishNpcVoiceIfSessionActive00577A20(void); /* 0x00577A20 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
                                 short* sub_entry_index);               /* 0x00525E80 */
 void RunNpcScriptLine(int script_line, unsigned char force_npc_voice); /* 0x00525FA0 */

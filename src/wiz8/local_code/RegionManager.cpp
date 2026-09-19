@@ -10,6 +10,7 @@
 #include "wiz8/local_screens/MGSSpellIcons.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_screens/RCSItemsPage.h"

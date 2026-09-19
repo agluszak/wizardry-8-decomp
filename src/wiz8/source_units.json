@@ -57,6 +57,7 @@
   "original-path-map": {
     "Local Code\\Formation & Facing.cpp": "src/wiz8/local_code/FormationAndFacing.cpp",
     "Local Code\\Conditions & Enchantments.cpp": "src/wiz8/local_code/ConditionsAndEnchantments.cpp",
-    "Engine Code\\gap.c": "src/wiz8/engine_code/gap.c"
+    "Engine Code\\gap.c": "src/wiz8/engine_code/gap.c",
+    "Local Screens\\NPCInteractionSubscreen.cpp": "src/wiz8/local_screens/NPCInteractionSubscreen.cpp"
   }
 }

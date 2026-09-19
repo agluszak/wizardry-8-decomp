@@ -36,6 +36,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/local_code/Magic.h"
@@ -825,7 +826,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x18);
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         return;
     case 0x234:
     case 0x235:
@@ -932,7 +933,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
     case 0x322:
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         ResetLevelDataVectors0041F0D0();
         group = FindFirstMonsterByID(0xc2);
         if (group != 0) {

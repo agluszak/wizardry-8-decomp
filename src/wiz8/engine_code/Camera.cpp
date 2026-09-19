@@ -13,6 +13,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/music_playlist.h"
 #include "surrender/srCamera.h"
 #include "wiz8/layouts/npc_state.h"

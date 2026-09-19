@@ -92,7 +92,7 @@ public:
 public:
     /* State-5's controller raises the alternate-renderer byte directly when
        it changes modes; retain that observed public storage access. */
-    unsigned char m_geometryDirty;
+    bool m_geometryDirty;
     unsigned char m_alternateRenderer;
     unsigned char pad_42[2];
     int m_renderMode;     /* 0x44: 4 initially */

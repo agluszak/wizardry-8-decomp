@@ -33,7 +33,7 @@ enum W8NpcMessageKind {
     W8_NPC_MSG_QUOTE = 0,                /* run script quote `quote_index` */
     W8_NPC_MSG_CLOSE_DIALOGUE = 1,       /* close dialogue; set g_flag_6109f0 */
     W8_NPC_MSG_QUOTE_ENTRY = 2,          /* quote_entry + continuation_quote */
-    W8_NPC_MSG_REOPEN_TRANSCRIPT = 3,    /* Function570A20 + transcript layout */
+    W8_NPC_MSG_REOPEN_TRANSCRIPT = 3,    /* CloseNpcDialogueLayout00570A20 + transcript layout */
     W8_NPC_MSG_REMOVE_SCRIPT_ITEM = 4,   /* item: W8ItemInstance* to unscript */
     W8_NPC_MSG_CLOSE_RESUME_NPC = 5,     /* close dialogue; ResumeNpc(npc, 1) */
     W8_NPC_MSG_FOCUS_NPC = 6,            /* argument: npc kind to switch dialogue to */

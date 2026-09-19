@@ -42,6 +42,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/RCSItemsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
+    src/wiz8/local_screens/NPCInteractionSubscreen.cpp
     src/wiz8/local_screens/CharacterScreen.cpp
     src/wiz8/local_screens/CharacterPages.cpp
     src/wiz8/local_screens/CGSSpellsPage.cpp

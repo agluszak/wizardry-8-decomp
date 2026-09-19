@@ -18,6 +18,7 @@
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/vector.h"
 #include "surrender/srCamera.h"
 

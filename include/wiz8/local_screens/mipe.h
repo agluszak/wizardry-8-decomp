@@ -57,6 +57,9 @@ static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anch
 static_assert(offsetof(W8MipeState, waypoints) == 0x3c, "W8MipeState_waypoints");
 static_assert(offsetof(W8MipeState, generator) == 0x54, "W8MipeState_generator");
 
+extern unsigned char g_debug_monster_cycle_0068f0fc;
+extern W8MipeState* g_mipe_state_0068f100;
+
 void ShowMonsterSpeedStatus00577F10(void);
 void ShowCubeParameters005780F0(void);
 void ShowMonsterGeneratorStatus005781F0(void);

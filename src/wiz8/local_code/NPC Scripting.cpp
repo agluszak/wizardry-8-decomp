@@ -42,6 +42,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/local_screens/IntroScreen.h"
@@ -340,7 +341,7 @@ void ProcessNpcScriptingFrame(void)
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
                 g_flag_68506f == 0 && g_screen_state_00649f1c->script_busy == 0 &&
                 (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
-                Function56E800(0);
+                EndNpcDialogueSession0056E800(0);
             }
             if (g_screen_state_00649f1c->script_busy == 0 &&
                 g_screen_state_00649f1c->dialogue_panel_hidden != 0 &&
@@ -693,15 +694,6 @@ bool IsNpcScriptSessionActive(void)
 
 /* Consume a world-view click while an NPC quote/portrait session is up: finish
    the voice playback (non-forced) and report the click as handled. */
-// FUNCTION: WIZ8 0x00577A20
-unsigned char FinishNpcVoiceIfSessionActive00577A20(void)
-{
-    if (!IsNpcScriptSessionActive()) {
-        return 0;
-    }
-    TryFinishNpcVoicePlayback(0);
-    return 1;
-}
 
 // FUNCTION: WIZ8 0x00525DF0
 bool ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry)
@@ -1383,7 +1375,7 @@ void ProcessMessageBoxQueue(void)
         ProcessNpcQuoteEntry(line->quote_entry, line->continuation_quote);
         break;
     case W8_NPC_MSG_REOPEN_TRANSCRIPT:
-        Function570A20();
+        CloseNpcDialogueLayout00570A20();
         OpenNpcDialogueTranscriptLayout();
         break;
     case W8_NPC_MSG_REMOVE_SCRIPT_ITEM:
@@ -1401,7 +1393,7 @@ void ProcessMessageBoxQueue(void)
         if (npc != 0) {
             RecruitNpcIntoParty(npc);
         }
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MessageBoxLine* continuation = new W8MessageBoxLine;
         memset(continuation, 0, sizeof(W8MessageBoxLine));
         continuation->npc = g_npc_scripting.npc;
@@ -1465,7 +1457,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_SAVANT: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         ResetLevelDataVectors0041F0D0();
         W8MonsterGroup* group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
@@ -1478,7 +1470,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_BELA: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         ResetLevelDataVectors0041F0D0();
         W8MonsterGroup* group = FindFirstMonsterByID(0x18c);
         if (group != 0) {
@@ -1495,7 +1487,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_GOLEM: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         BeginScriptedWorldAction();
         W8MonsterGroup* group = FindFirstMonsterByID(0x13e);
         if (group != 0) {
@@ -1535,7 +1527,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_CALL_HENCHMAN: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         BeginScriptedWorldAction();
         W8MonsterGroup* group = FindFirstMonsterByID(0x112);
         if (group != 0) {
@@ -1549,7 +1541,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_HENCHMAN_LEAVES: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0xdc);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -1650,7 +1642,7 @@ void ProcessMessageBoxQueue(void)
         SetNpcDialoguePanelVisible(1);
         break;
     case W8_NPC_MSG_PRINCE_DISAPPEARS: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0x1ab);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -1666,7 +1658,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_SELF: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8Monster* monster = GetNpcMonster(g_npc_scripting.npc);
         if (monster != 0) {
             monster->BeginFadeOutAndRemove004C5040(0);
@@ -1674,7 +1666,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_JANETTE: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x62);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1690,7 +1682,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_MARTEN: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(100);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1706,7 +1698,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_GARI: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         BeginScriptedWorldAction();
         W8MonsterGroup* group = FindFirstMonsterByID(0x162);
         if (group != 0) {
@@ -1725,7 +1717,7 @@ void ProcessMessageBoxQueue(void)
                          0);
         }
         door->CompleteItemInteraction004447F0();
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0xcf);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -1737,7 +1729,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_SHAMAN: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x4d);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1776,7 +1768,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_RUBBLE: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         BeginScriptedWorldAction();
         W8MonsterGroup* group = FindFirstMonsterByID(0x83);
         if (group != 0) {
@@ -1789,7 +1781,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_SEDEXUS_LEAVES: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         SetTriggerVariableByName00444030("LezboDemonAppeared", 0);
         npc = GetNpcStateByKind(0x40);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
@@ -1813,7 +1805,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_SEDEXUS_RIFT: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x42);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -1872,7 +1864,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_MOVE_TO_BOOK: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0x1b4);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -1995,7 +1987,7 @@ void ProcessMessageBoxQueue(void)
         g_pending_npc_travel_level = line->argument;
         break;
     case W8_NPC_MSG_PRINCE_NOT_HOME: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         W8MonsterGroup* group = FindFirstMonsterByID(0x1aa);
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -2023,7 +2015,7 @@ void ProcessMessageBoxQueue(void)
         BeginScreenFade(0, 0, 500, NpcScriptTurnToBook, 1, 1);
         break;
     case W8_NPC_MSG_REMOVE_ALETHEIDES_AD: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x2e);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -2035,7 +2027,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_ALETHEIDES_CM: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x2d);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
@@ -2047,7 +2039,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_REMOVE_ALETHEIDES_DD: {
-        Function56E800(0);
+        EndNpcDialogueSession0056E800(0);
         npc = GetNpcStateByKind(0x2f);
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {

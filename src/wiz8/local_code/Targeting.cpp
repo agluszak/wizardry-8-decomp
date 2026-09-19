@@ -36,6 +36,7 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/Spells.h"

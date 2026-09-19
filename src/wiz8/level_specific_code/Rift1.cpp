@@ -8,6 +8,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "surrender/srMath.h"
 
 #define RIFT1_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Rift1.cpp"
