@@ -141,9 +141,10 @@ the last source edit run `uv run wiz8 compare --changed` and account for every n
 `FUNCTION`: exact/effective, an explained compiler-lowering mismatch, or explicitly inconclusive with
 retail CFG/call/branch review.
 
-`uv run wiz8 check` is the fast repository lane; `uv run wiz8 lint` is the clang-cl/tidy lane. Do not
-dismiss a gating failure as baseline/pre-existing. If one environment alone reports a diagnostic, fix
-the path/mount/compile-database disagreement rather than suppressing the finding.
+`uv run wiz8 check` is the fast repository lane; `uv run wiz8 lint` is the clang-cl/tidy lane. A
+gating failure is work to fix, not a provenance question: do not first establish whether it is
+baseline/pre-existing. If one environment alone reports a diagnostic, fix the path/mount/compile-database
+disagreement rather than suppressing the finding.
 
 Before publishing a pull request, run `uv run wiz8 pr-check`. It always runs `wiz8 check` and also
 runs `wiz8 lint` when the PR changes C/C++ source or headers; a C/C++ PR is not validated without both
