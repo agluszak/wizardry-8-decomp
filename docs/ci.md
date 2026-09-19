@@ -81,4 +81,6 @@ The licensed lane expects these two repository secrets:
   `openssl rand -base64 48`.
 
 The private repository must contain release `gog-22306` with asset
-`setup_wizardry_8_2001_12_23_(22306).exe` matching the reviewed SHA-256 above.
+`setup_wizardry_8_2001_12_23_.22306.exe` matching the reviewed SHA-256 above. CI renames that release
+asset to the canonical local filename `setup_wizardry_8_2001_12_23_(22306).exe` before verification
+and preparation.
