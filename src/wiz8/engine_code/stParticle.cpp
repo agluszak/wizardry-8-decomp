@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 // GLOBAL: WIZ8 0x005ebc60
 float g_float_005ebc60 = 0.0020000000949949026f;
 // GLOBAL: WIZ8 0x005ec438

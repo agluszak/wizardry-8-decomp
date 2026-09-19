@@ -43,8 +43,5 @@ W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int positional_08, flo
                                float positional_1c, float positional_20, srScene* scene,
                                int positional_28);
 
-/* World-angle helpers: the yaw from one point to another and the elevation
-   measured against the horizontal plane. Both read the shared quarter-turn
-   constants. */
-float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* target);
-float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>* target);
+/* Pick-angle helpers (GetHeadingAngle, GetElevationAngle, HeadingToTargetCPP,
+   ElevationToTargetCPP) are declared in wiz8/engine_code/PolyPick.h. */

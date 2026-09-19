@@ -80,12 +80,8 @@ void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* positio
                                       float pitch);
 /* Elevation/heading of the direction from `position` to the camera, in
    radians; the homing missile tick faces its representation with them. */
-float GetElevationToCamera004BE520(const srVector3T<float>* position);
-float GetHeadingToCamera004BE650(const srVector3T<float>* position);
-/* 0x004BE940: project one point through the camera and report whether it is
-   in front of it. */
-unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
-
+/* ElevationToTargetCPP and HeadingToTargetCPP are declared in
+   wiz8/engine_code/PolyPick.h. */
 extern float g_camera_level_forward_scale_603aac;
 extern float g_camera_max_yaw_velocity_609ea4;
 extern const float g_negative_one_005ebc38;
