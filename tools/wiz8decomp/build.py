@@ -823,6 +823,7 @@ def check(repository: Path) -> dict[str, Any]:
     from .source_oracle import validate_source_oracle_ownership
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
+    from .template_model_lint import validate_template_model
 
     settings = load_settings()
     assert settings is not None
@@ -845,6 +846,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("header-architecture", lambda: validate_header_architecture(repository)),
         ("type-consistency", lambda: validate_type_consistency(repository)),
         ("reccmp", lambda: validate_reccmp_annotations(repository)),
+        ("template-model", lambda: validate_template_model(repository)),
         ("casts", lambda: validate_cast_markers(repository)),
         ("c-linkage", lambda: validate_c_linkage(repository)),
         ("placement", lambda: validate_source_placement(settings)),

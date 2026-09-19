@@ -95,8 +95,6 @@
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 
-template <> void srFlags<int>::set(int bit, int on);
-
 // GLOBAL: WIZ8 0x005ebcf8
 const float g_float_005ebcf8 = 0.0055555556900799274f;
 // GLOBAL: WIZ8 0x0060bfe0
@@ -4426,14 +4424,6 @@ unsigned char W8Monster::IsDying()
 
 // TEMPLATE: WIZ8 0x004CA880
 // srFlags<int>::set
-template <> void srFlags<int>::set(int bit, int on)
-{
-    if (on != 0) {
-        value |= 1 << bit;
-        return;
-    }
-    value &= ~(1u << bit);
-}
 
 /* Resolve mapped vertex zero on the current model and transform it into world
    space. Models without that mapping use the Navigator position plus the

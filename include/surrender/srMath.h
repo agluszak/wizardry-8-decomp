@@ -242,6 +242,14 @@ template <class T> srVector3T<T>* srVector3T<T>::SetFromDouble(const srVector3T<
     return this;
 }
 
+template <class T> srVector3T<T>* srVector3T<T>::SetFromFloat(const srVector3T<float>* source)
+{
+    x = (T)source->x;
+    y = (T)source->y;
+    z = (T)source->z;
+    return this;
+}
+
 // TEMPLATE: WIZ8 0x00451A10
 // srVector3T<float>::RotateAboutY
 template <class T> srVector3T<T>* srVector3T<T>::RotateAboutY(double sine, double cosine)

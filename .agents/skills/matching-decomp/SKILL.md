@@ -148,9 +148,15 @@ Do not create a `.cpp` solely to park `VTABLE`, `TEMPLATE`, `SYNTHETIC`, globals
 bodies. A normal `.cpp` should represent a proved retail translation unit. Unknown ownership stays an
 unresolved fragment. Compiler-emission files are exceptional and contain no arbitrary game logic.
 
-Never manually inline a function at call sites or add explicit specialization/instantiation solely to
-force one VC6 emission. SGP/DLL exports are declarations, not product-header inline definitions; an
-exported symbol proves the original call crosses that binary interface.
+Never manually inline a function at call sites. A concrete `TEMPLATE` emission proves only that the
+compiler instantiated the primary template for those arguments; retail codegen is not evidence of an
+authored `template <>`, explicit instantiation, or per-type body. Recover the operation at the primary
+template owner and keep the concrete address as marker-only emission provenance. If only one
+instantiation is observed, leave unsupported generic facts uncertain rather than manufacturing a
+specialization. Explicit specialization/instantiation requires an accepted original-source oracle that
+directly shows it; the template-model gate deliberately has no comment waiver. SGP/DLL exports are
+declarations, not product-header inline definitions; an exported symbol proves the original call crosses
+that binary interface.
 
 Write large decompilations/listings to named `build/` artifacts and print only the useful result/path.
 Do not repeatedly dump whole files or inspect implementation internals merely to discover a documented
