@@ -3,6 +3,7 @@
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/local_code/Factions.h"
@@ -1143,9 +1144,9 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     }
     if (monster_group->leader_group_id == 0) {
         if (monster_group->flag_c3 != 0) {
-            DetachMonsterGroup(monster_group);
+            UnregisterActiveEncounterGroup(monster_group);
         }
-        SetMonsterGroupMode(monster_group, monster_info);
+        ElectAlliedLeaderGroup(monster_group, monster_info);
     } else {
         RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     }
@@ -1158,10 +1159,11 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
             list = gXStatus.plsMonsterGroupEncounterList;
         }
         removed = PLRemoveAt(list, group_list_index);
-        if (removed != 0) {
-            free(removed);
-            return true;
+        if (removed == 0) {
+            return false;
         }
+        free(removed);
+        return true;
     }
     return false;
 }

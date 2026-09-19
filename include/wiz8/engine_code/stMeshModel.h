@@ -42,6 +42,9 @@ public:
     int FindSkinTable004736D0(const char* name);
     int CreateSkinTable00473260(const char* name, int base_table);
     srPtr<srTextureIFace>* GetTextureTable00473720(int table); /* 0x00473720 */
+    /* Active-polygon index list for a texture table; writes the count through
+       `count_out` and returns 0 when the table selects no polygons. */
+    unsigned long* GetActivePolygons00473CD0(long* count_out, int table, bool flag);
     void RemoveSkinTable00473830(int index);
     void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
@@ -77,7 +80,7 @@ public:
     srHeapArray<float> vertex_sunlight_3c4;
     unsigned char flag_3cc;
     /* Set once both vertex lights and sunlight exist. */
-    unsigned char vertex_lighting_ready_3cd;
+    bool vertex_lighting_ready_3cd;
     unsigned char unknown_3ce[2];
     /* uiFrames: per-frame tables below hold one pointer per frame. The
        decompressed float caches are srHeap allocations and are counted in
@@ -100,9 +103,9 @@ public:
     /* m_pLerpBuffer: interpolation scratch for GetVertexLocations; an srHeap
        allocation that is not counted in g_decompressed_mesh_bytes. */
     srVector3T<float>* lerp_buffer_448;
-    unsigned int* automap_polygons;      /* 0x44c */
-    unsigned int automap_polygon_count;  /* 0x450 */
-    unsigned char automap_filter_active; /* 0x454 */
+    unsigned int* automap_polygons;     /* 0x44c */
+    unsigned int automap_polygon_count; /* 0x450 */
+    bool automap_filter_active;         /* 0x454 */
     unsigned char unknown_455[3];
     W8GrowableVector<int*>* skin_blanking_apt_458;
     W8GrowableVector<int>* skin_blanking_apt_number_45c;

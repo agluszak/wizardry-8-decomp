@@ -276,6 +276,12 @@ struct W8EncounterScriptName;
 // TEMPLATE: WIZ8 0x00446050
 // W8GrowableVector<W8EncounterScriptName*>::~W8GrowableVector<W8EncounterScriptName*>
 
+/* Direct W8GrowableVector specialization identified by its vtable. AutomapScreenEnter's
+   excluded_textures is the lone capacity-constructed instance. */
+
+// VTABLE: WIZ8 0x005ec168
+// class W8GrowableVector<char*>
+
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 /* Engine Code\Trigger.cpp's g_timed_events_006599b8. */

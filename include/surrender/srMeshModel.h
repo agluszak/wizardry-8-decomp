@@ -25,12 +25,7 @@ public:
        from the live tables; getTriMesh copies or returns it; renderTriMesh
        feeds srTriMeshPipeline from these slots. */
     struct TriMesh {
-        TriMesh()
-        {
-            for (int pass = 0; pass != 4; ++pass) {
-                shaders_b0[pass].value = 0x0100241b; /* default packed srShader */
-            }
-        }
+        TriMesh() : control_flags_0c(0) {}
 
         long vertex_count_00;
         long polygon_count_04;

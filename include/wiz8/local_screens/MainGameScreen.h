@@ -659,7 +659,7 @@ void DisableMainRegionSet(void);                /* 0x00561FB0 */
 void EnableMainRegionSet(void);                 /* 0x00561FA0 */
 void OpenUseItemSelectView(int slot);           /* 0x0059C930 */
 void Function598AE0(void);
-void Function59B270(void);
+void ResetPortraitEffects0059B270(void);
 void Function59C9C0(void);
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);

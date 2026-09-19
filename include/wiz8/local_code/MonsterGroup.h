@@ -139,7 +139,6 @@ void ReleaseMonsterGroup(W8MonsterGroup* group);
 W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* group);
 void RefreshMonsterGroup(W8MonsterGroup* monster_group);
 void DetachMonsterGroup(W8MonsterGroup* monster_group);
-void SetMonsterGroupMode(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id at

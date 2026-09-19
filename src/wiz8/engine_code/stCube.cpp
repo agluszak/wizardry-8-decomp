@@ -19,6 +19,7 @@
 #include "wiz8/vector.h"
 #include "wiz8/geometry.h"
 #include "surrender/srNode.h"
+#include "surrender/srCamera.h"
 #include "surrender/srModeler.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srColorSurface.h"
@@ -278,6 +279,67 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
     }
 }
 
+/* Debug wireframe box: project the eight corners of a world-aligned bounding
+   box through the world camera, bail if any corner is off-screen, then paint
+   the twelve edges into the primary GERD's back buffer. */
+// FUNCTION: WIZ8 0x0048DF30
+void DrawWorldBox0048DF30(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
+                          unsigned long color)
+{
+    if (world == 0) {
+        return;
+    }
+
+    srVector3T<float> corners[8];
+    corners[0].Set(minimum.x, minimum.y, minimum.z);
+    corners[1].Set(minimum.x, minimum.y, maximum.z);
+    corners[2].Set(maximum.x, minimum.y, maximum.z);
+    corners[3].Set(maximum.x, minimum.y, minimum.z);
+    corners[4].Set(minimum.x, maximum.y, minimum.z);
+    corners[5].Set(minimum.x, maximum.y, maximum.z);
+    corners[6].Set(maximum.x, maximum.y, maximum.z);
+    corners[7].Set(maximum.x, maximum.y, minimum.z);
+
+    float viewport[4];
+    GetScaledViewportBounds004273F0(viewport, viewport + 2);
+    float viewport_width = viewport[2] - viewport[0];
+    float viewport_height = viewport[3] - viewport[1];
+
+    long screen[8][2];
+    int index = 0;
+    const srVector3T<float>* corner = corners;
+    long (*pixel)[2] = screen;
+    do {
+        srVector3T<float> projected;
+        srVector3T<double> position(corner->x, corner->y, corner->z);
+        if (world->camera->project(projected, position) ==
+            static_cast<srCamera::e_projectionResult>(-1)) {
+            return;
+        }
+        (*pixel)[0] = static_cast<long>((projected.x * viewport_width + viewport[0]) * 640.0f);
+        (*pixel)[1] = static_cast<long>((projected.y * viewport_height + viewport[1]) * 480.0f);
+        if ((*pixel)[0] < 0 || (*pixel)[0] > 640 || (*pixel)[1] < 0 || (*pixel)[1] > 480) {
+            return;
+        }
+        ++index;
+        ++corner;
+        ++pixel;
+    } while (index < 8);
+
+    DrawBufferLine00426490(screen[0][0], screen[0][1], screen[1][0], screen[1][1], &color);
+    DrawBufferLine00426490(screen[1][0], screen[1][1], screen[2][0], screen[2][1], &color);
+    DrawBufferLine00426490(screen[2][0], screen[2][1], screen[3][0], screen[3][1], &color);
+    DrawBufferLine00426490(screen[3][0], screen[3][1], screen[0][0], screen[0][1], &color);
+    DrawBufferLine00426490(screen[4][0], screen[4][1], screen[5][0], screen[5][1], &color);
+    DrawBufferLine00426490(screen[5][0], screen[5][1], screen[6][0], screen[6][1], &color);
+    DrawBufferLine00426490(screen[6][0], screen[6][1], screen[7][0], screen[7][1], &color);
+    DrawBufferLine00426490(screen[7][0], screen[7][1], screen[4][0], screen[4][1], &color);
+    DrawBufferLine00426490(screen[0][0], screen[0][1], screen[4][0], screen[4][1], &color);
+    DrawBufferLine00426490(screen[1][0], screen[1][1], screen[5][0], screen[5][1], &color);
+    DrawBufferLine00426490(screen[2][0], screen[2][1], screen[6][0], screen[6][1], &color);
+    DrawBufferLine00426490(screen[3][0], screen[3][1], screen[7][0], screen[7][1], &color);
+}
+
 /* The three label numbers double as generic per-node parameters; the world
    cursor and the master-function table index into them by slot. */
 // FUNCTION: WIZ8 0x0048E2B0
@@ -310,6 +372,15 @@ void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long col
 {
     entry->color_20 = color;
     DrawWorldCursorNodeLabel0048DCB0(entry);
+}
+
+/* Pack the RGB components at full alpha and repaint. */
+// FUNCTION: WIZ8 0x0048E420
+void SetWorldCursorNodeColorComponents0048E420(W8WorldCursorNode* entry, float red, float green,
+                                               float blue)
+{
+    unsigned long packed;
+    SetWorldCursorNodeColor0048E400(entry, *PackColour00433FB0(&packed, 1.0, red, green, blue));
 }
 
 // FUNCTION: WIZ8 0x0048e470

@@ -658,6 +658,101 @@ void stMeshModel::ClearAutomapPolygonFilter()
     }
 }
 
+/* The active-polygon table selects which polygons a texture-table draw
+   submits: per skin table the list is cached in the blanking vectors and
+   built on first use by dropping polygons whose texture name starts with
+   "blank"; the -1 table is the automap filter built by
+   ApplyAutomapPolygonFilter. */
+// FUNCTION: WIZ8 0x00473CD0
+unsigned long* stMeshModel::GetActivePolygons00473CD0(long* count_out, int table, bool flag)
+{
+    int index = -1;
+    for (int i = 0; i < skin_table_ids.GetCount(); ++i) {
+        if (*skin_table_ids.GetAt(i) == table) {
+            index = i;
+            break;
+        }
+    }
+
+    unsigned int* list;
+    unsigned char checked;
+    if (index >= 0) {
+        if (skin_blanking_apt_458 == 0) {
+            *count_out = 0;
+            return 0;
+        }
+        /* The blanking vectors store polygon-index lists as int*; the public
+           table type is unsigned long. */
+        // reinterpret-ok: int* storage reinterpreted as the polygon-index list type
+        list = reinterpret_cast<unsigned int*>(*skin_blanking_apt_458->GetAt(index));
+        *count_out = *skin_blanking_apt_number_45c->GetAt(index);
+        checked = *skin_blanking_checked_460->GetAt(index);
+    } else {
+        *count_out = automap_polygon_count;
+        list = automap_polygons;
+        checked = automap_filter_active;
+    }
+    if (list != 0) {
+        // reinterpret-ok: unsigned int index list returned as the public unsigned long* type
+        return reinterpret_cast<unsigned long*>(list);
+    }
+    if (checked != 0 || flag == 0) {
+        *count_out = 0;
+        return 0;
+    }
+
+    *count_out = 0;
+    unsigned int* fresh = new unsigned int[polygon_count_230];
+    srPtr<srTextureIFace>* textures = 0;
+    if (index < 0) {
+        automap_filter_active = 1;
+        textures = getPolyTexture(0, 0, 0);
+    } else {
+        skin_blanking_checked_460->SetAt(index, 1);
+        int skin = -1;
+        for (int i = 0; i < skin_table_ids.GetCount(); ++i) {
+            if (*skin_table_ids.GetAt(i) == table) {
+                skin = i;
+                break;
+            }
+        }
+        if (skin != -1) {
+            textures = *skin_texture_tables.GetAt(skin);
+        }
+    }
+    if (textures != 0) {
+        for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count_230);
+             ++polygon) {
+            if (textures[polygon] == 0) {
+                fresh[*count_out] = polygon;
+                ++*count_out;
+            } else {
+                char name[260];
+                strcpy(name, textures[polygon]->getName());
+                if (_strnicmp(name, "blank", 5) != 0) {
+                    fresh[*count_out] = polygon;
+                    ++*count_out;
+                }
+            }
+        }
+        if (*count_out != polygon_count_230) {
+            if (index < 0) {
+                automap_polygons = fresh;
+                automap_polygon_count = *count_out;
+            } else {
+                // reinterpret-ok: unsigned int index list stored as the vector's int* element
+                skin_blanking_apt_458->SetAt(index, reinterpret_cast<int*>(fresh));
+                skin_blanking_apt_number_45c->SetAt(index, *count_out);
+            }
+            // reinterpret-ok: unsigned int index list returned as the public unsigned long* type
+            return reinterpret_cast<unsigned long*>(fresh);
+        }
+    }
+    delete[] fresh;
+    *count_out = 0;
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00471160
 void stMeshModel::SetMappedVertex00471160(short vertex, short key)
 {

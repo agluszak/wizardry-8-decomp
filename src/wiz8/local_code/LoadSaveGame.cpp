@@ -40,6 +40,8 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/Video2.h"
+#include "surrender/srColorSurface.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/Spells.h"
@@ -1381,6 +1383,29 @@ char LoadCharacterFromCurrentGame(const char* path, W8Character* character)
         chunk.Close();
     }
     return found ? 1 : 0;
+}
+
+/* Render the world into the slot's embedded 80x60 ARGB1555 pixel buffer.
+   Option 4 is suppressed so the HUD does not bleed into the thumbnail, the
+   full frame is re-rendered afterwards to restore the screen. */
+// FUNCTION: WIZ8 0x00515840
+void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
+{
+    W8ScreenRect rect;
+    srColorSurface* surface;
+
+    screenshot->version = 1.0f;
+    rect.top = 0;
+    rect.left = 0;
+    rect.right = 640;
+    rect.bottom = 480;
+    surface =
+        new srColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50, 0x3c, 0xa0);
+    SetRendererOption4Enabled(0);
+    screenshot->capture_result = RenderWorldToSurface00426F80(surface, &rect, 1);
+    RenderFrame();
+    SetRendererOption4Enabled(1);
+    surface->release();
 }
 
 /* Save-slot bookkeeping from the same established

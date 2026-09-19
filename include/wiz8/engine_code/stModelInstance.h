@@ -1,11 +1,13 @@
 #pragma once
 
 #include "surrender/srArray.h"
+#include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
 #include "wiz8/engine_code/AnimRep.hpp"
 
 #include <stddef.h>
 
+class srGERD;
 class srMaterial;
 class srTextureIFace;
 class stTextureAnim;
@@ -27,6 +29,14 @@ public:
     stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
     virtual srClass* vInstance() override;
 
+    virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x0047F560 */
+    /* Mesh-chain submit reached from process(): frustum culling, ambient and
+       highlight state, the linked stMeshModel list, then the optional
+       highlight shell pass with reversed winding. */
+    void RenderMeshes0047F930(srGERD& renderer);
+    /* Shadow-volume extrusion helper for the first mesh in the chain. */
+    void RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMesh& mesh);
+
     stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
     int AddExistingDamageStage00480670(const char* name);
@@ -47,7 +57,9 @@ public:
 public:
     unsigned long state_160;
     W8ModelInstanceRenderState render_state_164;
-    srClass* retained_174;
+    /* Lazily built highlight material; RenderMeshes0047F930 fills it from the
+       render-state RGBA and installs it as the pass material. */
+    srMaterial* retained_174;
     unsigned long state_178;
     unsigned long state_17c;
     unsigned int frame_index_180;
@@ -65,7 +77,12 @@ public:
         int value_1a4;
         float scale_1a4;
     };
-    int value_1a8;
+    /* Written as an integer toggle by callers but read back as the float
+       emissive override scale in RenderMeshes0047F930. */
+    union {
+        int value_1a8;
+        float scale_1a8;
+    };
     float value_1ac;
 };
 

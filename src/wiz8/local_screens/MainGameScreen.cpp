@@ -3258,7 +3258,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (IsWorldCursorVisible()) {
         ToggleWorldCursor();
     }
-    Function59B270();
+    ResetPortraitEffects0059B270();
     if (gXStatus.fLockInteractMode)
         Function5879A0(0);
     if (gXStatus.fTrapInteractMode)
@@ -4559,6 +4559,28 @@ bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot)
         left = 0;
     }
     return IsCursorInRectangle(left, row.y1, right, row.y2) != 0;
+}
+
+/* On leaving the main game screen, clear every occupied slot's pending
+   portrait damage splat and effect icon and restart the shared FX clock. */
+// FUNCTION: WIZ8 0x0059B270
+void ResetPortraitEffects0059B270(void)
+{
+    W8MonsterManagerEntry* entry = gXStatus.monster_manager_entries;
+    for (int slot = 0;
+         &entry->effect_icon_frame < &gXStatus.monster_manager_entries[8].effect_icon_frame;
+         ++entry, ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            entry->effect_icon_active = 0;
+            entry->effect_icon_frame = -1;
+            entry->effect_icon_catalog = -1;
+            entry->damage_splat_active = 0;
+            entry->damage_splat_death_variant = 0;
+            entry->dead_portrait_revealed = 0;
+            entry->damage_splat_frame = -1;
+            entry->portrait_fx_clock = SetCountdownClock(0);
+        }
+    }
 }
 
 /* While the main UI is not in portrait mode, keep each party slot's formation
