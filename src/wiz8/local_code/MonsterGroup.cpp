@@ -807,6 +807,21 @@ void RebindMonsterGroupScripts(void)
     }
 }
 
+/* Writes a control state onto every live member of the group; the Lure
+   effect uses it to flip a whole out-of-combat group at once. */
+// FUNCTION: WIZ8 0x005117D0
+void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state)
+{
+    for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
+        int location_id = IListGetAt(monster_group->monsters, index);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x818, MONSTER_GROUP_CPP, location_id, 1));
+        if (info != 0 && info->monster->IsDying() == 0) {
+            SetMonsterControlState(info, control_state);
+        }
+    }
+}
+
 /* The mean position of a group's members, recomputed only while the group is
    loaded and cached on the group itself; an unloaded group answers with
    whatever it last held. The out-parameter is optional, so the same call both
