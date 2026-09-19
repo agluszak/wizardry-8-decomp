@@ -41,6 +41,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
 /* 0x004FA4D0: one step of the queued spell-cast action; answers 0/1/2 while
    the per-step point draw lands in `out_points`. */
 int Function4FA4D0(int party_slot, int spell_id, int power_level, int* out_points, char arg_5);
+void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item);

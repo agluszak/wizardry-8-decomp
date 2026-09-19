@@ -79,7 +79,9 @@ struct W8PartySelectionCharacterCollection {
     void LoadExternalCharacters();
     void SortCharactersByWriteTime();
 
-    W8GrowableVector<W8Character*> characters;
+    /* W8Vector's own vtable 0x5EF4F0 is stored over the base's 0x5EF360 after
+       the 0x5C37B0 base-ctor emission inside PartySelectionScreenEnter. */
+    W8Vector<W8Character*> characters;
     W8GrowableVector<char*> names;
     int first_visible;
 };
@@ -628,6 +630,37 @@ static_assert(sizeof(W8PartySelectionController) == 0x70, "W8PartySelectionContr
 // GLOBAL: WIZ8 0x0069C4E8
 W8PartySelectionController* g_party_selection_controller;
 
+// FUNCTION: WIZ8 0x005C33C0
+void RefreshPartySelectionPortrait(unsigned int party_slot)
+{
+    W8PartySelectionPartySlotRow005EF3E4** rows =
+        // reinterpret-ok: the slot panel's button list stores the derived row type
+        reinterpret_cast<W8PartySelectionPartySlotRow005EF3E4**>(
+            g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.data);
+    if (static_cast<int>(party_slot - 2) <
+        g_party_selection_controller->m_control_28->m_control_50.m_lsButtons.count) {
+        rows += party_slot - 2;
+    }
+    W8PartySelectionPartySlotRow005EF3E4* row = *rows;
+    Controls* panel = row->m_pPanel;
+    int portrait = g_status_685170.buffers.characters[row->m_row + 2].table_value_0079;
+    int flags = 2;
+    if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 && row->m_row % 2 == 0) ||
+        (g_portrait_descriptors_6483d0[portrait].render_mode == 2 && row->m_row % 2 != 0)) {
+        flags = 0x1002;
+    }
+    BlitPartyPortraitAnimation(portrait, panel->origin_x + row->m_left,
+                               panel->origin_y + row->m_top, flags, row->m_row + 2, 0);
+}
+
+/* Whether the party selector is in its review-existing-character mode; the
+   camp screen consults it when deciding if the level-up panel applies. */
+// FUNCTION: WIZ8 0x005c3470
+bool PartySelectionInReviewMode005C3470(void)
+{
+    return g_party_selection_controller->m_mode == 1;
+}
+
 W8PartySelectionCharacterRow005EF364::W8PartySelectionCharacterRow005EF364(Controls* panel, int top,
                                                                            int row)
     : W8TextControl(panel, 0xffffffff, 0, top, 0, 0, 0xfb, 0, 0, 1, 2, 1, -1), m_row(row),
@@ -641,6 +674,9 @@ W8PartySelectionCharacterRow005EF364::W8PartySelectionCharacterRow005EF364(Contr
 
 // FUNCTION: WIZ8 0x005be950
 W8PartySelectionCharacterRow005EF364::~W8PartySelectionCharacterRow005EF364() {}
+
+// SYNTHETIC: WIZ8 0x005BE930
+// W8PartySelectionCharacterRow005EF364::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005be9b0
 void W8PartySelectionCharacterRow005EF364::Redraw(int full_redraw)
@@ -733,6 +769,9 @@ W8PartySelectionCharacterPanel005EF3C8::W8PartySelectionCharacterPanel005EF3C8()
         row->Invalidate(0);
     }
 }
+
+// SYNTHETIC: WIZ8 0x005BEDD0
+// W8PartySelectionCharacterPanel005EF3C8::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005bedf0
 W8PartySelectionCharacterPanel005EF3C8::~W8PartySelectionCharacterPanel005EF3C8()
@@ -853,6 +892,9 @@ W8PartySelectionPartySlotRow005EF3E4::W8PartySelectionPartySlotRow005EF3E4(Contr
     AddLayoutFlags(0x11);
     UpdateTextBounds(m_left - 8, m_top + 0x51, m_left + 0x61, m_top + 0x60);
 }
+
+// SYNTHETIC: WIZ8 0x005BF200
+// W8PartySelectionPartySlotRow005EF3E4::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005bf220
 W8PartySelectionPartySlotRow005EF3E4::~W8PartySelectionPartySlotRow005EF3E4() {}
@@ -975,11 +1017,17 @@ void W8PartySelectionCharacterGridPanel005EF450::OnPrimary(W8TextControl* contro
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
 
+// SYNTHETIC: WIZ8 0x005BF7C0
+// W8PartySelectionCharacterGridPanel005EF450::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x005bf7e0
 W8PartySelectionCharacterGridPanel005EF450::~W8PartySelectionCharacterGridPanel005EF450()
 {
     DestroyAllControls();
 }
+
+// SYNTHETIC: WIZ8 0x005BF620
+// W8PartySelectionPartySlotPanel005EF438::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005bf640
 W8PartySelectionPartySlotPanel005EF438::~W8PartySelectionPartySlotPanel005EF438()
@@ -1342,8 +1390,14 @@ void W8PartySelectionController::Setup()
     SetSelection(0, 0, 1);
 }
 
+// SYNTHETIC: WIZ8 0x005C1560
+// W8PartySelectionCharacterSummaryPanel005EF4E0::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x005c1580
 W8PartySelectionCharacterSummaryPanel005EF4E0::~W8PartySelectionCharacterSummaryPanel005EF4E0() {}
+
+// SYNTHETIC: WIZ8 0x005C0460
+// W8PartySelectionOptionPanel005EF4AC::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005c0480
 W8PartySelectionOptionPanel005EF4AC::~W8PartySelectionOptionPanel005EF4AC()

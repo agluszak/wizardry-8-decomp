@@ -34,8 +34,8 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group); /* 0x00531920 */
    monster scan, `hostility` selects the class (three and four are wildcards),
    and `within_reach` also requires the target inside engagement range. */
 bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
-                             int within_reach); /* 0x00534850 */
-float GetGroupNearestDistance(W8MonsterGroup* group);    /* 0x005324B0 */
+                             int within_reach);       /* 0x00534850 */
+float GetGroupNearestDistance(W8MonsterGroup* group); /* 0x005324B0 */
 
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
 extern const int g_special_attack_table[32][2];

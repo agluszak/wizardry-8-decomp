@@ -273,7 +273,7 @@ static_assert(sizeof(W8CharacterPage005EF664) == 0x624, "W8CharacterPage005EF664
 class W8CharacterPage005EF5C8 : public W8CharacterPage, public W8CharacterPageEntryListener {
 public:
     W8CharacterPage005EF5C8() : W8CharacterPage(0x108) {}
-    virtual ~W8CharacterPage005EF5C8() override {}
+    virtual ~W8CharacterPage005EF5C8() override;
     virtual void Redraw() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
     virtual void Activate() override;
@@ -452,6 +452,9 @@ extern W8CharacterScreen* g_character_screen_0069c2e8;
 /* CharacterScreen.cpp GLOBAL at 0x0061E3F0: per-profession message indexes. */
 extern unsigned short g_profession_name_message_ids_61e3f0[32];
 extern unsigned short g_race_name_message_ids_61e3d0[16];
+/* CharacterScreen.cpp GLOBAL at 0x0061E688: per-profession level-name message
+   indexes, one row per profession for the level bands. */
+extern unsigned short g_profession_level_name_message_ids_61e688[15][9];
 
 /* Refresh the character-screen response when a party slot changes. */
 void RefreshCharacterScreenPartySlot(unsigned int party_slot); /* 0x005B1AD0 */

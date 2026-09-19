@@ -79,3 +79,6 @@ static_assert(sizeof(W8SecondaryAttributeInfoDialog005E0180) == 0x14c,
               "W8SecondaryAttributeInfoDialog005E0180_must_be_0x14c");
 static_assert(sizeof(W8SkillInfoDialog005EFD08) == 0x150,
               "W8SkillInfoDialog005EFD08_must_be_0x150");
+
+/* 0x0061E50C: gppStringList indices naming each attribute/resistance row. */
+extern unsigned short g_attr_table_61E50C[18];

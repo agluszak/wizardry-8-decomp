@@ -598,22 +598,139 @@ struct W8AutomapNote;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Local Screens\OptionsScreen.cpp's W8GrowableVector<W8OptionsPanel*>
-   emission: CreateOptionsPanel at 0x005ABFC0 constructs one inside
-   W8OptionsPanelSet at +0x10, and ~W8OptionsSaveLoadPanel also tears down
-   this specialization's subobject. 0x005EF190 is the construction-phase
-   table. */
+/* Local Screens\OptionsScreen.cpp's W8Vector<W8OptionsSaveRow*> emission:
+   W8OptionsSaveLoadPanel::m_rows at +0x90. The derived ctor emission at
+   0x005ACFC0 stamps 0x005EF08C over the 0x005EF190 construction-phase table;
+   the two deleting destructors are the derived and base copies. */
+// VTABLE: WIZ8 0x005ef190
+// class W8GrowableVector<W8OptionsSaveRow*>
+
 // VTABLE: WIZ8 0x005ef08c
-// class W8GrowableVector<W8OptionsPanel*>
+// class W8Vector<W8OptionsSaveRow*>
+
+// TEMPLATE: WIZ8 0x005ad220
+// W8GrowableVector<W8OptionsSaveRow*>::W8GrowableVector (OptionsScreen.cpp emission)
 
 // TEMPLATE: WIZ8 0x005acfc0
-// W8GrowableVector<W8OptionsPanel*>::W8GrowableVector
-
-// SYNTHETIC: WIZ8 0x005ad1b0
-// W8GrowableVector<W8OptionsPanel*>::`scalar deleting destructor'
-
-// SYNTHETIC: WIZ8 0x005ad180
-// W8GrowableVector<W8OptionsPanel*>::`scalar deleting destructor' (construction-phase copy)
+// W8Vector<W8OptionsSaveRow*>::W8Vector
 
 // TEMPLATE: WIZ8 0x005ad020
+// W8GrowableVector<W8OptionsSaveRow*>::~W8GrowableVector<W8OptionsSaveRow*>
+
+// SYNTHETIC: WIZ8 0x005ad180
+// W8GrowableVector<W8OptionsSaveRow*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad1b0
+// W8Vector<W8OptionsSaveRow*>::`scalar deleting destructor'
+
+/* W8OptionsPanelSet::m_panels_010 is a W8Vector<W8OptionsPanel*>: the derived
+   0x005EF01C table over base 0x005EEFE0. */
+// VTABLE: WIZ8 0x005eefe0
+// class W8GrowableVector<W8OptionsPanel*>
+
+// VTABLE: WIZ8 0x005ef01c
+// class W8Vector<W8OptionsPanel*>
+
+// TEMPLATE: WIZ8 0x005ad1d0
+// W8GrowableVector<W8OptionsPanel*>::W8GrowableVector (OptionsScreen.cpp emission)
+
+// TEMPLATE: WIZ8 0x005acf80
 // W8GrowableVector<W8OptionsPanel*>::~W8GrowableVector<W8OptionsPanel*>
+
+// SYNTHETIC: WIZ8 0x005ad0e0
+// W8GrowableVector<W8OptionsPanel*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad110
+// W8Vector<W8OptionsPanel*>::`scalar deleting destructor'
+
+/* W8OptionsPanel::m_text_buffers_058 is a W8Vector<W8TextBuffer*>: the derived
+   0x005EEFCC table over base 0x005EEFD0. */
+// VTABLE: WIZ8 0x005eefd0
+// class W8GrowableVector<W8TextBuffer*>
+
+// VTABLE: WIZ8 0x005eefcc
+// class W8Vector<W8TextBuffer*>
+
+// TEMPLATE: WIZ8 0x005acf40
+// W8GrowableVector<W8TextBuffer*>::~W8GrowableVector<W8TextBuffer*>
+
+// SYNTHETIC: WIZ8 0x005ad040
+// W8GrowableVector<W8TextBuffer*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad070
+// W8Vector<W8TextBuffer*>::`scalar deleting destructor'
+
+/* W8OptionsPanel::m_option_selections is a W8Vector<W8OptionsSelection*>: the
+   derived 0x005EEFC4 table over base 0x005EEFC8. */
+// VTABLE: WIZ8 0x005eefc8
+// class W8GrowableVector<W8OptionsSelection*>
+
+// VTABLE: WIZ8 0x005eefc4
+// class W8Vector<W8OptionsSelection*>
+
+// TEMPLATE: WIZ8 0x005acf60
+// W8GrowableVector<W8OptionsSelection*>::~W8GrowableVector<W8OptionsSelection*>
+
+// SYNTHETIC: WIZ8 0x005ad090
+// W8GrowableVector<W8OptionsSelection*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad0c0
+// W8Vector<W8OptionsSelection*>::`scalar deleting destructor'
+
+/* W8OptionsScreen::m_save_slots is a W8Vector<W8SaveSlot*>: the derived
+   0x005EF00C table over base 0x005EF010. */
+// VTABLE: WIZ8 0x005ef010
+// class W8GrowableVector<W8SaveSlot*>
+
+// VTABLE: WIZ8 0x005ef00c
+// class W8Vector<W8SaveSlot*>
+
+// TEMPLATE: WIZ8 0x005acfa0
+// W8GrowableVector<W8SaveSlot*>::~W8GrowableVector<W8SaveSlot*>
+
+// SYNTHETIC: WIZ8 0x005ad130
+// W8GrowableVector<W8SaveSlot*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ad160
+// W8Vector<W8SaveSlot*>::`scalar deleting destructor'
+
+/* Local Screens\PartySelectionScreen.cpp's
+   W8PartySelectionCharacterCollection::characters: PartySelectionScreenEnter
+   constructs the W8Vector member through this base-ctor emission at
+   0x005C2E78, then stamps the derived 0x005EF4F0 table over the base
+   0x005EF360; the collection destructor restores 0x005EF360 while tearing the
+   member down. */
+// VTABLE: WIZ8 0x005ef360
+// class W8GrowableVector<W8Character*>
+
+// VTABLE: WIZ8 0x005ef4f0
+// class W8Vector<W8Character*>
+
+// TEMPLATE: WIZ8 0x005c37b0
+// W8GrowableVector<W8Character*>::W8GrowableVector (PartySelectionScreen.cpp emission)
+
+// TEMPLATE: WIZ8 0x005c34b0
+// W8GrowableVector<W8Character*>::~W8GrowableVector<W8Character*>
+
+// SYNTHETIC: WIZ8 0x005c3740
+// W8GrowableVector<W8Character*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005c3770
+// W8Vector<W8Character*>::`scalar deleting destructor'
+
+/* W8CharacterPage's member vector; its constructor stamps 0x005EF214 at
+   0x005AFDFC. */
+// VTABLE: WIZ8 0x005ef214
+// class W8GrowableVector<W8CharacterPageEntry*>
+
+// SYNTHETIC: WIZ8 0x005b1bc0
+// W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
+
+/* Local Screens\CreditsScreen.cpp's g_credit_lines_0069c4a8: the enter path
+   news the vector and the element constructor allocates five 0x14-byte
+   W8CreditLine slots. */
+// VTABLE: WIZ8 0x005ef310
+// class W8GrowableVector<W8CreditLine>
+
+// SYNTHETIC: WIZ8 0x005bc7d0
+// W8GrowableVector<W8CreditLine>::`scalar deleting destructor'

@@ -1438,7 +1438,7 @@ void SyncNpcServiceButtons0056EE20(int party_slot)
             g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
             g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
             g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
-            Function5ADB10(1);
+            RebuildNpcTradeItemList005ADB10(1);
             g_screen_state_00649f1c->flag_260 = 1;
             UpdateNpcDialogueSubMode();
         }
@@ -2841,7 +2841,7 @@ void OpenNpcDialogueOptionLayout(void)
     for (index = 0; index < 6; ++index) {
         g_screen_state_00649f1c->option_buttons_170[index]->SetEnabled(0);
     }
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
     RequestRedraw(0x200);
 }
 
@@ -2917,7 +2917,7 @@ void UpdateNpcDialogueSubMode(void)
         }
         g_screen_state_00649f1c->flag_234 = 0;
     }
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 /* Tear down the mode-4 option layout: the six option controls lose their
@@ -3005,7 +3005,7 @@ void SelectNpcTradeMode1(void)
     g_screen_state_00649f1c->dialogue_text_120->EnableSecondaryState(1);
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_fontStateIndex = 3;
     g_screen_state_00649f1c->dialogue_text_120->m_textBuffer.m_geometryDirty = 1;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
     g_screen_state_00649f1c->flag_260 = 1;
 }
 
@@ -3019,7 +3019,7 @@ void SelectNpcTradeMode0(void)
     g_screen_state_00649f1c->dialogue_text_124->EnableSecondaryState(1);
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_fontStateIndex = 3;
     g_screen_state_00649f1c->dialogue_text_124->m_textBuffer.m_geometryDirty = 1;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
     g_screen_state_00649f1c->flag_260 = 0;
 }
 
@@ -3035,7 +3035,7 @@ void ConfirmNpcTradeSlot(void)
             if (g_screen_state_00649f1c->value_100 == 2 && slot == 0) {
                 OpenNpcTradeSplitDialog00572780();
             } else if (g_screen_state_00649f1c->value_108->stack_count > 1) {
-                Function5AE040();
+                OpenNpcTradeSplitDialog005AE040();
             }
         }
     }
@@ -3266,7 +3266,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
         }
         return 0;
     }
-    i = Function5ADAA0(index);
+    i = ResolveNpcTradeStockIndex005ADAA0(index);
     if (i == -1) {
         return 0;
     }
@@ -3482,7 +3482,7 @@ void EnableNpcTradeFilterButtons00573630(void)
 /* The six trade-filter option callbacks share one shape: when the button's
    secondary state is raised it becomes the exclusive slot-group bit in
    value_1d0 (the previously active sibling is dimmed and cleared), and when it
-   is lowered the bit comes off again; Function5ADB10(1) refreshes the list. */
+   is lowered the bit comes off again; RebuildNpcTradeItemList005ADB10(1) refreshes the list. */
 // FUNCTION: WIZ8 0x00573660
 void ToggleNpcTradeFilter00573660(void)
 {
@@ -3503,11 +3503,11 @@ void ToggleNpcTradeFilter00573660(void)
             break;
         }
         g_screen_state_00649f1c->value_1d0 |= 4;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~4;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 // FUNCTION: WIZ8 0x00573730
@@ -3530,11 +3530,11 @@ void ToggleNpcTradeFilter00573730(void)
             break;
         }
         g_screen_state_00649f1c->value_1d0 |= 0x10;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~0x10;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 // FUNCTION: WIZ8 0x00573800
@@ -3557,11 +3557,11 @@ void ToggleNpcTradeFilter00573800(void)
             break;
         }
         g_screen_state_00649f1c->value_1d0 |= 8;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~8;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 // FUNCTION: WIZ8 0x005738D0
@@ -3584,11 +3584,11 @@ void ToggleNpcTradeFilter005738D0(void)
             break;
         }
         g_screen_state_00649f1c->value_1d0 |= 0x20;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~0x20;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 /* The "usable by the selected character" toggle is exclusive with the
@@ -3602,11 +3602,11 @@ void ToggleNpcTradeFilter005739A0(void)
         g_screen_state_00649f1c->option_buttons_170[5]->DisableSecondaryState(1);
         g_screen_state_00649f1c->value_1d0 &= ~0x40;
         g_screen_state_00649f1c->value_1d0 |= 1;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~1;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 // FUNCTION: WIZ8 0x00573A10
@@ -3617,11 +3617,11 @@ void ToggleNpcTradeFilter00573A10(void)
         g_screen_state_00649f1c->option_buttons_170[2]->DisableSecondaryState(1);
         g_screen_state_00649f1c->value_1d0 &= ~1;
         g_screen_state_00649f1c->value_1d0 |= 0x40;
-        Function5ADB10(1);
+        RebuildNpcTradeItemList005ADB10(1);
         return;
     }
     g_screen_state_00649f1c->value_1d0 &= ~0x40;
-    Function5ADB10(1);
+    RebuildNpcTradeItemList005ADB10(1);
 }
 
 // FUNCTION: WIZ8 0x00573A80
@@ -4561,7 +4561,7 @@ void ConfirmNpcTradePurchase00575710(void)
         SpendPartyGold(g_screen_state_00649f1c->value_22c);
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
         QueueNpcScriptLine(0x10, 0, 0, 0);
-        Function5ADB10(0);
+        RebuildNpcTradeItemList005ADB10(0);
         return;
     }
     if (NpcRecordHasValue002(g_screen_state_00649f1c->dialogue_npc) != 0) {
@@ -4571,7 +4571,7 @@ void ConfirmNpcTradePurchase00575710(void)
         g_screen_state_00649f1c->dialogue_text_16c->Invalidate(1);
         QueueNpcScriptLine(
             GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ? 0x10 : 7, 0, 0, 0);
-        Function5ADB10(0);
+        RebuildNpcTradeItemList005ADB10(0);
         return;
     }
     QueueNpcScriptLine(7, 0, 0, 0);

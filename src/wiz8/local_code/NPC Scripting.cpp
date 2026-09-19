@@ -259,7 +259,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                 }
                 swprintf(text, gppStringList[0x7ec], g_status_685170.buffers.characters[slot].name);
                 if (g_screen_state_00649f1c->value_fc == 4) {
-                    Function5ADB10(0);
+                    RebuildNpcTradeItemList005ADB10(0);
                     return;
                 }
                 SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
@@ -289,7 +289,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
             }
             swprintf(text, gppStringList[0x7ed]);
             if (g_screen_state_00649f1c->value_fc == 4) {
-                Function5ADB10(0);
+                RebuildNpcTradeItemList005ADB10(0);
                 return;
             }
             SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
@@ -1409,7 +1409,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         }
         ClearNpcItemId(g_npc_scripting.npc, entry->operand_01);
         if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
-            Function5ADB10(0);
+            RebuildNpcTradeItemList005ADB10(0);
         }
         break;
     case 10:

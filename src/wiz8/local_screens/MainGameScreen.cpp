@@ -54,6 +54,7 @@
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/dialog_code/DialogFactoryDialogs.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/NpcDialog.h"
@@ -319,13 +320,13 @@ void Function564D80(int party_slot);                                      /* 0x0
 void Function564710(int party_slot);                                      /* 0x00564710 */
 void Function5651F0(int party_slot);                                      /* 0x005651F0 */
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
-void Function5B2980(unsigned char show_portraits);                        /* 0x005B2980 */
-void Function56AC80(void);                                                /* 0x0056AC80 */
-void Function58C790(void);                                                /* 0x0058C790 */
-void Function59CF50(int active);                                          /* 0x0059CF50 */
-void Function587C50(void);                                                /* 0x00587C50 */
-unsigned char GetOpenDialogueFlag(void);                                  /* 0x0058D7C0 */
-void RedrawTextBoxComplete(void);                                         /* 0x0058A8C0 */
+
+void Function56AC80(void);               /* 0x0056AC80 */
+void Function58C790(void);               /* 0x0058C790 */
+void Function59CF50(int active);         /* 0x0059CF50 */
+void Function587C50(void);               /* 0x00587C50 */
+unsigned char GetOpenDialogueFlag(void); /* 0x0058D7C0 */
+void RedrawTextBoxComplete(void);        /* 0x0058A8C0 */
 unsigned char Function568B50(const InputAtom* input);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
@@ -3658,7 +3659,7 @@ void ApplyMainGameRedrawFlags(void)
         } else {
             show_portraits = 1;
         }
-        Function5B2980(show_portraits);
+        RefreshFormationPanel005B2980(show_portraits);
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         portrait_rect = &g_startup_grid_647da0[party_slot];
@@ -8151,6 +8152,253 @@ void W8NpcDialogueTextController::SetTranscriptSorted(unsigned char sorted)
     Invalidate(0);
 }
 
+/* The trade-mode split-dialog kinds OpenNpcTradeSplitDialog005AE040 selects:
+   1 while the party sells to the NPC, 2 while buying or identifying. */
+// GLOBAL: WIZ8 0x005EFB68
+int g_split_dialog_sell_kind_005efb68 = 1;
+// GLOBAL: WIZ8 0x005EFB6C
+int g_split_dialog_buy_kind_005efb6c = 2;
+
+// FUNCTION: WIZ8 0x005AD950
+void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item)
+{
+    int mode = g_screen_state_00649f1c->value_100;
+    unsigned int font_palette = 0xf;
+    unsigned int price;
+    int sell_mode = 0;
+
+    if (mode == 4 || mode == 5) {
+        sell_mode = 1;
+    }
+    if (mode == 4 || mode == 5 || mode == 3) {
+        unsigned char stack_count;
+        if (g_item_records[item->item_id].equip_class == 4) {
+            stack_count = item->stack_count;
+        } else {
+            stack_count = 1;
+        }
+        price = CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc, item->item_id,
+                                            sell_mode, stack_count, item->identified);
+    } else {
+        price = GetItemStackValue(item);
+    }
+    if (g_status_685170.party_gold < price && g_screen_state_00649f1c->value_100 != 5) {
+        font_palette = 0;
+    }
+    mode = g_screen_state_00649f1c->value_100;
+    if (mode != 3 && mode != 4 && mode != 5) {
+        ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+        return;
+    }
+    swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price, gppStringList[0x1e5c / 4]);
+    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
+               GetTextBoxScrollRange() -
+                   StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
+               false);
+    AppendTextBoxLine0058B300(g_level_block->text_paint_scratch_000, 2);
+}
+
+// FUNCTION: WIZ8 0x005ADAA0
+int ResolveNpcTradeStockIndex005ADAA0(int index)
+{
+    unsigned int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
+    int visible = 0;
+
+    for (unsigned int i = 0; i < count; ++i) {
+        W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
+        if (entry != 0 && NpcTradeItemAllowed00573190(&entry->item) == 0 &&
+            entry->available_at == 0) {
+            if (visible == index) {
+                return i;
+            }
+            ++visible;
+        }
+    }
+    return -1;
+}
+
+// FUNCTION: WIZ8 0x005ADB10
+void RebuildNpcTradeItemList005ADB10(bool scroll_to_top)
+{
+    ResetEditorStatusLine0058AA20(2);
+    ResetNpcDialogueItemEditor();
+    EnableNpcTradeFilterButtons00573630();
+    if (scroll_to_top) {
+        ClearTextLineEntry00590D90(2);
+    }
+    if (g_screen_state_00649f1c->value_100 == 4 || g_screen_state_00649f1c->value_100 == 5) {
+        unsigned int shown = 0;
+        unsigned int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
+        for (int index = 0; index < static_cast<int>(count); ++index) {
+            W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, index);
+            ++shown;
+            if (shown > 0x15e) {
+                break;
+            }
+            if (NpcTradeItemAllowed00573190(&entry->item) == 0 && entry->available_at == 0) {
+                ShowNpcTradeItemNotice005AD950(&entry->item);
+            }
+        }
+    } else {
+        PopulateNpcTradeList005ADBE0();
+    }
+    if (scroll_to_top) {
+        ScrollTextBoxTo(0);
+    }
+}
+
+// FUNCTION: WIZ8 0x005ADBE0
+void PopulateNpcTradeList005ADBE0(void)
+{
+    W8Character* trading = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    unsigned int shown = 0;
+
+    ResetEditorStatusLine0058AA20(2);
+    ResetNpcDialogueItemEditor();
+    EnableNpcTradeFilterButtons00573630();
+    if (g_screen_state_00649f1c->value_100 == 2) {
+        swprintf(g_level_block->text_paint_scratch_000, L"%d%s", g_status_685170.party_gold,
+                 gppStringList[0x1e5c / 4]);
+        ShowNotice(0xf, gppStringList[0x1cb4 / 4], 2,
+                   GetTextBoxScrollRange() -
+                       StringPixLength(g_level_block->text_paint_scratch_000, GetTextBoxValue2E8()),
+                   false);
+        AppendTextBoxLine0058B300(g_level_block->text_paint_scratch_000, 2);
+    }
+    if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) ==
+        0) {
+        if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
+             g_W8TextControlMask005ED570) != 0) {
+            for (unsigned int index = 0;
+                 index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
+                 ++index) {
+                W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
+                bool acceptable = true;
+                unsigned int font_palette;
+                if (item->item_id == -1) {
+                    continue;
+                }
+                if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
+                    g_screen_state_00649f1c->value_100 != 2) {
+                    font_palette = 0;
+                    acceptable = false;
+                } else {
+                    font_palette = 0xf;
+                }
+                if (NpcTradeItemAllowed00573190(item) != 0) {
+                    continue;
+                }
+                ++shown;
+                if (shown > 0x15d) {
+                    break;
+                }
+                if (g_screen_state_00649f1c->value_100 == 3) {
+                    unsigned char stack_count;
+                    if (g_item_records[item->item_id].equip_class == 4) {
+                        stack_count = item->stack_count;
+                    } else {
+                        stack_count = 1;
+                    }
+                    int price = CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                            item->item_id, 0, stack_count,
+                                                            item->identified);
+                    if (acceptable) {
+                        swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
+                                 gppStringList[0x1e5c / 4]);
+                    } else {
+                        swprintf(g_level_block->text_paint_scratch_000, L"---");
+                    }
+                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
+                               GetTextBoxScrollRange() -
+                                   StringPixLength(g_level_block->text_paint_scratch_000,
+                                                   GetTextBoxValue2E8()),
+                               false);
+                    AppendTextBoxLine0058B300(g_level_block->text_paint_scratch_000, 2);
+                } else {
+                    ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+                }
+            }
+        }
+    } else {
+        for (unsigned int index = 0; index < 8; ++index) {
+            W8ItemInstance* item = &trading->backpack[index];
+            bool acceptable = true;
+            unsigned int font_palette;
+            if (item->item_id == -1) {
+                continue;
+            }
+            ++shown;
+            if (shown > 0x15e) {
+                break;
+            }
+            if (NpcTradeItemAllowed00573190(item) != 0) {
+                continue;
+            }
+            if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
+                g_screen_state_00649f1c->value_100 != 2) {
+                font_palette = 0;
+                acceptable = false;
+            } else {
+                font_palette = 0xf;
+            }
+            if (g_screen_state_00649f1c->value_100 == 3) {
+                unsigned char stack_count;
+                if (g_item_records[item->item_id].equip_class == 4) {
+                    stack_count = item->stack_count;
+                } else {
+                    stack_count = 1;
+                }
+                int price =
+                    CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                item->item_id, 0, stack_count, item->identified);
+                if (acceptable) {
+                    swprintf(g_level_block->text_paint_scratch_000, L"%d%s", price,
+                             gppStringList[0x1e5c / 4]);
+                } else {
+                    swprintf(g_level_block->text_paint_scratch_000, L"---");
+                }
+                ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2,
+                           GetTextBoxScrollRange() -
+                               StringPixLength(g_level_block->text_paint_scratch_000,
+                                               GetTextBoxValue2E8()),
+                           false);
+                AppendTextBoxLine0058B300(g_level_block->text_paint_scratch_000, 2);
+            } else {
+                ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+            }
+        }
+    }
+    g_screen_state_00649f1c->panel_1ac->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005AE040
+void OpenNpcTradeSplitDialog005AE040(void)
+{
+    W8SplitItemDialog* dialog;
+
+    if (g_screen_state_00649f1c->value_108 == 0 ||
+        g_screen_state_00649f1c->value_108->stack_count < 2) {
+        return;
+    }
+    if (g_screen_state_00649f1c->value_100 == 3) {
+        dialog = new W8SplitItemDialog(g_split_dialog_sell_kind_005efb68,
+                                       g_screen_state_00649f1c->value_108,
+                                       g_screen_state_00649f1c->value_254);
+    } else if (g_screen_state_00649f1c->value_100 == 4 || g_screen_state_00649f1c->value_100 == 5) {
+        dialog = new W8SplitItemDialog(g_split_dialog_buy_kind_005efb6c,
+                                       g_screen_state_00649f1c->value_108,
+                                       g_screen_state_00649f1c->value_254);
+    } else {
+        dialog =
+            new W8SplitItemDialog(g_split_dialog_kind_005efb64, g_screen_state_00649f1c->value_108,
+                                  g_screen_state_00649f1c->value_254);
+    }
+    dialog->SetText(&g_wchar_00689b34);
+    dialog->SetOrigin(g_split_dialog_x_005efb4c, g_split_dialog_y_005efb50);
+    dialog->m_destroy_callback = NpcTradeSplitDialogResult005AE1A0;
+    OpenModal(dialog);
+}
+
 // FUNCTION: WIZ8 0x005AE000
 void SetNpcDialogueSubMode4(void)
 {
@@ -8162,6 +8410,118 @@ void SetNpcDialogueSubMode4(void)
 void RestockNpcTradeStock(void)
 {
     RestockNpcInventory(g_screen_state_00649f1c->dialogue_npc);
+}
+
+// FUNCTION: WIZ8 0x005AE1A0
+void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog)
+{
+    W8SplitItemDialog* split = static_cast<W8SplitItemDialog*>(dialog);
+
+    if (split->split_result_0c8 == g_split_result_kind_005efb44) {
+        int count = split->split_count_0c0;
+        if (count != 0) {
+            int slot = GetTextSlot1E8(2);
+            g_screen_state_00649f1c->value_254 = count - 1;
+            SelectTextSlot1E8(slot, 2);
+            UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005AE1F0
+bool ValidateNpcTradeSelection005AE1F0(void)
+{
+    bool accepted = true;
+
+    if (g_screen_state_00649f1c->value_100 == 3) {
+        if (g_screen_state_00649f1c->value_108 == 0) {
+            return false;
+        }
+        if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc,
+                                g_screen_state_00649f1c->value_108) == 0) {
+            accepted = false;
+            QueueNpcScriptLine(0x11, 0, 0, 0);
+        }
+    } else if (g_screen_state_00649f1c->value_100 == 4) {
+        W8ItemInstance* item = g_screen_state_00649f1c->value_108;
+        if (item == 0) {
+            return false;
+        }
+        unsigned int price = CalculateNpcTradeStackPrice(
+            g_screen_state_00649f1c->dialogue_npc, item->item_id, 1,
+            static_cast<unsigned char>(g_screen_state_00649f1c->value_254), item->identified);
+        if (g_status_685170.party_gold < price) {
+            QueueNpcScriptLine(0x14, 0, 0, 0);
+            return false;
+        }
+    }
+    return accepted;
+}
+
+// FUNCTION: WIZ8 0x005AE2A0
+bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, int index)
+{
+    wchar_t text[200];
+    char result;
+    W8Character* character =
+        &g_status_685170.buffers.characters[g_status_685170.selected_character];
+
+    result = AttemptNpcItemTheft0050C040(character, g_screen_state_00649f1c->dialogue_npc,
+                                         item->item_id, quantity);
+    if (result == 0) {
+        swprintf(text, gppStringList[0x1d34 / 4], character->name, GetItemDisplayName(item));
+        DisplayNpcQuote00529570(text, 1);
+        if (g_item_records[item->item_id].identify_difficulty != 0 && quantity == 1) {
+            AddNpcTopic(g_screen_state_00649f1c->dialogue_npc, item->item_id);
+        }
+        Function55B7E0(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1, 0);
+        ResetEditorStatusLine0058AA20(2);
+        ResetNpcDialogueItemEditor();
+        EnableNpcTradeFilterButtons00573630();
+        if (g_screen_state_00649f1c->value_100 != 4 && g_screen_state_00649f1c->value_100 != 5) {
+            PopulateNpcTradeList005ADBE0();
+            return true;
+        }
+        unsigned int shown = 0;
+        int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
+        for (int i = 0; i < count; ++i) {
+            W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
+            ++shown;
+            if (shown > 0x15e) {
+                return true;
+            }
+            if (NpcTradeItemAllowed00573190(&entry->item) == 0 && entry->available_at == 0) {
+                ShowNpcTradeItemNotice005AD950(&entry->item);
+            }
+        }
+        return true;
+    }
+    if (result == 1) {
+        swprintf(text, gppStringList[0x1d3c / 4], character->name);
+        DisplayNpcQuote00529570(text, 0);
+        return false;
+    }
+    if (result == 2) {
+        QueueNpcScriptLine(0x17, 0, 0, 0);
+        SetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc, 1);
+        ApplyFactionChange(3, 1, g_screen_state_00649f1c->dialogue_npc->record->faction_5f, -5);
+        CloseNpcDialogueOptionLayout();
+        ShowNpcDialogueTopicMenu();
+        return false;
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x005B2980
+void RefreshFormationPanel005B2980(unsigned char show_portraits)
+{
+    if (g_formation_panel->m_fEnabled != 0) {
+        if (show_portraits != 0) {
+            g_formation_panel->Invalidate(0);
+            InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
+        }
+        g_formation_panel->Redraw();
+    }
 }
 
 /* Condition orb on a party portrait (help 25): press while highest_condition

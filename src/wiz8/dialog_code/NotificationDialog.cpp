@@ -28,6 +28,9 @@ W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, in
     ActivateDialogRegion(0x138);
 }
 
+// SYNTHETIC: WIZ8 0x005A8170
+// W8NotificationDialog::`scalar deleting destructor'
+
 /* Restoring the vtable and tail-jumping to the base destructor is the whole
    body; the compiler generates the scalar deleting destructor at 0x005A8170
    from this same declaration. */

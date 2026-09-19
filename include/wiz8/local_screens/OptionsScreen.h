@@ -117,7 +117,7 @@ public:
     bool m_active; /* set once the set's panels are built */
     unsigned char pad_00b;
     int m_current_00c;
-    W8GrowableVector<W8OptionsPanel*> m_panels_010;
+    W8Vector<W8OptionsPanel*> m_panels_010;
 };
 
 static_assert(sizeof(W8OptionsPanelSet) == 0x20, "W8OptionsPanelSet_must_be_0x20");
@@ -148,6 +148,10 @@ public:
 class W8OptionsSelection : public W8ControlSelection {
 public:
     explicit W8OptionsSelection(int* value);
+    /* The base tables have no destructor slot (0x005ED654/0x005ED664 are two
+       slots wide); W8OptionsSelection introduces the virtual destructor itself,
+       so retail slot 2 is its own deleting destructor 0x005A8B30. */
+    virtual ~W8OptionsSelection();
     virtual void OnPrimary(W8TextControl* control) override;
     int* m_value;
 };
@@ -177,8 +181,8 @@ public:
     int m_current_04c;
     int m_content_top_050;
     int unknown_054;
-    W8GrowableVector<W8TextBuffer*> m_text_buffers_058;
-    W8GrowableVector<W8OptionsSelection*> m_option_selections;
+    W8Vector<W8TextBuffer*> m_text_buffers_058;
+    W8Vector<W8OptionsSelection*> m_option_selections;
 };
 
 static_assert(sizeof(W8OptionsPanel) == 0x78, "W8OptionsPanel_must_be_0x78");
@@ -338,7 +342,7 @@ public:
     void LoadSelectedSave();
     void SaveSelectedSave();
     int m_panel;
-    W8GrowableVector<W8OptionsSaveRow*> m_rows;
+    W8Vector<W8OptionsSaveRow*> m_rows;
     W8ControlSelection m_selection;
     W8TextControl* m_delete_button;
     W8TextControl* m_action_button;
@@ -419,7 +423,7 @@ public:
     virtual void OnSecondary(W8TextControl*) override {}
     virtual void OnDialogClosed(unsigned char reason, int value) override;
 
-    W8GrowableVector<W8SaveSlot*> m_save_slots;
+    W8Vector<W8SaveSlot*> m_save_slots;
     unsigned char m_redraw_pending;
     unsigned char m_modal_closing_01d;
     unsigned char unknown_01e[2];

@@ -258,7 +258,6 @@ void RebuildCombatEffectHudRows(void)
         }
     }
 }
-
 // FUNCTION: WIZ8 0x005AF210
 void DestroyCombatEffectHudRows(void)
 {

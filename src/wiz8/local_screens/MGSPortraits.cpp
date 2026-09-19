@@ -24,6 +24,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/character_events.h"
@@ -44,13 +45,12 @@ void Function564D80(int party_slot);          /* 0x00564D80 */
 void Function564710(int party_slot);          /* 0x00564710 */
 void Function5651F0(int party_slot);          /* 0x005651F0 */
 
-extern int g_load_category_palettes_648c48[5]; /* 0x00648C48 */
-
-/* 0x006488D4: dead-character portrait catalog ids, two dwords per race. */
-// GLOBAL: WIZ8 0x006488D4
-int g_dead_portrait_catalog_ids_6488d4[31] = {
-    31, 20, 31, 20, 31, 20, 31, 20, 31, 20, 31, 23, 34, 21, 32, 22,
-    33, 25, 36, 24, 35, 27, 38, 26, 37, 28, 39, 29, 40, 30, 41,
+/* 0x006488D0: dead-character portrait catalog ids, two per race - the small
+   party-strip image at [race][0] and the large header portrait at [race][1]. */
+// GLOBAL: WIZ8 0x006488D0
+int g_dead_portrait_catalog_ids_6488d0[16][2] = {
+    {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {23, 34}, {21, 32},
+    {22, 33}, {25, 36}, {24, 35}, {27, 38}, {26, 37}, {28, 39}, {29, 40}, {30, 41},
 };
 
 /* 0x00649DD4: empty-hand catalog ids when a primary hand slot is bare. Each race
@@ -586,7 +586,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else if (character->hp_current == 0 &&
                    (entry->damage_splat_death_variant == 0 || entry->dead_portrait_revealed != 0)) {
-            portrait_catalog = g_dead_portrait_catalog_ids_6488d4[character->race * 2];
+            portrait_catalog = g_dead_portrait_catalog_ids_6488d0[character->race][1];
             portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else {

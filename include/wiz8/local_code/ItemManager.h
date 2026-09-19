@@ -7,7 +7,12 @@ struct W8WorldItem;
 struct W8ItemInstance;
 struct W8MonsterInfo;
 
+/* 0x0064A1CD: debug-only "show invisible items in blue" toggle flipped by
+   MIPE's item-create 'A' key. */
+extern unsigned char g_byte_0064a1cd;
+
 W8WorldItem* ItemInfo(unsigned int item_list_index);
+void DeactivateWorldItem(W8WorldItem* item); /* 0x004F70D0 */
 unsigned int ItemIndex(int runtime_id);
 void SetWorldItemHighlight(int runtime_id, char on); /* 0x004F71E0 */
 /* Runtime id of the nearest hovered world item inside `max_distance`, or -1. */

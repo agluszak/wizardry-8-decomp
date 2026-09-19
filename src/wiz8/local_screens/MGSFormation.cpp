@@ -252,6 +252,49 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
     return 0;
 }
 
+/* The board region's second handler: just the hover half - hit-tests the
+   formation markers for the tooltip subject and swaps the board art on
+   enter/leave. Retail emits it as a separate function right after the full
+   handler. */
+// FUNCTION: WIZ8 0x005B207F
+unsigned char FormationBoardHoverRegionEvent005B207F(const InputAtom*, W8Region* region)
+{
+    int slot;
+    int hit;
+
+    hit = -1;
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
+        int cell;
+
+        if (row->occupied == 0 || position->bQuadrant == -1) {
+            continue;
+        }
+        cell = position->bQuadrant * 3 + position->bQuadrantSlot;
+        if (IsCursorInRectangle(g_formation_marker_offsets_0064daf4[cell][0] + 0x207,
+                                g_formation_marker_offsets_0064daf4[cell][1] + 0x167,
+                                g_formation_marker_offsets_0064daf4[cell][0] + 0x211,
+                                g_formation_marker_offsets_0064daf4[cell][1] + 0x171)) {
+            hit = slot;
+            break;
+        }
+    }
+    if (hit != g_level_block->formation_highlight_party_slot) {
+        SetTooltipSubject(6, hit);
+    }
+    if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            g_level_block->formation_board_alternate = 0;
+            RefreshFormationBoard();
+        }
+        return 0;
+    }
+    g_level_block->formation_board_alternate = 1;
+    RefreshFormationBoard();
+    return 0;
+}
+
 static void SelectFormationCell(void);
 static void AcceptFormationChanges(void);
 static void ResetFormationPanel(void);

@@ -184,8 +184,29 @@ W8OptionsMousePanel::W8OptionsMousePanel() : W8OptionsPanel(1) {}
 // W8OptionsMousePanel::~W8OptionsMousePanel
 
 W8OptionsInterfacePanel::W8OptionsInterfacePanel() : W8OptionsPanel(2) {}
+
+// SYNTHETIC: WIZ8 0x005AC900
+// W8OptionsInterfacePanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005AC920
+// W8OptionsInterfacePanel::~W8OptionsInterfacePanel
+
 W8OptionsAudioPanel::W8OptionsAudioPanel() : W8OptionsPanel(3) {}
+
+// SYNTHETIC: WIZ8 0x005ACA40
+// W8OptionsAudioPanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ACA60
+// W8OptionsAudioPanel::~W8OptionsAudioPanel
+
 W8OptionsGraphicsPanel::W8OptionsGraphicsPanel() : W8OptionsPanel(4) {}
+
+// SYNTHETIC: WIZ8 0x005ACCC0
+// W8OptionsGraphicsPanel::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005ACCE0
+// W8OptionsGraphicsPanel::~W8OptionsGraphicsPanel
+
 W8OptionsAdvancedGraphicsPanel::W8OptionsAdvancedGraphicsPanel() : W8OptionsPanel(5) {}
 
 // SYNTHETIC: WIZ8 0x005acb80
@@ -1701,7 +1722,23 @@ void W8OptionsSlider::Redraw(int full_redraw)
     }
 }
 
+/* The control-selection base emits its implicit destructor pair in this TU;
+   the body tears down the m_lsButtons vector. */
+// SYNTHETIC: WIZ8 0x005A9380
+// W8ControlSelection::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005A93A0
+// W8ControlSelection::~W8ControlSelection
+
 W8OptionsSelection::W8OptionsSelection(int* value) : m_value(value) {}
+
+// SYNTHETIC: WIZ8 0x005A8B30
+// W8OptionsSelection::`scalar deleting destructor'
+
+/* The empty body still emits the m_lsButtons vector teardown over the
+   W8ControlSelection base. */
+// FUNCTION: WIZ8 0x005A8B50
+W8OptionsSelection::~W8OptionsSelection() {}
 
 // FUNCTION: WIZ8 0x005a8080
 void W8OptionsSelection::OnPrimary(W8TextControl* control)
@@ -1863,6 +1900,8 @@ W8OptionsMenuSet::W8OptionsMenuSet(unsigned int* shared_region_set)
 
 /* The menu-set table has its own deleting destructor; the normal destructor
    clears the inherited Controls children before releasing its page text. */
+// SYNTHETIC: WIZ8 0x005a8e40
+// W8OptionsMenuSet::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x005a8e60
 W8OptionsMenuSet::~W8OptionsMenuSet()
 {

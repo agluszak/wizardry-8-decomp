@@ -239,7 +239,7 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
         gXStatus.fTrapInteractMode != 0 && TextBoxHandleKey(input) != 0) {
         return 1;
     }
-    if (GetFlag68F105() != 0 && Function57C230(input) != 0) {
+    if (GetFlag68F105() != 0 && HandleMipeKey0057C230(input) != 0) {
         return 1;
     }
     if (GetFlag69DA6C() != 0) {

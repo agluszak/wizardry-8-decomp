@@ -38,12 +38,17 @@
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/fonts.h"
+#include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 
 #include "input.h"
 #include "soundman.h"
+#include "Font.h"
+#include "vsurface.h"
+#include "line.h"
 
 #include <new>
 #include <wchar.h>
@@ -54,6 +59,8 @@
    use-item and targeting entry points, and the five region callbacks the
    camp region table registers for the backpack, equipment, item-pool,
    realm-tab and panel-tab areas. */
+
+static void DrawCampItemLabel005BBF40(W8ItemInstance* item, int left, int top, char flag);
 
 // GLOBAL: WIZ8 0x0069C0EC
 int giCasterCharSlot;
@@ -256,7 +263,7 @@ void IdentifyAndOpenItemInfo005BA370(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x005BA3D0
 void DropHeldItem005BA3D0(void)
 {
-    if (Function5A5F30(1) != 0) {
+    if (ResolvePendingCampCharacter005A5F30(1) != 0) {
         if (DropItemInHand(0) != 0) {
             SetCampItemActionMode005B59B0(0);
         }
@@ -301,7 +308,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
             GetOriginOfCharacterItem(giReviewCharSlot, item, &g_flag_00685076, &slot);
         } else {
             if (g_status_685170.item_in_cursor == 0) {
-                Function5A6020(item);
+                MarkCampCharacterPending005A6020(item);
                 CopyItemInstance(&g_status_685170.item_in_hand_235b, item, g_value_0069c0f8, 1);
             }
         }
@@ -372,7 +379,7 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
         if (CanItemLeaveItsSlot(item) != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_ITEM;
-            if (Function5A6340(giCasterCharSlot, 0x17, 8, &target) == 1) {
+            if (CommitPartySlotSpell005A6340(giCasterCharSlot, 0x17, 8, &target) == 1) {
                 OpenItemInfoDialog005BA110(item, 0);
                 if (item->identified == 0) {
                     QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot,
@@ -420,7 +427,7 @@ void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_CHARACTER;
     target.iChar = uiTargetChar;
-    Function5A6340(giCasterCharSlot, 0x3a, 8, &target);
+    CommitPartySlotSpell005A6340(giCasterCharSlot, 0x3a, 8, &target);
     RebuildCampItemList005A4A00();
     g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
     SetCampItemActionMode005B59B0(0);
@@ -428,7 +435,7 @@ void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
 }
 
 // FUNCTION: WIZ8 0x005BAA10
-unsigned char CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* item)
+bool CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* item)
 {
     if (CanCharacterActivateItem(character, item) == 0) {
         if (CanCastFromItem(character, item) == 0) {
@@ -441,7 +448,7 @@ unsigned char CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemIns
 }
 
 // FUNCTION: WIZ8 0x005BAA50
-unsigned char CanSplitItemStack005BAA50(const W8ItemInstance* item)
+bool CanSplitItemStack005BAA50(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record = g_item_records + item->item_id;
     if ((record->flags_041 & 2) != 0) {
@@ -541,7 +548,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         }
         ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
         g_status_685170.item_in_hand_235b.stack_count = remaining;
-        if (Function5A5F30(1) != 0 && DropItemInHand(0) != 0) {
+        if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
             SetCampItemActionMode005B59B0(0);
         }
         destination = &g_status_685170.item_in_hand_235b;
@@ -1209,4 +1216,107 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
         }
     }
     SetRegionHelpText(g_camp_screen_0069c0f4->caption);
+}
+
+/* The items page's per-row label boxes: the backpack grid (two columns of
+   four at 0x0d/0xc2), the visible pool rows (0x22c/0xc2), and the twelve
+   equipment icons laid out by g_camp_screen_regions_64cbf0. Each occupied
+   slot gets a hover label drawn by DrawCampItemLabel005BBF40. */
+// FUNCTION: WIZ8 0x005bbe30
+void DrawCampItemIcons005BBE30(void)
+{
+    unsigned int index;
+    unsigned int count;
+    int row;
+    int y;
+    const W8CampScreenRegion* region;
+    W8ItemInstance* item;
+    W8Character* character = g_value_0069c0f8;
+    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+
+    for (index = 0; index < 8; ++index) {
+        item = &character->backpack[index];
+        if (item->item_id != -1) {
+            DrawCampItemLabel005BBF40(item, (index & 1) * 0x31 + 0xd,
+                                      (index >> 1) * 0x39 + 0xc2 + (index & 1) * 0x10, 0);
+        }
+    }
+    index = 0;
+    while (true) {
+        count = state->item_list_count - state->item_scroll;
+        if (count > 8) {
+            count = 8;
+        }
+        if (count <= index) {
+            break;
+        }
+        y = (index >> 1) * 0x39 + 0xc2;
+        if ((index & 1) == 0) {
+            y = (index >> 1) * 0x39 + 0xd2;
+        }
+        DrawCampItemLabel005BBF40(
+            &g_status_685170.party_item_pool_0021[state->item_list_4ec[state->item_scroll + index]],
+            (index & 1) * 0x31 + 0x22c, y, 1);
+        ++index;
+    }
+    region = g_camp_screen_regions_64cbf0;
+    for (index = 0; index < 12; ++index) {
+        item = &character->equipment[index];
+        if (item->item_id != -1) {
+            DrawCampItemLabel005BBF40(item, region->unknown_18, region->unknown_1c,
+                                      static_cast<char>(region->unknown_20));
+        }
+        ++region;
+    }
+    ResetTransientRenderScenes();
+}
+
+/* Draws one boxed item name: the buffer measures the formatted display name,
+   the box is left-shifted by its width for the pool column, then the filled
+   background, the text and a one-pixel outline are painted straight into the
+   locked primary surface. */
+// FUNCTION: WIZ8 0x005bbf40
+static void DrawCampItemLabel005BBF40(W8ItemInstance* item, int left, int top, char flag)
+{
+    wchar_t* name;
+    W8ControlsRect bounds;
+    W8TextBuffer* text;
+    int width;
+    int height;
+    unsigned int pitch;
+    char* buffer;
+
+    name = FormatItemDisplayName(item, 0);
+    wcscpy(g_camp_screen_0069c0f4->caption, name);
+    bounds.left = left;
+    bounds.top = top;
+    bounds.right = left + 0xfa;
+    bounds.bottom = top + 0xfa;
+    text = new W8TextBuffer(&bounds, g_camp_screen_0069c0f4->caption, g_font10arial_683668,
+                            g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
+    if (text != 0) {
+        height = text->m_lineCount;
+        width = text->m_maxLineWidth + 4;
+        height = GetFontHeight(g_font10arial_683668) * height + 2;
+        if (flag != 0) {
+            bounds.right -= width;
+            bounds.left -= width;
+            text->SetLayoutBounds(&bounds, 1, 1);
+        }
+        ColorFillVideoSurfaceArea(0xfffffff2, bounds.left, bounds.top, bounds.left + width,
+                                  bounds.top + height, 0x8000);
+        buffer = static_cast<char*>(LockPrimarySurface(&pitch));
+        if (buffer != 0) {
+            // reinterpret-ok: SGP frame-buffer bytes to W8TextBuffer's byte view
+            text->RenderText(reinterpret_cast<unsigned char*>(buffer), pitch, 2, 1, 1);
+            LineDraw(0, bounds.left, bounds.top, bounds.left + width, bounds.top, -0x6613, buffer);
+            LineDraw(0, bounds.left + width, bounds.top, bounds.left + width, bounds.top + height,
+                     -0x6613, buffer);
+            LineDraw(0, bounds.left + width, bounds.top + height, bounds.left, bounds.top + height,
+                     -0x6613, buffer);
+            LineDraw(0, bounds.left, bounds.top + height, bounds.left, bounds.top, -0x6613, buffer);
+            UnlockPrimarySurface();
+            delete text;
+        }
+    }
 }
