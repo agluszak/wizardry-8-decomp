@@ -43,7 +43,6 @@ bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRe
                               int kind); /* 0x00505DD0 */
 /* Whether one group's leader member can see the other's: far-clip distance
    first, then the outward sight record and a line-of-sight trace. */
-unsigned char MonsterGroupCanSeeGroup(W8MonsterGroup* source,
-                                      W8MonsterGroup* target); /* 0x00505F30 */
+bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target); /* 0x00505F30 */
 W8VisibilityRecord* FindMonToMonVisibility(W8MonsterInfo* source,
                                            W8MonsterInfo* target); /* 0x00505D20 */

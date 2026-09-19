@@ -206,6 +206,9 @@ enum W8ItemOrigin {
 };
 
 void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
+/* Whether an item is bound to whoever is wearing it, which is what stops it
+   being taken off or swapped away. */
+bool IsItemBoundToWearer(const W8ItemInstance* item); /* 0x0051D180 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
 void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);

@@ -297,7 +297,9 @@ struct W8NpcDatabaseRecord {
     /* 0x05f: the faction the NPC belongs to; zero leaves GetNpcDisposition on
        the record's own disposition byte. */
     unsigned char faction_5f;
-    unsigned char unknown_060[4];
+    /* 0x060: one bit per named-person alias the NPC answers to; read as one
+       dword by FindNpcNameOrPlaceQuote. */
+    unsigned int name_alias_mask_060;
     /* 0x064: one-based index into g_item_tables selecting the record's item
        table; 0x0050B9E0 copies that table into the runtime state. The zero and
        past-the-end tests compare it signed. */

@@ -78,6 +78,7 @@ void ProcessNpcPendingEvents0050CA80(void);
    vector, recreating a runtime node for every database record still in use. */
 void InitializeNpcStates(void);
 void ResetNpcStates(void);
+void ReleaseNpcStates005099D0(void); /* 0x005099D0 */
 /* 0x00509AA0: build one runtime state from its database record and return it,
    reusing the slot of a released node when one is free. */
 W8NpcState* CreateNpcRuntimeNode(int npc_id);

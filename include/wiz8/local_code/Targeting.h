@@ -53,7 +53,7 @@ void AimAtMonsterLocation00537950(int party_slot, int location_id,
 void AimAtPlace(int actor);                                 /* 0x00538710 */
 void AimAtGroundTarget00538770(int party_slot);             /* 0x00538770 */
 /* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
-void Function53C130(int party_slot, char enable);
+void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
@@ -106,7 +106,7 @@ void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 bool CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                       int reason); /* 0x00536AD0 */
 void ClearTargetingMode(int party_slot);
-void Function53B050(int party_slot); /* 0x0053B050 */
+void ClearSlotTargeting0053B050(int party_slot); /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
@@ -131,6 +131,25 @@ class W8Monster;
    still projects on screen. `position` is unused by retail. */
 bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
                                             float max_distance);
+/* 0x00538510: pick the next targetable member of `group` and paint it with the
+   `color` highlight (0 clears, 1 green, 2 red). */
+void HighlightPickedGroupMember00538510(int party_slot, W8MonsterGroup* group, int color);
+/* 0x005392E0: apply a highlight tint (0 clears, 1 green, 2 red) to every member
+   of the group - the debug message names it ModifyGroupColor. */
+void ModifyGroupColor(int group_id, int color);
+/* 0x00539B70: whether `target` lies within the combined radii of `eye` and
+   `bonus`, inside the heading and elevation arcs. */
+bool TargetInRangeAndArcs00539B70(const srVector3T<float>* target, float bonus,
+                                  const srVector3T<float>* eye, float eye_radius, float heading,
+                                  float elevation);
+/* 0x00539CA0: append the location ids of live targetable monsters inside the
+   aim cone to `found`, filtered by disposition (3 admits all); returns how many
+   were added. */
+int CollectConeMonsterTargets00539CA0(const W8TargetSource* source, const srVector3T<float>* eye,
+                                      float heading, float elevation, W8GrowableVector<int>* found,
+                                      unsigned char disposition, int sight_flag);
+/* 0x0053A770: whether the pending item use needs a target picked. */
+bool ItemUseNeedsTarget0053A770(int party_slot);
 void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);

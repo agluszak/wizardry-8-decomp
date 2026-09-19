@@ -1371,6 +1371,32 @@ void ResetNpcStates(void)
     }
 }
 
+/* ShutdownGameData teardown: release every NPC state the same way
+   ResetNpcStates does, then destroy the state vector itself. */
+// FUNCTION: WIZ8 0x005099D0
+void ReleaseNpcStates005099D0(void)
+{
+    int index;
+
+    if (g_npc_states != 0) {
+        for (index = 0; index < g_npc_states->count; ++index) {
+            W8NpcState* npc = *g_npc_states->GetAt(index);
+            if (g_npc_states != 0) {
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                npc->script_file = 0;
+                if (npc->record != 0 && npc->record->flag_055 != 0) {
+                    ClearNpcItems(npc);
+                }
+                delete npc->character;
+                delete npc;
+            }
+        }
+        g_npc_states->count = 0;
+    }
+    delete g_npc_states;
+    g_npc_states = 0;
+}
+
 /* The NPCT section writer: a version byte, the state count, then each 0x13d
    state block followed by its 0x1862 character block when the NPC carries one.
    The per-state stock lists trail through the section's file handle. */
