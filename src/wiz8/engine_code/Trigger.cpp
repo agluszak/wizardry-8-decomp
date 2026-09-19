@@ -2047,6 +2047,25 @@ void Trigger::GetPosition(srVector3T<float>* position) const
     position->z = position_120;
 }
 
+// FUNCTION: WIZ8 0x00441780
+bool Trigger::HasActionMessage00441780()
+{
+    return flag_0a0_17 != 0;
+}
+
+// FUNCTION: WIZ8 0x00441790
+bool Trigger::RequiresItem00441790()
+{
+    if (value_23c >= 0) {
+        return true;
+    }
+    if (m_pActionData != 0 && m_pActionData->type_004 == 0xa && m_pActionData != 0 &&
+        m_pActionData->item_00a != -1) {
+        return true;
+    }
+    return false;
+}
+
 // VTABLE: WIZ8 0x005ec104
 // class srClassSupport<Trigger,srClass,1,65544>
 

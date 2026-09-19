@@ -123,6 +123,12 @@ public:
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     bool CanRunLinkedTriggers();
+    /* flag_0a0_17: loaded from the level record's message packed flag; gates
+       the m_lData1..3 action message at the end of Run. */
+    bool HasActionMessage00441780();
+    /* Whether the trigger takes an item: value_23c >= 0 (the special-item
+       notice path) or a type-10 action payload naming item_00a. */
+    bool RequiresItem00441790();
     bool SelectAction();
     void GenerateItemGroup();
     W8WorldItem* GetOrCreateItemGroup00445670(char create);
