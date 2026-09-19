@@ -10,7 +10,7 @@ float GetElevationAngle(const srVector3T<float>* source, const srVector3T<float>
    "ERROR: Suppressed bad float value in ElevationToTargetCPP" literal. */
 float ElevationToTargetCPP(const srVector3T<float>* target);
 float HeadingToTargetCPP(const srVector3T<float>* target);
-float GetCameraFacingYaw004BE5C0(srVector3T<float>* position);
+float GetCameraFacingYaw004BE5C0(const srVector3T<float>* position);
 /* Euclidean distance between two world-space points. */
 float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first,
                                     const srVector3T<float>* second);
@@ -30,6 +30,6 @@ unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
                                     const srVector3T<float>* first_maximum,
                                     const srVector3T<float>* second_minimum,
                                     const srVector3T<float>* second_maximum);
-unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position);
+unsigned char ProjectPointThroughCamera004BE940(const srVector3T<float>* position);
 
 #endif

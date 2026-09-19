@@ -36,9 +36,9 @@ public:
         color_10.x = other.color_10.x;
         color_10.y = other.color_10.y;
         color_10.z = other.color_10.z;
-        color_to_1c = other.color_to_1c;
-        color_to_20 = other.color_to_20;
-        color_to_24 = other.color_to_24;
+        color_to_1c.x = other.color_to_1c.x;
+        color_to_1c.y = other.color_to_1c.y;
+        color_to_1c.z = other.color_to_1c.z;
         intensity_28 = other.intensity_28;
         intensity_to_2c = other.intensity_to_2c;
         period_30 = other.period_30;
@@ -71,9 +71,7 @@ public:
     float flicker_chance_0c;
     srVector3T<float> color_10;
     /* The diffuse color the intensity sweep lerps toward under flag bit 3. */
-    float color_to_1c;
-    float color_to_20;
-    float color_to_24;
+    srVector3T<float> color_to_1c;
     float intensity_28;
     /* The intensity the sweep lerps toward. */
     float intensity_to_2c;

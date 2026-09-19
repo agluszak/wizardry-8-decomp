@@ -1847,13 +1847,13 @@ int FindStoppedTextLine(void)
 /* Hand one key to the text box's own handler. A key that moved the selection
    is followed by the two calls that settle it; a key that did not is not. */
 // FUNCTION: WIZ8 0x0058a8f0
-char TextBoxHandleKey(const void* event)
+char TextBoxHandleKey(const InputAtom* event)
 {
     W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel_00c;
     int before = panel->m_selection_078;
     char handled;
 
-    handled = panel->m_key_handler_074->HandleKey(*(const unsigned short*)((const char*)event + 8));
+    handled = panel->m_key_handler_074->HandleKey(event->usParam);
 
     if (handled != 0 && panel->m_selection_078 != before) {
         ResetButtonSoundScheme();

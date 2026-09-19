@@ -111,9 +111,9 @@ void InitializeWorldCursor00490210(void)
             g_world_cursor_0065ba8c->monster_00 = 0;
             g_world_cursor_0065ba8c->unknown_08 = 1;
             g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
-            g_world_cursor_0065ba8c->input_delta_0c[0] = 0;
-            g_world_cursor_0065ba8c->input_delta_0c[1] = 0;
-            g_world_cursor_0065ba8c->input_delta_0c[2] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.x = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.y = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.z = 0;
             g_world_cursor_0065ba8c->light_24 = 0;
             g_world_cursor_0065ba8c->enabled_40 = 1;
             g_world_cursor_0065ba8c->track_ground_41 = 1;
@@ -135,9 +135,9 @@ void InitializeWorldCursor00490210(void)
             g_world_cursor_0065ba8c->offset_18.Set(0.0f, 0.0f, 0.0f);
             g_world_cursor_0065ba8c->monster_00->flag_215 = 1;
             WarpSystemCursor(0x140, 0xf0);
-            g_world_cursor_0065ba8c->input_delta_0c[0] = 0;
-            g_world_cursor_0065ba8c->input_delta_0c[1] = 0;
-            g_world_cursor_0065ba8c->input_delta_0c[2] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.x = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.y = 0;
+            g_world_cursor_0065ba8c->input_delta_0c.z = 0;
             position = g_world_cursor_0065ba8c->position_28;
             MonsterSetAdjustedPosition004C5F00(g_world_cursor_0065ba8c->monster_00, &position);
             PLAdoptAppend(g_world->plsMonsters, g_world_cursor_0065ba8c->monster_00);
@@ -361,12 +361,12 @@ void ApplyWorldCursorInput00490C60(void)
     if (g_world_cursor_0065ba8c->enabled_40 == 0) {
         srAssertFail("gp3DCursor->fEnabled", CURSOR3D_CPP, 0x189, 0);
     }
-    delta.x = g_world_cursor_0065ba8c->input_delta_0c[0] * g_float_005ebc88;
-    delta.y = g_world_cursor_0065ba8c->input_delta_0c[1] * g_float_005ebc88;
-    delta.z = g_world_cursor_0065ba8c->input_delta_0c[2] * g_float_005ebc88;
-    g_world_cursor_0065ba8c->input_delta_0c[0] = 0;
-    g_world_cursor_0065ba8c->input_delta_0c[1] = 0;
-    g_world_cursor_0065ba8c->input_delta_0c[2] = 0;
+    delta.x = g_world_cursor_0065ba8c->input_delta_0c.x * g_float_005ebc88;
+    delta.y = g_world_cursor_0065ba8c->input_delta_0c.y * g_float_005ebc88;
+    delta.z = g_world_cursor_0065ba8c->input_delta_0c.z * g_float_005ebc88;
+    g_world_cursor_0065ba8c->input_delta_0c.x = 0;
+    g_world_cursor_0065ba8c->input_delta_0c.y = 0;
+    g_world_cursor_0065ba8c->input_delta_0c.z = 0;
     if (g_flag_689b32 != 0) {
         if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
             if (g_cursor_pick_latch_0065ba98 != 0) {
@@ -491,7 +491,7 @@ void BindCursorMonsterToGroup004914E0(void)
     if (g_world_cursor_0065ba8c->group_bind_pending_09 != 0 &&
         g_world_cursor_0065ba8c->light_24 != 0) {
         g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
-        g_world_cursor_0065ba8c->input_delta_0c[2] = g_world_cursor_0065ba8c->input_delta_0c[2] + 1;
+        g_world_cursor_0065ba8c->input_delta_0c.z = g_world_cursor_0065ba8c->input_delta_0c.z + 1;
         if (g_world_cursor_0065ba8c->particle_04 != 0) {
             g_world_cursor_0065ba8c->particle_04->value_214 = 1000.0f;
             g_world_cursor_0065ba8c->particle_04->value_218 = 2000.0f;
@@ -615,8 +615,8 @@ void UpdateWorldCursor004916C0(void)
         if (g_world_cursor_0065ba8c->group_bind_pending_09 == 0 &&
             g_world_cursor_0065ba8c->light_24 != 0) {
             g_world_cursor_0065ba8c->group_bind_pending_09 = 1;
-            g_world_cursor_0065ba8c->input_delta_0c[2] =
-                g_world_cursor_0065ba8c->input_delta_0c[2] + 1;
+            g_world_cursor_0065ba8c->input_delta_0c.z =
+                g_world_cursor_0065ba8c->input_delta_0c.z + 1;
             if (g_world_cursor_0065ba8c->particle_04 != 0) {
                 g_world_cursor_0065ba8c->particle_04->value_214 = 3000.0f;
                 g_world_cursor_0065ba8c->particle_04->value_218 = 6000.0f;
@@ -630,13 +630,13 @@ void UpdateWorldCursor004916C0(void)
         if (g_world_cursor_0065ba8c->detached_50 != 0) {
             g_world_cursor_0065ba8c->track_ground_41 = 0;
         }
-        g_world_cursor_0065ba8c->input_delta_0c[1] =
-            g_world_cursor_0065ba8c->input_delta_0c[1] + (0xf0 - cursor_point.y);
+        g_world_cursor_0065ba8c->input_delta_0c.y =
+            g_world_cursor_0065ba8c->input_delta_0c.y + (0xf0 - cursor_point.y);
     } else {
-        g_world_cursor_0065ba8c->input_delta_0c[0] =
-            g_world_cursor_0065ba8c->input_delta_0c[0] + (cursor_point.x - 0x140);
-        g_world_cursor_0065ba8c->input_delta_0c[2] =
-            g_world_cursor_0065ba8c->input_delta_0c[2] + (0xf0 - cursor_point.y);
+        g_world_cursor_0065ba8c->input_delta_0c.x =
+            g_world_cursor_0065ba8c->input_delta_0c.x + (cursor_point.x - 0x140);
+        g_world_cursor_0065ba8c->input_delta_0c.z =
+            g_world_cursor_0065ba8c->input_delta_0c.z + (0xf0 - cursor_point.y);
     }
     WarpSystemCursor(0x140, 0xf0);
     ApplyWorldCursorInput00490C60();

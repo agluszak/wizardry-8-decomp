@@ -287,9 +287,9 @@ void stLight::Update0049C960()
                 m_level_time_23c = seconds;
             } else {
                 float inverse = g_float_005ebb38 - blend;
-                float red = blend * definition->color_to_1c + inverse * definition->color_10.x;
-                float green = blend * definition->color_to_20 + inverse * definition->color_10.y;
-                float blue = blend * definition->color_to_24 + inverse * definition->color_10.z;
+                float red = blend * definition->color_to_1c.x + inverse * definition->color_10.x;
+                float green = blend * definition->color_to_1c.y + inverse * definition->color_10.y;
+                float blue = blend * definition->color_to_1c.z + inverse * definition->color_10.z;
                 if (g_float_005ebb38 < red) {
                     red = 1.0f;
                 }
@@ -319,11 +319,11 @@ void stLight::Update0049C960()
                 if ((definition->flags_08 & 8) != 0) {
                     float inverse = g_float_005ebb38 - blend;
                     float red =
-                        blend * definition->color_to_1c + inverse * definition->color_10.x;
+                        blend * definition->color_to_1c.x + inverse * definition->color_10.x;
                     float green =
-                        blend * definition->color_to_20 + inverse * definition->color_10.y;
+                        blend * definition->color_to_1c.y + inverse * definition->color_10.y;
                     float blue =
-                        blend * definition->color_to_24 + inverse * definition->color_10.z;
+                        blend * definition->color_to_1c.z + inverse * definition->color_10.z;
                     if (g_float_005ebb38 < red) {
                         red = 1.0f;
                     }

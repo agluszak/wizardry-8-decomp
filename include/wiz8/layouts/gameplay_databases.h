@@ -224,6 +224,8 @@ struct W8FactDatabaseRecord {
     wchar_t description_100[0x6c];
 }; /* 0x1d8 */
 
+static_assert(sizeof(W8FactDatabaseRecord) == 0x1d8, "W8FactDatabaseRecord_size_must_be_0x1d8");
+
 /* One optional NPC stock-rule entry appended after its database record.
    DecayNpcInventory establishes the leading item id and the keep flag at 0x05.
    RestockNpcItems establishes 0x04 as the configured quantity: it restocks only

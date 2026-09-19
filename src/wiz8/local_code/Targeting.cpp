@@ -2742,7 +2742,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
     }
 
     for (index = 0; index < count; ++index) {
-        int location_id = *((W8GrowableVector<int>*)candidates)->GetAt((int)index);
+        int location_id = *candidates->GetAt(static_cast<int>(index));
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x4a1, TARGETING_CPP, location_id, 1));
         srVector3T<float> position = monster_info->monster->GetPosition();
