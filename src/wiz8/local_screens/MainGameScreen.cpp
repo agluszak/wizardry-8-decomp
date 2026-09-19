@@ -6522,6 +6522,277 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
     return 1;
 }
 
+/* Region 23: the 3D world view. Mouse-move refreshes the combat hover, the
+   world-item hover and the portrait strip; left-up runs the targeting, item
+   and monster dispatch; right-down opens monster info or the assay dialog or
+   toggles the mouselook latch. */
+// FUNCTION: WIZ8 0x00567800
+unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
+{
+    POINT cursor_pos;
+    int cursor_x;
+    int cursor_y;
+    int needed;
+    int slot;
+    unsigned int us_event;
+
+    PushButtonSoundScheme005587C0(0, 1);
+    if (IsMessageBoxActive() != 0 || gXStatus.fReviewCharacterMode != 0 ||
+        g_level_runtime_flag_0065ba70 != 0) {
+        return 0;
+    }
+    needed = GetTargetNeededForCurrentAction(g_status_685170.selected_character);
+    us_event = event->usEvent;
+    if (us_event > RIGHT_BUTTON_DOWN) {
+        if (us_event == RIGHT_BUTTON_UP) {
+            if (g_flag_0068edd8 != 0 && g_settings_6850c8.mouselook_toggle == 0) {
+                WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
+                                 g_mouselook_cursor_pos_0068edc0.y);
+                SetFlag603C60();
+                g_flag_0068edd8 = 0;
+                g_flag_0068edd9 = 0;
+                gfTrackMousePos = 0;
+                g_flag_00652da7 = 0;
+                return 1;
+            }
+            if (GetFlag68F105() == 0) {
+                return 1;
+            }
+            SGPMouseGetPos(&cursor_pos);
+            Function57E0E0(RIGHT_BUTTON_UP, &cursor_pos);
+            return 1;
+        }
+        if (us_event != MOUSE_POS) {
+            return 0;
+        }
+        cursor_y = GetAtomCursorY004285A0(event);
+        cursor_x = GetAtomCursorX00428580(event);
+        if (GetFlag68F105() != 0) {
+            Function57DC20();
+        } else {
+            int hover;
+            if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != 3 &&
+                gXStatus.iTargetingMode != 4 && gXStatus.iTargetingMode != 6 &&
+                gXStatus.active_monster_count != 0 && IsWorldCursorVisible() == 0 &&
+                g_flag_0068edd8 == 0) {
+                hover = PickNearestMonsterUnderCursor005396D0(cursor_x, cursor_y);
+            } else {
+                hover = -1;
+            }
+            SetCombatSelection(hover);
+            if (g_level_block->highlighted_item == -1) {
+                if (gXStatus.item_manager_pending != 0 && IsWorldCursorVisible() == 0 &&
+                    g_flag_0068edd8 == 0) {
+                    hover = PickNearestItemUnderCursor004F7370(cursor_x, cursor_y, 5000.0f);
+                } else {
+                    hover = -1;
+                }
+                SetCombatTarget(hover);
+            }
+        }
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0 && g_modal_owner_0068edd0 == 0) {
+            for (slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    g_level_block->portrait_refresh_pending[slot] != 0 &&
+                    IsPartyPortraitUnderCursor00561980(slot) != 0) {
+                    return 0;
+                }
+            }
+            UpdateWorldViewCursor0056A5D0(event, needed);
+            return 1;
+        }
+        SetCombatSelection(-1);
+        SetCombatTarget(-1);
+        SetCombatAction(-1);
+        SetTargetCursor(GetTargetingCursorForState(0));
+        return 1;
+    }
+    if (us_event == RIGHT_BUTTON_DOWN) {
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        if (GetFlag68F105() != 0) {
+            SGPMouseGetPos(&cursor_pos);
+            Function57E0E0(RIGHT_BUTTON_DOWN, &cursor_pos);
+            return 1;
+        }
+        if (g_level_block->highlighted_item != -1 && gXStatus.fSpellCastMode == 0 &&
+            gXStatus.fNpcDialogueMode == 0 && gXStatus.fItemSelectMode == 0 &&
+            gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+            (g_settings_6850c8.ctrl_right_click_info == 0 ||
+             g_monster_combat_timer_enabled_006f0531 != 0)) {
+            OpenMonsterInfoDialog0056AD60(g_level_block->highlighted_item);
+            return 1;
+        }
+        if (g_status_685170.item_in_cursor == 0 && g_level_block->selected_item != -1 &&
+            gXStatus.fSpellCastMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+            gXStatus.fItemSelectMode == 0 && gXStatus.fLockInteractMode == 0 &&
+            gXStatus.fTrapInteractMode == 0 &&
+            (g_settings_6850c8.ctrl_right_click_info == 0 ||
+             g_monster_combat_timer_enabled_006f0531 != 0)) {
+            W8WorldItem* world_item = ItemInfo(ItemIndex(g_level_block->selected_item));
+            PartyAttemptsToIdentifyItem(&world_item->item, 0);
+            OpenAssayDialog0056AE20(&world_item->item, -1);
+            return 1;
+        }
+        if (IsWorldCursorVisible() == 0 && gXStatus.fNpcDialogueMode == 0) {
+            if (g_settings_6850c8.mouselook_toggle != 0) {
+                if (g_flag_0068edd8 != 0) {
+                    WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
+                                     g_mouselook_cursor_pos_0068edc0.y);
+                    SetFlag603C60();
+                    g_flag_0068edd8 = 0;
+                    g_flag_0068edd9 = 0;
+                    gfTrackMousePos = 0;
+                    g_flag_00652da7 = 0;
+                    return 1;
+                }
+            } else if (g_flag_0068edd8 != 0) {
+                return 1;
+            }
+            SGPMouseGetPos(&g_mouselook_cursor_pos_0068edc0);
+            ClearFlag603C60();
+            SetMouseCursorHotspot(0, 0);
+            WarpSystemCursor(0x140, 0xf0);
+            g_flag_0068edd8 = 1;
+            g_flag_0068edd9 = 0;
+            g_flag_00652da7 = 1;
+            gfTrackMousePos = 1;
+        }
+        return 1;
+    }
+    if (us_event == LEFT_BUTTON_DOWN) {
+        if (g_flag_0068edd8 != 0) {
+            return 0;
+        }
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        if (GetFlag68F105() == 0) {
+            return 1;
+        }
+        SGPMouseGetPos(&cursor_pos);
+        Function57E0E0(LEFT_BUTTON_DOWN, &cursor_pos);
+        return 1;
+    }
+    if (us_event != LEFT_BUTTON_UP) {
+        return 0;
+    }
+    if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+        return 1;
+    }
+    if (g_flag_0068edd8 != 0) {
+        return 1;
+    }
+    region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
+    if (FinishNpcVoiceIfSessionActive00577A20() != 0) {
+        return 1;
+    }
+    if (gXStatus.iTargetingMode == 3 || (needed == 3 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        if (IsWorldCursorVisible() == 0) {
+            InitializeWorldCursor00490210();
+        }
+        SetWorldCursorRange00491650(
+            CalcRangeDistanceFromParty0051AB50(static_cast<W8RangeCategory>(GetCharActionRange(
+                g_status_685170.selected_character, 0, W8_TARGETING_CONTEXT_CURRENT))));
+        if (gpSCSV != 0 && GetActionSpellLikeId(g_status_685170.selected_character,
+                                                W8_TARGETING_CONTEXT_CURRENT) == 0x3c) {
+            signed char extent_index;
+            srVector3T<float> minimum;
+            srVector3T<float> maximum;
+            if (gpSCSV->iSpellPower == -1) {
+                extent_index = 2;
+            } else {
+                extent_index = g_spell_power_extent_index_00616f41[gpSCSV->iSpellPower];
+            }
+            minimum.x = static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6]);
+            minimum.y =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 1]);
+            minimum.z =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 2]);
+            maximum.x =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 3]);
+            maximum.y =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 4]);
+            maximum.z =
+                static_cast<float>(g_world_cursor_extent_table_00616eb0[extent_index * 6 + 5]);
+            SetWorldCursorExtents00492190(&minimum, &maximum);
+        }
+    } else if (gXStatus.iTargetingMode == 4 ||
+               (needed == 4 && (event->usKeyState & CTRL_DOWN) != 0)) {
+        AimAtGroundTarget00538770(g_status_685170.selected_character);
+    } else if (g_level_block->highlighted_item == -1) {
+        if (g_status_685170.item_in_cursor != 0 &&
+            ForwardSelectedPropIndex004503B0(GetWorld(), GetAtomCursorX00428580(event),
+                                             GetAtomCursorY004285A0(event)) == -1) {
+            if (g_flag_006840bc == 0) {
+                DropItemInHand(1);
+            }
+        } else if (g_level_block->selected_item != -1) {
+            if (g_flag_006840bc == 0 &&
+                InteractWithWorldItem004F7910(g_level_block->selected_item) != 0) {
+                g_level_block->selected_item = -1;
+                VideoRemoveToolTip();
+                SetTargetingMode(0);
+            }
+        } else if (g_flag_006840bc == 0) {
+            ForwardActivateSelectedProp00451150(GetWorld(), 2, GetAtomCursorX00428580(event),
+                                                GetAtomCursorY004285A0(event));
+        }
+    } else {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x16c2, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+        unsigned char assign = 1;
+        if (gXStatus.fCombatMode == 0) {
+            if (needed != 2 && needed != 1 && needed != 5) {
+                assign = 0;
+                if ((gXStatus.iCurrentCursor == 6 || g_status_685170.item_in_cursor != 0) &&
+                    g_status_685170.selected_character != -1 &&
+                    CanPartyMemberAimAtMonster(g_status_685170.selected_character, 2, monster_info,
+                                               6, 0) != 0) {
+                    if ((GetMonsterDataForInfo(monster_info)->flags_0d0 & 1) == 0) {
+                        ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                    } else {
+                        W8ItemInstance* item = 0;
+                        if (g_status_685170.item_in_cursor != 0) {
+                            item = &g_status_685170.item_in_hand_235b;
+                        }
+                        if (monster_info->highest_condition < 0xf) {
+                            W8NpcState* npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(
+                                0x16fe, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1));
+                            QueueNpcScriptNotice(npc, item, -1, 0, 0);
+                            SetCombatSelection(-1);
+                        } else {
+                            ShowNotice(0xc, gppStringList[0x1f78 / 4], -1, -1, 0);
+                        }
+                    }
+                }
+            }
+        } else if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+            ShowNotice(0xc, gppStringList[0x1f74 / 4], -1, -1, 0);
+            assign = 0;
+        } else if (g_flag_006f0530 != 0) {
+            for (slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    g_status_685170.buffers.characters[slot].hp_current != 0) {
+                    AimAtMonsterLocation00537950(slot, g_level_block->highlighted_item, 0);
+                }
+            }
+            assign = 0;
+        }
+        if (assign != 0) {
+            if (g_status_685170.selected_character == -1) {
+                srAssertFail("gStatus.iSelectedCharacter != -1", MAIN_GAME_SCREEN_CPP, 0x16db, 0);
+            }
+            AimAtMonsterLocation00537950(g_status_685170.selected_character,
+                                         g_level_block->highlighted_item, 1);
+        }
+    }
+    if (GetFlag68F105() == 0) {
+        return 1;
+    }
+    SGPMouseGetPos(&cursor_pos);
+    Function57E0E0(LEFT_BUTTON_UP, &cursor_pos);
+    return 1;
+}
+
 /* Help 36: combat monster-list rows. Hit-test by 11-pixel row, hover via
    SetCombatAction, left-up aims, right-up posts the group info notice. */
 // FUNCTION: WIZ8 0x00568100
