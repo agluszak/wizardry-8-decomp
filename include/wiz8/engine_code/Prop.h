@@ -110,6 +110,11 @@ public:
     /* Mirror of GetPosition0044E2C0: writes `position` back to the rep node's
        position when the rep is current, else through SetLocation004B8850. */
     void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
+    /* Whether trigger_18 exists and carries the action-message flag. */
+    char TriggerHasActionMessage0044E360(); /* 0x0044E360 */
+    /* Whether trigger_18 exists and takes an item (value_23c >= 0 or a
+       type-10 action payload naming item_00a). */
+    char TriggerRequiresItem0044E380(); /* 0x0044E380 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void AttachAnimationInstances0044C830(W8World* world);

@@ -532,6 +532,7 @@ extern W8DialogBase* g_pending_main_game_dialog_0068edd4;
 /* Open the assay (item info) dialog for an item, evaluated against the party
    slot's character; -1 means no character. The current modal owner, if any,
    moves to the pending slot. */
+void OpenMonsterInfoDialog0056AD60(int location_id);                    /* 0x0056AD60 */
 void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 /* W8MainScreenState::value_fc - which NPC dialogue layout is up. Layout 1 is
@@ -810,7 +811,8 @@ ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);        
 bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned int HitTestPartyPortrait(const InputAtom* event);
-void ClearCombatSelection(void); /* 0x0056A5A0 */
+void ClearCombatSelection(void);                                               /* 0x0056A5A0 */
+void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed); /* 0x0056A5D0 */
 void RequestRefreshPartyState(void);
 void RefreshFlaggedMainGameState00593330(void);
 bool IsScreenIdle(void);

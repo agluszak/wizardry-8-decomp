@@ -1352,6 +1352,18 @@ void W8Prop::SetPosition0044E310(srVector3T<float>* position)
     m_pRep->SetLocation004B8850(position);
 }
 
+// FUNCTION: WIZ8 0x0044e360
+char W8Prop::TriggerHasActionMessage0044E360()
+{
+    return trigger_18 != 0 && trigger_18->HasActionMessage00441780() != 0;
+}
+
+// FUNCTION: WIZ8 0x0044e380
+char W8Prop::TriggerRequiresItem0044E380()
+{
+    return trigger_18 != 0 && trigger_18->RequiresItem00441790() != 0;
+}
+
 /* Whether a prop with a selectable trigger is visible from `position`: the
    trigger's distance interval has to contain the centre of the current
    frame's bounds and the centre, minimum or maximum has to project

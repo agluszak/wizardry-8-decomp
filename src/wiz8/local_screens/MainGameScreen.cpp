@@ -77,6 +77,7 @@
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/dialog_code/AssayDialog.h"
+#include "wiz8/dialog_code/MonsterInfoDialog.h"
 #include "wiz8/dialog_code/PortraitQuote.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
@@ -354,17 +355,12 @@ unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
 void Function57E0E0(int event, const POINT* point);
 void Function57DC20(void);
-void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed);
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
 int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y);
 int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance);
-void OpenMonsterInfoDialog0056AD60(int location_id);
-void AimAtMonsterLocation00537950(int party_slot, int location_id, int allow_single_target);
-void AimAtGroundTarget00538770(int party_slot);
+
 unsigned char InteractWithWorldItem004F7910(int runtime_id);
-void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
-                                   const srVector3T<float>* maximum);
 extern unsigned char g_flag_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
@@ -6853,6 +6849,70 @@ void ClearCombatSelection(void)
     SetTargetCursor(GetTargetingCursorForState(0));
 }
 
+/* Refresh the target cursor as the mouse moves over the world view. A
+   highlighted monster checks targetability and the mode flags; a picked prop
+   checks whether its trigger takes the in-cursor item or shows a message;
+   otherwise the cursor comes from the current targeting state. */
+// FUNCTION: WIZ8 0x0056a5d0
+void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed)
+{
+    int cursor = gXStatus.iCurrentCursor;
+    if (cursor == W8_CURSOR_INVALID_TARGET) {
+        return;
+    }
+    if (g_level_block->highlighted_item == -1) {
+        if (gXStatus.iTargetingMode == 0) {
+            if (g_level_block->selected_item != -1) {
+                if (g_flag_006840bc == 0) {
+                    SetTargetCursor(5);
+                    return;
+                }
+                SetTargetCursor(cursor);
+                return;
+            }
+            int cursor_y = GetAtomCursorY004285A0(event);
+            int cursor_x = GetAtomCursorX00428580(event);
+            int prop_index = ForwardSelectedPropIndex004503B0(g_world, cursor_x, cursor_y);
+            if (prop_index > -1) {
+                W8Prop* prop = static_cast<W8Prop*>(PLGet(g_world->plsProps, prop_index));
+                if (g_flag_006840bc == 0) {
+                    if (prop != 0) {
+                        if (prop->TriggerRequiresItem0044E380() &&
+                            g_status_685170.item_in_cursor != 0) {
+                            SetTargetCursor(0x10);
+                            return;
+                        }
+                        SetTargetCursor(prop->TriggerHasActionMessage0044E360() ? 13 : 5);
+                        return;
+                    }
+                    SetTargetCursor(5);
+                    return;
+                }
+                SetTargetCursor(cursor);
+                return;
+            }
+        }
+        cursor = 0;
+    } else {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x1e1a, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+        MonsterGetScriptPartByLocationIndex(monster_index);
+        if (!CanTargetMonster(g_status_685170.selected_character, g_level_block->highlighted_item,
+                              1, 0)) {
+            SetTargetCursor(cursor);
+            return;
+        }
+        if (target_needed == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
+            gXStatus.fItemSelectMode == 0 && gXStatus.fNpcDialogueMode == 0 &&
+            gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0) {
+            SetTargetCursor(W8_CURSOR_VALID_TARGET);
+            return;
+        }
+        cursor = 1;
+    }
+    SetTargetCursor(GetTargetingCursorForState(cursor));
+}
+
 /* Drop the highlight when the thing being highlighted is the one going away. */
 // FUNCTION: WIZ8 0x0056a2a0
 void ClearHighlightIfItIs(const int* item)
@@ -8415,6 +8475,27 @@ void InvalidateMainGameScreen005670A0(W8DialogBase* dialog)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags = 0xffffffff;
     }
+}
+
+/* Open the monster information dialog over the main game screen for the
+   highlighted monster: only while the entry is live, not dying and still has
+   hit points. Closing leaves the whole screen dirty via the destroy
+   callback. */
+// FUNCTION: WIZ8 0x0056ad60
+void OpenMonsterInfoDialog0056AD60(int location_id)
+{
+    unsigned int monster_index =
+        MonsterGetIndexByLocationID(0x1fa3, MAIN_GAME_SCREEN_CPP, location_id, 1);
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+    if (monster_info->fActive == 0 || monster_info->monster->IsDying() != 0 ||
+        monster_info->hp_current == 0) {
+        return;
+    }
+    W8MonsterInfoDialog* dialog = new W8MonsterInfoDialog(location_id);
+    dialog->SetText(&g_wchar_00689b34);
+    dialog->m_destroy_callback = InvalidateMainGameScreen005670A0;
+    g_modal_owner_0068edd0 = dialog;
+    ActivateDialogRegion(0x138);
 }
 
 /* Open the assay dialog over the main game screen. A live modal dialog is

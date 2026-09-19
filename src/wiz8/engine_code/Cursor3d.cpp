@@ -24,10 +24,16 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srNode.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srShader.h"
+#include "surrender/srTexture.h"
+#include "wiz8/engine_code/3dapi.h"
 
 #include <math.h>
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/materials.h"
 
 #define CURSOR3D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Cursor3d.cpp"
 
@@ -78,6 +84,146 @@ const float g_float_005ecb10 = 25.0f;
 
 // GLOBAL: WIZ8 0x005ecb0c
 const float g_float_005ecb0c = 83.333335876464844f;
+
+/* Build the world cursor on demand: allocate and clear the state block, load
+   the 3DCursor monster cycle into it, create its tracking light and seed the
+   probe box from the monster's animation bounds. The particle block is gated
+   on particle_04 which is never set here - it stays dormant until the cursor
+   gains a particle. */
+// FUNCTION: WIZ8 0x00490210
+void InitializeWorldCursor00490210(void)
+{
+    W8GrCycleLoadContext context;
+    srVector3T<float> position;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    srVector3T<float> camera_position;
+    srVector4T<float> colour;
+    srShader shader;
+    srMaterial* material;
+
+    ClearFlag603C60();
+    SetMouseCursorHotspot(0, 0);
+    if (g_world_cursor_0065ba8c == 0) {
+        g_world_cursor_0065ba8c = static_cast<W8WorldCursorState*>(malloc(0xe0));
+        if (g_world_cursor_0065ba8c != 0) {
+            memset(g_world_cursor_0065ba8c, 0, 0xe0);
+            g_world_cursor_0065ba8c->monster_00 = 0;
+            g_world_cursor_0065ba8c->unknown_08 = 1;
+            g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
+            g_world_cursor_0065ba8c->input_delta_0c[0] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c[1] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c[2] = 0;
+            g_world_cursor_0065ba8c->light_24 = 0;
+            g_world_cursor_0065ba8c->enabled_40 = 1;
+            g_world_cursor_0065ba8c->track_ground_41 = 1;
+            g_world_cursor_0065ba8c->range_44 = 50000.0f;
+            g_world_cursor_0065ba8c->left_held_48 = 0;
+            g_world_cursor_0065ba8c->value_4c = g_cursor_saved_value_60ab44;
+            g_world_cursor_0065ba8c->detached_50 = 0;
+            g_world_cursor_0065ba8c->march_enabled_51 = 1;
+            g_world_cursor_0065ba8c->footprint_mode_c0 = 0;
+            g_world_cursor_0065ba8c->dragged_info_dc = 0;
+            context.directory_08 = "Data\\Monsters";
+            context.world_00 = g_world;
+            LoadMonsterCycle004C5910(&context, "3DCursor", &g_world_cursor_0065ba8c->monster_00, -1,
+                                     1);
+            MonsterSetCycle(g_world_cursor_0065ba8c->monster_00, 0);
+            g_world_cursor_0065ba8c->last_published_34.Set(-100000000.0f, -100000000.0f,
+                                                           -100000000.0f);
+            g_world_cursor_0065ba8c->position_28.Set(0.0f, 0.0f, 0.0f);
+            g_world_cursor_0065ba8c->offset_18.Set(0.0f, 0.0f, 0.0f);
+            g_world_cursor_0065ba8c->monster_00->flag_215 = 1;
+            WarpSystemCursor(0x140, 0xf0);
+            g_world_cursor_0065ba8c->input_delta_0c[0] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c[1] = 0;
+            g_world_cursor_0065ba8c->input_delta_0c[2] = 0;
+            position = g_world_cursor_0065ba8c->position_28;
+            MonsterSetAdjustedPosition004C5F00(g_world_cursor_0065ba8c->monster_00, &position);
+            PLAdoptAppend(g_world->plsMonsters, g_world_cursor_0065ba8c->monster_00);
+            UpdateCycleRepresentation004C59B0(g_world_cursor_0065ba8c->monster_00, g_world);
+            MonsterSetStateA0(g_world_cursor_0065ba8c->monster_00, 0);
+            g_world_cursor_0065ba8c->light_24 =
+                CreateWorldLight0046E140(g_world, "3D Cursor Light");
+            g_world_cursor_0065ba8c->light_24->intensity_1d0 = 1.0f;
+            ConfigureWorldLight0046E300(g_world_cursor_0065ba8c->light_24, 2500.0f);
+            g_world_cursor_0065ba8c->light_24->ambient_198.Set(0.0f, 0.0f, 0.0f);
+            g_world_cursor_0065ba8c->light_24->diffuse_1a4.Set(1.0f, 1.0f, 1.0f);
+            g_world_cursor_0065ba8c->light_24->specular_1b0.Set(0.0f, 0.0f, 0.0f);
+            g_world_cursor_0065ba8c->light_24->setLocation(0.0, 1000.0, 0.0);
+            if (g_world_cursor_0065ba8c->particle_04 != 0) {
+                material = SR_NEW(srMaterial);
+                colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
+                material->setEmissive(colour);
+                material->setDiffuse(colour);
+                g_world_cursor_0065ba8c->particle_04->SetRetainedObject0049ACA0(material);
+                g_world_cursor_0065ba8c->particle_04->SetTexture0049AB00(
+                    LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "particle.tga", 1));
+                shader.value = 0x100c433;
+                g_world_cursor_0065ba8c->particle_04->SetRenderFlags004925A0(shader);
+                g_world_cursor_0065ba8c->particle_04->rotateX(-1.5707963);
+                g_world_cursor_0065ba8c->particle_04->value_140 = 100.0;
+                g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
+                g_world_cursor_0065ba8c->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
+                g_world_cursor_0065ba8c->particle_04->value_1a8 = 1;
+                g_world_cursor_0065ba8c->particle_04->value_210 = 500.0f;
+                g_world_cursor_0065ba8c->particle_04->value_1bc = 2;
+                g_world_cursor_0065ba8c->particle_04->value_1b0 = 1;
+                g_world_cursor_0065ba8c->particle_04->value_1a4 = 0;
+                g_world_cursor_0065ba8c->particle_04->value_1ac = 0;
+                g_world_cursor_0065ba8c->particle_04->value_1cc = 6000;
+                g_world_cursor_0065ba8c->particle_04->value_208 = 1.5707963f;
+                g_world_cursor_0065ba8c->particle_04->value_20c = 1.5707963f;
+                g_world_cursor_0065ba8c->particle_04->value_214 = 500.0f;
+                g_world_cursor_0065ba8c->particle_04->value_218 = 1000.0f;
+                g_world_cursor_0065ba8c->particle_04->SetFlutter0049AD10(2);
+                g_world_cursor_0065ba8c->particle_04->value_200 = 50.0f;
+                g_world_cursor_0065ba8c->particle_04->value_204 = 1000;
+            }
+            ApplyWorldCursorInput00490C60();
+            if (g_world_cursor_0065ba8c != 0) {
+                GetCameraPosition(&camera_position);
+                if (g_world_cursor_0065ba8c->detached_50 == 0) {
+                    g_world_cursor_0065ba8c->offset_18.x += camera_position.x;
+                    g_world_cursor_0065ba8c->offset_18.y += camera_position.y;
+                    g_world_cursor_0065ba8c->offset_18.z += camera_position.z;
+                }
+                g_world_cursor_0065ba8c->detached_50 = 1;
+            }
+            ClearCombatSelection();
+            g_world_cursor_0065ba8c->monster_00->GetAnimationBounds(&minimum, &maximum);
+            g_world_cursor_0065ba8c->probe_center_54.Set(
+                (maximum.x + minimum.x) * g_double_005ebe80,
+                (minimum.y + maximum.y) * g_double_005ebe80,
+                (minimum.z + maximum.z) * g_double_005ebe80);
+            g_world_cursor_0065ba8c->probe_offsets_60[0] = maximum;
+            g_world_cursor_0065ba8c->probe_offsets_60[1].x = minimum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[1].y = maximum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[1].z = maximum.z;
+            g_world_cursor_0065ba8c->probe_offsets_60[2].x = minimum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[2].y = maximum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[2].z = minimum.z;
+            g_world_cursor_0065ba8c->probe_offsets_60[3].x = maximum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[3].y = maximum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[3].z = minimum.z;
+            g_world_cursor_0065ba8c->probe_offsets_60[4].x = maximum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[4].y = minimum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[4].z = maximum.z;
+            g_world_cursor_0065ba8c->probe_offsets_60[5].x = minimum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[5].y = minimum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[5].z = maximum.z;
+            g_world_cursor_0065ba8c->probe_offsets_60[6] = minimum;
+            g_world_cursor_0065ba8c->probe_offsets_60[7].x = maximum.x;
+            g_world_cursor_0065ba8c->probe_offsets_60[7].y = minimum.y;
+            g_world_cursor_0065ba8c->probe_offsets_60[7].z = minimum.z;
+            UpdateWorldCursorPlacement00491EC0();
+            if (g_flag_689b32 != 0 &&
+                (g_flag_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
+                g_cursor_pick_latch_0065ba98 = 1;
+            }
+        }
+    }
+}
 
 /* Tear the world cursor down completely: detach and delete its monster,
    release the particle, the tracked light and the carried value, then publish
@@ -665,6 +811,20 @@ void UpdateWorldCursorPlacement00491EC0(void)
     } else {
         cursor->position_28 = target;
     }
+}
+
+/* Arm the world cursor's footprint mode and install the two fixed probe
+   offsets the target resolver probes in place of the probe box. */
+// FUNCTION: WIZ8 0x00492190
+void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
+                                   const srVector3T<float>* maximum)
+{
+    if (g_world_cursor_0065ba8c == 0) {
+        return;
+    }
+    g_world_cursor_0065ba8c->footprint_mode_c0 = 1;
+    g_world_cursor_0065ba8c->offset_c4 = *minimum;
+    g_world_cursor_0065ba8c->offset_d0 = *maximum;
 }
 
 /* Resolve the world cursor's target position: start from the cursor's stored

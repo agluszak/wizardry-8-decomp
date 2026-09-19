@@ -17,7 +17,7 @@ struct W8WorldCursorState {
     unsigned char unknown_08;
     /* 0x09: set by the right-button path while light_24 exists; the group
        bind consumes and clears it. */
-    unsigned char group_bind_pending_09;
+    bool group_bind_pending_09;
     unsigned char unknown_0a[2];
     /* 0x0c: accumulated cursor input - screen dx, right-drag dy and screen
        dy - scaled by g_float_005ebc88 into the movement vector each update,
@@ -35,7 +35,7 @@ struct W8WorldCursorState {
        to the -1e7 sentinel by the placement update. */
     srVector3T<float> last_published_34;
     /* 0x40: authored name fEnabled - the cursor update asserts it. */
-    unsigned char enabled_40;
+    bool enabled_40;
     /* 0x41: ground tracking. Set by the initializer and the placement
        update; the target march lifts each step to the settled ground height
        while set and re-arms it when the result lands near the ground, and
@@ -58,7 +58,7 @@ struct W8WorldCursorState {
     unsigned char detached_50;
     /* 0x51: while detached, run the ground/sight march on the moved
        point. */
-    unsigned char march_enabled_51;
+    bool march_enabled_51;
     unsigned char unknown_52[2];
     /* 0x54: midpoint of the probe box; the target march traces its sight fan
        from this offset. */
@@ -97,6 +97,10 @@ void ShowWorldCursor00490B10(void);
 /* Clamp and install an action-range distance into the live world cursor, then
    invalidate last_published_34 so the next update republishes. */
 void SetWorldCursorRange00491650(float distance); /* 0x00491650 */
+/* Arm footprint placement: the target resolver ground-probes the two fixed
+   offsets instead of the probe box. */
+void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
+                                   const srVector3T<float>* maximum); /* 0x00492190 */
 /* 0x00490C20: copies the cursor state vector at +0x28, or zero when there is
    no cursor. */
 void GetWorldCursorAnchor00490C20(srVector3T<float>* position);

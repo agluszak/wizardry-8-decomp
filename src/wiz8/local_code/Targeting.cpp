@@ -354,6 +354,48 @@ int GetTargetNeededForItem(const W8ItemInstance* item)
                                            W8_TARGETING_CONTEXT_CURRENT);
 }
 
+/* Aim one party slot at a clicked monster location. The pending action's
+   needed target kind decides between the single monster and its whole group:
+   a group-needing action (needed 5) aims at the location's group instead. */
+// FUNCTION: WIZ8 0x00537950
+void AimAtMonsterLocation00537950(int party_slot, int location_id, int allow_single_target)
+{
+    W8CombatSlot target;
+    W8ActionDetailBlock* detail_block;
+    int action;
+    int detail;
+    int needed;
+
+    if (CanTargetMonster(party_slot, location_id, allow_single_target, 1)) {
+        needed = -1;
+        if (ResolveTargetingContext(party_slot, GetCurrentTargetingContext(party_slot)) != 0) {
+            ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
+                               &detail_block);
+            needed = GetTargetNeededForAction(action, detail, detail_block);
+            if (needed == 5) {
+                memset(&target, 0, sizeof(target));
+                target.iMonsterID = BAD_INDEX;
+                target.iChar = BAD_INDEX;
+                target.iType = W8_TARGET_KIND_GROUP;
+                target.iGroupID =
+                    MonsterGetScriptPartByLocationIndex(
+                        MonsterGetIndexByLocationID(0x390, TARGETING_CPP, location_id, 1))
+                        ->monster_group_id;
+                AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
+                StartBreathCycle(party_slot, 0);
+                return;
+            }
+        }
+        memset(&target, 0, sizeof(target));
+        target.iChar = BAD_INDEX;
+        target.iGroupID = BAD_INDEX;
+        target.iType = W8_TARGET_KIND_MONSTER;
+        target.iMonsterID = location_id;
+        AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
+        StartBreathCycle(party_slot, 0);
+    }
+}
+
 /* Aim at whatever the caller names, by kind. The other three fields are left
    at BAD_INDEX, so only the kind's own field is meaningful. */
 // FUNCTION: WIZ8 0x00538620
@@ -414,6 +456,25 @@ void AimAtPlace(int actor)
     AimAtTarget(actor, &target, W8_TARGETING_CONTEXT_CURRENT);
     gXStatus.target_markers.Clear();
     RequestRefreshPartyState();
+}
+
+/* Aim at the ground point the camera is looking at, the world-cursor-free
+   twin of AimAtPlace used by click-to-move targeting. */
+// FUNCTION: WIZ8 0x00538770
+void AimAtGroundTarget00538770(int party_slot)
+{
+    W8CombatSlot target;
+    srVector3T<float> position;
+
+    memset(&target, 0, sizeof(target));
+    target.iMonsterID = BAD_INDEX;
+    target.iChar = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_PLACE;
+    GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
+    target.point = position;
+    AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
+    StartBreathCycle(party_slot, 0);
 }
 
 /* The three wrappers that set the party's own target rather than a

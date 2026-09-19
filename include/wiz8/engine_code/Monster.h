@@ -347,6 +347,7 @@ unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8M
                                                          unsigned char* value_4);
 void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
+void MonsterSetStateA0(W8Monster* monster, unsigned char state); /* 0x004C6160 */
 void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char behaviour);
 void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle);
 void SetFlag6081E4(unsigned char value);
