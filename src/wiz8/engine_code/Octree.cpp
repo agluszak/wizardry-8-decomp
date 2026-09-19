@@ -3270,7 +3270,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
    stream into m_aulGDObjs through the m_owned_194 dedupe set. ProbeCellForTrace
    reads the leaf's gd_polygon_offset_0c into the m_owned_12c surface-id stream;
    ProbeCellForBlockers reads polygon_offset_08 into the m_owned_0d0 index stream
-   and maps each entry through m_owned_0d4 to a (mesh<<16)|polygon key, marking
+   and maps each entry through m_aulPolyLookup to a (mesh<<16)|polygon key, marking
    the mesh in m_current_regions_160. The Append variant skips the result-count
    reset so successive cells accumulate. */
 /* The cell->leaf lookup is inlined here exactly as retail does; the shared
@@ -3386,7 +3386,7 @@ int W8Octree::ProbeCellForBlockers(const int* cell)
                 if (9999 < m_gd_result_count_1b8) {
                     break;
                 }
-                unsigned int key = m_owned_0d4[*stream];
+                unsigned int key = m_aulPolyLookup[*stream];
                 m_aulGDObjs[m_gd_result_count_1b8] = key;
                 ++m_gd_result_count_1b8;
                 m_current_regions_160->Set(key >> 0x10);
@@ -3444,7 +3444,7 @@ int W8Octree::ProbeCellForBlockersAppend(const int* cell)
                     if (9999 < m_gd_result_count_1b8) {
                         break;
                     }
-                    unsigned int key = m_owned_0d4[*stream];
+                    unsigned int key = m_aulPolyLookup[*stream];
                     m_aulGDObjs[m_gd_result_count_1b8] = key;
                     ++m_gd_result_count_1b8;
                     m_current_regions_160->Set(key >> 0x10);
@@ -3834,7 +3834,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
     fSuccess = 0;
     if (fLoaded != 0) {
         block = malloc(ReadHeader<unsigned long>(header, 0x72) * 4 + 8);
-        m_owned_0d4 = static_cast<unsigned long*>(block);
+        m_aulPolyLookup = static_cast<unsigned long*>(block);
         if (block == 0) {
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
@@ -4411,7 +4411,7 @@ W8Octree::~W8Octree()
     free(m_owned_09c);
     free(m_owned_0a0);
     free(m_owned_0d0);
-    free(m_owned_0d4);
+    free(m_aulPolyLookup);
     DestroyBitArray(m_pAlphaBits);
     free(m_owned_0b0);
     free(m_owned_12c);
@@ -4666,27 +4666,23 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
     unsigned int index = 0;
     if (count != 0) {
         do {
-            W8GDSurface* surface = g_octree_game_data_00652db0->surfaces_38 + objects[index];
+            W8GDSurface* surface = g_octree_game_data_00652db0->m_pSurfaces + objects[index];
             srVector3T<float> bounds[2];
             srVector3T<float> triangle[3];
             for (int axis = 0; axis < 3; ++axis) {
                 (&bounds[0].x)[axis] = (&lower->x)[axis];
                 (&bounds[1].x)[axis] = (&upper->x)[axis];
                 (&triangle[0].x)[axis] =
-                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[0]]
+                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[0]]
                           .x)[axis];
                 (&triangle[1].x)[axis] =
-                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[1]]
+                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[1]]
                           .x)[axis];
                 (&triangle[2].x)[axis] =
-                    (&g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[2]]
+                    (&g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[2]]
                           .x)[axis];
             }
-            if (TestSpatialTriangle0046CE60(
-                    bounds, triangle,
-                    reinterpret_cast<const srVector3T<float>*>(
-                        surface->plane_24) /* reinterpret-ok: the GD surface's
-                        4-float plane is the test normal */) != 0) {
+            if (TestSpatialTriangle0046CE60(bounds, triangle, surface->Normal()) != 0) {
                 return 1;
             }
             ++index;
@@ -4735,11 +4731,7 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
                         (&triangle[2].x)[axis] =
                             (&gd_prop->m_pVertices[surface->vertex_indices_18[2]].x)[axis];
                     }
-                    if (TestSpatialTriangle0046CE60(
-                            bounds, triangle,
-                            reinterpret_cast<const srVector3T<float>*>(
-                                surface->plane_24) /* reinterpret-ok: the GD surface's
-                                4-float plane is the test normal */) != 0) {
+                    if (TestSpatialTriangle0046CE60(bounds, triangle, surface->Normal()) != 0) {
                         return 1;
                     }
                 }

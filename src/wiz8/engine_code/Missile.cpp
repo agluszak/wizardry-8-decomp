@@ -862,10 +862,10 @@ void W8Missile::SetCycle(signed char cycle)
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
 
             if (event->cycle_00 == cycle) {
-                event->particle_08->SetActive(1);
-                event->particle_08->value_188 = 0;
+                event->m_pstParticles->SetActive(1);
+                event->m_pstParticles->value_188 = 0;
             } else {
-                event->particle_08->SetActive(0);
+                event->m_pstParticles->SetActive(0);
             }
         }
     }
@@ -895,12 +895,12 @@ void W8Missile::DetonateMissileSpell004A49E0()
     W8CombatSlot target;
     srVector3T<float> position;
 
-    if (source_22c.iType != W8_TARGET_SOURCE_CHARACTER) {
+    if (m_Source.iType != W8_TARGET_SOURCE_CHARACTER) {
         srAssertFail("m_Source.iType == SOURCE_TYPE_CHARACTER", MISSILE_CPP, 0x6c5, 0);
     }
     position = GetPosition();
     ResetTargetSource(&source);
-    source.iChar = source_22c.iChar;
+    source.iChar = m_Source.iChar;
     source.iType = W8_TARGET_SOURCE_CHARACTER;
     source.point = position;
     source.unknown_18[2] = 1;
@@ -935,8 +935,8 @@ void W8Missile::AnnounceCollisionTarget()
         wcscat(text, g_status_685170.buffers.characters[combat_slot_260.iChar].name);
     }
     target_stop = wcslen(text);
-    source_color = GetSourceNoticeColor(&source_22c);
-    target_color = GetTargetNoticeColor(&source_22c, &combat_slot_260);
+    source_color = GetSourceNoticeColor(&m_Source);
+    target_color = GetTargetNoticeColor(&m_Source, &combat_slot_260);
     wcscat(text, L" ");
     wcscat(text, gppStringList[0x700 / 4]);
     ShowNotice(source_color, text, -1, -1, 0);
@@ -978,7 +978,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     unsigned char deflect_chance;
 
     if (g_startup_world_659c0c == other) {
-        if (TargetSourceIsCharacter(&source_22c, 0)) {
+        if (TargetSourceIsCharacter(&m_Source, 0)) {
             goto miss;
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_PARTY &&
@@ -1005,7 +1005,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x636, MISSILE_CPP, location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (TargetSourceIsMonster(&source_22c, 0) && source_22c.iMonsterID == location_id) {
+        if (TargetSourceIsMonster(&m_Source, 0) && m_Source.iMonsterID == location_id) {
             goto miss;
         }
         if (monster_info->hp_current == 0) {

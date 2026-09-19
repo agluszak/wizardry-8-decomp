@@ -49,7 +49,7 @@ public:
     srVector3T<float>* GetVertexNormals00471CA0(unsigned int frame, char load); /* 0x00471CA0 */
     srVector3T<float>* GetPolygonNormals00471D00(unsigned int frame, char load);
     void SetAmbientColor00472990(const srVector3T<float>& color);
-    unsigned char AllocateFrameBuffers00471720(unsigned int frame,
+    unsigned char AllocateFrameBuffers00471720(unsigned int uiFrame,
                                                unsigned char flags); /* 0x00471720 */
     srVector3T<float>* GetVertexLights(char initialize, int table);  /* 0x00472100 */
     float* GetVertexSunlight(char initialize);                       /* 0x004721E0 */
@@ -83,9 +83,9 @@ public:
        decompressed float caches are srHeap allocations and are counted in
        g_decompressed_mesh_bytes; the compressed tables are operator new. */
     unsigned int frame_count;                   /* 0x3d0 */
-    srVector3T<float>** frame_vertex_locations; /* 0x3d4 */
-    srVector3T<float>** frame_vertex_normals;   /* 0x3d8 */
-    srVector3T<float>** frame_polygon_normals;  /* 0x3dc */
+    srVector3T<float>** m_pVertexLoc;           /* 0x3d4 */
+    srVector3T<float>** m_pVertexNormal;        /* 0x3d8 */
+    srVector3T<float>** m_pPolyNormal;          /* 0x3dc */
     short** compressed_vertex_locations;        /* 0x3e0 m_psCompVertexLoc */
     unsigned char** compressed_vertex_normals;  /* 0x3e4 m_pbCompVertexNormal */
     unsigned char** compressed_polygon_normals; /* 0x3e8 m_pbCompPolyNormal */

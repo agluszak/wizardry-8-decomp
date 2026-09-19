@@ -80,144 +80,144 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     int trigger_index = 0;
     int index;
     if (positional_04 != 0) {
-        if (trigger_table_50 == 0) {
+        if (m_ppTriggers == 0) {
             g_integrated_trigger_count_00659a58 = 0;
-            trigger_table_50 =
-                static_cast<Trigger**>(malloc(total_surface_count_44 * sizeof(Trigger*) + 4));
-            if (trigger_table_50 == 0) {
+            m_ppTriggers =
+                static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
+            if (m_ppTriggers == 0) {
                 srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
             }
         }
-        if (g_integrated_trigger_count_00659a58 >= total_surface_count_44) {
+        if (g_integrated_trigger_count_00659a58 >= m_iNumTriggers) {
             srAssertFail("iTriggerCount < m_iNumTriggers",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x259,
                          "AddTriggerPlane: Too many triggers.");
         }
-        trigger_table_50[g_integrated_trigger_count_00659a58++] = trigger;
+        m_ppTriggers[g_integrated_trigger_count_00659a58++] = trigger;
         return;
     }
 
-    if (overflow_surfaces_48 == 0) {
-        overflow_surfaces_48 = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
-        if (overflow_surfaces_48 == 0) {
+    if (m_pTrigSurfaces == 0) {
+        m_pTrigSurfaces = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
+        if (m_pTrigSurfaces == 0) {
             srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x263, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
         }
-        overflow_vertices_4c =
+        m_pTrigVertices =
             static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
-        if (overflow_vertices_4c == 0) {
+        if (m_pTrigVertices == 0) {
             srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x265, "AddTriggerPlane: Couldn't allocate trigger vertices.");
         }
-        trigger_table_50 = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
-        if (trigger_table_50 == 0) {
+        m_ppTriggers = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
+        if (m_ppTriggers == 0) {
             srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x267, "AddTriggerPlane: Couldn't allocate trigger array.");
         }
-        overflow_surface_count_3c = 0;
-        overflow_vertex_count_40 = 0;
-        total_surface_count_44 = 0;
+        m_iNumTrigSurfaces = 0;
+        m_iNumTrigVertices = 0;
+        m_iNumTriggers = 0;
     }
-    if (overflow_surface_count_3c >= 500) {
+    if (m_iNumTrigSurfaces >= 500) {
         srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x26c, 0);
     }
 
-    for (index = 0; index < total_surface_count_44 && trigger_index == 0; ++index) {
-        if (trigger_table_50[index] == trigger) {
+    for (index = 0; index < m_iNumTriggers && trigger_index == 0; ++index) {
+        if (m_ppTriggers[index] == trigger) {
             trigger_index = index;
         }
     }
     if (trigger_index == 0) {
-        trigger_index = total_surface_count_44++;
-        trigger_table_50[trigger_index] = trigger;
+        trigger_index = m_iNumTriggers++;
+        m_ppTriggers[trigger_index] = trigger;
     }
     for (index = 0; index < 4; ++index) {
-        overflow_vertices_4c[overflow_vertex_count_40++] = trigger_vertices[index];
+        m_pTrigVertices[m_iNumTrigVertices++] = trigger_vertices[index];
     }
 
-    W8GDSurface* surface = &overflow_surfaces_48[overflow_surface_count_3c];
+    W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
-    surface->index_04 = surface_count_28 + overflow_surface_count_3c;
+    surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
     surface->trigger_index_08 = trigger_index;
     surface->value_40 = 1.1f;
-    surface->vertex_indices_18[0] = overflow_vertex_count_40 - 4;
-    surface->vertex_indices_18[1] = overflow_vertex_count_40 - 3;
-    surface->vertex_indices_18[2] = overflow_vertex_count_40 - 2;
-    ClassifySurfacePlane004498C0(overflow_vertices_4c, surface);
+    surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
+    surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
+    surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
+    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
-        surface->vertex_indices_18[index] += vertex_count_20;
+        surface->vertex_indices_18[index] += m_iNumVertices;
     }
     surface->positional_0c = -1;
     surface->positional_10 = -1;
     surface->positional_14 = -1;
     surface->hit_plane_38 = 0;
-    ++overflow_surface_count_3c;
+     ++m_iNumTrigSurfaces;
 
-    surface = &overflow_surfaces_48[overflow_surface_count_3c];
+    surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
     surface->flags_00 = 0x80;
-    surface->index_04 = surface_count_28 + overflow_surface_count_3c;
+    surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
     surface->trigger_index_08 = trigger_index;
     surface->value_40 = 1.1f;
-    surface->vertex_indices_18[0] = overflow_vertex_count_40 - 2;
-    surface->vertex_indices_18[1] = overflow_vertex_count_40 - 1;
-    surface->vertex_indices_18[2] = overflow_vertex_count_40 - 4;
-    ClassifySurfacePlane004498C0(overflow_vertices_4c, surface);
+    surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
+    surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
+    surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
+    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
-        surface->vertex_indices_18[index] += vertex_count_20;
+        surface->vertex_indices_18[index] += m_iNumVertices;
     }
     surface->positional_0c = -1;
     surface->positional_10 = -1;
     surface->positional_14 = -1;
     surface->hit_plane_38 = 0;
-    ++overflow_surface_count_3c;
+     ++m_iNumTrigSurfaces;
 }
 
 // FUNCTION: WIZ8 0x00448840
 void W8GameData::IntegrateTriggers()
 {
-    if (overflow_vertex_count_40 == 0) {
+    if (m_iNumTrigVertices == 0) {
         return;
     }
 
-    int combined_vertex_count = vertex_count_20 + overflow_vertex_count_40;
+    int combined_vertex_count = m_iNumVertices + m_iNumTrigVertices;
     srVector3T<float>* combined_vertices = static_cast<srVector3T<float>*>(
         srHeap.allocate((combined_vertex_count + 1) * sizeof(srVector3T<float>)));
     if (combined_vertices == 0) {
         srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x31b,
                      "IntegrateTriggers: Couldn't allocate new vertex array.");
     }
-    memcpy(combined_vertices, vertices_24, vertex_count_20 * sizeof(srVector3T<float>));
-    memcpy(combined_vertices + vertex_count_20, overflow_vertices_4c,
-           overflow_vertex_count_40 * sizeof(srVector3T<float>));
-    vertex_count_20 = combined_vertex_count;
-    srHeap.free(vertices_24);
-    srHeap.free(overflow_vertices_4c);
-    integrated_surface_count_34 = overflow_surface_count_3c;
-    vertices_24 = combined_vertices;
-    overflow_vertices_4c = 0;
-    overflow_vertex_count_40 = 0;
+    memcpy(combined_vertices, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>));
+    memcpy(combined_vertices + m_iNumVertices, m_pTrigVertices,
+           m_iNumTrigVertices * sizeof(srVector3T<float>));
+    m_iNumVertices = combined_vertex_count;
+    srHeap.free(m_pVertices);
+    srHeap.free(m_pTrigVertices);
+    integrated_surface_count_34 = m_iNumTrigSurfaces;
+    m_pVertices = combined_vertices;
+    m_pTrigVertices = 0;
+    m_iNumTrigVertices = 0;
 
     W8GDSurface* new_surfaces =
-        static_cast<W8GDSurface*>(malloc((overflow_surface_count_3c + 1) * sizeof(W8GDSurface)));
+        static_cast<W8GDSurface*>(malloc((m_iNumTrigSurfaces + 1) * sizeof(W8GDSurface)));
     if (new_surfaces == 0) {
         srAssertFail("pNewSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x32c,
                      "IntegrateTriggers: Couldn't allocate new surface array.");
     }
-    memcpy(new_surfaces, overflow_surfaces_48, overflow_surface_count_3c * sizeof(W8GDSurface));
-    free(overflow_surfaces_48);
-    overflow_surfaces_48 = new_surfaces;
+    memcpy(new_surfaces, m_pTrigSurfaces, m_iNumTrigSurfaces * sizeof(W8GDSurface));
+    free(m_pTrigSurfaces);
+    m_pTrigSurfaces = new_surfaces;
 
-    int end = surface_count_28 + overflow_surface_count_3c;
-    for (int index = surface_count_28; index < end; ++index) {
-        W8GDSurface* surface = index < surface_count_28
-                                   ? &surfaces_38[index]
-                                   : &overflow_surfaces_48[index - surface_count_28];
+    int end = m_iNumSurfaces + m_iNumTrigSurfaces;
+    for (int index = m_iNumSurfaces; index < end; ++index) {
+        W8GDSurface* surface = index < m_iNumSurfaces
+                                   ? &m_pSurfaces[index]
+                                   : &m_pTrigSurfaces[index - m_iNumSurfaces];
         geometry_index_00->InsertSurface00446820(surface, 3);
     }
-    bits_58 = new BitArray(total_surface_count_44);
-    bits_5c = new BitArray(total_surface_count_44);
+    bits_58 = new BitArray(m_iNumTriggers);
+    bits_5c = new BitArray(m_iNumTriggers);
 }
 
 struct W8ProcessedGameDataHeader {
@@ -295,90 +295,90 @@ void W8GameData::ReadProcessedGameData(int handle)
 
     minimum_08 = header.minimum_04;
     maximum_14 = header.maximum_10;
-    surface_count_28 = header.surface_count_20;
+    m_iNumSurfaces = header.surface_count_20;
     positional_2c_00 = header.positional_24;
     positional_2c_04 = header.positional_28;
     integrated_surface_count_34 = header.integrated_surface_count_2c;
-    vertex_count_20 = header.vertex_count_1c;
-    interface_count_60 = header.value_30;
-    interface_state_count_68 = header.value_34;
-    total_surface_count_44 = header.total_surface_count_38;
-    cond_poly_count_70 = header.value_3c;
-    environ_count_80 = header.environ_count_40;
+    m_iNumVertices = header.vertex_count_1c;
+    m_iNumInterfaces = header.value_30;
+    m_iNumStates = header.value_34;
+    m_iNumTriggers = header.total_surface_count_38;
+    m_iNumCondPolys = header.value_3c;
+    m_iNumEnvirons = header.environ_count_40;
 
-    bits_58 = new BitArray(total_surface_count_44);
-    bits_5c = new BitArray(total_surface_count_44);
+    bits_58 = new BitArray(m_iNumTriggers);
+    bits_5c = new BitArray(m_iNumTriggers);
 
-    vertices_24 =
-        static_cast<srVector3T<float>*>(srHeap.allocate((vertex_count_20 * 3 + 6) * sizeof(float)));
-    if (vertices_24 == 0) {
+    m_pVertices =
+        static_cast<srVector3T<float>*>(srHeap.allocate((m_iNumVertices * 3 + 6) * sizeof(float)));
+    if (m_pVertices == 0) {
         srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x483,
                      "ReadProcessedGameData: Couldn't allocate vertices.");
     }
-    if (FileRead(handle, vertices_24, vertex_count_20 * 0xc, &bytes_read) == 0) {
+    if (FileRead(handle, m_pVertices, m_iNumVertices * 0xc, &bytes_read) == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x487,
                      "ReadProcessedGameData: Couldn't read vertices.");
     }
 
-    surfaces_38 =
-        static_cast<W8GDSurface*>(malloc((surface_count_28 * 0x13 + 0x26) * sizeof(unsigned int)));
-    if (surfaces_38 == 0) {
+    m_pSurfaces =
+        static_cast<W8GDSurface*>(malloc((m_iNumSurfaces * 0x13 + 0x26) * sizeof(unsigned int)));
+    if (m_pSurfaces == 0) {
         srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x48c,
                      "ReadProcessedGameData: Couldn't allocate pSurfaces.");
     }
-    if (FileRead(handle, surfaces_38, surface_count_28 * 0x4c, &bytes_read) == 0) {
+    if (FileRead(handle, m_pSurfaces, m_iNumSurfaces * 0x4c, &bytes_read) == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x490,
                      "ReadProcessedGameData: Couldn't read Surface info.");
     }
 
-    if (interface_count_60 != 0) {
-        interfaces_64 = static_cast<W8GDInterface*>(
-            malloc((interface_count_60 * 3 + 3) * sizeof(unsigned int)));
-        if (interfaces_64 == 0) {
+    if (m_iNumInterfaces != 0) {
+        m_pInterfaces = static_cast<W8GDInterface*>(
+            malloc((m_iNumInterfaces * 3 + 3) * sizeof(unsigned int)));
+        if (m_pInterfaces == 0) {
             srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x497, "ReadProcessedGameData: Couldn't allocate switch interface info.");
         }
-        if (FileRead(handle, interfaces_64, interface_count_60 * 0xc, &bytes_read) == 0) {
+        if (FileRead(handle, m_pInterfaces, m_iNumInterfaces * 0xc, &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x49a,
                          "ReadProcessedGameData: Couldn't read switch interface info.");
         }
     }
 
-    if (interface_state_count_68 != 0) {
-        interface_states_6c = static_cast<W8GDInterfaceState*>(
-            malloc((interface_state_count_68 * 3 + 3) * sizeof(unsigned int)));
-        if (interface_states_6c == 0) {
+    if (m_iNumStates != 0) {
+        m_pStates = static_cast<W8GDInterfaceState*>(
+            malloc((m_iNumStates * 3 + 3) * sizeof(unsigned int)));
+        if (m_pStates == 0) {
             srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a2,
                          "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
-        if (FileRead(handle, interface_states_6c, interface_state_count_68 * 0xc, &bytes_read) ==
+        if (FileRead(handle, m_pStates, m_iNumStates * 0xc, &bytes_read) ==
             0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4a5,
                          "ReadProcessedGameData: Couldn't read switch state info.");
         }
     }
 
-    if (cond_poly_count_70 != 0) {
-        cond_polys_74 = static_cast<int*>(malloc(cond_poly_count_70 * sizeof(unsigned int) + 4));
-        if (cond_polys_74 == 0) {
+    if (m_iNumCondPolys != 0) {
+        m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(unsigned int) + 4));
+        if (m_piCondPolys == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
         }
-        if (FileRead(handle, cond_polys_74, cond_poly_count_70 * sizeof(unsigned int),
+        if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int),
                      &bytes_read) == 0) {
             srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x4b0,
                          "ReadProcessedGameData: Couldn't read conditional poly list.");
         }
     }
 
-    if (environ_count_80 != 0) {
-        environs_84 = static_cast<W8EnvironRecord**>(malloc(environ_count_80 * sizeof(void*)));
-        if (environs_84 == 0) {
+    if (m_iNumEnvirons != 0) {
+        m_ppEnvirons = static_cast<W8EnvironRecord**>(malloc(m_iNumEnvirons * sizeof(void*)));
+        if (m_ppEnvirons == 0) {
             srAssertFail("m_ppEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x4b8, "ReadProcessedGameData: Couldn't allocate environment info.");
         }
-        memset(environs_84, 0, environ_count_80 * sizeof(void*));
-        for (index = 0; index < environ_count_80; ++index) {
+        memset(m_ppEnvirons, 0, m_iNumEnvirons * sizeof(void*));
+        for (index = 0; index < m_iNumEnvirons; ++index) {
             W8EnvironRecord* environ_record = new W8EnvironRecord();
             if (environ_record == 0) {
                 srAssertFail("m_ppEnvirons[i]",
@@ -402,18 +402,18 @@ void W8GameData::ReadProcessedGameData(int handle)
             environ_record->value_38 = g_float_00603ab8;
             environ_record->value_3c = g_float_00603abc;
             environ_record->value_40 = 1.0f;
-            environs_84[index] = environ_record;
+            m_ppEnvirons[index] = environ_record;
             if (FileRead(handle, environ_record, 0x44, &bytes_read) == 0) {
                 srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x4c2, "ReadProcessedGameData: Couldn't read GD_Environ.");
             }
         }
-        environs_84[0]->RescaleToReference(0);
-        if (environs_84[0]->RescaleToReference(0) != 0) {
-            for (index = 1; index < environ_count_80; ++index) {
-                environs_84[index]->RescaleToReference(environs_84[0]);
+        m_ppEnvirons[0]->RescaleToReference(0);
+        if (m_ppEnvirons[0]->RescaleToReference(0) != 0) {
+            for (index = 1; index < m_iNumEnvirons; ++index) {
+                m_ppEnvirons[index]->RescaleToReference(m_ppEnvirons[0]);
             }
-            environs_84[0]->RescaleToReference(environs_84[0]);
+            m_ppEnvirons[0]->RescaleToReference(m_ppEnvirons[0]);
         }
     }
 }
@@ -427,32 +427,32 @@ W8GameData::W8GameData(int handle, bool secondary)
 {
     geometry_index_00 = 0;
     positional_04 = 0;
-    vertex_count_20 = 0;
-    vertices_24 = 0;
+    m_iNumVertices = 0;
+    m_pVertices = 0;
     integrated_surface_count_34 = 0;
     positional_2c_04 = 0;
     positional_2c_00 = 0;
-    surface_count_28 = 0;
-    surfaces_38 = 0;
-    overflow_surfaces_48 = 0;
-    overflow_vertices_4c = 0;
-    trigger_table_50 = 0;
-    overflow_surface_count_3c = 0;
-    overflow_vertex_count_40 = 0;
-    total_surface_count_44 = 0;
+    m_iNumSurfaces = 0;
+    m_pSurfaces = 0;
+    m_pTrigSurfaces = 0;
+    m_pTrigVertices = 0;
+    m_ppTriggers = 0;
+    m_iNumTrigSurfaces = 0;
+    m_iNumTrigVertices = 0;
+    m_iNumTriggers = 0;
     bits_58 = 0;
     bits_5c = 0;
     value_54 = 0;
-    interface_count_60 = 0;
-    interfaces_64 = 0;
-    interface_state_count_68 = 0;
-    interface_states_6c = 0;
-    cond_poly_count_70 = 0;
-    cond_polys_74 = 0;
-    count_78 = 0;
-    array_7c = 0;
-    environ_count_80 = 0;
-    environs_84 = 0;
+    m_iNumInterfaces = 0;
+    m_pInterfaces = 0;
+    m_iNumStates = 0;
+    m_pStates = 0;
+    m_iNumCondPolys = 0;
+    m_piCondPolys = 0;
+    m_iNumNames = 0;
+    m_ppNames = 0;
+    m_iNumEnvirons = 0;
+    m_ppEnvirons = 0;
     value_88 = 0;
     minimum_08 = 1.0e8f;
     maximum_14 = -1.0e8f;
@@ -468,15 +468,15 @@ W8GameData::W8GameData(int handle, bool secondary)
     if (g_environ_00652DB4 != 0) {
         delete g_environ_00652DB4;
     }
-    if (environ_count_80 == 0) {
-        environ_count_80 = 1;
-        environs_84 = static_cast<W8EnvironRecord**>(malloc(0x28));
-        if (environs_84 == 0) {
+    if (m_iNumEnvirons == 0) {
+        m_iNumEnvirons = 1;
+        m_ppEnvirons = static_cast<W8EnvironRecord**>(malloc(0x28));
+        if (m_ppEnvirons == 0) {
             srAssertFail("m_ppEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                          0x441, 0);
         }
         for (int index = 0; index < 10; ++index) {
-            environs_84[index] = 0;
+            m_ppEnvirons[index] = 0;
         }
         W8EnvironRecord* environ_record = new W8EnvironRecord();
         if (environ_record == 0) {
@@ -500,10 +500,10 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record->value_3c = g_float_00603abc;
             environ_record->value_40 = 1.0f;
         }
-        environs_84[0] = environ_record;
+        m_ppEnvirons[0] = environ_record;
     }
     W8LevelDataRecord* old_level = g_level_data_00652dac;
-    g_environ_00652DB4 = environs_84[0];
+    g_environ_00652DB4 = m_ppEnvirons[0];
     if (old_level != 0) {
         /* The embedded timer's most-derived type is unrecovered, so a plain
            delete would dispatch the wrong destructor; the base teardown plus
@@ -532,8 +532,8 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
             new W8OctBuildTree00446390(2000.0f, &minimum, &maximum, 0x40, 0);
     }
 
-    for (int index = 0; index < game_data->surface_count_28; ++index) {
-        if (game_data->geometry_index_00->InsertSurface00446820(&game_data->surfaces_38[index],
+    for (int index = 0; index < game_data->m_iNumSurfaces; ++index) {
+        if (game_data->geometry_index_00->InsertSurface00446820(&game_data->m_pSurfaces[index],
                                                                 3) == 0) {
             return 0;
         }
@@ -618,11 +618,11 @@ W8GameData::~W8GameData()
     if (geometry_index_00 != 0) {
         delete geometry_index_00;
     }
-    if (vertices_24 != 0) {
-        srHeap.free(vertices_24);
+    if (m_pVertices != 0) {
+        srHeap.free(m_pVertices);
     }
-    if (surfaces_38 != 0) {
-        free(surfaces_38);
+    if (m_pSurfaces != 0) {
+        free(m_pSurfaces);
     }
     if (bits_58 != 0) {
         delete bits_58;
@@ -630,52 +630,52 @@ W8GameData::~W8GameData()
     if (bits_5c != 0) {
         delete bits_5c;
     }
-    if (array_7c != 0) {
-        if (count_78 > 0) {
+    if (m_ppNames != 0) {
+        if (m_iNumNames > 0) {
             index = 0;
             do {
-                if (array_7c[index] != 0) {
-                    free(array_7c[index]);
+                if (m_ppNames[index] != 0) {
+                    free(m_ppNames[index]);
                 }
                 ++index;
-            } while (index < count_78);
+            } while (index < m_iNumNames);
         }
-        free(array_7c);
-        count_78 = 0;
-        array_7c = 0;
+        free(m_ppNames);
+        m_iNumNames = 0;
+        m_ppNames = 0;
     }
-    if (interfaces_64 != 0) {
-        free(interfaces_64);
-        interfaces_64 = 0;
-        interface_count_60 = 0;
+    if (m_pInterfaces != 0) {
+        free(m_pInterfaces);
+        m_pInterfaces = 0;
+        m_iNumInterfaces = 0;
     }
-    if (cond_polys_74 != 0) {
-        free(cond_polys_74);
-        cond_polys_74 = 0;
-        cond_poly_count_70 = 0;
+    if (m_piCondPolys != 0) {
+        free(m_piCondPolys);
+        m_piCondPolys = 0;
+        m_iNumCondPolys = 0;
     }
-    if (interface_states_6c != 0) {
-        free(interface_states_6c);
-        interface_states_6c = 0;
-        interface_state_count_68 = 0;
+    if (m_pStates != 0) {
+        free(m_pStates);
+        m_pStates = 0;
+        m_iNumStates = 0;
     }
-    if (trigger_table_50 != 0) {
-        free(trigger_table_50);
-        trigger_table_50 = 0;
+    if (m_ppTriggers != 0) {
+        free(m_ppTriggers);
+        m_ppTriggers = 0;
     }
-    total_surface_count_44 = 0;
-    if (environs_84 != 0) {
-        if (environ_count_80 > 0) {
+    m_iNumTriggers = 0;
+    if (m_ppEnvirons != 0) {
+        if (m_iNumEnvirons > 0) {
             index = 0;
             do {
-                if (environs_84[index] != 0) {
-                    delete environs_84[index];
+                if (m_ppEnvirons[index] != 0) {
+                    delete m_ppEnvirons[index];
                 }
                 ++index;
-            } while (index < environ_count_80);
+            } while (index < m_iNumEnvirons);
         }
-        free(environs_84);
-        environs_84 = 0;
+        free(m_ppEnvirons);
+        m_ppEnvirons = 0;
     }
     g_octree_game_data_00652db0 = 0;
 }
@@ -694,16 +694,16 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
     header.version_00 = 1;
     header.minimum_04 = minimum_08;
     header.maximum_10 = maximum_14;
-    header.vertex_count_1c = vertex_count_20;
-    header.surface_count_20 = surface_count_28;
+    header.vertex_count_1c = m_iNumVertices;
+    header.surface_count_20 = m_iNumSurfaces;
     header.positional_24 = positional_2c_00;
     header.positional_28 = positional_2c_04;
     header.integrated_surface_count_2c = integrated_surface_count_34;
-    header.value_30 = interface_count_60;
-    header.value_34 = interface_state_count_68;
-    header.total_surface_count_38 = total_surface_count_44;
-    header.value_3c = cond_poly_count_70;
-    header.environ_count_40 = environ_count_80;
+    header.value_30 = m_iNumInterfaces;
+    header.value_34 = m_iNumStates;
+    header.total_surface_count_38 = m_iNumTriggers;
+    header.value_3c = m_iNumCondPolys;
+    header.environ_count_40 = m_iNumEnvirons;
     memset(header.unknown_44, 0, sizeof(header.unknown_44));
 
     if (handle == 0) {
@@ -714,32 +714,32 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GameData info.\n");
         return 0;
     }
-    if (FileWrite(handle, vertices_24, vertex_count_20 * 0xc, 0) == 0) {
+    if (FileWrite(handle, m_pVertices, m_iNumVertices * 0xc, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write vertex info.\n");
         return 0;
     }
-    if (FileWrite(handle, surfaces_38, surface_count_28 * 0x4c, 0) == 0) {
+    if (FileWrite(handle, m_pSurfaces, m_iNumSurfaces * 0x4c, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
-    if (interface_count_60 != 0 &&
-        FileWrite(handle, interfaces_64, interface_count_60 * 0xc, 0) == 0) {
+    if (m_iNumInterfaces != 0 &&
+        FileWrite(handle, m_pInterfaces, m_iNumInterfaces * 0xc, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
-    if (interface_state_count_68 != 0 &&
-        FileWrite(handle, interface_states_6c, interface_state_count_68 * 0xc, 0) == 0) {
+    if (m_iNumStates != 0 &&
+        FileWrite(handle, m_pStates, m_iNumStates * 0xc, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
-    if (cond_poly_count_70 != 0 &&
-        FileWrite(handle, cond_polys_74, cond_poly_count_70 * 4, 0) == 0) {
+    if (m_iNumCondPolys != 0 &&
+        FileWrite(handle, m_piCondPolys, m_iNumCondPolys * 4, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
         return 0;
     }
-    if (environ_count_80 != 0) {
-        for (index = 0; index < environ_count_80; ++index) {
-            if (FileWrite(handle, environs_84[index], 0x44, 0) == 0) {
+    if (m_iNumEnvirons != 0) {
+        for (index = 0; index < m_iNumEnvirons; ++index) {
+            if (FileWrite(handle, m_ppEnvirons[index], 0x44, 0) == 0) {
                 ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GD_Environ.\n");
                 return 0;
             }

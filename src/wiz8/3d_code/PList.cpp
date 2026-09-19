@@ -7,7 +7,7 @@
 
 /* 3D Code\PList.cpp. The parameter names ppl and pEntry come from the canonical
    assertions at lines 540 and 541. This is a different container from
-   W8GrowableVector: the element array is at +0x00 and the count at +0x08, with
+   W8GrowableVector: the element array is at +0x00 and the iNumUsed at +0x08, with
    no vptr, and the accessors are free functions rather than methods. */
 
 // FUNCTION: WIZ8 0x005e22c0
@@ -20,14 +20,14 @@ W8PList* PLCreate(void)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x37, 0);
     }
-    ppl->count = 0;
+    ppl->iNumUsed = 0;
     ppl->data = 0;
 
     /* PListInit is inlined here. */
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);
     }
-    if (ppl->count != 0) {
+    if (ppl->iNumUsed != 0) {
         srAssertFail("ppl->iNumUsed==0", PLIST_CPP, 0x58, 0);
     }
     if (ppl->data) {
@@ -36,7 +36,7 @@ W8PList* PLCreate(void)
     data = (void**)malloc(10 * sizeof(void*));
     ppl->data = data;
     ppl->capacity = 10;
-    ppl->count = 0;
+    ppl->iNumUsed = 0;
     if (!data) {
         free(ppl);
         return 0;
@@ -52,7 +52,7 @@ unsigned char PListInit(W8PList* ppl)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);
     }
-    if (ppl->count != 0) {
+    if (ppl->iNumUsed != 0) {
         srAssertFail("ppl->iNumUsed==0", PLIST_CPP, 0x58, 0);
     }
     if (ppl->data) {
@@ -61,7 +61,7 @@ unsigned char PListInit(W8PList* ppl)
     ppl->data = (void**)malloc(10 * sizeof(void*));
     created = ppl->data != 0;
     ppl->capacity = 10;
-    ppl->count = 0;
+    ppl->iNumUsed = 0;
     return created;
 }
 
@@ -100,7 +100,7 @@ int PLAdoptAppend(W8PList* ppl, void* pEntry)
     void** pTemp;
     int index;
 
-    if (ppl->count >= ppl->capacity) {
+    if (ppl->iNumUsed >= ppl->capacity) {
         if (!ppl) {
             srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
         }
@@ -108,16 +108,16 @@ int PLAdoptAppend(W8PList* ppl, void* pEntry)
         if (!pTemp) {
             srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
         }
-        for (index = 0; index < ppl->count; ++index) {
+        for (index = 0; index < ppl->iNumUsed; ++index) {
             pTemp[index] = ppl->data[index];
         }
         free(ppl->data);
         ppl->data = pTemp;
         ppl->capacity += 5;
     }
-    ppl->data[ppl->count] = pEntry;
-    ++ppl->count;
-    return ppl->count - 1;
+    ppl->data[ppl->iNumUsed] = pEntry;
+    ++ppl->iNumUsed;
+    return ppl->iNumUsed - 1;
 }
 
 // FUNCTION: WIZ8 0x005e2530
@@ -129,8 +129,8 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0xc1, 0);
     }
-    if (position > ppl->count) {
-        if (ppl->count >= ppl->capacity) {
+    if (position > ppl->iNumUsed) {
+        if (ppl->iNumUsed >= ppl->capacity) {
             if (!ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
             }
@@ -138,18 +138,18 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
             if (!pTemp) {
                 srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
             }
-            for (index = 0; index < ppl->count; ++index) {
+            for (index = 0; index < ppl->iNumUsed; ++index) {
                 pTemp[index] = ppl->data[index];
             }
             free(ppl->data);
             ppl->data = pTemp;
             ppl->capacity += 5;
         }
-        ppl->data[ppl->count] = pEntry;
-        ++ppl->count;
-        return ppl->count - 1;
+        ppl->data[ppl->iNumUsed] = pEntry;
+        ++ppl->iNumUsed;
+        return ppl->iNumUsed - 1;
     }
-    if (ppl->count >= ppl->capacity) {
+    if (ppl->iNumUsed >= ppl->capacity) {
         if (!ppl) {
             srAssertFail("ppl", PLIST_CPP, 0x1d6, 0);
         }
@@ -157,18 +157,18 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
         if (!pTemp) {
             srAssertFail("pTemp", PLIST_CPP, 0x1d9, 0);
         }
-        for (index = 0; index < ppl->count; ++index) {
+        for (index = 0; index < ppl->iNumUsed; ++index) {
             pTemp[index] = ppl->data[index];
         }
         free(ppl->data);
         ppl->data = pTemp;
         ppl->capacity += 5;
     }
-    for (index = ppl->count; index > position; --index) {
+    for (index = ppl->iNumUsed; index > position; --index) {
         ppl->data[index] = ppl->data[index - 1];
     }
     ppl->data[position] = pEntry;
-    ++ppl->count;
+    ++ppl->iNumUsed;
     return position;
 }
 
@@ -178,7 +178,7 @@ void PListClear(W8PList* ppl)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x15a, 0);
     }
-    ppl->count = 0;
+    ppl->iNumUsed = 0;
 }
 
 // FUNCTION: WIZ8 0x005e26e0
@@ -191,20 +191,21 @@ void* PListRemove(W8PList* ppl, void* pEntry)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x16f, 0);
     }
-    for (index = 0; index < ppl->count; ++index) {
+    for (index = 0; index < ppl->iNumUsed; ++index) {
         if (ppl->data[index] == pEntry) {
             if (!ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x18a, 0);
             }
-            if (index >= ppl->count) {
+            if (index >= ppl->iNumUsed) {
                 srAssertFail("iPosition < ppl->iNumUsed", PLIST_CPP, 0x18b, 0);
             }
             removed = ppl->data[index];
-            for (shift_index = index; shift_index < ppl->count - 1; ++shift_index) {
+            for (shift_index = index; shift_index < ppl->iNumUsed - 1; ++shift_index) {
                 ppl->data[shift_index] = ppl->data[shift_index + 1];
             }
-            --ppl->count;
-            if ((double)ppl->count / (double)ppl->capacity < 0.25 && !ppl) {
+            --ppl->iNumUsed;
+            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 &&
+                !ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
             }
             return removed;
@@ -222,15 +223,15 @@ void* PLRemoveAt(W8PList* ppl, int position)
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x18a, 0);
     }
-    if (position >= ppl->count) {
+    if (position >= ppl->iNumUsed) {
         srAssertFail("iPosition < ppl->iNumUsed", PLIST_CPP, 0x18b, 0);
     }
     entry = ppl->data[position];
-    for (index = position; index < ppl->count - 1; ++index) {
+    for (index = position; index < ppl->iNumUsed - 1; ++index) {
         ppl->data[index] = ppl->data[index + 1];
     }
-    --ppl->count;
-    if ((double)ppl->count / (double)ppl->capacity < 0.25 && !ppl) {
+    --ppl->iNumUsed;
+    if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 && !ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
     }
     return entry;
@@ -239,7 +240,7 @@ void* PLRemoveAt(W8PList* ppl, int position)
 // FUNCTION: WIZ8 0x005e2870
 void* PLGet(W8PList* ppl, int index)
 {
-    if (ppl && index < ppl->count) {
+    if (ppl && index < ppl->iNumUsed) {
         return ppl->data[index];
     }
     return 0;
@@ -257,7 +258,7 @@ int PListIndexOf(W8PList* ppl, void* pEntry)
     if (!pEntry) {
         srAssertFail("pEntry", PLIST_CPP, 0x21d, 0);
     }
-    count = ppl->count;
+    count = ppl->iNumUsed;
     for (index = 0; index < count; ++index) {
         if (ppl->data[index] == pEntry) {
             goto done;
@@ -282,5 +283,5 @@ unsigned int PLLength(W8PList* ppl)
     if (!ppl) {
         return 0;
     }
-    return ppl->count;
+    return ppl->iNumUsed;
 }

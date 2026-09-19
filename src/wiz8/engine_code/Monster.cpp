@@ -3351,7 +3351,7 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
 
             if (animation == 0 || animation->start_frame_14 == 0 ||
                 animation->end_frame_15 < animation->start_frame_14) {
-                stParticle* particle = event->particle_08;
+                stParticle* particle = event->m_pstParticles;
                 if (particle->start_frame_264 != -1 && particle->end_frame_268 != -1 &&
                     particle->start_frame_264 != particle->end_frame_268) {
                     continue;
@@ -3359,7 +3359,7 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
                 particle->SetActive(1);
             }
         } else {
-            event->particle_08->SetActive(0);
+            event->m_pstParticles->SetActive(0);
         }
     }
 }
@@ -4079,7 +4079,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
             continue;
         }
 
-        particle = event->particle_08;
+        particle = event->m_pstParticles;
         if (animation_has_range != 0 &&
             (particle->start_frame_264 == -1 || particle->end_frame_268 == -1 ||
              particle->start_frame_264 == particle->end_frame_268) &&
@@ -4973,7 +4973,7 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(int stage, const char* old_n
     if (replaced == 0 && m_plsParticles != 0) {
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
-            if (event->particle_08->ReplaceTexture0049AC30(old_name, texture) != 0) {
+            if (event->m_pstParticles->ReplaceTexture0049AC30(old_name, texture) != 0) {
                 replaced = 1;
             }
         }
@@ -5276,7 +5276,7 @@ void W8Monster::ApplyRepresentationScale()
     }
     if (m_plsParticles != 0) {
         for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
-            stParticle* particle = (*m_plsParticles->GetAt(index))->particle_08;
+            stParticle* particle = (*m_plsParticles->GetAt(index))->m_pstParticles;
             particle->SetParticleScale(m_pRep->scale_5f0);
             if (unknown_1be != 0) {
                 (*m_plsParticles->GetAt(index))->position_0c.x *= -1.0f;

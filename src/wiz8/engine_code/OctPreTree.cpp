@@ -306,7 +306,7 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
     header.leaf_count_6e = m_leaf_count_0b8;
     header.polygon_count_72 = geometry->polygon_count_08;
     header.vertex_count_76 = geometry->vertex_count_00;
-    header.surface_count_7a = game_data->surface_count_28;
+    header.surface_count_7a = game_data->m_iNumSurfaces;
     header.gd_surface_stream_len_86 = m_gd_surface_stream_len_124;
     header.leaf_polygon_stream_len_82 = polygon_cursor_3a0;
     header.trigger_count_8a = m_trigger_count_128;
@@ -357,7 +357,7 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
         ReportBuildStatus00497690(7, "WriteOctFile: Couldn't write uiLeafGrid info.\n");
         return 0;
     }
-    if (FileWrite(file, m_owned_0d4, header.polygon_count_72 * 4, 0) == 0) {
+    if (FileWrite(file, m_aulPolyLookup, header.polygon_count_72 * 4, 0) == 0) {
         ReportBuildStatus00497690(7, "WriteOctFile: Couldn't write Poly Lookup table.\n");
         return 0;
     }
@@ -503,8 +503,8 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
         memset(records, 0, (spatial_000.submesh_count_74 + 1) * 0x9c);
         AllocateSubMesh0046A790(records);
         SplitMeshes00469670(geometry, records);
-        m_owned_0d4 = static_cast<unsigned long*>(malloc(geometry->polygon_count_08 * 4 + 4));
-        if (m_owned_0d4 == 0) {
+        m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->polygon_count_08 * 4 + 4));
+        if (m_aulPolyLookup == 0) {
             ReportBuildStatus00497690(7,
                                       "\nCreateSubMeshes: Could not allocate m_aulPolyLookup.\n");
             FreeSubmeshBuildArrays(records, spatial_000.submesh_count_74);
@@ -599,7 +599,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
                         for (unsigned long polygon = 0; polygon < record->polygon_count_1c;
                              ++polygon) {
                             unsigned long id = record->polygon_ids_24[polygon];
-                            m_owned_0d4[id] = model_index * 0x10000 + polygon;
+                            m_aulPolyLookup[id] = model_index * 0x10000 + polygon;
                             model->poly_textures_28[polygon] = geometry->polygons_0c[id].texture_28;
                             model->poly_equations_34[polygon].x =
                                 geometry->polygons_0c[id].plane_08[0];
@@ -1533,15 +1533,12 @@ char OctPreTree::TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
     bounds[1] = *maximum;
     int count = QueryObjects(&ids, minimum, maximum, 3, -1);
     for (int i = 0; i < count && hit == 0; ++i) {
-        W8GDSurface* surface = g_octree_game_data_00652db0->surfaces_38 + ids[i];
+        W8GDSurface* surface = g_octree_game_data_00652db0->m_pSurfaces + ids[i];
         if ((surface->flags_00 & 0x1080) == 0) {
-            triangle[0] = g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[0]];
-            triangle[1] = g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[1]];
-            triangle[2] = g_octree_game_data_00652db0->vertices_24[surface->vertex_indices_18[2]];
-            hit = TestSpatialTriangle0046CE60(bounds, triangle,
-                                              reinterpret_cast<const srVector3T<float>*>(
-                                                  &surface->plane_24[0])); /* reinterpret-ok:
-                the serialized 4-float plane shares the vector3's leading layout */
+            triangle[0] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[0]];
+            triangle[1] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[1]];
+            triangle[2] = g_octree_game_data_00652db0->m_pVertices[surface->vertex_indices_18[2]];
+            hit = TestSpatialTriangle0046CE60(bounds, triangle, surface->Normal());
         }
     }
     current_prop = -1;

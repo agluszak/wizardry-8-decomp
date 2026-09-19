@@ -188,7 +188,7 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x004DA060
 bool Trynnie2UrnTrigger004DA060(Trigger* pTrigger)
 {
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     unsigned int count;
 
     count = 0;

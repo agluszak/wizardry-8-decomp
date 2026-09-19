@@ -818,7 +818,7 @@ const unsigned short g_special_category_name_ids_61ea78[42] = {
 // FUNCTION: WIZ8 0x00544d30
 void ResolveSpellMissileHit(W8Missile* missile)
 {
-    W8TargetSource* source = &missile->source_22c;
+    W8TargetSource* source = &missile->m_Source;
     W8CombatSlot* target = &missile->combat_slot_260;
     W8SpellEffectDefinition* definition = &missile->definition_1fc;
     W8SpellRuntimeRecord* spell;
@@ -910,7 +910,7 @@ void ResolveSpellMissileHit(W8Missile* missile)
 // FUNCTION: WIZ8 0x00545090
 void ResolveMissileHit(W8Missile* missile, bool deflected)
 {
-    W8TargetSource* source = &missile->source_22c;
+    W8TargetSource* source = &missile->m_Source;
     W8CombatSlot* target = &missile->combat_slot_260;
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
@@ -3065,7 +3065,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                     &g_status_685170.buffers.characters[source->iChar],
                                     g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
-                            } else if (gXStatus.field_02d > 1 &&
+                            } else if (gXStatus.hostile_monster_count > 1 &&
                                        (event = QueueCharacterEvent(
                                             &g_status_685170.buffers.characters[source->iChar],
                                             g_item_message_005ee668, 0, g_effect_argument_005ed8c8,
@@ -3599,7 +3599,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                                   // reinterpret-ok: literal callers push 0x47435000 the same way
                                   *reinterpret_cast<unsigned int*>(&speed));
     if (missile != NULL) {
-        missile->source_22c = *source;
+        missile->m_Source = *source;
         missile->combat_slot_260 = *target;
         missile->SetEffectDefinition(attack);
         if (!use_default_accuracy) {
@@ -4343,7 +4343,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                     applied = ApplyDamageToMonster(monster_info, damage, &source, 0, verbose != 0,
                                                    verbose != 0, verbose != 0 ? NULL : report, 0);
                     if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
-                        gXStatus.field_02d > 1) {
+                        gXStatus.hostile_monster_count > 1) {
                         W8CharacterEvent* event = QueueCharacterEvent(
                             character, g_item_message_005ee668, 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);

@@ -2352,7 +2352,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         g_startup_world_659c0c->radius_084 =
             g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
         attachment->flags_00 &= 0xfffffff0;
-        if (flag_1cb != 0 && waypoint_mesh_054 != 0) {
+        if (flag_1cb != 0 && m_pPathModelInstance != 0) {
             BuildSearchVisualization0045CFD0();
         }
         return 0;
@@ -2376,7 +2376,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
     }
     m_owned_0c8[selected].parent_node_0a = 0;
 
-    if (flag_1cb != 0 && waypoint_mesh_054 != 0) {
+    if (flag_1cb != 0 && m_pPathModelInstance != 0) {
         BuildSearchVisualization0045CFD0();
     }
 
@@ -3223,8 +3223,8 @@ W8PathingService::~W8PathingService()
     if (m_pFileWayPoints != 0) {
         free(m_pFileWayPoints);
     }
-    if (waypoint_mesh_054 != 0) {
-        delete waypoint_mesh_054;
+    if (m_pPathModelInstance != 0) {
+        delete m_pPathModelInstance;
     }
     if (visible_waypoints_058 != 0) {
         delete visible_waypoints_058;
@@ -3292,7 +3292,7 @@ W8PathingService::W8PathingService()
     m_pSurfaces_048 = 0;
     m_pEdges_04c = 0;
     m_pFileWayPoints = 0;
-    waypoint_mesh_054 = 0;
+    m_pPathModelInstance = 0;
     visible_waypoints_058 = new BitArray(100);
     rendered_waypoints_05c = new BitArray(100);
     collected_waypoints_060 = new BitArray(100);
@@ -4825,7 +4825,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
                                                        const srVector3T<float>* destination)
 {
     W8World* world = GetWorld();
-    srNode* node = waypoint_mesh_054;
+    srNode* node = m_pPathModelInstance;
 
     if (flag_1c8 != 0) {
         srVector3T<float> adjusted = *source;
@@ -4834,14 +4834,14 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         PreparePathVisualization0045E840(&adjusted, &endpoint);
 
         if (CollectPathVisualization0045D880(&adjusted) != 0) {
-            if (waypoint_mesh_054 != 0) {
+            if (m_pPathModelInstance != 0) {
                 BuildPathVisualization0045BE30();
-                waypoint_mesh_054->clearFlag(srNode::FLAG_DISABLE);
+                m_pPathModelInstance->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
 
-            waypoint_mesh_054 = BuildPathVisualization0045BE30();
-            node = waypoint_mesh_054;
+            m_pPathModelInstance = BuildPathVisualization0045BE30();
+            node = m_pPathModelInstance;
             if (node != 0) {
                 node->setParent(world->dynamic_scene, 1);
                 node->clearFlag(srNode::FLAG_DISABLE);
@@ -4851,7 +4851,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
             return;
         }
 
-        node = waypoint_mesh_054;
+        node = m_pPathModelInstance;
         if (node != 0) {
             node->setFlag(srNode::FLAG_DISABLE);
             node->setFlag(srNode::FLAG_TERMINATE);
@@ -4861,7 +4861,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
 
     if (flag_1c9 == 0 && flag_1cb == 0) {
         DrawPathPosition0045C9A0(*source, 0);
-        node = waypoint_mesh_054;
+        node = m_pPathModelInstance;
         if (node != 0) {
             node->setFlag(srNode::FLAG_DISABLE);
             node->setFlag(srNode::FLAG_TERMINATE);
@@ -4870,12 +4870,12 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
     }
 
     if (flag_1cb != 0) {
-        if (waypoint_mesh_054 == 0) {
+        if (m_pPathModelInstance == 0) {
             EnsurePathVisualization0045D530();
-            node = waypoint_mesh_054;
+            node = m_pPathModelInstance;
             node->setParent(world->dynamic_scene, 1);
             node->setFlag(srNode::FLAG_TERMINATE);
-            if (waypoint_mesh_054 == 0) {
+            if (m_pPathModelInstance == 0) {
                 node->clearFlag(srNode::FLAG_DISABLE);
                 return;
             }
@@ -4886,7 +4886,7 @@ void W8PathingService::UpdatePathVisualization0045BC40(const srVector3T<float>* 
         DrawPathPosition0045C9A0(adjusted, 1);
     }
 
-    waypoint_mesh_054->clearFlag(srNode::FLAG_DISABLE);
+    m_pPathModelInstance->clearFlag(srNode::FLAG_DISABLE);
 }
 
 /* Populate the editor mesh from the currently visible waypoint set. Marker
@@ -4911,11 +4911,11 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
         }
         marker_offsets_scaled = 1;
     }
-    if (waypoint_mesh_054 == 0) {
+    if (m_pPathModelInstance == 0) {
         EnsurePathVisualization0045D530();
     }
 
-    stMeshModel* model = static_cast<stMeshModel*>(waypoint_mesh_054->model());
+    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->model());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     srVector3i* polygons = model->getPolyVertex();
@@ -5094,7 +5094,7 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
     }
     model->control_state_390 |= 8;
     model->flags_3a0 &= ~2U;
-    return waypoint_mesh_054;
+    return m_pPathModelInstance;
 }
 
 /* Rebuild the editor's bounded grid search when the cursor enters a new path
@@ -5276,7 +5276,7 @@ void W8PathingService::BuildSearchVisualization0045CFD0()
         srVector3T<float>(0.0f, 125.0f, 0.0f), srVector3T<float>(-62.5f, 0.0f, -62.5f),
         srVector3T<float>(-62.5f, 0.0f, 62.5f), srVector3T<float>(62.5f, 0.0f, 62.5f),
         srVector3T<float>(62.5f, 0.0f, -62.5f)};
-    stMeshModel* model = static_cast<stMeshModel*>(waypoint_mesh_054->model());
+    stMeshModel* model = static_cast<stMeshModel*>(m_pPathModelInstance->model());
     srVector3T<float>* colors = model->getVertexDIG(0, 1);
     srVector3T<float>* vertices = model->getVertexLoc();
     model->getActivePolygonTable(1);
@@ -5489,15 +5489,15 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
         colors[index].Set(0.0, 0.0, 1.0);
     }
 
-    waypoint_mesh_054 = CreateModelInstance0046F5C0(model);
-    if (waypoint_mesh_054 == 0) {
+    m_pPathModelInstance = CreateModelInstance0046F5C0(model);
+    if (m_pPathModelInstance == 0) {
         srAssertFail("m_pPathModelInstance", OCTPATH_CPP, 0x1226,
                      "CreateWayPointMesh -- Could not create pstModelInstance.");
     }
-    waypoint_mesh_054->setName("WayPoint Mesh");
-    waypoint_mesh_054->setExclusionMask(3);
-    waypoint_mesh_054->setFlag(srNode::FLAG_DISABLE);
-    return waypoint_mesh_054;
+    m_pPathModelInstance->setName("WayPoint Mesh");
+    m_pPathModelInstance->setExclusionMask(3);
+    m_pPathModelInstance->setFlag(srNode::FLAG_DISABLE);
+    return m_pPathModelInstance;
 }
 
 /* Collect nearby waypoint surfaces and mark the subset directly visible from

@@ -673,7 +673,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                 if (g_flag_00659756 == 0) {
                                     DestroyMonsterGenerators();
                                 }
-                                W8MonsterGenerator::LoadAll(stream->m_hFile);
+                                MonGen::LoadAll(stream->m_hFile);
                             } else if (chunk_id == 0x4b434f4c || /* LOCK */
                                        chunk_id == 0x534b434c) { /* LCKS */
                                 LoadTriggerRuntimeStates0043CCF0(stream->m_hFile);
@@ -756,7 +756,7 @@ unsigned char LoadDefaultLevelStatus(unsigned int level)
                 } else if (chunk_id == 0x45425543) { /* CUBE */
                     LoadWorldCursorNodes0048E7B0(chunk.m_hFile);
                 } else if (chunk_id == 0x474e4f4d) { /* MONG */
-                    W8MonsterGenerator::LoadAll(chunk.m_hFile);
+                    MonGen::LoadAll(chunk.m_hFile);
                 } else if (chunk_id == 0x53455254) { /* TRES */
                     LoadTriggerActionData0043D1F0(chunk.m_hFile);
                 }

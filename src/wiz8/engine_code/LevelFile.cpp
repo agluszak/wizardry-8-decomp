@@ -985,7 +985,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 if (pRecord != 0) {
                     okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
                     okRecord &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
-                    okRecord &= FileRead(hFile, pRecord->unknown_1b1, 2, 0);
+                    okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
                     g_level_file_6833fc
                         ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
                         pRecord;
@@ -1104,7 +1104,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
                     if (pRecord != 0) {
                         okRecord = FileWrite(hFile, &pRecord->kind_00, 1, 0);
                         okRecord &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
-                        okRecord &= FileWrite(hFile, pRecord->unknown_1b1, 2, 0);
+                        okRecord &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
                         free(pRecord);
                     }
                     ok &= okRecord;
@@ -1305,7 +1305,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             if (pRecord != 0) {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
-                ok &= FileRead(hFile, pRecord->unknown_1b1, 2, 0);
+                ok &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
                 g_level_file_6833fc
                     ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] = pRecord;
                 ++g_level_file_6833fc->num_linked_records_2609;
@@ -1413,7 +1413,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
             if (pRecord != 0) {
                 ok = FileWrite(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
-                ok &= FileWrite(hFile, pRecord->unknown_1b1, 2, 0);
+                ok &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
                 free(pRecord);
             }
             fSuccess &= ok;
@@ -2109,32 +2109,24 @@ bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
 // FUNCTION: WIZ8 0x004D5240
 bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem)
 {
-    char* pRecord = reinterpret_cast<char*>(pSystem); /* reinterpret-ok: raw serialized memory */
     unsigned char fSuccess = FileRead(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 < 2) {
-        pSystem->unknown_217[0] = 0;
-        pSystem->unknown_217[1] = 0;
+        pSystem->particle_01.value_216 = 0;
     } else {
-        fSuccess &= FileRead(hFile, pSystem->unknown_217, 2, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.value_216, 2, 0);
     }
     if (pSystem->version_00 < 3) {
-        pSystem->unknown_219[0] = 0;
-        pSystem->unknown_219[1] = 0;
-        pSystem->unknown_219[2] = 0;
-        pSystem->unknown_219[3] = 0;
-        pSystem->unknown_21d = 0;
+        pSystem->particle_01.state_218 = 0;
+        pSystem->particle_01.value_21c = 0;
     } else {
-        fSuccess &= FileRead(hFile, pSystem->unknown_219, 4, 0) &
-                    FileRead(hFile, &pSystem->unknown_21d, 1, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.state_218, 4, 0) &
+                    FileRead(hFile, &pSystem->particle_01.value_21c, 1, 0);
     }
     if (pSystem->version_00 < 4) {
-        pSystem->unknown_21e[0] = 0;
-        pSystem->unknown_21e[1] = 0;
-        pSystem->unknown_21e[2] = 0;
-        pSystem->unknown_21e[3] = 0;
+        pSystem->particle_01.start_frame_21d = 0;
     } else {
-        fSuccess &= FileRead(hFile, pSystem->unknown_21e, 4, 0) &
-                    FileRead(hFile, pSystem->unknown_222, 4, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.start_frame_21d, 4, 0) &
+                    FileRead(hFile, &pSystem->particle_01.end_frame_221, 4, 0);
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
@@ -2142,10 +2134,10 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
     ReportBuildStatus00497690(
         5,
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-            String("Particle System: %s Position (%f, %f, %f)", pRecord + 1,
-                   (double)(*(float*)(pRecord + 0x41) * g_world_scale_005ebc40),
-                   (double)(*(float*)(pRecord + 0x45) * g_world_scale_005ebc40),
-                   (double)(*(float*)(pRecord + 0x49) * g_world_scale_005ebc40))));
+            String("Particle System: %s Position (%f, %f, %f)", pSystem->particle_01.name,
+                   pSystem->particle_01.location.x * g_world_scale_005ebc40,
+                   pSystem->particle_01.location.y * g_world_scale_005ebc40,
+                   pSystem->particle_01.location.z * g_world_scale_005ebc40)));
     return fSuccess;
 }
 
@@ -2154,15 +2146,15 @@ bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSyst
 {
     unsigned char fSuccess = FileWrite(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 > 1) {
-        fSuccess &= FileWrite(hFile, pSystem->unknown_217, 2, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.value_216, 2, 0);
     }
     if (pSystem->version_00 > 2) {
-        fSuccess &= FileWrite(hFile, pSystem->unknown_219, 4, 0) &
-                    FileWrite(hFile, &pSystem->unknown_21d, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.state_218, 4, 0) &
+                    FileWrite(hFile, &pSystem->particle_01.value_21c, 1, 0);
     }
     if (pSystem->version_00 > 3) {
-        fSuccess &= FileWrite(hFile, pSystem->unknown_21e, 4, 0) &
-                    FileWrite(hFile, pSystem->unknown_222, 4, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.start_frame_21d, 4, 0) &
+                    FileWrite(hFile, &pSystem->particle_01.end_frame_221, 4, 0);
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa2a, "Couldn't Write particle system.\n");

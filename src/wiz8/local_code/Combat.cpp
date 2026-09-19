@@ -1185,7 +1185,7 @@ void AssignCombatPhases004E89D0(void)
             ClampInteger(&value, -10, 0x59);
             row->phase = 0x5a - value;
             RoundPhaseToStep(&row->phase, 10);
-            if (gXStatus.field_02d != 0 && character->skills[W8_SKILL_SNAKESPEED].flag_00 != 0 &&
+            if (gXStatus.hostile_monster_count != 0 && character->skills[W8_SKILL_SNAKESPEED].flag_00 != 0 &&
                 Random(5) == 0) {
                 PracticeCharacterSkill(character, W8_SKILL_SNAKESPEED, 1, 0);
             }
@@ -1287,7 +1287,7 @@ void AdvanceCombatRound004E9B20(void)
         ClearPendingPartyMovement(-1);
     }
     ReconcilePartyFormation(&gXStatus.edited_formation, &g_status_685170.formation);
-    if (gXStatus.field_02d != 0) {
+    if (gXStatus.hostile_monster_count != 0) {
         ShowNoticef(0xc, gppStringList[0x22b], g_combat_state->value_004);
         SoundPlay("Data\\Sound\\Misc\\EndTurnChime.wav", 0);
     }
@@ -1418,7 +1418,7 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
             }
         }
     } else {
-        if (((arg_1 == 0 || gXStatus.field_02d != 0) || g_dword_6850be != 0) &&
+        if (((arg_1 == 0 || gXStatus.hostile_monster_count != 0) || g_dword_6850be != 0) &&
             g_combat_state->unengaged_rounds_a56 < 2) {
             return 0;
         }
@@ -1688,7 +1688,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         result = CreateCharacterBreathEffect(party_slot);
         break;
     case 3:
-        if (gXStatus.field_02d != 0 &&
+        if (gXStatus.hostile_monster_count != 0 &&
             (Function547CB0(party_slot, &fatigue_cost, 1), fatigue_cost != -1)) {
             goto action_done;
         }
@@ -2019,7 +2019,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         case 6:
             if (monster_info->summoned_2da != 0 ||
-                (monster_info->ubDisposition == '\x02' && gXStatus.field_02d == 0)) {
+                (monster_info->ubDisposition == '\x02' && gXStatus.hostile_monster_count == 0)) {
                 ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
                 monster_info->action_kind = 1;
                 continue;
@@ -2550,7 +2550,7 @@ void UpdateCombat004E8EA0(void)
     if (gXStatus.fSurprisePossible != 0) {
         return;
     }
-    if (g_combat_state->combat_evaluated_a48 == 0 && gXStatus.field_02d != 0) {
+    if (g_combat_state->combat_evaluated_a48 == 0 && gXStatus.hostile_monster_count != 0) {
         Function4E6CE0();
         g_combat_state->combat_evaluated_a48 = 1;
     }
@@ -2869,7 +2869,7 @@ void ScheduleCombatActor004E9490(void)
                     apply_delay = true;
                 }
             }
-            if (apply_delay != 0 && (gXStatus.field_02d != 0 || g_dword_6850be != 0) &&
+            if (apply_delay != 0 && (gXStatus.hostile_monster_count != 0 || g_dword_6850be != 0) &&
                 GetLevelDataFlag6() != 0) {
                 unsigned int delay = g_settings_6850c8.combat_delay_ms;
                 if (g_combat_state->unknown_a60 != 0 &&

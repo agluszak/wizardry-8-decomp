@@ -628,7 +628,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
                     return;
                 }
-                gXStatus.monster_manager_entries[slot].unknown_0e9[1 + skill_id] = 1;
+                gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] = 1;
                 g_deferred_skill_notices_0068506d = 1;
             }
         }

@@ -51,6 +51,14 @@ struct W8GDSurface {
     unsigned int positional_44;
     float slope_48; /* face slope; generated surfaces derive it from normal_24[1] */
 
+    /* The plane's leading three floats read as the surface normal; the union
+       keeps raw floats because srVector3T has a user-provided constructor. */
+    const srVector3T<float>* Normal() const
+    {
+        // reinterpret-ok: plane_24's leading three floats are the unit normal
+        return reinterpret_cast<const srVector3T<float>*>(&normal_24);
+    }
+
     /* 0x0041CF90: unrecovered segment-vs-surface test used by env motion. */
     unsigned char TestSegment0041CF90(srVector3T<float>* from, const srVector3T<float>* direction,
                                       float* hit_distance, srVector3T<float>* vertices);

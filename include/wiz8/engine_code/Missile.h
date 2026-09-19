@@ -125,7 +125,7 @@ public:
     int value_1f4;
     float duration_1f8;
     W8SpellEffectDefinition definition_1fc;
-    W8TargetSource source_22c;
+    W8TargetSource m_Source;
     W8CombatSlot combat_slot_260;
     /* 0x280: the damage and condition results this missile has accumulated,
        folded into the owning spell effect by 0x00500460. */

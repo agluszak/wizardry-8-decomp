@@ -114,7 +114,7 @@ void KillTrynnieGroups004DA850(void)
 {
     W8MonsterGroup* group;
     W8MonsterRecord* record;
-    W8MonsterGenerator* generator;
+    MonGen* generator;
     int iOldTable;
     int iNewTable;
     int index;

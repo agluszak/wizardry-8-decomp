@@ -330,10 +330,7 @@ char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
         triangle[0] = m_pVertices[surface->vertex_indices_18[0]];
         triangle[1] = m_pVertices[surface->vertex_indices_18[1]];
         triangle[2] = m_pVertices[surface->vertex_indices_18[2]];
-        hit = TestSpatialTriangle0046CE60(
-            bounds, triangle,
-            reinterpret_cast<const srVector3T<float>*>(&surface->plane_24[0])); /* reinterpret-ok:
-            the serialized 4-float plane shares the vector3's leading layout */
+        hit = TestSpatialTriangle0046CE60(bounds, triangle, surface->Normal());
     }
     return hit;
 }

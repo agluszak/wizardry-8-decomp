@@ -115,7 +115,7 @@ void ConstructWorldCollections(W8World* world)
     world->plsAmbientSounds = PLCreate();
     world->lights_to_update = new W8GrowableVector<stLight*>;
     world->collidable_props = new W8GrowableVector<W8Prop*>;
-    world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
+    world->monster_generators = new W8GrowableVector<MonGen*>;
     world->spell_visuals = new W8GrowableVector<W8SpellVisual*>;
     world->missiles = new W8GrowableVector<W8Missile*>;
     world->triggers = new W8GrowableVector<Trigger*>;

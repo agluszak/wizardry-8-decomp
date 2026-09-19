@@ -350,7 +350,7 @@ unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, 
                 }
                 event->cycle_00 = cycle_index;
                 event->subcycle_04 = -1;
-                event->particle_08 = particle;
+                event->m_pstParticles = particle;
                 location = particle->getLocation();
                 event->position_0c = location;
                 particle->getRotation(event->rotation_18);
@@ -481,10 +481,10 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
 
                 event->cycle_00 = source_event->cycle_00;
                 event->subcycle_04 = source_event->subcycle_04;
-                event->particle_08 = new stParticle(*source_event->particle_08);
+                event->m_pstParticles = new stParticle(*source_event->m_pstParticles);
                 event->position_0c = source_event->position_0c;
                 event->rotation_18 = source_event->rotation_18;
-                if (event->particle_08 == 0) {
+                if (event->m_pstParticles == 0) {
                     srAssertFail("pstParticle",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x66, 0);
                 }
@@ -518,15 +518,15 @@ W8GrCycle::~W8GrCycle()
         count = m_plsParticles->GetCount();
         for (index = 0; index < count; ++index) {
             W8GrCycleParticleAttachment* event = *m_plsParticles->GetAt(index);
-            stParticle* owner = event->particle_08;
+            stParticle* owner = event->m_pstParticles;
 
             if (owner == 0 || owner->active_particle_count_18c == 0) {
-                if (event->particle_08 != 0) {
-                    event->particle_08->release();
+                if (event->m_pstParticles != 0) {
+                    event->m_pstParticles->release();
                 }
                 delete event;
             } else {
-                event->particle_08 = 0;
+                event->m_pstParticles = 0;
                 delete event;
                 owner->SetActive(1);
                 owner->state_184 = 1;
@@ -1053,7 +1053,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
 
     for (index = 0; index < count; ++index) {
         W8GrCycleParticleAttachment* attachment = *m_plsParticles->GetAt(index);
-        stParticle* particle = attachment->particle_08;
+        stParticle* particle = attachment->m_pstParticles;
         if (particle->active_1a0 == 0) {
             continue;
         }

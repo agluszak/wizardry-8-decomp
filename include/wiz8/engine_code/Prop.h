@@ -69,7 +69,7 @@ static_assert(sizeof(W8PropRepresentation) == 0xc4, "W8PropRepresentation_must_b
 
 /* Engine Code\Prop.cpp.  Prop::Prop() calls W8GrObject::W8GrObject and
    allocates operator new(0x90), which proves both the base and the extent.
-   m_pRep and m_animation_timer are the assertion-backed names; the representation is
+   m_pRep and m_pTimer are the assertion-backed names; the representation is
    the Prop-owned W8PropRepresentation stored through GrObject's m_pRep slot. */
 class W8Prop : public W8GrObject {
 public:
@@ -150,7 +150,7 @@ public:
     /* 0x24: UpdatePropAnimation0044C030 stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
     float unknown_024;
-    W8GameTimer* m_animation_timer; /* 0x28 */
+    W8GameTimer* m_pTimer;          /* 0x28 */
     srVector3T<float> position_02c; /* 0x2c: written by ApplyAnimationFrame0044C670 */
     GDProp* m_gd_prop;              /* 0x38 */
     srVector3T<float> position_03c; /* 0x3c */

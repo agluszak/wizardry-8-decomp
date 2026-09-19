@@ -235,7 +235,7 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
 /* Extend the surface build tree with the storage consumed by the destructive
    pre-tree conversion pass. */
 // FUNCTION: WIZ8 0x004afda0
-W8OctBuildPreTree004AFDA0::W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T<float>* minimum,
+OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
                                                      srVector3T<float>* maximum,
                                                      unsigned short item_limit,
                                                      unsigned long path_capacity, short extent_mode)
@@ -250,10 +250,10 @@ W8OctBuildPreTree004AFDA0::W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T
     memset(level_counts_c4, 0, sizeof(level_counts_c4));
     path_capacity_bc = path_capacity;
     selected_depth_c0 = 0;
-    region_paths_ec = 0;
+    m_pulRegPaths = 0;
     region_path_count_f0 = 0;
     region_bits_f8 = 0;
-    region_centers_fc = 0;
+    m_psrvRegCenters = 0;
     positional_124 = 0;
     positional_128 = 0;
     positional_100 = 0;
@@ -274,7 +274,7 @@ W8OctBuildPreTree004AFDA0::W8OctBuildPreTree004AFDA0(float leaf_size, srVector3T
    recursive region-map walk. */
 // FUNCTION: WIZ8 0x004b06e0
 unsigned char
-W8OctBuildPreTree004AFDA0::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
+OctBuildPreTree::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
                                                            short value, short mode)
 {
     W8OctSpatialState working(&spatial_00);
@@ -297,7 +297,7 @@ W8OctBuildPreTree004AFDA0::UpdateRegionForGeometry004B06E0(const srVector3T<floa
    leaf. The temporary child record carries the exact subcell bounds into the
    recursive call. */
 // FUNCTION: WIZ8 0x004b07e0
-unsigned char W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
+unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
                                                                  const srVector3T<float>* geometry,
                                                                  short value, short mode)
 {
@@ -378,7 +378,7 @@ unsigned char W8OctBuildPreTree004AFDA0::UpdateRegionMap004B07E0(const W8OctSpat
    the temporary spatial hierarchy, assign every discovered path to its build
    node, and then derive the persistent region metadata. */
 // FUNCTION: WIZ8 0x004b19f0
-unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
+unsigned short OctBuildPreTree::BuildRegions004B19F0()
 {
     W8OctSpatialState working(&spatial_00);
 
@@ -407,14 +407,14 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
     }
 
     unsigned long level_count = level_counts_c4[spatial_00.leaf_level_52];
-    region_paths_ec = static_cast<unsigned long*>(malloc(level_count * sizeof(unsigned long) + 8));
-    if (region_paths_ec == 0) {
+    m_pulRegPaths = static_cast<unsigned long*>(malloc(level_count * sizeof(unsigned long) + 8));
+    if (m_pulRegPaths == 0) {
         srAssertFail("m_pulRegPaths", OCT_BUILD_PRE_TREE_CPP, 0x6f1, 0);
     }
 
-    region_centers_fc = static_cast<srVector3T<float>*>(srHeap.allocate(
+    m_psrvRegCenters = static_cast<srVector3T<float>*>(srHeap.allocate(
         (level_count + 2 + spatial_00.region_id_bound_58) * sizeof(srVector3T<float>)));
-    if (region_centers_fc == 0) {
+    if (m_psrvRegCenters == 0) {
         srAssertFail("m_psrvRegCenters", OCT_BUILD_PRE_TREE_CPP, 0x6f3, 0);
     }
 
@@ -425,7 +425,7 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
     region_bits_f8 = new BitArray(spatial_00.region_id_bound_58);
 
     for (unsigned short path_index = 0; path_index < region_path_count_f0; ++path_index) {
-        unsigned long path = region_paths_ec[path_index];
+        unsigned long path = m_pulRegPaths[path_index];
         W8OctBuildNode00446330* node = FindNode004B23F0(path);
         if (node->leaf_kind_2a != 0 && node->leaf_kind_2a < 25) {
             MergeAdjacentRegion004B2450(node, path);
@@ -444,8 +444,8 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
     AssignRegionFromSurfaces004B3050(&working);
     ValidatePolygonRegions004B3330();
 
-    srHeap.free(region_centers_fc);
-    region_centers_fc = 0;
+    srHeap.free(m_psrvRegCenters);
+    m_psrvRegCenters = 0;
     if (region_bits_f8 != 0) {
         delete region_bits_f8;
     }
@@ -462,7 +462,7 @@ unsigned short W8OctBuildPreTree004AFDA0::BuildRegions004B19F0()
    merge, while the farthest referenced vertex establishes the region radius
    used by that merge. */
 // FUNCTION: WIZ8 0x004b1d90
-void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(const W8OctSpatialState* spatial)
+void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spatial)
 {
     W8OctSpatialState child(spatial);
     if (spatial->depth_44 >= 16) {
@@ -500,10 +500,10 @@ void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(const W8OctSpatialS
         }
 
         if (contained_count != 0) {
-            srVector3T<float>& center = region_centers_fc[spatial_00.region_id_bound_58];
+            srVector3T<float>& center = m_psrvRegCenters[spatial_00.region_id_bound_58];
             center = (spatial->maximum_18 + spatial->minimum_0c) * g_float_005ebc7c;
 
-            region_paths_ec[region_path_count_f0++] = spatial->positional_94;
+            m_pulRegPaths[region_path_count_f0++] = spatial->positional_94;
 
             for (unsigned long index = 0; index < g_value_65be58; ++index) {
                 W8OctRegionPolygon* polygon =
@@ -561,7 +561,7 @@ void W8OctBuildPreTree004AFDA0::AssignInitialRegions004B1D90(const W8OctSpatialS
 /* Follow the active depth bits in a packed octree path. Each active bit
    contributes one x/y/z child selector, from the highest level down. */
 // FUNCTION: WIZ8 0x004b23f0
-W8OctBuildNode00446330* W8OctBuildPreTree004AFDA0::FindNode004B23F0(unsigned int path)
+W8OctBuildNode00446330* OctBuildPreTree::FindNode004B23F0(unsigned int path)
 {
     W8OctBuildNode00446330* node = static_cast<W8OctBuildNode00446330*>(spatial_00.root_90);
     unsigned int active_levels = path >> 24;
@@ -590,7 +590,7 @@ W8OctBuildNode00446330* W8OctBuildPreTree004AFDA0::FindNode004B23F0(unsigned int
    the first region that can be merged. The high byte remains the depth mask;
    the other three bytes are the x/y/z cell coordinates. */
 // FUNCTION: WIZ8 0x004b2450
-unsigned char W8OctBuildPreTree004AFDA0::MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node,
+unsigned char OctBuildPreTree::MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node,
                                                                      unsigned int path)
 {
     int cell[4];
@@ -646,7 +646,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeAdjacentRegion004B2450(W8OctBuildN
    node. Every packed path is re-keyed in the region table and the surviving
    center becomes the population-weighted average of both groups. */
 // FUNCTION: WIZ8 0x004b25c0
-unsigned char W8OctBuildPreTree004AFDA0::MergeRegion004B25C0(W8OctBuildNode00446330* node,
+unsigned char OctBuildPreTree::MergeRegion004B25C0(W8OctBuildNode00446330* node,
                                                              const int* cell)
 {
     unsigned long neighbor_path = ((cell[1] * 0x100 + cell[2]) * 0x100 + cell[3]) + cell[0];
@@ -661,8 +661,8 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeRegion004B25C0(W8OctBuildNode00446
         return 0;
     }
 
-    srVector3T<float>& node_center = region_centers_fc[node_region];
-    srVector3T<float>& neighbor_center = region_centers_fc[neighbor_region];
+    srVector3T<float>& node_center = m_psrvRegCenters[node_region];
+    srVector3T<float>& neighbor_center = m_psrvRegCenters[neighbor_region];
     float distance = (node_center - neighbor_center).Length();
     if (!(distance < spatial_00.region_grid_cell_54 * g_float_005ec52c)) {
         return 0;
@@ -701,7 +701,7 @@ unsigned char W8OctBuildPreTree004AFDA0::MergeRegion004B25C0(W8OctBuildNode00446
    polygon and path-table entry through that map, and derive aggregate bounds
    for the validation pass. */
 // FUNCTION: WIZ8 0x004b2a20
-void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
+void OctBuildPreTree::FinalizeRegionMapping004B2A20()
 {
     unsigned short* region_map = static_cast<unsigned short*>(
         malloc(spatial_00.region_id_bound_58 * sizeof(unsigned short)));
@@ -709,7 +709,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
 
     unsigned short next_region = spatial_00.region_count_46;
     for (unsigned short mapping_index = 0; mapping_index < region_path_count_f0; ++mapping_index) {
-        W8OctBuildNode00446330* node = FindNode004B23F0(region_paths_ec[mapping_index]);
+        W8OctBuildNode00446330* node = FindNode004B23F0(m_pulRegPaths[mapping_index]);
         if (node->leaf_kind_2a != 0) {
             unsigned short provisional = node->positional_2c;
             if (node->positional_28 == provisional) {
@@ -766,7 +766,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
     }
 
     for (unsigned short path_index = 0; path_index < region_path_count_f0; ++path_index) {
-        unsigned long path = region_paths_ec[path_index];
+        unsigned long path = m_pulRegPaths[path_index];
         W8OctBuildNode00446330* node = FindNode004B23F0(path);
         unsigned short old_region = node->positional_28;
         positional_124->Remove(&old_region, &path);
@@ -789,7 +789,7 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
 /* Descend to the selected region depth, collect the surfaces below each
    unassigned node, and choose the most frequent nonzero surface region. */
 // FUNCTION: WIZ8 0x004b3050
-void W8OctBuildPreTree004AFDA0::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial)
+void OctBuildPreTree::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial)
 {
     W8OctSpatialState child(spatial);
     if (spatial->depth_44 > 15) {
@@ -870,7 +870,7 @@ void W8OctBuildPreTree004AFDA0::AssignRegionFromSurfaces004B3050(const W8OctSpat
    build node with that id. A coordinate just below a grid plane is checked in
    both the truncated cell and its negative neighbor. */
 // FUNCTION: WIZ8 0x004b3330
-void W8OctBuildPreTree004AFDA0::ValidatePolygonRegions004B3330()
+void OctBuildPreTree::ValidatePolygonRegions004B3330()
 {
     unsigned int active_levels = 0;
     for (unsigned int depth = 0; depth < spatial_00.leaf_level_52; ++depth) {
@@ -934,7 +934,7 @@ void W8OctBuildPreTree004AFDA0::ValidatePolygonRegions004B3330()
 /* Check every path assigned to a region against both the build-node region id
    and the aggregate automesh bounds produced for that region. */
 // FUNCTION: WIZ8 0x004b35b0
-void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const W8BoundingBox* region_bounds)
+void OctBuildPreTree::ValidateRegionBounds004B35B0(const W8BoundingBox* region_bounds)
 {
     for (unsigned long region_index = 1; region_index < spatial_00.submesh_count_74;
          ++region_index) {
@@ -977,8 +977,8 @@ void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const W8BoundingBox
    regions lead the compact list, followed by one null-terminated list per
    region; the lookup table stores each region's offset into that list. */
 // FUNCTION: WIZ8 0x004b3820
-unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
-    const W8VersionedLevelParticleRecord* particles, int particle_count)
+unsigned char OctBuildPreTree::BuildParticleRegions004B3820(
+    const W8LevelFileParticleSystem* particles, int particle_count)
 {
     particle_count_11c = particle_count;
     positional_12c = new W8HashTable<unsigned short, short>;
@@ -989,7 +989,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
     int particle_number = 0;
 
     for (int particle_index = 0; particle_index < particle_count; ++particle_index) {
-        const W8LevelParticleRecord004BD0D0& particle = particles[particle_index].particle_001;
+        const W8LevelParticleRecord004BD0D0& particle = particles[particle_index].particle_01;
         char name[64];
         strcpy(name, particle.name);
         _strupr(name);
@@ -1128,8 +1128,8 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildParticleRegions004B3820(
    table. The first call owns the shared scratch list; the final call appends
    the second bank, emits the compact lookup/list pair, and releases scratch. */
 // FUNCTION: WIZ8 0x004b3f90
-unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
-    const W8OctRegionGeometryRecord004B3F90* records, int record_count, int base_index,
+unsigned char OctBuildPreTree::BuildGeometryRegions004B3F90(
+    const W8LevelFileProp* records, int record_count, int base_index,
     unsigned char finalize)
 {
     if (finalize == 0) {
@@ -1140,16 +1140,16 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
     }
 
     for (int record_index = 0; record_index < record_count; ++record_index) {
-        const W8OctRegionGeometryRecord004B3F90& record = records[record_index];
+        const W8LevelFileProp& record = records[record_index];
         short value = (short)(base_index + 1 + record_index);
         bool mapped = false;
 
         for (unsigned short region_index = 1; region_index < spatial_00.region_count_46;
              ++region_index) {
             W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
-            for (unsigned char bounds_index = 0; bounds_index < record.bounds_count_09a;
+            for (unsigned char bounds_index = 0; bounds_index < record.anim_obj_53.num_bound_box_47;
                  ++bounds_index) {
-                const srVector3T<float>* bounds = &record.bounds_09b[bounds_index].minimum_00;
+                const srVector3T<float>* bounds = &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
                 for (int x = 0; x != 2; ++x) {
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
@@ -1186,9 +1186,9 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
         aggregate[1].x = -1000000.0f;
         aggregate[1].y = -1000000.0f;
         aggregate[1].z = -1000000.0f;
-        for (unsigned char bounds_index = 0; bounds_index < record.bounds_count_09a;
+        for (unsigned char bounds_index = 0; bounds_index < record.anim_obj_53.num_bound_box_47;
              ++bounds_index) {
-            const srVector3T<float>* bounds = &record.bounds_09b[bounds_index].minimum_00;
+            const srVector3T<float>* bounds = &record.anim_obj_53.pBoundBox[bounds_index].minimum_00;
             for (int endpoint = 0; endpoint != 2; ++endpoint) {
                 srVector3T<float> point;
                 point = bounds[endpoint] * g_world_scale_005ebc40;
@@ -1252,7 +1252,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
    already has runtime form, consume the counted build-node hierarchy, and
    populate the dense cell-to-leaf lookup. */
 // FUNCTION: WIZ8 0x004b4640
-OctPreTree* W8OctBuildPreTree004AFDA0::BuildOctPreTree004B4640()
+OctPreTree* OctBuildPreTree::BuildOctPreTree004B4640()
 {
     OctPreTree* tree = new OctPreTree;
     if (tree == 0) {
