@@ -523,7 +523,7 @@ unsigned char ReadWorldItems004BC380(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 if (world_item != 0) {
                     success = 1;
                     ActivateItem(world_item);
-                    item = world_item->owner;
+                    item = world_item->p3D;
                 }
             }
             if (trigger != 0 && item != 0) {
