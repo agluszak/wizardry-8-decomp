@@ -17,8 +17,8 @@
 
 struct W8WorldItem {
     int runtime_id; /* 0x00 */
-    W8Item* owner;  /* 0x04: owns the live world entity */
-    unsigned char unknown_08;
+    W8Item* p3D;    /* 0x04: assertion-proven pItemInfo->p3D; owns the live world entity */
+    unsigned char fActive; /* 0x08: assertion-proven pItemInfo->fActive */
     W8ItemInstance item;        /* 0x09 */
     srVector3T<float> position; /* 0x15 */
     unsigned char unknown_21[4];
@@ -41,11 +41,11 @@ struct W8WorldItem {
 
 #pragma pack(pop)
 
-W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position, int unknown,
-                             unsigned char add_to_world);
+W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
+                             int entity_flags, unsigned char add_to_world);
 W8WorldItem* GetNextWorldItem(char restart);
 unsigned char SettleWorldItem(W8WorldItem* item);
-W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int unknown,
+W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entity_flags,
                        unsigned char add_to_world);
 
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
