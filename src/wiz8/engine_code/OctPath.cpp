@@ -298,12 +298,13 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
         return 0;
     }
     if (m_ulNumWayPoints != 0 && m_pFileWayPoints != 0) {
-        result = FileWrite(handle, &version, sizeof(version), 0) |
-                 FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0) |
-                 FileWrite(handle, &m_ulNumWayPoints, sizeof(m_ulNumWayPoints), 0) |
-                 FileWrite(handle, &m_ulNumWayPtLinks, sizeof(m_ulNumWayPtLinks), 0) |
-                 FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0) |
-                 FileWrite(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
+        result = FileWrite(handle, &version, sizeof(version), 0);
+        result |= FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0);
+        result |= FileWrite(handle, &m_ulNumWayPoints, sizeof(m_ulNumWayPoints), 0);
+        result |= FileWrite(handle, &m_ulNumWayPtLinks, sizeof(m_ulNumWayPtLinks), 0);
+        result |=
+            FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
+        result |= FileWrite(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
     }
     FileClose(handle);
     return result;
@@ -325,9 +326,10 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     if (handle == 0)
         return 0;
 
-    success = FileRead(handle, &version, 4, 0) | FileRead(handle, &edge_node_count_008, 4, 0) |
-              FileRead(handle, &m_ulNumWayPoints, 4, 0) |
-              FileRead(handle, &m_ulNumWayPtLinks, 4, 0);
+    success = FileRead(handle, &version, 4, 0);
+    success |= FileRead(handle, &edge_node_count_008, 4, 0);
+    success |= FileRead(handle, &m_ulNumWayPoints, 4, 0);
+    success |= FileRead(handle, &m_ulNumWayPtLinks, 4, 0);
     if (success == 0) {
         FileClose(handle);
         return 0;

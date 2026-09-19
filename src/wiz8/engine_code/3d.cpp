@@ -490,6 +490,50 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
     return 0;
 }
 
+/* Report whether the eye sees a bounds box: true when the midpoint or any one
+   of the eight min/max corner combinations has line of sight. */
+// FUNCTION: WIZ8 0x0046FD70
+bool HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin, srVector3T<float>* minimum,
+                                    srVector3T<float>* maximum)
+{
+    srVector3T<float> point;
+
+    point = (*minimum + *maximum) * g_double_005ebe80;
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point = *maximum;
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point = *minimum;
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(minimum->x, maximum->y, maximum->z);
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(minimum->x, maximum->y, minimum->z);
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(maximum->x, maximum->y, minimum->z);
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(maximum->x, minimum->y, maximum->z);
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(minimum->x, minimum->y, maximum->z);
+    if (g_octree_6598a4->HasLineOfSight(origin, &point, 1)) {
+        return true;
+    }
+    point.Set(maximum->x, minimum->y, minimum->z);
+    return g_octree_6598a4->HasLineOfSight(origin, &point, 1);
+}
+
 // FUNCTION: WIZ8 0x0046F510
 void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum,
                           const srVector3T<float>* candidate_minimum,

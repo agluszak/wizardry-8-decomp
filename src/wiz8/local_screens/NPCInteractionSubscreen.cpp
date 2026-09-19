@@ -5163,7 +5163,7 @@ void ResolveNpcPickpocket00576BA0(int party_slot)
     case 3:
         QueueNpcScriptLine(0x17, 0, 0, 0);
         SetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc, 1);
-        ApplyFactionChange(3, 1, g_screen_state_00649f1c->dialogue_npc->record->unknown_05f[0], -5);
+        ApplyFactionChange(3, 1, g_screen_state_00649f1c->dialogue_npc->record->faction_5f, -5);
         CloseNpcDialogueTranscriptLayout();
         ShowNpcDialogueTopicMenu();
         return;

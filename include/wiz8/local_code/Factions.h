@@ -62,6 +62,10 @@ extern W8FactionRuntimeRecord g_factions[W8_FACTION_COUNT];
 extern unsigned char g_faction_relations[W8_FACTION_COUNT][W8_FACTION_COUNT];
 W8FactionDisposition GetFactionDisposition(signed char faction);
 
+/* 0x00535C50: `other` as the party reads the live score band; any other
+   target is answered by the static relation matrix. */
+W8FactionDisposition GetFactionDispositionToward(signed char faction, signed char other);
+
 signed char GetFactionDispositionScore(signed char faction);
 
 /* 0x00535920: zero both faction tables and seed the starting dispositions and

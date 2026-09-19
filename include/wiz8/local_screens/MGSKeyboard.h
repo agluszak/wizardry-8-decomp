@@ -186,3 +186,6 @@ unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event,
                                                 W8Region* region); /* 0x005949A0 */
 /* Dispatch a bound MGS command number through the keyboard system. */
 void DispatchMGSCommand(int command); /* 0x00591960 */
+/* Route one non-mouse input atom to text entry, dialogue, the trap text box,
+   the MIPE editor, the record-mode console or a bound MGS command. */
+unsigned char HandleMainGameInputEvent(const InputAtom* input); /* 0x00591890 */

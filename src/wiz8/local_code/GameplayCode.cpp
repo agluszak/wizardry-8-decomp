@@ -3,6 +3,7 @@
 #include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -41,9 +42,14 @@
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/message_box.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/dice.h"
 
+#include <math.h>
 #include <new>
+#include <string.h>
 #include <wchar.h>
+
+#include "soundman.h"
 
 /*
  * Local Code\GameplayCode.cpp.
@@ -385,6 +391,28 @@ void CalcCharacterTableValue(W8Character* character)
         g_character_table_00616604[(character->gender * 0x10 + character->race) *
                                        W8_PROFESSION_COUNT +
                                    character->current_profession];
+}
+
+// GLOBAL: WIZ8 0x00617894
+char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall_Impact.wav";
+
+/* Level-motion override landing: the accumulated fall magnitude becomes
+   pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
+   with a notice and the fall-impact sound. */
+// FUNCTION: WIZ8 0x004EF9A0
+void HandleLevelOverride004EF9A0(float fall)
+{
+    unsigned int count = static_cast<unsigned int>(pow(8.0, fall + 0.7));
+    if (count > 0) {
+        SOUNDPARMS sound_parms;
+        memset(&sound_parms, 0xff, sizeof(sound_parms));
+        sound_parms.uiVolume = g_settings_6850c8.sound_effects_volume;
+        ShowNotice(8, gppStringList[0x252]);
+        SoundPlay(s_fall_impact_wav_00617894, &sound_parms);
+        W8Dice dice;
+        SetDice(&dice, static_cast<unsigned char>(count), '\x06', 0);
+        ApplyRolledHealthChangeToParty(&dice, 0, 1);
+    }
 }
 
 /* What the character's levels are worth towards physical combat. Every

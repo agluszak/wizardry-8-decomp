@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "input.h"
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
@@ -80,3 +81,5 @@ bool AnyMonsterGeneratorMarkerWithinReach(void); /* 0x0057E3C0 */
 
 unsigned char GetFlag68F105(void);
 unsigned char GetFlag68F104(void);
+/* MIPE's key-event handler; consumes the atom while the editor is open. */
+unsigned char Function57C230(const InputAtom* input); /* 0x0057C230 */

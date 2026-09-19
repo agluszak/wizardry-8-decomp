@@ -327,7 +327,6 @@ void Function587C50(void);                                                /* 0x0
 unsigned char GetOpenDialogueFlag(void);                                  /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);                                         /* 0x0058A8C0 */
 unsigned char Function568B50(const InputAtom* input);
-unsigned char Function591890(const InputAtom* input);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
@@ -2852,7 +2851,7 @@ unsigned char ProcessMainGameInput(void)
                                             gfRightButtonState);
                 break;
             default:
-                if (HandleDialogueTextInput(&input) == 0 && Function591890(&input) == 0) {
+                if (HandleDialogueTextInput(&input) == 0 && HandleMainGameInputEvent(&input) == 0) {
                     if (g_main_game_mode_0068eddc == 3) {
                         if (gXStatus.fNpcDialogueMode != 0) {
                             EndNpcDialogueSession0056E800(0);
@@ -3258,7 +3257,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (IsWorldCursorVisible()) {
         ToggleWorldCursor();
     }
-    Function59B270();
+    ResetPartyPortraitFx();
     if (gXStatus.fLockInteractMode)
         Function5879A0(0);
     if (gXStatus.fTrapInteractMode)
@@ -3378,7 +3377,7 @@ unsigned char MainGameScreenLeave(int leaving)
     g_flag_65970d = 0;
     g_monster_shadow_updates_enabled_0065970c = 0;
     DisableSky();
-    Function598AE0();
+    DestroyMainGameInterfaceButtons();
     DestroySpellIconHudControls();
     return 1;
 }

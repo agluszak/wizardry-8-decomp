@@ -72,3 +72,6 @@ void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfi
 unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
 void Function4EF7E0(W8Character*, W8Character*, int);
 bool AnyMonsterEngaged(void); /* 0x004EEE20 */
+/* 0x004EF9A0: on a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
+   fall damage against the party with a notice and the fall-impact sound. */
+void HandleLevelOverride004EF9A0(float fall);

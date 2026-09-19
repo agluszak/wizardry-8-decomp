@@ -32,16 +32,21 @@ struct W8OctBuildNode00446330 {
 
     union {
         W8OctBuildNode00446330* children_00[8];
-        W8OctBuildLink* links_00[8];
+        /* Leaf link-list heads indexed by insert kind 0..0xb; the last four
+           heads overlay the post-build counters in the sibling member. */
+        W8OctBuildLink* links_00[12];
         W8GDSurface** surface_arrays_00[8];
         unsigned short* region_arrays_00[8];
+        struct {
+            unsigned char head_slots_00[0x20];
+            unsigned long positional_20;
+            unsigned long positional_24;
+            unsigned short positional_28;
+            unsigned short leaf_kind_2a;
+            unsigned short positional_2c;
+            unsigned short positional_2e;
+        };
     };
-    unsigned long positional_20;
-    unsigned long positional_24;
-    unsigned short positional_28;
-    unsigned short leaf_kind_2a;
-    unsigned short positional_2c;
-    unsigned short positional_2e;
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its
@@ -68,11 +73,24 @@ struct W8OctBuildTree00446390 {
     unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
                                                  srVector3T<float>* plane_point,
                                                  unsigned long mode);
-    /* 0x00446D80: unrecovered build-tree segment collect used when
-       geometry_index_00 is live and positional_04 is not. */
     int CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
                                            const srVector3T<float>* to, float half_angle,
                                            float extent, unsigned short kind);
+    /* Append `surface` to the node's `kind` link list, growing the tail and
+       raising the leaf counter plus the tree's deepest-list watermark. */
+    void AppendLink00446D00(W8OctBuildNode00446330* node, W8GDSurface* surface, short kind);
+    /* Recursive box descent for the segment collect: classify the state's box
+       against `bounds` (six floats: min then max), then collect the leaf,
+       descend the octants, or skip the node entirely. */
+    int CollectRecursive00446F20(W8OctSpatialState* state, const float* bounds, short kind);
+    /* Leaf collector: walks the per-kind link lists and appends qualifying
+       surfaces to the shared scratch array, deduplicating by pointer or by
+       the 0x2000 flag mark. */
+    int CollectLeaf00447110(W8OctBuildNode00446330* node, short depth, short kind);
+    /* Box-vs-bounds classification: 2 when the box sits fully inside bounds,
+       1 on a partial overlap, 0 when disjoint. `leaf` early-outs the corner
+       scan at the bottom octree level. */
+    int ClassifyBoxBounds00447310(const float* box, const float* bounds, char leaf);
 
     W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists_9c;

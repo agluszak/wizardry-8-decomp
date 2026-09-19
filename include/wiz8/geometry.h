@@ -62,13 +62,27 @@ struct W8GDSurface {
         return reinterpret_cast<const srVector3T<float>*>(&normal_24);
     }
 
-    /* 0x0041CF90: unrecovered segment-vs-surface test used by env motion. */
+    /* 0x0041CF90: segment-vs-surface test used by env motion. On a hit `from`
+       advances to the contact point and `hit_distance` gets the travelled
+       length; distance_34 takes the surface's updated limit. */
     unsigned char TestSegment0041CF90(srVector3T<float>* from, const srVector3T<float>* direction,
                                       float* hit_distance, srVector3T<float>* vertices);
-    /* 0x0041DC10: unrecovered collision response for a hit surface. */
-    unsigned char ResolveCollision0041DC10(const srVector3T<float>* origin,
+    /* 0x0041D9D0: shrink `limit` to the remaining in-plane distance against
+       the nearest triangle edge; fails when no edge improves it. */
+    unsigned char ClampHitToEdge0041D9D0(const srVector3T<float>* point,
+                                         const srVector3T<float>* vertices, float* limit);
+    /* 0x0041DC10: collision response for a hit surface; `origin` is advanced
+       to `hit_point` and `direction` is bent along the contact plane. */
+    unsigned char ResolveCollision0041DC10(srVector3T<float>* origin,
                                            const srVector3T<float>* hit_point,
                                            srVector3T<float>* direction, int collision_index);
+    /* 0x0041E8E0: whether moving `from` to `to` pushes this surface's
+       centroid away from surface `surface_index`'s centroid. */
+    unsigned char CentroidsDiverging0041E8E0(int surface_index, const srVector3T<float>* from,
+                                             const srVector3T<float>* to);
+    /* 0x0041EA90: environment response for a walkable contact surface;
+       adjusts `direction` and the active environ record. */
+    unsigned char ApplyEnvironContact0041EA90(srVector3T<float>* direction);
 };
 
 static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");

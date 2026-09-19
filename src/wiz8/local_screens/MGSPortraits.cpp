@@ -202,6 +202,31 @@ void TickPartyPortraitFx(void)
     }
 }
 
+/* Clear each occupied slot's damage-splat and effect-icon portrait overlays
+   and rearm the shared FX clock; the main-game screen leave runs it so a
+   pending animation does not survive the screen transition. */
+// FUNCTION: WIZ8 0x0059B270
+void ResetPartyPortraitFx(void)
+{
+    unsigned char slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
+
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        entry->effect_icon_active = 0;
+        entry->effect_icon_frame = -1;
+        entry->effect_icon_catalog = -1;
+        entry->damage_splat_active = 0;
+        entry->damage_splat_death_variant = 0;
+        entry->dead_portrait_revealed = 0;
+        entry->damage_splat_frame = -1;
+        entry->portrait_fx_clock = SetCountdownClock(0);
+    }
+}
+
 /* Draw each occupied, living and eligible party slot's combat portrait in the
    side strip once the slot's dirty flag is raised: the normal frame, or the
    alternate while the slot is the hovered combat slot, then the can't-act
