@@ -2,6 +2,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"

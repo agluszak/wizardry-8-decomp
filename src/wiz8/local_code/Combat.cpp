@@ -1646,7 +1646,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
                     action = 0;
                     slot->pending_action = 0;
                 }
-                int target = Function51B0A0(party_slot, relationship);
+                int target = PickReachableSlotByDisposition(party_slot, relationship);
                 if (target == -1) {
                     FormatDebugMessage(1, "ERROR: %ls is attacking friends with nobody in range",
                                        character->name);
@@ -1672,7 +1672,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         (gXStatus.fCombatMode == '\0' ||
          (interrupt == -1 && g_combat_state->characters[party_slot].flag_80 == '\0'))) {
         SetTargetSourceToCharacter(party_slot, &enemy_source);
-        Function5471D0(&enemy_source, &slot->target_out_of_combat);
+        MakeTargetGroupHostile(&enemy_source, &slot->target_out_of_combat);
     }
     switch (action) {
     case -1:
@@ -1718,7 +1718,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
             }
             fatigue_cost += step_cost;
         } while (step == 2 && power == 8 &&
-                 static_cast<int>(SpellCastFatigueCost(detail, 1) + fatigue_cost) <=
+                 SpellCastFatigueCost(detail, 1) + fatigue_cost <=
                      character->stamina &&
                  g_spell_records[detail].spell_point_cost <=
                      character->sp_left[g_spell_records[detail].realm]);
@@ -1909,7 +1909,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                                         &monster_info->spell_power_level) != 0 &&
             interrupt == -1 && monster_info->pCombat->unknown_015 == '\0') {
             SetTargetSourceToMonster(monster_info, &monster_source);
-            Function5471D0(&monster_source, &monster_info->Target);
+            MakeTargetGroupHostile(&monster_source, &monster_info->Target);
         }
         switch (monster_info->action_kind) {
         case 0:
@@ -1964,7 +1964,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                         approach_distance =
                             CalcRangeDistance(W8_RANGE_SHORT) * g_prepath_link_height_5ed300;
                     }
-                    Function51B320(monster_info->monster, sight, &position);
+                    GetMonsterAttackSourceOffset(monster_info->monster, sight, &position);
                     engage_distance = CalcRangeDistance(range);
                     MonsterChooseTarget(monster_info,
                                         // reinterpret-ok: fills the slot's leading dwords
@@ -2017,7 +2017,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             }
             break;
         case 6:
-            if (monster_info->value_2da != 0 ||
+            if (monster_info->summoned_2da != 0 ||
                 (monster_info->ubDisposition == '\x02' && gXStatus.field_02d == 0)) {
                 ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
                 monster_info->action_kind = 1;
@@ -2167,7 +2167,7 @@ int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
         PointCameraAtCombatTarget(&source, &monster_info->Target);
         PopulateSpellTargetMarkers(0x77, 0, &source, &monster_info->Target, &monster_targets,
                                    &char_targets, 0);
-        CollectHostileMonsters00547120(&source, &monster_targets);
+        ProvokeListedMonsterGroups(&source, &monster_targets);
     }
     ResolveMonsterGroupAttack005560A0(record->special_attack_kind_0e3, &source,
                                       &monster_info->Target, char_targets, monster_targets);
@@ -2195,7 +2195,7 @@ int ExecuteCharacterSpecialAttack(int party_slot)
     PopulateSpellTargetMarkers(0x77, 0, &source,
                                &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
                                &monster_targets, &char_targets, 0);
-    CollectHostileMonsters00547120(&source, &monster_targets);
+    ProvokeListedMonsterGroups(&source, &monster_targets);
     ResolveMonsterGroupAttack005560A0(
         0x1e, &source, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
         char_targets, monster_targets);

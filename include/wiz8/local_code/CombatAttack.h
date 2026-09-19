@@ -102,7 +102,9 @@ unsigned char RateMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
 unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                     int hostile_only); /* 0x0053D450 */
 bool CanAnyHandReachTarget(int party_slot);            /* 0x0053D310 */
-bool CanCharacterAttack(int party_slot);               /* 0x00545850 */
+/* 0x0053D2A0: whether `hand` is in play and has a range category at all. */
+bool CanHandReachTarget(int party_slot, unsigned int hand);
+bool CanCharacterAttack(int party_slot); /* 0x00545850 */
 struct W8Character;
 
 void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);

@@ -17,7 +17,10 @@ struct W8LevelProgressRow {
     /* 0x01: incremented by the combat teardown for each finished fight while
        characters are still active. */
     unsigned short combat_end_count_01;
-    unsigned char unknown_03[6];
+    /* 0x03: counted by RecordMonsterKill for each in-combat kill credited
+       while the party is on this level. */
+    short monster_kill_count_03;
+    unsigned char unknown_05[4];
     int gold_collected;
     int sight_clock;
     unsigned char unknown_11[0x10];

@@ -15,6 +15,9 @@
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/Factions.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MGSButtons.h"
@@ -155,9 +158,6 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     return monster_info;
 }
 
-/* The one record id that is displayed as a character's name with a prefix
-   rather than out of the monster database. */
-void Function5248D0(W8MonsterInfo* monster_info);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void Function508D70(unsigned int monster_list_index);
@@ -357,6 +357,124 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
         RemoveMonster(
             MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP, monster_info->location_id, 1),
             0);
+    }
+}
+
+/* The kill bookkeeping a monster's death runs: name the kill on the notice
+   channel the killer's kind selects, clear the conditions the dead monster
+   sourced, and - unless the record opts out - land the faction hit and bank
+   the kill count and experience for a monster that fought the party. */
+// FUNCTION: WIZ8 0x004E46F0
+void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
+{
+    int killer_party_slot = -1;
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+    }
+    unsigned int monster_species = monster_info->monster_species;
+    if (monster_species >= MAX_MONSTERS_IN_DATABASE) {
+        srAssertFail("uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE", MONSTER_MANAGER_CPP, 0x5f3, 0);
+    }
+    W8MonsterRecord* record = g_monster_record_cache[monster_species];
+    if (record == 0) {
+        record = static_cast<W8MonsterRecord*>(malloc(sizeof(W8MonsterRecord)));
+        if (record != 0) {
+            if (LoadMonsterDatabaseRecord(monster_species, record) == 0) {
+                free(record);
+                record = 0;
+            } else {
+                g_monster_record_cache[monster_species] = record;
+            }
+        }
+    }
+    unsigned int monster_list_index =
+        MonsterGetIndexByLocationID(0x34f, MONSTER_MANAGER_CPP, monster_info->location_id, 1);
+    unsigned int notice_channel;
+    if (TargetSourceIsCharacter(&monster_info->condition_target_304, 0)) {
+        killer_party_slot = monster_info->condition_target_304.iChar;
+        if (killer_party_slot != -1 &&
+            (killer_party_slot < 0 || killer_party_slot >= W8_PARTY_SLOT_COUNT ||
+             !g_status_685170.buffers.party_rows[killer_party_slot].occupied ||
+             g_status_685170.buffers.characters[killer_party_slot].in_party == '\0')) {
+            srAssertFail("(iKilledByPC == BAD_INDEX) || VALID_CHAR(iKilledByPC)",
+                         MONSTER_MANAGER_CPP, 0x354, 0);
+        }
+        notice_channel = (killer_party_slot == -1) + 8;
+    } else {
+        notice_channel = 9;
+    }
+    if (announce != '\0' && monster_info->flag_253 == '\0' &&
+        monster_info->party_threat.state_04 != '\0') {
+        ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
+                    gppStringList[g_condition_notices_0061E570[0x49]]);
+    }
+    Function5248D0(monster_info);
+    if (monster_info->summoned_2da == 1) {
+        return;
+    }
+    if (monster_info->flag_253 != '\0') {
+        return;
+    }
+    if (killer_party_slot == -1) {
+        if (!TargetSourceIsMonster(&monster_info->condition_target_304, 0)) {
+            goto done;
+        }
+        unsigned int killer_index = MonsterGetIndexByLocationID(
+            0x37d, MONSTER_MANAGER_CPP, monster_info->condition_target_304.iMonsterID, '\0');
+        if (killer_index == 0xffffffff) {
+            goto done;
+        }
+        W8MonsterInfo* killer_info = MonsterGetScriptPartByLocationIndex(killer_index);
+        if (killer_info == 0) {
+            srAssertFail("pKillerMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x381, 0);
+        }
+        if (killer_info->ubDisposition != '\x02') {
+            goto done;
+        }
+    }
+    ApplyFactionChange('\0', '\x01', static_cast<signed char>(record->faction_id_25f),
+                       monster_list_index);
+done:
+    MonsterKilled(record->record_id_187, killer_party_slot);
+    if (monster_info->fInCombat != '\0' &&
+        ((monster_info->ubDisposition == '\x01' && monster_info->condition_turns[0xd] == 0) ||
+         (monster_info->ubDisposition == '\x02' && monster_info->condition_turns[0xd] != 0))) {
+        ++g_combat_state->combat_result_00c;
+        if (g_status_685170.current_level < W8_LEVEL_COUNT) {
+            ++g_status_685170.level_progress[g_status_685170.current_level].monster_kill_count_03;
+        }
+        if (killer_party_slot != -1) {
+            W8Character* killer = &g_status_685170.buffers.characters[killer_party_slot];
+            ++killer->value_09f9;
+            if (record->significant_kill_268 != '\0') {
+                unsigned int level_total = 0;
+                int occupied = 0;
+                for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+                    if (g_status_685170.buffers.party_rows[slot].occupied) {
+                        level_total += g_status_685170.buffers.characters[slot].level;
+                        ++occupied;
+                    }
+                }
+                int share = occupied == 0
+                                ? 1
+                                : static_cast<int>(level_total / static_cast<double>(occupied));
+                if (share + 2 <= static_cast<int>(record->effective_level_24f)) {
+                    QueueCharacterEvent(killer, g_effect_005ee61c, 0, g_effect_argument_005ed8c8,
+                                        g_effect_argument_005ed914);
+                }
+            }
+        }
+        unsigned int experience = record->experience_override_26b;
+        if (experience == 0) {
+            experience = record->experience_181;
+            if (experience == 0) {
+                FormatDebugMessage(0, "DATA ERROR: %s is worth 0 XPs", record);
+            }
+        }
+        g_combat_state->value_010 += experience;
+        if (g_status_685170.status_ints_3121[monster_species] == 0) {
+            g_status_685170.status_ints_3121[monster_species] = 1;
+        }
     }
 }
 

@@ -413,5 +413,12 @@ void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
 void Function4E4AB0(void); /* 0x004E4AB0 */
 void Function4E6CE0(void); /* 0x004E6CE0 */
+/* The kill bookkeeping a monster's death runs: credit the killer, post the
+   "%s %s!" notice, clear conditions the dead monster sourced, apply the
+   faction fallout, and bank the kill count and experience when it fought. */
+void RecordMonsterKill(W8MonsterInfo* monster_info, char announce); /* 0x004E46F0 */
+/* The kill-fact recorder RecordMonsterKill hands the record id and the killer
+   party slot to; its home TU is the gap before NPC Manager.cpp. */
+void MonsterKilled(int record_id, int killer_party_slot); /* 0x005090C0 */
 
 #endif

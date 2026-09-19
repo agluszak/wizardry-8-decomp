@@ -218,6 +218,92 @@ W8ConditionImmunity g_condition_immunities_006171A8[3] = {
     {17, 1, {11, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
 };
 
+/* Rescan the character's condition countdowns from the top and write
+   highest_condition, then resync the three formation copies, encumbrance when
+   the dead threshold was crossed either way, the portrait pose and the
+   portrait page if it is up. */
+// FUNCTION: WIZ8 0x005237e0
+void RecomputeCharacterHighestCondition(int party_slot)
+{
+    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+        srAssertFail("fCHAR_OCCUPIED(uiChar)", CONDITIONS_CPP, 0x183, 0);
+    }
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int previous = character->highest_condition;
+    for (int index = 0x13; index >= 0; --index) {
+        if (character->condition_turns[index] != 0 || index == 0) {
+            character->highest_condition = index;
+            break;
+        }
+    }
+    UpdateFormationSlotState(&g_status_685170.formation, party_slot);
+    if (gXStatus.fCombatMode != '\0') {
+        UpdateFormationSlotState(&gXStatus.edited_formation, party_slot);
+        UpdateFormationSlotState(&g_combat_state->saved_formation, party_slot);
+    }
+    if ((previous < 0x12) != (character->highest_condition < 0x12)) {
+        RedistributePartyEncumbrance();
+    }
+    RequestPartySlotRedraw(party_slot);
+    int pose = gXStatus.monster_manager_entries[party_slot].target_portrait_pose;
+    if (character->highest_condition < 0xf) {
+        if (pose != 2) {
+            goto done;
+        }
+        pose = 1;
+    } else {
+        if (pose == 2) {
+            goto done;
+        }
+        pose = 2;
+    }
+    SetPortraitTargetPose(&gXStatus.monster_manager_entries[party_slot], pose);
+done:
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        RequestRedraw(0x200000);
+        RequestRedraw(0x8000);
+    }
+}
+
+/* Settle a condition's enchantment record on the character: a bigger argument
+   replaces the stored one, slot two rolls its bonus dice, and the top scan,
+   redraw and stats rebuild follow. */
+// FUNCTION: WIZ8 0x00523940
+void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
+                                     unsigned int duration, unsigned int percent)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Enchantment* enchantment = &character->enchantments[condition];
+    if (enchantment->value_00 < static_cast<unsigned int>(argument)) {
+        enchantment->value_00 = argument;
+        enchantment->percent_04 = static_cast<unsigned short>(percent);
+        enchantment->value_08 = duration;
+        if (condition == 2) {
+            enchantment->value_06 =
+                static_cast<short>(RollDice(&g_spell_records[0x15].effect_dice) * argument);
+            enchantment->value_06 =
+                static_cast<short>((static_cast<unsigned int>(enchantment->value_06) * percent) /
+                                   100) +
+                enchantment->value_06;
+        }
+        for (int scan = 7; scan >= 0; --scan) {
+            if (character->enchantments[scan].value_08 > 0 || scan == 0) {
+                character->enchantment_top = scan;
+                break;
+            }
+        }
+        RequestPartySlotRedraw(party_slot);
+        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+            RequestRedraw(0x200000);
+            RequestRedraw(0x8000);
+        }
+        if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {
+            g_flag_006840bb = 1;
+        }
+    }
+    RebuildConditionsAndDerivedStats(party_slot);
+}
+
 /* Setting a monster's condition runs the sameCountdown rescan, group recount
    and motion update as clearing it, plus immunity, argument and combat-hate
    handling on the way in. */
@@ -695,6 +781,42 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
     } else {
         g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08 =
             remaining - turns;
+    }
+}
+
+/* The monster-side counterpart of ApplyCharacterCondition00523940: a bigger
+   argument replaces the stored one, slot two rolls its bonus dice, a freshly
+   applied slot adds the spell icon, and the stats rebuild and special-slot
+   sight refresh follow. */
+// FUNCTION: WIZ8 0x005242b0
+void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
+                                   unsigned int duration, unsigned int percent)
+{
+    unsigned int monster_list_index =
+        MonsterGetIndexByLocationID(0x38b, CONDITIONS_CPP, location_id, 1);
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+    W8Enchantment* enchantment = &monster_info->enchantments[condition];
+    if (enchantment->value_00 <= static_cast<unsigned int>(argument)) {
+        unsigned int previous = enchantment->value_08;
+        enchantment->value_00 = argument;
+        enchantment->percent_04 = static_cast<unsigned short>(percent);
+        enchantment->value_08 = duration;
+        if (condition == 2) {
+            int roll = RollDice(&g_spell_records[0x15].effect_dice);
+            enchantment->value_06 =
+                static_cast<short>(
+                    (static_cast<unsigned int>(static_cast<unsigned short>(roll * argument)) *
+                     percent) /
+                    100) +
+                static_cast<short>(roll * argument);
+        }
+        if (previous == 0) {
+            SetMonsterSpellIcon(monster_info->monster, condition + 0x10, '\x01');
+        }
+        RebuildMonsterDerivedStats(location_id);
+        if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {
+            RefreshMonsterSight(monster_info);
+        }
     }
 }
 

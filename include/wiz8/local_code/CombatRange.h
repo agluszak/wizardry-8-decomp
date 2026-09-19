@@ -88,12 +88,22 @@ W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
 /* 0x00519BA0: the furthest range category any of the character's hands can
    reach at. */
 W8RangeCategory GetBestHandRangeCategory(const W8Character* character);
+/* 0x00519180: whether the slot's chosen action in `context` still reaches its
+   selected target - character range and front-rank screen, monster aim, place
+   distance and line of sight, or group reach. */
+bool CharacterActionReachesTarget(int party_slot, int action, W8TargetingContext context);
+/* 0x005197C0: the slot-vs-slot form the target-list builder uses: whether the
+   slot's chosen action in `context` can strike `target_slot`. */
+char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context);
 /* 0x0051B0A0: collect the party slots the slot could reach and strike under
    `relationship`, and pick one at random; -1 when none qualify. */
-int Function51B0A0(int party_slot, char relationship);
-/* 0x0051B320: write `out` the world point the monster steps toward for the
-   given sight slot. */
-void Function51B320(W8Monster* monster, int sight, srVector3T<float>* out);
+int PickReachableSlotByDisposition(int party_slot, char relationship);
+/* 0x0051B320: write `out` the offset from the monster's feet to the origin of
+   its attack for `kind` - 1 the projectile muzzle, 3 the spell hand. */
+void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float>* out);
+/* 0x0051B4E0: whether `source`'s queued action still reaches `target` -
+   characters check their own current target, monsters check `target`. */
+char SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target);
 /* 0x00518E30: whether the slot has any attack of `category` that reaches a
    valid target in the scanned group for `hand`; the condition interrupt uses
    it to tell usable attacks from merely reachable ones. */

@@ -678,7 +678,7 @@ void UpdateSpellEffects00500930(void)
             effect->flag_123 = 1;
             if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
                 effect->Source.fReflection == 0) {
-                CollectHostileMonsters00547120(&effect->Source, &effect->monster_ids_0e0);
+                ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
             }
             ProcessSpellEffectTargets(effect);
             if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {

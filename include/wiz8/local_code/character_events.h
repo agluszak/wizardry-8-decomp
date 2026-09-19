@@ -27,8 +27,10 @@ extern int g_effect_005ee5e4;
 extern int g_effect_005ee5e8;
 extern int g_effect_005ee5f0;
 extern int g_effect_005ee5f8;
+extern int g_effect_005ee60c;
 extern int g_effect_005ee610;
 extern int g_effect_005ee614; /* 0x005EE614: the victory-cheer character event */
+extern int g_effect_005ee61c;
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
 extern int g_effect_005ee624;

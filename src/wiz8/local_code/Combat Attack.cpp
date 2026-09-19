@@ -46,6 +46,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/3d_code/IList.h"
@@ -1667,7 +1668,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (entry_target.iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* defender = &g_status_685170.buffers.characters[entry_target.iChar];
         if (defender->skills[W8_SKILL_LOCKS_TRAPS].flag_00 != 0) {
-            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] = 1;
+            g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] =
+                1;
         }
         if (defender->skills[W8_SKILL_SHIELD].flag_00 != 0 && g_combat_state->unaware_9a4 == 0 &&
             g_combat_state->natural_attack_9a5 == 0 && defender->armor_class_components[3] > 0) {

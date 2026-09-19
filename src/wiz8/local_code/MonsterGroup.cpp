@@ -34,6 +34,9 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/regions.h"
+#include "wiz8/startup_world.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/local_code/character_events.h"
 
 #include <wchar.h>
 #include <string.h>
@@ -1255,24 +1258,257 @@ done:
     return group;
 }
 
-/* Stamp one control state on every live member of the group, skipping
-   entries whose monster is already in its death cycle. The member list is
-   re-measured each pass so a resize mid-walk does not overrun it. */
-// FUNCTION: WIZ8 0x005117D0
-void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state)
+/* Pick the group's new leader member: the live member carrying the highest
+   navigator value_008, or the first member when none qualify, then hand the
+   outgoing leader's script and heard-noise state to the new leader's
+   MonsterInfo. */
+// FUNCTION: WIZ8 0x005103E0
+void ElectGroupLeaderMember(W8MonsterGroup* monster_group)
 {
-    unsigned int index = 0;
-    unsigned int count = ILLength(monster_group->monsters);
-
-    while (index < count) {
-        int location_id = IListGetAt(monster_group->monsters, index);
-        unsigned int monster_list_index = MonsterGetIndexByLocationID(
-            0x818, "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp", location_id, 1);
-        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info != 0 && !monster_info->monster->IsDying()) {
-            SetMonsterControlState(monster_info, control_state);
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x438, 0);
+    }
+    if (ILLength(monster_group->monsters) == 0) {
+        srAssertFail("ILLength(pMonsterGroup->plsMonsterIDList)", MONSTER_GROUP_CPP, 0x439, 0);
+    }
+    W8MonsterInfo* old_info =
+        MonsterInfoFromID(0x43b, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+    W8Monster* old_monster = old_info->monster;
+    int leader_id = 0;
+    unsigned int best = 0;
+    if (ILLength(monster_group->monsters) != 0) {
+        unsigned int index = 0;
+        while (index < ILLength(monster_group->monsters)) {
+            int member_id = IListGetAt(monster_group->monsters, index);
+            W8Monster* member = GetMonsterByLocationID(member_id);
+            W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x443, MONSTER_GROUP_CPP, member_id, 1));
+            if (member_info->highest_condition < 0xd && ((member->flags_1dc >> 9) & 1) == 0 &&
+                best < static_cast<unsigned int>(member->movement_0c0.value_008)) {
+                best = member->movement_0c0.value_008;
+                leader_id = member_id;
+            }
+            ++index;
         }
-        ++index;
-        count = ILLength(monster_group->monsters);
+        if (leader_id != 0) {
+            monster_group->value_9f = leader_id;
+            goto done;
+        }
+    }
+    monster_group->value_9f = IListGetAt(monster_group->monsters, 0);
+done:
+    W8MonsterInfo* leader_info =
+        MonsterInfoFromID(0x454, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+    stScript* script = old_monster->script_238;
+    W8Monster* leader_monster = leader_info->monster;
+    if (script != 0 && script->getName() != 0) {
+        script = old_monster->script_238;
+        leader_monster->SetScript004C7F10(script != 0 ? script->getName() : 0, '\x01');
+    }
+    leader_info->heard_noise_radius_43 = old_info->heard_noise_radius_43;
+    leader_info->heard_noise_position_37 = old_info->heard_noise_position_37;
+}
+
+/* Detach every allied group, promote the one whose members hold the highest
+   navigator value_008 to lead the rest, and carry the fallen leader's script
+   and heard-noise state to the new leader's MonsterInfo. */
+// FUNCTION: WIZ8 0x0050FD40
+void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader_info)
+{
+    int* allies = monster_group->allied_group_ids;
+    int leader_group_id = 0;
+    unsigned int best = 0;
+    int live_allies = 0;
+    int index;
+    for (index = 0; index < 4; ++index) {
+        if (allies[index] != 0) {
+            ++live_allies;
+        }
+    }
+    if (live_allies == 0) {
+        return;
+    }
+    for (index = 0; index < 4; ++index) {
+        if (allies[index] != 0) {
+            W8MonsterGroup* candidate = GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(0x2ce, MONSTER_GROUP_CPP, allies[index], 1));
+            candidate->leader_group_id = 0;
+            unsigned int high = 0;
+            unsigned int member_index = 0;
+            while (member_index < ILLength(candidate->monsters)) {
+                W8Monster* member =
+                    GetMonsterByLocationID(IListGetAt(candidate->monsters, member_index));
+                if (member != 0) {
+                    unsigned int value = static_cast<unsigned int>(member->movement_0c0.value_008);
+                    if (high < value) {
+                        high = value;
+                    }
+                }
+                ++member_index;
+            }
+            if (best < high) {
+                leader_group_id = candidate->group_id;
+                best = high;
+            }
+        }
+    }
+    if (leader_group_id != 0) {
+        W8MonsterGroup* leader = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(0x275, MONSTER_GROUP_CPP, leader_group_id, 1));
+        LinkMonsterGroupToLeader(0, leader);
+    }
+    for (index = 0; index < 4; ++index) {
+        int ally_id = allies[index];
+        if (ally_id != 0 && leader_group_id != ally_id) {
+            W8MonsterGroup* leader = 0;
+            if (leader_group_id != 0) {
+                leader = GetMonsterGroupByListIndex(
+                    GetMonsterGroupIndexByID(0x271, MONSTER_GROUP_CPP, leader_group_id, 1));
+            }
+            W8MonsterGroup* ally = GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(0x275, MONSTER_GROUP_CPP, ally_id, 1));
+            LinkMonsterGroupToLeader(leader, ally);
+        }
+    }
+    W8MonsterGroup* leader = GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x2e4, MONSTER_GROUP_CPP, leader_group_id, 1));
+    W8MonsterInfo* new_leader_info =
+        MonsterInfoFromID(0x2e7, MONSTER_GROUP_CPP, leader->value_9f, 1);
+    stScript* script = leader_info->monster->script_238;
+    if (script != 0 && script->getName() != 0) {
+        script = leader_info->monster->script_238;
+        new_leader_info->monster->SetScript004C7F10(script != 0 ? script->getName() : 0, '\x01');
+    }
+    new_leader_info->heard_noise_radius_43 = leader_info->heard_noise_radius_43;
+    new_leader_info->heard_noise_position_37 = leader_info->heard_noise_position_37;
+}
+
+/* Bring the group - or the group leading it - into combat once every gate
+   clears: an untargetable, dirty or dying member, or the startup navigator
+   still settling, all defer the entry. The leader's members and its allies'
+   members enter together, and a second live hostile group arms the
+   ambush-warning event. */
+// FUNCTION: WIZ8 0x0050F720
+void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
+{
+    while (true) {
+        if (g_status_685170.value_2390 != '\0' && monster_group->ubDisposition == '\x01' &&
+            gXStatus.fCombatMode == '\0') {
+            return;
+        }
+        if (GetFlag68F105() != '\0') {
+            return;
+        }
+        if (monster_group->fInCombat != '\0') {
+            return;
+        }
+        if (monster_group == 0) {
+            srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
+        }
+        W8MonsterRecord* record = MonsterDBFromSpecies(monster_group->monster_id);
+        if (record->untargetable_24a != '\0') {
+            return;
+        }
+        if (monster_group == 0) {
+            srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x511, 0);
+        }
+        unsigned int index = 0;
+        while (index < ILLength(monster_group->monsters)) {
+            int member_id = IListGetAt(monster_group->monsters, index);
+            W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x516, MONSTER_GROUP_CPP, member_id, 1));
+            if (member_info->monster->position_dirty_09c != '\0') {
+                return;
+            }
+            ++index;
+        }
+        if (g_startup_world_659c0c->position_dirty_09c != '\0') {
+            return;
+        }
+        if (monster_group == 0) {
+            srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x8c9, 0);
+        }
+        index = 0;
+        while (index < ILLength(monster_group->monsters)) {
+            int member_id = IListGetAt(monster_group->monsters, index);
+            W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x8ce, MONSTER_GROUP_CPP, member_id, 1));
+            if (((member_info->monster->flags_1dc >> 5) & 1) != 0) {
+                return;
+            }
+            ++index;
+        }
+        if (monster_group == 0) {
+            srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x82b, 0);
+        }
+        index = 0;
+        if (ILLength(monster_group->monsters) == 0) {
+            return;
+        }
+        while (true) {
+            int member_id = IListGetAt(monster_group->monsters, index);
+            W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x830, MONSTER_GROUP_CPP, member_id, 1));
+            if (member_info != 0 && member_info->monster->IsDying() == '\0') {
+                break;
+            }
+            ++index;
+            if (ILLength(monster_group->monsters) <= index) {
+                return;
+            }
+        }
+        if (monster_group->leader_group_id == 0) {
+            index = 0;
+            while (index < ILLength(monster_group->monsters)) {
+                int member_id = IListGetAt(monster_group->monsters, index);
+                W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(0x1b1, MONSTER_GROUP_CPP, member_id, 1));
+                MonsterInfoEnterCombat(member_info);
+                ++index;
+            }
+            monster_group->fInCombat = '\x01';
+            if (monster_group->ubDisposition == '\x01' && gXStatus.fCombatMode != '\0' &&
+                g_combat_state->value_004 != 0) {
+                unsigned int live_groups = 0;
+                unsigned int group_list_index = 0;
+                while (group_list_index < PLLength(gXStatus.plsMonsterGroupList)) {
+                    W8MonsterGroup* other = GetMonsterGroupByListIndex(group_list_index);
+                    if (other->flag_28 != '\0' && other->fInCombat != '\0' &&
+                        other->member_count != 0 &&
+                        (other->ubDisposition == '\x01' || CombatAllowsLiveGroups() != '\0')) {
+                        ++live_groups;
+                    }
+                    ++group_list_index;
+                }
+                if (live_groups > 1) {
+                    ApplyItemEffectToRandomCharacter(g_effect_005ee60c, -1, 0,
+                                                     g_effect_argument_005ed8c8);
+                }
+            }
+            int* allies = monster_group->allied_group_ids;
+            for (int ally_index = 0; ally_index < 4; ++ally_index) {
+                if (allies[ally_index] != 0) {
+                    W8MonsterGroup* ally = GetMonsterGroupByListIndex(
+                        GetMonsterGroupIndexByID(0x1c8, MONSTER_GROUP_CPP, allies[ally_index], 1));
+                    if (ally->fInCombat == '\0') {
+                        index = 0;
+                        while (index < ILLength(ally->monsters)) {
+                            int member_id = IListGetAt(ally->monsters, index);
+                            W8MonsterInfo* member_info =
+                                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                                    0x1d0, MONSTER_GROUP_CPP, member_id, 1));
+                            MonsterInfoEnterCombat(member_info);
+                            ++index;
+                        }
+                        ally->fInCombat = '\x01';
+                    }
+                }
+            }
+            RequestRedrawParty();
+            SetMonsterGroupEngagementState(monster_group->group_id, 0);
+            return;
+        }
+        monster_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(0x1aa, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
     }
 }

@@ -3973,55 +3973,6 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     }
 }
 
-/* Heading a newly placed monster should take: toward the camera when
-   disposition one asks for it, otherwise toward the nearest live monster
-   found inside an extreme-range box around the point, and back to the camera
-   when nothing is out there. The by-value position doubles as the source
-   point for both heading helpers. */
-// FUNCTION: WIZ8 0x0054FF20
-float GetNearestMonsterOrCameraHeading0054FF20(srVector3T<float> position, char use_camera_heading,
-                                               int exclusion)
-{
-    unsigned int index = 0;
-    double nearest_distance = 0.0;
-    W8Monster* nearest = 0;
-    srVector3T<float> lower = position;
-    srVector3T<float> upper = position;
-    float extent = CalcRangeDistance(W8_RANGE_EXTREME);
-
-    if (use_camera_heading != 1) {
-        lower.x -= extent;
-        lower.y -= extent;
-        lower.z -= extent;
-        upper.x += extent;
-        upper.y += extent;
-        upper.z += extent;
-        unsigned long* results = static_cast<unsigned long*>(operator new(0x400));
-        unsigned int count = g_octree_6598a4->QueryLocationsInBox(
-            &results, &lower, &upper, static_cast<unsigned short>(exclusion));
-        if (count == 0) {
-            delete[] results;
-            return HeadingToTargetCPP(&position);
-        }
-        for (; index < count; ++index) {
-            W8Monster* monster = GetMonsterByLocationID(results[index]);
-            const srVector3T<float>& found = monster->GetPosition();
-            float delta_x = found.x - position.x;
-            float delta_y = found.y - position.y;
-            float delta_z = found.z - position.z;
-            double distance = sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
-            if (distance < nearest_distance || index == 0) {
-                nearest_distance = distance;
-                nearest = monster;
-            }
-        }
-        delete[] results;
-        const srVector3T<float>& target = nearest->GetPosition();
-        return GetHeadingAngle(&position, &target);
-    }
-    return HeadingToTargetCPP(&position);
-}
-
 /* Damage from the target-side enchantment: the enchantment's power scales the
    spell record's dice, the reduced roll is applied to the character, the
    result's amount feeds the running combat total at +0xa1a, and the reports

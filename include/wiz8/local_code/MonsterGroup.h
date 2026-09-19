@@ -153,6 +153,16 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x00
    default disposition on the intelligence-squared cooldown. */
 void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
+/* Re-elect the group's leader member: the live member carrying the highest
+   navigator value_008 takes over value_9f, else the first member does, and
+   the outgoing leader's script and heard-noise state move across. */
+void ElectGroupLeaderMember(W8MonsterGroup* monster_group); /* 0x005103E0 */
+/* Re-elect the allied leader group when this group's leader falls: the allied
+   group whose members hold the highest navigator value_008 leads the rest,
+   and the fallen leader's script and heard-noise state carry to the new
+   leader's MonsterInfo. */
+void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group,
+                            W8MonsterInfo* leader_info); /* 0x0050FD40 */
 /* Marks every live member of the group and of its allied groups for removal. */
 void MarkMonsterGroupForRemoval(int group_id); /* 0x005118E0 */
 /* 0x005117D0: write the control state onto every live member of the group. */
@@ -160,8 +170,6 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 /* Nonzero when the group - or one of its allied groups - has a member whose
    highest condition is in the 0x0d..0x11 incapacitated band. */
 bool MonsterGroupHasIncapacitatedMember(int group_id); /* 0x00511D40 */
-/* 0x005117D0: stamp the control state on every live, not-dying member. */
-void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_state);
 /* 0x00510A10: retire a group and its allies from the encounter budget,
    following the leader chain first. */
 void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group);
