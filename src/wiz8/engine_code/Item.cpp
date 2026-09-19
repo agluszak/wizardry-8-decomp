@@ -333,12 +333,8 @@ void W8Item::UpdateAnimation0049F730()
 unsigned char W8Item::GetCachedLocalBounds(srVector3T<float>* lower, srVector3T<float>* upper)
 {
     W8ItemRep* rep = static_cast<W8ItemRep*>(m_pRep);
-    lower->x = rep->bounds_minimum.x;
-    lower->y = rep->bounds_minimum.y;
-    lower->z = rep->bounds_minimum.z;
-    upper->x = rep->bounds_maximum.x;
-    upper->y = rep->bounds_maximum.y;
-    upper->z = rep->bounds_maximum.z;
+    *lower = rep->bounds_minimum;
+    *upper = rep->bounds_maximum;
     return true;
 }
 

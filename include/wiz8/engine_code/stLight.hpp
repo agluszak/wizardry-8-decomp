@@ -33,9 +33,7 @@ public:
         type_04 = 1;
         flags_08 = other.flags_08;
         flicker_chance_0c = other.flicker_chance_0c;
-        color_10.x = other.color_10.x;
-        color_10.y = other.color_10.y;
-        color_10.z = other.color_10.z;
+        color_10 = other.color_10;
         color_to_1c = other.color_to_1c;
         color_to_20 = other.color_to_20;
         color_to_24 = other.color_to_24;

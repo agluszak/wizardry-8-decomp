@@ -1300,9 +1300,7 @@ unsigned char W8PathingService::BuildAttachmentPath00460950(W8NavigatorAttachmen
                     }
                     srVector3T<float>* slot =
                         attachment->position_4c + attachment->path_position_index_08;
-                    slot->x = position->x;
-                    slot->y = position->y;
-                    slot->z = position->z;
+                    *slot = *position;
                     attachment->path_values_50[attachment->path_position_index_08] = surface_index;
                     attachment->path_position_index_08 = attachment->path_position_index_08 + 1;
                     --remaining;
@@ -1421,9 +1419,7 @@ W8PathingService::BuildPatrolPath00461960(W8NavigatorAttachment* attachment, uns
                 attachment->GrowPathStorage00456BD0();
             }
             srVector3T<float>* slot = attachment->position_4c + attachment->path_position_index_08;
-            slot->x = position->x;
-            slot->y = position->y;
-            slot->z = position->z;
+            *slot = *position;
             attachment->path_values_50[attachment->path_position_index_08] = surface_index;
             attachment->path_position_index_08 = attachment->path_position_index_08 + 1;
             attachment->flags_00 = attachment->flags_00 & 0xffbfffff;
@@ -3061,18 +3057,12 @@ unsigned int W8PathingService::StepAlongPath004669B0(W8NavigatorMovementState* m
         if ((attachment->flags_00 & 0x80000) == 0) {
             if (attachment->value_04 < attachment->path_position_index_08) {
                 srVector3T<float>* waypoint = attachment->position_4c + attachment->value_04;
-                target.x = waypoint->x;
-                target.y = waypoint->y;
-                target.z = waypoint->z;
+                target = *waypoint;
             } else {
-                target.x = attachment->position_1c.x;
-                target.y = attachment->position_1c.y;
-                target.z = attachment->position_1c.z;
+                target = attachment->position_1c;
             }
         } else {
-            target.x = attachment->position_28.x;
-            target.y = attachment->position_28.y;
-            target.z = attachment->position_28.z;
+            target = attachment->position_28;
         }
         float dx = target.x - movement->position_040.x;
         float dy = target.y - movement->position_040.y;

@@ -1949,9 +1949,7 @@ void PlacePartyAtPoint(const srVector3T<float>* point)
     srVector3T<float> delta = *point - g_origin_652940;
     if (sqrtf(DotProduct(delta, delta)) != g_zero_005ebb40) {
         MarkRendererReady();
-        g_gd_camera_65a0f8->m_position_08c.x = point->x;
-        g_gd_camera_65a0f8->m_position_08c.y = point->y;
-        g_gd_camera_65a0f8->m_position_08c.z = point->z;
+        g_gd_camera_65a0f8->m_position_08c = *point;
     }
 }
 

@@ -1269,9 +1269,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
             static_cast<double>(point->y), static_cast<double>(point->z));
     NoOp();
     srVector3T<double> location;
-    location.x = point->x;
-    location.y = point->y;
-    location.z = point->z;
+    location.SetFromFloat(point);
     world->camera->setLocation(location);
     horizontal_fov_1f0 = static_cast<float>(world->camera->getHorizontalFOV());
     vertical_fov_1f4 = static_cast<float>(world->camera->getVerticalFOV());
@@ -1599,9 +1597,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
         }
     }
     srVector3T<double> restore_location;
-    restore_location.x = saved_location.x;
-    restore_location.y = saved_location.y;
-    restore_location.z = saved_location.z;
+    restore_location.SetFromFloat(&saved_location);
     world->camera->setLocation(restore_location);
     world->camera->setRotation(saved_rotation);
     g_light_update_flags_0060bfdc |= 1u;
@@ -2411,9 +2407,7 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
         }
     }
     if (blocked != 0) {
-        to->x = trace.end_0c.x;
-        to->y = trace.end_0c.y;
-        to->z = trace.end_0c.z;
+        *to = trace.end_0c;
     } else if (allow_fallback != 0 && TraceAgainstProps(from, to, 1, 1) != 0) {
         blocked = 1;
     }
@@ -2552,9 +2546,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
         }
         result = 1;
         if (blocked != 0) {
-            to->x = trace.end_0c.x;
-            to->y = trace.end_0c.y;
-            to->z = trace.end_0c.z;
+            *to = trace.end_0c;
             return 1;
         }
     }
@@ -2563,9 +2555,7 @@ resolve:
         hit_location = to_location_id;
         if (ResolveTraceHit(&trace.start_00, &trace.end_0c, from_location_id, &hit_location,
                             to_location_id, 0, trace_mode) != 0) {
-            to->x = trace.end_0c.x;
-            to->y = trace.end_0c.y;
-            to->z = trace.end_0c.z;
+            *to = trace.end_0c;
             return -1;
         }
     }
@@ -2616,12 +2606,8 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
     } else {
         target = *hit_location;
     }
-    high.x = from->x;
-    high.y = from->y;
-    high.z = from->z;
-    low.x = from->x;
-    low.y = from->y;
-    low.z = from->z;
+    high = *from;
+    low = *from;
     if (low.x <= to->x) {
         high.x = to->x;
     } else {
@@ -2754,9 +2740,7 @@ no_probes:;
     }
     if (excluded != -1 && location != -1) {
         GetCameraPosition(&camera);
-        center.x = camera.x;
-        center.y = camera.y;
-        center.z = camera.z;
+        center = camera;
         float distance = PointToSegmentDistance00437540(&center, from, to, 1, 0);
         if (noise_adjust != 0) {
             distance =
@@ -3246,9 +3230,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     if (current_prop < 0) {
         return 0;
     }
-    to->x = trace.end_0c.x;
-    to->y = trace.end_0c.y;
-    to->z = trace.end_0c.z;
+    *to = trace.end_0c;
     return current_prop + 1;
 }
 
@@ -4501,9 +4483,7 @@ void W8Octree::VisitPointCopy0042E620(unsigned short location_id, srVector3T<flo
 {
     srVector3T<float> copy;
 
-    copy.x = position->x;
-    copy.y = position->y;
-    copy.z = position->z;
+    copy = *position;
     UpdateMonsterLocation(location_id, &copy);
 }
 
@@ -5204,18 +5184,14 @@ float PointToSegmentDistance00437540(srVector3T<float>* point, const srVector3T<
     if (clamp_point != 0) {
         if (static_cast<float>(g_zero_005ebb40) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
-                point->x = to->x;
-                point->y = to->y;
-                point->z = to->z;
+                *point = *to;
             } else {
                 point->x = dx * t + from->x;
                 point->y = dy * t + from->y;
                 point->z = dz * t + from->z;
             }
         } else {
-            point->x = from->x;
-            point->y = from->y;
-            point->z = from->z;
+            *point = *from;
         }
     }
     if (out_t != 0) {
@@ -5474,9 +5450,7 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
                 accept:
                     if (found == 0) {
                         positions[0] = candidate;
-                        source.x = candidate.x;
-                        source.y = candidate.y;
-                        source.z = candidate.z;
+                        source = candidate;
                         found = 1;
                     } else if (pathing_180 == 0 || pathing_180->TestWaypointSpan0045A1B0(
                                                        &candidate, &source, 0, 0) != 0) {
