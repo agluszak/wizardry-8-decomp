@@ -65,7 +65,7 @@ void AttachWorldCursorNode0048ED30(W8WorldCursorNode* entry, unsigned char attac
 void SetWorldCursorNodeName0048F110(W8WorldCursorNode* entry, const char* name);
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long color);
 /* 0x0048E3E0: the world-cursor node under the screen point, or 0. */
-W8WorldCursorNode* Function48E3E0(int x, int y);
+W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint0048E3E0(int x, int y);
 void DrawWorldBox0048DF30(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
                           unsigned long color);
 void Function48E6D0(int handle);
