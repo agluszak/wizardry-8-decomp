@@ -649,7 +649,7 @@ void W8LockInfoPanel::RefreshInfo()
         m_text_060->SetFontStateIndex(0);
         m_text_060->SetText(g_dash_0064789c, g_font_683660);
     } else {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
         book = character->skills[book].level;
         m_text_060->SetFontStateIndex(-1);
@@ -756,7 +756,7 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
     }
     if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
         character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
         book = character->skills[book].level;
         power = (book + realm * 4) / 5;
@@ -921,7 +921,7 @@ int GetKnockKnockSpellPower00586A70(int slot)
     if (character->spell_learned[0x27] != 1) {
         return -1;
     }
-    book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+    book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
     return (character->skills[book].level +
             character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
            5;
@@ -1088,7 +1088,7 @@ void W8LockInteraction::AttemptForce()
                 character->spell_learned[0x27] != 1) {
                 m_spell_button_20->SetEnabled(0);
             } else {
-                book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+                book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
                 power = (character->skills[book].level +
                          character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
                         5;
@@ -1619,7 +1619,7 @@ void W8MainGameStatusPanel005EEBC0::RefreshStatusTexts()
         m_text_05c->SetFontStateIndex(0);
         m_text_05c->SetText(g_dash_0064789c, g_font_683660);
     } else {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
         book = character->skills[book].level;
         m_text_05c->SetFontStateIndex(-1);
@@ -1628,7 +1628,7 @@ void W8MainGameStatusPanel005EEBC0::RefreshStatusTexts()
     }
     if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
         character->spell_learned[0x12] == 1) {
-        figure = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        figure = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
         figure = (character->skills[figure].level +
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;
@@ -2017,9 +2017,9 @@ void W8MainGameScreen::RefreshActionPanel()
         can_cast = 0;
     } else {
         if (IsPartySlotEligible00524A10(slot) && character->spell_learned[0x27] == 1) {
-            GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+            GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         } else {
-            GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+            GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
         }
         can_cast = CanCharacterCastSpell(character, 0x27) != 0 ||
                    CanCharacterCastSpell(character, 0x12) != 0;
@@ -2133,7 +2133,7 @@ void W8MainGameScreen::CastTrapSpell()
     unsigned char ready = 0;
 
     if (IsPartySlotEligible00524A10(slot) && character->spell_learned[0x27] == 1) {
-        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7, 0);
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
         figure = (character->skills[book].level +
                   character->skills[0x1c + g_spell_records[0x27].realm].level * 4) /
                  5;
@@ -2146,7 +2146,7 @@ void W8MainGameScreen::CastTrapSpell()
         if (!IsPartySlotEligible00524A10(slot) || character->spell_learned[0x12] != 1) {
             return;
         }
-        book = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7, 0);
+        book = GetBestSpellbookSkillForSpell(character, 0x12, 1, 0, 7);
         figure = (character->skills[book].level +
                   character->skills[0x1c + g_spell_records[0x12].realm].level * 4) /
                  5;

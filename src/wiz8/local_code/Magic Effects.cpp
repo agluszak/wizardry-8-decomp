@@ -3953,8 +3953,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             while (SpellCastFatigueCost(spell_id, 1) <= character->stamina) {
                 if (character->sp_left[g_spell_records[spell_id].realm] <
                         g_spell_records[spell_id].spell_point_cost ||
-                    ConsumeCastSpellPoints004FA4D0(effect->Source.iChar, spell_id, 8, &cost, 1) !=
-                        2) {
+                    ExecuteCharacterSpellCast(effect->Source.iChar, spell_id, 8, &cost, 1) != 2) {
                     break;
                 }
                 FatigueCharacter(effect->Source.iChar, cost, 1, 0);

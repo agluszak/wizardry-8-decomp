@@ -2034,7 +2034,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         int step;
         fatigue_cost = 0;
         do {
-            step = Function4FA4D0(party_slot, detail, power, &step_cost, 0);
+            step = ExecuteCharacterSpellCast(party_slot, detail, power, &step_cost, 0);
             if (step == 0) {
                 result = '\0';
             }

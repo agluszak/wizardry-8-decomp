@@ -3610,7 +3610,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
                       (record->equip_class > 0x14 && record->equip_class < 0x17))
                          ? 1
                          : 0;
-    if (!CanUseItemSpell004FAC40(party_slot, spell_id, power, 1, rejected_spell)) {
+    if (!ValidateSpellTarget004FAC40(party_slot, spell_id, power, true, rejected_spell)) {
         return 0;
     }
 
