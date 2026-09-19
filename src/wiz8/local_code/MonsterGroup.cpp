@@ -19,6 +19,7 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/UtilityFunctions.h"
+#include "wiz8/monster_generators.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/local_code/NPCManager.h"
@@ -668,14 +669,14 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
             GetMonsterGroupIndexByID(0x553, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
     }
     if (monster_group->flag_c3 != 0) {
-        DetachMonsterGroup(monster_group);
+        UnregisterActiveEncounterGroup(monster_group);
         monster_group->flag_c3 = 0;
         monster_group->flag_d3 = 1;
         for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
             if (monster_group->allied_group_ids[index] != 0) {
                 ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x564, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1));
-                DetachMonsterGroup(ally);
+                UnregisterActiveEncounterGroup(ally);
                 ally->flag_c3 = 0;
                 ally->flag_d3 = 1;
             }
@@ -824,6 +825,24 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
             SetMonsterControlState(info, control_state);
         }
     }
+}
+
+// FUNCTION: WIZ8 0x00511B40
+bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, char require_threat)
+{
+    if (monster_group->flag_28 == 0) {
+        return false;
+    }
+    for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x8e6, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
+        if (info->monster->IsWithinWorldRange004CA2A0() != 0 &&
+            info->monster->IsRenderable004C7C00(1) != 0 &&
+            (require_threat == 0 || info->party_threat.sight_flags_05[1] != 0)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* Nonzero when the group - or, recursing, one of its allied groups - has a
@@ -975,7 +994,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         return 0;
     }
     if (monster_group->flag_c3 != 0 && monster_group->leader_group_id == 0) {
-        DetachMonsterGroup(monster_group);
+        UnregisterActiveEncounterGroup(monster_group);
     }
     RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     if (leader != 0) {
@@ -991,7 +1010,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         return 0;
     }
     if (monster_group->flag_c3 != 0) {
-        ReleaseMonsterGroup(monster_group);
+        RegisterActiveEncounterGroup(monster_group);
     }
     return 1;
 }
@@ -1143,9 +1162,9 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     }
     if (monster_group->leader_group_id == 0) {
         if (monster_group->flag_c3 != 0) {
-            DetachMonsterGroup(monster_group);
+            UnregisterActiveEncounterGroup(monster_group);
         }
-        SetMonsterGroupMode(monster_group, monster_info);
+        ElectAlliedLeaderGroup(monster_group, monster_info);
     } else {
         RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
     }

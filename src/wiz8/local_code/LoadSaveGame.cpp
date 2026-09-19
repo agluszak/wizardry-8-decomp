@@ -832,7 +832,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         ActivateGroupMembers(group, 0);
         if (group->flag_c3 != 0 && group->leader_group_id == 0) {
-            ReleaseMonsterGroup(group);
+            RegisterActiveEncounterGroup(group);
         }
     }
     return 1;

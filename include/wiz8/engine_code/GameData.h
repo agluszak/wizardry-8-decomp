@@ -119,6 +119,8 @@ struct W8EnvironRecord {
     float value_40;
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
+    /* 0x00421800: store `motion` / scale_0c as the per-frame vector_24. */
+    void SetScaledMotion00421800(const srVector3T<float>* motion);
     /* 0x00421850: add vector_24 * scale_0c into `position`. */
     void AddScaledMotion00421850(srVector3T<float>* position);
 };
@@ -360,8 +362,8 @@ bool HasCameraLineOfSight(const srVector3T<float>* position);
 void PlacePartyAtPoint(const srVector3T<float>* point);
 /* 0x00420E20: start/stop the sustained movement footstep loop. */
 void UpdateLevelMovementAudio00420E20(void);
-/* 0x004EF9A0: unrecovered sway/override follow-up; stubbed by name. */
-void HandleLevelOverride004EF9A0(void);
+/* 0x004EF9A0: fall-impact override handler owned by GameplayCode.cpp;
+   declared in wiz8/local_code/GameplayCode.h. */
 
 extern unsigned char g_level_motion_fast_00652dcd;
 extern bool g_level_footstep_pending_00652db9;

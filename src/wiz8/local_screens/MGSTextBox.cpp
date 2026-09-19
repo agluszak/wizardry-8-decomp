@@ -21,6 +21,7 @@
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/video_object_catalog.h"
@@ -465,6 +466,27 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
     ShowNotice(channel, text, text_box, -1, 0);
 }
 
+// FUNCTION: WIZ8 0x0058aad0
+void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
+{
+    wchar_t text[4096];
+    va_list arguments;
+    short text_box;
+
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+        text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+    } else if (GetFlag68F105()) {
+        text_box = 0;
+    } else {
+        text_box = gXStatus.fCombatMode != 0;
+    }
+    ShowNotice(font_palette, text, text_box, -1, false);
+}
+
 /* The value the screen keeps beside the text. */
 // FUNCTION: WIZ8 0x0058aa10
 int GetTextBoxValue2E8(void)
@@ -682,6 +704,32 @@ int GetTextBoxVisibleLineCount(void)
         return 1;
     }
     return 7;
+}
+
+// FUNCTION: WIZ8 0x00590950
+void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
+{
+    wchar_t separator[2];
+    wchar_t text[4096];
+    va_list arguments;
+    int stop;
+
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
+    ShowNoticef(8, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name, separator,
+                text);
+    stop = wcslen(g_status_685170.buffers.characters[party_slot].name);
+    if (text[0] == L'\'') {
+        ++stop;
+        if (text[1] == L's') {
+            ++stop;
+        }
+    }
+    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0,
+                          stop, -1);
 }
 
 static unsigned int GetTextBoxLineCount(short text_box)

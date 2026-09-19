@@ -9,6 +9,10 @@ class srVP;
 
 #pragma pack(push, 4)
 class srVertexPipe {
+    /* Wizardry's ground-shadow vertex processor walks the batch cursor,
+       vertex-index and ST0 output fields directly (0x004D6090). */
+    friend class W8GroundShadowMapper004D6180;
+
 public:
     struct Input {
         unsigned long record_count_00;

@@ -53,6 +53,7 @@ void ReleaseMessageStorage(void);
 /* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
    translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
+char TextBoxHandleKey(const InputAtom* event);                 /* 0x0058A8F0 */
 int GetTextSlot1E8(int index);                                 /* 0x0058FA60 */
 void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
 /* The 0x1d8/0x1e8 slot tables in W8LevelRuntimeBlock track one selected

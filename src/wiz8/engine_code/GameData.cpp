@@ -14,7 +14,10 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/Noise.h"
+#include "wiz8/local_code/PC_Item.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/xstatus.h"
 #include "soundman.h"
 #include "wiz8/local_code/Gameloop.h"
@@ -497,6 +500,15 @@ const double g_motion_vector_epsilon_005ebc48 = 5.0;
 unsigned char g_environment_motion_active_00603ad1 = 1;
 // GLOBAL: WIZ8 0x00652db8
 unsigned char g_environ_ground_latch_00652db8;
+
+// FUNCTION: WIZ8 0x00421800
+void W8EnvironRecord::SetScaledMotion00421800(const srVector3T<float>* motion)
+{
+    double inv_scale = g_double_005ebc30 / scale_0c;
+    vector_24.x = motion->x * inv_scale;
+    vector_24.y = motion->y * inv_scale;
+    vector_24.z = motion->z * inv_scale;
+}
 
 // FUNCTION: WIZ8 0x00421850
 void W8EnvironRecord::AddScaledMotion00421850(srVector3T<float>* position)
@@ -1429,6 +1441,690 @@ void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source
     *destination = *source;
 }
 
+// GLOBAL: WIZ8 0x005ebc80
+const float g_float_005ebc80 = -0.1f;
+// GLOBAL: WIZ8 0x005ebc8c
+const float g_float_005ebc8c = 150.0f;
+// GLOBAL: WIZ8 0x005ebc94
+const float g_float_005ebc94 = 165.0f;
+// GLOBAL: WIZ8 0x005ebc9c
+const float g_float_005ebc9c = -0.8f;
+// GLOBAL: WIZ8 0x005ebca8
+const double g_double_005ebca8 = 0.0010000000474974513;
+// GLOBAL: WIZ8 0x005ebcb0
+const float g_float_005ebcb0 = 0.99999f;
+// GLOBAL: WIZ8 0x005ebcb4
+const float g_float_005ebcb4 = -0.999f;
+// GLOBAL: WIZ8 0x005ebcb8
+const float g_float_005ebcb8 = -0.5f;
+// GLOBAL: WIZ8 0x005ebcc0
+const double g_double_005ebcc0 = 0.33333298563957214;
+
+static unsigned char SegmentCrossesEdge0041D7A0(const float* seg_start, const float* seg_end,
+                                                const float* edge_a, const float* edge_b,
+                                                unsigned int axis);
+
+/* Clip the motion segment against this surface's plane and triangle. On a hit
+   `from` advances to the contact point, `hit_distance` returns the travelled
+   length and distance_34 takes the surface's updated limit. Ordinary surfaces
+   gate on the contact band below distance_34; flag-0x1080 surfaces (special)
+   instead test whether the segment crossed the plane, and lift `from` by the
+   level-flag-8 camera offset. */
+// FUNCTION: WIZ8 0x0041CF90
+unsigned char W8GDSurface::TestSegment0041CF90(srVector3T<float>* from,
+                                               const srVector3T<float>* direction,
+                                               float* hit_distance, srVector3T<float>* vertices)
+{
+    unsigned int flags = flags_00;
+    unsigned char special = 0;
+    unsigned char crossed = 0;
+    bool inside = false;
+    if ((flags & 0x18) != 0) {
+        return 0;
+    }
+    srVector3T<float> point = *from;
+    if ((flags & 0x1080) != 0) {
+        special = 1;
+        if ((g_level_data_00652dac->flags & 8) != 0) {
+            point.y += g_float_005ebc94;
+        }
+    }
+    srVector3T<float> unit_dir = *direction;
+    unit_dir.Normalize();
+    srVector3T<float> normal;
+    normal.x = plane_24[0];
+    normal.y = plane_24[1];
+    normal.z = plane_24[2];
+    float segment_length = direction->Length();
+    if (segment_length < g_float_005ebc90) {
+        if (special == 0) {
+            g_environment_motion_active_00603ad1 = special;
+            return 0;
+        }
+    } else if (special == 0 &&
+               normal.x * unit_dir.x + unit_dir.y * normal.y + unit_dir.z * normal.z >=
+                   g_float_005ebb34) {
+        return 0;
+    }
+    srVector3T<float> end = point + *direction;
+    float dist_start =
+        point.x * plane_24[0] + point.y * plane_24[1] + point.z * plane_24[2] + plane_24[3];
+    if (special == 0 && dist_start < g_float_005ebb34) {
+        return 0;
+    }
+    float limit = value_40;
+    if ((flags & 4) == 0 && special == 0) {
+        limit = value_40 - (g_float_005ebb38 - fabsf(normal.y)) * g_float_005ebc8c;
+    }
+    float dist_end = end.x * plane_24[0] + end.y * plane_24[1] + end.z * plane_24[2] + plane_24[3];
+    if (special != 0) {
+        if (dist_end * dist_start > g_camera_snap_epsilon_005ebc2c) {
+            if (value_40 < g_float_005ebb38 || dist_end < g_float_005ebb34) {
+                return 0;
+            }
+            if (dist_end >= limit + g_float_005ebc88 && dist_start >= limit + g_float_005ebc88) {
+                return 0;
+            }
+        }
+    } else {
+        if (limit + g_float_005ebc88 <= dist_end) {
+            return 0;
+        }
+        if (dist_start - dist_end < g_camera_transition_epsilon_005ebc84) {
+            return 0;
+        }
+    }
+    int axis = flags & 3;
+    short comp_u = (axis + 1) % 3;
+    short comp_v = (axis + 2) % 3;
+    float start_proj[3];
+    start_proj[0] = point.x - normal.x * dist_start;
+    start_proj[1] = point.y - normal.y * dist_start;
+    start_proj[2] = point.z - normal.z * dist_start;
+    float end_proj[3];
+    end_proj[0] = end.x - normal.x * dist_end;
+    end_proj[1] = end.y - normal.y * dist_end;
+    end_proj[2] = end.z - normal.z * dist_end;
+    float verts[9];
+    verts[0] = vertices[vertex_indices_18[0]].x;
+    verts[1] = vertices[vertex_indices_18[0]].y;
+    verts[2] = vertices[vertex_indices_18[0]].z;
+    verts[3] = vertices[vertex_indices_18[1]].x;
+    verts[4] = vertices[vertex_indices_18[1]].y;
+    verts[5] = vertices[vertex_indices_18[1]].z;
+    verts[6] = vertices[vertex_indices_18[2]].x;
+    verts[7] = vertices[vertex_indices_18[2]].y;
+    verts[8] = vertices[vertex_indices_18[2]].z;
+    for (short edge = 0; edge < 3; ++edge) {
+        if (crossed != 0) {
+            break;
+        }
+        short next = (edge + 1) % 3;
+        if (SegmentCrossesEdge0041D7A0(start_proj, end_proj, verts + edge * 3, verts + next * 3,
+                                       axis) != 0) {
+            crossed = 1;
+        }
+        float edge_low = verts[edge * 3 + comp_v];
+        float edge_high = verts[next * 3 + comp_v];
+        if ((edge_low <= end_proj[comp_v] && end_proj[comp_v] < edge_high) ||
+            (edge_high <= end_proj[comp_v] && end_proj[comp_v] < edge_low)) {
+            float crossing = (verts[next * 3 + comp_u] - verts[edge * 3 + comp_u]) *
+                                 (end_proj[comp_v] - edge_low) / (edge_high - edge_low) +
+                             verts[edge * 3 + comp_u];
+            if (crossing > end_proj[comp_u]) {
+                inside = !inside;
+            }
+        }
+    }
+    float t_span = dist_start - dist_end;
+    float fraction;
+    if (t_span < g_float_005ebb38) {
+        fraction = g_float_005ebb38;
+    } else {
+        fraction = (dist_start - limit) / t_span;
+    }
+    if (fraction < g_float_005ebc80 && special == 0) {
+        fraction = g_float_005ebc80;
+    }
+    if (fraction > g_float_005ebb38) {
+        return 0;
+    }
+    float hit;
+    if (crossed == 0 && inside == 0) {
+        if (special != 0) {
+            return 0;
+        }
+        srVector3T<float> chosen;
+        if (dist_start / t_span <= g_float_005ebb38) {
+            chosen = point;
+        } else {
+            chosen = end;
+        }
+        if (ClampHitToEdge0041D9D0(&chosen, vertices, &limit) == 0) {
+            return 0;
+        }
+        fraction = (dist_start - limit) / t_span;
+        if (fraction >= g_float_005ebb38) {
+            return 0;
+        }
+        if (fraction < g_float_005ebc80) {
+            fraction = g_float_005ebc80;
+        }
+        hit = fraction * segment_length;
+        if (segment_length - hit < g_camera_transition_epsilon_005ebc84) {
+            return 0;
+        }
+        *hit_distance = hit;
+        distance_34 = limit;
+        *from = point + unit_dir * hit;
+        return 1;
+    }
+    hit = fraction * segment_length;
+    *hit_distance = hit;
+    if (special == 0) {
+        distance_34 = limit;
+        *from = point + unit_dir * hit;
+        return 1;
+    }
+    distance_34 = hit;
+    if (dist_start <= g_float_005ebb34) {
+        distance_34 = -fabsf(hit);
+    } else {
+        distance_34 = fabsf(hit);
+    }
+    *hit_distance = fabsf(*hit_distance);
+    return 1;
+}
+
+/* 2D segment-vs-edge test in the plane perpendicular to `axis`: the projected
+   motion segment seg_start→seg_end must overlap edge_a→edge_b on both free
+   axes and their line-crossing parameters must both fall inside [0,1]. */
+// FUNCTION: WIZ8 0x0041D7A0
+static unsigned char SegmentCrossesEdge0041D7A0(const float* seg_start, const float* seg_end,
+                                                const float* edge_a, const float* edge_b,
+                                                unsigned int axis)
+{
+    unsigned int comp_u = (axis + 1) % 3;
+    unsigned int comp_v = (axis + 2) % 3;
+    float seg_du = seg_end[comp_u] - seg_start[comp_u];
+    float edge_du = edge_a[comp_u] - edge_b[comp_u];
+    float seg_u_low;
+    float seg_u_high;
+    if (seg_du <= g_float_005ebb34) {
+        seg_u_low = seg_end[comp_u];
+        seg_u_high = seg_start[comp_u];
+    } else {
+        seg_u_low = seg_start[comp_u];
+        seg_u_high = seg_end[comp_u];
+    }
+    float edge_u_low;
+    float edge_u_high;
+    if (edge_du <= g_float_005ebb34) {
+        edge_u_low = edge_a[comp_u];
+        edge_u_high = edge_b[comp_u];
+    } else {
+        edge_u_low = edge_b[comp_u];
+        edge_u_high = edge_a[comp_u];
+    }
+    if (seg_u_low <= edge_u_high && edge_u_low <= seg_u_high) {
+        float seg_dv = seg_end[comp_v] - seg_start[comp_v];
+        float edge_dv = edge_a[comp_v] - edge_b[comp_v];
+        float seg_v_low;
+        float seg_v_high;
+        if (seg_dv <= g_float_005ebb34) {
+            seg_v_low = seg_end[comp_v];
+            seg_v_high = seg_start[comp_v];
+        } else {
+            seg_v_low = seg_start[comp_v];
+            seg_v_high = seg_end[comp_v];
+        }
+        float edge_v_low;
+        float edge_v_high;
+        if (edge_dv <= g_float_005ebb34) {
+            edge_v_low = edge_a[comp_v];
+            edge_v_high = edge_b[comp_v];
+        } else {
+            edge_v_low = edge_b[comp_v];
+            edge_v_high = edge_a[comp_v];
+        }
+        if (seg_v_low <= edge_v_high && edge_v_low <= seg_v_high) {
+            float rel_u = seg_start[comp_u] - edge_a[comp_u];
+            float rel_v = seg_start[comp_v] - edge_a[comp_v];
+            float side_start = rel_u * edge_dv - rel_v * edge_du;
+            float denom = seg_dv * edge_du - edge_dv * seg_du;
+            if (denom <= g_float_005ebb34) {
+                if (side_start > g_float_005ebb34 || side_start < denom) {
+                    return 0;
+                }
+            } else {
+                if (side_start < g_float_005ebb34 || side_start > denom) {
+                    return 0;
+                }
+            }
+            float side_end = rel_v * seg_du - rel_u * seg_dv;
+            if (denom <= g_float_005ebb34) {
+                if (side_end <= g_float_005ebb34 && side_end >= denom) {
+                    return 1;
+                }
+            } else if (side_end >= g_float_005ebb34) {
+                if (side_end > denom) {
+                    return 0;
+                }
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/* Nearest-edge distance fixup for a segment that hit this surface's plane but
+   missed the projected triangle. `limit` (value_40's contact margin) shrinks
+   to the remaining in-plane travel before the nearest edge; fails when no
+   edge improves it. */
+// FUNCTION: WIZ8 0x0041D9D0
+unsigned char W8GDSurface::ClampHitToEdge0041D9D0(const srVector3T<float>* point,
+                                                  const srVector3T<float>* vertices, float* limit)
+{
+    float nearest_dist = 10000000.0f;
+    short nearest_edge = 0;
+    for (short edge = 0; edge < 3; ++edge) {
+        srVector3T<float> probe = *point;
+        float dist =
+            PointToSegmentDistance00437540(&probe, vertices + vertex_indices_18[edge],
+                                           vertices + vertex_indices_18[(edge + 1) % 3], 0, 0);
+        if (dist < nearest_dist) {
+            nearest_edge = edge;
+            nearest_dist = dist;
+        }
+    }
+    if (nearest_dist > *limit) {
+        return 0;
+    }
+    float offset =
+        -(point->x * plane_24[0] + point->y * plane_24[1] + point->z * plane_24[2] + plane_24[3]);
+    srVector3T<float> projected;
+    projected.x = plane_24[0] * offset + point->x;
+    projected.y = plane_24[1] * offset + point->y;
+    projected.z = plane_24[2] * offset + point->z;
+    float edge_dist =
+        PointToSegmentDistance00437540(&projected, vertices + vertex_indices_18[nearest_edge],
+                                       vertices + vertex_indices_18[(nearest_edge + 1) % 3], 0, 0);
+    if ((flags_00 & 4) != 0) {
+        float threshold = *limit * g_float_005ebc7c;
+        if (threshold < offset) {
+            return 0;
+        }
+    }
+    if ((flags_00 & 4) == 0) {
+        if (plane_24[1] < g_float_005ebc9c) {
+            edge_dist = edge_dist * g_navigator_linked_radius_scale_005ebc98;
+        }
+    } else {
+        float scaled = *limit * g_navigator_mode3_scale_005ebca4;
+        if (scaled < edge_dist) {
+            edge_dist = (edge_dist - scaled) * g_float_005ebca0 + scaled;
+        }
+    }
+    if (edge_dist < *limit) {
+        *limit = sqrtf(*limit * *limit - edge_dist * edge_dist);
+        return 1;
+    }
+    return 0;
+}
+
+/* Collision response for a hit surface: `origin` advances to `hit_point` and
+   `direction` is bent along the contact plane; returns whether motion
+   continues. The crossed contact planes persist across calls in the statics
+   so sequential bounces wedge the slide between them. */
+// FUNCTION: WIZ8 0x0041DC10
+unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
+                                                    const srVector3T<float>* hit_point,
+                                                    srVector3T<float>* direction,
+                                                    int collision_index)
+{
+    /* Statics 0x652d50/0x652d68/0x652d80 carry the latched entry direction and
+       the first/second contact normals; their atexit thunks are the SYNTHETIC
+       markers at 0x41e8d0/0x41e8c0/0x41e8b0. */
+    static srVector3T<float> s_entry_direction_00652d50;
+    static srVector3T<float> s_second_normal_00652d68;
+    static srVector3T<float> s_first_normal_00652d80;
+    static short s_collision_state_00652938;
+    static float s_second_limit_0065294c;
+    static int s_first_surface_00652d78;
+    static float s_first_limit_00652da0;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+    /* Retail keeps these collision counters as function-local statics but
+       never reads them - the stores are recovered behavior, not dead code. */
+    static int s_second_surface_00652d60;
+    static short s_bounce_count_00652d7c;
+#pragma clang diagnostic pop
+
+    unsigned char recomputed = 0;
+    unsigned char crossed = 0;
+    srVector3T<float> crease_a;
+    crease_a = 0.0f;
+    if ((flags_00 & 4) != 0) {
+        if ((flags_00 & 0x20) != 0 && g_byte_652da6 != 0 && g_flag_652da5 != 0) {
+            g_environ_00652DB4->value_20 = 1.0f;
+        } else if (g_environ_00652DB4->value_20 < slope_48) {
+            g_environ_00652DB4->value_20 = slope_48;
+        }
+        g_environ_00652DB4->value_05 = 1;
+        g_level_data_00652dac->flags |= 0x10;
+        g_level_data_00652dac->sound_environment_0c = footstep_surface_3c;
+        g_level_data_00652dac->sound_environment_alt_0d = footstep_material_3d;
+    }
+    float direction_length = direction->Length();
+    if (direction_length == g_float_005ebb34) {
+        return 0;
+    }
+    /* ProbePropsAlongMotion stores the prop's hit plane here; level surfaces
+       leave it zero and use the embedded plane_24. */
+    const srVector4T<float>* override_plane = hit_plane_38;
+    srVector3T<float> normal;
+    float plane_distance;
+    if (override_plane == 0) {
+        normal.x = plane_24[0];
+        normal.y = plane_24[1];
+        normal.z = plane_24[2];
+        plane_distance = plane_24[3];
+    } else {
+        normal.x = override_plane->x;
+        normal.y = override_plane->y;
+        normal.z = override_plane->z;
+        plane_distance = override_plane->w;
+    }
+    float adjusted_d = plane_distance - distance_34;
+    W8LevelDataRecord* level = g_level_data_00652dac;
+    if (level->primary_contact_prop_id > -1 && normal.x * level->contact_normal_ac.x +
+                                                       normal.y * level->contact_normal_ac.y +
+                                                       normal.z * level->contact_normal_ac.z <
+                                                   g_float_005ebcb8) {
+        level->flags |= 2;
+    }
+    flags_00 |= 8;
+    float depth = -((origin->x + direction->x) * normal.x + (origin->y + direction->y) * normal.y +
+                    (origin->z + direction->z) * normal.z + adjusted_d);
+    distance_34 = depth;
+    if (depth < g_float_005ebb34) {
+        return 1;
+    }
+    srVector3T<float> unit;
+    if (collision_index < 1) {
+        if (collision_index != 0) {
+            double inv_length = g_double_005ebc30 / direction_length;
+            unit.Set(direction->x * inv_length, direction->y * inv_length,
+                     direction->z * inv_length);
+            s_entry_direction_00652d50 = unit;
+        }
+        s_collision_state_00652938 = 0;
+        s_bounce_count_00652d7c = 0;
+    }
+    ++s_bounce_count_00652d7c;
+    srVector3T<float> step = *hit_point - *origin;
+    *direction = *direction - step;
+    *origin = *hit_point;
+    if (normal.z * s_entry_direction_00652d50.z + normal.y * s_entry_direction_00652d50.y +
+            s_entry_direction_00652d50.x * normal.x <
+        g_float_005ebcb4) {
+        direction->x = 0.0f;
+        direction->y = 0.0f;
+        direction->z = 0.0f;
+        g_environ_00652DB4->vector_24 = 0.0f;
+        return 0;
+    }
+    double inv_length = g_double_005ebc30 / direction_length;
+    unit.Set(direction->x * inv_length, direction->y * inv_length, direction->z * inv_length);
+    srVector3T<float> slide;
+    slide.x = normal.x * distance_34 + direction->x;
+    slide.y = normal.y * distance_34 + direction->y;
+    slide.z = normal.z * distance_34 + direction->z;
+    ApplyEnvironContact0041EA90(&slide);
+    srVector3T<float> slide_unit = slide;
+    slide_unit.Normalize();
+    float approach = DotProduct(slide_unit, s_entry_direction_00652d50);
+    if (fabsf(approach) < g_camera_snap_epsilon_005ebc2c) {
+        direction->x = 0.0f;
+        direction->y = 0.0f;
+        direction->z = 0.0f;
+        return 0;
+    }
+    if (approach >= g_float_005ebc90) {
+        if (s_collision_state_00652938 != 0) {
+            srVector3T<float> ortho = s_entry_direction_00652d50;
+            float normal_sq = DotProduct(normal, normal);
+            if (normal_sq > g_float_005ebc58) {
+                ortho = normal * (DotProduct(s_entry_direction_00652d50, normal) / normal_sq);
+            }
+            srVector3T<float> deflect = s_entry_direction_00652d50 - ortho;
+            deflect.Normalize();
+            if (DotProduct(unit, deflect) < g_float_005ebb34 && s_collision_state_00652938 == 1 &&
+                CentroidsDiverging0041E8E0(s_first_surface_00652d78, &normal,
+                                           &s_first_normal_00652d80) != 0) {
+                crossed = 1;
+            }
+        }
+    } else if (s_collision_state_00652938 != 0) {
+        crossed = 1;
+    }
+    if (s_collision_state_00652938 != 0) {
+        if (g_float_005ebcb0 < DotProduct(normal, s_first_normal_00652d80)) {
+            if (s_first_limit_00652da0 <= adjusted_d) {
+                return 1;
+            }
+            s_first_limit_00652da0 = adjusted_d;
+            s_first_surface_00652d78 = index_04;
+            *direction = slide;
+            return 1;
+        }
+        if (crossed != 0) {
+            crease_a = CrossProduct(normal, s_first_normal_00652d80);
+            if (DotProduct(crease_a, unit) < g_float_005ebb34) {
+                crease_a = -crease_a;
+            }
+        } else {
+            recomputed = 0;
+            if (DotProduct(slide_unit, s_first_normal_00652d80) > g_float_005ebc90) {
+                s_first_normal_00652d80 = normal;
+                s_first_surface_00652d78 = index_04;
+                recomputed = 1;
+                s_first_limit_00652da0 = adjusted_d;
+            }
+        }
+        if (s_collision_state_00652938 == 2) {
+            if (g_float_005ebcb0 < DotProduct(normal, s_second_normal_00652d68)) {
+                if (s_second_limit_0065294c <= adjusted_d) {
+                    return 1;
+                }
+                s_second_limit_0065294c = adjusted_d;
+                s_second_surface_00652d60 = index_04;
+                *direction = slide;
+                return 1;
+            }
+            if (DotProduct(s_second_normal_00652d68 + s_first_normal_00652d80, normal) <
+                g_camera_snap_epsilon_005ebc2c) {
+                direction->x = 0.0f;
+                direction->y = 0.0f;
+                direction->z = 0.0f;
+                return 0;
+            }
+            if (crossed != 0) {
+                srVector3T<float> crease_b = CrossProduct(normal, s_second_normal_00652d68);
+                if (DotProduct(crease_b, unit) < g_camera_transition_epsilon_005ebc84) {
+                    crease_b = -crease_b;
+                }
+                float ahead_a = DotProduct(crease_a, s_entry_direction_00652d50);
+                float ahead_b = DotProduct(crease_b, s_entry_direction_00652d50);
+                if (ahead_a < g_camera_snap_epsilon_005ebc2c &&
+                    ahead_b < g_camera_snap_epsilon_005ebc2c) {
+                    direction->x = 0.0f;
+                    direction->y = 0.0f;
+                    direction->z = 0.0f;
+                    return 0;
+                }
+                if (ahead_b <= ahead_a) {
+                    float crease_sq = crease_b.LengthSquared();
+                    if (crease_sq > g_float_005ebc58) {
+                        slide = crease_b * (DotProduct(slide, crease_b) / crease_sq);
+                    }
+                    s_first_normal_00652d80 = normal;
+                    s_first_limit_00652da0 = adjusted_d;
+                    s_first_surface_00652d78 = index_04;
+                } else {
+                    float crease_sq = DotProduct(crease_a, crease_a);
+                    if (crease_sq > g_float_005ebc58) {
+                        slide = crease_a * (DotProduct(slide, crease_a) / crease_sq);
+                    }
+                    s_second_normal_00652d68 = normal;
+                    s_second_surface_00652d60 = index_04;
+                    s_second_limit_0065294c = adjusted_d;
+                }
+            } else if (DotProduct(slide_unit, s_second_normal_00652d68) >= g_float_005ebb34) {
+                if (recomputed != 0) {
+                    s_collision_state_00652938 = 1;
+                } else {
+                    s_second_normal_00652d68 = normal;
+                    s_second_surface_00652d60 = index_04;
+                    s_second_limit_0065294c = adjusted_d;
+                }
+            }
+        } else if (crossed != 0) {
+            if (DotProduct(crease_a, s_entry_direction_00652d50) < g_camera_snap_epsilon_005ebc2c) {
+                direction->x = 0.0f;
+                direction->y = 0.0f;
+                direction->z = 0.0f;
+                return 0;
+            }
+            ProjectVectorOntoVector00421440(&slide, &crease_a);
+            s_second_normal_00652d68 = normal;
+            s_collision_state_00652938 = s_collision_state_00652938 + 1;
+            s_second_surface_00652d60 = index_04;
+            s_second_limit_0065294c = adjusted_d;
+        }
+    } else {
+        s_first_normal_00652d80 = normal;
+        s_first_surface_00652d78 = index_04;
+        s_collision_state_00652938 = 1;
+        s_first_limit_00652da0 = adjusted_d;
+    }
+    *direction = slide;
+    if (direction->Length() >= g_double_005ebca8) {
+        return 1;
+    }
+    return 0;
+}
+
+// SYNTHETIC: WIZ8 0x0041E8B0
+// `dynamic atexit destructor for 's_first_normal_00652d80''
+
+// SYNTHETIC: WIZ8 0x0041E8C0
+// `dynamic atexit destructor for 's_second_normal_00652d68''
+
+// SYNTHETIC: WIZ8 0x0041E8D0
+// `dynamic atexit destructor for 's_entry_direction_00652d50''
+
+/* Whether `surface_index`'s triangle centroid sits farther from this surface's
+   centroid than the from→to normal offset: used to tell genuinely different
+   contact planes apart when wedging a slide. */
+// FUNCTION: WIZ8 0x0041E8E0
+unsigned char W8GDSurface::CentroidsDiverging0041E8E0(int surface_index,
+                                                      const srVector3T<float>* from,
+                                                      const srVector3T<float>* to)
+{
+    const W8GDSurface* other = g_octree_game_data_00652db0->m_pSurfaces + surface_index;
+    const srVector3T<float>* vertices = g_octree_game_data_00652db0->m_pVertices;
+    float this_x = g_float_005ebb34;
+    float this_y = g_float_005ebb34;
+    float this_z = g_float_005ebb34;
+    float other_x = g_float_005ebb34;
+    float other_y = g_float_005ebb34;
+    float other_z = g_float_005ebb34;
+    for (int vertex = 0; vertex < 3; ++vertex) {
+        const srVector3T<float>* this_vertex = vertices + vertex_indices_18[vertex];
+        this_x += this_vertex->x;
+        this_y += this_vertex->y;
+        this_z += this_vertex->z;
+        const srVector3T<float>* other_vertex = vertices + other->vertex_indices_18[vertex];
+        other_x += other_vertex->x;
+        other_y += other_vertex->y;
+        other_z += other_vertex->z;
+    }
+    float delta_x = this_x * g_double_005ebcc0 - other_x * g_double_005ebcc0;
+    float delta_y = this_y * g_double_005ebcc0 - other_y * g_double_005ebcc0;
+    float delta_z = this_z * g_double_005ebcc0 - other_z * g_double_005ebcc0;
+    float separation_sq = delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
+    float adjust_x = delta_x + (from->x - to->x);
+    float adjust_y = delta_y + (from->y - to->y);
+    float adjust_z = delta_z + (from->z - to->z);
+    float adjusted_sq = adjust_x * adjust_x + adjust_y * adjust_y + adjust_z * adjust_z;
+    if (separation_sq < adjusted_sq) {
+        return 0;
+    }
+    return 1;
+}
+
+/* Environment contact response for a flag-4 (walkable) surface hit: pushes
+   the slide back out of the plane by `depth`, removes the into-plane residual
+   scaled by value_20 and the vertical attenuation, and reports the combined
+   motion to the environ record. Direction tests against the surface normal
+   decide whether any correction applies. */
+// FUNCTION: WIZ8 0x0041EA90
+unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direction)
+{
+    W8LevelDataRecord* level = g_level_data_00652dac;
+    if ((flags_00 & 4) == 0) {
+        level->vector_40 = 0.0f;
+        level->vector_70.SetZero();
+        return 0;
+    }
+    level->flags |= 0x10;
+    level->sound_environment_0c = footstep_surface_3c;
+    level->sound_environment_alt_0d = footstep_material_3d;
+    srVector3T<float> normal;
+    normal.x = plane_24[0];
+    normal.y = plane_24[1];
+    normal.z = plane_24[2];
+    float factor = g_environ_00652DB4->value_20;
+    srVector3T<float> slide = g_environ_00652DB4->vector_24 * g_environ_00652DB4->scale_0c;
+    srVector3T<float> unit = slide;
+    unit.Normalize();
+    if (DotProduct(unit, normal) >= g_float_005ebcb4) {
+        srVector3T<float> proj = slide;
+        float normal_sq = normal.LengthSquared();
+        if (normal_sq > g_float_005ebc58) {
+            proj = normal * (DotProduct(slide, normal) / normal_sq);
+        }
+        if (DotProduct(proj, normal) <= g_float_005ebb34) {
+            float depth = proj.Length();
+            if (distance_34 < depth) {
+                depth = distance_34;
+            }
+            float attenuation = 0.25f;
+            if (slide.y < g_float_005ebb34) {
+                attenuation = fabsf(slide.y) / slide.Length() * g_float_005ebccc +
+                              g_navigator_vertical_phase_step_005ebcc8;
+            }
+            srVector3T<float> residual(slide.x - proj.x, slide.y - proj.y, slide.z - proj.z);
+            residual.Set(residual.x * factor, residual.y * factor, residual.z * factor);
+            residual.Set(residual.x * attenuation, residual.y * attenuation,
+                         residual.z * attenuation);
+            srVector3T<float> pushback;
+            pushback.Set(normal.x * depth, normal.y * depth, normal.z * depth);
+            slide += pushback;
+            slide -= residual;
+            *direction -= residual * factor;
+            g_environ_00652DB4->SetScaledMotion00421800(&slide);
+            return 1;
+        }
+        return 0;
+    }
+    slide = 0.0f;
+    g_environ_00652DB4->vector_24 = slide / g_environ_00652DB4->scale_0c;
+    g_environ_00652DB4->value_05 = 1;
+    return 0;
+}
+
 /* VC6 vector constructor iterator, emitted for an ordinary array construction.
    This is compiler support, not an authored Wizardry callback wrapper. */
 // LIBRARY: WIZ8 0x0041e880
@@ -2260,7 +2956,7 @@ void W8LevelDataRecord::UpdateMotionProgress0041FF90(unsigned char fast_move, un
                 g_level_override_00652dba = 1;
             }
         } else if (allow_override && g_float_005ebcd8 < value_f0) {
-            HandleLevelOverride004EF9A0();
+            HandleLevelOverride004EF9A0(value_f0);
         }
         value_f0 = -(vector_64.y / g_camera_motion_divisor_00603ac4);
         return;

@@ -178,7 +178,7 @@ bool QueueNpcCombatScript(void)
         if (npc == 0) {
             continue;
         }
-        int faction = npc->record->unknown_05f[0];
+        int faction = npc->record->faction_5f;
         bool hostile_group_present = false;
         if (faction != 0 && faction != 1) {
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {

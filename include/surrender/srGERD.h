@@ -172,6 +172,8 @@ public:
                double far_plane);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
+    long getPolygonOffset() const;
+    void setPolygonOffset(long offset);
     void setTexture(srTextureIFace* texture, unsigned long layer);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);

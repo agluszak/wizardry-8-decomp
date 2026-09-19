@@ -94,6 +94,17 @@ extern float g_float_005ebc60;
    geometry. */
 extern float g_float_005ebc78;
 extern float g_float_005ebc7c;
+/* Collision-response constants: hit-fraction floor/ceiling, surface margin
+   scales, the level-flag-8 height lift, and the plane-similarity thresholds. */
+extern const float g_float_005ebc80;
+extern const float g_float_005ebc8c;
+extern const float g_float_005ebc94;
+extern const float g_float_005ebc9c;
+extern const double g_double_005ebca8;
+extern const float g_float_005ebcb0;
+extern const float g_float_005ebcb4;
+extern const float g_float_005ebcb8;
+extern const double g_double_005ebcc0;
 extern float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;

@@ -302,21 +302,24 @@ def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
             return None
         params.append(ParameterDefinitionImpl(f"param_{index}", data_type, None))
     manager = program.getDataTypeManager()
-    manager.createCategory(CategoryPath(_IAT_CALLBACKS))
-    definition_name = iat_callback_definition_name(
-        match.group("ret").strip() or "void",
-        tuple(parts),
-        convention,
-        varargs,
-    )
-    definition = FunctionDefinitionDataType(CategoryPath(_IAT_CALLBACKS), definition_name)
-    definition.setReturnType(return_type)
-    if params:
-        definition.setArguments(params)
-    definition.setCallingConvention(convention)
-    if varargs and hasattr(definition, "setVarArgs"):
-        definition.setVarArgs(True)
-    added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
+    from .ghidra.mutations import program_transaction
+
+    with program_transaction(program, "Resolve IAT callback type"):
+        manager.createCategory(CategoryPath(_IAT_CALLBACKS))
+        definition_name = iat_callback_definition_name(
+            match.group("ret").strip() or "void",
+            tuple(parts),
+            convention,
+            varargs,
+        )
+        definition = FunctionDefinitionDataType(CategoryPath(_IAT_CALLBACKS), definition_name)
+        definition.setReturnType(return_type)
+        if params:
+            definition.setArguments(params)
+        definition.setCallingConvention(convention)
+        if varargs and hasattr(definition, "setVarArgs"):
+            definition.setVarArgs(True)
+        added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
     return PointerDataType(added, manager)
 
 

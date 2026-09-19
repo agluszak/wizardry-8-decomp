@@ -1,6 +1,7 @@
 #pragma once
 
 extern unsigned char g_flag_6109f0;
+extern unsigned char g_flag_652da5;
 
 #include "wiz8/vector.h"
 

@@ -1131,6 +1131,66 @@ void CreateMainGameInterfaceButtons(void)
     CreateLayoutArrowButtons();
 }
 
+/* Free every button bank CreateMainGameInterfaceButtons built, plus the submenu
+   panel and row controls created with it. Every slot is nulled as it is
+   released so a second pass is harmless. */
+// FUNCTION: WIZ8 0x00598AE0
+void DestroyMainGameInterfaceButtons(void)
+{
+    int index;
+
+    for (index = 0; index < 9; ++index) {
+        if (g_submenu_buttons_69b8b0[index] != 0) {
+            delete g_submenu_buttons_69b8b0[index];
+            g_submenu_buttons_69b8b0[index] = 0;
+        }
+    }
+    for (index = 0; index < 2; ++index) {
+        if (g_submenu_scroll_buttons_69b858[index] != 0) {
+            delete g_submenu_scroll_buttons_69b858[index];
+            g_submenu_scroll_buttons_69b858[index] = 0;
+        }
+    }
+    for (index = 0; index < 2; ++index) {
+        if (g_submenu_panel_buttons_69b860[index] != 0) {
+            delete g_submenu_panel_buttons_69b860[index];
+            g_submenu_panel_buttons_69b860[index] = 0;
+        }
+    }
+    if (gpSubMenuPanel != 0) {
+        delete gpSubMenuPanel;
+        gpSubMenuPanel = 0;
+    }
+    for (index = 0; index < 5; ++index) {
+        if (g_submenu_rows_69b8ec[index] != 0) {
+            delete g_submenu_rows_69b8ec[index];
+            g_submenu_rows_69b8ec[index] = 0;
+        }
+    }
+    if (g_options_disk_button_69b8e4 != 0) {
+        delete g_options_disk_button_69b8e4;
+        g_options_disk_button_69b8e4 = 0;
+    }
+    for (index = 0; index < 5; ++index) {
+        if (g_combat_stance_buttons_69b89c[index] != 0) {
+            delete g_combat_stance_buttons_69b89c[index];
+            g_combat_stance_buttons_69b89c[index] = 0;
+        }
+    }
+    for (index = 0; index < 3; ++index) {
+        if (g_roof_buttons_69b8d8[index] != 0) {
+            delete g_roof_buttons_69b8d8[index];
+            g_roof_buttons_69b8d8[index] = 0;
+        }
+    }
+    for (index = 0; index < 6; ++index) {
+        if (g_layout_arrow_buttons_69b884[index] != 0) {
+            delete g_layout_arrow_buttons_69b884[index];
+            g_layout_arrow_buttons_69b884[index] = 0;
+        }
+    }
+}
+
 /* Re-enable the button banks the surprise sequence took down: submenu scroll
    arrows, the options disk, roof buttons and the layout arrows. */
 // FUNCTION: WIZ8 0x00598c10

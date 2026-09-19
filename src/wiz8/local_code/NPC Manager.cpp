@@ -5,6 +5,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -85,6 +86,59 @@ W8GrowableVector<W8NpcState*>* g_npc_states;
 bool NpcRecordHasValue002(W8NpcState* npc)
 {
     return npc->record->value_002 != 0;
+}
+
+/* The NPC's effective disposition: the state's byte plus its bound monster's
+   modifier, forced fully hostile while that monster is turned. A factioned
+   NPC instead reports its faction score unless the record keeps the answer
+   static or the faction holds nothing toward the party; a factioned NPC whose
+   allied faction a living front-rank party RPC shares answers fifty. */
+// FUNCTION: WIZ8 0x0050A280
+char GetNpcDisposition(W8NpcState* npc)
+{
+    char disposition = npc->disposition;
+    char faction_disposition;
+    W8MonsterInfo* monster_info;
+    W8NpcState* bound;
+    int bound_index;
+    unsigned int slot;
+
+    if (npc->has_monster != 0 && npc->is_present != 0) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
+        if (monster_info != 0) {
+            disposition += monster_info->effect_2de;
+            if (monster_info->condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+                disposition = 0x64;
+            }
+        }
+    }
+    if (npc->record->faction_5f == 0) {
+        return disposition;
+    }
+    faction_disposition = GetFactionDispositionScore(npc->record->faction_5f);
+    if (npc->record->unknown_054 != 0) {
+        return faction_disposition;
+    }
+    if (GetFactionDispositionToward(npc->record->faction_5f, W8_FACTION_PARTY) == 0) {
+        return faction_disposition;
+    }
+    if (npc->record->allied_faction_6e != 0) {
+        for (slot = 0; slot < 2; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                g_status_685170.buffers.characters[slot].hp_current > 0) {
+                bound_index = g_status_685170.buffers.party_rows[slot].animation_0fa;
+                if (g_npc_states != 0) {
+                    bound = *g_npc_states->GetAt(bound_index);
+                    if (bound != 0 && bound->binding_unavailable == 0 &&
+                        bound->record->faction_5f == npc->record->allied_faction_6e) {
+                        return 0x32;
+                    }
+                }
+            }
+        }
+    }
+    return disposition;
 }
 
 /* Which of the three disposition bands the NPC falls in. The bands are cut at
@@ -1422,7 +1476,7 @@ void ReleaseNpcBinding(int value)
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
    the monster's record is missing, is not NPC-routed, binds no NPC, or the
-   binding has not been released. */
+   binding has been released. */
 // FUNCTION: WIZ8 0x0050A440
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 {
@@ -1434,7 +1488,7 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
         return 0;
     }
     npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
-    if (npc->binding_unavailable != 0) {
+    if (npc->binding_unavailable == 0) {
         return npc;
     }
     return 0;
