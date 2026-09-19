@@ -1,9 +1,8 @@
 # Continuous integration
 
-`.github/workflows/ci.yml` runs public checks on every pull request and push to `main`. On trusted
-`main` runs, the same already-prepared runner then continues into the licensed Wizardry 8 runtime
-suite. Same-repository pull requests authored by the repository owner also use the licensed input to
-build reccmp products and publish the current recovery statistics as a PR comment.
+`.github/workflows/ci.yml` runs public checks on every pull request and push to `main`. Trusted
+`main` runs and same-repository pull requests authored by the repository owner can additionally run
+the licensed Wizardry 8 comparison lane.
 
 ## Public checks
 
@@ -14,78 +13,74 @@ Every pull request and push to `main` uses only public or tracked repository inp
 - builds the pinned VC6 analysis image and fetches the pinned public zlib/JPEG/Info-ZIP sources;
 - runs `uv run wiz8 doctor`, `uv run wiz8 check`, and `uv run wiz8 lint`;
 - runs the VC6/Ghidra recovery lifecycle self-test;
-- restores the reviewed tracked Ghidra checkpoint through the normal live PyGhidra project-opening
-  path, then runs `tests/ghidra` live enrichment integration tests (excluded from `wiz8 check`),
-  including the lifecycle-fixture class-binding acceptance test after the recovery self-test.
+- restores the reviewed tracked Ghidra checkpoint and runs the live Ghidra integration tests.
 
-The public steps never receive the GOG URL or game files. The workflow intentionally uses
-`pull_request`, not `pull_request_target`.
+The workflow intentionally uses `pull_request`, not `pull_request_target`. Checkout credentials are
+disabled.
 
-The public zlib/JPEG/Info-ZIP trees are also product build inputs: the VC6 build mounts them directly.
-Keeping licensed work on the same runner means those already verified sources and the already built
-VC6 image are reused instead of downloaded and built again.
+## Licensed input storage
 
-## Licensed-input steps
+The canonical GOG installer is stored as a release asset in the private
+`agluszak/wiz8-ci-inputs` repository under tag `gog-22306`. CI accesses that repository only on a
+cache miss, using the `WIZ8_INPUTS_TOKEN` repository secret. The token only needs read access to the
+private input repository.
 
-On trusted pushes to `main`, the same job continues by downloading the canonical GOG installer from
-the repository secret `WIZ8_GOG_URL`, verifying the reviewed installer SHA-256, running the normal
-`wiz8 prepare` path, running the licensed comparison tests, and then running
-`uv run wiz8 runtime-test --check-order`.
+The public repository's Actions cache contains only an encrypted copy of the installer. The cache key
+includes the reviewed installer SHA-256 and an explicit encryption/cache-format version. The
+encryption key is held separately in the `WIZ8_CACHE_KEY` repository secret and is never stored in
+the cache.
 
-`wiz8 prepare` intentionally materializes only the primary `gog-base` corpus needed for ordinary
-matching and runtime work. CI does not run the global `wiz8 corpus verify` command here because that
-command verifies every configured optional corpus role as well, including patch and demo inputs that
-are not required for CI.
+This split is deliberate: pull-request workflows can potentially read caches derived from the base
+branch, so plaintext licensed input must never be cached. A fork can at worst obtain the encrypted
+blob; repository secrets are not supplied to that workflow.
 
-A same-repository pull request authored by the repository owner also downloads and verifies the
-installer and prepares the corpus. It then runs `uv run wiz8 report status --build`, formats the
-existing structured reccmp statistics into Markdown, and exports that Markdown as a job output. A
-separate comment-only job creates or updates one `reccmp status` comment on the pull request. The
-comment reports project totals and a collapsible per-target table; subsequent CI runs update the same
-comment instead of adding another one. PRs do not run the licensed runtime suite.
+On a trusted licensed run CI:
 
-The owner-and-same-repository guard is deliberate. reccmp needs the original licensed binaries, so a
-PR that computes live matching statistics necessarily has access to those files while it runs. Fork
-PRs, Dependabot PRs, and same-repository PRs authored by anyone other than the repository owner stay on
-the public-only path and never receive `WIZ8_GOG_URL` or the game files. Do not replace this with
-`pull_request_target`: that would give privileged workflow context to untrusted pull-request code.
+1. restores the encrypted cache;
+2. on a cache miss, downloads the release asset from the private repository;
+3. verifies the plaintext installer SHA-256;
+4. encrypts it with AES-256-CBC using PBKDF2 and a random high-entropy repository secret;
+5. saves that encrypted blob to Actions cache only from trusted non-PR runs on `main`;
+6. decrypts the installer into the ephemeral runner input directory;
+7. verifies the plaintext SHA-256 again before `wiz8 prepare`.
 
-The main CI job retains only `contents: read`. The `pull-requests: write` permission exists only on the
-small `comment-reccmp-status` job, which is skipped before dispatch unless the PR is an owner-authored
-same-repository PR and the main CI job succeeded. That job does not check out or execute repository
-code; it only receives the rendered Markdown and upserts the PR comment. Checkout credentials on the
-main job remain disabled.
+The reviewed installer SHA-256 is:
 
-The download uses pinned `gdown==5.2.1` through `uvx`. For Google Drive, it passes `--fuzzy` so an
-ordinary share URL such as `https://drive.google.com/file/d/.../view?usp=sharing` is resolved to the
-actual file instead of downloading the HTML share page. `gdown` handles Drive's confirmation flow for
-large files. It runs quietly so the secret URL is not printed. A normal direct HTTP/HTTPS URL also
-works.
+```text
+48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
+```
 
-The installer is simpler than storing a pre-extracted tree: it is one known input with one known hash,
-and the normal project code remains responsible for extraction and materialization. CI does not upload
-the installer, extracted tree, work directory, or runtime stages to Actions artifacts or caches. The
-licensed files are removed in the final step and the GitHub-hosted runner is disposable.
+The current cache-format identifier is `v1-aes256cbc-pbkdf2-200000`. If
+`WIZ8_CACHE_KEY` is rotated, bump `GOG_CACHE_VERSION` so CI cannot restore ciphertext encrypted
+with the old key.
+
+## Licensed-input checks
+
+After materializing the installer, CI uses the normal project path:
+
+- `uv run wiz8 prepare`;
+- `uv run wiz8 build match`;
+- reccmp status generation for trusted owner-authored same-repository PRs;
+- vtable and datacmp audits;
+- `tests/licensed` on trusted `main` runs;
+- the full runtime suite on trusted `main` runs.
+
+Fork PRs, Dependabot PRs, and same-repository PRs authored by anyone other than the repository owner
+stay on the public-only path. They receive neither `WIZ8_INPUTS_TOKEN` nor `WIZ8_CACHE_KEY`.
+
+The installer, extracted game tree, runtime stages, and decrypted material are removed at the end of
+the job. Only the encrypted installer blob is persisted through Actions cache.
 
 ## Setup
 
-1. Put `setup_wizardry_8_2001_12_23_(22306).exe` somewhere CI can fetch. For Google Drive, sharing it
-   as **Anyone with the link** is sufficient for this setup. The expected SHA-256 is
-   `48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d`.
-2. In GitHub, open **Settings -> Secrets and variables -> Actions -> New repository secret**.
-3. Create `WIZ8_GOG_URL` containing the Google Drive share URL or other download URL. Do not put the
-   URL in workflow YAML, repository variables, issues, or comments.
+The licensed lane expects these two repository secrets:
 
-Create the secret before the first trusted `main` run or owner PR that needs a stats comment. Licensed
-CI intentionally fails with a clear error when it is missing rather than silently skipping the work.
+- `WIZ8_INPUTS_TOKEN`: a fine-grained GitHub token with read-only Contents access to
+  `agluszak/wiz8-ci-inputs`;
+- `WIZ8_CACHE_KEY`: a random high-entropy encryption key, for example generated with
+  `openssl rand -base64 48`.
 
-An "anyone with the link" Drive file uses bearer-link security: the repository and Actions logs do not
-publish the link, but anyone who obtains it can download the installer. The SHA-256 verification is the
-hard integrity gate before any project tooling consumes the downloaded bytes.
-
-If stronger access control is eventually needed, replace the single URL with provider-specific
-credentials or OIDC. That is deliberately not the default here because it adds substantially more CI
-configuration for little benefit on a single-user project.
-
-Do not expose game files through Actions artifacts, caches, container images, or a public package
-registry.
+The private repository must contain release `gog-22306` with asset
+`setup_wizardry_8_2001_12_23_.22306.exe` matching the reviewed SHA-256 above. CI renames that release
+asset to the canonical local filename `setup_wizardry_8_2001_12_23_(22306).exe` before verification
+and preparation.
