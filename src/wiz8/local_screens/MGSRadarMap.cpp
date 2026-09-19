@@ -346,7 +346,7 @@ void UpdateRadarBlips(void)
 
     W8WorldItem* world_item = GetNextWorldItem(1);
     while (world_item != 0) {
-        W8Item* item = world_item->owner;
+        W8Item* item = world_item->p3D;
 
         if (item != 0) {
             W8ItemRep* rep = static_cast<W8ItemRep*>(item->m_pRep);
