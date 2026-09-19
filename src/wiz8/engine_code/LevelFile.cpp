@@ -206,7 +206,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
     ok &= FileRead(hFile, &pLevel->nClippingPlanes, sizeof(pLevel->nClippingPlanes), 0);
     ok &= fSuccess;
     if (pLevel->nClippingPlanes != 0) {
-        ok &= FileRead(hFile, &pLevel->unknown_690, 1, 0);
+        ok &= FileRead(hFile, &pLevel->clipping_plane_version_690, 1, 0);
         pLevel->pClippingPlanes = static_cast<W8LevelFileClippingPlaneRecord*>(
             malloc(pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord)));
         if (pLevel->pClippingPlanes == 0) {
@@ -434,7 +434,7 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     fSuccess = FileWrite(hFile, pLevel->unknown_688, 4, 0) & fSuccess;
     fSuccess = FileWrite(hFile, &pLevel->nClippingPlanes, 4, 0) & fSuccess;
     if (pLevel->nClippingPlanes != 0) {
-        fSuccess &= FileWrite(hFile, &pLevel->unknown_690, 1, 0);
+        fSuccess &= FileWrite(hFile, &pLevel->clipping_plane_version_690, 1, 0);
         fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes,
                               pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
         free(pLevel->pClippingPlanes);
