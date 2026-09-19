@@ -1354,7 +1354,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char need
 /* Pick where the spell lands: collect every slot the spell may be cast at
    and take one at random into the monster's stored target. */
 // FUNCTION: WIZ8 0x005326F0
-unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
+bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
 {
     W8GrowableVector<W8CombatSlot> targets;
 
@@ -2055,8 +2055,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
    types aim at the world; anything else either needs no aim at all or has to
    pass the slot check. */
 // FUNCTION: WIZ8 0x00534290
-unsigned char CanMonsterAimSpell( // bool-byte-ok: retail passes callee byte through
-    W8MonsterInfo* monster_info, int spell_id)
+bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
 

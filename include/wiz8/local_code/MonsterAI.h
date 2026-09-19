@@ -40,7 +40,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group);    /* 0x005324B0 */
 /* MonsterAI.cpp GLOBAL at 0x0061EEFC: two dwords per special attack kind. */
 extern const int g_special_attack_table[32][2];
 
-unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id); /* 0x005326F0 */
+bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id); /* 0x005326F0 */
 /* Whether the combat slot accepts `spell_id` from this caster; the original
    name is proven by the "WARNING: MonsterSpellTargetOK" debug message. */
 unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
@@ -87,8 +87,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
                             char needs_target); /* 0x00532550 */
 /* 0x00534290: whether a monster can aim the spell it wants to cast - area
    target types aim at the world, the rest pass the slot check. */
-unsigned char CanMonsterAimSpell( // bool-byte-ok: retail passes callee byte through
-    W8MonsterInfo* monster_info, int spell_id);
+bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id);
 /* 0x00534D50: whether the control spell's visual anchor sits in range of the
    monster, falling back on where the party stands. */
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info);
