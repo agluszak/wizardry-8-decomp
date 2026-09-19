@@ -94,7 +94,7 @@ void ToggleMipePanel0057D740(void)
         g_level_block->flag_272 = 0;
         ResetEditorStatusLine0058AA20(-1);
         if (gXStatus.fCombatMode != 0) {
-            Function58F6B0(1);
+            SelectTextBox(1);
         }
         ReleaseWorldCursor004909C0();
         g_flag_68f105 = 0;
@@ -127,7 +127,7 @@ void ToggleMipePanel0057D740(void)
 
     g_level_block->flag_271 = 0;
     g_level_block->flag_272 = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ResetEditorStatusLine0058AA20(-1);
     g_flag_68f105 = 1;
     ResetEditorStatusLine0058AA20(-1);
@@ -1314,10 +1314,7 @@ void UpdateMipeSelection0057DC20(void)
             }
         }
         IListClear(&g_mipe_state_0068f100->monster_ids);
-        for (index = 0; index < static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                                    gXStatus.plsMonsterList))); // reinterpret-ok: retail spells the
-             // IList length on the W8PList (0x5e2c70)
-             ++index) {
+        for (index = 0; index < static_cast<int>(PLLength(gXStatus.plsMonsterList)); ++index) {
             info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
             if (info->fActive != 0 && info->monster_group_id == group_id) {
                 SetMonsterHighlight(0, info->location_id, 1);

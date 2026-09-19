@@ -129,6 +129,7 @@ def _function(
 ) -> SimpleNamespace:
     return SimpleNamespace(
         getReturnType=lambda: return_type,
+        getSignature=lambda: SimpleNamespace(getReturnType=lambda: return_type),
         getParameters=lambda: parameters,
         hasVarArgs=lambda: varargs,
         getCallingConventionName=lambda: convention,

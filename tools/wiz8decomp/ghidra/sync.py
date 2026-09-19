@@ -247,7 +247,10 @@ def _stored_signature_matches(function: Any, resolved: dict[str, Any], identity:
     *more* parameters than the source, and ``T *`` is not agreement for ``T``.
     """
 
-    if _type_key(function.getReturnType()) != _type_key(resolved["return_type"]):
+    # Ghidra lowers an aggregate return to a pointer plus an automatic
+    # return-storage parameter. Its formal signature retains the C++ value
+    # return that source declarations express.
+    if _type_key(function.getSignature().getReturnType()) != _type_key(resolved["return_type"]):
         return False
     existing = [
         parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())

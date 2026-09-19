@@ -110,6 +110,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/Noise.cpp
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp
+    src/wiz8/local_code/DifficultyScaling.cpp
     src/wiz8/engine_code/GrCycle.cpp
     src/wiz8/engine_code/UpdateMesh.cpp
     src/wiz8/engine_code/stGroundShadow.cpp

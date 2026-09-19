@@ -1636,7 +1636,7 @@ void ProcessMonsterManagerFrame(void)
                             if (monster_info->monster_group_id != 0) {
                                 RemoveMonster(monster_list_index, 0);
                             }
-                            Function4F8CB0(monster_info, -1);
+                            DropMonsterLoot(monster_info, -1);
                             monster_info->monster->BeginDelayedRemoval004C5000();
                         }
                         break;
@@ -1825,3 +1825,95 @@ W8MonsterManagerEntry::~W8MonsterManagerEntry() {}
 
 // FUNCTION: WIZ8 0x004e6a30
 W8MonsterManagerEntry::W8MonsterManagerEntry() {}
+
+// FUNCTION: WIZ8 0x004e4ab0
+void DetectMonsterGroups004E4AB0(void)
+{
+    bool noticed = false;
+
+    for (unsigned int group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList);
+         ++group_index) {
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+        if (group->flag_28 == 0 || (group->flag_2c != 0 && group->unknown_2d[0] != 0) ||
+            (gXStatus.fCombatMode != 0 && group->fInCombat == 0) ||
+            MonsterGroupHasRenderableMember(group, 0) == 0) {
+            continue;
+        }
+        if (group->flag_2c == 0) {
+            W8MonsterRecord* record = MonsterGroupGetRecord(group);
+            int best_slot = -1;
+            unsigned int best_margin = 0;
+            for (unsigned int slot = 0; slot < 8; ++slot) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+                    character->hp_current == 0 || character->highest_condition >= 0xb ||
+                    character->condition_turns[W8_CONDITION_BLIND] != 0) {
+                    continue;
+                }
+                int score = (character->monster_awareness_12b6[group->monster_id] -
+                             record->effective_level_24f) *
+                                3 +
+                            character->attributes[W8_ATTRIBUTE_INTELLIGENCE].effective / 10 +
+                            character->skills[W8_SKILL_MYTHOLOGY].level;
+                int roll = Random(100);
+                if (roll >= score) {
+                    continue;
+                }
+                unsigned int margin = score - roll;
+                if (character->skills[W8_SKILL_MYTHOLOGY].flag_00 != 0) {
+                    PracticeCharacterSkill(character, W8_SKILL_MYTHOLOGY, 10, 0);
+                }
+                if (margin > best_margin) {
+                    best_slot = slot;
+                    best_margin = margin;
+                }
+            }
+            if (best_slot != -1) {
+                PostCharacterNotice(best_slot, gppStringList[0x1ca], GetMonsterGroupName(group));
+                group->flag_2c = 1;
+                bool vowel;
+                switch (static_cast<wchar_t>(towupper(*GetMonsterGroupName(group)))) {
+                case L'A':
+                case L'E':
+                case L'I':
+                case L'O':
+                case L'U':
+                    vowel = true;
+                    break;
+                default:
+                    vowel = false;
+                    break;
+                }
+                wchar_t* article;
+                if (group->member_count == 1) {
+                    article = vowel ? gppStringList[0x1cc] : gppStringList[0x1cb];
+                } else {
+                    article = gppStringList[0x1cd];
+                }
+                ShowNoticef(8, L"%s %s!", article, GetMonsterGroupName(group));
+                noticed = true;
+            }
+        }
+        if (group->unknown_2d[0] == 0) {
+            for (unsigned int slot = 0; slot < 8; ++slot) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+                    character->hp_current == 0 || character->highest_condition >= 0xb ||
+                    character->condition_turns[W8_CONDITION_BLIND] != 0) {
+                    continue;
+                }
+                unsigned int awareness =
+                    character->monster_awareness_12b6[group->monster_id] + group->member_count;
+                if (awareness > 0xff) {
+                    awareness = 0xff;
+                }
+                character->monster_awareness_12b6[group->monster_id] =
+                    static_cast<unsigned char>(awareness);
+            }
+            group->unknown_2d[0] = 1;
+        }
+    }
+    if (noticed) {
+        RequestRedrawParty();
+    }
+}

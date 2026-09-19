@@ -152,6 +152,8 @@ int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock
 /* 0x00537380: the target kind the slot's current action needs in the effective
    targeting context, with the main-screen selection state folded in. */
 int GetTargetNeededForCurrentAction(int party_slot);
+int GetTargetNeededForItem(const W8ItemInstance* item);    /* 0x00537330 */
+void TintHighlightedMonster(W8Monster* monster, int tint); /* 0x00539480 */
 /* 0x00537540: after the selected character's action changes, drop back to no
    targeting when its recorded target still fits, or enter the mode the action
    now needs. */

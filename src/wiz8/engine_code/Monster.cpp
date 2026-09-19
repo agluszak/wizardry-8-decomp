@@ -174,8 +174,8 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
                                                                    {-37.5f, 75.0f, 0.0f},
                                                                    {37.5f, 75.0f, 0.0f},
                                                                    {112.5f, 75.0f, 0.0f}}};
-// GLOBAL: WIZ8 0x0060e914
-float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
+// GLOBAL: WIZ8 0x0060e918
+float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 
 // GLOBAL: WIZ8 0x005ec04c
@@ -2088,7 +2088,7 @@ void W8Monster::ProcessScript004C80E0()
                 if (GetProjectilePosition004C77F0(&source) == 0) {
                     GetMappedPosition004C72A0(&source);
                 }
-                FireMissile004A2D30(owner, &source, &target, 0, 0, 1, 0x47435000);
+                FireMissile004A2D30(owner, &source, &target, 0, 0, 1, 50000.0f);
                 break;
             }
             case MONSCR_GIVE:
@@ -3708,7 +3708,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
                 mesh_scale =
-                    distance_scale * g_monster_attachment_scales_0060e914[attachment_layout];
+                    distance_scale * g_monster_attachment_scales_0060e918[attachment_layout - 1];
                 widened_scale = mesh_scale;
                 mesh->setScale(widened_scale);
                 if ((flags_1dc & 0x400) == 0) {
@@ -3757,7 +3757,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
 
                 item->SetLocation0049F720(&location);
                 mesh = item->GetMesh();
-                mesh_scale = distance_scale * g_monster_attachment_scales_0060e914[chunk_count];
+                mesh_scale = distance_scale * g_monster_attachment_scales_0060e918[chunk_count - 1];
                 widened = mesh_scale;
                 mesh->setScale(widened);
                 widened.SetFromFloat(&location);

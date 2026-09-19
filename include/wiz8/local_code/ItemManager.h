@@ -35,5 +35,5 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item); /* 0x004F9240 */
 bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from,
                             float radius); /* 0x004F8560 */
 /* Whether any live world item is visible to the camera within reach. */
-bool AnyWorldItemVisible(void); /* 0x004F8650 */
-void Function4F8CB0(W8MonsterInfo* monster_info, int value);
+bool AnyWorldItemVisible(void);                               /* 0x004F8650 */
+void DropMonsterLoot(W8MonsterInfo* monster_info, int value); /* 0x004F8CB0 */

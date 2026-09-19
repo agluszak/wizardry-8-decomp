@@ -14,6 +14,8 @@ struct W8ItemInstance;
 struct W8MonsterInfo;
 class W8Missile;
 
+void TickSpellEffects(void); /* 0x00500E90 */
+
 extern int g_learn_sound_0068c510;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
@@ -106,7 +108,6 @@ void StartCharacterItemUse(int party_slot); /* 0x00501790 */
 bool CanPartySlotReBreathe(int party_slot);
 /* 0x00501880: start one character's breath attack. */
 void StartCharacterBreathAttack(int party_slot);
-void Function502460(void); /* 0x00502460 */
 /* 0x004FF4B0: the failure chance for one cast at a power level. Retail call
    sites push three arguments. */
 unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,

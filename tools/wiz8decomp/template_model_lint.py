@@ -24,12 +24,8 @@ _NOISE = re.compile(
     r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
     re.DOTALL,
 )
-_EXPLICIT_SPECIALIZATION = re.compile(
-    r"(?m)^[ \t]*template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*"
-)
-_EXPLICIT_INSTANTIATION = re.compile(
-    r"(?m)^[ \t]*(?:extern[ \t]+)?template[ \t]+(?![ \t]*<)"
-)
+_EXPLICIT_SPECIALIZATION = re.compile(r"(?m)^[ \t]*template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*")
+_EXPLICIT_INSTANTIATION = re.compile(r"(?m)^[ \t]*(?:extern[ \t]+)?template[ \t]+(?![ \t]*<)")
 _SR_INSTANCE_LIFECYCLE = re.compile(
     r"template[ \t\r\n]*<[ \t\r\n]*>[ \t\r\n]*"
     r"struct[ \t\r\n]+srInstanceLifecycle[ \t\r\n]*"
@@ -99,15 +95,13 @@ def validate_template_model(repository: Path) -> dict[str, Any]:
     violations = _template_model_violations(repository)
     if violations:
         rendered = "\n  ".join(
-            f"{item['file']}:{item['line']}: {item['kind']}: {item['text']}"
-            for item in violations
+            f"{item['file']}:{item['line']}: {item['kind']}: {item['text']}" for item in violations
         )
         raise TemplateModelError(
             "template source-model gate failed: concrete compiler emissions do not justify "
             "explicit specialization/instantiation in recovered source. Move behavior to the "
             "primary template, or update the reviewed gate only when an accepted original-source "
-            "oracle directly proves the exceptional construct:\n  "
-            + rendered
+            "oracle directly proves the exceptional construct:\n  " + rendered
         )
 
     return {

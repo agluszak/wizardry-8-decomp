@@ -123,15 +123,14 @@ struct W8SpellEffectEntry {
        constructors write only the W8GrowableVector<int> vftable. */
     W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
     W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
-    /* 0x100/0x110: spawned visuals and owned missiles. Both construct through
-       the base capacity constructor and then take the derived W8Vector
-       vftables at 0x005EC280/0x005EC27C. */
-    W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8Vector<W8Missile*> missiles;          /* 0x110 */
-    unsigned char flag_120;                 /* 0x120 */
-    unsigned char flag_121;                 /* 0x121 */
-    unsigned char flag_122;                 /* 0x122 */
-    unsigned char flag_123;                 /* 0x123 */
+    /* 0x100/0x110: spawned visuals and owned missiles. The cited tables are
+       W8GrowableVector construction/final tables, not derived-vector proof. */
+    W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
+    W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
+    unsigned char flag_120;                         /* 0x120 */
+    unsigned char flag_121;                         /* 0x121 */
+    unsigned char flag_122;                         /* 0x122 */
+    unsigned char flag_123;                         /* 0x123 */
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
     /* 0x125: set by a handler that actually landed its effect; the result

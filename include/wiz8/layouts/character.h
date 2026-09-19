@@ -64,7 +64,8 @@ struct W8CharacterAttribute {
     /* 0x04: the value after equipment and effects. Resistance recalculation
        reads this one, not the base, and only above a threshold of 0x50. */
     unsigned int effective;
-    unsigned char unknown_08[0xc];
+    int change_counter_08;
+    unsigned char unknown_0c[8];
 }; /* 0x14 */
 
 /* One skill record, indexed directly by skill id. PracticeCharacterSkill
@@ -250,14 +251,22 @@ struct W8Character {
     int sp_max[W8_SPELL_REALM_COUNT]; /* 0x0b25 */
     unsigned char unknown_0b3d[8];
     int sp_left[W8_SPELL_REALM_COUNT]; /* 0x0b45 */
-    unsigned char unknown_0b5d[0xc];
+    unsigned char unknown_0b5d[8];
+    /* 0x0b65: game minutes until the alchemist (trait MAKE_POTIONS) may brew
+       again; 0x00503100 ticks it down outside surprise, and 0x00548E60
+       restarts it at 0x168 after a successful brew. */
+    unsigned int potion_brew_cooldown_0b65;
     /* 0x0b69, 0x0b71 and 0x0b79: the per-tick regeneration rates rebuilt from
        the pool ceilings, one each for hit points and stamina and one per spell
        realm at a two-float stride. */
     float health_regen_rate_0b69;
-    unsigned char unknown_0b6d[4];
+    /* 0x0b6d: fractional hit-point regeneration remainder carried between
+       0x00503100 ticks; reset to zero when hit points reach the ceiling. */
+    float health_regen_accumulator_0b6d;
     float stamina_regen_rate_0b71;
-    unsigned char unknown_0b75[4];
+    /* 0x0b75: fractional stamina-regeneration remainder carried between
+       0x00504730 ticks; reset to zero when stamina reaches the ceiling. */
+    float stamina_regen_accumulator_0b75;
     float spell_regen_rates_0b79[12];
     unsigned char unknown_0ba9[0x10];
     unsigned int inventory_weight;     /* 0x0bb9 */
@@ -307,7 +316,11 @@ struct W8Character {
     W8HandAttack hand_attacks[2]; /* 0x1149 */
     unsigned char unknown_11ff[0xb6];
     unsigned char dual_wielding; /* 0x12b5 */
-    unsigned char unknown_12b6[0x3e8];
+    /* 0x12b6: per-monster-id detection score, one byte per record id. The
+       wandering-group pass adds the group's member count while the party stays
+       unaware, and the detection roll subtracts the record's effective level
+       before scaling. */
+    unsigned char monster_awareness_12b6[0x3e8];
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;

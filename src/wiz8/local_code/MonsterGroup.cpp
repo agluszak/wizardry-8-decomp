@@ -826,7 +826,7 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 }
 
 /* Nonzero when the group - or, recursing, one of its allied groups - has a
-   member whose highest condition is in the 0x0d..0x11 incapacitated band. */
+   member whose highest condition is in the 0x0e..0x11 incapacitated band. */
 // FUNCTION: WIZ8 0x00511D40
 bool MonsterGroupHasIncapacitatedMember(int group_id)
 {

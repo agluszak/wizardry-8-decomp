@@ -53,7 +53,9 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 
 void RefreshLevelUpReadyNotices(void); /* 0x004EF1F0 */
 int AddCharacterToParty(W8Character* character, int slot);
-void Function4EF610(int party_slot, int value);
+/* 0x004EF610: remove a slot's character from the party; fSaveCharData
+   persists it back to its NPC record first. */
+unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data);
 
 void Function4EEF10(int value, int mode); /* 0x004EEF10 */
 bool IsCharacterReadyToAdvance(int party_slot);

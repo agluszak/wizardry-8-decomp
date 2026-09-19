@@ -445,7 +445,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
     if (range_category >= W8_RANGE_LONG && range_category <= W8_RANGE_EXTREME) {
         return GetSightCondition37A(monster);
     }
-    return false;
+    return 0;
 }
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
@@ -1250,19 +1250,19 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode)
 
 /* Choose what one monster aims at: the player when it can see them, otherwise
    the nearest hostile visible monster. Answers the chosen distance and fills
-   the two-word target output. */
+   the target kind and monster id when applicable. */
 // FUNCTION: WIZ8 0x0051ac30
-float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
+float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int kind)
 {
     float best = 1000000.0f;
 
-    *out = 0;
+    out->iType = W8_TARGET_KIND_NONE;
     if (monster_info->ubDisposition == 1 &&
         IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
         (best = monster_info->monster->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
-        *out = 2;
+        out->iType = W8_TARGET_KIND_CHARACTER;
     }
-    if (*out == 0 || monster_info->pCombat->unknown_151[1] == 0) {
+    if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->unknown_151[1] == 0) {
         unsigned int count = PLLength(gXStatus.plsMonsterList);
 
         for (unsigned int index = 0; index < count; ++index) {
@@ -1275,8 +1275,8 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int kind)
                     float distance =
                         monster_info->monster->GetDistanceToMonster004C7DD0(other->monster);
                     if (distance < best) {
-                        *out = 3;
-                        out[2] = other->location_id;
+                        out->iType = W8_TARGET_KIND_MONSTER;
+                        out->iMonsterID = other->location_id;
                         best = distance;
                     }
                 }

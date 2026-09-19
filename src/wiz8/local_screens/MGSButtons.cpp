@@ -1683,3 +1683,35 @@ void UpdateSubMenuAutoClose00598FA0(void)
         g_submenu_flag_69b8d4 = 0;
     }
 }
+
+// FUNCTION: WIZ8 0x00598c10
+void EnableMenuButtonBanks00598C10(void)
+{
+    int i;
+    for (i = 0; i < 2; ++i) {
+        g_submenu_scroll_buttons_69b858[i]->SetEnabled(1);
+    }
+    g_options_disk_button_69b8e4->SetEnabled(1);
+    for (i = 0; i < 3; ++i) {
+        g_roof_buttons_69b8d8[i]->SetEnabled(1);
+    }
+    for (i = 0; i < 6; ++i) {
+        g_layout_arrow_buttons_69b884[i]->SetEnabled(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00598c70
+void DisableMenuButtonBanks00598C70(void)
+{
+    int i;
+    for (i = 0; i < 2; ++i) {
+        g_submenu_scroll_buttons_69b858[i]->SetEnabled(0);
+    }
+    g_options_disk_button_69b8e4->SetEnabled(0);
+    for (i = 0; i < 3; ++i) {
+        g_roof_buttons_69b8d8[i]->SetEnabled(0);
+    }
+    for (i = 0; i < 6; ++i) {
+        g_layout_arrow_buttons_69b884[i]->SetEnabled(0);
+    }
+}

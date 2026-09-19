@@ -33,6 +33,7 @@
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/local_code/NPCManager.h"
+#include "wiz8/npc_items.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/npc_script_file.h"
 #include "wiz8/layouts/item_instance.h"
@@ -68,6 +69,12 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srScene.h"
+#include "surrender/srColorSurface.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srMeshModel.h"
+#include "surrender/srShader.h"
+#include "wiz8/surface2d.h"
 #include "wiz8/utility.h"
 #include "wiz8/notices.h"
 #include "wiz8/regions.h"
@@ -337,7 +344,7 @@ double g_world_cursor_extent_table_00616eb0[18];
    Insanity cursor reads it byte-indexed by the power field; the eleven bytes
    run to 0x00616f4c, where the separate Magic Effects dword table starts. */
 // GLOBAL: WIZ8 0x00616f41
-signed char g_spell_power_extent_index_00616f41[11] = {0, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0};
+signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 1, 1, 2, 2, 0};
 void StartCombat(int surprise);
 
 void ServiceNpcDialogue0056E510(void);
@@ -809,7 +816,7 @@ void W8LockInteraction::Process()
         }
         g_lock_interaction_68f2c0 = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -885,7 +892,7 @@ void W8LockInteraction::Process()
         gXStatus.fLockInteractMode = 0;
         EnablePanels(0);
         gXStatus.fLockInteract = 1;
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -1892,7 +1899,7 @@ void W8MainGameScreen::Update()
         }
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -1956,7 +1963,7 @@ void W8MainGameScreen::Update()
         }
         g_main_game_screen = 0;
         ClearLevelDataFlag6();
-        Function58F6B0(0);
+        SelectTextBox(0);
         ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -2165,7 +2172,7 @@ void W8MainGameScreen::CastTrapSpell()
     panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
@@ -2187,7 +2194,7 @@ void W8MainGameScreen::UseTrapItem()
     panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
     screen->m_action_panel_014->EnableRegionSet(0);
     gXStatus.fTrapInteract = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
     RequestRedraw(0x200);
     RequestRedraw(0x100);
@@ -7746,7 +7753,7 @@ unsigned char CombatBarRegionEvent(const InputAtom* event)
 
 resume_world:
     if (gXStatus.fSurprisePossible != 0) {
-        Function502790();
+        AcknowledgeSurprise00502790();
     }
     if (g_flag_006840bd == 0) {
         return 1;
@@ -7757,3 +7764,204 @@ resume_world:
 
 /* Note that the party's state changed. The combat half is only asked for while
    a fight is on; the party half always. */
+
+// GLOBAL: WIZ8 0x0068edb8
+unsigned long g_surprise_fade_tick_base_0068edb8;
+// GLOBAL: WIZ8 0x005ee9a8
+const float g_fade_resume_scale_005ee9a8 = -500.0f;
+// GLOBAL: WIZ8 0x0068edca
+unsigned char g_surprise_fade_in_0068edca;
+// GLOBAL: WIZ8 0x0068edf0
+srColorSurfaceIFace* g_surprise_snapshot_surface_0068edf0;
+// GLOBAL: WIZ8 0x0068edf4
+stSurface2D* g_surprise_snapshot_overlay_0068edf4;
+// GLOBAL: WIZ8 0x0068edf8
+stModelInstance2D* g_surprise_fade_node_0068edf8;
+
+// FUNCTION: WIZ8 0x00560C60
+void ResetMainGameMode00560C60(void)
+{
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        Function5187E0();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto mode_reset;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+mode_reset:
+    g_main_game_mode_0068eddc = 0;
+    if (IsMessageBoxActive()) {
+        Function5187E0();
+    }
+    if (gXStatus.fCombatMode != 0) {
+        EndCombat004EA310(1);
+    } else if (AnyCharacterActive() && g_party_moving_006850b5 == 0) {
+        AutoSaveIfAllowed(1);
+    }
+    if (gXStatus.fSurprisePossible != 0) {
+        RestoreSurpriseView005029A0();
+    }
+    g_status_685170.game_started = 0;
+    ClearHeldItemDisplay();
+    RequestScreenTransition();
+    SetPrimarySurfaceTextureHint2Enabled(0);
+}
+
+// FUNCTION: WIZ8 0x0056b4e0
+void CreateSurpriseFade0056B4E0(void)
+{
+    srShader shader;
+    srVector4T<float> color;
+
+    SetFlag603C4C(0);
+    color.x = 0.0f;
+    color.y = 0.0f;
+    color.z = 0.0f;
+    color.w = 0.0f;
+    g_surprise_fade_node_0068edf8 = CreateColoredPolygonSprite(0x280, 0x1e0, &color, 1);
+    PositionToolTipNode(g_surprise_fade_node_0068edf8, 0, 0, 0);
+    shader = static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())->getShader(0);
+    shader.value = (shader.value & ~0x6040) | 0xa0;
+    static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())->setShader(shader, 0);
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+        ->setOpacity(0.0);
+    g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+    g_surprise_fade_in_0068edca = 1;
+}
+
+// FUNCTION: WIZ8 0x0056b5f0
+void ReverseSurpriseFade0056B5F0(void)
+{
+    if (gXStatus.surprise_phase == 0) {
+        srMaterial* material = static_cast<srMaterial*>(
+            static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
+        float opacity = material->parms_18.diffuse.w;
+        unsigned long now = GetTickCount();
+        g_surprise_fade_in_0068edca = g_surprise_fade_in_0068edca == 0;
+        if (g_surprise_fade_in_0068edca != 0) {
+            g_surprise_fade_tick_base_0068edb8 =
+                now + static_cast<int>((g_float_005ebb38 - opacity) * g_fade_resume_scale_005ee9a8);
+        } else {
+            g_surprise_fade_tick_base_0068edb8 =
+                now + static_cast<int>(opacity * g_fade_resume_scale_005ee9a8);
+        }
+    } else {
+        g_surprise_fade_node_0068edf8->clearFlag(srNode::FLAG_DISABLE);
+        g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+        g_surprise_fade_in_0068edca = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x0056b690
+void DestroySurpriseFade0056B690(void)
+{
+    if (g_surprise_snapshot_overlay_0068edf4 != 0) {
+        g_surprise_snapshot_overlay_0068edf4->release();
+        g_surprise_snapshot_overlay_0068edf4 = 0;
+    }
+    if (g_surprise_snapshot_surface_0068edf0 != 0) {
+        g_surprise_snapshot_surface_0068edf0->release();
+        g_surprise_snapshot_surface_0068edf0 = 0;
+    }
+    if (g_surprise_fade_node_0068edf8 != 0) {
+        g_surprise_fade_node_0068edf8->release();
+        g_surprise_fade_node_0068edf8 = 0;
+    }
+    SetFlag603C4C(1);
+    g_flag_65970d = 1;
+}
+
+// FUNCTION: WIZ8 0x0056b6f0
+unsigned char UpdateSurpriseFade0056B6F0(void)
+{
+    bool done = false;
+    bool boundary = false;
+    float opacity;
+    unsigned long now = GetTickCount();
+
+    if (g_surprise_fade_tick_base_0068edb8 + 500 < now) {
+        if (g_surprise_fade_in_0068edca == 0) {
+            opacity = 0.0f;
+            done = true;
+        } else {
+            boundary = true;
+            opacity = 1.0f;
+            g_surprise_fade_in_0068edca = 0;
+            g_surprise_fade_tick_base_0068edb8 = now;
+        }
+    } else {
+        opacity = (now - g_surprise_fade_tick_base_0068edb8) * g_float_005ebc60;
+        if (g_surprise_fade_in_0068edca == 0) {
+            opacity = g_float_005ebb38 - opacity;
+        }
+    }
+
+    static_cast<srMaterial*>(static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
+                                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
+        ->setOpacity(opacity);
+
+    if (boundary) {
+        if (gXStatus.surprise_phase == 0) {
+            long pitch;
+            void* pixels = Function5498A0(0x1e0, 0, &pitch);
+            srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555,
+                                                             pixels, 0x280, 0x1e0, pitch);
+            g_surprise_snapshot_surface_0068edf0 = surface;
+            g_surprise_snapshot_overlay_0068edf4 =
+                SR_NEW(stSurface2D)(g_surprise_snapshot_surface_0068edf0, 0x280, 0x1e0,
+                                    g_scene_fullscreen_659644, 0x80);
+            g_surprise_snapshot_overlay_0068edf4->updateRectangle(g_gerd_659634, pixels, pitch, 0,
+                                                                  0, 0x280, 0x1e0);
+            Function549950(0x1e0, 0);
+            g_flag_65970d = 0;
+            g_surprise_fade_tick_base_0068edb8 = GetTickCount();
+        } else {
+            g_surprise_snapshot_overlay_0068edf4->release();
+            g_surprise_snapshot_overlay_0068edf4 = 0;
+            g_surprise_snapshot_surface_0068edf0->release();
+            g_surprise_snapshot_surface_0068edf0 = 0;
+            g_flag_65970d = 1;
+        }
+        return done;
+    }
+    if (done != 0) {
+        if (gXStatus.surprise_phase == 0) {
+            g_surprise_fade_node_0068edf8->setFlag(srNode::FLAG_DISABLE);
+            return done;
+        }
+        g_surprise_fade_node_0068edf8->release();
+        g_surprise_fade_node_0068edf8 = 0;
+        SetFlag603C4C(1);
+    }
+    return done;
+}

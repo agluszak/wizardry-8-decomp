@@ -38,9 +38,7 @@ inline W8GrowableVector<int>::W8GrowableVector(
         "template void W8GrowableVector<int>::Grow(int);\n",
     ],
 )
-def test_rejects_explicit_specialization_and_instantiation(
-    tmp_path: Path, source: str
-) -> None:
+def test_rejects_explicit_specialization_and_instantiation(tmp_path: Path, source: str) -> None:
     _write(tmp_path, "src/wiz8/example.cpp", source)
 
     with pytest.raises(TemplateModelError):

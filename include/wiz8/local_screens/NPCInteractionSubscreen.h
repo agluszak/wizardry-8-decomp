@@ -369,18 +369,20 @@ void SwitchNpcDialogueLayout(int interact_id);                       /* 0x005701
 void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
                       int force); /* 0x0056CA60 */
 unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item,
-                                   unsigned char force);                            /* 0x0056CAD0 */
-void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);                          /* 0x0056D030 */
-void CreateNpcDialogueControls(void);                                               /* 0x0056D1D0 */
-void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect);                 /* 0x0056ECD0 */
-void SetNpcDialogueLayoutMode(int value);                                           /* 0x0056EDD0 */
-void CloseNpcDialogueMode1Layout(void);                                             /* 0x00573DD0 */
-void CloseNpcDialogueTranscriptLayout(void);                                        /* 0x00571370 */
-void CloseNpcDialogueOptionLayout(void);                                            /* 0x00572320 */
-void CloseNpcDialogueMode5Layout(void);                                             /* 0x00573570 */
-void ShowNpcDialogueTopicMenu(void);                                                /* 0x00570760 */
-void HandleNpcDialogueDeparture(int value);                                         /* 0x00577290 */
-unsigned char HandleNpcDialogueItem(W8ItemInstance* item);                          /* 0x00575810 */
+                                   unsigned char force);            /* 0x0056CAD0 */
+void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags);          /* 0x0056D030 */
+void CreateNpcDialogueControls(void);                               /* 0x0056D1D0 */
+void InvalidateMainGameActionPanelRect(const W8ControlsRect* rect); /* 0x0056ECD0 */
+void SetNpcDialogueLayoutMode(int value);                           /* 0x0056EDD0 */
+void CloseNpcDialogueMode1Layout(void);                             /* 0x00573DD0 */
+void CloseNpcDialogueTranscriptLayout(void);                        /* 0x00571370 */
+void CloseNpcDialogueOptionLayout(void);                            /* 0x00572320 */
+void CloseNpcDialogueMode5Layout(void);                             /* 0x00573570 */
+void ShowNpcDialogueTopicMenu(void);                                /* 0x00570760 */
+void HandleNpcDialogueDeparture(int value);                         /* 0x00577290 */
+unsigned char HandleNpcDialogueItem(W8ItemInstance* item);          /* 0x00575810 */
+unsigned char AcceptNpcDialogueItem005B1740(W8NpcState* npc, W8ItemInstance* item,
+                                            int mode); /* folded at 0x005B1740 */
 void TranslateDialogueKeyword0056C440(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
 void ResetNpcDialogueItemEditor(void);                                              /* 0x0056FED0 */
 void SetNpcDialogueHidden(char value);                                              /* 0x00576850 */
@@ -470,7 +472,7 @@ void ConfirmNpcTradeSlot(void);
 void RequestNpcSpellService3(void);
 void RequestNpcSpellService41(void);
 void RequestNpcCharacterService(void);
-void Function575520(W8DialogBase* dialog);
+void OnNpcTradeDialogClosed00575520(W8DialogBase* dialog);
 void UpdateNpcTradeSelection0056FAC0(int index, int, int);
 void OpenNpcTradeSplitDialog00572780(void);
 /* The dialogue text-box's button-up/double-click handlers, dispatched from

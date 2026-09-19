@@ -101,9 +101,8 @@ inline void SetPlaneFromThreePoints(srVector4T<float>* plane, const srVector3T<f
         plane->z += current.x * (next.y - previous.y);
     }
 
-    float scale =
-        g_float_005ebb38 /
-        static_cast<float>(sqrt(plane->x * plane->x + plane->y * plane->y + plane->z * plane->z));
+    srVector3T<float> normal(plane->x, plane->y, plane->z);
+    float scale = g_float_005ebb38 / normal.Length();
     plane->x *= scale;
     plane->y *= scale;
     plane->z *= scale;

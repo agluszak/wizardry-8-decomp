@@ -175,7 +175,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -192,7 +192,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -209,7 +209,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
             rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
         }
         offset = position + rotation.Transform(offset);
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -219,7 +219,7 @@ bool TriggerArrowTrap(Trigger* pTrigger)
         rotation.SetIdentity();
         rotation.RotateAroundAxis(angle, direction);
         offset = rotation.Transform(offset) + position;
-        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+        missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
         missile->SetEffectDefinition(&effect);
         CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position, 1.0f,
                                15000.0f, 0);
@@ -302,7 +302,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -319,7 +319,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -336,7 +336,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = position + rotation.Transform(offset);
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -353,7 +353,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
                     rotation.RotateAroundAxis(sin(angle), cos(angle), direction);
                 }
                 offset = rotation.Transform(offset) + position;
-                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 0x47435000);
+                missile = FireMissile004A2D30(0, &position, &offset, 0, 0, 1, 50000.0f);
                 missile->SetEffectDefinition(&effect);
                 CreateAndPlaySoundNode("Data\\Sound\\Combat\\Blow_Gun_Attack_01.wav", position,
                                        1.0f, 15000.0f, 0);
@@ -685,7 +685,7 @@ bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
     if (particle != 0) {
         particle->SetActive(1);
     }
-    Function5025F0();
+    BeginSurprise005025F0();
     MartensBluff2IdolGas004DE660(1);
     g_master_functions_006834d8->Add(MartensBluff2IdolGas004DE660);
     pTrigger->flags_0a0 &= ~0x100u;
@@ -738,7 +738,7 @@ void MartensBluff2IdolGas004DE660(int command)
         }
         g_idol_gas_gate_683554 = 0;
         g_idol_gas_armed_613828 = 1;
-        Function5029E0();
+        ResolveSurpriseWake005029E0();
         return;
     }
     if (!g_idol_gas_gate_683554->IsFinished()) {

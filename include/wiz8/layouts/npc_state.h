@@ -45,11 +45,11 @@ struct W8NpcState {
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
-    unsigned char unknown_1c;
+    unsigned char dismissed_flag;
     /* 0x1d: raised by CreateNpcRuntimeNode; the greeting quote (0) and the
        first-interaction paths lower it once the NPC has been greeted. */
     bool greeting_pending;
-    unsigned char unknown_1e[4];
+    unsigned int dismissed_timer;
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
     unsigned char flag_22;
@@ -89,15 +89,18 @@ struct W8NpcState {
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */
     /* 0x0c5/0x0c6: the pending-restore flag and the level it belongs to. */
-    unsigned char pending_restore;
+    bool pending_restore;
     unsigned char pending_restore_level;
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char binding_unavailable;
-    unsigned char unknown_c8[2];
+    unsigned char flag_c8;
+    unsigned char flag_c9;
     /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
-    unsigned short unknown_ca;
-    unsigned char unknown_cc[0x1c];
+    unsigned short trade_pool_ca;
+    int clock_cc;
+    int clock_d0;
+    unsigned char service_flags[0x14];
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_e8;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
@@ -113,8 +116,8 @@ struct W8NpcState {
     W8Dice item_count_dice_10e;
     /* 0x112/0x113: the monster-binding release flag and the level it is
        stamped for. */
-    unsigned char flag_112;
-    unsigned char flag_113;
+    bool pending_release;
+    unsigned char pending_release_level;
     unsigned char marked_114;
     /* 0x115: the forty entry weights matching item_ids_30; only the slots
        whose table selector was set carry a weight. */

@@ -102,5 +102,10 @@ unsigned char LoadDefaultLevelStatus(unsigned int level);
 void ResetLiveSessionForLoad(void); /* 0x00512C40 */
 
 unsigned char SelectQuickSaveSlotForWrite(char* slot_name); /* 0x00516670 */
+unsigned char FindFreeEndingSaveName00516890(char* name);   /* 0x00516890 */
+
+extern char g_save_extension[]; /* 0x0061A144: initialized "SAV" */
+
+void DeleteCurrentSaveFiles(void); /* 0x00515920 */
 
 void ReportSaveFailed(char quiet); /* 0x00515AC0 */

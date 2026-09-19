@@ -65,6 +65,49 @@ unsigned char GetConditionRecordFlag(int party_slot, int condition)
     return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
 }
 
+// FUNCTION: WIZ8 0x005248D0
+void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
+{
+    for (unsigned int slot_kind = 0; slot_kind < 2; ++slot_kind) {
+        bool cleared = false;
+        if ((monster_info->condition_binding_mask_24c & (1 << slot_kind)) != 0) {
+            int condition;
+            switch (slot_kind) {
+            case 0:
+                condition = 0;
+                break;
+            case 1:
+                condition = W8_CONDITION_MISSING;
+                break;
+            }
+            for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
+                W8Character* character = &g_status_685170.buffers.characters[party_slot];
+                W8CharacterConditionRecord* record = &character->conditions_1817[slot_kind];
+                if ((condition == 0 || character->condition_turns[condition] != 0) &&
+                    record->value_00 == g_status_685170.current_level &&
+                    record->value_04 == monster_info->location_id) {
+                    cleared = true;
+                    record->value_08 = 0;
+                    record->value_00 = 0;
+                    record->value_04 = 0;
+                    if (condition != 0 && character->in_party != 0) {
+                        RemoveCharacterCondition(party_slot, condition, 1);
+                    }
+                }
+            }
+            if (!cleared && slot_kind == 0) {
+                for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+                    W8MonsterInfo* bound = MonsterGetScriptPartByLocationIndex(index);
+                    if (bound->insanity_summon_344 == monster_info->location_id) {
+                        bound->insanity_summon_344 = -1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /* The enchantment slot whose clearing has a consequence beyond the slot
    itself. */
 enum { W8_ENCHANTMENT_SLOT_SPECIAL = 6 };
@@ -307,6 +350,47 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
 /* Setting a monster's condition runs the sameCountdown rescan, group recount
    and motion update as clearing it, plus immunity, argument and combat-hate
    handling on the way in. */
+/* One condition's share of the aging tick: run its remaining turns down by
+   the elapsed minutes, lifting it once they run out. POISONED also bleeds its
+   stored strength pro rata over the remaining duration, with a hundred-sided
+   roll covering the fractional part when the quotient floors to zero. */
+// FUNCTION: WIZ8 0x005236A0
+void TickCharacterCondition(unsigned int party_slot, unsigned int condition, unsigned int minutes)
+{
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+
+    if (row->occupied == 0) {
+        srAssertFail("fCHAR_OCCUPIED(uiSlot)",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x158,
+                     0);
+    }
+    if (g_status_685170.buffers.characters[party_slot].condition_turns[condition] == 0) {
+        srAssertFail("gStatus.Char[uiSlot].uiCondition[uiCondition] > 0",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x159,
+                     0);
+    }
+    if (g_status_685170.buffers.characters[party_slot].condition_turns[condition] <= minutes) {
+        RemoveCharacterCondition(party_slot, condition, 1);
+        return;
+    }
+    if (condition == W8_CONDITION_POISONED) {
+        int strength = g_status_685170.buffers.characters[party_slot].condition_argument;
+        unsigned int lost =
+            strength * minutes /
+            g_status_685170.buffers.characters[party_slot].condition_turns[W8_CONDITION_POISONED];
+
+        if (lost == 0 &&
+            Random(100) < g_status_685170.buffers.characters[party_slot].condition_argument *
+                              minutes * 100 /
+                              g_status_685170.buffers.characters[party_slot]
+                                  .condition_turns[W8_CONDITION_POISONED]) {
+            lost = 1;
+        }
+        g_status_685170.buffers.characters[party_slot].condition_argument = strength - lost;
+    }
+    g_status_685170.buffers.characters[party_slot].condition_turns[condition] -= minutes;
+}
+
 // FUNCTION: WIZ8 0x00523C00
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,
                          W8TargetSource* target, char announce)
@@ -570,7 +654,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     if (condition == 0x12 && CharacterHasTrait00547940(character, 2) != 0 &&
         character->condition_turns[17] < 7) {
-        Function547A50(party_slot);
+        CheatDeathRevive00547A50(party_slot);
         return 0;
     }
     switch (condition) {
@@ -945,8 +1029,8 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
 
     monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x44b, CONDITIONS_CPP, monster_id, 1));
-    monster_info->unknown_24c =
-        static_cast<unsigned char>(monster_info->unknown_24c | (1 << dependence_slot));
+    monster_info->condition_binding_mask_24c = static_cast<unsigned char>(
+        monster_info->condition_binding_mask_24c | (1 << dependence_slot));
     if (dependence_slot == 1) {
         RetireMonsterGroupAndAllies(GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, 1)));

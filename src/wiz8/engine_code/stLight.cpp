@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/geometry.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srMeshModel.h"
@@ -307,18 +308,22 @@ void stLight::Update0049C960()
     } else if (mode == 3) {
         float step = (seconds - m_level_time_23c) * definition->rate_34;
         if (g_float_005ebb34 < step) {
-            float blend = (g_float_005ebb38 / definition->period_30) * step + m_level_240;
+            float blend =
+                (g_float_005ebb38 / definition->period_30) * step + m_level_240;
             if (blend <= g_float_005ebb38) {
                 float level = blend;
-                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * level +
+                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) *
+                                    level +
                                 definition->intensity_28;
                 m_level_240 = level;
                 if ((definition->flags_08 & 8) != 0) {
                     float inverse = g_float_005ebb38 - blend;
-                    float red = blend * definition->color_to_1c + inverse * definition->color_10.x;
+                    float red =
+                        blend * definition->color_to_1c + inverse * definition->color_10.x;
                     float green =
                         blend * definition->color_to_20 + inverse * definition->color_10.y;
-                    float blue = blend * definition->color_to_24 + inverse * definition->color_10.z;
+                    float blue =
+                        blend * definition->color_to_24 + inverse * definition->color_10.z;
                     if (g_float_005ebb38 < red) {
                         red = 1.0f;
                     }
@@ -389,7 +394,9 @@ void stLight::Update0049C960()
         index = 0;
     }
     PathAISetValue004A9F60(path, static_cast<float>(index));
-    PathAIApply004AA520(path, this);
+    PathAIApply004AA520(path, reinterpret_cast<stModelInstance*>(this)); /* reinterpret-ok:
+        PathAIApply walks the node children; stLight is an srNode, not an
+        stModelInstance, and the retail body passes `this` unchanged */
     m_path_index_248 = index;
     m_path_time_24c = seconds;
 }

@@ -58,23 +58,24 @@ void ClearTextSlot1E8(int index);                              /* 0x0058FA30 */
 /* The 0x1d8/0x1e8 slot tables in W8LevelRuntimeBlock track one selected
    wrapped-line start per box; the Set variants snap a wrapped index back to
    its line start before storing. */
-int GetTextSlot1D8(int index);                   /* 0x0058F990 */
-void ClearTextSlot1D8(int index);                /* 0x0058F960 */
-void SetTextSlot1D8(unsigned int line, int box); /* 0x0058F8E0 */
-void SetTextSlot1E8(unsigned int line, int box); /* 0x0058F9B0 */
+int GetTextSlot1D8(int index);             /* 0x0058F990 */
+void ClearTextSlot1D8(int index);          /* 0x0058F960 */
+void SelectTextSlot1D8(int line, int box); /* 0x0058F8E0 */
+void SelectTextSlot1E8(int line, int box); /* 0x0058F9B0 */
 /* 0x00590150/0x005901D0: walk every notice-word list of a box, clearing the
    flag_08 mark and raising flag_09; the first touches only selected (2)
    words, the second everything else. Nonzero redraw repaints the body
    through RedrawTextBoxBody(1). */
 void ClearNoticeWordSelection(int box, int redraw);
-void ClearNoticeWordHover(int box, int redraw);
+void ClearNoticeWordHover(int box, unsigned char redraw);
 /* 0x00590250: refresh the hover mark on the notice word under (x, y). */
-void TrackNoticeWordHover(int box, int x, int y);
+void HighlightNoticeWordAt(int box, unsigned short x, unsigned short y);
 /* 0x00590410: the notice word under (x, y) in box, or 0; the word's line
    slot is written through line_out. */
 W8NoticeWord* FindNoticeWordAt(int box, int x, int y, int* line_out);
 /* 0x00590560: copy a word's text span out of its source line. */
-void CopyNoticeWordText(W8NoticeWord* word, wchar_t* out, int capacity, int box, int start);
+void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* out, unsigned int capacity, int box,
+                        int start);
 void ScrollTextBoxToCursor(void);
 unsigned char GetTextBoxMode(void);
 void SetTextBoxMode(unsigned char mode, int value);
@@ -109,7 +110,7 @@ int GetTextBoxVisibleLineCount(void);                                           
 void HighlightTextBoxRange(unsigned char color, unsigned char start, unsigned char stop,
                            short text_box);
 
-void Function58F6B0(int value); /* 0x0058F6B0 */
+void SelectTextBox(short value); /* 0x0058F6B0 */
 /* 0x0058AA00: ask for the text box to be redrawn without changing anything. */
 void RedrawTextBox(void);
 /* 0x0058C3A0: repaint visible text-box lines; skip_invalidate nonzero skips

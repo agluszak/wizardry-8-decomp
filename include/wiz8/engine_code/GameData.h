@@ -301,13 +301,16 @@ unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* 
 void ClearLevelDataFlag6(void);
 void ResetLevelDataVectors0041F0D0(void);
 int IsLevelDataFlag4EffectivelySet(void);
+unsigned int GetLevelDataFlag4(void); /* 0x0041F070 */
+unsigned int GetLevelDataFlag8(void); /* 0x0041EFB0 */
+unsigned int GetLevelDataFlag9(void); /* 0x0041EFF0 */
+bool HasLevelDataVector(void);        /* 0x0041F010 */
 void ResetCurrentEnvironment0041AA40(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
 unsigned int GetLevelDataFlag6(void);
-unsigned int GetLevelDataFlag8(void);
 unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
 void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary);

@@ -20,6 +20,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
@@ -271,7 +272,7 @@ void SubMenuButtonPendingScreen(W8DialogButton* button)
 // FUNCTION: WIZ8 0x005950C0
 void SubMenuButtonSurprise(W8DialogButton* button)
 {
-    Function502460();
+    RequestCamp00502460();
     RequestRedraw(0x200);
     DrawSubMenuCharacterAction();
 }

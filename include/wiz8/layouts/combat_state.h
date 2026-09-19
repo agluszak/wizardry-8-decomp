@@ -159,7 +159,7 @@ struct W8CombatCharacterRow {
        played so a resumed swing does not replay it, cleared when the row's
        attack finishes. */
     unsigned char flag_a5;
-    unsigned char unknown_a6;
+    unsigned char cheat_death_used;
     /* 0xa7: SetCharacterCombatAction raises it when the slot's queued action
        changes while an action runs; committing the pending block clears it. */
     bool action_changed_a7;

@@ -1149,8 +1149,8 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
 
 /* Unrecovered mode-specific text-box body handlers / wheel helpers. */
 unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
-                                              W8Region* region);       /* 0x0059DB40 */
-void UseItemSelectTextBoxWheelAt(short x, unsigned short y, int flag); /* 0x0059DD30 */
+                                              W8Region* region);                 /* 0x0059DB40 */
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
 unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
                                           W8Region* region); /* 0x005A0F70 */
 
@@ -1497,7 +1497,7 @@ void SetTextBoxMode(unsigned char mode, int value)
 }
 
 /* 0x0058FFC0: draw clickable notice-word overlays for one painted line. */
-void Function58FFC0(W8MessageStorageRecord* line, int x, int y);
+void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y);
 
 /* Paint one message-storage line at (x, y). slot_1d8_match / slot_1e8_match
    select alternate palettes for the editor slot highlights; skip_invalidate
@@ -1517,7 +1517,7 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x584, 0);
     }
     if (skip_invalidate != 0) {
-        Function58FFC0(line, x, y);
+        DrawNoticeWordOverlays(line, x, y);
         return;
     }
 
@@ -1632,10 +1632,10 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
         width = StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
         mprintf(g_level_block->text_box_right - width, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                 scratch);
-        Function58FFC0(line, x, y);
+        DrawNoticeWordOverlays(line, x, y);
         return;
     }
-    Function58FFC0(line, x, y);
+    DrawNoticeWordOverlays(line, x, y);
 }
 
 /* Repaint the visible text-box window. When skip_invalidate is clear, also
@@ -1879,4 +1879,273 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
     screen->m_target_14c = target;
     screen->m_status_panel_010->m_target_068 = target;
     screen->m_text_panel_00c->m_target_changed_140 = 1;
+}
+
+// FUNCTION: WIZ8 0x0058F6B0
+void SelectTextBox(short text_box)
+{
+    g_status_685170.text_line_cursor_1795 = text_box;
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
+    if (g_level_block->text_lines[text_box] != 0) {
+        g_level_block->text_content_region = 0x57;
+    } else {
+        g_level_block->text_content_region = 0x56;
+    }
+
+    bool can_scroll;
+    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+        g_level_block->dialogue_text_input->text_box != text_box) {
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+                     g_status_685170.text_box_lines_shown_49a7[text_box];
+    } else {
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+                     g_level_block->dialogue_text_input->line_count +
+                         g_status_685170.text_box_lines_shown_49a7[text_box];
+    }
+    if (can_scroll) {
+        g_level_block->dialogue_content_region = 0x5a;
+        return;
+    }
+    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+        g_level_block->dialogue_text_input->text_box != text_box) {
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+                     g_status_685170.text_box_lines_shown_49a7[text_box];
+    } else {
+        can_scroll = g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
+                     g_level_block->dialogue_text_input->line_count +
+                         g_status_685170.text_box_lines_shown_49a7[text_box];
+    }
+    if (!can_scroll) {
+        g_level_block->dialogue_content_region = 0x59;
+    }
+}
+
+// FUNCTION: WIZ8 0x0058F8E0
+void SelectTextSlot1D8(int line, int index)
+{
+    W8MessageStorageRecord* record;
+    unsigned int first;
+
+    if (line < 0x15e) {
+        first = g_level_block->text_lines[g_status_685170.text_line_cursor_1795];
+        if (first <= static_cast<unsigned int>(line) &&
+            static_cast<unsigned int>(line) < first + 7) {
+            record = &g_message_storage_68f2d8[index][line];
+            while (record->link_10 != 0 && line != 0) {
+                --line;
+                --record;
+            }
+            g_level_block->text_slots_1d8[index] = line;
+            RequestRedraw(W8_REDRAW_TEXT_BOX);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0058F990
+int GetTextSlot1D8(int index)
+{
+    return g_level_block->text_slots_1d8[index];
+}
+
+// FUNCTION: WIZ8 0x0058F9B0
+void SelectTextSlot1E8(int line, int index)
+{
+    W8MessageStorageRecord* record;
+    unsigned int first;
+
+    if (line < 0x15e) {
+        first = g_level_block->text_lines[g_status_685170.text_line_cursor_1795];
+        if (first <= static_cast<unsigned int>(line) &&
+            static_cast<unsigned int>(line) < first + 7) {
+            record = &g_message_storage_68f2d8[index][line];
+            while (record->link_10 != 0 && line != 0) {
+                --line;
+                --record;
+            }
+            g_level_block->text_slots_1e8[index] = line;
+            RequestRedraw(W8_REDRAW_TEXT_BOX);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0058FFC0
+void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
+{
+    wchar_t word_text[100];
+
+    if (line->entries_18 == 0) {
+        return;
+    }
+    // reinterpret-ok: retail counts the pointer-list through the IList API
+    unsigned int count = ILLength(reinterpret_cast<W8IList*>(line->entries_18));
+    for (int i = 0; i < static_cast<int>(count); ++i) {
+        W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
+        if (word->flag_08 != 0) {
+            unsigned short* palette = word->flag_08 == 2 ? g_font_state_palettes_68ee1c[3]
+                                                         : g_font_state_palettes_68ee1c[5];
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+            memset(word_text, 0, sizeof(word_text));
+            wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
+            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
+                         Wiz8ToSgpWideText(word_text));
+            word->flag_09 = 0;
+        }
+        if (word->flag_09 != 0) {
+            unsigned short* palette;
+            if (line->font_palette < 0xf) {
+                palette = g_font_state_palettes_68ee1c[line->font_palette];
+            } else {
+                palette = g_level_block->palette_2ec;
+            }
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
+            memset(word_text, 0, sizeof(word_text));
+            wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
+            gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
+                         Wiz8ToSgpWideText(word_text));
+            word->flag_09 = 0;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00590150
+void ResetUsedNoticeWords(int text_box, unsigned char redraw)
+{
+    for (int i = 0; i < 0x15e; ++i) {
+        W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
+        if (list != 0) {
+            // reinterpret-ok: retail counts the pointer-list through the IList API
+            unsigned int count = ILLength(reinterpret_cast<W8IList*>(list));
+            for (int j = 0; j < static_cast<int>(count); ++j) {
+                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
+                if (word->flag_08 == 2) {
+                    word->flag_08 = 0;
+                    word->flag_09 = 1;
+                }
+            }
+        }
+    }
+    if (redraw != 0) {
+        RedrawTextBoxBody(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x005901D0
+void ClearNoticeWordHover(int text_box, unsigned char redraw)
+{
+    for (int i = 0; i < 0x15e; ++i) {
+        W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
+        if (list != 0) {
+            // reinterpret-ok: retail counts the pointer-list through the IList API
+            unsigned int count = ILLength(reinterpret_cast<W8IList*>(list));
+            for (int j = 0; j < static_cast<int>(count); ++j) {
+                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
+                if (word->flag_08 != 2) {
+                    word->flag_08 = 0;
+                    word->flag_09 = 1;
+                }
+            }
+        }
+    }
+    if (redraw != 0) {
+        RedrawTextBoxBody(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00590250
+void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
+{
+    int line;
+    int x_base;
+    int offset;
+    W8PList* list;
+    unsigned int count;
+
+    for (int i = 0; i < 0x15e; ++i) {
+        list = g_message_storage_68f2d8[text_box][i].entries_18;
+        if (list != 0) {
+            // reinterpret-ok: retail counts the pointer-list through the IList API
+            count = ILLength(reinterpret_cast<W8IList*>(list));
+            for (int j = 0; j < static_cast<int>(count); ++j) {
+                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
+                if (word->flag_08 != 2) {
+                    word->flag_08 = 0;
+                    word->flag_09 = 1;
+                }
+            }
+        }
+    }
+    if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+        line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
+        if (line < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[text_box])) {
+            if (g_status_685170.text_line_cursor_1795 == 3 || g_level_block->flag_271 == 0) {
+                x_base = g_level_block->text_box_left;
+            } else {
+                x_base = g_level_block->text_box_left +
+                         ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
+                          StringPixLength(
+                              Wiz8ToSgpWideText(g_message_storage_68f2d8[text_box][line].wString),
+                              g_level_block->text_box_font) /
+                              2);
+            }
+            list = g_message_storage_68f2d8[text_box][line].entries_18;
+            // reinterpret-ok: retail counts the pointer-list through the IList API
+            count = ILLength(reinterpret_cast<W8IList*>(list));
+            offset = x - x_base;
+            for (int i = 0; i < static_cast<int>(count); ++i) {
+                W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
+                if (word->x_start <= offset && offset <= word->x_end && word->flag_08 != 2) {
+                    word->flag_08 = 1;
+                }
+            }
+        }
+        RedrawTextBoxBody(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x00590410
+W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y, int* line_out)
+{
+    int line;
+    int x_base;
+    int offset;
+    W8PList* list;
+    unsigned int count;
+    W8NoticeWord* word;
+
+    if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
+        line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
+        if (line < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[text_box])) {
+            if (g_status_685170.text_line_cursor_1795 == 3 || g_level_block->flag_271 == 0) {
+                x_base = g_level_block->text_box_left;
+            } else {
+                x_base = g_level_block->text_box_left +
+                         ((g_level_block->text_box_right - g_level_block->text_box_left) / 2 -
+                          StringPixLength(
+                              Wiz8ToSgpWideText(g_message_storage_68f2d8[text_box][line].wString),
+                              g_level_block->text_box_font) /
+                              2);
+            }
+            list = g_message_storage_68f2d8[text_box][line].entries_18;
+            // reinterpret-ok: retail counts the pointer-list through the IList API
+            count = ILLength(reinterpret_cast<W8IList*>(list));
+            offset = x - x_base;
+            for (int i = 0; i < static_cast<int>(count); ++i) {
+                word = static_cast<W8NoticeWord*>(PLGet(list, i));
+                if (word->x_start <= offset && offset <= word->x_end) {
+                    *line_out = line;
+                    return word;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00590560
+void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* text, unsigned int size, int text_box,
+                        int line)
+{
+    memset(text, 0, size);
+    wcsncpy(text, g_message_storage_68f2d8[text_box][line].wString + word->start,
+            word->end - word->start + 1);
 }

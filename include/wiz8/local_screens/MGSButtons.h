@@ -121,6 +121,10 @@ void SubMenuSelectWalk(void);
    both panel buttons; the submenu rebuild paths call it around teardown. */
 void SetSubMenuButtonTooltips(int enabled); /* 0x005990F0 */
 /* Region callback for the sub-menu background: right-up tears the panel down. */
+/* 0x00598C10 / 0x00598C70: enable/disable the scroll, roof and layout button
+   banks around the surprise/camp sequence. */
+void EnableMenuButtonBanks00598C10(void);
+void DisableMenuButtonBanks00598C70(void);
 unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event,
                                            W8Region* region); /* 0x00598CD0 */
 /* Region callback the five sub-menu rows share. */

@@ -1121,7 +1121,7 @@ void W8TriggerEvent::Update()
             transformed.y = DotProduct(rotation.vectors[2], target);
             transformed.z = DotProduct(axis, target);
             FireMissile004A2D30((unsigned int)trigger_030->m_lData1, &source, &transformed, 0, 1, 1,
-                                0x47435000);
+                                50000.0f);
         }
         break;
     }
@@ -3114,7 +3114,7 @@ void Trigger::Run(int source)
             }
             transformed = rotation.Transform(target_position);
             FireMissile004A2D30((unsigned int)m_lData1, &source_position, &transformed, 0, 1, 1,
-                                0x47435000);
+                                50000.0f);
         } else if (m_pEvent == 0) {
             float duration = (float)abs(m_lData2) * 0.001f;
 
