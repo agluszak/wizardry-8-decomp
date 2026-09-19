@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srHeap.h"
@@ -720,15 +721,15 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
     }
 
     unsigned short final_region_count = next_region;
-    srVector3T<float>* region_bounds =
-        static_cast<srVector3T<float>*>(malloc(final_region_count * 2 * sizeof(srVector3T<float>)));
+    W8BoundingBox* region_bounds =
+        static_cast<W8BoundingBox*>(malloc(final_region_count * sizeof(W8BoundingBox)));
     for (unsigned short region = 0; region < final_region_count; ++region) {
-        region_bounds[region * 2].x = 1000000.0f;
-        region_bounds[region * 2].y = 1000000.0f;
-        region_bounds[region * 2].z = 1000000.0f;
-        region_bounds[region * 2 + 1].x = -1000000.0f;
-        region_bounds[region * 2 + 1].y = -1000000.0f;
-        region_bounds[region * 2 + 1].z = -1000000.0f;
+        region_bounds[region].minimum.x = 1000000.0f;
+        region_bounds[region].minimum.y = 1000000.0f;
+        region_bounds[region].minimum.z = 1000000.0f;
+        region_bounds[region].maximum.x = -1000000.0f;
+        region_bounds[region].maximum.y = -1000000.0f;
+        region_bounds[region].maximum.z = -1000000.0f;
     }
 
     for (unsigned long polygon_index = 1; polygon_index < game_data_134->polygon_count_08;
@@ -754,11 +755,11 @@ void W8OctBuildPreTree004AFDA0::FinalizeRegionMapping004B2A20()
         for (int axis = 0; axis != 3; ++axis) {
             for (int vertex = 0; vertex != 3; ++vertex) {
                 float value = (&polygon.vertices_34[vertex]->position_0c.x)[axis];
-                if (value < (&region_bounds[region * 2].x)[axis]) {
-                    (&region_bounds[region * 2].x)[axis] = value;
+                if (value < (&region_bounds[region].minimum.x)[axis]) {
+                    (&region_bounds[region].minimum.x)[axis] = value;
                 }
-                if ((&region_bounds[region * 2 + 1].x)[axis] < value) {
-                    (&region_bounds[region * 2 + 1].x)[axis] = value;
+                if ((&region_bounds[region].maximum.x)[axis] < value) {
+                    (&region_bounds[region].maximum.x)[axis] = value;
                 }
             }
         }
@@ -933,7 +934,7 @@ void W8OctBuildPreTree004AFDA0::ValidatePolygonRegions004B3330()
 /* Check every path assigned to a region against both the build-node region id
    and the aggregate automesh bounds produced for that region. */
 // FUNCTION: WIZ8 0x004b35b0
-void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const srVector3T<float>* region_bounds)
+void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const W8BoundingBox* region_bounds)
 {
     for (unsigned long region_index = 1; region_index < spatial_00.submesh_count_74;
          ++region_index) {
@@ -958,9 +959,10 @@ void W8OctBuildPreTree004AFDA0::ValidateRegionBounds004B35B0(const srVector3T<fl
                 if (node->positional_28 != region) {
                     ReportBuildStatus00497690(7, "Region has wrong automesh.");
                 }
-                const srVector3T<float>* bounds = region_bounds + region_index * 2;
-                if (maximum.x < bounds[0].x || bounds[1].x < minimum.x || maximum.y < bounds[0].y ||
-                    bounds[1].y < minimum.y || maximum.z < bounds[0].z || bounds[1].z < minimum.z) {
+                const W8BoundingBox& bounds = region_bounds[region_index];
+                if (maximum.x < bounds.minimum.x || bounds.maximum.x < minimum.x ||
+                    maximum.y < bounds.minimum.y || bounds.maximum.y < minimum.y ||
+                    maximum.z < bounds.minimum.z || bounds.maximum.z < minimum.z) {
                     ReportBuildStatus00497690(
                         7, "AutoMesh has no vertices inside region. You probably "
                            "have an old .cub file!");
@@ -1147,7 +1149,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
             W8OctRegionVolume* volume = spatial_00.owned_5c + region_index;
             for (unsigned char bounds_index = 0; bounds_index < record.bounds_count_09a;
                  ++bounds_index) {
-                const srVector3T<float>* bounds = record.bounds_09b + bounds_index * 2;
+                const srVector3T<float>* bounds = &record.bounds_09b[bounds_index].minimum_00;
                 for (int x = 0; x != 2; ++x) {
                     for (int y = 0; y != 2; ++y) {
                         for (int z = 0; z != 2; ++z) {
@@ -1186,7 +1188,7 @@ unsigned char W8OctBuildPreTree004AFDA0::BuildGeometryRegions004B3F90(
         aggregate[1].z = -1000000.0f;
         for (unsigned char bounds_index = 0; bounds_index < record.bounds_count_09a;
              ++bounds_index) {
-            const srVector3T<float>* bounds = record.bounds_09b + bounds_index * 2;
+            const srVector3T<float>* bounds = &record.bounds_09b[bounds_index].minimum_00;
             for (int endpoint = 0; endpoint != 2; ++endpoint) {
                 srVector3T<float> point;
                 point = bounds[endpoint] * g_world_scale_005ebc40;

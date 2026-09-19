@@ -3014,7 +3014,7 @@ record:
    into one dword a byte apart, and the prop key carries its id in the low half
    with a tag above it. */
 // FUNCTION: WIZ8 0x0042eab0
-void W8Octree::AddCollidablePropBounds(int index, const srVector3T<float>* bounds)
+void W8Octree::AddCollidablePropBounds(int index, const W8BoundingBox* bounds)
 {
     int minimum[3];
     int maximum[3];
@@ -3032,20 +3032,20 @@ void W8Octree::AddCollidablePropBounds(int index, const srVector3T<float>* bound
 
     for (axis = 0; axis < 3; ++axis) {
         minimum[axis] = static_cast<int>(
-            ((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+            ((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     }
     minimum[0] =
-        static_cast<int>(((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->minimum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     minimum[1] =
-        static_cast<int>(((bounds[0].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->minimum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
     minimum[2] =
-        static_cast<int>(((bounds[0].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->minimum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
     maximum[0] =
-        static_cast<int>(((bounds[1].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->maximum.x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
     maximum[1] =
-        static_cast<int>(((bounds[1].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->maximum.y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
     maximum[2] =
-        static_cast<int>(((bounds[1].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+        static_cast<int>(((bounds->maximum.z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
 
     prop_key = PackOctreeObjectKey(W8_OCTREE_KIND_PROP, index + 1);
     for (x = minimum[0]; x <= maximum[0]; ++x) {
