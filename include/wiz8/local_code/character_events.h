@@ -2,6 +2,8 @@
 
 #include <wchar.h>
 
+#include "input.h"
+
 bool IsVoiceMuted(void);
 /* The audio panels pass the raw W8TextControl mask bit (0 or 2) through, so the
    transition is binary but the argument stays byte-valued. */
@@ -9,6 +11,8 @@ void SetVoiceMuted(unsigned char muted);
 
 struct W8Character;
 struct W8CharacterEvent;
+struct W8MonsterManagerEntry;
+struct W8Region;
 
 extern int g_special_event_0068c558;
 extern int g_special_event_0068c55c;
@@ -72,6 +76,31 @@ void QueueConditionChangeReaction(W8Character* character);
 void QueueConditionClearedReaction(W8Character* character, int condition);
 /* 0x0052E480: requeue the selected character's stored portrait event. */
 void RequeueSelectedPortraitEvent(void);
+/* 0x0052F000: set the pose a party-slot portrait animates toward; clears any
+   pose animation in progress and forces the incapacitated pose when the
+   character is too far gone or the party is surprised. */
+void SetPortraitTargetPose(struct W8MonsterManagerEntry* slot, int pose);
+/* 0x0052FD80: left-click on a party portrait completes that slot's active
+   event, or finishes the NPC voice playback for the player portraits. */
+unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, struct W8Region* region);
+/* 0x0052FE00: re-blit each active portrait quote bubble when the screen comes
+   back from a modal view. */
+void RedrawPortraitQuoteBubbles(void);
+/* 0x0052FE80: queue the character's breath/idle event unless a spell or item
+   is being aimed; `force` queues it regardless. */
+void StartBreathCycle(int party_slot, char force);
+void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
+                                 int party_slot);
+/* 0x0052EBE0: blit one animated portrait frame and its transition, returning
+   whether a frame was drawn. */
+char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+                                char animate);
+
+extern unsigned int g_event_flag_005ed8e0;
+extern unsigned int g_event_flag_005ed8ec;
+extern int g_effect_005ee58c;
+extern int g_effect_005ee654;
+
 void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
 void PostCharacterMessage(int party_slot, const wchar_t* format, ...);

@@ -27,6 +27,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/Spells.h"

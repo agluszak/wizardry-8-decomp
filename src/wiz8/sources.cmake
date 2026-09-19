@@ -11,6 +11,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/LoadSaveGame.cpp
     src/wiz8/local_code/Magic.cpp
     "src/wiz8/local_code/Health Stamina Mana.cpp"
+    src/wiz8/local_code/QuoteManager.cpp
     src/wiz8/local_code/ConditionsAndEnchantments.cpp
     src/wiz8/local_code/GameplayTime.cpp
     src/wiz8/local_code/Sight.cpp
@@ -112,12 +113,14 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/UpdateMesh.cpp
     src/wiz8/engine_code/stGroundShadow.cpp
     src/wiz8/local_code/GameplayDatabase.cpp
+    "src/wiz8/local_code/Gameplay Init.cpp"
     src/wiz8/dialog_code/DialogInterface.cpp
     src/wiz8/dialog_code/PortraitQuote.cpp
     src/wiz8/3d_code/IList.cpp
     src/wiz8/local_code/ItemManager.cpp
     src/wiz8/engine_code/game_timer.cpp
     src/wiz8/engine_code/materials.cpp
+    src/wiz8/engine_code/PolyPick.cpp
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/OctPrePath.cpp
     src/wiz8/engine_code/stScript.cpp
@@ -146,6 +149,8 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/level_specific_code/MtGigas1.cpp
     src/wiz8/level_specific_code/MartensBluff2.cpp
     src/wiz8/level_specific_code/MartensBluff1.cpp
+    src/wiz8/level_specific_code/SavantTower.cpp
+    src/wiz8/level_specific_code/ConnectiveTissue.cpp
     src/wiz8/level_specific_code/Arnika.cpp
     src/wiz8/vector.cpp
     src/wiz8/imports/mss.cpp
@@ -166,7 +171,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/Camera.cpp
     src/wiz8/engine_code/Cursor3d.cpp
     src/wiz8/engine_code/stLight.cpp
-    src/wiz8/engine_code/bounds.cpp
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
     src/wiz8/local_code/party_encumbrance.cpp
@@ -180,6 +184,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/mipe.cpp
     src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
+    src/wiz8/local_screens/MGSPortraitCombat.cpp
     src/wiz8/local_screens/MGSButtons.cpp
     src/wiz8/local_screens/MGSSpellCasting.cpp
     src/wiz8/local_screens/PartySelectionScreen.cpp

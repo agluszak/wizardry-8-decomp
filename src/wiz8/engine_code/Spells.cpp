@@ -51,6 +51,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 

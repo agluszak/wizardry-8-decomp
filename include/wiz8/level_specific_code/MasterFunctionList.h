@@ -2,9 +2,6 @@
 
 extern unsigned char g_flag_6109f0;
 
-void Function4DFAE0(int value); /* 0x004DFAE0 */
-void RemoveAletheides(void);    /* 0x004E0430 */
-
 #include "wiz8/vector.h"
 
 struct W8MonsterInfo;
@@ -18,7 +15,7 @@ typedef void (*W8MasterFunction)(int);
 
 /* The registered master functions, and the flag a callback sets to ask the
    dispatcher to drop it after this run. */
-extern W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;
+extern W8Vector<W8MasterFunction>* g_master_functions_006834d8;
 extern unsigned char g_flag_006834dc;
 extern unsigned char g_flag_006834dd;
 

@@ -19,6 +19,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/string_database.h"
 
 /* Level Specific Code\Trynnie2.cpp (level 0x1a).
 
@@ -138,6 +139,45 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
     }
     ClearHeldItemDisplay();
     BeginScriptedWorldAction();
+    return 1;
+}
+
+/* Use-item action for the Zulu (0x1b3) and item 0x1c3: hand the use to the
+   type-7 world cursor node covering the camera position. An unhandled use
+   reports the refusal string; the first handled use only latches the status
+   flag, later uses show a second string and spawn the Mystical Shaman (0xec)
+   at NP_MysticalShaman. Either way the used item is consumed into a scratch
+   instance. The retail DispatchWorldCursorNodeCommand call passes only two
+   arguments; arg is never dereferenced for command 8, so the callee reads an
+   uninitialized stack slot there. */
+// FUNCTION: WIZ8 0x004D9F60
+bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
+{
+    srVector3T<float> position;
+    W8ItemInstance destination;
+
+    if (item->item_id != 0x1b3 && item->item_id != 0x1c3) {
+        return 0;
+    }
+    if (DispatchWorldCursorNodeCommand004D9080(0, 8, 0) == 0) {
+        ShowString(gppStringList[0x2598 / 4]);
+        return 1;
+    }
+    if (item->item_id == 0x1b3) {
+        ShowString(gppStringList[0x25a0 / 4]);
+    } else {
+        ShowString(gppStringList[0x259c / 4]);
+    }
+    if (g_status_685170.use_item_latch_2445 == 0) {
+        g_status_685170.use_item_latch_2445 = 1;
+    } else {
+        ShowString(gppStringList[0x25a4 / 4]);
+        if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {
+            SpawnMonsters(0xec, 1, &position, 0, 1, 0, 0);
+        }
+    }
+    destination.item_id = -1;
+    CopyItemInstance(&destination, item, 0, 1);
     return 1;
 }
 

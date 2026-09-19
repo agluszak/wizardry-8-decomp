@@ -42,6 +42,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
@@ -117,9 +118,9 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
             return 1;
         }
         position = missile->GetPosition();
-        pitch = GetElevationToCamera004BE520(&position);
+        pitch = ElevationToTargetCPP(&position);
         position = missile->GetPosition();
-        yaw = GetHeadingToCamera004BE650(&position);
+        yaw = HeadingToTargetCPP(&position);
         rotation.SetIdentity();
         rotation.RotateAboutY(yaw);
         rotation.RotateAboutX(pitch);
@@ -150,8 +151,8 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
     record->elapsed_14 = advance + record->elapsed_14;
     missile->SetPosition004A6DF0(&out);
     if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 && missile->flag_1e4 != 0) {
-        pitch = GetElevationToCamera004BE520(&out);
-        yaw = GetHeadingToCamera004BE650(&out);
+        pitch = ElevationToTargetCPP(&out);
+        yaw = HeadingToTargetCPP(&out);
         rotation.SetIdentity();
         if ((double)yaw != 0.0) {
             rotation.RotateAboutY(sin(yaw), cos(yaw));

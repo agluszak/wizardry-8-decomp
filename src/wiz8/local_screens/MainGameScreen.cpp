@@ -17,6 +17,7 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_code/Targeting.h"
@@ -119,6 +120,7 @@
 #include "wiz8/monster_generators.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/local_code/ButtonSound.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "vobject_blitters.h"
 #include "random.h"
 
@@ -10812,36 +10814,6 @@ void SetNpcDialogueSubMode4(void)
 void RestockNpcTradeStock(void)
 {
     RestockNpcInventory(g_screen_state_00649f1c->dialogue_npc);
-}
-
-// FUNCTION: WIZ8 0x0052FD80
-unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, W8Region* region)
-{
-    unsigned short callback_id = region->callback_id;
-    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[callback_id];
-    W8CharacterEvent* active;
-
-    switch (event->usEvent) {
-    case LEFT_BUTTON_DOWN:
-        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        break;
-    case LEFT_BUTTON_UP:
-        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            if (callback_id != 0 && callback_id != 1) {
-                active = entry->active_character_event;
-                if (active != 0) {
-                    gXStatus.character_event_queue->CompleteActiveEvent(active);
-                    return 1;
-                }
-            }
-            TryFinishNpcVoicePlayback(1);
-            return 1;
-        }
-        break;
-    default:
-        return 0;
-    }
-    return 1;
 }
 
 /* Condition orb on a party portrait (help 25): press while highest_condition

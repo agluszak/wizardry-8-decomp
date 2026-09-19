@@ -18,6 +18,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/regions.h"
@@ -47,6 +48,7 @@
 #include "DEBUG.H"
 #include "random.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include <math.h>

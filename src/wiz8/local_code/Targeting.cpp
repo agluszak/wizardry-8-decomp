@@ -49,12 +49,14 @@
 #include "surrender/srCamera.h"
 #include "Types.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/character_events.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/3d.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 // GLOBAL: WIZ8 0x006840b7
 int g_picked_group;
 // GLOBAL: WIZ8 0x006840b3

@@ -2,6 +2,7 @@
 #include "wiz8/sr_api.h"
 #include "surrender/srGERD.h"
 #include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/chunk.h"
 #include "wiz8/engine_code/AmbientSound.h"
