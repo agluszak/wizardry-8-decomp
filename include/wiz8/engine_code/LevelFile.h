@@ -438,13 +438,16 @@ struct W8LevelFileParticleSystem { /* 0x226 */
     W8LevelParticleRecord004BD0D0 particle_01;
 };
 
+/* Serialized form of W8NamedPosition: one version byte precedes the runtime
+   record's name, position and trailing scalar fields. */
 struct W8LevelFileNamedPosition { /* 0x9d */
-    unsigned char unknown_00;
+    unsigned char version_00;
     char name_01[0x80];
-    float x_81;
-    float y_85;
-    float z_89;
-    unsigned char unknown_08d[0x10];
+    srVector3T<float> position_81;
+    int value_08d;
+    float value_091;
+    float value_095;
+    float value_099;
 };
 
 /* The serialized block gated by has_block_48, between the camera table and
@@ -579,6 +582,8 @@ static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
 static_assert(offsetof(W8LevelFileParticleSystem, particle_01.value_216) == 0x217,
               "W8LevelFileParticleSystem_value_217");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
+static_assert(offsetof(W8LevelFileNamedPosition, position_81) == 0x81,
+              "W8LevelFileNamedPosition_position_81");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691,
