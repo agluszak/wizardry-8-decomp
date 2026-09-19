@@ -212,7 +212,8 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         if (pLevel->pClippingPlanes == 0) {
             srAssertFail("pLevel->pClippingPlanes", LEVELFILE_CPP, 0xcb, 0);
         }
-        ok &= FileRead(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
+        ok &= FileRead(hFile, pLevel->pClippingPlanes,
+                       pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
         if (ok == 0) {
             return 0;
         }
@@ -434,7 +435,8 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     fSuccess = FileWrite(hFile, &pLevel->nClippingPlanes, 4, 0) & fSuccess;
     if (pLevel->nClippingPlanes != 0) {
         fSuccess &= FileWrite(hFile, &pLevel->unknown_690, 1, 0);
-        fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
+        fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes,
+                              pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
         free(pLevel->pClippingPlanes);
         if (fSuccess == 0) {
             return 0;
