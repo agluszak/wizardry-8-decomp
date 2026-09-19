@@ -7,6 +7,11 @@ struct W8MonsterInfo;
 
 W8WorldItem* ItemInfo(unsigned int item_list_index);
 unsigned int ItemIndex(int runtime_id);
+/* Runtime id of the nearest hovered world item inside `max_distance`, or -1. */
+int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y,
+                                       float max_distance); /* 0x004F7370 */
+/* Take or trigger-pick one world item by runtime id; 1 when it stays handled. */
+unsigned char InteractWithWorldItem004F7910(int runtime_id); /* 0x004F7910 */
 /* Copy a world item's carried item out onto the heap. */
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item); /* 0x004F9210 */
 void SetWorldItemFlag02(W8WorldItem* item, char enabled);
@@ -25,8 +30,7 @@ void UpdateNearbyWorldItems(void); /* 0x004F7480 */
 /* Advance one falling world item (flag bit 1) toward the ground. */
 unsigned char AdvanceFallingWorldItem(W8WorldItem* item); /* 0x004F9240 */
 /* Whether one world item is close enough to a point and in sight. */
-bool IsWorldItemWithinReach(W8Item* owner, const float* from,
-                                     float radius); /* 0x004F8560 */
+bool IsWorldItemWithinReach(W8Item* owner, const float* from, float radius); /* 0x004F8560 */
 /* Whether any live world item is visible to the camera within reach. */
 bool AnyWorldItemVisible(void); /* 0x004F8650 */
 void Function4F8CB0(W8MonsterInfo* monster_info, int value);

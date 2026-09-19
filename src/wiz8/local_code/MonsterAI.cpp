@@ -2542,7 +2542,7 @@ unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0xe1d, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
         if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->unknown_249 != 0) ||
-            member->party_threat.unknown_05[1] == 0) {
+            member->party_threat.sight_flags_05[1] == 0) {
             continue;
         }
         member_distance = member->monster->GetDistanceToPlayer004C7CB0();
@@ -2551,8 +2551,8 @@ unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         }
         for (other_index = 0; other_index < PLLength(gXStatus.plsMonsterList); ++other_index) {
             other = MonsterGetScriptPartByLocationIndex(other_index);
-            if (other != member && other->party_threat.unknown_05[1] != 0 && other->fActive != 0 &&
-                other->fInCombat != 0 && other->hp_current != 0 &&
+            if (other != member && other->party_threat.sight_flags_05[1] != 0 &&
+                other->fActive != 0 && other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
                 other_distance = other->monster->GetDistanceToPlayer004C7CB0();
                 monster_distance = member->monster->GetDistanceToMonster004C7DD0(other->monster);

@@ -355,14 +355,9 @@ void RedrawTextBoxComplete(void);                                         /* 0x0
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
 void Function5029A0(void);
-void Function57E0E0(int event, const POINT* point);
-void Function57DC20(void);
+
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
-int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y);
-int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance);
-
-unsigned char InteractWithWorldItem004F7910(int runtime_id);
 extern unsigned char g_flag_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
@@ -3624,7 +3619,7 @@ update_screen:
         }
         if (gfLeftButtonState && !g_modal_owner_0068edd0 && GetFlag68F105()) {
             SGPMouseGetPos(&current);
-            Function57E0E0(0x400, &current);
+            MipeWorldViewEvent0057E0E0(MOUSE_POS, &current);
         }
     }
 render_world:
@@ -6557,7 +6552,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 return 1;
             }
             SGPMouseGetPos(&cursor_pos);
-            Function57E0E0(RIGHT_BUTTON_UP, &cursor_pos);
+            MipeWorldViewEvent0057E0E0(RIGHT_BUTTON_UP, &cursor_pos);
             return 1;
         }
         if (us_event != MOUSE_POS) {
@@ -6566,7 +6561,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         cursor_y = GetAtomCursorY004285A0(event);
         cursor_x = GetAtomCursorX00428580(event);
         if (GetFlag68F105() != 0) {
-            Function57DC20();
+            UpdateMipeSelection0057DC20();
         } else {
             int hover;
             if (gXStatus.fNpcDialogueMode == 0 && gXStatus.iTargetingMode != 3 &&
@@ -6609,7 +6604,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
         if (GetFlag68F105() != 0) {
             SGPMouseGetPos(&cursor_pos);
-            Function57E0E0(RIGHT_BUTTON_DOWN, &cursor_pos);
+            MipeWorldViewEvent0057E0E0(RIGHT_BUTTON_DOWN, &cursor_pos);
             return 1;
         }
         if (g_level_block->highlighted_item != -1 && gXStatus.fSpellCastMode == 0 &&
@@ -6666,7 +6661,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             return 1;
         }
         SGPMouseGetPos(&cursor_pos);
-        Function57E0E0(LEFT_BUTTON_DOWN, &cursor_pos);
+        MipeWorldViewEvent0057E0E0(LEFT_BUTTON_DOWN, &cursor_pos);
         return 1;
     }
     if (us_event != LEFT_BUTTON_UP) {
@@ -6787,7 +6782,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         return 1;
     }
     SGPMouseGetPos(&cursor_pos);
-    Function57E0E0(LEFT_BUTTON_UP, &cursor_pos);
+    MipeWorldViewEvent0057E0E0(LEFT_BUTTON_UP, &cursor_pos);
     return 1;
 }
 

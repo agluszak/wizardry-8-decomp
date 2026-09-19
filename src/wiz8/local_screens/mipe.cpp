@@ -30,6 +30,7 @@
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -1224,6 +1225,132 @@ int FindCategoryItemTable0057DBD0(unsigned int category, int ordinal)
     return index;
 }
 
+/* 0x0064A1CC: 'C' toggles between single-monster ("Choosing: One") and
+   whole-group ("Choosing: Group") selection in UpdateMipeSelection0057DC20. */
+// GLOBAL: WIZ8 0x0064a1cc
+static unsigned char g_mipe_choose_group_0064a1cc;
+
+/* Per-tick world-view pick while selecting is armed. In mode 0x15 it re-picks
+   the nearest camera-close generator marker whose item is selected, refreshes
+   marker highlights and the generator status; otherwise it picks the monster
+   under the cursor. The group-choose flag collects every active monster of the
+   pick's group into monster_ids; the single-monster path keeps at most one. */
+// FUNCTION: WIZ8 0x0057dc20
+void UpdateMipeSelection0057DC20(void)
+{
+    POINT point;
+    W8MonsterGenerator* picked;
+    W8MonsterInfo* info;
+    W8Item* marker;
+    float best_distance;
+    int group_id;
+    int location_id;
+    int index;
+
+    if (g_mipe_state_0068f100->selecting == 0) {
+        return;
+    }
+    SGPMouseGetPos(&point);
+    if (g_mipe_mode_0068f108 == 0x15) {
+        picked = 0;
+        best_distance = 999999.0f;
+        for (index = 0; index < GetMonsterGeneratorCount(); ++index) {
+            W8MonsterGenerator* entry = GetMonsterGenerator(index);
+            float distance;
+
+            marker = entry->marker_item;
+            if (marker == 0 || marker->IsSelected() == 0) {
+                continue;
+            }
+            distance = marker->DistanceToCamera(GetWorld());
+            if (distance < best_distance) {
+                best_distance = distance;
+                picked = entry;
+            }
+        }
+        for (index = 0; index < GetMonsterGeneratorCount(); ++index) {
+            marker = GetMonsterGenerator(index)->marker_item;
+            if (marker != 0) {
+                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, 0);
+                marker->SetHighlight(0);
+            }
+        }
+        if (picked != 0) {
+            marker = picked->marker_item;
+            if (marker != 0) {
+                static_cast<W8ItemRep*>(marker->m_pRep)->SetFlags(0x10, 1);
+                marker->SetHighlight(1);
+            }
+        }
+        g_mipe_state_0068f100->generator = picked;
+        ShowMonsterGeneratorStatus005781F0();
+    }
+    location_id = PickNearestMonsterUnderCursor005396D0(point.x, point.y);
+    if (g_mipe_choose_group_0064a1cc != 0) {
+        if (location_id == -1) {
+            group_id = 1000000;
+        } else {
+            group_id = MonsterGetScriptPartByLocationIndex(
+                           MonsterGetIndexByLocationID(0x10bb, MIPE_CPP, location_id, 1))
+                           ->monster_group_id;
+        }
+        if (group_id == g_mipe_state_0068f100->value_0c) {
+            return;
+        }
+        for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state_0068f100->monster_ids));
+             ++index) {
+            int listed = IListGetAt(&g_mipe_state_0068f100->monster_ids, index);
+            info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x10cd, MIPE_CPP, listed, 1));
+            if (info->fActive != 0) {
+                SetMonsterHighlight(0, listed, 0);
+            }
+        }
+        IListClear(&g_mipe_state_0068f100->monster_ids);
+        for (index = 0; index < static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
+                                    gXStatus.plsMonsterList))); // reinterpret-ok: retail spells the
+             // IList length on the W8PList (0x5e2c70)
+             ++index) {
+            info = static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsMonsterList, index));
+            if (info->fActive != 0 && info->monster_group_id == group_id) {
+                SetMonsterHighlight(0, info->location_id, 1);
+                IListAdd(&g_mipe_state_0068f100->monster_ids, info->location_id);
+            }
+        }
+        if (ILLength(&g_mipe_state_0068f100->monster_ids) == 1) {
+            info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x10e8, MIPE_CPP, location_id, 1));
+            if (info == 0) {
+                srAssertFail("pMonsterInfo", MIPE_CPP, 0x10ea, 0);
+            }
+            g_mipe_state_0068f100->monster = info->monster;
+        }
+        g_mipe_state_0068f100->value_0c = group_id;
+        SetWorldCursorGroupId004916A0(group_id);
+        return;
+    }
+    if (location_id != -1 && IListIndexOf(&g_mipe_state_0068f100->monster_ids, location_id) != -1) {
+        return;
+    }
+    if (ILLength(&g_mipe_state_0068f100->monster_ids) != 0) {
+        int old_id = IListGetAt(&g_mipe_state_0068f100->monster_ids, 0);
+        IListClear(&g_mipe_state_0068f100->monster_ids);
+        SetMonsterHighlight(0, old_id, 0);
+    }
+    if (location_id == -1) {
+        return;
+    }
+    SetMonsterHighlight(0, location_id, 1);
+    IListAdd(&g_mipe_state_0068f100->monster_ids, location_id);
+    info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x110c, MIPE_CPP, location_id, 1));
+    if (info == 0) {
+        srAssertFail("pMonsterInfo", MIPE_CPP, 0x110e, 0);
+    }
+    g_mipe_state_0068f100->monster = info->monster;
+    SetWorldCursorGroupId004916A0(info->monster_group_id);
+}
+
 /* Drag the selected monsters, or the selected trigger, by the world cursor's
    delta from the drag anchor. */
 // FUNCTION: WIZ8 0x0057df80
@@ -1254,6 +1381,107 @@ void DragSelectionWithCursor0057DF80(void)
         }
     }
     g_mipe_state_0068f100->drag_anchor = cursor;
+}
+
+/* The world-view share of MIPE input: left-down starts a cube drag in mode 4
+   or picks another cube in mode 0x13, left-up drops the drag and un-highlights
+   the trigger's item, right-up leaves cube selection for the action menu, and
+   mouse motion drags or tracks the cube. Returns whether it consumed the
+   event. */
+// FUNCTION: WIZ8 0x0057e0e0
+unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
+{
+    unsigned char result;
+
+    result = 0;
+    if (g_mipe_state_0068f100 == 0) {
+        return 0;
+    }
+    switch (event & 0xffff) {
+    case LEFT_BUTTON_DOWN:
+        if (g_mipe_mode_0068f108 == 4) {
+            result = 1;
+            g_mipe_state_0068f100->dragging = 1;
+            ShowWorldCursor00490B10();
+            GetWorldCursorPosition00490BF0(&g_mipe_state_0068f100->drag_anchor);
+            WarpSystemCursor(0x140, 0xf0);
+            g_mipe_state_0068f100->trigger = 0;
+        } else if (g_mipe_mode_0068f108 == 0x13) {
+            if (g_mipe_cube_0068f12c != 0) {
+                SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 0.0f, 0.5f);
+                RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);
+            }
+            g_mipe_cube_0068f12c = Function48E3E0(point->x, point->y);
+            if (g_mipe_cube_0068f12c != 0) {
+                SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 1.0f, 0.0f);
+                RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);
+            }
+            ResetEditorStatusLine0058AA20(-1);
+            ShowNoticef(6, L"Select cube:");
+            if (g_mipe_cube_0068f12c == 0) {
+                ShowNoticef(0xf, L"Click on a cube to select it.");
+            } else {
+                ShowNoticef(0xf, L"Click on another cube to select ");
+            }
+        }
+        break;
+    case LEFT_BUTTON_UP:
+        if (g_mipe_mode_0068f108 == 4) {
+            DragSelectionWithCursor0057DF80();
+            result = 1;
+            g_mipe_state_0068f100->dragging = 0;
+            HideWorldCursor00490B90();
+            if (g_mipe_state_0068f100->trigger != 0) {
+                Trigger* trigger = g_mipe_state_0068f100->trigger;
+                W8Item* item;
+
+                trigger->flags_0a0 &= ~0x20u;
+                item = trigger->rep_item_114;
+                if ((trigger->flags_0a0 & 0x10) != 0 && item != 0) {
+                    static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, 0);
+                    item->SetHighlight(0);
+                }
+                g_mipe_state_0068f100->trigger = 0;
+            }
+        }
+        break;
+    case RIGHT_BUTTON_UP:
+        if (g_mipe_mode_0068f108 == 0x11) {
+            g_mipe_mode_0068f108 = 0xf;
+            g_mipe_state_0068f100->selecting = 0;
+            HideWorldCursor00490B90();
+            g_mipe_state_0068f100->dragging = 0;
+            g_flag_68f104 = 1;
+            ResetEditorStatusLine0058AA20(-1);
+            ShowNoticef(6, L"Choose an action:");
+            ShowNoticef(0xf, L"1) Create cube.");
+            ShowNoticef(0xf, L"2) Delete cube.");
+            ShowNoticef(0xf, L"3) Edit cube parameters.");
+            ShowNoticef(0xf, L"4) Move cube.");
+            ShowNoticef(0xf, L"5) Scale cube.");
+            ShowNoticef(0xf, L"6) Select cube.");
+        }
+        break;
+    case MOUSE_POS:
+        if (g_mipe_state_0068f100->dragging != 0) {
+            if (g_mipe_mode_0068f108 == 4) {
+                DragSelectionWithCursor0057DF80();
+                result = 1;
+            } else if (g_mipe_mode_0068f108 == 0x11) {
+                result = 1;
+                if (g_mipe_cube_0068f12c != 0) {
+                    srVector3T<float> position;
+
+                    GetWorldCursorAnchor00490C20(&position);
+                    MoveWorldCursorNode0048DBF0(g_mipe_cube_0068f12c, &position);
+                }
+            } else if (g_mipe_mode_0068f108 == 0x12) {
+                result = 1;
+            }
+        }
+        break;
+    }
+    return result;
 }
 
 /* Monster-generator index that last satisfied

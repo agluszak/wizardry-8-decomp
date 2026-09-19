@@ -52,6 +52,9 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/3d.h"
+#include "wiz8/geometry.h"
+#include "wiz8/local_code/Sight.h"
+#include "wiz8/regions.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -839,6 +842,81 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
     }
     MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
     NotifyMonsterHighlight(party_slot, location_id, 0);
+}
+
+/* The location id of the nearest live monster whose current model instance is
+   under the cursor, or -1. Born monsters come first; the unborn list joins the
+   scan only while g_flag_689b32 is set. The cursor coordinates are carried but
+   unused - the hover test is MonsterUsesCurrentModelInstance. */
+// FUNCTION: WIZ8 0x005396d0
+int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
+{
+    int result;
+    float best_distance;
+    unsigned int index;
+
+    result = -1;
+    best_distance = 999999.0f;
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        float distance;
+
+        if (monster_info->fActive == 0) {
+            continue;
+        }
+        if (monster_info->monster->IsDying() != 0) {
+            continue;
+        }
+        if (monster_info->monster->copied_flag_332 != 0) {
+            continue;
+        }
+        if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
+            continue;
+        }
+        if (monster_info->party_threat.threat_state_24 == 0) {
+            UpdateMonsterSight(monster_info, 1, 1);
+        }
+        if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
+            continue;
+        }
+        distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->monster);
+        if (distance < best_distance) {
+            result = monster_info->location_id;
+            best_distance = distance;
+        }
+    }
+    if (g_flag_689b32 != 0) {
+        for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
+            W8MonsterInfo* monster_info =
+                static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));
+            float distance;
+
+            if (monster_info->fActive == 0) {
+                continue;
+            }
+            if (monster_info->monster->IsDying() != 0) {
+                continue;
+            }
+            if (monster_info->monster->copied_flag_332 != 0) {
+                continue;
+            }
+            if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
+                continue;
+            }
+            if (monster_info->party_threat.threat_state_24 == 0) {
+                UpdateMonsterSight(monster_info, 1, 1);
+            }
+            if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
+                continue;
+            }
+            distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->monster);
+            if (distance < best_distance) {
+                result = monster_info->location_id;
+                best_distance = distance;
+            }
+        }
+    }
+    return result;
 }
 
 /* The same over a whole group, one member at a time. The count is re-read each

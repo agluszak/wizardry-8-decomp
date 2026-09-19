@@ -19,9 +19,12 @@ unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_in
    and (when the gap is exactly two rows) the front rank. */
 char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info); /* 0x0051AEC0 */
 unsigned char IsCurrentTargetInRange(int party_slot, int action, W8TargetingContext context);
-/* 0x005194E0: whether `party_slot` may aim at `monster_info` under mode `arg_2`. */
-unsigned char CanPartyMemberAimAtMonster(int party_slot, int action, W8MonsterInfo* monster_info,
-                                         int failure_event, int notify_failure);
+/* 0x005194E0: whether `party_slot` may aim at `monster_info`: live threat, the
+   resolved action's range category (less the rows between in combat), the
+   info's aim flag for the action's ranged-ness, and the band distance. A miss
+   queues the slot's complaint event when `notify_failure` asks. */
+bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster_info, int context,
+                                char notify_failure);
 /* Whether the front rank stands between two formation positions. */
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position); /* 0x0051B000 */
 /* Whether the monster's attack `attack` reaches the character in `party_slot`,
