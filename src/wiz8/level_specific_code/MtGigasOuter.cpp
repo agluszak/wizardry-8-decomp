@@ -11,6 +11,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/cursor.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/float_constants.h"

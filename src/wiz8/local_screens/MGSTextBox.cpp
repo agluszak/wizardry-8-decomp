@@ -3,6 +3,7 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/sgp_wide_text.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -1147,9 +1148,6 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
 }
 
 /* Unrecovered mode-specific text-box body handlers / wheel helpers. */
-unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
-                                            W8Region* region);       /* 0x0056F1D0 */
-void NpcDialogueTextBoxWheelAt(short x, unsigned short y, int flag); /* 0x0056F490 */
 unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
                                               W8Region* region);       /* 0x0059DB40 */
 void UseItemSelectTextBoxWheelAt(short x, unsigned short y, int flag); /* 0x0059DD30 */

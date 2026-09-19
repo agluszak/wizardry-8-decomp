@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/ControlsRect.h"

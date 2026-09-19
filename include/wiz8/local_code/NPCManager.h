@@ -116,6 +116,13 @@ void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 *
 char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
 void Function50A570(W8NpcState* npc, char kind, int value, W8ItemInstance* item,
                     unsigned int gold); /* 0x0050A570: every retail call pushes five */
+/* 0x0050AA00: whether the NPC's database entry carries the value at 0x002. */
+bool NpcRecordHasValue002(W8NpcState* npc);
+/* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to
+   item_out and the taken gold to gold_out. Result codes feed the
+   0x00576D80 dispatch. */
+int Function50BC90(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
+                   unsigned int* gold_out);
 /* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);

@@ -82,7 +82,9 @@ struct W8NpcState {
     /* 0x84: cleared by 0x0056D030 when the runtime-node flag at 0x1d is
        set. */
     unsigned char flag_84;
-    unsigned char unknown_85[4];
+    /* 0x85: bitmask the refusal callback reads and sets one bit per queued
+       refusal quote (0x67, 0x68, 0x69); retail accesses it as one dword. */
+    unsigned int refusal_flags_85;
     /* 0x089: five topics stored one more than their id so zero means empty. */
     int topics[5];
     char restore_entity_name[0x28]; /* 0x9d: FindEntityByName key for restore */

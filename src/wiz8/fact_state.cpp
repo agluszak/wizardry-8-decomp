@@ -11,6 +11,7 @@
 #include "wiz8/local_screens/JournalScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/utility.h"
 #include "wiz8/layouts/npc_state.h"
 #include "wiz8/npc_script_file.h"

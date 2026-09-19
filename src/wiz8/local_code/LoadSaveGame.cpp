@@ -61,6 +61,7 @@
 #include "wiz8/local_code/SpellEffect.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/npc_interaction.h"
 #include "soundman.h"
 #include "wiz8/engine_code/Octree.h"

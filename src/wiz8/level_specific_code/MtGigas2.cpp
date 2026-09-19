@@ -14,6 +14,7 @@
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/utility.h"

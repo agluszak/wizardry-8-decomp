@@ -59,6 +59,12 @@ int g_mipe_mode_0068f108;
 // GLOBAL: WIZ8 0x0068f110
 short g_mipe_item_index_0068f110;
 
+// GLOBAL: WIZ8 0x0068f0fc
+unsigned char g_debug_monster_cycle_0068f0fc;
+
+// GLOBAL: WIZ8 0x0068f100
+W8MipeState* g_mipe_state_0068f100;
+
 // GLOBAL: WIZ8 0x0068f112
 short g_mipe_monster_index_0068f112;
 

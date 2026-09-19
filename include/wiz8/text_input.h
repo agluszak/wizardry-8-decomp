@@ -20,6 +20,7 @@ void SetInputFieldStringWith16BitString(unsigned char field, wchar_t* text);
 void Get16BitStringFromField(unsigned char field, wchar_t* text);
 void ClearActiveField(void);
 void SelectNextField(void);
+unsigned char EditingText(void); /* 0x005D5A00 */
 unsigned int HandleTextInput(const InputAtom* input);
 void RenderActiveTextField(void);
 void RenderAllTextFields(void);

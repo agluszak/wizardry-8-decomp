@@ -25,7 +25,8 @@ bool IsScreenBusy(void);
    resistance in the realm turns aside; a permanent magnitude is left alone. */
 void ReduceMagnitudeByResistance(unsigned int* magnitude, W8CombatSlot* target, int realm,
                                  int power_level);
-void AnnounceEffectResisted(W8CombatSlot* target); /* 0x00552070 */
+void AnnounceEffectResisted(W8CombatSlot* target);       /* 0x00552070 */
+void ClearMonsterEffect2DE(W8MonsterInfo* monster_info); /* 0x005523D0 */
 void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int realm,
                             int power_level); /* 0x00552340 */
 /* 0x00551BA0 sits before the unit's assertion hull rather than inside it;

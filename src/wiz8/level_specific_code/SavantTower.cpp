@@ -6,6 +6,7 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/location_variables.h"
 #include "wiz8/layouts/world.h"
 

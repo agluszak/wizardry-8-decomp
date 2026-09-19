@@ -19,6 +19,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/string_database.h"
 
 /* Level Specific Code\Trynnie2.cpp (level 0x1a).

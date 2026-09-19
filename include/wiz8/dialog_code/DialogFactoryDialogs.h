@@ -140,6 +140,10 @@ public:
 
 // VTABLE: WIZ8 0x005ef9f0
 class W8SplitAmountDialog : public W8DialogBase {
+    /* NPCInteractionSubscreen's destroy callback reads m_taken_084 and
+       m_result_08c back out of the closing dialog. */
+    friend void OnNpcTradeSplitDialogDestroy00572870(W8DialogBase* dialog);
+
 public:
     W8SplitAmountDialog(); /* 0x005D97D0 */
     /* 0x005D9890: the split-size entry point; the pool total seeds both the
