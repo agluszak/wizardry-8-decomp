@@ -10,6 +10,11 @@ reconstruction of the game, not merely code that happens to behave similarly.
 This is a work in progress. It is not yet a complete or independently playable replacement for the
 original game.
 
+The project is heavily inspired by the [LEGO Island decompilation](https://github.com/isledecomp/isle)
+and builds on tooling developed by contributors to that project, most notably
+[reccmp](https://github.com/isledecomp/reccmp). Its matching-oriented workflow and source annotations
+owe a lot to the work done by the ISLE decompilation community.
+
 ## Current state
 
 The repository already contains a substantial recovered codebase spanning the game executable, shared
