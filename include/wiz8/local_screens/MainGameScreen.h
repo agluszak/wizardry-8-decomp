@@ -1040,5 +1040,4 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 unsigned char CombatBarRegionEvent(const InputAtom* event);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event);
-unsigned char PartyPortraitEventRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append);

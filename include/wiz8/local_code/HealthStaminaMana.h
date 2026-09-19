@@ -63,16 +63,6 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
 int __cdecl CompareSpellPointDeficits(const void* first, const void* second);
-/* 0x0052F000: set the pose a party-slot portrait animates toward; clears any
-   pose animation in progress and forces the incapacitated pose when the
-   character is too far gone or the party is surprised. */
-void SetPortraitTargetPose(struct W8MonsterManagerEntry* slot, int pose);
-/* 0x0052FE00: re-blit each active portrait quote bubble when the screen comes
-   back from a modal view. */
-void RedrawPortraitQuoteBubbles(void);
-/* 0x0052FE80: queue the character's breath/idle event unless a spell or item
-   is being aimed; `force` queues it regardless. */
-void StartBreathCycle(int party_slot, char force);
 int SumCharacterSpellPoints(const W8Character* character);
 int SumCharacterSpellPointsLeft(const W8Character* character);
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
@@ -80,11 +70,3 @@ void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
 int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
-
-extern unsigned int g_event_flag_005ed8e0;
-
-extern unsigned int g_event_flag_005ed8ec;
-
-extern int g_effect_005ee58c;
-
-extern int g_effect_005ee654;
