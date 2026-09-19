@@ -218,9 +218,9 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     for (int index = 0; index < 3; ++index) {
         if (entry != 0) {
             entry->numbers_0c[index] = 0;
-            if (entry->buffer_18 != 0) {
-                free(entry->buffer_18);
-                entry->buffer_18 = 0;
+            if (entry->pUserdata != 0) {
+                free(entry->pUserdata);
+                entry->pUserdata = 0;
             }
             entry->size_1c = 0;
         }
@@ -230,7 +230,7 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     PackColour00433FB0(&packed, 1.0, 0.0, 0.0, 0.5);
     SetWorldCursorNodeColor0048E400(entry, packed);
     DrawWorldCursorNodeLabel0048DCB0(entry);
-    entry->buffer_18 = 0;
+    entry->pUserdata = 0;
     entry->size_1c = 0;
     entry->name_24[0] = 0;
 
@@ -296,9 +296,9 @@ void SetWorldCursorNodeParameter0048E2D0(W8WorldCursorNode* entry, int index, in
 {
     if (entry != 0) {
         entry->numbers_0c[index] = value;
-        if (entry->buffer_18 != 0) {
-            free(entry->buffer_18);
-            entry->buffer_18 = 0;
+        if (entry->pUserdata != 0) {
+            free(entry->pUserdata);
+            entry->pUserdata = 0;
         }
         entry->size_1c = 0;
     }
@@ -361,21 +361,21 @@ unsigned int LoadWorldCursorNodeStates0048E470(int handle)
             success = false;
         }
         if (cube->size_1c != 0) {
-            cube->buffer_18 = malloc(cube->size_1c);
-            if (cube->buffer_18 == 0) {
+            cube->pUserdata = malloc(cube->size_1c);
+            if (cube->pUserdata == 0) {
                 srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
             }
-            memset(cube->buffer_18, 0, cube->size_1c);
-            if (success && FileRead(handle, cube->buffer_18, cube->size_1c, 0)) {
+            memset(cube->pUserdata, 0, cube->size_1c);
+            if (success && FileRead(handle, cube->pUserdata, cube->size_1c, 0)) {
                 success = true;
             } else {
                 success = false;
             }
         }
         if (temporary && cube != 0) {
-            if (cube->buffer_18 != 0) {
-                free(cube->buffer_18);
-                cube->buffer_18 = 0;
+            if (cube->pUserdata != 0) {
+                free(cube->pUserdata);
+                cube->pUserdata = 0;
             }
             cube->size_1c = 0;
             delete cube;
@@ -558,7 +558,7 @@ void GetWorldCursorNodeUserdata0048EF00(W8WorldCursorNode* entry, char** buffer,
 {
     if (entry != 0) {
         if (buffer != 0) {
-            *buffer = static_cast<char*>(entry->buffer_18);
+            *buffer = static_cast<char*>(entry->pUserdata);
         }
         if (size != 0) {
             *size = entry->size_1c;
@@ -580,15 +580,15 @@ void SetWorldCursorNodeUserdataSize0048EF40(W8WorldCursorNode* entry, int size)
 {
     if (entry != 0) {
         if (size != 0) {
-            entry->buffer_18 = malloc(size);
-            if (entry->buffer_18 == 0) {
+            entry->pUserdata = malloc(size);
+            if (entry->pUserdata == 0) {
                 srAssertFail("pCube->pUserdata", ST_CUBE_CPP, 0x3c8, 0);
             }
-            memset(entry->buffer_18, 0, size);
+            memset(entry->pUserdata, 0, size);
         } else {
-            if (entry->buffer_18 != 0) {
-                free(entry->buffer_18);
-                entry->buffer_18 = 0;
+            if (entry->pUserdata != 0) {
+                free(entry->pUserdata);
+                entry->pUserdata = 0;
             }
         }
         entry->size_1c = size;
@@ -652,9 +652,9 @@ void ReleaseWorldCursorNodes0048DB30(void)
         W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[0];
 
         if (entry != 0) {
-            if (entry->buffer_18 != 0) {
-                free(entry->buffer_18);
-                entry->buffer_18 = 0;
+            if (entry->pUserdata != 0) {
+                free(entry->pUserdata);
+                entry->pUserdata = 0;
             }
             entry->size_1c = 0;
             entry->node_04->setParent(0, 1);
