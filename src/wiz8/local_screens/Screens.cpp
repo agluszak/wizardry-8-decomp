@@ -184,7 +184,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             }
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->portrait_refresh_pending[party_slot] == 0);
-            gXStatus.monster_manager_entries[party_slot].field_0d1 = 1;
+            gXStatus.monster_manager_entries[party_slot].combat_portrait_dirty = 1;
             InvalidatePortraitControl0059BBD0(party_slot);
             return;
         }

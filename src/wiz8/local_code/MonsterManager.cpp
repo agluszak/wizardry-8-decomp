@@ -1144,7 +1144,7 @@ bool InitializeMonsterManagerState(void)
     g_status_685170.next_monster_location_id_234e = 1;
     g_status_685170.next_group_id_234a = 1;
     gXStatus.active_monster_count = 0;
-    gXStatus.field_02d = 0;
+    gXStatus.hostile_monster_count = 0;
     g_dword_6850be = 0;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
@@ -1479,7 +1479,7 @@ void ToggleCombatMode(void)
         StartCombat(1);
         return;
     }
-    if (gXStatus.field_02d != 0 || g_combat_state->flag_a54 != 0) {
+    if (gXStatus.hostile_monster_count != 0 || g_combat_state->flag_a54 != 0) {
         if (g_combat_state->value_004 != 0) {
             ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;

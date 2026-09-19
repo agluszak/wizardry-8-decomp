@@ -137,20 +137,20 @@ void SyncPartyPortraitVitalsBars(void)
                 }
             }
 
-            if (hp_bar != static_cast<unsigned int>(entry->field_0ac) ||
-                stamina_bar != static_cast<unsigned int>(entry->field_0b0) ||
-                spell_bar != static_cast<unsigned int>(entry->field_0b4) ||
+            if (hp_bar != static_cast<unsigned int>(entry->cached_hp_bar) ||
+                stamina_bar != static_cast<unsigned int>(entry->cached_stamina_bar) ||
+                spell_bar != static_cast<unsigned int>(entry->cached_spell_bar) ||
                 (g_settings_6850c8.numeric_hit_points != 0 &&
-                 static_cast<int>(character->hp_current) != entry->field_0b8)) {
-                entry->field_0bc = 1;
+                 static_cast<int>(character->hp_current) != entry->cached_hp)) {
+                entry->portrait_stats_dirty = 1;
                 RequestRedraw(0x80000000);
             }
         }
 
-        entry->field_0ac = static_cast<int>(hp_bar);
-        entry->field_0b0 = static_cast<int>(stamina_bar);
-        entry->field_0b4 = static_cast<int>(spell_bar);
-        entry->field_0b8 = static_cast<int>(character->hp_current);
+        entry->cached_hp_bar = static_cast<int>(hp_bar);
+        entry->cached_stamina_bar = static_cast<int>(stamina_bar);
+        entry->cached_spell_bar = static_cast<int>(spell_bar);
+        entry->cached_hp = static_cast<int>(character->hp_current);
     }
 }
 
@@ -170,32 +170,33 @@ void TickPartyPortraitFx(void)
             continue;
         }
 
-        clock_expired = ClockIsTicking(entry->field_0ca) == 0;
-        if (entry->field_09c != 0) {
+        clock_expired = ClockIsTicking(entry->portrait_fx_clock) == 0;
+        if (entry->damage_splat_active != 0) {
             if (clock_expired != 0) {
-                entry->field_0a3 = entry->field_0a3 + 1;
+                entry->damage_splat_frame = entry->damage_splat_frame + 1;
                 dirty = 1;
             }
-            if (entry->field_0a3 == entry->field_0a7) {
-                entry->field_09c = 0;
-                entry->field_09d = 0;
-            } else if (entry->field_09d != 0 && entry->field_0a3 == 0xd && entry->field_09e == 0) {
-                entry->field_09e = 1;
+            if (entry->damage_splat_frame == entry->damage_splat_end_frame) {
+                entry->damage_splat_active = 0;
+                entry->damage_splat_death_variant = 0;
+            } else if (entry->damage_splat_death_variant != 0 && entry->damage_splat_frame == 0xd &&
+                       entry->dead_portrait_revealed == 0) {
+                entry->dead_portrait_revealed = 1;
             }
         }
-        if (entry->field_0bd != 0) {
+        if (entry->effect_icon_active != 0) {
             if (clock_expired != 0) {
-                entry->field_0be = entry->field_0be + 1;
+                entry->effect_icon_frame = entry->effect_icon_frame + 1;
                 dirty = 1;
             }
-            if (entry->field_0be == entry->field_0c6) {
-                entry->field_0bd = 0;
+            if (entry->effect_icon_frame == entry->effect_icon_end_frame) {
+                entry->effect_icon_active = 0;
             }
         }
         if (clock_expired != 0) {
-            entry->field_0ca = SetCountdownClock(100);
+            entry->portrait_fx_clock = SetCountdownClock(100);
         }
-        if (dirty != 0 && entry->field_0d0 == 0) {
+        if (dirty != 0 && entry->keyboard_menu_open == 0) {
             RequestRedraw(1u << (slot & 0x1f));
         }
     }
@@ -223,7 +224,7 @@ void RedrawCombatPortraits0059B720(void)
 
         if (party_row->occupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD ||
-            combat_row->portrait_image_084 == -1 || entry->field_0d1 == 0 ||
+            combat_row->portrait_image_084 == -1 || entry->combat_portrait_dirty == 0 ||
             slot == g_level_block->combat_slot) {
             continue;
         }
@@ -256,7 +257,7 @@ void RedrawCombatPortraits0059B720(void)
                     .party_order_index,
                 badge_x, row_y + 0x38, 2, 0);
         }
-        entry->field_0d1 = 0;
+        entry->combat_portrait_dirty = 0;
     }
 }
 
@@ -415,7 +416,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
         DrawCatalogImage(-14, hp_catalog, 0, 0, band_portrait_edge + hp_bar_x, bar_y + menu_y, 2,
                          0);
         {
-            int fill_height = 0x2d - entry->field_0ac;
+            int fill_height = 0x2d - entry->cached_hp_bar;
             if (fill_height != 0) {
                 int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                 int draw_x = hp_bar_x + band_portrait_edge;
@@ -438,7 +439,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
         DrawCatalogImage(-14, stamina_catalog, 0, 0, band_portrait_edge + stamina_bar_x,
                          bar_y + menu_y, 2, 0);
         {
-            int fill_height = 0x2d - entry->field_0b0;
+            int fill_height = 0x2d - entry->cached_stamina_bar;
             if (fill_height != 0) {
                 int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                 int draw_x = stamina_bar_x + band_portrait_edge;
@@ -462,7 +463,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             DrawCatalogImage(-14, spell_catalog, 0, 0, band_portrait_edge + spell_bar_x,
                              bar_y + menu_y, 2, 0);
             {
-                int fill_height = 0x2d - entry->field_0b4;
+                int fill_height = 0x2d - entry->cached_spell_bar;
                 if (fill_height != 0) {
                     int draw_y = (bar_y - numeric_hp_mode) + menu_y;
                     int draw_x = spell_bar_x + band_portrait_edge;
@@ -505,7 +506,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
         }
     }
 
-    entry->field_0bc = 0;
+    entry->portrait_stats_dirty = 0;
 }
 
 /* Repaint one party-slot portrait band: frame, live or dead portrait, item
@@ -558,7 +559,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             portrait_catalog = 0x34;
             portrait_flags = 2;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
-        } else if (character->hp_current == 0 && (entry->field_09d == 0 || entry->field_09e != 0)) {
+        } else if (character->hp_current == 0 &&
+                   (entry->damage_splat_death_variant == 0 || entry->dead_portrait_revealed != 0)) {
             portrait_catalog = g_dead_portrait_catalog_ids_6488d4[character->race * 2];
             portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
@@ -687,7 +689,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 
             if (gXStatus.fCombatMode != 0) {
-                entry->field_0d1 = 1;
+                entry->combat_portrait_dirty = 1;
             }
             g_condition_buttons_0069b900[party_slot]->Invalidate(0);
         }
@@ -801,10 +803,10 @@ draw_condition_icons:
     }
 
 portrait_fx:
-    if (entry->field_09c != 0) {
+    if (entry->damage_splat_active != 0) {
         Function59ADD0(party_slot);
     }
-    if (entry->field_0bd != 0) {
+    if (entry->effect_icon_active != 0) {
         Function59B0F0(party_slot);
     }
 
@@ -1244,7 +1246,7 @@ void UpdateConditionButtons0059C080(void)
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         image = 0;
         if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-            g_level_block->portrait_refresh_pending[slot] == 0 && entry->field_0d0 == 0) {
+            g_level_block->portrait_refresh_pending[slot] == 0 && entry->keyboard_menu_open == 0) {
             image = g_status_685170.buffers.characters[slot].highest_condition;
             if (image == 0) {
                 image = g_status_685170.buffers.characters[slot].enchantment_top;
@@ -1273,7 +1275,8 @@ void UpdateConditionButtons0059C080(void)
             if (button->m_active) {
                 button->SetActive(false);
                 button->Invalidate(0);
-                if (g_level_block->portrait_refresh_pending[slot] == 0 && entry->field_0d0 == 0) {
+                if (g_level_block->portrait_refresh_pending[slot] == 0 &&
+                    entry->keyboard_menu_open == 0) {
                     ClearSurfaceRect(button->m_left + g_condition_buttons_panel_0069b944->origin_x,
                                      button->m_top + g_condition_buttons_panel_0069b944->origin_y,
                                      button->m_right + g_condition_buttons_panel_0069b944->origin_x,

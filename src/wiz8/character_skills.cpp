@@ -112,7 +112,7 @@ void FlushDeferredSkillNotices(void)
             continue;
         }
         for (skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
-            if (gXStatus.monster_manager_entries[slot].unknown_0e9[1 + skill_id] == 0) {
+            if (gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] == 0) {
                 continue;
             }
             extra->party_slots[count] = static_cast<signed char>(slot);
@@ -141,7 +141,7 @@ void FlushDeferredSkillNotices(void)
         AddMessageBoxLine(W8_NPC_MSG_SKILL_NOTICES, text, extra);
     }
     for (slot = 0; slot < 8; ++slot) {
-        memset(&gXStatus.monster_manager_entries[slot].unknown_0e9[1], 0, W8_SKILL_COUNT);
+        memset(&gXStatus.monster_manager_entries[slot].skill_notice_pending[0], 0, W8_SKILL_COUNT);
     }
     g_deferred_skill_notices_0068506d = 0;
 }

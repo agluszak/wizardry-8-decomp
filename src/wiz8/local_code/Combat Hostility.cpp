@@ -44,20 +44,20 @@ enum { W8_NEUTRAL_SPECIES_224 = 0x224 };
 // FUNCTION: WIZ8 0x00546e70
 void RecountCombatMonsters(void)
 {
-    gXStatus.field_02d = 0;
+    gXStatus.hostile_monster_count = 0;
     g_dword_6850be = 0;
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->fInCombat) {
             if (monster->ubDisposition == DISP_HOSTILE) {
-                ++gXStatus.field_02d;
+                ++gXStatus.hostile_monster_count;
             }
             if (monster->condition_turns[13] != 0) {
                 ++g_dword_6850be;
             }
         }
     }
-    if (gXStatus.fCombatMode && gXStatus.field_02d != 0) {
+    if (gXStatus.fCombatMode && gXStatus.hostile_monster_count != 0) {
         g_combat_state->flag_a54 = 1;
     }
     RequestRefreshPartyState();

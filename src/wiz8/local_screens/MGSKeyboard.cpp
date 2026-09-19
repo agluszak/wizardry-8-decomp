@@ -512,7 +512,7 @@ void DispatchMGSCommand(int command)
             ClearPortraitRefreshSlot(slot);
         } else {
             RefreshSelectedPartyPortrait(slot);
-            gXStatus.monster_manager_entries[slot].field_0ce = 1;
+            gXStatus.monster_manager_entries[slot].portrait_refresh_pinned = 1;
         }
         break;
     }
@@ -671,7 +671,7 @@ void OpenKeyboardMenuForSlot(int slot)
         return;
     }
     UpdateScreenOverlays(0);
-    gXStatus.monster_manager_entries[slot].field_0d0 = 1;
+    gXStatus.monster_manager_entries[slot].keyboard_menu_open = 1;
     RegionSetDisable(slot + 7);
     DisableRegionSetInput(slot + 7);
     DisableRegionInput(slot + 0x5a);
@@ -685,7 +685,7 @@ __forceinline void CloseKeyboardMenu(void)
 {
     int index;
 
-    gXStatus.monster_manager_entries[g_value_64c1c8].field_0d0 = 0;
+    gXStatus.monster_manager_entries[g_value_64c1c8].keyboard_menu_open = 0;
     g_level_block->keyboard_menu_open = 0;
     g_level_block->combat_slot = -1;
     g_level_block->hover_combat_slot = g_value_64c1c8;

@@ -3144,7 +3144,7 @@ render_world:
             UpdateCombat004E8EA0();
         }
         if (IsSightRangeOverridden() && !gXStatus.fCombatMode && AnyCharacterActive() &&
-            gXStatus.field_02d) {
+            gXStatus.hostile_monster_count) {
             StartCombat(0);
         }
         if (!ClockIsTicking(g_level_block->character_update_timer)) {
@@ -3153,7 +3153,7 @@ render_world:
         }
         if (!g_flag_006840bc) {
             UpdateMonsterGroups(1);
-            if (!gXStatus.fCombatMode && AnyCharacterActive() && gXStatus.field_02d &&
+            if (!gXStatus.fCombatMode && AnyCharacterActive() && gXStatus.hostile_monster_count &&
                 !gXStatus.fNpcDialogueMode) {
                 StartCombat(0);
             }
@@ -3617,11 +3617,11 @@ void ApplyMainGameRedrawFlags(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         portrait_rect = &g_startup_grid_647da0[party_slot];
         if ((g_level_block->redraw_flags & (1U << (party_slot & 0x1f))) == 0) {
-            if (gXStatus.monster_manager_entries[party_slot].field_0bc != 0) {
+            if (gXStatus.monster_manager_entries[party_slot].portrait_stats_dirty != 0) {
                 RedrawPartyPortraitBars(party_slot,
                                         g_level_block->portrait_refresh_pending[party_slot] == 0);
             }
-            if (gXStatus.monster_manager_entries[party_slot].field_0d0 != 0) {
+            if (gXStatus.monster_manager_entries[party_slot].keyboard_menu_open != 0) {
                 RedrawKeyboardMenuPanel(0);
             }
         } else {
@@ -3637,7 +3637,7 @@ void ApplyMainGameRedrawFlags(void)
                 InvalidateRegion(portrait_rect->x1, portrait_rect->y1, portrait_rect->x2,
                                  portrait_rect->y2, 1);
             }
-            if (gXStatus.monster_manager_entries[party_slot].field_0d0 != 0) {
+            if (gXStatus.monster_manager_entries[party_slot].keyboard_menu_open != 0) {
                 RedrawKeyboardMenuPanel(1);
             }
         }
@@ -4096,8 +4096,8 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
     }
     if (g_level_block->keyboard_menu_open != 0 &&
         party_slot == static_cast<unsigned int>(g_value_64c1c8) &&
-        gXStatus.monster_manager_entries[party_slot].field_0bd == 0 &&
-        gXStatus.monster_manager_entries[party_slot].field_09c == 0) {
+        gXStatus.monster_manager_entries[party_slot].effect_icon_active == 0 &&
+        gXStatus.monster_manager_entries[party_slot].damage_splat_active == 0) {
         if (gXStatus.monster_manager_entries[party_slot].quote.quote_handle == -1 ||
             g_settings_6850c8.pc_subtitles == 0) {
             return;
@@ -4157,7 +4157,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
     g_level_block->portrait_refresh_mode[party_slot] = 6;
     RequestRedraw(1u << (party_slot & 0x1f));
     DisableRegionInput(party_slot + 0x5a);
-    if (gXStatus.monster_manager_entries[party_slot].field_0d0 == 0) {
+    if (gXStatus.monster_manager_entries[party_slot].keyboard_menu_open == 0) {
         RegionSetEnable(party_slot + 7);
         EnableRegionSetInput(party_slot + 7);
     }
@@ -4571,20 +4571,21 @@ void UpdateFormationPortraitRefresh0059B2D0(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         entry = &gXStatus.monster_manager_entries[party_slot];
         if (g_level_block->portrait_refresh_pending[party_slot] == 0) {
-            if (entry->field_09c != 0 || entry->field_0bd != 0 ||
+            if (entry->damage_splat_active != 0 || entry->effect_icon_active != 0 ||
                 (entry->portrait_event_active != 0 && gfCapturingVideo == 0)) {
                 RefreshSelectedPartyPortrait(party_slot);
-                entry->field_0cf = 1;
+                entry->auto_portrait_refresh = 1;
             }
         } else if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
             ClearPortraitRefreshSlot(static_cast<int>(party_slot));
-            entry->field_0cf = 0;
+            entry->auto_portrait_refresh = 0;
             DisableRegionInput(party_slot + 0x5a);
-        } else if (entry->field_0ce == 0 && entry->field_09c == 0 && entry->field_0bd == 0 &&
-                   entry->portrait_event_active == 0) {
-            if (IsPartyPortraitUnderCursor00561980(party_slot) == 0 || entry->field_0cf != 0) {
+        } else if (entry->portrait_refresh_pinned == 0 && entry->damage_splat_active == 0 &&
+                   entry->effect_icon_active == 0 && entry->portrait_event_active == 0) {
+            if (IsPartyPortraitUnderCursor00561980(party_slot) == 0 ||
+                entry->auto_portrait_refresh != 0) {
                 ClearPortraitRefreshSlot(static_cast<int>(party_slot));
-                entry->field_0cf = 0;
+                entry->auto_portrait_refresh = 0;
             }
         }
     }
@@ -4603,7 +4604,7 @@ void ClearPortraitRefreshSlot(int slot)
         g_level_block->portrait_refresh_pending[slot] != 0) {
         g_level_block->portrait_refresh_pending[slot] = 0;
         g_level_block->flag_108 = 1;
-        gXStatus.monster_manager_entries[slot].field_0ce = 0;
+        gXStatus.monster_manager_entries[slot].portrait_refresh_pinned = 0;
         g_level_block->portrait_refresh_mode[slot] = 0;
         g_level_block->portrait_refresh_image[slot] = 0;
         row = &g_startup_grid_647da0[slot];
@@ -4806,14 +4807,14 @@ void RefreshPartySlotRegions(void)
                 DisableRegionInput(region_set + 0x53);
             }
         } else if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
-            if (gXStatus.monster_manager_entries[slot].field_0d0 == 0) {
+            if (gXStatus.monster_manager_entries[slot].keyboard_menu_open == 0) {
                 EnableRegionSetInput(region_set);
             } else {
                 DisableRegionSetInput(region_set);
             }
         } else if (static_cast<unsigned int>(g_settings_6850c8.main_ui_mode) <=
                    static_cast<unsigned int>(W8_MAIN_UI_MODE_RADAR)) {
-            if (gXStatus.monster_manager_entries[slot].field_0d0 == 0) {
+            if (gXStatus.monster_manager_entries[slot].keyboard_menu_open == 0) {
                 if (g_level_block->portrait_refresh_pending[slot] == 0) {
                     EnableRegionInput(region_set + 0x53);
                     RegionSetDisable(region_set);
@@ -5869,7 +5870,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
                 g_level_block->hover_combat_slot = -1;
             }
             g_level_block->party_slots_170[4] = -1;
-            gXStatus.monster_manager_entries[slot].field_0d1 = 1;
+            gXStatus.monster_manager_entries[slot].combat_portrait_dirty = 1;
             DisableRegionHelpFlag004F27E0(region);
             return 0;
         }
@@ -5878,7 +5879,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
         }
         if (g_combat_state->flag_001 != 0) {
             g_level_block->party_slots_170[4] = slot;
-            gXStatus.monster_manager_entries[slot].field_0d1 = 1;
+            gXStatus.monster_manager_entries[slot].combat_portrait_dirty = 1;
         }
         {
             W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];

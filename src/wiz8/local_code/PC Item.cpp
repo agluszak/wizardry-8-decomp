@@ -2714,7 +2714,7 @@ void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Char
                      0);
     }
     party_slot = CharacterPointerToPartySlot(character);
-    gXStatus.monster_manager_entries[party_slot].field_113 = 1;
+    gXStatus.monster_manager_entries[party_slot].item_swap_in_progress = 1;
     if (item->item_id == -1) {
         CopyItemInstance(item, destination, character, refresh);
     } else if (destination->item_id == -1) {
@@ -2727,7 +2727,7 @@ void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Char
         CopyItemInstance(item, destination, character, refresh);
         CopyItemInstance(destination, &temporary, character, refresh);
     }
-    gXStatus.monster_manager_entries[party_slot].field_113 = 0;
+    gXStatus.monster_manager_entries[party_slot].item_swap_in_progress = 0;
 }
 
 /* Set the wield kind for one primary hand from the item it holds. An empty
