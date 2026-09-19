@@ -174,6 +174,112 @@ def test_function_stub_conflict_cannot_be_waived_as_loss(tmp_path: Path) -> None
     ]
 
 
+def test_folded_alias_shares_an_address_without_becoming_a_duplicate(tmp_path: Path) -> None:
+    """An ICF-folded alias names an identity owned elsewhere, not a second owner."""
+
+    _repo(tmp_path)
+    head = _commit(
+        tmp_path,
+        {
+            "src/wiz8/owner.cpp": (
+                "// FUNCTION: WIZ8 0x00401000\nint FoldedOwner() { return 1; }\n"
+            ),
+            "src/wiz8/alias.cpp": (
+                "// FUNCTION: WIZ8 0x00401000 FOLDED\nint FoldedAlias() { return 1; }\n"
+            ),
+        },
+        "folded alias",
+    )
+
+    report = merge_preservation_report(tmp_path, head, head)
+
+    assert report["status"] == "passed"
+    assert report["duplicates"] == []
+
+
+def test_two_owning_claims_on_one_address_still_fail(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    head = _commit(
+        tmp_path,
+        {
+            "src/wiz8/first.cpp": "// FUNCTION: WIZ8 0x00401000\nint First() { return 1; }\n",
+            "src/wiz8/second.cpp": "// FUNCTION: WIZ8 0x00401000\nint Second() { return 1; }\n",
+        },
+        "duplicate owners",
+    )
+
+    report = merge_preservation_report(tmp_path, head, head)
+
+    assert report["status"] == "failed"
+    assert report["unexplained_duplicates"] == ["FUNCTION WIZ8 0x00401000"]
+
+
+def test_a_fold_only_address_keeps_its_claims_as_owners(tmp_path: Path) -> None:
+    _repo(tmp_path)
+    head = _commit(
+        tmp_path,
+        {
+            "src/wiz8/first.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint First();\n",
+            "src/wiz8/second.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint Second();\n",
+        },
+        "fold only",
+    )
+
+    report = merge_preservation_report(tmp_path, head, head)
+
+    assert report["status"] == "failed"
+    assert report["unexplained_duplicates"] == ["FUNCTION WIZ8 0x00401000"]
+
+
+def test_folded_alias_cannot_demote_the_owning_definition(tmp_path: Path) -> None:
+    """The owner stays a definition even though an alias of it is declaration-only."""
+
+    _repo(tmp_path)
+    base = _commit(
+        tmp_path,
+        {"src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n"},
+        "base",
+    )
+    head = _commit(
+        tmp_path,
+        {
+            "src/wiz8/owner.cpp": "// FUNCTION: WIZ8 0x00401000\nint Owner() { return 1; }\n",
+            "src/wiz8/alias.cpp": "// FUNCTION: WIZ8 0x00401000 FOLDED\nint Alias();\n",
+        },
+        "head",
+    )
+
+    report = merge_preservation_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["demoted"] == []
+
+
+def test_vtable_class_discriminator_is_not_an_alias(tmp_path: Path) -> None:
+    """A trailing discriminator distinguishes co-located vtables; both own their address."""
+
+    _repo(tmp_path)
+    head = _commit(
+        tmp_path,
+        {
+            "src/wiz8/widget.cpp": (
+                "// VTABLE: WIZ8 0x00601000 W8TextControl::Listener\n"
+                "W8TextControl::Listener v_table_a;\n"
+            ),
+            "src/wiz8/other.cpp": (
+                "// VTABLE: WIZ8 0x00601000 W8ControlSelectionListener\n"
+                "W8ControlSelectionListener v_table_b;\n"
+            ),
+        },
+        "discriminators",
+    )
+
+    report = merge_preservation_report(tmp_path, head, head)
+
+    assert report["status"] == "failed"
+    assert report["unexplained_duplicates"] == ["VTABLE WIZ8 0x00601000"]
+
+
 def test_allow_is_scoped_to_target_kind_and_transition(tmp_path: Path) -> None:
     _repo(tmp_path)
     base = _commit(
