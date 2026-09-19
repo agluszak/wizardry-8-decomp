@@ -6,11 +6,41 @@
    actually consume.  The matching compiler continues to use the real VC6
    header. */
 namespace std {
-class ostream {
+template <typename E> struct char_traits {};
+
+/* srDummyStreamBuf derives from streambuf and the recovered constructors
+   initialize the spelled-out basic_* bases, so the recovered surface needs
+   the complete template forms. */
+template <typename E, typename T> class basic_streambuf {
 public:
-    ostream& operator<<(unsigned long value);
+    virtual int overflow(int ch);
+    virtual int underflow();
+};
+typedef basic_streambuf<char, char_traits<char> > streambuf;
+
+/* The recovered dump methods spell the ios formatting surface: flags()/setf()
+   plus width(). */
+class ios {
+public:
+    typedef int fmtflags;
+    enum { left = 0x40, adjustfield = 0x1c0 };
+    fmtflags flags() const;
+    fmtflags flags(fmtflags value);
+    fmtflags setf(fmtflags mask, fmtflags field);
+    int width() const;
+    int width(int value);
 };
 
+template <typename E, typename T> class basic_ostream : public ios {
+public:
+    basic_ostream(basic_streambuf<E, T>* buffer);
+    basic_ostream& operator<<(long value);
+    basic_ostream& operator<<(unsigned long value);
+    basic_ostream& operator<<(double value);
+};
+typedef basic_ostream<char, char_traits<char> > ostream;
+
 ostream& operator<<(ostream& stream, const char* value);
+ostream& operator<<(ostream& stream, const void* value);
 ostream& operator<<(ostream& stream, char value);
-}
+} // namespace std

@@ -34,9 +34,15 @@ struct srInlineString {
     srInlineString(const srInlineString& source, long begin, long end);
     ~srInlineString();
 
+    /* Bare empty-state initialization without releasing storage - the helper
+       the provider emits at 0x10004150 and calls inside assignment/copy
+       expansions. */
+    void init();
+
     /* Empty-object reinitialization. In the Wiz8 unit the inline destructor
        expansion keeps the release inline but emits a call to the reset
-       emission - the function retail lists at 0x0047D290. */
+       emission - the function retail lists at 0x0047D290. In the provider
+       unit reset itself releases non-inline storage (0x10012C80). */
     void reset();
 
     srInlineString& operator=(const char* source);

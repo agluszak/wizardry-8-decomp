@@ -2,14 +2,23 @@
 
 #include "srDD.h"
 
+class srGERD;
+
 // VTABLE: SURRENDER 0x100765f0 srDebugDD
-/* Provider-side debug wrapper. No known Wizardry/JPEG/ZIP consumer imports
-   srDebugDD symbols; its exported methods are provider ABI only. */
-class srDebugDD : public srDD {
+/* Provider-side debug wrapper. Retail exports the entire member surface,
+   including the implicit copy constructor/assignment and the vtable, so the
+   class is dllexport-ed when building the provider (the same convention as
+   srDummyStreamBuf). The implicit copy operations emit the srDD empty-base
+   byte copy and store the vtable last, matching retail. No known
+   Wizardry/JPEG/ZIP consumer imports srDebugDD symbols; its exported methods
+   are provider ABI only. */
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srDebugDD : public srDD {
 public:
     srDebugDD(srDD* device);
-    srDebugDD(const srDebugDD& other);
-    srDebugDD& operator=(const srDebugDD& other);
     virtual ~srDebugDD() override;
 
     virtual void getInfo(Info& info) override;
@@ -17,8 +26,7 @@ public:
     virtual void getTextureFormats(PixelFormatList& list) override;
     virtual void getStatistics(Statistics& stats) override;
     virtual void resetStatistics() override;
-    virtual void extCommand(unsigned long command, void* data,
-                            unsigned long size) override;
+    virtual void extCommand(unsigned long command, void* data, unsigned long size) override;
     virtual int isBusy() override;
     virtual e_error openWindow(const OpenInfo& info, OpenResult& result) override;
     virtual void closeWindow() override;
@@ -35,16 +43,13 @@ public:
     virtual void setClearValues(const ClearValues& values) override;
     virtual void setFogColor(const srVector4T<float>& color) override;
     virtual void setShader(const srShader& shader) override;
-    virtual void setTextureParameters(unsigned long stage,
-                                      const TexParms& parms) override;
+    virtual void setTextureParameters(unsigned long stage, const TexParms& parms) override;
     virtual void bindTexture(unsigned long stage, Texture& texture) override;
     virtual void deleteTexture(Texture& texture) override;
     virtual void texImage(Texture& texture, unsigned long level) override;
-    virtual void texSubImage(Texture& texture, unsigned long a, unsigned long b,
-                             unsigned long c, unsigned long d,
-                             unsigned long e) override;
-    virtual void setGlobalPalette(unsigned long* palette,
-                                  unsigned long count) override;
+    virtual void texSubImage(Texture& texture, unsigned long a, unsigned long b, unsigned long c,
+                             unsigned long d, unsigned long e) override;
+    virtual void setGlobalPalette(unsigned long* palette, unsigned long count) override;
     virtual void bindPalette(Palette& palette) override;
     virtual void deletePalette(Palette& palette) override;
     virtual e_error createContext(unsigned long window) override;
@@ -57,11 +62,9 @@ public:
     virtual void setCullMode(e_cullMode mode) override;
     virtual void setProjectionMatrix(const srMatrix4T<float>& matrix,
                                      srMatrix4T<float>::e_type type) override;
-    virtual void
-    setVertexArrayInfo(const srRendererDefs::VertexArrayInfo* info) override;
-    virtual void drawElements(srRendererDefs::e_primitive primitive,
-                              unsigned long count, srRendererDefs::e_indexType type,
-                              const void* indices) override;
+    virtual void setVertexArrayInfo(const srRendererDefs::VertexArrayInfo* info) override;
+    virtual void drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+                              srRendererDefs::e_indexType type, const void* indices) override;
     virtual void drawArrays(srRendererDefs::e_primitive primitive, long first,
                             unsigned long count) override;
     virtual void setPolygonOffset(long offset) override;
@@ -72,12 +75,38 @@ public:
     void increaseCallCount(e_command command);
     void increaseCallTime(e_command command, double time);
 
-protected:
+    /* RAII timer constructed at the top of every srDebugDD forwarder and
+       destroyed after the wrapped call returns. */
+    class ScopeTimer {
+    public:
+        ScopeTimer(srDebugDD* owner, e_command command);
+        ~ScopeTimer();
+
+    private:
+        srDebugDD* owner_00;
+        e_command command_04;
+        double start_08;
+    };
+    /* VC6 does not grant a nested class access to the enclosing class's
+       protected members, so the statistics arrays stay reachable through an
+       explicit friend declaration. */
+    friend class ScopeTimer;
+    /* srGERD::dump (0x1001E9A6) reads call_counts_170 and funcName directly,
+       so srGERD was a friend. */
+    friend class srGERD;
+
+private:
     void resetInternalStatistics();
+
+    /* Command names indexed by e_command: funcName[0] is "dummy command",
+       funcName[42] is "setPolygonOffset()", funcName[43] is "CMDMAX".
+       Mangles private static (@@0PAPBDA). */
+    static const char* funcName[0x2c];
 
     srDD* device_04;
     unsigned long unknown_08;
-    unsigned char unknown_0c_[4];
+    /* +0x0c..+0x0f is alignment padding before time_scale_10, not a member:
+       the implicit copy operations skip it. */
     double time_scale_10;
     double call_times_18[0x2b];
     unsigned long call_counts_170[0x2b];

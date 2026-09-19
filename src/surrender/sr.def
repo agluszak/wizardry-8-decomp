@@ -1,12 +1,10 @@
 LIBRARY sr
 EXPORTS
     ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
-    ?addReference@srClass@@QBEXXZ
     ?allocateID@srRegistry@@QAEKXZ
     ??0srRegistry@@QAE@XZ
     ??1srRegistry@@QAE@XZ
     ??4srRegistry@@QAEAAV0@ABV0@@Z
-    ?autoRelease@srClass@@QAEXXZ
     ??0srClass@@IAE@XZ
     ??0srClass@@QAE@ABV0@@Z
     ??1srClass@@MAE@XZ
@@ -15,7 +13,6 @@ EXPORTS
     ??0srRuntimeClass@@QAE@ABV0@@Z
     ??1srRuntimeClass@@MAE@XZ
     ??4srRuntimeClass@@QAEAAV0@ABV0@@Z
-    ?getID@srRuntimeClass@@QBEKXZ
     ?checkValidity@srRegistry@@QAEHXZ
     ?getChildClass@srRegistry@@QAEPAVClassNode@1@PAV21@0@Z
     ?getClassID@srRegistry@@QAEKPAVClassNode@1@@Z
@@ -35,6 +32,85 @@ EXPORTS
     ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
     ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
     ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?dumpInstanceNames@srRegistry@@QAEXPAVClassNode@1@AAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
+    ?clone@srClass@@QAEPAV1@XZ
+    ?getCopyright@srCore@@QBEPBDXZ
+    ?getVersion@srCore@@QBEPBDXZ
+    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ
+    ?getVideoManager@srCore@@QBEPAVsrVideoManager@@XZ
+    ?getModelIOManager@srCore@@QBEPAVsrModelIOManager@@XZ
+    ?getHierarchyIOManager@srCore@@QBEPAVsrHierarchyIOManager@@XZ
+    ?getName@srVectorProcessor@@SAPBDXZ
+    ?load@srVectorProcessor@@SAHPBD@Z
+    ?getID@srVectorProcessor@@SAJPBD@Z
+    ?release@srVectorProcessor@@SAXXZ
+    ?vp@srVectorProcessor@@0PAVsrVP@@A DATA
+    ??0srBounder@@QAE@PAVsrNode@@@Z
+    ??1srBounder@@UAE@XZ
+    ?sGetClassName@srBounder@@SAPBDXZ
+    ?vInstance@srBounder@@UAEPAVsrClass@@XZ
+    ?getBoundMode@srBounder@@QBE?AW4e_boundMode@1@XZ
+    ?setBoundMode@srBounder@@QAEXW4e_boundMode@1@@Z
+    ?getBounds@srBounder@@QAEXAAUBoundInfo@srNode@@@Z
+    ?setBounds@srBounder@@QAEXABUBoundInfo@srNode@@@Z
+    ?checkBounds@srBounder@@AAEXXZ
+    ?forceUpdateBounds@srBounder@@QAEXXZ
+    ??0srExponentTable@@QAE@M@Z
+    ?getExponent@srExponentTable@@QBEMXZ
+    ?getValue@srExponentTable@@QBEMM@Z
+    ?setExponent@srExponentTable@@IAEXM@Z
+    ??0srEnvironmentMapper@@QAE@XZ
+    ??0srEnvironmentMapper@@QAE@ABV0@@Z
+    ??1srEnvironmentMapper@@UAE@XZ
+    ??4srEnvironmentMapper@@QAEAAV0@ABV0@@Z
+    ?isActive@srEnvironmentMapper@@UAEHAAVsrVertexPipe@@@Z
+    ?srEnvironmentMapper@@3V0@A DATA
+    ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
+    ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
+    ??0srHierarchyIOManager@@QAE@XZ
+    ??0srModelIOManager@@QAE@XZ
+    ??0srDebugVP@@QAE@PAVsrVP@@@Z
+    ?resetInternalStatistics@srDebugVP@@AAEXXZ
+    ??0srConfig@@QAE@XZ
+    ??1srConfig@@QAE@XZ
+    ?append@srConfig@@QAEXPBD0@Z
+    ?dump@srConfig@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?exists@srConfig@@QBEHPBD@Z
+    ?get@srConfig@@QBEPBDPBD@Z
+    ?getBool@srConfig@@QBEHPBD@Z
+    ?getFloat@srConfig@@QBEMPBD@Z
+    ?getLong@srConfig@@QBEJPBD@Z
+    ?remove@srConfig@@QAEXPBD@Z
+    ?removeAll@srConfig@@QAEXXZ
+    ?set@srConfig@@QAEXPBD0@Z
+    ?setBool@srConfig@@QAEXPBDH@Z
+    ?setFloat@srConfig@@QAEXPBDM@Z
+    ?setLong@srConfig@@QAEXPBDJ@Z
+    ?srConfig@@3V0@A DATA
+    ?srCore@@3V0@A DATA
+    ??0srHeap@@QAE@XZ
+    ??1srHeap@@QAE@XZ
+    ?allocate@srHeap@@QAEPAXK@Z
+    ?dump@srHeap@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?free@srHeap@@QAEXPAX@Z
+    ?free@srHeap@@QAEXPAXI@Z
+    ?freeAll@srHeap@@QAEXXZ
+    ?msize@srHeap@@QAEKPAX@Z
+    ?srHeap@@3V0@A DATA
+    ?srDebugPrintf@@YAJKPBDZZ
+    ?srPrintf@@YAJPBDZZ
+    ?srStreamPrintf@@YAJAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@PBDZZ
+    ?srAssertFail@@YAXPBD0J0ZZ
+    ?srAssertGetFunc@@YAP6AXPBD0J0@ZXZ
+    ?srAssertSetFunc@@YAXP6AXPBD0J0@Z@Z
+    ?srDefaultAssertFailFunc@@YAXPBD0J0@Z
+    ?srDummyStream@@3VsrOStream_withassign@@A DATA
+    ?srErr@@3VsrOStream_withassign@@A DATA
+    ?srLog@@3VsrOStream_withassign@@A DATA
+    ?srOut@@3VsrOStream_withassign@@A DATA
+    ?addReference@srClass@@QBEXXZ
+    ?autoRelease@srClass@@QAEXXZ
+    ?getID@srRuntimeClass@@QBEKXZ
     ?dumpNames@srRuntimeClass@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
     ?getClassID@srRuntimeClass@@UBEKXZ
     ?getClassName@srRuntimeClass@@UBEPBDXZ
@@ -66,47 +142,10 @@ EXPORTS
     ?setUpdatesTime@srClass@@QAEXN@Z
     ?touch@srClass@@QAEXXZ
     ?getUniqueName@srRuntimeClass@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?getCopyright@srCore@@QBEPBDXZ
-    ?getVersion@srCore@@QBEPBDXZ
-    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ
-    ?getVideoManager@srCore@@QBEPAVsrVideoManager@@XZ
-    ?getModelIOManager@srCore@@QBEPAVsrModelIOManager@@XZ
-    ?getHierarchyIOManager@srCore@@QBEPAVsrHierarchyIOManager@@XZ
     ?release@srClass@@QBEHXZ
     ?setName@srRuntimeClass@@QAEXPBD@Z
-    ?getName@srVectorProcessor@@SAPBDXZ
-    ?load@srVectorProcessor@@SAHPBD@Z
-    ?getID@srVectorProcessor@@SAJPBD@Z
-    ?release@srVectorProcessor@@SAXXZ
-    ?vp@srVectorProcessor@@0PAVsrVP@@A DATA
-    ??0srBounder@@QAE@PAVsrNode@@@Z
-    ??1srBounder@@UAE@XZ
-    ?sGetClassName@srBounder@@SAPBDXZ
-    ?vInstance@srBounder@@UAEPAVsrClass@@XZ
-    ?getBoundMode@srBounder@@QBE?AW4e_boundMode@1@XZ
-    ?setBoundMode@srBounder@@QAEXW4e_boundMode@1@@Z
-    ?getBounds@srBounder@@QAEXAAUBoundInfo@srNode@@@Z
-    ?setBounds@srBounder@@QAEXABUBoundInfo@srNode@@@Z
-    ?checkBounds@srBounder@@AAEXXZ
-    ?forceUpdateBounds@srBounder@@QAEXXZ
-    ??0srExponentTable@@QAE@M@Z
-    ?getExponent@srExponentTable@@QBEMXZ
-    ?getValue@srExponentTable@@QBEMM@Z
-    ?setExponent@srExponentTable@@IAEXM@Z
-    ??0srEnvironmentMapper@@QAE@XZ
-    ??0srEnvironmentMapper@@QAE@ABV0@@Z
-    ??1srEnvironmentMapper@@UAE@XZ
-    ??4srEnvironmentMapper@@QAEAAV0@ABV0@@Z
-    ?isActive@srEnvironmentMapper@@UAEHAAVsrVertexPipe@@@Z
-    ?srEnvironmentMapper@@3V0@A DATA
-    ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
-    ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
-    ??0srHierarchyIOManager@@QAE@XZ
-    ??0srModelIOManager@@QAE@XZ
     ??1srDebugDD@@UAE@XZ
     ?resetInternalStatistics@srDebugDD@@AAEXXZ
-    ??0srDebugVP@@QAE@PAVsrVP@@@Z
-    ?resetInternalStatistics@srDebugVP@@AAEXXZ
     ?getFunctionCallCount@srDebugDD@@QBEKW4e_command@srDD@@@Z
     ?getFunctionCallTime@srDebugDD@@QBENW4e_command@srDD@@@Z
     ?increaseCallCount@srDebugDD@@QAEXW4e_command@srDD@@@Z

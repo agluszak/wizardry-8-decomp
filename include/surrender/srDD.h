@@ -22,7 +22,15 @@ typedef srDD*(__cdecl* srDDInitDeviceFn)(unsigned long index);
 // Argument-bearing DirectX7 entrypoints and srGERD call sites prove caller
 // stack cleanup. No-argument functions alone cannot prove cdecl vs stdcall.
 // Nested records are incomplete: DebugDD's virtuals pass them by reference.
-class __declspec(novtable) srDD {
+
+/* srDebugDD's implicit copy constructor and assignment operator
+   (0x100177D0/0x10017830) each emit a null-guarded one-byte copy at +0x04
+   overlapping the first member: MSVC6's signature for copying an empty
+   non-polymorphic base. RTTI is off and an empty base emits no vtable or
+   export, so the original name is unrecoverable. */
+class srDDEmptyBase {};
+
+class __declspec(novtable) srDD : public srDDEmptyBase {
 public:
     struct Palette;
     struct Texture;
@@ -43,7 +51,56 @@ public:
 
     enum e_error {};
     enum e_buffer {};
-    enum e_command {};
+    /* Enumerator order is proven by the command indices srDebugDD's
+       wrappers pass to ScopeTimer and by the funcName string table at
+       0x10099028 (index 0 is "dummy command", index 43 is "CMDMAX").
+       Original spellings are unknown; names are descriptive. */
+    enum e_command {
+        COMMAND_DUMMY,
+        COMMAND_GET_INFO,
+        COMMAND_GET_WINDOW_LIST,
+        COMMAND_GET_TEXTURE_FORMAT,
+        COMMAND_GET_STATISTICS,
+        COMMAND_RESET_STATISTICS,
+        COMMAND_CLOSE_WINDOW,
+        COMMAND_BEGIN_FRAME,
+        COMMAND_END_FRAME,
+        COMMAND_FLUSH_FRAME,
+        COMMAND_FLIP_FRAME,
+        COMMAND_CLEAR_BUFFERS,
+        COMMAND_UPDATE,
+        COMMAND_SET_SCISSOR,
+        COMMAND_SET_VIEW_PORT,
+        COMMAND_SET_CLEAR_VALUES,
+        COMMAND_SET_FOG_COLOR,
+        COMMAND_SET_SHADER,
+        COMMAND_DELETE_TEXTURE,
+        COMMAND_DELETE_PALETTE,
+        COMMAND_DELETE_CONTEXT,
+        COMMAND_GET_DRIVER_INFO,
+        COMMAND_OPEN_WINDOW,
+        COMMAND_IS_BUSY,
+        COMMAND_BUFFER_OP,
+        COMMAND_CREATE_CONTEXT,
+        COMMAND_EXT_COMMAND,
+        COMMAND_BIND_TEXTURE,
+        COMMAND_SET_TEXTURE_PARAMETERS,
+        COMMAND_TEX_IMAGE,
+        COMMAND_TEX_SUB_IMAGE,
+        COMMAND_SET_GLOBAL_PALETTE,
+        COMMAND_BIND_PALETTE,
+        COMMAND_FENCE,
+        COMMAND_GET_BUFFER_PIXEL_FORMAT,
+        COMMAND_PRE_BIND_TEXTURE,
+        COMMAND_SET_POLYGON_MODE,
+        COMMAND_SET_CULL_MODE,
+        COMMAND_SET_PROJECTION_MATRIX,
+        COMMAND_SET_VERTEX_ARRAY_INFO,
+        COMMAND_DRAW_ELEMENTS,
+        COMMAND_DRAW_ARRAYS,
+        COMMAND_SET_POLYGON_OFFSET,
+        COMMAND_MAX
+    };
     enum e_cullMode {};
     enum e_polygonMode {};
     enum e_driverID {};

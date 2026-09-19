@@ -17,7 +17,7 @@ public:
 
     srVector3i next();
 
-protected:
+private:
     int sameSide(const srVector2T<float>& p1, const srVector2T<float>& p2,
                  const srVector2T<float>& a, const srVector2T<float>& b);
     int isInsideTriangle(const srVector2T<float>& p, const srVector2T<float>& a,

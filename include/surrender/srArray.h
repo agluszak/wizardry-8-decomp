@@ -18,9 +18,36 @@ public:
        do not exist. */
     inline ~srArray()
     {
+        release();
+    }
+
+    /* The shared teardown sr.dll emits out of line at 0x100027D0 for the
+       srHuffman::Sampler pair array: scalar operator delete plus zeroing both
+       words. setCapacity reaches it on the deep-inline paths. */
+    inline void release()
+    {
         ::operator delete(data);
         data = 0;
         capacity = 0;
+    }
+
+    /* Deep copy proved by srHuffman::Sampler's exported copy operations:
+       self-check, release the old storage, allocate the source capacity, copy
+       that many elements. */
+    inline srArray& operator=(const srArray& other)
+    {
+        if (this != &other) {
+            unsigned long new_capacity = other.capacity;
+            release();
+            if (new_capacity > 0) {
+                capacity = new_capacity;
+                data = static_cast<T*>(::operator new(new_capacity * sizeof(T)));
+            }
+            for (unsigned long index = 0; index < other.capacity; ++index) {
+                data[index] = other.data[index];
+            }
+        }
+        return *this;
     }
 
     inline void setCapacity(unsigned long new_capacity)
@@ -39,7 +66,7 @@ public:
                     }
                 }
             }
-            ::operator delete(data);
+            release();
             data = replacement;
             capacity = new_capacity;
         }

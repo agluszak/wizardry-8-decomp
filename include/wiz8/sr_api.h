@@ -23,6 +23,8 @@ __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
  * reproduces that IAT-symbol/hint-name distinction without a code wrapper. The
  * line is long because the true ABI spells it long; int folds identically,
  * so only the arity is proven, not the width.
+ * identity-alias: the consumer spelling is intentionally fixed-arity; the
+ * canonical provider identity is the variadic export ?srAssertFail@@YAXPBD0J0ZZ.
  */
 __declspec(dllimport) void __cdecl srAssertFail(const char* expression, const char* source_path,
                                                 long line, const char* message);
