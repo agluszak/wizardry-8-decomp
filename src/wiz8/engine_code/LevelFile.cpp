@@ -207,12 +207,12 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
     ok &= fSuccess;
     if (pLevel->nClippingPlanes != 0) {
         ok &= FileRead(hFile, &pLevel->unknown_690, 1, 0);
-        pLevel->pClippingPlanes =
-            static_cast<unsigned char*>(malloc(pLevel->nClippingPlanes * 0x50));
+        pLevel->pClippingPlanes = static_cast<W8LevelFileClippingPlaneRecord*>(
+            malloc(pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord)));
         if (pLevel->pClippingPlanes == 0) {
             srAssertFail("pLevel->pClippingPlanes", LEVELFILE_CPP, 0xcb, 0);
         }
-        ok &= FileRead(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * 0x50, 0);
+        ok &= FileRead(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
         if (ok == 0) {
             return 0;
         }
@@ -434,7 +434,7 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     fSuccess = FileWrite(hFile, &pLevel->nClippingPlanes, 4, 0) & fSuccess;
     if (pLevel->nClippingPlanes != 0) {
         fSuccess &= FileWrite(hFile, &pLevel->unknown_690, 1, 0);
-        fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * 0x50, 0);
+        fSuccess &= FileWrite(hFile, pLevel->pClippingPlanes, pLevel->nClippingPlanes * sizeof(W8LevelFileClippingPlaneRecord), 0);
         free(pLevel->pClippingPlanes);
         if (fSuccess == 0) {
             return 0;
@@ -871,9 +871,9 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 2) {
             ok &= FileRead(hFile, &pSwitch->has_door_trigger_263, 1, 0);
             if (pSwitch->has_door_trigger_263 != 0) {
-                ok &= FileRead(hFile, &pSwitch->door_kind_264, 1, 0);
-                if (pSwitch->door_kind_264 == 1) {
-                    ok &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_kind_264);
+                ok &= FileRead(hFile, &pSwitch->door_264.kind_00, 1, 0);
+                if (pSwitch->door_264.kind_00 == 1) {
+                    ok &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_264);
                     if (ok == 0) {
                         ReportBuildStatus00497690(7, "Problem reading door trigger.\n");
                         return 0;
@@ -1060,9 +1060,9 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 2) {
             ok &= FileWrite(hFile, &pSwitch->has_door_trigger_263, 1, 0);
             if (pSwitch->has_door_trigger_263 != 0) {
-                ok &= FileWrite(hFile, &pSwitch->door_kind_264, 1, 0);
-                if (pSwitch->door_kind_264 == 1) {
-                    ok &= WriteDoorTriggerFile004D3660(hFile, &pSwitch->door_kind_264);
+                ok &= FileWrite(hFile, &pSwitch->door_264.kind_00, 1, 0);
+                if (pSwitch->door_264.kind_00 == 1) {
+                    ok &= WriteDoorTriggerFile004D3660(hFile, &pSwitch->door_264);
                 }
             }
         }
@@ -1306,10 +1306,10 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     }
     fSuccess &= FileRead(hFile, &pSuper->field_85d, 1, 0);
     if (pSuper->field_85d != 0) {
-        fSuccess &= FileRead(hFile, &pSuper->kind_85e, 1, 0);
-        if (pSuper->kind_85e == 1) {
-            fSuccess &= ReadDoorTriggerFile004D3540(hFile, &pSuper->kind_85e);
-        } else if (pSuper->kind_85e == 2) {
+        fSuccess &= FileRead(hFile, &pSuper->door_85e.kind_00, 1, 0);
+        if (pSuper->door_85e.kind_00 == 1) {
+            fSuccess &= ReadDoorTriggerFile004D3540(hFile, &pSuper->door_85e);
+        } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
             unsigned char ok = 0;
             if (pRecord != 0) {
@@ -1414,10 +1414,10 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
         return 0;
     }
     if (pSuper->field_85d != 0) {
-        fSuccess &= FileWrite(hFile, &pSuper->kind_85e, 1, 0);
-        if (pSuper->kind_85e == 1) {
-            fSuccess &= WriteDoorTriggerFile004D3660(hFile, &pSuper->kind_85e);
-        } else if (pSuper->kind_85e == 2) {
+        fSuccess &= FileWrite(hFile, &pSuper->door_85e.kind_00, 1, 0);
+        if (pSuper->door_85e.kind_00 == 1) {
+            fSuccess &= WriteDoorTriggerFile004D3660(hFile, &pSuper->door_85e);
+        } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = pSuper->pRecord_863;
             unsigned char ok = 0;
             if (pRecord != 0) {
@@ -1435,7 +1435,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D3540
-bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
+bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec != 0) {
@@ -1449,16 +1449,16 @@ bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor)
             reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                 const char*>(String(
                 "Door: %s", pDoorRec->name_19))); // reinterpret-ok: String returns a logging buffer
-        *(W8LevelFileDoor**)(pDoor + 1) = pDoorRec;
+        pDoor->door_01 = pDoorRec;
         return fSuccess;
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004D3660
-bool WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor)
+bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor)
 {
-    W8LevelFileDoor* pDoorRec = *(W8LevelFileDoor**)(pDoor + 1);
+    W8LevelFileDoor* pDoorRec = pDoor->door_01;
     unsigned char fSuccess = FileWrite(hFile, pDoorRec->unknown_00, 10, 0);
     fSuccess &= FileWrite(hFile, pDoorRec->unknown_0a, 2, 0);
     fSuccess &= FileWrite(hFile, &pDoorRec->unknown_0c, 1, 0);
