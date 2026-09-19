@@ -638,8 +638,7 @@ void stParticle::Update00499FA0()
 
             if (value_1a4 == 2) {
                 double distance;
-                if (value_234.x == g_float_005ebb34 && value_234.y == g_float_005ebb34 &&
-                    value_234.z == g_float_005ebb34) {
+                if (value_234.IsZero()) {
                     distance = (candidate - node_location).Length();
                 } else {
                     srVector3T<float> center = rotation.Transform(value_234) + node_location;
@@ -924,8 +923,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
            across the three comparisons and the three projections. */
         const srVector3T<float>& extent = value_234;
 
-        if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&
-            extent.z == g_float_005ebb34) {
+        if (extent.IsZero()) {
             visibility = renderer->testBoundingSphere(position, value_278 * value_240);
         } else {
             getRotation(rotation);
