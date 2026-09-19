@@ -2955,8 +2955,7 @@ unsigned int W8PathingService::StepAlongPath004669B0(W8NavigatorMovementState* m
             delta.x = advanced.x - position->x;
             delta.y = advanced.y - position->y;
             delta.z = advanced.z - position->z;
-            if (((delta.x != g_float_005ebb34) || (delta.y != g_float_005ebb34)) ||
-                (delta.z != g_float_005ebb34)) {
+            if (!delta.IsZero()) {
                 srVector3T<float> target;
                 target.x = delta.x + advanced.x;
                 *position = advanced;
@@ -4717,9 +4716,7 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
     srVector3T<float> upper;
 
     if (use_path_edge == 0) {
-        if (movement->velocity_034.x == g_float_005ebb34 &&
-            movement->velocity_034.y == g_float_005ebb34 &&
-            movement->velocity_034.z == g_float_005ebb34) {
+        if (movement->velocity_034.IsZero()) {
             return;
         }
         lower = movement->position_040;
@@ -5824,12 +5821,7 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
 
     source_surface = &m_pSurfaces_048[source];
     destination_surface = &m_pSurfaces_048[destination];
-    if ((source_surface->position_04.x == g_float_005ebb34 &&
-         source_surface->position_04.y == g_float_005ebb34 &&
-         source_surface->position_04.z == g_float_005ebb34) ||
-        (destination_surface->position_04.x == g_float_005ebb34 &&
-         destination_surface->position_04.y == g_float_005ebb34 &&
-         destination_surface->position_04.z == g_float_005ebb34)) {
+    if (source_surface->position_04.IsZero() || destination_surface->position_04.IsZero()) {
         WriteGameLog(0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
         return;
     }
@@ -6182,12 +6174,8 @@ void W8PathParameters::InitializeSteeringContext004CAE50(W8NavigatorMovementStat
         speed_limit_08 = linked->movement_0c0.movement_scale_060 * g_world_scale_005ebc40;
     }
     acceleration_0c = g_path_acceleration_factor_0060f9e8 * speed_limit_08;
-    if (movement->velocity_034.x == g_float_005ebb34 &&
-        movement->velocity_034.y == g_float_005ebb34 &&
-        movement->velocity_034.z == g_float_005ebb34) {
-        direction_20.x = 0.0f;
-        direction_20.y = 0.0f;
-        direction_20.z = 1.0f;
+    if (movement->velocity_034.IsZero()) {
+        direction_20.Set(0.0, 0.0, 1.0);
         direction_20.RotateAboutY(sin(movement->yaw), cos(movement->yaw));
     } else {
         direction_20 = movement->velocity_034;
@@ -6677,20 +6665,14 @@ unsigned char W8PathParameters::SteerAroundLeader004CC680(char allow_path_fallba
 
     leader = monster_54->linked_navigator_05c;
     leader_radius = leader->radius_084;
-    if (leader->movement_0c0.velocity_034.x == g_float_005ebb34 &&
-        leader->movement_0c0.velocity_034.y == g_float_005ebb34 &&
-        leader->movement_0c0.velocity_034.z == g_float_005ebb34) {
-        heading.x = 0.0f;
-        heading.y = 0.0f;
-        heading.z = 1.0f;
+    if (leader->movement_0c0.velocity_034.IsZero()) {
+        heading.Set(0.0, 0.0, 1.0);
         heading.RotateAboutY(sin(leader->movement_0c0.yaw), cos(leader->movement_0c0.yaw));
     } else {
         heading = leader->movement_0c0.velocity_034;
         heading.Normalize();
     }
-    if (leader->movement_0c0.velocity_034.x != g_float_005ebb34 ||
-        leader->movement_0c0.velocity_034.y != g_float_005ebb34 ||
-        leader->movement_0c0.velocity_034.z != g_float_005ebb34) {
+    if (!leader->movement_0c0.velocity_034.IsZero()) {
         delta.x = movement_00->position_040.x - leader->movement_0c0.position_040.x;
         delta.z = movement_00->position_040.z - leader->movement_0c0.position_040.z;
         ahead = delta.x * heading.x + delta.z * heading.z +
