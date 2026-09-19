@@ -1572,10 +1572,9 @@ void W8Monster::Update()
             case 0x17:
                 if (Query(7) != 0) {
                     if ((signed char)flags_00c != 0) {
-                        *reinterpret_cast<unsigned int*>(&movement_target_018.z) = 0x17;
-                        *reinterpret_cast<unsigned int*>(&movement_target_018.x) = GetTickCount();
-                        *reinterpret_cast<unsigned int*>(&movement_target_018.y) =
-                            Random(2000) + 2000;
+                        CycleDelay018()->cycle = 0x17;
+                        CycleDelay018()->started_at = GetTickCount();
+                        CycleDelay018()->duration = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
                         m_pRep->flag_06e = 1;
                         m_pRep->behaviour_071 = 1;
@@ -1589,9 +1588,7 @@ void W8Monster::Update()
                 break;
             case 0x18:
                 if (Query(7) != 0) {
-                    if (*reinterpret_cast<unsigned int*>(&movement_target_018.y) <
-                            GetTickCount() -
-                                *reinterpret_cast<unsigned int*>(&movement_target_018.x) &&
+                    if (CycleDelay018()->duration < GetTickCount() - CycleDelay018()->started_at &&
                         IsCycleSupported(0x17) != 0) {
                         m_pRep->pending_cycle = 0x17;
                     } else {

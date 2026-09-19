@@ -94,12 +94,13 @@ unsigned char InitializeNpcDatabase(void)
         FileClose(handle);
         return 0;
     }
-    g_npc_records = (W8NpcDatabaseRecord*)malloc(gXStatus.uiNpcsInDatabase * 0x309);
+    g_npc_records = static_cast<W8NpcDatabaseRecord*>(
+        malloc(gXStatus.uiNpcsInDatabase * sizeof(*g_npc_records)));
     if (!g_npc_records) {
         return 0;
     }
     for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-        if (!FileRead(handle, &g_npc_records[index], 0x309, &transferred)) {
+        if (!FileRead(handle, &g_npc_records[index], sizeof(*g_npc_records), &transferred)) {
             FileClose(handle);
             return 0;
         }
@@ -185,12 +186,13 @@ unsigned char InitializeFactDatabase(void)
         FileClose(handle);
         return 0;
     }
-    g_fact_records = (W8FactDatabaseRecord*)malloc(gXStatus.uiFactsInDatabase * 0x1d8);
+    g_fact_records = static_cast<W8FactDatabaseRecord*>(
+        malloc(gXStatus.uiFactsInDatabase * sizeof(*g_fact_records)));
     if (!g_fact_records) {
         return 0;
     }
     for (index = 0; index < gXStatus.uiFactsInDatabase; ++index) {
-        if (!FileRead(handle, &g_fact_records[index], 0x1d8, &transferred)) {
+        if (!FileRead(handle, &g_fact_records[index], sizeof(*g_fact_records), &transferred)) {
             FileClose(handle);
             return 0;
         }
@@ -223,12 +225,13 @@ unsigned char InitializeLevelDatabase(void)
         FileClose(handle);
         return 0;
     }
-    g_level_records = (W8LevelDatabaseRecord*)malloc(gXStatus.uiLevelsInDatabase * 0xd8);
+    g_level_records = static_cast<W8LevelDatabaseRecord*>(
+        malloc(gXStatus.uiLevelsInDatabase * sizeof(*g_level_records)));
     if (!g_level_records) {
         return 0;
     }
     for (index = 0; index < gXStatus.uiLevelsInDatabase; ++index) {
-        if (!FileRead(handle, &g_level_records[index], 0xd8, &transferred)) {
+        if (!FileRead(handle, &g_level_records[index], sizeof(*g_level_records), &transferred)) {
             FileClose(handle);
             return 0;
         }
@@ -368,7 +371,7 @@ void ResetForNewGame(void)
     do {
         EmptyItemRecord(slot, 0, 1);
         ++slot;
-    } while (slot < (W8ItemInstance*)&g_status_685170.party_item_count_1791);
+    } while (slot < g_status_685170.party_item_pool_0021 + 500);
     id = g_starting_item_ids;
     do {
         if (*id != 0xffffffff) {

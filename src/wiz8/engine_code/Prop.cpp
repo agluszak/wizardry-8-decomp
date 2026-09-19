@@ -68,16 +68,16 @@ unsigned char g_byte_00659a64;
 // class W8PropRepresentation
 
 // VTABLE: WIZ8 0x005ec1d0
-// class W8GrowableVector<unsigned char*>
+// class W8GrowableVector<W8PropAnimationSegment*>
 
 // SYNTHETIC: WIZ8 0x0044ef60
-// W8GrowableVector<unsigned char*>::`scalar deleting destructor'
+// W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0044ef00
-// W8GrowableVector<unsigned char*>::~W8GrowableVector<unsigned char*>
+// W8GrowableVector<W8PropAnimationSegment*>::~W8GrowableVector<W8PropAnimationSegment*>
 
 // TEMPLATE: WIZ8 0x0044efe0
-// W8GrowableVector<unsigned char*>::W8GrowableVector
+// W8GrowableVector<W8PropAnimationSegment*>::W8GrowableVector
 
 /* Prop::Prop() - GrObject base, then m_pRep / m_pTimer and two identity
    rotation bases.  Retail expands PropRep after the AnimRep constructor:
@@ -127,7 +127,7 @@ W8PropRepresentation::~W8PropRepresentation()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        delete[] slots.data[index];
+        delete slots.data[index];
     }
     slots.count = 0;
     if (animation != 0) {
@@ -442,8 +442,8 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (slots.data[index][1] == tag) {
-            signed char selected = (signed char)slots.data[index][0];
+        if (slots.data[index]->tag == tag) {
+            signed char selected = static_cast<signed char>(slots.data[index]->frame);
 
             if (selected < 0) {
                 return 0;
@@ -480,7 +480,8 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if ((int)(char)*slots.data[index] == (unsigned int)counter_094) {
+        if (static_cast<int>(static_cast<char>(slots.data[index]->frame)) ==
+            static_cast<unsigned int>(counter_094)) {
             return index;
         }
     }
@@ -502,7 +503,8 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
         return 0;
     }
     for (segment = 0; segment < slots.count; ++segment) {
-        if ((int)(char)slots.data[segment][0] == (unsigned int)counter_094) {
+        if (static_cast<int>(static_cast<char>(slots.data[segment]->frame)) ==
+            static_cast<unsigned int>(counter_094)) {
             break;
         }
     }
@@ -517,8 +519,8 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     } else {
         ++segment;
     }
-    counter_094 = slots.data[segment][0];
-    counter_095 = slots.data[segment + 1][0];
+    counter_094 = slots.data[segment]->frame;
+    counter_095 = slots.data[segment + 1]->frame;
     flag_06e = 1;
     flag_06d = 1;
     flag_064 = counter_094;
@@ -1579,12 +1581,12 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             for (slot_i = 0; slot_i < slot_count; ++slot_i) {
                 unsigned short frame_tmp = 0;
                 unsigned short tag_tmp = 0;
-                unsigned char* slot = new unsigned char[2];
+                W8PropAnimationSegment* slot = new W8PropAnimationSegment;
 
                 FileRead(hFile, &frame_tmp, 2, 0);
-                slot[0] = (unsigned char)frame_tmp;
+                slot->frame = static_cast<unsigned char>(frame_tmp);
                 FileRead(hFile, &tag_tmp, 2, 0);
-                slot[1] = (unsigned char)tag_tmp;
+                slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
                     srAssertFail("(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
                                  reinterpret_cast<const char*>(

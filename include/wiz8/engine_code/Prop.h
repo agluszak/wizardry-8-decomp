@@ -19,11 +19,19 @@ struct W8AIMissile;
 
 extern unsigned char g_byte_00659a64;
 
+/* One two-byte animation-slot record: the frame the segment selects and the
+   tag that names it.  LoadProp0044AEE0 reads each as a serialized short and
+   narrows to a byte; SelectAnimationSlot and the segment walkers read the
+   frame as a signed char, preserved by explicit casts at those sites. */
+struct W8PropAnimationSegment {
+    unsigned char frame;
+    unsigned char tag;
+};
+
 /* Prop.cpp's m_pRep.  Assertions name the member; the constructor allocates
    0xc4 bytes, runs the AnimRep constructor, then installs the Prop-owned
    animation pointer, speed, and the slot vector at 0xb0.  The secondary
-   vtable at 0xb0 is the unsigned-char-pointer growable-vector specialization
-   at 0x005EC1D0. */
+   vtable at 0xb0 is the growable-vector specialization at 0x005EC1D0. */
 #pragma pack(push, 1)
 class W8PropRepresentation : public W8AnimRep005ED050 {
 public:
@@ -58,9 +66,9 @@ public:
     unsigned char flag_0ac; /* 0xac */
     unsigned char flag_0ad; /* 0xad */
     unsigned char unknown_0ae[2];
-    W8GrowableVector<unsigned char*> slots; /* 0xb0 */
-    unsigned char flag_0c0;                 /* 0xc0 */
-    unsigned char flag_0c1;                 /* 0xc1 */
+    W8GrowableVector<W8PropAnimationSegment*> slots; /* 0xb0 */
+    unsigned char flag_0c0;                          /* 0xc0 */
+    unsigned char flag_0c1;                          /* 0xc1 */
     unsigned char unknown_0c2[2];
 }; /* 0xc4 */
 #pragma pack(pop)

@@ -487,12 +487,14 @@ public:
     W8HashTable<unsigned int, unsigned int>* m_pPathValues_064; /* 0x64 */
     const char* level_name;                                     /* 0x68 */
     W8PathHeapHandle* path_heap_06c;                            /* 0x6c */
-    unsigned int m_positional_070;                              /* 0x70: starts 0x501502f9 */
-    W8HashTable<unsigned int, int>* m_pVisitedCells_074;        /* 0x74 */
-    unsigned int probe_cell_key_078;                            /* 0x78 */
-    srVector3T<float> probe_position_07c;                       /* 0x7c */
-    unsigned int probe_limit_088;                               /* 0x88 */
-    unsigned char flag_08c;                                     /* 0x8c */
+    /* 0x70: ceiling on accumulated path cost during the bounded A* walk;
+       parked at the 1e10f sentinel (bits 0x501502f9) between searches. */
+    float path_cost_limit_070;
+    W8HashTable<unsigned int, int>* m_pVisitedCells_074; /* 0x74 */
+    unsigned int probe_cell_key_078;                     /* 0x78 */
+    srVector3T<float> probe_position_07c;                /* 0x7c */
+    unsigned int probe_limit_088;                        /* 0x88 */
+    unsigned char flag_08c;                              /* 0x8c */
     unsigned char m_positional_08d[3];
     unsigned int planner_location_090;
     unsigned int path_candidate_count_094;

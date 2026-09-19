@@ -1099,7 +1099,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     }
 
     group->flag_28 = 1;
-    yaw = GetCameraFacingYaw004BE5C0(const_cast<srVector3T<float>*>(position));
+    yaw = GetCameraFacingYaw004BE5C0(position);
     MoveMonsterGroupToPosition(group, position, yaw, 0, 0, 0, 0);
     RefreshMonsterGroup(group);
     SetMonsterGroupHostility(group, MonsterGroupCalcDefaultDisposition(group), 0);

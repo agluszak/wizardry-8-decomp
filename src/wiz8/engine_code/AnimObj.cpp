@@ -146,9 +146,9 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 FileRead(handle, &typed->flags_08, 4, 0);
                 FileRead(handle, &typed->flicker_chance_0c, 4, 0);
                 FileRead(handle, &typed->color_10, 12, 0);
-                FileRead(handle, &typed->color_to_1c, 4, 0);
-                FileRead(handle, &typed->color_to_20, 4, 0);
-                FileRead(handle, &typed->color_to_24, 4, 0);
+                FileRead(handle, &typed->color_to_1c.x, 4, 0);
+                FileRead(handle, &typed->color_to_1c.y, 4, 0);
+                FileRead(handle, &typed->color_to_1c.z, 4, 0);
                 FileRead(handle, &typed->intensity_28, 4, 0);
                 FileRead(handle, &typed->intensity_to_2c, 4, 0);
                 FileRead(handle, &typed->period_30, 4, 0);

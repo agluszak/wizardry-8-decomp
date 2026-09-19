@@ -89,7 +89,7 @@ float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
 // GLOBAL: WIZ8 0x00659c5c
 unsigned char g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c64
-void* g_path_scratch_00659c64;
+unsigned short* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x005ec3a8
 double g_double_005ec3a8 = 1.1;
 // GLOBAL: WIZ8 0x005ec3a0
@@ -406,7 +406,8 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
     rendered_waypoints_05c->SetSize(surface_capacity);
     collected_waypoints_060->SetSize(surface_capacity);
     FileClose(handle);
-    g_path_scratch_00659c64 = malloc(surface_capacity * sizeof(unsigned short));
+    g_path_scratch_00659c64 =
+        static_cast<unsigned short*>(malloc(surface_capacity * sizeof(unsigned short)));
 
     if (version <= 2) {
         unsigned int surface;
@@ -963,10 +964,9 @@ unsigned char W8PathingService::HandlePathEdgeTransition00460350(W8NavigatorMove
 
 /* Measure the route between two points for the noise line-of-sight query. A
    throwaway attachment is built over (from, to); a positive `range` budget is
-   parked in m_positional_070 as raw float bits while the path builds, and both
-   exits restore the 0x501502f9 sentinel. On success `range` receives the
-   measured path length and `hops` the count of hop segments whose link is
-   gated by a door. */
+   parked in path_cost_limit_070 while the path builds, and both exits restore
+   the 1e10f sentinel. On success `range` receives the measured path length
+   and `hops` the count of hop segments whose link is gated by a door. */
 // FUNCTION: WIZ8 0x004604B0
 unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<float>* from,
                                                               srVector3T<float>* to, float* range,
@@ -974,11 +974,10 @@ unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<f
 {
     W8NavigatorAttachment attachment(from, to);
     if (*range > g_float_005ebb34) {
-        m_positional_070 = *reinterpret_cast<unsigned int*>(range); /* reinterpret-ok: the field
-            parks the in-range float's raw bits beside its integer sentinels */
+        path_cost_limit_070 = *range;
     }
     if (BuildAttachmentPath00460950(&attachment, 0) == 0) {
-        m_positional_070 = 0x501502f9;
+        path_cost_limit_070 = 1.0e10f;
         return 0;
     }
 
@@ -1005,7 +1004,7 @@ unsigned char W8PathingService::MeasureAttachmentPath004604B0(const srVector3T<f
         }
         ++attachment.value_04;
     }
-    m_positional_070 = 0x501502f9;
+    path_cost_limit_070 = 1.0e10f;
     return 1;
 }
 
@@ -1166,9 +1165,7 @@ unsigned int W8PathingService::FindPath00460B80(W8NavigatorAttachment* attachmen
                             m_pSurfaces_048[usNextNode].cost_1c =
                                 m_pEdges_04c[link].distance_08 + m_pSurfaces_048[current].cost_1c;
                             W8PathSurface* surfaces = m_pSurfaces_048;
-                            if (surfaces[usNextNode].cost_1c <
-                                *reinterpret_cast<float*>(&m_positional_070)) { /* reinterpret-ok:
-                                    the limit is parked as raw float bits beside integer sentinels */
+                            if (surfaces[usNextNode].cost_1c < path_cost_limit_070) {
                                 float dx = surfaces[end].position_04.x -
                                            surfaces[usNextNode].position_04.x;
                                 settled = false;
@@ -1196,9 +1193,7 @@ unsigned int W8PathingService::FindPath00460B80(W8NavigatorAttachment* attachmen
                             float cost =
                                 m_pEdges_04c[link].distance_08 + m_pSurfaces_048[current].cost_1c;
                             if ((cost + g_float_005ebc88 < m_pSurfaces_048[usNextNode].cost_1c) &&
-                                (cost <
-                                 *reinterpret_cast<float*>(&m_positional_070))) { /* reinterpret-ok:
-                                    the limit is parked as raw float bits beside integer sentinels */
+                                (cost < path_cost_limit_070)) {
                                 float reduction = m_pSurfaces_048[usNextNode].cost_1c - cost;
                                 m_pSurfaces_048[usNextNode].parent_10 = usCurrent;
                                 W8PathSurface* surfaces = m_pSurfaces_048;
@@ -1282,17 +1277,15 @@ unsigned char W8PathingService::BuildAttachmentPath00460950(W8NavigatorAttachmen
                     srAssertFail("i < m_ulNumWayPoints", OCTPATH_CPP, 0x1ba2, 0);
                     index = count;
                 }
-                static_cast<unsigned short*>(g_path_scratch_00659c64)[index] =
-                    static_cast<unsigned short>(node);
+                g_path_scratch_00659c64[index] = static_cast<unsigned short>(node);
                 node = m_pSurfaces_048[node & 0xffff].parent_10;
                 ++count;
             } while (node != 0);
             unsigned int remaining = count & 0xffff;
-            static_cast<unsigned short*>(g_path_scratch_00659c64)[remaining] = 0;
+            g_path_scratch_00659c64[remaining] = 0;
             if (static_cast<short>(count) != 0) {
                 do {
-                    unsigned short surface_index =
-                        static_cast<unsigned short*>(g_path_scratch_00659c64)[remaining - 1];
+                    unsigned short surface_index = g_path_scratch_00659c64[remaining - 1];
                     srVector3T<float>* position = &m_pSurfaces_048[surface_index].position_04;
                     if (static_cast<unsigned int>(attachment->capacity_0a) <=
                         static_cast<unsigned int>(attachment->path_position_index_08 + 1)) {
@@ -1405,16 +1398,15 @@ W8PathingService::BuildPatrolPath00461960(W8NavigatorAttachment* attachment, uns
             index = count;
         }
         previous = static_cast<unsigned short>(current);
-        static_cast<unsigned short*>(g_path_scratch_00659c64)[index] = previous;
+        g_path_scratch_00659c64[index] = previous;
         current = m_pSurfaces_048[current & 0xffff].parent_10;
         count = index + 1;
     } while (previous != static_cast<unsigned short>(current));
     unsigned int remaining = count & 0xffff;
-    static_cast<unsigned short*>(g_path_scratch_00659c64)[remaining] = 0;
+    g_path_scratch_00659c64[remaining] = 0;
     if (static_cast<short>(count) != 0) {
         do {
-            unsigned short surface_index =
-                static_cast<unsigned short*>(g_path_scratch_00659c64)[remaining - 1];
+            unsigned short surface_index = g_path_scratch_00659c64[remaining - 1];
             srVector3T<float>* position = &m_pSurfaces_048[surface_index].position_04;
             if (static_cast<unsigned int>(attachment->capacity_0a) <=
                 static_cast<unsigned int>(attachment->path_position_index_08 + 1)) {
@@ -3299,7 +3291,7 @@ W8PathingService::W8PathingService()
     level_name = 0;
     flag_08c = 0;
     path_heap_06c = 0;
-    m_positional_070 = 0x501502f9;
+    path_cost_limit_070 = 1.0e10f;
     flag_1c8 = 0;
     flag_1c9 = 0;
     flag_1ca = 0;
@@ -5652,7 +5644,8 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
         collected_waypoints_060 = new BitArray(capacity);
 
         free(g_path_scratch_00659c64);
-        g_path_scratch_00659c64 = malloc(capacity * sizeof(unsigned short));
+        g_path_scratch_00659c64 =
+            static_cast<unsigned short*>(malloc(capacity * sizeof(unsigned short)));
     }
 
     W8PathSurface* surface = &m_pSurfaces_048[m_ulNumWayPoints];
