@@ -58,7 +58,7 @@ struct W8DialogueTextState {
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
     unsigned char unknown_2c;      /* 0x2c: never consumed by the retail cluster */
-    bool dirty;           /* 0x2d: cursor/text redraw pending */
+    bool dirty;                    /* 0x2d: cursor/text redraw pending */
     unsigned char unknown_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
 };
@@ -84,7 +84,7 @@ struct W8LevelRuntimeBlock {
     unsigned char unknown_111[3];
     int portrait_refresh_image[8]; /* 0x114 */
     int portrait_refresh_mode[8];  /* 0x134 */
-    unsigned char pick_changed_154;
+    bool pick_changed_154;
     unsigned char action_panel_visible;
     bool formation_board_visible; /* 0x156: formation board shown */
     unsigned char radar_map_visible;

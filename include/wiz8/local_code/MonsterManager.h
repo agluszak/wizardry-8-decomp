@@ -143,14 +143,18 @@ struct W8MonsterCombatState {
     /* 0x000: the phase of the round this monster next acts on, zero when it
        has finished acting. */
     unsigned int phase;
-    unsigned char active; /* 0x004 */
+    bool active; /* 0x004 */
     /* 0x005: the round's attack count staged beside attacks_per_round when a
        chosen attack is committed; a four-byte store. */
     unsigned int unknown_005;
     /* 0x009: how many attacks it gets this round, which is what divides the
        remaining phases between them. */
     int attacks_per_round;
-    unsigned char unknown_00d[4];
+    /* 0x00d: swings left in the current attack, rolled from the record's
+       swings_per_round_0e6 when the attack starts and read back for the
+       announcement message. A four-byte store; the attack-resolution
+       assertion spells it uiSwingsRemaining. */
+    unsigned int uiSwingsRemaining;
     /* 0x011: the attack index Monster.cpp launches when combat has already
        selected this monster. It is asserted below MAX_MONSTER_ATTACKS before
        indexing the database record. */
@@ -162,7 +166,18 @@ struct W8MonsterCombatState {
     int character_hate[9];
     W8EffectSlot effect_slots_3e[9]; /* 0x03e .. 0x0d7 */
     W8EffectSlot effect_slots_d7[6]; /* 0x0d7 .. 0x13d */
-    unsigned char unknown_13d[0xe];
+    /* 0x13d: how many times the monster already rolled to notice an attacker
+       this round, the same scheme as the character row's spot_attempts_90. */
+    int spot_attempts_13d;
+    /* 0x141: the monster's pending-action repick count, the same scheme as
+       the character row's pending_action_repick_count; the attack-score
+       surprise penalty scales with it. */
+    unsigned int pending_action_repick_count;
+    unsigned char unknown_145[2];
+    /* 0x147: the round's interception count, checked against the record's
+       attacks_per_round before another intercept is allowed and bumped on
+       each successful one. */
+    unsigned int interception_count;
     /* 0x14b: the monster is committed to advancing on the party. Set when the
        action executor starts the advance and cleared when an enemy is inside
        short range or when the forcing condition is removed. */
@@ -296,7 +311,12 @@ struct W8MonsterInfo {
        dispatch reads it signed (MOVSX) as a percentage discount on the quoted
        price. */
     signed char effect_2de;
-    unsigned char unknown_2df[2];
+    /* 0x2df: the committed attack already launched its missile; asserted by
+       ContinueMonsterAttack when an out-of-range attack reports no release. */
+    unsigned char f_missile_released;
+    /* 0x2e0: the committed spell/special attack already released its payload;
+       the action step asserts on it in the spell-wait case. */
+    unsigned char fSpellReleased;
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
        is enumerated by MonsterActionFatigueCost, whose error text names it. */
     int action_kind;
@@ -391,5 +411,14 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
+void Function4E4AB0(void); /* 0x004E4AB0 */
+void Function4E6CE0(void); /* 0x004E6CE0 */
+/* The kill bookkeeping a monster's death runs: credit the killer, post the
+   "%s %s!" notice, clear conditions the dead monster sourced, apply the
+   faction fallout, and bank the kill count and experience when it fought. */
+void RecordMonsterKill(W8MonsterInfo* monster_info, char announce); /* 0x004E46F0 */
+/* The kill-fact recorder RecordMonsterKill hands the record id and the killer
+   party slot to; its home TU is the gap before NPC Manager.cpp. */
+void MonsterKilled(int record_id, int killer_party_slot); /* 0x005090C0 */
 
 #endif

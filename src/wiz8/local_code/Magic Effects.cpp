@@ -3,6 +3,11 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/PolyPick.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/quad.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/3d.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -617,7 +622,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     W8MonsterInfo* member;
     W8MonsterGroup* group;
     W8Character* caster;
-    W8MissileAttackBlock attack_block;
+    W8SpellEffectDefinition attack_block;
     W8EffectSlot* effect_slot;
     unsigned int weights[4];
     unsigned int duration;
@@ -722,15 +727,15 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     }
     if (effect->value_0d4 != 0 && Random(100) < effect->value_0d4) {
         ClearAttackBlock(&attack_block);
-        attack_block.unknown_20[0] = effect->argument;
+        attack_block.duration_scale = effect->argument;
         switch (tier) {
         case 0:
         case 1:
             spell_id = tier == 1 ? 0x3d : 0x38;
-            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
-            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
-            duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
-                       attack_block.unknown_20[2];
+            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
+            duration = attack_block.duration_per_power * attack_block.duration_scale +
+                       attack_block.duration_base;
             if (duration != 9999) {
                 duration = duration + 1;
                 {
@@ -743,7 +748,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                         duration = duration + 1;
                     }
                 }
-                AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+                AdjustIntegerByPercent(&duration, attack_block.percent);
             }
             switch (spell_id) {
             case 0x13:
@@ -771,18 +776,18 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                 srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
                 slot = 0;
             }
-            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.unknown_20[0],
+            ApplyMonsterCondition005242B0(summon->location_id, slot, attack_block.duration_scale,
                                           duration, 0);
             break;
         case 2:
         case 3:
             spell_id = tier == 2 ? 0x1a : 0x20;
-            attack_block.unknown_20[2] = g_spell_records[spell_id].duration_per_level_04d;
-            attack_block.unknown_20[3] = g_spell_records[spell_id].duration_044;
+            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
             for (index = 0; index < 12; ++index) {
                 if (g_being_effect_slot_spells_00616d84[index] == spell_id) {
-                    duration = attack_block.unknown_20[3] * attack_block.unknown_20[0] +
-                               attack_block.unknown_20[2];
+                    duration = attack_block.duration_per_power * attack_block.duration_scale +
+                               attack_block.duration_base;
                     if (duration != 9999) {
                         duration = duration + 1;
                         {
@@ -795,7 +800,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                                 duration = duration + 1;
                             }
                         }
-                        AdjustIntegerByPercent(&duration, attack_block.unknown_20[1]);
+                        AdjustIntegerByPercent(&duration, attack_block.percent);
                     }
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
@@ -803,7 +808,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     }
                     effect_slot->active = 1;
                     effect_slot->effect_id = spell_id;
-                    effect_slot->amount = attack_block.unknown_20[0];
+                    effect_slot->amount = attack_block.duration_scale;
                     effect_slot->duration_0d = duration;
                     RebuildMonsterDerivedStats(summon->location_id);
                     break;
@@ -3965,5 +3970,175 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     FinishSpellEffectTargets(effect);
     if (queued_spell_id != 0x17 && g_current_screen_state.id == 6) {
         RefreshTextBoxMode00590BD0(0xffff);
+    }
+}
+
+/* Damage from the target-side enchantment: the enchantment's power scales the
+   spell record's dice, the reduced roll is applied to the character, the
+   result's amount feeds the running combat total at +0xa1a, and the reports
+   queue on the combat state for the message pass. */
+// FUNCTION: WIZ8 0x00553350
+void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
+                                        W8Enchantment* enchantment)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    W8Dice dice;
+    unsigned int amount;
+
+    if (enchantment->value_00 == 0) {
+        return;
+    }
+    memset(static_cast<void*>(&result), 0, sizeof(result));
+    dice = g_spell_records[0x1b].effect_dice;
+    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    amount = ApplyCharacterDamageReduction(&g_status_685170.buffers.characters[party_slot],
+                                           RollDice(&dice));
+    if (amount > 0) {
+        ApplyDamageToCharacter(party_slot, amount, 0, verbose, verbose, &result, 0);
+        g_combat_state->attack_report.notice_values[3] += result.amount;
+        while (result.reports.GetCount() > 0) {
+            report = *result.reports.GetAt(0);
+            result.reports.RemoveAt(0);
+            g_combat_state->attack_report.reports.Add(report);
+        }
+    }
+}
+
+/* The monster-side counterpart: the same enchantment-scaled dice roll feeds
+   ApplyDamageToMonster and the running total, with no report queueing. */
+// FUNCTION: WIZ8 0x00553540
+void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                      W8Enchantment* enchantment)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8MonsterRecord* record;
+    W8Dice dice;
+    int damage;
+    unsigned int amount;
+
+    if (enchantment->value_00 == 0) {
+        return;
+    }
+    dice = g_spell_records[0x1b].effect_dice;
+    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    damage = RollDice(&dice);
+    record = GetMonsterDataForInfo(monster_info);
+    amount = ApplyDamageReduction(monster_info, record, damage);
+    if (amount > 0) {
+        ApplyDamageToMonster(monster_info, amount, source, 0, verbose, verbose, 0, 0);
+        g_combat_state->attack_report.notice_values[3] += amount;
+    }
+}
+
+/* Flat-amount damage to a character: when the combat log is quiet the applied
+   amount feeds the running total at +0xa1e and the reports queue up; when it
+   is verbose the damage is applied with the announced flags instead. */
+// FUNCTION: WIZ8 0x005535D0
+void ApplyDirectDamageToCharacter005535D0(int party_slot, W8TargetSource* source, int damage)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    unsigned int amount;
+
+    amount = ApplyCharacterDamageReduction(&g_status_685170.buffers.characters[party_slot], damage);
+    if (amount > 0) {
+        if (verbose != 0) {
+            ApplyDamageToCharacter(party_slot, amount, 0, 1, 1, 0, 1);
+        } else {
+            amount = ApplyDamageToCharacter(party_slot, amount, 0, 0, 0, &result, 0);
+            g_combat_state->attack_report.notice_values[4] += amount;
+            while (result.reports.GetCount() > 0) {
+                report = *result.reports.GetAt(0);
+                result.reports.RemoveAt(0);
+                g_combat_state->attack_report.reports.Add(report);
+            }
+        }
+    }
+}
+
+/* The monster-side counterpart: the flat amount reduced by the monster's own
+   reduction is applied, feeding the running total and report queue in quiet
+   mode or the announced apply in verbose mode. */
+// FUNCTION: WIZ8 0x00553770
+void ApplyDirectDamageToMonster00553770(W8MonsterInfo* monster_info, W8TargetSource* source,
+                                        int damage)
+{
+    unsigned char verbose = g_settings_6850c8.verbose_combat_messages;
+    W8SpellEffectResult result;
+    W8SpellDamageReport* report;
+    W8MonsterRecord* record;
+    unsigned int amount;
+
+    record = GetMonsterDataForInfo(monster_info);
+    amount = ApplyDamageReduction(monster_info, record, damage);
+    if (amount > 0) {
+        if (verbose != 0) {
+            ApplyDamageToMonster(monster_info, amount, source, 0, 1, 1, 0, 1);
+        } else {
+            amount = ApplyDamageToMonster(monster_info, amount, source, 0, 0, 0, &result, 0);
+            g_combat_state->attack_report.notice_values[4] += amount;
+            while (result.reports.GetCount() > 0) {
+                report = *result.reports.GetAt(0);
+                result.reports.RemoveAt(0);
+                g_combat_state->attack_report.reports.Add(report);
+            }
+        }
+    }
+}
+
+/* The character-side difficulty scaler: on easy a party character's value
+   grows to seven fifths and on hard it shrinks to three fifths; a turncoated
+   character fights for the monsters, so the scaling flips. Normal difficulty
+   leaves the value alone. */
+// FUNCTION: WIZ8 0x0055cc00
+void ScaleValueForCharacterDifficulty(int party_slot, int* value)
+{
+    if (g_status_685170.buffers.characters[party_slot].condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        }
+    } else {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        }
+    }
+}
+
+/* The monster-side counterpart: a hostile monster scales like a turncoated
+   character and a friendly one like a party character. */
+// FUNCTION: WIZ8 0x0055ccb0
+void ScaleValueForMonsterDifficulty(W8MonsterInfo* monster_info, int* value)
+{
+    if (monster_info->ubDisposition == DISP_HOSTILE) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        }
+    } else if (monster_info->ubDisposition == DISP_FRIENDLY) {
+        switch (g_settings_6850c8.difficulty) {
+        case 0:
+            *value = (*value * 7 * 20) / 100;
+            break;
+        case 2:
+            *value = (*value * 3 * 20) / 100;
+            break;
+        }
     }
 }

@@ -42,6 +42,8 @@ extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
 extern const float g_environment_near_scale_005ec0b0;
 extern const float g_world_scale_005ebc40;
+/* 0x005EC5C: 1.05, the headroom factor applied to a fired missile's speed. */
+extern const float g_monster_motion_push_005ebc5c;
 /* 0x005EC510: 127.0, the SGP full-volume scale the positional-sound factory
    multiplies its loudness fraction by. */
 extern const float g_float_005ec510;
@@ -163,6 +165,9 @@ extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
 extern const double g_double_005ec150;
+/* 0x005EC300: 1/180, the degrees-to-radians conversion shared by the camera
+   view math and the missile aim scatter. Defined in GDCamera.cpp. */
+extern const double g_camera_view_factor_005ec300;
 /* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
    automap cell refresh in UpdateWorldCameraAndPaths0044FC20. */
 extern const double g_double_005ec240;

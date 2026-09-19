@@ -145,7 +145,7 @@ void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
 bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,
                                                 W8TargetingContext context); /* 0x0053BBD0 */
-void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053A9D0 */
+void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source);     /* 0x0053BE00 */
 /* 0x00536A20: what the interface has to ask the player to pick for one
    action - a fixed kind for most, the spell's answer for casts and item use. */
 int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock* detail_block);
@@ -171,3 +171,4 @@ bool IsDeadCharacterTargetable(int party_slot);
 
 /* 0x005360B0: the faction table index for a name, -1 when none matches. */
 char FindFactionByName(const char* name);
+void Function536400(void); /* 0x00536400 */

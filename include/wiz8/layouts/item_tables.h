@@ -74,7 +74,17 @@ struct W8ItemDatabaseRecord {
     signed char attack_hit_bonus;    /* 0x049 */
     W8Dice damage_dice;              /* 0x04a */
     unsigned short attack_flags_04e;
-    unsigned char unknown_050[0x12];
+    /* 0x050..0x05f: the item's missile-attack modifier block; the missile
+       resolver sums it byte-wise across the wielded and paired weapons into
+       the fired effect definition's condition_chances. */
+    unsigned char missile_values_050[0x10];
+    /* 0x060: the item's missile bonus, summed across both weapons into the
+       effect definition's value_1c. */
+    unsigned char missile_value_060;
+    /* 0x061: the monster kind the weapon slays for an extra damage die,
+       compared against W8MonsterRecord::kind_0cb by the character damage
+       resolver; 0xff means the weapon slays nothing. */
+    unsigned char slays_kind_061;
     signed char armor_class_bonus; /* 0x062 */
     unsigned char spell_id;        /* 0x063 */
     unsigned char unknown_064[2];
@@ -101,7 +111,12 @@ struct W8ItemDatabaseRecord {
     unsigned int value;                          /* 0x086 */
     unsigned short weight;                       /* 0x08a */
     unsigned char binds_on_equip;                /* 0x08c */
-    char internal_name[0x24];                    /* 0x08d .. 0x0b0 */
+    char internal_name[0x20];                    /* 0x08d .. 0x0ac */
+    /* 0x0ad: extra swings the weapon grants when the wielder starts an
+       attack; StartCharacterAttack adds it to the rolled uiSwingsRemaining.
+       It sits inside the retail name region's tail dword, so the name buffer
+       is really 0x20 characters. */
+    int swings_bonus_0ad;
     /* 0x0b1/0x0b3: the item's (index, value) modifier pairs the equipment
        fold adds to the derived block's two byte tables. 0xff is no pair. */
     signed char modifier_0b1_index;
@@ -119,7 +134,10 @@ struct W8ItemDatabaseRecord {
     int weapon_sound_class_0c5;
     signed char merge_skill_0c9; /* skill required to create this item */
     unsigned char merge_skill_level_0ca;
-    unsigned char unknown_0cb[2];
+    unsigned char unknown_0cb;
+    /* 0x0cc: the missile table entry the item fires; the missile resolver
+       bounds it against g_missile_table_count_65bddc. */
+    signed char missile_type;
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
     char video_object_name[0x40]; /* 0x0cd */
 }; /* 0x10d */

@@ -3,6 +3,9 @@
 #include "surrender/srMath.h"
 #include "wiz8/layouts/party_formation.h"
 
+struct W8MonsterInfo;
+struct W8CombatSlot;
+
 unsigned int TurnPartyTo(unsigned int degrees); /* 0x005553C0 */
 void TurnPartyToImmediate(unsigned int degrees, char snap);
 /* Sync party facing/heading from the camera yaw and refresh the compass. */
@@ -15,6 +18,18 @@ signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
 
 void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
 
+/* 0x005557E0: turn the position's formation facing toward the second position
+   the way DecideFacingForPosition resolved it. */
+void FacePositionAsDecided(int position, int arg_2);
+/* 0x00555920: whether the position already faces the second position the way
+   DecideFacingForPosition resolved it. */
+bool PositionFacesAsDecided(int position, int arg_2);
+/* 0x00555C20: whether the position faces opposite to the second position the
+   way DecideFacingForPosition resolved it. */
+bool PositionFacesOppositeToDecided(int arg_1, int position);
+/* 0x00555D60: whether the party's world position looks away from the
+   monster. */
+bool IsPartyLookingAwayFrom(int party_slot, W8MonsterInfo* monster_info);
 /* 0x005549E0: whether the character can hold a formation place at all: alive
    and in better shape than the hostile conditions. */
 bool CanHoldFormationPlace(int party_slot);
@@ -52,3 +67,23 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
    rotated by hand. */
 void FaceCameraToSelection(int party_slot);
 int GetQuadrantForPosition(srVector3T<float> position);
+
+/* 0x00555A60: whether the monster faces the party's own position. */
+int IsMonsterFacingParty(W8MonsterInfo* monster_info);
+/* 0x00555B00: whether the first monster faces the second. */
+int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second);
+/* 0x00555BA0: whether the party faces a world point. */
+bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point);
+/* 0x00555DE0: whether the second monster looks away from the first. */
+int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second);
+/* 0x00555960: whether the monster sits on the screen side the character
+   faces. */
+bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info);
+/* 0x00555820: turn the character's formation facing toward the monster. */
+void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info);
+/* 0x00555C60: whether the monster is on the side opposite the character's
+   facing. */
+int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot);
+/* 0x00555560: face the character toward its committed combat slot's target;
+   asserts the slot ids are not BAD_INDEX. */
+void Function555560(int party_slot, W8CombatSlot* target);

@@ -50,9 +50,9 @@ const int g_special_attack_realm_table_61f0fc[32] = {
    five table doubles it. Kind six delegates to the summon. */
 // FUNCTION: WIZ8 0x005560A0
 void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* pSource,
-                                       W8CombatSlot* pAttackerSlot, int arg_4, int iNumCharTargets,
-                                       int arg_6, int* piCharTargets, int arg_8,
-                                       int iNumMonsterTargets, int arg_10, int* piMonsterTargets)
+                                       W8CombatSlot* pAttackerSlot,
+                                       W8GrowableVector<int> char_targets,
+                                       W8GrowableVector<int> monster_targets)
 {
     char announce;
     int iTarget;
@@ -137,8 +137,8 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
         uiTotals[0] = 0;
         uiHits[1] = 0;
         uiTotals[1] = 0;
-        for (iTarget = 0; iTarget < iNumCharTargets; ++iTarget) {
-            iChar = piCharTargets[iTarget];
+        for (iTarget = 0; iTarget < char_targets.GetCount(); ++iTarget) {
+            iChar = *char_targets.GetAt(iTarget);
             if (iChar == -1) {
                 srAssertFail("iTargetChar != BAD_INDEX", GROUP_ATTACKS_CPP, 0xdc, 0);
             }
@@ -256,8 +256,8 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
                 }
             }
         }
-        for (iTarget = 0; iTarget < iNumMonsterTargets; ++iTarget) {
-            iMonsterID = piMonsterTargets[iTarget];
+        for (iTarget = 0; iTarget < monster_targets.GetCount(); ++iTarget) {
+            iMonsterID = *monster_targets.GetAt(iTarget);
             if (iMonsterID == -1) {
                 srAssertFail("iTargetMonsterID != BAD_INDEX", GROUP_ATTACKS_CPP, 0x169, 0);
             }
@@ -423,11 +423,6 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
             }
         }
     }
-    /* Scalar delete is correct: the callers build these buffers with scalar
-       operator_new (FUN_004EBA70/FUN_004EBFE0), and retail calls ??3@YAXPAX@Z,
-       not the array form. */
-    delete piCharTargets;
-    delete piMonsterTargets;
 }
 
 /* Kind six: the kind selects the summoned species, the record's group-size

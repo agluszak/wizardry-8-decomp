@@ -279,7 +279,7 @@ void CompletePartyMovementTurns(void)
    the retail four-point random tie break. Party movement uses ten-step phase
    boundaries. */
 // FUNCTION: WIZ8 0x004efe70
-static void InitializePartyMovementPhase(void)
+void InitializePartyMovementPhase(void)
 {
     int minimum_initiative = 90;
 

@@ -618,3 +618,6 @@ extern W8PathingService* g_pathing_00659c60;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern double g_double_005ec3b0;
+/* 0x005ED300: OctPrePath.cpp's vertical-link slack; retail Combat.cpp reads
+   it directly when sizing a monster's move. */
+extern float g_prepath_link_height_5ed300;

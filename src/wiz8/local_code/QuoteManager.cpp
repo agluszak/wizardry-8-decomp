@@ -197,6 +197,8 @@ unsigned int g_value_005ed8fc = 20;
 int g_effect_argument_005ed8d0 = 2;
 // GLOBAL: WIZ8 0x005ED8D4
 int g_effect_argument_005ed8d4 = 1;
+// GLOBAL: WIZ8 0x005ED8D8
+int g_effect_argument_005ed8d8 = 2;
 // GLOBAL: WIZ8 0x005ED914
 int g_effect_argument_005ed914 = 127;
 // GLOBAL: WIZ8 0x005EE590
@@ -233,8 +235,14 @@ int g_effect_005ee5e8 = 0x18;
 int g_effect_005ee5f0 = 0x1a;
 // GLOBAL: WIZ8 0x005EE5F8
 int g_effect_005ee5f8 = 28;
+// GLOBAL: WIZ8 0x005EE60C
+int g_effect_005ee60c = 33;
 // GLOBAL: WIZ8 0x005ee610
 int g_effect_005ee610 = 34;
+// GLOBAL: WIZ8 0x005EE614
+int g_effect_005ee614 = 35;
+// GLOBAL: WIZ8 0x005EE61C
+int g_effect_005ee61c = 37;
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
 // GLOBAL: WIZ8 0x005EE624

@@ -96,8 +96,24 @@ class W8SpellDamageReport;
 // VTABLE: WIZ8 0x005ebfec
 // class W8GrowableVector<W8SpellDamageReport*>
 
+/* The capacity-five ctor the W8SpellEffectResult::reports member calls:
+   every construction site emits PUSH 5 before this out-of-line emission. */
+// TEMPLATE: WIZ8 0x00516950
+// W8GrowableVector<W8SpellDamageReport*>::W8GrowableVector
+
 // SYNTHETIC: WIZ8 0x0042bb40
 // W8GrowableVector<W8SpellDamageReport*>::`scalar deleting destructor'
+
+/* The derived vftable every W8SpellDamageReport* reports member takes at
+   construction: one slot, the derived scalar deleting destructor. */
+// VTABLE: WIZ8 0x005ece4c
+// class W8Vector<W8SpellDamageReport*>
+
+// SYNTHETIC: WIZ8 0x004a5cb0
+// W8Vector<W8SpellDamageReport*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a5cd0
+// W8Vector<W8SpellDamageReport*>::~W8Vector<W8SpellDamageReport*>
 
 // VTABLE: WIZ8 0x005ec51c
 // class W8GrowableVector<unsigned char>
@@ -110,6 +126,9 @@ class W8SpellDamageReport;
 
 // SYNTHETIC: WIZ8 0x00546dc0
 // W8GrowableVector<W8TargetSource>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00546da0
+// W8GrowableVector<W8TargetSource>::~W8GrowableVector<W8TargetSource>
 
 // TEMPLATE: WIZ8 0x00546df0
 // W8GrowableVector<W8TargetSource>::Grow

@@ -67,10 +67,20 @@ struct W8SpellEffectResult {
     unsigned int amount;                               /* 0x00 */
     unsigned int count;                                /* 0x04 */
     unsigned int condition_counts[W8_CONDITION_COUNT]; /* 0x08 */
-    W8GrowableVector<W8SpellDamageReport*> reports;    /* 0x58 */
-    /* 0x68..0xa2: the retail initializer clears the whole 0xa2-byte block;
-       no field past the reports vector has been proven. */
-    unsigned char unknown_68[0x3a];
+    /* The derived collection: retail construction writes the
+       W8Vector<W8SpellDamageReport*> vftable at 0x005ECE4C. */
+    W8Vector<W8SpellDamageReport*> reports; /* 0x58 */
+    /* 0x68..0x7c: the per-kind totals the notice pass folds into its messages;
+       [3] and [4] are the running damage totals the character and monster
+       damage paths add to. */
+    unsigned int notice_values[6];
+    unsigned char flag_80; /* 0x80 */
+    /* 0x81: raised when the swing missed entirely, which is what lets the
+       notice pass distinguish "missed" from "no effect". */
+    unsigned char missed;
+    /* 0x82: the target the attack actually struck - the accidental-fire path
+       replaces it with the rerolled victim. */
+    W8CombatSlot target;
 };
 #pragma pack(pop)
 
@@ -109,15 +119,19 @@ struct W8SpellEffectEntry {
        CollectHostileMonsters gathers at 0x0e0, and a second index list at
        0x0f0 used both as party-slot indices and as monster-manager entry
        indices depending on the effect path. */
+    /* The two integer lists are base-class vectors: their retail member
+       constructors write only the W8GrowableVector<int> vftable. */
     W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
     W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
-    /* 0x100: spawned visuals. The vector's data pointer is at +0x10c. */
-    W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
-    unsigned char flag_120;                         /* 0x120 */
-    unsigned char flag_121;                         /* 0x121 */
-    unsigned char flag_122;                         /* 0x122 */
-    unsigned char flag_123;                         /* 0x123 */
+    /* 0x100/0x110: spawned visuals and owned missiles. Both construct through
+       the base capacity constructor and then take the derived W8Vector
+       vftables at 0x005EC280/0x005EC27C. */
+    W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
+    W8Vector<W8Missile*> missiles;          /* 0x110 */
+    unsigned char flag_120;                 /* 0x120 */
+    unsigned char flag_121;                 /* 0x121 */
+    unsigned char flag_122;                 /* 0x122 */
+    unsigned char flag_123;                 /* 0x123 */
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
     /* 0x125: set by a handler that actually landed its effect; the result

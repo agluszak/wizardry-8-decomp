@@ -9,6 +9,7 @@ struct W8VisibilityRecord;
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 void RefreshAllSight(void);
 void RefreshOutwardSightForAllMonsters(void);
+void RefreshInwardSightForAllMonsters(void);
 void RefreshMonsterSight(W8MonsterInfo* monster_info);
 void ResetAndRefreshAllSight005060C0(void);
 unsigned int AgeAllMonsterSight(void);

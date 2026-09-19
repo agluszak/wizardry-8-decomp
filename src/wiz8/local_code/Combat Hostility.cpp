@@ -34,6 +34,9 @@
  * them.
  */
 
+static const char COMBAT_HOSTILITY_CPP[] =
+    "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp";
+
 /* Species 0x224 never counts: both directions answer zero before anything
    else is read. */
 enum { W8_NEUTRAL_SPECIES_224 = 0x224 };
@@ -121,6 +124,132 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
         srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x69,
                      "MonsterVsCharDisposition: ERROR - Invalid attack mode");
         return 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00547010
+char CharacterVsCharacterDisposition(int first, int second)
+{
+    W8Character* characters = g_status_685170.buffers.characters;
+    unsigned int first_turns = characters[first].condition_turns[13];
+    if (first_turns == 0 && characters[second].condition_turns[13] == 0) {
+        return DISP_FRIENDLY;
+    }
+    if (first_turns == 0 || characters[second].condition_turns[13] == 0) {
+        return DISP_HOSTILE;
+    }
+    return DISP_FRIENDLY;
+}
+
+// FUNCTION: WIZ8 0x00547080
+char GetOppositeDisposition(W8TargetSource* source)
+{
+    if (TargetSourceIsCharacter(source, 0)) {
+        if (g_status_685170.buffers.characters[source->iChar].condition_turns[13] == 0) {
+            return DISP_HOSTILE;
+        }
+    } else if (TargetSourceIsMonster(source, 0)) {
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0xd3, COMBAT_HOSTILITY_CPP, source->iMonsterID, '\0');
+        if (monster_list_index == 0xffffffff) {
+            FormatDebugMessage(1, "GetOppositeDisposition - ERROR - can't find monster %d!",
+                               source->iMonsterID);
+            return 0;
+        }
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info->condition_turns[13] == 0) {
+            if (monster_info->ubDisposition == DISP_FRIENDLY) {
+                return DISP_HOSTILE;
+            }
+            return DISP_FRIENDLY;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00547120
+void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* monsters)
+{
+    int own_monster_id = -1;
+    if (GetOppositeDisposition(source) == '\0') {
+        return;
+    }
+    if (TargetSourceIsMonster(source, 0)) {
+        own_monster_id = source->iMonsterID;
+    }
+    W8CombatSlot target;
+    ResetCombatSlot(&target);
+    target.iType = W8_TARGET_KIND_MONSTER;
+    for (unsigned int index = 0; index < static_cast<unsigned int>(monsters->GetCount()); ++index) {
+        int monster_id = *monsters->GetAt(index);
+        if (monster_id == own_monster_id) {
+            continue;
+        }
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0x122, COMBAT_HOSTILITY_CPP, monster_id, '\x01');
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info->monster_group_id != 0) {
+            target.iMonsterID = monster_id;
+            MakeTargetGroupHostile(source, &target);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x005471d0
+void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
+{
+    char hostility = GetOppositeDisposition(source);
+    if (hostility == '\0' || !IsTargetStillPresent(target)) {
+        return;
+    }
+    int group_id;
+    W8MonsterGroup* group;
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
+        if (target->iMonsterID == -1) {
+            return;
+        }
+        unsigned int monster_list_index =
+            MonsterGetIndexByLocationID(0x146, COMBAT_HOSTILITY_CPP, target->iMonsterID, '\x01');
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info->condition_turns[13] != 0) {
+            return;
+        }
+        group_id = monster_info->monster_group_id;
+    } else if (target->iType == W8_TARGET_KIND_GROUP) {
+        if (target->iGroupID == -1) {
+            return;
+        }
+        unsigned int group_list_index =
+            GetMonsterGroupIndexByID(0x1ef, COMBAT_HOSTILITY_CPP, target->iGroupID, '\x01');
+        group = GetMonsterGroupByListIndex(group_list_index);
+        unsigned int index = 0;
+        if (ILLength(group->monsters) == 0) {
+            return;
+        }
+        while (true) {
+            int monster_id = IListGetAt(group->monsters, index);
+            unsigned int monster_list_index =
+                MonsterGetIndexByLocationID(500, COMBAT_HOSTILITY_CPP, monster_id, '\x01');
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+            if (monster_info->condition_turns[13] == 0) {
+                break;
+            }
+            if (ILLength(group->monsters) <= ++index) {
+                return;
+            }
+        }
+        group_id = target->iGroupID;
+    } else {
+        return;
+    }
+    if (group_id != -1) {
+        unsigned int group_list_index =
+            GetMonsterGroupIndexByID(0x167, COMBAT_HOSTILITY_CPP, group_id, '\x01');
+        group = GetMonsterGroupByListIndex(group_list_index);
+        SetMonsterGroupHostility(group, hostility, '\x01');
+        if (group->fInCombat == '\0') {
+            MonsterGroupEnterCombat(group);
+        }
     }
 }
 
@@ -224,14 +353,11 @@ bool MonsterCanAimSpell005474B0(int spell_id)
 }
 
 // FUNCTION: WIZ8 0x00547510
-unsigned char CombatAllowsLiveGroups(void)
+bool CombatAllowsLiveGroups(void)
 {
     return gXStatus.fCombatMode != 0 && g_combat_state->flag_a54 == 0 &&
            g_combat_state->value_004 <= 1;
 }
-
-static const char COMBAT_HOSTILITY_CPP[] =
-    "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp";
 
 // GLOBAL: WIZ8 0x0061ec0c
 const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
@@ -239,6 +365,15 @@ const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 // GLOBAL: WIZ8 0x0061ec14
 const int g_monster_special_attack_name_ids_61ec14[12] = {0,    1598, 1599, 1600, 1601, 1602,
                                                           1603, 1604, 1605, 1606, 1607, 1608};
+
+// FUNCTION: WIZ8 0x00547540
+void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse)
+{
+    unsigned int group_list_index =
+        GetMonsterGroupIndexByID(0x207, COMBAT_HOSTILITY_CPP, group_id, '\x01');
+    W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
+    SetMonsterGroupHostility(group, hostility, recurse);
+}
 
 // FUNCTION: WIZ8 0x00547570
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)

@@ -171,7 +171,7 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
     }
     missile->flag_1e0 = 1;
     if (missile->missile_table_index_1d8 == 0x23 &&
-        (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
+        (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
         missile->DetonateMissileSpell004A49E0();
     }
     if (g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) {
@@ -644,7 +644,7 @@ void W8Missile::StartIfHostActive()
     } else {
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
+            (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell004A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
@@ -962,7 +962,7 @@ void W8Missile::EnterImpactCycle()
     } else {
         flag_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
-            (g_combat_state == 0 || g_combat_state->unknown_8c4 != 2)) {
+            (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell004A49E0();
         }
         if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
@@ -1044,9 +1044,9 @@ bool W8Missile::OnCollision(W8Navigator* other)
     }
 
     if (missile_table_index_1d8 == 0x23) {
-        g_combat_state->unknown_8c4 = hit_result;
+        g_combat_state->missile_hit_result = hit_result;
     } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
-        g_combat_state->unknown_8c4 = hit_result;
+        g_combat_state->missile_hit_result = hit_result;
         g_combat_state->TargetHit = combat_slot_260;
     } else if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
         ResolveSpellMissileHit(this);

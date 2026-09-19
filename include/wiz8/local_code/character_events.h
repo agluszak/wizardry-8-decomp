@@ -27,7 +27,10 @@ extern int g_effect_005ee5e4;
 extern int g_effect_005ee5e8;
 extern int g_effect_005ee5f0;
 extern int g_effect_005ee5f8;
+extern int g_effect_005ee60c;
 extern int g_effect_005ee610;
+extern int g_effect_005ee614; /* 0x005EE614: the victory-cheer character event */
+extern int g_effect_005ee61c;
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
 extern int g_effect_005ee624;
@@ -36,7 +39,10 @@ extern int g_item_message_005ee640;
 extern int g_item_message_005ee644;
 extern int g_item_message_005ee648;
 extern int g_item_message_005ee64c;
+extern int g_item_message_005ee5c8;
+extern int g_item_message_005ee5cc;
 extern int g_item_message_005ee664;
+extern int g_item_message_005ee668;
 extern int g_item_message_005ee68c;
 extern int g_item_message_005ee690;
 extern int g_item_message_005ee6fc;
@@ -108,8 +114,19 @@ void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
    formatters. Its middle argument is the context the notices are posted under -
    zero while the NPC dialogue owns the screens, -1 otherwise. */
 void PostCharacterNoticeInContext00590A40(int party_slot, int context, const wchar_t* format, ...);
-extern int g_special_event_0068c50c; /* 0x0068C50C */
-extern int g_special_event_0068c530; /* 0x0068C530: emitted when a slot's action
+extern int g_special_event_0068c50c;  /* 0x0068C50C */
+extern unsigned int g_value_0068c554; /* 0x0068C554 */
+extern int g_special_event_0068c56c;  /* 0x0068C56C: one of the three melee
+                                         swing event ids StartCharacterAttack
+                                         rolls between */
+extern int g_special_event_0068c560;  /* 0x0068C560: one of the three blocked-hit
+                                        reaction ids ContinueMonsterAttack rolls
+                                        between, with 0x68c570 and 0x68c574 */
+extern int g_special_event_0068c570;  /* 0x0068C570 */
+extern int g_special_event_0068c574;  /* 0x0068C574 */
+extern unsigned int g_value_0068c57c; /* 0x0068C57C */
+extern int g_special_event_0068c530;  /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
 extern int g_effect_argument_005ed8c8;
+extern int g_effect_argument_005ed8d8;
 extern int g_effect_argument_005ed914;

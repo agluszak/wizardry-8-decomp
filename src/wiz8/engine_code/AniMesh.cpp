@@ -13,10 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// GLOBAL: WIZ8 0x005ebb34
 /* VC6 places `float x = 0.0f` in .bss; retail keeps this slot in initialized
    .data next to g_float_005ebb38. Const storage lands in .rdata with physical
    zeros so datacmp agrees. */
+// GLOBAL: WIZ8 0x005ebb34
 const float g_float_005ebb34 = 0.0f;
 
 #define ANI_MESH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AniMesh.cpp"

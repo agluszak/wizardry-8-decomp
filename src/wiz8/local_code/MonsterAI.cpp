@@ -957,7 +957,7 @@ validate:
    the party along the waypoints. The waypoint probe runs once, against the
    group's named member, and is reused for the rest of the sweep. */
 // FUNCTION: WIZ8 0x00531920
-unsigned char MonsterGroupCanEngage(W8MonsterGroup* monster_group)
+bool MonsterGroupCanEngage(W8MonsterGroup* monster_group)
 {
     W8MonsterInfo* member;
     W8MonsterInfo* leader;
@@ -2055,7 +2055,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
    types aim at the world; anything else either needs no aim at all or has to
    pass the slot check. */
 // FUNCTION: WIZ8 0x00534290
-unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
+bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
 
@@ -2308,7 +2308,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
         }
         return 0;
     }
-    if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_13d[9] != 0) {
+    if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_145[1] != 0) {
         return 0;
     }
     if (static_cast<unsigned int>(monster_info->stamina) <
@@ -2363,7 +2363,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
    a target of a kind it accepts; fleeing is refused outright for the summoning
    special-attack rows that have nowhere to flee to. */
 // FUNCTION: WIZ8 0x00535150
-unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
+bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
 {
     int spell_id;
 

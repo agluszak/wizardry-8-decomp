@@ -140,6 +140,10 @@ W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<floa
                                srVector3T<float>* target, unsigned int value_4,
                                unsigned int value_5, unsigned int value_6, unsigned int value_7);
 void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
+/* The world position `character_index`'s current hand fires a missile from:
+   the camera's launch point swung to the wielding side. */
+void GetCharacterProjectilePosition004A57B0(unsigned int character_index,
+                                            srVector3T<float>* position);
 void DestroyAllMissiles(W8World* world); /* 0x004A4210 */
 
 extern unsigned int g_missile_table_count_65bddc;

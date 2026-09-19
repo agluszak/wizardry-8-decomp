@@ -2,13 +2,19 @@
 #define WIZ8_LAYOUTS_COMBAT_STATE_H
 
 #include "wiz8/gameplay_modifiers.h"
+#include "wiz8/layouts/character.h"
 #include "wiz8/layouts/party_formation.h"
 #include "wiz8/layouts/targeting.h"
+#include "wiz8/local_code/SpellEffect.h"
+#include "wiz8/vector.h"
 
 struct W8Character;
 
 struct W8MonsterInfo;
+
+struct W8SpellDamageReport;
 class W8Missile;
+class W8SpellVisual;
 
 #pragma pack(push, 1)
 /* One party slot row. Only the fields reached by recovered combat and
@@ -74,6 +80,19 @@ static_assert(sizeof(W8PartySlotRow) == 0x106, "W8PartySlotRow_must_be_0x106");
    stride is not a typed nine-element array. */
 static_assert(sizeof(W8EffectSlot) == 0x11, "W8EffectSlot_must_be_0x11");
 
+/* Per-hand best-outcome tracking inside a W8CombatCharacterRow, 0x10 bytes.
+   The score is only overwritten when a swing resolves better than the stored
+   one, at which point the hand's skills and the character's dual-wield flag
+   are refreshed. */
+struct W8CombatHandRecord {
+    int score;
+    int weapon_skill;
+    int combat_skill;
+    int dual_wielding;
+};
+
+static_assert(sizeof(W8CombatHandRecord) == 0x10, "W8CombatHandRecord_must_be_0x10");
+
 /* One combat participant's row, 0xd4 bytes per character. The eight rows live
    at +0x18 of the combat state, 0xd4 apart, so a row's offsets are
    element-relative: the +0x18 that once prefixed this record is the state's
@@ -88,7 +107,13 @@ struct W8CombatCharacterRow {
        turn is already set up. Retail indexes them from the combat-state base
        as dword stride 0x35; that is this field, not a second BSS array. */
     int saved_attack_value[2];
-    unsigned char unknown_40[0x28];
+    /* 0x40: the same two per-hand reach values PrepareCharacterAttacks writes
+       into saved_attack_value; no recovered reader names the copy yet. */
+    int hand_attack_values_40[2];
+    /* 0x48: per-hand best-outcome tracking; the score is only overwritten
+       when a swing resolves better than the stored one, at which point the
+       hand's skills and the character's dual-wield flag are refreshed. */
+    W8CombatHandRecord hand_records[2];
     unsigned int uiSwingsRemaining; /* 0x68: exact name from the attack assertions */
     int current_hand;               /* 0x6c: indexes the slot row's attack modes */
     int current_equip_slot;         /* 0x70: indexes the character's equipment */
@@ -107,10 +132,15 @@ struct W8CombatCharacterRow {
        (party_slots_170[4]); -1 draws nothing. */
     int portrait_image_084;
     int portrait_image_alternate_088;
-    unsigned char unknown_8c[8];
+    unsigned char unknown_8c[4];
+    /* 0x90: how many times the character already rolled to notice an attacker
+       this round; the first attempt always succeeds and each later one is 25
+       points harder on the senses check. */
+    int spot_attempts_90;
     /* 0x94: incremented when an out-of-combat action is repicked during
-       combat; the eight rows are addressed with the established 0xd4 stride. */
-    int pending_action_repick_count;
+       combat; the eight rows are addressed with the established 0xd4 stride.
+       0x00541c00 compares it with JBE, so it is unsigned. */
+    unsigned int pending_action_repick_count;
     /* 0x98/0x99: per-slot once-per-combat action-use flags read by
        CanPartySlotPray and CanPartySlotTurnUndead. */
     unsigned char pray_used;
@@ -120,9 +150,25 @@ struct W8CombatCharacterRow {
        row's phase (its inlined copies stamp g_combat_state->round_counter
        here); the spell-scaling paths read it as the character's combat pace. */
     unsigned int phase_clock_stamp;
-    unsigned char unknown_a0[4];
+    /* 0xa0: the round's interception count, checked against the guarding
+       hand's attack count before another intercept is allowed and bumped on
+       each successful one. */
+    unsigned int interception_count;
     unsigned char flag_a4; /* 0xa4: raised when switching to an attack */
-    unsigned char unknown_a5[0x2f];
+    /* 0xa5: the attack's sound/roll state; set once MakePCAttackSound has
+       played so a resumed swing does not replay it, cleared when the row's
+       attack finishes. */
+    unsigned char flag_a5;
+    unsigned char unknown_a6;
+    /* 0xa7: SetCharacterCombatAction raises it when the slot's queued action
+       changes while an action runs; committing the pending block clears it. */
+    bool action_changed_a7;
+    /* 0xa8: one byte per skill id recording defensive use this round. Attack
+       init raises Shield (0x06), Locks & Traps (0x0b) and Reflextion (0x26)
+       when the target has the skill trained; the round-end pass awards
+       practice credit to exactly those three entries and clears them. */
+    unsigned char skill_use_flags[0x29];
+    unsigned char unknown_d1[3];
 }; /* 0xd4 */
 
 static_assert(sizeof(W8CombatCharacterRow) == 0xd4, "W8CombatCharacterRow_must_be_0xd4");
@@ -139,15 +185,22 @@ struct W8CombatState {
     unsigned char unknown_002[2];
     unsigned int value_004;     /* 0x004: blocks ending combat while non-zero */
     unsigned int round_counter; /* 0x008: bounded combat phase, 1..100 */
-    unsigned char unknown_00c[4];
+    /* 0x00c: the combat outcome the end-of-combat pass reports - zero while no
+       result is recorded, otherwise the kill count formatted next to
+       "kill"/"kills". */
+    int combat_result_00c;
     int value_010;
     int value_014;
     W8CombatCharacterRow characters[8]; /* 0x018, 0xd4 stride */
-    unsigned char unknown_6b8[0xf0];
+    /* 0x6b8: the attack announcement the monster-attack message builder
+       swprintf's into and ShowNotice displays; 0x78 wide chars. */
+    wchar_t attack_message_6b8[0x78];
     /* 0x7a8: continuous-combat UI pacing; the confirm button resets it while
        ClockIsTicking reports it still running. */
     unsigned int combat_ui_timer_7a8;
-    unsigned char unknown_7ac[4];
+    /* 0x7ac: the pacing clock the scheduler arms through SetCountdownClock
+       before the scheduled actor's action may execute. */
+    unsigned int action_clock_7ac;
     /* 0x7b0: the exact member names the Combat.cpp action assertions report. */
     int eCombatActionStatus;                  /* 0x7b0 */
     int iActionChar;                          /* 0x7b4: -1 when nobody's turn */
@@ -157,7 +210,8 @@ struct W8CombatState {
     W8EffectSlot effect_slots[9];     /* 0x7c1, 0x11 stride */
     W8EffectSlot effect_slots_85a[6]; /* 0x85a..0x8bf */
     W8Missile* engaged_missile;       /* 0x8c0: live missile that blocks ending combat */
-    unsigned char unknown_8c4;        /* 0x8c4 */
+    /* 0x8c4: staged hit result of the in-flight missile (0 = pending, 1 = hit, 2 = deflected) */
+    char missile_hit_result;
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
     W8CombatSlot TargetHit;
@@ -173,13 +227,44 @@ struct W8CombatState {
        continuous combat is enabled and the world did not advance this frame. */
     unsigned int party_movement_clock;
     W8PartyFormationState saved_formation; /* 0x920 */
-    unsigned char unknown_9a4[0xac];
+    /* 0x9a4: the running attack's target did not see it coming - the monster
+       stands behind the character or the target monster is looking away. The
+       announcement appends the caught-unaware text. */
+    unsigned char unaware_9a4;
+    /* 0x9a5: the running attack is a kind-3 monster's natural attack inside
+       short range, so the announcement skips the weapon-name string and uses
+       the natural-attack verbs instead. */
+    unsigned char natural_attack_9a5;
+    /* 0x9a6: the running attack's outcome record, cleared to a fresh 0xa2-byte
+       block before each attack resolves. The swing and hit tallies feed the
+       "hit once"/"hit %d of %d" notices, one flag per condition records what
+       the swings inflicted (index 0x12 doubles as the killed gate), the report
+       list is a W8SpellDamageReport* vector drained front-first, and the six
+       notice values carry the amounts the notices print - [3] and [4]
+       are the running damage totals the character/monster damage paths add to. */
+    W8SpellEffectResult attack_report;
+    /* 0xa48: the once-per-combat difficulty evaluation has run; the update
+       tick calls the evaluator on the first frame it sees this clear. */
+    unsigned char combat_evaluated_a48;
+    unsigned char unknown_a49[3];
+    /* 0xa4c: the in-flight breath visual for a character's special-attack
+       action. The executor refuses while its `finished` flag is clear and
+       hands the previous one to the world updater through `auto_release`. */
+    W8SpellVisual* breath_visual_a4c;
     unsigned char flag_a50;
     unsigned char flag_a51;
-    unsigned char unknown_a52[2];
+    /* 0xa52/0xa53: the side is surprised and cannot act this round - +0xa52
+       gates the party slots and the neutral/friendly monsters, +0xa53 the
+       hostile ones; the surprise roll at combat start sets them, mutual
+       surprise cancels both, and the round-end pass clears them. */
+    unsigned char party_surprised_a52;
+    unsigned char monsters_surprised_a53;
     unsigned char flag_a54;
-    unsigned char unknown_a55[2];
-    unsigned char notice_scroll_pending_a57;
+    unsigned char flag_a55;
+    /* 0xa56: consecutive rounds that ended with an engaged flag still set but
+       no monster group able to engage; the combat-over check reads it. */
+    unsigned char unengaged_rounds_a56;
+    bool notice_scroll_pending_a57;
     /* 0xa58: queued refusal script for NPC party slots 0 and 1. The sweep
        at 0x004ed710 sets a flag after queuing events 0x3a and 0x36; event
        0x36 clears it. 0x004ed460 tests exactly these two slots. */
@@ -188,7 +273,13 @@ struct W8CombatState {
     /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
        third before it touches group states. */
     unsigned int combat_update_count;
-    unsigned char unknown_a60[2];
+    /* 0xa60: the scheduler's pacing latch - set by the unrecovered combat
+       code, it suppresses a second action delay for a monster's turn and
+       caps the armed delay at 800 ms. */
+    unsigned char unknown_a60;
+    /* 0xa61: remembered search-mode state; the combat teardown toggles search
+       mode back on when it reads nonzero. */
+    unsigned char unknown_a61;
     unsigned char flag_a62;    /* 0xa62: party combat-ready bit */
     unsigned char unknown_a63; /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */
@@ -204,7 +295,8 @@ static_assert(offsetof(W8CombatState, combat_update_count) == 0xa5c,
               "W8CombatState_combat_update_count_offset");
 #pragma pack(pop)
 
-extern W8CombatState* g_combat_state;          /* 0x006836A8 */
-extern unsigned int g_combat_countdown_6850b0; /* 0x006850B0 */
+extern W8CombatState* g_combat_state;            /* 0x006836A8 */
+extern unsigned int g_combat_countdown_6850b0;   /* 0x006850B0 */
+extern unsigned char g_combat_difficulty_6850b4; /* 0x006850B4 */
 
 #endif

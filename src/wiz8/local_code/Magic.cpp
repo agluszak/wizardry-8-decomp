@@ -176,7 +176,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
    cast it, it has to have somewhere to aim, it has to be able to act, and the
    two combat gates have to agree. */
 // FUNCTION: WIZ8 0x004fb0a0
-bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
+bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_level)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8CombatSlot* combat_slot;
@@ -678,7 +678,7 @@ void UpdateSpellEffects00500930(void)
             effect->flag_123 = 1;
             if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
                 effect->Source.fReflection == 0) {
-                CollectHostileMonsters00547120(&effect->Source, &effect->monster_ids_0e0);
+                ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
             }
             ProcessSpellEffectTargets(effect);
             if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {

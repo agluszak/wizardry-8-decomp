@@ -3934,7 +3934,7 @@ void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
         if (action_kind == 2 && action_detail != 0 && power_level != 0) {
             fatigue = MonsterCastsSpell(monster_info, action_detail, power_level);
             FatigueMonster(monster_info, fatigue, 0);
-            monster_info->unknown_2df[1] = 1;
+            monster_info->fSpellReleased = 1;
         }
     }
 }
@@ -3948,7 +3948,7 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     W8TargetSource source;
-    W8MissileAttackBlock attack_block;
+    W8SpellEffectDefinition attack_block;
     const W8MonsterAttack* attack;
     unsigned int attack_index;
     unsigned int range_category;
@@ -4005,11 +4005,11 @@ prepare_attack:
 
     range_category = attack->range_category;
     ClearAttackBlock(&attack_block);
-    attack_block.missile_value_04 = attack->missile_value_17;
-    memcpy(attack_block.missile_values_08, attack->missile_values_05, 0x10);
+    attack_block.magnitude = attack->damage_dice;
+    memcpy(attack_block.condition_chances, attack->missile_values_05, 0x10);
     monster_value = record->effective_level_24f;
-    attack_block.monster_value_18 = monster_value + (monster_value < 15 ? monster_value : 15);
-    attack_block.missile_value_1c = attack->missile_value_1b;
+    attack_block.power_level = monster_value + (monster_value < 15 ? monster_value : 15);
+    attack_block.value_1c = attack->missile_value_1b;
 
     if (selected_attack != 0) {
         accuracy =
@@ -4020,7 +4020,7 @@ prepare_attack:
     }
 
 fire_missile:
-    monster_info->unknown_2df[0] = 1;
+    monster_info->f_missile_released = 1;
     FireMissileSourceToTarget(missile_type, &source, &monster_info->Target, &attack_block,
                               selected_attack == 0, range_category, accuracy);
 }
