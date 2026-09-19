@@ -208,18 +208,13 @@ bool MonsterResistsSpellEffect(const W8CombatSlot* target, int power)
 // FUNCTION: WIZ8 0x005524e0
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 {
-    unsigned char* bytes = (unsigned char*)slot;
-    int index;
-
     if (slot->active != 0) {
         SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[slot->effect_id][0], 0);
     }
-    for (index = 0; index < 9; ++index) {
-        bytes[index] = 0;
-    }
-    for (index = 0xd; index < 0x11; ++index) {
-        bytes[index] = 0;
-    }
+    slot->active = false;
+    slot->effect_id = 0;
+    slot->amount = 0;
+    slot->duration_0d = 0;
     RebuildMonsterDerivedStats(monster_info->location_id);
 }
 
@@ -297,12 +292,10 @@ void ResetCombatEffects(void)
 // FUNCTION: WIZ8 0x005524b0
 void ResetPartyEffectBlock(W8EffectSlot* slot)
 {
-    unsigned char* bytes = (unsigned char*)slot;
-
-    bytes[0] = 0;
-    *(int*)(bytes + 1) = 0;
-    *(int*)(bytes + 5) = 0;
-    *(int*)(bytes + 0xd) = 0;
+    slot->active = false;
+    slot->effect_id = 0;
+    slot->amount = 0;
+    slot->duration_0d = 0;
     RebuildPartyEffectBlock0050E700();
     InvalidateMainGameEffectHud();
     RequestRedraw(0x800100);

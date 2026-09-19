@@ -163,9 +163,9 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 FileRead(hFile, &definition->color_10.x, 4, 0);
                 FileRead(hFile, &definition->color_10.y, 4, 0);
                 FileRead(hFile, &definition->color_10.z, 4, 0);
-                FileRead(hFile, &definition->color_to_1c, 4, 0);
-                FileRead(hFile, &definition->color_to_20, 4, 0);
-                FileRead(hFile, &definition->color_to_24, 4, 0);
+                FileRead(hFile, &definition->color_to_1c.x, 4, 0);
+                FileRead(hFile, &definition->color_to_1c.y, 4, 0);
+                FileRead(hFile, &definition->color_to_1c.z, 4, 0);
                 FileRead(hFile, &definition->intensity_28, 4, 0);
                 FileRead(hFile, &definition->intensity_to_2c, 4, 0);
                 FileRead(hFile, &definition->period_30, 4, 0);

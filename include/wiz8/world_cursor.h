@@ -21,8 +21,8 @@ struct W8WorldCursorState {
     unsigned char unknown_0a[2];
     /* 0x0c: accumulated cursor input - screen dx, right-drag dy and screen
        dy - scaled by g_float_005ebc88 into the movement vector each update,
-       then cleared. The group-bind paths also bump [2]. */
-    int input_delta_0c[3];
+       then cleared. The group-bind paths also bump .z. */
+    srVector3i input_delta_0c;
     /* 0x18: camera-relative offset the placement update derives from
        position_28. */
     srVector3T<float> offset_18;

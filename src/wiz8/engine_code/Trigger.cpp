@@ -824,8 +824,8 @@ void UpdateWorldTriggers00443AE0(W8World* world)
         }
         if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
             trigger->flag_0a0_08 != 0 && trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
-            srVector3T<float> trigger_position(trigger->position_118, trigger->position_11c,
-                                               trigger->position_120);
+            srVector3T<float> trigger_position(trigger->position_118.x, trigger->position_118.y,
+                                               trigger->position_118.z);
             float distance = (trigger_position - camera).Length();
             if (trigger->range_maximum_0a8 <= distance) {
                 if (trigger->flag_0a0_06 != 0) {
@@ -979,7 +979,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
 
     if (flag_0a0_11 != 0 || m_pProp != 0) {
         if (m_pProp == 0) {
-            center.Set(position_118, position_11c, position_120);
+            center.Set(position_118.x, position_118.y, position_118.z);
         } else {
             m_pProp->GetCenterPosition(&center);
         }
@@ -1038,7 +1038,7 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
         }
         m_pProp->GetCenterPosition(&position);
     } else {
-        position.Set(position_118, position_11c, position_120);
+        position.Set(position_118.x, position_118.y, position_118.z);
     }
 
     stSound3D* sound = new stSound3D(sound_name, 0);
@@ -1100,15 +1100,15 @@ void W8TriggerEvent::Update()
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            source.x = trigger_030->position_118;
-            source.y = trigger_030->position_11c;
-            source.z = trigger_030->position_120;
+            source.x = trigger_030->position_118.x;
+            source.y = trigger_030->position_118.y;
+            source.z = trigger_030->position_118.z;
             target = source;
             target.z += 100.0f;
 
             axis.Set(0.0, 0.0, 1.0);
-            rotation.vectors[0].Set(trigger_030->value_100, trigger_030->value_104,
-                                    trigger_030->value_108);
+            rotation.vectors[0].Set(trigger_030->direction_100.x, trigger_030->direction_100.y,
+                                    trigger_030->direction_100.z);
             rotation.vectors[1].Set(1.0, 0.0, 0.0);
             rotation.vectors[2].Set(0.0, 1.0, 0.0);
 
@@ -1337,9 +1337,9 @@ void Trigger::RunLinkedTriggers00441590()
 void Trigger::SetPosition004416F0(srVector3T<float>* position)
 {
     flags_0a0 |= 0x800;
-    position_118 = position->x;
-    position_11c = position->y;
-    position_120 = position->z;
+    position_118.x = position->x;
+    position_118.y = position->y;
+    position_118.z = position->z;
     if (rep_item_114 != 0 && m_bRepType == 1) {
         rep_item_114->SetLocation0049F720(position);
         rep_item_114->ApplyRepTransform0049FAA0();
@@ -1563,9 +1563,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             unsigned char unused;
             char action_string[0x80];
             FileRead(handle, &trigger->angle_0fc, 4, 0);
-            FileRead(handle, &trigger->value_100, 4, 0);
-            FileRead(handle, &trigger->value_104, 4, 0);
-            FileRead(handle, &trigger->value_108, 4, 0);
+            FileRead(handle, &trigger->direction_100.x, 4, 0);
+            FileRead(handle, &trigger->direction_100.y, 4, 0);
+            FileRead(handle, &trigger->direction_100.z, 4, 0);
             FileRead(handle, &unused, 1, 0);
             FileRead(handle, action_string, sizeof(action_string), 0);
             if (action == 17) {
@@ -1607,9 +1607,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
 
         trigger->trigger_kind_018 = 2;
-        trigger->position_118 = x * 500.0f;
-        trigger->position_11c = y * 500.0f;
-        trigger->position_120 = z * 500.0f;
+        trigger->position_118.x = x * 500.0f;
+        trigger->position_118.y = y * 500.0f;
+        trigger->position_118.z = z * 500.0f;
         trigger->range_maximum_0a8 = range * 500.0f;
         trigger->m_bRepType = 3;
         trigger->value_0ac = value_ac;
@@ -1931,10 +1931,10 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             if (representation_kind == 1) {
                 FileRead(handle, &trigger->position_118, sizeof(srVector3T<float>), 0);
                 FileRead(handle, &trigger->angle_0fc, 4, 0);
-                FileRead(handle, &trigger->value_100, sizeof(srVector3T<float>), 0);
-                trigger->position_118 *= 500.0f;
-                trigger->position_11c *= 500.0f;
-                trigger->position_120 *= 500.0f;
+                FileRead(handle, &trigger->direction_100, sizeof(srVector3T<float>), 0);
+                trigger->position_118.x *= 500.0f;
+                trigger->position_118.y *= 500.0f;
+                trigger->position_118.z *= 500.0f;
                 trigger->flags_0a0 |= 0x800;
             } else if (representation_kind == 2) {
                 FileRead(handle, trigger->representation_vectors_0cc,
@@ -2042,9 +2042,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 // FUNCTION: WIZ8 0x00441750
 void Trigger::GetPosition(srVector3T<float>* position) const
 {
-    position->x = position_118;
-    position->y = position_11c;
-    position->z = position_120;
+    position->x = position_118.x;
+    position->y = position_118.y;
+    position->z = position_118.z;
 }
 
 // FUNCTION: WIZ8 0x00441780
@@ -2118,9 +2118,9 @@ Trigger::Trigger()
 
     flags_0a0 |= 0x10;
     name_01c[0] = 0;
-    position_118 = 0.0f;
-    position_11c = 0.0f;
-    position_120 = 0.0f;
+    position_118.x = 0.0f;
+    position_118.y = 0.0f;
+    position_118.z = 0.0f;
     action_data_128[0] = 0;
     item_group_seed_354 = GetTickCount() + Random(30000);
     gold_358 = 0;
@@ -2457,18 +2457,18 @@ void Trigger::RunDestination00440DD0(const char* destination)
     if (!named_entity) {
         Trigger* target = FindTriggerByName(destination);
 
-        destination_position.x = target->position_118;
-        destination_position.y = target->position_11c;
-        destination_position.z = target->position_120;
+        destination_position.x = target->position_118.x;
+        destination_position.y = target->position_118.y;
+        destination_position.z = target->position_118.z;
         angle = target->angle_0fc;
-        destination_direction.x = target->value_100;
-        destination_direction.y = target->value_104;
-        destination_direction.z = target->value_108;
+        destination_direction.x = target->direction_100.x;
+        destination_direction.y = target->direction_100.y;
+        destination_direction.z = target->direction_100.z;
     } else {
         angle = 0.0f;
     }
 
-    source_position.Set(position_118, position_11c, position_120);
+    source_position.Set(position_118.x, position_118.y, position_118.z);
     g_octree_6598a4->AdjustPortalDestination(&destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
@@ -3104,7 +3104,7 @@ void Trigger::Run(int source)
             srVector3T<float> axis;
             srMatrix3T<float> rotation;
 
-            source_position.Set(position_118, position_11c, position_120);
+            source_position.Set(position_118.x, position_118.y, position_118.z);
             target_position = source_position;
             target_position.z += 100.0f;
             rotation.SetIdentity();
