@@ -10,6 +10,7 @@
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/NPCScripting.h"

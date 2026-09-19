@@ -649,6 +649,165 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
     return PLLength(npc->items);
 }
 
+// FUNCTION: WIZ8 0x0055b290
+bool NpcAcceptsTradeItemClass(W8NpcState* npc, W8ItemInstance* item)
+{
+    switch (g_item_records[item->item_id].equip_class) {
+    case 0:
+        if ((npc->record->trade_item_class_mask & 0x1u) != 0) {
+            return 1;
+        }
+        break;
+    case 1:
+        if ((npc->record->trade_item_class_mask & 0x2u) != 0) {
+            return 1;
+        }
+        break;
+    case 2:
+        if ((npc->record->trade_item_class_mask & 0x4u) != 0) {
+            return 1;
+        }
+        break;
+    case 3:
+        if ((npc->record->trade_item_class_mask & 0x8u) != 0) {
+            return 1;
+        }
+        break;
+    case 4:
+        if ((npc->record->trade_item_class_mask & 0x10u) != 0) {
+            return 1;
+        }
+        break;
+    case 5:
+        if ((npc->record->trade_item_class_mask & 0x20u) != 0) {
+            return 1;
+        }
+        break;
+    case 6:
+        if ((npc->record->trade_item_class_mask & 0x40u) != 0) {
+            return 1;
+        }
+        break;
+    case 7:
+        if ((npc->record->trade_item_class_mask & 0x80u) != 0) {
+            return 1;
+        }
+        break;
+    case 8:
+        if ((npc->record->trade_item_class_mask & 0x100u) != 0) {
+            return 1;
+        }
+        break;
+    case 9:
+        if ((npc->record->trade_item_class_mask & 0x200u) != 0) {
+            return 1;
+        }
+        break;
+    case 10:
+        if ((npc->record->trade_item_class_mask & 0x400u) != 0) {
+            return 1;
+        }
+        break;
+    case 11:
+        if ((npc->record->trade_item_class_mask & 0x800u) != 0) {
+            return 1;
+        }
+        break;
+    case 12:
+        if ((npc->record->trade_item_class_mask & 0x1000u) != 0) {
+            return 1;
+        }
+        break;
+    case 13:
+        if ((npc->record->trade_item_class_mask & 0x2000u) != 0) {
+            return 1;
+        }
+        break;
+    case 14:
+        if ((npc->record->trade_item_class_mask & 0x4000u) != 0) {
+            return 1;
+        }
+        break;
+    case 15:
+        if ((npc->record->trade_item_class_mask & 0x8000u) != 0) {
+            return 1;
+        }
+        break;
+    case 16:
+        if ((npc->record->trade_item_class_mask & 0x10000u) != 0) {
+            return 1;
+        }
+        break;
+    case 17:
+        if ((npc->record->trade_item_class_mask & 0x20000u) != 0) {
+            return 1;
+        }
+        break;
+    case 18:
+        if ((npc->record->trade_item_class_mask & 0x40000u) != 0) {
+            return 1;
+        }
+        break;
+    case 19:
+        if ((npc->record->trade_item_class_mask & 0x80000u) != 0) {
+            return 1;
+        }
+        break;
+    case 20:
+        if ((npc->record->trade_item_class_mask & 0x100000u) != 0) {
+            return 1;
+        }
+        break;
+    case 21:
+        if ((npc->record->trade_item_class_mask & 0x200000u) != 0) {
+            return 1;
+        }
+        break;
+    case 22:
+        if ((npc->record->trade_item_class_mask & 0x400000u) != 0) {
+            return 1;
+        }
+        break;
+    case 23:
+        if ((npc->record->trade_item_class_mask & 0x800000u) != 0) {
+            return 1;
+        }
+        break;
+    case 24:
+        if ((npc->record->trade_item_class_mask & 0x1000000u) != 0) {
+            return 1;
+        }
+        break;
+    case 25:
+        if ((npc->record->trade_item_class_mask & 0x2000000u) != 0) {
+            return 1;
+        }
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0055b250
+bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item)
+{
+    if ((g_item_records[item->item_id].flags_041 & 2) != 0) {
+        return 0;
+    }
+    return NpcAcceptsTradeItemClass(npc, item);
+}
+
+// FUNCTION: WIZ8 0x0055b5a0
+int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
+                                unsigned char identified)
+{
+    W8ItemInstance item;
+    ReplaceOrCreateItem(&item, item_id, 0, identified, 0);
+    item.stack_count = stack_count;
+    return CalculateTradeStackPrice(npc, &item, mode);
+}
+
 // FUNCTION: WIZ8 0x0055ae00
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity)
 {

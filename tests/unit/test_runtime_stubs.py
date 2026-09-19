@@ -22,6 +22,7 @@ from wiz8decomp.runtime_stubs import (
     ResolvedStub,
     RuntimeStubError,
     SourceFacts,
+    _declared_callable,
     linked_objects,
     render_alias_object,
     render_source,
@@ -133,6 +134,19 @@ def test_resolve_stubs_binds_declaration_by_qualified_name(monkeypatch) -> None:
     assert stubs[0].address == 0x00547570
     assert stubs[0].identity == "declaration"
     assert stubs[0].source_file.endswith("Monster.cpp")
+
+
+def test_declared_callable_does_not_bind_another_class_method() -> None:
+    facts = SourceFacts(
+        markers_by_address={},
+        callables_by_name={
+            "Accept": (
+                DeclaredCallable(0x005C6910, "first.cpp", 0, False, True, None),
+                DeclaredCallable(0x005C76C0, "second.cpp", 0, False, True, None),
+            )
+        },
+    )
+    assert _declared_callable(facts, "W8CharacterPage005EF664::Accept", "Accept", 0) is None
 
 
 def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:

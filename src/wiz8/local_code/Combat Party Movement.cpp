@@ -10,6 +10,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
+#include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
@@ -460,4 +461,80 @@ void InterruptActivePartyMovement(void)
         }
     }
     UpdatePartyMovementControl();
+}
+
+// FUNCTION: WIZ8 0x004efda0
+void FinishPartyMovementAction004EFDA0(void)
+{
+    if (g_combat_state->uiCurrentPartyAction != 1 && g_combat_state->uiCurrentPartyAction != 2) {
+        g_combat_state->uiCurrentPartyActionStatus = 1;
+        return;
+    }
+    if (GetLevelDataFlag6() != 0 && g_combat_state->uiCurrentPartyActionStatus == 2) {
+        ShowNotice(8, gppStringList[0x21d], -1, -1, 0);
+    }
+    SoundPlay("Data\\Sound\\Misc\\Movement_Bar_Pop_Up.wav", 0);
+    ClearLevelDataFlag6();
+    if (g_combat_state->uiCurrentPartyAction == 2) {
+        SetLevelDataFlag8();
+    }
+    EnableFreeTurnButton();
+    InvalidatePartyMovementPanel();
+    if (g_settings_6850c8.continuous_combat != 0) {
+        g_combat_state->party_movement_clock = SetCountdownClock(1000);
+    }
+    TurnPartyTo(g_status_685170.party_heading);
+    g_combat_state->uiCurrentPartyActionStatus = 1;
+}
+
+// FUNCTION: WIZ8 0x004efc00
+void StartPartyMovementAction004EFC00(void)
+{
+    if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
+        gXStatus.fPartyMovementMode = 1;
+        ShowNotice(8, gppStringList[0x21b], -1, -1, 0);
+        gXStatus.party_move_distance = 0.0f;
+    }
+    if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
+        if (GetLevelDataFlag6() != 0 && g_combat_state->uiCurrentPartyActionStatus == 2) {
+            ShowNotice(8, gppStringList[0x21d], -1, -1, 0);
+        }
+        SoundPlay("Data\\Sound\\Misc\\Movement_Bar_Pop_Up.wav", 0);
+        ClearLevelDataFlag6();
+        if (g_combat_state->uiCurrentPartyAction == 2) {
+            SetLevelDataFlag8();
+        }
+        EnableFreeTurnButton();
+        InvalidatePartyMovementPanel();
+        if (g_settings_6850c8.continuous_combat != 0) {
+            g_combat_state->party_movement_clock = SetCountdownClock(1000);
+        }
+        TurnPartyTo(g_status_685170.party_heading);
+    }
+    g_combat_state->uiCurrentPartyActionStatus = 1;
+    g_combat_state->flag_a55 = 0;
+}
+
+// FUNCTION: WIZ8 0x004f00c0
+char PartyMovementReachedPhaseLimit004F00C0(void)
+{
+    if (g_combat_state->uiCurrentPartyActionStatus != 1) {
+        srAssertFail("gpCombat->uiCurrentPartyActionStatus == ACTION_STATUS_IN_PROGRESS",
+                     COMBAT_MOVEMENT_CPP, 0x112, 0);
+    }
+    if (gXStatus.fPartyMovementMode == 0) {
+        srAssertFail("gXStatus.fPartyMovementMode", COMBAT_MOVEMENT_CPP, 0x113, 0);
+    }
+    if (gXStatus.flPartyMoveDistLimit <= 0.0f) {
+        srAssertFail("gXStatus.flPartyMoveDistLimit > 0", COMBAT_MOVEMENT_CPP, 0x114, 0);
+    }
+    float moved_fraction = gXStatus.party_move_distance / gXStatus.flPartyMoveDistLimit;
+    int remaining_phases = 101 - g_combat_state->uiPartyActionPhase;
+    if (remaining_phases == 0) {
+        srAssertFail("uiTotalMovementPhases > 0", COMBAT_MOVEMENT_CPP, 0x120, 0);
+    }
+    unsigned int elapsed_phases = g_combat_state->round_counter -
+                                  g_combat_state->uiPartyActionPhase +
+                                  (g_combat_state->uiCurrentPartyAction != 0 ? 9 : 0) + 2;
+    return static_cast<float>(elapsed_phases) / remaining_phases <= moved_fraction;
 }
