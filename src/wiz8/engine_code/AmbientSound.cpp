@@ -126,7 +126,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                 match->fade_timer.Restart();
                                 match->fade_timer.m_flags &= ~8;
                                 match->fade_timer.m_start =
-                                    match->fade_timer.Method00439A60() - match->fade_timer.m_start;
+                                    match->fade_timer.GetTime00439A60() - match->fade_timer.m_start;
                                 match->fade_timer.SetDuration(-1.0f);
                                 sound_handle = -1;
                                 handed_off = 1;
@@ -144,7 +144,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                         fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
                         fade_timer.Restart();
                         fade_timer.m_flags &= ~8;
-                        fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+                        fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
                         fade_timer.SetDuration(-1.0f);
                     }
                     return;
@@ -196,7 +196,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
                 fade_timer.Restart();
                 fade_timer.m_flags &= ~8;
-                fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+                fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
                 fade_timer.SetDuration(-1.0f);
             }
         }
@@ -354,7 +354,7 @@ void W8AmbientSound::Service(unsigned char entered)
         fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(target_volume));
         fade_timer.Restart();
         fade_timer.m_flags &= ~8;
-        fade_timer.m_start = fade_timer.Method00439A60() - fade_timer.m_start;
+        fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
         fade_timer.SetDuration(-1.0f);
     }
 }
@@ -409,7 +409,7 @@ void W8AmbientSound::UpdateFade()
                     --current_volume;
                 } else if ((timer->m_flags & 8) == 0) {
                     timer->m_flags |= 8;
-                    timer->m_start = timer->Method00439A60() - timer->m_start;
+                    timer->m_start = timer->GetTime00439A60() - timer->m_start;
                 }
                 SoundSetVolume(sound_handle, current_volume);
             }

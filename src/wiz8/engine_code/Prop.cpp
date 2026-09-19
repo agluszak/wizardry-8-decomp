@@ -89,8 +89,8 @@ W8Prop::W8Prop()
     flags_1c = 0;
     m_name = 0;
     unknown_024 = 0;
-    unknown_004 = 4;
-    unknown_008 = IncrementValue60DFAC();
+    kind_004 = 4;
+    id_008 = IncrementValue60DFAC();
     m_pRep = new W8PropRepresentation();
     m_animation_timer = new W8GameTimer();
     position_02c.SetZero();
@@ -111,8 +111,9 @@ W8Prop::W8Prop()
    with the source capacity.  Clone's vtable slot allocates 0xc4 and lands here. */
 // FUNCTION: WIZ8 0x0044ad10
 W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
-    : W8AnimRep005ED050(other), animation_speed(other.animation_speed), value_0a0(other.value_0a0),
-      flag_0a4(other.flag_0a4), flag_0a5(other.flag_0a5), value_0a8(other.value_0a8),
+    : W8AnimRep005ED050(other), animation_speed(other.animation_speed),
+      frame_index_0a0(other.frame_index_0a0), animation_running_0a4(other.animation_running_0a4),
+      random_play_0a5(other.random_play_0a5), play_chance_0a8(other.play_chance_0a8),
       flag_0ac(other.flag_0ac), flag_0ad(other.flag_0ad), slots(5), flag_0c0(other.flag_0c0),
       flag_0c1(other.flag_0c1)
 {
@@ -617,7 +618,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
    value_066 frame is latched into flag_064 first, and an idle prop with the
    random flag may start a fresh run on its own. */
 // FUNCTION: WIZ8 0x0044c030
-void W8Prop::Method44C030()
+void W8Prop::UpdatePropAnimation0044C030()
 {
     W8PropRepresentation* rep = Rep();
     unsigned int total;
@@ -634,10 +635,11 @@ void W8Prop::Method44C030()
         }
         rep->value_066 = 0xffff;
     }
-    if (static_cast<int>(total) < 2 || rep->flag_0a4 != 0) {
+    if (static_cast<int>(total) < 2 || rep->animation_running_0a4 != 0) {
         return;
     }
-    if (rep->flag_06d == 0 && rep->flag_0a5 != 0 && rand() * (1.0f / RAND_MAX) < rep->value_0a8) {
+    if (rep->flag_06d == 0 && rep->random_play_0a5 != 0 &&
+        rand() * (1.0f / RAND_MAX) < rep->play_chance_0a8) {
         if (rep->flag_06e == 2) {
             rep->flag_064 = rep->counter_094;
             rep->flag_06e = 1;
@@ -669,14 +671,14 @@ void W8Prop::Method44C030()
         animation = Rep()->animation;
         if (animation->path_24 != 0) {
             if ((flags_1c & 2) != 0) {
-                rep->value_0a0 += frames;
-                if (rep->value_0a0 >= animation->value_16) {
-                    rep->value_0a0 = animation->value_16;
+                rep->frame_index_0a0 += frames;
+                if (rep->frame_index_0a0 >= animation->value_16) {
+                    rep->frame_index_0a0 = animation->value_16;
                 }
             } else {
-                rep->value_0a0 = rep->flag_064;
+                rep->frame_index_0a0 = rep->flag_064;
             }
-            PathAISetValue004A9F60(animation->path_24, static_cast<float>(rep->value_0a0));
+            PathAISetValue004A9F60(animation->path_24, static_cast<float>(rep->frame_index_0a0));
         }
     }
     if (rep->flag_06d == 0) {
@@ -943,7 +945,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
    path and, when the animation is already running, snapshot the live
    position into the prop. */
 // FUNCTION: WIZ8 0x0044c670
-void W8Prop::Method44C670()
+void W8Prop::ApplyAnimationFrame0044C670()
 {
     unsigned int count;
     int index;
@@ -1006,7 +1008,7 @@ void W8Prop::Method44C670()
    forward. A stopped animation binds the single current instance and applies
    either the rep's path or its stored transform. */
 // FUNCTION: WIZ8 0x0044c830
-void W8Prop::Method44C830(W8World* world)
+void W8Prop::AttachAnimationInstances0044C830(W8World* world)
 {
     int index;
     int count;
@@ -1029,31 +1031,6 @@ void W8Prop::Method44C830(W8World* world)
     srMatrix3T<float> rotation;
     srMatrix3T<float> next;
     srMatrix3T<float> rep_rotation;
-    W8Quaternion first;
-    W8Quaternion second;
-    W8Quaternion adjusted;
-    double amount;
-    double dot;
-    double b;
-    double angle;
-    double sine;
-    double w;
-    double x;
-    double y;
-    double z;
-    double scale;
-    double sx;
-    double sy;
-    double sz;
-    double xx;
-    double xy;
-    double xz;
-    double yy;
-    double yz;
-    double zz;
-    double xw;
-    double yw;
-    double zw;
     float inv;
 
     if (Rep()->active == 0) {
@@ -1096,68 +1073,18 @@ void W8Prop::Method44C830(W8World* world)
             next = path->rotations_14[next_frame];
             instance->getRotation(rotation_048);
             if (!(rotation == next)) {
-                first.SetFromMatrix(rotation);
-                second.SetFromMatrix(next);
-                amount = unknown_024;
-                adjusted = second;
-                dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
-                      first.v.z * second.v.z;
-                if (dot < g_zero_005ebb40) {
-                    dot = -dot;
-                    adjusted.v = -adjusted.v;
-                    adjusted.w = -adjusted.w;
-                }
-                if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
-                    dot = g_double_005ebc30 - amount;
-                    b = amount;
-                } else {
-                    angle = acos(dot);
-                    sine = sin(angle);
-                    dot = sin((g_double_005ebc30 - amount) * angle) / sine;
-                    b = sin(angle * amount) / sine;
-                }
-                adjusted.v = dot * first.v + b * adjusted.v;
-                w = first.w * dot + adjusted.w * b;
-                x = adjusted.v.x;
-                y = adjusted.v.y;
-                z = adjusted.v.z;
-                scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
-                sx = scale * x;
-                sy = scale * y;
-                sz = scale * z;
-                xw = sx * w;
-                yw = sy * w;
-                zw = sz * w;
-                xx = sx * x;
-                xy = sx * y;
-                xz = sx * z;
-                yy = sy * y;
-                yz = sy * z;
-                zz = sz * z;
-                rotation.vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
-                rotation.vectors[1].x = static_cast<float>(xy + zw);
-                rotation.vectors[2].x = static_cast<float>(xz - yw);
-                rotation.vectors[0].y = static_cast<float>(xy - zw);
-                rotation.vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
-                rotation.vectors[2].y = static_cast<float>(yz + xw);
-                rotation.vectors[0].z = static_cast<float>(xz + yw);
-                rotation.vectors[1].z = static_cast<float>(yz - xw);
-                rotation.vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+                W8Quaternion::InterpolateRotation(rotation, next, unknown_024, &rotation);
             }
             rotation_06c = rotation;
             current = **path->nodes_0c->GetAt(Rep()->flag_064);
             next_pos = **path->nodes_0c->GetAt(next_frame);
             inv = g_float_005ebb38 - unknown_024;
-            position.x = current.x * inv + next_pos.x * unknown_024;
-            position.y = current.y * inv + next_pos.y * unknown_024;
-            position.z = current.z * inv + next_pos.z * unknown_024;
+            position = current * inv + next_pos * unknown_024;
             if (path->scales_18 != 0) {
                 has_scales = true;
                 current_scale = path->scales_18[Rep()->flag_064];
                 next_scale = path->scales_18[next_frame];
-                scale_vector.x = current_scale.x * inv + next_scale.x * unknown_024;
-                scale_vector.y = current_scale.y * inv + next_scale.y * unknown_024;
-                scale_vector.z = current_scale.z * inv + next_scale.z * unknown_024;
+                scale_vector = current_scale * inv + next_scale * unknown_024;
             }
             node = instance->firstChild();
             if (node == 0) {
@@ -1226,13 +1153,13 @@ void W8Prop::Method44C830(W8World* world)
     }
 }
 
-/* The detach counterpart to Method44C830: the current frame is stashed in
+/* The detach counterpart to AttachAnimationInstances0044C830: the current frame is stashed in
    flag_0ac, then every dispatched instance is flagged disabled and detached
    from the scene.  While the animation runs the whole list is walked;
    otherwise only the snapshot frame's instance (or the first dispatch-list
    entry when a run is in progress) is pulled. */
 // FUNCTION: WIZ8 0x0044d360
-void W8Prop::Method44D360(W8World* world)
+void W8Prop::DetachAnimationInstances0044D360(W8World* world)
 {
     stModelInstance* instance;
     unsigned int count;
@@ -1274,7 +1201,7 @@ void W8Prop::Method44D360(W8World* world)
 /* Restore the rep's persisted animation state: frame, the two counters, the
    direction flags and one byte the format no longer uses.  Each saved index
    is clamped to the loaded animation's frame count, path values are re-synced
-   while a running animation is active, and Method44C670 reapplies the state.
+   while a running animation is active, and ApplyAnimationFrame0044C670 reapplies the state.
    The read chain's success is reported even though the restore runs either
    way. */
 // FUNCTION: WIZ8 0x0044dbd0
@@ -1313,7 +1240,7 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
                 }
             }
         }
-        Method44C670();
+        ApplyAnimationFrame0044C670();
     }
     return success;
 }
@@ -1500,7 +1427,7 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
         *prop_out = prop;
         prop->m_animation_timer->SetDuration(
             g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
-        prop->Method44C670();
+        prop->ApplyAnimationFrame0044C670();
     }
     return success;
 }
@@ -1662,8 +1589,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         if (AnimationIsRunning(animation) == 1) {
             animation->value_16 = frame_count;
         }
-        this->value_0a8 = animation->value_10;
-        this->flag_0a5 = animation->flag_0c != 0;
+        this->play_chance_0a8 = animation->value_10;
+        this->random_play_0a5 = animation->flag_0c != 0;
         list_count = AnimObjValue004A15D0(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             srModelInstance* instance;
@@ -1702,8 +1629,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index);
             if (path != 0) {
-                PathAISetFlag38004AA9D0(path, 1);
-                PathAISetFlag1C004AAA10(path, 1);
+                PathAISetLooping004AA9D0(path, 1);
+                PathAISetDiscreteMode004AAA10(path, 1);
                 PathAISetScale004AA9C0(path, animation->playback_scale_08);
             }
         }
@@ -1803,13 +1730,13 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 unsigned int path_count;
                 unsigned int path_i;
 
-                this->flag_0a4 = 1;
+                this->animation_running_0a4 = 1;
                 if (AnimationIsRunning(this->animation) == 1) {
                     path_count = AnimObjListCount004A1620(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
                         W8PathAI* path =
                             AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i);
-                        path->flag_39 = 1;
+                        path->step_by_node_39 = 1;
                     }
                 }
             }
@@ -1982,7 +1909,7 @@ void LoadWorldProps0044E9A0(W8World* world, int handle)
             entries = static_cast<int>(PLLength(world->plsProps));
             for (int entry_index = 0; entry_index < entries; ++entry_index) {
                 entry = static_cast<W8Prop*>(PLGet(world->plsProps, entry_index));
-                if (entry->unknown_008 == key) {
+                if (entry->id_008 == key) {
                     prop = entry;
                     break;
                 }

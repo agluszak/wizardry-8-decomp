@@ -2474,9 +2474,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
     monster_info = MonsterInfoFromID(0xad1, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
     if (effect->Source.fBackfire != 0) {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (static_cast<unsigned int>(monster->attribute_values_d1[4]) +
-                           static_cast<unsigned int>(monster->attribute_values_d1[1])) /
-                              2) {
+        if (Random(100) < (monster->attribute_values_d1[4] + monster->attribute_values_d1[1]) / 2) {
             QueueNpcScriptLine(0x16, 0, 0, 0);
         }
         return;
@@ -2541,9 +2539,7 @@ void ResolveCharmRefusal(W8SpellEffectEntry* effect)
         QueueDialogueNpcRefusal00576DA0();
     } else {
         monster = GetMonsterDataForInfo(monster_info);
-        if (Random(100) < (static_cast<unsigned int>(monster->attribute_values_d1[4]) +
-                           static_cast<unsigned int>(monster->attribute_values_d1[1])) /
-                              2) {
+        if (Random(100) < (monster->attribute_values_d1[4] + monster->attribute_values_d1[1]) / 2) {
             QueueNpcScriptLine(0x16, 0, 0, 0);
             return;
         }
@@ -2699,6 +2695,9 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
             effect->argument = amount;
             target_copy = effect->target;
             PrepareSpellTarget004FEA50(effect->kind, &source_copy, &target_copy);
+            /* The bounced cast carries the reflection flag so it cannot
+               reflect a second time. */
+            source_copy.fReflection = 1;
             CastSpellFromSource(effect->kind, &source_copy, &target_copy, effect->argument,
                                 effect->value_0d4, 0, 0, 0, 0, 0, 0);
             if (character == 0) {
@@ -2709,10 +2708,9 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
                     }
                 }
             } else {
-                unsigned int party_slot = CharacterPointerToPartySlot(character);
-                PostCharacterNotice(party_slot, gppStringList[0x198]);
+                PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x198]);
                 if (--character->enchantments[4].value_00 == 0) {
-                    ClearCharacterEnchantmentSlot(party_slot, 4);
+                    ClearCharacterEnchantmentSlot(CharacterPointerToPartySlot(character), 4);
                 }
             }
         }
@@ -3214,7 +3212,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         if (6 < level) {
             level = 7;
         }
-        SetKnockKnockTarget(level);
+        SetKnockKnockTarget(level, effect->Source.unknown_18[1], effect->Source.fBackfire);
         effect->reported_124 = 1;
         break;
     case 0x13:
@@ -3592,8 +3590,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             character = &g_status_685170.buffers.characters[effect->Source.iChar];
             cost = SpellCastFatigueCost(spell_id, effect->argument);
             FatigueCharacter(effect->Source.iChar, cost, 1, 0);
-            while (SpellCastFatigueCost(spell_id, 1) <=
-                   static_cast<unsigned int>(character->stamina)) {
+            while (SpellCastFatigueCost(spell_id, 1) <= character->stamina) {
                 if (character->sp_left[g_spell_records[spell_id].realm] <
                         g_spell_records[spell_id].spell_point_cost ||
                     ConsumeCastSpellPoints004FA4D0(effect->Source.iChar, spell_id, 8, &cost, 1) !=

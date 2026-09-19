@@ -51,16 +51,27 @@ int GetPairedEquipSlot(int equip_slot);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 
 /* 0x0051B7B0 and 0x0051CCE0 are also expanded at their own call sites inside
-   this unit: retail inlines the display-name body seven times in UseItem, three
-   times in FormatItemDisplayName and twice in CastItemSpell0051EE70, and the
-   name-kind test once in EquipMatchingPartnerItem, while nine and eight call
-   sites in other units call the out-of-line copies. VC6 /O2 expands only
-   inline-marked/member functions (measured: moving these definitions above their
-   callers changes nothing), so the original marked them inline; with the body
-   visible only here that marking also suppresses the out-of-line emission my
-   build then needs. Kept as ordinary calls until the visibility question is
-   settled by its owner. */
+   this unit: retail inlines the display-name body seven times in UseItem,
+   three times in FormatItemDisplayName and twice in CastItemSpell0051EE70,
+   and the name-kind test once in EquipMatchingPartnerItem, while nine and
+   eight call sites in other units call the out-of-line copies. VC6 /O2
+   expands only inline-marked bodies, yet the retail copies sit inside the PC
+   Item unit's .text run in source order - ordinary emitted definitions, not
+   linker COMDATs. Measured: a unit-local inline, a header inline and a bare
+   inline declaration each drop the out-of-line emission entirely (all uses
+   expand, the symbol goes unresolved), and a header inline additionally
+   expands the body at the nine retail CALL sites. No single marking
+   reproduces the pattern, so these stay ordinary declarations and the
+   in-unit expansions remain an unresolved compiler-lowering difference
+   rather than a duplicated helper body. */
 bool ItemHasSingledOutGenericName(int item_id);
+
+/* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
+extern const unsigned short g_generic_item_name_notice[147];
+
+/* 0x0068C108: one lazily built generic name per unidentified-name index. */
+enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
+extern wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
 unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce); /* 0x00522090 */
@@ -164,13 +175,6 @@ void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
    unidentified ("Uncursed item" style) display name. */
 unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 
-/* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
-extern const unsigned short g_generic_item_name_notice[147];
-
-/* 0x0068C108: one lazily built generic name per unidentified-name index. */
-enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
-extern wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
-
 /* Defined in Dialog Code\AssayDialog.cpp (GLOBAL 0x0061E7DC): the
    gppStringList index of each equipment class's display name. */
 
@@ -242,7 +246,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
 
 /* The same batch's remaining bodies, recovered together with them. */
 void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
-unsigned int SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
+unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
 void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);
 void RemovePartyPoolEntry00521C20(unsigned int index);
 unsigned char FindItemByDatabaseKindOnParty00521480(unsigned short item_kind,

@@ -580,7 +580,7 @@ W8Missile::W8Missile()
       flag_1e4(0), flag_1e5(0), flag_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0),
       lifetime_1f0(15000.0f), value_1f4(0), retargeted_322(false)
 {
-    W8GrObject::unknown_004 = 1;
+    W8GrObject::kind_004 = 1;
     radius_084 = 1.0f;
     if (g_runtime_world_scale_6081e8 < 1.0f) {
         g_runtime_world_scale_6081e8 = 1.0f;
@@ -593,7 +593,7 @@ W8Missile::W8Missile()
     if (g_runtime_world_scale_6081e8 < 1.0f) {
         g_runtime_world_scale_6081e8 = 1.0f;
     }
-    unknown_008 = IncrementValue60DFAC();
+    id_008 = IncrementValue60DFAC();
 
     m_pRep = new W8MissileRep;
     if (m_pRep == 0) {

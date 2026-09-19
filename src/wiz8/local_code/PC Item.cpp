@@ -783,11 +783,11 @@ bool CanCharacterUseItem(const W8Character* character, int item_id)
 // FUNCTION: WIZ8 0x0051d7a0
 bool AnyPartyMemberCanUseItem(int item_id)
 {
-    unsigned int slot;
+    int slot;
 
     for (slot = 0; slot < 8; ++slot) {
         if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-            g_status_685170.buffers.characters[slot].hp_current != 0 &&
+            g_status_685170.buffers.characters[slot].hp_current > 0 &&
             g_status_685170.buffers.characters[slot].highest_condition < 0x12) {
             if (CanCharacterUseItem(&g_status_685170.buffers.characters[slot], item_id)) {
                 return true;
@@ -889,8 +889,7 @@ int GetItemEquipSlotGroup(int item_id)
 /* What to call an item. An identified one is called by its own name, which
    leads its record - so the record address is the name address. An
    unidentified one is called by the generic name its index shares, built once
-   on first use and kept. Defined above the bodies that use it because retail
-   expands it at its in-unit call sites. */
+   on first use and kept. */
 // FUNCTION: WIZ8 0x0051b7b0
 wchar_t* GetItemDisplayName(const W8ItemInstance* item)
 {
@@ -983,25 +982,25 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     unsigned char used;
 
     if (!CanCharacterUseItem(character, item->item_id)) {
-        PostCharacterNotice(party_slot, gppStringList[0x164 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x590 / 4], GetItemDisplayName(item));
         *out_uses = -1;
         return 0;
     }
     if (!CanCharacterActivateItem(character, item)) {
-        PostCharacterNotice(party_slot, gppStringList[0x165 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x594 / 4], GetItemDisplayName(item));
         goto finish;
     }
 
     if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x1f1 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x7c4 / 4], GetItemDisplayName(item));
         event_type = g_special_event_0068c558;
     } else if (record->quantity_kind == 4 && item->uses_or_charges == 0) {
-        PostCharacterNotice(party_slot, gppStringList[0x1f2 / 4], GetItemDisplayName(item));
+        PostCharacterNotice(party_slot, gppStringList[0x7c8 / 4], GetItemDisplayName(item));
         event_type = g_effect_005ee624;
     } else {
         if (record->equip_class == 0xd &&
             character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x166 / 4]);
+            PostCharacterNotice(party_slot, gppStringList[0x598 / 4]);
             goto finish;
         }
 
@@ -4060,7 +4059,7 @@ unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
    has been announced; and an item that cannot be held together with what is
    already there is left where it is, with the pair swapping around it. */
 // FUNCTION: WIZ8 0x0051d3b0
-unsigned int SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh)
+unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;
@@ -4135,13 +4134,13 @@ void BindCharacterItems(int party_slot, int arg_2)
 {
     if (gXStatus.fCombatMode != 0) {
         if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
-            ShowNotice(0xc, gppStringList[0x1f6 / 4], -1, 0xffffffff, 0);
+            ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, 0xffffffff, 0);
             return;
         }
         if (g_combat_state->iActionChar == party_slot && g_combat_state->eCombatActionStatus == 2 &&
             (g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_ATTACK ||
              g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_BERSERK)) {
-            ShowNoticef(8, gppStringList[0x1f7 / 4],
+            ShowNoticef(8, gppStringList[0x7dc / 4],
                         g_status_685170.buffers.characters[party_slot].name);
             return;
         }

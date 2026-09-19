@@ -107,10 +107,94 @@ inline float SignedPlaneDistance(const srVector4T<float>& plane, const srVector3
 class W8Quaternion {
 public:
     W8Quaternion* SetFromMatrix(const srMatrix3T<float>& matrix); /* 0x0044ECA0 */
+    /* Short-arc slerp between two keyframe rotations expanded back into a
+       rotation matrix: the copy of `to` is sign-fixed so the dot stays
+       positive, a near-coincident pair falls back to a linear blend, and the
+       normalized quaternion is written out through the 2/norm^2 expansion.
+       Prop 0x0044C830 and PathAIApply 0x004AA520 inline the same sequence. */
+    static void InterpolateRotation(const srMatrix3T<float>& from, const srMatrix3T<float>& to,
+                                    double amount, srMatrix3T<float>* rotation);
 
     float w;
     srVector3T<float> v;
 };
+
+inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
+                                              const srMatrix3T<float>& to, double amount,
+                                              srMatrix3T<float>* rotation)
+{
+    W8Quaternion first;
+    W8Quaternion second;
+    W8Quaternion adjusted;
+    double dot;
+    double b;
+    double angle;
+    double sine;
+    double w;
+    double x;
+    double y;
+    double z;
+    double scale;
+    double sx;
+    double sy;
+    double sz;
+    double xx;
+    double xy;
+    double xz;
+    double yy;
+    double yz;
+    double zz;
+    double xw;
+    double yw;
+    double zw;
+
+    first.SetFromMatrix(from);
+    second.SetFromMatrix(to);
+    adjusted = second;
+    dot = first.w * second.w + first.v.x * second.v.x + first.v.y * second.v.y +
+          first.v.z * second.v.z;
+    if (dot < g_zero_005ebb40) {
+        dot = -dot;
+        adjusted.v = -adjusted.v;
+        adjusted.w = -adjusted.w;
+    }
+    if (g_double_005ebc30 - dot <= g_double_005ec1f0) {
+        dot = g_double_005ebc30 - amount;
+        b = amount;
+    } else {
+        angle = acos(dot);
+        sine = sin(angle);
+        dot = sin((g_double_005ebc30 - amount) * angle) / sine;
+        b = sin(angle * amount) / sine;
+    }
+    adjusted.v = dot * first.v + b * adjusted.v;
+    w = first.w * dot + adjusted.w * b;
+    x = adjusted.v.x;
+    y = adjusted.v.y;
+    z = adjusted.v.z;
+    scale = g_double_005ec1e8 / (w * w + x * x + y * y + z * z);
+    sx = scale * x;
+    sy = scale * y;
+    sz = scale * z;
+    xw = sx * w;
+    yw = sy * w;
+    zw = sz * w;
+    xx = sx * x;
+    xy = sx * y;
+    xz = sx * z;
+    yy = sy * y;
+    yz = sy * z;
+    zz = sz * z;
+    rotation->vectors[0].x = static_cast<float>(g_double_005ebc30 - (yy + zz));
+    rotation->vectors[1].x = static_cast<float>(xy + zw);
+    rotation->vectors[2].x = static_cast<float>(xz - yw);
+    rotation->vectors[0].y = static_cast<float>(xy - zw);
+    rotation->vectors[1].y = static_cast<float>(g_double_005ebc30 - (xx + zz));
+    rotation->vectors[2].y = static_cast<float>(yz + xw);
+    rotation->vectors[0].z = static_cast<float>(xz + yw);
+    rotation->vectors[1].z = static_cast<float>(yz - xw);
+    rotation->vectors[2].z = static_cast<float>(g_double_005ebc30 - (xx + yy));
+}
 
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,

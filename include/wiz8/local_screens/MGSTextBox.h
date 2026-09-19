@@ -61,7 +61,10 @@ void SetTextBoxMode(unsigned char mode, int value);
 /* 0x00590BD0: re-derive the text-box mode from the live screen state; 0xffff
    asks for the automatic choice. */
 void RefreshTextBoxMode00590BD0(unsigned short mode);
-void SetKnockKnockTarget(int target); /* 0x0058A9C0 */
+/* 0x0058A9C0: the lock-interaction call convention - its caller passes the
+   same (level, flag, backfire) triple CastSpellAtLockInteraction00587C80
+   takes; the body reads the target only. */
+void SetKnockKnockTarget(int target, int flag, int backfire);
 
 /* 0x005905F0: merge text onto a box's last used line, re-posting the combined
    line so wrapping, highlighting and the link counts rebuild; -1 picks the box

@@ -101,24 +101,70 @@ struct W8AttachmentOffset {
 };
 
 // GLOBAL: WIZ8 0x0060e618
-W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-75.0f, 0.0f, 0.0f}, {75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {75.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
-     {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
-     {0.0f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
-     {-37.5f, 75.0f, 0.0f}, {37.5f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
-     {-75.0f, 75.0f, 0.0f}, {0.0f, 75.0f, 0.0f}, {75.0f, 75.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
-    {{-112.5f, 0.0f, 0.0f}, {-37.5f, 0.0f, 0.0f}, {37.5f, 0.0f, 0.0f}, {112.5f, 0.0f, 0.0f},
-     {-112.5f, 75.0f, 0.0f}, {-37.5f, 75.0f, 0.0f}, {37.5f, 75.0f, 0.0f},
-     {112.5f, 75.0f, 0.0f}}};
+W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-75.0f, 0.0f, 0.0f},
+                                                                   {75.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-75.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {75.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 0.0f, 0.0f},
+                                                                   {37.5f, 0.0f, 0.0f},
+                                                                   {112.5f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 0.0f, 0.0f},
+                                                                   {37.5f, 0.0f, 0.0f},
+                                                                   {112.5f, 0.0f, 0.0f},
+                                                                   {0.0f, 75.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 0.0f, 0.0f},
+                                                                   {37.5f, 0.0f, 0.0f},
+                                                                   {112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 75.0f, 0.0f},
+                                                                   {37.5f, 75.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 0.0f, 0.0f},
+                                                                   {37.5f, 0.0f, 0.0f},
+                                                                   {112.5f, 0.0f, 0.0f},
+                                                                   {-75.0f, 75.0f, 0.0f},
+                                                                   {0.0f, 75.0f, 0.0f},
+                                                                   {75.0f, 75.0f, 0.0f},
+                                                                   {0.0f, 0.0f, 0.0f}},
+                                                                  {{-112.5f, 0.0f, 0.0f},
+                                                                   {-37.5f, 0.0f, 0.0f},
+                                                                   {37.5f, 0.0f, 0.0f},
+                                                                   {112.5f, 0.0f, 0.0f},
+                                                                   {-112.5f, 75.0f, 0.0f},
+                                                                   {-37.5f, 75.0f, 0.0f},
+                                                                   {37.5f, 75.0f, 0.0f},
+                                                                   {112.5f, 75.0f, 0.0f}}};
 // GLOBAL: WIZ8 0x0060e914
 float g_monster_attachment_scales_0060e914[9] = {0.0f,  0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
@@ -1008,8 +1054,8 @@ unsigned char W8MonsterRep::ReadCycleData004BF520(W8ReadLevelInfo* info, W8Monst
             for (entry = 0; entry < count; ++entry) {
                 W8PathAI* path = AnimObjListEntry004A16C0(animation, list, entry);
                 if (path != 0) {
-                    PathAISetFlag38004AA9D0(path, 1);
-                    PathAISetFlag1C004AAA10(path, 1);
+                    PathAISetLooping004AA9D0(path, 1);
+                    PathAISetDiscreteMode004AAA10(path, 1);
                     PathAISetScale004AA9C0(path, animation->playback_scale_08);
                 }
             }
@@ -1044,7 +1090,7 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
         objects_5c8[index] = 0;
     }
     for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
-        Method004BF0F0(cycle, &other, cycle);
+        CopyCycle004BF0F0(cycle, &other, cycle);
     }
     if (other.monster_light_624 != 0) {
         monster_light_624 = new MonsterLight(*other.monster_light_624);
@@ -1095,8 +1141,8 @@ W8MonsterRep::~W8MonsterRep()
    they are registered with the world's light list and detached until the
    owning GrCycle selects this cycle. */
 // FUNCTION: WIZ8 0x004bf0f0
-void W8MonsterRep::Method004BF0F0(signed char cycle, const W8MonsterRep* other,
-                                  signed char other_cycle)
+void W8MonsterRep::CopyCycle004BF0F0(signed char cycle, const W8MonsterRep* other,
+                                     signed char other_cycle)
 {
     int index;
 
@@ -3395,7 +3441,7 @@ void W8Monster::SetCycle(signed char cycle)
             MonsterGetIndexByLocationID(0xb1d, MONSTER_CPP, propagated_value_1e4, 1));
         FormatDebugMessage(0, "WARNING: Monster %ls is missing anim cycle %s",
                            GetMonsterName(monster_info, 0, 0), g_cycle_names[cycle].name);
-        m_pRep->Method004BF0F0(cycle, m_pRep, 1);
+        m_pRep->CopyCycle004BF0F0(cycle, m_pRep, 1);
         count = animations->GetCount();
         if (count == 0) {
             return;
