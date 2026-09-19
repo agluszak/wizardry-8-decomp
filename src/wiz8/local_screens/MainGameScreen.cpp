@@ -17,6 +17,7 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSButtons.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_code/Targeting.h"
