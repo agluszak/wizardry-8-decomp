@@ -2262,8 +2262,8 @@ void ShowNpcDialogueTopicMenu(void)
         LeaveNpcDialogueLayout;
     g_screen_state_00649f1c->dialogue_text_128->SetActive(0);
     g_screen_state_00649f1c->dialogue_text_114->SetEnabled(
-        g_screen_state_00649f1c->dialogue_npc->flag_c8 == 0);
-    if (g_screen_state_00649f1c->dialogue_npc->flag_c9 == 0) {
+        g_screen_state_00649f1c->dialogue_npc->talk_cooldown_active == 0);
+    if (g_screen_state_00649f1c->dialogue_npc->trade_cooldown_active == 0) {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(1);
     } else {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
