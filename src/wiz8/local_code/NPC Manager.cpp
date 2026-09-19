@@ -753,13 +753,13 @@ void AdvanceNpcTimers0050C7D0(unsigned int elapsed)
                     npc->dismissed_flag = 0;
                 }
             }
-            if (npc->flag_c8 != 0 &&
-                static_cast<unsigned int>(g_status_685170.world_clock - npc->clock_cc) > 0xa8c0) {
-                npc->flag_c8 = 0;
+            if (npc->talk_cooldown_active != 0 &&
+                static_cast<unsigned int>(g_status_685170.world_clock - npc->talk_cooldown_clock) > 0xa8c0) {
+                npc->talk_cooldown_active = 0;
             }
-            if (npc->flag_c9 != 0 &&
-                static_cast<unsigned int>(g_status_685170.world_clock - npc->clock_d0) > 0xa8c0) {
-                npc->flag_c9 = 0;
+            if (npc->trade_cooldown_active != 0 &&
+                static_cast<unsigned int>(g_status_685170.world_clock - npc->trade_cooldown_clock) > 0xa8c0) {
+                npc->trade_cooldown_active = 0;
             }
         }
     }
@@ -1477,8 +1477,8 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         int delta;
         int sum;
 
-        npc->flag_c8 = 1;
-        npc->clock_cc = g_status_685170.world_clock;
+        npc->talk_cooldown_active = 1;
+        npc->talk_cooldown_clock = g_status_685170.world_clock;
         if (scale < 1) {
             level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
             quotient = -scale / 5;
@@ -1513,8 +1513,8 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         int sum;
         int index;
 
-        npc->flag_c9 = 1;
-        npc->clock_d0 = g_status_685170.world_clock;
+        npc->trade_cooldown_active = 1;
+        npc->trade_cooldown_clock = g_status_685170.world_clock;
         if (npc->has_monster == 0 || npc->is_present == 0) {
             monster_info = 0;
         } else {
