@@ -392,12 +392,33 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x0048f1f0
 // W8GrowableVector<W8WorldCursorNode*>::~W8GrowableVector<W8WorldCursorNode*>
 
-/* 0x005ED43C is the W8MasterFunction (void (*)(int)) pointer-vector
-   specialization emitted by MasterFunctionList.cpp: ctor 0x004D9A70 (its only
-   caller is InitializeLevelMasterFunctions004D6C50's five-element
-   construction) and scalar deleting destructor 0x004D9A40. No other
-   specialization shares the vtable, which is what identifies the
-   DialogFactoryDialogs.cpp member embedded at +0x64. */
+/* The W8MasterFunction (void (*)(int)) pointer-vector specialization emitted
+   by MasterFunctionList.cpp. InitializeLevelMasterFunctions004D6C50's
+   five-element construction calls the base ctor 0x004D9A70 and then installs
+   the derived vtable 0x005ED438 itself, so the retail new-expression is
+   `new W8Vector<W8MasterFunction>(5)` and g_master_functions_006834d8 is the
+   thin derived type. The base vtable 0x005ED43C also tags the
+   DialogFactoryDialogs.cpp member embedded at +0x64, which that unit only
+   constructs, clears and destroys. No other specialization shares either
+   vtable. */
+
+// VTABLE: WIZ8 0x005ed438
+// class W8Vector<W8MasterFunction>
+
+// VTABLE: WIZ8 0x005ed43c
+// class W8GrowableVector<W8MasterFunction>
+
+// TEMPLATE: WIZ8 0x004d9a70
+// W8GrowableVector<W8MasterFunction>::W8GrowableVector<W8MasterFunction> (MasterFunctionList.cpp emission)
+
+// SYNTHETIC: WIZ8 0x004d9a20
+// W8Vector<W8MasterFunction>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004d9a40
+// W8GrowableVector<W8MasterFunction>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x005cd6e0
+// W8GrowableVector<W8MasterFunction>::~W8GrowableVector<W8MasterFunction>
 
 /* The emitted lifecycle and both reviewed vtables belong directly to the
    ordinary light-vector template specializations. */

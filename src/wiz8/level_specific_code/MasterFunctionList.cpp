@@ -64,7 +64,7 @@
 W8WorldCursorNode* g_active_cursor_node_006834d4;
 
 // GLOBAL: WIZ8 0x006834d8
-W8GrowableVector<W8MasterFunction>* g_master_functions_006834d8;
+W8Vector<W8MasterFunction>* g_master_functions_006834d8;
 // GLOBAL: WIZ8 0x006834dc
 unsigned char g_flag_006834dc;
 
@@ -617,7 +617,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
     Trigger* pTrigger;
 
     if (g_master_functions_006834d8 == 0) {
-        g_master_functions_006834d8 = new W8GrowableVector<W8MasterFunction>(5);
+        g_master_functions_006834d8 = new W8Vector<W8MasterFunction>(5);
     } else {
         /* Retail caches the count and removes one entry per iteration; the
            clearing loop leaves it at zero. */
