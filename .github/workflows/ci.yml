@@ -18,6 +18,7 @@ env:
   GHIDRA_ARCHIVE: ghidra_12.1.3_PUBLIC_20260817.zip
   GHIDRA_SHA256: 93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54
   GOG_INSTALLER_NAME: setup_wizardry_8_2001_12_23_(22306).exe
+  GOG_RELEASE_ASSET_NAME: setup_wizardry_8_2001_12_23_.22306.exe
   GOG_INSTALLER_SHA256: 48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
   GOG_INPUT_REPO: agluszak/wiz8-ci-inputs
   GOG_RELEASE_TAG: gog-22306
@@ -168,6 +169,7 @@ jobs:
 
           cache_dir="$RUNNER_TEMP/wiz8-gog-cache"
           download_dir="$RUNNER_TEMP/wiz8-gog-download"
+          downloaded="$download_dir/$GOG_RELEASE_ASSET_NAME"
           installer="$download_dir/$GOG_INSTALLER_NAME"
           encrypted="$cache_dir/$GOG_INSTALLER_NAME.enc"
 
@@ -176,9 +178,11 @@ jobs:
 
           gh release download "$GOG_RELEASE_TAG" \
             --repo "$GOG_INPUT_REPO" \
-            --pattern "$GOG_INSTALLER_NAME" \
+            --pattern "$GOG_RELEASE_ASSET_NAME" \
             --dir "$download_dir"
 
+          test -s "$downloaded"
+          mv "$downloaded" "$installer"
           echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
 
           openssl enc \
