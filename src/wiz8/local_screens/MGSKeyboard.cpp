@@ -539,7 +539,7 @@ void DispatchMGSCommand(int command)
             break;
         }
         if (g_combat_state->flag_000 == 0) {
-            Function4E8370();
+            BeginCombatExecution004E8370();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
                    GetLevelDataFlag6() == 0) {
             BeginFreeTurnPhase();

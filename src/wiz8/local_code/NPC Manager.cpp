@@ -100,13 +100,13 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
     return disposition < W8_NPC_DISPOSITION_FRIENDLY;
 }
 
-/* Run the update with an empty scratch block the caller does not see. */
+/* Test a placement near the party without retaining the position. */
 // FUNCTION: WIZ8 0x0050b2d0
-void UpdateNpc(int party_slot)
+unsigned char CanPlaceNpcNearParty(int party_slot)
 {
-    srVector3T<float> scratch;
+    srVector3T<float> position;
 
-    UpdateNpcAt(party_slot, 0, &scratch);
+    return ProbeNpcPlacementNearParty(party_slot, 0, &position);
 }
 
 /* Whether the NPC will talk about one topic. Topics are stored one more than
@@ -402,9 +402,9 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     }
     srVector3T<float> position;
     if (!skip_spawn) {
-        srVector3T<float> scratch;
-        UpdateNpcAt(party_slot, 1, &scratch);
-        position = scratch;
+        srVector3T<float> placement;
+        ProbeNpcPlacementNearParty(party_slot, 1, &placement);
+        position = placement;
     }
     W8NpcState* npc = GetNpcState(row->animation_0fa);
     if (npc == 0 || npc->binding_unavailable) {
@@ -1643,7 +1643,8 @@ const float g_float_005ec29c = 0.7853981256484985f;
 /* Probe the navigator from the party eye at three height bands, reporting
    whether any band reaches. */
 // FUNCTION: WIZ8 0x0050B2F0
-unsigned char UpdateNpcAt(int /*party_slot*/, int /*arg_2*/, srVector3T<float>* scratch)
+unsigned char ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/,
+                                         srVector3T<float>* position_out)
 {
     srVector3T<float> party_position;
     float yaw;
@@ -1651,16 +1652,16 @@ unsigned char UpdateNpcAt(int /*party_slot*/, int /*arg_2*/, srVector3T<float>* 
     GetCameraPosition(&party_position);
     party_position.y = party_position.y - g_default_world_height_00603ac8;
     yaw = GetCameraYawRadians() + g_float_005ec29c;
-    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1,
-                                               10, 0) > 0) {
+    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
+                                               1, 10, 0) > 0) {
         return 1;
     }
-    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1,
-                                               20, 0) > 0) {
+    if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
+                                               1, 20, 0) > 0) {
         return 1;
     }
-    g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, scratch, 1, 0, 1, 30,
-                                           0);
+    g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0, 1,
+                                           30, 0);
     return 0;
 }
 

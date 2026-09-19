@@ -14,7 +14,8 @@ void StartPartyMovementAction(int move_kind);              /* 0x004F0AF0 */
 void UpdateActivePartyMovement(void);                      /* 0x004F01D0 */
 void UpdatePartyMovementControl(void);                     /* 0x004F0AA0 */
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
-char GetPhaseStep(void); /* 0x004F0500 */
+int GetPhaseStep(void);            /* 0x004F0500 */
+float GetPartyMovementSpeed(void); /* 0x004EFFA0 */
 void StartPartyMovementAction004EFC00(void);
 void FinishPartyMovementAction004EFDA0(void);
 char PartyMovementReachedPhaseLimit004F00C0(void);

@@ -224,6 +224,8 @@ int g_effect_005ee5ac = 9;
 int g_effect_005ee5b4 = 11;
 // GLOBAL: WIZ8 0x005EE5B8
 int g_effect_005ee5b8 = 12;
+// GLOBAL: WIZ8 0x005EE5BC
+int g_effect_005ee5bc = 13;
 // GLOBAL: WIZ8 0x005EE5C8
 int g_item_message_005ee5c8 = 16;
 // GLOBAL: WIZ8 0x005EE5CC

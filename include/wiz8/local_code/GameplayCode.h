@@ -71,3 +71,4 @@ void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
 void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire);
 unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
 void Function4EF7E0(W8Character*, W8Character*, int);
+bool AnyMonsterEngaged(void); /* 0x004EEE20 */

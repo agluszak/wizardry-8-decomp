@@ -30,6 +30,9 @@ extern int g_effect_005ee5f8;
 extern int g_effect_005ee60c;
 extern int g_effect_005ee610;
 extern int g_effect_005ee614; /* 0x005EE614: the victory-cheer character event */
+extern int g_effect_005ee5bc;
+extern int g_effect_005ee5d8;
+extern int g_effect_005ee628;
 extern int g_effect_005ee61c;
 /* 0x005EE624: the character event an item use queues when the attempt ends
    without casting anything. */
@@ -127,7 +130,7 @@ extern int g_special_event_0068c574;  /* 0x0068C574 */
 extern unsigned int g_value_0068c57c; /* 0x0068C57C */
 extern int g_special_event_0068c530;  /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
-extern int g_special_event_0068c534; /* 0x0068C534 */
+extern int g_special_event_0068c534;  /* 0x0068C534 */
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed8d8;
 extern unsigned int g_event_flag_005ed8e8; /* 0x005ED8E8 */
