@@ -69,6 +69,15 @@
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/Noise.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/string_database.h"
+#include "wiz8/utility.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/local_screens/ReviewCharacterScreen.h"
 
@@ -121,6 +130,336 @@ bool AnyCharacterEngaged(void)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004ED460
+bool CombatMayAdvanceContinuously(void)
+{
+    if (gXStatus.fCombatMode != 0) {
+        for (int slot = 0; slot < 2; ++slot) {
+            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+            W8Character* character = &g_status_685170.buffers.characters[slot];
+            if (row->occupied && character->hp_current != 0 && character->highest_condition < 0xf &&
+                g_combat_state->npc_combat_script_pending[slot]) {
+                return false;
+            }
+        }
+    }
+    if (AnyMonsterEngaged()) {
+        return true;
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (row->occupied && character->hp_current != 0 &&
+            CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
+            CharacterActionTargetsEnemies(character, row->action_03d, row->action_detail_041,
+                                          &row->action_detail_045)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x004ED710
+bool QueueNpcCombatScript(void)
+{
+    if (gXStatus.fCombatMode == 0) {
+        return false;
+    }
+    for (int slot = 0; slot < 2; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (!row->occupied || character->hp_current == 0 || character->highest_condition >= 0xb ||
+            g_combat_state->npc_combat_script_pending[slot]) {
+            continue;
+        }
+        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        if (npc == 0) {
+            continue;
+        }
+        int faction = npc->record->unknown_05f[0];
+        bool hostile_group_present = false;
+        if (faction != 0 && faction != 1) {
+            for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+                W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
+                if (group->flag_28 && group->fInCombat && group->ubDisposition == DISP_HOSTILE &&
+                    MonsterGroupGetRecord(group)->faction_id_25f == faction) {
+                    hostile_group_present = true;
+                    break;
+                }
+            }
+        }
+        if (!hostile_group_present && npc->name_style == 0x38) {
+            for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+                W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
+                if (group->flag_28 && group->fInCombat && group->ubDisposition == DISP_HOSTILE &&
+                    MonsterGroupGetRecord(group)->faction_id_25f == 4) {
+                    hostile_group_present = true;
+                    break;
+                }
+            }
+        }
+        if (hostile_group_present && CanPlaceNpcNearParty(slot)) {
+            BeginScriptedWorldAction();
+            ShowString(FormatWideString(g_format_s_space_s_00617584, npc->record->source_name_004,
+                                        gppStringList[0x272]));
+            QueueNpcMessageLine(W8_NPC_MSG_PARTY_SLOT_EVENT_18, slot);
+            QueueNpcMessageLine(W8_NPC_MSG_CLEAR_NPC_COMBAT, slot);
+            g_combat_state->npc_combat_script_pending[slot] = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x004ED550
+bool CombatHasContinuingEffects(void)
+{
+    unsigned int enchantment;
+    unsigned int slot;
+    unsigned int index;
+
+    for (enchantment = 0; enchantment < 8; ++enchantment) {
+        for (slot = 0; slot < 8; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied &&
+                g_status_685170.buffers.characters[slot].enchantments[enchantment].value_08 > 0) {
+                return true;
+            }
+        }
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+            if (monster->enchantments[enchantment].value_08 > 0) {
+                return true;
+            }
+        }
+    }
+    for (slot = 0; slot < 9; ++slot) {
+        if (g_combat_state->effect_slots[slot].active) {
+            return true;
+        }
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+            if (monster->fActive && monster->fInCombat &&
+                monster->pCombat->effect_slots_3e[slot].active) {
+                return true;
+            }
+        }
+    }
+    for (slot = 0; slot < 6; ++slot) {
+        if (g_combat_state->effect_slots_85a[slot].active) {
+            return true;
+        }
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+            if (monster->fActive && monster->fInCombat &&
+                monster->pCombat->effect_slots_d7[slot].active) {
+                return true;
+            }
+        }
+    }
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->fActive && monster->hp_current != 0 && monster->condition_turns[0x12] == 0 &&
+            monster->summoned_2da != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// FUNCTION: WIZ8 0x004EA1F0
+void ApplyCombatEndEffects(void)
+{
+    int slot;
+    for (slot = 0; slot < 2; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        if (row->occupied) {
+            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            if (npc != 0) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (character->highest_condition == 0x12) {
+                    if (npc->unknown_ef[1]) {
+                        ApplyItemEffectToRandomCharacter(g_effect_005ee5bc, -1, 0,
+                                                         g_effect_argument_005ed8c8);
+                    } else if (npc->unknown_ef[2]) {
+                        ApplyItemEffectToRandomCharacter(g_effect_005ee5d8, -1, 0,
+                                                         g_effect_argument_005ed8c8);
+                    }
+                }
+            }
+        }
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (row->occupied && character->condition_turns[0x12] == 0 &&
+            character->condition_turns[0x13] != 0 &&
+            gXStatus.monster_manager_entries[slot].condition_19_latch == 0 &&
+            (!g_status_685170.flag_2487 || g_status_685170.value_248f.party_slot != slot)) {
+            ApplyItemEffectToRandomCharacter(g_effect_005ee628, slot, 0,
+                                             g_effect_argument_005ed8c8);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004E8370
+void BeginCombatExecution004E8370(void)
+{
+    int slot;
+    unsigned int index;
+    if ((g_combat_state->value_004 == 0 && g_combat_state->flag_a54 != 0) ||
+        g_combat_state->uiCurrentPartyActionStatus == 3) {
+        AlertWorldNoise004F1100();
+    }
+    if (g_level_block->combat_end_notification != -1) {
+        if (g_settings_6850c8.continuous_combat == 0) {
+            DestroySubMenuControls();
+        } else {
+            ReopenSubMenuPanel();
+        }
+    }
+    if (g_settings_6850c8.continuous_combat == 0 && gXStatus.iTargetingMode != 0) {
+        SetTargetingMode(0);
+    }
+    g_combat_state->flag_000 = 1;
+    g_combat_state->pending_death_count = 0;
+    g_combat_state->flag_a55 = 1;
+    g_level_block->pick_changed_154 = false;
+    g_combat_state->uiCurrentPartyAction = g_combat_state->uiNextPartyAction;
+    g_combat_state->uiCurrentPartyActionStatus = 0;
+    UpdatePartyMovementControl();
+    if (g_combat_state->uiNextPartyAction != 0) {
+        ClearPendingPartyMovement(-1);
+    }
+    if (g_settings_6850c8.continuous_combat == 0) {
+        g_level_block->refresh_party_panel = 1;
+        g_combat_state->flag_001 = 0;
+        ClearCombatSelection();
+    }
+    ++g_combat_state->value_004;
+    ++g_value_659c14;
+    if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
+        gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
+        ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 0,
+                                   g_combat_state->uiCurrentPartyAction == 2);
+    } else {
+        gXStatus.flPartyMoveDistLimit = 0.0f;
+        ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 1, 0);
+    }
+    g_combat_state->round_counter = GetPhaseStep();
+    if (CombatMayAdvanceContinuously()) {
+        ShowNotice(0xc, &g_wchar_00689b34, -1, -1, false);
+        ShowNoticef(0xc, gppStringList[0x227], g_combat_state->value_004);
+    }
+
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8CombatCharacterRow* row = &g_combat_state->characters[slot];
+        if (party->occupied) {
+            row->flag_81 = 0;
+            row->flag_80 = 0;
+            row->spot_attempts_90 = 0;
+            row->pending_action_repick_count = 0;
+            row->interception_count = 0;
+            row->flag_34 = character->hp_current == 0 || character->highest_condition >= 0xf;
+            row->phase_clock_stamp = 0;
+            row->flag_a4 = 0;
+            CalcArmorClasses(character);
+        }
+    }
+    RepickInvalidCombatTargets00536400();
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
+        W8CombatCharacterRow* row = &g_combat_state->characters[slot];
+        if (party->occupied) {
+            row->unknown_82[0] = 0;
+            if (party->pending_action == 0) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (CharacterHasTrait00547940(character, 0x10) &&
+                    character->hand_attacks[0].weapon_skill == 0 &&
+                    Random(100) < static_cast<unsigned char>(ScaleValueByProfessionLevel005479B0(
+                                      character, 0x10, 12.0f))) {
+                    row->unknown_82[0] = 1;
+                }
+            }
+        }
+    }
+
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->fInCombat) {
+            W8MonsterCombatState* state = monster->pCombat;
+            state->unknown_015 = 0;
+            state->spot_attempts_13d = 0;
+            state->pending_action_repick_count = 0;
+            state->interception_count = 0;
+            state->active = false;
+            state->turn_started = 0;
+            ++state->value_14c;
+            state->unknown_151[1] = Random(100) < 75;
+        }
+    }
+    ++g_combat_state->combat_update_count;
+    UpdateAllMonsterAI();
+    AssignCombatPhases004E89D0();
+    RequestRedraw(0x1000ff);
+    RequestRedraw(0x80000);
+
+    if (g_settings_6850c8.verbose_combat_messages != 0 &&
+        g_combat_state->uiCurrentPartyAction == 0) {
+        for (slot = 0; slot < 8; ++slot) {
+            W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
+            if (!IsPartySlotEligible00524A10(slot) ||
+                !CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
+                continue;
+            }
+            if (party->action_03d == W8_ACTION_DEFEND) {
+                PostCharacterNotice(slot, gppStringList[0x228]);
+            }
+            if (party->action_03d == 5) {
+                if (party->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
+                    PostCharacterNotice(
+                        slot, gppStringList[0x229],
+                        g_status_685170.buffers.characters[party->target_in_combat.iChar].name);
+                } else if (party->target_in_combat.iType == W8_TARGET_KIND_MONSTER) {
+                    unsigned int index = MonsterGetIndexByLocationID(
+                        0x5e2, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
+                        party->target_in_combat.iMonsterID, 1);
+                    W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(index);
+                    PostCharacterNotice(slot, gppStringList[0x229], GetMonsterName(target, 0, 0));
+                } else {
+                    srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x5e6,
+                                 0);
+                }
+            }
+        }
+    }
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (!monster->fInCombat || monster->hp_current == 0 || monster->highest_condition >= 0xe) {
+            continue;
+        }
+        if (monster->action_kind == 1) {
+            PostMonsterNotice(monster, gppStringList[0x228]);
+        }
+        if (monster->action_kind == 8) {
+            if (monster->Target.iType == W8_TARGET_KIND_MONSTER) {
+                unsigned int target_index = MonsterGetIndexByLocationID(
+                    0x601, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
+                    monster->Target.iMonsterID, 1);
+                W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(target_index);
+                PostMonsterNotice(monster, gppStringList[0x229], GetMonsterName(target, 0, 0));
+            } else if (monster->Target.iType == W8_TARGET_KIND_CHARACTER) {
+                PostMonsterNotice(monster, gppStringList[0x229],
+                                  g_status_685170.buffers.characters[monster->Target.iChar].name);
+            } else {
+                srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x60a, 0);
+            }
+        }
+    }
+    g_combat_state->unknown_a60 = 1;
 }
 
 /* Which of the two engagement counts to report - the forced one when combat
@@ -619,7 +958,7 @@ void EndCombat004EA310(int mode)
     RequestRedrawParty();
     SetFloat60AB48();
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        Function4EA1F0();
+        ApplyCombatEndEffects();
         ReportSaveFailed(1);
     }
 }
@@ -1415,7 +1754,7 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
                 return 1;
             }
             ShowNotice(0xc, gppStringList[0x22e], 0, -1, 0);
-            if (Function4ED550() != 0) {
+            if (CombatHasContinuingEffects()) {
                 ShowNotice(0xc, gppStringList[0x22f], 0, -1, 0);
                 StartLevelMusic(1, 1);
                 EndCombat004EA310(0);
@@ -2589,7 +2928,7 @@ void UpdateCombat004E8EA0(void)
         }
     }
     if (g_combat_state->flag_000 == 0) {
-        if (Function4ED710() == '\x01') {
+        if (QueueNpcCombatScript()) {
             return;
         }
         if (CheckCombatEnd004E9F90(g_combat_state->flag_000 == 0 &&
@@ -2597,11 +2936,12 @@ void UpdateCombat004E8EA0(void)
             return;
         }
         if ((g_settings_6850c8.continuous_combat == 0 ||
-             ClockIsTicking(g_combat_state->combat_ui_timer_7a8) != 0 || Function4ED460() == 0) &&
+             ClockIsTicking(g_combat_state->combat_ui_timer_7a8) != 0 ||
+             CombatMayAdvanceContinuously() == 0) &&
             g_combat_state->party_surprised_a52 == 0) {
             return;
         }
-        Function4E8370();
+        BeginCombatExecution004E8370();
         return;
     }
     switch (g_combat_state->eCombatActionStatus) {
@@ -2614,7 +2954,7 @@ void UpdateCombat004E8EA0(void)
             srAssertFail("gpCombat->pActionMonsterInfo == NULL",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x7e2, 0);
         }
-        if (Function4ED710() != '\x01') {
+        if (!QueueNpcCombatScript()) {
             ScheduleCombatActor004E9490();
             return;
         }
@@ -2892,7 +3232,7 @@ void ScheduleCombatActor004E9490(void)
                     AdvanceCombatRound004E9B20();
                     if (CheckCombatEnd004E9F90(1) == 0 &&
                         g_settings_6850c8.continuous_combat != 0) {
-                        Function4E8370();
+                        BeginCombatExecution004E8370();
                     }
                 }
             }

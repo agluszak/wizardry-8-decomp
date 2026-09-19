@@ -131,3 +131,4 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked,
    random into its action fields and target. */
 unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, int arg_3,
                                         char set_attack_rate); /* 0x005323F0 */
+void UpdateAllMonsterAI(void);                                 /* 0x005314F0 */

@@ -11,17 +11,18 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                         W8ActionDetailBlock** out_detail); /* 0x004E77B0 */
 void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
                               const W8ActionDetailBlock* data, int notify); /* 0x004E8000 */
-void EndCombat004EA310(int mode);          /* 0x004EA310 */
-void Function4E8370(void);                 /* 0x004E8370 */
-void UpdateCombat004E8EA0(void);           /* 0x004E8EA0 */
+void EndCombat004EA310(int mode);                                           /* 0x004EA310 */
+void BeginCombatExecution004E8370(void);
+void AssignCombatPhases004E89D0(void);
+void UpdateCombat004E8EA0(void); /* 0x004E8EA0 */
 unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
-void Function4EA1F0(void);                          /* 0x004EA1F0 */
-int Function4ED550(void);                           /* 0x004ED550 */
+void ApplyCombatEndEffects(void);                   /* 0x004EA1F0 */
+bool CombatHasContinuingEffects(void);              /* 0x004ED550 */
 /* 0x004ED460: whether continuous-combat stance may advance past the pending
    NPC-script / engagement gate. */
-unsigned char Function4ED460(void);
-char Function4ED710(void); /* 0x004ED710 */
+bool CombatMayAdvanceContinuously(void);
+bool QueueNpcCombatScript(void); /* 0x004ED710 */
 /* 0x004E9490: the combat turn scheduler - picks the next party slot or
    monster whose action phase arrived, starts party-movement phases, arms the
    action pacing clock, and rolls the round counter forward until someone
@@ -71,8 +72,8 @@ char CreateCharacterBreathEffect(int party_slot);
 int ExecuteCharacterSpecialAttack(int party_slot);
 void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
                             int arg_5, int notify); /* 0x004E7EE0 */
-int IsPartyEngaged(void);                /* 0x004E7E70 */
-int GetEngagementCount(void);            /* 0x004ED2B0 */
+int IsPartyEngaged(void);                           /* 0x004E7E70 */
+int GetEngagementCount(void);                       /* 0x004ED2B0 */
 void RecordCharacterDeath(int party_slot);
 void DropCharacterFromRound(int party_slot);
 /* 0x004E79A0: whether one party slot may switch to the given targeting

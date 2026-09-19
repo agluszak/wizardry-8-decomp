@@ -1439,11 +1439,3 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
         return 0;
     return &g_status_685170.buffers.characters[selected];
 }
-// GLOBAL: WIZ8 0x005EE618
-int g_effect_005ee618 = 36;
-// GLOBAL: WIZ8 0x005EE630
-int g_effect_005ee630 = 42;
-// GLOBAL: WIZ8 0x005EE638
-int g_effect_005ee638 = 0x2c;
-// GLOBAL: WIZ8 0x005EE658
-int g_effect_005ee658 = 52;

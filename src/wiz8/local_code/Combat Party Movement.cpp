@@ -108,7 +108,7 @@ check_completion:
 /* One or ten, depending on whether the party is moving under combat rules -
    the step the phase counter advances by. */
 // FUNCTION: WIZ8 0x004f0500
-char GetPhaseStep(void)
+int GetPhaseStep(void)
 {
     return g_combat_state->uiCurrentPartyAction != 0 ? 10 : 1;
 }

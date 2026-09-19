@@ -253,7 +253,7 @@ struct W8MonsterCombatState {
     int value_14c; /* 0x14c */
     /* 0x150: the monster's turn has been set up already, so the setup runs
        once per turn however often it is asked for. */
-    unsigned char turn_started;
+    bool turn_started;
     unsigned char unknown_151[2];
 }; /* 0x153 */
 #pragma pack(pop)
