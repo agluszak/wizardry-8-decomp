@@ -49,20 +49,14 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
 // FUNCTION: WIZ8 0x005d1640
 void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigned int flags)
 {
-    m_bounds.left = bounds->left;
-    m_bounds.top = bounds->top;
-    m_bounds.right = bounds->right;
-    m_bounds.bottom = bounds->bottom;
+    m_bounds = *bounds;
     m_layout_initialized = 1;
     m_relayout_needed = 1;
     m_behavior_flags = flags;
     m_font = font;
     for (int index = 0; index < m_all_lines_01c.count; ++index) {
         W8DialogTextEntry* entry = *m_all_lines_01c.GetAt(index);
-        entry->m_pendingBounds.left = m_bounds.left;
-        entry->m_pendingBounds.top = m_bounds.top;
-        entry->m_pendingBounds.right = m_bounds.right;
-        entry->m_pendingBounds.bottom = m_bounds.bottom;
+        entry->m_pendingBounds = m_bounds;
     }
 }
 

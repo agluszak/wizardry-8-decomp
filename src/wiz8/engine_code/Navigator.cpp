@@ -428,12 +428,13 @@ W8NavigatorMovementState::~W8NavigatorMovementState()
 }
 
 /* A copy shares nothing that ties it to the original's navigation. The path is
-   DISCARDED rather than cloned or shared, both navigator links are cleared, the
-   owned object is not carried over, and the movement tail is default
-   constructed and then given only the eleven fields CopySettingsFrom transfers.
-   What does come across is the geometry - the height band, the two bounding
-   corners, the radius - and the callback. The copy allocates its own scene node
-   and registers itself, so it is a live navigator from birth. */
+   DISCARDED rather than cloned or shared, both navigator links are cleared, and
+   the owned object is not carried over. The movement tail is default
+   constructed, then six trailing radius/height/offset/scale fields are copied
+   directly and CopySettingsFrom transfers its separate eleven-field settings
+   subset. The outer navigator also carries across its height band, bounding
+   corners, radius and callback. The copy allocates its own scene node and
+   registers itself, so it is a live navigator from birth. */
 // FUNCTION: WIZ8 0x00452220
 W8Navigator::W8Navigator(const W8Navigator& other)
 {
