@@ -1367,7 +1367,7 @@ groups_checked:
     DetectMonsterGroups004E4AB0();
     RefreshOutwardSightForAllMonsters();
     RefreshInwardSightForAllMonsters();
-    Function536400();
+    RepickInvalidCombatTargets00536400();
     index = 0;
     while (index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -2792,7 +2792,7 @@ void ScheduleCombatActor004E9490(void)
                 }
             }
             if (slot < 8) {
-                Function4EFC00();
+                StartPartyMovementAction004EFC00();
             } else {
                 ShowNotice(0xc, gppStringList[0x22a], -1, -1, 0);
                 BeginFreeTurnPhase();
@@ -2858,13 +2858,13 @@ void ScheduleCombatActor004E9490(void)
                     }
                 }
                 if (slot < 8) {
-                    Function4EFDA0();
+                    FinishPartyMovementAction004EFDA0();
                 } else {
                     ShowNotice(0xc, gppStringList[0x22a], -1, -1, 0);
                     BeginFreeTurnPhase();
                 }
             }
-            if (gXStatus.fPartyMovementMode == 0 || Function4F00C0() != 0) {
+            if (gXStatus.fPartyMovementMode == 0 || PartyMovementReachedPhaseLimit004F00C0() != 0) {
                 g_combat_state->round_counter += GetPhaseStep();
             }
         }

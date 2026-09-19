@@ -72,7 +72,6 @@ unsigned char GetConditionRecordFlag(int party_slot, int condition);
    the level the binding was made on and the monster's location id, with the
    record's flag byte raised. Slot one also retires the monster's group and
    its allies. */
-void BindMonsterToCharacter00524780(int party_slot, int record, int location_id);
 void RemoveAllConditionsFromParty(void);
 /* 0x00524780: bind a monster into one of a character's two dependence
    condition records; a slot-one binding also retires the monster's group. */

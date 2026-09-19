@@ -33,6 +33,7 @@
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_code/NPCScripting.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/message_box.h"
 #include "wiz8/xstatus.h"
 

@@ -715,7 +715,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     }
     RefreshAllSight();
     if (TargetSourceIsCharacter(&effect->Source, 0)) {
-        BindMonsterToCharacter00524780(effect->Source.iChar, 0, summon->location_id);
+        BindMonsterToCharacterDependence(effect->Source.iChar, 0, summon->location_id);
     } else if (TargetSourceIsMonster(&effect->Source, 0)) {
         target_info->insanity_summon_344 = summon->location_id;
     }

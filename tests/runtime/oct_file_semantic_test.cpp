@@ -586,12 +586,12 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(malloc(0x28));
     tree->m_owned_0b0 = static_cast<unsigned long*>(malloc(8 * 4));
     tree->m_owned_0d0 = static_cast<unsigned long*>(malloc(4));
-    tree->m_owned_0d4 = static_cast<unsigned long*>(malloc(4));
+    tree->m_aulPolyLookup = static_cast<unsigned long*>(malloc(4));
     tree->m_owned_12c = static_cast<unsigned long*>(malloc(4));
     tree->m_owned_148 = static_cast<unsigned short*>(malloc(2));
     tree->m_pSubmeshes = static_cast<W8OctSubmesh*>(malloc(2 * 0x10));
     if (tree->m_owned_09c == 0 || tree->m_owned_0a0 == 0 || tree->m_owned_0b0 == 0 ||
-        tree->m_owned_0d0 == 0 || tree->m_owned_0d4 == 0 || tree->m_owned_12c == 0 ||
+        tree->m_owned_0d0 == 0 || tree->m_aulPolyLookup == 0 || tree->m_owned_12c == 0 ||
         tree->m_owned_148 == 0 || tree->m_pSubmeshes == 0) {
         goto restore;
     }
@@ -604,7 +604,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
         tree->m_owned_0b0[index] = 0x1000 + index * 0x11;
     }
     tree->m_owned_0d0[0] = 0x11223344;
-    tree->m_owned_0d4[0] = 0xaabbccdd;
+    tree->m_aulPolyLookup[0] = 0xaabbccdd;
     tree->m_owned_12c[0] = 0xdeadbeef;
     tree->m_owned_148[0] = 0x5a5a;
     memset(tree->m_pSubmeshes, 0, 2 * 0x10);
@@ -630,13 +630,13 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
         result->leaf_flag_cleared = loaded->m_owned_0a0[0].flags_00 == 2;
         result->tables_roundtrip =
             loaded->m_branch_count_0b4 == 1 && loaded->m_leaf_count_0b8 == 1 &&
-            loaded->m_owned_0d0[0] == 0x11223344 && loaded->m_owned_0d4[0] == 0xaabbccdd &&
+            loaded->m_owned_0d0[0] == 0x11223344 && loaded->m_aulPolyLookup[0] == 0xaabbccdd &&
             loaded->m_owned_12c[0] == 0xdeadbeef && loaded->m_owned_148[0] == 0x5a5a &&
             loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
             memcmp(loaded->m_owned_0b0, tree->m_owned_0b0, 8 * 4) == 0;
         result->gamedata_roundtrip =
-            loaded_data->environ_count_80 == 1 && loaded_data->environs_84 != 0 &&
-            loaded_data->environs_84[0] != 0 && loaded_data->environs_84[0]->value_1c == 0.05f;
+            loaded_data->m_iNumEnvirons == 1 && loaded_data->m_ppEnvirons != 0 &&
+            loaded_data->m_ppEnvirons[0] != 0 && loaded_data->m_ppEnvirons[0]->value_1c == 0.05f;
     }
 
 restore:

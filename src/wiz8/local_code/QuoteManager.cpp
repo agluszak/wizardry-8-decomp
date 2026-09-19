@@ -224,6 +224,10 @@ int g_effect_005ee5ac = 9;
 int g_effect_005ee5b4 = 11;
 // GLOBAL: WIZ8 0x005EE5B8
 int g_effect_005ee5b8 = 12;
+// GLOBAL: WIZ8 0x005EE5C8
+int g_item_message_005ee5c8 = 16;
+// GLOBAL: WIZ8 0x005EE5CC
+int g_item_message_005ee5cc = 17;
 // GLOBAL: WIZ8 0x005EE5DC
 int g_effect_005ee5dc = 0x15;
 // GLOBAL: WIZ8 0x005EE5E0
@@ -244,6 +248,8 @@ int g_effect_005ee60c = 33;
 int g_effect_005ee610 = 34;
 // GLOBAL: WIZ8 0x005EE614
 int g_effect_005ee614 = 35;
+// GLOBAL: WIZ8 0x005EE618
+int g_effect_005ee618 = 36;
 // GLOBAL: WIZ8 0x005EE61C
 int g_effect_005ee61c = 37;
 /* 0x005EE624: the character event an item use queues when the attempt ends
@@ -252,6 +258,10 @@ int g_effect_005ee61c = 37;
 int g_effect_005ee624 = 39;
 // GLOBAL: WIZ8 0x005EE628
 int g_effect_005ee628 = 40;
+// GLOBAL: WIZ8 0x005EE630
+int g_effect_005ee630 = 42;
+// GLOBAL: WIZ8 0x005EE638
+int g_effect_005ee638 = 44;
 // GLOBAL: WIZ8 0x005ee640
 int g_item_message_005ee640 = 46;
 // GLOBAL: WIZ8 0x005ee644
@@ -262,8 +272,12 @@ int g_item_message_005ee648 = 48;
 int g_item_message_005ee64c = 49;
 // GLOBAL: WIZ8 0x005EE654
 int g_effect_005ee654 = 51;
+// GLOBAL: WIZ8 0x005EE658
+int g_effect_005ee658 = 52;
 // GLOBAL: WIZ8 0x005ee664
 int g_item_message_005ee664 = 55;
+// GLOBAL: WIZ8 0x005EE668
+int g_item_message_005ee668 = 56;
 // GLOBAL: WIZ8 0x005ee68c
 int g_item_message_005ee68c = 65;
 // GLOBAL: WIZ8 0x005ee690
@@ -426,10 +440,18 @@ int g_special_event_0068c550;
 int g_special_event_0068c558;
 // GLOBAL: WIZ8 0x0068C55C
 int g_special_event_0068c55c;
+// GLOBAL: WIZ8 0x0068C560
+int g_special_event_0068c560;
 // GLOBAL: WIZ8 0x0068C564
 int g_special_event_0068c564;
 // GLOBAL: WIZ8 0x0068C568
 int g_special_event_0068c568;
+// GLOBAL: WIZ8 0x0068C56C
+int g_special_event_0068c56c;
+// GLOBAL: WIZ8 0x0068C570
+int g_special_event_0068c570;
+// GLOBAL: WIZ8 0x0068C574
+int g_special_event_0068c574;
 
 static bool MapEventTypeToDescriptorIndex(unsigned int event_type, unsigned int* descriptor_index)
 {

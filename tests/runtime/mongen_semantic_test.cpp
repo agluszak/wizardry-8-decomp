@@ -24,7 +24,7 @@ static unsigned int ReadWord(const unsigned char* bytes, int offset, int size)
     return value;
 }
 
-static bool CheckSerialization(W8MonsterGenerator* generator)
+static bool CheckSerialization(MonGen* generator)
 {
     char path[] = "MonGenSemantic.bin";
     HWFILE file = FileOpen(path, FILE_ACCESS_READWRITE | FILE_CREATE_ALWAYS, 0);
@@ -33,7 +33,7 @@ static bool CheckSerialization(W8MonsterGenerator* generator)
     }
     generator->SetName("deterministic");
     generator->flags = 4;
-    generator->flag_04 = 17;
+    generator->custom_spawn_chance = 17;
     generator->state_0c.x = 1.0f;
     generator->state_0c.y = 2.0f;
     generator->state_0c.z = 3.0f;
@@ -52,13 +52,14 @@ static bool CheckSerialization(W8MonsterGenerator* generator)
     FileSeek(file, 0, FILE_SEEK_FROM_START);
     FileWrite(file, &version, 1, 0);
     FileSeek(file, 0, FILE_SEEK_FROM_START);
-    W8MonsterGenerator loaded;
+    MonGen loaded;
     srand(1);
     bool restored = loaded.Load(file) && strcmp(loaded.name, "deterministic") == 0 &&
-                    loaded.flags == 0 && loaded.flag_44 == 1 && loaded.flag_04 == 17 &&
-                    loaded.value_06 == 10 && loaded.value_08 == 0xffff &&
-                    loaded.state_0c.x == 1.0f && loaded.state_0c.y == 2.0f &&
-                    loaded.state_0c.z == 3.0f && loaded.value_1c == -1;
+                    loaded.flags == 0 && loaded.generation_enabled == 1 &&
+                    loaded.custom_spawn_chance == 17 && loaded.custom_interval_seconds == 10 &&
+                    loaded.unknown_08 == 0xffff && loaded.state_0c.x == 1.0f &&
+                    loaded.state_0c.y == 2.0f && loaded.state_0c.z == 3.0f &&
+                    loaded.encounter_table_index == -1;
     FileClose(file);
     FileDelete(path);
     return serialized && restored;
@@ -69,8 +70,8 @@ bool RunMonGenSemanticTest(void)
     GDCamera camera;
     GDCamera* saved_camera = g_gd_camera_65a0f8;
     g_gd_camera_65a0f8 = &camera;
-    W8MonsterGenerator generator;
-    generator.value_06 = 10;
+    MonGen generator;
+    generator.custom_interval_seconds = 10;
     /* The pinned MSVCRT's first rand after srand(1) is 41: Random(5) is zero,
        so the ten-second interval starts at the lower jitter bound, eight. */
     srand(1);
@@ -85,9 +86,9 @@ bool RunMonGenSemanticTest(void)
     bool disabled = generator.GenerateEncounter(&position) == 0;
     generator.flags = 0;
     disabled = disabled && generator.GenerateEncounter(&position) == 0;
-    generator.flag_44 = 0;
+    generator.generation_enabled = 0;
     disabled = disabled && generator.CanGenerateEncounter(1) == 0;
-    generator.flag_44 = 1;
+    generator.generation_enabled = 1;
 
     bool gates_clear = !g_generator_save_flag && !g_flag_006840bc && !gXStatus.fCombatMode &&
                        !gXStatus.fNpcDialogueMode && !GetFlag68F105() &&

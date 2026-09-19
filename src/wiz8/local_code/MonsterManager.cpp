@@ -19,6 +19,7 @@
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_screens/MGSButtons.h"
@@ -160,6 +161,8 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     return monster_info;
 }
 
+/* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
+   clean only three of the four dwords they push across the tail. */
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 
