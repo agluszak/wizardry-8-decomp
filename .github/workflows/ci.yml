@@ -17,16 +17,12 @@ concurrency:
 env:
   GHIDRA_ARCHIVE: ghidra_12.1.3_PUBLIC_20260817.zip
   GHIDRA_SHA256: 93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54
-  GOG_INSTALLER_NAME: setup_wizardry_8_2001_12_23_(22306).exe
-  GOG_INSTALLER_SHA256: 48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d
 
 jobs:
   ci:
     name: Public checks, lints, and tests
     runs-on: ubuntu-24.04
     timeout-minutes: 150
-    outputs:
-      reccmp-comment: ${{ steps.reccmp-status.outputs.comment }}
     env:
       GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.3_PUBLIC
       WIZ8_INPUT_DIR: /tmp/wiz8-inputs
@@ -34,8 +30,6 @@ jobs:
       WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
       WIZ8_RUNTIME_DISPLAY: virtual
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-      TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner }}
-      LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner) }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -94,8 +88,8 @@ jobs:
             xvfb
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           # Docker creates missing bind-mount source paths as root. Keep the
-          # empty placeholders runner-owned; `wiz8 prepare` materializes the
-          # actual pinned source trees later, only in the licensed lane.
+          # empty placeholders runner-owned; public CI does not materialize
+          # licensed game inputs.
           mkdir -p \
             "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
             "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
@@ -137,173 +131,3 @@ jobs:
 
       - name: Run Ghidra enrichment integration tests
         run: uv run pytest -q tests/ghidra
-
-      - name: Download and verify licensed GOG input
-        if: env.LICENSED_INPUTS == 'true'
-        env:
-          WIZ8_GOG_URL: ${{ secrets.WIZ8_GOG_URL }}
-        run: |
-          if [ -z "$WIZ8_GOG_URL" ]; then
-            echo "WIZ8_GOG_URL repository secret is required for licensed CI" >&2
-            exit 1
-          fi
-          installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
-          uvx --from gdown==5.2.1 gdown --fuzzy "$WIZ8_GOG_URL" -O "$installer" --quiet
-          echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
-          cat > config/local-inputs.yml <<EOF
-          schema: wiz8.local-inputs
-          inputs:
-            gog-media: $GOG_INSTALLER_NAME
-          EOF
-
-      - name: Prepare licensed corpus
-        if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 prepare
-
-      - name: Build WIZ8 comparison product
-        if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 build match
-
-      - name: Generate reccmp PR status
-        id: reccmp-status
-        if: env.TRUSTED_PR == 'true'
-        run: |
-          status_json="$RUNNER_TEMP/reccmp-status.json"
-          comment="$RUNNER_TEMP/reccmp-status.md"
-          uv run wiz8 report status > "$status_json"
-          jq -r '
-            def pct:
-              if . == null then "n/a"
-              else (((. * 10000 | round) / 100) | tostring) + "%"
-              end;
-            .totals as $t |
-            $t.known_original_scope as $k |
-            (
-              [
-                "<!-- wiz8-reccmp-status -->",
-                "### reccmp status",
-                "",
-                "| Metric | Value |",
-                "| --- | ---: |",
-                "| Source functions | \($t.source_functions) |",
-                "| Source coverage (known scope) | \($k.source_functions) / \($k.original_functions) (\($k.source_coverage | pct)) |",
-                "| Effective progress (known scope) | \($k.progress | pct) |",
-                "| Paired source functions | \($t.paired) |",
-                "| Exact | \($t.exact) |",
-                "| Effective | \($t.effective) |",
-                "| Mismatch | \($t.mismatch) |",
-                "| Inconclusive | \($t.inconclusive) |",
-                "| Unpaired | \($t.unpaired) |",
-                "| Ignored | \($t.ignored) |",
-                "| Pair accuracy | \($t.accuracy | pct) |",
-                "",
-                "<details><summary>Per target</summary>",
-                "",
-                "| Target | Source | Coverage | Progress | Exact | Effective | Mismatch | Inconclusive | Unpaired | Accuracy |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
-              ]
-              + (
-                  .targets
-                  | to_entries
-                  | map(select(.value.state == "comparison"))
-                  | map(
-                      .value as $v
-                      | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.progress | pct) | \($v.comparison.exact) | \($v.comparison.effective) | \($v.comparison.mismatch) | \($v.comparison.inconclusive) | \($v.comparison.unpaired) | \($v.comparison.accuracy | pct) |"
-                    )
-                )
-              + ["", "</details>"]
-            ) | join("\n")
-          ' "$status_json" > "$comment"
-          printf '\n\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
-          {
-            echo 'comment<<__RECCMP_STATUS__'
-            cat "$comment"
-            echo '__RECCMP_STATUS__'
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Audit vtable comparisons
-        id: vtable
-        if: env.LICENSED_INPUTS == 'true'
-        continue-on-error: true
-        run: uv run wiz8 vtable
-
-      - name: Audit datacmp comparisons
-        id: datacmp
-        if: env.LICENSED_INPUTS == 'true'
-        continue-on-error: true
-        run: uv run wiz8 datacmp
-
-      # Historical vtable/datacmp inventories still carry reconstruction debt.
-      # Keep the audits visible and non-vacuous (commands still exit non-zero on
-      # issues) but do not suppress licensed tests or the full runtime suite.
-      - name: Summarize specialized comparison debt
-        if: env.LICENSED_INPUTS == 'true' && (steps.vtable.outcome == 'failure' || steps.datacmp.outcome == 'failure')
-        run: |
-          echo "::warning::specialized comparison debt: vtable=${{ steps.vtable.outcome }} datacmp=${{ steps.datacmp.outcome }}"
-          echo "vtable=${{ steps.vtable.outcome }} datacmp=${{ steps.datacmp.outcome }}"
-
-      - name: Run licensed comparison tests
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: uv run pytest -q tests/licensed
-
-      - name: Run full runtime suite
-        id: runtime
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        run: uv run wiz8 runtime-test --build --check-order
-
-      - name: Upload runtime-test diagnostics
-        if: env.LICENSED_INPUTS == 'true' && steps.runtime.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: runtime-test-diagnostics
-          path: |
-            build/runtime/runtime-test/diagnostics/
-            build/logs/
-          if-no-files-found: warn
-
-      - name: Fail if runtime suite failed
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.runtime.outcome == 'failure'
-        run: |
-          echo "runtime-test failed; see the runtime-test-diagnostics artifact"
-          exit 1
-
-      - name: Remove licensed inputs and derived trees
-        if: always() && env.LICENSED_INPUTS == 'true'
-        run: |
-          wineserver -k || true
-          rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" config/local-inputs.yml
-
-  comment-reccmp-status:
-    name: Comment reccmp status
-    needs: ci
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner && needs.ci.result == 'success'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Update PR comment
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          COMMENT_BODY: ${{ needs.ci.outputs.reccmp-comment }}
-        run: |
-          test -n "$COMMENT_BODY"
-          marker='<!-- wiz8-reccmp-status -->'
-          payload="$RUNNER_TEMP/reccmp-status-comment.json"
-          comment_id="$(
-            gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --jq ".[] | select(.body | contains(\"$marker\")) | .id" \
-              | head -n1
-          )"
-          printf '%s' "$COMMENT_BODY" | jq -Rs '{body: .}' > "$payload"
-          if [ -n "$comment_id" ]; then
-            gh api --method PATCH \
-              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
-              --input "$payload" >/dev/null
-          else
-            gh api --method POST \
-              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --input "$payload" >/dev/null
-          fi
