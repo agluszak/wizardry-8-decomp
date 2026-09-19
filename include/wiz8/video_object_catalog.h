@@ -39,15 +39,12 @@ void DrawCatalogImageAndInvalidate(int target, int object, int frame, int image,
 unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int right, int bottom,
                                             int object, int source_x, int source_y);
 
-/* 0x004039C0: find the surface's cache node, release the frame handle and
-   unlink/free the node. */
-unsigned char ReleaseVideoSurface(unsigned int surface);
 void EnsureCatalogFrameLoaded(int object, int frame);
 unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
-/* 0x005498A0 / 0x00549950: lock a catalog frame's pixel buffer (pitch out)
-   and release the lock (unrecovered pair). */
-void* Function5498A0(unsigned int frame, unsigned int image, long* pitch);
-void Function549950(unsigned int frame, unsigned int image);
+/* 0x005498A0 / 0x00549950: lock a surface-backed catalog frame's pixel
+   buffer (pitch out), then release that lock. */
+void* LockCatalogFrameSurface(unsigned int object, unsigned int frame, long* pitch);
+void UnlockCatalogFrameSurface(unsigned int object, unsigned int frame);
 
 void ReleaseLoadedVideoFrames(void);
 

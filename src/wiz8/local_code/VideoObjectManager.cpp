@@ -1081,3 +1081,42 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int r
     UnLockVideoSurface(source_handle);
     return 1;
 }
+
+/* Lock the pixel buffer of a surface-backed catalog frame. ETRLE video-object
+   entries have no lockable surface and return null. */
+// FUNCTION: WIZ8 0x005498a0
+void* LockCatalogFrameSurface(unsigned int object, unsigned int frame, long* pitch)
+{
+    unsigned int surface;
+
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x1b9, 0);
+    }
+    EnsureCatalogFrameLoaded(object, frame);
+    surface = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
+    }
+    if (g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].mode == 0) {
+        return 0;
+    }
+    // reinterpret-ok: retail forwards the same 32-bit pitch word to the SGP lock API
+    return LockVideoSurface(surface, reinterpret_cast<UINT32*>(pitch));
+}
+
+/* Release a surface-backed catalog frame locked by LockCatalogFrameSurface. Video
+   objects need no corresponding SGP surface unlock. */
+// FUNCTION: WIZ8 0x00549950
+void UnlockCatalogFrameSurface(unsigned int object, unsigned int frame)
+{
+    unsigned int surface;
+
+    EnsureCatalogFrameLoaded(object, frame);
+    surface = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
+    if (!gfVideoObjectsInit) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
+    }
+    if (g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].mode != 0) {
+        UnLockVideoSurface(surface);
+    }
+}
