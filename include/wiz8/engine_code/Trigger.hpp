@@ -201,16 +201,12 @@ public:
     unsigned char unknown_0ca[2];
     srVector3T<float> representation_vectors_0cc[4];
     float angle_0fc;
-    float value_100;
-    float value_104;
-    float value_108;
+    srVector3T<float> direction_100;
     unsigned char m_bRepType;
     unsigned char unknown_10d[3];
     W8Prop* m_pProp;
     W8Item* rep_item_114;
-    float position_118;
-    float position_11c;
-    float position_120;
+    srVector3T<float> position_118;
     W8World* m_pWorld;
     char action_data_128[0x80];
     char alternate_action_data_1a8[0x80];

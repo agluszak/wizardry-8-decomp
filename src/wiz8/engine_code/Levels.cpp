@@ -598,9 +598,9 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                 srVector3T<float> axis;
                 srMatrix3T<float> rotation;
 
-                axis.x = trigger->value_100;
-                axis.y = trigger->value_104;
-                axis.z = trigger->value_108;
+                axis.x = trigger->direction_100.x;
+                axis.y = trigger->direction_100.y;
+                axis.z = trigger->direction_100.z;
                 rotation.SetIdentity();
                 if (trigger->angle_0fc != 0.0f) {
                     rotation.RotateAroundAxis(sin(trigger->angle_0fc), cos(trigger->angle_0fc),

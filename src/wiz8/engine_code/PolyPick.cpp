@@ -88,7 +88,7 @@ float ElevationToTargetCPP(const srVector3T<float>* target)
 }
 
 // FUNCTION: WIZ8 0x004BE5C0
-float GetCameraFacingYaw004BE5C0(srVector3T<float>* position)
+float GetCameraFacingYaw004BE5C0(const srVector3T<float>* position)
 {
     float position_x = position->x;
     float position_z = position->z;
@@ -213,7 +213,7 @@ unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
 /* Project one world point through the active world's camera and report
    whether it stays in front of it. */
 // FUNCTION: WIZ8 0x004BE940
-unsigned char ProjectPointThroughCamera004BE940(srVector3T<float>* position)
+unsigned char ProjectPointThroughCamera004BE940(const srVector3T<float>* position)
 {
     srVector3T<float> projected;
     srVector3T<double> input((double)position->x, (double)position->y, (double)position->z);
