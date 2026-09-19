@@ -168,7 +168,11 @@ void ToggleMipePanel0057D740(void)
     g_mipe_state_0068f100 = static_cast<W8MipeState*>(malloc(sizeof(W8MipeState)));
     memset(g_mipe_state_0068f100, 0, sizeof(W8MipeState));
     IListInit(&g_mipe_state_0068f100->monster_ids);
-    g_mipe_state_0068f100->selected_group_id = W8_MIPE_NO_GROUP;
+    /* Retail overwrites IList's capacity with this sentinel-sized value here.
+       Keep the observed store even though the allocation itself is still the
+       ten-entry IListInit buffer; selected_group_id at +0x0c is a separate
+       cache used by UpdateMipeSelection0057DC20. */
+    g_mipe_state_0068f100->monster_ids.capacity = W8_MIPE_NO_GROUP;
     g_mipe_state_0068f100->selecting = 0;
     g_mipe_state_0068f100->value_34 = 1.0f;
     g_mipe_state_0068f100->speed_step = 0.020000000f;
