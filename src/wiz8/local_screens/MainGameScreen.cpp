@@ -2904,7 +2904,7 @@ void MainGameScreenFrame(void)
     if (g_build_level_links_0065bd2c) {
         char path[512];
         W8LevelInfo info;
-        strcpy(path, static_cast<const char*>(g_world->octree->m_owned_0c0));
+        strcpy(path, g_world->octree->m_owned_0c0);
         char* extension = strrchr(path, '.');
         if (extension) {
             *extension = '\0';
