@@ -1866,9 +1866,11 @@ char TextBoxHandleKey(const void* event)
 
 /* Record what the Knock Knock spell is aimed at. Casting it anywhere the
    overlay is not up says so and records nothing - the message is the
-   function's own name in the player's words. */
+   function's own name in the player's words. Its caller passes the same
+   (level, flag, backfire) triple CastSpellAtLockInteraction00587C80 takes;
+   only the target is read here. */
 // FUNCTION: WIZ8 0x0058a9c0
-void SetKnockKnockTarget(int target)
+void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
 {
     W8MainGameScreen* screen = g_main_game_screen;
 

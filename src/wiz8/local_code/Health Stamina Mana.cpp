@@ -839,7 +839,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
    eight is the one outcome that carries no stamina charge. MonsterCastsSpell
    deliberately returns this value to its caller. */
 // FUNCTION: WIZ8 0x0052c320
-unsigned int SpellCastFatigueCost(int spell_id, int result)
+int SpellCastFatigueCost(int spell_id, int result)
 {
     if (result == 8) {
         return 0;

@@ -20,9 +20,10 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
 struct W8MonsterGroup {
-    int group_id;             /* 0x00: GroupIndex ID lookup key */
-    int member_count;         /* 0x04: decremented when members leave */
-    struct W8IList* monsters; /* 0x08: fresh IList per live group */
+    int group_id;              /* 0x00: GroupIndex ID lookup key */
+    unsigned int member_count; /* 0x04: decremented when members leave; live-group
+                                  tests compare it unsigned (JBE at 0x00510B47) */
+    struct W8IList* monsters;  /* 0x08: fresh IList per live group */
     /* Refreshed together by the targeting visibility pass. */
     int visible_member_count;    /* 0x0c */
     int selectable_member_count; /* 0x10 */
