@@ -126,15 +126,15 @@ struct W8MainScreenState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
     unsigned char unknown_002[0xee];
-    W8MainUiMode value_f0; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
+    W8MainUiMode saved_main_ui_mode; /* 0x0f0: the pre-dialogue display mode 0x56cad0 saves */
     /* 0x0f4: the party slot 0x0056D030 picks as the dialogue's leading
        speaker - the occupied row whose character leads skill 0x16. */
     int dialogue_speaker;
     int target_location_id_f8;
     int value_fc;
     int value_100;
-    int value_104;
-    W8ItemInstance* value_108;
+    int previous_dialogue_layout;
+    W8ItemInstance* trade_item;
     W8TextControl* dialogue_text_10c; /* 0x10c: the NPC-name caption */
     W8TextControl* dialogue_text_110;
     W8TextControl* dialogue_text_114;
@@ -264,9 +264,9 @@ struct W8MainScreenState {
     unsigned char flag_251;
     unsigned char flag_252;
     unsigned char unknown_253;
-    int value_254;
+    int trade_quantity;
     /* 0x258: the screen reset writes -1 here, the no-selection value. */
-    int value_258;
+    int selected_trade_row;
     int value_25c;
     /* 0x260: raised by the screen reset. */
     unsigned char flag_260;
