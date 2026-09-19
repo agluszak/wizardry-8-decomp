@@ -24,6 +24,11 @@
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/monster_runtime.h"
+#include "wiz8/monster_generators.h"
+#include "wiz8/local_screens/mipe.h"
+#include "wiz8/local_code/LoadSaveGame.h"
+#include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/character.h"
@@ -284,13 +289,42 @@ void ResetGameStatus(unsigned char release)
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfortify-source"
     /* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus 0x6C words from 0x006836B8:
-       a 0x1A0A-byte bulk reset spanning gXStatus and neighbouring runtime state.
-       That span is a reset region, not one C++ object. */
-    memset(static_cast<void*>(&gXStatus), 0, 0x1a0a);
-#pragma clang diagnostic pop
+       a 0x1A0A-byte bulk reset spanning gXStatus and every gameplay-state global
+       through 0x6850C2. Retail clears one contiguous BSS region; here the same
+       globals are reset by name because the recomp link does not keep that
+       region contiguous (a raw byte-range memset tramples unrelated globals).
+       Only retail 0x68506C, a single unnamed byte, has no recovered global. */
+    memset(static_cast<void*>(&gXStatus), 0, sizeof(gXStatus));
+    g_target_position_0068407f.SetZero();
+    memset(&g_shared_target_0068408b, 0, sizeof(g_shared_target_0068408b));
+    memset(&g_shared_action_detail_006840ab, 0, sizeof(g_shared_action_detail_006840ab));
+    g_picked_monster = 0;
+    g_picked_group = 0;
+    g_flag_006840bb = 0;
+    g_flag_006840bc = 0;
+    g_value_006840be = 0;
+    g_held_item_source_006840c0 = 0;
+    g_held_item_origin_006840c4 = 0;
+    g_held_item_slot_006840c5 = 0;
+    memset(g_monster_record_cache, 0, sizeof(g_monster_record_cache));
+    g_gameplay_timer_685067 = 0;
+    g_save_notice_shown_0068506b = 0;
+    g_deferred_skill_notices_0068506d = 0;
+    g_flag_0068506e = 0;
+    g_flag_68506f = 0;
+    g_flag_00685070 = 0;
+    g_flag_00685071 = 0;
+    g_value_00685072 = 0;
+    g_flag_00685076 = 0;
+    g_value_00685077 = 0;
+    memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
+    g_combat_countdown_6850b0 = 0;
+    g_combat_difficulty_6850b4 = 0;
+    g_party_moving_006850b5 = 0;
+    g_saved_encounter_budget = 0;
+    g_mipe_cube_serial_006850ba = 0;
+    g_dword_6850be = 0;
     gXStatus.character_event_queue = new W8CharacterEventQueue();
     g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
 }

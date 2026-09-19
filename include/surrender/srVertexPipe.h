@@ -97,8 +97,12 @@ private:
     SR_DLL_IMPORT void setupST(unsigned long index);
     SR_DLL_IMPORT void setupSpecular();
 
-    /* Getter/setup/process bodies in sr.dll. Scratch is operator_new(0xb04)
-       with a flags dword at +0xb00. */
+public:
+    /* Header-visible to consumer vertex processors: Wiz8's ground-shadow
+       mapper (0x004D6090) reads avt_70, vertex_array_78, batch_base_80,
+       sub_batch_offset_84 and vertex_count_88 and ORs lazy_setup_mask_10
+       directly, with no accessor call. Getter/setup/process bodies live in
+       sr.dll. Scratch is operator_new(0xb04) with a flags dword at +0xb00. */
     void* scratch_00;                                 /* 0x00 */
     srVertexProcessor** processor_heap_04;            /* 0x04 */
     unsigned long processor_heap_capacity_08;         /* 0x08 */

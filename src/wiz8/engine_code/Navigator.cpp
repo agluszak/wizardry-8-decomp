@@ -1192,6 +1192,41 @@ void W8NavigatorAttachment::GetNextPosition00456660(srVector3T<float>* position)
     }
 }
 
+/* Walks the recorded positions from value_04 while each stays within
+   `distance` of `point`; when a position falls outside, the crossing segment
+   is interpolated so the last recorded position sits exactly `distance` from
+   `point`, mirrored into position_1c, and the index is truncated. Retail
+   leaves the previous-distance temporary uninitialized when the first
+   sampled position already lies outside `distance`. */
+// FUNCTION: WIZ8 0x004566C0
+unsigned char W8NavigatorAttachment::TrimPathToDistance004566C0(const srVector3T<float>* point,
+                                                                float distance)
+{
+    unsigned int index = value_04;
+    float dist = (position_4c[index] - *point).Length();
+    float previous;
+    while (dist < distance) {
+        previous = dist;
+        if (path_position_index_08 <= index) {
+            break;
+        }
+        ++index;
+        dist = (position_4c[index] - *point).Length();
+    }
+    if (dist > distance) {
+        float t = (dist - distance) / (dist - previous);
+        srVector3T<float> clipped =
+            (position_4c[index] - position_4c[index - 1]) * t + position_4c[index - 1];
+        position_1c = clipped;
+        position_4c[index] = clipped;
+        path_position_index_08 = static_cast<unsigned short>(index);
+        flags_00 &= 0xffbfffff;
+        return 1;
+    }
+    flags_00 &= 0xffbfffff;
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00456830
 unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions00456830(float distance,
                                                                        srVector3T<float>* position)
@@ -1391,6 +1426,47 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
     position->x = dir_x + point.x;
     position->z = dir_z + point.y;
     return reached;
+}
+
+/* Steps `position` along the recorded positions by `distance`, writing the
+   last segment's normalized direction into `direction`. Waypoints within the
+   step are consumed into value_04; returns nonzero once the route's last
+   recorded position is reached. */
+// FUNCTION: WIZ8 0x00457150
+unsigned char W8NavigatorAttachment::AdvanceAlongRecordedPath00457150(srVector3T<float>* position,
+                                                                      float distance,
+                                                                      srVector3T<float>* direction)
+{
+    while (value_04 <= path_position_index_08) {
+        if (distance <= g_zero_005ebb40) {
+            break;
+        }
+        srVector3T<float>* waypoint = position_4c + value_04;
+        direction->x = waypoint->x - position->x;
+        direction->y = waypoint->y - position->y;
+        direction->z = waypoint->z - position->z;
+        float segment = direction->Length();
+        if (g_zero_005ebb40 < segment) {
+            float inverse = static_cast<float>(g_double_005ebc30 / segment);
+            direction->x = direction->x * inverse;
+            direction->y = direction->y * inverse;
+            direction->z = direction->z * inverse;
+        }
+        if (segment <= distance) {
+            *position = *waypoint;
+            distance = distance - segment;
+            if (value_04 == path_position_index_08) {
+                return 1;
+            }
+            ++value_04;
+        } else {
+            position->x = direction->x * distance + position->x;
+            position->y = direction->y * distance + position->y;
+            position->z = direction->z * distance + position->z;
+            distance = g_zero_005ebb40;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x00452560

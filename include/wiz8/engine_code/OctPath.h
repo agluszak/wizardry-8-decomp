@@ -366,6 +366,10 @@ public:
     unsigned char LinkAttachmentTarget004612A0(W8NavigatorAttachment* attachment,
                                                unsigned int flags, const srVector3T<float>* target,
                                                float separation);
+    /* Greedy edge expansion used by LinkAttachmentTarget: candidates are
+       sorted by direction alignment and searched best-first; returns the
+       first node clearing patrol_distance_1e8, or zero. */
+    unsigned short RecurseDirectionalLinks004615D0(unsigned short node); /* 0x004615D0 */
     unsigned char BuildPatrolPath00461960(W8NavigatorAttachment* attachment, unsigned int flags,
                                           const srVector3T<float>* target, float minimum,
                                           const srVector3T<float>* velocity, float maximum);

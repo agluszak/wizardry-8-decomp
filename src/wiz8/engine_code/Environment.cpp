@@ -1044,6 +1044,54 @@ void SetSkyNodeVisible(bool visible)
     }
 }
 
+/* Mode 0 enables the camera light and raises its intensity by 0.5 (clamped to
+   50.0); mode 1 lowers it by the same step and disables the node once the
+   intensity reaches zero; modes 2 and 3 just disable and re-enable it. Retail
+   reloads g_world->camera_light after the clearFlag call and tolerates it
+   having become null. */
+// FUNCTION: WIZ8 0x00483e80
+void SetCameraLightMode00483E80(int mode)
+{
+    stLight* camera_light;
+    float intensity;
+
+    if (g_world == 0) {
+        return;
+    }
+    camera_light = g_world->camera_light;
+    if (camera_light == 0) {
+        return;
+    }
+    switch (mode) {
+    case 0:
+        camera_light->clearFlag(srNode::FLAG_DISABLE);
+        camera_light = g_world->camera_light;
+        intensity = camera_light != 0 ? camera_light->intensity_1d0 : 0.0f;
+        intensity += g_float_005ebc7c;
+        if (intensity > 50.0f) {
+            intensity = 50.0f;
+        }
+        if (camera_light != 0) {
+            camera_light->intensity_1d0 = intensity;
+        }
+        break;
+    case 1:
+        intensity = camera_light->intensity_1d0 - g_float_005ebc7c;
+        if (intensity > 0.0f) {
+            camera_light->intensity_1d0 = intensity;
+        } else {
+            camera_light->setFlag(srNode::FLAG_DISABLE);
+        }
+        break;
+    case 2:
+        camera_light->setFlag(srNode::FLAG_DISABLE);
+        break;
+    case 3:
+        camera_light->clearFlag(srNode::FLAG_DISABLE);
+        break;
+    }
+}
+
 // FUNCTION: WIZ8 0x00482720
 void SetGameTimeMilliseconds(int value)
 {

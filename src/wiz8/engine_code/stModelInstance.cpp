@@ -660,7 +660,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
 
     unsigned char first_pass = 1;
-    srNode* child;
+    /* Retail reads this cursor uninitialised on the first pass (its VC6 stack
+       slot happened to hold a benign value); under clang the slot is garbage
+       and the first testFlag dereferences it, so it starts explicitly null. */
+    srNode* child = 0;
     while (model != 0) {
         model->SetAmbientColor00472990(ambient_color);
         model->getTriMesh(mesh);

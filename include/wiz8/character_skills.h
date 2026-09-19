@@ -153,3 +153,6 @@ void ApplySkillChange(W8Character* character, int skill_id);
 void InitializeSkillBaseLevels00553C90(W8Character* character);
 void RefreshCharacterSkillAvailability00553CD0(W8Character* character);
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id);
+/* ABS 0x0068506D: set when a deferred skill-point notice is pending; part of
+   the retail bulk reset region cleared by InitializeGameplayRuntimeObjects. */
+extern unsigned char g_deferred_skill_notices_0068506d;

@@ -16,6 +16,9 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
@@ -302,8 +305,7 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
         result |= FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0);
         result |= FileWrite(handle, &m_ulNumWayPoints, sizeof(m_ulNumWayPoints), 0);
         result |= FileWrite(handle, &m_ulNumWayPtLinks, sizeof(m_ulNumWayPtLinks), 0);
-        result |=
-            FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
+        result |= FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
         result |= FileWrite(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
     }
     FileClose(handle);
@@ -1325,6 +1327,176 @@ unsigned char W8PathingService::BuildAttachmentPath00460950(W8NavigatorAttachmen
             }
             attachment->flags_00 = attachment->flags_00 | 0x20000;
             return 1;
+        }
+    }
+    return 0;
+}
+
+/* Link `attachment` to `target` through the waypoint graph. The patrol
+   scratch state is reused as search state: patrol_start_1ec holds the target,
+   patrol_min_1e0 the caller's separation, and patrol_distance_1e8 the far
+   bound separation + 10000. RecurseDirectionalLinks expands edges in
+   direction-alignment order from the nearest start waypoint; when no reached
+   node qualifies, the farthest seen node (probe_cell_key_078) becomes the
+   attachment's destination and an ordinary FindPath run supplies the route.
+   The parent chain is then reversed through the shared scratch array into the
+   attachment's recorded path. */
+// FUNCTION: WIZ8 0x004612A0
+unsigned char W8PathingService::LinkAttachmentTarget004612A0(W8NavigatorAttachment* attachment,
+                                                             unsigned int flags,
+                                                             const srVector3T<float>* target,
+                                                             float separation)
+{
+    patrol_min_1e0 = separation;
+    patrol_distance_1e8 = separation + g_float_005ec0a8;
+    patrol_start_1ec = *target;
+    path_flags_000 = flags;
+    value_1d4 = 0;
+    unsigned short node = FindWaypoint0045B120(&attachment->position_10, '\x01');
+    if (node == 0 && (node = value_1d4) == 0) {
+        return 0;
+    }
+    rendered_waypoints_05c->ClearAll();
+    visible_waypoints_058->ClearAll();
+    path_heap_06c->heap_00->size_0c = 0;
+    unsigned int start = node;
+    visible_waypoints_058->Set(start);
+    probe_cell_key_078 = start;
+    float dx = target->x - attachment->position_10.x;
+    float dy = target->y - attachment->position_10.y;
+    float dz = target->z - attachment->position_10.z;
+    patrol_cost_210 = sqrt(dx * dx + dy * dy + dz * dz);
+    m_pSurfaces_048[start].parent_10 = 0;
+    m_pSurfaces_048[start].cost_1c = patrol_cost_210;
+    node = RecurseDirectionalLinks004615D0(static_cast<unsigned short>(start));
+    if (node == 0) {
+        if (separation < patrol_cost_210) {
+            attachment->position_1c = m_pSurfaces_048[probe_cell_key_078].position_04;
+            node = static_cast<unsigned short>(FindPath00460B80(attachment, flags));
+        }
+        if (node == 0) {
+            return 0;
+        }
+    }
+    unsigned int finish = node & 0xffff;
+    attachment->position_1c = m_pSurfaces_048[finish].position_04;
+    unsigned short count = 0;
+    visible_waypoints_058->ClearAll();
+    unsigned int current = finish;
+    while (current != 0) {
+        if (visible_waypoints_058->Set(current) != 0) {
+            break;
+        }
+        if (m_ulNumWayPoints <= count) {
+            srAssertFail("i < m_ulNumWayPoints", OCTPATH_CPP, 0x1c97, 0);
+        }
+        g_path_scratch_00659c64[count] = static_cast<unsigned short>(current);
+        current = m_pSurfaces_048[current].parent_10;
+        ++count;
+    }
+    g_path_scratch_00659c64[count] = 0;
+    if (count != 0) {
+        unsigned int remaining = count;
+        do {
+            unsigned short surface_index = g_path_scratch_00659c64[remaining - 1];
+            srVector3T<float>* position = &m_pSurfaces_048[surface_index].position_04;
+            if (static_cast<unsigned int>(attachment->capacity_0a) <=
+                static_cast<unsigned int>(attachment->path_position_index_08 + 1)) {
+                attachment->GrowPathStorage00456BD0();
+            }
+            srVector3T<float>* slot = attachment->position_4c + attachment->path_position_index_08;
+            slot->x = position->x;
+            slot->y = position->y;
+            slot->z = position->z;
+            attachment->path_values_50[attachment->path_position_index_08] = surface_index;
+            attachment->path_position_index_08 = attachment->path_position_index_08 + 1;
+            --remaining;
+            attachment->flags_00 = attachment->flags_00 & 0xffbfffff;
+        } while (remaining != 0);
+    }
+    attachment->TrimPathToDistance004566C0(target, separation);
+    if (1 < attachment->path_position_index_08) {
+        attachment->path_position_index_08 = attachment->path_position_index_08 - 1;
+        attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
+    }
+    if (value_1d4 != 0) {
+        attachment->position_28 = probe_position_07c;
+        attachment->flags_00 = attachment->flags_00 | 0x80000;
+    }
+    attachment->flags_00 = attachment->flags_00 | 0x20000;
+    return 1;
+}
+
+/* Greedy companion search for LinkAttachmentTarget: expands `node`'s outbound
+   edges that clear the active flag filters, sorts the candidates by alignment
+   between the target-to-candidate direction and the edge direction, and
+   recurses best-first. Each accepted candidate's cost and parent are seeded;
+   the farthest candidate seen updates patrol_cost_210/probe_cell_key_078.
+   Returns the first node whose distance to the target clears
+   patrol_distance_1e8, or zero when the frontier is exhausted. */
+// FUNCTION: WIZ8 0x004615D0
+unsigned short W8PathingService::RecurseDirectionalLinks004615D0(unsigned short node)
+{
+    unsigned short links[20];
+    unsigned long keys[20];
+    float distances[20];
+    int count = 0;
+
+    unsigned int link = m_pSurfaces_048[node].first_edge_24;
+    if (link != 0) {
+        do {
+            unsigned int edge_flags = m_pEdges_04c[link].flags_00;
+            if ((edge_flags & 0x1000000) == 0) {
+                unsigned int mask = path_flags_000;
+                unsigned int next = m_pEdges_04c[link].destination_06;
+                if ((((m_pSurfaces_048[next].flags_00 & 0x20) == 0) &&
+                     ((edge_flags & 0x80000000) == 0 ||
+                      ((edge_flags & 0x10000000) != 0 && (mask & 0x10000000) != 0)) &&
+                     (mask == 0 ||
+                      (((edge_flags & 0xffff) == 0xffff || (edge_flags & mask & 0xffff) != 0) &&
+                       ((edge_flags & 0x70000) == 0x70000 || (edge_flags & mask & 0x70000) != 0) &&
+                       ((edge_flags & 0x380000) == 0x380000 ||
+                        (edge_flags & mask & 0x380000) != 0)))) &&
+                    (next != 0)) {
+                    if (rendered_waypoints_05c->Test(next) == 0) {
+                        W8PathSurface* next_surface = &m_pSurfaces_048[next];
+                        next_surface->cost_1c =
+                            m_pEdges_04c[link].distance_08 + m_pSurfaces_048[node].cost_1c;
+                        next_surface->parent_10 = node;
+                        srVector3T<float> direction = next_surface->position_04 - patrol_start_1ec;
+                        float distance = direction.Length();
+                        distances[count] = distance;
+                        if (patrol_cost_210 < distance) {
+                            patrol_cost_210 = distance;
+                            probe_cell_key_078 = next;
+                        }
+                        links[count] = static_cast<unsigned short>(link);
+                        direction *= 1.0 / distance;
+                        srVector3T<float> edge_direction =
+                            next_surface->position_04 - m_pSurfaces_048[node].position_04;
+                        edge_direction.Normalize();
+                        keys[count] =
+                            static_cast<unsigned long>(1000.0f - (direction.x * edge_direction.x +
+                                                                  direction.y * edge_direction.y +
+                                                                  direction.z * edge_direction.z) *
+                                                                     1000.0f);
+                        ++count;
+                    }
+                }
+            }
+            link = m_pEdges_04c[link].next_0c;
+        } while (link != 0);
+    }
+    QuickSortByKey(links, keys, 0, count - 1);
+    rendered_waypoints_05c->Set(node);
+    for (int index = 0; index < count; ++index) {
+        if (patrol_distance_1e8 < distances[index]) {
+            return m_pEdges_04c[links[index]].destination_06;
+        }
+        unsigned short found =
+            RecurseDirectionalLinks004615D0(m_pEdges_04c[links[index]].destination_06);
+        if (found != 0) {
+            return found;
         }
     }
     return 0;
@@ -3197,6 +3369,68 @@ unsigned char W8PathingService::PrepareLinkedNavigator00466FB0(W8NavigatorMoveme
         }
     }
     return built;
+}
+
+/* One movement step for a monster walking an attachment path. Each slice of
+   the frame's movement budget (capped at five world units) advances the
+   recorded route; consumed waypoints get their traversal timestamp stamped
+   from the accumulator, the navigator's yaw tracks the last segment's
+   heading, and a hostile group runs its sight/AI check between slices. The
+   loop ends when the budget is spent, the route completes, or the monster
+   enters combat. */
+// FUNCTION: WIZ8 0x00467150
+unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementState* movement,
+                                                            float radius, float separation)
+{
+    g_navigator_position_changed_659c11 = true;
+    unsigned char reached = '\0';
+    unsigned int monster_index =
+        MonsterGetIndexByLocationID(0x2a95, OCTPATH_CPP, movement->location_id_004, '\x01');
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+    unsigned int group_index =
+        GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, '\x01');
+    W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+    monster_info->monster->unknown_0bc[1] = '\x01';
+    float remaining = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+    do {
+        if (remaining <= g_float_005ebb34) {
+            break;
+        }
+        float step;
+        if (remaining <= g_float_005ebc28) {
+            step = remaining;
+        } else {
+            step = 5.0f;
+        }
+        W8NavigatorAttachment* attachment = movement->attachment_0ac;
+        unsigned short before = attachment->value_04;
+        srVector3T<float> direction;
+        reached = attachment->AdvanceAlongRecordedPath00457150(
+            &movement->position_040, step * movement->movement_scale_060 * g_world_scale_005ebc40,
+            &direction);
+        unsigned short after = attachment->value_04;
+        if (before < after) {
+            do {
+                attachment->value_04 = before;
+                m_pSurfaces_048[attachment->path_values_50[attachment->value_04]].positional_14 =
+                    static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
+                ++before;
+            } while (before < after);
+            attachment->value_04 = after;
+        }
+        float yaw = NormalizeAngle(static_cast<float>(atan2(direction.x, direction.z)));
+        movement->target_yaw = yaw;
+        movement->yaw = yaw;
+        if (group->ubDisposition == DISP_HOSTILE) {
+            UpdateMonsterSight(monster_info, 1, 0);
+            DoMonsterRTAI(monster_info, '\x01');
+            if (monster_info->fInCombat != '\0') {
+                break;
+            }
+        }
+        remaining = remaining - step;
+    } while (reached == '\0');
+    return reached != '\0';
 }
 
 /* Give everything the service owns back. The four malloc'd tables and the

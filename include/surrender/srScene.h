@@ -66,8 +66,14 @@ protected:
     TraverseInfo traversal_158;          /* 0x158 */
     ProcessInfo process_info_170;        /* 0x170 */
     srVector3T<float> ambient_light_174; /* 0x174 */
-    srVector3T<float> fog_color_180;     /* 0x180 */
-    unsigned long unknown_18c_;          /* 0x18c */
+    /* GetWorldColour00427290 reads the fog colour's channels with no accessor
+       call, so the field is header-visible like the srVertexPipe batch
+       internals. */
+public:
+    srVector3T<float> fog_color_180; /* 0x180 */
+
+protected:
+    unsigned long unknown_18c_; /* 0x18c */
 };
 
 static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");

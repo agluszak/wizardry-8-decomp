@@ -2544,6 +2544,28 @@ void Trigger::PrintNothingHappenedOrSpecialItemRequired004456E0()
     ShowNotice(0xf, gppStringList[0x964], -1, -1, 0);
 }
 
+// FUNCTION: WIZ8 0x00445940
+bool InsideDestinationTrigger00445940(float x, float y, float z)
+{
+    W8GrowableVector<Trigger*>* triggers = g_world->triggers;
+    int trigger_count = triggers->GetCount();
+
+    for (int index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *triggers->GetAt(index);
+        if (trigger->initial_action_22a == 0x34) {
+            float dx = trigger->position_118.x - x;
+            float dy = trigger->position_118.y - y;
+            float dz = trigger->position_118.z - z;
+            float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+            if (distance < trigger->range_maximum_0a8 && trigger->flag_0a0_06 == 0 &&
+                distance >= trigger->range_minimum_0a4) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /* Execute the selected Trigger action. The original keeps the three trigger
    kinds in one dispatcher: kind two handles invisible/timed actions first,
    kind one handles Prop-backed actions, and everything else falls through to

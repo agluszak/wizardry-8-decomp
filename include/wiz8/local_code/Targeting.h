@@ -26,6 +26,9 @@ char GetTargetNoticeColor(const W8TargetSource* source,
 
 extern int g_picked_monster;
 extern int g_picked_group;
+/* ABS 0x0068407F: the last resolved 3D target point; part of the retail bulk
+   reset region cleared by InitializeGameplayRuntimeObjects. */
+extern srVector3T<float> g_target_position_0068407f;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
 extern W8CombatSlot g_shared_target_0068408b;
 /* ABS 0x006840AB: one action-detail block following the shared slot; the

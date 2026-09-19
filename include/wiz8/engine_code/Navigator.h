@@ -72,6 +72,15 @@ struct W8NavigatorAttachment {
     void GrowPathStorage00456BD0();
     void CopyPathFrom004564F0(const W8NavigatorAttachment* other);
     void GetNextPosition00456660(srVector3T<float>* position);
+    /* Trims the recorded route so its last position sits `distance` from
+       `point`; returns nonzero when the route was clipped. */
+    unsigned char TrimPathToDistance004566C0(const srVector3T<float>* point,
+                                             float distance); /* 0x004566C0 */
+    /* Advances `position` along the recorded positions by `distance`, writing
+       the last segment's normalized direction into `direction`; returns
+       nonzero once the route's last position is reached. */
+    unsigned char AdvanceAlongRecordedPath00457150(srVector3T<float>* position, float distance,
+                                                   srVector3T<float>* direction); /* 0x00457150 */
     void InitializeSegment004563E0(const srVector3T<float>* source,
                                    const srVector3T<float>* destination);
     /* Step `position` forward along the recorded route by the 2-D `distance`,

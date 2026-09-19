@@ -287,4 +287,4 @@ stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relativ
 void DestroyAllWorldTriggers(W8World* world);
 /* Walk the world's triggers for a type-0x34 RunDestination trigger whose
    annulus contains the position; answers true when one does. */
-unsigned char InsideDestinationTrigger00445940(float x, float y, float z);
+bool InsideDestinationTrigger00445940(float x, float y, float z);

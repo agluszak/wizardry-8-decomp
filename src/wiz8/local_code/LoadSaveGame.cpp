@@ -122,10 +122,6 @@
    site here, so the weaker of the two is the one declared. */
 #define LOADSAVEGAME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp"
 
-/* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
-   in src/wiz8. The first is told about every group that survives the load, the
-   second only about those two of its flags select. */
-
 /* 0x004E3720, 0x004F69F0 and 0x00443A50, not yet identified; named by address
    as elsewhere in src/wiz8. All three take no argument and return nothing, and
    run before the header is read, so they read as teardown of whatever the

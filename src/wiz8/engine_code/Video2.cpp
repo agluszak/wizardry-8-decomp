@@ -16,6 +16,7 @@
 #include "wiz8/engine_code/stCube.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/environment_colour.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/Configuration.h"
@@ -1199,6 +1200,39 @@ void InvalidateRendererTextureCache(void)
 {
     if (g_gerd_659634 != 0) {
         g_gerd_659634->invalidateTextureCache();
+    }
+}
+
+/* Copy the world's fog colour into colour and clamp each channel into [0, 1].
+   A missing world yields black. Retail reads srScene::fog_color_180's channels
+   directly off g_world->static_scene. */
+// FUNCTION: WIZ8 0x00427290
+void GetWorldColour00427290(EnvironmentColour* colour)
+{
+    if (g_world == 0) {
+        colour->red = 0.0f;
+        colour->green = 0.0f;
+        colour->blue = 0.0f;
+        return;
+    }
+    srVector3T<float> fog = g_world->static_scene->fog_color_180;
+    colour->red = fog.x;
+    colour->green = fog.y;
+    colour->blue = fog.z;
+    if (fog.x <= 0.0f) {
+        colour->red = 0.0f;
+    } else if (fog.x >= 1.0f) {
+        colour->red = 1.0f;
+    }
+    if (fog.y <= 0.0f) {
+        colour->green = 0.0f;
+    } else if (fog.y >= 1.0f) {
+        colour->green = 1.0f;
+    }
+    if (fog.z <= 0.0f) {
+        colour->blue = 0.0f;
+    } else if (fog.z >= 1.0f) {
+        colour->blue = 1.0f;
     }
 }
 

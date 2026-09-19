@@ -270,7 +270,6 @@ unsigned char* ClassifyTextures00496000(W8MaterialRecord004B8A70* textures, int 
 int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A70* textures,
                          int count, unsigned char* classify);
 void OctBuildOptions00496CD0(char* stem);
-void GetWorldColour00427290(EnvironmentColour* colour);
 
 // FUNCTION: WIZ8 0x00492E60
 char BuildPreprocessedFiles00492E60(const char* level_path)

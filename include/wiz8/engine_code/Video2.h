@@ -120,6 +120,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
                                            char render_secondary);
+/* 0x004277F0: forward a pick key to the active renderer when one exists. */
 void SetPickKey004277F0(void* key);
 
 struct W8ControlsRect;
@@ -279,6 +280,7 @@ void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 void PublishLightDirection(const EnvironmentColour* direction);
+void GetWorldColour00427290(EnvironmentColour* colour);
 srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
 void ReleaseObject004257F0(srClass* object);
 void Initialize16BitPixelFormatMasks(void);
