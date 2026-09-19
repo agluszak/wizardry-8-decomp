@@ -56,45 +56,6 @@
    the spells known in that realm. */
 enum { W8_SKILL_FIRST_REALM = 0x1c };
 
-/* The spell-casting view state gpSCSV, a 0xc5c-byte block malloc'd when the
-   view opens. The member spellings come from this file's assertion strings;
-   the rest are unresolved. */
-struct W8SpellCastingView {
-    unsigned char unknown_000[0xf8];
-    W8Character* caster;             /* 0x0f8 */
-    int iSpellRealm;                 /* 0x0fc: selected realm, -1 when none */
-    int uiSpellToCast;               /* 0x100 */
-    int override_spell_104;          /* 0x104: detail/commit override spell */
-    int iSpellPower;                 /* 0x108: chosen power index, -1 when unset */
-    int iSpellPowerClass;            /* 0x10c: the spell record's power class */
-    unsigned int uiPowerLevels;      /* 0x110: affordable power-level count */
-    TIMER realm_anim_timer;          /* 0x114 */
-    unsigned int realm_anim_frame;   /* 0x118 */
-    W8LearnedSpellState learned;     /* 0x11c */
-    int uiSpellIndex;                /* 0x4f8: clicked list row */
-    int selected_spell_index;        /* 0x4fc */
-    int field_500;                   /* 0x500 */
-    Controls* panels[3];             /* 0x504 */
-    W8TextControl* realm_buttons[6]; /* 0x510 */
-    W8TextControl* realm_icons[6];   /* 0x528 */
-    W8TextControl* power_pips[9];    /* 0x540 */
-    W8TextControl* spell_name;       /* 0x564 */
-    W8TextControl* cancel_button;    /* 0x568 */
-    W8MainUiMode saved_game_mode;    /* 0x56c */
-    bool flag_570;                   /* 0x570 */
-    unsigned char pad_571[3];
-    int field_574;                  /* 0x574 */
-    int interact_id;                /* 0x578 */
-    int location_id;                /* 0x57c */
-    unsigned int uiSpellsInList;    /* 0x580 */
-    int uiSpells[0x15e];            /* 0x584 */
-    signed char alt_colors[0x15e];  /* 0xafc */
-    unsigned char closing;          /* 0xc5a: close already in progress */
-    unsigned char dialog_confirmed; /* 0xc5b */
-};
-
-static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");
-
 /* Realm-name string ids for the spell-casting realm-button tooltips. */
 // GLOBAL: WIZ8 0x0064C840
 int g_spell_realm_help_string_ids_0064c840[6] = {0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c};

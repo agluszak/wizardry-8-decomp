@@ -904,6 +904,11 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event,
 /* Help 31: radar-map button beside the text area. */
 unsigned char RadarMapButtonRegionEvent(const InputAtom* event,
                                         struct W8Region* region); /* 0x00567600 */
+/* Region 23: the 3D world view. Hover refreshes the combat selection/target,
+   left-up runs the targeting/item/monster dispatch, right-down opens monster
+   info or the assay dialog, and the mouselook latch arms and releases here. */
+unsigned char WorldViewRegionEvent(const InputAtom* event,
+                                   struct W8Region* region); /* 0x00567800 */
 /* Help 36: combat monster-list hit rows beside the radar map. */
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
