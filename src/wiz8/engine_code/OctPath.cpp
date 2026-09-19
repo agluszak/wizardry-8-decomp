@@ -33,6 +33,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "random.h"
 #include <math.h>
 #include <stdio.h>

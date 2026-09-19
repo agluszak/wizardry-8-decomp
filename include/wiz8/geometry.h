@@ -115,17 +115,5 @@ public:
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
 void BuildTrianglePlane00449A40(float* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
-float GetCameraFacingYaw004BE5C0(srVector3T<float>* position);
-/* Euclidean distance between two world-space points. */
-float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first,
-                                    const srVector3T<float>* second);
-unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
-                                        const srVector3T<float>* minimum,
-                                        const srVector3T<float>* maximum);
-/* Per-axis overlap test for two axis-aligned bounds. */
-unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
-                                    const srVector3T<float>* first_maximum,
-                                    const srVector3T<float>* second_minimum,
-                                    const srVector3T<float>* second_maximum);
 
 #endif

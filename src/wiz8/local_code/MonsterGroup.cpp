@@ -32,6 +32,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/regions.h"
 
 #include <wchar.h>

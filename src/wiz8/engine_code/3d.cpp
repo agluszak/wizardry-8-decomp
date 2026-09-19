@@ -13,6 +13,7 @@
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"

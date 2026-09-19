@@ -34,6 +34,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "FileMan.h"
 

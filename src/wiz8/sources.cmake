@@ -120,6 +120,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/ItemManager.cpp
     src/wiz8/engine_code/game_timer.cpp
     src/wiz8/engine_code/materials.cpp
+    src/wiz8/engine_code/PolyPick.cpp
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/OctPrePath.cpp
     src/wiz8/engine_code/stScript.cpp
@@ -170,7 +171,6 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/Camera.cpp
     src/wiz8/engine_code/Cursor3d.cpp
     src/wiz8/engine_code/stLight.cpp
-    src/wiz8/engine_code/bounds.cpp
     src/wiz8/engine_code/OctRegionPolygon.cpp
     src/wiz8/version.cpp
     src/wiz8/local_code/party_encumbrance.cpp
