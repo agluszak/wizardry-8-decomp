@@ -701,8 +701,8 @@ unsigned char AutomapScreenEnter(void)
             monster->monster->DetachRepresentation004A7A70(g_world);
     }
     for (W8WorldItem* item = GetNextWorldItem(1); item; item = GetNextWorldItem(0)) {
-        if (item->owner)
-            item->owner->DetachMesh0049FA30(g_world);
+        if (item->p3D)
+            item->p3D->DetachMesh0049FA30(g_world);
     }
     gfTrackMousePos = 1;
     g_automap_cursor_inside = IsCursorInsideViewport();
@@ -2193,7 +2193,7 @@ void RenderAutomapMarkers00582930(void)
     }
     for (W8WorldItem* world_item = GetNextWorldItem(1); world_item != 0;
          world_item = GetNextWorldItem(0)) {
-        W8Item* item = world_item->owner;
+        W8Item* item = world_item->p3D;
         if (item == 0) {
             continue;
         }
