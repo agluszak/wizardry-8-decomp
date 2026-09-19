@@ -134,7 +134,7 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
     } else {
         info->monster->SetScript004C7F10("MoveHogarDrugged.msf", 1);
         if (GetLocationVarIDByName("HogarDruggedGivenExp") == -1) {
-            Function4EEF10(500, 0);
+            AwardPartyExperience004EEF10(500, 0);
             CreateLocationVar("HogarDruggedGivenExp", 1);
         }
     }

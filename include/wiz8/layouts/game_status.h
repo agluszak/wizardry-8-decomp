@@ -178,7 +178,10 @@ struct W8GlobalStatus {
        seconds. */
     int savant_hack_tick;
     int bela_cycle_tick;
-    unsigned char unknown_497b[0x10];
+    unsigned char unknown_497b[4];
+    /* 0x497f: the three combat difficulty bands count evaluations in the
+       corresponding band; 0x4E6CE0 indexes these dwords by the selected band. */
+    unsigned int combat_difficulty_counts[3];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int value_498b;
     /* 0x498f/0x4993: pending-stage flags set by FACT_QUE_ENDGAME2/3; the book
@@ -252,6 +255,8 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
 static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
 static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
+static_assert(offsetof(W8GlobalStatus, combat_difficulty_counts) == 0x497f,
+              "W8GlobalStatus_combat_difficulty_counts_offset");
 static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f,
               "W8GlobalStatus_value_498f_offset");
 static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,

@@ -904,7 +904,7 @@ void EndCombat004EA310(int mode)
             g_status_685170.level_progress[g_status_685170.current_level].combat_end_count_01 += 1;
         }
         g_combat_state->value_010 /= active;
-        Function4EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);
+        AwardPartyExperience004EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);
         int* entry = g_status_685170.status_ints_3121;
         int* end = entry + 1000;
         while (entry < end) {
@@ -2868,7 +2868,7 @@ void UpdateCombat004E8EA0(void)
         return;
     }
     if (g_combat_state->combat_evaluated_a48 == 0 && gXStatus.hostile_monster_count != 0) {
-        Function4E6CE0();
+        EvaluateCombatDifficulty004E6CE0();
         g_combat_state->combat_evaluated_a48 = 1;
     }
     if (g_combat_state->engaged_missile != 0 &&

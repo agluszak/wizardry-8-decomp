@@ -244,6 +244,12 @@ int g_effect_005ee5e8 = 0x18;
 int g_effect_005ee5f0 = 0x1a;
 // GLOBAL: WIZ8 0x005EE5F8
 int g_effect_005ee5f8 = 28;
+// GLOBAL: WIZ8 0x005EE5FC
+int g_effect_005ee5fc = 29;
+// GLOBAL: WIZ8 0x005EE600
+int g_effect_005ee600 = 30;
+// GLOBAL: WIZ8 0x005EE604
+int g_effect_005ee604 = 31;
 // GLOBAL: WIZ8 0x005EE60C
 int g_effect_005ee60c = 33;
 // GLOBAL: WIZ8 0x005ee610

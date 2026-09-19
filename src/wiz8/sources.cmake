@@ -6,6 +6,7 @@
 set(WIZ8_SOURCE_UNITS
     "src/wiz8/local_code/PC Item.cpp"
     src/wiz8/local_code/FormationAndFacing.cpp
+    src/wiz8/local_code/CombatDifficultyFragment.cpp
     src/wiz8/local_code/Controls.cpp
     src/wiz8/local_code/Factions.cpp
     src/wiz8/local_code/LoadSaveGame.cpp

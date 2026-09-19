@@ -15,6 +15,8 @@
 #include "font.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/AutomapScreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/sr_api.h"
@@ -463,6 +465,66 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...)
         }
     }
     ShowNotice(channel, text, text_box, -1, 0);
+}
+
+// FUNCTION: WIZ8 0x0058aad0
+void ShowNoticef(unsigned int font_palette, const wchar_t* format, ...)
+{
+    wchar_t text[4096];
+    va_list arguments;
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    short text_box;
+    if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+        text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+    } else if (GetFlag68F105()) {
+        text_box = 0;
+    } else {
+        text_box = gXStatus.fCombatMode != 0 ? 1 : 0;
+    }
+    ShowNotice(font_palette, text, text_box, -1, false);
+}
+
+// FUNCTION: WIZ8 0x00590950
+void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
+{
+    wchar_t separator[2];
+    wchar_t text[4096];
+    va_list arguments;
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
+    const wchar_t* name = g_status_685170.buffers.characters[party_slot].name;
+    ShowNoticef(8, L"%s%s%s", name, separator, text);
+
+    unsigned char stop = static_cast<unsigned char>(wcslen(name));
+    if (text[0] == L'\'') {
+        ++stop;
+        if (text[1] == L's') {
+            ++stop;
+        }
+    }
+    HighlightTextBoxRange(static_cast<unsigned char>(
+                              g_status_685170.buffers.party_rows[party_slot].party_order_index),
+                          0, stop, -1);
+}
+
+// FUNCTION: WIZ8 0x00590b40
+void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
+{
+    wchar_t separator[2];
+    wchar_t text[4096];
+    va_list arguments;
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
+    ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
 
 /* The value the screen keeps beside the text. */

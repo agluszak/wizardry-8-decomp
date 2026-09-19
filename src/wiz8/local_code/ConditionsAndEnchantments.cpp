@@ -920,6 +920,27 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
     }
 }
 
+// FUNCTION: WIZ8 0x00524540
+void RemoveAllEnchantments(void)
+{
+    for (int enchantment = 0; enchantment < 8; ++enchantment) {
+        for (int party_slot = 0; party_slot < 8; ++party_slot) {
+            if (g_status_685170.buffers.party_rows[party_slot].occupied &&
+                g_status_685170.buffers.characters[party_slot].enchantments[enchantment].value_08 !=
+                    0) {
+                ClearCharacterEnchantmentSlot(party_slot, enchantment);
+            }
+        }
+        for (unsigned int monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList);
+             ++monster_index) {
+            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(monster_index);
+            if (monster->enchantments[enchantment].value_08 != 0) {
+                ClearMonsterEnchantmentSlot(monster->location_id, enchantment);
+            }
+        }
+    }
+}
+
 /* Run one of a monster's enchantment slots down by the given number of turns,
    emptying it when nothing is left. The look-up is repeated rather than
    reused, which is what the two separate index calls show. */

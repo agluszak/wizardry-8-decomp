@@ -83,6 +83,20 @@ void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source)
     source->iChar = party_slot;
 }
 
+// FUNCTION: WIZ8 0x0053CD60
+void ReconcilePartyEquipmentAfterCombat0053CD60(void)
+{
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (row->occupied && (character->hp_current != 0 || character->highest_condition < 0xd) &&
+            row->flag_105 && g_settings_6850c8.autoswap_weapons && !row->flag_0f5) {
+            SwapWeaponSetSlots0051D3B0(slot, 0, 1);
+            row->flag_105 = 0;
+        }
+    }
+}
+
 /* The same for a monster, and the mirror image of it: the character id is the
    one invalidated and the monster id the one left set. The monster is passed
    as its info record rather than as an id, so the id is read out of it here -

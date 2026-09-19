@@ -480,7 +480,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info);
 void ToggleCombatMode(void); /* 0x004E6A80 */
 void TogglePartyCombatStance(void);
 void DetectMonsterGroups004E4AB0(void); /* 0x004E4AB0 */
-void Function4E6CE0(void);              /* 0x004E6CE0 */
+void EvaluateCombatDifficulty004E6CE0(void);
 /* The kill bookkeeping a monster's death runs: credit the killer, post the
    "%s %s!" notice, clear conditions the dead monster sourced, apply the
    faction fallout, and bank the kill count and experience when it fought. */

@@ -20,7 +20,7 @@ struct W8LevelProgressRow {
     /* 0x03: counted by RecordMonsterKill for each in-combat kill credited
        while the party is on this level. */
     short monster_kill_count_03;
-    unsigned char unknown_05[4];
+    unsigned int experience_gained; /* 0x05: accumulated when experience is awarded */
     int gold_collected;
     int sight_clock;
     unsigned char unknown_11[0x10];

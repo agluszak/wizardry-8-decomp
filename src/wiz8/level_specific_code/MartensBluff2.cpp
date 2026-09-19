@@ -494,7 +494,7 @@ bool MartensBluff2SquisherControls004DDF20(Trigger* pTrigger)
    command-0 run tracks the animation: while the squisher plays it sweeps the
    kill box between the two props' facing planes for monsters, shoving those
    with room aside and crushing the rest (species 0x183 pays out through
-   Function4EEF10); once the squisher finishes it runs the Dummy and DummyRope
+   AwardPartyExperience004EEF10); once the squisher finishes it runs the Dummy and DummyRope
    triggers, and once those props finish it unregisters. */
 // FUNCTION: WIZ8 0x004DDF40
 void MartensBluff2MonsterCrusher004DDF40(int command)
@@ -656,7 +656,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
             } else {
                 MonsterStartsDying(info, 1);
                 if (info->monster_species == 0x183) {
-                    Function4EEF10(10000, 0);
+                    AwardPartyExperience004EEF10(10000, 0);
                 }
             }
         }
