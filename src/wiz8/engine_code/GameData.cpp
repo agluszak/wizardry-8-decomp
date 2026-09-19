@@ -560,7 +560,8 @@ const float g_monster_motion_push_005ebc5c = 1.05f;
    plane / level-data contact fields used by the collision response pass. */
 // FUNCTION: WIZ8 0x0041B770
 W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
-                                                       srVector3T<float>* position, float* scratch,
+                                                       srVector3T<float>* position,
+                                                       srVector3T<float>* scratch,
                                                        float* nearest_distance)
 {
     W8GDSurface* nearest_surface;
@@ -638,9 +639,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
                     if (hit_distance < *nearest_distance) {
                         *nearest_distance = hit_distance;
                         hit_point = probe;
-                        scratch[0] = prop_delta.x;
-                        scratch[1] = prop_delta.y;
-                        scratch[2] = prop_delta.z;
+                        *scratch = prop_delta;
                         nearest_surface = surface;
                         hit_prop_id = objects[index];
                     }
@@ -656,9 +655,9 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
         s_prop_hit_plane_00652d90.z = nearest_surface->plane_24[2];
         s_prop_hit_plane_00652d90.w = nearest_surface->plane_24[3];
         slope = nearest_surface->slope_48;
-        projected.Set(scratch[0], scratch[1], scratch[2]);
-        residual.Set(scratch[0], scratch[1], scratch[2]);
-        along_normal.Set(scratch[0], scratch[1], scratch[2]);
+        projected = *scratch;
+        residual = *scratch;
+        along_normal = *scratch;
         normal.Set(s_prop_hit_plane_00652d90.x, s_prop_hit_plane_00652d90.y,
                    s_prop_hit_plane_00652d90.z);
         if (g_float_005ebc58 < normal.LengthSquared()) {
@@ -696,9 +695,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
         }
         s_prop_hit_plane_00652d90.w = s_prop_hit_plane_00652d90.w - along_length;
         nearest_surface->hit_plane_38 = &s_prop_hit_plane_00652d90;
-        position->x = hit_point.x + scratch[0];
-        position->y = hit_point.y + scratch[1];
-        position->z = hit_point.z + scratch[2];
+        *position = hit_point + *scratch;
     }
     return nearest_surface;
 }
@@ -829,7 +826,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     float hit_distance;
     float motion_length;
     float scale;
-    float scratch[3];
+    srVector3T<float> scratch;
     unsigned char first_pass;
     unsigned char exhausted;
     unsigned char forced_exit;
@@ -939,7 +936,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                         ProbeMonstersAlongMotion0041BD60(&motion_delta, &probe_position, 1);
                     }
                     nearest_surface = ProbePropsAlongMotion0041B770(&motion_delta, &probe_position,
-                                                                    scratch, &nearest_distance);
+                                                                    &scratch, &nearest_distance);
                     prop_hit = nearest_surface != 0;
                     if (prop_hit != 0) {
                         hit_position = probe_position;
@@ -1038,7 +1035,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                             ProbeMonstersAlongMotion0041BD60(&motion_delta, &probe_position, 1);
                         }
                         nearest_surface = ProbePropsAlongMotion0041B770(
-                            &motion_delta, &probe_position, scratch, &nearest_distance);
+                            &motion_delta, &probe_position, &scratch, &nearest_distance);
                         prop_hit = nearest_surface != 0;
                         if (prop_hit != 0) {
                             hit_position = probe_position;
