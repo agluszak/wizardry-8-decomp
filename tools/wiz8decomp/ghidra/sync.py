@@ -8,11 +8,8 @@ from typing import Any
 from ..config import Settings
 from ..paths import sha256_file
 from ..source_index import address_bound_identities, target_for_program, write_source_index
+from .mutations import auto_parameters
 from .resolve import hex_address, resolve_program_selector
-
-
-class _HardSyncConflict(Exception):
-    """Abort the native transaction without advertising a successful projection."""
 
 
 def _has_function_overlap(conflicts: list[Any]) -> bool:
@@ -92,6 +89,23 @@ def _materialize_function(program: Any, address: int, name: str | None) -> dict[
     return {"address": hex_address(address), "action": "created", "name": created.getName(True)}
 
 
+def _thunked_local_target(function: Any) -> Any | None:
+    """The local function a thunk forwards to, or None for ordinary bodies.
+
+    Ghidra propagates a signature written to a thunk onto its target, so a
+    thunk's own ABI is derived rather than authored: projecting it would fight
+    the target's own row.
+    """
+
+    is_thunk = getattr(function, "isThunk", None)
+    if not callable(is_thunk) or not bool(is_thunk()):
+        return None
+    thunked = function.getThunkedFunction(True)
+    if thunked is None or bool(thunked.isExternal()):
+        return None
+    return thunked
+
+
 def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
     from ghidra.program.model.symbol import SourceType
 
@@ -113,6 +127,15 @@ def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
                 "action": "conflict",
                 "error": f"rename-failed:{exc}",
             }
+    if _thunked_local_target(function) is not None:
+        # Only the name is projected; the target's own row owns the ABI.
+        return {
+            "address": hex_address(identity.address),
+            "action": "updated" if changed else "agree",
+            "changed": changed,
+            "name": function.getName(True),
+            "skipped": "thunk-derived-signature",
+        }
     convention = identity.calling_convention
     if convention in {"__cdecl", "__stdcall", "__fastcall", "__thiscall"}:
         current = str(function.getCallingConventionName() or "unknown")
@@ -187,25 +210,92 @@ def _parameter_names_from_signature(signature: str | None, count: int) -> list[s
 
 
 def _explicit_parameter_types(identity: Any) -> tuple[str, ...]:
-    types = list(identity.parameter_types or ())
-    if not identity.has_this or not types:
-        return tuple(types)
-    owner = str(identity.owning_class or "").replace(" ", "")
-    first = types[0].replace(" ", "")
-    if owner and (first == f"{owner}*" or first.endswith(f"::{owner}*")):
-        types = types[1:]
-    return tuple(types)
+    """Source-declared explicit parameters. Implicit this is not inferred from type spelling."""
+
+    return tuple(identity.parameter_types or ())
+
+
+def _is_placeholder_parameter_name(name: str) -> bool:
+    return name.startswith("param_") and name[6:].isdigit()
+
+
+def _parameter_names_agree(current: str, desired: str) -> bool:
+    """Names are not ABI; a recovered placeholder defers to any stored spelling."""
+
+    return current == desired or _is_placeholder_parameter_name(desired)
+
+
+def _signature_source(function: Any) -> str:
+    source = function.getSignatureSource()
+    name = getattr(source, "name", None)
+    if callable(name):
+        try:
+            name = name()
+        except TypeError:  # pragma: no cover - defensive for Java enum proxies
+            name = None
+    return str(name or source)
+
+
+def _stored_signature_matches(function: Any, resolved: dict[str, Any], identity: Any) -> bool:
+    """Normalized ABI equality between ProgramDB and the recovered prototype.
+
+    Agreement is exact for everything the source prototype declares: return
+    type, explicit parameter count, parameter types, variadic shape and calling
+    convention. The single enumerated exception is Ghidra's synthetic
+    ``__thiscall`` auto-``this``, which is not a source parameter and is
+    ignored. Agreement is never inferred from a stored prototype that carries
+    *more* parameters than the source, and ``T *`` is not agreement for ``T``.
+    """
+
+    if _type_key(function.getReturnType()) != _type_key(resolved["return_type"]):
+        return False
+    existing = [
+        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
+    ]
+    desired = resolved["parameters"]
+    if len(existing) != len(desired):
+        return False
+    if bool(function.hasVarArgs()) != bool(getattr(identity, "is_variadic", False)):
+        return False
+    wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
+    if wanted_cc and str(function.getCallingConventionName() or "unknown") != wanted_cc:
+        return False
+    return all(
+        _parameter_names_agree(current.getName(), wanted.getName())
+        and _type_key(current.getDataType()) == _type_key(wanted.getDataType())
+        for current, wanted in zip(existing, desired, strict=True)
+    )
 
 
 def _apply_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
+    """Project the recovered prototype, structured data types first.
+
+    Comparing the ProgramDB-resolved structured form with normalized ABI
+    equality is what makes a repeated ``ghidra sync`` a real no-op instead of a
+    source-text parser round-trip. The parser stays the fallback for spellings
+    the structured resolver cannot place, and an existing IMPORTED prototype is
+    left untouched because ``--import-source`` owns that projection.
+    """
+
+    structured = _resolved_structured_signature(program, identity)
+    if not structured.get("error"):
+        if _stored_signature_matches(function, structured, identity):
+            return {"applied": False}
+        applied = _apply_structured_signature(program, function, structured, identity)
+        if not applied.get("error"):
+            # A write Ghidra refused to keep is a projection failure, not an
+            # update: report it so it blocks provenance instead of churning.
+            if not _stored_signature_matches(function, structured, identity):
+                return {"error": "structured-apply-not-stored"}
+            return applied
+        structured = applied
+    if _signature_source(function) == "IMPORTED":
+        return {"applied": False}
     parsed = _apply_parsed_signature(program, function, identity.source_signature)
     if not parsed.get("error"):
         return parsed
-    structured = _apply_structured_signature(program, function, identity)
-    if not structured.get("error"):
-        return structured
     return {
-        "error": "; ".join(part for part in (parsed.get("error"), structured.get("error")) if part)
+        "error": "; ".join(part for part in (structured.get("error"), parsed.get("error")) if part)
     }
 
 
@@ -252,9 +342,14 @@ def _apply_parsed_signature(program: Any, function: Any, signature: str | None) 
         return {"error": f"apply-failed:{exc}"}
 
 
-def _apply_structured_signature(program: Any, function: Any, identity: Any) -> dict[str, Any]:
-    from ghidra.program.model.listing import Function, ParameterImpl
-    from ghidra.program.model.symbol import SourceType
+def _resolved_structured_signature(program: Any, identity: Any) -> dict[str, Any]:
+    """Resolve the recovered prototype into ProgramDB data types.
+
+    A returned ``error`` is a hard resolve failure (an unknown spelling); the
+    caller then falls back to the source-text parser.
+    """
+
+    from ghidra.program.model.listing import ParameterImpl
 
     from ..global_typing import resolve_data_type
 
@@ -275,33 +370,35 @@ def _apply_structured_signature(program: Any, function: Any, identity: Any) -> d
         if data_type is None:
             return {"error": f"unresolved-parameter:{spelling}"}
         parameters.append(ParameterImpl(names[index], data_type, program))
-    existing = [
-        parameter for parameter in function.getParameters() if not bool(parameter.isAutoParameter())
-    ]
-    if (
-        _type_key(function.getReturnType()) == _type_key(return_type)
-        and len(existing) == len(parameters)
-        and all(
-            current.getName() == desired.getName()
-            and _type_key(current.getDataType()) == _type_key(desired.getDataType())
-            for current, desired in zip(existing, parameters, strict=True)
-        )
-    ):
-        return {"applied": False}
-    current = function.getPrototypeString(False, False).replace(" ", "")
+    return {"return_type": return_type, "parameters": parameters}
+
+
+def _apply_structured_signature(
+    program: Any, function: Any, resolved: dict[str, Any], identity: Any
+) -> dict[str, Any]:
+    from ghidra.program.model.listing import Function
+    from ghidra.program.model.symbol import SourceType
+
+    wanted_cc = identity.calling_convention or ("__thiscall" if identity.has_this else None)
+    # Ghidra silently ignores a parameter replacement that omits the function's
+    # existing auto parameters (thiscall ``this``, structure-return pointers),
+    # so carry them over and append the recovered explicit parameters.
     try:
-        function.setReturnType(return_type, SourceType.IMPORTED)
+        function.setReturnType(resolved["return_type"], SourceType.IMPORTED)
         function.replaceParameters(
             Function.FunctionUpdateType.DYNAMIC_STORAGE_ALL_PARAMS,
             True,
             SourceType.IMPORTED,
-            *parameters,
+            *auto_parameters(function),
+            *resolved["parameters"],
         )
+        if wanted_cc:
+            function.setCallingConvention(wanted_cc)
+        function.setVarArgs(bool(getattr(identity, "is_variadic", False)))
         function.setSignatureSource(SourceType.IMPORTED)
     except Exception as exc:  # noqa: BLE001
         return {"error": f"apply-failed:{exc}"}
-    updated = function.getPrototypeString(False, False).replace(" ", "")
-    return {"applied": updated != current}
+    return {"applied": True}
 
 
 def _step_summary(result: dict[str, Any]) -> dict[str, Any]:
@@ -322,8 +419,36 @@ def _step_summary(result: dict[str, Any]) -> dict[str, Any]:
 def _hard_errors(result: dict[str, Any]) -> list[Any]:
     errors = list(result.get("errors") or result.get("apply_errors") or [])
     if isinstance(result.get("apply_errors"), int) and result["apply_errors"] and not errors:
-        return [f"{result.get('schema', 'step')} apply_errors={result['apply_errors']}"]
+        errors = [f"{result.get('schema', 'step')} apply_errors={result['apply_errors']}"]
+    if result.get("error"):
+        errors = [result["error"], *errors]
     return errors
+
+
+def _projection_complete(
+    conflicts: list[Any],
+    unresolved_signatures: list[Any],
+    steps: list[dict[str, Any]],
+) -> bool:
+    """True when every supported established fact was applied or explicitly skipped."""
+
+    if conflicts or unresolved_signatures:
+        return False
+    return not any(_hard_errors(step.get("result") or {}) for step in steps)
+
+
+def _record_step(
+    steps: list[dict[str, Any]],
+    conflicts: list[dict[str, Any]],
+    name: str,
+    result: dict[str, Any],
+) -> None:
+    steps.append({"step": name, "result": _step_summary(result)})
+    for row in _hard_errors(result):
+        if isinstance(row, dict):
+            conflicts.append(row)
+        else:
+            conflicts.append({"step": name, "error": str(row)})
 
 
 def synchronize(
@@ -334,10 +459,14 @@ def synchronize(
 ) -> dict[str, Any]:
     """Project every supported established source/evidence fact into ProgramDB."""
 
-    import pyghidra
-
-    from .env import open_program
-    from .workspace import record_source_projection
+    from .env import open_program, save_program
+    from .mutations import RowApplyError, program_transaction
+    from .reccmp_import import import_reccmp_source
+    from .workspace import (
+        compiler_import_identity,
+        record_source_projection,
+        recorded_source_projection,
+    )
 
     program_name = resolve_program_selector(settings, program_selector)
     target = target_for_program(settings.repo_dir, program_name)
@@ -361,157 +490,147 @@ def synchronize(
         if primary.kind in {"definition", "declaration"}:
             primaries.append(primary)
 
+    if import_source:
+        imported = import_reccmp_source(settings, program_selector)
+        steps.append({"step": "reccmp-import", "result": imported})
+
     saved = False
-    aborted = False
     with open_program(settings, program_selector) as program:
         domain = program.getDomainFile()
         if domain is not None and bool(domain.isReadOnly()):
             raise RuntimeError(
                 f"Ghidra program {program_name} is read-only; cannot synchronize ProgramDB"
             )
-        try:
-            with pyghidra.transaction(program, "Synchronize established source facts"):
-                for primary in primaries:
+
+        from ..callback_typing import apply_callback_typing, collect_callback_typing_plan
+        from ..class_structure_projection import (
+            apply_structure_projection,
+            collect_structure_projection_plan,
+        )
+        from ..class_this_typing import apply_this_typing, collect_this_typing_plan
+        from ..cosmic_forge_globals import apply_cosmic_forge_globals, collect_cosmic_forge_plan
+        from ..function_attributes import (
+            apply_function_attributes,
+            collect_function_attribute_plan,
+        )
+        from ..global_typing import apply_global_typing, collect_global_typing_plan
+        from ..prototype_repair import apply_source_conventions, collect_source_convention_plan
+        from ..surrender_iat_typing import apply_surrender_iat_typing, collect_surrender_iat_plan
+        from ..type_graph_projection import apply_type_graph_projection, collect_type_graph_plan
+        from ..vbtable_typing import apply_vbtable_typing, collect_vbtable_typing_plan
+        from ..vftable_typing import apply_vftable_typing, collect_vftable_typing_plan
+
+        for primary in primaries:
+            try:
+                with program_transaction(program, f"Materialize {hex_address(primary.address)}"):
                     materialized = _materialize_function(program, primary.address, primary.name)
-                    if materialized.get("action") == "created":
-                        created.append(materialized)
-                    elif materialized.get("action") == "conflict":
-                        conflicts.append(materialized)
+                    if materialized.get("action") == "conflict":
+                        raise RowApplyError(materialized)
+                if materialized.get("action") == "created":
+                    created.append(materialized)
+            except RowApplyError as exc:
+                conflicts.append(exc.payload)
 
-                from ..callback_typing import apply_callback_typing, collect_callback_typing_plan
-                from ..class_structure_projection import (
-                    apply_structure_projection,
-                    collect_structure_projection_plan,
-                )
-                from ..class_this_typing import apply_this_typing, collect_this_typing_plan
-                from ..cosmic_forge_globals import (
-                    apply_cosmic_forge_globals,
-                    collect_cosmic_forge_plan,
-                )
-                from ..function_attributes import (
-                    apply_function_attributes,
-                    collect_function_attribute_plan,
-                )
-                from ..global_typing import apply_global_typing, collect_global_typing_plan
-                from ..prototype_repair import (
-                    apply_source_conventions,
-                    collect_source_convention_plan,
-                )
-                from ..surrender_iat_typing import (
-                    apply_surrender_iat_typing,
-                    collect_surrender_iat_plan,
-                )
-                from ..type_graph_projection import (
-                    apply_type_graph_projection,
-                    collect_type_graph_plan,
-                )
-                from ..vbtable_typing import apply_vbtable_typing, collect_vbtable_typing_plan
-                from ..vftable_typing import apply_vftable_typing, collect_vftable_typing_plan
+        convention_plan = collect_source_convention_plan(settings.repo_dir, program, target=target)
+        _record_step(
+            steps, conflicts, "conventions", apply_source_conventions(program, convention_plan)
+        )
 
-                convention_plan = collect_source_convention_plan(
-                    settings.repo_dir, program, target=target
-                )
-                conventions = apply_source_conventions(program, convention_plan)
-                steps.append({"step": "conventions", "result": _step_summary(conventions)})
-                conflicts.extend(conventions.get("errors") or [])
+        structure_plan = collect_structure_projection_plan(
+            settings.repo_dir, program, target=target
+        )
+        _record_step(
+            steps,
+            conflicts,
+            "class-structures",
+            apply_structure_projection(program, structure_plan),
+        )
 
-                structure_plan = collect_structure_projection_plan(
-                    settings.repo_dir, program, target=target
-                )
-                structures = apply_structure_projection(program, structure_plan)
-                steps.append({"step": "class-structures", "result": _step_summary(structures)})
-                conflicts.extend(_hard_errors(structures))
+        type_plan = collect_type_graph_plan(settings.repo_dir, program, target=target)
+        _record_step(
+            steps, conflicts, "type-graph", apply_type_graph_projection(program, type_plan)
+        )
 
-                type_plan = collect_type_graph_plan(settings.repo_dir, program, target=target)
-                types = apply_type_graph_projection(program, type_plan)
-                steps.append({"step": "type-graph", "result": _step_summary(types)})
-                conflicts.extend(_hard_errors(types))
+        def project_prototypes() -> None:
+            """Project each source-bound name, convention and prototype.
 
-                for primary in primaries:
-                    applied = _apply_name_and_prototype(program, primary)
-                    signatures.append(applied)
-                    if applied.get("action") == "conflict":
-                        conflicts.append(applied)
+            Runs after the structure/vftable/vbtable passes: those retype
+            ProgramDB data that Ghidra links back to a live function, so the
+            author-documented prototype has to be the last word.
+            """
 
-                this_plan = collect_this_typing_plan(settings.repo_dir, program, target=target)
-                this_typing = apply_this_typing(program, this_plan)
-                steps.append({"step": "class-this", "result": _step_summary(this_typing)})
-                conflicts.extend(this_typing.get("errors") or [])
-
-                vftable_plan = collect_vftable_typing_plan(
-                    settings.repo_dir, program, target=target
-                )
-                vftables = apply_vftable_typing(program, vftable_plan)
-                steps.append({"step": "vftables", "result": _step_summary(vftables)})
-                conflicts.extend(_hard_errors(vftables))
-
+            for primary in primaries:
                 try:
-                    vb_plan = collect_vbtable_typing_plan(settings.repo_dir, program, target=target)
-                    vbtables = apply_vbtable_typing(program, vb_plan)
-                    steps.append({"step": "vbtables", "result": _step_summary(vbtables)})
-                    conflicts.extend(_hard_errors(vbtables))
-                except Exception as exc:  # noqa: BLE001
-                    steps.append({"step": "vbtables", "result": {"error": str(exc)}})
+                    with program_transaction(program, f"Prototype {hex_address(primary.address)}"):
+                        applied = _apply_name_and_prototype(program, primary)
+                        if applied.get("action") in {"conflict", "unresolved-signature"}:
+                            raise RowApplyError(applied)
+                    signatures.append(applied)
+                except RowApplyError as exc:
+                    signatures.append(exc.payload)
+                    conflicts.append(exc.payload)
 
-                iat_plan = collect_surrender_iat_plan(settings.repo_dir, program)
-                iat = apply_surrender_iat_typing(program, iat_plan)
-                steps.append({"step": "surrender-iat", "result": _step_summary(iat)})
-                conflicts.extend(_hard_errors(iat))
+        this_plan = collect_this_typing_plan(settings.repo_dir, program, target=target)
+        _record_step(steps, conflicts, "class-this", apply_this_typing(program, this_plan))
 
-                global_plan = collect_global_typing_plan(settings.repo_dir, program, target=target)
-                globals_ = apply_global_typing(program, global_plan)
-                steps.append({"step": "globals", "result": _step_summary(globals_)})
-                conflicts.extend(_hard_errors(globals_))
+        vftable_plan = collect_vftable_typing_plan(settings.repo_dir, program, target=target)
+        _record_step(steps, conflicts, "vftables", apply_vftable_typing(program, vftable_plan))
 
-                callback_plan = collect_callback_typing_plan(program)
-                callbacks = apply_callback_typing(program, callback_plan)
-                steps.append({"step": "callbacks", "result": _step_summary(callbacks)})
-                conflicts.extend(_hard_errors(callbacks))
+        try:
+            vb_plan = collect_vbtable_typing_plan(settings.repo_dir, program, target=target)
+            _record_step(steps, conflicts, "vbtables", apply_vbtable_typing(program, vb_plan))
+        except Exception as exc:  # noqa: BLE001 — still a hard apply failure
+            failure = {"step": "vbtables", "error": str(exc)}
+            steps.append({"step": "vbtables", "result": {"error": str(exc)}})
+            conflicts.append(failure)
 
-                cosmic_plan = collect_cosmic_forge_plan(settings.repo_dir, program)
-                cosmic = apply_cosmic_forge_globals(program, cosmic_plan)
-                steps.append({"step": "cosmic-forge", "result": _step_summary(cosmic)})
-                conflicts.extend(_hard_errors(cosmic))
+        iat_plan = collect_surrender_iat_plan(settings.repo_dir, program)
+        _record_step(
+            steps, conflicts, "surrender-iat", apply_surrender_iat_typing(program, iat_plan)
+        )
 
-                attribute_plan = collect_function_attribute_plan(
-                    settings.repo_dir, program, target=target
-                )
-                attributes = apply_function_attributes(program, attribute_plan, apply_thunks=False)
-                steps.append({"step": "attributes", "result": _step_summary(attributes)})
-                conflicts.extend(_hard_errors(attributes))
+        global_plan = collect_global_typing_plan(settings.repo_dir, program, target=target)
+        _record_step(steps, conflicts, "globals", apply_global_typing(program, global_plan))
 
-                if import_source:
-                    from .reccmp_import import import_reccmp_source
+        callback_plan = collect_callback_typing_plan(program)
+        _record_step(steps, conflicts, "callbacks", apply_callback_typing(program, callback_plan))
 
-                    imported = import_reccmp_source(settings, program_selector)
-                    steps.append({"step": "reccmp-import", "result": imported})
-                if _has_function_overlap(conflicts):
-                    raise _HardSyncConflict()
-        except _HardSyncConflict:
-            saved = False
+        cosmic_plan = collect_cosmic_forge_plan(settings.repo_dir, program)
+        _record_step(
+            steps, conflicts, "cosmic-forge", apply_cosmic_forge_globals(program, cosmic_plan)
+        )
+
+        attribute_plan = collect_function_attribute_plan(settings.repo_dir, program, target=target)
+        _record_step(
+            steps,
+            conflicts,
+            "attributes",
+            apply_function_attributes(program, attribute_plan, apply_thunks=False),
+        )
+
+        project_prototypes()
+
+        save_program(program, "Synchronize established source facts")
+        saved = True
+
+    unresolved = [row for row in signatures if row.get("action") == "unresolved-signature"]
+    complete = saved and _projection_complete(conflicts, unresolved, steps)
+    if complete:
+        index_path = settings.repo_dir / "build/source-index.json"
+        previous = recorded_source_projection(settings, program_name)
+        payload: dict[str, Any] = {
+            "source_index_sha256": sha256_file(index_path) if index_path.is_file() else None,
+            "applied_ns": time.time_ns(),
+            "target": target,
+            "complete": True,
+        }
+        if import_source:
+            payload.update(compiler_import_identity(settings, target))
         else:
-            from .env import save_program
-
-            reported_mutations = bool(created) or any(
-                row.get("action") == "updated" for row in signatures
-            )
-            if reported_mutations and not program.isChanged():
-                aborted = True
-            else:
-                save_program(program, "Synchronize established source facts")
-                index_path = settings.repo_dir / "build/source-index.json"
-                record_source_projection(
-                    settings,
-                    program_name,
-                    {
-                        "source_index_sha256": sha256_file(index_path)
-                        if index_path.is_file()
-                        else None,
-                        "applied_ns": time.time_ns(),
-                        "target": target,
-                    },
-                )
-                saved = True
+            for key in ("pdb_sha256", "reccmp_revision"):
+                if previous.get(key):
+                    payload[key] = previous[key]
+        record_source_projection(settings, program_name, payload)
 
     return {
         "schema": "wiz8.ghidra-sync",
@@ -520,12 +639,9 @@ def synchronize(
         "created": created,
         "signature_updates": sum(1 for row in signatures if row.get("action") == "updated"),
         "signature_agreements": sum(1 for row in signatures if row.get("action") == "agree"),
-        "unresolved_signatures": [
-            row for row in signatures if row.get("action") == "unresolved-signature"
-        ][:20],
+        "unresolved_signatures": unresolved[:20],
         "conflicts": conflicts[:50],
         "steps": steps,
-        "ok": saved and not aborted and not _has_function_overlap(conflicts),
-        "provenance_advanced": saved,
-        "transaction_aborted": aborted,
+        "ok": complete,
+        "provenance_advanced": complete,
     }

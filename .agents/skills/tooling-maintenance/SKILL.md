@@ -81,8 +81,9 @@ the machinery they protected.
 
 Retired Ghidra apply/query surfaces (`analyze prototype-repair`, `report context`, `report data`,
 `report class`, `report flow`, `recover function`, `recover explain`, enrichment checkpoint/promote,
-`ghidra/query.py`, `legacy_classes_cleanup`) are deleted, not aliased. Keep Parameter ID as an
-explicit investigative collect-only analysis.
+`ghidra/query.py`, `legacy_classes_cleanup`, `convention_heuristics`) are deleted, not aliased.
+`analyze parameter-id` is the read-only planner; it is never a project apply path. Convention repair
+stays inside `ghidra sync` (`prototype_repair` collect/apply), not as a standalone command.
 
 ## Commands and output
 
@@ -92,7 +93,8 @@ Exploratory scripts are disposable under `build/` or stdin Python.
 
 Filter before printing. Large listings and diagnostic detail belong in named `build/` artifacts; the
 command result should expose the useful bounded answer/path. Do not dump whole internal graphs merely
-because the caller is an agent.
+because the caller is an agent. `ghidra decompile` / `asm` / `sym` / `class` print compact text by
+default; `--json` serializes that same result rather than running a second path.
 
 ## Verification
 

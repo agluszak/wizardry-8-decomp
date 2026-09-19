@@ -154,18 +154,44 @@ def _unwrap_function_definition(data_type: Any) -> Any | None:
 def _definition_matches_family(existing: Any, family: dict[str, Any], program: Any) -> bool:
     """True when an existing FunctionDefinition matches the curated ABI contract.
 
-    Parameter names are not ABI.
+    Parameter names are not ABI. Compare against program-resolved family types
+    rather than a throwaway unmanaged FunctionDefinition, whose calling
+    convention often does not round-trip until it is added to the manager.
     """
 
-    from .datatype_contracts import definition_contract_equals
+    from .datatype_contracts import datatype_shape_key, function_definition_contract
 
-    if existing is None or not hasattr(existing, "getArguments"):
+    pointed = _unwrap_function_definition(existing)
+    if pointed is None and existing is not None and hasattr(existing, "getArguments"):
+        pointed = existing
+    if pointed is None:
         return False
-    try:
-        expected = _build_function_definition(program, family)
-    except ValueError:
+    return_type = _resolve_type(program, family["return"])
+    if return_type is None:
         return False
-    return definition_contract_equals(existing, expected)
+    args: list[tuple[Any, ...]] = []
+    for _name, spelling in family["params"]:
+        data_type = _resolve_type(program, spelling)
+        if data_type is None:
+            return False
+        args.append(datatype_shape_key(data_type))
+    expected_cc = str(family.get("convention") or "")
+    actual = function_definition_contract(pointed)
+    if len(actual) < 3:
+        return False
+    actual_cc = str(actual[2] or "")
+    if actual_cc in {"", "unknown", "default"}:
+        actual_cc = expected_cc
+    actual_varargs = actual[3] if len(actual) > 3 else False
+    actual_noreturn = actual[4] if len(actual) > 4 else False
+    expected = (
+        datatype_shape_key(return_type),
+        tuple(args),
+        expected_cc,
+        False,
+        False,
+    )
+    return (actual[0], actual[1], actual_cc, actual_varargs, actual_noreturn) == expected
 
 
 def _build_function_definition(program: Any, family: dict[str, Any]) -> Any:

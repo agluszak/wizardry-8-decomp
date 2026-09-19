@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,35 @@ from ..paths import atomic_json, sha256_file
 from .import_programs import HASH_OPTION
 
 SEED_SCHEMA = "wiz8.ghidra-seeds"
+
+
+def pinned_reccmp_revision(repository: Path) -> str | None:
+    """Return the git revision pinned in ``pyproject.toml`` for reccmp."""
+
+    path = repository / "pyproject.toml"
+    if not path.is_file():
+        return None
+    payload = tomllib.loads(path.read_text(encoding="utf-8"))
+    source = ((payload.get("tool") or {}).get("uv") or {}).get("sources") or {}
+    reccmp = source.get("reccmp") or {}
+    revision = reccmp.get("rev")
+    return str(revision) if revision else None
+
+
+def compiler_import_identity(settings: Settings, target: str) -> dict[str, Any]:
+    """PDB and reccmp identities that a ``--import-source`` run projected."""
+
+    from ..build import _PRODUCT_OUTPUTS, TARGET_ALIASES
+
+    resolved = TARGET_ALIASES.get(target, target)
+    stem = _PRODUCT_OUTPUTS.get(resolved, "Wiz8")
+    build_dir = getattr(settings, "product_build_dir", Path(settings.repo_dir) / "build/decomp")
+    pdb = Path(build_dir) / f"{stem}.pdb"
+    return {
+        "pdb_sha256": sha256_file(pdb) if pdb.is_file() else None,
+        "reccmp_revision": pinned_reccmp_revision(settings.repo_dir),
+        "pdb_path": str(pdb),
+    }
 
 
 def seed_manifest_path(settings: Settings) -> Path:
@@ -163,6 +193,15 @@ def record_project_seed(settings: Settings, seed: dict[str, Any]) -> None:
     atomic_json(marker, record)
 
 
+def recorded_source_projection(settings: Settings, program_name: str) -> dict[str, Any]:
+    """Return the last recorded projection payload for ``program_name``, if any."""
+
+    record = _project_owner_record(settings)
+    projections = record.get(SOURCE_PROJECTION_KEY)
+    recorded = projections.get(program_name) if isinstance(projections, dict) else None
+    return dict(recorded) if isinstance(recorded, dict) else {}
+
+
 def record_source_projection(
     settings: Settings, program_name: str, payload: dict[str, Any]
 ) -> None:
@@ -190,13 +229,12 @@ def source_projection_freshness(settings: Settings, program_name: str) -> dict[s
     from ..source_index import source_index_freshness
 
     index = source_index_freshness(settings.repo_dir)
-    record = _project_owner_record(settings)
-    projections = record.get(SOURCE_PROJECTION_KEY)
-    recorded = projections.get(program_name) if isinstance(projections, dict) else None
-    if not isinstance(recorded, dict):
+    recorded = recorded_source_projection(settings, program_name)
+    if not recorded:
         return {
             "ok": True,
             "status": "never",
+            "compiler_status": "never",
             "detail": (
                 "live ProgramDB has not been synchronized from current source; "
                 "reviewed-seed origin does not imply source projection"
@@ -216,24 +254,45 @@ def source_projection_freshness(settings: Settings, program_name: str) -> dict[s
         source_newer = index["state"] == "stale" or (
             index_path.is_file() and index_path.stat().st_mtime_ns > applied_ns
         )
+    source_status = "current"
+    source_detail = "ProgramDB reflects the current source-index identity"
     if current_digest is None or recorded_digest != current_digest or source_newer:
-        return {
-            "ok": True,
-            "status": "stale",
-            "detail": (
-                "source or source-index changed after the last `wiz8 ghidra sync`; "
-                "reviewed-seed origin is independent"
-            ),
-            "recorded_source_index_sha256": recorded_digest,
-            "current_source_index_sha256": current_digest,
-            "source_index": index,
-        }
+        source_status = "stale"
+        source_detail = (
+            "source or source-index changed after the last complete `wiz8 ghidra sync`; "
+            "reviewed-seed origin is independent"
+        )
+    compiler = compiler_import_identity(settings, str(recorded.get("target") or "WIZ8"))
+    recorded_pdb = recorded.get("pdb_sha256")
+    recorded_rev = recorded.get("reccmp_revision")
+    if not recorded_pdb and not recorded_rev:
+        compiler_status = "never"
+        compiler_detail = (
+            "compiler/PDB types have not been projected; run "
+            "`uv run wiz8 ghidra sync --import-source` after `uv run wiz8 build WIZ8`"
+        )
+    elif recorded_pdb != compiler.get("pdb_sha256") or recorded_rev != compiler.get(
+        "reccmp_revision"
+    ):
+        compiler_status = "stale"
+        compiler_detail = (
+            "PDB or pinned reccmp revision changed after the last `--import-source` sync"
+        )
+    else:
+        compiler_status = "current"
+        compiler_detail = "ProgramDB compiler/PDB projection matches the current PDB and reccmp pin"
     return {
         "ok": True,
-        "status": "current",
-        "detail": "ProgramDB reflects the current source-index identity",
+        "status": source_status,
+        "compiler_status": compiler_status,
+        "detail": source_detail,
+        "compiler_detail": compiler_detail,
         "recorded_source_index_sha256": recorded_digest,
         "current_source_index_sha256": current_digest,
+        "recorded_pdb_sha256": recorded_pdb,
+        "current_pdb_sha256": compiler.get("pdb_sha256"),
+        "recorded_reccmp_revision": recorded_rev,
+        "current_reccmp_revision": compiler.get("reccmp_revision"),
         "source_index": index,
     }
 

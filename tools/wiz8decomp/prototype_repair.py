@@ -118,44 +118,35 @@ def apply_source_conventions(
     *,
     actions: frozenset[str] = frozenset({"promote-default-cdecl", "set-from-source"}),
 ) -> dict[str, Any]:
-    """Apply planned calling conventions inside an open transaction."""
+    """Apply planned calling conventions, one transaction per row."""
 
     from ghidra.program.model.symbol import SourceType  # type: ignore[import-not-found]
 
-    space = program.getAddressFactory().getDefaultAddressSpace()
-    functions = program.getFunctionManager()
-    applied: list[dict[str, Any]] = []
-    errors: list[dict[str, Any]] = []
+    from .ghidra.mutations import apply_rows
 
-    for row in plan.get("functions", []):
-        if row.get("action") not in actions:
-            continue
-        address = int(row["address"], 0)
+    def apply_one(_program: Any, row: Mapping[str, Any]) -> dict[str, Any]:
         source_cc = row.get("source")
         if source_cc not in _GHIDRA_MODELS:
-            continue
-        function = functions.getFunctionAt(space.getAddress(address))
-        if function is None:
-            errors.append({**row, "error": "missing-function"})
-            continue
-        try:
-            function.setCallingConvention(source_cc)
-            # Convention-only repair must not claim a full-signature IMPORTED
-            # contract. ANALYSIS marks the convention as non-default without
-            # implying Param ID should treat the whole prototype as imported.
-            # A future path that applies a complete source signature may set
-            # SourceType.IMPORTED at that point.
-            function.setSignatureSource(SourceType.ANALYSIS)
-        except Exception as exc:  # noqa: BLE001 - surface per-row apply failures
-            errors.append({**row, "error": str(exc)})
-            continue
-        applied.append(
-            {
-                "address": row["address"],
-                "name": row.get("name"),
-                "from": row.get("ghidra"),
-                "to": source_cc,
-                "action": row.get("action"),
-            }
+            return {**dict(row), "error": "unsupported-convention"}
+        space = _program.getAddressFactory().getDefaultAddressSpace()
+        function = _program.getFunctionManager().getFunctionAt(
+            space.getAddress(int(row["address"], 0))
         )
-    return {"applied": len(applied), "errors": errors, "functions": applied}
+        if function is None:
+            return {**dict(row), "error": "missing-function"}
+        function.setCallingConvention(source_cc)
+        # Convention-only repair must not claim a full-signature IMPORTED
+        # contract. ANALYSIS marks the convention as non-default without
+        # implying Param ID should treat the whole prototype as imported.
+        function.setSignatureSource(SourceType.ANALYSIS)
+        return {
+            "address": row["address"],
+            "name": row.get("name"),
+            "from": row.get("ghidra"),
+            "to": source_cc,
+            "action": row.get("action"),
+        }
+
+    rows = [row for row in plan.get("functions", []) if row.get("action") in actions]
+    result = apply_rows(program, rows, apply_one, description="Apply source calling conventions")
+    return {"applied": result["applied"], "errors": result["errors"], "functions": result["rows"]}

@@ -538,7 +538,9 @@ def test_base_apply_does_not_retarget_complete_object_vfptr(monkeypatch) -> None
     )
     monkeypatch.setattr(
         "wiz8decomp.vftable_typing.install_derived_base_view",
-        lambda _program, *, derived, base, offset, vftable: views.append(offset) or True,
+        lambda _program, *, derived, base, offset, vftable, vtable_address=None: (
+            views.append(offset) or True
+        ),
     )
     row = {
         "action": "create-and-apply",
@@ -565,6 +567,40 @@ def test_base_apply_does_not_retarget_complete_object_vfptr(monkeypatch) -> None
     assert result["subobject_view"] is True
     assert called == []
     assert views == [16]
+
+
+def test_base_apply_fails_when_subobject_vfptr_cannot_attach(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._build_vftable_structure",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            getPathName=lambda: "/wiz8/vftables/W8Monster_vftable_for_Base",
+            getNumComponents=lambda: 1,
+        ),
+    )
+    monkeypatch.setattr("wiz8decomp.vftable_typing._apply_data", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing._vftable_has_function_definitions", lambda _s: True
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.vftable_typing.install_derived_base_view",
+        lambda *_args, **_kwargs: False,
+    )
+    result = _apply_vftable_typing_row(
+        object(),
+        {
+            "action": "create-and-apply",
+            "extent_source": "census",
+            "class": "W8Monster",
+            "base_class": "W8Navigator",
+            "role": "base",
+            "address": "0x00500010",
+            "vftable": "/wiz8/vftables/W8Monster_vftable_for_W8Navigator",
+            "subobject_offset": 16,
+            "slots": [{"index": 0, "target": "0x00401000", "name": "a"}],
+        },
+    )
+    assert result["error"] == "subobject-vfptr-not-attached"
+    assert result["subobject_view"] is False
 
 
 def test_retarget_class_vfptr_requires_named_field_at_offset(monkeypatch) -> None:
@@ -619,3 +655,20 @@ def test_retarget_class_vfptr_requires_named_field_at_offset(monkeypatch) -> Non
     program = SimpleNamespace(getDataTypeManager=lambda: object())
     assert _retarget_class_vfptr(program, "W8VirtualFileBinIStream", object(), offset=16) is True
     assert replaced == [16]
+
+
+def test_subobject_view_description_roundtrip() -> None:
+    from wiz8decomp.vftable_typing import encode_subobject_view, parse_subobject_view
+
+    description = encode_subobject_view("W8Monster", "W8Navigator", 0x20, vtable="0x500010")
+    parsed = parse_subobject_view(description)
+    assert parsed == {
+        "derived": "W8Monster",
+        "base": "W8Navigator",
+        "offset": 0x20,
+        "vtable": "0x500010",
+    }
+    without = parse_subobject_view(encode_subobject_view("W8Monster", "W8Navigator", 0x20))
+    assert without is not None
+    assert without["vtable"] is None
+    assert parse_subobject_view("Base_at_0x20") is None

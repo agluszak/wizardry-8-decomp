@@ -90,6 +90,18 @@ def test_imported_data_value_type_for_object_and_static_pointer() -> None:
     )
 
 
+def test_iat_data_pointer_depth_matches_imported_value() -> None:
+    from wiz8decomp.surrender_iat_typing import iat_data_pointer_levels
+
+    assert iat_data_pointer_levels("class srCore srCore") == 1
+    assert (
+        iat_data_pointer_levels(
+            "protected: static class srTriMeshPipeline * srTriMeshPipeline::pipe"
+        )
+        == 2
+    )
+
+
 def test_function_for_iat_ignores_ordinary_caller() -> None:
     ordinary = SimpleNamespace(isExternal=lambda: False, isThunk=lambda: False)
     ref = SimpleNamespace(getFromAddress=lambda: 0x401000)
@@ -192,3 +204,168 @@ def test_convention_only_apply_uses_analysis_not_imported(monkeypatch) -> None:
     assert result["applied_types"] is False
     assert sources == ["ANALYSIS"]
     assert "IMPORTED" not in sources
+
+
+def test_iat_cell_type_failure_is_an_apply_error(monkeypatch) -> None:
+    from wiz8decomp.surrender_iat_typing import _apply_surrender_iat_row
+
+    monkeypatch.setattr(
+        "wiz8decomp.surrender_iat_typing._data_iat_pointer", lambda *_a, **_k: object()
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.surrender_iat_typing._apply_iat_cell_type", lambda *_a, **_k: False
+    )
+    result = _apply_surrender_iat_row(
+        object(),
+        {
+            "action": "set-iat-cell",
+            "address": "0x005eb02c",
+            "kind": "data",
+            "iat_cell": "data-pointer",
+            "decorated_name": "?g_sr@@3PAVsrCore@@A",
+        },
+    )
+    assert result["error"] == "iat-cell-not-typed"
+
+
+def test_iat_callable_names_are_unique_per_import() -> None:
+    from wiz8decomp.surrender_iat_typing import (
+        iat_callable_definition_name,
+        iat_callback_definition_name,
+    )
+
+    first = iat_callable_definition_name("?srExit@@YAHXZ", 0x005EBAF4)
+    second = iat_callable_definition_name("?srAssertFail@@YAXPBD0H0ZZ", 0x005EBB00)
+    assert first != second
+    assert first == "005ebaf4_srExit"
+    assert second == "005ebb00_srAssertFail"
+    assert "iat_callable" not in {first, second}
+    void_cb = iat_callback_definition_name("void", ("char *",), "__cdecl", False)
+    int_cb = iat_callback_definition_name("int", ("char *",), "__cdecl", False)
+    same = iat_callback_definition_name("void", ("char *",), "__cdecl", False)
+    assert void_cb != int_cb
+    assert void_cb == same
+
+
+def test_audit_ghidra_uses_resolved_types_and_flags_real_defects() -> None:
+    from wiz8decomp.surrender_iat_typing import ParsedCallable, _audit_ghidra
+
+    def shape(path: str) -> SimpleNamespace:
+        return SimpleNamespace(
+            getPathName=lambda: path, getDisplayName=lambda: path, getLength=lambda: 4
+        )
+
+    class Param:
+        def __init__(self, data_type: SimpleNamespace, auto: bool = False):
+            self._data_type = data_type
+            self._auto = auto
+
+        def getDataType(self):
+            return self._data_type
+
+        def isAutoParameter(self):
+            return self._auto
+
+    char_pointer = shape("/char *")
+    integer = shape("/int")
+    void = shape("/void")
+    function = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param(integer), Param(char_pointer)],
+        getReturnType=lambda: void,
+        hasVarArgs=lambda: False,
+    )
+    parsed = ParsedCallable(
+        convention="__cdecl",
+        return_type="void",
+        parameters=("char *", "char *"),
+        varargs=False,
+        has_function_pointer_param=False,
+    )
+    # Resolved second parameter is char*, so the stored leading int is a defect.
+    audit = _audit_ghidra(function, parsed, "__cdecl", (void, [char_pointer, char_pointer]))
+    assert "wrong_parameter_type" in audit
+    assert "exact" not in audit
+
+    # Display spellings never decide agreement; resolved shapes do.
+    agreeing = _audit_ghidra(function, parsed, "__cdecl", (void, [integer, char_pointer]))
+    assert "wrong_parameter_type" not in agreeing
+    assert "exact" in agreeing
+
+    # A signature whose spellings do not resolve cannot be called exact.
+    unresolved = _audit_ghidra(function, parsed, "__cdecl")
+    assert "unresolved_signature_types" in unresolved
+    assert "exact" not in unresolved
+
+    # An authored ``void *`` parameter is not an untyped placeholder.
+    void_pointer_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param(shape("/void *"))],
+        getReturnType=lambda: shape("/int"),
+        hasVarArgs=lambda: False,
+    )
+    void_pointer_audit = _audit_ghidra(
+        void_pointer_fn, parsed, "__cdecl", (integer, [shape("/void *"), char_pointer])
+    )
+    assert "undefined_pointer_or_param" not in void_pointer_audit
+
+    undefined_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param(shape("/undefined *"))],
+        getReturnType=lambda: integer,
+        hasVarArgs=lambda: False,
+    )
+    undefined_audit = _audit_ghidra(
+        undefined_fn, parsed, "__cdecl", (integer, [shape("/undefined *"), char_pointer])
+    )
+    assert "undefined_pointer_or_param" in undefined_audit
+
+    wrong_return_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=list,
+        getReturnType=lambda: integer,
+        hasVarArgs=lambda: False,
+    )
+    wrong_return_audit = _audit_ghidra(wrong_return_fn, parsed, "__cdecl", (void, []))
+    assert "wrong_return" in wrong_return_audit
+    assert "exact" not in wrong_return_audit
+
+    varargs_fn = SimpleNamespace(
+        getCallingConventionName=lambda: "__cdecl",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=list,
+        getReturnType=lambda: void,
+        hasVarArgs=lambda: False,
+    )
+    varargs_parsed = ParsedCallable(
+        convention="__cdecl",
+        return_type="void",
+        parameters=(),
+        varargs=True,
+        has_function_pointer_param=False,
+    )
+    varargs_audit = _audit_ghidra(varargs_fn, varargs_parsed, "__cdecl", (void, []))
+    assert "wrong_varargs" in varargs_audit
+    assert "exact" not in varargs_audit
+
+    method = SimpleNamespace(
+        getCallingConventionName=lambda: "__thiscall",
+        getSignatureSource=lambda: SimpleNamespace(name=lambda: "IMPORTED"),
+        getParameters=lambda: [Param(integer)],
+        getReturnType=lambda: void,
+        hasVarArgs=lambda: False,
+    )
+    method_parsed = ParsedCallable(
+        convention="__thiscall",
+        return_type="void",
+        parameters=("int",),
+        varargs=False,
+        has_function_pointer_param=False,
+    )
+    method_audit = _audit_ghidra(method, method_parsed, "__thiscall", (void, [integer]))
+    assert "wrong_this" in method_audit
+    assert "exact" not in method_audit

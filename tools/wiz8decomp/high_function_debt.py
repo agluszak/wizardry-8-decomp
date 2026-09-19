@@ -300,7 +300,7 @@ def run_high_function_debt(
             "failures": failures,
             "requested": len(functions),
             "totals": dict(totals),
-            "debt_total": sum(int(totals.get(key, 0)) for key in METRIC_KEYS),
+            "debt_total": debt_total(dict(totals)),
         },
         "functions": functions,
     }

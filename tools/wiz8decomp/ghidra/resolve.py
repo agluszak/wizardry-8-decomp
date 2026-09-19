@@ -40,6 +40,10 @@ class ResolvedSymbol:
     extent_status: str | None
     detail: str | None
     views: tuple[str, ...] = ()
+    access_path: str | None = None
+    containing: str | None = None
+    field_type: str | None = None
+    union_members: tuple[str, ...] = ()
 
 
 def hex_address(value: int | Any) -> str:
@@ -125,10 +129,32 @@ def _functions_named(program: Any, text: str) -> list[Any]:
     return matches
 
 
+def parse_address_span(selector: str) -> tuple[int, int] | None:
+    """Parse ``0xstart`` or ``0xstart:0xend``; names return None."""
+
+    start_text, separator, end_text = selector.strip().partition(":")
+    try:
+        start = int(start_text, 0)
+        end = int(end_text, 0) if separator else start
+    except ValueError:
+        return None
+    if start < 0 or end < start:
+        raise ResolveError(f"invalid function selector range: {selector}")
+    return start, end
+
+
 def resolve_function(program: Any, selector: str) -> Any:
     """Resolve one function from an address, range singleton, or exact name."""
 
     manager = program.getFunctionManager()
+    span = parse_address_span(selector)
+    if span is not None:
+        start, end = span
+        if start != end:
+            raise ResolveError(
+                f"function selector {selector} is an address range; pass it to a batch command"
+            )
+        selector = hex_address(start)
     try:
         address = program_address(program, selector)
     except Exception:  # noqa: BLE001 - Ghidra throws AddressFormatException
@@ -156,17 +182,14 @@ def resolve_function_entries(program: Any, values: list[str]) -> list[int]:
     selected: set[int] = set()
     manager = program.getFunctionManager()
     for value in values:
-        start_text, separator, end_text = value.strip().partition(":")
-        try:
-            start = int(start_text, 0)
-            end = int(end_text, 0) if separator else start
-        except ValueError:
+        span = parse_address_span(value)
+        if span is None:
             selected.add(int(resolve_function(program, value).getEntryPoint().getOffset()))
             continue
-        if start < 0 or end < start:
-            raise ResolveError(f"invalid function selector range: {value}")
+        start, end = span
         if start == end:
-            selected.add(int(resolve_function(program, value).getEntryPoint().getOffset()))
+            entry = resolve_function(program, hex_address(start)).getEntryPoint()
+            selected.add(int(entry.getOffset()))
             continue
         matches = [
             int(function.getEntryPoint().getOffset())
@@ -181,29 +204,101 @@ def resolve_function_entries(program: Any, values: list[str]) -> list[int]:
     return sorted(selected)
 
 
-def _component_at(data_type: Any, offset: int) -> tuple[Any, int] | None:
+def _is_union(data_type: Any) -> bool:
+    if data_type is None:
+        return False
+    if "Union" in type(data_type).__name__:
+        return True
+    probe = getattr(data_type, "isUnion", None)
+    return bool(probe()) if callable(probe) else False
+
+
+def _join_access(prefix: str, part: str) -> str:
+    if not prefix:
+        return part
+    if part.startswith("["):
+        return prefix + part
+    return f"{prefix}.{part}"
+
+
+@dataclass(frozen=True)
+class _FieldHit:
+    path: str
+    leaf: str
+    type_name: str | None
+    residual: int
+    union_members: tuple[str, ...]
+
+
+def _component_path(data_type: Any, offset: int, prefix: str = "") -> _FieldHit | None:
     if data_type is None or not hasattr(data_type, "getLength"):
         return None
     length = int(data_type.getLength())
     if length > 0 and not (0 <= offset < length):
         return None
+    if _is_union(data_type) and hasattr(data_type, "getDefinedComponents"):
+        covering = [
+            component
+            for component in data_type.getDefinedComponents()
+            if int(component.getOffset())
+            <= offset
+            < int(component.getOffset()) + int(component.getLength())
+        ]
+        if not covering:
+            return None
+        members: list[str] = []
+        residual = offset - int(covering[0].getOffset())
+        leaf = covering[0].getFieldName() or ""
+        type_name = None
+        for component in covering:
+            name = component.getFieldName() or ""
+            nested = _component_path(
+                component.getDataType(),
+                offset - int(component.getOffset()),
+                _join_access(prefix, name) if name else prefix,
+            )
+            path = (
+                nested.path
+                if nested is not None
+                else (_join_access(prefix, name) if name else prefix)
+            )
+            if nested is not None:
+                residual = nested.residual
+                leaf = nested.leaf
+                type_name = nested.type_name
+                if nested.union_members:
+                    members.extend(nested.union_members)
+                    continue
+            else:
+                nested_type = component.getDataType()
+                type_name = nested_type.getDisplayName() if nested_type is not None else None
+            members.append(path)
+        unique = tuple(dict.fromkeys(member for member in members if member))
+        if len(unique) > 1:
+            return _FieldHit("", "", None, residual, unique)
+        path = unique[0] if unique else prefix
+        return _FieldHit(path, leaf, type_name, residual, ())
     if hasattr(data_type, "getDefinedComponents"):
         for component in data_type.getDefinedComponents():
             start = int(component.getOffset())
             size = int(component.getLength())
             if start <= offset < start + size:
-                nested = _component_at(component.getDataType(), offset - start)
+                name = component.getFieldName() or ""
+                nested = _component_path(
+                    component.getDataType(),
+                    offset - start,
+                    _join_access(prefix, name) if name else prefix,
+                )
                 if nested is not None:
-                    child, residual = nested
-                    name = component.getFieldName() or ""
-                    child_name = child.getFieldName() if hasattr(child, "getFieldName") else None
-                    if name and child_name:
-                        try:
-                            child.setFieldName  # noqa: B018 - existence probe
-                        except Exception:  # noqa: BLE001,S110
-                            pass
-                    return child, residual
-                return component, offset - start
+                    return nested
+                nested_type = component.getDataType()
+                return _FieldHit(
+                    _join_access(prefix, name) if name else prefix,
+                    name,
+                    nested_type.getDisplayName() if nested_type is not None else None,
+                    offset - start,
+                    (),
+                )
         return None
     if hasattr(data_type, "getNumElements") and hasattr(data_type, "getElementLength"):
         element_length = int(data_type.getElementLength())
@@ -212,9 +307,45 @@ def _component_at(data_type: Any, offset: int) -> tuple[Any, int] | None:
         index = offset // element_length
         residual = offset % element_length
         if 0 <= index < int(data_type.getNumElements()):
-            nested = _component_at(data_type.getDataType(), residual)
-            return (nested[0], nested[1]) if nested is not None else (data_type, residual)
+            part = f"[{index}]"
+            nested = _component_path(data_type.getDataType(), residual, _join_access(prefix, part))
+            if nested is not None:
+                return nested
+            element = data_type.getDataType() if hasattr(data_type, "getDataType") else None
+            return _FieldHit(
+                _join_access(prefix, part),
+                part,
+                element.getDisplayName() if element is not None else None,
+                residual,
+                (),
+            )
     return None
+
+
+def _is_import_cell(program: Any, address: Any) -> bool:
+    if hasattr(address, "isExternalAddress") and address.isExternalAddress():
+        return True
+    memory = program.getMemory()
+    block = memory.getBlock(address) if hasattr(memory, "getBlock") else None
+    if block is not None:
+        name = str(block.getName() or "").casefold()
+        if name in {".idata", "idata"} or "import" in name:
+            return True
+        if hasattr(block, "isExternal") and block.isExternal():
+            return True
+    references = program.getReferenceManager().getReferencesFrom(address)
+    for reference in references:
+        if hasattr(reference, "isExternalReference") and reference.isExternalReference():
+            return True
+        destination = reference.getToAddress()
+        if (
+            destination is not None
+            and hasattr(destination, "isExternalAddress")
+            and destination.isExternalAddress()
+        ):
+            return True
+    symbol = program.getSymbolTable().getPrimarySymbol(address)
+    return bool(symbol is not None and hasattr(symbol, "isExternal") and symbol.isExternal())
 
 
 def _import_target(program: Any, address: Any) -> str | None:
@@ -326,11 +457,16 @@ def resolve_symbol(program: Any, selector: str) -> ResolvedSymbol:
         defined_at = int(data.getAddress().getOffset())
         residual = offset - defined_at
         data_type = data.getDataType()
+        containing_symbol = symbols.getPrimarySymbol(data.getAddress())
+        containing = containing_symbol.getName(True) if containing_symbol is not None else ""
         field_name = None
+        field_type = None
+        access_path = containing or None
+        union_members: tuple[str, ...] = ()
         extent_status = "within"
         detail = None
-        component = _component_at(data_type, residual)
-        if residual != 0 and component is None and hasattr(data_type, "getLength"):
+        hit = _component_path(data_type, residual)
+        if residual != 0 and hit is None and hasattr(data_type, "getLength"):
             length = int(data_type.getLength())
             if length > 0 and residual >= length:
                 extent_status = "beyond-known-extent"
@@ -340,25 +476,28 @@ def resolve_symbol(program: Any, selector: str) -> ResolvedSymbol:
             elif residual != 0:
                 extent_status = "unknown-field"
                 detail = f"no field at residual offset {residual}"
-        if component is not None:
-            field, inner_residual = component
-            field_name = field.getFieldName() if hasattr(field, "getFieldName") else None
-            if hasattr(field, "getNumElements") and field_name is None:
-                element_length = (
-                    int(field.getElementLength()) if hasattr(field, "getElementLength") else 0
+        if hit is not None:
+            residual = hit.residual
+            field_name = hit.leaf or None
+            field_type = hit.type_name
+            if hit.union_members:
+                union_members = tuple(
+                    _join_access(containing, member) if containing else member
+                    for member in hit.union_members
                 )
-                if element_length:
-                    index = residual // element_length
-                    field_name = f"[{index}]"
-                    inner_residual = residual % element_length
-            residual = inner_residual
+                access_path = None
+                field_name = None
+                detail = "union members: " + ", ".join(union_members)
+            elif hit.path:
+                access_path = _join_access(containing, hit.path) if containing else hit.path
         import_target = None
         kind = "data"
-        name = primary.getName(True) if primary is not None else ""
-        if name.startswith("PTR_") or (
-            data_type is not None and "Pointer" in type(data_type).__name__
-        ):
-            kind = "import-cell" if _import_target(program, data.getAddress()) else "pointer"
+        name = containing
+        if _is_import_cell(program, data.getAddress()):
+            kind = "import-cell"
+            import_target = _import_target(program, data.getAddress())
+        elif data_type is not None and "Pointer" in type(data_type).__name__:
+            kind = "pointer"
             import_target = _import_target(program, data.getAddress())
         if data.hasStringValue():
             kind = "string"
@@ -376,6 +515,10 @@ def resolve_symbol(program: Any, selector: str) -> ResolvedSymbol:
             extent_status=extent_status,
             detail=detail,
             views=views,
+            access_path=access_path,
+            containing=containing or None,
+            field_type=field_type,
+            union_members=union_members,
         )
     return ResolvedSymbol(
         address=offset,
@@ -404,6 +547,10 @@ def symbol_record(symbol: ResolvedSymbol) -> dict[str, Any]:
         "length": symbol.length,
         "field": symbol.field,
         "residual": symbol.residual,
+        "access_path": symbol.access_path,
+        "containing": symbol.containing,
+        "field_type": symbol.field_type,
+        "union_members": list(symbol.union_members),
         "aliases": list(symbol.aliases),
         "import_target": symbol.import_target,
         "extent": symbol.extent_status,

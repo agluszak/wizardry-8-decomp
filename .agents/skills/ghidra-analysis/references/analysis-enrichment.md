@@ -62,7 +62,7 @@ and ``tests/unit/test_enrichment_ghidra.py``).
 | 1 | Calling-convention / prototype repair before Param ID | source-backed conventions applied by `wiz8 ghidra sync` |
 | 2 | One ProgramDB apply path | `wiz8 ghidra sync`; no trial/promote choreography |
 | 5–8 | Globals, callbacks, CF, attributes | applied by the same sync; see notes below |
-| 9 | Dual decompiler profiles | Python `semantic.py` / `inspect.py` profiles; Java `RecoveryEngine` uses the recovery profile (no `grabFromProgram`) |
+| 9 | Dual decompiler profiles | Ordinary `ghidra decompile` uses one analysis-profile session. Java `RecoveryEngine` stays on the recovery profile and is not an unavoidable cost of asking for one function |
 
 Score a sync with `uv run wiz8 analyze decompiler-quality` before promoting the
 live project into a reviewed GZF.
@@ -100,8 +100,8 @@ step so auto `this` can bind. Do not add +1 tolerance.
 ## Follow-through (landed with this architecture)
 
 1. **reccmp `LF_PROCEDURE` / `LF_MFUNCTION`** as FunctionDefinitions; trailing `T_NOTYPE` → varargs; `LF_UNION` writes `UnionDataType`; `T_BOOL08` maps to Ghidra `bool` (wider PDB bools stay integers). Procedure definitions at `/pdb/procedures/PDB_xxxx` are refreshed in place (`REPLACE`, not `KEEP`). `overwrite_ghidra_function()` always writes `setVarArgs`. Plain leaf Namespaces are converted to `GhidraClass`. Unsupported PDB leaves are censused (not implemented speculatively). Pin is the current matching lineage plus that importer. Master's indexer currently SIGSEGVs after `bounder.cpp`, so the pin is not default master.
-2. **SurRender IAT ABI** — sync projects CSV calling conventions and resolved demangled types onto thunk/external imports, and types the IAT cell itself (`Pointer(FunctionDefinition)` for callables; `T*`/`T**`/vftable pointer for data rows). Ordinary `CALL [IAT]` callers never qualify as the import. Full resolved ABI → `IMPORTED`; convention-only → `ANALYSIS`. Nested `ns::X` datatypes resolve at `/ns/X` before class binding.
-3. **Parameter ID** remains collect-only investigation. It must not silently become an established sync fact. Never apply it to IMPORTED/USER_DEFINED signatures.
+2. **SurRender IAT ABI** — sync projects CSV calling conventions and resolved demangled types onto thunk/external imports, and types the IAT cell itself (`Pointer(FunctionDefinition)` for callables; `T*`/`T**`/vftable pointer for data rows). Each imported callable gets a unique FunctionDefinition at `/wiz8/surrender-iat/functions/<iat-address>_<symbol>`; callbacks at `/wiz8/surrender-iat/callbacks/` share only when the complete contract matches. Exact audit compares calling convention, return type, every parameter type, varargs, and thiscall `this`. External prototype agreement and IAT-cell type are independent facts. Ordinary `CALL [IAT]` callers never qualify as the import. Full resolved ABI → `IMPORTED`; convention-only → `ANALYSIS`. Nested `ns::X` datatypes resolve at `/ns/X` before class binding.
+3. **Parameter ID** is `uv run wiz8 analyze parameter-id`: collect-only investigation. It must not silently become an established sync fact. Never apply it to IMPORTED/USER_DEFINED signatures.
 4. **Secondary / for-clause vtables** — `vftable_typing` consumes source-index `base_vtables`, unmarked construction-phase census families, and confirmed vbtables. Slot ABI for `Derived::{for Base}` comes from Base's virtual slot. Construction/base tables never retarget the complete-object `vfptr`.
 5. **vbptr ComponentOffset** — reccmp no longer writes a generic `-4`. Enrichment sets ComponentOffset only on already-present `VBasePtr`/`o_*` PointerTypedefs at a vbtable-proven virtual-base offset, or on proven secondary-subobject `this` receivers. Vbtables stay integer displacements.
 6. **Recovery decompiler profile** — Java `RecoveryEngine` uses compiled-in defaults plus explicit recovery knobs (does not `grabFromProgram`). Prettier transformations stay off the recovery profile.
@@ -118,6 +118,6 @@ Also deferred:
 
 1. Repair obvious calling conventions and known signatures from compiler-backed facts.
 2. Bind classes so auto `this` and the exporter share one Structure.
-3. Only then consider Decompiler Parameter ID planning on disposable candidates.
+3. Only then consider `uv run wiz8 analyze parameter-id` on disposable candidates.
 4. Project globals/callbacks/vftables through the same identity map.
 5. Apply through `wiz8 ghidra sync`; do not treat a second live apply of a subset as equivalent.

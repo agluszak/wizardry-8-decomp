@@ -57,6 +57,16 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
     assert (stage / "Wiz8RuntimeTest.exe").read_bytes() == b"semantic tests"
     assert (stage / "Saves" / "Characters").is_dir()
+    assert result.executable_written is True
+
+    restaged = stage_game(
+        settings,
+        name="runtime-test",
+        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+    )
+    assert restaged.executable_written is False
+    assert restaged.executable == result.executable
+    assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
 
 
 def test_reset_runtime_scenario_state_removes_only_scenario_outputs(tmp_path: Path) -> None:

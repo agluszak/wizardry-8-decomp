@@ -6,6 +6,7 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -324,6 +325,15 @@ def warn_if_product_may_be_stale(settings: Settings, target: str) -> None:
 def build_target(
     settings: Settings, target: str = "match", jobs: int | None = None
 ) -> dict[str, Any]:
+    started = time.perf_counter()
+    phases: dict[str, int] = {}
+
+    def mark(name: str, origin: float) -> float:
+        """Record the elapsed milliseconds for one product-build phase."""
+
+        phases[name] = int((time.perf_counter() - origin) * 1000)
+        return time.perf_counter()
+
     with build_lock(settings):
         build = ContainerBuild.from_settings(settings)
         resolved_target = TARGET_ALIASES.get(target, target)
@@ -338,14 +348,18 @@ def build_target(
                 f"prepared build inputs are missing ({rendered}); run `uv run wiz8 prepare`"
             )
         _ensure_sr_assert_import(settings)
+        tick = time.perf_counter()
         if not _product_cache_ready(build.build_dir):
             _configure(settings)
+        tick = mark("configure_ms", tick)
         run(
             build.check_build_system_command(),
             cwd=settings.repo_dir,
             log_path=settings.repo_dir / "build/logs/product-regenerate.json",
         )
+        tick = mark("regenerate_ms", tick)
         _enable_jom_parallelism(build.build_dir)
+        stubs: dict[str, Any] | None = None
         if resolved_target in {"WIZ8_RUNTIME", "WIZ8_RUNTIME_TEST"}:
             # The runnable products must link without /FORCE:UNRESOLVED, so the
             # comparison MAP and the generated trap thunks must be current
@@ -355,20 +369,27 @@ def build_target(
                 cwd=settings.repo_dir,
                 log_path=settings.repo_dir / "build" / "logs" / "runtime-prereq.json",
             )
+            tick = mark("compile_prereq_ms", tick)
             from .runtime_stubs import write_runtime_stubs
             from .source_index import write_source_index
 
             write_source_index(settings)
-            write_runtime_stubs(settings)
+            tick = mark("source_index_ms", tick)
+            stubs = write_runtime_stubs(settings)
+            tick = mark("stubs_ms", tick)
         run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,
             log_path=settings.repo_dir / "build" / "logs" / "product-build.json",
         )
+        mark("compile_link_ms", tick)
         return {
             "status": "ok",
             "target": resolved_target,
             "log": str(Path("build/logs/product-build.json")),
+            "phases_ms": phases,
+            "total_ms": int((time.perf_counter() - started) * 1000),
+            "stubs": stubs,
         }
 
 

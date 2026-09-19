@@ -9,6 +9,7 @@ from wiz8decomp.decompiler_quality import (
     _stratified_sample,
     compute_quality_delta,
     debt_total,
+    require_quality_measurement,
     score_decompiled,
 )
 
@@ -230,3 +231,45 @@ def test_pain_corpus_filters_to_mismatch_inconclusive(monkeypatch) -> None:
     assert corpus["match_filter"] == "mismatch|inconclusive"
     assert corpus["addresses"] == [0x402000, 0x403000]
     assert {row["status"] for row in corpus["matches"]} == {"mismatch", "inconclusive"}
+
+
+def test_require_quality_measurement_rejects_missing_report(tmp_path) -> None:
+    import pytest
+
+    settings = SimpleNamespace(build_dir=tmp_path)
+    with pytest.raises(RuntimeError, match="decompiler-quality"):
+        require_quality_measurement(settings, object(), "wiz8")
+
+
+def test_require_quality_measurement_requires_matching_fingerprint(tmp_path, monkeypatch) -> None:
+    import json
+
+    import pytest
+
+    report_dir = tmp_path / "decompiler-quality"
+    report_dir.mkdir()
+    (report_dir / "report.json").write_text(
+        json.dumps(
+            {
+                "program": "wiz8",
+                "summary": {"ok": 3, "failures": 0},
+                "program_state": {
+                    "binary_sha256": "aaa",
+                    "function_count": 10,
+                    "datatype_count": 20,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    settings = SimpleNamespace(build_dir=tmp_path)
+    monkeypatch.setattr(
+        "wiz8decomp.decompiler_quality.program_analysis_fingerprint",
+        lambda _program: {
+            "binary_sha256": "bbb",
+            "function_count": 10,
+            "datatype_count": 20,
+        },
+    )
+    with pytest.raises(RuntimeError, match="current ProgramDB"):
+        require_quality_measurement(settings, object(), "wiz8")

@@ -197,11 +197,20 @@ class AddressBoundIdentity:
     return_type: str | None
     parameter_types: tuple[str, ...]
     has_this: bool
+    is_variadic: bool
     owning_class: str | None
     source_signature: str | None
     is_definition: bool
     folded: bool
     identity_alias: bool
+
+
+def _declaration_is_variadic(entry: Mapping[str, Any], signature: str | None = None) -> bool:
+    if "is_variadic" in entry:
+        return bool(entry.get("is_variadic"))
+    text = signature if signature is not None else str(entry.get("source_signature") or "")
+    stripped = text.rstrip()
+    return ", ..." in stripped or stripped.endswith(("...)", ",...)"))
 
 
 def _namespace_for_source(source_file: str, targets: dict[str, dict[str, Any]]) -> str:
@@ -284,6 +293,7 @@ def _identity_from_declaration(
         return_type=str(entry["return_type"]) if entry.get("return_type") else None,
         parameter_types=tuple(str(item) for item in (entry.get("parameter_types") or ())),
         has_this=bool(entry.get("has_this")),
+        is_variadic=_declaration_is_variadic(entry),
         owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
         source_signature=str(entry["source_signature"]) if entry.get("source_signature") else None,
         is_definition=bool(entry.get("is_definition")),
@@ -354,6 +364,7 @@ def address_bound_identities(
                 return_type=None,
                 parameter_types=(),
                 has_this=False,
+                is_variadic=False,
                 owning_class=None,
                 source_signature=None,
                 is_definition=marker_kind == "FUNCTION",
