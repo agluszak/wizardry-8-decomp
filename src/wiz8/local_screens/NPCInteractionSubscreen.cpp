@@ -1850,7 +1850,7 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
     W8ItemInstance* item;
     wchar_t text[204];
     wchar_t price_text[220];
-    char wants_item;
+    bool wants_item;
 
     SelectTextSlot1E8(index, 2);
     switch (g_screen_state_00649f1c->value_fc) {
@@ -1883,7 +1883,7 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
         g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
         switch (g_screen_state_00649f1c->value_100) {
         case 4:
-            if (g_status_685170.party_gold < static_cast<unsigned int>(Function55B5A0(
+            if (g_status_685170.party_gold < static_cast<unsigned int>(CalculateNpcTradeStackPrice(
                                                  g_screen_state_00649f1c->dialogue_npc,
                                                  g_screen_state_00649f1c->value_108->item_id, 1,
                                                  g_screen_state_00649f1c->value_254,
@@ -1892,22 +1892,22 @@ void UpdateNpcTradeSelection0056FAC0(int index, int increment, int commit)
                 g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
             }
             swprintf(price_text, L"%dg",
-                     Function55B5A0(g_screen_state_00649f1c->dialogue_npc,
-                                    g_screen_state_00649f1c->value_108->item_id, 1,
-                                    g_screen_state_00649f1c->value_254,
-                                    g_screen_state_00649f1c->value_108->identified));
+                     CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                 g_screen_state_00649f1c->value_108->item_id, 1,
+                                                 g_screen_state_00649f1c->value_254,
+                                                 g_screen_state_00649f1c->value_108->identified));
             break;
         case 3: {
-            wants_item = Function55B250(g_screen_state_00649f1c->dialogue_npc,
-                                        g_screen_state_00649f1c->value_108);
+            wants_item = NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc,
+                                             g_screen_state_00649f1c->value_108);
             if (wants_item == 0) {
                 g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_fontStateIndex = 0;
                 g_screen_state_00649f1c->dialogue_text_1a0->m_textBuffer.m_geometryDirty = 1;
             }
-            int price = Function55B5A0(g_screen_state_00649f1c->dialogue_npc,
-                                       g_screen_state_00649f1c->value_108->item_id, 0,
-                                       g_screen_state_00649f1c->value_254,
-                                       g_screen_state_00649f1c->value_108->identified);
+            int price = CalculateNpcTradeStackPrice(g_screen_state_00649f1c->dialogue_npc,
+                                                    g_screen_state_00649f1c->value_108->item_id, 0,
+                                                    g_screen_state_00649f1c->value_254,
+                                                    g_screen_state_00649f1c->value_108->identified);
             if (wants_item != 0) {
                 swprintf(price_text, L"%dg", price);
             } else {

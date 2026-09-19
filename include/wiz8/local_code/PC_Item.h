@@ -185,12 +185,6 @@ unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
 /* 0x0051D7A0: whether any occupied, conscious party member can use the item. */
 bool AnyPartyMemberCanUseItem(int item_id);
-/* 0x0055B250: whether the NPC will trade for the item at all. */
-char Function55B250(W8NpcState* npc, W8ItemInstance* item);
-/* 0x0055B5A0: CalculateTradeStackPrice for a bare item id plus stack count
-   and identified flag, staging a scratch W8ItemInstance. */
-int Function55B5A0(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
-                   unsigned char identified);
 
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;

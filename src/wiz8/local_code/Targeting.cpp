@@ -670,6 +670,31 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
 /* What the interface has to ask the player to pick for one action. Most
    actions answer a fixed kind; casting asks the spell and using an item asks
    the item's own spell, which is the same two-step the item path takes. */
+// FUNCTION: WIZ8 0x00536400
+void RepickInvalidCombatTargets00536400(void)
+{
+    for (int party_slot = 0; party_slot < 8; ++party_slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        if (row->occupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= 0xd ||
+            !CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
+            continue;
+        }
+        int action;
+        int detail;
+        W8CombatSlot* target;
+        W8ActionDetailBlock* detail_block;
+        ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, &action, &detail, &target,
+                           &detail_block);
+        int needed = GetTargetNeededForAction(action, detail, detail_block);
+        if (TargetMatchesNeeded(target, needed) == 0 ||
+            !CharacterActionReachesTarget(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT)) {
+            RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00536a20
 int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock* detail_block)
 {

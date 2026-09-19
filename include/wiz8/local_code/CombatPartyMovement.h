@@ -14,10 +14,10 @@ void StartPartyMovementAction(int move_kind);              /* 0x004F0AF0 */
 void UpdateActivePartyMovement(void);                      /* 0x004F01D0 */
 void UpdatePartyMovementControl(void);                     /* 0x004F0AA0 */
 void RoundPhaseToStep(unsigned int* phase, unsigned int base);
-char GetPhaseStep(void);   /* 0x004F0500 */
-void Function4EFC00(void); /* 0x004EFC00 */
-void Function4EFDA0(void); /* 0x004EFDA0 */
-char Function4F00C0(void); /* 0x004F00C0 */
+char GetPhaseStep(void); /* 0x004F0500 */
+void StartPartyMovementAction004EFC00(void);
+void FinishPartyMovementAction004EFDA0(void);
+char PartyMovementReachedPhaseLimit004F00C0(void);
 /* 0x004EFE70: Combat.cpp calls it when a party movement action is pending
    while phases are assigned, so it is not file-local. */
 void InitializePartyMovementPhase(void);

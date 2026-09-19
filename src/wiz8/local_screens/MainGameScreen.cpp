@@ -308,9 +308,6 @@ unsigned char g_flag_006840bb;
 
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
-void Function5A6970(void);
-unsigned char Function5A6790(void);
-void Function5A68C0(void);
 void Function50B3B0(int value);
 void Function59B4C0(void);
 void Function59B390(void);
@@ -331,7 +328,6 @@ unsigned char GetOpenDialogueFlag(void);                                  /* 0x0
 void RedrawTextBoxComplete(void);                                         /* 0x0058A8C0 */
 unsigned char Function568B50(const InputAtom* input);
 unsigned char Function591890(const InputAtom* input);
-void Function5029A0(void);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
@@ -2878,7 +2874,7 @@ unsigned char ProcessMainGameInput(void)
                         EndCombat004EA310(1);
                     }
                     if (gXStatus.fSurprisePossible != 0) {
-                        Function5029A0();
+                        RestoreSurpriseView005029A0();
                     }
                     g_status_685170.game_started = 0;
                     ClearHeldItemDisplay();
@@ -2945,14 +2941,14 @@ update_screen:
     }
     if (!g_level_block->flag_328) {
         if (g_level_block->review_transition_active) {
-            Function5A6970();
+            PumpReviewTransition005A6970();
             return;
         }
-    } else if (Function5A6790()) {
+    } else if (UpdateScreenFade005A6790()) {
         return;
     }
     if (!AnyCharacterActive() || g_party_moving_006850b5) {
-        Function5A68C0();
+        BeginPartyDeath005A68C0();
     }
     if (g_value_006840be != 0xffff) {
         Function50B3B0(static_cast<short>(g_value_006840be));

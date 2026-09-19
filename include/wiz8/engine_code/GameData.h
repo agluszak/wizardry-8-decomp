@@ -303,6 +303,7 @@ void ResetLevelDataVectors0041F0D0(void);
 int IsLevelDataFlag4EffectivelySet(void);
 unsigned int GetLevelDataFlag4(void); /* 0x0041F070 */
 unsigned int GetLevelDataFlag8(void); /* 0x0041EFB0 */
+void SetLevelDataFlag8(void);         /* 0x0041EFE0 */
 unsigned int GetLevelDataFlag9(void); /* 0x0041EFF0 */
 bool HasLevelDataVector(void);        /* 0x0041F010 */
 void ResetCurrentEnvironment0041AA40(void);
