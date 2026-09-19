@@ -173,4 +173,4 @@ bool IsDeadCharacterTargetable(int party_slot);
 
 /* 0x005360B0: the faction table index for a name, -1 when none matches. */
 char FindFactionByName(const char* name);
-void Function536400(void); /* 0x00536400 */
+void RepickInvalidCombatTargets00536400(void);

@@ -93,7 +93,6 @@ void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBloc
 unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, const char* entity_name);
 /* 0x0050ABF0: the activation callback the rebinding installs on the level's
    NPC triggers. */
-bool Function50ABF0(Trigger* trigger);
 void ResetNpcBindingsForParty0050DB50(void);
 void ClearPendingNpcLevelFlags0050C270(void);
 void ReleaseNpcMonsterBindings0050C2E0(void);
