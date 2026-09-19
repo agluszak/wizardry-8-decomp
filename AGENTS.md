@@ -79,8 +79,11 @@ printing and put large disposable output under `build/`. Detailed operational re
   normalize recovered code merely to make the recomp safer or deterministic. An explicitly requested
   compatibility deviation must be isolated and documented, never disguised as the recovered body.
 - A vtable, lifecycle body, deleting destructor, address or template emission alone does not prove an
-  authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors are
-  marker-only `SYNTHETIC`, never handwritten bodies or hidden-flags helpers.
+  authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors,
+  vtordisp/adjustor thunks and other compiler helpers are marker-only `SYNTHETIC`; template
+  instantiations are `TEMPLATE`, never `FUNCTION`. `SYNTHETIC` and `LIBRARY` markers are
+  marker-only; generic template implementations remain at their canonical template owner. A
+  compiler-emission TU contains provenance only, not handwritten function/global definitions.
 - Matching markers bind to the following source entity. Keep `// FUNCTION:` immediately adjacent to
   its declaration/definition; move pragmas/unrelated comments above the marker. Follow the matching
   skill for `TEMPLATE`, `SYNTHETIC`, `LIBRARY`, `VTABLE` and `GLOBAL` ownership.
@@ -90,9 +93,13 @@ printing and put large disposable output under `build/`. Detailed operational re
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require an attached `reinterpret-ok: <reason>` comment; a marker never justifies
   hiding known type disagreement.
-- Do not convert a typed object to `char*`/`unsigned char*` and add a literal byte offset when the
-  layout has a named field. The source-hygiene gate requires direct member access; only genuinely
-  unresolved/external layouts may add `raw-offset-ok: <reason>` alongside the ordinary cast evidence.
+- Do not convert a repository-typed object to `char*`/`unsigned char*` and add a literal byte
+  offset. The whole-tree source-model gate hard-rejects this for `this` and typed W8/sr/st pointers
+  or references; there is no waiver. `raw-offset-ok: <reason>` remains only for genuinely
+  unresolved/external raw storage that is not a modeled repository object.
+- Do not invoke recovered code by reinterpret-casting storage/an address to an inline function-pointer
+  type. Give the callable its evidence-backed declaration and calling convention; the whole-tree
+  source-model gate has no waiver for this recovery shortcut. Ordinary declared callbacks remain valid.
 - New C-style casts in recovered C++ are gated. Prefer the evidence-backed typed model or the specific
   C++ cast that states the proven conversion; a genuinely unavoidable historical C/ABI spelling needs
   attached `c-style-cast-ok: <reason>` comment. Cast comments may immediately precede the statement or
