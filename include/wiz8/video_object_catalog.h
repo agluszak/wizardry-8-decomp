@@ -44,6 +44,10 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int r
 unsigned char ReleaseVideoSurface(unsigned int surface);
 void EnsureCatalogFrameLoaded(int object, int frame);
 unsigned short* CopyCatalogImagePalette16BPP(int object, int frame);
+/* 0x005498A0 / 0x00549950: lock a catalog frame's pixel buffer (pitch out)
+   and release the lock (unrecovered pair). */
+void* Function5498A0(unsigned int frame, unsigned int image, long* pitch);
+void Function549950(unsigned int frame, unsigned int image);
 
 void ReleaseLoadedVideoFrames(void);
 

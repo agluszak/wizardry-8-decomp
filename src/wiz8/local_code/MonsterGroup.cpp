@@ -809,6 +809,23 @@ void RebindMonsterGroupScripts(void)
     }
 }
 
+/* Stamp a control state on every live member of the group. Callers invoke this
+   with a single pushed argument, so `control_state` is whatever the caller
+   happened to leave in the next stack slot. Preserved as found. */
+// FUNCTION: WIZ8 0x005117D0
+void SetMonsterGroupControlState005117D0(W8MonsterGroup* monster_group, int control_state)
+{
+    for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
+        int location_id = IListGetAt(monster_group->monsters, index);
+        unsigned int list_index = MonsterGetIndexByLocationID(
+            0x818, "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp", location_id, 1);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(list_index);
+        if (monster_info != 0 && !monster_info->monster->IsDying()) {
+            SetMonsterControlState(monster_info, control_state);
+        }
+    }
+}
+
 /* The mean position of a group's members, recomputed only while the group is
    loaded and cached on the group itself; an unloaded group answers with
    whatever it last held. The out-parameter is optional, so the same call both

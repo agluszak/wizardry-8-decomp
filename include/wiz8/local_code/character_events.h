@@ -75,5 +75,14 @@ void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
 extern int g_special_event_0068c50c; /* 0x0068C50C */
 extern int g_special_event_0068c530; /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
+extern int g_special_event_0068c534; /* 0x0068C534 */
 extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
+extern int g_effect_005ee618; /* 0x005EE618: event type 36 - queued on the bound
+                               party row plus one random peer when the allied
+                               NPC dies (HandleScriptedNpcDeath) */
+extern int g_effect_005ee630; /* 0x005EE630: event type 42 - queued on every
+                               eligible party member in the same pass */
+extern int g_effect_005ee638;
+extern int g_effect_005ee658; /* 0x005EE658: event type 0x34 - rest-benefit
+                               resolution after the surprise sequence */

@@ -221,7 +221,7 @@ void DispatchMGSCommand(int command)
         if (IsWorldCursorVisible() != 0) {
             ToggleWorldCursor();
         } else if (gXStatus.fSurprisePossible != 0) {
-            Function502790();
+            AcknowledgeSurprise00502790();
         } else if (gXStatus.fSpellCastMode != 0) {
             ResetSpellCastingSelection005A0B90();
         } else if (gXStatus.fLockInteractMode != 0) {
@@ -408,7 +408,7 @@ void DispatchMGSCommand(int command)
         TryMGSActionKey(W8_MGS_ACTION_CAST_RECORDED_SPELL);
         break;
     case W8_MGS_COMMAND_CAMP:
-        Function502460();
+        RequestCamp00502460();
         break;
     case W8_MGS_COMMAND_TOGGLE_SEARCH:
         if (IsScreenInputBlocked() == 0) {

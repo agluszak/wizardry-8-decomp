@@ -13,8 +13,8 @@ void ResetCombatSlot(W8CombatSlot* slot);
    its result type is the domain rather than a plain int. */
 W8TargetingContext GetCurrentTargetingContext(int party_slot);
 
-unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
-unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
+bool TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
+bool TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
 /* Notice colours for combat text: 8 for a party-side source, 9 for a monster
    and 12 for anything else. The target form colours a character target by
@@ -72,10 +72,14 @@ int GetTargetingCursorForState(int alternate);
 bool ActionNeedsExplicitTarget(int party_slot);
 unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context);
 void ResetTargetSource(W8TargetSource* source);
+void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector3T<float>* eye,
+                                 W8GrowableVector<int>* found, float radius, char side,
+                                 char highlighting); /* 0x00539E70 */
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context);
 char TargetMatchesNeeded(W8CombatSlot* target, int needed);
-unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize);
+unsigned char SpellHasAnyValidTarget( // bool-byte-ok: retail returns al as unsigned char
+    int party_slot, int spell_id, unsigned char normalize);
 void SetTargetToMonster(int monster_id, W8TargetingContext context);
 void SetTargetToGroup(int group_id, W8TargetingContext context);
 
@@ -89,21 +93,22 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context); /* 0x00538E0
    that `target` has been (re)applied. Out-of-combat contexts always clear;
    otherwise the actor and the applied target must agree on hostility with the
    action's enemy-aimed flag. */
-unsigned char ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target,
-                                             W8TargetingContext context,
-                                             unsigned char action_targets_enemies);
+unsigned char ShouldClearAimForAppliedTarget( // bool-byte-ok: retail returns al as unsigned char
+    W8TargetSource* source, W8CombatSlot* target, W8TargetingContext context,
+    unsigned char action_targets_enemies);
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
                                   W8TargetingContext context);
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
-unsigned char CanTargetMonster(int party_slot, int location_id, int allow_single_target,
-                               int reason); /* 0x00536AD0 */
+unsigned char CanTargetMonster( // bool-byte-ok: retail returns al as unsigned char
+    int party_slot, int location_id, int allow_single_target, int reason); /* 0x00536AD0 */
 void ClearTargetingMode(int party_slot);
 void Function53B050(int party_slot); /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id);
+int GetTargetNeededForItem(const W8ItemInstance* item); /* 0x00537330 */
 /* 0x0053AF40: select the party slot the spell-casting view is casting for. */
 void SelectSpellCastingPartySlot(int party_slot);
 /* 0x0053A440: set the targeting filter for the spell being aimed. */
@@ -111,7 +116,7 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind);
 /* 0x0053A830: commit the chosen spell target. */
 void CommitSelectedSpellTarget(void);
 void RefreshMonsterTargetCounts005398D0(void);
-unsigned char AnyMonsterVisible0053A1D0(void);
+unsigned char AnyMonsterVisible0053A1D0(void); // bool-byte-ok: retail returns al as unsigned char
 void UpdateTargetMarkerHighlight0053B1D0(void);
 
 class W8Monster;
@@ -124,11 +129,12 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
 W8TargetingContext GetCombatActionContext0053BC90(int party_slot); /* 0x0053BC90 */
 void ReconcilePartyEquipmentAfterCombat0053CD60(void);             /* 0x0053CD60 */
-unsigned char
-TargetIsInPlay(int party_slot, int value,
-               W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
+unsigned char TargetIsInPlay( // bool-byte-ok: retail returns al as unsigned char
+    int party_slot, int value,
+    W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
 
-void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
+void ClearAllMonsterHighlights(void);                      /* 0x0053AE00 */
+void TintHighlightedMonster(W8Monster* monster, int tint); /* 0x00539480 */
 /* Combat action-selection helpers used across the combat units. */
 bool CanPartySlotParticipate(int party_slot); /* 0x0053C270 */
 W8TargetingContext GetValidatedTargetingContext(int party_slot,

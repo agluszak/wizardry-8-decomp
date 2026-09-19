@@ -1,4 +1,5 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 
 #include "timer.h"
 #include "wiz8/character_event_queue.h"
+#include "wiz8/cursor.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
@@ -129,7 +131,6 @@ void SelectSpellPowerLevel005A0550(void);
 void SelectSpellPowerLevel005A0560(void);
 void SelectSpellPowerLevel005A0570(void);
 void SelectSpellPowerLevel005A0660(void);
-void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog);
 void PreviewSpellPowerPipHover005A0910(int power_level);
 static void UpdateSpellRealmPointDisplays(void);
@@ -355,7 +356,7 @@ unsigned char OpenSpellCastingView(int party_slot)
     DisableRegionInput(0x57);
     DisableRegionInput(0x58);
     RegionSetEnable(0x19);
-    Function58F6B0(2);
+    SelectTextBox(2);
     ResetEditorStatusLine0058AA20(-1);
     g_level_block->flag_271 = 0;
     SetTextBoxRegionBounds(0xea, 0x16e, 0x18c, 0x1ba);
@@ -394,7 +395,7 @@ void CloseSpellCastingView(void)
             ResetEditorStatusLine0058AA20(-1);
         }
         g_level_block->flag_271 = 1;
-        Function58F6B0(gXStatus.fCombatMode != 0);
+        SelectTextBox(gXStatus.fCombatMode != 0);
         ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
         gXStatus.fSpellCastMode = 0;
@@ -796,7 +797,7 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
             Function5879A0(0);
         }
     } else {
-        Function56E800(0);
+        EndNpcDialogue(0);
     }
     if (gXStatus.fSpellCastMode == 0) {
         OpenSpellCastingView(g_status_685170.selected_character);
@@ -1296,6 +1297,71 @@ unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region)
         }
     }
     return 0;
+}
+
+/* Spell-list text-box body region event: the hovered row is recomputed from
+   the cursor position for every event and drives SelectSpellCastingRow when it
+   changes. Left release casts the hovered spell; right release opens the
+   spell-info dialog with the target cursor saved for restore on close; leaving
+   the box clears the hover row. The held bits are armed on button down but are
+   never cleared on release. */
+// FUNCTION: WIZ8 0x005A0F70
+unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* region)
+{
+    W8SpellInfoDialog* dialog;
+    int line;
+
+    if (g_status_685170.selected_character == -1) {
+        return 0;
+    }
+    if (gpSCSV->iSpellRealm == -1) {
+        return 0;
+    }
+    line = g_level_block->text_lines[g_status_685170.text_line_cursor_1795] +
+           (GetAtomCursorY004285A0(event) - region->y1) / 0xb;
+    if (line >= static_cast<int>(gpSCSV->uiSpellsInList) || line < -1) {
+        line = -1;
+    }
+    if (line != gpSCSV->selected_spell_index) {
+        SelectSpellCastingRow(line);
+    }
+    switch (event->usEvent) {
+    case LEFT_BUTTON_UP:
+        if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if (line == -1) {
+            return 1;
+        }
+        SelectSpellCastingListRow005A1150(line);
+        return 1;
+    case LEFT_BUTTON_DOWN:
+        region->flags |= W8_REGION_LEFT_BUTTON_HELD;
+        return 1;
+    case RIGHT_BUTTON_DOWN:
+        region->flags |= W8_REGION_RIGHT_BUTTON_HELD;
+        return 1;
+    case MOUSE_POS:
+        if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
+            SelectSpellCastingRow(-1);
+        }
+        return 0;
+    default:
+        return 0;
+    case RIGHT_BUTTON_UP:
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) == 0) {
+            return 1;
+        }
+        if (line == -1) {
+            return 1;
+        }
+        g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
+        dialog = new W8SpellInfoDialog(gpSCSV->uiSpells[line]);
+        dialog->SetText(&g_wchar_00689b34);
+        dialog->m_destroy_callback = RestoreTargetCursor59D930;
+        OpenModal(dialog);
+        return 1;
+    }
 }
 
 // FUNCTION: WIZ8 0x005A1140

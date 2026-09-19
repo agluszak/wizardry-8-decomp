@@ -1895,3 +1895,28 @@ unsigned char LoadSavedLevelItems00516070(int level, W8GrowableVector<W8WorldIte
     chunk.Close();
     return found;
 }
+
+/* Pick a free autosave slot for the ending sequence: "Ending", then
+   "Ending1" through "Ending20" until Saves\<name>.<ext> does not exist.
+   Writes the chosen bare name into `name`; returns 0 when all twenty-one
+   slots are taken. */
+// FUNCTION: WIZ8 0x00516890
+unsigned char FindFreeEndingSaveName00516890(char* name)
+{
+    char path[260];
+    int index;
+
+    strcpy(name, "Ending");
+    sprintf(path, "%s\\%s.%s", "Saves", name, g_save_extension);
+    if (FileExists(path) == 0) {
+        return 1;
+    }
+    for (index = 1; index <= 20; ++index) {
+        sprintf(name, "%s%d", "Ending", index);
+        sprintf(path, "%s\\%s.%s", "Saves", name, g_save_extension);
+        if (FileExists(path) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}

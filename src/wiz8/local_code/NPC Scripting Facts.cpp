@@ -47,6 +47,9 @@
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/utility.h"
+#include "wiz8/xstatus.h"
+#include "wiz8/local_screens/MGSTextBox.h"
+#include "random.h"
 
 #include <string.h>
 #include <wchar.h>
@@ -136,8 +139,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (npc == 0) {
             return;
         }
-        Function50C440(npc, 0);
-        Function50C1C0(npc->name_style, 0x11, "NP_MylesCell");
+        ReleaseNpcMonsterBinding0050C440(npc, 0);
+        RestoreNamedNpcAtLevel0050C1C0(npc->name_style, 0x11, "NP_MylesCell");
         return;
     case 0x22:
         if (value == 0) {
@@ -825,7 +828,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         MarkNpcOfKind(0x18);
-        Function56E800(0);
+        EndNpcDialogue(0);
         return;
     case 0x234:
     case 0x235:
@@ -932,7 +935,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         QueueNpcMessageLine(W8_NPC_MSG_BEGIN_ENDGAME, 0);
         return;
     case 0x322:
-        Function56E800(0);
+        EndNpcDialogue(0);
         ResetLevelDataVectors0041F0D0();
         group = FindFirstMonsterByID(0xc2);
         if (group != 0) {
@@ -947,5 +950,120 @@ void HandleFactChange(int fact_id, unsigned char value)
         return;
     default:
         return;
+    }
+}
+
+/* Scripted consequences of an NPC-bound monster's death, driven by the
+   monster-death switch (query_state 0x15). Sets the bound NPC's
+   scripted-event flag (unknown_04) and, for the Vi-Domina name style
+   (0x18), keeps it only while fact 0xc1 or 0xdb holds. Record 0x234 — the
+   allied-NPC record displayed as "Al-<character name>" rather than from
+   the monster database — then runs the endgame sequence: reaction events
+   on the bound row plus one random peer and on every eligible member, the
+   Phoonzang/turn-to-book message choice, and a sweep that starts every
+   living hostile monster dying. */
+// FUNCTION: WIZ8 0x00508d70
+void HandleScriptedNpcDeath(unsigned int monster_list_index)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    if (record == 0) {
+        return;
+    }
+    if ((record->flags_0d0 & 1) != 0) {
+        W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
+        if (npc != 0) {
+            npc->unknown_04 = 1;
+            if (npc->name_style == 0x18) {
+                wchar_t display_value[16];
+                unsigned char fact_ok = EvaluateFact(0xc1);
+                if (g_status_685170.log_fact_checks_3120 != 0) {
+                    if (fact_ok) {
+                        wcscpy(display_value, L"TRUE");
+                    } else {
+                        wcscpy(display_value, L"FALSE");
+                    }
+                    ShowNoticef(5, L"Checking fact %S which is %s",
+                                g_fact_records[0xc1].symbolic_name, display_value);
+                }
+                if (fact_ok == 0) {
+                    fact_ok = EvaluateFact(0xdb);
+                    if (g_status_685170.log_fact_checks_3120 != 0) {
+                        if (fact_ok) {
+                            wcscpy(display_value, L"TRUE");
+                        } else {
+                            wcscpy(display_value, L"FALSE");
+                        }
+                        ShowNoticef(5, L"Checking fact %S which is %s",
+                                    g_fact_records[0xdb].symbolic_name, display_value);
+                    }
+                    if (fact_ok == 0) {
+                        npc->unknown_04 = 0;
+                    }
+                }
+            }
+        }
+    }
+    if (record->record_id_187 != 0x234) {
+        return;
+    }
+    int lead_index = -1;
+    if (NpcLeadHasNameStyle(0x18) != 0) {
+        W8NpcState* lead = GetNpcStateByKind(W8_NPC_VI_DOMINA);
+        if (lead != 0) {
+            lead_index = lead->group_index;
+        }
+    }
+    BeginScriptedWorldAction();
+    int eligible_slots[8];
+    int eligible_count = 0;
+    int slot;
+    int index;
+    int pick;
+    for (slot = 0; slot < 8; ++slot) {
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
+            character->highest_condition < 0xf) {
+            eligible_slots[eligible_count] = slot;
+            ++eligible_count;
+        }
+    }
+    for (index = 0; index < eligible_count; ++index) {
+        if (eligible_slots[index] == lead_index) {
+            QueueCharacterEvent(&g_status_685170.buffers.characters[eligible_slots[index]],
+                                g_effect_005ee618, g_event_flag_005ed8e0,
+                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        }
+    }
+    if (eligible_count > 2) {
+        do {
+            pick = Random(eligible_count);
+        } while (eligible_slots[pick] == lead_index);
+        QueueCharacterEvent(&g_status_685170.buffers.characters[eligible_slots[pick]],
+                            g_effect_005ee618, g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
+            character->highest_condition < 0xf) {
+            QueueCharacterEvent(character, g_effect_005ee630, g_event_flag_005ed8e0,
+                                g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        }
+    }
+    if (g_status_685170.endgame2_queued != 0 ||
+        (g_status_685170.endgame3_queued != 0 && FindNpcOfKind(W8_NPC_PHOONZANG) != 0)) {
+        QueueNpcMessageLine(W8_NPC_MSG_TURN_TO_BOOK, 0);
+    } else if (g_status_685170.endgame3_queued != 0) {
+        QueueNpcMessageLine(W8_NPC_MSG_PHOONZANG_NOTICE, 0);
+    }
+    for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
+         ++entry_index) {
+        W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
+        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE &&
+            entry->monster->IsDying() == 0) {
+            TintHighlightedMonster(entry->monster, 0);
+            MonsterStartsDying(entry, 1);
+        }
     }
 }

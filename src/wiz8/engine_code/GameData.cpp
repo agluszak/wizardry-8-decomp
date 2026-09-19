@@ -1584,7 +1584,7 @@ int IsLevelDataFlag4EffectivelySet(void)
 /* Whether the level has a live vector at 0x88: bit zero has to be up and at
    least one of the three floats has to differ from the default. */
 // FUNCTION: WIZ8 0x0041f010
-unsigned char HasLevelDataVector(void)
+bool HasLevelDataVector(void)
 {
     if (g_level_data_00652dac == 0) {
         return 0;

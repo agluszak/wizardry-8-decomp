@@ -87,7 +87,7 @@ void ToggleMipePanel0057D740(void)
         g_level_block->flag_272 = 0;
         ResetEditorStatusLine0058AA20(-1);
         if (gXStatus.fCombatMode != 0) {
-            Function58F6B0(1);
+            SelectTextBox(1);
         }
         ReleaseWorldCursor004909C0();
         g_flag_68f105 = 0;
@@ -120,7 +120,7 @@ void ToggleMipePanel0057D740(void)
 
     g_level_block->flag_271 = 0;
     g_level_block->flag_272 = 1;
-    Function58F6B0(0);
+    SelectTextBox(0);
     ResetEditorStatusLine0058AA20(-1);
     g_flag_68f105 = 1;
     ResetEditorStatusLine0058AA20(-1);
@@ -1001,9 +1001,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
             }
             found = 0;
             if (0 <
-                (int)ILLength(
+                static_cast<int>(ILLength(
                     reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                        W8IList*>(g_mipe_category_list_0068f11c))) {
+                        W8IList*>(g_mipe_category_list_0068f11c)))) {
                 do {
                     table = (W8EncounterTableRuntime*)PLGet(g_mipe_category_list_0068f11c, found);
                     entry = GetEncounterTable(current_index);
@@ -1013,9 +1013,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
                     ++found;
                 } while (
                     found <
-                    (int)ILLength(
+                    static_cast<int>(ILLength(
                         reinterpret_cast< // reinterpret-ok: W8PList and W8IList share their data/capacity/count layout
-                            W8IList*>(g_mipe_category_list_0068f11c)));
+                            W8IList*>(g_mipe_category_list_0068f11c))));
             }
             g_mipe_table_base_0068f120 = (found / 6) * 6;
             g_mipe_table_row_0068f118 = found % 6;

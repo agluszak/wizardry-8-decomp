@@ -1,5 +1,6 @@
 #include "wiz8/layouts/character.h"
 #include "wiz8/character_skills.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -16,6 +17,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -989,4 +991,58 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         RefreshPartySlotRegions();
     }
     return slot;
+}
+
+/* Remove one character from the party: drop its queued events, optionally
+   persist it back to its NPC record, clear the row, its formation positions
+   and marching-order entry, and fix the member counts and selection. Saving
+   is only meaningful for NPC-bound slots; a failed save keeps the member. */
+// FUNCTION: WIZ8 0x004EF610
+unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    if (save_character_data != 0 &&
+        g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+        srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
+    }
+    gXStatus.character_event_queue->RemoveCharacterEvents(character);
+    character->in_party = 0;
+    if (save_character_data != 0) {
+        RebuildCharacterModifierBlock(character);
+        RecalculateCharacterDerivedStats(character);
+        if (SaveCharacter(character, g_status_685170.buffers.party_rows[party_slot].animation_0fa,
+                          1, 0) == 0) {
+            character->in_party = 1;
+            RebuildCharacterModifierBlock(character);
+            RecalculateCharacterDerivedStats(character);
+            return 0;
+        }
+    }
+    g_status_685170.buffers.party_rows[party_slot].occupied = 0;
+    character->highest_condition = 0;
+    character->enchantment_top = 0;
+    SetFormationPosition(&g_status_685170.formation, party_slot, -1, -1, 0, 1, 1);
+    if (gXStatus.fCombatMode != 0) {
+        SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, 0, 1, 1);
+        SetFormationPosition(&g_combat_state->saved_formation, party_slot, -1, -1, 0, 1, 1);
+    }
+    if (g_status_685170.game_started != 0) {
+        PostCharacterNotice(party_slot, gppStringList[0x251]);
+    }
+    g_status_685170
+        .party_order_slots[g_status_685170.buffers.party_rows[party_slot].party_order_index] = -1;
+    --g_status_685170.total_member_count;
+    if (g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+        --g_status_685170.regular_member_count;
+    } else {
+        --g_status_685170.auxiliary_member_count;
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        RefreshPartySlotRegions();
+    }
+    if (g_status_685170.selected_character == party_slot) {
+        g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
+    }
+    return 1;
 }

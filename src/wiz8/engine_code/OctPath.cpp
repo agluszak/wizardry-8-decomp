@@ -82,6 +82,8 @@ W8PathingService* g_pathing_00659c60;
 
 // GLOBAL: WIZ8 0x0060827a
 unsigned short g_path_reserve_0060827a = 2000;
+// GLOBAL: WIZ8 0x005ec340
+const float g_float_005ec340 = 1.25f;
 // GLOBAL: WIZ8 0x005ec344
 float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
 

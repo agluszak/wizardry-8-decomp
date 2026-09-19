@@ -16,6 +16,7 @@ void HealCharacter(int party_slot, int amount, char announce);
 void RestoreCharacterStamina(int party_slot, int amount, char announce);
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
+void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount); /* 0x0052B4F0 */
 void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                       W8SpellEffectResult* report_to);
 void DamageCharacter(int party_slot, int damage, char announce); /* 0x0052B7E0 */
@@ -79,6 +80,8 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
 void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
 
 extern unsigned int g_event_flag_005ed8e0;
+
+extern unsigned int g_event_flag_005ed8e8;
 
 extern unsigned int g_event_flag_005ed8ec;
 

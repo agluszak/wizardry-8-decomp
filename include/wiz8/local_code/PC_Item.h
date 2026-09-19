@@ -32,7 +32,7 @@ enum W8EquipSlot {
     W8_EQUIP_SLOT_COUNT = 12
 };
 
-unsigned char CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
+bool CanCharacterActivateItem(W8Character* character, const W8ItemInstance* item);
 
 extern const int g_item_spell_presentation[11];
 extern const int g_equip_slot_icons[6];
@@ -205,3 +205,5 @@ bool CharacterHasServiceItem(W8Character* character);  /* 0x00522D40 */
 int CountUsableCharacterItems(W8Character* character); /* 0x0051F870 */
 /* 0x0051BF40: take gold from the party, clamping at zero. */
 void SpendPartyGold(unsigned int amount);
+/* Add recharge uses to a stackable item (hourly tick, item 0x266). */
+void AddItemUses(W8ItemInstance* item, char uses);

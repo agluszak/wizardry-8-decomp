@@ -18,6 +18,9 @@ void SetSpellCastingMode005A1330(W8MainUiMode value);                        /* 
 int GetSpellCastingSelection005A1350(void);                                  /* 0x005A1350 */
 
 struct W8Region;
+class W8DialogBase;
+/* 0x005A02F0: destroy callback for the spell/use-item reason notices. */
+void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 unsigned char SpellRealmButtonRegionEvent(const InputAtom* event,
                                           W8Region* region);                      /* 0x005A0C80 */
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region); /* 0x005A0E50 */

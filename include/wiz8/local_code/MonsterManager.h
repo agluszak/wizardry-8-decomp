@@ -65,7 +65,7 @@ struct W8MonsterManagerEntry {
     int portrait_pose_clock;
     int portrait_idle_clock;
     unsigned char portrait_pose_animation_active;
-    unsigned char portrait_pose_dirty;
+    bool portrait_pose_dirty;
     unsigned char portrait_frame_dirty;
     unsigned char field_09c;
     unsigned char field_09d;
@@ -267,7 +267,10 @@ struct W8MonsterInfo {
     int fatigue_band;                      /* 0x242: derived from stamina */
     unsigned char unknown_246;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
-    unsigned char unknown_24c;
+    /* 0x24c: bitmask naming which character condition-record slot kinds still
+       bind to this monster; the death path walks the set bits and drops the
+       matching W8Character::conditions_1817 records. */
+    unsigned char condition_binding_mask_24c;
     unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
     unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
     float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
@@ -364,6 +367,9 @@ void InitializeMonsterRuntimeStats(void);
 float CalculateMonsterScale(W8MonsterInfo* monster_info);
 void TryStartMonsterCycle2(W8MonsterInfo* monster_info, W8Monster* monster, int query_state);
 void ProcessMonsterManagerFrame(void);
+void DetectMonsterGroups004E4AB0(void); /* 0x004E4AB0: wandering-group detection
+                                           tick at the end of the 0x00502D00
+                                           aging pass */
 void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text);
 unsigned int GetMonsterExperience(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);    // bool-byte-ok: retail returns al as unsigned char

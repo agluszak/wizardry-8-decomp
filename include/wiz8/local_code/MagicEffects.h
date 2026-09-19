@@ -43,7 +43,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition);  /* 0x0055
    unit's assertion-backed hull (0x00553910) and precedes Formation & Facing's
    at 0x005545F0, so it lives with its defining unit. */
 
-unsigned char IsScreenBusy(void);
+bool IsScreenBusy(void);
 
 /* 0x00552250: shrink a rolled magnitude by the share of it the target's
    resistance in the realm turns aside; a permanent magnitude is left alone. */
@@ -82,10 +82,13 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect);  /* 0x0054C930 */
    visual resource, -1 means the effect has none. */
 extern const int g_effect_visual_table[149][2];
 
-void Function5526F0(W8EffectSlot* slots, const int* args); /* 0x005526F0 */
+void TickSpellEffectSlots005526F0(W8EffectSlot* slots, W8CombatSlot* target); /* 0x005526F0 */
+void TickAreaDamageEffectSlots00552EF0(W8EffectSlot* slots);                  /* 0x00552EF0 */
+void TickMonsterControlAura00551500(W8SpellEffectEntry* effect);              /* 0x00551500 */
+unsigned char MonsterControlCheck00552410(W8CombatSlot* target, int power);   /* 0x00552410 */
+void ClearMonsterEffect2DE(W8MonsterInfo* monster_info);                      /* 0x005523D0 */
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot);
 void ResetPartyEffectBlock(W8EffectSlot* slot);
-
 
 void ResetCombatEffects(void); /* 0x00552530 */
 void RecalculateCharacterResistances(W8Character* character);
