@@ -42,7 +42,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                                      W8SpellEffectDefinition* attack,
                                      unsigned char use_default_accuracy,
                                      unsigned int range_category, int accuracy); /* 0x00544630 */
-void ScatterMissileAimPoint005454C0(float* from, float* to, int accuracy, char blind);
+void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<float>* to,
+                                      int accuracy, char blind);
 
 /* 0x00545090: a physical missile reached its combat target - announce the
    hit, roll penetration against the target's armour and apply the damage.
