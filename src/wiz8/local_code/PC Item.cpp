@@ -3417,9 +3417,12 @@ unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skil
 void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item)
 {
     unsigned int party_slot = CharacterPointerToPartySlot(character);
+    W8ActionDetailBlock detail;
+
+    detail.item_use.item = item;
+    detail.item_use.kind = -1;
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    int detail = -1;
 
     row->item_detail.item_use.kind = -1;
     row->item_detail.item_use.item = item;

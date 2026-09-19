@@ -72,7 +72,8 @@ srModelInstance* AnimObjDispatch004A14D0(W8AnimObj* animation, signed char list_
                                          unsigned char value);
 srModelInstance* AnimObjDispatchList004A1560(W8AnimObj* animation, signed char list_index,
                                              signed char entry_index);
-void* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index, unsigned int entry_index);
+W8AniMesh* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index,
+                                unsigned int entry_index);
 unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_index,
                                        unsigned int frame, srVector3T<float>* minimum,
                                        srVector3T<float>* maximum);

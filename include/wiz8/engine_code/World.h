@@ -7,8 +7,6 @@ class stParticle;
 class Trigger;
 class W8Prop;
 
-unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
-
 W8World* GetWorld(void);
 W8World* GetWorld659AB8(void);
 void MarkRendererReady(void);

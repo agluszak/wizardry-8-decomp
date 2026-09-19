@@ -1,5 +1,6 @@
 #include "FileMan.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/3dapi.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_code/Configuration.h"
@@ -913,14 +914,14 @@ void W8Navigator::UpdateLinkedNavigator()
     if (static_cast<W8Monster*>(linked_navigator_05c)->IsWithinWorldRange004CA2A0() != 0) {
         MonsterGetWorldAnimationBounds004CA4F0(static_cast<W8Monster*>(linked_navigator_05c),
                                                &linked_position, &own_position);
-        if (TraceToBounds(&camera, &linked_position.x, &own_position.x) != 0) {
+        if (ShowTargetMarker(&camera, &linked_position, &own_position) != 0) {
             goto follow_path;
         }
     }
     if (static_cast<W8Monster*>(this)->IsWithinWorldRange004CA2A0() != 0) {
         MonsterGetWorldAnimationBounds004CA4F0(static_cast<W8Monster*>(this), &linked_position,
                                                &own_position);
-        if (TraceToBounds(&camera, &linked_position.x, &own_position.x) != 0) {
+        if (ShowTargetMarker(&camera, &linked_position, &own_position) != 0) {
             goto follow_path;
         }
     }

@@ -87,7 +87,8 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id,
                             char needs_target); /* 0x00532550 */
 /* 0x00534290: whether a monster can aim the spell it wants to cast - area
    target types aim at the world, the rest pass the slot check. */
-bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id);
+unsigned char CanMonsterAimSpell( // bool-byte-ok: retail passes callee byte through
+    W8MonsterInfo* monster_info, int spell_id);
 /* 0x00534D50: whether the control spell's visual anchor sits in range of the
    monster, falling back on where the party stands. */
 short IsMonsterControlPointInRange(W8MonsterInfo* monster_info);

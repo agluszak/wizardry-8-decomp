@@ -4,6 +4,7 @@
 
 #include "Types.h"
 #include "wiz8/engine_code/IntervalGate.h"
+#include "wiz8/wiz8_windows.h"
 
 extern unsigned char g_flag_00652dce;
 
@@ -151,12 +152,12 @@ struct W8GDInterfaceState {
    a counted pointer array, the environment count/array pair, and a trailing
    flag. Only straightforward storage is claimed past the prefix. */
 struct W8GameData {
-    W8GameData(int handle, void* parent);   /* 0x00449010 */
+    W8GameData(int handle, bool secondary); /* 0x00449010 */
     ~W8GameData();                          /* 0x00449BB0 */
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     /* Writes the game-data block WriteOctFile appends after the terminator. */
     unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
-    unsigned char Function447660(void* file, int index);
+    unsigned char Function447660(HANDLE file, int index);
     /* Release the level-data record, game-time accumulator and companion
        level-data globals; runs first in ~W8GameData. */
     void ReleaseLevelData0041A9E0();

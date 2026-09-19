@@ -31,7 +31,8 @@ struct W8GDSurface {
         };
     };
     float distance_34;
-    unsigned int value_38;
+    /* Hit plane ProbePropsAlongMotion fills for ResolveCollision0041DC10. */
+    srVector4T<float>* hit_plane_38;
     unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
     unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
     unsigned char positional_3e[2];

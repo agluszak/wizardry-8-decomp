@@ -179,7 +179,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
             surface->flags_00 = dominant_axis + 0x800;
             surface->footstep_surface_3c = footstep_surface;
             surface->footstep_material_3d = footstep_material;
-            surface->value_38 = 0;
+            surface->hit_plane_38 = 0;
             if ((mesh_flags & 1) != 0) {
                 surface->flags_00 |= 0x8000;
             }
@@ -530,11 +530,9 @@ void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* an
         W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
         float node[10];
         if (transform->pathAI_06.scaled_01 == 2) {
-            memcpy(node, static_cast<float*>(transform->pathAI_06.pScaledPaths) + frame * 10,
-                   sizeof(node));
+            memcpy(node, &transform->pathAI_06.pScaledPaths[frame], sizeof(node));
         } else {
-            memcpy(node, static_cast<float*>(transform->pathAI_06.pPaths) + frame * 7,
-                   7 * sizeof(float));
+            memcpy(node, &transform->pathAI_06.pPaths[frame], 7 * sizeof(float));
             node[7] = node[8] = node[9] = 1.0f;
         }
         TransformMeshGeometry004B7E50(node, &transform->LODMesh_02.pFrames->mesh_01);
@@ -583,7 +581,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
         for (int lod = 0; lod < mesh->num_lods_42; ++lod) {
             int vertex_base = m_vertex_count_18;
             if ((mesh->flags_0c & 2) != 0) {
-                short* vertices = static_cast<short*>(mesh->lod_shorts_44[lod]);
+                short* vertices = mesh->lod_shorts_44[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
                     m_pVertices[m_vertex_count_18] = matrix.TransformPoint(
                         srVector3T<float>(static_cast<float>(vertices[vertex * 3]),
@@ -592,7 +590,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
                     ++m_vertex_count_18;
                 }
             } else {
-                float* vertices = static_cast<float*>(mesh->lods_48[lod]);
+                float* vertices = mesh->lods_48[lod];
                 for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
                     m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
                         vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
@@ -600,8 +598,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
                 }
             }
             if ((mesh->flags_0c & 2) != 0) {
-                W8LevelFileCompressedFace* faces =
-                    static_cast<W8LevelFileCompressedFace*>(mesh->pstCompFaces);
+                W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
                 for (int face = 0; face < mesh->num_faces_08; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                     ++m_surface_count_14;
@@ -610,7 +607,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
                     surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
                 }
             } else {
-                W8ReadMeshFace* faces = static_cast<W8ReadMeshFace*>(mesh->pstFaces);
+                W8ReadMeshFace* faces = mesh->pstFaces;
                 for (int face = 0; face < mesh->num_faces_08; ++face) {
                     W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                     ++m_surface_count_14;
@@ -622,15 +619,14 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
         }
     } else {
         int vertex_base = m_vertex_count_18;
-        float* vertices = static_cast<float*>(mesh->pstVertices);
+        float* vertices = mesh->pstVertices;
         for (int vertex = 0; vertex < mesh->num_vertices_04; ++vertex) {
             m_pVertices[m_vertex_count_18] = matrix.TransformPoint(srVector3T<float>(
                 vertices[vertex * 3], vertices[vertex * 3 + 1], vertices[vertex * 3 + 2]));
             ++m_vertex_count_18;
         }
         if ((mesh->flags_0c & 2) != 0) {
-            W8LevelFileCompressedFace* faces =
-                static_cast<W8LevelFileCompressedFace*>(mesh->pstCompFaces);
+            W8LevelFileCompressedFace* faces = mesh->pstCompFaces;
             for (int face = 0; face < mesh->num_faces_08; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                 ++m_surface_count_14;
@@ -639,7 +635,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
                 surface->vertex_indices_18[2] = faces[face].vertex_indices_00[2] + vertex_base;
             }
         } else {
-            W8ReadMeshFace* faces = static_cast<W8ReadMeshFace*>(mesh->pstFaces);
+            W8ReadMeshFace* faces = mesh->pstFaces;
             for (int face = 0; face < mesh->num_faces_08; ++face) {
                 W8GDSurface* surface = &m_pGDSurfaces[m_surface_count_14];
                 ++m_surface_count_14;
@@ -666,7 +662,7 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
             }
         }
         surface->flags_00 = dominant_axis + 0x800;
-        surface->value_38 = 0;
+        surface->hit_plane_38 = 0;
         if (g_float_005ebc7c <= surface->plane_24[1]) {
             surface->value_40 = 500.0f;
             surface->flags_00 |= 4;

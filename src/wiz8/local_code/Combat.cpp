@@ -628,7 +628,8 @@ void EndCombat004EA310(int mode)
    pending-action block, inside combat it fills the chosen-action record and
    dispatches the action's follow-up. */
 // FUNCTION: WIZ8 0x004e7cc0
-void ChooseAction(int party_slot, int action, int detail, const void* data, int arg_5, int arg_6)
+void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+                  int arg_5, int arg_6)
 {
     W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
 
@@ -680,8 +681,8 @@ void ChooseAction(int party_slot, int action, int detail, const void* data, int 
 /* Apply a chosen in-combat action for party-move kinds 10/11, otherwise record
    the action on the slot row and refresh targeting UI state. */
 // FUNCTION: WIZ8 0x004e7ee0
-void ApplyPartyCombatAction(int party_slot, int action, int detail, const void* data, int arg_5,
-                            int notify)
+void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
+                            int arg_5, int notify)
 {
     unsigned int party_slot_index;
     W8Character* character;
@@ -727,8 +728,8 @@ finish_move_ui:
 /* Record the chosen in-combat action on the slot row, copy its detail block,
    then aim and validate that choice for a still-active character. */
 // FUNCTION: WIZ8 0x004e8000
-void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail, const void* data,
-                              int notify)
+void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail,
+                              const W8ActionDetailBlock* data, int notify)
 {
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
         g_status_685170.buffers.party_rows[party_slot].action_03d = -1;

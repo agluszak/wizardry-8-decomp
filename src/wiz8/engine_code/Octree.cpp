@@ -4132,7 +4132,7 @@ finish:
     g_octree_game_data_00652db0 = 0;
     *game_data = 0;
     if (fSuccess != 0 && ReadHeader<unsigned long>(header, 0x86) != 0) {
-        pGameData = new W8GameData(hOctFile, 0);
+        pGameData = new W8GameData(hOctFile, false);
         if (pGameData == 0) {
             strcpy(acMessage, "ReadOctFile: Couldn't allocate submesh array.");
             fSuccess = 0;

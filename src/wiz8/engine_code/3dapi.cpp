@@ -221,7 +221,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     }
 
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
-        world->m_owned_04c = ReadGameData00447570(game_data_path, 0);
+        world->m_owned_04c = ReadGameData00447570(game_data_path, false);
         if (world->m_owned_04c != 0 && InitializeGameData004497C0(world->m_owned_04c) == 0) {
             return 0;
         }
