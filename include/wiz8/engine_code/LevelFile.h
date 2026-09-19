@@ -493,9 +493,9 @@ struct W8LevelFile {
     int nTriggers;                       /* 0x680 */
     W8LevelFileTrigger* pTriggers;       /* 0x684: nTriggers * 6 */
     unsigned char unknown_688[4];
-    int nClippingPlanes;                                  /* 0x68c */
-    unsigned char unknown_690;                            /* read when nClippingPlanes != 0 */
-    W8LevelFileClippingPlaneRecord* pClippingPlanes;     /* 0x691: nClippingPlanes records */
+    int nClippingPlanes;                              /* 0x68c */
+    unsigned char unknown_690;                        /* read when nClippingPlanes != 0 */
+    W8LevelFileClippingPlaneRecord* pClippingPlanes; /* 0x691: nClippingPlanes records */
     unsigned char unknown_695[0xc];
     int nParticleSystems;                        /* 0x6a1 */
     W8LevelFileParticleSystem* pParticleSystems; /* 0x6a5: nParticleSystems * 0x226 */
@@ -535,6 +535,9 @@ static_assert(sizeof(W8LevelFilePlane) == 0x30, "W8LevelFilePlane_must_be_0x30")
 static_assert(sizeof(W8LevelFileInvisible) == 0x241, "W8LevelFileInvisible_must_be_0x241");
 static_assert(sizeof(W8LevelFileSound) == 0x170, "W8LevelFileSound_must_be_0x170");
 static_assert(sizeof(W8LevelFileSuperTrigger) == 0x867, "W8LevelFileSuperTrigger_must_be_0x867");
+static_assert(offsetof(W8LevelFileSwitch, door_264) == 0x264, "W8LevelFileSwitch_door_264");
+static_assert(offsetof(W8LevelFileSuperTrigger, door_85e) == 0x85e,
+              "W8LevelFileSuperTrigger_door_85e");
 static_assert(sizeof(W8LevelFileLightExtra) == 0x3c, "W8LevelFileLightExtra_must_be_0x3c");
 static_assert(sizeof(W8LevelFileAnimLightExtra) == 0x3c, "W8LevelFileAnimLightExtra_must_be_0x3c");
 static_assert(sizeof(W8LevelFileMonsterPathEntry) == 0x1c,
@@ -577,6 +580,8 @@ static_assert(offsetof(W8LevelFileParticleSystem, particle_01.value_216) == 0x21
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
+static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691,
+              "W8LevelFile_pClippingPlanes");
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
 bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
