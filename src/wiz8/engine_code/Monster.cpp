@@ -2460,7 +2460,7 @@ void W8Monster::ProcessScript004C80E0()
    Each command family has one concrete completion condition; commands without
    a condition are immediately ready. */
 // FUNCTION: WIZ8 0x004CA0F0
-unsigned char W8Monster::CanContinueScript004CA0F0()
+bool W8Monster::CanContinueScript004CA0F0()
 {
     switch (script_wait_240) {
     case 1:
@@ -2534,7 +2534,7 @@ unsigned char W8Monster::GetFlag216004CA290() const
 }
 
 // FUNCTION: WIZ8 0x004CA2A0
-unsigned char W8Monster::IsWithinWorldRange004CA2A0()
+bool W8Monster::IsWithinWorldRange004CA2A0()
 {
     if (node_308 != 0) {
         return node_308->testFlag(srNode::FLAG_DISABLE) == 0;
@@ -4412,9 +4412,9 @@ int MonsterQuery(W8Monster* monster, int query)
 }
 
 // FUNCTION: WIZ8 0x004ca4c0
-unsigned char W8Monster::IsDying()
+bool W8Monster::IsDying()
 {
-    unsigned char dying = Query(6) == 0x15 || m_pRep->pending_cycle == 0x15;
+    bool dying = Query(6) == 0x15 || m_pRep->pending_cycle == 0x15;
 
     return dying;
 }
