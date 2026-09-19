@@ -107,6 +107,7 @@ public:
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
     bool operator==(const srVector3T<T>& other) const;
+    bool IsZero() const;
     T Length() const;
     T LengthSquared() const;
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
@@ -321,6 +322,15 @@ template <class T> srVector3T<T> operator-(const srVector3T<T>& vector)
 template <class T> bool srVector3T<T>::operator==(const srVector3T<T>& other) const
 {
     return x == other.x && y == other.y && z == other.z;
+}
+
+/* Exact-zero predicate. The same three-component test is expanded independently
+   in OctPath, stParticle, Monster, AmbientSound and other Wiz8 translation units;
+   the standalone body at 0x0046FFA0 is the identical predicate. Original spelling
+   is not known, so keep the semantics narrow: exact comparison, no epsilon. */
+template <class T> bool srVector3T<T>::IsZero() const
+{
+    return x == (T)0 && y == (T)0 && z == (T)0;
 }
 
 template <class T> srVector3T<T> operator*(const srVector3T<T>& vector, double scalar)
