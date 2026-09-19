@@ -68,26 +68,20 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
 // FUNCTION: WIZ8 0x004b8850
 void W8AnimRepBase005EC1D8::SetLocation004B8850(const srVector3T<float>* location)
 {
-    local_location_010.x = location->x;
-    local_location_010.y = location->y;
-    local_location_010.z = location->z;
+    local_location_010 = *location;
     location_004 = parent_location_01c + local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b8890
 void W8AnimRepBase005EC1D8::GetLocation004B8890(srVector3T<float>* location) const
 {
-    location->x = location_004.x;
-    location->y = location_004.y;
-    location->z = location_004.z;
+    *location = location_004;
 }
 
 // FUNCTION: WIZ8 0x004b88b0
 void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(srVector3T<float>* location) const
 {
-    location->x = local_location_010.x;
-    location->y = local_location_010.y;
-    location->z = local_location_010.z;
+    *location = local_location_010;
 }
 
 // FUNCTION: WIZ8 0x004b88d0

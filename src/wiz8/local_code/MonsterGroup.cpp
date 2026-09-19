@@ -637,18 +637,14 @@ void SetMonsterGroupFormation(W8MonsterGroup* monster_group, const srVector3T<fl
     if (monster_group == 0) {
         return;
     }
-    monster_group->formation.x = formation->x;
-    monster_group->formation.y = formation->y;
-    monster_group->formation.z = formation->z;
+    monster_group->formation = *formation;
     count = ILLength(monster_group->monsters);
     for (index = 0; index < static_cast<int>(count); ++index) {
         monster = MonsterGetScriptPartByLocationIndex(
                       MonsterGetIndexByLocationID(0x34f, MONSTER_GROUP_CPP,
                                                   IListGetAt(monster_group->monsters, index), 1))
                       ->monster;
-        monster->formation.x = formation->x;
-        monster->formation.y = formation->y;
-        monster->formation.z = formation->z;
+        monster->formation = *formation;
     }
 }
 
@@ -884,9 +880,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
         monster_group->centre /= divisor;
     }
     if (centre != 0) {
-        centre->x = monster_group->centre.x;
-        centre->y = monster_group->centre.y;
-        centre->z = monster_group->centre.z;
+        *centre = monster_group->centre;
     }
 }
 

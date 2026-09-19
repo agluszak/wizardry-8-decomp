@@ -1781,24 +1781,16 @@ void W8OctSpatialState::Reset0046CDC0()
 void W8OctSpatialState::GetWorkingBounds0046CDF0(srVector3T<float>* minimum,
                                                  srVector3T<float>* maximum)
 {
-    minimum->x = working_minimum_78.x;
-    minimum->y = working_minimum_78.y;
-    minimum->z = working_minimum_78.z;
-    maximum->x = working_maximum_84.x;
-    maximum->y = working_maximum_84.y;
-    maximum->z = working_maximum_84.z;
+    *minimum = working_minimum_78;
+    *maximum = working_maximum_84;
 }
 
 // FUNCTION: WIZ8 0x0046ce30
 void W8OctSpatialState::GetClippedBounds0046CE30(srVector3T<float>* minimum,
                                                  srVector3T<float>* maximum)
 {
-    minimum->x = clipped_minimum_24.x;
-    minimum->y = clipped_minimum_24.y;
-    minimum->z = clipped_minimum_24.z;
-    maximum->x = clipped_maximum_30.x;
-    maximum->y = clipped_maximum_30.y;
-    maximum->z = clipped_maximum_30.z;
+    *minimum = clipped_minimum_24;
+    *maximum = clipped_maximum_30;
 }
 
 // FUNCTION: WIZ8 0x0046cdd0

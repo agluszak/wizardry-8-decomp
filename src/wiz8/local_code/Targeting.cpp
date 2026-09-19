@@ -1071,9 +1071,7 @@ bool ResolveTargetPoint(W8CombatSlot* target, char sight_probe)
     if (sight_probe) {
         point.y += g_float_005ebc64;
     }
-    target->point.x = point.x;
-    target->point.y = point.y;
-    target->point.z = point.z;
+    target->point = point;
     return 1;
 }
 
@@ -3137,19 +3135,13 @@ bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T
         maximum.x += projected.x;
         maximum.y += projected.y;
         maximum.z += projected.z;
-        input.x = center.x;
-        input.y = center.y;
-        input.z = center.z;
+        input.SetFromFloat(&center);
         if (g_world->camera->project(projected, input) !=
             srCamera::PROJECTION_RESULT_POSITIONAL_0) {
-            input.x = minimum.x;
-            input.y = minimum.y;
-            input.z = minimum.z;
+            input.SetFromFloat(&minimum);
             if (g_world->camera->project(projected, input) !=
                 srCamera::PROJECTION_RESULT_POSITIONAL_0) {
-                input.x = maximum.x;
-                input.y = maximum.y;
-                input.z = maximum.z;
+                input.SetFromFloat(&maximum);
                 if (g_world->camera->project(projected, input) !=
                     srCamera::PROJECTION_RESULT_POSITIONAL_0) {
                     return false;

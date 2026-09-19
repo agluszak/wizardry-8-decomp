@@ -87,9 +87,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 PointCameraAtMonster(monster_info, 1, 1);
                 position = monster_info->monster->GetPosition();
-                target.x = position.x;
-                target.y = position.y;
-                target.z = position.z;
+                target = position;
                 if (g_settings_6850c8.camera_rotation_mode == 1) {
                     if (g_settings_6850c8.camera_rotation_style == 0) {
                         if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,

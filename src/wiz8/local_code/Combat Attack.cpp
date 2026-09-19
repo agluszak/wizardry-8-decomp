@@ -3508,9 +3508,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         target_position.y =
             monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
     } else if (target->iType == W8_TARGET_KIND_PLACE) {
-        target_position.x = target->point.x;
-        target_position.y = target->point.y;
-        target_position.z = target->point.z;
+        target_position = target->point;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x1358,
                      "FireMissileSourceToTarget: Unknown target type");
