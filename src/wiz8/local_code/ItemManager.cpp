@@ -115,8 +115,8 @@ void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, bool enabled)
     } else {
         item->entity_flags &= ~mask;
     }
-    if (item->owner != 0) {
-        static_cast<W8ItemRep*>(item->owner->m_pRep)->SetFlags(mask, enabled);
+    if (item->p3D != 0) {
+        static_cast<W8ItemRep*>(item->p3D->m_pRep)->SetFlags(mask, enabled);
     }
 }
 
@@ -668,7 +668,7 @@ void ActivateItem(W8WorldItem* item)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x1d4, 0);
     }
-    if (item->unknown_08 != 0) {
+    if (item->fActive != 0) {
         srAssertFail("!pItemInfo->fActive", ITEM_MANAGER_CPP, 0x1d5, 0);
     }
 
@@ -697,21 +697,21 @@ void ActivateItem(W8WorldItem* item)
         }
     }
 
-    if (LoadItemFromFile(&info, zItemName, &item->owner, 0) == 0) {
+    if (LoadItemFromFile(&info, zItemName, &item->p3D, 0) == 0) {
         srAssertFail("fSuccess", ITEM_MANAGER_CPP, 0x1f2,
                      FormatString("ActivateItem: ERROR - ItemRead %s failed", zItemName));
     }
     if (ItemHasFlags(item, 4)) {
-        item->owner->LightRadarBlip();
+        item->p3D->LightRadarBlip();
     }
     position = item->position;
-    item->owner->SetLocation0049F720(&position);
-    item->owner->SetYaw(
+    item->p3D->SetLocation0049F720(&position);
+    item->p3D->SetYaw(
         static_cast<float>(Random(0x168) * 2 * g_camera_pi_005ec2a0 * g_double_005ed7b0));
-    static_cast<W8ItemRep*>(item->owner->m_pRep)->flags |= item->entity_flags;
-    item->owner->AttachMesh0049F900(GetWorld());
-    AddItemToWorld0046E5C0(GetWorld(), item->owner);
-    item->unknown_08 = 1;
+    static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
+    item->p3D->AttachMesh0049F900(GetWorld());
+    AddItemToWorld0046E5C0(GetWorld(), item->p3D);
+    item->fActive = 1;
     ++gXStatus.item_manager_pending;
 
     node = srCore.getRegistry()->getClassNode(0x1000);
@@ -722,7 +722,7 @@ void ActivateItem(W8WorldItem* item)
     sun = static_cast<srNode*>(srCore.getRegistry()->find(node, "SUN", 0));
     if (sun != 0) {
         sun_position = sun->getLocation();
-        mesh = static_cast<stModelInstance*>(item->owner->GetMesh());
+        mesh = static_cast<stModelInstance*>(item->p3D->GetMesh());
         if (mesh != 0) {
             if (g_octree_6598a4->HasLineOfSight(&position, &sun_position, 1)) {
                 mesh->scale_194 = 1.0f;
@@ -744,10 +744,10 @@ void DeactivateWorldItem(W8WorldItem* item)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 554, 0);
     }
-    if (item->unknown_08 == 0) {
+    if (item->fActive == 0) {
         srAssertFail("pItemInfo->fActive", ITEM_MANAGER_CPP, 555, 0);
     }
-    if (item->owner == 0) {
+    if (item->p3D == 0) {
         srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
     }
 
@@ -756,15 +756,15 @@ void DeactivateWorldItem(W8WorldItem* item)
         g_level_block->selected_item = -1;
     }
 
-    item->owner->m_pRep->GetLocation004B8890(&position);
+    item->p3D->m_pRep->GetLocation004B8890(&position);
     item->position = position;
-    item->entity_flags = static_cast<W8ItemRep*>(item->owner->m_pRep)->flags;
+    item->entity_flags = static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags;
 
-    item->owner->DetachMesh0049FA30(GetWorld());
-    RemoveItemFromWorld0046E5E0(GetWorld(), item->owner);
-    delete item->owner;
-    item->owner = 0;
-    item->unknown_08 = 0;
+    item->p3D->DetachMesh0049FA30(GetWorld());
+    RemoveItemFromWorld0046E5E0(GetWorld(), item->p3D);
+    delete item->p3D;
+    item->p3D = 0;
+    item->fActive = 0;
     --gXStatus.item_manager_pending;
 }
 
@@ -784,16 +784,16 @@ int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_dis
         W8WorldItem* item = ItemInfo(index);
         float distance;
 
-        if (item->unknown_08 == 0) {
+        if (item->fActive == 0) {
             continue;
         }
-        if (static_cast<W8ItemRep*>(item->owner->m_pRep)->flags & 4) {
+        if (static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) {
             continue;
         }
-        if (!item->owner->IsSelected()) {
+        if (!item->p3D->IsSelected()) {
             continue;
         }
-        distance = ItemDistanceToCamera004BE7C0(GetWorld(), item->owner);
+        distance = ItemDistanceToCamera004BE7C0(GetWorld(), item->p3D);
         if (distance < max_distance && distance < best_distance) {
             result = item->runtime_id;
             best_distance = distance;
@@ -824,7 +824,7 @@ void UpdateNearbyWorldItems(void)
         if (ItemHasFlags(item, 2)) {
             AdvanceFallingWorldItem(item);
         }
-        if (item->unknown_08 == 0) {
+        if (item->fActive == 0) {
             if (DistanceBetweenPoints004BE6D0(&item->position, &camera) < g_float_005ed7b8) {
                 if (g_byte_0064a1cd != 0) {
                     if (item == 0) {
@@ -839,7 +839,7 @@ void UpdateNearbyWorldItems(void)
         } else {
             srVector3T<float> location;
 
-            item->owner->m_pRep->GetLocation004B8890(&location);
+            item->p3D->m_pRep->GetLocation004B8890(&location);
             if (DistanceBetweenPoints004BE6D0(&location, &camera) > g_float_005ec360) {
                 DeactivateWorldItem(item);
             }
@@ -872,13 +872,13 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         g_modal_owner_0068edd0 = dialog;
         return 1;
     }
-    if (item->owner->trigger_018 != 0) {
-        result = RunItemTrigger004A0070(item->owner);
+    if (item->p3D->trigger_018 != 0) {
+        result = RunItemTrigger004A0070(item->p3D);
         if (result == 0) {
             return result;
         }
     }
-    if ((static_cast<W8ItemRep*>(item->owner->m_pRep)->flags & 4) == 0) {
+    if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) == 0) {
         CopyItemInstance(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
     }
     index = ItemIndex(runtime_id);
@@ -886,7 +886,7 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
     if (item->sector_id > -1) {
         RemoveItemFromSector(item->sector_id, item);
     }
-    if (item->unknown_08 != 0) {
+    if (item->fActive != 0) {
         DeactivateWorldItem(item);
     }
     FreeWorldItemGroup(item);
@@ -926,7 +926,7 @@ unsigned char ReleaseItemLists(void)
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);
         }
-        if (item->unknown_08 != 0) {
+        if (item->fActive != 0) {
             DeactivateWorldItem(item);
         }
         while (item != 0) {
@@ -1002,13 +1002,13 @@ bool AnyWorldItemVisible(void)
     if (0 <= g_last_visible_world_item_00618e70 && g_last_visible_world_item_00618e70 < count) {
         W8WorldItem* item = static_cast<W8WorldItem*>(
             PLGet(gXStatus.plsItemList, g_last_visible_world_item_00618e70));
-        if (item->owner != 0) {
-            item->owner->m_pRep->GetLocation004B8890(&position);
+        if (item->p3D != 0) {
+            item->p3D->m_pRep->GetLocation004B8890(&position);
             GetCameraPosition(&eye);
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->owner->GetCachedLocalBounds(&lower, &upper);
+                item->p3D->GetCachedLocalBounds(&lower, &upper);
                 lower.x += position.x;
                 lower.y += position.y;
                 lower.z += position.z;
@@ -1024,13 +1024,13 @@ bool AnyWorldItemVisible(void)
     for (index = 0; index < count; ++index) {
         W8WorldItem* item = static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, index));
 
-        if (item->owner != 0) {
-            item->owner->m_pRep->GetLocation004B8890(&position);
+        if (item->p3D != 0) {
+            item->p3D->m_pRep->GetLocation004B8890(&position);
             GetCameraPosition(&eye);
             srVector3T<float> delta(position.x - camera.x, position.y - camera.y,
                                     position.z - camera.z);
             if (delta.Length() < static_cast<float>(g_double_005ec030)) {
-                item->owner->GetCachedLocalBounds(&lower, &upper);
+                item->p3D->GetCachedLocalBounds(&lower, &upper);
                 lower.x += position.x;
                 lower.y += position.y;
                 lower.z += position.z;
@@ -1102,8 +1102,8 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
         }
     }
 
-    if (item->owner != 0) {
-        item->owner->SetLocation0049F720(&probe);
+    if (item->p3D != 0) {
+        item->p3D->SetLocation0049F720(&probe);
     }
     item->position = probe;
     return 1;
@@ -1141,8 +1141,8 @@ unsigned char SettleWorldItem(W8WorldItem* item)
         }
         item->sector_id = sector;
     }
-    if (item->owner != 0) {
-        item->owner->SetLocation0049F720(&start);
+    if (item->p3D != 0) {
+        item->p3D->SetLocation0049F720(&start);
     }
     item->position = start;
     return 1;
@@ -1163,8 +1163,8 @@ void RebuildAllWorldItemInstances(void)
 }
 
 // FUNCTION: WIZ8 0x004f6b90
-W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position, int unknown,
-                             unsigned char add_to_world)
+W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,
+                             int entity_flags, unsigned char add_to_world)
 {
     W8WorldItem* result = (W8WorldItem*)malloc(sizeof(W8WorldItem));
 
@@ -1175,12 +1175,12 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
     memset(result, 0, sizeof(W8WorldItem));
     EmptyItemRecord(&result->item, 0, 1);
     result->runtime_id = g_status_685170.next_world_item_id_2352++;
-    result->unknown_08 = 0;
-    result->owner = 0;
+    result->fActive = 0;
+    result->p3D = 0;
     result->position = *position;
     result->sector_id = -1;
     SettleWorldItem(result);
-    result->entity_flags = unknown;
+    result->entity_flags = entity_flags;
 
     if (item != 0) {
         CopyItemInstance(&result->item, item, 0, 1);
@@ -1192,7 +1192,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
 }
 
 // FUNCTION: WIZ8 0x004f6c50
-W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int unknown,
+W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int entity_flags,
                        unsigned char add_to_world)
 {
     W8ItemInstance local_item;
@@ -1206,7 +1206,7 @@ W8WorldItem* SpawnItem(int item_id, const srVector3T<float>* position, int unkno
         item = &local_item;
     }
 
-    result = CreateWorldItem(item, position, unknown, add_to_world);
+    result = CreateWorldItem(item, position, entity_flags, add_to_world);
     if (result == 0) {
         srAssertFail("pItemInfo", "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp", 0x18e,
                      0);
