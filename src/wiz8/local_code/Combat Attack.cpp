@@ -3587,7 +3587,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         speed = base_speed * g_monster_motion_push_005ebc5c;
     }
     if (accuracy != 9999) {
-        ScatterMissileAimPoint005454C0(&source_position.x, &target_position.x, accuracy, blind);
+        ScatterMissileAimPoint005454C0(&source_position, &target_position, accuracy, blind);
     }
     missile = FireMissile004A2D30(missile_type, &source_position, &target_position, 0, target_flag,
                                   use_default_accuracy, speed);
@@ -3667,11 +3667,12 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
    randomized cone scatter. `accuracy` shrinks the cone; `blind` swaps the
    flat 8% profile for the coarse distance-scaled one. */
 // FUNCTION: WIZ8 0x005454c0
-void ScatterMissileAimPoint005454C0(float* from, float* to, int accuracy, char blind)
+void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<float>* to,
+                                      int accuracy, char blind)
 {
-    float dx = to[0] - from[0];
-    float dy = to[1] - from[1];
-    float dz = to[2] - from[2];
+    float dx = to->x - from->x;
+    float dy = to->y - from->y;
+    float dz = to->z - from->z;
     float px = dy * -dx;
     float py = dz * dz - dx * -dx;
     float pz = -(dz * dy);
@@ -3754,9 +3755,9 @@ apply:
         sy = sy * static_cast<float>(magnitude);
         sz = sz * static_cast<float>(magnitude);
     }
-    to[0] = dx + sx + from[0];
-    to[1] = dy + sy + from[1];
-    to[2] = sz + dz + from[2];
+    to->x = dx + sx + from->x;
+    to->y = dy + sy + from->y;
+    to->z = sz + dz + from->z;
 }
 
 /* Starts a party member's attack action: validates the hand's attack count and
