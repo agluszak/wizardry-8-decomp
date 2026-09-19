@@ -16,8 +16,8 @@ unsigned int AgeAllMonsterSight(void);
 void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_bounds);
 
 /* Monster-to-monster sight after line of sight is already clear. */
-unsigned char CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
-                                   W8VisibilityRecord* record); /* 0x005058A0 */
+bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
+                          W8VisibilityRecord* record); /* 0x005058A0 */
 
 /* Shared perception primitive for monster/player and player/monster checks.
    Retail passes observer and target as by-value srVector3T<float> blocks.
