@@ -848,6 +848,73 @@ bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
     return side == g_status_685170.formation.positions[party_slot].facing;
 }
 
+/* Face the committed target while retaining the formation's four-side model. */
+// FUNCTION: WIZ8 0x00555560
+void FaceCharacterTowardCombatTarget(int party_slot, W8CombatSlot* target)
+{
+    signed char facing;
+    srVector3T<float> position;
+    bool has_position = false;
+
+    switch (target->iType) {
+    case W8_TARGET_KIND_CHARACTER:
+    case W8_TARGET_KIND_CHARACTER_INDIRECT:
+        if (target->iChar == -1) {
+            srAssertFail("pTarget->iChar != BAD_INDEX", FORMATION_CPP, 0x33a, 0);
+        }
+        facing = DecideFacingForPosition(party_slot, target->iChar);
+        if (facing == W8_FACING_ANY) {
+            return;
+        }
+        break;
+    case W8_TARGET_KIND_MONSTER:
+        if (target->iMonsterID == -1) {
+            srAssertFail("pTarget->iMonsterID != BAD_INDEX", FORMATION_CPP, 0x33f, 0);
+        }
+        position = GetMonsterByLocationID(target->iMonsterID)->GetPosition();
+        has_position = true;
+        break;
+    case W8_TARGET_KIND_PLACE:
+        position = target->point;
+        has_position = true;
+        break;
+    default:
+        return;
+    }
+    if (has_position) {
+        srVector3T<float> camera_position;
+        GetCameraPosition(&camera_position);
+        int angle = static_cast<int>(NormalizeAngle(GetHeadingAngle(&camera_position, &position)));
+        angle -= g_status_685170.party_facing;
+        if (angle < 0) {
+            angle += W8_DEGREES_PER_TURN;
+        }
+        int quadrant =
+            ((angle + W8_DEGREES_PER_QUADRANT / 2) % W8_DEGREES_PER_TURN) / W8_DEGREES_PER_QUADRANT;
+        switch (quadrant) {
+        case 0:
+            facing = 0;
+            break;
+        case 1:
+            facing = 1;
+            break;
+        case 2:
+            facing = 2;
+            break;
+        case 3:
+            facing = 3;
+            break;
+        default:
+            srAssertFail("FALSE", FORMATION_CPP, 0x456, 0);
+            return;
+        }
+    }
+    if (g_status_685170.formation.positions[party_slot].facing != facing) {
+        g_status_685170.formation.positions[party_slot].facing = facing;
+        RefreshFormationBoard();
+    }
+}
+
 /* Turn the character's formation facing toward the side the monster is on. */
 // FUNCTION: WIZ8 0x00555820
 void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)

@@ -49,7 +49,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target);
 void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse);
 /* 0x00547CB0: write the fatigue the slot's pending pray costs, or -1 when it
    cannot be paid; the flag picks the check flavor. */
-int Function547CB0(int party_slot, int* out_cost, char check);
+int TurnUndead(int party_slot, int* out_cost, char check);
 /* 0x00547FE0: the fatigue the slot's pending turn-undead costs, zero when it
    cannot be carried out. */
 int Function547FE0(int party_slot);

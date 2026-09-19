@@ -61,8 +61,9 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                                            int level_bonus);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
-                        unsigned int power_level, int a, int b, int c, int* d, int e, int f,
-                        int g); /* 0x004FB4C0 */
+                        unsigned int power_level, int a, int b, int c, int* d, int e,
+                        W8GrowableVector<int>* party_targets,
+                        W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
