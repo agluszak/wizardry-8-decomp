@@ -45,6 +45,7 @@
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/local_code/FormationAndFacing.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/game_timer.h"
 

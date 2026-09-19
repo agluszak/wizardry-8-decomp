@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_code/character_events.h"

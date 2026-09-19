@@ -21,6 +21,7 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/CombatSound.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/engine_code/Missile.h"
 #include "LibraryDataBase.h"
 #include "wiz8/sound_man.h"

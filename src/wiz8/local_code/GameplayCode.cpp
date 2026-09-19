@@ -25,6 +25,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/layouts/item_tables.h"
