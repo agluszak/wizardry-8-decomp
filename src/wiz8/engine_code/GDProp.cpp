@@ -38,15 +38,15 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
     m_links_0c = 0;
     m_waypoints_10 = 0;
     m_list_54 = 0;
-    m_path_sentinel_2c = -10000000.0f;
-    m_path_bound_52 = 0;
-    m_path_bound_50 = 0;
-    m_path_bound_4e = 0;
-    m_path_bound_4c = 0;
+    m_path_range_28.sentinel = -10000000.0f;
+    m_path_bounds_4c.max_z = 0;
+    m_path_bounds_4c.min_z = 0;
+    m_path_bounds_4c.max_x = 0;
+    m_path_bounds_4c.min_x = 0;
 
     if (g_octree_6598a4 != 0 && g_octree_6598a4->pathing_180 != 0) {
-        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(path_name, &m_path_bound_4c,
-                                                                        &m_path_range_28);
+        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(
+            path_name, &m_path_bounds_4c, &m_path_range_28);
     }
 
     if (instance != 0) {
@@ -162,10 +162,13 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane00449A40(surface->plane_24,
-                                       &m_pVertices[surface->vertex_indices_18[0]],
-                                       &m_pVertices[surface->vertex_indices_18[1]],
-                                       &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane00449A40(
+                reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
+                    the union's plane arm is a 4-float vector */
+
+                &m_pVertices[surface->vertex_indices_18[0]],
+                &m_pVertices[surface->vertex_indices_18[1]],
+                &m_pVertices[surface->vertex_indices_18[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
@@ -292,9 +295,9 @@ void GDProp::ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>
         }
     }
 
-    m_path_range_28 = m_bound_min_34.y;
-    m_path_range_30 = m_bound_max_40.y;
-    m_path_sentinel_2c = (m_bound_min_34.y + m_bound_max_40.y) * g_float_005ebc7c;
+    m_path_range_28.minimum = m_bound_min_34.y;
+    m_path_range_28.maximum = m_bound_max_40.y;
+    m_path_range_28.sentinel = (m_bound_min_34.y + m_bound_max_40.y) * g_float_005ebc7c;
 
     *minimum = m_bound_min_34;
     *maximum = m_bound_max_40;
@@ -305,8 +308,8 @@ void GDProp::ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>
 // FUNCTION: WIZ8 0x004B75F0
 unsigned char GDProp::ContainsPathCoordinate004B75F0(unsigned short x, unsigned short y) const
 {
-    if (x >= m_path_bound_4c && x <= m_path_bound_4e && y >= m_path_bound_50 &&
-        y <= m_path_bound_52) {
+    if (x >= m_path_bounds_4c.min_x && x <= m_path_bounds_4c.max_x && y >= m_path_bounds_4c.min_z &&
+        y <= m_path_bounds_4c.max_z) {
         return 1;
     }
     return 0;
@@ -340,12 +343,12 @@ char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
    names CheckConditionalWayPt because the list is consumed by
    CheckConditionalWayPtStatus. */
 // FUNCTION: WIZ8 0x004b7730
-unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const int* point)
+unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const srVector2i* point)
 {
-    if (static_cast<unsigned short>(point[0]) < m_path_bound_4c ||
-        static_cast<unsigned short>(point[0]) > m_path_bound_4e ||
-        static_cast<unsigned short>(point[1]) < m_path_bound_50 ||
-        static_cast<unsigned short>(point[1]) > m_path_bound_52) {
+    if (static_cast<unsigned short>(point->x) < m_path_bounds_4c.min_x ||
+        static_cast<unsigned short>(point->x) > m_path_bounds_4c.max_x ||
+        static_cast<unsigned short>(point->y) < m_path_bounds_4c.min_z ||
+        static_cast<unsigned short>(point->y) > m_path_bounds_4c.max_z) {
         return 0;
     }
 
@@ -374,34 +377,34 @@ unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const int*
    cell of the rectangle. The vertical branch re-tests its first crossing
    instead of interpolating the second — a faithful retail oddity. */
 // FUNCTION: WIZ8 0x004b7830
-unsigned char GDProp::RegisterPathVertex004B7830(unsigned int index, const int* point,
-                                                 const int* second)
+unsigned char GDProp::RegisterPathVertex004B7830(unsigned int index, const srVector2i* point,
+                                                 const srVector2i* second)
 {
-    unsigned short x0 = static_cast<unsigned short>(point[0]);
-    unsigned short y0 = static_cast<unsigned short>(point[1]);
-    unsigned short x1 = static_cast<unsigned short>(second[0]);
-    unsigned short y1 = static_cast<unsigned short>(second[1]);
+    unsigned short x0 = static_cast<unsigned short>(point->x);
+    unsigned short y0 = static_cast<unsigned short>(point->y);
+    unsigned short x1 = static_cast<unsigned short>(second->x);
+    unsigned short y1 = static_cast<unsigned short>(second->y);
     float dx = static_cast<float>(x1 - x0);
     float dy = static_cast<float>(y1 - y0);
     bool found = false;
 
     if (fabs(dx) > fabs(dy)) {
         float slope = dy / dx;
-        float cross = (m_path_bound_4c - x0) * slope + y0;
-        if (cross > m_path_bound_50 - 1 && cross < m_path_bound_52 + 1) {
+        float cross = (m_path_bounds_4c.min_x - x0) * slope + y0;
+        if (cross > m_path_bounds_4c.min_z - 1 && cross < m_path_bounds_4c.max_z + 1) {
             found = true;
         }
-        cross = (m_path_bound_4e - x0) * slope + y0;
-        if (cross > m_path_bound_50 - 1 && cross < m_path_bound_52 + 1) {
+        cross = (m_path_bounds_4c.max_x - x0) * slope + y0;
+        if (cross > m_path_bounds_4c.min_z - 1 && cross < m_path_bounds_4c.max_z + 1) {
             found = true;
         }
     } else {
         float slope = dx / dy;
-        float cross = (m_path_bound_50 - y0) * slope + x0;
-        if (cross > m_path_bound_4c - 1 && cross < m_path_bound_4e + 1) {
+        float cross = (m_path_bounds_4c.min_z - y0) * slope + x0;
+        if (cross > m_path_bounds_4c.min_x - 1 && cross < m_path_bounds_4c.max_x + 1) {
             found = true;
         }
-        if (cross > m_path_bound_4c - 1 && cross < m_path_bound_4e + 1) {
+        if (cross > m_path_bounds_4c.min_x - 1 && cross < m_path_bounds_4c.max_x + 1) {
             found = true;
         }
     }
@@ -525,14 +528,14 @@ void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* an
 
     for (index = 0; index < anim->num_transforms_5a; ++index) {
         W8LevelFileTransform* transform = &anim->pTransforms_5b[index];
-        float node[10];
+        W8LevelFileScaledPathNode node;
         if (transform->pathAI_06.scaled_01 == 2) {
-            memcpy(node, &transform->pathAI_06.pScaledPaths[frame], sizeof(node));
+            node = transform->pathAI_06.pScaledPaths[frame];
         } else {
-            memcpy(node, &transform->pathAI_06.pPaths[frame], 7 * sizeof(float));
-            node[7] = node[8] = node[9] = 1.0f;
+            node.path = transform->pathAI_06.pPaths[frame];
+            node.scale.x = node.scale.y = node.scale.z = 1.0f;
         }
-        TransformMeshGeometry004B7E50(node, &transform->LODMesh_02.pFrames->mesh_01);
+        TransformMeshGeometry004B7E50(&node, &transform->LODMesh_02.pFrames->mesh_01);
     }
 }
 
@@ -542,11 +545,12 @@ void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* an
    and every appended surface then receives its plane, dominant axis and slope
    classification. */
 // FUNCTION: WIZ8 0x004b7e50
-void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* mesh)
+void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node,
+                                           W8LevelFileMesh* mesh)
 {
     int surface_base = m_surface_count_14;
 
-    srVector3T<float> axis(node[4], node[5], node[6]);
+    srVector3T<float> axis = node->path.axis_10;
     srMatrix3T<float> rotation;
     srMatrix4x3T<float> matrix;
     srVector3T<float> translation;
@@ -554,21 +558,21 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
     float factor;
 
     rotation.SetIdentity();
-    if (node[3] != g_zero_005ebb40) {
-        rotation.RotateAroundAxis(sin(node[3]), cos(node[3]), axis);
+    if (node->path.angle_0c != g_zero_005ebb40) {
+        rotation.RotateAroundAxis(sin(node->path.angle_0c), cos(node->path.angle_0c), axis);
     }
-    translation.x = node[0] * g_double_005ec150;
-    translation.y = node[1] * g_double_005ec150;
-    translation.z = node[2] * g_double_005ec150;
+    translation.x = node->path.position_00.x * g_double_005ec150;
+    translation.y = node->path.position_00.y * g_double_005ec150;
+    translation.z = node->path.position_00.z * g_double_005ec150;
 
     if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
         factor = mesh->lod_scale_58 * g_world_scale_005ebc40;
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
-    scale.x = node[7] * factor;
-    scale.y = node[8] * factor;
-    scale.z = node[9] * factor;
+    scale.x = node->scale.x * factor;
+    scale.y = node->scale.y * factor;
+    scale.z = node->scale.z * factor;
 
     matrix.SetRotation(rotation);
     matrix.SetTranslation(translation);
@@ -645,9 +649,12 @@ void GDProp::TransformMeshGeometry004B7E50(const float* node, W8LevelFileMesh* m
 
     for (int index = surface_base; index < m_surface_count_14; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        BuildTrianglePlane00449A40(surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
-                                   &m_pVertices[surface->vertex_indices_18[1]],
-                                   &m_pVertices[surface->vertex_indices_18[2]]);
+        BuildTrianglePlane00449A40(
+            reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
+                    the union's plane arm is a 4-float vector */
+            &m_pVertices[surface->vertex_indices_18[0]],
+            &m_pVertices[surface->vertex_indices_18[1]],
+            &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
         float largest = g_float_005ebb34;

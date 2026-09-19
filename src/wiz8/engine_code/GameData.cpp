@@ -1864,7 +1864,7 @@ void GetCameraPosition(srVector3T<float>* position)
    first and the live pitch in the second. GetWorldCameraState passes the yaw
    record at +0x24 as angle and the pitch record at +0x0c as pitch. */
 // FUNCTION: WIZ8 0x004213A0
-void GetCameraOrientation(float* angle, float* pitch)
+void GetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch)
 {
     int i;
 
@@ -1879,7 +1879,8 @@ void GetCameraOrientation(float* angle, float* pitch)
 }
 
 // FUNCTION: WIZ8 0x004213E0
-void SetCameraOrientation(float* angle, float* pitch, srMatrix3T<float>* rotation)
+void SetCameraOrientation(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
+                          srMatrix3T<float>* rotation)
 {
     g_gd_camera_65a0f8->SetYaw(*angle);
     g_gd_camera_65a0f8->SetPitch(*pitch);
@@ -1909,7 +1910,8 @@ unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
    SetCameraOrientation (inlined) overwrites the same local with the updated
    matrix; the local is dead after the call. */
 // FUNCTION: WIZ8 0x00421570
-void RestoreWorldCameraOrientation00421570(float* angle, float* pitch, W8World* world)
+void RestoreWorldCameraOrientation00421570(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
+                                           W8World* world)
 {
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);

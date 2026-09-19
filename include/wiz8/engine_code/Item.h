@@ -47,7 +47,7 @@ struct W8Item : public W8GrObject {
     srNode* GetMesh();
     /* Model-local cached bounds. GetItemWorldBounds translates them by the
        representation's location without rotating them. */
-    unsigned char GetCachedLocalBounds(float* lower, float* upper);
+    unsigned char GetCachedLocalBounds(srVector3T<float>* lower, srVector3T<float>* upper);
     bool GetBoundsRadius(float* radius);
     /* Live search/interaction point: representation location raised by 0.66 of
        the cached local Y extent. */
@@ -76,7 +76,7 @@ static_assert(offsetof(W8Item, value_01c) == 0x1c, "W8Item_value_01c_offset");
 bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** item, bool anonymous_mesh);
 /* Run the item's trigger, if any, and report its action state. */
 unsigned char RunItemTrigger004A0070(W8Item* item); /* 0x004A0070 */
-bool GetItemWorldBounds(W8Item* item, float* lower, float* upper);
+bool GetItemWorldBounds(W8Item* item, srVector3T<float>* lower, srVector3T<float>* upper);
 
 bool LoadItemFromFile(const W8ReadLevelInfo* context, const char* name, W8Item** item,
                       bool anonymous_mesh);

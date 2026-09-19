@@ -642,7 +642,7 @@ unsigned char W8PathingService::Load00458CE0(int handle)
 void W8PathingService::LinkSurfaces00460020(GDProp* prop)
 {
     unsigned int index = 1;
-    int point[3];
+    srVector2i point;
     W8PathSurface* surface;
     int converted;
 
@@ -654,10 +654,9 @@ void W8PathingService::LinkSurfaces00460020(GDProp* prop)
         if ((surface->flags_00 & 0x40) != 0) {
             converted =
                 static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            point[0] =
-                static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            point[1] = converted;
-            prop->RegisterPathSurface004B7730(index, point);
+            point.x = static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
+            point.y = converted;
+            prop->RegisterPathSurface004B7730(index, &point);
         }
         ++index;
     } while (index < m_ulNumWayPoints);
@@ -671,8 +670,8 @@ void W8PathingService::LinkSurfaces00460020(GDProp* prop)
 void W8PathingService::LinkEdges004600B0(GDProp* prop)
 {
     unsigned int index = 1;
-    int first[2];
-    int second[2];
+    srVector2i first;
+    srVector2i second;
     W8PathEdge* edge;
     W8PathSurface* surface;
     int converted;
@@ -686,17 +685,16 @@ void W8PathingService::LinkEdges004600B0(GDProp* prop)
             surface = &m_pSurfaces_048[edge->source_04];
             converted =
                 static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            first[0] =
-                static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            first[1] = converted;
+            first.x = static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
+            first.y = converted;
 
             surface = &m_pSurfaces_048[edge->destination_06];
             converted =
                 static_cast<int>((surface->position_04.z - level_bounds[2]) / grid_scale_01c);
-            second[0] =
+            second.x =
                 static_cast<int>((surface->position_04.x - level_bounds[0]) / grid_scale_01c);
-            second[1] = converted;
-            prop->RegisterPathVertex004B7830(index, first, second);
+            second.y = converted;
+            prop->RegisterPathVertex004B7830(index, &first, &second);
         }
         ++index;
     } while (index < m_ulNumWayPtLinks);
@@ -1042,7 +1040,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor00460680(W8NavigatorAttachm
             (m_pEdges_04c[edge_index].flags_00 & 0x80000000) != 0) {
             srVector3T<float> lower = source_surface->position_04;
             srVector3T<float> upper = source_surface->position_04;
-            GrowBoundsByPoint(&m_pSurfaces_048[destination].position_04.x, &lower.x, &upper.x);
+            GrowBoundsByPoint(&m_pSurfaces_048[destination].position_04, &lower, &upper);
             unsigned long* candidates = 0;
             Trigger* selected = 0;
             int count =
@@ -3341,17 +3339,17 @@ W8PathingService::W8PathingService()
    of that box scaled, and the cell count is that span plus one. */
 // FUNCTION: WIZ8 0x00458a50
 void W8PathingService::ConfigureForLevel(int size, float grid_scale, int path_clearance,
-                                         const float* bounds, const char* name)
+                                         const W8BoundingBox* bounds, const char* name)
 {
     size_004 = size;
     grid_scale_01c = grid_scale;
     path_clearance_028 = path_clearance;
-    level_bounds[0] = bounds[0];
-    level_bounds[1] = bounds[1];
-    level_bounds[2] = bounds[2];
-    level_bounds[3] = bounds[3];
-    level_bounds[4] = bounds[4];
-    level_bounds[5] = bounds[5];
+    level_bounds[0] = bounds->minimum.x;
+    level_bounds[1] = bounds->minimum.y;
+    level_bounds[2] = bounds->minimum.z;
+    level_bounds[3] = bounds->maximum.x;
+    level_bounds[4] = bounds->maximum.y;
+    level_bounds[5] = bounds->maximum.z;
     span_020 = (level_bounds[4] - level_bounds[1]) * g_path_span_scale_005ec344;
     cell_count_024 = static_cast<short>(static_cast<int>(span_020)) + 1;
     level_name = name;
@@ -3782,8 +3780,10 @@ void W8PathingService::GetPathGridStepDirections0045AEE0(const W8PathGridWalk* w
    The larger absolute delta drives the walk; the start-cell remainder fixes
    how far each axis is from its next boundary and therefore the initial error. */
 // FUNCTION: WIZ8 0x0045af60
-void W8PathingService::BuildPathGridWalk0045AF60(const float* from, const float* to,
-                                                 const float* origin, W8PathGridWalk* walk)
+void W8PathingService::BuildPathGridWalk0045AF60(const srVector2T<float>* from,
+                                                 const srVector2T<float>* to,
+                                                 const srVector2T<float>* origin,
+                                                 W8PathGridWalk* walk)
 {
     int cell_size = static_cast<int>(grid_scale_01c);
     int coordinate[2];
@@ -3797,8 +3797,8 @@ void W8PathingService::BuildPathGridWalk0045AF60(const float* from, const float*
     int axis;
 
     for (axis = 0; axis < 2; ++axis) {
-        coordinate[axis] = static_cast<int>(from[axis] - origin[axis]);
-        destination[axis] = static_cast<int>(to[axis] - origin[axis]);
+        coordinate[axis] = static_cast<int>((&from->x)[axis] - (&origin->x)[axis]);
+        destination[axis] = static_cast<int>((&to->x)[axis] - (&origin->x)[axis]);
 
         int delta = destination[axis] - coordinate[axis];
         boundary_offset[axis] = coordinate[axis] % cell_size / grid_scale_01c;
@@ -3867,21 +3867,21 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(const srVector3T<fl
     }
 
     int cell[2];
-    float walk_from[2];
-    float walk_to[2];
-    float origin[2];
+    srVector2T<float> walk_from;
+    srVector2T<float> walk_to;
+    srVector2T<float> origin;
     W8PathGridWalk walk;
     int directions[2];
 
     cell[0] = static_cast<int>((from->x - level_bounds[0]) / grid_scale_01c);
     cell[1] = static_cast<int>((from->z - level_bounds[2]) / grid_scale_01c);
-    walk_from[0] = from->x;
-    walk_from[1] = from->z;
-    walk_to[0] = to->x;
-    walk_to[1] = to->z;
-    origin[0] = level_bounds[0];
-    origin[1] = level_bounds[2];
-    BuildPathGridWalk0045AF60(walk_from, walk_to, origin, &walk);
+    walk_from.x = from->x;
+    walk_from.y = from->z;
+    walk_to.x = to->x;
+    walk_to.y = to->z;
+    origin.x = level_bounds[0];
+    origin.y = level_bounds[2];
+    BuildPathGridWalk0045AF60(&walk_from, &walk_to, &origin, &walk);
     GetPathGridStepDirections0045AEE0(&walk, directions);
 
     int error = walk.error_2c;
@@ -4196,18 +4196,18 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
         return found;
     }
 
-    float walk_source[2];
-    float walk_destination[2];
-    float origin[2];
+    srVector2T<float> walk_source;
+    srVector2T<float> walk_destination;
+    srVector2T<float> origin;
     W8PathGridWalk walk;
     int directions[2];
-    walk_source[0] = source->x;
-    walk_source[1] = source->z;
-    walk_destination[0] = destination->x;
-    walk_destination[1] = destination->z;
-    origin[0] = level_bounds[0];
-    origin[1] = level_bounds[2];
-    BuildPathGridWalk0045AF60(walk_source, walk_destination, origin, &walk);
+    walk_source.x = source->x;
+    walk_source.y = source->z;
+    walk_destination.x = destination->x;
+    walk_destination.y = destination->z;
+    origin.x = level_bounds[0];
+    origin.y = level_bounds[2];
+    BuildPathGridWalk0045AF60(&walk_source, &walk_destination, &origin, &walk);
     GetPathGridStepDirections0045AEE0(&walk, directions);
 
     int error = walk.error_2c;
@@ -6073,8 +6073,8 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
    low and high halves of each entry, and the height from the entry's low half
    scaled by the service's own span and lifted by the bounds floor. */
 // FUNCTION: WIZ8 0x00457cf0
-unsigned int W8PathingService::FindPathHandle(const char* path_name, unsigned short* path_bounds,
-                                              float* path_range)
+unsigned int W8PathingService::FindPathHandle(const char* path_name, W8PathGridBounds* path_bounds,
+                                              W8PathVerticalRange* path_range)
 {
     GDPropCondPaths* path;
     unsigned int index;
@@ -6089,36 +6089,36 @@ unsigned int W8PathingService::FindPathHandle(const char* path_name, unsigned sh
     path = m_pCondPaths;
     do {
         if (strcmp(path_name, path->name) == 0) {
-            path_bounds[2] = 0xffff;
-            path_bounds[0] = 0xffff;
-            path_bounds[3] = 0;
-            path_bounds[1] = 0;
-            path_range[0] = 1e+08f;
-            path_range[2] = -1e+08f;
+            path_bounds->min_z = 0xffff;
+            path_bounds->min_x = 0xffff;
+            path_bounds->max_z = 0;
+            path_bounds->max_x = 0;
+            path_range->minimum = 1e+08f;
+            path_range->maximum = -1e+08f;
             lookup_index = path->lookup_index;
             while (m_pulCondLookup[lookup_index] != 0) {
                 unsigned int key_index = m_pulCondLookup[lookup_index];
                 while (m_pulCondNodeKeys[key_index] != 0) {
                     value = static_cast<unsigned short>(m_pulCondNodeKeys[key_index]);
-                    if (value < path_bounds[0]) {
-                        path_bounds[0] = value;
+                    if (value < path_bounds->min_x) {
+                        path_bounds->min_x = value;
                     }
-                    if (path_bounds[1] < value) {
-                        path_bounds[1] = value;
+                    if (path_bounds->max_x < value) {
+                        path_bounds->max_x = value;
                     }
                     value = static_cast<unsigned short>(m_pulCondNodeKeys[key_index] >> 0x10);
-                    if (value < path_bounds[2]) {
-                        path_bounds[2] = value;
+                    if (value < path_bounds->min_z) {
+                        path_bounds->min_z = value;
                     }
-                    if (path_bounds[3] < value) {
-                        path_bounds[3] = value;
+                    if (path_bounds->max_z < value) {
+                        path_bounds->max_z = value;
                     }
                     height = (m_pulCondNodeValues[key_index] & 0xffff) * span_020 + level_bounds[1];
-                    if (height < path_range[0]) {
-                        path_range[0] = height;
+                    if (height < path_range->minimum) {
+                        path_range->minimum = height;
                     }
-                    if (path_range[2] < height) {
-                        path_range[2] = height;
+                    if (path_range->maximum < height) {
+                        path_range->maximum = height;
                     }
                     ++key_index;
                 }

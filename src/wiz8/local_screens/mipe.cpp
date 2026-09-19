@@ -249,7 +249,7 @@ void ShowMonsterSpeedStatus00577F10(void)
         WriteGameLogAmount(8, L"No monster available.");
         return;
     }
-    path = (W8PathAI*)MonsterGetObject0C(g_mipe_state_0068f100->monster);
+    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state_0068f100->monster));
     if (path != 0 && PathAIRecordFlag004A9740(path) == 0) {
         speed = PathAIGetScale004AAA50(path);
     } else {
@@ -485,7 +485,7 @@ void AdjustMonsterSpeed00579BF0(unsigned short key)
     if (g_mipe_state_0068f100->monster == 0) {
         return;
     }
-    path = (W8PathAI*)MonsterGetObject0C(g_mipe_state_0068f100->monster);
+    path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state_0068f100->monster));
     if (path == 0) {
         factor = 1.0f;
         speed = MonsterGetNavigatorValue120(g_mipe_state_0068f100->monster);
@@ -1039,7 +1039,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         } while (slot < 6);
         return 1;
     case 0x33:
-        g_mipe_state_0068f100->generator->generation_enabled = g_mipe_state_0068f100->generator->generation_enabled == 0;
+        g_mipe_state_0068f100->generator->generation_enabled =
+            g_mipe_state_0068f100->generator->generation_enabled == 0;
         ShowMonsterGeneratorEditor005782D0();
         return 1;
     case 0x34:
@@ -1519,7 +1520,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
         } else {
             marker = generator->marker_item;
         }
-        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
             return 1;
         }
     }
@@ -1530,7 +1531,7 @@ bool AnyMonsterGeneratorMarkerWithinReach(void)
         } else {
             marker = generator->marker_item;
         }
-        if (marker != 0 && IsWorldItemWithinReach(marker, &camera.x, 250000.0f)) {
+        if (marker != 0 && IsWorldItemWithinReach(marker, &camera, 250000.0f)) {
             g_last_reachable_mongen_marker_0064a1e0 = index;
             return 1;
         }

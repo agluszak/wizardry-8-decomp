@@ -66,7 +66,7 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points);
 /* Report whether the six-float bounds box (min xyz, max xyz) intersects the
    region volume's frustum: true when a bounds corner satisfies all six
    planes or a volume corner lands inside the bounds. */
-unsigned char BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const float* bounds);
+bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8BoundingBox* bounds);
 unsigned char HasLineOfSightToBounds0046FD70(const srVector3T<float>* origin,
                                              srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);

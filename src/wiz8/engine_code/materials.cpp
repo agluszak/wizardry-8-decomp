@@ -492,9 +492,9 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                 }
                 ReportBuildStatus00497690(6, "\nBuilding OctBuildPreTree ---------------------\n");
-                build_tree = new OctBuildPreTree(
-                    g_option_min_leaf_size_0060ac80, &minimum, &maximum,
-                    g_option_max_path_nodes_0060ac84, g_option_max_leaf_count_0060ac88, 0);
+                build_tree = new OctBuildPreTree(g_option_min_leaf_size_0060ac80, &minimum,
+                                                 &maximum, g_option_max_path_nodes_0060ac84,
+                                                 g_option_max_leaf_count_0060ac88, 0);
                 if (build_tree != 0) {
                     build_tree->LoadRegionFile004B0C90(stem, &minimum, &maximum);
                     if (g_option_mesh_linking_0060ac73 == 0) {
@@ -626,12 +626,12 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     ReportBuildStatus00497690(6,
                                               "\nInserting props and particles into regions... \n");
                     build_tree->BuildParticleRegions004B3820(level->pParticleSystems,
-                                                           level->nParticleSystems);
+                                                             level->nParticleSystems);
                     build_tree->BuildGeometryRegions004B3F90(level->pProps, level->nProps, 0, 0);
                     build_tree->BuildGeometryRegions004B3F90(level->pBitmaps, level->nBitmaps,
                                                              level->nProps, 1);
-                    (static_cast<W8OctBuildNode00446330*>(build_tree->spatial_00.root_90))
-                        ->RearrangeNodePolys004AF7B0(0, build_tree->spatial_00.depth_44);
+                    build_tree->spatial_00.root_90->RearrangeNodePolys004AF7B0(
+                        0, build_tree->spatial_00.depth_44);
                     for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {
                         vertices[i].flag_0a = 0;
                     }

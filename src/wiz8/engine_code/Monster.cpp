@@ -4569,7 +4569,7 @@ void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
 // FUNCTION: WIZ8 0x004c5b30
-void* MonsterGetObject0C(W8Monster* monster)
+W8AIRecord* MonsterGetObject0C(W8Monster* monster)
 {
     if (monster != 0) {
         return monster->m_pAI;

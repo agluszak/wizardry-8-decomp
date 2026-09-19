@@ -35,13 +35,21 @@ static_assert(sizeof(W8ScreenStateHandlers) == 0x14, "W8ScreenStateHandlers_size
    handler reads out of this record to fill its own descriptor; the four bytes
    before the name and everything past it stay positional, and the name's bound
    is the record's end rather than a proved one. */
+/* 0x10 payload, discriminated by id/mode: a character handoff for the camp and
+   review-character transitions, the save screenshot the Please Wait screen's
+   mode 2 hands to SaveGame. */
+union W8ScreenStateParameter3 {
+    struct W8Character* character;
+    struct W8SaveScreenshot* screenshot;
+    void* raw;
+};
+
 struct W8ScreenStateRuntime {
-    int id;            /* 0x00 */
-    int mode;          /* 0x04 */
-    int parameter;     /* 0x08 */
-    int parameter_2;   /* 0x0c */
-    void* parameter_3; /* 0x10, the save payload the Please Wait
-                                      screen's mode 2 hands to SaveGame */
+    int id;                              /* 0x00 */
+    int mode;                            /* 0x04 */
+    int parameter;                       /* 0x08 */
+    int parameter_2;                     /* 0x0c */
+    W8ScreenStateParameter3 parameter_3; /* 0x10 */
     /* 0x14: identifying PC for camp entry (gpIdentifyingPC); null when
        camp opens without an identify/use-item handoff. Not the entry mode —
        that lives on W8CampScreenState0069C0F4::entry_mode. */

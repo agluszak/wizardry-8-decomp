@@ -24,10 +24,8 @@ struct W8LevelFilePathNode { /* 0x1c */
 };
 
 struct W8LevelFileScaledPathNode { /* 0x28 */
-    srVector3T<float> position_00;
-    float angle_0c;
-    srVector3T<float> axis_10;
-    srVector3T<float> scale_1c;
+    W8LevelFilePathNode path;
+    srVector3T<float> scale;
 };
 
 struct W8LevelFilePathAI {
@@ -38,6 +36,11 @@ struct W8LevelFilePathAI {
     int path_count_0a;
     W8LevelFileScaledPathNode* pScaledPaths; /* 0x0e: path_count_0a records */
     W8LevelFilePathNode* pPaths;             /* 0x12: path_count_0a records */
+};
+
+struct W8LevelFileFramePosition {
+    unsigned short frame;
+    unsigned short unknown_02;
 };
 
 struct W8LevelFileCompressedFace { /* 0x21 */
@@ -70,6 +73,24 @@ struct W8LevelFileMesh {
     float lod_scale_58;                      /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
+/* flags_00 bit 0x10 marks the light as owning a path-AI block. */
+struct W8LevelFileLightExtra { /* 0x3c */
+    unsigned char flags_00;
+    unsigned char unknown_01[0x3b];
+};
+
+struct W8LevelFileAnimLightExtra { /* 0x3c */
+    unsigned char unknown_00[0x3c];
+};
+
+struct W8LevelFileMonsterPathEntry { /* 0x1c */
+    unsigned char unknown_00[0x1c];
+};
+
+struct W8LevelFileItemRecord { /* 0x44 */
+    unsigned char unknown_00[0x44];
+};
+
 struct W8LevelFileLight {
     short version_00;
     int flags_02; /* bit 0x200 -> pExtra_3c */
@@ -78,9 +99,9 @@ struct W8LevelFileLight {
     srVector3T<float> colour_14;
     float intensity_20;
     float range_24;
-    char name_28[0x14];            /* version_00 > 1; sun/moon/lightning classify it */
-    void* pExtra_3c;               /* 0x3c record, flags_02 & 0x200 */
-    W8LevelFilePathAI* pPathAI_40; /* *pExtra_3c & 0x10 */
+    char name_28[0x14];               /* version_00 > 1; sun/moon/lightning classify it */
+    W8LevelFileLightExtra* pExtra_3c; /* flags_02 & 0x200 */
+    W8LevelFilePathAI* pPathAI_40;    /* pExtra_3c->flags_00 & 0x10 */
 };
 
 struct W8LevelFileAnimLight {
@@ -89,13 +110,21 @@ struct W8LevelFileAnimLight {
     unsigned char unknown_0d[0xc];
     unsigned char unknown_19[4];
     unsigned char unknown_1d[4];
-    void* pExtra_21; /* 0x3c record, version_00 > 1 */
+    W8LevelFileAnimLightExtra* pExtra_21; /* version_00 > 1 */
 };
 
 struct W8LevelFileMonster {
     unsigned char unknown_00[0x1e];
     int num_mon_path_1e;
-    void* MonPath_22; /* num_mon_path_1e * 0x1c */
+    W8LevelFileMonsterPathEntry* MonPath_22; /* num_mon_path_1e records */
+};
+
+struct W8LevelFileType1Record { /* 0x1c: door_kind_84f == 1 payload */
+    unsigned char unknown_00[0x1c];
+};
+
+struct W8LevelFileRecord859 { /* 0x85: field_858 != 0 payload */
+    unsigned char unknown_00[0x85];
 };
 
 struct W8LevelFileCamera {
@@ -238,22 +267,31 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     int field_6c7;
     char event_6cb[0x100];
     int field_7cb;
-    char particle_system_7cf[0x80]; /* version_00 > 2 */
-    unsigned char door_kind_84f;    /* !(flags_81 & 1) */
-    void* pType1_850;               /* door_kind_84f == 1: 0x1c record */
-    W8LevelFilePlane* pPlane_854;   /* door_kind_84f == 2: 0x30 record */
-    unsigned char field_858;        /* !(flags_81 & 1) */
-    void* pRecord_859;              /* field_858 != 0: 0x85 record */
+    char particle_system_7cf[0x80];     /* version_00 > 2 */
+    unsigned char door_kind_84f;        /* !(flags_81 & 1) */
+    W8LevelFileType1Record* pType1_850; /* door_kind_84f == 1 */
+    W8LevelFilePlane* pPlane_854;       /* door_kind_84f == 2: 0x30 record */
+    unsigned char field_858;            /* !(flags_81 & 1) */
+    W8LevelFileRecord859* pRecord_859;  /* field_858 != 0 */
     unsigned char field_85d;
     unsigned char kind_85e;               /* field_85d != 0 */
     W8LevelFileDoor* pDoor_85f;           /* kind_85e == 1 */
     W8LevelFileLinkedRecord* pRecord_863; /* kind_85e == 2 */
 };
 
+/* Serialized trigger payload; type_01 discriminates the record. */
+union W8LevelFileTriggerData {
+    W8LevelFileSwitch* switch_trigger;
+    W8LevelFileInvisible* invisible;
+    W8LevelFileSound* sound;
+    W8LevelFileSuperTrigger* super;
+    void* raw;
+};
+
 struct W8LevelFileTrigger {
     unsigned char version_00;
     unsigned char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
-    void* pData_02;
+    W8LevelFileTriggerData data_02;
 };
 
 /* One LOD/morph frame: a flag byte, an embedded mesh record, and a texture
@@ -327,10 +365,10 @@ struct W8LevelFileProp { /* 0xbf */
     char has_trigger_b2;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
     char num_frame_pos_b7;        /* version_00 > 7 */
-    unsigned short* usFrame_Pos;  /* 0xb8: serialized as num_frame_pos_b7 * 4
-                                     bytes; CreatePathProps reads frames as
-                                     usFrame_Pos[j*2] */
-    char flag_bc;                 /* version_00 > 8 */
+    /* 0xb8: num_frame_pos_b7 records; CreatePathProps consumes the frame
+       index, the trailing short's meaning is unrecovered. */
+    W8LevelFileFramePosition* usFrame_Pos;
+    char flag_bc; /* version_00 > 8 */
     unsigned char unknown_bd;
     unsigned char unknown_be;
 };
@@ -430,7 +468,7 @@ struct W8LevelFile {
     int nMonsters;                       /* 0x1c */
     W8LevelFileMonster* pMonsters;       /* 0x20: nMonsters * 0x26 */
     int nItems;                          /* 0x24 */
-    void* pItems;                        /* 0x28: nItems * 0x44 */
+    W8LevelFileItemRecord* pItems;       /* 0x28: nItems records */
     unsigned char unknown_2c[4];         /* 0x2c */
     int nProps;                          /* 0x30 */
     W8LevelFileProp* pProps;             /* 0x34: nProps * 0xbf */
@@ -484,6 +522,14 @@ static_assert(sizeof(W8LevelFilePlane) == 0x30, "W8LevelFilePlane_must_be_0x30")
 static_assert(sizeof(W8LevelFileInvisible) == 0x241, "W8LevelFileInvisible_must_be_0x241");
 static_assert(sizeof(W8LevelFileSound) == 0x170, "W8LevelFileSound_must_be_0x170");
 static_assert(sizeof(W8LevelFileSuperTrigger) == 0x867, "W8LevelFileSuperTrigger_must_be_0x867");
+static_assert(sizeof(W8LevelFileLightExtra) == 0x3c, "W8LevelFileLightExtra_must_be_0x3c");
+static_assert(sizeof(W8LevelFileAnimLightExtra) == 0x3c, "W8LevelFileAnimLightExtra_must_be_0x3c");
+static_assert(sizeof(W8LevelFileMonsterPathEntry) == 0x1c,
+              "W8LevelFileMonsterPathEntry_must_be_0x1c");
+static_assert(sizeof(W8LevelFileItemRecord) == 0x44, "W8LevelFileItemRecord_must_be_0x44");
+static_assert(sizeof(W8LevelFileFramePosition) == 4, "W8LevelFileFramePosition_must_be_4");
+static_assert(sizeof(W8LevelFileType1Record) == 0x1c, "W8LevelFileType1Record_must_be_0x1c");
+static_assert(sizeof(W8LevelFileRecord859) == 0x85, "W8LevelFileRecord859_must_be_0x85");
 static_assert(sizeof(W8LevelFileTrigger) == 6, "W8LevelFileTrigger_must_be_6");
 static_assert(sizeof(W8LevelFileFrame) == 0x63, "W8LevelFileFrame_must_be_0x63");
 static_assert(sizeof(W8LevelFileMorph) == 6, "W8LevelFileMorph_must_be_6");

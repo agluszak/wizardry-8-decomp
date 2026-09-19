@@ -105,13 +105,16 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
                 return 0;
             }
             if (pMonster->num_mon_path_1e != 0) {
-                pMonster->MonPath_22 = malloc(pMonster->num_mon_path_1e * 0x1c);
+                pMonster->MonPath_22 = static_cast<W8LevelFileMonsterPathEntry*>(
+                    malloc(pMonster->num_mon_path_1e * sizeof(W8LevelFileMonsterPathEntry)));
                 if (pMonster->MonPath_22 == 0) {
                     srAssertFail("pLevel->pMonsters[i1].MonPath", LEVELFILE_CPP, 0x69, 0);
                 }
-                memset(pMonster->MonPath_22, 0, pMonster->num_mon_path_1e * 0x1c);
+                memset(pMonster->MonPath_22, 0,
+                       pMonster->num_mon_path_1e * sizeof(W8LevelFileMonsterPathEntry));
                 fSuccess &=
-                    FileRead(hFile, pMonster->MonPath_22, pMonster->num_mon_path_1e * 0x1c, 0);
+                    FileRead(hFile, pMonster->MonPath_22,
+                             pMonster->num_mon_path_1e * sizeof(W8LevelFileMonsterPathEntry), 0);
                 if (fSuccess == 0) {
                     return 0;
                 }
@@ -121,12 +124,14 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
 
     FileRead(hFile, &pLevel->nItems, sizeof(pLevel->nItems), 0);
     if (pLevel->nItems != 0) {
-        pLevel->pItems = malloc(pLevel->nItems * 0x44);
+        pLevel->pItems = static_cast<W8LevelFileItemRecord*>(
+            malloc(pLevel->nItems * sizeof(W8LevelFileItemRecord)));
         if (pLevel->pItems == 0) {
             srAssertFail("pLevel->pItems", LEVELFILE_CPP, 0x79, 0);
         }
-        memset(pLevel->pItems, 0, pLevel->nItems * 0x44);
-        if (FileRead(hFile, pLevel->pItems, pLevel->nItems * 0x44, 0) == 0) {
+        memset(pLevel->pItems, 0, pLevel->nItems * sizeof(W8LevelFileItemRecord));
+        if (FileRead(hFile, pLevel->pItems, pLevel->nItems * sizeof(W8LevelFileItemRecord), 0) ==
+            0) {
             return 0;
         }
     }
@@ -347,7 +352,8 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
             }
             if (pMonster->num_mon_path_1e != 0) {
                 fSuccess &=
-                    FileWrite(hFile, pMonster->MonPath_22, pMonster->num_mon_path_1e * 0x1c, 0);
+                    FileWrite(hFile, pMonster->MonPath_22,
+                              pMonster->num_mon_path_1e * sizeof(W8LevelFileMonsterPathEntry), 0);
                 if (fSuccess == 0) {
                     return 0;
                 }
@@ -359,7 +365,8 @@ bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
     FileWrite(hFile, &iCount, 4, 0);
     FileWrite(hFile, &pLevel->nItems, 4, 0);
     if (pLevel->nItems != 0) {
-        if (FileWrite(hFile, pLevel->pItems, pLevel->nItems * 0x44, 0) == 0) {
+        if (FileWrite(hFile, pLevel->pItems, pLevel->nItems * sizeof(W8LevelFileItemRecord), 0) ==
+            0) {
             return 0;
         }
         free(pLevel->pItems);
@@ -707,15 +714,16 @@ bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
         fSuccess = FileRead(hFile, pLight->name_28, 0x14, 0) != 0;
         if ((pLight->flags_02 & 0x200) != 0) {
             *(unsigned char*)&pLight->flags_02 = 1;
-            pLight->pExtra_3c = malloc(0x3c);
+            pLight->pExtra_3c =
+                static_cast<W8LevelFileLightExtra*>(malloc(sizeof(W8LevelFileLightExtra)));
             if (pLight->pExtra_3c == 0) {
                 return 0;
             }
-            fSuccess &= FileRead(hFile, pLight->pExtra_3c, 0x3c, 0);
+            fSuccess &= FileRead(hFile, pLight->pExtra_3c, sizeof(W8LevelFileLightExtra), 0);
             if (fSuccess == 0) {
                 return 0;
             }
-            if ((*static_cast<unsigned char*>(pLight->pExtra_3c) & 0x10) != 0) {
+            if ((pLight->pExtra_3c->flags_00 & 0x10) != 0) {
                 pLight->pPathAI_40 =
                     static_cast<W8LevelFilePathAI*>(malloc(sizeof(W8LevelFilePathAI)));
                 if (pLight->pPathAI_40 == 0) {
@@ -748,12 +756,11 @@ bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
     if (pLight->version_00 > 1) {
         fSuccess = FileWrite(hFile, pLight->name_28, 0x14, 0) != 0;
         if (((pLight->flags_02 & 0x200) != 0) && (pLight->pExtra_3c != 0)) {
-            fSuccess &= FileWrite(hFile, pLight->pExtra_3c, 0x3c, 0);
+            fSuccess &= FileWrite(hFile, pLight->pExtra_3c, sizeof(W8LevelFileLightExtra), 0);
             if (fSuccess == 0) {
                 return 0;
             }
-            if (((*static_cast<unsigned char*>(pLight->pExtra_3c) & 0x10) != 0) &&
-                (pLight->pPathAI_40 != 0)) {
+            if (((pLight->pExtra_3c->flags_00 & 0x10) != 0) && (pLight->pPathAI_40 != 0)) {
                 fSuccess = WritePathAIFile004D38E0(hFile, pLight->pPathAI_40);
                 free(pLight->pPathAI_40);
             }
@@ -779,11 +786,12 @@ bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
         return 0;
     }
     if (pLight->version_00 > 1) {
-        pLight->pExtra_21 = malloc(0x3c);
+        pLight->pExtra_21 =
+            static_cast<W8LevelFileAnimLightExtra*>(malloc(sizeof(W8LevelFileAnimLightExtra)));
         if (pLight->pExtra_21 == 0) {
             return 0;
         }
-        fSuccess &= FileRead(hFile, pLight->pExtra_21, 0x3c, 0);
+        fSuccess &= FileRead(hFile, pLight->pExtra_21, sizeof(W8LevelFileAnimLightExtra), 0);
     }
     if (fSuccess == 0) {
         srAssertFail("fSuccess", LEVELFILE_CPP, 0x3b2, "Couldn't read anim light.\n");
@@ -804,7 +812,7 @@ bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
         return 0;
     }
     if ((pLight->version_00 > 1) && (pLight->pExtra_21 != 0)) {
-        fSuccess &= FileWrite(hFile, pLight->pExtra_21, 0x3c, 0);
+        fSuccess &= FileWrite(hFile, pLight->pExtra_21, sizeof(W8LevelFileAnimLightExtra), 0);
         free(pLight->pExtra_21);
     }
     if (fSuccess == 0) {
@@ -876,7 +884,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 3) {
             ok &= FileRead(hFile, pSwitch->unknown_26d, 4, 0);
         }
-        pTrigger->pData_02 = pSwitch;
+        pTrigger->data_02.switch_trigger = pSwitch;
         g_level_file_6833fc->switch_triggers_6c5[g_level_file_6833fc->num_switch_triggers_6c1] =
             pSwitch;
         ++g_level_file_6833fc->num_switch_triggers_6c1;
@@ -923,7 +931,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSound->version_00 > 4) {
             ok &= FileRead(hFile, &pSound->field_16f, 1, 0);
         }
-        pTrigger->pData_02 = pSound;
+        pTrigger->data_02.sound = pSound;
         return ok;
     }
     case 4:
@@ -995,7 +1003,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 if ((ok & okRecord) != 0) {
                     pInvis->pRecord_23d->value_1b3 = pInvis->field_01;
                     pInvis->pRecord_23d->value_1b7 = 1.0f;
-                    pTrigger->pData_02 = pInvis;
+                    pTrigger->data_02.invisible = pInvis;
                     return ok & okRecord;
                 }
                 return 0;
@@ -1005,7 +1013,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
     g_level_file_6833fc->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
         pInvis->pPlane_19c;
     ++g_level_file_6833fc->num_invisible_planes_1665;
-    pTrigger->pData_02 = pInvis;
+    pTrigger->data_02.invisible = pInvis;
     return ok;
 }
 
@@ -1024,7 +1032,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess = (ok != 0) & fSuccess;
     switch (pTrigger->type_01) {
     case 1: {
-        W8LevelFileSwitch* pSwitch = static_cast<W8LevelFileSwitch*>(pTrigger->pData_02);
+        W8LevelFileSwitch* pSwitch = pTrigger->data_02.switch_trigger;
         if (pSwitch == 0) {
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x4be, 0);
         }
@@ -1065,7 +1073,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         return ok;
     }
     case 2: {
-        W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(pTrigger->pData_02);
+        W8LevelFileInvisible* pInvis = pTrigger->data_02.invisible;
         if (pInvis == 0) {
             srAssertFail("pInvis", LEVELFILE_CPP, 0x4ea, 0);
         }
@@ -1118,7 +1126,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         return ok;
     }
     case 3: {
-        W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(pTrigger->pData_02);
+        W8LevelFileSound* pSound = pTrigger->data_02.sound;
         if (pSound == 0) {
             srAssertFail("pSound", LEVELFILE_CPP, 0x51e, 0);
         }
@@ -1266,9 +1274,10 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     }
     fSuccess &= FileRead(hFile, &pSuper->door_kind_84f, 1, 0);
     if (pSuper->door_kind_84f == 1) {
-        pSuper->pType1_850 = malloc(0x1c);
+        pSuper->pType1_850 =
+            static_cast<W8LevelFileType1Record*>(malloc(sizeof(W8LevelFileType1Record)));
         if (pSuper->pType1_850 != 0) {
-            fSuccess &= FileRead(hFile, pSuper->pType1_850, 0x1c, 0);
+            fSuccess &= FileRead(hFile, pSuper->pType1_850, sizeof(W8LevelFileType1Record), 0);
         }
     } else if (pSuper->door_kind_84f == 2) {
         pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(0x30));
@@ -1285,8 +1294,9 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     }
     fSuccess &= FileRead(hFile, &pSuper->field_858, 1, 0);
     if (pSuper->field_858 != 0) {
-        pSuper->pRecord_859 = malloc(0x85);
-        fSuccess &= FileRead(hFile, pSuper->pRecord_859, 0x85, 0);
+        pSuper->pRecord_859 =
+            static_cast<W8LevelFileRecord859*>(malloc(sizeof(W8LevelFileRecord859)));
+        fSuccess &= FileRead(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
         if (fSuccess == 0) {
             return 0;
         }
@@ -1319,14 +1329,14 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= ok;
         }
     }
-    pTrigger->pData_02 = pSuper;
+    pTrigger->data_02.super = pSuper;
     return fSuccess;
 }
 
 // FUNCTION: WIZ8 0x004D3000
 bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
+    W8LevelFileSuperTrigger* pSuper = pTrigger->data_02.super;
     if (pSuper == 0) {
         srAssertFail("pData", LEVELFILE_CPP, 0x59b, 0);
     }
@@ -1377,12 +1387,12 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
     if ((pSuper->flags_81 & 1) != 0) {
         fSuccess &= 1;
         free(pSuper);
-        pTrigger->pData_02 = 0;
+        pTrigger->data_02.raw = 0;
         return fSuccess;
     }
     fSuccess = FileWrite(hFile, &pSuper->door_kind_84f, 1, 0);
     if (pSuper->door_kind_84f == 1) {
-        fSuccess &= FileWrite(hFile, pSuper->pType1_850, 0x1c, 0);
+        fSuccess &= FileWrite(hFile, pSuper->pType1_850, sizeof(W8LevelFileType1Record), 0);
         free(pSuper->pType1_850);
     } else if (pSuper->door_kind_84f == 2) {
         fSuccess &= FileWrite(hFile, pSuper->pPlane_854, 0x30, 0);
@@ -1393,7 +1403,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
     }
     fSuccess &= FileWrite(hFile, &pSuper->field_858, 1, 0);
     if (pSuper->field_858 != 0) {
-        fSuccess &= FileWrite(hFile, pSuper->pRecord_859, 0x85, 0);
+        fSuccess &= FileWrite(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
         free(pSuper->pRecord_859);
         if (fSuccess == 0) {
             return 0;
@@ -1420,7 +1430,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
         }
     }
     free(pSuper);
-    pTrigger->pData_02 = 0;
+    pTrigger->data_02.raw = 0;
     return fSuccess;
 }
 
@@ -1992,8 +2002,8 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
         if (pProp->version_00 > 7) {
             fSuccess &= FileRead(hFile, &pProp->num_frame_pos_b7, 1, 0);
             if (pProp->num_frame_pos_b7 != 0) {
-                pProp->usFrame_Pos =
-                    static_cast<unsigned short*>(malloc(pProp->num_frame_pos_b7 << 2));
+                pProp->usFrame_Pos = static_cast<W8LevelFileFramePosition*>(
+                    malloc(pProp->num_frame_pos_b7 * sizeof(W8LevelFileFramePosition)));
                 if (pProp->usFrame_Pos == 0) {
                     srAssertFail(
                         "pProps[i1].usFrame_Pos", LEVELFILE_CPP, 0x91f,

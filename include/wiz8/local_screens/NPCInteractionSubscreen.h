@@ -15,11 +15,13 @@ class W8NpcDialogueTextController;
 class W8TextControl;
 class W8Widget;
 struct W8ControlsRect;
+struct W8ExperienceNoticePayload;
 struct W8NpcDialogRequest;
 struct W8NpcQuoteEntry;
 struct W8NpcScriptQuote;
 struct W8NpcState;
 struct W8Region;
+struct W8SkillNoticePayload;
 
 /* The 0x50-byte panel stored at W8MainScreenState+0x1a8 (bounds
    0x17,0x166-0xa4,0x1c2); it hosts the six option buttons at +0x170..+0x184.
@@ -248,7 +250,16 @@ struct W8MainScreenState {
     float saved_camera_yaw_244;
     unsigned char quote_notice_kind;
     unsigned char unknown_249[3];
-    void* quote_notice_payload;
+    /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes a
+       W8ExperienceNoticePayload*, 2 a W8SkillNoticePayload*, 3 an int party
+       slot pointer; producers arrive through a void* SetNpcQuoteBubbleVisible
+       parameter. */
+    union {
+        W8ExperienceNoticePayload* experience;
+        W8SkillNoticePayload* skills;
+        int* level_up_slot;
+        void* raw;
+    } quote_notice_payload;
     unsigned char flag_250;
     unsigned char flag_251;
     unsigned char flag_252;
@@ -412,7 +423,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event);
 void SetDialogueFieldKeyword(wchar_t* keyword, unsigned char append);
 void ActivateNpcDialoguePanels0056ECF0(unsigned char active); /* 0x0056ECF0 */
-bool HasNpcDialogueDirtyPanels0056ED80(void);        /* 0x0056ED80 */
+bool HasNpcDialogueDirtyPanels0056ED80(void);                 /* 0x0056ED80 */
 unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
                                             W8Region* region);        /* 0x0056F1D0 */
 void NpcDialogueTextBoxWheelAt(short x, unsigned short y, char flag); /* 0x0056F490 */

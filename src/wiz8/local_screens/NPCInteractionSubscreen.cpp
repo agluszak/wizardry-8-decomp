@@ -4848,7 +4848,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             g_screen_state_00649f1c->pending_notice_lines.Add(line);
         }
         g_screen_state_00649f1c->quote_notice_kind = notice_kind;
-        g_screen_state_00649f1c->quote_notice_payload = payload;
+        g_screen_state_00649f1c->quote_notice_payload.raw = payload;
         if (g_screen_state_00649f1c->quote_notice_kind == 3) {
             SoundPlay(reinterpret_cast<STR>(const_cast<char*>( // reinterpret-ok: SGP text ABI
                           "Data\\Sound\\Misc\\GainLevel.wav")),
@@ -4862,15 +4862,14 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
     switch (g_screen_state_00649f1c->quote_notice_kind) {
     case 1: {
         W8ExperienceNoticePayload* experience =
-            static_cast<W8ExperienceNoticePayload*>(g_screen_state_00649f1c->quote_notice_payload);
+            g_screen_state_00649f1c->quote_notice_payload.experience;
         FormatNotice(0xc, 0, gppStringList[experience->alternate_message ? 0x231 : 0x232],
                      experience->amount);
         delete experience;
         break;
     }
     case 2: {
-        W8SkillNoticePayload* skills =
-            static_cast<W8SkillNoticePayload*>(g_screen_state_00649f1c->quote_notice_payload);
+        W8SkillNoticePayload* skills = g_screen_state_00649f1c->quote_notice_payload.skills;
         for (int index = 0; index < skills->count; ++index) {
             int slot = skills->party_slots[index];
             int skill = skills->skills[index];
@@ -4886,7 +4885,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         break;
     }
     case 3: {
-        int* slot = static_cast<int*>(g_screen_state_00649f1c->quote_notice_payload);
+        int* slot = g_screen_state_00649f1c->quote_notice_payload.level_up_slot;
         PostCharacterNotice(*slot, gppStringList[0x773]);
         delete slot;
         break;

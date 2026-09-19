@@ -883,7 +883,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_CLOSE_RESUME_NPC;
                     line->text = 0;
-                    line->extra = 0;
+                    line->extra.raw = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                     goto entries_done;
@@ -926,7 +926,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_PARTY_SPEAKER_EVENT;
                     line->argument = event_type;
-                    line->extra = 0;
+                    line->extra.raw = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                 } break;
@@ -1503,7 +1503,7 @@ void ProcessMessageBoxQueue(void)
         RemoveAletheides();
         break;
     case W8_NPC_MSG_SKILL_NOTICES: {
-        W8SkillNoticePayload* skill_changes = static_cast<W8SkillNoticePayload*>(line->extra);
+        W8SkillNoticePayload* skill_changes = line->extra.skill_notices;
         if (g_settings_6850c8.skill_increase_messages == 0) {
             for (index = 0; index < skill_changes->count; ++index) {
                 int party_slot = skill_changes->party_slots[index];
@@ -1519,7 +1519,7 @@ void ProcessMessageBoxQueue(void)
             delete skill_changes;
         } else {
             g_npc_scripting.portrait_message_active = 1;
-            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 2, line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 2, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->text);
             g_npc_scripting.message_started_at = GetTickCount();
         }
@@ -1556,7 +1556,7 @@ void ProcessMessageBoxQueue(void)
     }
     case W8_NPC_MSG_PORTRAIT_EXTRA:
         g_npc_scripting.portrait_message_active = 1;
-        SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 1, line->extra, -1);
+        SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 1, line->extra.raw, -1);
         g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->text);
         g_npc_scripting.message_started_at = GetTickCount();
         delete[] line->text;
@@ -1569,7 +1569,7 @@ void ProcessMessageBoxQueue(void)
         delete[] line->text;
         break;
     case W8_NPC_MSG_LEVEL_UP: {
-        int party_slot = *static_cast<int*>(line->extra);
+        int party_slot = *line->extra.level_up_slot;
         g_status_685170.buffers.party_rows[party_slot].flag_103 = 1;
         if (g_settings_6850c8.skill_increase_messages == 0) {
             SoundPlay((STR) "Data\\Sound\\Misc\\GainLevel.wav",
@@ -1577,7 +1577,7 @@ void ProcessMessageBoxQueue(void)
             delete[] line->text;
         } else {
             g_npc_scripting.portrait_message_active = 1;
-            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 3, line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->text, 0, -1, -1, 3, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->text);
             g_npc_scripting.message_started_at = GetTickCount();
             delete[] line->text;
@@ -2098,7 +2098,7 @@ void QueueNpcMessageLine(W8NpcMessageKind kind, int argument)
     line->quote_index = -1;
     line->type = kind;
     line->argument = argument;
-    line->extra = 0;
+    line->extra.raw = 0;
     line->npc = g_npc_scripting.npc;
 
     g_npc_scripting.message_lines.Add(line);
@@ -2113,7 +2113,7 @@ void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra)
     line->quote_index = -1;
     line->type = kind;
     line->text = text;
-    line->extra = extra;
+    line->extra.raw = extra;
     line->npc = g_npc_scripting.npc;
 
     if (g_npc_scripting.message_lines.Add(line) < 0) {

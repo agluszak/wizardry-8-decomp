@@ -1320,9 +1320,11 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
         if (pre_pathing_2a0 == 0) {
             ReportBuildStatus00497690(7, "Could not create PrePathing object\n");
         }
-        pre_pathing_2a0->ConfigureForLevel(path_node_count_2a4, m_region_cell_178,
-                                           static_cast<int>(m_path_clearance_17c),
-                                           &spatial_000.minimum_0c.x, m_owned_0c0);
+        pre_pathing_2a0->ConfigureForLevel(
+            path_node_count_2a4, m_region_cell_178, static_cast<int>(m_path_clearance_17c),
+            reinterpret_cast< // reinterpret-ok: minimum_0c/maximum_18 are the adjacent bounds pair
+                const W8BoundingBox*>(&spatial_000.minimum_0c),
+            m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data_00652db0 are all
@@ -1632,7 +1634,7 @@ int OctPreTree::CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops
                                  "CreatePathProps: Couldn't allocate GDPreProp objects.");
                 }
                 for (unsigned short j = 0; j < record->num_stop_meshes_40; ++j) {
-                    unsigned short frame = prop->usFrame_Pos[j * 2];
+                    unsigned short frame = prop->usFrame_Pos[j].frame;
                     if (static_cast<unsigned short>(prop->bNumFrames) <= frame) {
                         srAssertFail(
                             "(pLVL->pProps[i].usFrame_Pos[j*2] < "
@@ -1677,35 +1679,36 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
     if (count > 0) {
         W8LevelFileTransform* t = anim->pTransforms_5b;
         for (int i = count; i != 0; --i, ++t) {
-            float a[10], b[10];
+            W8LevelFileScaledPathNode a, b;
             if (t->pathAI_06.scaled_01 == 2) {
-                const W8LevelFileScaledPathNode* src = t->pathAI_06.pScaledPaths + first;
-                memcpy(a, src, sizeof(a));
-                src = t->pathAI_06.pScaledPaths + last;
-                memcpy(b, src, sizeof(b));
-                if (g_camera_snap_epsilon_005ebc2c < fabsf(a[7] - b[7]) ||
-                    g_camera_snap_epsilon_005ebc2c < fabsf(a[8] - b[8]) ||
-                    g_camera_snap_epsilon_005ebc2c < fabsf(a[9] - b[9])) {
+                a = t->pathAI_06.pScaledPaths[first];
+                b = t->pathAI_06.pScaledPaths[last];
+                if (g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.x - b.scale.x) ||
+                    g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.y - b.scale.y) ||
+                    g_camera_snap_epsilon_005ebc2c < fabsf(a.scale.z - b.scale.z)) {
                     differ = 1;
                 }
             } else {
-                const W8LevelFilePathNode* src = t->pathAI_06.pPaths + first;
-                memcpy(a, src, 7 * sizeof(float));
-                src = t->pathAI_06.pPaths + last;
-                memcpy(b, src, 7 * sizeof(float));
+                a.path = t->pathAI_06.pPaths[first];
+                b.path = t->pathAI_06.pPaths[last];
             }
-            if (g_float_005ebc7c < fabsf(a[0] - b[0]) || g_float_005ebc7c < fabsf(a[1] - b[1]) ||
-                g_float_005ebc7c < fabsf(a[2] - b[2])) {
+            if (g_float_005ebc7c < fabsf(a.path.position_00.x - b.path.position_00.x) ||
+                g_float_005ebc7c < fabsf(a.path.position_00.y - b.path.position_00.y) ||
+                g_float_005ebc7c < fabsf(a.path.position_00.z - b.path.position_00.z)) {
                 differ = 1;
             }
-            if (g_camera_snap_epsilon_005ebc2c < fabsf(a[3] - b[3]) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a[4] - b[4]) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a[5] - b[5]) ||
-                g_camera_snap_epsilon_005ebc2c < fabsf(a[6] - b[6])) {
-                if (!(fabsf((b[3] + a[3]) - g_camera_half_pi_005ec3fc) <= g_float_005ebc3c &&
-                      fabsf(b[4] + a[4]) <= g_camera_snap_epsilon_005ebc2c &&
-                      fabsf(b[5] + a[5]) <= g_camera_snap_epsilon_005ebc2c &&
-                      fabsf(b[6] + a[6]) <= g_camera_snap_epsilon_005ebc2c)) {
+            if (g_camera_snap_epsilon_005ebc2c < fabsf(a.path.angle_0c - b.path.angle_0c) ||
+                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.x - b.path.axis_10.x) ||
+                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.y - b.path.axis_10.y) ||
+                g_camera_snap_epsilon_005ebc2c < fabsf(a.path.axis_10.z - b.path.axis_10.z)) {
+                if (!(fabsf((b.path.angle_0c + a.path.angle_0c) - g_camera_half_pi_005ec3fc) <=
+                          g_float_005ebc3c &&
+                      fabsf(b.path.axis_10.x + a.path.axis_10.x) <=
+                          g_camera_snap_epsilon_005ebc2c &&
+                      fabsf(b.path.axis_10.y + a.path.axis_10.y) <=
+                          g_camera_snap_epsilon_005ebc2c &&
+                      fabsf(b.path.axis_10.z + a.path.axis_10.z) <=
+                          g_camera_snap_epsilon_005ebc2c)) {
                     differ = 1;
                 }
             }
