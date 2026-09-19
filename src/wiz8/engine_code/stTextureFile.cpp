@@ -17,7 +17,7 @@ unsigned char* g_tga_file_data_0065a138;
 unsigned int g_tga_file_data_capacity_0065a13c;
 
 // FUNCTION: WIZ8 0x0047BC80
-void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsigned char* header)
+void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const W8TgaHeader* header)
 {
     srPixelConvert::PixelFormat format;
     unsigned char* file_data;
@@ -32,8 +32,8 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
 
     surface->getPixelFormat(format);
     bytes_per_pixel = format.bytes_per_pixel_minus_one + 1;
-    width = header[12] | (static_cast<unsigned int>(header[13]) << 8);
-    height = header[14] | (static_cast<unsigned int>(header[15]) << 8);
+    width = header->width;
+    height = header->height;
     row_size = width * bytes_per_pixel;
     file_size = FileGetSize(handle);
     file_position = FileGetPos(handle);
@@ -56,7 +56,7 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
         return;
     }
 
-    if (header[2] == 9 || header[2] == 10 || header[2] == 11) {
+    if (header->image_type == 9 || header->image_type == 10 || header->image_type == 11) {
         unsigned int source_offset = 0;
         unsigned int pixel_offset = 0;
         unsigned int pixel_count = width * height;
@@ -71,10 +71,10 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
                 for (unsigned int index = 0; index < copy_count; ++index) {
                     unsigned int x = pixel_offset % width;
                     unsigned int y = pixel_offset / width;
-                    if ((header[17] & 0x20) == 0) {
+                    if ((header->image_descriptor & 0x20) == 0) {
                         y = height - 1 - y;
                     }
-                    if ((header[17] & 0x10) != 0) {
+                    if ((header->image_descriptor & 0x10) != 0) {
                         x = width - 1 - x;
                     }
                     memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel, pixel,
@@ -90,10 +90,10 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
                 for (unsigned int index = 0; index < copy_count; ++index) {
                     unsigned int x = pixel_offset % width;
                     unsigned int y = pixel_offset / width;
-                    if ((header[17] & 0x20) == 0) {
+                    if ((header->image_descriptor & 0x20) == 0) {
                         y = height - 1 - y;
                     }
-                    if ((header[17] & 0x10) != 0) {
+                    if ((header->image_descriptor & 0x10) != 0) {
                         x = width - 1 - x;
                     }
                     memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel,
@@ -108,10 +108,10 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
 
     for (unsigned int row = 0; row < height; ++row) {
         unsigned int destination_row = row;
-        if ((header[17] & 0x20) == 0) {
+        if ((header->image_descriptor & 0x20) == 0) {
             destination_row = height - 1 - row;
         }
-        if ((header[17] & 0x10) == 0) {
+        if ((header->image_descriptor & 0x10) == 0) {
             memcpy(destination + destination_row * surface->getPitch(), file_data + row * row_size,
                    row_size);
         } else {
@@ -127,45 +127,35 @@ void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const unsign
 // FUNCTION: WIZ8 0x0047C090
 srColorSurface* LoadSurface0047C090(int handle)
 {
-    unsigned char header[18];
-    unsigned short color_map_length;
-    unsigned char color_map_entry_size;
+    W8TgaHeader header;
     unsigned short width;
     unsigned short height;
-    unsigned char pixel_depth;
-    unsigned char image_descriptor;
     srARGB palette_colors[1024];
     unsigned int palette_count;
     srPalette* palette;
     srColorSurface* surface;
 
-    FileRead(handle, &header[0], 1, 0);
-    FileRead(handle, &header[1], 1, 0);
-    FileRead(handle, &header[2], 1, 0);
-    FileRead(handle, &header[3], 2, 0);
-    FileRead(handle, &color_map_length, 2, 0);
-    FileRead(handle, &color_map_entry_size, 1, 0);
-    FileRead(handle, &header[8], 2, 0);
-    FileRead(handle, &header[10], 2, 0);
+    FileRead(handle, &header.id_length, 1, 0);
+    FileRead(handle, &header.color_map_type, 1, 0);
+    FileRead(handle, &header.image_type, 1, 0);
+    FileRead(handle, &header.color_map_origin, 2, 0);
+    FileRead(handle, &header.color_map_length, 2, 0);
+    FileRead(handle, &header.color_map_entry_size, 1, 0);
+    FileRead(handle, &header.x_origin, 2, 0);
+    FileRead(handle, &header.y_origin, 2, 0);
     FileRead(handle, &width, 2, 0);
     FileRead(handle, &height, 2, 0);
-    FileRead(handle, &pixel_depth, 1, 0);
-    FileRead(handle, &image_descriptor, 1, 0);
-    header[5] = static_cast<unsigned char>(color_map_length);
-    header[6] = static_cast<unsigned char>(color_map_length >> 8);
-    header[7] = color_map_entry_size;
-    header[12] = static_cast<unsigned char>(width);
-    header[13] = static_cast<unsigned char>(width >> 8);
-    header[14] = static_cast<unsigned char>(height);
-    header[15] = static_cast<unsigned char>(height >> 8);
-    header[16] = pixel_depth;
-    header[17] = image_descriptor;
-    FileSeek(handle, header[0], FILE_SEEK_FROM_CURRENT);
+    FileRead(handle, &header.pixel_depth, 1, 0);
+    FileRead(handle, &header.image_descriptor, 1, 0);
+    header.width = width;
+    header.height = height;
+    FileSeek(handle, header.id_length, FILE_SEEK_FROM_CURRENT);
 
-    if (header[1] == 0) {
-        palette_count = color_map_length;
-    } else if (header[2] == 0 || header[2] == 1 || (header[2] == 9 && header[1] == 1)) {
-        palette_count = color_map_length;
+    if (header.color_map_type == 0) {
+        palette_count = header.color_map_length;
+    } else if (header.image_type == 0 || header.image_type == 1 ||
+               (header.image_type == 9 && header.color_map_type == 1)) {
+        palette_count = header.color_map_length;
         for (unsigned int index = 0; index < palette_count; ++index) {
             palette_colors[index].alpha = 0xff;
             FileRead(handle, &palette_colors[index].blue, 1, 0);
@@ -173,25 +163,26 @@ srColorSurface* LoadSurface0047C090(int handle)
             FileRead(handle, &palette_colors[index].red, 1, 0);
         }
     } else {
-        FileSeek(handle, (color_map_entry_size >> 3) * color_map_length, FILE_SEEK_FROM_CURRENT);
-        palette_count = color_map_length;
+        FileSeek(handle, (header.color_map_entry_size >> 3) * header.color_map_length,
+                 FILE_SEEK_FROM_CURRENT);
+        palette_count = header.color_map_length;
     }
 
-    switch (header[2]) {
+    switch (header.image_type) {
     case 0:
-        if (header[1] != 1) {
+        if (header.color_map_type != 1) {
             return 0;
         }
         width = 1;
         height = 1;
-        palette = SR_NEW(W8Palette)(palette_colors, color_map_length);
+        palette = SR_NEW(W8Palette)(palette_colors, header.color_map_length);
         palette->setName("TGA importer generated palette");
         palette->autoRelease();
         break;
     case 1:
     case 9:
-        if (header[1] == 1) {
-            palette = SR_NEW(W8Palette)(palette_colors, color_map_length);
+        if (header.color_map_type == 1) {
+            palette = SR_NEW(W8Palette)(palette_colors, header.color_map_length);
             palette->setName("TGA importer generated palette");
             palette->autoRelease();
         } else {
@@ -200,15 +191,16 @@ srColorSurface* LoadSurface0047C090(int handle)
         break;
     case 2:
     case 10:
-        if (pixel_depth == 16) {
+        if (header.pixel_depth == 16) {
             surface = SR_NEW(W8ColorSurface)(
-                static_cast<srPixelConvert::e_surfaceType>((image_descriptor & 0xf) == 0 ? 8 : 9),
+                static_cast<srPixelConvert::e_surfaceType>(
+                    (header.image_descriptor & 0xf) == 0 ? 8 : 9),
                 width, height);
-        } else if (pixel_depth == 24) {
+        } else if (header.pixel_depth == 24) {
             surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
-        } else if (pixel_depth == 32) {
+        } else if (header.pixel_depth == 32) {
             surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
-                                                 (image_descriptor & 0xf) == 0 ? 0xd : 0xe),
+                                                 (header.image_descriptor & 0xf) == 0 ? 0xd : 0xe),
                                              width, height);
         } else {
             return 0;
@@ -222,7 +214,7 @@ srColorSurface* LoadSurface0047C090(int handle)
         return 0;
     }
 
-    if (header[2] == 0 || header[2] == 1 || header[2] == 9) {
+    if (header.image_type == 0 || header.image_type == 1 || header.image_type == 9) {
         surface =
             SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(4), width, height);
         if (surface != 0) {
@@ -231,7 +223,7 @@ srColorSurface* LoadSurface0047C090(int handle)
     }
 
     if (surface != 0) {
-        LoadSurfacePixels0047BC80(handle, surface, header);
+        LoadSurfacePixels0047BC80(handle, surface, &header);
     }
     return surface;
 }

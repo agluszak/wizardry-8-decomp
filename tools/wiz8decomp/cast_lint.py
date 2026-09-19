@@ -22,6 +22,12 @@ same line and should cover the smallest construct the formatter genuinely
 cannot preserve. Unlike casts, moving an old suppression into a new source
 region is deliberately re-reviewed.
 
+Literal byte-offset arithmetic after converting a typed object to
+``char *``/``unsigned char *`` is also gated. Known layout must use the named
+member. Only genuinely unresolved or external layouts may carry
+``raw-offset-ok: <reason>``; the marker never justifies bypassing an already
+modeled field.
+
 The gate also protects the released SGP baseline. A changed ``src/sgp`` C/C++
 file must already carry the dated Wizardry-reconstruction modification notice
 used by accepted SGP derivatives. This catches incidental edits to pristine
@@ -48,6 +54,7 @@ from .subprocesses import run
 MARKER = "reinterpret-ok"
 C_STYLE_MARKER = "c-style-cast-ok"
 FORMAT_OFF_MARKER = "format-off-ok"
+RAW_OFFSET_MARKER = "raw-offset-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
@@ -59,6 +66,12 @@ _CAST = re.compile(r"reinterpret_cast")
 _C_STYLE_MARKER = re.compile(r"c-style-cast-ok:\s*\S", re.IGNORECASE)
 _FORMAT_OFF = re.compile(r"clang-format\s+off", re.IGNORECASE)
 _FORMAT_OFF_MARKER = re.compile(r"format-off-ok:\s*\S", re.IGNORECASE)
+_RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
+_RAW_BYTE_OFFSET = re.compile(
+    r"reinterpret_cast\s*<\s*(?:const\s+)?(?:unsigned\s+)?char\s*\*\s*>\s*"
+    r"\((?:(?![;{}]).)*?\)\s*(?:\+\s*(?:0[xX][0-9A-Fa-f]+|\d+)\b\s*)+",
+    re.DOTALL,
+)
 _STATEMENT_TOKEN = re.compile(
     r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[;{}]',
     re.DOTALL,
@@ -240,6 +253,92 @@ def _added_format_off(diff: str) -> list[dict[str, Any]]:
     return added_lines_without_marker(diff, _FORMAT_OFF, _FORMAT_OFF_MARKER, ignore_moved=False)
 
 
+def _added_source_lines(diff: str) -> dict[str, set[int]]:
+    """Return added line numbers for recovered C++ files, keyed by path."""
+    added: dict[str, set[int]] = {}
+    current: str | None = None
+    line_number = 0
+    old_remaining = new_remaining = 0
+    for raw in diff.splitlines():
+        if old_remaining or new_remaining:
+            if raw.startswith("+"):
+                if current and current.startswith(SCOPE_PREFIXES):
+                    added.setdefault(current, set()).add(line_number)
+                new_remaining -= 1
+                line_number += 1
+            elif raw.startswith("-"):
+                old_remaining -= 1
+            elif raw.startswith(" "):
+                old_remaining -= 1
+                new_remaining -= 1
+                line_number += 1
+            continue
+        if raw.startswith("diff --git "):
+            current = None
+        elif raw.startswith("+++ "):
+            target = raw[4:].strip()
+            current = (
+                None
+                if target == "/dev/null"
+                else (target[2:] if target[:2] in ("a/", "b/") else target)
+            )
+        elif raw.startswith("@@ "):
+            hunk = _HUNK.match(raw)
+            if hunk:
+                old_remaining = int(hunk.group(2) or 1)
+                new_remaining = int(hunk.group(4) or 1)
+                line_number = int(hunk.group(3))
+    return added
+
+
+def _statement_has_marker(text: str, start: int, marker: re.Pattern[str]) -> bool:
+    line_start = text.rfind("\n", 0, start) + 1
+    if line_start > 0:
+        previous_end = line_start - 1
+        previous_start = text.rfind("\n", 0, previous_end) + 1
+        previous = text[previous_start:previous_end]
+        if previous.lstrip().startswith("//") and marker.search(previous):
+            return True
+
+    for token in _STATEMENT_TOKEN.finditer(text, start):
+        value = token.group()
+        if value.startswith(("//", "/*")):
+            if marker.search(value):
+                return True
+        elif value in {";", "{", "}"}:
+            trailing = re.match(r"[ \t]*(//[^\n]*|/\*.*?\*/)", text[token.end() :], re.DOTALL)
+            return trailing is not None and marker.search(trailing.group()) is not None
+    return False
+
+
+def _raw_offset_violations(repository: Path, diff: str) -> list[dict[str, Any]]:
+    """Find new literal byte offsets applied to typed-object byte casts."""
+    added = _added_source_lines(diff)
+    violations: list[dict[str, Any]] = []
+    for relative, line_numbers in sorted(added.items()):
+        if not relative.lower().endswith(_CPP_SUFFIXES):
+            continue
+        path = repository / relative
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for match in _RAW_BYTE_OFFSET.finditer(text):
+            start_line = text.count("\n", 0, match.start()) + 1
+            end_line = text.count("\n", 0, match.end()) + 1
+            if not any(line in line_numbers for line in range(start_line, end_line + 1)):
+                continue
+            if _statement_has_marker(text, match.start(), _RAW_OFFSET_MARKER):
+                continue
+            violations.append(
+                {
+                    "file": relative,
+                    "line": start_line,
+                    "text": " ".join(match.group().split())[:200],
+                }
+            )
+    return violations
+
+
 def _sgp_notice_violations(repository: Path, diff: str) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
     for relative in sorted(_changed_files(diff)):
@@ -323,6 +422,7 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         repository, _added_c_style_casts(diff), _C_STYLE_MARKER
     )
     format_violations = _added_format_off(diff)
+    raw_offset_violations = _raw_offset_violations(repository, diff)
     sgp_violations = _sgp_notice_violations(repository, diff)
 
     errors: list[str] = []
@@ -342,6 +442,12 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             "keep suppressions to the smallest necessary construct:\n  "
             + _render(format_violations)
         )
+    if raw_offset_violations:
+        errors.append(
+            "new literal byte offsets into typed objects need the named field instead; only "
+            "genuinely unresolved/external layouts may use 'raw-offset-ok: reason':\n  "
+            + _render(raw_offset_violations)
+        )
     if sgp_violations:
         errors.append(
             "changed pristine SGP source needs the dated Wizardry-reconstruction modification "
@@ -354,6 +460,6 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         "ok": True,
         "gate": "source-cast-format-hygiene",
         "base": base,
-        "markers": [MARKER, C_STYLE_MARKER, FORMAT_OFF_MARKER],
+        "markers": [MARKER, C_STYLE_MARKER, FORMAT_OFF_MARKER, RAW_OFFSET_MARKER],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],
     }

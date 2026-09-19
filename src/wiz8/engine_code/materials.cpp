@@ -846,13 +846,10 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             }
                             sprintf(message, fmt, i, submeshes[i].polygon_count_44,
                                     submeshes[i].vertex_count_40);
-                            strcat(message, static_cast<int>(*reinterpret_cast<unsigned short*>(
-                                                reinterpret_cast<char*>(/* reinterpret-ok: unmodeled
-                                        spatial field past the named prefix */
-                                                                        &tree->spatial_000) +
-                                                0x38 + 0xe)) <= i
-                                                ? "\n"
-                                                : " Regioned Manually\n");
+                            strcat(message,
+                                   static_cast<int>(tree->spatial_000.region_count_46) <= i
+                                       ? "\n"
+                                       : " Regioned Manually\n");
                             ReportBuildStatus00497690(5, message);
                             total_vertices += submeshes[i].vertex_count_40;
                             total_faces += submeshes[i].polygon_count_44;
