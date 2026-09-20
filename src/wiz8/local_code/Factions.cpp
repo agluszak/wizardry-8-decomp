@@ -8,6 +8,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "FileMan.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -344,4 +345,15 @@ void AdjustFactionDisposition(signed char faction, char delta)
     }
     ShowNoticef(palette, gppStringList[0x247], gppStringList[g_faction_name_ids_61eacc[faction]],
                 notice);
+}
+
+/* Write both faction tables into the open FATA chunk: the 21x21 relation
+   matrix, then the 21 runtime disposition records. */
+// FUNCTION: WIZ8 0x00536030
+void SaveFactionState00536030(int file)
+{
+    unsigned int written;
+
+    FileWrite(file, g_faction_relations, sizeof(g_faction_relations), &written);
+    FileWrite(file, g_factions, sizeof(g_factions), &written);
 }

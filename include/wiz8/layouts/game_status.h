@@ -134,7 +134,9 @@ struct W8GlobalStatus {
     unsigned char use_item_latch_2445;
     unsigned char flag_2446;
     int difficulty;
-    unsigned char unknown_244b[8];
+    /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
+       two data constants; both halves are written as dwords. */
+    unsigned int save_filetime_xor_244b[2];
     wchar_t monster_name_buffer_2453[22];
     /* 0x247f: party-slot index read as a full dword by GetMonsterGroupName and
        the type-9 world-cursor handler. */

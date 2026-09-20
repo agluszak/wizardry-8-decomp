@@ -91,7 +91,7 @@ char SaveCharacterToCurrentGame(const char* path, int slot,
 char LoadCharacterFromCurrentGame(const char* path, W8Character* character); /* 0x005156C0 */
 /* Deferred main-game autosave: notice first, then SaveGame on the next tick. */
 void ProcessMainGameAutoSave(void);      /* 0x00515B00 */
-void SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
+unsigned char SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
 
 unsigned char LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */
 unsigned char LoadMonster(W8Chunk* chunk);      /* 0x00513D80 */

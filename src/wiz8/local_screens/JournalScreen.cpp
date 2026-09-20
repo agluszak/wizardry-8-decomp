@@ -29,6 +29,7 @@
 
 #include "Font.h"
 #include "soundman.h"
+#include "FileMan.h"
 
 #include "input.h"
 #include "Types.h"
@@ -134,6 +135,26 @@ void RecordFactChangeForJournal(int fact_id)
     int range = GetTextBoxScrollRange();
     ShowNotice(3, gppStringList[0x1d28 / 4], 2, range, 0);
     SoundPlay("Data\\Sound\\Misc\\Journal Entry.wav", 0);
+}
+
+/* Write the fact journal into the open JRNL chunk: the entry count, a format
+   dword, then each 0x0c-byte entry. */
+// FUNCTION: WIZ8 0x00558A90
+void SaveFactJournal00558A90(int file)
+{
+    int format = 1;
+    int count;
+    int index;
+
+    if (g_fact_journal_entries_0068de40 == 0) {
+        InitializeFactJournal();
+    }
+    count = g_fact_journal_entries_0068de40->count;
+    FileWrite(file, &format, 4, 0);
+    FileWrite(file, &count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        FileWrite(file, g_fact_journal_entries_0068de40->GetAt(index), sizeof(W8JournalEntry), 0);
+    }
 }
 
 // FUNCTION: WIZ8 0x005bdd00

@@ -13,6 +13,7 @@
 #include "wiz8/xstatus.h"
 #include "timer.h"
 #include "font.h"
+#include "FileMan.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/layouts/screen_state.h"
@@ -413,6 +414,40 @@ int GetTextBoxScrollRange(void)
     return g_level_block->text_box_right - g_level_block->text_box_left;
 }
 
+/* Write the four message runs into the open TEXT chunk: a format dword, then
+   per region the used-line count followed by each 0x24-byte record and its
+   wide string. The saved record's wString carries the serialized character
+   count including the terminator, not the live pointer; the copy is patched
+   so the on-disk record stays self-contained. */
+// FUNCTION: WIZ8 0x0058FB50
+unsigned char SaveMessageStorage0058FB50(int file)
+{
+    W8MessageStorageRecord record;
+    int format = 1;
+    unsigned int region;
+    unsigned int index;
+
+    FileWrite(file, &format, 4, 0);
+    for (region = 0; region < 4; ++region) {
+        FileWrite(file, &g_status_685170.text_box_lines_used_4997[region], 4, 0);
+        for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
+            record = g_message_storage_68f2d8[region][index];
+            if (record.wString != 0) {
+                /* The serialized record stores the wide-char count where the
+                   live record keeps its string pointer. */
+                // c-style-cast-ok: patched pointer field carries a count
+                record.wString = (wchar_t*)(wcslen(record.wString) + 1);
+            }
+            FileWrite(file, &record, sizeof(record), 0);
+            FileWrite(file, g_message_storage_68f2d8[region][index].wString,
+                      (unsigned int)record.wString * 2, // c-style-cast-ok: reads
+                      // back the patched count for the string payload size
+                      0);
+        }
+    }
+    return 1;
+}
+
 /* One entry of text_slots_1e8. Index 2 is the secondary NPC-dialogue item
    editor slot; other indices remain positional. */
 // FUNCTION: WIZ8 0x0058fa60
@@ -719,8 +754,7 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
     va_end(arguments);
 
     wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
-    ShowNoticef(8, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name, separator,
-                text);
+    ShowNoticef(8, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name, separator, text);
     stop = wcslen(g_status_685170.buffers.characters[party_slot].name);
     if (text[0] == L'\'') {
         ++stop;
@@ -728,8 +762,8 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
             ++stop;
         }
     }
-    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0,
-                          stop, -1);
+    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0, stop,
+                          -1);
 }
 
 static unsigned int GetTextBoxLineCount(short text_box)

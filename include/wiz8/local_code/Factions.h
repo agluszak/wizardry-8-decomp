@@ -84,4 +84,7 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
 /* 0x00535EA0: clamp disposition_score + delta to 0..99, stamp the world clock
    when the band moved, and post the worsened/improved notice. */
 void AdjustFactionDisposition(signed char faction, char delta);
+/* 0x00536030: write the relation matrix and runtime disposition records into
+   the open FATA chunk. */
+void SaveFactionState00536030(int file);
 #endif
