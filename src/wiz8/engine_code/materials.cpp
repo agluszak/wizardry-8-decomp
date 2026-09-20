@@ -594,7 +594,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                     for (i = 0; i < level->num_linked_records_2609; ++i) {
                         W8LevelFileLinkedRecord* record = level->linked_records_260d[i];
-                        value->AddLinkedRecord00448BF0(record->unknown_01, record->value_1b3,
+                        value->AddLinkedRecord00448BF0(record->vertices_01, record->value_1b3,
                                                        record->value_1b7, &record->linked_face_1b1);
                     }
                     value->geometry_index_00 = build_tree;
