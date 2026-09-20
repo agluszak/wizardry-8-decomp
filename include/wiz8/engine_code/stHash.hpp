@@ -1,8 +1,9 @@
 #pragma once
 
-/* The open-chained hash table used by the octree builders. Entries double as
-   the free list: next_index links a bucket chain while live and the next
-   unused slot while free. */
+/* The open-chained hash table used by the octree builders. Its layout and
+   operations agree with SurRender's srHashTable; the original shared template
+   spelling remains unknown. Entries double as the free list: next_index
+   links a bucket chain while live and the next unused slot while free. */
 inline unsigned int W8HashValue(unsigned int key)
 {
     unsigned int mixed = (key >> 10) ^ key;
@@ -166,17 +167,6 @@ template <class Key, class Value> struct W8HashEntry {
     Key key;
     Value value;
 };
-
-/* Pointer plus capacity that several TUs destroy by operator-delete and
-   zeroing both dwords. Retail emits this as the out-of-line helper at
-   0x004701b0 (BitArray::Save, mesh helpers, and their EH unwind). */
-struct W8OwnedPtr {
-    void* data;
-    unsigned long size;
-    ~W8OwnedPtr();
-};
-
-static_assert(sizeof(W8OwnedPtr) == 8, "W8OwnedPtr_must_be_8");
 
 template <class Key, class Value> class W8HashTable {
 public:

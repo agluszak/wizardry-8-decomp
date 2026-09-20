@@ -1,9 +1,10 @@
 #pragma once
 
-/* The open-chained hash table the SurRender SDK carries for its own code;
-   Wiz8 keeps the same SirTech implementation as wiz8/engine_code/stHash.hpp
-   (W8HashTable). The Huffman sampler/compressor instantiate it with unsigned
-   long keys, so the primary hash overload here takes unsigned long directly.
+/* The open-chained hash table the SurRender SDK carries for its own code.
+   Its layout and operations agree with Wiz8's W8HashTable, but no accepted
+   source oracle establishes one original template spelling across the two
+   binaries. The Huffman sampler/compressor instantiate it with unsigned long
+   keys, so the primary hash overload here takes unsigned long directly.
    Entries double as the free list: next_index links a bucket chain while live
    and the next unused slot while free. */
 inline unsigned int srHashValue(unsigned long key)

@@ -190,7 +190,7 @@ four-line nested records into their own files.
 
 | Class / family | Wizardry relevance | What we did / what remains |
 | --- | --- | --- |
-| `srHuffman` | Very high. Wiz8 imports BitIStream, BitOStream, Sampler, Compressor, Decompressor and the bit/symbol APIs. Every Huffman IAT xref collapses to `BitArray::Load` (`0x0043aec0`) and `BitArray::Save` (`0x0043b0e0`) in `Engine Code\BitArray.cpp`. Octree assertions name `m_pAlphaBits->Load/Save(hOctFile)` and `m_pPropSunBits->Load/Save(hOctFile)` (magic `0xDEADD00D`). | Nested family recovered in `srHuffman.h`. `BitArray::Load` recovered; compare is now **0.780** because Save's EH in the same TU changed the prologue handler cookie (previously 0.981 on the decode-cursor vs `JBE` leftover). `BitArray::Save` recovered as straightforward C++: Sampler is destroyed as `W8OwnedPtr` (`0x004701b0`, **exact**) plus the hash prefix, not the imported `~Sampler`. Remaining Save gap: non-isomorphic CFG (20 vs 27 blocks) from VC6 inlining header `Lookup`/`~W8HashTable` and calling imported `~srBinOMStream` where retail `operator delete`s the buffer. Those helpers stay ordinary header definitions; no inline pragmas. |
+| `srHuffman` | Very high. Wiz8 imports BitIStream, BitOStream, Sampler, Compressor, Decompressor and the bit/symbol APIs. Every Huffman IAT xref collapses to `BitArray::Load` (`0x0043aec0`) and `BitArray::Save` (`0x0043b0e0`) in `Engine Code\BitArray.cpp`. Octree assertions name `m_pAlphaBits->Load/Save(hOctFile)` and `m_pPropSunBits->Load/Save(hOctFile)` (magic `0xDEADD00D`). | Nested family recovered in `srHuffman.h`. `BitArray::Load` recovered; compare is now **0.780** because Save's EH in the same TU changed the prologue handler cookie (previously 0.981 on the decode-cursor vs `JBE` leftover). `BitArray::Save` recovered as straightforward C++: Sampler destroys its `srArray<Symbol>` member through folded local teardown (`0x004701b0`) plus the hash member, not the imported `~Sampler`. Remaining Save gap: non-isomorphic CFG (20 vs 27 blocks) from VC6 inlining header `Lookup`/`~srHashTable` and calling imported `~srBinOMStream` where retail `operator delete`s the buffer. Those helpers stay ordinary header definitions; no inline pragmas. |
 | `srVP` / `srVectorProcessor` | Very high. Wiz8 imports `?vp@srVectorProcessor@@0PAVsrVP@@A` at `0x005eb7e8`. Uses are far more than `stMeshModel`'s `minMax`: `FlushSlots00475600`, `FUN_0046e8a0`, `FUN_00472270`, `FUN_004729f0`, `FUN_0047f930`, `FUN_00486970`, `PrepareGeometry004B6F30` / `GDProp::Initialize`, and others. Confirmed CALLIND slots include `+0x10` `_memcopy(SRBYTE)`, `+0x30`/`+0x38` `_copy`, `+0xd4`/`+0xd8` `_add`, `+0x11c`/`+0x124` `_mul`, `+0x18c` `_minMax`. Offsets `+0x210`/`+0x218`/`+0x224` sit past the 100-slot table and are not vp methods. | `srVP.h` split from the facade. Header inlines added for the confirmed Wiz8 slots. `FillDwordBuffer00474700` / `AddFloatBuffer00474730` recovered next to `CopyDwordBuffer00470180`. Authored `_copy(SRDWORD*, SRDWORD, SRDWORD)` / `_add(float*, dest, source, count)` compare exact at retail CALLIND `+0x38` / `+0xd8`. `srDebugVP` is declared; ctor and `resetInternalStatistics` stay imported (layout past the wrapped `srVP*` is unproven). |
 | `srTextureFile` | High as an oracle. Wiz8 does not import it. `stTextureFile` (`0x10001`, sizeof `0x68`) shares SR's 17-slot interface (id `0x2112`, sizeof `0x64`); Wizardry adds `has_alpha_64`. | `srTextureFile.h` reconstructed. Slot list is commented on `stTextureFile`. |
 | `srBounder` | Medium. No Wiz8 string, ctor import, or registry construction. ClassID `0x1600`, vInstance allocates `0x1a8`. Mode at `+0x138`, `BoundInfo` at `+0x13c` (`0x2c`), 16 unknown dwords at `+0x168`. `registerClass` last arg is `0`, but the handwritten ctor still `registerInstance`s. | Class recovered in `srBounder.h` / `bounder.cpp`. Small methods and `sGetClassName` compare **exact**. Ctor/dtor stay inconclusive (EH plus support vtable `0x10076f64` then `registerInstance` before the derived vptr write). `vInstance` is 0.920: same `srHeap::allocate(0x1a8)` shape, unresolved allocate in the comparison image. `updateBounds` / `process` / `traverse` / `dump` / `getChildBoundingBox` / copy stay imported. |
@@ -413,6 +413,36 @@ srClassSupport<srMaterialIFace, srClass, true, 0x2200>
 which is the same shape `srNode`'s own constructor and destructor prove directly at `0x10050C10`
 and `0x10050E20`. The levels borrowing SurRender's names for themselves are support specializations
 naming their `Derived`, not first-party stand-ins.
+
+## Shared array and hash emissions
+
+The two-word storage at Wiz8 `0x004701b0` deletes its first word through scalar
+`operator delete` and clears both words. SurRender `0x100027d0` has the same
+instructions. The typed `srArray<Symbol>` in Huffman's Sampler has this
+destructor behavior, and Wiz8's `0x0049e290` array growth allocates scalar
+storage, copies the overlapping elements, then deletes the old storage. Other
+Wiz8 callers of `0x004701b0` pass different two-word objects, so the address
+is a folded emission rather than evidence for a separate `W8OwnedPtr` class or
+one particular element type. The former stand-in has been removed. The
+template marker records the retail identity; the current recomp does not emit
+an independently comparable copy of that folded helper.
+
+`srHeapArray` is a different family. Its `0x004701d0` teardown calls
+`srHeap.free`, and its preserving and scratch growth paths have different
+allocation and copy rules. It cannot share `srArray`'s scalar-delete owner.
+
+The Wiz8 and SurRender hash headers have the same four-word table, chained
+entries/free list, initial four buckets, doubling growth, key mixing, lookup,
+insertion, removal, and bucket rebuild. Both allocate entry and bucket arrays
+with `new[]` and destroy them with `delete[]`. Wiz8's `unsigned int` and
+SurRender's `unsigned long` hash-key overloads are both 32-bit in the target
+ABI; the only implementation differences are method definition order and
+their provisional names. The `TEMPLATE` markers on Wiz8 octree/mesh helpers
+and SurRender Huffman `Grow` helpers describe instantiations of this same
+algorithm. No accepted source oracle establishes that both binaries used the
+same *spelled* header or template name, so the two canonical source headers
+retain separate names and their distinct emitted specializations. There is
+no second hash implementation hidden in the octree or Huffman bodies.
 
 ## What may be written into a header
 

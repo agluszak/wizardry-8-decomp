@@ -1187,13 +1187,7 @@ bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8Boundi
     return 0;
 }
 
-/* Pointer-plus-capacity cleanup used by BitArray::Save's Sampler and by later
-   mesh helpers. Retail emits this out of line between 3d.cpp and
-   stMeshModel.cpp rather than as a Sampler import. */
-// FUNCTION: WIZ8 0x004701b0
-W8OwnedPtr::~W8OwnedPtr()
-{
-    operator delete(data);
-    data = 0;
-    size = 0;
-}
+/* Scalar-delete array teardown shared by the Sampler symbol array and other
+   folded array instantiations. The primary template lives in srArray.h. */
+// TEMPLATE: WIZ8 0x004701b0
+// srArray<T>::release
