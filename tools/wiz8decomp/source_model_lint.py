@@ -266,8 +266,7 @@ def validate_source_model(repository: Path) -> dict[str, Any]:
         )
         raise SourceModelGateError(
             "source-model hard gate failed; fix the typed/authored model rather than "
-            "waiving compiler lowering:\n  "
-            + rendered
+            "waiving compiler lowering:\n  " + rendered
         )
     return {
         "ok": True,
