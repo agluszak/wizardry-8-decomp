@@ -150,9 +150,9 @@ int PrePathing::SnapNamedPositions004CD130(W8LevelFileNamedPosition* positions, 
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].x = positions[i].x_81 * g_world_scale_005ebc40;
-            named_positions_250[i].y = positions[i].y_85 * g_world_scale_005ebc40;
-            named_positions_250[i].z = positions[i].z_89 * g_world_scale_005ebc40;
+            named_positions_250[i].x = positions[i].position_81.x * g_world_scale_005ebc40;
+            named_positions_250[i].y = positions[i].position_81.y * g_world_scale_005ebc40;
+            named_positions_250[i].z = positions[i].position_81.z * g_world_scale_005ebc40;
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }

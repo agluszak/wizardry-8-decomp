@@ -26,7 +26,7 @@ void UpdatePartyStamina00504670(int ticks);
 void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed);
 void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
 /* 0x00502B50: rebuild the per-realm stamina and spell regeneration rates from
-   the pool ceilings and the three conditioned-rate flags. */
+   the pool ceilings and the three regeneration-boost flags. */
 void RebuildCharacterRegenRates00502B50(W8Character* character);
 /* 0x00502C50: the monster counterpart - hit points and stamina only, plus the
    modifier block's regen channels. */

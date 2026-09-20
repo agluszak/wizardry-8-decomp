@@ -1480,11 +1480,11 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 
     while (item != 0) {
         item->saved_marker = 1;
-        if (item->unknown_08 != 0) {
+        if (item->fActive != 0) {
             srVector3T<float> position;
-            item->owner->m_pRep->GetLocation004B8890(&position);
+            item->p3D->m_pRep->GetLocation004B8890(&position);
             item->position = position;
-            item->entity_flags = static_cast<W8ItemRep*>(first->owner->m_pRep)->flags;
+            item->entity_flags = static_cast<W8ItemRep*>(first->p3D->m_pRep)->flags;
         }
         if (g_flag_00659756 != 0) {
             first->entity_flags &= ~8;
@@ -1518,8 +1518,8 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
             return 0;
         }
         item->sector_id = -2;
-        item->unknown_08 = 0;
-        item->owner = 0;
+        item->fActive = 0;
+        item->p3D = 0;
         if (ItemHasFlags(item, 1)) {
             RegisterSearchableWorldItem00516E20(item);
         }

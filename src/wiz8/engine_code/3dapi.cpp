@@ -1147,7 +1147,7 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
     if (check_items != 0) {
         W8WorldItem* item = GetNextWorldItem(1);
         while (item != 0) {
-            W8Item* owner = item->owner;
+            W8Item* owner = item->p3D;
             if (owner != 0) {
                 srVector3T<float> center;
                 float other_radius;

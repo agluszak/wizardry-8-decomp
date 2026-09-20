@@ -594,7 +594,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                     for (i = 0; i < level->num_linked_records_2609; ++i) {
                         W8LevelFileLinkedRecord* record = level->linked_records_260d[i];
-                        value->AddLinkedRecord00448BF0(record->unknown_01, record->value_1b3,
+                        value->AddLinkedRecord00448BF0(record->vertices_01, record->value_1b3,
                                                        record->value_1b7, &record->linked_face_1b1);
                     }
                     value->geometry_index_00 = build_tree;
@@ -1646,11 +1646,9 @@ int PropReceivesLight00495E90(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFi
     srVector3T<float> position;
     srVector3T<float> corner;
 
-    const float* prop_pos = reinterpret_cast<const float*>(
-        prop->unknown_03); /* reinterpret-ok: packed serialized floats */
-    position.x = prop_pos[0] * g_world_scale_005ebc40;
-    position.y = prop_pos[1] * g_world_scale_005ebc40;
-    position.z = prop_pos[2] * g_world_scale_005ebc40;
+    position.x = prop->position_03.x * g_world_scale_005ebc40;
+    position.y = prop->position_03.y * g_world_scale_005ebc40;
+    position.z = prop->position_03.z * g_world_scale_005ebc40;
     if (tree->SegmentClear00467BB0(&light->position_08, &position)) {
         return 1;
     }

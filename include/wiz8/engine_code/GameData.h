@@ -193,8 +193,8 @@ struct W8GameData {
     /* 0x0041B770: probe active collidable props along the motion segment;
        returns the nearest hit surface and may adjust `direction`. */
     W8GDSurface* ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
-                                               srVector3T<float>* position, float* scratch,
-                                               float* nearest_distance);
+                                               srVector3T<float>* position,
+                                               srVector3T<float>* scratch, float* nearest_distance);
 
     W8OctBuildTree00446390* geometry_index_00;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load

@@ -94,12 +94,12 @@ struct W8NpcState {
     /* 0x0c7: set when the NPC binding is released while its record flag at
        0x054 is set, and tested before handing the binding back out. */
     unsigned char binding_unavailable;
-    unsigned char flag_c8;
-    unsigned char flag_c9;
+    bool talk_cooldown_active;
+    bool trade_cooldown_active;
     /* 0x0ca: the record's word at 0x002, copied by CreateNpcRuntimeNode. */
     unsigned short trade_pool_ca;
-    int clock_cc;
-    int clock_d0;
+    int talk_cooldown_clock;
+    int trade_cooldown_clock;
     unsigned char service_flags[0x14];
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
     unsigned char flag_e8;
