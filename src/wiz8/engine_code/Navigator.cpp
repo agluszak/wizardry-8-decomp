@@ -624,6 +624,35 @@ void W8Navigator::SetMovementStopped00453880()
     }
 }
 
+/* Save the movement state LoadMovementState00454AD0 consumes: a presence
+   byte, then for an ungrouped navigator whose 0x20000000 movement flag is set
+   the height bounds, the position and the attachment's segment target. */
+// FUNCTION: WIZ8 0x004549d0
+unsigned char W8Navigator::SaveMovementState004549D0(unsigned int hFile)
+{
+    unsigned char has_state = 0;
+    unsigned char ok;
+    srVector3T<float> position;
+    srVector3T<float> target;
+
+    if (hFile == 0) {
+        return 0;
+    }
+    if (linked_navigator_05c == 0 && (flags_00c & 0x20000000) != 0) {
+        has_state = 1;
+        ok = FileWrite(hFile, &has_state, 1, 0);
+        ok &= FileWrite(hFile, &minimum_height_034, 4, 0);
+        ok &= FileWrite(hFile, &maximum_height_038, 4, 0);
+        position = position_03c;
+        ok &= FileWrite(hFile, &position, 0xc, 0);
+        target = movement_0c0.attachment_0ac->position_1c;
+        ok &= FileWrite(hFile, &target, 0xc, 0);
+        return ok;
+    }
+    ok = FileWrite(hFile, &has_state, 1, 0);
+    return ok;
+}
+
 /* Load the movement state saved by 0x004549D0: a presence byte, the height
    bounds, the position and the movement target. A present state re-primes the
    attachment for a segment toward the saved target, raises the movement flags,

@@ -1,4 +1,5 @@
 #include "wiz8/float_constants.h"
+#include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -10,10 +11,14 @@
 #include "wiz8/geometry.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srMeshModel.h"
+#include "surrender/srCore.h"
+
+#include "FileMan.h"
 
 #include <windows.h>
 #include <new>
 #include <stdlib.h>
+#include <string.h>
 
 /* The previous 00497af0-004adb20 range spanned eight units that carry their
    own assertion-backed intervals -
@@ -308,12 +313,10 @@ void stLight::Update0049C960()
     } else if (mode == 3) {
         float step = (seconds - m_level_time_23c) * definition->rate_34;
         if (g_float_005ebb34 < step) {
-            float blend =
-                (g_float_005ebb38 / definition->period_30) * step + m_level_240;
+            float blend = (g_float_005ebb38 / definition->period_30) * step + m_level_240;
             if (blend <= g_float_005ebb38) {
                 float level = blend;
-                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) *
-                                    level +
+                intensity_1d0 = (definition->intensity_to_2c - definition->intensity_28) * level +
                                 definition->intensity_28;
                 m_level_240 = level;
                 if ((definition->flags_08 & 8) != 0) {
@@ -429,6 +432,44 @@ void stLight::Reset0049D070()
     m_level_240 = 0;
     m_path_time_24c = GetTickCount() * 0.0025f;
     m_level_time_23c = m_path_time_24c;
+}
+
+/* Serialize the registered positional lights: a version byte and count
+   followed by each light's 0x80-byte name and its disable flag. */
+// FUNCTION: WIZ8 0x0049D120
+void SaveLightStates0049D120(int handle)
+{
+    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned char version = 1;
+    int count = 0;
+
+    FileWrite(handle, &version, sizeof(version), 0);
+
+    stLight* light = static_cast<stLight*>(srCore.getRegistry()->find(
+        stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
+    while (light != 0) {
+        if (light->m_positional_23a != 0) {
+            ++count;
+        }
+        light = static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), light));
+    }
+
+    FileWrite(handle, &count, sizeof(count), 0);
+
+    light = static_cast<stLight*>(srCore.getRegistry()->find(
+        stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
+    while (light != 0) {
+        if (light->m_positional_23a != 0) {
+            strcpy(reinterpret_cast<char*>(name), // reinterpret-ok: the
+                   // 0x80-byte save field stores the narrow name packed as
+                   // bytes
+                   light->getName());
+            FileWrite(handle, name, sizeof(name), 0);
+            unsigned char disabled = light->testFlag(srNode::FLAG_DISABLE) != 0;
+            FileWrite(handle, &disabled, sizeof(disabled), 0);
+        }
+        light = static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), light));
+    }
 }
 
 // TEMPLATE: WIZ8 0x0049DB10

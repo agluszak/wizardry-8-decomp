@@ -43,6 +43,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/chunk.h"
+#include "FileMan.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/engine_code/World.h"
@@ -80,6 +83,9 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 /* 0x00689F94: every NPC state, held in the shared growable vector. */
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
+
+/* Same-unit body SaveNpcStates00509F00 reaches before its definition. */
+unsigned char SaveNpcItemLists0050AA10(int file);
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
@@ -1472,6 +1478,70 @@ void ReleaseNpcBinding(int value)
     if (flag != 0) {
         npc->binding_unavailable = 1;
     }
+}
+
+/* Serialize every NPC state record into the open NPCT chunk: a version byte,
+   the live count, then each 0x13d-byte state. A state whose embedded group
+   character exists is followed by a sizeof(W8Character) marker and the
+   character record itself. The item lists are a separate FileWrite pass. */
+// FUNCTION: WIZ8 0x00509F00
+unsigned char SaveNpcStates00509F00(W8Chunk* chunks)
+{
+    unsigned char version = 3;
+    W8NpcState* npc;
+    unsigned int count;
+    unsigned int index;
+    int size;
+
+    chunks->Write(&version, 1, 0);
+    count = g_npc_states->count;
+    chunks->Write(&count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        npc = *g_npc_states->GetAt(index);
+        chunks->Write(npc, sizeof(*npc), 0);
+        if (npc->character != 0) {
+            size = sizeof(*npc->character);
+            chunks->Write(&size, 4, 0);
+            chunks->Write(npc->character, size, 0);
+        }
+    }
+    return SaveNpcItemLists0050AA10(chunks->m_hFile);
+}
+
+/* Append every NPC's stock item list behind the NPCT state records: the
+   entry count followed by each 0x14-byte entry. A short FileWrite fails the
+   whole pass. */
+// FUNCTION: WIZ8 0x0050AA10
+unsigned char SaveNpcItemLists0050AA10(int file)
+{
+    unsigned int written = 0;
+    unsigned int item_count = 0;
+    unsigned int index;
+    unsigned int npc_index;
+    unsigned int count;
+    W8NpcState* npc;
+    W8NpcItemEntry* entry;
+
+    count = g_npc_states->count;
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        npc = *g_npc_states->GetAt(npc_index);
+        if (npc->items != 0) {
+            item_count = PLLength(npc->items);
+        } else {
+            item_count = 0;
+        }
+        if (FileWrite(file, &item_count, 4, &written) == 0 || written != 4) {
+            return 0;
+        }
+        for (index = 0; index < item_count; ++index) {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+            if (FileWrite(file, entry, sizeof(*entry), &written) == 0 ||
+                written != sizeof(*entry)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 /* Hand back the NPC binding selected by a monster-list index, or null when

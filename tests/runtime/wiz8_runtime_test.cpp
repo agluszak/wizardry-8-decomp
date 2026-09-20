@@ -86,6 +86,7 @@ struct RuntimeObservation {
     unsigned char world_soaked;
     unsigned char automap_opened;
     unsigned char automap_closed;
+    unsigned char game_saved;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;
@@ -1167,6 +1168,87 @@ static DWORD WINAPI DriveScenario(void*)
                 return FailScenario();
             }
             if (strcmp(g_scenario, "main-game-start") == 0) {
+                /* Quick save first, before the walk can latch the level-motion
+                   override: the save gate reads flag4/fall state. Tapping the
+                   resolved QUICK_SAVE binding dispatches command 314, which
+                   picks a Quick N slot and runs SaveGame — the world screenshot
+                   chunk included — then posts a notice. A fresh Quick file
+                   under Saves\ proves the serializer ran to completion. */
+                if (gfProgramIsRunning && g_mgs_keyboard != 0) {
+                    int save_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_QUICK_SAVE);
+                    MGSKeyBinding* save_binding =
+                        save_index >= 0 ? g_mgs_keyboard->GetBinding(save_index) : 0;
+                    if (save_binding != 0) {
+                        char save_path[0x100];
+                        int slot;
+                        for (slot = 1; slot <= 3; ++slot) {
+                            sprintf(save_path, "Saves\\Quick %d.SAV", slot);
+                            if (FileExists(save_path)) {
+                                FileDelete(save_path);
+                            }
+                        }
+                        WORD save_modifiers[3];
+                        int save_modifier_count = 0;
+                        if ((save_binding->modifiers & SHIFT_DOWN) != 0) {
+                            save_modifiers[save_modifier_count++] = VK_SHIFT;
+                        }
+                        if ((save_binding->modifiers & CTRL_DOWN) != 0) {
+                            save_modifiers[save_modifier_count++] = VK_CONTROL;
+                        }
+                        if ((save_binding->modifiers & ALT_DOWN) != 0) {
+                            save_modifiers[save_modifier_count++] = VK_MENU;
+                        }
+                        int save_modifier_index;
+                        for (save_modifier_index = 0;
+                             save_modifier_index < save_modifier_count; ++save_modifier_index) {
+                            SendScenarioKeyHeld(save_modifiers[save_modifier_index], 0);
+                        }
+                        SendScenarioKeyHeld(save_binding->key, 0);
+                        SendScenarioKeyHeld(save_binding->key, 1);
+                        for (save_modifier_index = 0;
+                             save_modifier_index < save_modifier_count; ++save_modifier_index) {
+                            SendScenarioKeyHeld(save_modifiers[save_modifier_index], 1);
+                        }
+                        slot = 0;
+                        started = GetTickCount();
+                        while (GetTickCount() - started < 20000 && gfProgramIsRunning) {
+                            for (slot = 1; slot <= 3; ++slot) {
+                                sprintf(save_path, "Saves\\Quick %d.SAV", slot);
+                                if (FileExists(save_path)) {
+                                    break;
+                                }
+                            }
+                            if (slot <= 3) {
+                                break;
+                            }
+                            Sleep(200);
+                        }
+                        if (slot <= 3) {
+                            g_observation.game_saved = 1;
+                            ReportStep("game-saved");
+                        } else {
+                            srVector3T<float> save_probe_a;
+                            srVector3T<float> save_probe_b;
+                            GetCameraPosition(&save_probe_a);
+                            Sleep(1000);
+                            GetCameraPosition(&save_probe_b);
+                            fprintf(stderr,
+                                    "runtime-test quick-save: key=0x%x modifiers=0x%x "
+                                    "screen=%d blocked=%d flag4=%d combat=%d "
+                                    "level_flags=0x%x y_a=%.2f y_b=%.2f\n",
+                                    save_binding->key, save_binding->modifiers,
+                                    g_current_screen_state.id, IsScreenInputBlocked(),
+                                    IsLevelDataFlag4EffectivelySet(), gXStatus.fCombatMode,
+                                    g_level_data_00652dac != 0 ? g_level_data_00652dac->flags
+                                                               : 0xffffffffU,
+                                    save_probe_a.y, save_probe_b.y);
+                        }
+                    } else {
+                        fprintf(stderr,
+                                "runtime-test quick-save: QUICK_SAVE binding missing (index=%d)\n",
+                                save_index);
+                    }
+                }
                 /* Hold the MOVE_FORWARD binding (UPARROW) through real frames;
                    the camera position is the party's world position. Keep the
                    key held for the whole window so the walk crosses triggers
@@ -1536,6 +1618,7 @@ int main(int argc, char** argv)
            "character_name_typed=%u character_summary_opened=%u "
            "character_committed=%u character_in_party=%u main_game_entered=%u "
            "party_moved=%u party_turned=%u world_soaked=%u automap_opened=%u automap_closed=%u "
+           "game_saved=%u "
            "return_observed=%u teardown=%u timed_out=%u "
            "npc_state_reset_ok=%u "
            "character_page_start=%d character_page_after=%d "
@@ -1557,7 +1640,8 @@ int main(int argc, char** argv)
            g_observation.character_summary_opened, g_observation.character_committed,
            g_observation.character_in_party, g_observation.main_game_entered,
            g_observation.party_moved, g_observation.party_turned, g_observation.world_soaked,
-           g_observation.automap_opened, g_observation.automap_closed, g_observation.return_observed,
+           g_observation.automap_opened, g_observation.automap_closed, g_observation.game_saved,
+           g_observation.return_observed,
            teardown_ok ? 1 : 0, g_observation.timed_out, g_observation.npc_state_reset_ok,
            g_observation.character_page_start, g_observation.character_page_after,
            g_observation.tooltip_shown, g_observation.tooltip_removed,
@@ -1621,7 +1705,7 @@ int main(int argc, char** argv)
          (strcmp(g_scenario, "main-game-start") != 0 ||
           (g_observation.party_moved && g_observation.party_turned &&
            g_observation.world_soaked && g_observation.automap_opened &&
-           g_observation.automap_closed)));
+           g_observation.automap_closed && g_observation.game_saved)));
     const bool npc_state_reset_ok =
         strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
     const int result = driver_status == 0 && startup_ok &&

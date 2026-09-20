@@ -32,7 +32,9 @@ struct W8MessageStorageRecord {
     unsigned char highlight_start;
     unsigned char highlight_stop;
     int clock_08;
-    unsigned char unknown_0c[4];
+    /* 0x0c: SaveGame snapshots ClockIsTicking(clock_08) here so the TEXT
+       chunk records whether the line's countdown was still running. */
+    int clock_ticking_0c;
     /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
     int link_10;
     int value_14;
@@ -128,6 +130,8 @@ bool CurrentDialogueLineHasContent(void);                              /* 0x0058
 int FindStoppedTextLine(void);                                         /* 0x0058D760 */
 void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058FA90 */
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
+/* 0x0058FB50: write the four message runs into the open TEXT chunk. */
+unsigned char SaveMessageStorage0058FB50(int file);
 void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box = -1,
                 unsigned int wrap_width = ~0U, bool force_dialog = false);
 /* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,

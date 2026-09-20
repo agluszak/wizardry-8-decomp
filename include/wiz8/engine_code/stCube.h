@@ -68,7 +68,7 @@ void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long col
 W8WorldCursorNode* Function48E3E0(int x, int y);
 void DrawWorldBox0048DF30(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
                           unsigned long color);
-void Function48E6D0(int handle);
-void Function48EAD0(int handle);
+unsigned char SaveWorldCursorNodeStates0048E6D0(int handle);
+unsigned char SaveWorldCursorNodes0048EAD0(int handle);
 unsigned int LoadWorldCursorNodes0048E7B0(int handle);
 unsigned int LoadWorldCursorNodeStates0048E470(int handle);

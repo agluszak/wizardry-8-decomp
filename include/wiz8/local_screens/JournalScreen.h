@@ -51,6 +51,9 @@ void InitializeFactJournal(void);
 /* 0x005588F0: append one changed fact to the journal and, unless notices are
    suppressed, post the fact's own journal entry. */
 void RecordFactChangeForJournal(int fact_id);
+/* 0x00558A90: write the entry count, a format dword and each journal entry
+   into the open JRNL chunk. */
+void SaveFactJournal00558A90(int file);
 unsigned char JournalScreenInitialize(void);
 unsigned char JournalScreenEnter(void);
 void JournalScreenFrame(void);

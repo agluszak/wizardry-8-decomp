@@ -384,6 +384,33 @@ unsigned int LoadWorldCursorNodeStates0048E470(int handle)
     return count;
 }
 
+// FUNCTION: WIZ8 0x0048e6d0
+unsigned char SaveWorldCursorNodeStates0048E6D0(int handle)
+{
+    bool ok = true;
+    int version = 2;
+    unsigned int count;
+    unsigned int index;
+    W8WorldCursorNode* node;
+
+    if (!FileWrite(handle, &version, 4, 0)) {
+        return 0;
+    }
+    count = g_world_cursor_nodes_65ba58.count;
+    if (!FileWrite(handle, &count, 4, 0)) {
+        return 0;
+    }
+    for (index = 0; index < count && ok; ++index) {
+        node = *g_world_cursor_nodes_65ba58.GetAt(index);
+        ok = FileWrite(handle, node->name_24, sizeof(node->name_24), 0) &&
+             FileWrite(handle, &node->size_1c, 4, 0);
+        if (node->size_1c != 0) {
+            ok = ok && FileWrite(handle, node->buffer_18, node->size_1c, 0);
+        }
+    }
+    return ok;
+}
+
 // FUNCTION: WIZ8 0x0048e7b0
 unsigned int LoadWorldCursorNodes0048E7B0(int handle)
 {
@@ -481,6 +508,48 @@ unsigned int LoadWorldCursorNodes0048E7B0(int handle)
         DrawWorldCursorNodeLabel0048DCB0(cube);
     }
     return count;
+}
+
+// FUNCTION: WIZ8 0x0048ead0
+unsigned char SaveWorldCursorNodes0048EAD0(int handle)
+{
+    bool ok = true;
+    int version = 3;
+    unsigned int count;
+    unsigned int index;
+    int component;
+    srVector3T<float> location;
+    W8WorldCursorNode* node;
+    srNode::BoundInfo bounds;
+
+    if (!FileWrite(handle, &version, 4, 0)) {
+        return 0;
+    }
+    FileWrite(handle, &g_mipe_cube_serial_006850ba, 4, 0);
+    count = g_world_cursor_nodes_65ba58.count;
+    if (!FileWrite(handle, &count, 4, 0)) {
+        return 0;
+    }
+    for (index = 0; index < count && ok; ++index) {
+        node = *g_world_cursor_nodes_65ba58.GetAt(index);
+        FileWrite(handle, node->name_24, sizeof(node->name_24), 0);
+        for (component = 0; component < 3 && ok; ++component) {
+            ok = FileWrite(handle, &node->numbers_0c[component], 4, 0);
+        }
+        node->node_04->getLocalBounds(bounds);
+        location = node->node_04->getLocation();
+        ok = ok && FileWrite(handle, &bounds.minimum.x, 4, 0) &&
+             FileWrite(handle, &bounds.minimum.y, 4, 0) &&
+             FileWrite(handle, &bounds.minimum.z, 4, 0) &&
+             FileWrite(handle, &bounds.maximum.x, 4, 0) &&
+             FileWrite(handle, &bounds.maximum.y, 4, 0) &&
+             FileWrite(handle, &bounds.maximum.z, 4, 0) &&
+             FileWrite(handle, &location.x, 4, 0) &&
+             FileWrite(handle, &location.y, 4, 0) &&
+             FileWrite(handle, &location.z, 4, 0) &&
+             FileWrite(handle, &node->value_08, 4, 0);
+    }
+    return ok;
 }
 
 // FUNCTION: WIZ8 0x0048ED00
