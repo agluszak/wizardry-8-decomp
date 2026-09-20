@@ -34,6 +34,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
 void DrainPartySpellPoints(int arg_1, int arg_2);   /* 0x0052B550 */
 unsigned int FatigueArmorPenalty(int fatigue_band);
 int SpellCastFatigueCost(int spell_id, int result);
+void SpendCharacterSpellPoints(int party_slot, int realm, int amount); /* 0x0052B480 */
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                     W8SpellEffectResult* report_to);

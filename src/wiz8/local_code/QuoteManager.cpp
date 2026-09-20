@@ -432,6 +432,10 @@ int g_special_event_0068c50c;
 int g_special_event_0068c514;
 // GLOBAL: WIZ8 0x0068C51C
 int g_special_event_0068c51c;
+// GLOBAL: WIZ8 0x0068C524
+int g_special_event_0068c524;
+// GLOBAL: WIZ8 0x0068C528
+int g_special_event_0068c528;
 // GLOBAL: WIZ8 0x0068C52C
 int g_special_event_0068c52c;
 // GLOBAL: WIZ8 0x0068C530

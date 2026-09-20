@@ -39,9 +39,21 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
 unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                           int spell_id);
 /* 0x004FA4D0: one physical callable for queued and repeated casts; returns
-   0/1/2 and writes the per-step point cost. The body remains unrecovered. */
+   0/1/2 and writes the per-step point cost. */
 int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_level,
                               int* out_points, char continue_cast);
+/* 0x004FE740: a backfiring spell swaps roles - the intended target becomes
+   the source and the original source the target. */
+void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FEDC0: pick one random in-combat participant other than the source
+   and write it as the backfired spell's new target. */
+int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FEF90: scatter a backfired point target to a random reachable spot
+   inside the spell's range around its source. */
+void ScatterSpellPointTarget004FEF90(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FF220: the once-per-cast backfire roll for single-target spells -
+   condition 0x0c gates it, a trait save can avoid it. */
+void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
@@ -76,7 +88,14 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                 W8CombatSlot* target, W8GrowableVector<int>* monster_markers,
                                 W8GrowableVector<int>* party_markers,
                                 int highlighting); /* 0x004FD030 */
+/* 0x00501B70: drop every marker that no longer names a live, targetable
+   monster; a few spell ids prune on extra monster-record rules. */
+void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
+/* 0x00501D60: the highest power level this slot can afford to cast the spell
+   at for its current target; zero when none is castable. */
+unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
+extern unsigned char g_profession_spellbooks[W8_PROFESSION_COUNT];
 int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
