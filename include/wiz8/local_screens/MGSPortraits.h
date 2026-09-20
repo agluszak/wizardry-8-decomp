@@ -55,7 +55,8 @@ void CreateLevelButtons(void); /* 0x0059B940 */
    any slot's displayed fraction (or numeric HP) changes. */
 void SyncPartyPortraitVitalsBars(void); /* 0x0059A3A0 */
 /* Advance per-slot portrait FX counters on a 100ms clock and dirty redraw. */
-void TickPartyPortraitFx(void);                                  /* 0x0059B1A0 */
+void StartPortraitSpellIcon0059AF40(int party_slot, int spell_realm, char backfire, int spell_id);
+void TickPartyPortraitFx(void); /* 0x0059B1A0 */
 /* Clear each occupied slot's damage-splat/effect-icon portrait overlays and
    rearm the shared FX clock; run on the main-game screen leave. */
 void ResetPartyPortraitFx(void);                                 /* 0x0059B270 */

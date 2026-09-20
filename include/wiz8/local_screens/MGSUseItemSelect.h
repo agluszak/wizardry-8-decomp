@@ -42,8 +42,8 @@ void Function59D180(void);
 void SelectUseItemLine0059DDC0(int line);                /* 0x0059DDC0 */
 void OpenUseItemAssayDialog59D880(W8ItemInstance* item); /* 0x0059D880 */
 void RestoreTargetCursor59D930(W8DialogBase* dialog);    /* 0x0059D930 */
-void Function59DFA0(W8ItemInstance* item);               /* 0x0059DFA0 */
-void Function59E0F0(void);                               /* 0x0059E0F0 */
+void UpdateUseItemIcon0059DFA0(W8ItemInstance* item);    /* 0x0059DFA0 */
+void MoveUsedItemToCursor0059E0F0(void);                 /* 0x0059E0F0 */
 
 void CloseUseItemSelectView(void);   /* 0x0059CAC0 */
 void Function59CC40(int party_slot); /* 0x0059CC40 */

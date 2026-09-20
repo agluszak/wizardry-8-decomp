@@ -1076,6 +1076,66 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     return 1;
 }
 
+/* Replace the member occupying `character`'s party slot with the serialized
+   record at `record`: dump its equipment and backpack into the party pool,
+   remove the slot, copy the record over and re-seat it in the marching order
+   and formation. With `deduct_cost` set the starting-equipment price is
+   taken out of the party gold. */
+// FUNCTION: WIZ8 0x004EF7E0
+unsigned char ReplacePartyCharacter004EF7E0(W8Character* character, W8Character* record,
+                                            int deduct_cost)
+{
+    unsigned int slot = CharacterPointerToPartySlot(character);
+    int index;
+    W8ItemInstance* item;
+
+    for (index = 0; index < 12; ++index) {
+        item = &character->equipment[index];
+        if (item->item_id != -1) {
+            AddItemToParty(item, 0, 0);
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        item = &character->backpack[index];
+        if (item->item_id != -1) {
+            AddItemToParty(item, 0, 0);
+        }
+    }
+    RemoveCharacterFromParty(slot, 0);
+    memcpy(character, record, W8_CHARACTER_SERIALIZED_SIZE);
+    character->in_party = 1;
+    ResetPartySlotRow(slot);
+    ResetGameplaySlot(slot);
+    g_status_685170.buffers.party_rows[slot].animation_0fa = -1;
+    unsigned int* order_slot = g_status_685170.party_order_slots;
+    for (index = 0; order_slot < g_status_685170.party_order_slots + 8; ++index) {
+        if (*order_slot == 0xffffffffu) {
+            *order_slot = slot;
+            g_status_685170.buffers.party_rows[slot].party_order_index = index;
+            break;
+        }
+        ++order_slot;
+    }
+    PlaceCharacterInFormation(&g_status_685170.formation, slot);
+    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
+    ++g_status_685170.total_member_count;
+    ++g_status_685170.regular_member_count;
+    RebuildCharacterModifierBlock(character);
+    RecalculateCharacterDerivedStats(character);
+    if (deduct_cost != 0) {
+        unsigned int cost = ComputeStartingEquipmentCost(character);
+        if (g_status_685170.party_gold < cost) {
+            srAssertFail("uiValue <= gStatus.uiPartyGold", GAMEPLAY_CODE_CPP, 0x922, 0);
+        }
+        g_status_685170.party_gold -= cost;
+        AddCharacterStartingEquipment(character);
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        RefreshPartySlotRegions();
+    }
+    return static_cast<unsigned char>(slot);
+}
+
 // FUNCTION: WIZ8 0x004EEF10
 void AwardPartyExperience004EEF10(int amount, int alternate_message)
 {

@@ -424,7 +424,7 @@ void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
 void NotifyMonsterIdle(W8Monster* monster, int arg_2);
 void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 
-void Function4C4DE0(int arg_1, int arg_2, int arg_3);
+void UpdateMonsterMarker004C4DE0(int party_slot, int location_id, int on);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */
 void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 

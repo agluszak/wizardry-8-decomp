@@ -35,6 +35,8 @@ extern const wchar_t g_format_s_spaced_colon_0064da8c[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];
+extern double g_world_cursor_extent_table_00616eb0[18];    /* 0x00616EB0 */
+extern signed char g_spell_power_extent_index_00616f41[8]; /* 0x00616F41 */
 
 #include "wiz8/layouts/screen_state.h"
 

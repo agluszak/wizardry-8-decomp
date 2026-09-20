@@ -1,3 +1,6 @@
+#include <wchar.h>
+#include "wiz8/fonts.h"
+#include "wiz8/item_video_object_vector.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
@@ -11,9 +14,11 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_screens/Screens.h"
@@ -28,6 +33,13 @@
 Controls* g_panel_69b998;
 // GLOBAL: WIZ8 0x0069b988
 int g_value_69b988;
+// GLOBAL: WIZ8 0x0069B98C
+int g_use_item_flag_0069b98c;
+/* 0x00614B54: seven-glyph placeholder the quantity text shows for
+   unidentified charge-count items. */
+// GLOBAL: WIZ8 0x00614B54
+const wchar_t g_unidentified_quantity_00614b54[] = {0x06a0, 0x06a1, 0x06a2, 0x06a3,
+                                                    0x06a4, 0x06a5, 0x06a6, 0};
 
 // GLOBAL: WIZ8 0x0069B950
 W8TextControl* g_use_item_select_scroll_buttons[2];
@@ -49,6 +61,8 @@ int g_use_item_cursor_y_0069b9ac;
 int g_use_item_owner_index_0069b9b0;
 // GLOBAL: WIZ8 0x0069B9B4
 W8ItemInstance* g_use_item_list_0069b9b4[0x15e];
+// GLOBAL: WIZ8 0x0069BF2C
+W8ItemInstance* g_use_item_display_item_0069bf2c;
 // GLOBAL: WIZ8 0x0069BF30
 int g_saved_target_cursor_0069bf30;
 // GLOBAL: WIZ8 0x0069BF34
@@ -295,7 +309,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
         srAssertFail("iTextLine < (INT32) guiNumItemsInList", MGSUSEITEMSELECT_CPP, 0x61e, 0);
     }
     SetTargetingMode(0);
-    Function59DFA0(g_use_item_list_0069b9b4[iTextLine]);
+    UpdateUseItemIcon0059DFA0(g_use_item_list_0069b9b4[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index_0069b9b0, g_use_item_list_0069b9b4[iTextLine],
                              SpellCastingNoticeClosed005A02F0) != 0) {
         QueueCharacterEvent(&g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0],
@@ -310,7 +324,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
         return;
     }
     if (IsUsableItemClass00522A00(g_value_69b9a0) != 0) {
-        Function59E0F0();
+        MoveUsedItemToCursor0059E0F0();
         CloseUseItemSelectView();
         return;
     }
@@ -330,6 +344,63 @@ void SelectUseItemLine0059DDC0(int iTextLine)
     ConfigureSpellTargetFilter(target_type, GetTargetNeededForItem(g_value_69b9a0));
 }
 
+/* Refresh the use-item icon control with the item's video object and
+   quantity text, and record it as the displayed item. Stackable items show
+   their stack count when it is not 0 or 1; charge-based items show their
+   remaining charges, or the placeholder glyphs while unidentified. */
+// FUNCTION: WIZ8 0x0059DFA0
+void UpdateUseItemIcon0059DFA0(W8ItemInstance* item)
+{
+    wchar_t quantity_text[32];
+    const wchar_t* text;
+    unsigned short value;
+    unsigned char show_charges;
+
+    show_charges = 0;
+    text = 0;
+    g_use_item_select_controls[0]->m_imageObject =
+        g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
+    g_use_item_select_controls[0]->m_measured_w = -1;
+    g_use_item_select_controls[0]->m_measured_h = -1;
+    g_use_item_select_controls[0]->m_imageFrame = 0;
+    g_use_item_select_controls[0]->m_normalSprite = 0;
+    g_use_item_select_controls[0]->m_pressedSprite = 0;
+    switch (g_item_records[item->item_id].quantity_kind) {
+    case 1:
+        value = item->stack_count;
+        break;
+    case 2:
+    case 3:
+        if (item->identified == 0) {
+            text = g_unidentified_quantity_00614b54;
+        } else {
+            show_charges = 1;
+            value = item->uses_or_charges;
+        }
+        break;
+    case 4:
+        show_charges = 1;
+        value = item->uses_or_charges;
+        break;
+    default:
+        text = g_wchar_0068ee58;
+        break;
+    }
+    if (text == 0) {
+        if (value == 0xffff) {
+            text = g_unidentified_quantity_00614b54;
+        } else if (value > 1 || show_charges != 0) {
+            swprintf(quantity_text, g_format_d_0060aa20, value);
+            text = quantity_text;
+        } else {
+            text = g_wchar_0068ee58;
+        }
+    }
+    g_use_item_select_controls[0]->m_textBuffer.SetText(text, g_font_683660);
+    g_use_item_select_controls[0]->Invalidate(1);
+    g_use_item_display_item_0069bf2c = item;
+}
+
 // FUNCTION: WIZ8 0x0059E0D0
 W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void)
 {
@@ -344,6 +415,38 @@ W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void)
 void SelectCurrentUseItemLine0059E0E0(void)
 {
     SelectUseItemLine0059DDC0(g_selected_use_item_line_0069b95c);
+}
+
+/* Commit the selected use-item onto the cursor. When the cursor already
+   holds an item it is first stowed on the owner (or the party pool); if the
+   pool shifted underneath it, the selected pointer is re-resolved to the
+   following pool slot. */
+// FUNCTION: WIZ8 0x0059E0F0
+void MoveUsedItemToCursor0059E0F0(void)
+{
+    int old_count;
+    int i;
+
+    if (g_status_685170.item_in_cursor == 0) {
+        CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+        return;
+    }
+    if (g_use_item_owner_index_0069b9b0 == -1) {
+        srAssertFail("giUseItemChar != BAD_INDEX", MGSUSEITEMSELECT_CPP, 0x6c1, 0);
+    }
+    old_count = g_status_685170.party_item_count_1791;
+    GiveItemToCharacterOrParty(g_use_item_owner_index_0069b9b0, &g_status_685170.item_in_hand_235b,
+                               1);
+    if (g_use_item_flag_0069b98c == 1 && old_count != g_status_685170.party_item_count_1791 &&
+        g_status_685170.party_item_count_1791 != 0) {
+        for (i = 0; i < g_status_685170.party_item_count_1791; i++) {
+            if (g_value_69b9a0 == &g_status_685170.party_item_pool_0021[i]) {
+                g_value_69b9a0 = &g_status_685170.party_item_pool_0021[i + 1];
+                break;
+            }
+        }
+    }
+    CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
 }
 
 // FUNCTION: WIZ8 0x0059E1E0

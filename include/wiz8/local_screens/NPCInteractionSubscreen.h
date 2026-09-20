@@ -353,6 +353,8 @@ unsigned char SetNpcDialoguePanelVisible(int value); /* 0x00577880 */
 bool ProcessPendingEvent00577A40(void);
 void SyncDialogueNpcStateAndMarkPending00577220(void);
 void ClearMainGameTargetState(void);
+/* 0x0068EE58: empty wide string used to clear dialogue editor text. */
+extern wchar_t g_wchar_0068ee58[4];
 /* 0x0068F0F9: a script notice is staged in g_pending_notice_68ee60 */
 extern unsigned char g_flag_68f0f9;
 void SyncNpcServiceButtons0056EE20(int party_slot); /* 0x0056EE20 */

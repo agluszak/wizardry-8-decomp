@@ -4,6 +4,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/Strings.h"
@@ -27,8 +28,14 @@
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Missile.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PolyPick.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/layouts/screen_state.h"
@@ -571,14 +578,14 @@ void AbsorbMissileDamage00500460(W8Missile* missile)
 
         for (int missile_index = 0; missile_index < effect->missiles.GetCount(); ++missile_index) {
             if (*effect->missiles.GetAt(missile_index) == missile) {
-                effect->result_126.count += missile->result_280.count;
-                effect->result_126.amount += missile->result_280.amount;
+                effect->result_124.result.count += missile->result_280.count;
+                effect->result_124.result.amount += missile->result_280.amount;
                 for (int condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
-                    effect->result_126.condition_counts[condition] +=
+                    effect->result_124.result.condition_counts[condition] +=
                         missile->result_280.condition_counts[condition];
                 }
                 while (missile->result_280.reports.GetCount() >= 1) {
-                    effect->result_126.reports.Add(missile->result_280.reports.RemoveAt(0));
+                    effect->result_124.result.reports.Add(missile->result_280.reports.RemoveAt(0));
                 }
                 return;
             }
@@ -987,7 +994,7 @@ void StartCharacterItemUse(int party_slot)
    of nothing at all short-circuits unless the caller asks for the sum
    anyway. */
 // FUNCTION: WIZ8 0x004ffbd0
-int GetTotalCasterLevel(const W8Character* character, int unused, int spellbook, char include_all)
+int GetTotalCasterLevel(const W8Character* character, int spellbook, char include_all)
 {
     int profession = character->current_profession;
     int total;
@@ -1638,7 +1645,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
 
             best_level = failure;
             chosen = GetMinimumCasterLevelForSpell(spell_id);
-            shortfall = static_cast<int>(chosen) - GetTotalCasterLevel(character, 0, book, 1) - 1 +
+            shortfall = static_cast<int>(chosen) - GetTotalCasterLevel(character, 0, book) - 1 +
                         power_level;
             if (shortfall > 0) {
                 unlocked_skill = g_spell_records[spell_id].spell_level * shortfall + power_level;
@@ -1696,7 +1703,7 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
     chance = GetSpellFailureChance(skill_figure, spell_id, (int)power_level);
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
-                GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id), 1) - 1 +
+                GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id)) - 1 +
                 power_level;
     if (shortfall > 0) {
         chance = g_spell_records[spell_id].spell_level * shortfall + power_level;
@@ -2166,28 +2173,29 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
     const unsigned short* condition_text = g_spell_condition_text_0061e57a;
 
     if (GetTextBoxMode() != 0) {
-        AppendToLastTextLine(effect->reported_124 == 0 ? L" -- " : L", ", -1);
+        AppendToLastTextLine(effect->result_124.reported == 0 ? L" -- " : L", ", -1);
         SetTextBoxMode(1, -1);
     }
-    if (effect->result_126.amount != 0) {
-        if (effect->result_126.count == 1) {
+    if (effect->result_124.result.amount != 0) {
+        if (effect->result_124.result.count == 1) {
             AppendToLastTextLine(
-                FormatWideString(gppStringList[0x668 / 4], effect->result_126.amount), -1);
+                FormatWideString(gppStringList[0x668 / 4], effect->result_124.result.amount), -1);
         } else {
             AppendToLastTextLine(
-                FormatWideString(gppStringList[0x664 / 4], effect->result_126.count,
-                                 effect->result_126.amount / effect->result_126.count, -1),
+                FormatWideString(gppStringList[0x664 / 4], effect->result_124.result.count,
+                                 effect->result_124.result.amount / effect->result_124.result.count,
+                                 -1),
                 -1);
             SetTextBoxMode(1, -1);
         }
         SetTextBoxMode(1, -1);
-        effect->reported_124 = 1;
+        effect->result_124.reported = 1;
     }
-    unsigned int* condition_count = &effect->result_126.condition_counts[1];
+    unsigned int* condition_count = &effect->result_124.result.condition_counts[1];
 
     do {
         if (*condition_count != 0) {
-            if (effect->reported_124 != 0 && GetTextBoxMode() != 0) {
+            if (effect->result_124.reported != 0 && GetTextBoxMode() != 0) {
                 AppendToLastTextLine(L", ", -1);
                 SetTextBoxMode(1, -1);
             }
@@ -2214,33 +2222,33 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                     -1);
             }
             SetTextBoxMode(1, -1);
-            effect->reported_124 = 1;
+            effect->result_124.reported = 1;
         }
         condition_text += 4;
         ++condition_count;
     } while (condition_text < g_spell_condition_text_0061e57a + 76);
 
-    while (effect->result_126.reports.GetCount() > 0) {
-        W8SpellDamageReport* report = *effect->result_126.reports.GetAt(0);
-        effect->result_126.reports.RemoveAt(0);
+    while (effect->result_124.result.reports.GetCount() > 0) {
+        W8SpellDamageReport* report = *effect->result_124.result.reports.GetAt(0);
+        effect->result_124.result.reports.RemoveAt(0);
         if (report != 0) {
             if (report->kind == 1) {
                 SetTextBoxMode(0, -1);
                 PostCharacterNotice(
                     report->value, L"%s",
                     gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
-                effect->reported_124 = 1;
+                effect->result_124.reported = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 ShowNoticef(
                     9, L"%s %s", report->text,
                     gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
-                effect->reported_124 = 1;
+                effect->result_124.reported = 1;
             }
             free(report);
         }
     }
-    if (effect->reported_124 == 0) {
+    if (effect->result_124.reported == 0) {
         AppendToLastTextLine(gppStringList[0x694 / 4], -1);
     }
 }
@@ -2288,4 +2296,1284 @@ bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int powe
                             g_effect_argument_005ed914);
     }
     return valid;
+}
+
+/* 0x006035a4: the empty string CombatLog writes as a record terminator. */
+// GLOBAL: WIZ8 0x006035a4
+char g_empty_string_006035a4[] = "";
+
+/* 0x00689b68: debug switch that forces every cast to roll failure; spell 0x76
+   is exempt. */
+// GLOBAL: WIZ8 0x00689b68
+unsigned char g_force_spell_failure = 0;
+
+/* Drop dead, inactive or untargetable entries out of a collected monster
+   marker list, then apply the spell-specific kind filter: 0x16 keeps only
+   elemental kinds 0x14/0x15, 0x4d keeps those plus kind 0x1c and summoned
+   monsters, 0x81 keeps only kind 0x14. */
+// FUNCTION: WIZ8 0x00501b70
+void FilterSpellTargetList00501B70(int spell_id, W8GrowableVector<int>* monster_markers)
+{
+    for (int index = monster_markers->count - 1; index >= 0; --index) {
+        unsigned int list_index =
+            MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, *monster_markers->GetAt(index), 1);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+        W8MonsterRecord* record = GetMonsterDataForInfo(info);
+        if (info->fActive == 0 || info->hp_current == 0 || info->condition_turns[0x12] != 0 ||
+            record->untargetable_24a != 0) {
+            monster_markers->RemoveAt(index);
+        } else if (spell_id == 0x16) {
+            if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15) {
+                monster_markers->RemoveAt(index);
+            }
+        } else if (spell_id == 0x4d) {
+            if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15 && record->kind_0cb != 0x1c &&
+                info->summoned_2da == 0) {
+                monster_markers->RemoveAt(index);
+            }
+        } else if (spell_id == 0x81 && record->kind_0cb != 0x14) {
+            monster_markers->RemoveAt(index);
+        }
+    }
+}
+
+/* A backfired spell retargets onto its own side: the caster becomes the new
+   source, and the recorded target is rebuilt to match the caster's kind -
+   character sources hit the whole party, monster sources their group. */
+// FUNCTION: WIZ8 0x004fe740
+void RetargetBackfiredCast004FE740(W8TargetSource* source, W8CombatSlot* target)
+{
+    if (source->fBackfire != 0) {
+        srAssertFail("!pSource->fBackfire", MAGIC_CPP, 0xbf7, 0);
+    }
+    W8TargetSource saved_source = *source;
+    W8CombatSlot saved_target = *target;
+    unsigned int slot;
+    switch (saved_target.iType) {
+    case W8_TARGET_KIND_CHARACTER:
+    case W8_TARGET_KIND_CHARACTER_INDIRECT:
+        SetTargetSourceToCharacter(saved_target.iChar, source);
+        if (TargetSourceIsCharacter(&saved_source, 0)) {
+            target->iType = W8_TARGET_KIND_CHARACTER;
+            target->iChar = saved_source.iChar;
+            source->unknown_1d = 1;
+            return;
+        }
+        if (TargetSourceIsMonster(&saved_source, 0)) {
+            target->iType = W8_TARGET_KIND_MONSTER;
+            target->iMonsterID = saved_source.iMonsterID;
+            source->unknown_1d = 1;
+            return;
+        }
+        srAssertFail("FALSE", MAGIC_CPP, 0xc6b, 0);
+        source->unknown_1d = 1;
+        return;
+    case W8_TARGET_KIND_PARTY:
+        for (slot = 0; slot < 8; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                g_status_685170.buffers.characters[slot].hp_current != 0 &&
+                g_status_685170.buffers.characters[slot].highest_condition < 0x12) {
+                SetTargetSourceToCharacter(slot, source);
+                ResetCombatSlot(target);
+                if (saved_source.iType == W8_TARGET_SOURCE_CHARACTER) {
+                    target->iType = W8_TARGET_KIND_PARTY;
+                    source->unknown_1d = 1;
+                    return;
+                }
+                if (saved_source.iType == W8_TARGET_SOURCE_MONSTER) {
+                    target->iType = W8_TARGET_KIND_GROUP;
+                    target->iGroupID =
+                        MonsterInfoFromID(0xc2a, MAGIC_CPP, saved_source.iMonsterID, 1)
+                            ->monster_group_id;
+                    source->unknown_1d = 1;
+                    return;
+                }
+                srAssertFail("FALSE", MAGIC_CPP, 0xc2d, 0);
+                source->unknown_1d = 1;
+                return;
+            }
+        }
+        srAssertFail("FALSE", MAGIC_CPP, 0xc1b, 0);
+        return;
+    case W8_TARGET_KIND_MONSTER: {
+        unsigned int list_index =
+            MonsterGetIndexByLocationID(0xc09, MAGIC_CPP, saved_target.iMonsterID, 1);
+        SetTargetSourceToMonster(MonsterGetScriptPartByLocationIndex(list_index), source);
+        if (TargetSourceIsCharacter(&saved_source, 0)) {
+            target->iType = W8_TARGET_KIND_CHARACTER;
+            target->iChar = saved_source.iChar;
+            source->unknown_1d = 1;
+            return;
+        }
+        if (TargetSourceIsMonster(&saved_source, 0)) {
+            target->iType = W8_TARGET_KIND_MONSTER;
+            target->iMonsterID = saved_source.iMonsterID;
+            source->unknown_1d = 1;
+            return;
+        }
+        srAssertFail("FALSE", MAGIC_CPP, 0xc6b, 0);
+        source->unknown_1d = 1;
+        return;
+    }
+    case W8_TARGET_KIND_GROUP: {
+        unsigned int group_index =
+            GetMonsterGroupIndexByID(0xc33, MAGIC_CPP, saved_target.iGroupID, 1);
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+        unsigned int list_index = MonsterGetIndexByLocationID(0xc33, MAGIC_CPP, group->value_9f, 1);
+        SetTargetSourceToMonster(MonsterGetScriptPartByLocationIndex(list_index), source);
+        ResetCombatSlot(target);
+        if (saved_source.iType == W8_TARGET_SOURCE_CHARACTER) {
+            target->iType = W8_TARGET_KIND_PARTY;
+            source->unknown_1d = 1;
+            return;
+        }
+        if (saved_source.iType == W8_TARGET_SOURCE_MONSTER) {
+            target->iType = W8_TARGET_KIND_GROUP;
+            target->iGroupID =
+                MonsterInfoFromID(0xc40, MAGIC_CPP, saved_source.iMonsterID, 1)->monster_group_id;
+            source->unknown_1d = 1;
+            return;
+        }
+        srAssertFail("FALSE", MAGIC_CPP, 0xc43, 0);
+        source->unknown_1d = 1;
+        return;
+    }
+    default:
+        srAssertFail("FALSE", MAGIC_CPP, 0xc52, 0);
+        return;
+    }
+}
+
+/* Insanity retargeting, single-target form: count every occupied party slot
+   and live in-combat monster other than the caster, pick one uniformly at
+   random and rewrite the target slot to it. */
+// FUNCTION: WIZ8 0x004fedc0
+bool PickRandomHostileTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+{
+    unsigned int candidates = 0;
+    unsigned int slot;
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            (!TargetSourceIsCharacter(source, 0) || static_cast<unsigned int>(source->iChar) != slot)) {
+            ++candidates;
+        }
+    }
+    unsigned int list_index = 0;
+    while (list_index < PLLength(gXStatus.plsMonsterList)) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+        if (info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
+            (!TargetSourceIsMonster(source, 0) || source->iMonsterID != info->location_id)) {
+            ++candidates;
+        }
+        ++list_index;
+    }
+    if (candidates == 0) {
+        return 0;
+    }
+    int pick = Random(candidates) + 1;
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            (!TargetSourceIsCharacter(source, 0) || static_cast<unsigned int>(source->iChar) != slot) && --pick == 0) {
+            if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_ENEMY_GROUP) {
+                target->iType = W8_TARGET_KIND_PARTY;
+                return 1;
+            }
+            target->iChar = slot;
+            target->iType = W8_TARGET_KIND_CHARACTER;
+            return 1;
+        }
+    }
+    list_index = 0;
+    while (list_index < PLLength(gXStatus.plsMonsterList)) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+        if (info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
+            (!TargetSourceIsMonster(source, 0) || source->iMonsterID != info->location_id) &&
+            --pick == 0) {
+            if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_ENEMY_GROUP) {
+                target->iType = W8_TARGET_KIND_GROUP;
+                target->iGroupID = info->monster_group_id;
+                return 1;
+            }
+            target->iType = W8_TARGET_KIND_MONSTER;
+            target->iMonsterID = info->location_id;
+            return 1;
+        }
+        ++list_index;
+    }
+    return 0;
+}
+
+/* Insanity retargeting, area form: scatter the target point to a random offset
+   within the spell's range of the caster, snapped to walkable ground, clamped
+   back to range when the traced point lands too far out. */
+// FUNCTION: WIZ8 0x004fef90
+void ScatterSpellTargetPoint004FEF90(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+{
+    float range = CalcRangeDistance(g_spell_records[spell_id].range_category);
+    W8Navigator* navigator;
+    if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
+        if (source->iType != W8_TARGET_SOURCE_MONSTER) {
+            srAssertFail("pSource->iType == SOURCE_TYPE_MONSTER", MAGIC_CPP, 0xd80, 0);
+        }
+        W8MonsterInfo* info = MonsterInfoFromID(0xd81, MAGIC_CPP, source->iMonsterID, 1);
+        navigator = info->monster;
+    } else {
+        navigator = g_startup_world_659c0c;
+    }
+    srVector3T<float> origin = navigator->GetPosition();
+    srVector3T<float> point;
+    int tries = 0;
+    do {
+        point.x = static_cast<float>(
+            (Random(2001) - g_monster_poster_max_distance_005ec3d8) * range * g_double_005ec8d0 +
+            origin.x);
+        point.z = static_cast<float>(
+            (Random(2001) - g_monster_poster_max_distance_005ec3d8) * range * g_double_005ec8d0 +
+            origin.z);
+        point.y = Random(1001) * range * static_cast<float>(g_double_005ec8d0) + origin.y;
+        g_octree_6598a4->TraceLineOfSight(&origin, &point, 1, -3, -3, 1, 0);
+        point.y = SettlePositionToGround00420BD0(&point, 0);
+        if (point.y != -1000000.0f) {
+            break;
+        }
+        ++tries;
+    } while (tries < 5);
+    srVector3T<float> offset;
+    offset.x = origin.x - point.x;
+    offset.y = origin.y - point.y;
+    offset.z = origin.z - point.z;
+    float distance_squared = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+    if (range < sqrtf(distance_squared)) {
+        if (distance_squared != 0.0f) {
+            float scale = range / sqrtf(distance_squared);
+            offset.x = offset.x * scale;
+            offset.y = offset.y * scale;
+            offset.z = offset.z * scale;
+        }
+        point.x = offset.x + origin.x;
+        point.y = offset.y + origin.y;
+        point.z = offset.z + origin.z;
+    }
+    target->point = point;
+}
+
+/* Insanity gate: a caster under condition 0xc (insanity) whose own target is
+   not itself rerolls 20% of the time - single-target spells pick a random
+   hostile victim, area spells scatter the target point - and posts the "is
+   insane" notice. A character with trait 7 may dodge the reroll outright. */
+// FUNCTION: WIZ8 0x004ff220
+void ApplyInsanityRetarget004FF220(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+{
+    W8MonsterInfo* info = 0;
+    if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
+        W8Character* character = &g_status_685170.buffers.characters[source->iChar];
+        if (character->condition_turns[0xc] == 0) {
+            return;
+        }
+        if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
+            return;
+        }
+        if (CharacterHasTrait00547940(character, 7) &&
+            Random(100) < static_cast<unsigned int>(
+                              ScaleValueByProfessionLevel005479B0(character, 7, 50.0f))) {
+            return;
+        }
+    } else {
+        if (source->iType != W8_TARGET_SOURCE_MONSTER) {
+            return;
+        }
+        info = MonsterInfoFromID(0xdcf, MAGIC_CPP, source->iMonsterID, 1);
+        if (info->condition_turns[0xc] == 0) {
+            return;
+        }
+        if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID == source->iMonsterID) {
+            return;
+        }
+    }
+    if (Random(100) >= 0x14) {
+        return;
+    }
+    switch (GetSpellTargetType(spell_id, 0)) {
+    case W8_TARGET_TYPE_ALLY:
+    case W8_TARGET_TYPE_ENEMY:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        if (PickRandomHostileTarget004FEDC0(spell_id, source, target) == 0) {
+            return;
+        }
+        break;
+    case W8_TARGET_TYPE_CONE:
+    case W8_TARGET_TYPE_RADIUS:
+    case W8_TARGET_TYPE_POINT:
+        ScatterSpellTargetPoint004FEF90(spell_id, source, target);
+        break;
+    default:
+        return;
+    }
+    if (TargetSourceIsCharacter(source, 0)) {
+        PostCharacterNotice(source->iChar, gppStringList[0x191]);
+        return;
+    }
+    if (TargetSourceIsMonster(source, 0)) {
+        PostMonsterNotice(info, gppStringList[0x191]);
+    }
+}
+
+/* Rewrites source and target for a backfired cast. Party, all-enemy and
+   lock-or-trap spells are left alone; single ally/enemy/group targets go
+   through RetargetBackfiredCast004FE740; cone spells trace the aimed line and
+   turn the source into an indirect point at the caster position; radius
+   spells retarget the point onto the caster's own navigator position. */
+// FUNCTION: WIZ8 0x004fea50
+void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target)
+{
+    if (source->iType < W8_TARGET_SOURCE_CHARACTER || source->iType > W8_TARGET_SOURCE_INDIRECT) {
+        srAssertFail("(pSource->iType > SOURCE_TYPE_NONE) && (pSource->iType < SOURCE_TYPE_COUNT)",
+                     MAGIC_CPP, 0xc78, 0);
+    }
+    if (target->iType < W8_TARGET_KIND_CHARACTER ||
+        target->iType > W8_TARGET_KIND_CHARACTER_INDIRECT) {
+        srAssertFail("(pTarget->iType > TARGET_TYPE_NONE) && (pTarget->iType < TARGET_TYPE_COUNT)",
+                     MAGIC_CPP, 0xc79, 0);
+    }
+    if (source->fBackfire != 0) {
+        srAssertFail("!pSource->fBackfire", MAGIC_CPP, 0xc7c, 0);
+    }
+    W8MonsterInfo* info = 0;
+    if (TargetSourceIsMonster(source, 0)) {
+        unsigned int list_index =
+            MonsterGetIndexByLocationID(0xc81, MAGIC_CPP, source->iMonsterID, 1);
+        info = MonsterGetScriptPartByLocationIndex(list_index);
+    }
+    switch (GetSpellTargetType(spell_id, 0)) {
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
+    case W8_TARGET_TYPE_LOCK_OR_TRAP:
+        return;
+    case W8_TARGET_TYPE_ENEMY:
+        if (spell_id == 3 || spell_id == 0x29) {
+            return;
+        }
+        /* fall through */
+    case W8_TARGET_TYPE_ALLY:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        RetargetBackfiredCast004FE740(source, target);
+        return;
+    case W8_TARGET_TYPE_CONE: {
+        srVector3T<float> eye;
+        if (TargetSourceIsCharacter(source, 0)) {
+            GetCameraPosition(&eye);
+        } else if (TargetSourceIsMonster(source, 0)) {
+            if (info->monster->GetSpellPosition004C78E0(&eye) == 0) {
+                info->monster->GetMappedPosition004C72A0(&eye);
+            }
+        } else {
+            eye = source->point;
+        }
+        srVector3T<float> end = target->point;
+        g_octree_6598a4->TraceLineOfSight(&eye, &end, 1, -3, -3, 1, 0);
+        target->point = end;
+        srVector3T<float> saved_point = source->point;
+        source->point = target->point;
+        if (TargetSourceIsCharacter(source, 0)) {
+            GetCameraPosition(&target->point);
+            source->iType = W8_TARGET_SOURCE_INDIRECT;
+            return;
+        }
+        if (TargetSourceIsMonster(source, 0)) {
+            target->point.x = info->monster->movement_0c0.position_040.x;
+            target->point.y = info->monster->movement_0c0.position_040.y +
+                              info->monster->movement_0c0.height_offset_0b8;
+            target->point.z = info->monster->movement_0c0.position_040.z;
+            source->iType = W8_TARGET_SOURCE_INDIRECT;
+            return;
+        }
+        target->point = saved_point;
+        source->iType = W8_TARGET_SOURCE_INDIRECT;
+        return;
+    }
+    case W8_TARGET_TYPE_RADIUS: {
+        srVector3T<float> saved_point = source->point;
+        source->point = target->point;
+        if (TargetSourceIsCharacter(source, 0)) {
+            target->point = g_startup_world_659c0c->GetPosition();
+            source->iType = W8_TARGET_SOURCE_INDIRECT;
+            return;
+        }
+        if (TargetSourceIsMonster(source, 0)) {
+            target->point = info->monster->GetPosition();
+            source->iType = W8_TARGET_SOURCE_INDIRECT;
+            return;
+        }
+        target->point = saved_point;
+        source->iType = W8_TARGET_SOURCE_INDIRECT;
+        return;
+    }
+    default:
+        char* message = FormatString(
+            "SpellBackfires: ERROR - Invalid spell target type for spell %d", spell_id);
+        srAssertFail("FALSE", MAGIC_CPP, 0xd04, message);
+        return;
+    }
+}
+
+/* Collect the monster and party-slot marker lists for one cast. The source's
+   world position and eye position come from the party navigator and camera
+   for a character, the monster's own navigator (and its spell vertex when it
+   carries one) for a monster, or the point itself for an indirect source.
+   Target-type dispatch then fills the lists: direct targets append a single
+   entry, party/enemy-group targets walk the party rows or group members, and
+   cone/radius/all-enemy targets gather by collection helpers with a side
+   selector that inverts for a backfired or reflected cast. */
+// FUNCTION: WIZ8 0x004fd030
+void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* source,
+                                W8CombatSlot* target, W8GrowableVector<int>* monster_markers,
+                                W8GrowableVector<int>* party_markers, int highlighting)
+{
+    W8Monster* monster = 0;
+    bool party_included = false;
+    W8MonsterInfo* info = 0;
+    char sight_flag;
+    /* Retail keeps this in the spell_id stack slot: paths that never assign a
+       side read back the spell id's low byte. */
+    char side = static_cast<char>(spell_id);
+    unsigned int slot;
+
+    if (source->fBackfire == 0 && source->fReflection == 0 &&
+        SourceActionReachesTarget(source, target) == 0) {
+        return;
+    }
+    srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
+    srVector3T<float> camera_position;
+    GetCameraPosition(&camera_position);
+    srVector3T<float> source_position;
+    srVector3T<float> eye;
+    if (TargetSourceIsMonster(source, 1)) {
+        if (source->iMonsterID == -1) {
+            FormatDebugMessage(1,
+                               "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, 0xffffffff);
+            return;
+        }
+        unsigned int list_index =
+            MonsterGetIndexByLocationID(0x937, MAGIC_CPP, source->iMonsterID, 1);
+        info = MonsterGetScriptPartByLocationIndex(list_index);
+        GetMonsterDataForInfo(info);
+        monster = info->monster;
+    }
+    if (TargetSourceIsCharacter(source, 0)) {
+        source_position = party_position;
+        eye = camera_position;
+    } else if (TargetSourceIsMonster(source, 0)) {
+        source_position = monster->GetPosition();
+        if (source->unknown_1d == 0 && spell_id != 0x77 && info->has_spell_37c != 0) {
+            if (monster->GetSpellPosition004C78E0(&eye) != 0) {
+                sight_flag = 3;
+                goto have_positions;
+            }
+            srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
+        }
+        eye.x = monster->movement_0c0.position_040.x;
+        eye.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
+        eye.z = monster->movement_0c0.position_040.z;
+        sight_flag = 2;
+    } else {
+        eye = source->point;
+        source_position = eye;
+    }
+have_positions:
+    srVector3T<float> target_point = target->point;
+    int original_spell = spell_id;
+    switch (GetSpellTargetType(spell_id, 0)) {
+    case W8_TARGET_TYPE_CASTER:
+    case W8_TARGET_TYPE_ENEMY:
+        if (target->iType == W8_TARGET_KIND_CHARACTER) {
+            party_markers->Add(target->iChar);
+            goto finish;
+        }
+        if (target->iType != W8_TARGET_KIND_MONSTER) {
+            if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_ENEMY) {
+                FormatDebugMessage(1,
+                                   "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
+            }
+            goto finish;
+        }
+        goto add_monster_target;
+    case W8_TARGET_TYPE_ALLY:
+        if (target->iType == W8_TARGET_KIND_CHARACTER ||
+            target->iType == W8_TARGET_KIND_CHARACTER_INDIRECT) {
+            party_markers->Add(target->iChar);
+            goto finish;
+        }
+        if (target->iType != W8_TARGET_KIND_MONSTER) {
+            FormatDebugMessage(1,
+                               "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, source->iMonsterID);
+            return;
+        }
+    add_monster_target:
+        monster_markers->Add(target->iMonsterID);
+        goto finish;
+    case W8_TARGET_TYPE_PARTY: {
+        float radius =
+            (g_spell_records[spell_id].radius_per_power_127 * power_level +
+             g_spell_records[spell_id].effect_radius) *
+            g_world_scale_005ebc40;
+        if (TargetSourceIsCharacter(source, 0)) {
+            party_included = true;
+            side = 2;
+            if (0.0f < radius) {
+                radius = g_startup_world_659c0c->radius_084 + radius;
+            }
+        } else if (TargetSourceIsMonster(source, 0)) {
+            side = info->ubDisposition;
+            if (info->ubDisposition == 2) {
+                float dx = source_position.x - party_position.x;
+                float dy = source_position.y - party_position.y;
+                float dz = source_position.z - party_position.z;
+                if (sqrtf(dx * dx + dy * dy + dz * dz) <= radius &&
+                    info->player_visibility.sight_flags_05[static_cast<int>(sight_flag)] != 0) {
+                    party_included = true;
+                }
+            } else if (info->ubDisposition != 1) {
+                goto invalid_source;
+            }
+            radius = monster->radius_084 + radius;
+        } else {
+            side = 2;
+            float dx = source_position.x - party_position.x;
+            float dy = source_position.y - party_position.y;
+            float dz = source_position.z - party_position.z;
+            if (sqrtf(dx * dx + dy * dy + dz * dz) <= radius &&
+                g_octree_6598a4->TraceLineOfSight(&eye, &camera_position, 1, -3, -3, 1, 0) == 0) {
+                party_included = true;
+            }
+        }
+        CollectMonstersWithinRadius(&source_position, &eye, monster_markers, radius, side,
+                                    static_cast<char>(highlighting));
+        break;
+    }
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        if (target->iType == W8_TARGET_KIND_GROUP) {
+            W8MonsterGroup* group = GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(0x99f, MAGIC_CPP, target->iGroupID, 1));
+            if (group == 0) {
+                FormatDebugMessage(1,
+                                   "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
+            }
+            for (unsigned int index = 0; index < ILLength(group->monsters); ++index) {
+                int member_id = IListGetAt(group->monsters, index);
+                W8MonsterInfo* member = MonsterInfoFromID(0x9aa, MAGIC_CPP, member_id, 1);
+                if (member->ubDisposition == group->ubDisposition) {
+                    monster_markers->Add(member_id);
+                }
+            }
+            goto finish;
+        }
+        if (target->iType != W8_TARGET_KIND_PARTY) {
+            FormatDebugMessage(1,
+                               "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, source->iMonsterID);
+            return;
+        }
+        goto collect_party_markers;
+    case W8_TARGET_TYPE_CONE: {
+        float heading = GetHeadingAngle(&eye, &target_point);
+        float elevation = GetElevationAngle(&eye, &target_point);
+        if (TargetSourceIsCharacter(source, 0)) {
+            side = 1;
+        } else if (TargetSourceIsMonster(source, 0)) {
+            if (info->ubDisposition == 2) {
+                side = 1;
+            } else {
+                if (info->ubDisposition != 1) {
+                    goto invalid_source;
+                }
+                side = 2;
+                if (TargetInRangeAndArcs00539B70(&camera_position,
+                                                 g_startup_world_659c0c->radius_084, &eye,
+                                                 monster->radius_084, heading, elevation) &&
+                    info->player_visibility.sight_flags_05[static_cast<int>(sight_flag)] != 0) {
+                    party_included = true;
+                }
+            }
+        } else {
+            side = 3;
+            if (source->fBackfire != 0 || source->fReflection != 0) {
+                if (source->iChar == -1) {
+                    if (source->iMonsterID != -1 &&
+                        MonsterInfoFromID(0x9f3, MAGIC_CPP, source->iMonsterID, 1)->ubDisposition !=
+                            2) {
+                        side = 1;
+                        goto cone_collect;
+                    }
+                } else {
+                    side = 2;
+                }
+            }
+            if (TargetInRangeAndArcs00539B70(&camera_position, g_startup_world_659c0c->radius_084,
+                                             &eye, 0, heading, elevation) &&
+                g_octree_6598a4->TraceLineOfSight(&eye, &camera_position, 1, -3, -3, 1, 0) == 0) {
+                party_included = true;
+            }
+        }
+    cone_collect:
+        CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers, side,
+                                          sight_flag);
+        if (monster_markers->count == 0 && (g_combat_state == 0 || g_combat_state->flag_a54 == 0) &&
+            TargetSourceIsCharacter(source, 0) && side == 1 && !AnyMonsterEngaged()) {
+            CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers, 3,
+                                              sight_flag);
+        }
+        break;
+    }
+    case W8_TARGET_TYPE_RADIUS: {
+        srVector3T<float> centre = target_point;
+        centre.y = target_point.y - g_float_005ebc64;
+        float radius =
+            (g_spell_records[spell_id].radius_per_power_127 * power_level +
+             g_spell_records[spell_id].effect_radius) *
+            g_world_scale_005ebc40;
+        float dx;
+        float dy;
+        float dz;
+        if (TargetSourceIsCharacter(source, 1)) {
+            if (source->fBackfire == 0 && source->fReflection == 0) {
+                side = 1;
+            } else {
+                side = 2;
+                goto radius_vis_check;
+            }
+        } else if (TargetSourceIsMonster(source, 1)) {
+            if (info->ubDisposition == 2) {
+                if (source->fBackfire == 0 && source->fReflection == 0) {
+                    side = 1;
+                } else {
+                    side = 2;
+                    goto radius_vis_check;
+                }
+            } else {
+                if (info->ubDisposition != 1) {
+                    goto invalid_source;
+                }
+                if (source->fBackfire == 0 && source->fReflection == 0) {
+                    side = 2;
+                    goto radius_vis_check;
+                }
+                side = 1;
+            }
+        } else {
+            side = 3;
+        radius_vis_check:
+            dx = centre.x - party_position.x;
+            dy = centre.y - party_position.y;
+            dz = centre.z - party_position.z;
+            if (sqrtf(dx * dx + dy * dy + dz * dz) <= radius &&
+                g_octree_6598a4->TraceLineOfSight(&target_point, &camera_position, 1, -3, -3, 1,
+                                                  0) == 0) {
+                party_included = true;
+            }
+        }
+        CollectMonstersWithinRadius(&centre, &target_point, monster_markers, radius, side,
+                                    static_cast<char>(highlighting));
+        if (monster_markers->count == 0 && (g_combat_state == 0 || g_combat_state->flag_a54 == 0) &&
+            TargetSourceIsCharacter(source, 0) && side == 1 && !AnyMonsterEngaged()) {
+            CollectMonstersWithinRadius(&centre, &target_point, monster_markers, radius, 3,
+                                        static_cast<char>(highlighting));
+        }
+        break;
+    }
+    case W8_TARGET_TYPE_ALL_ENEMIES: {
+        target->point = eye;
+        float radius = CalcRangeDistance(g_spell_records[spell_id].range_category, source);
+        float dx;
+        float dy;
+        float dz;
+        if (TargetSourceIsCharacter(source, 1) ||
+            (TargetSourceIsMonster(source, 1) && info->ubDisposition == 2)) {
+            if (source->fBackfire != 0 || source->fReflection != 0) {
+                side = 2;
+                goto all_enemies_vis_check;
+            }
+            side = 1;
+        } else if (TargetSourceIsMonster(source, 1)) {
+            if (source->fBackfire == 0 && source->fReflection == 0) {
+                side = 2;
+                goto all_enemies_vis_check;
+            }
+            side = 1;
+        } else {
+            side = 3;
+        all_enemies_vis_check:
+            dx = source_position.x - party_position.x;
+            dy = source_position.y - party_position.y;
+            dz = source_position.z - party_position.z;
+            if (sqrtf(dx * dx + dy * dy + dz * dz) <= radius &&
+                g_octree_6598a4->TraceLineOfSight(&eye, &camera_position, 1, -3, -3, 1, 0) == 0) {
+                party_included = true;
+            }
+        }
+        CollectMonstersWithinRadius(&source_position, &eye, monster_markers, radius, side,
+                                    static_cast<char>(highlighting));
+        if (monster_markers->count == 0 && (g_combat_state == 0 || g_combat_state->flag_a54 == 0) &&
+            TargetSourceIsCharacter(source, 0) && side == 1 && !AnyMonsterEngaged()) {
+            CollectMonstersWithinRadius(&source_position, &eye, monster_markers, radius, 3,
+                                        static_cast<char>(highlighting));
+        }
+        break;
+    }
+    default:
+        goto finish;
+    }
+    if (party_included) {
+    collect_party_markers:
+        if (original_spell != 0x16 && original_spell != 0x4d) {
+            for (slot = 0; slot < 8; ++slot) {
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    g_status_685170.buffers.characters[slot].hp_current != 0 &&
+                    g_status_685170.buffers.characters[slot].highest_condition < 0x12 &&
+                    (g_status_685170.buffers.characters[slot].condition_turns[0xd] == 0 ||
+                     !MonsterCanAimSpell005474B0(original_spell) || side == 3)) {
+                    party_markers->Add(slot);
+                }
+            }
+        }
+    }
+finish:
+    FilterSpellTargetList00501B70(original_spell, monster_markers);
+    return;
+invalid_source:
+    FormatDebugMessage(1,
+                       "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, monster ID %d, "
+                       "group ID %d), Source Type %d(char %d,ID %d)",
+                       spell_id, g_spell_records[spell_id].display_name, target->iType,
+                       target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                       source->iChar, source->iMonsterID);
+    return;
+}
+
+/* Cast one spell: build the queued W8SpellEffectEntry, roll failure and
+   backfire, collect or copy the target marker lists, spawn the visual or
+   deliver the effect by missile, and queue or immediately resolve it.
+   Returns 0 when the entry allocation failed, 1 for a normal cast, 2 when the
+   spell fizzled and 3 when it backfired onto its caster. */
+// FUNCTION: WIZ8 0x004fb4c0
+int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
+                        unsigned int power_level, int a, int b, char c, int* d, int e,
+                        W8GrowableVector<int>* party_targets,
+                        W8GrowableVector<int>* monster_targets)
+{
+    bool fizzled = false;
+    W8GrowableVector<int> monster_list;
+    W8GrowableVector<int> party_list;
+    int index;
+    bool quiet = e == 4;
+    bool forced = false;
+    if (d != 0) {
+        *d = 0;
+    }
+    W8SpellEffectEntry* owner = new W8SpellEffectEntry;
+    if (owner == 0) {
+        return 0;
+    }
+    owner->OrigSource = *source;
+    owner->OrigTarget = *target;
+    int caster_slot;
+    if (TargetSourceIsCharacter(source, 0)) {
+        caster_slot = source->iChar;
+    } else {
+        caster_slot = -1;
+    }
+    source->fBackfire = 0;
+    if (g_force_spell_failure != 0 && spell_id != 0x76) {
+        forced = true;
+        b = 100;
+    }
+    if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE &&
+        g_camera_sway_active_652da4 != false) {
+        b = 100;
+    }
+    if (quiet && g_force_spell_failure == 0) {
+        b = static_cast<unsigned int>(b) >> 1;
+    }
+    CombatLog("Chance of FAILURE: %d", b);
+    CombatLog(g_empty_string_006035a4);
+    unsigned int roll;
+    if (b != 0 && (roll = Random(100)) < static_cast<unsigned int>(b)) {
+        if (g_spell_records[spell_id].realm == W8_SPELL_REALM_FIRE &&
+            g_camera_sway_active_652da4 != false) {
+            b = 0;
+        } else if (!quiet && !forced) {
+            if (static_cast<unsigned int>(b) < 6) {
+                b = 0;
+            } else {
+                b = static_cast<unsigned int>(b) / 3;
+            }
+        }
+        if (!CanSpellBackfire(spell_id)) {
+            b = 0;
+        }
+        CombatLog("Chance of BACKFIRE: %d (roll %d)", b, roll);
+        CombatLog(g_empty_string_006035a4);
+        if (static_cast<unsigned int>(b) <= roll) {
+            fizzled = true;
+            SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
+            if (caster_slot != -1 && Random(100) < 0x46) {
+                QueueCharacterEvent(&g_status_685170.buffers.characters[caster_slot],
+                                    g_special_event_0068c558, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+            }
+            int notice = 0;
+            if (e == 2) {
+                if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
+                    srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c2, 0);
+                }
+                notice = 0x1aa;
+            }
+            if (e == 2 || e == 3) {
+                if (source->iType != W8_TARGET_SOURCE_CHARACTER) {
+                    srAssertFail("pSource->iType == SOURCE_TYPE_CHAR", MAGIC_CPP, 0x8c6, 0);
+                }
+                if (e == 3) {
+                    notice = 0x1ab;
+                }
+                if (g_settings_6850c8.verbose_combat_messages != 0) {
+                    PostCharacterNotice(source->iChar, FormatWideString(gppStringList[notice]));
+                } else {
+                    AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[notice]), -1);
+                }
+            } else if (g_settings_6850c8.verbose_combat_messages != 0) {
+                ShowNotice(0xc, FormatWideString(gppStringList[0x196]), -1, ~0u, false);
+            } else {
+                AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[0x196]), -1);
+            }
+        } else {
+            PrepareSpellTarget004FEA50(spell_id, source, target);
+            source->fBackfire = 1;
+            c = 0;
+            SoundPlay("Data\\Sound\\Misc\\Spell Backfire.wav", 0);
+        }
+    }
+    if (source->fBackfire == 0 && source->unknown_18[0] == 0 && source->fReflection == 0 &&
+        g_spell_records[spell_id].realm != W8_SPELL_REALM_MENTAL && spell_id != 0x83) {
+        ApplyInsanityRetarget004FF220(spell_id, source, target);
+    }
+    if (party_targets == 0) {
+        if (monster_targets == 0) {
+            PopulateSpellTargetMarkers(spell_id, power_level, source, target, &monster_list,
+                                       &party_list, 0);
+            if (spell_id == 0x3c) {
+                srVector3T<float> point = target->point;
+                point.y = target->point.y - g_float_005ebc64;
+                target->point.y = point.y;
+                char disposition;
+                if ((TargetSourceIsCharacter(source, 0) && source->fBackfire == 0) ||
+                    (!TargetSourceIsCharacter(source, 0) && source->fBackfire != 0)) {
+                    disposition = 2;
+                } else {
+                    disposition = 1;
+                }
+                float heading = HeadingTowardNearestMonster(point, disposition, 0);
+                srVector3T<float> snapped;
+                if (g_octree_6598a4->FindNavigatorPosition(
+                        &point, heading,
+                        static_cast<float>(
+                            g_world_cursor_extent_table_00616eb0
+                                [g_spell_power_extent_index_00616f41[power_level - 1] * 6 + 3]) +
+                            g_world_scale_005ebc40,
+                        1, &snapped, 1, 0, 0, 5, 1) != 0) {
+                    target->point = snapped;
+                }
+            }
+        } else {
+            monster_list = *monster_targets;
+        }
+    } else {
+        party_list = *party_targets;
+        if (monster_targets != 0) {
+            monster_list = *monster_targets;
+        }
+    }
+    W8SpellEffectDefinition definition;
+    ClearAttackBlock(&definition);
+    unsigned int difficulty;
+    if (TargetSourceIsCharacter(source, 1)) {
+        if (source->unknown_18[1] == 0) {
+            unsigned int mask = (g_spell_records[spell_id].psionics_spell != 0 ? 8 : 0) |
+                                (g_spell_records[spell_id].divinity_spell != 0 ? 2 : 0) |
+                                (g_spell_records[spell_id].wizardry_spell != 0 ? 1 : 0) |
+                                (g_spell_records[spell_id].alchemy_spell != 0 ? 4 : 0);
+            difficulty = GetSpellDifficulty(
+                GetTotalCasterLevel(&g_status_685170.buffers.characters[source->iChar], mask, 1),
+                spell_id, power_level);
+        } else {
+            difficulty = source->unknown_1f[0];
+        }
+    } else if (TargetSourceIsMonster(source, 1)) {
+        unsigned int list_index =
+            MonsterGetIndexByLocationID(0x6ad, MAGIC_CPP, source->iMonsterID, 1);
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+        W8MonsterRecord* record = GetMonsterDataForInfo(info);
+        difficulty = GetSpellDifficulty(record->effective_level_24f, spell_id, power_level);
+    } else {
+        if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
+            srAssertFail("pSource->iType == SOURCE_TYPE_3D_POINT", MAGIC_CPP, 0x6b2, 0);
+        }
+        difficulty = (g_spell_records[spell_id].spell_point_cost / 2 +
+                      g_spell_records[spell_id].spell_level) /
+                         2 +
+                     power_level;
+        if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_ALL_ENEMIES) {
+            difficulty -= 3;
+        }
+        if (static_cast<int>(difficulty) < 0) {
+            difficulty = 0;
+        }
+    }
+    unsigned int threshold;
+    switch (spell_id) {
+    case 0x46:
+        threshold = 2;
+        break;
+    case 0x57:
+        threshold = 4;
+        break;
+    case 0x5a:
+    case 0x5d:
+    case 0x5e:
+        threshold = 6;
+        break;
+    default:
+        threshold = 0;
+        definition.power_level = difficulty;
+        goto power_done;
+    }
+    if (difficulty < threshold) {
+        definition.power_level = 0;
+    } else {
+        definition.power_level = difficulty - threshold;
+    }
+power_done:
+    AdjustIntegerByPercent(
+        reinterpret_cast<unsigned int*>(
+            &definition.power_level), // reinterpret-ok: retail scales this signed field as unsigned
+        static_cast<unsigned int>(a) >> 1);
+    if (IsCombatEffectSlotSpell(spell_id)) {
+        SetDice(&definition.magnitude, 0, 0, 0);
+    } else {
+        definition.magnitude = g_spell_records[spell_id].effect_dice;
+        definition.magnitude.count = static_cast<char>(power_level) * definition.magnitude.count;
+    }
+    definition.duration_scale = power_level;
+    definition.percent = a;
+    definition.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+    definition.duration_per_power = g_spell_records[spell_id].duration_044;
+    if (g_spell_records[spell_id].needs_aim_13f == 0) {
+        W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
+        if (spell_id == 0x31 || target_type < W8_TARGET_TYPE_COUNT) {
+            W8SpellVisual* visual = 0;
+            switch (target_type) {
+            case W8_TARGET_TYPE_PARTY:
+            case W8_TARGET_TYPE_ENEMY_GROUP:
+            case W8_TARGET_TYPE_ALL_ENEMIES:
+                if (spell_id == 0x62) {
+                    target->point.y = target->point.y - g_float_005ebc64;
+                    visual = SpawnSpellEffect(&target->point, g_spell_records[0x76].resource_name,
+                                              power_level, 0, 0);
+                    if (visual != 0) {
+                        visual->auto_release = 0;
+                        owner->spell_visuals.Add(visual);
+                    }
+                } else if (spell_id != 0x5f) {
+                    for (index = 0; index < monster_list.count; ++index) {
+                        visual = CreateMonsterSpellEffect(
+                            g_spell_records[spell_id].resource_name, power_level,
+                            GetMonsterByLocationID(*monster_list.GetAt(index)), 0, 0);
+                        if (visual != 0) {
+                            visual->auto_release = 0;
+                            owner->spell_visuals.Add(visual);
+                        }
+                    }
+                    if (party_list.count != 0) {
+                        visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
+                                                        power_level, 0, 0);
+                        if (visual != 0) {
+                            visual->auto_release = 0;
+                            owner->spell_visuals.Add(visual);
+                        }
+                    }
+                }
+                break;
+            case W8_TARGET_TYPE_CONE:
+                if (TargetSourceIsCharacter(source, 0)) {
+                    visual = CreateAttachedSpellEffect(g_spell_records[spell_id].resource_name,
+                                                       power_level, 0, 0, 0);
+                    if (visual != 0) {
+                        visual->auto_release = 0;
+                        visual->fixed_transform = 1;
+                        owner->spell_visuals.Add(visual);
+                    }
+                } else {
+                    if (TargetSourceIsMonster(source, 0)) {
+                        visual = CreateAttachedSpellEffect(
+                            g_spell_records[spell_id].resource_name, power_level,
+                            GetMonsterByLocationID(source->iMonsterID), 0, 0);
+                    } else {
+                        srVector3T<float> origin = source->point;
+                        srVector3T<float> direction = target->point - origin;
+                        direction.SetLength(1.0);
+                        srMatrix3T<float> orientation;
+                        orientation.SetRows(srVector3T<float>(1.0f, 0.0f, 0.0f),
+                                            srVector3T<float>(0.0f, 1.0f, 0.0f),
+                                            srVector3T<float>(0.0f, 0.0f, 1.0f));
+                        orientation.RotateAboutY(atan2(direction.x, direction.z));
+                        direction = orientation.Transform(direction);
+                        orientation.RotateAboutX(-atan2(direction.y, direction.z));
+                        visual = CreateAimedSpellEffect(g_spell_records[spell_id].resource_name,
+                                                        power_level, &origin, &orientation, 0, 0);
+                    }
+                    if (visual != 0) {
+                        visual->auto_release = 0;
+                        owner->spell_visuals.Add(visual);
+                    }
+                }
+                break;
+            case W8_TARGET_TYPE_RADIUS:
+                if (spell_id == 0x76) {
+                    if (party_list.count == 0) {
+                        target->point.y = target->point.y - g_float_005ebc64;
+                        visual = SpawnSpellEffect(&target->point,
+                                                  g_spell_records[0x76].resource_name, 1, 0, 0);
+                    } else {
+                        srVector3T<float> point;
+                        GetCameraForwardPoint00421150(1.0f, &point);
+                        point.y = point.y - g_default_world_height_00603ac8;
+                        visual =
+                            SpawnSpellEffect(&point, g_spell_records[0x76].resource_name, 2, 0, 0);
+                    }
+                } else {
+                    target->point.y = target->point.y - g_float_005ebc64;
+                    visual = SpawnSpellEffect(
+                        &target->point, g_spell_records[spell_id].resource_name, power_level, 0, 0);
+                }
+                if (visual != 0) {
+                    visual->auto_release = 0;
+                    owner->spell_visuals.Add(visual);
+                }
+                break;
+            case W8_TARGET_TYPE_POINT:
+                if (spell_id == 0x26) {
+                    SpawnLureEffects(owner, power_level, target);
+                    break;
+                }
+                if (spell_id != 0x3c) {
+                    target->point.y = target->point.y - g_float_005ebc64;
+                }
+                visual = SpawnSpellEffect(&target->point, g_spell_records[spell_id].resource_name,
+                                          power_level, 0, 0);
+                if (visual != 0) {
+                    visual->auto_release = 0;
+                    owner->spell_visuals.Add(visual);
+                }
+                break;
+            case W8_TARGET_TYPE_ITEM:
+                break;
+            case W8_TARGET_TYPE_LOCK_OR_TRAP:
+                visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
+                                                power_level, 0, 0);
+                if (visual != 0) {
+                    visual->auto_release = 0;
+                    owner->spell_visuals.Add(visual);
+                }
+                break;
+            default:
+                if (spell_id == 0x4b || spell_id == 0x49) {
+                    visual = SpawnCameraSpellEffect(g_spell_records[spell_id].resource_name,
+                                                    power_level, 0, 0);
+                    if (visual != 0) {
+                        visual->auto_release = 0;
+                        owner->spell_visuals.Add(visual);
+                    }
+                } else {
+                    for (index = 0; index < monster_list.count; ++index) {
+                        visual = CreateMonsterSpellEffect(
+                            g_spell_records[spell_id].resource_name, power_level,
+                            GetMonsterByLocationID(*monster_list.GetAt(index)), 0, 0);
+                        if (visual != 0) {
+                            visual->auto_release = 0;
+                            owner->spell_visuals.Add(visual);
+                        }
+                    }
+                    if (party_list.count != 0) {
+                        for (index = 0; index < party_list.count; ++index) {
+                            char backfire;
+                            if (MonsterCanAimSpell005474B0(spell_id)) {
+                                backfire = source->fBackfire != 0;
+                            } else {
+                                backfire = source->fBackfire == 0;
+                            }
+                            StartPortraitSpellIcon0059AF40(*party_list.GetAt(index),
+                                                           g_spell_records[spell_id].realm,
+                                                           backfire, spell_id);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    } else {
+        int missile_type = g_spell_records[spell_id].missile_table_index_140;
+        if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_RADIUS) {
+            W8CombatSlot missile_target;
+            ResetCombatSlot(&missile_target);
+            missile_target.iType = W8_TARGET_KIND_PLACE;
+            missile_target.point.x = target->point.x;
+            missile_target.point.z = target->point.z;
+            missile_target.point.y =
+                g_default_world_height_00603ac8 * g_float_005ebc7c + target->point.y;
+            W8Missile* missile = FireMissileSourceToTarget(missile_type, source, &missile_target,
+                                                           &definition, 1, 0xffffffff, 9999);
+            if (missile != 0) {
+                owner->missiles.Add(missile);
+            }
+            owner->flag_122 = 1;
+        } else {
+            for (index = 0; index < 0x10; ++index) {
+                definition.condition_chances[index] =
+                    g_missile_table_65bde0[missile_type].condition_chances_155[index];
+            }
+            definition.value_1c = g_missile_table_65bde0[missile_type].value_150;
+            for (index = 0; index < monster_list.count; ++index) {
+                W8CombatSlot missile_target;
+                ResetCombatSlot(&missile_target);
+                missile_target.iType = W8_TARGET_KIND_MONSTER;
+                missile_target.iMonsterID = *monster_list.GetAt(index);
+                if (source->fBackfire == 0 && source->fReflection == 0) {
+                    MakeTargetGroupHostile(source, &missile_target);
+                }
+                W8Missile* missile =
+                    FireMissileSourceToTarget(missile_type, source, &missile_target, &definition, 1,
+                                              g_spell_records[spell_id].range_category, 9999);
+                if (missile != 0) {
+                    owner->missiles.Add(missile);
+                }
+            }
+            for (index = 0; index < party_list.count; ++index) {
+                W8CombatSlot missile_target;
+                ResetCombatSlot(&missile_target);
+                missile_target.iType = W8_TARGET_KIND_CHARACTER;
+                missile_target.iChar = *party_list.GetAt(index);
+                W8Missile* missile =
+                    FireMissileSourceToTarget(missile_type, source, &missile_target, &definition, 1,
+                                              g_spell_records[spell_id].range_category, 9999);
+                if (missile != 0) {
+                    owner->missiles.Add(missile);
+                }
+            }
+        }
+    }
+    owner->kind = spell_id;
+    owner->Source = *source;
+    owner->target = *target;
+    owner->definition = definition;
+    owner->monster_ids_0e0 = monster_list;
+    owner->target_indices_0f0 = party_list;
+    owner->flag_120 = c;
+    if (spell_id == 0x26) {
+        owner->flag_121 = 1;
+        owner->turns_remaining = RollEffectDuration(&owner->definition);
+        for (index = 0; index < g_spell_effects.count; ++index) {
+            W8SpellEffectEntry* effect = *g_spell_effects.GetAt(index);
+            if (effect->kind == W8_SPELL_EFFECT_KIND_MONSTER_CONTROL) {
+                if (effect != 0) {
+                    effect->turns_remaining = 0;
+                    unsigned int list_index = 0;
+                    while (list_index < PLLength(gXStatus.plsMonsterList)) {
+                        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+                        if (info != 0 && !info->monster->IsDying()) {
+                            SetMonsterControlState(info, 0);
+                        }
+                        ++list_index;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && gXStatus.fNpcDialogueMode == 0 &&
+        gXStatus.fCampMode == 0) {
+        g_spell_effects.Add(owner);
+    } else {
+        ProcessSpellEffectTargets(owner);
+        if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fCampMode != 0) {
+            for (index = 0; index < owner->spell_visuals.count; ++index) {
+                (*owner->spell_visuals.GetAt(index))->auto_release = 1;
+            }
+        }
+    }
+    PointCameraAtCombatTarget(source, target);
+    if (source->fBackfire != 0) {
+        if (quiet) {
+            owner->result_124.reported = 1;
+        } else {
+            if (g_settings_6850c8.verbose_combat_messages == 0) {
+                AppendToLastTextLine(FormatWideString(L" -- %s", gppStringList[0x197]), -1);
+            } else {
+                ShowNotice(0xc, FormatWideString(gppStringList[0x197]), -1, ~0u, false);
+            }
+            owner->result_124.reported = 1;
+        }
+        if (caster_slot != -1) {
+            if (Random(2) == 0) {
+                QueueCharacterEvent(&g_status_685170.buffers.characters[caster_slot],
+                                    g_item_message_005ee5c8, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+            } else {
+                ApplyItemEffectToRandomCharacter(g_item_message_005ee5cc, caster_slot, 0,
+                                                 g_effect_argument_005ed8c8);
+            }
+        }
+    }
+    if (d != 0) {
+        *d = power_level;
+    }
+    if (fizzled) {
+        if (TargetSourceIsMonster(&owner->OrigSource, 0)) {
+            if (owner->OrigSource.iMonsterID == -1) {
+                srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
+            }
+            unsigned int list_index =
+                MonsterGetIndexByLocationID(0x1505, MAGIC_CPP, owner->OrigSource.iMonsterID, 1);
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(list_index);
+            if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
+                g_combat_state->pActionMonsterInfo != 0 &&
+                g_combat_state->pActionMonsterInfo->location_id == info->location_id) {
+                g_combat_state->eCombatActionStatus = 3;
+            }
+        }
+        delete owner;
+        return 2;
+    }
+    if (source->fBackfire == 0) {
+        return 1;
+    }
+    return 3;
 }

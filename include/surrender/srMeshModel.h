@@ -58,6 +58,7 @@ public:
     srMeshModel(long polygons, long vertices);
     void reset(long polygons, long vertices);
     void scale(const srVector3T<float>& scale);
+    void relocateVertices(const srVector3T<float>& offset);
     srMeshModel& operator=(const srMeshModel& other);
 
     static const char* sGetClassName()

@@ -667,18 +667,18 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
         }
         case 6:
             FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            Function4EF7E0(m_original_014, &m_character_018, 1);
+            ReplacePartyCharacter004EF7E0(m_original_014, &m_character_018, 1);
             RequestScreenTransition();
             break;
         case 7:
             FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-            Function4EF7E0(m_original_014, &m_character_018, 0);
+            ReplacePartyCharacter004EF7E0(m_original_014, &m_character_018, 0);
             RequestScreenTransition();
             break;
         }
     } else if (response == 6) {
         FinalizeCreatedCharacter(&m_character_018, &m_creation_state_187c, 0);
-        Function4EF7E0(m_original_014, &m_character_018, 0);
+        ReplacePartyCharacter004EF7E0(m_original_014, &m_character_018, 0);
         RequestScreenTransition();
     }
 }

@@ -636,7 +636,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                         vertices[i].flag_0a = 0;
                     }
                     for (i = 0; i < static_cast<int>(geometry.polygon_count_08); ++i) {
-                        geometry.polygons_0c[i].positional_31 = 0;
+                        geometry.polygons_0c[i].visited_31 = 0;
                     }
                     ReportBuildStatus00497690(
                         6, "\nCompiling OctPreTree --------------------------\n");
@@ -1363,7 +1363,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                 if ((materials[face->material_index].shader_flags_116 & 1) != 0) {
                     opposing = 1;
                 }
-                polygon->positional_31 = 0;
+                polygon->visited_31 = 0;
                 if (face->material_index == 0) {
                     polygon->kind_2c = 3;
                 } else {

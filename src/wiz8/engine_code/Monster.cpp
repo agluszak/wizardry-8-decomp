@@ -47,6 +47,7 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
@@ -177,6 +178,11 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
 // GLOBAL: WIZ8 0x0060e918
 float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
+
+// GLOBAL: WIZ8 0x0060e938
+const char* g_party_marker_bitmaps_0060e938[8] = {"TriRed.tga",  "TriGreen.tga",  "TriPurple.tga",
+                                                  "TriBlue.tga", "TriOrange.tga", "TriYellow.tga",
+                                                  "TriPink.tga", "TriBrown.tga"};
 
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
@@ -4613,7 +4619,7 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
 // FUNCTION: WIZ8 0x004c5eb0
 void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    Function4C4DE0(party_slot, location_id, on);
+    UpdateMonsterMarker004C4DE0(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both
@@ -5208,6 +5214,35 @@ void UpdateCycleRepresentation004C59B0(W8GrCycle* cycle, W8World* world)
     cycle->UpdateRepresentation(world);
 }
 
+/* Attach or detach the party-slot marker icon on the monster bound to
+   location_id. Attaching loads the slot's Tri<colour>.tga bitmap as a poster
+   item; detaching removes and deletes it. */
+// FUNCTION: WIZ8 0x004C4DE0
+void UpdateMonsterMarker004C4DE0(int party_slot, int location_id, int on)
+{
+    unsigned int monster_index = MonsterGetIndexByLocationID(0xf1b, MONSTER_CPP, location_id, 1);
+    W8Monster* monster = MonsterGetScriptPartByLocationIndex(monster_index)->monster;
+    W8MonsterRep* representation = monster->m_pRep;
+    if (on == 0) {
+        W8Item* item = representation->objects_5c8[party_slot];
+        if (item != 0) {
+            item->DetachMesh0049FA30(g_world);
+            PListRemove(g_world->plsItems, item);
+            delete item;
+            representation->objects_5c8[party_slot] = 0;
+            representation->value_5c4 -= 1;
+        }
+    } else if (representation->objects_5c8[party_slot] == 0) {
+        char path[260];
+        sprintf(path, "Data\\Monsters\\Bitmaps\\%s",
+                g_party_marker_bitmaps_0060e938[g_status_685170.buffers.party_rows[party_slot]
+                                                    .party_order_index]);
+        representation->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
+        representation->value_5c4 += 1;
+    }
+    monster->UpdateAttachedObjects004C3F70();
+}
+
 // FUNCTION: WIZ8 0x004C4EF0
 void W8Monster::RefreshStandingHeight()
 {
@@ -5274,6 +5309,44 @@ void W8Monster::ApplyRepresentationScale()
         m_pRep->monster_light_624->SetRange(movement_0c0.collision_radius_0b0 * g_float_005ec52c);
         m_pRep->monster_light_624->m_vertical_offset_228 = movement_0c0.height_offset_0b8;
     }
+}
+
+/* Load a marker bitmap as a poster quad and wrap it in a flagged W8Item. The
+   mesh is relocated 250 units up and the instance is alignment-flagged so the
+   icon floats over the monster. */
+// FUNCTION: WIZ8 0x004C5500
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag)
+{
+    stTextureFile* texture = new stTextureFile(path, 0);
+    texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+    texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+    if (texture == 0) {
+        return 0;
+    }
+    texture->loadSurface();
+    texture->autoRelease();
+    stModelInstance* instance =
+        static_cast<stModelInstance*>(MakePosterQuad00424BA0(texture, 500.0f, 500.0f, 1));
+    if (instance == 0) {
+        return 0;
+    }
+    srVector3T<float> offset;
+    offset.x = 0.0f;
+    offset.y = 250.0f;
+    offset.z = 0.0f;
+    static_cast<srMeshModel*>(instance->model())->relocateVertices(offset);
+    instance->alignment_flags_148.value |= 1;
+    W8Item* item = new W8Item();
+    if (item == 0) {
+        return 0;
+    }
+    W8ItemRep* rep = static_cast<W8ItemRep*>(item->m_pRep);
+    rep->flags |= 0x40;
+    rep->m_psrMesh = instance;
+    rep->RefreshBounds();
+    item->AttachMesh0049F900(world);
+    instance->scale_194.SetZero();
+    return item;
 }
 
 // FUNCTION: WIZ8 0x004C5810

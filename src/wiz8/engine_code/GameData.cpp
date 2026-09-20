@@ -31,6 +31,10 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/engine_code/stModelInstance.h"
+#include "surrender/srShader.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "surrender/srCamera.h"
@@ -1433,6 +1437,100 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             bits_58->Clear(surface->trigger_index_08);
         }
     }
+}
+
+/* Builds the octree trace model and answers its scene node. Every surface
+   becomes one polygon whose three vertices copy the surface's corner
+   positions; flag-4 surfaces mark their vertices in the bit set. The DIG pass
+   then writes a direction vector per vertex: marked vertices keep the surface
+   normal (flattened to point straight up when it tilts below 0.5), unmarked
+   vertices get a scaled/biased horizontal direction renormalized to 0.3. */
+// FUNCTION: WIZ8 0x0041c930
+srNode* W8GameData::CreateTraceModel0041C930()
+{
+    BitArray selected(m_iNumSurfaces * 3 + 10);
+    stMeshModel* mesh = new stMeshModel(m_iNumSurfaces, m_iNumSurfaces * 3);
+    if (mesh == 0) {
+        srAssertFail("pstMeshModel", "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x56d,
+                     "ModelGameData::Read -- Could not create pstMeshModel.\n");
+    }
+    mesh->autoRelease();
+    mesh->flags_3a0 &= ~1U;
+    srVector3i* poly_vertices = mesh->getPolyVertex();
+    srPtr<srTextureIFace>* poly_textures = mesh->getPolyTexture(0, 0, 1);
+    srVector3T<float>* vertex_locs = mesh->getVertexLoc();
+    srVector2T<float>* texcoords = mesh->getVertexTexCoords(0, 0, 1);
+    srPtr<srMaterialIFace>* vertex_materials =
+        mesh->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+    unsigned long* shade_indices = mesh->getVertexShadeIndex(1);
+    int vertex = 0;
+    for (int index = 0; index < m_iNumSurfaces; ++index) {
+        W8GDSurface* surface = m_pSurfaces + index;
+        poly_textures[index] = g_path_texture_00652dc0;
+        if ((surface->flags_00 & 4) != 0) {
+            selected.Set(vertex);
+            selected.Set(vertex + 1);
+            selected.Set(vertex + 2);
+        }
+        texcoords[vertex].x = 0.0f;
+        texcoords[vertex].y = 0.0f;
+        vertex_materials[vertex] = g_path_material_00652dbc;
+        poly_vertices[index].x = vertex;
+        shade_indices[vertex] = vertex;
+        vertex_locs[vertex] = m_pVertices[surface->vertex_indices_18[0]];
+        texcoords[vertex + 1].x = 0.0f;
+        texcoords[vertex + 1].y = 0.0f;
+        vertex_materials[vertex + 1] = g_path_material_00652dbc;
+        poly_vertices[index].y = vertex + 1;
+        shade_indices[vertex + 1] = vertex + 1;
+        vertex_locs[vertex + 1] = m_pVertices[surface->vertex_indices_18[1]];
+        texcoords[vertex + 2].x = 0.0f;
+        texcoords[vertex + 2].y = 0.0f;
+        vertex_materials[vertex + 2] = g_path_material_00652dbc;
+        poly_vertices[index].z = vertex + 2;
+        shade_indices[vertex + 2] = vertex + 2;
+        vertex_locs[vertex + 2] = m_pVertices[surface->vertex_indices_18[2]];
+        vertex += 3;
+    }
+    srShader shader;
+    CopyLevelDataHandle(&shader.value, &g_path_shader_00652dc4.value);
+    mesh->setShader(shader, 0);
+    if ((mesh->control_state_390 & 8) == 0) {
+        mesh->control_state_390 |= 8;
+        mesh->control_state_390 |= 8;
+    }
+    srVector3T<float>* normals = mesh->getVertexNormal();
+    srVector3T<float>* dig = mesh->getVertexDIG(0, 1);
+    for (int i = 0; i < vertex; ++i) {
+        if (selected.Test(i)) {
+            dig[i] = normals[i];
+            if (dig[i].y < g_float_005ebc7c) {
+                dig[i].y = 0.0f;
+                dig[i].Normalize();
+                dig[i].y = 1.0f;
+                dig[i].Normalize();
+            }
+        } else {
+            dig[i].x = normals[i].x * g_float_005ebc78 + g_float_005ebc78;
+            dig[i].y = 0.0f;
+            dig[i].z = normals[i].z * g_float_005ebc78 + g_float_005ebc78;
+            float length = dig[i].Length();
+            if (g_double_005ebc70 <= length) {
+                if (length < 0.3) {
+                    dig[i].SetLength(0.3);
+                }
+            } else {
+                dig[i].x = 0.15f;
+                dig[i].z = 0.15f;
+            }
+        }
+    }
+    mesh->setName("GameData_Mesh");
+    mesh->flag_3cc = 0;
+    mesh->flags_3a0 &= ~2U;
+    stModelInstance* instance = CreateModelInstance0046F5C0(mesh);
+    instance->setName("GameData_Mesh");
+    return instance;
 }
 
 /* Copy one four-byte handle over another. */

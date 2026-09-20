@@ -17,6 +17,7 @@
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/fonts.h"
@@ -152,6 +153,76 @@ void SyncPartyPortraitVitalsBars(void)
         entry->cached_spell_bar = static_cast<int>(spell_bar);
         entry->cached_hp = static_cast<int>(character->hp_current);
     }
+}
+
+/* Kick off a slot's spell-effect portrait icon and play the spell's sound.
+   The icon catalog base is chosen by the spell realm, shifted one slot when
+   the cast backfired; a spell with its own sound_name plays
+   Data\Spells\Sounds\<name>.wav, the rest fall back to GeneralMagic. When the
+   main UI is not in portrait mode and the slot's portrait is not already
+   pending a refresh, the portrait is refreshed and the icon starts deferred
+   (-1); the damage splat already running likewise pushes the icon to -1. */
+// FUNCTION: WIZ8 0x0059AF40
+void StartPortraitSpellIcon0059AF40(int party_slot, int spell_realm, char backfire, int spell_id)
+{
+    W8MonsterManagerEntry* entry;
+    int catalog;
+    HVOBJECT video;
+    char* sound;
+
+    if (g_current_screen_state.id != 7) {
+        return;
+    }
+    entry = &gXStatus.monster_manager_entries[party_slot];
+    entry->effect_icon_active = 1;
+    entry->effect_icon_frame = 0;
+    switch (spell_realm) {
+    case 0:
+        catalog = 0xac - (backfire != 0);
+        break;
+    case 1:
+        catalog = 0xae - (backfire != 0);
+        break;
+    case 2:
+        catalog = 0xb0 - (backfire != 0);
+        break;
+    case 3:
+        catalog = 0xb2 - (backfire != 0);
+        break;
+    case 4:
+        catalog = 0xb4 - (backfire != 0);
+        break;
+    case 5:
+        catalog = 0xb6 - (backfire != 0);
+        break;
+    default:
+        catalog = 0xaa;
+    }
+    entry->effect_icon_catalog = catalog;
+    video = GetCatalogVideoObject(catalog, 0, 0);
+    entry->effect_icon_end_frame = video->usNumberOfObjects;
+    sound = 0;
+    if (spell_id != 0 && strlen(g_spell_records[spell_id].sound_name) != 0) {
+        sound = FormatString("Data\\Spells\\Sounds\\%s.wav", g_spell_records[spell_id].sound_name);
+    }
+    if (sound == 0) {
+        sound = "Data\\Spells\\Sounds\\GeneralMagic.wav";
+    }
+    SoundPlay(sound, 0);
+    if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        g_level_block->portrait_refresh_pending[party_slot] == 0) {
+        RefreshSelectedPartyPortrait(party_slot);
+        entry->auto_portrait_refresh = 1;
+        entry->effect_icon_frame = -1;
+    }
+    if (entry->keyboard_menu_open == 0) {
+        RequestRedraw(1u << (party_slot & 0x1f));
+    }
+    if (entry->damage_splat_active == 0) {
+        entry->portrait_fx_clock = SetCountdownClock(100);
+        return;
+    }
+    entry->effect_icon_frame = -1;
 }
 
 /* Advance the per-slot portrait FX counters on a 100ms clock and request a

@@ -87,6 +87,27 @@ struct W8SpellEffectResult {
 
 static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_0xa2");
 
+/* The queued-effect tail, one 0xa4-byte object at +0x124: the reported and
+   applied state bytes lead the same damage/condition accumulation the missile
+   embeds plain at +0x280. Retail constructs it as a unit - CastSpellFromSource
+   calls the result ctor on entry+0x124, which assigns the reports vector at
+   this+0x5a - so the reports list sits at +0x5a here rather than +0x58. */
+#pragma pack(push, 1)
+struct W8QueuedSpellResult {
+    /* +0x00: set once this effect's result has been reported. */
+    unsigned char reported;
+    /* +0x01: set by a handler that actually landed its effect; the result
+       report picks its message from this flag. */
+    unsigned char applied;
+    /* +0x02: the embedded accumulation block - retail hands entry+0x126 to the
+       W8SpellEffectResult-taking damage paths, which puts the reports vector
+       at +0x5a here where the ctor assigns the 0x005ECE4C vftable. */
+    W8SpellEffectResult result;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(W8QueuedSpellResult) == 0xa4, "W8QueuedSpellResult_must_be_0xa4");
+
 #pragma pack(push, 1)
 struct W8SpellEffectEntry {
     /* Every construction site inlines this sequence: the member vectors are
@@ -104,11 +125,9 @@ struct W8SpellEffectEntry {
         flag_121 = 0;
         flag_122 = 0;
         flag_123 = 0;
-        reported_124 = 0;
-        applied_125 = 0;
         /* The retail rep-stosd zeroes the whole result block, including the
            reports vector's freshly assigned vftable at 0x17e. */
-        memset(static_cast<void*>(&result_126), 0, sizeof(result_126));
+        memset(static_cast<void*>(&result_124), 0, sizeof(result_124));
     }
     ~W8SpellEffectEntry(); /* 0x0042BAC0 */
 
@@ -116,7 +135,9 @@ struct W8SpellEffectEntry {
     int turns_remaining; /* 0x004 */
     /* Magic.cpp asserts this as pOrigSource: the cast's original source. */
     W8TargetSource OrigSource; /* 0x008 */
-    unsigned char unknown_03c[0x20];
+    /* 0x03c: the cast's original target slot, copied in by CastSpellFromSource
+       beside OrigSource and saved whole by LoadSaveGame. */
+    W8CombatSlot OrigTarget;
     /* Magic Effects.cpp asserts this as pQueue->Source: the working source the
        hostility walk and effect bodies hand to CollectHostileMonsters / damage. */
     W8TargetSource Source; /* 0x05c */
@@ -132,20 +153,16 @@ struct W8SpellEffectEntry {
        constructors write only the W8GrowableVector<int> vftable. */
     W8GrowableVector<int> monster_ids_0e0;    /* 0x0e0 */
     W8GrowableVector<int> target_indices_0f0; /* 0x0f0 */
-    /* 0x100/0x110: spawned visuals and owned missiles. The cited tables are
-       W8GrowableVector construction/final tables, not derived-vector proof. */
-    W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
-    W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
-    unsigned char flag_120;                         /* 0x120 */
-    unsigned char flag_121;                         /* 0x121 */
-    unsigned char flag_122;                         /* 0x122 */
-    unsigned char flag_123;                         /* 0x123 */
-    /* 0x124: set once this effect's result has been reported. */
-    unsigned char reported_124;
-    /* 0x125: set by a handler that actually landed its effect; the result
-       report picks its message from this flag. */
-    unsigned char applied_125;
-    W8SpellEffectResult result_126; /* 0x126 */
+    /* 0x100/0x110: spawned visuals and owned missiles. Both are derived
+       W8Vector lists: the entry ctor assigns their distinct vftables (the
+       visual list gets 0x005EC280) after the base construction. */
+    W8Vector<W8SpellVisual*> spell_visuals; /* 0x100 */
+    W8Vector<W8Missile*> missiles;          /* 0x110 */
+    unsigned char flag_120;                 /* 0x120 */
+    unsigned char flag_121;                 /* 0x121 */
+    unsigned char flag_122;                 /* 0x122 */
+    unsigned char flag_123;                 /* 0x123 */
+    W8QueuedSpellResult result_124;         /* 0x124 */
 };
 #pragma pack(pop)
 
@@ -161,8 +178,7 @@ static_assert(offsetof(W8SpellEffectEntry, target_indices_0f0) == 0x0f0,
 static_assert(offsetof(W8SpellEffectEntry, spell_visuals) == 0x100,
               "W8SpellEffectEntry_spell_visuals");
 static_assert(offsetof(W8SpellEffectEntry, missiles) == 0x110, "W8SpellEffectEntry_missiles");
-static_assert(offsetof(W8SpellEffectEntry, reported_124) == 0x124, "W8SpellEffectEntry_reported");
-static_assert(offsetof(W8SpellEffectEntry, result_126) == 0x126, "W8SpellEffectEntry_result");
+static_assert(offsetof(W8SpellEffectEntry, result_124) == 0x124, "W8SpellEffectEntry_result");
 
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
