@@ -1115,7 +1115,7 @@ void EndCombat004EA310(int mode)
             g_status_685170.level_progress[g_status_685170.current_level].combat_end_count_01 += 1;
         }
         g_combat_state->value_010 /= active;
-        Function4EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);
+        AwardPartyExperience004EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);
         int* entry = g_status_685170.status_ints_3121;
         int* end = entry + 1000;
         while (entry < end) {
@@ -2197,7 +2197,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         }
     interrupt_done:
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0) != 0) {
-            Function555560(party_slot, &slot->target_out_of_combat);
+            FaceCharacterTowardCombatTarget(party_slot, &slot->target_out_of_combat);
         }
     }
     if (CharacterActionTargetsEnemies(character, action, detail,
@@ -2221,7 +2221,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         break;
     case 3:
         if (gXStatus.hostile_monster_count != 0 &&
-            (Function547CB0(party_slot, &fatigue_cost, 1), fatigue_cost != -1)) {
+            (TurnUndead(party_slot, &fatigue_cost, 1), fatigue_cost != -1)) {
             goto action_done;
         }
         goto action_failed;
@@ -2765,7 +2765,7 @@ char CreateCharacterBreathEffect(int party_slot)
             party_slot, FormatWideString(gppStringList[0x1b7], g_spell_records[0x13].display_name));
         return 0;
     }
-    Function555560(party_slot, target);
+    FaceCharacterTowardCombatTarget(party_slot, target);
     GetCameraPosition(&camera);
     aim.x = target->point.x - camera.x;
     aim.y = target->point.y - camera.y;
@@ -3079,7 +3079,7 @@ void UpdateCombat004E8EA0(void)
         return;
     }
     if (g_combat_state->combat_evaluated_a48 == 0 && gXStatus.hostile_monster_count != 0) {
-        Function4E6CE0();
+        EvaluateCombatDifficulty004E6CE0();
         g_combat_state->combat_evaluated_a48 = 1;
     }
     if (g_combat_state->engaged_missile != 0 &&

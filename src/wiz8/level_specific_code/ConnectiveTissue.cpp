@@ -33,7 +33,7 @@ bool ConnectiveTissueLiche004E05F0(Trigger* pTrigger)
     ShowLevelMessage004D9960(7);
     if (GetLocationVarIDByName("LicheDead") == -1) {
         CreateLocationVar("LicheDead", 1);
-        Function4EEF10(0x3e8, 0);
+        AwardPartyExperience004EEF10(0x3e8, 0);
     }
     generator = FindMonGenByName("UNDEAD01");
     if (generator != 0) {

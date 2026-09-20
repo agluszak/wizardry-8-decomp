@@ -1431,7 +1431,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         SoundPlay(sound_path, &sound_parms);
         break;
     case 0x11:
-        Function4EEF10(entry->operand_01, 0);
+        AwardPartyExperience004EEF10(entry->operand_01, 0);
         break;
     }
     if (g_npc_scripting.npc->character != 0 && g_npc_scripting.npc->group_index != -1) {

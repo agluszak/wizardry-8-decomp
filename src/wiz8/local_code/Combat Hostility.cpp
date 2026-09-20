@@ -22,6 +22,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/utility.h"
@@ -466,4 +467,88 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
             monster->pCombat->phase = 0;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x00547bf0
+unsigned char CanPartySlotTurnUndead(int party_slot)
+{
+    if (!CharacterHasTrait00547940(&g_status_685170.buffers.characters[party_slot], 0x11) ||
+        g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
+        return 0;
+    }
+    for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
+            monster->hp_current != 0 && GetMonsterDataForInfo(monster)->kind_0cb == 0x14) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00547cb0
+int TurnUndead(int party_slot, int* out_cost, char check)
+{
+    W8GrowableVector<int> monsters;
+    W8GrowableVector<int> party;
+    if (check) {
+        if (!CanPartySlotTurnUndead(party_slot)) {
+            PostCharacterNotice(party_slot, gppStringList[0x1b7], gppStringList[0x512]);
+            return 0;
+        }
+        g_combat_state->characters[party_slot].turn_undead_used = 1;
+    }
+
+    W8TargetSource source;
+    SetTargetSourceToCharacter(party_slot, &source);
+    source.unknown_18[2] = 1;
+    int power;
+    if (!check) {
+        power = g_status_685170.buffers.characters[party_slot].profession_levels[0xc] + 10 +
+                g_status_685170.buffers.characters[party_slot].profession_levels[10];
+        source.unknown_18[0] = 1;
+    } else {
+        power = g_status_685170.buffers.characters[party_slot].profession_levels[0xc] +
+                g_status_685170.buffers.characters[party_slot].profession_levels[10];
+        PostCharacterNotice(party_slot, gppStringList[0x182]);
+    }
+
+    W8CombatSlot target;
+    ResetCombatSlot(&target);
+    PopulateSpellTargetMarkers(0x81, 1, &source, &target, &monsters, &party, 0);
+    if (monsters.count == 0) {
+        return 0;
+    }
+    SetTextBoxMode(1, -1);
+    unsigned int spell_power = power / monsters.count;
+    if (spell_power == 0) {
+        while (power < monsters.count) {
+            monsters.RemoveAt(Random(monsters.count));
+        }
+        spell_power = 1;
+    } else if (spell_power > 6) {
+        spell_power = 7;
+    }
+    CastSpellFromSource(0x81, &source, &target, spell_power, 0, 0, 0, 0, 0, 0, &monsters);
+    if (out_cost != 0) {
+        *out_cost = CharacterActionFatigueCost(party_slot, 3);
+    }
+    return monsters.count;
+}
+
+// FUNCTION: WIZ8 0x00547f40
+unsigned char CanPartySlotPray(int party_slot)
+{
+    if (!CharacterHasTrait00547940(&g_status_685170.buffers.characters[party_slot], 0xb) ||
+        g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
+        return 0;
+    }
+    for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
+            monster->hp_current != 0) {
+            return 1;
+        }
+    }
+    return 0;
 }

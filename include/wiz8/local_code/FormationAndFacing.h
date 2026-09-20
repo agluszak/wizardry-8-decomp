@@ -88,4 +88,4 @@ void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info);
 int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot);
 /* 0x00555560: face the character toward its committed combat slot's target;
    asserts the slot ids are not BAD_INDEX. */
-void Function555560(int party_slot, W8CombatSlot* target);
+void FaceCharacterTowardCombatTarget(int party_slot, W8CombatSlot* target);

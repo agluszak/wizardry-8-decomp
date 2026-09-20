@@ -180,7 +180,9 @@ struct W8GlobalStatus {
        seconds. */
     int savant_hack_tick;
     int bela_cycle_tick;
-    unsigned char unknown_497b[0x10];
+    unsigned char unknown_497b[4];
+    /* 0x497f: combat difficulty band counters, indexed by EvaluateCombatDifficulty004E6CE0. */
+    unsigned int combat_difficulty_counts[3];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
     int value_498b;
     /* 0x498f/0x4993: pending-stage flags set by FACT_QUE_ENDGAME2/3; the book

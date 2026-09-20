@@ -2301,3 +2301,17 @@ void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* text, unsigned int si
     wcsncpy(text, g_message_storage_68f2d8[text_box][line].wString + word->start,
             word->end - word->start + 1);
 }
+
+// FUNCTION: WIZ8 0x00590b40
+void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
+{
+    wchar_t separator[2];
+    wchar_t text[4096];
+    va_list arguments;
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
+    ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
+}

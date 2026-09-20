@@ -16,6 +16,8 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/CombatDifficulty.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/Factions.h"
@@ -42,6 +44,7 @@
 #include "wiz8/notices.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/utility.h"
+#include <math.h>
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/engine_code/Monster.h"
@@ -1916,5 +1919,134 @@ void DetectMonsterGroups004E4AB0(void)
     }
     if (noticed) {
         RequestRedrawParty();
+    }
+}
+
+// FUNCTION: WIZ8 0x004E6CE0
+void EvaluateCombatDifficulty004E6CE0(void)
+{
+    unsigned int hostile_experience = 0;
+    unsigned int eligible_count = 0;
+    unsigned int party_levels = 0;
+    unsigned int monster_index;
+    int slot;
+
+    for (monster_index = 0; monster_index < PLLength(gXStatus.plsMonsterList); ++monster_index) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(monster_index);
+        if (monster->fInCombat && monster->ubDisposition == DISP_HOSTILE &&
+            monster->hp_current > 0 && monster->highest_condition < 0x12) {
+            unsigned int health_percent = monster->hp_current * 100 / monster->hp_max;
+            hostile_experience +=
+                GetMonsterExperience(GetMonsterDataForInfo(monster)) * health_percent / 100;
+        }
+    }
+    unsigned int threat_level = EstimateCombatThreatLevel(hostile_experience);
+    if (threat_level == 0) {
+        threat_level = 1;
+    }
+
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (!row->occupied || character->hp_current == 0 || character->highest_condition >= 0x12) {
+            continue;
+        }
+        bool count_character = true;
+        if (slot < 2) {
+            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            if (npc != 0) {
+                int faction = npc->record->faction_5f;
+                if (faction != 0 && faction != 1) {
+                    for (unsigned int group_index = 0;
+                         group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
+                        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+                        if (group->flag_28 && group->fInCombat &&
+                            group->ubDisposition == DISP_HOSTILE &&
+                            MonsterGroupGetRecord(group)->faction_id_25f == faction) {
+                            count_character = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (count_character) {
+            ++eligible_count;
+            party_levels += character->level;
+        }
+    }
+
+    unsigned int party_power = 0;
+    if (eligible_count > 0) {
+        party_power = static_cast<unsigned int>(
+            party_levels /
+                pow(static_cast<double>(eligible_count) * g_float_005ebca0, g_double_005ebe80) +
+            g_double_005ebe80);
+    }
+    int relative_strength = static_cast<int>(party_power * 100 / threat_level) - 100;
+    unsigned char difficulty;
+    if (relative_strength >= 20) {
+        difficulty = 0;
+    } else if (relative_strength <= -20) {
+        difficulty = 2;
+    } else {
+        difficulty = 1;
+    }
+
+    switch (difficulty) {
+    case 0:
+        StartMusicResource0048FC10("CombatEasy.MPL", 0, 1);
+        break;
+    case 1:
+        StartMusicResource0048FC10("Combat.MPL", 0, 1);
+        break;
+    case 2:
+        StartMusicResource0048FC10("CombatLousy.MPL", 0, 1);
+        break;
+    }
+    if ((g_combat_state != 0 && g_combat_state->party_surprised_a52) ||
+        ClockIsTicking(g_combat_countdown_6850b0) == 0 ||
+        difficulty != g_combat_difficulty_6850b4) {
+        unsigned int event_type;
+        switch (difficulty) {
+        case 0:
+            event_type = g_effect_005ee5fc;
+            break;
+        case 1:
+            event_type = g_effect_005ee600;
+            break;
+        default:
+            event_type = g_effect_005ee604;
+            break;
+        }
+        ApplyItemEffectToRandomCharacter(event_type, -1, 0, g_effect_argument_005ed8c8);
+    }
+    ++g_status_685170.combat_difficulty_counts[difficulty];
+    g_combat_difficulty_6850b4 = difficulty;
+
+    for (slot = 0; slot < 2; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        if (row->occupied) {
+            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            if (npc != 0) {
+                W8Character* character = &g_status_685170.buffers.characters[slot];
+                if (character->highest_condition == 0x12) {
+                    npc->unknown_ef[2] = 0;
+                } else if (npc->name_style == W8_NPC_VI_DOMINA ||
+                           npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) {
+                    npc->unknown_ef[1] = 1;
+                } else {
+                    npc->unknown_ef[2] = 1;
+                }
+            }
+        }
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (row->occupied && character->condition_turns[0x12] == 0) {
+            gXStatus.monster_manager_entries[slot].condition_19_latch =
+                character->condition_turns[0x13] != 0;
+        }
     }
 }

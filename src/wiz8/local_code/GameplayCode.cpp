@@ -1075,3 +1075,36 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     }
     return 1;
 }
+
+// FUNCTION: WIZ8 0x004EEF10
+void AwardPartyExperience004EEF10(int amount, int alternate_message)
+{
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        if (row->occupied && character->hp_current > 0 && character->highest_condition < 0x12 &&
+            amount != 0) {
+            unsigned int total = character->experience + static_cast<unsigned int>(amount);
+            if (total > character->experience) {
+                character->experience = total;
+            } else {
+                character->experience = static_cast<unsigned int>(-1);
+            }
+            if (g_status_685170.current_level < W8_LEVEL_COUNT) {
+                unsigned int& gained =
+                    g_status_685170.level_progress[g_status_685170.current_level].experience_gained;
+                total = gained + static_cast<unsigned int>(amount);
+                if (total > gained) {
+                    gained = total;
+                }
+            }
+            gXStatus.unknown_026[1] = 1;
+        }
+    }
+    wchar_t* text = new wchar_t[0x200];
+    swprintf(text, gppStringList[alternate_message ? 0x231 : 0x232], amount);
+    W8ExperienceNoticePayload* payload = new W8ExperienceNoticePayload;
+    payload->amount = amount;
+    payload->alternate_message = static_cast<unsigned char>(alternate_message);
+    AddMessageBoxLine(W8_NPC_MSG_PORTRAIT_EXTRA, text, payload);
+}
