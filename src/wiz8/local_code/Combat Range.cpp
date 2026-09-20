@@ -1066,7 +1066,8 @@ float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category)
         srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
                      "CalcRangeDistance: ERROR - Invalid range category");
     }
-    return steps * g_world_scale_005ebc40 + g_startup_world_659c0c->movement_0c0.value_0b0;
+    return steps * g_world_scale_005ebc40 +
+           g_startup_world_659c0c->movement_0c0.collision_radius_0b0;
 }
 
 /* Shrink a short-range category by the formation rows CountRowsBetween says

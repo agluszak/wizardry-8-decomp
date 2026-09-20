@@ -552,11 +552,11 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
-    flag_06e = 1;
+    frame_direction_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03;
-    flag_06f = animation->value_02;
-    flag_06d = animation->unknown_01;
+    animation_behaviour_070 = animation->unknown_03;
+    frame_method_06f = animation->value_02;
+    animation_playing_06d = animation->unknown_01;
     emitters[emitter] = animation;
 
     if (missile != 0) {
@@ -586,7 +586,7 @@ W8Missile::W8Missile()
     if (g_runtime_world_scale_6081e8 < 1.0f) {
         g_runtime_world_scale_6081e8 = 1.0f;
     }
-    movement_0c0.value_0b0 = 1.0f;
+    movement_0c0.collision_radius_0b0 = 1.0f;
     if (g_runtime_world_scale_6081e8 < 1.0f) {
         g_runtime_world_scale_6081e8 = 1.0f;
     }
@@ -831,7 +831,7 @@ void W8Missile::SetCycle(signed char cycle)
     m_pRep->current_cycle = cycle;
     animation = m_pRep->emitters[cycle];
     m_pRep->active = 1;
-    m_pRep->flag_06e = 1;
+    m_pRep->frame_direction_06e = 1;
     if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
         m_pRep->m_bLOD = 2;
     } else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -840,9 +840,9 @@ void W8Missile::SetCycle(signed char cycle)
         m_pRep->m_bLOD = 0;
     }
     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    m_pRep->flag_06f = animation->value_02;
-    m_pRep->flag_06d = animation->unknown_01;
-    m_pRep->flag_064 = 0;
+    m_pRep->frame_method_06f = animation->value_02;
+    m_pRep->animation_playing_06d = animation->unknown_01;
+    m_pRep->subcycle_064 = 0;
 
     lights = *m_pRep->light_lists[cycle].GetAt(0);
     SetLights(lights);
@@ -879,9 +879,9 @@ void W8Missile::AdvanceAnimationFrame(int value, int flags)
 {
     W8MissileRep* representation_before;
 
-    m_pRep->counter_094 = 0;
+    m_pRep->first_frame_094 = 0;
     representation_before = m_pRep;
-    representation_before->counter_095 = GetNumSubCycles() - 1;
+    representation_before->last_frame_095 = GetNumSubCycles() - 1;
     W8GrCycle::AdvanceAnimationFrame(value, flags);
 }
 
@@ -953,7 +953,7 @@ void W8Missile::EnterImpactCycle()
             W8MissileRep* representation = m_pRep;
             srVector3T<float> position = representation->location_004;
             representation->pending_cycle = 1;
-            representation->behaviour_071 = 1;
+            representation->pending_behaviour_071 = 1;
             flag_1e1 = 1;
             if (flag_1e5 != 0) {
                 representation->location_004.y = SettlePositionToGround00420BD0(&position, 0);

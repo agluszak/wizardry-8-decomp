@@ -16,7 +16,9 @@ struct W8PathAI;
 
 struct W8NavigatorAttachment {
     unsigned int flags_00;
-    unsigned short value_04;
+    /* Live waypoint cursor. AdvanceAlongPathPositions compacts consumed
+       waypoints and returns this cursor to one. */
+    unsigned short path_cursor_04;
     unsigned short unknown_06;
     unsigned short path_position_index_08;
     /* 0x00456210 sets this to ten and allocates position_4c as ten
@@ -29,19 +31,22 @@ struct W8NavigatorAttachment {
     srVector3T<float> position_28;
     srVector3T<float> position_34;
     srVector3T<float> position_40;
+    /* The vector type's new[]/delete[] overloads route this allocation to
+       srHeap; CopyPathFrom uses those operators while growth calls the heap
+       directly. */
     srVector3T<float>* position_4c;
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     unsigned short* path_values_50;
     float separation_54;
-    /* 0x58: source-to-destination segment length; InitializeSegment004563E0
-       stores the float result of a vector Length() here. */
-    float value_058;
+    /* Direct segment length after initialization; MeasurePathLength later
+       replaces it with the eligible route length and latches flag 0x00400000. */
+    float path_length_058;
     unsigned char unknown_05c[4];
 
     W8NavigatorAttachment(); /* 0x00456210 */
     /* The from/to form 0x004604B0 constructs on the stack: both endpoints of
-       the segment are seeded as recorded positions and value_058 holds the
+       the segment are seeded as recorded positions and path_length_058 holds the
        straight-line distance. */
     W8NavigatorAttachment(const srVector3T<float>* from,
                           const srVector3T<float>* to); /* 0x00456280 */
@@ -63,9 +68,8 @@ struct W8NavigatorAttachment {
         }
     }
 
-    /* Lazily sums the stored segment lengths into value_058, skipping entries
-       whose preceding path value carries bit 0x2, and latches the
-       0x00400000 flag once measured. */
+    /* Lazily sums the stored segment lengths into path_length_058, skipping
+       entries whose preceding path value carries bit 0x2. */
     float MeasurePathLength00456B00(); /* 0x00456B00 */
 
     void RecordPosition(const srVector3T<float>* position);
@@ -115,10 +119,14 @@ struct W8NavigatorMovementState {
     unsigned short unknown_006;
     int value_008;
     int value_00c;
-    int value_010;
+    /* -1 means no resolved target. Navigation and OctPath use this as the
+       location id of the tracked target; one OctPath path overlays the slot
+       as a single candidate index while building a path. */
+    int target_location_id_010;
     float yaw;
     float target_yaw;
-    float unknown_01c;
+    /* UpdateYawSteering accelerates/decelerates this signed angular rate. */
+    float yaw_velocity_01c;
     float pitch_020;
     float target_pitch_024;
     float roll_028;
@@ -141,18 +149,20 @@ struct W8NavigatorMovementState {
     float vertical_base_07c;
     float vertical_amplitude_080;
     float vertical_phase_084;
+    /* Reset installs the identity basis here. The constructor starts all
+       three at zero before the owner calls Reset. */
     srVector3T<float> vector_088;
     srVector3T<float> vector_094;
     srVector3T<float> vector_0a0;
     W8NavigatorAttachment* attachment_0ac;
-    /* 0x00451EC0 writes 500.0f here as a dword, alongside the three radii
-       that follow. */
-    float value_0b0;
+    /* Collision/path radius, initialized to 500 by the outer navigator and
+       scaled with the navigator in SetScale. */
+    float collision_radius_0b0;
     float alternate_radius_0b4;
     float height_offset_0b8;
     float secondary_height_offset_0bc;
     float vertical_offset_0c0;
-    float value_0c4;
+    float scale_0c4;
     bool position_adjusted_0c8;
     unsigned char unknown_0c9[3];
 
@@ -163,7 +173,7 @@ struct W8NavigatorMovementState {
     ~W8NavigatorMovementState(); /* 0x00457530 */
 
     /* Copies the eleven fields a navigator carries across from another's
-       movement tail and invalidates value_010. It returns nothing, so it is a
+       movement tail and invalidates target_location_id_010. It returns nothing, so it is a
        named member rather than an assignment operator. */
     void CopySettingsFrom(const W8NavigatorMovementState& other);
 };
@@ -172,7 +182,8 @@ struct W8NavigatorMovementState {
    constructor at 0x00456210, which is what fixes the size; the destructor
    at 0x00457530 only proves it reaches +0x50. */
 static_assert(sizeof(W8NavigatorAttachment) == 0x60, "W8NavigatorAttachment_size_must_be_0x60");
-static_assert(offsetof(W8NavigatorAttachment, value_04) == 0x04, "W8NavigatorAttachment_value_04");
+static_assert(offsetof(W8NavigatorAttachment, path_cursor_04) == 0x04,
+              "W8NavigatorAttachment_value_04");
 static_assert(offsetof(W8NavigatorAttachment, unknown_06) == 0x06,
               "W8NavigatorAttachment_unknown_06");
 static_assert(offsetof(W8NavigatorAttachment, path_position_index_08) == 0x08,
@@ -195,7 +206,7 @@ static_assert(offsetof(W8NavigatorAttachment, path_values_50) == 0x50,
               "W8NavigatorAttachment_path_values_50");
 static_assert(offsetof(W8NavigatorAttachment, separation_54) == 0x54,
               "W8NavigatorAttachment_separation_54");
-static_assert(offsetof(W8NavigatorAttachment, value_058) == 0x58,
+static_assert(offsetof(W8NavigatorAttachment, path_length_058) == 0x58,
               "W8NavigatorAttachment_value_058");
 static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
               "W8NavigatorMovementState_size_must_be_0xcc");
@@ -250,7 +261,7 @@ static_assert(offsetof(W8NavigatorMovementState, vector_0a0) == 0xa0,
               "W8NavigatorMovementState_vector_0a0");
 static_assert(offsetof(W8NavigatorMovementState, attachment_0ac) == 0xac,
               "W8NavigatorMovementState_attachment_0ac");
-static_assert(offsetof(W8NavigatorMovementState, value_0b0) == 0xb0,
+static_assert(offsetof(W8NavigatorMovementState, collision_radius_0b0) == 0xb0,
               "W8NavigatorMovementState_value_0b0");
 static_assert(offsetof(W8NavigatorMovementState, alternate_radius_0b4) == 0xb4,
               "W8NavigatorMovementState_alternate_radius_0b4");
@@ -260,7 +271,7 @@ static_assert(offsetof(W8NavigatorMovementState, secondary_height_offset_0bc) ==
               "W8NavigatorMovementState_secondary_height_offset_0bc");
 static_assert(offsetof(W8NavigatorMovementState, vertical_offset_0c0) == 0xc0,
               "W8NavigatorMovementState_vertical_offset_0c0");
-static_assert(offsetof(W8NavigatorMovementState, value_0c4) == 0xc4,
+static_assert(offsetof(W8NavigatorMovementState, scale_0c4) == 0xc4,
               "W8NavigatorMovementState_value_0c4");
 static_assert(offsetof(W8NavigatorMovementState, position_adjusted_0c8) == 0xc8,
               "W8NavigatorMovementState_position_adjusted_0c8");
@@ -375,7 +386,10 @@ public:
     void CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigators); /* 0x00455140 */
     int ResolveMovement();                                                   /* 0x00455CC0 */
     void ClearMovement();                                                    /* 0x004537E0 */
-    void SetNavigationMode(int mode);                                        /* 0x00452E50 */
+    /* Modes 1 and 4 clear pitch/roll; 2, 3 and 5 enable pitch; 6 enables
+       both. Mode 4 keeps the existing path; the other named modes build a
+       fresh animated path. Later facing logic distinguishes 2/3 from 5/6. */
+    void SetNavigationMode(int mode); /* 0x00452E50 */
     void SetBounds(const srVector3T<float>* minimum,
                    const srVector3T<float>* maximum); /* 0x00452F10 */
     void SetTurnRate(float turn_rate);                /* 0x00453C90 */
@@ -451,6 +465,9 @@ public:
     unsigned char unknown_0b5[3];
     int linked_update_time_0b8;
     unsigned char unknown_0bc[4];
+    /* Constructed first as its own 0xcc-byte subobject, then Reset by this
+       owner. Copy construction constructs a fresh attachment and transfers
+       selected settings; it never shares the source's path allocation. */
     W8NavigatorMovementState movement_0c0;
     srNode* node_18c; /* 0x18c: constructed srNode */
 }; /* 0x190 */

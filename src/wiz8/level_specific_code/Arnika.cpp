@@ -150,7 +150,7 @@ bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
                      0);
     }
     g_lazer_prop_6835cc = pTrigger->m_pProp;
-    if (g_lazer_prop_6835cc->Rep()->flag_06d != 0) {
+    if (g_lazer_prop_6835cc->Rep()->animation_playing_06d != 0) {
         return 0;
     }
     if (GetLocationVarIDByName("HLLDoorOpen") != -1) {
@@ -187,7 +187,7 @@ void ArnikaLaserScanMaster004E0960(int command)
         g_flag_006834dc = 1;
         return;
     }
-    if (g_lazer_prop_6835cc->Rep()->flag_06d != 0) {
+    if (g_lazer_prop_6835cc->Rep()->animation_playing_06d != 0) {
         return;
     }
     g_flag_006834dc = 1;
@@ -432,7 +432,7 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
 void ArnikaTeleportWatch004E1300(int command)
 {
     g_flag_006834dc = 0;
-    if (g_exit_door_prop_6835d0->Rep()->flag_06d != 0) {
+    if (g_exit_door_prop_6835d0->Rep()->animation_playing_06d != 0) {
         return;
     }
     g_flag_006834dc = 1;
@@ -618,7 +618,7 @@ void ArnikaEl1Button004E17C0(int command)
         g_flag_006834dc = 1;
         return;
     }
-    if (g_el01_button_prop_6835ec->Rep()->flag_06d != 0) {
+    if (g_el01_button_prop_6835ec->Rep()->animation_playing_06d != 0) {
         return;
     }
     if (gEl01.button_down == 1) {
@@ -672,7 +672,7 @@ void ArnikaEl1Moving004E19B0(int command)
         g_flag_006834dc = 1;
         return;
     }
-    if (gEl01.pProp->Rep()->flag_06d != 0) {
+    if (gEl01.pProp->Rep()->animation_playing_06d != 0) {
         return;
     }
     g_flag_006834dc = 1;
@@ -828,7 +828,7 @@ void ArnikaEl2Button004E1E10(int command)
         g_flag_006834dc = 1;
         return;
     }
-    if (g_el02_button_prop_6835f0->Rep()->flag_06d != 0) {
+    if (g_el02_button_prop_6835f0->Rep()->animation_playing_06d != 0) {
         return;
     }
     if (gEl02.button_down == 1) {
@@ -872,7 +872,7 @@ void ArnikaEl2Moving004E1FB0(int command)
         g_flag_006834dc = 1;
         return;
     }
-    if (gEl02.pProp->Rep()->flag_06d != 0) {
+    if (gEl02.pProp->Rep()->animation_playing_06d != 0) {
         return;
     }
     g_flag_006834dc = 1;

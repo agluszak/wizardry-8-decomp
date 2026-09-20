@@ -186,9 +186,9 @@ void W8SpellVisual::AdvanceAnimationFrame(int value, int flags)
 {
     W8SpellEmitterHost* representation_before;
 
-    host->counter_094 = 0;
+    host->first_frame_094 = 0;
     representation_before = host;
-    representation_before->counter_095 = GetNumSubCycles() - 1;
+    representation_before->last_frame_095 = GetNumSubCycles() - 1;
     W8GrCycle::AdvanceAnimationFrame(value, flags);
 }
 
@@ -224,7 +224,7 @@ void W8SpellVisual::SetCycle(signed char cycle)
     host->current_cycle = cycle;
     animation = host->emitters[cycle];
     host->active = 1;
-    host->flag_06e = 1;
+    host->frame_direction_06e = 1;
     if (host->SetCycleFrameLod(cycle, 0, 2) != 0) {
         host->m_bLOD = 2;
     } else if (host->SetCycleFrameLod(cycle, 0, 1) != 0) {
@@ -233,9 +233,9 @@ void W8SpellVisual::SetCycle(signed char cycle)
         host->m_bLOD = 0;
     }
     host->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    host->flag_06f = animation->value_02;
-    host->flag_06d = animation->unknown_01;
-    host->flag_064 = 0;
+    host->frame_method_06f = animation->value_02;
+    host->animation_playing_06d = animation->unknown_01;
+    host->subcycle_064 = 0;
 
     lights = *host->light_lists[cycle].GetAt(0);
     SetLights(lights);
@@ -524,11 +524,11 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
     }
     emitter_values[emitter] = animation->playback_scale_08;
     active = 1;
-    flag_06e = 1;
+    frame_direction_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    flag_070 = animation->unknown_03;
-    flag_06f = animation->value_02;
-    flag_06d = animation->unknown_01;
+    animation_behaviour_070 = animation->unknown_03;
+    frame_method_06f = animation->value_02;
+    animation_playing_06d = animation->unknown_01;
     emitters[emitter] = animation;
 
     if (visual != 0) {
@@ -705,7 +705,7 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
                          FormatString("Spell %s missing cycle of type %d", name, group));
         }
         (*visual)->host->billboard_378 = 0;
-        (*visual)->host->behaviour_071 = 1;
+        (*visual)->host->pending_behaviour_071 = 1;
     }
 
     ResumeSharedGameTimers00439CA0();
@@ -810,17 +810,17 @@ int W8SpellVisual::QueryHostStateByKind004AC8F0(int kind)
     case 1:
         return GetTotalAnimationCount();
     case 2:
-        return host->flag_064 == host->ApplyEmitterSetting(host->current_cycle) - 1;
+        return host->subcycle_064 == host->ApplyEmitterSetting(host->current_cycle) - 1;
     case 3:
-        return host->flag_064 == 0;
+        return host->subcycle_064 == 0;
     case 4:
-        return host->flag_064;
+        return host->subcycle_064;
     case 5:
         return host->ApplyEmitterSetting(host->current_cycle) != 0xffffffff;
     case 6:
         return host->current_cycle;
     case 7:
-        return host->flag_06d == 0;
+        return host->animation_playing_06d == 0;
     default:
         return -1;
     }
@@ -1190,7 +1190,7 @@ void SetTargetConeEnabled004ADD30(char enabled)
         if (g_target_cone_visual_65be20 == 0) {
             g_target_cone_visual_65be20 = CreateAttachedSpellEffect("TargetCone", 1, 0, 0, 0);
             if (g_target_cone_visual_65be20 != 0) {
-                g_target_cone_visual_65be20->host->behaviour_071 = 3;
+                g_target_cone_visual_65be20->host->pending_behaviour_071 = 3;
             }
         }
         return;

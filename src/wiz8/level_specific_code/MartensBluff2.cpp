@@ -586,10 +586,10 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
         return;
     }
     if (g_dummy_prop_683544 != 0) {
-        if (g_dummy_prop_683544->Rep()->flag_06d != 0) {
+        if (g_dummy_prop_683544->Rep()->animation_playing_06d != 0) {
             return;
         }
-        if (g_dummy_rope_prop_683548->Rep()->flag_06d != 0) {
+        if (g_dummy_rope_prop_683548->Rep()->animation_playing_06d != 0) {
             return;
         }
         g_flag_006834dc = 1;
@@ -597,7 +597,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
         g_crusher_state_683550 = 0;
         return;
     }
-    if (g_squisher3_prop_68353c->Rep()->flag_06d == 0) {
+    if (g_squisher3_prop_68353c->Rep()->animation_playing_06d == 0) {
         if (g_crusher_sound_68354c != 0) {
             g_crusher_sound_68354c->Stop();
         }

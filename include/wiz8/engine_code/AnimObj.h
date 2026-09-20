@@ -21,9 +21,9 @@ class srModelInstance;
  */
 struct W8AnimObj {
     unsigned char group_count; /* 0x00: mesh/list group count, max 3 */
-    unsigned char unknown_01;  /* 0x01: copied onto monster/prop flag_06d */
-    unsigned char value_02;    /* 0x02: copied onto flag_06f */
-    unsigned char unknown_03;  /* 0x03: copied onto flag_070 */
+    unsigned char unknown_01;  /* 0x01: copied onto monster/prop animation_playing_06d */
+    unsigned char value_02;    /* 0x02: copied onto frame_method_06f */
+    unsigned char unknown_03;  /* 0x03: copied onto animation_behaviour_070 */
     unsigned char cycle;       /* 0x04: default cycle/emitter index */
     unsigned char flag_05;     /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char unknown_06[2];

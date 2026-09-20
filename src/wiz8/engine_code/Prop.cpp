@@ -235,21 +235,21 @@ unsigned char W8Prop::GetSetting6C()
 // FUNCTION: WIZ8 0x0044d5b0
 void W8Prop::SetSetting66(char value)
 {
-    this->Rep()->value_066 = value;
+    this->Rep()->pending_subcycle_066 = value;
 }
 
 /* Whether the owned member is in the state the value two stands for. */
 // FUNCTION: WIZ8 0x0044e1c0
 bool W8Prop::IsSetting6FTwo()
 {
-    return this->Rep()->flag_06f == 2;
+    return this->Rep()->frame_method_06f == 2;
 }
 
 /* Flip the owned member between the only two values it takes: one and three. */
 // FUNCTION: WIZ8 0x0044e1d0
 void W8Prop::ToggleSetting6E()
 {
-    this->Rep()->flag_06e = this->Rep()->flag_06e == 1 ? 3 : 1;
+    this->Rep()->frame_direction_06e = this->Rep()->frame_direction_06e == 1 ? 3 : 1;
 }
 
 /* The prop's own trigger at 0x18. */
@@ -288,7 +288,7 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> first;
     srVector3T<float> second;
 
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &first, &second);
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &first, &second);
     *position = (first + second) * 0.5;
 }
 
@@ -321,7 +321,7 @@ bool W8Prop::IsPickedProp0044D680(W8World* world)
         }
         return false;
     }
-    frame = Rep()->flag_064;
+    frame = Rep()->subcycle_064;
     if (AnimationIsRunning(Rep()->animation) == 0) {
         instance = AnimObjDispatch004A14D0(Rep()->animation, 2, frame);
     } else {
@@ -385,7 +385,7 @@ char ResolvePickedProp(W8World* world)
                 continue;
             }
         } else {
-            instance = representation->ToggleAnimation(representation->flag_064);
+            instance = representation->ToggleAnimation(representation->subcycle_064);
             if (GetValue65962C() != instance) {
                 continue;
             }
@@ -404,7 +404,7 @@ char ResolvePickedProp(W8World* world)
                 srVector3T<float> maximum;
                 float distance;
 
-                AnimObjGetBounds004A1710(representation->animation, 2, representation->flag_064,
+                AnimObjGetBounds004A1710(representation->animation, 2, representation->subcycle_064,
                                          &minimum, &maximum);
                 distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum_0a4 <= distance) {
@@ -448,18 +448,18 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
             if (selected < 0) {
                 return 0;
             }
-            value_068 = counter_094;
+            value_068 = first_frame_094;
             value_069 = (unsigned char)selected;
-            if (selected < (signed char)counter_094) {
+            if (selected < static_cast<signed char>(first_frame_094)) {
                 value_068 = (unsigned char)selected;
-                value_069 = counter_094;
+                value_069 = first_frame_094;
             }
-            if (value_069 <= counter_094) {
-                flag_06e = 3;
+            if (value_069 <= first_frame_094) {
+                frame_direction_06e = 3;
             } else {
-                flag_06e = 1;
+                frame_direction_06e = 1;
             }
-            flag_06d = 1;
+            animation_playing_06d = 1;
             return 1;
         }
     }
@@ -481,7 +481,7 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
 
     for (index = 0; index < slots.count; ++index) {
         if (static_cast<int>(static_cast<char>(slots.data[index]->frame)) ==
-            static_cast<unsigned int>(counter_094)) {
+            static_cast<unsigned int>(first_frame_094)) {
             return index;
         }
     }
@@ -504,7 +504,7 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     }
     for (segment = 0; segment < slots.count; ++segment) {
         if (static_cast<int>(static_cast<char>(slots.data[segment]->frame)) ==
-            static_cast<unsigned int>(counter_094)) {
+            static_cast<unsigned int>(first_frame_094)) {
             break;
         }
     }
@@ -519,11 +519,11 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     } else {
         ++segment;
     }
-    counter_094 = slots.data[segment]->frame;
-    counter_095 = slots.data[segment + 1]->frame;
-    flag_06e = 1;
-    flag_06d = 1;
-    flag_064 = counter_094;
+    first_frame_094 = slots.data[segment]->frame;
+    last_frame_095 = slots.data[segment + 1]->frame;
+    frame_direction_06e = 1;
+    animation_playing_06d = 1;
+    subcycle_064 = first_frame_094;
     return (unsigned char)segment;
 #pragma clang diagnostic pop
 }
@@ -546,7 +546,7 @@ srModelInstance* W8Prop::ToggleRepAnimation(int argument)
 srModelInstance* W8Prop::ToggleRepAnimationDefault()
 {
     W8PropRepresentation* rep = Rep();
-    unsigned char argument = rep->flag_064;
+    unsigned char argument = rep->subcycle_064;
 
     if (!AnimationIsRunning(rep->animation)) {
         return AnimObjDispatch004A14D0(rep->animation, 2, argument);
@@ -558,7 +558,7 @@ srModelInstance* W8Prop::ToggleRepAnimationDefault()
 // FUNCTION: WIZ8 0x0044d5c0
 unsigned char W8Prop::PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, minimum, maximum);
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
     return 1;
 }
 
@@ -571,7 +571,7 @@ void W8Prop::SetSetting6E(unsigned char value)
     if (m_pRep == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 2698, 0);
     }
-    Rep()->flag_06e = value;
+    Rep()->frame_direction_06e = value;
 }
 
 /* Set the live representation state. When requested, choose the direction
@@ -579,7 +579,7 @@ void W8Prop::SetSetting6E(unsigned char value)
 // FUNCTION: WIZ8 0x0044da80
 void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_animation)
 {
-    Rep()->flag_06d = active;
+    Rep()->animation_playing_06d = active;
     if (active == 0) {
         return;
     }
@@ -589,26 +589,26 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
         return;
     }
 
-    if (Rep()->flag_070 == 1) {
-        if ((Rep()->flag_06e == 2 && Rep()->flag_06f != 2) ||
-            (Rep()->flag_06e != 2 && Rep()->flag_06f == 2)) {
-            Rep()->flag_06e = 1;
-            Rep()->flag_064 = Rep()->counter_094;
+    if (Rep()->animation_behaviour_070 == 1) {
+        if ((Rep()->frame_direction_06e == 2 && Rep()->frame_method_06f != 2) ||
+            (Rep()->frame_direction_06e != 2 && Rep()->frame_method_06f == 2)) {
+            Rep()->frame_direction_06e = 1;
+            Rep()->subcycle_064 = Rep()->first_frame_094;
             return;
         }
-        Rep()->flag_06e = 3;
-        Rep()->flag_064 = Rep()->counter_095;
+        Rep()->frame_direction_06e = 3;
+        Rep()->subcycle_064 = Rep()->last_frame_095;
         return;
     }
-    if (Rep()->flag_070 == 2) {
-        if ((Rep()->flag_06e == 2 && Rep()->flag_06f != 2) ||
-            (Rep()->flag_06e != 2 && Rep()->flag_06f == 2)) {
-            Rep()->flag_06e = 1;
-            Rep()->flag_064 = Rep()->counter_094;
+    if (Rep()->animation_behaviour_070 == 2) {
+        if ((Rep()->frame_direction_06e == 2 && Rep()->frame_method_06f != 2) ||
+            (Rep()->frame_direction_06e != 2 && Rep()->frame_method_06f == 2)) {
+            Rep()->frame_direction_06e = 1;
+            Rep()->subcycle_064 = Rep()->first_frame_094;
             return;
         }
-        Rep()->flag_06e = 3;
-        Rep()->flag_064 = Rep()->counter_095;
+        Rep()->frame_direction_06e = 3;
+        Rep()->subcycle_064 = Rep()->last_frame_095;
     }
 }
 
@@ -616,7 +616,7 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
    rep is animating it converts the game timer's progress into whole elapsed
    frames and drives AdvanceAnimationValue0044C310; a finished run leaves the
    0x20 pathing-dirty bit set for the next call to rebuild.  A pending
-   value_066 frame is latched into flag_064 first, and an idle prop with the
+   pending_subcycle_066 frame is latched into subcycle_064 first, and an idle prop with the
    random flag may start a fresh run on its own. */
 // FUNCTION: WIZ8 0x0044c030
 void W8Prop::UpdatePropAnimation0044C030()
@@ -625,33 +625,35 @@ void W8Prop::UpdatePropAnimation0044C030()
     unsigned int total;
     int frames;
 
-    if (rep->active == 0 && (rep->flag_070 != 1 || rep->flag_06d == 0) && (flags_1c & 0x20) == 0) {
+    if (rep->active == 0 &&
+        (rep->animation_behaviour_070 != 1 || rep->animation_playing_06d == 0) &&
+        (flags_1c & 0x20) == 0) {
         return;
     }
     total = AnimObjValue004A15D0(rep->animation, 2);
     unknown_024 = 0.0f;
-    if (rep->value_066 != 0xffff) {
-        if (static_cast<short>(rep->value_066) < static_cast<int>(total)) {
-            rep->flag_064 = static_cast<unsigned char>(rep->value_066);
+    if (rep->pending_subcycle_066 != 0xffff) {
+        if (static_cast<short>(rep->pending_subcycle_066) < static_cast<int>(total)) {
+            rep->subcycle_064 = static_cast<unsigned char>(rep->pending_subcycle_066);
         }
-        rep->value_066 = 0xffff;
+        rep->pending_subcycle_066 = 0xffff;
     }
     if (static_cast<int>(total) < 2 || rep->animation_running_0a4 != 0) {
         return;
     }
-    if (rep->flag_06d == 0 && rep->random_play_0a5 != 0 &&
+    if (rep->animation_playing_06d == 0 && rep->random_play_0a5 != 0 &&
         rand() * (1.0f / RAND_MAX) < rep->play_chance_0a8) {
-        if (rep->flag_06e == 2) {
-            rep->flag_064 = rep->counter_094;
-            rep->flag_06e = 1;
+        if (rep->frame_direction_06e == 2) {
+            rep->subcycle_064 = rep->first_frame_094;
+            rep->frame_direction_06e = 1;
         } else {
-            rep->flag_064 = rep->counter_095;
-            rep->flag_06e = 3;
+            rep->subcycle_064 = rep->last_frame_095;
+            rep->frame_direction_06e = 3;
         }
         m_pTimer->Restart();
-        rep->flag_06d = 1;
+        rep->animation_playing_06d = 1;
     }
-    if (rep->flag_06d == 0) {
+    if (rep->animation_playing_06d == 0) {
         if ((flags_1c & 0x20) == 0) {
             return;
         }
@@ -677,12 +679,12 @@ void W8Prop::UpdatePropAnimation0044C030()
                     rep->frame_index_0a0 = animation->value_16;
                 }
             } else {
-                rep->frame_index_0a0 = rep->flag_064;
+                rep->frame_index_0a0 = rep->subcycle_064;
             }
             PathAISetValue004A9F60(animation->path_24, static_cast<float>(rep->frame_index_0a0));
         }
     }
-    if (rep->flag_06d == 0) {
+    if (rep->animation_playing_06d == 0) {
         flags_1c |= 0x20;
     }
 }
@@ -725,42 +727,42 @@ void W8Prop::ApplyAnimationPaths0044C200(W8World* world)
 /* Advance the rep's animation value by `frames` in the rep's direction.
    Transitive animations clamp at either end and complete: the run stops, the
    linked triggers fire and the global redraw flag goes up.  Looping kinds
-   wrap or, when flag_06f is two, bounce off the ends and flip direction; a
+   wrap or, when frame_method_06f is two, bounce off the ends and flip direction; a
    step larger than the counter range folds through whole trips.  The new
    value is clamped and pushed to every bound path. */
 // FUNCTION: WIZ8 0x0044c310
 void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
 {
     W8PropRepresentation* rep = Rep();
-    unsigned int frame = rep->flag_064;
-    char behaviour = rep->flag_06f;
-    int end = rep->counter_095;
-    int start = rep->counter_094;
+    unsigned int frame = rep->subcycle_064;
+    char behaviour = rep->frame_method_06f;
+    int end = rep->last_frame_095;
+    int start = rep->first_frame_094;
     unsigned int count;
     int index;
 
     if (behaviour == 3) {
-        rep->flag_064 = static_cast<unsigned char>(Random(total));
-    } else if (rep->flag_070 == 1) {
-        if (rep->flag_06e == 1) {
+        rep->subcycle_064 = static_cast<unsigned char>(Random(total));
+    } else if (rep->animation_behaviour_070 == 1) {
+        if (rep->frame_direction_06e == 1) {
             if (static_cast<int>(frame) + frames < end) {
-                rep->flag_064 = static_cast<unsigned char>(frame + frames);
+                rep->subcycle_064 = static_cast<unsigned char>(frame + frames);
             } else {
-                rep->flag_064 = rep->counter_095;
-                rep->flag_06d = 0;
-                rep->flag_06e = 2;
+                rep->subcycle_064 = rep->last_frame_095;
+                rep->animation_playing_06d = 0;
+                rep->frame_direction_06e = 2;
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
                 g_flag_006840bb = 1;
             }
-        } else if (rep->flag_06e == 3) {
+        } else if (rep->frame_direction_06e == 3) {
             if (static_cast<int>(frame) - frames > start) {
-                rep->flag_064 = static_cast<unsigned char>(frame - frames);
+                rep->subcycle_064 = static_cast<unsigned char>(frame - frames);
             } else {
-                rep->flag_064 = rep->counter_094;
-                rep->flag_06d = 0;
-                rep->flag_06e = 4;
+                rep->subcycle_064 = rep->first_frame_094;
+                rep->animation_playing_06d = 0;
+                rep->frame_direction_06e = 4;
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
@@ -771,28 +773,32 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
         int range = end - start;
 
         if (frames < range) {
-            if (rep->flag_06e == 1) {
+            if (rep->frame_direction_06e == 1) {
                 frame += frames;
                 if (static_cast<int>(frame) <= end) {
-                    rep->flag_064 = static_cast<unsigned char>(frame);
+                    rep->subcycle_064 = static_cast<unsigned char>(frame);
                 } else if (behaviour == 2) {
-                    rep->flag_06e = 3;
-                    rep->flag_064 = static_cast<unsigned char>(2 * end - static_cast<int>(frame));
+                    rep->frame_direction_06e = 3;
+                    rep->subcycle_064 =
+                        static_cast<unsigned char>(2 * end - static_cast<int>(frame));
                 } else {
-                    rep->flag_064 = static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
+                    rep->subcycle_064 =
+                        static_cast<unsigned char>(static_cast<int>(frame) - range - 1);
                 }
-            } else if (rep->flag_06e == 3) {
+            } else if (rep->frame_direction_06e == 3) {
                 frame -= frames;
                 if (static_cast<int>(frame) >= start) {
-                    rep->flag_064 = static_cast<unsigned char>(frame);
+                    rep->subcycle_064 = static_cast<unsigned char>(frame);
                 } else if (behaviour == 2) {
-                    rep->flag_064 = static_cast<unsigned char>(2 * start - static_cast<int>(frame));
-                    rep->flag_06e = 1;
+                    rep->subcycle_064 =
+                        static_cast<unsigned char>(2 * start - static_cast<int>(frame));
+                    rep->frame_direction_06e = 1;
                 } else {
-                    rep->flag_064 = static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
+                    rep->subcycle_064 =
+                        static_cast<unsigned char>(range + static_cast<int>(frame) + 1);
                 }
             }
-        } else if (rep->flag_06e == 1) {
+        } else if (rep->frame_direction_06e == 1) {
             int effective = static_cast<int>(frame) - start + frames;
 
             if (behaviour == 2) {
@@ -800,16 +806,16 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 int remainder = effective - trips * range;
 
                 if (trips % 2 == 0) {
-                    rep->flag_064 = static_cast<unsigned char>(start + remainder);
+                    rep->subcycle_064 = static_cast<unsigned char>(start + remainder);
                 } else {
-                    rep->flag_06e = 3;
-                    rep->flag_064 = static_cast<unsigned char>(end - remainder);
+                    rep->frame_direction_06e = 3;
+                    rep->subcycle_064 = static_cast<unsigned char>(end - remainder);
                 }
             } else {
-                rep->flag_064 = static_cast<unsigned char>(start + effective -
-                                                           effective / (range + 1) * (range + 1));
+                rep->subcycle_064 = static_cast<unsigned char>(
+                    start + effective - effective / (range + 1) * (range + 1));
             }
-        } else if (rep->flag_06e == 3) {
+        } else if (rep->frame_direction_06e == 3) {
             int effective = 2 * start - static_cast<int>(frame) + frames;
 
             if (behaviour == 2) {
@@ -817,23 +823,23 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 int remainder = effective - trips * range;
 
                 if (trips % 2 == 0) {
-                    rep->flag_064 = static_cast<unsigned char>(start + remainder);
-                    rep->flag_06e = 1;
+                    rep->subcycle_064 = static_cast<unsigned char>(start + remainder);
+                    rep->frame_direction_06e = 1;
                 } else {
-                    rep->flag_064 = static_cast<unsigned char>(end - remainder);
+                    rep->subcycle_064 = static_cast<unsigned char>(end - remainder);
                 }
             } else {
                 int folded = effective - 1;
 
-                rep->flag_064 =
+                rep->subcycle_064 =
                     static_cast<unsigned char>(end + folded / (range + 1) * (range + 1) - folded);
             }
         }
     }
-    if (rep->flag_064 < rep->counter_094) {
-        rep->flag_064 = rep->counter_094;
-    } else if (rep->flag_064 > rep->counter_095) {
-        rep->flag_064 = rep->counter_095;
+    if (rep->subcycle_064 < rep->first_frame_094) {
+        rep->subcycle_064 = rep->first_frame_094;
+    } else if (rep->subcycle_064 > rep->last_frame_095) {
+        rep->subcycle_064 = rep->last_frame_095;
     }
     if (AnimationIsRunning(rep->animation) == 1) {
         count = AnimObjListCount004A1620(rep->animation, 2);
@@ -842,7 +848,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 AnimObjListEntry004A16C0(rep->animation, 2, static_cast<signed char>(index));
 
             if (path != 0) {
-                PathAISetValue004A9F60(path, static_cast<float>(rep->flag_064));
+                PathAISetValue004A9F60(path, static_cast<float>(rep->subcycle_064));
             }
         }
     }
@@ -852,42 +858,42 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
    AdvanceAnimationValue0044C310 would compute a single step: transitive kinds
    clamp at the ends, looping kinds wrap to the opposite end, and behaviour
    two steps back instead.  Retail returns the literal one rather than
-   counter_094 + 1 when a bouncing run sits at the start. */
+   first_frame_094 + 1 when a bouncing run sits at the start. */
 // FUNCTION: WIZ8 0x0044c600
 char W8Prop::NextAnimationValue0044C600()
 {
     W8PropRepresentation* rep = Rep();
-    char direction = rep->flag_06e;
+    char direction = rep->frame_direction_06e;
 
-    if (rep->flag_070 == 1) {
+    if (rep->animation_behaviour_070 == 1) {
         if (direction == 1) {
-            if (rep->flag_064 < rep->counter_095) {
-                return rep->flag_064 + 1;
+            if (rep->subcycle_064 < rep->last_frame_095) {
+                return rep->subcycle_064 + 1;
             }
-        } else if (direction == 3 && rep->counter_094 < rep->flag_064) {
-            return rep->flag_064 - 1;
+        } else if (direction == 3 && rep->first_frame_094 < rep->subcycle_064) {
+            return rep->subcycle_064 - 1;
         }
-        return rep->flag_064;
+        return rep->subcycle_064;
     }
     if (direction == 1) {
-        if (rep->flag_064 != rep->counter_095) {
-            return rep->flag_064 + 1;
+        if (rep->subcycle_064 != rep->last_frame_095) {
+            return rep->subcycle_064 + 1;
         }
-        if (rep->flag_06f == 2) {
-            return rep->flag_064 - 1;
+        if (rep->frame_method_06f == 2) {
+            return rep->subcycle_064 - 1;
         }
-        return rep->counter_094;
+        return rep->first_frame_094;
     }
     if (direction != 3) {
-        return rep->flag_064;
+        return rep->subcycle_064;
     }
-    if (rep->flag_064 > rep->counter_094) {
-        return rep->flag_064 - 1;
+    if (rep->subcycle_064 > rep->first_frame_094) {
+        return rep->subcycle_064 - 1;
     }
-    if (rep->flag_06f == 2) {
+    if (rep->frame_method_06f == 2) {
         return 1;
     }
-    return rep->counter_095;
+    return rep->last_frame_095;
 }
 
 /* When the next animation step moves the rep exactly one frame, write the
@@ -899,7 +905,7 @@ char W8Prop::GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* p
 {
     unsigned char next = static_cast<unsigned char>(NextAnimationValue0044C600());
 
-    if (abs(next - Rep()->flag_064) == 1) {
+    if (abs(next - Rep()->subcycle_064) == 1) {
         *out = position_02c - position_03c;
         return Rep()->flag_0ad;
     }
@@ -953,7 +959,7 @@ void W8Prop::ApplyAnimationFrame0044C670()
 
     if (AnimationIsRunning(static_cast<W8PropRepresentation*>(m_pRep)->animation) != 1) {
         W8PropRepresentation* rep = static_cast<W8PropRepresentation*>(m_pRep);
-        unsigned char frame = rep->flag_064;
+        unsigned char frame = rep->subcycle_064;
         srModelInstance* mesh;
         W8PathAI* path;
 
@@ -967,8 +973,8 @@ void W8Prop::ApplyAnimationFrame0044C670()
         }
         path = static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24;
         if (path != 0) {
-            PathAISetValue004A9F60(path,
-                                   (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+            PathAISetValue004A9F60(
+                path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
             PathAIApply004AA520(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24,
                                 mesh);
         }
@@ -989,8 +995,8 @@ void W8Prop::ApplyAnimationFrame0044C670()
         if (path != 0) {
             srVector3T<float> location;
 
-            PathAISetValue004A9F60(path,
-                                   (float)static_cast<W8PropRepresentation*>(m_pRep)->flag_064);
+            PathAISetValue004A9F60(
+                path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
             PathAIApply004AA520(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
@@ -1067,23 +1073,23 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
                 continue;
             }
             next_frame = static_cast<unsigned char>(NextAnimationValue0044C600());
-            if (next_frame > Rep()->counter_095) {
+            if (next_frame > Rep()->last_frame_095) {
                 unknown_024 = 0.0f;
             }
-            rotation = path->rotations_14[Rep()->flag_064];
+            rotation = path->rotations_14[Rep()->subcycle_064];
             next = path->rotations_14[next_frame];
             instance->getRotation(rotation_048);
             if (!(rotation == next)) {
                 W8Quaternion::InterpolateRotation(rotation, next, unknown_024, &rotation);
             }
             rotation_06c = rotation;
-            current = **path->nodes_0c->GetAt(Rep()->flag_064);
+            current = **path->nodes_0c->GetAt(Rep()->subcycle_064);
             next_pos = **path->nodes_0c->GetAt(next_frame);
             inv = g_float_005ebb38 - unknown_024;
             position = current * inv + next_pos * unknown_024;
             if (path->scales_18 != 0) {
                 has_scales = true;
-                current_scale = path->scales_18[Rep()->flag_064];
+                current_scale = path->scales_18[Rep()->subcycle_064];
                 next_scale = path->scales_18[next_frame];
                 scale_vector = current_scale * inv + next_scale * unknown_024;
             }
@@ -1112,7 +1118,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             position_02c = position;
         }
     } else {
-        instance = static_cast<stModelInstance*>(Rep()->ToggleAnimation(Rep()->flag_064));
+        instance = static_cast<stModelInstance*>(Rep()->ToggleAnimation(Rep()->subcycle_064));
         if (instance == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x624, 0);
         }
@@ -1169,7 +1175,7 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", PROP_CPP, 0x66b, 0);
     }
-    Rep()->flag_0ac = Rep()->flag_064;
+    Rep()->flag_0ac = Rep()->subcycle_064;
     if (AnimationIsRunning(Rep()->animation) == 1) {
         count = AnimObjListCount004A1620(Rep()->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
@@ -1182,7 +1188,7 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
             instance->setParent(0, 1);
         }
     } else {
-        unsigned char frame = Rep()->flag_064;
+        unsigned char frame = Rep()->subcycle_064;
 
         if (AnimationIsRunning(Rep()->animation) == 0) {
             instance =
@@ -1215,21 +1221,22 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
     bool success;
     W8PathAI* path;
 
-    success = FileRead(hFile, &Rep()->flag_064, 1, 0) != 0 &&
-              FileRead(hFile, &Rep()->counter_094, 1, 0) != 0 &&
-              FileRead(hFile, &Rep()->counter_095, 1, 0) != 0 &&
-              FileRead(hFile, &Rep()->flag_06e, 1, 0) != 0 &&
-              FileRead(hFile, &Rep()->flag_06d, 1, 0) != 0 && FileRead(hFile, &unused, 1, 0) != 0;
+    success = FileRead(hFile, &Rep()->subcycle_064, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->first_frame_094, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->last_frame_095, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->frame_direction_06e, 1, 0) != 0 &&
+              FileRead(hFile, &Rep()->animation_playing_06d, 1, 0) != 0 &&
+              FileRead(hFile, &unused, 1, 0) != 0;
     if (Rep()->animation != 0) {
         total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
-        if (Rep()->counter_095 >= total) {
-            Rep()->counter_095 = static_cast<unsigned char>(total - 1);
+        if (Rep()->last_frame_095 >= total) {
+            Rep()->last_frame_095 = static_cast<unsigned char>(total - 1);
         }
-        if (Rep()->counter_094 >= total) {
-            Rep()->counter_094 = static_cast<unsigned char>(total - 1);
+        if (Rep()->first_frame_094 >= total) {
+            Rep()->first_frame_094 = static_cast<unsigned char>(total - 1);
         }
-        if (Rep()->flag_064 >= total) {
-            Rep()->flag_064 = static_cast<unsigned char>(total - 1);
+        if (Rep()->subcycle_064 >= total) {
+            Rep()->subcycle_064 = static_cast<unsigned char>(total - 1);
         }
         if (AnimationIsRunning(Rep()->animation) == 1) {
             count = AnimObjListCount004A1620(Rep()->animation, 2);
@@ -1237,7 +1244,7 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
                 path =
                     AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
                 if (path != 0) {
-                    PathAISetValue004A9F60(path, static_cast<float>(Rep()->flag_064));
+                    PathAISetValue004A9F60(path, static_cast<float>(Rep()->subcycle_064));
                 }
             }
         }
@@ -1259,12 +1266,12 @@ void W8Prop::GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* ma
     int total;
 
     total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
-    saved_frame = Rep()->flag_064;
-    Rep()->flag_064 = 0;
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, minimum, maximum);
+    saved_frame = Rep()->subcycle_064;
+    Rep()->subcycle_064 = 0;
+    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
     for (frame = 1; frame < total; ++frame) {
-        Rep()->flag_064 = static_cast<unsigned char>(frame);
-        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &local_minimum,
+        Rep()->subcycle_064 = static_cast<unsigned char>(frame);
+        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &local_minimum,
                                  &local_maximum);
         if (local_minimum.x < minimum->x) {
             minimum->x = local_minimum.x;
@@ -1285,7 +1292,7 @@ void W8Prop::GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* ma
             maximum->z = local_maximum.z;
         }
     }
-    Rep()->flag_064 = saved_frame;
+    Rep()->subcycle_064 = saved_frame;
 }
 
 /* Build or refresh the pathing representation for a collidable Prop.  Retail
@@ -1311,16 +1318,16 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
     }
 
     if (m_gd_prop == 0) {
-        m_gd_prop = new GDProp(instance, m_name, static_cast<unsigned short>(Rep()->flag_064),
+        m_gd_prop = new GDProp(instance, m_name, static_cast<unsigned short>(Rep()->subcycle_064),
                                Rep()->flag_0c0, Rep()->flag_0c1);
     } else {
         if ((flags_1c & 0x20) != 0) {
-            m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->flag_064),
+            m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->subcycle_064),
                                   Rep()->flag_0c0, Rep()->flag_0c1);
         } else {
             m_gd_prop->Initialize(instance, 0, 0, Rep()->flag_0c0, Rep()->flag_0c1);
         }
-        if (Rep()->flag_070 == 1) {
+        if (Rep()->animation_behaviour_070 == 1) {
             g_byte_00659a64 = 1;
         }
     }
@@ -1381,7 +1388,7 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
 
     if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
         ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
-        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->flag_064, &minimum, &maximum);
+        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,
                    (minimum.z + maximum.z) * g_double_005ebe80);
@@ -1650,15 +1657,16 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
     }
 
     this->active = 1;
-    this->flag_070 = animation->unknown_03;
-    this->flag_06f = animation->value_02;
-    this->flag_06d = animation->unknown_01;
-    this->flag_06e = 1;
+    this->animation_behaviour_070 = animation->unknown_03;
+    this->frame_method_06f = animation->value_02;
+    this->animation_playing_06d = animation->unknown_01;
+    this->frame_direction_06e = 1;
     this->animation_speed = animation->playback_scale_08;
     this->timer_068 = GetTickCount();
-    if (this->flag_070 == 1 || this->flag_070 == 2) {
-        this->flag_06d = 0;
-        this->flag_06e = (unsigned char)(((this->flag_06f != 2) - 1U & 2) + 2);
+    if (this->animation_behaviour_070 == 1 || this->animation_behaviour_070 == 2) {
+        this->animation_playing_06d = 0;
+        this->frame_direction_06e =
+            static_cast<unsigned char>(((this->frame_method_06f != 2) - 1U & 2) + 2);
     }
 
     if (animation->flag_05 == 0) {
@@ -1704,12 +1712,12 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         }
         {
             /* Retail writes the six floats in this interleaved order. */
-            this->value_074.y = minimum.y;
-            this->value_080.x = maximum.x;
-            this->value_074.x = minimum.x;
-            this->value_080.z = maximum.z;
-            this->value_074.z = minimum.z;
-            this->value_080.y = maximum.y;
+            this->bounds_min_074.y = minimum.y;
+            this->bounds_max_080.x = maximum.x;
+            this->bounds_min_074.x = minimum.x;
+            this->bounds_max_080.z = maximum.z;
+            this->bounds_min_074.z = minimum.z;
+            this->bounds_max_080.y = maximum.y;
         }
         extent = maximum.x - minimum.x;
         if (extent < maximum.y - minimum.y) {
@@ -1718,7 +1726,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         if (extent < maximum.z - minimum.z) {
             extent = maximum.z - minimum.z;
         }
-        this->value_08c = extent * g_float_005ebc7c;
+        this->bounds_extent_08c = extent * g_float_005ebc7c;
     }
 
     if (version > 2) {
@@ -1761,7 +1769,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             case 0x32:
             case 0x33:
             case 0x40:
-                this->flag_06d = 0;
+                this->animation_playing_06d = 0;
                 break;
             }
             prop->trigger_18 = trigger;
@@ -1786,11 +1794,11 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         }
     }
 
-    this->counter_094 = 0;
-    this->flag_064 = 0;
+    this->first_frame_094 = 0;
+    this->subcycle_064 = 0;
     {
         unsigned int frames = AnimObjValue004A15D0(animation, 2);
-        this->counter_095 = (unsigned char)frames - 1;
+        this->last_frame_095 = static_cast<unsigned char>(frames) - 1;
     }
     return result;
 
@@ -1886,11 +1894,11 @@ void SaveWorldProps0044E830(W8World* world, int handle)
         prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         strcpy(name, prop->m_name);
         FileWrite(handle, name, 0x40, 0);
-        if (FileWrite(handle, &prop->Rep()->flag_064, 1, 0) != 0 &&
-            FileWrite(handle, &prop->Rep()->counter_094, 1, 0) != 0 &&
-            FileWrite(handle, &prop->Rep()->counter_095, 1, 0) != 0 &&
-            FileWrite(handle, &prop->Rep()->flag_06e, 1, 0) != 0 &&
-            FileWrite(handle, &prop->Rep()->flag_06d, 1, 0) != 0) {
+        if (FileWrite(handle, &prop->Rep()->subcycle_064, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->first_frame_094, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->last_frame_095, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->frame_direction_06e, 1, 0) != 0 &&
+            FileWrite(handle, &prop->Rep()->animation_playing_06d, 1, 0) != 0) {
             FileWrite(handle, &prop->Rep()->active, 1, 0);
         }
     }
