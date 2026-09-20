@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/level_specific_code/Arnika.h"
 #include "wiz8/level_specific_code/Monastery1.h"
@@ -203,8 +204,7 @@ static W8WorldCursorNodeHandler const g_world_cursor_node_handlers_006109f4[10] 
    themselves to nodes of type 3, 2 and 7 respectively. Answers whether any
    handler reported the command handled. */
 // FUNCTION: WIZ8 0x004D9080
-unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int command,
-                                                     unsigned char arg)
+unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int command, ...)
 {
     srVector3T<float> position;
     W8WorldCursorNode* node;
@@ -215,11 +215,14 @@ unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int co
 
     result = 0;
     handled = 0;
-    // Commands other than 4 pass the argument byte's address through the
-    // context slot; the handlers never dereference it.
-    // reinterpret-ok: pointer-sized context slot carries the byte's address.
-    context = reinterpret_cast<int>(&arg);
+    // Retail callers use both two and three arguments. Non-4 commands only
+    // forward the optional argument slot's address; handlers do not read it.
+    va_list arguments;
+    va_start(arguments, command);
+    // reinterpret-ok: retail passes the optional argument slot as context.
+    context = reinterpret_cast<int>(arguments);
     if (GetFlag68F105() != 0) {
+        va_end(arguments);
         return handled;
     }
     if (info == 0) {
@@ -230,8 +233,9 @@ unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int co
     position.y = SettlePositionToGround00420BD0(&position, 0) + g_float_005ec3f8;
     node = FindWorldCursorNodeAtPoint0048EDD0(0, &position);
     if (command == 4) {
-        context = arg;
+        context = va_arg(arguments, int);
     }
+    va_end(arguments);
     if (node == 0) {
         return handled;
     }
