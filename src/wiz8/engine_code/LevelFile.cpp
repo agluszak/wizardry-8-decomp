@@ -992,7 +992,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 unsigned char okRecord = 0;
                 if (pRecord != 0) {
                     okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
-                    okRecord &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
+                    okRecord &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                     okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
                     g_level_file_6833fc
                         ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] =
@@ -1111,7 +1111,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
                     unsigned char okRecord = 0;
                     if (pRecord != 0) {
                         okRecord = FileWrite(hFile, &pRecord->kind_00, 1, 0);
-                        okRecord &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
+                        okRecord &= FileWrite(hFile, pRecord->vertices_01, 0x1b0, 0);
                         okRecord &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
                         free(pRecord);
                     }
@@ -1314,7 +1314,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             unsigned char ok = 0;
             if (pRecord != 0) {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
-                ok &= FileRead(hFile, pRecord->unknown_01, 0x1b0, 0);
+                ok &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
                 g_level_file_6833fc
                     ->linked_records_260d[g_level_file_6833fc->num_linked_records_2609] = pRecord;
@@ -1422,7 +1422,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
             unsigned char ok = 0;
             if (pRecord != 0) {
                 ok = FileWrite(hFile, &pRecord->kind_00, 1, 0);
-                ok &= FileWrite(hFile, pRecord->unknown_01, 0x1b0, 0);
+                ok &= FileWrite(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
                 free(pRecord);
             }
