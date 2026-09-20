@@ -1891,7 +1891,7 @@ void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBloc
         target->attribute_adjustments[index] -= 0x14;
     }
     for (index = 0; index < 0x29; ++index) {
-        target->unknown_13[index] -= 0x14;
+        target->skill_adjustments[index] -= 0x14;
     }
 }
 
