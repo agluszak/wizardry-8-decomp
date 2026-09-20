@@ -42,7 +42,10 @@ public:
     SR_DLL_IMPORT srHierarchyIOManager* getHierarchyIOManager() const;
     /* Inline like getRegistry: pipeline reset/get paths load material as a
        direct [srCore + 0x170] read rather than an import thunk. */
-    srMaterial* getMaterial() const { return material_170; }
+    srMaterial* getMaterial() const
+    {
+        return material_170;
+    }
     SR_DLL_IMPORT srMemoryAllocator* getMemoryAllocator() const;
     SR_DLL_IMPORT srModelIOManager* getModelIOManager() const;
     SR_DLL_IMPORT srPalette* getPalette() const;
@@ -50,14 +53,18 @@ public:
     SR_DLL_IMPORT srScheduler* getScheduler() const;
     /* Header-visible in the triangle pipeline: its statistics updates load
        the manager directly from srCore +0x28. */
-    srStatisticsManager* getStatisticsManager() const {
+    srStatisticsManager* getStatisticsManager() const
+    {
         return statistics_manager_28;
     }
     SR_DLL_IMPORT srColorSurfaceIFace* getSurface() const;
     SR_DLL_IMPORT srTexture* getTexture() const;
     /* Header-visible like getRegistry/getMaterial: timer users in both Wiz8
        and recovered SR code read the pointer directly from srCore +0x08. */
-    srVariableTimer* getTimer() const { return timer_08; }
+    srVariableTimer* getTimer() const
+    {
+        return timer_08;
+    }
     SR_DLL_IMPORT unsigned long getUniqueID();
     SR_DLL_IMPORT srVideoManager* getVideoManager() const;
     SR_DLL_IMPORT int isInitialized() const;
@@ -73,9 +80,16 @@ public:
        carried this body even though SR.DLL also exports an out-of-line copy.
        Declaring it SR_DLL_IMPORT instead costs every getClassNode body its
        exact match. */
-    srRegistry* getRegistry() const { return registry_; }
+    srRegistry* getRegistry() const
+    {
+        return registry_;
+    }
 
 private:
+    /* srDebugPrintf reads the dword level and masks 0xff directly rather than
+       calling the byte-loading exported accessor. */
+    friend long __cdecl srDebugPrintf(unsigned long level, const char* format, ...);
+
     SR_DLL_IMPORT void reset();
 
     static SR_DLL_IMPORT int initialized;
@@ -97,8 +111,9 @@ private:
     unsigned long next_unique_id_38;
     char version_[0x20];
     char copyright_[0x100];
-    unsigned char debug_level_15c;
-    unsigned char unknown_15d[3];
+    /* Full dword member: setDebugLevel stores MOVZX+4-byte write and
+       srDebugPrintf reads the dword before masking with 0xff. */
+    unsigned long debug_level_15c;
     int multi_thread_160;
     srNode* root_node_164;
     srModelIOManager* model_io_manager_168;

@@ -25,12 +25,12 @@ public:
             ChildLink* next_04;
             ChildLink* previous_08;
         };
+
     public:
         struct NameIndex;
         struct IDIndex;
 
     private:
-
         int isDerivedOrSame(ClassNode* derived) const;
         long getNumberOfInstances(int exact) const;
         unsigned long getClassID() const;
@@ -41,23 +41,22 @@ public:
         void registerInstance(srRuntimeClass* instance);
         void refreshInstance(srRuntimeClass* instance);
         void unregisterInstance(srRuntimeClass* instance);
-        srRuntimeClass* findByName(
-            ClassNode* requested_class,
-            const char* name,
-            int exact,
-            const srRuntimeClass* relative_to);
-        srRuntimeClass* findRelative(
-            ClassNode* requested_class,
-            int exact,
-            const srRuntimeClass* relative_to);
-        srRuntimeClass* findByID(
-            ClassNode* requested_class, unsigned long id, int exact);
+        srRuntimeClass* findByName(ClassNode* requested_class, const char* name, int exact,
+                                   const srRuntimeClass* relative_to);
+        srRuntimeClass* findRelative(ClassNode* requested_class, int exact,
+                                     const srRuntimeClass* relative_to);
+        srRuntimeClass* findByID(ClassNode* requested_class, unsigned long id, int exact);
 
-        ClassNode(
-            ClassNode* parent, const char* class_name, unsigned long class_id);
+        ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id);
         ~ClassNode();
-        void* operator new(unsigned int size) { return srHeap.allocate(size); }
-        void operator delete(void* node) { srHeap.free(node); }
+        void* operator new(unsigned int size)
+        {
+            return srHeap.allocate(size);
+        }
+        void operator delete(void* node)
+        {
+            srHeap.free(node);
+        }
 
         unsigned long child_count_00;
         ChildLink* first_child_04;
@@ -79,8 +78,7 @@ public:
     SR_DLL_IMPORT unsigned long allocateID();
     SR_DLL_IMPORT int checkValidity();
     SR_DLL_IMPORT void dumpClassHierarchy(std::ostream& stream);
-    SR_DLL_IMPORT void dumpInstanceNames(
-        ClassNode* node, std::ostream& stream, int indent);
+    SR_DLL_IMPORT void dumpInstanceNames(ClassNode* node, std::ostream& stream, int indent);
     SR_DLL_IMPORT ClassNode* getClassNode(unsigned long class_id);
     SR_DLL_IMPORT unsigned long getClassID(ClassNode* node);
     SR_DLL_IMPORT const char* getClassName(ClassNode* node);
@@ -96,37 +94,25 @@ public:
        whether the node carries its own instance lookup tables; it is not C++
        abstractness. stTexture2D and stSurface2D are constructed directly and
        still pass 0, which independently rules that reading out. */
-    SR_DLL_IMPORT ClassNode* registerClass(
-        const char* class_name,
-        ClassNode* parent,
-        unsigned long class_id,
-        int register_instances);
-    SR_DLL_IMPORT void registerInstance(
-        ClassNode* node, srRuntimeClass* instance);
-    SR_DLL_IMPORT void unregisterInstance(
-        ClassNode* node, srRuntimeClass* instance);
-    SR_DLL_IMPORT srRuntimeClass* find(
-        ClassNode* node,
-        const char* name,
-        const srRuntimeClass* relative_to);
-    SR_DLL_IMPORT srRuntimeClass* find(
-        ClassNode* node, const srRuntimeClass* relative_to);
+    SR_DLL_IMPORT ClassNode* registerClass(const char* class_name, ClassNode* parent,
+                                           unsigned long class_id, int register_instances);
+    SR_DLL_IMPORT void registerInstance(ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT void unregisterInstance(ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT srRuntimeClass* find(ClassNode* node, const char* name,
+                                       const srRuntimeClass* relative_to);
+    SR_DLL_IMPORT srRuntimeClass* find(ClassNode* node, const srRuntimeClass* relative_to);
     SR_DLL_IMPORT srRuntimeClass* find(ClassNode* node, unsigned long id);
-    SR_DLL_IMPORT srRuntimeClass* findExact(
-        ClassNode* node,
-        const char* name,
-        const srRuntimeClass* relative_to);
-    SR_DLL_IMPORT srRuntimeClass* findExact(
-        ClassNode* node, const srRuntimeClass* relative_to);
+    SR_DLL_IMPORT srRuntimeClass* findExact(ClassNode* node, const char* name,
+                                            const srRuntimeClass* relative_to);
+    SR_DLL_IMPORT srRuntimeClass* findExact(ClassNode* node, const srRuntimeClass* relative_to);
     SR_DLL_IMPORT srRuntimeClass* findExact(ClassNode* node, unsigned long id);
-    SR_DLL_IMPORT void refreshInstance(
-        ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT void refreshInstance(ClassNode* node, srRuntimeClass* instance);
 
 private:
     struct ClassIndex;
 
-    SR_DLL_IMPORT ClassNode* addToTree(
-        ClassNode* parent, const char* class_name, unsigned long class_id);
+    SR_DLL_IMPORT ClassNode* addToTree(ClassNode* parent, const char* class_name,
+                                       unsigned long class_id);
 
     ClassNode* root_00;
     ClassIndex* class_index_04;
@@ -134,15 +120,52 @@ private:
     srCriticalSection* critical_section_0c;
 };
 
-static_assert(sizeof(srRegistry::ClassNode) == 0x2c,
-              "srRegistry_ClassNode_must_be_0x2c");
+static_assert(sizeof(srRegistry::ClassNode) == 0x2c, "srRegistry_ClassNode_must_be_0x2c");
 static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
 
-class srRuntimeClass {
+/* srRuntimeClass's implicit copy constructor and assignment operator
+   (0x10011A10/0x10011A80) each emit a null-guarded one-byte copy at +0x04
+   overlapping the first member: MSVC6's signature for copying an empty
+   non-polymorphic base. The same byte copy is inlined into the implicit
+   copies of srClass and srGERD. RTTI is off and an empty base emits no
+   vtable or export, so the original name is unrecoverable.
+
+   The base is not empty of declarations, only of storage: it carries the
+   heap-routing allocation operators. Retail exports no srClass or
+   srRuntimeClass operator new/delete even though both classes are
+   dllexport-ed, while every deleting destructor in the hierarchy calls
+   srHeap::free directly; the operators resolve through a non-exported
+   common ancestor, which is this base. */
+class srRuntimeClassEmptyBase {
 public:
-    enum e_verify {
-        VERIFY_DEFAULT = 0
-    };
+    /* Every class in this hierarchy is allocated from and freed through the
+       SurRender heap rather than the global operators, and the routing is
+       declared at the common root rather than per class: the identical
+       scalar deleting destructor sits at slot 5 of first-party classes
+       derived from srClass itself, from srModel/srMeshModel, from
+       srTexture/srTextureIFace and from srNode. 0x0042A170 is one of them
+       and 0x00492C40 is stMaterial's. */
+    void* operator new(unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+    void operator delete(void* instance)
+    {
+        srHeap.free(instance);
+    }
+};
+
+/* Retail exports the whole member surface, including the vtable, the
+   protected constructor/destructor and the implicit copy operations, so the
+   class is dllexport-ed when building the provider (the same convention as
+   srDebugDD and srDummyStreamBuf). */
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srRuntimeClass : public srRuntimeClassEmptyBase {
+public:
+    enum e_verify { VERIFY_DEFAULT = 0 };
 
     virtual SR_DLL_IMPORT const char* getClassName() const;
     virtual SR_DLL_IMPORT unsigned long getClassID() const;
@@ -154,8 +177,13 @@ public:
     static SR_DLL_IMPORT long getTotalInstances(int exact);
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
 
-    SR_DLL_IMPORT srRuntimeClass(const srRuntimeClass& other);
-    SR_DLL_IMPORT srRuntimeClass& operator=(const srRuntimeClass& other);
+    /* Implicit copy constructor/assignment: retail emits them via the
+       class-level dllexport, vptr stored after the memberwise copy. */
+    // SYNTHETIC: SURRENDER 0x10011A10
+    // srRuntimeClass::srRuntimeClass
+    // SYNTHETIC: SURRENDER 0x10011A80
+    // srRuntimeClass::operator=
+
     SR_DLL_IMPORT void setName(const char* name);
     SR_DLL_IMPORT const char* getName() const;
     SR_DLL_IMPORT unsigned long getID() const;
@@ -174,34 +202,43 @@ private:
     unsigned long id_08;
 };
 
-static_assert(sizeof(srRuntimeClass) == 0x0c,
-              "srRuntimeClass_must_be_0x0c");
+static_assert(sizeof(srRuntimeClass) == 0x0c, "srRuntimeClass_must_be_0x0c");
 
 /* The exported constructor and copy constructor never install an srClass
    vtable; they leave the srRuntimeClass construction vtable in place until a
    concrete derived class installs its own. That is MSVC's novtable ABI, not a
    missing handwritten vtable write. */
-class __declspec(novtable) srClass : public srRuntimeClass {
+/* Retail exports the whole member surface, including the protected
+   constructor/destructor, the private statics and the implicit copy
+   operations, so the class is dllexport-ed when building the provider.
+   clone stays declared-only: the provider body is a bare tail dispatch
+   through vtable slot 7 that no recovered source spelling can express. */
+class __declspec(novtable)
+#if defined(SURRENDER_BUILD)
+__declspec(dllexport)
+#endif
+srClass : public srRuntimeClass {
 public:
     typedef srClass RegistryClass;
 
-    typedef void (__cdecl *UpdateCallBack)(
-        srClass* instance, double time, double elapsed);
+    typedef void(__cdecl* UpdateCallBack)(srClass* instance, double time, double elapsed);
 
     static SR_DLL_IMPORT const char* sGetClassName();
     static SR_DLL_IMPORT srRegistry::ClassNode* sGetClassNode();
     static SR_DLL_IMPORT srClass* find(unsigned long id);
-    static SR_DLL_IMPORT srClass* find(
-        const char* name,
-        unsigned long class_id,
-        const srRuntimeClass* relative_to);
-    static SR_DLL_IMPORT srClass* find(
-        const char* name, const srClass* relative_to);
+    static SR_DLL_IMPORT srClass* find(const char* name, unsigned long class_id,
+                                       const srRuntimeClass* relative_to);
+    static SR_DLL_IMPORT srClass* find(const char* name, const srClass* relative_to);
     static SR_DLL_IMPORT srClass* find(const srClass* relative_to);
     static SR_DLL_IMPORT void performUpdates(double time);
 
-    SR_DLL_IMPORT srClass(const srClass& other);
+    /* Assignment is user-defined and copies only the instance name through
+       setName; the copy constructor is implicit (memberwise, vptr-last) and
+       emitted via the class-level dllexport. novtable leaves the
+       srRuntimeClass construction vtable in place. */
     SR_DLL_IMPORT srClass& operator=(const srClass& other);
+    // SYNTHETIC: SURRENDER 0x1000E290
+    // srClass::srClass
 
     virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
@@ -225,16 +262,6 @@ public:
     SR_DLL_IMPORT double getUpdateInterval();
     SR_DLL_IMPORT void setUpdate(UpdateCallBack callback, double interval);
     SR_DLL_IMPORT void setUpdatesTime(double time);
-    void* operator new(unsigned int size) { return srHeap.allocate(size); }
-
-    /* Every class in this hierarchy is freed through the SurRender heap rather
-       than the global operator delete, and the routing is declared here rather
-       than per class: the identical 34-byte scalar deleting destructor sits at
-       slot 5 of first-party classes derived from srClass itself, from
-       srModel/srMeshModel, from srTexture/srTextureIFace and from srNode, so
-       the only place it can come from is their common root. 0x0042A170 is one
-       of them and 0x00492C40 is stMaterial's. */
-    void operator delete(void* instance) { srHeap.free(instance); }
 
 protected:
     SR_DLL_IMPORT srClass();
@@ -269,32 +296,22 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    lifecycle through a fully specialized helper instead: the false case emits
    no registry reference at all, and the registration-enabled case keeps the
    imported lifecycle. */
-template <bool Register>
-struct srInstanceLifecycle {
-    template <class Support>
-    static void registerInstance(Support* instance)
+template <bool Register> struct srInstanceLifecycle {
+    template <class Support> static void registerInstance(Support* instance)
     {
         srCore.getRegistry()->registerInstance(Support::sGetClassNode(), instance);
     }
 
-    template <class Support>
-    static void unregisterInstance(Support* instance)
+    template <class Support> static void unregisterInstance(Support* instance)
     {
         srCore.getRegistry()->unregisterInstance(Support::sGetClassNode(), instance);
     }
 };
 
-template <>
-struct srInstanceLifecycle<false> {
-    template <class Support>
-    static void registerInstance(Support*)
-    {
-    }
+template <> struct srInstanceLifecycle<false> {
+    template <class Support> static void registerInstance(Support*) {}
 
-    template <class Support>
-    static void unregisterInstance(Support*)
-    {
-    }
+    template <class Support> static void unregisterInstance(Support*) {}
 };
 
 /* SurRender's exported decorated vtable names establish this template's
@@ -313,8 +330,10 @@ private:
     static char selfType(Derived*);
     static long selfType(...);
     enum { IsSelfType = sizeof(selfType(static_cast<Base*>(0))) == sizeof(char) };
-    enum { BaseOwnsClass =
-        sizeof(selfType(static_cast<typename Base::RegistryClass*>(0))) == sizeof(char) };
+    enum {
+        BaseOwnsClass =
+            sizeof(selfType(static_cast<typename Base::RegistryClass*>(0))) == sizeof(char)
+    };
 
 public:
     typedef Derived RegistryClass;
@@ -335,9 +354,8 @@ public:
         srRegistry::ClassNode* node = registry->getClassNode(ClassID);
 
         if (node == 0) {
-            node = registry->registerClass(
-                Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
-                RegisterInstances);
+            node = registry->registerClass(Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
+                                           RegisterInstances);
         }
         return node;
     }
@@ -370,8 +388,7 @@ public:
        Base constructor. The previous Base* parameter was a guessed shape and
        cannot express the client-side srClassSupport<srFog,srFog> construction
        that calls the imported srFog(srNode*) constructor. */
-    explicit srClassSupport(srNode* parent)
-        : Base(parent)
+    explicit srClassSupport(srNode* parent) : Base(parent)
     {
         srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
@@ -380,8 +397,7 @@ public:
        srTextureMap(srColorSurfaceIFace*) constructor, then installs the
        support instantiation's table. This is the canonical texture argument,
        not a wrapper-only forwarding API. */
-    explicit srClassSupport(srColorSurfaceIFace* surface)
-        : Base(surface)
+    explicit srClassSupport(srColorSurfaceIFace* surface) : Base(surface)
     {
         srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
@@ -391,23 +407,18 @@ public:
        forwarding forms on the primary template: the two-argument form is
        emitted for srMeshModel, while srColorSurface uses the three- and
        five-argument forms. */
-    template <class A0, class A1>
-    srClassSupport(A0 a0, A1 a1)
-        : Base(a0, a1)
+    template <class A0, class A1> srClassSupport(A0 a0, A1 a1) : Base(a0, a1)
     {
         srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
-    template <class A0, class A1, class A2>
-    srClassSupport(A0 a0, A1 a1, A2 a2)
-        : Base(a0, a1, a2)
+    template <class A0, class A1, class A2> srClassSupport(A0 a0, A1 a1, A2 a2) : Base(a0, a1, a2)
     {
         srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }
 
     template <class A0, class A1, class A2, class A3, class A4>
-    srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4)
-        : Base(a0, a1, a2, a3, a4)
+    srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4) : Base(a0, a1, a2, a3, a4)
     {
         srInstanceLifecycle<RegisterInstances && !IsSelfType>::registerInstance(this);
     }

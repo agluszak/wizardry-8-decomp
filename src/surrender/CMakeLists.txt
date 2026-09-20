@@ -1,6 +1,8 @@
 add_library(wiz8_surrender_objects OBJECT
     bounder.cpp
+    config.cpp
     core.cpp
+    debug.cpp
     debug_dd.cpp
     debug_vp.cpp
     dynamic_library.cpp
@@ -8,11 +10,14 @@ add_library(wiz8_surrender_objects OBJECT
     exponent_table.cpp
     extension.cpp
     generic_vp.cpp
+    heap.cpp
+    huffman.cpp
     io_managers.cpp
     string_table.cpp
     system.cpp
     triangulator.cpp
     type_registry.cpp
+    vc6_runtime.cpp
     vector_processor.cpp
 )
 target_compile_definitions(wiz8_surrender_objects PRIVATE SURRENDER_BUILD)
@@ -20,8 +25,12 @@ target_compile_options(wiz8_surrender_objects PRIVATE
     "$<$<CXX_COMPILER_ID:MSVC>:/GX->")
 set_source_files_properties(
     bounder.cpp
+    config.cpp
+    debug.cpp
     debug_vp.cpp
     extension.cpp
+    heap.cpp
+    huffman.cpp
     type_registry.cpp
     vector_processor.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")
@@ -33,13 +42,16 @@ if(WIZ8_BUILD_PRODUCTS)
         $<TARGET_OBJECTS:wiz8_surrender_objects>
         sr.def
     )
-    target_link_libraries(SURRENDER PRIVATE wiz8_compile_settings version.lib)
+    # msvcrt must resolve ??3 (operator delete) before msvcprt's delop_s.obj
+    # claims it; retail imports ??3 from MSVCRT.dll.
+    target_link_libraries(SURRENDER PRIVATE msvcrt.lib wiz8_compile_settings version.lib)
     target_link_options(SURRENDER PRIVATE
         /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO
         /OPT:NOREF /OPT:NOICF /BASE:0x10000000 /FILEALIGN:0x1000
         /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
-        # Comparison image, not a runnable replacement: extension.cpp retains its
-        # unrecovered srConfig and logging dependencies. Never link clients here.
+        # Comparison image, not a runnable replacement: emitted vtables still
+        # reference unrecovered virtuals (srDebugDD/srNode/srVP machinery) and
+        # other first-party bodies remain outstanding. Never link clients here.
         /FORCE:UNRESOLVED
         "/MAP:${CMAKE_BINARY_DIR}/sr.map"
     )

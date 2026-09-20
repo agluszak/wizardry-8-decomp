@@ -4,6 +4,11 @@
 
 #include <string.h>
 
+/* The assert strings carry the original build tree's __FILE__ expansions,
+   not this checkout's layout. */
+#define SRRUNTIMECLASS_CPP "D:\\srsdk1x\\sources\\corelib\\srRuntimeClass.cpp"
+#define SRCLASS_CPP "D:\\srsdk1x\\sources\\corelib\\srClass.cpp"
+
 namespace {
 unsigned long next_instance_id = 1;
 
@@ -475,6 +480,29 @@ const char* srRuntimeClass::getName() const
     return name_04 != 0 ? name_04 : "anonymous";
 }
 
+// FUNCTION: SURRENDER 0x100117A0
+void srRuntimeClass::verify(e_verify)
+{
+    if (getName() == 0) {
+        srAssertFail("getName()", SRRUNTIMECLASS_CPP, 0xb0, 0);
+    }
+    if (getID() == 0) {
+        srAssertFail("getID()", SRRUNTIMECLASS_CPP, 0xb1, 0);
+    }
+    if (getClassName() == 0) {
+        srAssertFail("getClassName()", SRRUNTIMECLASS_CPP, 0xb2, 0);
+    }
+    if (getClassID() == 0) {
+        srAssertFail("getClassID()", SRRUNTIMECLASS_CPP, 0xb3, 0);
+    }
+    if (getClassNode() == 0) {
+        srAssertFail("getClassNode()", SRRUNTIMECLASS_CPP, 0xb4, 0);
+    }
+    if (matchClassID(getClassID()) == 0) {
+        srAssertFail("matchClassID(getClassID())", SRRUNTIMECLASS_CPP, 0xb5, 0);
+    }
+}
+
 // FUNCTION: SURRENDER 0x100118D0
 int srRuntimeClass::matchClassID(unsigned long class_id) const
 {
@@ -511,7 +539,9 @@ void srRuntimeClass::getUniqueName(std::ostream& stream) const
 // FUNCTION: SURRENDER 0x10011950
 void srRuntimeClass::setName(const char* name)
 {
-    delete[] name_04;
+    if (name_04 != 0) {
+        delete[] name_04;
+    }
     if (name == 0 || *name == '\0') {
         name_04 = 0;
     } else {
@@ -521,31 +551,48 @@ void srRuntimeClass::setName(const char* name)
     srCore.getRegistry()->refreshInstance(getClassNode(), this);
 }
 
+/* Retail stores the vptr before the member writes, so the body assigns the
+   members rather than running a member-initializer list, and the registry
+   pointer is fetched once into a named local. */
 // FUNCTION: SURRENDER 0x100119D0
-srRuntimeClass::srRuntimeClass() : name_04(0), id_08(srCore.getRegistry()->allocateID())
+srRuntimeClass::srRuntimeClass()
 {
-    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-}
-
-// FUNCTION: SURRENDER 0x10011A10
-srRuntimeClass::srRuntimeClass(const srRuntimeClass& other)
-    : name_04(other.name_04), id_08(other.id_08)
-{
+    name_04 = 0;
+    srRegistry* registry = srCore.getRegistry();
+    id_08 = registry->allocateID();
+    registry->registerInstance(sGetClassNode(), this);
 }
 
 // FUNCTION: SURRENDER 0x10011A40
 srRuntimeClass::~srRuntimeClass()
 {
     srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
-    delete[] name_04;
+    if (name_04 != 0) {
+        delete[] name_04;
+    }
 }
 
-// FUNCTION: SURRENDER 0x10011A80
-srRuntimeClass& srRuntimeClass::operator=(const srRuntimeClass& other)
+/* The dump prints through the void* overload for both IDs and addresses:
+   getClassID/getID results reach operator<<(const void*), not the unsigned
+   long overload. */
+// FUNCTION: SURRENDER 0x10011AB0
+void srRuntimeClass::dump(std::ostream& stream)
 {
-    name_04 = other.name_04;
-    id_08 = other.id_08;
-    return *this;
+    std::ios::fmtflags flags = stream.flags();
+    stream.setf(std::ios::left, std::ios::adjustfield);
+    stream.width(0x20);
+    // c-style-cast-ok: retail prints the id through the void* overload
+    stream << "Class Id: " << (void*)getClassID() << '\n';
+    stream.width(0x20);
+    stream << "Class name: " << getClassName() << '\n';
+    stream.width(0x20);
+    // c-style-cast-ok: retail prints the id through the void* overload
+    stream << "Instance Id code: " << (void*)getID() << '\n';
+    stream.width(0x20);
+    stream << "Instance name: " << getName() << '\n';
+    stream.width(0x20);
+    stream << "Memory address: " << this << '\n';
+    stream.flags(flags);
 }
 
 // FUNCTION: SURRENDER 0x10011CB0
@@ -590,6 +637,15 @@ srRegistry::ClassNode* srRuntimeClass::getClassNode() const
     return sGetClassNode();
 }
 
+// FUNCTION: SURRENDER 0x1000E050
+void srClass::verify(srRuntimeClass::e_verify mode)
+{
+    srRuntimeClass::verify(mode);
+    if (reference_count_0c < 0) {
+        srAssertFail("_refCount >= 0", SRCLASS_CPP, 0x3f, 0);
+    }
+}
+
 // FUNCTION: SURRENDER 0x1000E080
 srClass* srClass::find(const char* name, const srClass* relative_to)
 {
@@ -616,6 +672,8 @@ srClass* srClass::find(const srClass* relative_to)
     return static_cast<srClass*>(srCore.getRegistry()->find(sGetClassNode(), relative_to));
 }
 
+/* Retail assigns only the instance name: the base operator= is not invoked
+   and the reference count, timestamp and update link are left alone. */
 // FUNCTION: SURRENDER 0x1000E110
 srClass& srClass::operator=(const srClass& other)
 {
@@ -647,13 +705,6 @@ srRegistry::ClassNode* srClass::sGetClassNode()
         node = registry->registerClass(sGetClassName(), srRuntimeClass::sGetClassNode(), 0x100, 0);
     }
     return node;
-}
-
-// FUNCTION: SURRENDER 0x1000E290
-srClass::srClass(const srClass& other)
-    : srRuntimeClass(other), reference_count_0c(other.reference_count_0c),
-      timestamp_10(other.timestamp_10), update_14(other.update_14)
-{
 }
 
 // FUNCTION: SURRENDER 0x1000E2F0
@@ -764,6 +815,49 @@ unsigned long srClass::allocateTimeStamps(unsigned long count) const
     return first;
 }
 
+/* The update block prints through the void* overload for the callback and
+   the intrusive list links; the interval prints "every frame" at zero and
+   the bare "secs" suffix otherwise. */
+// FUNCTION: SURRENDER 0x1000E620
+void srClass::dump(std::ostream& stream)
+{
+    srRuntimeClass::dump(stream);
+    std::ios::fmtflags flags = stream.flags();
+    stream.setf(std::ios::left, std::ios::adjustfield);
+    stream.width(0x20);
+    stream << "  Timestamp: " << getTimestamp() << '\n';
+    stream.width(0x20);
+    stream << "  Reference count: " << getReferenceCount() << '\n';
+    stream.width(0x20);
+    if (update_14 != 0) {
+        if (update_14->interval_08 == 0.0) {
+            stream << "  Update interval: " << "every frame" << '\n';
+        } else {
+            stream << "  Update interval: " << update_14->interval_08 << "secs" << '\n';
+        }
+        stream.width(0x20);
+        // c-style-cast-ok: retail prints the callback through the void* overload
+        stream << "    Update callback: " << (void*)update_14->callback_10 << '\n';
+        if (update_14->instance_14 != 0) {
+            stream.width(0x20);
+            stream << "    Update owner: ";
+            update_14->instance_14->getUniqueName(stream);
+            stream << '\n';
+        }
+        if (update_14->previous_18 != 0) {
+            stream.width(0x20);
+            stream << "    Update previous: " << update_14->previous_18 << '\n';
+        }
+        if (update_14->next_1c != 0) {
+            stream.width(0x20);
+            stream << "    Update next: " << update_14->next_1c << '\n';
+        }
+    } else {
+        stream << "  Update interval: " << "disabled" << '\n';
+    }
+    stream.flags(flags);
+}
+
 // FUNCTION: SURRENDER 0x1000E850
 srClass* srClass::instance()
 {
@@ -863,6 +957,22 @@ srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* clas
     ClassNode* node = new ClassNode(parent, class_name, class_id);
     class_index_04->insert(class_id, node);
     return node;
+}
+
+// FUNCTION: SURRENDER 0x1000EEA0
+void srRegistry::dumpInstanceNames(ClassNode* node, std::ostream& stream, int indent)
+{
+    RegistryAccess access(critical_section_0c);
+    // c-style-cast-ok: find(node, 0) is ambiguous between the id and
+    // relative_to overloads; the original spelled the null pointer cast
+    for (srRuntimeClass* instance = find(node, (srRuntimeClass*)0); instance != 0;
+         instance = find(node, instance)) {
+        if (indent != 0 || instance->isNamed()) {
+            stream << "Name: " << instance->getName();
+            stream << " (class: " << instance->getClassName() << ", address: " << instance
+                   << ", instanceId: " << instance->getID() << ")\n";
+        }
+    }
 }
 
 // FUNCTION: SURRENDER 0x1000EFB0
