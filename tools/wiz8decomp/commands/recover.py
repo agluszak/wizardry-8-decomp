@@ -30,7 +30,9 @@ def sweep_command(
         str | None,
         typer.Option("--class", help="Sweep only this class's functions."),
     ] = None,
-    target: str = typer.Option("WIZ8", "--target"),
+    target: str | None = typer.Option(
+        None, "--target", help="reccmp target id; inferred from --program when omitted."
+    ),
     program: str = typer.Option("wiz8", "--program"),
 ) -> None:
     """Classify zero-edit regeneration for every recovered function."""
@@ -54,7 +56,9 @@ def regress_command(
         list[str],
         typer.Argument(help="Function addresses whose recovered bodies to regenerate."),
     ],
-    target: str = typer.Option("WIZ8", "--target"),
+    target: str | None = typer.Option(
+        None, "--target", help="reccmp target id; inferred from --program when omitted."
+    ),
     program: str = typer.Option("wiz8", "--program"),
 ) -> None:
     """Export, splice, build, and compare each function; restore afterwards."""
