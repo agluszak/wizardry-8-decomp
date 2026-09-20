@@ -150,7 +150,7 @@ struct W8LevelFileLinkedRecord {
     unsigned char kind_00;
     /* 0x1b0-byte payload: the linked region's 36 scaled vertex triples,
        forwarded as a unit to W8GameData's linked-record pass. */
-    unsigned char unknown_01[0x1b0];
+    srVector3T<float> vertices_01[36];
     /* 0x1b1: the AddTriggerPlane overload at 0x00448C60 compares each of the
        twelve generated surfaces against this byte and links the matching one
        to a new environment record. */
