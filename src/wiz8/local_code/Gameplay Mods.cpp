@@ -79,9 +79,9 @@ void RebuildPartyEffectBlock0050E700(void)
         ++active;
     }
     if (slot_byte < 0x830) {
-        g_status_685170.party_modifiers_22e3.flag_42 = 1;
-        g_status_685170.party_modifiers_22e3.flag_43 = 1;
-        g_status_685170.party_modifiers_22e3.flag_44 = 1;
+        g_status_685170.party_modifiers_22e3.boost_health_regen = 1;
+        g_status_685170.party_modifiers_22e3.boost_stamina_regen = 1;
+        g_status_685170.party_modifiers_22e3.boost_spell_regen = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
@@ -126,11 +126,11 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
             equipment_bonus->value_00 += record->attack_damage_bonus;
             equipment_bonus->value_01 += record->attack_hit_bonus;
         }
-        equipment_bonus->unknown_08[1] += record->modifier_06c;
-        equipment_bonus->unknown_08[2] += record->modifier_06d;
-        equipment_bonus->unknown_08[3] += record->modifier_06e;
+        equipment_bonus->health_regen_adjustment += record->modifier_06c;
+        equipment_bonus->stamina_regen_adjustment += record->modifier_06d;
+        equipment_bonus->spell_regen_adjustment += record->modifier_06e;
         if (record->modifier_0b1_index != -1) {
-            equipment_bonus->unknown_13[record->modifier_0b1_index] += record->modifier_0b1_value;
+            equipment_bonus->skill_adjustments[record->modifier_0b1_index] += record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
             equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
@@ -168,27 +168,27 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     target->armor_bonus_05 += source->armor_bonus_05;
     target->damage_reduction_adjustment += source->damage_reduction_adjustment;
     target->resistance_bonus_all += source->resistance_bonus_all;
-    target->unknown_08[0] += source->unknown_08[0];
-    target->unknown_08[1] += source->unknown_08[1];
-    target->unknown_08[2] += source->unknown_08[2];
-    target->unknown_08[3] += source->unknown_08[3];
+    target->damage_per_minute += source->damage_per_minute;
+    target->health_regen_adjustment += source->health_regen_adjustment;
+    target->stamina_regen_adjustment += source->stamina_regen_adjustment;
+    target->spell_regen_adjustment += source->spell_regen_adjustment;
     for (index = 0; index < 7; ++index) {
         target->attribute_adjustments[index] += source->attribute_adjustments[index];
     }
     for (index = 0; index < 0x29; ++index) {
-        target->unknown_13[index] += source->unknown_13[index];
+        target->skill_adjustments[index] += source->skill_adjustments[index];
     }
     for (index = 0; index < 6; ++index) {
         target->resistance_bonus[index] += source->resistance_bonus[index];
     }
-    if (source->flag_42 != 0) {
-        target->flag_42 = 1;
+    if (source->boost_health_regen != 0) {
+        target->boost_health_regen = 1;
     }
-    if (source->flag_43 != 0) {
-        target->flag_43 = 1;
+    if (source->boost_stamina_regen != 0) {
+        target->boost_stamina_regen = 1;
     }
-    if (source->flag_44 != 0) {
-        target->flag_44 = 1;
+    if (source->boost_spell_regen != 0) {
+        target->boost_spell_regen = 1;
     }
     if (source->out_of_formation != 0) {
         target->out_of_formation = 1;
@@ -437,7 +437,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         case W8_CONDITION_POISONED:
             target->value_01 -= 2;
             target->value_4b -= 2;
-            target->unknown_08[0] += condition_argument;
+            target->damage_per_minute += condition_argument;
             break;
         case 9:
             target->value_01 -= 5;
@@ -445,7 +445,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                 target->attribute_adjustments[i] -= 0x14;
             }
             for (i = 0; i < 0x29; ++i) {
-                target->unknown_13[i] -= 0x14;
+                target->skill_adjustments[i] -= 0x14;
             }
             break;
         case 0xb:
@@ -477,9 +477,9 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
                                                character->conditions_1817[1].value_04, 1)) != 0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
-                    target->unknown_08[1] += -1 - (monster->effective_level_24f >> 1);
+                    target->health_regen_adjustment += -1 - (monster->effective_level_24f >> 1);
                 } else {
-                    target->unknown_08[1] += -5;
+                    target->health_regen_adjustment += -5;
                 }
             }
             break;
