@@ -3105,6 +3105,8 @@ void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)
 
     verbose = g_settings_6850c8.verbose_combat_messages;
     ResetTargetSource(&source);
+    memset(static_cast<void*>(&local_result), 0, sizeof(local_result));
+    memset(&target, 0, sizeof(target));
     remaining = 9;
     do {
         if (effect_slots->active != 0 && effect_slots->effect_id == 0x3e) {
