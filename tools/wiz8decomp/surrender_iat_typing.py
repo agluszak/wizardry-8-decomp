@@ -301,8 +301,9 @@ def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
         if data_type is None:
             return None
         params.append(ParameterDefinitionImpl(f"param_{index}", data_type, None))
+    from .ghidra.mutations import program_transaction
+
     manager = program.getDataTypeManager()
-    manager.createCategory(CategoryPath(_IAT_CALLBACKS))
     definition_name = iat_callback_definition_name(
         match.group("ret").strip() or "void",
         tuple(parts),
@@ -316,7 +317,9 @@ def _resolve_function_pointer_type(program: Any, spelling: str) -> Any | None:
     definition.setCallingConvention(convention)
     if varargs and hasattr(definition, "setVarArgs"):
         definition.setVarArgs(True)
-    added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
+    with program_transaction(program, f"Resolve SurRender callback {definition_name}"):
+        manager.createCategory(CategoryPath(_IAT_CALLBACKS))
+        added = manager.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
     return PointerDataType(added, manager)
 
 
