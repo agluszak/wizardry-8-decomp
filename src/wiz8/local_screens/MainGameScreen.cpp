@@ -50,6 +50,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "vobject.h"
+#include "vsurface.h"
 #include "wiz8/local_screens/RCSCommon.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/MonsterAI.h"
@@ -4367,7 +4368,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
             unsigned int surface;
             if (MakeVSurfaceFromVObject(video_object, 0, &surface) != 0) {
                 g_level_block->highlight_graphic = CreateSpriteFromSurface(surface, 0, 0, 0, 1);
-                ReleaseVideoSurface(surface);
+                DeleteVideoSurfaceFromIndex(surface);
             }
         }
     }
@@ -7926,7 +7927,7 @@ unsigned char UpdateSurpriseFade0056B6F0(void)
     if (boundary) {
         if (gXStatus.surprise_phase == 0) {
             long pitch;
-            void* pixels = Function5498A0(0x1e0, 0, &pitch);
+            void* pixels = LockCatalogFrameSurface(0x1e0, 0, &pitch);
             srColorSurface* surface = SR_NEW(srColorSurface)(srPixelConvert::SURFACE_ARGB1555,
                                                              pixels, 0x280, 0x1e0, pitch);
             g_surprise_snapshot_surface_0068edf0 = surface;
@@ -7935,7 +7936,7 @@ unsigned char UpdateSurpriseFade0056B6F0(void)
                                     g_scene_fullscreen_659644, 0x80);
             g_surprise_snapshot_overlay_0068edf4->updateRectangle(g_gerd_659634, pixels, pitch, 0,
                                                                   0, 0x280, 0x1e0);
-            Function549950(0x1e0, 0);
+            UnlockCatalogFrameSurface(0x1e0, 0);
             g_flag_65970d = 0;
             g_surprise_fade_tick_base_0068edb8 = GetTickCount();
         } else {
