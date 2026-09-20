@@ -7,6 +7,8 @@ and line splicing with restoration semantics.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 from wiz8decomp.recover import (
     block_end_line,
@@ -88,7 +90,18 @@ def test_marker_span_declines_without_a_declaration_end() -> None:
 
 
 def test_marker_adjacency_accepts_canonical_uppercase_address_digits() -> None:
-    assert verify_marker_adjacency("// FUNCTION: WIZ8 0x004B7BA0\nvoid body();\n", 1, 0x004B7BA0)
+    assert verify_marker_adjacency(
+        "// FUNCTION: WIZ8 0x004B7BA0\nvoid body();\n",
+        1,
+        0x004B7BA0,
+        target="WIZ8",
+    )
+
+
+def test_marker_adjacency_accepts_surrender_target() -> None:
+    source = "// FUNCTION: SURRENDER 0x10011F40\nvoid body();\n"
+    assert verify_marker_adjacency(source, 1, 0x10011F40, target="SURRENDER")
+    assert not verify_marker_adjacency(source, 1, 0x10011F40, target="WIZ8")
 
 
 def test_splice_lines_replaces_the_span_and_round_trips() -> None:
@@ -193,6 +206,7 @@ def test_insert_lines_adds_a_separating_blank_line() -> None:
 def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> None:
     marker = {
         "address": 0x4A6E20,
+        "target": "WIZ8",
         "declaration": {
             "source_signature": (
                 "void W8GrCycle::TickAnimation(const W8Object* const* objects, "
@@ -211,6 +225,7 @@ def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> Non
 def test_graft_takes_the_exported_initializer_list() -> None:
     marker = {
         "address": 0x4AE000,
+        "target": "WIZ8",
         "declaration": {"source_signature": "W8Effect::W8Effect(const W8Effect& other)"},
     }
     grafted = graft_source_signature(marker, "    : new_init(param_1->a)\n{\n  new_body();\n}\n")
@@ -220,7 +235,21 @@ def test_graft_takes_the_exported_initializer_list() -> None:
 
 
 def test_graft_declines_without_compiler_indexed_signature() -> None:
-    assert graft_source_signature({"address": 1, "declaration": {}}, "{\n}\n") is None
+    assert (
+        graft_source_signature({"address": 1, "target": "WIZ8", "declaration": {}}, "{\n}\n")
+        is None
+    )
+
+
+def test_graft_uses_the_marker_target() -> None:
+    marker = {
+        "address": 0x10011F40,
+        "target": "SURRENDER",
+        "declaration": {"source_signature": "srConfig::srConfig()"},
+    }
+    grafted = graft_source_signature(marker, "{}\n")
+    assert grafted is not None
+    assert grafted.startswith("// FUNCTION: SURRENDER 0x10011f40\n")
 
 
 def test_source_forms_project_unique_address_names_and_authored_casts() -> None:
@@ -299,9 +328,53 @@ def test_verify_marker_adjacency_proves_the_span_start() -> None:
     from wiz8decomp.recover import verify_marker_adjacency
 
     original = "prose\n// FUNCTION: WIZ8 0x004a5e50\nvoid f()\n{\n}\n"
-    assert verify_marker_adjacency(original, 2, 0x4A5E50)
-    assert not verify_marker_adjacency(original, 1, 0x4A5E50)
-    assert not verify_marker_adjacency(original, 99, 0x4A5E50)
+    assert verify_marker_adjacency(original, 2, 0x4A5E50, target="WIZ8")
+    assert not verify_marker_adjacency(original, 1, 0x4A5E50, target="WIZ8")
+    assert not verify_marker_adjacency(original, 99, 0x4A5E50, target="WIZ8")
+
+
+def test_recovery_target_is_inferred_from_program_and_mismatch_is_rejected(
+    tmp_path, monkeypatch
+) -> None:
+    from wiz8decomp import source_index
+    from wiz8decomp.recover import _recovery_target
+
+    monkeypatch.setattr(
+        source_index, "target_for_program", lambda _repository, _program: "SURRENDER"
+    )
+    settings = SimpleNamespace(repo_dir=tmp_path)
+    assert _recovery_target(settings, None, "sr.dll") == "SURRENDER"
+    with pytest.raises(ValueError, match="belongs to SURRENDER"):
+        _recovery_target(settings, "WIZ8", "sr.dll")
+
+
+def test_sweep_selection_filters_the_requested_target(tmp_path, monkeypatch) -> None:
+    from wiz8decomp import source_index
+    from wiz8decomp.recover import _sweep_selection
+
+    markers = [
+        {
+            "address": 0x401000,
+            "target": "WIZ8",
+            "marker_kind": "FUNCTION",
+            "source_file": "src/wiz8/a.cpp",
+            "declaration": {"owning_class": "SharedName"},
+        },
+        {
+            "address": 0x10001000,
+            "target": "SURRENDER",
+            "marker_kind": "FUNCTION",
+            "source_file": "src/surrender/a.cpp",
+            "declaration": {"owning_class": "SharedName"},
+        },
+    ]
+    monkeypatch.setattr(source_index, "load_source_index", lambda _repository: {})
+    monkeypatch.setattr(source_index, "bind_marker_declarations", lambda _document: markers)
+
+    selected = _sweep_selection(
+        SimpleNamespace(repo_dir=tmp_path), None, "SharedName", "SURRENDER"
+    )
+    assert [marker["address"] for marker in selected] == [0x10001000]
 
 
 def test_splice_unit_applies_many_spans_and_reports_ranges() -> None:
