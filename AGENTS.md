@@ -73,8 +73,9 @@ printing and put large disposable output under `build/`. Detailed operational re
   "Same offset", "same size", a wide move, or decompiler type disagreement is not positive union evidence.
 - Trace pointer identity through callers before assigning a callee offset to a class. If satisfying a
   recovered signature requires reinterpret-casting one modeled W8/sr/st record pointer to another, the
-  signature/owner model is wrong or unresolved; do not bless the cast. Linker-folded sibling functions
-  likewise do not make their source parameter types interchangeable.
+  signature/owner model is wrong or unresolved; do not bless the cast. This includes pointer-to-pointer
+  casts such as `T** -> U**`. Linker-folded sibling functions likewise do not make their source parameter
+  types interchangeable.
 - Search for the authored abstraction before spelling out a lowered sequence. Existing container/math/
   traversal helpers should be used when their semantics fit; repeated equivalent sequences across
   independently owned TUs trigger an inline/helper investigation rather than copy-pasted lowering.
