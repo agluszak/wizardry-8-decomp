@@ -70,6 +70,7 @@ static_assert(sizeof(W8MissileRep) == 0x108, "W8MissileRep_size_must_be_0x108");
 class W8Missile : public W8GrCycle {
 public:
     W8Missile();
+    W8Missile(const W8Missile& other); /* 0x004A3E50 */
     virtual ~W8Missile() override;
 
     virtual void UpdateRepresentation(W8World* world) override;
@@ -137,8 +138,8 @@ public:
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 
 W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
-                               srVector3T<float>* target, unsigned int value_4,
-                               unsigned int value_5, unsigned int value_6, float speed);
+                               srVector3T<float>* target, float value_4, unsigned int value_5,
+                               unsigned int value_6, float speed);
 void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 /* The world position `character_index`'s current hand fires a missile from:
    the camera's launch point swung to the wielding side. */
@@ -152,7 +153,10 @@ extern unsigned int g_missile_table_count_65bddc;
    recovered consumers are named. */
 #pragma pack(push, 1)
 struct W8MissileTableRecord {
-    unsigned char unknown_000[0x140];
+    unsigned char unknown_000[0x100];
+    /* 0x100: the GrCycle resource name the launcher loads through the
+       "Data\\Missiles" script path. */
+    char cycle_name_100[0x40];
     float radius_140;    /* 0x140: replaces the launched effect's radius */
     int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[0x0c];
@@ -171,7 +175,11 @@ extern W8MissileTableRecord* g_missile_table_65bde0;
 
 W8Missile* NextMissile004A2760(char restart);
 
+W8Missile* AllocateMissile004A5450(int missile_table_index);
+unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char* name,
+                                       W8Missile** ppMissile, int unused);
+
 W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
-                                 float value_3, float value_4, unsigned int value_5,
-                                 unsigned int value_6, unsigned int value_7, float speed);
+                                 float value_3, float value_4, float value_5, unsigned int value_6,
+                                 unsigned char value_7, float speed);
 void UpdateWorldMissiles004A27C0(W8World* world);
