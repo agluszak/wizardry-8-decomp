@@ -11,7 +11,7 @@ class stModelInstance2D;
 
 struct W8IList;
 struct W8MipeState;
-struct W8NpcDialogRequest;
+struct W8NpcQuoteEntry;
 struct W8NpcState;
 struct W8NpcScriptQuote;
 struct W8ScreenRect;

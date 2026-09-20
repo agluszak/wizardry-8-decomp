@@ -4800,7 +4800,7 @@ void DrainNpcDialogueDeferralInput(void)
    price-check opcodes the base price in the request is discounted by the
    NPC's effect percentage and the party's best haggle skill. */
 // FUNCTION: WIZ8 0x00575E60
-void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data)
+void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data)
 {
     W8MonsterInfo* monster_info;
     W8NpcDialog* dialog;
@@ -4815,10 +4815,10 @@ void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data)
     dialog->m_destroy_callback = OnNpcDialogClosed;
     OpenModal(dialog);
     g_screen_state_00649f1c->script_busy = 1;
-    if (request->opcode == 0x12 || request->opcode == 0x1e) {
+    if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
         g_screen_state_00649f1c->pending_fact_1fc = aux_data;
         g_screen_state_00649f1c->flag_200 = 1;
-        g_screen_state_00649f1c->pending_price_204 = request->base_price;
+        g_screen_state_00649f1c->pending_price_204 = request->operand_01;
         monster_info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
         if (monster_info != 0) {
             g_screen_state_00649f1c->pending_price_204 -= static_cast<int>(
@@ -4833,7 +4833,7 @@ void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data)
             g_screen_state_00649f1c->pending_price_204 =
                 (g_screen_state_00649f1c->pending_price_204 * 10 + 9) / 10;
         }
-        if (request->opcode == 0x1e) {
+        if (request->kind_00 == 0x1e) {
             g_screen_state_00649f1c->flag_201 = 1;
         }
     }
@@ -5200,7 +5200,7 @@ void QueueDialogueNpcRefusal00576DA0(void)
 void OnNpcDialogClosed(W8DialogBase* dialog)
 {
     W8NpcDialog* npc_dialog = static_cast<W8NpcDialog*>(dialog);
-    W8NpcDialogRequest* request = npc_dialog->m_message;
+    W8NpcQuoteEntry* request = npc_dialog->m_message;
     wchar_t field_text[200];
     wchar_t entry_text[1020];
     int index;
@@ -5215,10 +5215,10 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         CloseNpcDialogueOptionLayout();
         OpenNpcDialogueTranscriptLayout();
     }
-    if (request->opcode == 5) {
-        for (index = 0; index < request->option_count; ++index) {
+    if (request->kind_00 == 5) {
+        for (index = 0; index < request->sub_entry_count; ++index) {
             if (index == npc_dialog->m_selected_option) {
-                swprintf(entry_text, L"%S", request->options[index].text);
+                swprintf(entry_text, L"%S", request->sub_entries[index].text);
                 if (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->flag_252 != 0) {
                     HandleNpcDialogueReply(entry_text, 0);
                 } else {
@@ -5231,7 +5231,7 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         }
         goto done;
     }
-    if (request->opcode == 0x12 || request->opcode == 0x1e) {
+    if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
         if (npc_dialog->m_selected_option == 0) {
             wcscpy(entry_text, gppStringList[0x1f7c / 4]);
         } else {
@@ -5247,7 +5247,7 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
             SetInputFieldStringWith16BitString(0, entry_text);
             HandleNpcDialogueInput();
         }
-    } else if (request->opcode == 0x13) {
+    } else if (request->kind_00 == 0x13) {
         if (gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->flag_252 != 0) {
             HandleNpcDialogueReply(npc_dialog->m_input_text, 0);
         } else {

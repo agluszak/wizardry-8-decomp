@@ -16,7 +16,7 @@ class W8TextControl;
 class W8Widget;
 struct W8ControlsRect;
 struct W8ExperienceNoticePayload;
-struct W8NpcDialogRequest;
+struct W8NpcQuoteEntry;
 struct W8NpcQuoteEntry;
 struct W8NpcScriptQuote;
 struct W8NpcState;
@@ -391,12 +391,12 @@ void SetNpcDialogueHidden(char value);                                          
 void DrainNpcDialogueDeferralInput(void); /* 0x00575C50 */
 /* When value_2435 is set, discard queued input after a mouse-position hook so
    the world-cursor gate does not process stale events. */
-void FlushInputWhileWorldCursorGate(void);                     /* 0x00577560 */
-void HandleNpcDialogueReply(wchar_t* text, char echo);         /* 0x00574250 */
-void HandleNpcDialogueInput(void);                             /* 0x005743B0 */
-void OpenNpcDialog(W8NpcDialogRequest* request, int aux_data); /* 0x00575E60 */
-void OnNpcDialogClosed(W8DialogBase* dialog);                  /* 0x00576E20 */
-void ConfirmNpcTradePurchase00575710(void);                    /* 0x00575710 */
+void FlushInputWhileWorldCursorGate(void);                  /* 0x00577560 */
+void HandleNpcDialogueReply(wchar_t* text, char echo);      /* 0x00574250 */
+void HandleNpcDialogueInput(void);                          /* 0x005743B0 */
+void OpenNpcDialog(W8NpcQuoteEntry* request, int aux_data); /* 0x00575E60 */
+void OnNpcDialogClosed(W8DialogBase* dialog);               /* 0x00576E20 */
+void ConfirmNpcTradePurchase00575710(void);                 /* 0x00575710 */
 /* 0x00571660: learn one keyword into the dialogue transcript. category -1
    auto-classifies the text against items, NPC/named-monster names and the
    place-name table; a nonzero play_chime rings the keyword chime. */
