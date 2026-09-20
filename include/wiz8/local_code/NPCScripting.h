@@ -161,7 +161,7 @@ void BeginSedexusCapture(void); /* 0x00529EF0 */
 void SetFlag68C4F4(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
-void DisplayNpcQuote00529570(const unsigned short* text, char play_jingle);
+void DisplayNpcQuote00529570(const wchar_t* text, char play_jingle);
 /* 0x00576DA0: advance the dialogue NPC's refusal state - each stage queues a
    different quote until the third, which stays queued. */
 void QueueDialogueNpcRefusal00576DA0(void);
