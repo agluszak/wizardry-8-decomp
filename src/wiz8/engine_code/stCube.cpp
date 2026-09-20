@@ -239,6 +239,48 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     return entry;
 }
 
+// FUNCTION: WIZ8 0x0048da80
+void DestroyWorldCursorCube0048DA80(W8WorldCursorNode* entry)
+{
+    if (entry != 0) {
+        if (entry->pUserdata != 0) {
+            free(entry->pUserdata);
+            entry->pUserdata = 0;
+        }
+        entry->size_1c = 0;
+        entry->node_04->setParent(0, 1);
+        entry->node_04->release();
+        g_world_cursor_nodes_65ba58.Remove(entry);
+        delete entry;
+    }
+}
+
+// FUNCTION: WIZ8 0x0048dbf0
+void MoveWorldCursorNode0048DBF0(W8WorldCursorNode* entry, srVector3T<float>* position)
+{
+    if (position == 0) {
+        srAssertFail("vPos", ST_CUBE_CPP, 0x101, 0);
+    }
+    if (entry == 0) {
+        srAssertFail("pCube", ST_CUBE_CPP, 0x102, 0);
+    }
+    srVector3T<float> location = *position;
+    if (entry == 0) {
+        srAssertFail("pCube", ST_CUBE_CPP, 0x10b, 0);
+    }
+    if (entry->node_04 != 0) {
+        entry->node_04->setLocation(srVector3T<double>(static_cast<double>(location.x),
+                                                       static_cast<double>(location.y),
+                                                       static_cast<double>(location.z)));
+    }
+}
+
+// FUNCTION: WIZ8 0x0048dca0
+void RefreshWorldCursorNodeLabel0048DCA0(W8WorldCursorNode* entry)
+{
+    DrawWorldCursorNodeLabel0048DCB0(entry);
+}
+
 /* Paint the three cube numbers onto the model's first texture using the menu
    small font. */
 // FUNCTION: WIZ8 0x0048dcb0
@@ -276,6 +318,45 @@ void DrawWorldCursorNodeLabel0048DCB0(W8WorldCursorNode* entry)
         }
         texture->invalidate();
         RestoreFontSettings();
+    }
+}
+
+// FUNCTION: WIZ8 0x0048de40
+void ScaleWorldCursorNodeX0048DE40(W8WorldCursorNode* entry, double scale)
+{
+    srVector3T<float> factors(static_cast<float>(scale), 1.0f, 1.0f);
+    if (entry != 0) {
+        stMeshModel* model =
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+        if (model != 0) {
+            model->scale(factors);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0048de90
+void ScaleWorldCursorNodeY0048DE90(W8WorldCursorNode* entry, double scale)
+{
+    srVector3T<float> factors(1.0f, static_cast<float>(scale), 1.0f);
+    if (entry != 0) {
+        stMeshModel* model =
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+        if (model != 0) {
+            model->scale(factors);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0048dee0
+void ScaleWorldCursorNodeZ0048DEE0(W8WorldCursorNode* entry, double scale)
+{
+    srVector3T<float> factors(1.0f, 1.0f, static_cast<float>(scale));
+    if (entry != 0) {
+        stMeshModel* model =
+            static_cast<stMeshModel*>(static_cast<stModelInstance*>(entry->node_04)->model());
+        if (model != 0) {
+            model->scale(factors);
+        }
     }
 }
 
@@ -364,6 +445,42 @@ void SetWorldCursorNodeParameter0048E2D0(W8WorldCursorNode* entry, int index, in
         }
         entry->size_1c = 0;
     }
+}
+
+/* Nearest cursor node to the world camera that is bound to the current pick
+   model instance. The screen-point parameters are carried but unused - the
+   pick is purely camera-distance based. */
+// FUNCTION: WIZ8 0x0048e310
+static W8WorldCursorNode* FindNearestWorldCursorNode0048E310(int x, int y)
+{
+    float nearest = 999999.0f;
+    W8WorldCursorNode* result = 0;
+    int count = g_world_cursor_nodes_65ba58.count;
+
+    for (int index = 0; index < count; ++index) {
+        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
+        if (entry != 0 && entry->node_04 != 0 && entry->node_04 == GetValue65962C()) {
+            srVector3T<double> camera;
+            g_world->camera->getLocation(camera);
+            srVector3T<double> node;
+            entry->node_04->getLocation(node);
+            double dx = node.x - camera.x;
+            double dy = node.y - camera.y;
+            double dz = node.z - camera.z;
+            float distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+            if (distance < nearest) {
+                nearest = distance;
+                result = entry;
+            }
+        }
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x0048e3e0
+W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint0048E3E0(int x, int y)
+{
+    return FindNearestWorldCursorNode0048E310(x, y);
 }
 
 /* Store the packed fill colour and repaint the cube numbers. */
@@ -636,7 +753,7 @@ void SetWorldCursorNodesVisible0048ED70(unsigned char visible)
     unsigned int count = g_world_cursor_nodes_65ba58.count;
 
     for (unsigned int index = 0; index < count; ++index) {
-        W8WorldCursorNode* entry = g_world_cursor_nodes_65ba58.data[index];
+        W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
 
         if (entry != 0) {
             srNode* parent = 0;
