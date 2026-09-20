@@ -103,9 +103,7 @@ def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
     return str(marker["source_file"]), line - 1, end_line
 
 
-def verify_marker_adjacency(
-    original: str, first_line: int, address: int, *, target: str
-) -> bool:
+def verify_marker_adjacency(original: str, first_line: int, address: int, *, target: str) -> bool:
     """Whether the span's first line really is the target/address marker line."""
 
     lines = original.splitlines()
@@ -436,8 +434,7 @@ def regress(
     markers = {
         marker["address"]: marker
         for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
-        if marker["marker_kind"] == "FUNCTION"
-        and str(marker.get("target") or "").upper() == target
+        if marker["marker_kind"] == "FUNCTION" and str(marker.get("target") or "").upper() == target
     }
 
     exported = recover_functions(
@@ -683,8 +680,7 @@ def _sweep_selection(
     markers = [
         marker
         for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
-        if marker["marker_kind"] == "FUNCTION"
-        and str(marker.get("target") or "").upper() == target
+        if marker["marker_kind"] == "FUNCTION" and str(marker.get("target") or "").upper() == target
     ]
     if source_file is not None:
         markers = [marker for marker in markers if marker["source_file"] == source_file]

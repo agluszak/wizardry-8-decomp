@@ -124,7 +124,7 @@ Common development commands:
 | `uv run wiz8 build` | Build the WIZ8 comparison executable. |
 | `uv run wiz8 build SURRENDER` | Build the partial SurRender comparison DLL. |
 | `uv run wiz8 compare 0xADDRESS... --build` | Rebuild and compare selected WIZ8 functions. |
-| `uv run wiz8 compare 0x100ADDRESS... --program sr.dll --build` | Rebuild and compare selected SurRender provider functions. |
+| `uv run wiz8 compare 0x1003bee0 --program sr.dll --build` | Rebuild and compare selected SurRender provider functions. |
 | `uv run wiz8 build runtime` | Build the runnable recovered executable. |
 | `uv run wiz8 run` | Run the recovered executable under Wine. |
 | `uv run wiz8 run --original` | Run the retail executable in the same staged environment. |

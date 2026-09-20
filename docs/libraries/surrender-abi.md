@@ -35,9 +35,9 @@ Do not recover provider bodies through WIZ8's default ProgramDB. The normal focu
 
 ```sh
 uv run wiz8 build SURRENDER
-uv run wiz8 ghidra decompile 0x10011f40 --program sr.dll
-uv run wiz8 compare 0x10011f40 --program sr.dll
-uv run wiz8 recover regress 0x10011f40 --program sr.dll
+uv run wiz8 ghidra decompile 0x1003bee0 --program sr.dll
+uv run wiz8 compare 0x1003bee0 --program sr.dll
+uv run wiz8 recover regress 0x1003bee0 --program sr.dll
 uv run wiz8 recover sweep --program sr.dll --class srConfig
 ```
 

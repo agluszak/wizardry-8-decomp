@@ -371,9 +371,7 @@ def test_sweep_selection_filters_the_requested_target(tmp_path, monkeypatch) -> 
     monkeypatch.setattr(source_index, "load_source_index", lambda _repository: {})
     monkeypatch.setattr(source_index, "bind_marker_declarations", lambda _document: markers)
 
-    selected = _sweep_selection(
-        SimpleNamespace(repo_dir=tmp_path), None, "SharedName", "SURRENDER"
-    )
+    selected = _sweep_selection(SimpleNamespace(repo_dir=tmp_path), None, "SharedName", "SURRENDER")
     assert [marker["address"] for marker in selected] == [0x10001000]
 
 
