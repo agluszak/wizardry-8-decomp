@@ -3237,7 +3237,7 @@ render_world:
         if (gXStatus.fSpellCastMode)
             CommitSpellCastingSelection005A0BC0();
         if (gXStatus.fItemSelectMode)
-            Function59D180();
+            CommitUseItemAtTarget0059D180();
         if (gXStatus.fNpcDialogueMode)
             ServiceNpcDialogue0056E510();
         if (gXStatus.fLockInteractMode)
@@ -5460,7 +5460,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         GiveHeldItemToCharacterOrParty(slot,
                                                        static_cast<unsigned char>(force_to_party));
                         if (gXStatus.fItemSelectMode != 0) {
-                            Function59D690();
+                            RefreshUseItemList0059D690();
                         }
                     }
                 } else {
@@ -5755,7 +5755,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             }
             GiveHeldItemToCharacterOrParty(slot, 1);
             if (gXStatus.fItemSelectMode != 0) {
-                Function59D690();
+                RefreshUseItemList0059D690();
                 return 1;
             }
         }
