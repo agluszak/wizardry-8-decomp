@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
@@ -324,7 +325,7 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
 }
 
 // FUNCTION: WIZ8 0x0054A270
-void MakeMonsterHitSound0054A270(const W8MonsterCombatState* combat, W8CombatSlot* target,
+void MakeMonsterHitSound0054A270(const W8MonsterAttack* attack, W8CombatSlot* target,
                                  int hit_location, int volume)
 {
     int weapon_class;
@@ -332,17 +333,13 @@ void MakeMonsterHitSound0054A270(const W8MonsterCombatState* combat, W8CombatSlo
        -1 is out of range and yields the retail "HIT" fallback. */
     int target_material = -1;
 
-    if (combat == 0) {
+    if (attack == 0) {
         return;
     }
     if (target == 0) {
         return;
     }
-    /* pCombat+0x1c holds the selected attack's material class inside the
-       character_hate run; the matching byte at +0x1b is read by the caller
-       too.  The authored field spelling is unresolved, so read the byte. */
-    // reinterpret-ok: unresolved packed byte inside character_hate[0]'s storage
-    weapon_class = reinterpret_cast<const signed char*>(combat->character_hate)[2];
+    weapon_class = attack->weapon_class_1c;
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
         int item = PCItemInACSlot(character, hit_location);

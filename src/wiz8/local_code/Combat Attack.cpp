@@ -1929,7 +1929,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             } else if (dice_count > 1 && verbose != 0) {
                 ShowNoticef(9, gppStringList[0x20d], dice_count);
             }
-            MakeMonsterHitSound0054A270(combat, &g_combat_state->TargetHit, hit_location, -1);
+            MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location, -1);
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
                 applied =
                     ApplyDamageToCharacter(g_combat_state->TargetHit.iChar, damage, 0, verbose != 0,
@@ -1963,7 +1963,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         goto resolved;
     missed:
-        MakeMonsterHitSound0054A270(combat, &g_combat_state->TargetHit, hit_location, 0x2a);
+        MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location, 0x2a);
         if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
             MonsterReactsToBeingStruck(target_info, &source, 0);
         }

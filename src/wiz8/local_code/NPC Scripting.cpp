@@ -1386,7 +1386,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
     case 0x12:
     case 0x1e:
         // reinterpret-ok: quote entry and dialog request share packed 0x12 layout
-        OpenNpcDialog(reinterpret_cast<W8NpcDialogRequest*>(entry), continuation_quote);
+        OpenNpcDialog(entry, continuation_quote);
         break;
     case 9:
         ReplaceOrCreateItem(&item, entry->operand_01, 1, 1, 0);

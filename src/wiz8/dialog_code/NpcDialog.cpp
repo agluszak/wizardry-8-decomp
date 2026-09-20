@@ -31,7 +31,7 @@ static W8NpcDialog* g_npc_dialog;
 static const wchar_t g_format_s_dg_0064fc84[] = L"%s %dg";
 
 // FUNCTION: WIZ8 0x005DA6B0
-W8NpcDialog::W8NpcDialog(W8NpcDialogRequest* message, int aux_data)
+W8NpcDialog::W8NpcDialog(W8NpcQuoteEntry* message, int aux_data)
 {
     short height = 0x46;
     short max_width = -1;
@@ -50,22 +50,22 @@ W8NpcDialog::W8NpcDialog(W8NpcDialogRequest* message, int aux_data)
     m_message = message;
     m_aux_data = aux_data;
 
-    char opcode = message->opcode;
+    char opcode = message->kind_00;
     if (opcode == '\x05') {
-        if (message->option_count == 2) {
+        if (message->sub_entry_count == 2) {
             m_compact_options = 0;
         } else {
             m_compact_options = 1;
         }
-        for (index = 0; index < message->option_count; ++index) {
-            swprintf(line, g_format_S_0061c4b4, message->options[index].text);
+        for (index = 0; index < message->sub_entry_count; ++index) {
+            swprintf(line, g_format_S_0061c4b4, message->sub_entries[index].text);
             short length = StringPixLength(line, g_wiz_text_mono_font_683630);
             if (max_width < length) {
                 max_width = length;
             }
         }
         m_text_width = max_width + 6;
-        width = (m_text_width + 0xa) * message->option_count + 0x1e;
+        width = (m_text_width + 0xa) * message->sub_entry_count + 0x1e;
     } else if (opcode == '\x12' || opcode == '\x1e') {
         m_compact_options = 0;
         short length = StringPixLength(gppStringList[0x7df], g_wiz_text_mono_font_683630);
@@ -101,11 +101,12 @@ int W8NpcDialog::CreateControls()
     W8ControlsRect bounds;
 
     W8DialogBase::CreateControls();
-    if (m_message->opcode == '\x05') {
+    if (m_message->kind_00 == '\x05') {
         int x =
-            (m_width - static_cast<short>((m_text_width + 10) * m_message->option_count - 10)) / 2;
-        for (index = 0; index < m_message->option_count; ++index) {
-            swprintf(line, g_format_S_0061c4b4, m_message->options[index].text);
+            (m_width - static_cast<short>((m_text_width + 10) * m_message->sub_entry_count - 10)) /
+            2;
+        for (index = 0; index < m_message->sub_entry_count; ++index) {
+            swprintf(line, g_format_S_0061c4b4, m_message->sub_entries[index].text);
             m_buttons[index] = new W8DialogButton;
             m_buttons[index]->ConfigureTextButton(
                 line, g_wiz_text_mono_font_683630, 4, 5, static_cast<short>(m_x + x),
@@ -119,7 +120,7 @@ int W8NpcDialog::CreateControls()
         m_text_buffers[0] = new W8TextBuffer(
             &bounds, gppStringList[0x7e4], g_font_683660,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
-    } else if (m_message->opcode == '\x12' || m_message->opcode == '\x1e') {
+    } else if (m_message->kind_00 == '\x12' || m_message->kind_00 == '\x1e') {
         short x = static_cast<short>((m_width - static_cast<short>((m_text_width + 5) * 2)) / 2);
         m_buttons[0] = new W8DialogButton;
         m_buttons[0]->ConfigureTextButton(
@@ -146,7 +147,7 @@ int W8NpcDialog::CreateControls()
         m_text_buffers[1] = new W8TextBuffer(
             &bounds, line, g_font_683660,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 4);
-    } else if (m_message->opcode == '\x13') {
+    } else if (m_message->kind_00 == '\x13') {
         SetTextInputScheme(1);
         m_input_field = AddTextInputField(m_x + (m_width - 0x8c) / 2, m_y + 0x23, 0x8c, 0x10, 0x7f,
                                           &g_wchar_00689b34, 0x28, 0xf, 1);
@@ -179,7 +180,7 @@ void W8NpcDialog::DestroyControls()
             m_text_buffers[index] = 0;
         }
     }
-    if (m_message->opcode == '\x13') {
+    if (m_message->kind_00 == '\x13') {
         RemoveTextInputField(m_input_field);
     }
 }
@@ -227,7 +228,7 @@ unsigned char W8NpcDialog::ProcessInput()
     while (DequeueEvent(&input) == TRUE) {
         if ((input.usEvent != KEY_DOWN && input.usEvent != KEY_REPEAT) ||
             static_cast<char>(HandleTextInput(&input)) == 0) {
-            if (input.usEvent == KEY_DOWN && input.usParam == 0xd && m_message->opcode == '\x13') {
+            if (input.usEvent == KEY_DOWN && input.usParam == 0xd && m_message->kind_00 == '\x13') {
                 Get16BitStringFromField(m_input_field, m_input_text);
                 g_npc_dialog->m_keep_open = 0;
                 return 1;

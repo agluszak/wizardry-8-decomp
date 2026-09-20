@@ -482,17 +482,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
                              g_value_0069c0f8, 1);
             carried = g_status_685170.item_in_hand_235b.stack_count;
         } else {
-            split.item_id = g_split_item_source_0069c424->item_id;
-            split.uses_or_charges = g_split_item_source_0069c424->uses_or_charges;
-            split.identified = g_split_item_source_0069c424->identified;
-            split.unknown_07[0] = g_split_item_source_0069c424->unknown_07[0];
-            *reinterpret_cast<  // reinterpret-ok: item serialized word crosses byte-array storage
-                unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
-                &split.unknown_07
-                     [1]) =        // reinterpret-ok: two-item layout word shared with the held item
-                *reinterpret_cast< // reinterpret-ok: item serialized word crosses byte-array storage
-                    const unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
-                    &g_split_item_source_0069c424->unknown_07[1]);
+            split = *g_split_item_source_0069c424;
             split.stack_count = (unsigned char)count;
             g_split_item_source_0069c424->stack_count = remaining;
             CopyItemInstance(&g_status_685170.item_in_hand_235b, &split, 0, 1);
@@ -505,16 +495,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         if (count == g_split_item_source_0069c424->stack_count) {
             return;
         }
-        split.item_id = g_split_item_source_0069c424->item_id;
-        split.uses_or_charges = g_split_item_source_0069c424->uses_or_charges;
-        split.identified = g_split_item_source_0069c424->identified;
-        split.unknown_07[0] = g_split_item_source_0069c424->unknown_07[0];
-        *reinterpret_cast<  // reinterpret-ok: item serialized word crosses byte-array storage
-            unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
-            &split.unknown_07[1]) = // reinterpret-ok: unresolved layout word copied verbatim
-            *reinterpret_cast< // reinterpret-ok: item serialized word crosses byte-array storage
-                const unsigned int*>( // reinterpret-ok: item serialized word crosses byte-array storage
-                &g_split_item_source_0069c424->unknown_07[1]);
+        split = *g_split_item_source_0069c424;
         split.stack_count = remaining;
         if (g_held_item_source_006840c0 == -1) {
             goto add_to_pool;

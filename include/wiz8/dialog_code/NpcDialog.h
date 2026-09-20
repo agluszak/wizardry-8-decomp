@@ -3,28 +3,12 @@
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/local_code/ControlsRect.h"
+#include "wiz8/npc_script_file.h"
 
 class W8TextBuffer;
 
-/* +0x0e of an option-list request points at an array of these records; the
-   popup reads only the narrow display string. */
-struct W8NpcDialogOption {
-    int value;
-    char* text;
-};
-
-/* The request buffer handed to the W8NpcDialog constructor; only the fields
-   the popup reads are named. The dispatch code owns the full layout - for the
-   0x12/0x1e price-check messages 0x01 carries the base price. */
-#pragma pack(push, 1)
-struct W8NpcDialogRequest {
-    char opcode;    /* 0x00: 0x05 option list, 0x12/0x1e price check, 0x13 keyword entry */
-    int base_price; /* 0x01: the price check's starting value for opcodes 0x12/0x1e */
-    char unknown_05[8];
-    unsigned char option_count; /* 0x0d */
-    W8NpcDialogOption* options; /* 0x0e */
-};
-#pragma pack(pop)
+/* The dialog receives the script entry itself. Its +0x0e sub-entry array is
+   the option list for kind 5; operand_01 is the price for kinds 0x12/0x1e. */
 
 /* Dialog Code\NpcDialog.cpp. The NPC dialogue popup: the dispatch code
    allocates 0x270 bytes and hands the constructor a request buffer whose
@@ -39,7 +23,7 @@ class W8NpcDialog : public W8DialogBase {
     friend void OnNpcDialogClosed(W8DialogBase* dialog);
 
 public:
-    W8NpcDialog(W8NpcDialogRequest* message, int aux_data); /* 0x005DA6B0 */
+    W8NpcDialog(W8NpcQuoteEntry* message, int aux_data); /* 0x005DA6B0 */
     virtual ~W8NpcDialog() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
@@ -56,7 +40,7 @@ private:
     W8DialogButton* m_buttons[3];    /* 0x5c */
     signed char m_selected_option;   /* 0x68: read MOVSX by the destroy callback */
     unsigned char unknown_069[3];
-    W8NpcDialogRequest* m_message;   /* 0x6c */
+    W8NpcQuoteEntry* m_message;      /* 0x6c */
     int m_aux_data;                  /* 0x70 */
     unsigned char m_compact_options; /* 0x74: option list may size under 200 wide */
     unsigned char unknown_075;
