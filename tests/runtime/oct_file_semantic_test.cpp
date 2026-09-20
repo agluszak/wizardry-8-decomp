@@ -418,12 +418,12 @@ static unsigned char CheckUvSeam(OctPreTree* tree)
     polygon_ids[0] = 0;
     polygon_ids[1] = 1;
     record.polygon_ids_24 = polygon_ids;
-    polygons[0].uvs_54[0].Set(0.1f, 0.2f);
-    polygons[0].uvs_54[1].Set(0.3f, 0.4f);
-    polygons[0].uvs_54[2].Set(0.5f, 0.6f);
-    polygons[1].uvs_54[0].Set(0.7f, 0.8f);
-    polygons[1].uvs_54[1].Set(0.5f, 0.6f);
-    polygons[1].uvs_54[2].Set(0.9f, 1.0f);
+    polygons[0].face_48.texture_coordinates[0].Set(0.1f, 0.2f);
+    polygons[0].face_48.texture_coordinates[1].Set(0.3f, 0.4f);
+    polygons[0].face_48.texture_coordinates[2].Set(0.5f, 0.6f);
+    polygons[1].face_48.texture_coordinates[0].Set(0.7f, 0.8f);
+    polygons[1].face_48.texture_coordinates[1].Set(0.5f, 0.6f);
+    polygons[1].face_48.texture_coordinates[2].Set(0.9f, 1.0f);
     memset(&geometry, 0, sizeof(geometry));
     geometry.polygons_0c = polygons;
 

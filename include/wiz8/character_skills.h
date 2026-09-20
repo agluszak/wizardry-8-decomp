@@ -82,6 +82,8 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
 /* 0x005542E0: drain the deferred per-slot skill-increase flags into one or
    more W8_NPC_MSG_SKILL_NOTICES message-box lines. */
 void FlushDeferredSkillNotices(void);
+/* 0x0068506D: a deferred skill-increase notice is queued for the text box. */
+extern unsigned char g_deferred_skill_notices_0068506d;
 
 /* Ability ids stored in the profession/race tables. The names below are fixed
    either by a recovered consumer or by the profession ability lists. Those

@@ -513,6 +513,7 @@ extern W8ItemInstance* g_value_00685072;
 extern unsigned char g_flag_00685076;
 extern signed char g_value_00685077;
 extern unsigned char g_flag_006840bc;
+extern unsigned char g_flag_006840bd;
 extern unsigned char g_flag_00685070;
 
 void HandleManualCameraHotkeys(void);
