@@ -4,6 +4,7 @@
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/xstatus.h"
@@ -2244,4 +2245,49 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
     if (effect->reported_124 == 0) {
         AppendToLastTextLine(gppStringList[0x694 / 4], -1);
     }
+}
+
+// FUNCTION: WIZ8 0x004fac40
+bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,
+                                 bool skip_world_cursor)
+{
+    W8GrowableVector<int> monsters;
+    W8GrowableVector<int> party;
+    W8TargetSource source;
+    SetTargetSourceToCharacter(party_slot, &source);
+    PopulateSpellTargetMarkers(spell_id, power, &source,
+                               &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+                               &monsters, &party, 0);
+
+    bool valid = true;
+    bool has_targets = spell_id == 0x1e || monsters.count != 0 || party.count != 0;
+    if (!has_targets) {
+        W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
+        has_targets =
+            target_type > W8_TARGET_TYPE_ALL_ENEMIES && target_type < W8_TARGET_TYPE_COUNT;
+    }
+    if (!has_targets) {
+        if (!item_cast) {
+            PostCharacterNotice(
+                party_slot,
+                FormatWideString(gppStringList[0x1b7], g_spell_records[spell_id].display_name));
+        } else {
+            PostCharacterNotice(party_slot, FormatWideString(gppStringList[0x1b8]));
+        }
+        valid = false;
+    } else if (!skip_world_cursor && DispatchWorldCursorNodeCommand004D9080(0, 4, 1)) {
+        valid = false;
+    }
+
+    if (spell_id == 0x4b &&
+        ((g_level_data_00652dac->flags & 1) != 0 || !GetLevelDataFlag4() || GetLevelDataFlag9())) {
+        valid = false;
+    }
+    if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell005474B0(spell_id) ||
+                   gXStatus.hostile_monster_count != 0 || !g_combat_state->flag_a54)) {
+        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                            g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+    }
+    return valid;
 }

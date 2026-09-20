@@ -63,7 +63,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
                         unsigned int power_level, int a, int b, int c, int* d, int e, int f,
-                        int g); /* 0x004FB4C0 */
+                        W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
@@ -123,12 +123,9 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
    difficulty. Both are defined in this unit. */
 unsigned int ScaleByCombatPace(int party_slot, unsigned int* value);
 
-/* Unresolved gap callees of the item-use spell path, all in this unit. Their
-   shapes come from the retail call sites: 0x004FAC40 takes five arguments,
-   0x004FB4C0 is CastSpellFromSource (eleven arguments), 0x004F9AE0 four and
-   0x00501D20 two. */
-unsigned char CanUseItemSpell004FAC40(int party_slot, int spell_id, unsigned int power, int arg_4,
-                                      unsigned char arg_5);
+/* Validate the available target set and cursor state for a spell or item cast. */
+bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,
+                                 bool skip_world_cursor);
 unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, W8CombatSlot* aim,
                                           unsigned int power);
 void TrackItemSpellSource00501D20(W8Character* character, int spell_id);
