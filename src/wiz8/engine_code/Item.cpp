@@ -146,7 +146,7 @@ void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 
 /* Whether the item's radar-blip timer is still ticking. */
 // FUNCTION: WIZ8 0x004A0050
-unsigned char W8Item::IsRadarBlipLit()
+bool W8Item::IsRadarBlipLit()
 {
     return ClockIsTicking(value_01c) != 0;
 }

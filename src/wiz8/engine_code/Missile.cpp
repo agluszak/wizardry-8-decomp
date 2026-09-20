@@ -321,7 +321,7 @@ void ReleaseMissileDatabase(void)
    before combat can end: either it has not been marked done, or its animation
    state for mode 6 is not the terminal value. */
 // FUNCTION: WIZ8 0x004a5790
-unsigned char W8Missile::BlocksEndingCombat004A5790()
+bool W8Missile::BlocksEndingCombat004A5790()
 {
     if (flag_1e0 == 0) {
         if (GetAnimationState004A4640(6) != 1) {

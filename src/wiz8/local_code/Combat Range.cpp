@@ -596,8 +596,8 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
    given what it can see and how far away they stand. Combat mode shortens
    touch/short reach by CountRowsBetween. */
 // FUNCTION: WIZ8 0x0051a2f0
-unsigned char MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                            unsigned int attack, int party_slot)
+bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                   unsigned int attack, int party_slot)
 {
     int sight_index;
     int action_kind;
@@ -695,8 +695,8 @@ unsigned char MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8Monst
    attackers never reach; the same monster always does. Sight comes from the
    mon-to-mon visibility row rather than the party record. */
 // FUNCTION: WIZ8 0x0051a510
-unsigned char MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                          unsigned int attack, W8MonsterInfo* target)
+bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                                 unsigned int attack, W8MonsterInfo* target)
 {
     W8VisibilityRecord* visibility;
     int sight_index;

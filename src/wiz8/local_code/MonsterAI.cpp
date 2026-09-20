@@ -1354,7 +1354,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char need
 /* Pick where the spell lands: collect every slot the spell may be cast at
    and take one at random into the monster's stored target. */
 // FUNCTION: WIZ8 0x005326F0
-unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
+bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
 {
     W8GrowableVector<W8CombatSlot> targets;
 
@@ -1372,8 +1372,8 @@ unsigned char AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
    and accepted when at least half of them take the spell. The per-spell
    switch then vetoes targets the spell would not help or cannot affect. */
 // FUNCTION: WIZ8 0x005327E0
-unsigned char MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
-                                   W8CombatSlot* combat_slot)
+bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
+                          W8CombatSlot* combat_slot)
 {
     W8MonsterInfo* target = 0;
     W8Character* character = 0;
@@ -2055,8 +2055,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
    types aim at the world; anything else either needs no aim at all or has to
    pass the slot check. */
 // FUNCTION: WIZ8 0x00534290
-unsigned char CanMonsterAimSpell( // bool-byte-ok: retail passes callee byte through
-    W8MonsterInfo* monster_info, int spell_id)
+bool CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     W8SpellTargetType target_type = GetSpellTargetType(spell_id, 0);
 
@@ -2227,8 +2226,8 @@ bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only,
    four anything non-neutral - and `within_reach` also requires the target
    inside the engagement range computed from the monster's best attack. */
 // FUNCTION: WIZ8 0x00534850
-unsigned char MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
-                                      int within_reach)
+bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int hostility,
+                             int within_reach)
 {
     float reach;
     int sight;
@@ -2526,7 +2525,7 @@ unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_
    only counts members already flagged or whose record cannot idle, and only
    while an encounter list exists. */
 // FUNCTION: WIZ8 0x00534FC0
-unsigned char MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
+bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
 {
     unsigned int index;
     unsigned int other_index;
@@ -2692,7 +2691,7 @@ void CheckMonsterGroupsEnterCombat(void)
    target inside the leader's reach, the leader itself close enough to walk
    to the party, or a rendered member already near the party. */
 // FUNCTION: WIZ8 0x005355D0
-unsigned char ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
+bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 {
     W8MonsterInfo* leader;
     W8MonsterInfo* member;

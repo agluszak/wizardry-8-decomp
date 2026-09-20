@@ -356,7 +356,7 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
 /* Whether a character can berserk: the ability itself, a hand that can reach
    the target, and a primary hand fighting at short range or closer. */
 // FUNCTION: WIZ8 0x005458a0
-unsigned char CanCharacterBerserk(int party_slot)
+bool CanCharacterBerserk(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int hand;

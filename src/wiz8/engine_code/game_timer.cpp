@@ -308,7 +308,7 @@ float W8GameTimer::GetElapsedSeconds()
            m_duration_seconds;
 }
 
-void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
+W8GameTimer* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
 {
     return new W8GameTimer(duration, raw_time);
 }

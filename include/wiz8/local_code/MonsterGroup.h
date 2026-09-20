@@ -147,9 +147,7 @@ W8MonsterGroup* Function511A40(W8MonsterGroup* group, unsigned int monster_id); 
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
-unsigned char
-MonsterGroupAllMembersDying00511850( // bool-byte-ok: retail returns al as unsigned char
-    W8MonsterGroup* monster_group);  /* 0x00511850 */
+bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
 void LoadMonsterGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */

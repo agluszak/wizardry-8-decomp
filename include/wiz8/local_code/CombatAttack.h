@@ -74,7 +74,7 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target); /* 0x00545C20 *
 /* Whether the character can berserk - has the fighter's ability (trait
    W8_TRAIT_BERSERK), a hand that can reach, and a primary hand that fights at
    short range or closer. The attack sub-menu entry it gates is "Berserk". */
-unsigned char CanCharacterBerserk(int party_slot); /* 0x005458A0 */
+bool CanCharacterBerserk(int party_slot); /* 0x005458A0 */
 /* Whether a monster would press an attack on what `target` names: a hostile it
    can reach that outranks it, and that is either below forty percent health or
    out of formation. */

@@ -57,7 +57,7 @@ struct W8Item : public W8GrObject {
     bool IsSelected();
     float DistanceToCamera(W8World* world);
     void LightRadarBlip();
-    unsigned char IsRadarBlipLit();
+    bool IsRadarBlipLit();
 };
 
 /* 0x0049F350 allocates the 0x94-byte representation; 0x0049F5D0 allocates

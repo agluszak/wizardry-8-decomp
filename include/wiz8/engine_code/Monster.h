@@ -157,7 +157,7 @@ public:
     int Query(int query);                        /* 0x004C4660 */
     void SetRuntimeValueA6(signed char value);   /* 0x004C6C00 */
     void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
-    unsigned char IsDying();                     /* 0x004CA4C0 */
+    bool IsDying();                              /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>* instances);
@@ -194,10 +194,10 @@ public:
     unsigned char GetCycleMappedPosition004C7960(signed char cycle, int mapped_index,
                                                  srVector3T<float>* position);
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
-    unsigned char CanContinueScript004CA0F0();
+    bool CanContinueScript004CA0F0();
     unsigned char SetScriptLabel004CA260(const char* label);
     unsigned char GetFlag216004CA290() const;
-    unsigned char IsWithinWorldRange004CA2A0();
+    bool IsWithinWorldRange004CA2A0();
     unsigned char CheckLineOfSightToPlayer004C4810();
     void GetPlayerSightFlags004C4870(unsigned char* primary, unsigned char* secondary);
     unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
