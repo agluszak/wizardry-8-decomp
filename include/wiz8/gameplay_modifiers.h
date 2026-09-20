@@ -53,13 +53,22 @@ struct W8GameplayModifierBlock {
     signed char armor_bonus_05; /* 0x05 */
     signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
     signed char resistance_bonus_all;        /* 0x07: added to every resistance */
-    unsigned char unknown_08[4];             /* 0x08 .. 0x0b */
+    /* 0x08: flat damage applied once per elapsed minute. The character and
+       monster aging paths both multiply it by the elapsed minute count. */
+    unsigned char damage_per_minute;
+    /* 0x09..0x0b: signed flat adjustments to the corresponding regeneration
+       channels. Character aging applies them directly; monster regen rebuild
+       folds the HP/stamina values into its rates. */
+    signed char health_regen_adjustment;
+    signed char stamina_regen_adjustment;
+    signed char spell_regen_adjustment;
     signed char attribute_adjustments[7];    /* 0x0c .. 0x12 */
-    unsigned char unknown_13[0x29];          /* 0x13 .. 0x3b */
+    signed char skill_adjustments[0x29];     /* 0x13 .. 0x3b: one per skill id */
     signed char resistance_bonus[6];         /* 0x3c .. 0x41 */
-    unsigned char flag_42;                   /* 0x42 .. 0x44: doubled from the trait pass */
-    unsigned char flag_43;
-    unsigned char flag_44;
+    /* 0x42..0x44: independent +50% regeneration-rate latches. */
+    unsigned char boost_health_regen;
+    unsigned char boost_stamina_regen;
+    unsigned char boost_spell_regen;
     unsigned char out_of_formation; /* 0x45 */
     unsigned char flag_46;          /* 0x46: set by effect id 0x11 */
     unsigned char light_47;         /* 0x47: the doubled light value the sky node reads */
