@@ -312,6 +312,8 @@ public:
     /* Copy movement_0c0.velocity_034 out - the missile homing step scales this
        by its step count to predict the next position. */
     void GetVelocity(srVector3T<float>* velocity); /* 0x004534F0 */
+    /* movement_0c0.velocity_034 = *velocity - the launch direction step. */
+    void SetVelocity00453520(const srVector3T<float>* velocity); /* 0x00453520 */
     /* movement_0c0.target_yaw = NormalizeAngle(angle). */
     void SetTargetYaw(float angle); /* 0x004538D0 */
     /* movement_0c0.target_pitch_024 = NormalizeAngle(angle). */
