@@ -25,6 +25,33 @@ def status_command(
     cli.emit(status_report(settings))
 
 
+@app.command("surrender-frontier")
+def surrender_frontier_command(
+    class_filter: str | None = typer.Option(
+        None, "--class", help="Restrict the per-import listing to one SurRender class."
+    ),
+    priority: str | None = typer.Option(
+        None, "--priority", help="Restrict the per-import listing to P0/P3."
+    ),
+    compare: bool = typer.Option(
+        True, "--compare/--no-compare", help="Annotate recovered bodies with reccmp status."
+    ),
+) -> None:
+    """Rank SurRender provider work by what Wiz8 actually references."""
+
+    from .. import command_support as cli
+    from ..reports.surrender_frontier import surrender_frontier_report
+
+    cli.emit(
+        surrender_frontier_report(
+            cli.settings(),
+            class_filter=class_filter,
+            priority_filter=priority,
+            compare=compare,
+        )
+    )
+
+
 @app.command("header-architecture")
 def header_architecture_command() -> None:
     """Write the header-role ownership report from recovered TUs and declarations."""
