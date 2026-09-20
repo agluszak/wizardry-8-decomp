@@ -2087,6 +2087,12 @@ void SelectTextSlot1D8(int line, int index)
     }
 }
 
+// FUNCTION: WIZ8 0x00590D90
+void ClearTextLineEntry00590D90(int index)
+{
+    g_level_block->text_lines[index] = 0;
+}
+
 // FUNCTION: WIZ8 0x0058F990
 int GetTextSlot1D8(int index)
 {

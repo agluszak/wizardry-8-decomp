@@ -92,3 +92,14 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
 void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_menu_edge,
                             int* band_portrait_edge, int* grid_row, int* column_x, int adjust);
 void TickPartyPortraitOverlayClocks(void);
+
+/* 0x0059A110: shade the depleted tail of a vitals bar - two scanlines tall
+   under numeric hit points, three otherwise. */
+void ShadeStatusBarGap0059A110(int length, int left, int top);
+
+/* 0x006488D0: dead-character portrait catalog ids - the small party-strip
+   image at [race][0] and the large header portrait at [race][1]. */
+extern int g_dead_portrait_catalog_ids_6488d0[16][2];
+/* 0x00649DD4: empty-hand portrait catalog ids - right hand at [race*2], left
+   hand at [race*2+1]. */
+extern int g_empty_hand_catalog_ids_649dd4[32];

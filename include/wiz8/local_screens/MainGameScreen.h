@@ -628,10 +628,26 @@ void CloseMainGameOverlays(void);                                        /* 0x00
 void SetRadarMapVisible(unsigned char visible);                          /* 0x00568EB0 */
 void SetActionPanelVisible(unsigned char visible);                       /* 0x00569120 */
 void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag); /* 0x00560E10 */
-void Function5ADB10(int value);                                          /* 0x005ADB10 */
+void RebuildNpcTradeItemList005ADB10(bool scroll_to_top);
 /* 0x005ADAA0: the trade-stock index behind a visible NPC item row. */
-int Function5ADAA0(int index);
-void Function58BA60(void); /* 0x0058BA60 */
+int ResolveNpcTradeStockIndex005ADAA0(int index);
+/* 0x005AD950: append one NPC stock item's name and price lines to the trade
+   text box. */
+void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item);
+/* 0x005ADBE0: refill the trade text box from the pending item pool or the NPC
+   stock, then re-enable the filter buttons. */
+void PopulateNpcTradeList005ADBE0(void);
+/* 0x005AE1F0: validate the pending trade selection; queues a refusal quote and
+   fails when the NPC declines the item or the party cannot pay. */
+bool ValidateNpcTradeSelection005AE1F0(void);
+/* 0x005AE2A0: run one NPC trade offer; the result selects the accepted,
+   refused or offended script path. */
+bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, int index);
+/* 0x005AE1A0: destroy callback on the NPC trade split dialog; commits the
+   chosen count to the editor slot and refreshes the trade selection. */
+void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
+void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
+void Function58BA60(void);                                        /* 0x0058BA60 */
 void Function587510(int value);
 void Function5879A0(int);
 void Function58A470(int value);
@@ -672,4 +688,4 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Reg
 void SetNpcDialogueSubMode4(void);
 void Function5AD290(void);
 void RestockNpcTradeStock(void);
-void Function5AE040(void);
+void OpenNpcTradeSplitDialog005AE040(void);

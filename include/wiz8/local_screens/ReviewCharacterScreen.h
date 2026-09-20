@@ -3,6 +3,7 @@
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/layouts/learned_spells.h"
+#include "wiz8/local_screens/RCSStatsPage.h"
 #include "input.h"
 
 class W8DialogBase;
@@ -15,7 +16,9 @@ struct W8ItemInstance;
 struct W8Region;
 
 /* The three listeners own different range controls. Their callbacks update
-   the item, spell-realm and skill scroll positions respectively. */
+   the item, spell-realm and stats effect-list scroll positions respectively.
+   W8CampStatsRange and W8CampStatsControls are authored in RCSStatsPage.cpp
+   (declared in RCSStatsPage.h). */
 // VTABLE: WIZ8 0x005eed08
 class W8CampItemRange : public W8RangeListener {
 public:
@@ -41,25 +44,6 @@ public:
     int m_realm;
 };
 
-// VTABLE: WIZ8 0x005ef530
-class W8CampSkillRange : public W8RangeListener {
-public:
-    W8CampSkillRange();
-    ~W8CampSkillRange();
-    virtual void OnRangeChanged(W8RangeControl* control) override;
-    W8RangeControl* m_range;
-};
-
-// VTABLE: WIZ8 0x005ef53c Controls
-// VTABLE: WIZ8 0x005ef534 W8TextControl::Listener
-class W8CampSkillControls : public Controls, public W8TextControl::Listener {
-public:
-    W8CampSkillControls();
-    virtual ~W8CampSkillControls();
-    virtual void OnPrimary(W8TextControl* control) override;
-    W8TextControl* m_buttons[3];
-};
-
 // VTABLE: WIZ8 0x005ef278 Controls
 // VTABLE: WIZ8 0x005ef270 W8TextControl::Listener
 class W8CampCharacterInfo : public Controls, public W8TextControl::Listener {
@@ -78,8 +62,6 @@ public:
 
 static_assert(sizeof(W8CampItemRange) == 8, "W8CampItemRange_size");
 static_assert(sizeof(W8CampSpellRange) == 12, "W8CampSpellRange_size");
-static_assert(sizeof(W8CampSkillRange) == 8, "W8CampSkillRange_size");
-static_assert(sizeof(W8CampSkillControls) == 0x5c, "W8CampSkillControls_size");
 static_assert(sizeof(W8CampCharacterInfo) == 0x6c, "W8CampCharacterInfo_size");
 
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
@@ -101,8 +83,8 @@ struct W8CampScreenState0069C0F4 {
     int item_list_4ec[500];
     W8CampItemRange* item_range; /* 0xcbc */
     W8CampSpellRange* spell_ranges[6];
-    W8CampSkillRange* skill_range; /* 0xcd8 */
-    W8CampSkillControls* skill_controls;
+    W8CampStatsRange* stats_range; /* 0xcd8 */
+    W8CampStatsControls* stats_controls;
     unsigned int item_timer; /* 0xce0 */
     unsigned char item_timer_active;
     unsigned char item_timer_expired;
@@ -110,14 +92,21 @@ struct W8CampScreenState0069C0F4 {
     unsigned int animation_timer;
     unsigned int animation_frames[6];
     int input_mode; /* 0xd04 */
-    unsigned char skill_flag;
+    /* 0xd08..0xd30: the stats page's condition/equipment effect list, rebuilt
+       by RebuildCampEffectList005C4EE0 and refiltered by
+       FilterCampEffectList005C5240. */
+    unsigned char effect_items_only; /* 0xd08: 1 lists equipped items, 0 conditions/enchantments */
     unsigned char unknown_d09[3];
-    int skill_scroll;
-    unsigned char unknown_d10[8];
-    int skill_selection; /* 0xd18: cleared when the reviewed character changes */
-    unsigned char unknown_d1c[0x10];
-    int skill_list_scroll;
-    void* skill_stack;
+    int effect_filter; /* 0xd0c: 0 all, 1 beneficial only, 2 detrimental only */
+    int effect_beneficial_count;
+    int effect_detrimental_count;
+    int effect_selection; /* 0xd18: cleared when the reviewed character changes */
+    unsigned char unknown_d1c[4];
+    int effect_first_visible; /* 0xd20 */
+    int effect_last_visible;
+    int effect_visible_lines;
+    int effect_scroll;      /* 0xd2c */
+    void* effect_list;      /* 0xd30: HLIST of W8CampEffectEntry rows */
     int selected_spell_row; /* 0xd34 */
     unsigned char unknown_d38[7];
     unsigned char entry_mode;
@@ -146,10 +135,9 @@ extern int giReviewCharSlot;
 extern W8Character* g_value_0069c0f8;
 extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
 extern W8Character* g_camp_character_0069c100;
-extern unsigned char g_camp_character_pending_0069c104;
+extern bool g_camp_character_pending_0069c104;
 extern unsigned int g_camp_item_region_set_0069c108;
 extern unsigned int g_camp_spell_region_sets_0069c40c[6];
-extern unsigned int g_camp_skill_region_set_0069c51c;
 
 /* Panel controls owned by the camp screen, created by
    CreateCampSecondaryPanel005B9900, CreateCampActionPanel005B9070 and
@@ -162,19 +150,52 @@ extern W8HelpTextControl* g_camp_help_text_0069c444;
 extern W8Widget* g_camp_stat_labels_0069c448[7];
 extern W8TextControl* g_camp_action_buttons_0069c468[2];
 extern W8TextControl* g_camp_realm_tabs_0069c470[7];
+/* One gppStringList id per primary attribute row; defined in
+   ReviewCharacterScreen.cpp, drawn by RCSStatsPage.cpp's stats page. */
+extern int g_attribute_label_ids_64dd30[7];
+
+/* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
+   given as explicit rectangles. The region initializer reads the first four
+   fields; the trailing five are never touched there and stay positional. */
+struct W8CampScreenRegion {
+    int x;      /* 0x00 */
+    int y;      /* 0x04 */
+    int width;  /* 0x08 */
+    int height; /* 0x0c */
+    int unknown_10;
+    int unknown_14;
+    int unknown_18;
+    int unknown_1c;
+    int unknown_20;
+};
+
+extern const W8CampScreenRegion g_camp_screen_regions_64cbf0[12];
+/* 0x00648C48: load-category font-palette selectors indexed by
+   W8Character::load_category. */
+extern int g_load_category_palettes_648c48[5];
+/* 0x0064CDA0: the three portrait catalog ids per race used by the camp
+   party strip. */
+extern int g_race_portrait_images_64cda0[0x30];
 
 /* Camp-screen gap functions, declared here for the call sites in
    RCSCommon.cpp and RCSItemsPage.cpp. */
+void SwitchCampPage005A4540(int page);
 void ClearOtherRealmFilters005A49D0(unsigned int realm);
 void RebuildCampItemList005A4A00(void);
 void SetCampInputMode005A4BC0(int mode);
 void DisplayCampDialog(W8DialogBase* dialog);
 void DismissSelectedPartyCharacter(void);
 
-/* Unresolved gap callees of the camp item handler in this unit. 0x005A6090
-   gates an item click on the character's remaining action allowance in
-   combat; 0x005A6440 programs a pending use-item action aimed at an item. */
-char Function5A6090(int party_slot);
+/* The pending-companion swap set by MarkCampCharacterPending005A6020 and
+   consumed by ResolvePendingCampCharacter005A5F30. */
+bool ResolvePendingCampCharacter005A5F30(bool force);
+void MarkCampCharacterPending005A6020(W8ItemInstance* item);
+/* 0x005A6090 gates an item click on the character's remaining action
+   allowance in combat; 0x005A6440 programs a pending use-item action aimed at
+   an item. */
+bool IsCampActionAllowed005A6090(int party_slot);
+int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
+                                 W8CombatSlot* target);
 int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
 
 /* 0x005A5DA0: move a single unit between the clicked stack and the item in
@@ -199,8 +220,7 @@ void DrawCampResistances005B7790(void);
 unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);
 void OpenSpellInfoDialog005B7BB0(unsigned int spell_id);
 void SyncReviewCharInputRegion005A4570(void);
-char IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
-void Function5C4EE0(void);
+bool IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
 
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;

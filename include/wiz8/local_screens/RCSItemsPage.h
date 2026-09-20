@@ -18,6 +18,12 @@ extern W8ItemInstance* g_split_item_source_0069c424;
 /* The result kind SplitStackDialogResult005BAA80 treats as acceptance. */
 extern int g_split_result_kind_005efb44;
 
+/* The origin and inventory-mode kind shared by every split-item dialog; the
+   NPC trade path in MainGameScreen.cpp selects the trade-kind globals instead. */
+extern int g_split_dialog_x_005efb4c;
+extern int g_split_dialog_y_005efb50;
+extern int g_split_dialog_kind_005efb64;
+
 /* The x origin the item info dialogs open at; the main game screen keeps its
    own y. */
 extern int g_info_dialog_x_005ef958;
@@ -53,8 +59,8 @@ void MergeItemStacksWithHeld005BA5D0(W8ItemInstance* item);
 void ReportCastResult005BA620(int party_slot);
 void UseHeldItemOnItem005BA740(W8ItemInstance* item);
 void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar);
-unsigned char CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* item);
-unsigned char CanSplitItemStack005BAA50(const W8ItemInstance* item);
+bool CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* item);
+bool CanSplitItemStack005BAA50(const W8ItemInstance* item);
 void SplitStackDialogResult005BAA80(W8DialogBase* dialog);
 void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot);
 void SetHandCursors005BAFC0(char mode);
@@ -74,14 +80,11 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
 unsigned char RealmTabRegionHandler005BBBB0(const InputAtom* event, W8Region* region);
 unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* region);
 void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
+void DrawCampItemIcons005BBE30(void);
 
 /* Unresolved gap callees, declared for the call sites in this unit. */
 int Function548E20(int party_slot, unsigned int arg_2);
 char IsSpecialItemId004DA0F0(W8ItemInstance* item);
-char Function5A5F30(char arg_1);
-void Function5A6020(W8ItemInstance* item);
-
-int Function5A6340(int party_slot, int action, int detail_count, W8CombatSlot* target);
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id; gap-owned table, also read by the AssayDialog TU. */

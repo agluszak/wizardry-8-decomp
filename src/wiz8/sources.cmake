@@ -40,6 +40,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_screens/MGSFormation.cpp
     src/wiz8/local_screens/MGSRadarMap.cpp
     src/wiz8/local_screens/RCSItemsPage.cpp
+    src/wiz8/local_screens/RCSStatsPage.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
     src/wiz8/local_screens/NPCInteractionSubscreen.cpp
@@ -184,13 +185,13 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/GroupAttacks.cpp
     src/wiz8/local_code/CharGeneration.cpp
     src/wiz8/local_screens/mipe.cpp
+    src/wiz8/local_screens/mipeEdit.cpp
     src/wiz8/local_screens/AutomapScreen.cpp
     src/wiz8/local_screens/screen12.cpp
     src/wiz8/local_screens/MGSPortraitCombat.cpp
     src/wiz8/local_screens/MGSButtons.cpp
     src/wiz8/local_screens/MGSSpellCasting.cpp
     src/wiz8/local_screens/PartySelectionScreen.cpp
-    src/wiz8/local_screens/mipeEdit.cpp
     src/wiz8/local_code/Text_Input.cpp
     src/wiz8/local_code/Traps.cpp
     src/wiz8/local_code/Gameloop.cpp

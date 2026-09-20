@@ -24,6 +24,9 @@ bool NpcAcceptsTradeItem(W8NpcState* npc, W8ItemInstance* item);
 int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned char stack_count,
                                 unsigned char identified);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
+/* 0x0055B7E0: the stock mutation a completed trade applies for one slot. */
+unsigned char Function55B7E0(W8NpcState* npc, int index, unsigned char quantity, char mode,
+                             int* moved_out);
 void DecayNpcInventory(W8NpcState* npc);
 
 #endif

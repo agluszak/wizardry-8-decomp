@@ -798,15 +798,15 @@ void RemoveItemFromWorld0046E5E0(W8World* unused, W8Item* item)
    discarded by the wrapper itself, which is what makes these thin forwarders
    rather than accessors. */
 // FUNCTION: WIZ8 0x0046e600
-void WorldGetPropCount(void)
+int WorldGetPropCount(W8World* unused)
 {
-    PLLength(g_world->plsProps);
+    return PLLength(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620
-void WorldGetPropAt(W8World* unused, int index)
+W8Prop* WorldGetPropAt(W8World* unused, int index)
 {
-    PLGet(g_world->plsProps, index);
+    return (W8Prop*)PLGet(g_world->plsProps, index); // c-style-cast-ok: PList stores void* rows
 }
 
 /* Two wrappers that reach the world's static scene along before forwarding. */

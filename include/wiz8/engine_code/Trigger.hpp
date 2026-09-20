@@ -247,6 +247,10 @@ public:
 };
 
 void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
+/* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
+   resets its difficulty-derived seed/state fields. lock_state is
+   &Trigger::value_368. */
+void __fastcall UpdateTriggerLock00445730(int* lock_state); /* 0x00445730 */
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 

@@ -121,6 +121,8 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
                                  unsigned int gold); /* 0x0050A570: every retail call pushes five */
 /* 0x0050AA00: whether the NPC's database entry carries the value at 0x002. */
 bool NpcRecordHasValue002(W8NpcState* npc);
+/* 0x0050C140: push a topic onto the NPC's five-slot topic list. */
+void AddNpcTopic(W8NpcState* npc, int topic);
 /* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to
    item_out and the taken gold to gold_out. Result codes feed the
    0x00576D80 dispatch. */

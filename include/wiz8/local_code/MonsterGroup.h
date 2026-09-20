@@ -178,8 +178,10 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
 void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group); /* 0x0050FAD0 */
 
-void ReapplyMonsterGroupFormations(void);  /* 0x00510830 */
-void RepairMonsterGroupLeaderLinks(void);  /* 0x00510740 */
-void ApplyDefaultMonsterGroupSounds(void); /* 0x005108C0 */
+void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
+                              const srVector3T<float>* formation); /* 0x0050FF40 */
+void ReapplyMonsterGroupFormations(void);                          /* 0x00510830 */
+void RepairMonsterGroupLeaderLinks(void);                          /* 0x00510740 */
+void ApplyDefaultMonsterGroupSounds(void);                         /* 0x005108C0 */
 
 #endif

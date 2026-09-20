@@ -40,8 +40,6 @@
 
 /* These are recovered in their owning Local Code units. Retail MonGen calls
    them out of line, so keep the cross-TU seams rather than cloning their logic. */
-void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
-                              const srVector3T<float>* formation); /* 0x0050FF40 */
 unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
                                        W8MonsterGroup* monster_group); /* 0x0050FC20 */
 

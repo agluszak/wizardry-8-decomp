@@ -38,6 +38,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/local_screens/PleaseWaitScreen.h"
+#include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/TextBuffer.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -48,6 +49,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
+#include "wiz8/learned_spells.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/float_constants.h"
@@ -98,7 +100,7 @@ W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
 // GLOBAL: WIZ8 0x0069c100
 W8Character* g_camp_character_0069c100;
 // GLOBAL: WIZ8 0x0069c104
-unsigned char g_camp_character_pending_0069c104;
+bool g_camp_character_pending_0069c104;
 // GLOBAL: WIZ8 0x0069c108
 unsigned int g_camp_item_region_set_0069c108;
 // GLOBAL: WIZ8 0x0069c10c
@@ -121,10 +123,6 @@ unsigned char g_ending_screen_0069c128;
 unsigned char g_ending_autosave_0069c129;
 // GLOBAL: WIZ8 0x0069c40c
 unsigned int g_camp_spell_region_sets_0069c40c[6];
-// GLOBAL: WIZ8 0x0069c51c
-unsigned int g_camp_skill_region_set_0069c51c;
-// GLOBAL: WIZ8 0x0069c520
-unsigned int g_camp_skill_controls_region_set;
 // GLOBAL: WIZ8 0x0069c408
 unsigned int g_camp_character_info_region_set;
 
@@ -142,10 +140,10 @@ void DrawCampBackpackItems005B8440(void);
 void DrawCampEquipmentItems005B8690(void);
 void DrawCampItemPool005B8B20(void);
 void DrawCampItemQuantity005B8EC0(W8ItemInstance* item, int left, int top, int width);
-void Function5A45B0(void);
-void Function5A4770(void);
-void Function5A42A0(void);
-void Function5C5240(void);
+void ActivateCampPage005A45B0(void);
+void DeactivateCampPage005A4770(void);
+void DrawCampScreen005A42A0(void);
+void DrawCampRegenStats005A4890(void);
 // GLOBAL: WIZ8 0x0069c428
 Controls* g_camp_secondary_panel_0069c428;
 
@@ -254,21 +252,6 @@ void InvalidateCampPanel005B9EF0(void)
 {
     g_camp_secondary_panel_0069c428->Invalidate(0);
 }
-
-/* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
-   given as explicit rectangles. The region initializer reads the first four
-   fields; the trailing five are never touched there and stay positional. */
-struct W8CampScreenRegion {
-    int x;      /* 0x00 */
-    int y;      /* 0x04 */
-    int width;  /* 0x08 */
-    int height; /* 0x0c */
-    int unknown_10;
-    int unknown_14;
-    int unknown_18;
-    int unknown_1c;
-    int unknown_20;
-};
 
 // GLOBAL: WIZ8 0x0064CBF0
 const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
@@ -1669,83 +1652,6 @@ void W8CampCharacterInfo::Redraw()
     }
 }
 
-// FUNCTION: WIZ8 0x005c5c60
-unsigned char CampSkillMouseWheel(const InputAtom* event, W8Region*)
-{
-    PushButtonSoundScheme005587C0(0, 1);
-    if (event->usEvent != 0x800) {
-        return 0;
-    }
-    int delta = GetMouseWheelDeltaValue(event->usParam);
-    int step;
-    for (step = 0; step < delta; ++step) {
-        g_camp_screen_0069c0f4->skill_range->m_range->Decrement();
-    }
-    for (step = 0; step < -delta; ++step) {
-        g_camp_screen_0069c0f4->skill_range->m_range->Increment();
-    }
-    return 1;
-}
-
-// FUNCTION: WIZ8 0x005c4540
-W8CampSkillControls::W8CampSkillControls()
-{
-    AcquireRegionSet(&g_camp_skill_controls_region_set);
-    m_buttons[0] = new W8TextControl(this, -1, 0x13c, 0xbe, 0, 0, 0x145, 0, 0, 1, 2, 4, 3);
-    m_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
-    m_buttons[0]->m_listener = this;
-    m_buttons[0]->EnableRegionHelp(0x954);
-    m_buttons[1] = new W8TextControl(this, -1, 0x13c, 0xd6, 0, 0, 0x145, 0, 5, 6, 7, 9, 8);
-    m_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
-    m_buttons[1]->m_listener = this;
-    m_buttons[1]->EnableRegionHelp(0x955);
-    m_buttons[2] = new W8TextControl(this, -1, 0x13c, 0xf3, 0, 0, 0x145, 0, 10, 15, 12, 17, 13);
-    m_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
-    m_buttons[2]->m_listener = this;
-    m_buttons[2]->EnableRegionHelp(0x956);
-    if (g_camp_screen_0069c0f4->skill_flag) {
-        m_buttons[2]->EnableSecondaryState(0);
-    }
-    unsigned int region = AddRegionToSet(g_camp_skill_controls_region_set);
-    SetRegionCallback(region, CampSkillMouseWheel, 0);
-    SetRegionBounds(region, 0x15d, 0xbe, 0x260, 0x1b5);
-    Controls::SetEnabled(1);
-}
-
-// SYNTHETIC: WIZ8 0x005c4780
-// W8CampSkillControls::`scalar deleting destructor'
-
-// FUNCTION: WIZ8 0x005c47a0
-W8CampSkillControls::~W8CampSkillControls()
-{
-    DestroyAllControls();
-}
-
-// FUNCTION: WIZ8 0x005c4800
-void W8CampSkillControls::OnPrimary(W8TextControl* control)
-{
-    if (control == m_buttons[0]) {
-        if (m_buttons[0]->m_stateFlags & g_W8TextControlMask005ED570) {
-            m_buttons[1]->DisableSecondaryState(0);
-            g_camp_screen_0069c0f4->skill_scroll = 1;
-        } else {
-            g_camp_screen_0069c0f4->skill_scroll = 0;
-        }
-    } else if (control == m_buttons[1]) {
-        if (m_buttons[1]->m_stateFlags & g_W8TextControlMask005ED570) {
-            m_buttons[0]->DisableSecondaryState(0);
-            g_camp_screen_0069c0f4->skill_scroll = 2;
-        } else {
-            g_camp_screen_0069c0f4->skill_scroll = 0;
-        }
-    } else {
-        g_camp_screen_0069c0f4->skill_flag =
-            (m_buttons[2]->m_stateFlags & g_W8TextControlMask005ED570) != 0;
-    }
-    Function5C5240();
-    g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
-}
-
 W8CampItemRange::W8CampItemRange()
 {
     m_range = new W8RangeControl(0x263, 0xc1, 0x275, 0x1a1, &g_camp_item_region_set_0069c108);
@@ -1762,15 +1668,6 @@ void W8CampItemRange::OnRangeChanged(W8RangeControl*)
         return;
     }
     g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
-}
-
-// FUNCTION: WIZ8 0x005c4510
-void W8CampItemRange::UpdateItems(unsigned char items_changed)
-{
-    if (items_changed != 0) {
-        m_range->Invalidate(0);
-    }
-    m_range->Redraw();
 }
 
 // FUNCTION: WIZ8 0x005b7090
@@ -1796,27 +1693,6 @@ void W8CampSpellRange::OnRangeChanged(W8RangeControl*)
 {
     g_camp_screen_0069c0f4->learned_spells.scroll[m_realm] = m_range->m_value;
     g_camp_screen_0069c0f4->redraw_flags |= 0x200000 << m_realm;
-}
-
-// FUNCTION: WIZ8 0x005c4430
-W8CampSkillRange::W8CampSkillRange()
-{
-    m_range = new W8RangeControl(0x264, 0xbe, 0x276, 0x1b5, &g_camp_skill_region_set_0069c51c);
-    m_range->m_listener = this;
-    m_range->SetEnabled(1);
-}
-
-// FUNCTION: WIZ8 0x005c44c0
-W8CampSkillRange::~W8CampSkillRange()
-{
-    delete m_range;
-}
-
-// FUNCTION: WIZ8 0x005c44e0
-void W8CampSkillRange::OnRangeChanged(W8RangeControl*)
-{
-    g_camp_screen_0069c0f4->skill_list_scroll = m_range->m_value;
-    g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
 }
 
 /* Lifecycle record 6's initializer - the camp record, which is what
@@ -1917,7 +1793,7 @@ unsigned char CampScreenEnter(void)
     }
     g_camp_screen_0069c0f4->item_timer_active = 0;
     g_camp_screen_0069c0f4->item_timer_expired = 0;
-    Function5B4EB0();
+    CreateCampButtonPanel005B4EB0();
     CreateCampActionPanel005B9070();
     CreateItemsTabPanel005B9350();
     CreateCampSecondaryPanel005B9900();
@@ -1929,14 +1805,14 @@ unsigned char CampScreenEnter(void)
     for (int range_index = 0; range_index < 6; ++range_index) {
         g_camp_screen_0069c0f4->spell_ranges[range_index] = new W8CampSpellRange(range_index);
     }
-    g_camp_screen_0069c0f4->skill_stack = 0;
-    g_camp_screen_0069c0f4->skill_flag = 1;
-    g_camp_screen_0069c0f4->skill_scroll = 0;
-    g_camp_screen_0069c0f4->skill_range = new W8CampSkillRange;
-    g_camp_screen_0069c0f4->skill_controls = new W8CampSkillControls;
+    g_camp_screen_0069c0f4->effect_list = 0;
+    g_camp_screen_0069c0f4->effect_items_only = 1;
+    g_camp_screen_0069c0f4->effect_filter = 0;
+    g_camp_screen_0069c0f4->stats_range = new W8CampStatsRange;
+    g_camp_screen_0069c0f4->stats_controls = new W8CampStatsControls;
     g_camp_screen_0069c0f4->character_info = new W8CampCharacterInfo;
     g_camp_screen_0069c0f4->flag_d50 = 0;
-    Function5A45B0();
+    ActivateCampPage005A45B0();
     g_camp_screen_0069c0f4->animation_timer = SetCountdownClock(50);
     for (unsigned int animation = 0; animation < 6; ++animation) {
         g_camp_screen_0069c0f4->animation_frames[animation] =
@@ -2093,19 +1969,19 @@ void CampScreenFrame(void)
         gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
         UpdateCharacterEventState();
     }
-    Function5A42A0();
+    DrawCampScreen005A42A0();
 }
 
 // FUNCTION: WIZ8 0x005a3ee0
 unsigned char CampScreenLeave(int)
 {
-    Function5A4770();
+    DeactivateCampPage005A4770();
     SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
     SetFontObjectPalette16BPP(g_calligraphy_font_6835f8, g_font_palette_calligraphy_68edfc);
     SetFontObjectPalette16BPP(g_calligraphy_shadow_font_6835f4,
                               g_font_palette_calligraphy_shadow_68ee18);
     SetFontObjectPalette16BPP(g_wiz_text_font_683640, g_font_palette_wiz_text_68ee14);
-    Function5B55F0();
+    DestroyCampButtonPanel005B55F0();
     ReleaseCampActionPanel005B9220();
     ReleaseItemsTabPanel005B9760();
     ReleaseCampSecondaryPanel();
@@ -2119,8 +1995,8 @@ unsigned char CampScreenLeave(int)
     for (unsigned int realm = 0; realm < 6; ++realm) {
         delete g_camp_screen_0069c0f4->spell_ranges[realm];
     }
-    delete g_camp_screen_0069c0f4->skill_range;
-    delete g_camp_screen_0069c0f4->skill_controls;
+    delete g_camp_screen_0069c0f4->stats_range;
+    delete g_camp_screen_0069c0f4->stats_controls;
     delete g_camp_screen_0069c0f4->character_info;
     free(g_camp_screen_0069c0f4);
     g_camp_screen_0069c0f4 = 0;
@@ -2163,6 +2039,104 @@ void DismissSelectedPartyCharacter(void)
     RequestScreenTransition();
 }
 
+/* The camp screen's per-frame update: on the first frame after combat mode
+   ends it re-raises every redraw flag, then repaints whichever page is active
+   together with the message box, the level-up/dismissal panels and the dialog
+   on top of the frame. */
+// FUNCTION: WIZ8 0x005a42a0
+void DrawCampScreen005A42A0(void)
+{
+    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    unsigned int index;
+
+    NoOp();
+    if (!g_monster_combat_timer_enabled_006f0531 && state->flag_d50) {
+        state->redraw_flags |= 0xfffffff;
+        state->flag_d50 = 0;
+    }
+    if (state->redraw_flags != 0 || state->item_redraw_flags != 0 || IsMessageBoxActive() ||
+        g_status_685170.item_in_cursor) {
+        if (state->redraw_flags == 0xfffffff) {
+            state->item_redraw_flags = 0xffffffff;
+            if (state->dialog != 0) {
+                state->dialog->m_dirty_flags |= 1;
+            }
+        }
+        DrawCampHeader005B4000();
+        switch (state->page) {
+        case 0:
+            RedrawCampItemsPage005B7D10();
+            break;
+        case 1:
+            DrawCampStatsPage005C48B0();
+            break;
+        case 2:
+            DrawCampSkillsPage005C5D80();
+            break;
+        case 3:
+            DrawCampSpellPages005B7300();
+            break;
+        case 4:
+            DrawCampRegenStats005A4890();
+            break;
+        }
+        RefreshCampItemActions005B5670((state->redraw_flags & 0x1000) != 0);
+        SetFont(g_calligraphy_font_6835f8);
+        SetObjectShade(g_calligraphy_font_object_683628, 4);
+        state->item_redraw_flags = 0;
+        state->redraw_flags = 0;
+        if (IsMessageBoxActive()) {
+            RenderMessageBox();
+            if (!IsMessageBoxActive()) {
+                state->redraw_flags |= 0xfffffff;
+            }
+        }
+    }
+    state->character_info->Redraw();
+    if (state->page == 0) {
+        RefreshCampActionPanel005B9330(0);
+        RefreshItemsTabPanel005B98E0(0);
+        RefreshCampSecondaryPanel005B9F90(0);
+        state->item_range->m_range->Redraw();
+        if (g_monster_combat_timer_enabled_006f0531 && state->dialog == 0) {
+            DrawCampItemIcons005BBE30();
+            state->flag_d50 = 1;
+        }
+    } else if (state->page == 1) {
+        reinterpret_cast<W8CampItemRange*>(state->stats_range)
+            ->UpdateItems(0); /* reinterpret-ok: retail calls W8CampItemRange::UpdateItems
+                                 (0x5c4510) on the identically laid-out stats listener. */
+        state->stats_controls->Redraw();
+    } else if (state->page == 3) {
+        for (index = 0; index < 6; ++index) {
+            reinterpret_cast<W8CampItemRange*>(state->spell_ranges[index])
+                ->UpdateItems(0); /* reinterpret-ok: retail calls W8CampItemRange::UpdateItems
+                                     (0x5c4510) on each identically laid-out spell listener. */
+        }
+    }
+    RefreshCampItemActions005B5670(0);
+    if (gXStatus.fCombatMode == 0) {
+        if (giReviewCharSlot != -1) {
+            if (g_status_685170.game_started != 0 ||
+                (g_previous_screen_id == 5 && PartySelectionInReviewMode005C3470() != 0)) {
+                UpdateRcsLevelUpPanel();
+            }
+            if (gXStatus.fCombatMode != 0) {
+                goto done;
+            }
+        }
+        if (g_status_685170.game_started != 0) {
+            UpdateRcsDismissPanel();
+        }
+    }
+done:
+    RedrawPortraitQuoteBubbles();
+    if (state->dialog != 0) {
+        DrawDialog(state->dialog);
+    }
+    RenderFrame();
+}
+
 // FUNCTION: WIZ8 0x005A4570
 void SyncReviewCharInputRegion005A4570(void)
 {
@@ -2172,6 +2146,146 @@ void SyncReviewCharInputRegion005A4570(void)
         return;
     }
     EnableRegionInput(0xf2);
+}
+
+/* Switch the active camp page: tear the old page down, record the new index,
+   bring it up and repaint the whole character block. */
+// FUNCTION: WIZ8 0x005a4540
+void SwitchCampPage005A4540(int page)
+{
+    DeactivateCampPage005A4770();
+    g_camp_screen_0069c0f4->page = page;
+    ActivateCampPage005A45B0();
+    g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
+}
+
+/* Enter the active camp page: resets the item action mode when leaving the
+   items page, gates the party-portrait regions on whether a character is being
+   reviewed, then enables the page's own region sets and controls. */
+// FUNCTION: WIZ8 0x005a45b0
+void ActivateCampPage005A45B0(void)
+{
+    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    unsigned int index;
+
+    RegionSetEnable(0x29);
+    if (state->page != 0) {
+        SetCampItemActionMode005B59B0(0);
+    }
+    if (giReviewCharSlot == -1) {
+        for (index = 0; index < 8; ++index) {
+            DisableRegionInput(index + 0xea);
+        }
+    } else if (g_status_685170.buffers.party_rows[giReviewCharSlot].animation_0fa == -1) {
+        EnableRegionInput(0xf2);
+    } else {
+        DisableRegionInput(0xf2);
+    }
+    state->input_mode = 0;
+    state->redraw_flags |= 0x7ff;
+    switch (state->page) {
+    case 0:
+        RegionSetEnable(0x2a);
+        EnableCampActionButtons005B9270();
+        UpdateItemsRealmTabs005B97B0();
+        EnableCampSecondaryPanel005B9F00();
+        SetItemPageMode005B9FD0(state->item_mode);
+        state->item_range->m_range->EnableRegionSet(1);
+        if (g_status_685170.game_started != 0) {
+            RegionSetEnable(0x2b);
+            state->item_scroll = 0;
+            RebuildCampItemList005A4A00();
+            return;
+        }
+        break;
+    case 1:
+        RebuildCampEffectList005C4EE0();
+        state->stats_range->m_range->EnableRegionSet(1);
+        state->stats_controls->EnableRegionSet(1);
+        state->character_info->SetEnabled(1);
+        return;
+    case 2:
+        CreateCampSkillRegions005C5CD0();
+        return;
+    case 3:
+        RegionSetEnable(0x2c);
+        BuildLearnedSpellState004F9600(&state->learned_spells, g_value_0069c0f8);
+        RefreshCampSpellRanges005B7290();
+        gXStatus.fSpellCastMode = 0;
+        state->selected_spell_row = -1;
+        break;
+    }
+}
+
+/* Leave the active camp page: disables the page's region sets and controls and
+   releases the page's rebuilt state - the effect list on the stats page, the
+   skill-improvement flags on the skills page. */
+// FUNCTION: WIZ8 0x005a4770
+void DeactivateCampPage005A4770(void)
+{
+    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
+    unsigned int index;
+
+    switch (state->page) {
+    case 0:
+        RegionSetDisable(0x2a);
+        DisableItemsRealmTabs005B98C0();
+        DisableCampActionButtons005B9310();
+        DisableCampSecondaryPanel005B9F60();
+        state->character_info->SetEnabled(0);
+        state->item_range->m_range->EnableRegionSet(0);
+        if (g_status_685170.game_started != 0) {
+            RegionSetDisable(0x2b);
+            return;
+        }
+        break;
+    case 1:
+        state->stats_range->m_range->EnableRegionSet(0);
+        state->stats_controls->EnableRegionSet(0);
+        state->character_info->SetEnabled(0);
+        if (state->effect_list != 0) {
+            DeleteStack(state->effect_list);
+            state->effect_list = 0;
+            return;
+        }
+        break;
+    case 2:
+        DisableCampSkillRegions005C5D70();
+        for (index = 0; index < 0x29; ++index) {
+            g_value_0069c0f8->skills[index].improved_12 = 0;
+        }
+        return;
+    case 3:
+        RegionSetDisable(0x2c);
+        SetCampSpellRangesEnabled005B71C0(0);
+        break;
+    }
+}
+
+/* Camp page 4: the reviewed character's health, stamina and per-realm spell
+   point regeneration rates. */
+// FUNCTION: WIZ8 0x005a4890
+void DrawCampRegenStats005A4890(void)
+{
+    unsigned int index;
+
+    SetFont(g_calligraphy_font_6835f8);
+    SetObjectShade(g_calligraphy_font_object_683628, 4);
+    SetObjectShade(g_calligraphy_font_object_683628, 0);
+    gprintfDirty(0x14a, 5, gppStringList[0x8ce]);
+    SetObjectShade(g_calligraphy_font_object_683628, 4);
+    gprintfDirty(0x221, 5, L"%6.3f", g_value_0069c0f8->health_regen_rate_0b69);
+    SetObjectShade(g_calligraphy_font_object_683628, 0);
+    gprintfDirty(0x14a, 0x14, gppStringList[0x8cd]);
+    SetObjectShade(g_calligraphy_font_object_683628, 4);
+    gprintfDirty(0x221, 0x14, L"%6.3f", g_value_0069c0f8->stamina_regen_rate_0b71);
+    SetObjectShade(g_calligraphy_font_object_683628, 0);
+    gprintfDirty(0x14a, 0x23, gppStringList[0x8d0]);
+    SetObjectShade(g_calligraphy_font_object_683628, 4);
+    for (index = 0; index < 6; ++index) {
+        gprintfDirty(index * 0x14 + 0x1fe, 0x23, L"%6.3f/",
+                     g_value_0069c0f8->spell_regen_rates_0b79[index * 2]);
+    }
 }
 
 /* Kicked off by the post-quake camera-shake callback: latches the endgame
@@ -2404,7 +2518,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             }
         }
     }
-    if (gated != 0 && Function5A6090(giReviewCharSlot) == 0) {
+    if (gated != 0 && IsCampActionAllowed005A6090(giReviewCharSlot) == 0) {
         return;
     }
     if (gfKeyState[0x10] != 0) {
@@ -2438,7 +2552,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             result =
                 Function5A6440(party_slot, row->pending_action_detail_015.item_use.item, &target);
         } else {
-            result = Function5A6340(party_slot, 0x17, 8, &target);
+            result = CommitPartySlotSpell005A6340(party_slot, 0x17, 8, &target);
         }
         if (origin == 2 && reidentify != 0 &&
             old_pool_count != g_status_685170.party_item_count_1791) {
@@ -2843,13 +2957,156 @@ void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsig
     g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
 }
 
+/* Commits the pending companion swap left by MarkCampCharacterPending005A6020:
+   selects the new character and either queues its join event or opens the
+   refusal dialog. Returns zero when a swap was pending and consumed, one when
+   the caller may proceed. force ignores the same-character early out. */
+// FUNCTION: WIZ8 0x005A5F30
+bool ResolvePendingCampCharacter005A5F30(bool force)
+{
+    unsigned int slot;
+    wchar_t* text;
+    W8MessageDialogBase* dialog;
+
+    if (g_camp_character_pending_0069c104 != 0 &&
+        (g_camp_character_0069c100 != g_value_0069c0f8 || force != 0)) {
+        slot = CharacterPointerToPartySlot(g_camp_character_0069c100);
+        SelectCampCharacter005B6B30(slot);
+        if (IsPartySlotEligible00524A10(giReviewCharSlot) != 0) {
+            QueueCharacterEvent(g_camp_character_0069c100, g_effect_005ee6ec, 0,
+                                g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+            return 0;
+        }
+        text = FormatWideString(gppStringList[0x24c4 / 4], g_camp_character_0069c100->name);
+        dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(0xfa, 200);
+        dialog->SetMessage(text, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+        SetDialogDestroyCallback(dialog, 0);
+        g_camp_screen_0069c0f4->dialog = dialog;
+        ActivateDialogRegion(0x138);
+        return 0;
+    }
+    return 1;
+}
+
+/* When the reviewed slot is one of the two companion slots and its bound NPC
+   wants the item being used, the current character is remembered as pending a
+   swap (cleared first so a failed attempt leaves none). */
+// FUNCTION: WIZ8 0x005A6020
+void MarkCampCharacterPending005A6020(W8ItemInstance* item)
+{
+    W8NpcState* npc;
+
+    g_camp_character_pending_0069c104 = 0;
+    if (item->item_id != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
+        npc = GetNpcState(g_status_685170.buffers.party_rows[giReviewCharSlot].animation_0fa);
+        if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
+            g_camp_character_pending_0069c104 = 1;
+            g_camp_character_0069c100 = g_value_0069c0f8;
+        }
+    }
+}
+
+/* Whether the camp item action may proceed for the reviewed slot: outside
+   combat always; in combat the sleeping/paralyzed/unconscious/dead conditions
+   and the equip-in-progress actions each carry their own refusal message. */
+// FUNCTION: WIZ8 0x005A6090
+bool IsCampActionAllowed005A6090(int party_slot)
+{
+    const wchar_t* message;
+    W8MessageDialogBase* dialog;
+    W8PartySlotRow* row;
+    W8Character* character;
+
+    if (gXStatus.fCombatMode == 0) {
+        return 1;
+    }
+    character = &g_status_685170.buffers.characters[party_slot];
+    if (character->condition_turns[W8_CONDITION_DEAD] != 0 ||
+        character->condition_turns[W8_CONDITION_EXHAUSTED] != 0 ||
+        character->condition_turns[W8_CONDITION_PARALYZED] != 0 ||
+        character->condition_turns[W8_CONDITION_ASLEEP] != 0) {
+        if (g_combat_state->flag_a50 != 0) {
+            return 1;
+        }
+        message = gppStringList[0x2428 / 4];
+    } else {
+        row = &g_status_685170.buffers.party_rows[party_slot];
+        if (g_combat_state->flag_a50 == 0) {
+            if (g_combat_state->characters[party_slot].flag_34 != 0) {
+                if (row->pending_action == W8_ACTION_EQUIP) {
+                    message = gppStringList[0x240c / 4];
+                } else if (row->action_03d == W8_ACTION_EQUIP) {
+                    message = gppStringList[0x2410 / 4];
+                } else {
+                    message = gppStringList[0x2408 / 4];
+                }
+            } else if (row->action_03d == W8_ACTION_EQUIP) {
+                message = gppStringList[0x240c / 4];
+            } else {
+                message = gppStringList[0x2408 / 4];
+            }
+        } else {
+            if (row->pending_action == W8_ACTION_EQUIP) {
+                return 1;
+            }
+            if (row->action_03d == W8_ACTION_EQUIP) {
+                message = gppStringList[0x2410 / 4];
+            } else {
+                message = gppStringList[0x2408 / 4];
+            }
+        }
+    }
+    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+    dialog->SetClientExtent(0xfa, 200);
+    dialog->SetMessage(message, 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
+    SetDialogDestroyCallback(dialog, 0);
+    g_camp_screen_0069c0f4->dialog = dialog;
+    ActivateDialogRegion(0x138);
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x005A6310
-char IsEquippableItemClass005A6310(W8ItemInstance* item)
+bool IsEquippableItemClass005A6310(W8ItemInstance* item)
 {
     char equip_class = g_item_records[item->item_id].equip_class;
     if (equip_class != 2 && equip_class != 4) {
         return 0;
     }
+    return 1;
+}
+
+/* Books a party slot's spell cast: stamps the row's cast-spell action with
+   the spell id, power level and target, spends the spell points and fatigues
+   the caster, then plays fizzle/learned/general-cast audio for the result. */
+// FUNCTION: WIZ8 0x005A6340
+int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
+                                 W8CombatSlot* target)
+{
+    int cost;
+    int result;
+    W8PartySlotRow* row;
+
+    StartBreathCycle(party_slot, 0);
+    row = &g_status_685170.buffers.party_rows[party_slot];
+    row->pending_action = W8_ACTION_CAST_SPELL;
+    row->attack_mode[0] = spell_id;
+    row->attack_mode[1] = -1;
+    row->pending_action_detail_015.spell.power_level = power_level;
+    row->pending_action_detail_015.spell.unused = 0;
+    row->target_out_of_combat = *target;
+    result = Function4FA4D0(party_slot, spell_id, power_level, &cost, 0);
+    SetPartySlotSpell(party_slot, spell_id, power_level, target);
+    FatigueCharacter(party_slot, cost, 1, 0);
+    if (result != 1) {
+        SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
+        return result;
+    }
+    if (spell_id == 0x17 && target->pPCItem->identified != 0) {
+        SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
+        return 1;
+    }
+    SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
     return 1;
 }
 

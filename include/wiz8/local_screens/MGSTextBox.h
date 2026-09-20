@@ -48,6 +48,10 @@ extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 /* 0x0058AA20: reset one editor status line; -1 selects the current line. */
 void ResetEditorStatusLine0058AA20(short line);
+/* 0x0058AA10: the font currently bound to the main text box. */
+int GetTextBoxValue2E8(void);
+/* 0x00590D90: clear one text_lines slot on the level block. */
+void ClearTextLineEntry00590D90(int index);
 void WriteGameLogAmount(int color, const wchar_t* format, ...);
 void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
 
