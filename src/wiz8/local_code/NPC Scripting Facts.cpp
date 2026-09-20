@@ -178,8 +178,8 @@ void HandleFactChange(int fact_id, unsigned char value)
             } else {
                 wcscpy(display_value, L"TRUE");
             }
-            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x36].symbolic_name,
-                         display_value);
+            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x36].symbolic_name,
+                        display_value);
         }
         if (fact_value == 0 && FindEntityByName("Brekek", &position, 0, 0) != 0) {
             SpawnMonsters(0x131, 1, &position, 1, 1, 1, 0);
@@ -380,8 +380,8 @@ void HandleFactChange(int fact_id, unsigned char value)
             } else {
                 wcscpy(display_value, L"TRUE");
             }
-            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0xd1].symbolic_name,
-                         display_value);
+            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0xd1].symbolic_name,
+                        display_value);
         }
         if (fact_value != 0) {
             SetFact(0xe2, 1, 0);
@@ -680,8 +680,8 @@ void HandleFactChange(int fact_id, unsigned char value)
             } else {
                 wcscpy(display_value, L"TRUE");
             }
-            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x177].symbolic_name,
-                         display_value);
+            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x177].symbolic_name,
+                        display_value);
         }
         if (fact_value == 0) {
             trigger_name = "TR2ShipTrigger";

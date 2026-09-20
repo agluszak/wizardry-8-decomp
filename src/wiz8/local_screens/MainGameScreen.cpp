@@ -314,7 +314,6 @@ void UpdateCombatPortraitStatus0059B4C0(void);
 void Function59B390(void);
 void ApplySavedRedrawInvalidates(void);                                   /* 0x00563D00 */
 void RedrawPanel69B940(void);                                             /* 0x0059BC00 */
-short Function4EC610(int value);                                          /* 0x004EC610 */
 void Function564BA0(int party_slot);                                      /* 0x00564BA0 */
 void Function564D80(int party_slot);                                      /* 0x00564D80 */
 void Function564710(int party_slot);                                      /* 0x00564710 */
@@ -2743,7 +2742,7 @@ unsigned char MainGameScreenEnter(void)
             display_mode = 0x7fa;
             break;
         }
-        WriteGameLog(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
+        ShowNoticef(0xc, gppStringList[0x1e30 / 4], gppStringList[display_mode]);
     }
     ResetTransientRenderScenes();
     MoveTimer(4);
@@ -3640,7 +3639,7 @@ void ApplyMainGameRedrawFlags(void)
     }
     if ((g_level_block->redraw_flags & 0x100000) != 0 && gXStatus.fCombatMode != 0 &&
         g_combat_state->flag_001 != 0) {
-        health_percent = Function4EC610(0);
+        health_percent = GetCombatActionProgress004EC610(0);
         GetClippingRect(&saved_clip);
         combat_clip.iRight = (health_percent * 0x11e) / 100 + 0xb1;
         combat_clip.iTop = 0;

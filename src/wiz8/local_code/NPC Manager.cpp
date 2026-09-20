@@ -494,10 +494,10 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
         }
     }
     if (returned) {
-        WriteGameLog(0, gppStringList[0x7f4 / 4], npc->record->source_name_004);
+        ShowNoticef(0, gppStringList[0x7f4 / 4], npc->record->source_name_004);
     }
     if (dropped) {
-        WriteGameLog(0, gppStringList[0x7f8 / 4], npc->record->source_name_004);
+        ShowNoticef(0, gppStringList[0x7f8 / 4], npc->record->source_name_004);
     }
 }
 
@@ -1128,8 +1128,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         start_level = 8;
@@ -1141,8 +1141,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
             } else {
                 wcscpy(display_value, L"FALSE");
             }
-            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
-                         display_value);
+            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                        display_value);
         }
         if (value != 0) {
             start_level = 0xe;
@@ -1161,8 +1161,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         return;
@@ -1175,8 +1175,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         RestoreNamedNpcAtLevel0050C1C0(0x18, 0xe, "NP_ViGigas");
@@ -1191,8 +1191,8 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         RestoreNamedNpcAtLevel0050C1C0(0x18, 6, "NP_ViBluff");
@@ -1224,8 +1224,8 @@ void SelectStartNpcGreeting(void)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         ApplyItemEffectToRandomCharacter(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
@@ -1239,8 +1239,8 @@ void SelectStartNpcGreeting(void)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         npc = GetNpcStateByKind(0xc);
@@ -1252,8 +1252,8 @@ void SelectStartNpcGreeting(void)
             } else {
                 wcscpy(display_value, L"FALSE");
             }
-            WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
-                         display_value);
+            ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                        display_value);
         }
         if (value != 0) {
             npc = GetNpcStateByKind(0x8c);
@@ -1294,8 +1294,8 @@ int SelectNewGameStartLevel(void)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4e].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         return 8;
@@ -1308,8 +1308,8 @@ int SelectNewGameStartLevel(void)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4c].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         return 0xe;
@@ -1322,8 +1322,8 @@ int SelectNewGameStartLevel(void)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x4b].symbolic_name,
+                    display_value);
     }
     if (value != 0) {
         return 6;

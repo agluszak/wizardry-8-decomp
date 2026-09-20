@@ -15,6 +15,7 @@
 W8Navigator* g_startup_world_659c0c;
 // GLOBAL: WIZ8 0x006081e8
 float g_runtime_world_scale_6081e8 = 500.0f;
+// GLOBAL: WIZ8 0x005EBC40
 extern const float g_world_scale_005ebc40 = 500.0f;
 float g_startup_depth_603ac8 = 1000.0f;
 extern const float g_startup_near_limit_005ec000 = 250.0f;

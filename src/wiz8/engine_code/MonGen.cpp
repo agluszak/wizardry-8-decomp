@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -480,9 +481,9 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         const wchar_t* group_name =
             group->member_count == 1 ? group_record->name_00 : group_record->name_30;
         const wchar_t* companion_word = companion_count == 1 ? L"chum" : L"chums";
-        WriteGameLog(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name, group->member_count,
-                     group_name, companion_count, companion_word,
-                     *table->challenge_level.GetAt(selected_index));
+        ShowNoticef(7, L"MonGen (%S): spawned %d %s & %d %s (lvl %d)", name, group->member_count,
+                    group_name, companion_count, companion_word,
+                    *table->challenge_level.GetAt(selected_index));
     }
     return 1;
 }

@@ -3095,7 +3095,7 @@ int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
     row->pending_action_detail_015.spell.power_level = power_level;
     row->pending_action_detail_015.spell.unused = 0;
     row->target_out_of_combat = *target;
-    result = Function4FA4D0(party_slot, spell_id, power_level, &cost, 0);
+    result = ExecuteCharacterSpellCast(party_slot, spell_id, power_level, &cost, 0);
     SetPartySlotSpell(party_slot, spell_id, power_level, target);
     FatigueCharacter(party_slot, cost, 1, 0);
     if (result != 1) {

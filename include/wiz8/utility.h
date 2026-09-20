@@ -43,7 +43,6 @@ char* TitleCaseString(char* string);
 float ShortestAngleDistance(float first, float second);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second, W8ScreenRect* result);
 bool ScreenPointInRect(const W8ScreenRect* rect, const POINT* point);
-void WriteGameLog(int channel, const wchar_t* format, ...);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 float NormalizeAngle(float angle);

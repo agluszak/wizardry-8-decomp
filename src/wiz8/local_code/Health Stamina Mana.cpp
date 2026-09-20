@@ -129,7 +129,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         if (arg_7 != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x9a0 / 4], amount);
         } else if (arg_4 != 0) {
-            WriteGameLogAmount(9, gppStringList[0x950 / 4], amount);
+            ShowNoticef(9, gppStringList[0x950 / 4], amount);
         } else {
             PostCharacterNotice(party_slot, gppStringList[0x954 / 4], amount,
                                 arg_3 != 0 ? gppStringList[0x95c / 4] : &g_wchar_00689b34);
@@ -394,16 +394,15 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
             }
             if (in_combat != 0) {
                 if (c != 0) {
-                    WriteGameLogAmount(category,
-                                       FormatWideString(g_format_s_space_s_00617584,
-                                                        GetMonsterName(monster_info, 0, 0),
-                                                        gppStringList[0x9a0 / 4], amount));
+                    ShowNoticef(category, FormatWideString(g_format_s_space_s_00617584,
+                                                           GetMonsterName(monster_info, 0, 0),
+                                                           gppStringList[0x9a0 / 4], amount));
                 } else if (a != 0) {
-                    WriteGameLogAmount(category, gppStringList[0x950 / 4], amount);
+                    ShowNoticef(category, gppStringList[0x950 / 4], amount);
                 } else {
-                    WriteGameLogAmount(category, gppStringList[0x958 / 4],
-                                       GetMonsterName(monster_info, 0, 0), amount,
-                                       quiet != 0 ? g_poison_suffix_0061c964 : &g_wchar_00689b34);
+                    ShowNoticef(category, gppStringList[0x958 / 4],
+                                GetMonsterName(monster_info, 0, 0), amount,
+                                quiet != 0 ? g_poison_suffix_0061c964 : &g_wchar_00689b34);
                 }
             }
         }
@@ -462,9 +461,9 @@ void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce
 
     if (announce) {
         if (monster_info->hp_current == static_cast<unsigned int>(monster_info->hp_max)) {
-            WriteGameLog(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
-            WriteGameLog(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 }
@@ -712,8 +711,8 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
-                WriteGameLog(8, gppStringList[0x98c / 4], amount,
-                             gppStringList[g_realm_message_offsets[realm]]);
+                ShowNoticef(8, gppStringList[0x98c / 4], amount,
+                            gppStringList[g_realm_message_offsets[realm]]);
             }
             remaining = amount - taken;
             amount = remaining;
@@ -789,7 +788,7 @@ void DamageCharacter(int party_slot, int damage, char announce)
     if (character->hp_max != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0);
         if (announce) {
-            WriteGameLog(8, gppStringList[0x710 / 4], damage);
+            ShowNoticef(8, gppStringList[0x710 / 4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
@@ -871,9 +870,9 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
     }
     if (announce) {
         if (static_cast<unsigned int>(monster_info->stamina) == stamina_max) {
-            WriteGameLog(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
+            ShowNoticef(9, gppStringList[0x974 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
-            WriteGameLog(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
+            ShowNoticef(9, gppStringList[0x97c / 4], GetMonsterName(monster_info, 0, 0), amount);
         }
     }
 
@@ -1099,8 +1098,8 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     }
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
-        WriteGameLog(8, gppStringList[0x98c / 4], amount,
-                     gppStringList[g_realm_message_offsets[realm]]);
+        ShowNoticef(8, gppStringList[0x98c / 4], amount,
+                    gppStringList[g_realm_message_offsets[realm]]);
     }
 }
 

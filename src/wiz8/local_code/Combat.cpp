@@ -741,7 +741,7 @@ void CombatLog(const char* format, ...)
     va_start(arguments, format);
     vsprintf(line, format, arguments);
     if (g_combat_log_enabled_0068d810 != 0) {
-        WriteGameLog(7, g_combat_log_format_00617664, line);
+        ShowNoticef(7, g_combat_log_format_00617664, line);
     }
 }
 
@@ -981,7 +981,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
         }
     }
 
-    SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
+    monster_info->monster->SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
     /* Four bytes inside cycle eight's block, cleared together. */
     monster_info->monster->movement_0c0.callback_progress_05c = 0.0f;
     monster_info->pCombat->turn_started = 1;
@@ -2245,7 +2245,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         int step;
         fatigue_cost = 0;
         do {
-            step = Function4FA4D0(party_slot, detail, power, &step_cost, 0);
+            step = ExecuteCharacterSpellCast(party_slot, detail, power, &step_cost, 0);
             if (step == 0) {
                 result = '\0';
             }
@@ -3450,4 +3450,69 @@ void ScheduleCombatActor004E9490(void)
             return;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x004EC610
+short GetCombatActionProgress004EC610(int* out_total)
+{
+    int total = 0;
+    int completed = 0;
+    if (gXStatus.fCombatMode == 0) {
+        srAssertFail("gXStatus.fCombatMode", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
+                     0x1244, 0);
+    }
+    if (g_combat_state->uiCurrentPartyAction == 0 ||
+        g_combat_state->uiCurrentPartyActionStatus == 3) {
+        for (int party_slot = 0; party_slot < 8; ++party_slot) {
+            W8Character* character = &g_status_685170.buffers.characters[party_slot];
+            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+                character->hp_current != 0 && character->highest_condition < 0xf &&
+                TryCharacterAction(party_slot, W8_ACTION_DEFEND, 0) == 0 &&
+                TryCharacterAction(party_slot, W8_ACTION_PROTECT, 0) == 0 &&
+                TryCharacterAction(party_slot, -1, 0) == 0) {
+                total += GetCharacterTurnValue(party_slot);
+                W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
+                if (row->flag_34 != 0) {
+                    int swings = 0;
+                    int kind;
+                    ChooseCombatAction(party_slot, 0, &kind, 0, 0, 0);
+                    if (kind == W8_ACTION_ATTACK || kind == W8_ACTION_BERSERK) {
+                        for (int hand = 0; hand < 2; ++hand) {
+                            swings +=
+                                row->saved_attack_value[hand] - row->hand_attack_values_40[hand];
+                        }
+                    } else {
+                        swings = 1;
+                    }
+                    completed += swings;
+                }
+            }
+        }
+    } else {
+        total = 1;
+        if (0 < g_combat_state->uiCurrentPartyActionStatus) {
+            completed = 1;
+        }
+    }
+    for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
+            monster_info->highest_condition < 0xf && monster_info->fMotionless == 0 &&
+            monster_info->action_kind != 1 && monster_info->action_kind != 8 &&
+            monster_info->action_kind != -1) {
+            total += monster_info->action_kind == 0 ? monster_info->pCombat->unknown_005 : 1;
+            if (monster_info->pCombat->active != 0) {
+                completed += monster_info->action_kind == 0
+                                 ? monster_info->pCombat->unknown_005 -
+                                       monster_info->pCombat->attacks_per_round
+                                 : 1;
+            }
+        }
+    }
+    short percent =
+        total == 0 ? 100 : static_cast<short>((completed * 100) / static_cast<unsigned int>(total));
+    if (out_total != 0) {
+        *out_total = total;
+    }
+    return percent;
 }

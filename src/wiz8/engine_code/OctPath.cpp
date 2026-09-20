@@ -1,3 +1,4 @@
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -302,8 +303,7 @@ unsigned char W8PathingService::WriteWaypointFile00459540()
         result |= FileWrite(handle, &edge_node_count_008, sizeof(edge_node_count_008), 0);
         result |= FileWrite(handle, &m_ulNumWayPoints, sizeof(m_ulNumWayPoints), 0);
         result |= FileWrite(handle, &m_ulNumWayPtLinks, sizeof(m_ulNumWayPtLinks), 0);
-        result |=
-            FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
+        result |= FileWrite(handle, m_pFileWayPoints, m_ulNumWayPoints * sizeof(W8FileWaypoint), 0);
         result |= FileWrite(handle, m_pEdges_04c, m_ulNumWayPtLinks * sizeof(W8PathEdge), 0);
     }
     FileClose(handle);
@@ -5807,8 +5807,7 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
     W8PathEdge* edge;
 
     if (source == 0 || destination == 0 || source == destination) {
-        WriteGameLog(0xf, L"Cannot Link: Tried to link WayPt %d to WayPt %d. ", source,
-                     destination);
+        ShowNoticef(0xf, L"Cannot Link: Tried to link WayPt %d to WayPt %d. ", source, destination);
         return;
     }
 
@@ -5820,7 +5819,7 @@ void W8PathingService::AddWaypointLink0045EC30(unsigned short source, unsigned s
         (destination_surface->position_04.x == g_float_005ebb34 &&
          destination_surface->position_04.y == g_float_005ebb34 &&
          destination_surface->position_04.z == g_float_005ebb34)) {
-        WriteGameLog(0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
+        ShowNoticef(0xf, L"Cannot Link: WayPt %d is at (0, 0, 0). ", source);
         return;
     }
 
