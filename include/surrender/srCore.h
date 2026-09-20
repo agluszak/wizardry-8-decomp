@@ -50,7 +50,13 @@ public:
     SR_DLL_IMPORT srModelIOManager* getModelIOManager() const;
     SR_DLL_IMPORT srPalette* getPalette() const;
     SR_DLL_IMPORT srNode* getRootNode() const;
-    SR_DLL_IMPORT srScheduler* getScheduler() const;
+    /* Header-visible like getRegistry: the srBinIAsyncStream constructor
+       queues its job through a direct [srCore + 0x00] read rather than an
+       out-of-line accessor call. */
+    srScheduler* getScheduler() const
+    {
+        return scheduler_00;
+    }
     /* Header-visible in the triangle pipeline: its statistics updates load
        the manager directly from srCore +0x28. */
     srStatisticsManager* getStatisticsManager() const

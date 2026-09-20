@@ -1,4 +1,5 @@
 #include "surrender/srHeap.h"
+#include "surrender/srMemoryAllocator.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -478,7 +479,6 @@ void* srHeap::allocate(unsigned long size)
     lock->getAccess();
     void* result;
     if (size < 0x200) {
-        size |= 0xf;
         unsigned long index = size >> 4;
         char* chunk = static_cast<char*>(small_free_lists_00[index]);
         if (chunk == 0) {
@@ -486,7 +486,7 @@ void* srHeap::allocate(unsigned long size)
                 current_block_84 = allocateBlock(block_size_a4);
                 current_block_offset_80 = 0xf;
             }
-            if (block_size_a4 - current_block_offset_80 <= size) {
+            if (block_size_a4 - current_block_offset_80 <= (size | 0xf)) {
                 current_block_84->next_08 = block_list_88;
                 block_list_88 = current_block_84;
                 current_block_84 = allocateBlock(block_size_a4);
@@ -499,7 +499,7 @@ void* srHeap::allocate(unsigned long size)
             char* chunk =
                 static_cast<char*>(current_block_84->allocation_00) + current_block_offset_80;
             *chunk = static_cast<char>(index);
-            current_block_offset_80 += size + 1;
+            current_block_offset_80 += (size | 0xf) + 1;
             lock->releaseAccess();
             return chunk + 1;
         }
@@ -542,6 +542,24 @@ void srHeap::free(void* allocation)
 void srHeap::free(void* allocation, unsigned int)
 {
     free(allocation);
+}
+
+// FUNCTION: SURRENDER 0x100366A0
+void srMemoryAllocator::free(void* allocation)
+{
+    Block* block = static_cast<Block*>(allocation) - 1;
+    if (block->next_00 != 0) {
+        block->next_00->previous_04 = block->previous_04;
+    }
+    if (block->previous_04 != 0) {
+        block->previous_04->next_00 = block->next_00;
+    }
+    if (block == first_block_00) {
+        first_block_00 = block->next_00;
+    }
+    allocated_bytes_04 -= block->allocation_size_10;
+    --allocation_count_08;
+    operator delete(block->raw_allocation_08);
 }
 
 // GLOBAL: SURRENDER 0x100A48D0

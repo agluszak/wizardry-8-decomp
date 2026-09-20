@@ -41,6 +41,12 @@ srHierarchyIOManager* srCore::getHierarchyIOManager() const
     return hierarchy_io_manager_16c;
 }
 
+// FUNCTION: SURRENDER 0x10015B10
+srMemoryAllocator* srCore::getMemoryAllocator() const
+{
+    return memory_allocator_20;
+}
+
 /* The provider's process-wide core object; its constructor body is still
    unrecovered, so the definition intentionally leaves that reference
    unresolved like the other first-party gaps. */
