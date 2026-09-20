@@ -59,11 +59,11 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 void RecountLearnedSpellsByRealm004F96A0(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
 unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
-                                           char prefer_unlocked, unsigned int power_level,
-                                           int level_bonus);
+                                           char prefer_unlocked, unsigned int power_level);
 
 int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* target,
-                        unsigned int power_level, int a, int b, int c, int* d, int e, int f,
+                        unsigned int power_level, int a, int b, int c, int* d, int e,
+                        W8GrowableVector<int>* party_targets,
                         W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
