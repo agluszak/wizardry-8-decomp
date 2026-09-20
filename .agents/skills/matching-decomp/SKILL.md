@@ -64,8 +64,12 @@ For a substantial body, reconstruct the source contract before transcribing cont
 - **Inlining:** an inlined instruction sequence does not authorize manual inlining. Recover the likely
   helper/source abstraction first, then let the compiler decide where to inline it.
 - **Types and raw offsets:** if a touched repository-owned object already has a canonical owner, model
-  the field/subobject there instead of adding byte-pointer arithmetic or an overlay cast. Leave raw
-  storage only when the fact genuinely remains unresolved and say why.
+  the field/subobject there instead of adding byte-pointer arithmetic or an overlay cast. Literal byte
+  offsets through `this` or typed W8/sr/st pointers/references are a hard error with no waiver. Leave
+  raw storage only when the fact genuinely remains unresolved and say why.
+- **Callables:** use an evidence-backed declaration for a recovered callable. Never manufacture a call
+  by reinterpret-casting an address/storage value to an inline function-pointer type; declared
+  callbacks and external dynamic-library boundaries are different cases.
 - **Lifetime:** for code that allocates, adopts, inserts, removes, completes, destroys or releases
   pointers, inspect sibling operations as a family. Trace allocation -> ownership transfer -> removal
   -> destruction before deciding between `new/delete`, `malloc/free`, container ownership, or no free.
@@ -129,9 +133,13 @@ retail review that justifies accepting it. Do not publish a batch with an unacco
 
 `FUNCTION` sits immediately above the declaration/definition it owns. Put pragmas, explanatory
 comments and unrelated preprocessor lines above the marker, never between marker and entity.
-`TEMPLATE` is immediately followed by the emitted-symbol comment and owns no body. `LIBRARY` is
-address-only. `SYNTHETIC` is immediately followed by its generated-identity comment and owns no
-declaration/body. Keep `GLOBAL` at the canonical definition.
+`TEMPLATE` is immediately followed by the emitted-symbol comment and records the concrete compiler
+emission; the generic implementation stays at its canonical template owner. `LIBRARY` is address-only
+and owns no declaration/body. `SYNTHETIC` is immediately followed by its generated-identity comment and
+owns no declaration/body. A template instantiation may not be relabeled `FUNCTION`; deleting
+destructors, vtordisp/adjustor thunks and compiler helpers stay `SYNTHETIC`. Compiler-emission TUs are
+provenance-only and contain no authored function/global definitions. Keep `GLOBAL` at the canonical
+definition.
 
 Preserve TU ownership/order in `src/wiz8/sources.cmake`. An independently emitted ordinary destructor
 uses `FUNCTION`; compiler deleting wrappers are `SYNTHETIC`; template emissions are `TEMPLATE`.

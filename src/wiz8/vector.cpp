@@ -568,14 +568,6 @@ class srClipPlane;
 // TEMPLATE: WIZ8 0x00501f10
 // W8GrowableVector<W8SpellEffectEntry*>::~W8GrowableVector<W8SpellEffectEntry*>
 
-/* LoadGame's teardown calls this emission; ResetLiveSessionForLoad inlines the
-   same member. VC6 kept the out-of-line body in Local Code\LoadSaveGame.cpp's
-   span; clang inlines every call, so it is instantiated explicitly here. */
-// TEMPLATE: WIZ8 0x00516a00
-// W8GrowableVector<W8SpellEffectEntry*>::RemoveAtAndDelete
-void (W8GrowableVector<W8SpellEffectEntry*>::*keep_RemoveAtAndDelete_00516a00)(int) =
-    &W8GrowableVector<W8SpellEffectEntry*>::RemoveAtAndDelete;
-
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 /* Local Code\Search.cpp's g_searchables_00689fa8. */

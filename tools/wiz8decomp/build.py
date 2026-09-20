@@ -820,6 +820,7 @@ def check(repository: Path) -> dict[str, Any]:
     from .placement import validate_source_placement
     from .reccmp_lint import validate_reccmp_annotations
     from .source_index import write_source_index
+    from .source_model_lint import validate_source_model
     from .source_oracle import validate_source_oracle_ownership
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
@@ -847,6 +848,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("type-consistency", lambda: validate_type_consistency(repository)),
         ("reccmp", lambda: validate_reccmp_annotations(repository)),
         ("template-model", lambda: validate_template_model(repository)),
+        ("source-model", lambda: validate_source_model(repository)),
         ("casts", lambda: validate_cast_markers(repository)),
         ("c-linkage", lambda: validate_c_linkage(repository)),
         ("placement", lambda: validate_source_placement(settings)),
