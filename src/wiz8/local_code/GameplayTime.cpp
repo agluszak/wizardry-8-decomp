@@ -472,7 +472,7 @@ void ResolveSurpriseWake005029E0(void)
 
 /* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
    are one tick of the pool ceiling's share, twenty points of base and a
-   twelveth of a minute each; the modifier block's three doubled-cost flags
+   twelveth of a minute each; the modifier block's three regeneration-boost flags
    raise their rate by half. */
 // FUNCTION: WIZ8 0x00502b50
 void RebuildCharacterRegenRates00502B50(W8Character* character)
@@ -482,13 +482,13 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
 
     rate = ((float)character->hp_max * 0.4f + 20.0f) * 0.0041666669f;
     character->health_regen_rate_0b69 = rate;
-    if (character->bonus_1770.flag_42 != 0) {
+    if (character->bonus_1770.boost_health_regen != 0) {
         character->health_regen_rate_0b69 = rate * 1.5f;
     }
 
     rate = ((float)character->stamina_max * 0.9f + 20.0f) * 0.0041666669f;
     character->stamina_regen_rate_0b71 = rate;
-    if (character->bonus_1770.flag_43 != 0) {
+    if (character->bonus_1770.boost_stamina_regen != 0) {
         character->stamina_regen_rate_0b71 = rate * 1.5f;
     }
 
@@ -499,15 +499,15 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
         }
         rate = ((float)character->sp_max[realm] * 0.65f + 20.0f) * 0.0041666669f;
         character->spell_regen_rates_0b79[realm * 2] = rate;
-        if (character->bonus_1770.flag_44 != 0) {
+        if (character->bonus_1770.boost_spell_regen != 0) {
             character->spell_regen_rates_0b79[realm * 2] = rate * 1.5f;
         }
     }
 }
 
 /* The monster counterpart of the character regen rebuild: the same pool-share
-   rates plus the modifier block's two regen channels, raised by half while the
-   conditioned-rate flags are set. */
+   rates plus the modifier block's two regen channels, raised by half while the corresponding
+   regeneration-boost flags are set. */
 // FUNCTION: WIZ8 0x00502c50
 void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
 {
@@ -517,9 +517,9 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
                 g_navigator_mode3_scale_005ebca4 +
             g_monster_record_float_scale) *
                0.0041666669f +
-           static_cast<float>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]));
+           monster_info->modifiers_1db.health_regen_adjustment;
     monster_info->hp_regen_rate_47 = rate;
-    if (monster_info->modifiers_1db.flag_42 != 0) {
+    if (monster_info->modifiers_1db.boost_health_regen != 0) {
         monster_info->hp_regen_rate_47 = rate * g_float_005ec3b8;
     }
 
@@ -527,9 +527,9 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
                 g_float_005ec390 +
             g_monster_record_float_scale) *
                0.0041666669f +
-           static_cast<float>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[2]));
+           monster_info->modifiers_1db.stamina_regen_adjustment;
     monster_info->stamina_regen_rate_4f = rate;
-    if (monster_info->modifiers_1db.flag_43 != 0) {
+    if (monster_info->modifiers_1db.boost_stamina_regen != 0) {
         monster_info->stamina_regen_rate_4f = rate * g_float_005ec3b8;
     }
 }
@@ -672,7 +672,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     bool diseased = false;
     unsigned int realm;
 
-    unsigned int damage = character->bonus_1770.unknown_08[0];
+    unsigned int damage = character->bonus_1770.damage_per_minute;
     if (damage != 0) {
         damage = damage * minutes;
         if (g_status_685170.wait_state_2399 != 3 || gXStatus.fCombatMode != 0) {
@@ -815,7 +815,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         }
     }
 
-    signed char health_mod = static_cast<signed char>(character->bonus_1770.unknown_08[1]);
+    signed char health_mod = character->bonus_1770.health_regen_adjustment;
     if (health_mod > 0) {
         if (character->hp_current < static_cast<unsigned int>(character->hp_max)) {
             HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes), 0);
@@ -826,7 +826,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                                static_cast<W8SpellEffectResult*>(0), 0);
     }
 
-    signed char stamina_mod = static_cast<signed char>(character->bonus_1770.unknown_08[2]);
+    signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
     if (stamina_mod > 0) {
         if (character->stamina < character->stamina_max) {
             RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
@@ -837,7 +837,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     }
 
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-        signed char spell_mod = static_cast<signed char>(character->bonus_1770.unknown_08[3]);
+        signed char spell_mod = character->bonus_1770.spell_regen_adjustment;
         if (spell_mod > 0) {
             if (character->sp_left[realm] < character->sp_max[realm]) {
                 RestoreCharacterRealmSpellPoints(
@@ -1164,7 +1164,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
     }
 
 after_early: {
-    unsigned int amount = monster_info->modifiers_1db.unknown_08[0];
+    unsigned int amount = monster_info->modifiers_1db.damage_per_minute;
 
     if (amount != 0) {
         W8TargetSource source;
@@ -1183,8 +1183,7 @@ after_early: {
     {
         W8MonsterRecord* data = GetMonsterDataForInfo(monster_info);
         int amount = (static_cast<int>(data->hp_regeneration_17c) +
-                      static_cast<int>(
-                          static_cast<signed char>(monster_info->modifiers_1db.unknown_08[1]))) *
+                      monster_info->modifiers_1db.health_regen_adjustment) *
                      static_cast<int>(minutes);
 
         if (amount < 1) {
@@ -1199,10 +1198,9 @@ after_early: {
         }
     }
     {
-        int amount =
-            (static_cast<int>(static_cast<signed char>(monster_info->modifiers_1db.unknown_08[2])) +
-             static_cast<int>(record->stamina_regeneration_0ce)) *
-            static_cast<int>(minutes);
+        int amount = (monster_info->modifiers_1db.stamina_regen_adjustment +
+                      static_cast<int>(record->stamina_regeneration_0ce)) *
+                     static_cast<int>(minutes);
 
         if (amount < 1) {
             if (amount < 0) {
@@ -1414,7 +1412,7 @@ void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
 {
     W8Character* character = &g_status_685170.buffers.characters[party_slot];
     unsigned int frost = character->condition_turns[2];
-    signed char stamina_mod = static_cast<signed char>(character->bonus_1770.unknown_08[2]);
+    signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {
             FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), 0,

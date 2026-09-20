@@ -166,8 +166,8 @@ void W8Searchable::GetPosition(srVector3T<float>* position)
 {
     position->SetZero();
     if (world_item != 0) {
-        if (world_item->owner != 0) {
-            world_item->owner->GetSearchPosition(position);
+        if (world_item->p3D != 0) {
+            world_item->p3D->GetSearchPosition(position);
             return;
         }
         position->x = world_item->position.x;

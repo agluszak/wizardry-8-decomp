@@ -50,7 +50,7 @@ W8ScreenStateRuntime g_pending_screen_state;
 // GLOBAL: WIZ8 0x0068edac
 unsigned char g_screen_return_requested;
 // GLOBAL: WIZ8 0x0068eda8
-void* g_screen_return_stack;
+HSTACK g_screen_return_stack;
 
 // GLOBAL: WIZ8 0x00647bc8
 W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {

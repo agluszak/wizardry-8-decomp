@@ -17,6 +17,8 @@ struct MonGen;
 
 extern int g_mipe_cube_serial_006850ba;
 
+enum { W8_MIPE_NO_GROUP = 1000000 };
+
 struct W8MipeMonsterEntry {
     wchar_t name[24];
     unsigned char kind;
@@ -50,7 +52,7 @@ static_assert(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
 struct W8MipeState {
     W8IList monster_ids; /* 0x00 */
 
-    int value_0c;            /* 0x0c: group id of the last group pick; 1000000 = none */
+    int selected_group_id;   /* 0x0c: group id of the last group pick; W8_MIPE_NO_GROUP = none */
     unsigned char selecting; /* 0x10 */
     unsigned char unknown_11[0x13];
     srVector3T<float> drag_anchor; /* 0x24 */

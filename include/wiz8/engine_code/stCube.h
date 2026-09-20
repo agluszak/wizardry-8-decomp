@@ -17,7 +17,7 @@ class W8WorldCursorNode {
 public:
     W8WorldCursorNode()
     {
-        buffer_18 = 0;
+        pUserdata = 0;
         size_1c = 0;
     }
     virtual ~W8WorldCursorNode() {}
@@ -27,7 +27,7 @@ public:
     srNode* node_04; /* 0x04 */
     unsigned int value_08;
     int numbers_0c[3];      /* 0x0c, 0x10, 0x14 */
-    void* buffer_18;        /* 0x18 */
+    void* pUserdata;        /* 0x18 */
     int size_1c;            /* 0x1c */
     unsigned long color_20; /* 0x20 */
     char name_24[0x20];
@@ -65,7 +65,7 @@ void AttachWorldCursorNode0048ED30(W8WorldCursorNode* entry, unsigned char attac
 void SetWorldCursorNodeName0048F110(W8WorldCursorNode* entry, const char* name);
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long color);
 /* 0x0048E3E0: the world-cursor node under the screen point, or 0. */
-W8WorldCursorNode* Function48E3E0(int x, int y);
+W8WorldCursorNode* PickWorldCursorNodeAtScreenPoint0048E3E0(int x, int y);
 void DrawWorldBox0048DF30(W8World* world, srVector3T<float> minimum, srVector3T<float> maximum,
                           unsigned long color);
 unsigned char SaveWorldCursorNodeStates0048E6D0(int handle);

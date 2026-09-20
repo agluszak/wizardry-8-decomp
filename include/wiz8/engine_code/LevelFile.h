@@ -91,6 +91,13 @@ struct W8LevelFileItemRecord { /* 0x44 */
     unsigned char unknown_00[0x44];
 };
 
+/* Serialized clipping-plane entry. ReadWorldClipPlanes consumes the same
+   section as a 64-byte name followed by a four-float position record. */
+struct W8LevelFileClippingPlaneRecord { /* 0x50 */
+    char name_00[0x40];
+    srVector4T<float> serialized_position_40;
+};
+
 struct W8LevelFileLight {
     short version_00;
     int flags_02; /* bit 0x200 -> pExtra_3c */
@@ -144,13 +151,21 @@ struct W8LevelFileDoor { /* 0x99 */
     char name_19[0x80];
 };
 
+/* Packed discriminator + payload pair used by both switch and super triggers.
+   ReadDoorTriggerFile receives this pair at the discriminator address; retail
+   stores the owned W8LevelFileDoor* in the following four bytes. */
+struct W8LevelFileDoorRef { /* 0x05 */
+    unsigned char kind_00;
+    W8LevelFileDoor* door_01;
+};
+
 /* The 0x1bb record reachable from invisible and super triggers; appended to
    the +0x2609/+0x260d registry of the level workspace. */
 struct W8LevelFileLinkedRecord {
     unsigned char kind_00;
     /* 0x1b0-byte payload: the linked region's 36 scaled vertex triples,
        forwarded as a unit to W8GameData's linked-record pass. */
-    unsigned char unknown_01[0x1b0];
+    srVector3T<float> vertices_01[36];
     /* 0x1b1: the AddTriggerPlane overload at 0x00448C60 compares each of the
        twelve generated surfaces against this byte and links the matching one
        to a new environment record. */
@@ -174,8 +189,7 @@ struct W8LevelFileSwitch { /* 0x271 */
     unsigned char unknown_21f[4];       /* version_00 > 1 */
     char switch_name_223[0x40];         /* version_00 > 1 */
     unsigned char has_door_trigger_263; /* version_00 > 2 */
-    unsigned char door_kind_264;        /* has_door_trigger_263 != 0 */
-    W8LevelFileDoor* pDoor_265;         /* door_kind_264 == 1 */
+    W8LevelFileDoorRef door_264;        /* has_door_trigger_263 != 0; kind 1 owns door */
     unsigned char unknown_269[4];
     unsigned char unknown_26d[4]; /* version_00 > 3 */
 };
@@ -274,9 +288,8 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     unsigned char field_858;            /* !(flags_81 & 1) */
     W8LevelFileRecord859* pRecord_859;  /* field_858 != 0 */
     unsigned char field_85d;
-    unsigned char kind_85e;               /* field_85d != 0 */
-    W8LevelFileDoor* pDoor_85f;           /* kind_85e == 1 */
-    W8LevelFileLinkedRecord* pRecord_863; /* kind_85e == 2 */
+    W8LevelFileDoorRef door_85e;          /* field_85d != 0; kind 1 owns door */
+    W8LevelFileLinkedRecord* pRecord_863; /* door_85e.kind_00 == 2 */
 };
 
 /* Serialized trigger payload; type_01 discriminates the record. */
@@ -358,7 +371,7 @@ struct W8LevelFileProp { /* 0xbf */
     unsigned char bNumFrames;      /* 0x01: original name from the
        CreatePathProps assertion text (frame-count upper bound) */
     unsigned char unknown_02;      /* version_00 > 4 */
-    unsigned char unknown_03[0xc]; /* version_00 > 4 */
+    srVector3T<float> position_03; /* version_00 > 4: serialized prop position */
     unsigned char unknown_0f[4];   /* version_00 > 5 */
     char name_13[0x40];            /* version_00 > 6 */
     W8LevelFileAnimObj anim_obj_53;
@@ -425,13 +438,16 @@ struct W8LevelFileParticleSystem { /* 0x226 */
     W8LevelParticleRecord004BD0D0 particle_01;
 };
 
+/* Serialized form of W8NamedPosition: one version byte precedes the runtime
+   record's name, position and trailing scalar fields. */
 struct W8LevelFileNamedPosition { /* 0x9d */
-    unsigned char unknown_00;
+    unsigned char version_00;
     char name_01[0x80];
-    float x_81;
-    float y_85;
-    float z_89;
-    unsigned char unknown_08d[0x10];
+    srVector3T<float> position_81;
+    int value_08d;
+    float value_091;
+    float value_095;
+    float value_099;
 };
 
 /* The serialized block gated by has_block_48, between the camera table and
@@ -481,9 +497,9 @@ struct W8LevelFile {
     int nTriggers;                       /* 0x680 */
     W8LevelFileTrigger* pTriggers;       /* 0x684: nTriggers * 6 */
     unsigned char unknown_688[4];
-    int nClippingPlanes;            /* 0x68c */
-    unsigned char unknown_690;      /* read when nClippingPlanes != 0 */
-    unsigned char* pClippingPlanes; /* 0x691: nClippingPlanes * 0x50 */
+    int nClippingPlanes;                             /* 0x68c */
+    unsigned char clipping_plane_version_690;        /* nClippingPlanes != 0 */
+    W8LevelFileClippingPlaneRecord* pClippingPlanes; /* 0x691: nClippingPlanes records */
     unsigned char unknown_695[0xc];
     int nParticleSystems;                        /* 0x6a1 */
     W8LevelFileParticleSystem* pParticleSystems; /* 0x6a5: nParticleSystems * 0x226 */
@@ -516,17 +532,23 @@ static_assert(sizeof(W8LevelFileAnimLight) == 0x25, "W8LevelFileAnimLight_must_b
 static_assert(sizeof(W8LevelFileMonster) == 0x26, "W8LevelFileMonster_must_be_0x26");
 static_assert(sizeof(W8LevelFileCamera) == 0x37, "W8LevelFileCamera_must_be_0x37");
 static_assert(sizeof(W8LevelFileDoor) == 0x99, "W8LevelFileDoor_must_be_0x99");
+static_assert(sizeof(W8LevelFileDoorRef) == 5, "W8LevelFileDoorRef_must_be_5");
 static_assert(sizeof(W8LevelFileLinkedRecord) == 0x1bb, "W8LevelFileLinkedRecord_must_be_0x1bb");
 static_assert(sizeof(W8LevelFileSwitch) == 0x271, "W8LevelFileSwitch_must_be_0x271");
 static_assert(sizeof(W8LevelFilePlane) == 0x30, "W8LevelFilePlane_must_be_0x30");
 static_assert(sizeof(W8LevelFileInvisible) == 0x241, "W8LevelFileInvisible_must_be_0x241");
 static_assert(sizeof(W8LevelFileSound) == 0x170, "W8LevelFileSound_must_be_0x170");
 static_assert(sizeof(W8LevelFileSuperTrigger) == 0x867, "W8LevelFileSuperTrigger_must_be_0x867");
+static_assert(offsetof(W8LevelFileSwitch, door_264) == 0x264, "W8LevelFileSwitch_door_264");
+static_assert(offsetof(W8LevelFileSuperTrigger, door_85e) == 0x85e,
+              "W8LevelFileSuperTrigger_door_85e");
 static_assert(sizeof(W8LevelFileLightExtra) == 0x3c, "W8LevelFileLightExtra_must_be_0x3c");
 static_assert(sizeof(W8LevelFileAnimLightExtra) == 0x3c, "W8LevelFileAnimLightExtra_must_be_0x3c");
 static_assert(sizeof(W8LevelFileMonsterPathEntry) == 0x1c,
               "W8LevelFileMonsterPathEntry_must_be_0x1c");
 static_assert(sizeof(W8LevelFileItemRecord) == 0x44, "W8LevelFileItemRecord_must_be_0x44");
+static_assert(sizeof(W8LevelFileClippingPlaneRecord) == 0x50,
+              "W8LevelFileClippingPlaneRecord_must_be_0x50");
 static_assert(sizeof(W8LevelFileFramePosition) == 4, "W8LevelFileFramePosition_must_be_4");
 static_assert(sizeof(W8LevelFileType1Record) == 0x1c, "W8LevelFileType1Record_must_be_0x1c");
 static_assert(sizeof(W8LevelFileRecord859) == 0x85, "W8LevelFileRecord859_must_be_0x85");
@@ -539,7 +561,7 @@ static_assert(sizeof(W8LevelFileProp) == 0xbf, "W8LevelFileProp_must_be_0xbf");
 static_assert(offsetof(W8LevelFileProp, version_00) == 0x00, "W8LevelFileProp_version_00");
 static_assert(offsetof(W8LevelFileProp, bNumFrames) == 0x01, "W8LevelFileProp_bNumFrames");
 static_assert(offsetof(W8LevelFileProp, unknown_02) == 0x02, "W8LevelFileProp_unknown_02");
-static_assert(offsetof(W8LevelFileProp, unknown_03) == 0x03, "W8LevelFileProp_unknown_03");
+static_assert(offsetof(W8LevelFileProp, position_03) == 0x03, "W8LevelFileProp_position_03");
 static_assert(offsetof(W8LevelFileProp, unknown_0f) == 0x0f, "W8LevelFileProp_unknown_0f");
 static_assert(offsetof(W8LevelFileProp, name_13) == 0x13, "W8LevelFileProp_name_13");
 static_assert(offsetof(W8LevelFileProp, anim_obj_53) == 0x53, "W8LevelFileProp_anim_obj_53");
@@ -560,8 +582,11 @@ static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
 static_assert(offsetof(W8LevelFileParticleSystem, particle_01.value_216) == 0x217,
               "W8LevelFileParticleSystem_value_217");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
+static_assert(offsetof(W8LevelFileNamedPosition, position_81) == 0x81,
+              "W8LevelFileNamedPosition_position_81");
 static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634");
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
+static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pClippingPlanes");
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
 bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
@@ -575,8 +600,8 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
 bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
 bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
 bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
-bool ReadDoorTriggerFile004D3540(int hFile, unsigned char* pDoor);
-bool WriteDoorTriggerFile004D3660(int hFile, unsigned char* pDoor);
+bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
+bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor);
 bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
 bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
 bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess = 1);

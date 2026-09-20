@@ -146,8 +146,5 @@ static_assert(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,
 static_assert(offsetof(W8MessageBoxLine, extra) == 0x1c, "W8MessageBoxLine_extra");
 static_assert(offsetof(W8MessageBoxLine, npc) == 0x20, "W8MessageBoxLine_npc");
 
-extern W8MessageBoxLine** g_message_box_lines;
-extern int g_message_box_line_count;
-extern int g_message_box_line_capacity;
 void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra);
 bool IsMessageBoxLineQueueEmpty(void);

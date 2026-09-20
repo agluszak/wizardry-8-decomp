@@ -187,7 +187,11 @@ void ToggleMipePanel0057D740(void)
     g_mipe_state_0068f100 = static_cast<W8MipeState*>(malloc(sizeof(W8MipeState)));
     memset(g_mipe_state_0068f100, 0, sizeof(W8MipeState));
     IListInit(&g_mipe_state_0068f100->monster_ids);
-    g_mipe_state_0068f100->monster_ids.capacity = 1000000;
+    /* Retail overwrites IList's capacity with this sentinel-sized value here.
+       Keep the observed store even though the allocation itself is still the
+       ten-entry IListInit buffer; selected_group_id at +0x0c is a separate
+       cache used by UpdateMipeSelection0057DC20. */
+    g_mipe_state_0068f100->monster_ids.capacity = W8_MIPE_NO_GROUP;
     g_mipe_state_0068f100->selecting = 0;
     g_mipe_state_0068f100->value_34 = 1.0f;
     g_mipe_state_0068f100->speed_step = 0.020000000f;
@@ -1008,10 +1012,10 @@ static unsigned char HandleMipeItemCreateKey00578D00(unsigned short key)
                 world_item = ItemInfo(item_index);
                 if (ItemHasFlags(world_item, 1) != 0) {
                     if (show_invisible) {
-                        if (world_item->unknown_08 != 0) {
+                        if (world_item->fActive) {
                             DeactivateWorldItem(world_item);
                         }
-                    } else if (world_item->unknown_08 == 0) {
+                    } else if (!world_item->fActive) {
                         ActivateItem(world_item);
                     }
                 }
@@ -3500,13 +3504,13 @@ void UpdateMipeSelection0057DC20(void)
     location_id = PickNearestMonsterUnderCursor005396D0(point.x, point.y);
     if (g_mipe_choose_group_0064a1cc != 0) {
         if (location_id == -1) {
-            group_id = 1000000;
+            group_id = W8_MIPE_NO_GROUP;
         } else {
             group_id = MonsterGetScriptPartByLocationIndex(
                            MonsterGetIndexByLocationID(0x10bb, MIPE_CPP, location_id, 1))
                            ->monster_group_id;
         }
-        if (group_id == g_mipe_state_0068f100->value_0c) {
+        if (group_id == g_mipe_state_0068f100->selected_group_id) {
             return;
         }
         for (index = 0; index < static_cast<int>(ILLength(&g_mipe_state_0068f100->monster_ids));
@@ -3534,7 +3538,7 @@ void UpdateMipeSelection0057DC20(void)
             }
             g_mipe_state_0068f100->monster = info->monster;
         }
-        g_mipe_state_0068f100->value_0c = group_id;
+        g_mipe_state_0068f100->selected_group_id = group_id;
         SetWorldCursorGroupId004916A0(group_id);
         return;
     }
@@ -3621,7 +3625,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
                 SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 0.0f, 0.5f);
                 RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);
             }
-            g_mipe_cube_0068f12c = Function48E3E0(point->x, point->y);
+            g_mipe_cube_0068f12c = PickWorldCursorNodeAtScreenPoint0048E3E0(point->x, point->y);
             if (g_mipe_cube_0068f12c != 0) {
                 SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 1.0f, 0.0f);
                 RefreshWorldCursorNodeLabel0048DCA0(g_mipe_cube_0068f12c);

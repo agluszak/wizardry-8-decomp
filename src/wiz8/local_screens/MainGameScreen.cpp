@@ -7100,7 +7100,7 @@ void SetCombatTarget(int value)
                 srVector3T<float> maximum;
                 srVector3T<float> camera;
 
-                GetItemWorldBounds(item->owner, &minimum, &maximum);
+                GetItemWorldBounds(item->p3D, &minimum, &maximum);
                 GetCameraPosition(&camera);
                 if (TraceLineOfSightToBounds0046FAF0(&camera, &minimum, &maximum) != 0) {
                     g_level_block->selected_item = value;
@@ -8376,22 +8376,22 @@ void OpenNpcTradeSplitDialog005AE040(void)
 {
     W8SplitItemDialog* dialog;
 
-    if (g_screen_state_00649f1c->value_108 == 0 ||
-        g_screen_state_00649f1c->value_108->stack_count < 2) {
+    if (g_screen_state_00649f1c->trade_item == 0 ||
+        g_screen_state_00649f1c->trade_item->stack_count < 2) {
         return;
     }
     if (g_screen_state_00649f1c->value_100 == 3) {
         dialog = new W8SplitItemDialog(g_split_dialog_sell_kind_005efb68,
-                                       g_screen_state_00649f1c->value_108,
-                                       g_screen_state_00649f1c->value_254);
+                                       g_screen_state_00649f1c->trade_item,
+                                       g_screen_state_00649f1c->trade_quantity);
     } else if (g_screen_state_00649f1c->value_100 == 4 || g_screen_state_00649f1c->value_100 == 5) {
         dialog = new W8SplitItemDialog(g_split_dialog_buy_kind_005efb6c,
-                                       g_screen_state_00649f1c->value_108,
-                                       g_screen_state_00649f1c->value_254);
+                                       g_screen_state_00649f1c->trade_item,
+                                       g_screen_state_00649f1c->trade_quantity);
     } else {
         dialog =
-            new W8SplitItemDialog(g_split_dialog_kind_005efb64, g_screen_state_00649f1c->value_108,
-                                  g_screen_state_00649f1c->value_254);
+            new W8SplitItemDialog(g_split_dialog_kind_005efb64, g_screen_state_00649f1c->trade_item,
+                                  g_screen_state_00649f1c->trade_quantity);
     }
     dialog->SetText(&g_wchar_00689b34);
     dialog->SetOrigin(g_split_dialog_x_005efb4c, g_split_dialog_y_005efb50);
@@ -8421,7 +8421,7 @@ void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog)
         int count = split->split_count_0c0;
         if (count != 0) {
             int slot = GetTextSlot1E8(2);
-            g_screen_state_00649f1c->value_254 = count - 1;
+            g_screen_state_00649f1c->trade_quantity = count - 1;
             SelectTextSlot1E8(slot, 2);
             UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
         }
@@ -8434,22 +8434,22 @@ bool ValidateNpcTradeSelection005AE1F0(void)
     bool accepted = true;
 
     if (g_screen_state_00649f1c->value_100 == 3) {
-        if (g_screen_state_00649f1c->value_108 == 0) {
+        if (g_screen_state_00649f1c->trade_item == 0) {
             return false;
         }
         if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc,
-                                g_screen_state_00649f1c->value_108) == 0) {
+                                g_screen_state_00649f1c->trade_item) == 0) {
             accepted = false;
             QueueNpcScriptLine(0x11, 0, 0, 0);
         }
     } else if (g_screen_state_00649f1c->value_100 == 4) {
-        W8ItemInstance* item = g_screen_state_00649f1c->value_108;
+        W8ItemInstance* item = g_screen_state_00649f1c->trade_item;
         if (item == 0) {
             return false;
         }
         unsigned int price = CalculateNpcTradeStackPrice(
             g_screen_state_00649f1c->dialogue_npc, item->item_id, 1,
-            static_cast<unsigned char>(g_screen_state_00649f1c->value_254), item->identified);
+            static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity), item->identified);
         if (g_status_685170.party_gold < price) {
             QueueNpcScriptLine(0x14, 0, 0, 0);
             return false;
