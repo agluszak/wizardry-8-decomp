@@ -32,6 +32,28 @@ Allocation size bounds the most-derived object but does not name fields. A byte 
 width, not automatically C++ `bool`. Assertions may suggest names; their memory operands establish
 placement. Preserve unknown spans rather than filling them with convenient invented structure.
 
+## Overlapping views and bulk operations
+
+Treat machine-width accesses as evidence about generated operations, not automatic source declarations.
+A dword load/store spanning smaller fields, a block move, adjacent scalar moves, or a `memcpy` can be
+ordinary struct assignment/copy lowering. Before inventing a wider field, byte view, overlay or union:
+
+- trace the complete source and destination extents and look for an existing record of exactly that shape;
+- if `memcpy(&object.member, source, sizeof(T))` covers the following siblings exactly, test whether the
+  authored member was an embedded `T` rather than separately declared fields;
+- trace the actual pointer passed to a callee before assigning its offsets to the caller's surrounding
+  object; a matching numeric offset in another type is not shared-field evidence;
+- treat same-offset alternate reads/writes as a contradiction to resolve, not proof of a union.
+
+A source union needs positive evidence such as a discriminant/tag, mutually exclusive lifecycle states,
+or an accepted source oracle. Same offset, same width, convenient layout, compiler-width copies and
+decompiler type disagreement are insufficient. Follow the repository's `union-ok` gate for any new
+recovered union.
+
+If a call only type-checks after reinterpret-casting one modeled W8/sr/st record pointer to another,
+reconcile the owning declaration or callee signature instead. Linker-folded sibling functions retain
+their source parameter types even when the linker gives their bodies one address.
+
 ## Object and class boundaries
 
 First test whether an existing object, base, embedded member or generic/template definition already
