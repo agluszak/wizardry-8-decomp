@@ -220,7 +220,7 @@ void RequestCamp00502460(void)
         return;
     }
     if (HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0) {
-        if (DispatchWorldCursorNodeCommand004D9080(0, 3, 0) != 0) {
+        if (DispatchWorldCursorNodeCommand004D9080(0, 3) != 0) {
             return;
         }
         if (static_cast<char>(IsScreenIdle()) == 0) {
