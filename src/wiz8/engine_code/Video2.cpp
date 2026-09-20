@@ -1603,6 +1603,15 @@ void SGPMouseGetPos(POINT* point)
     }
 }
 
+// FUNCTION: WIZ8 0x00428520
+bool IsCursorInRectangle(int left, int top, int right, int bottom)
+{
+    POINT point;
+
+    SGPMouseGetPos(&point);
+    return point.x >= left && point.x <= right && point.y >= top && point.y <= bottom;
+}
+
 /* The atom's packed mouse position plus the cursor hotspot, split into the
    screen-space x and y region input works in. */
 // FUNCTION: WIZ8 0x00428580

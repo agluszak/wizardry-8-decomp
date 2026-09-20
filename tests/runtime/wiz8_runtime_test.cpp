@@ -82,6 +82,7 @@ struct RuntimeObservation {
     unsigned char character_in_party;
     unsigned char main_game_entered;
     unsigned char party_moved;
+    unsigned char world_soaked;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;
@@ -1164,53 +1165,59 @@ static DWORD WINAPI DriveScenario(void*)
             }
             if (strcmp(g_scenario, "main-game-start") == 0) {
                 /* Hold the MOVE_FORWARD binding (UPARROW) through real frames;
-                   the camera position is the party's world position. */
+                   the camera position is the party's world position. Keep the
+                   key held for the whole window so the walk crosses triggers
+                   and wall collision, then let the world tick idle while the
+                   ambient monster, NPC and generator updates run. */
                 srVector3T<float> before;
                 srVector3T<float> after;
                 GetCameraPosition(&before);
                 SendScenarioKeyHeld(VK_UP, 0);
                 started = GetTickCount();
-                while (GetTickCount() - started < 10000) {
+                while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
                     Sleep(100);
                     GetCameraPosition(&after);
-                    if ((after - before).Length() > 1.0f) {
+                    if (g_observation.party_moved == 0 && (after - before).Length() > 1.0f) {
                         g_observation.party_moved = 1;
                         ReportStep("party-moved");
-                        break;
                     }
                 }
+                SendScenarioKeyHeld(VK_UP, 1);
                 if (!g_observation.party_moved) {
                     GetCameraPosition(&after);
-                    fprintf(stderr,
-                            "runtime-test movement: before=(%.1f %.1f %.1f) "
-                            "after=(%.1f %.1f %.1f) key_up=%d string_input=%d "
-                            "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
-                            "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
-                            "envload=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
-                            before.x, before.y, before.z, after.x, after.y, after.z,
-                            gfKeyState[VK_UP], gfCurrentStringInputState,
-                            g_mgs_keyboard != 0
-                                ? g_mgs_keyboard->IsCommandPressed(
-                                      W8_MGS_COMMAND_MOVE_FORWARD)
-                                : 0xff,
-                            AnyCharacterEngaged(),
-                            g_game_time_accumulator_6598bc != 0
-                                ? g_game_time_accumulator_6598bc->m_flags
-                                : 0xffff,
-                            g_shared_timer_paused, g_shared_timer_flag_d1,
-                            g_shared_timer_flag_d2,
-                            g_level_data_00652dac != 0 ? g_level_data_00652dac->flags
-                                                       : 0xffffffffU,
-                            g_level_data_00652dac != 0
-                                ? g_level_data_00652dac->camera_scale_14
-                                : -1.0f,
-                            g_environment_load_flag_00603ad0, GetFlag69DA6C(),
-                            GetFlag68F105(), GetFlag68F104(),
-                            g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
-                    SendScenarioKeyHeld(VK_UP, 1);
+                    fprintf(
+                        stderr,
+                        "runtime-test movement: before=(%.1f %.1f %.1f) "
+                        "after=(%.1f %.1f %.1f) key_up=%d string_input=%d "
+                        "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
+                        "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
+                        "envload=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
+                        before.x, before.y, before.z, after.x, after.y, after.z, gfKeyState[VK_UP],
+                        gfCurrentStringInputState,
+                        g_mgs_keyboard != 0
+                            ? g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)
+                            : 0xff,
+                        AnyCharacterEngaged(),
+                        g_game_time_accumulator_6598bc != 0
+                            ? g_game_time_accumulator_6598bc->m_flags
+                            : 0xffff,
+                        g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
+                        g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0xffffffffU,
+                        g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14 : -1.0f,
+                        g_environment_load_flag_00603ad0, GetFlag69DA6C(), GetFlag68F105(),
+                        GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
                     return FailScenario();
                 }
-                SendScenarioKeyHeld(VK_UP, 1);
+                if (gfProgramIsRunning) {
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 15000 && gfProgramIsRunning) {
+                        Sleep(200);
+                    }
+                    if (gfProgramIsRunning) {
+                        g_observation.world_soaked = 1;
+                        ReportStep("world-soaked");
+                    }
+                }
             }
             if (strcmp(g_scenario, "npc-state-reset") == 0) {
                 W8MessageBoxLine* line = new W8MessageBoxLine;
@@ -1393,7 +1400,7 @@ int main(int argc, char** argv)
            "final_page_entered=%u final_page_redrawn=%u "
            "character_name_typed=%u character_summary_opened=%u "
            "character_committed=%u character_in_party=%u main_game_entered=%u "
-           "party_moved=%u return_observed=%u teardown=%u timed_out=%u "
+           "party_moved=%u world_soaked=%u return_observed=%u teardown=%u timed_out=%u "
            "npc_state_reset_ok=%u "
            "character_page_start=%d character_page_after=%d "
            "tooltip_shown=%u tooltip_removed=%u "
@@ -1413,12 +1420,12 @@ int main(int argc, char** argv)
            g_observation.final_page_redrawn, g_observation.character_name_typed,
            g_observation.character_summary_opened, g_observation.character_committed,
            g_observation.character_in_party, g_observation.main_game_entered,
-           g_observation.party_moved, g_observation.return_observed,
-           teardown_ok ? 1 : 0, g_observation.timed_out,
-           g_observation.npc_state_reset_ok, g_observation.character_page_start,
-           g_observation.character_page_after, g_observation.tooltip_shown,
-           g_observation.tooltip_removed, g_observation.skill_tooltip_shown,
-           g_observation.skill_tooltip_removed, g_observation.skill_interacted);
+           g_observation.party_moved, g_observation.world_soaked, g_observation.return_observed,
+           teardown_ok ? 1 : 0, g_observation.timed_out, g_observation.npc_state_reset_ok,
+           g_observation.character_page_start, g_observation.character_page_after,
+           g_observation.tooltip_shown, g_observation.tooltip_removed,
+           g_observation.skill_tooltip_shown, g_observation.skill_tooltip_removed,
+           g_observation.skill_interacted);
 
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == W8_SCREEN_MAIN_MENU &&
@@ -1474,7 +1481,8 @@ int main(int argc, char** argv)
          strcmp(g_scenario, "new-game-entry") != 0) ||
         (g_observation.character_committed && g_observation.character_in_party &&
          g_observation.main_game_entered &&
-         (strcmp(g_scenario, "main-game-start") != 0 || g_observation.party_moved));
+         (strcmp(g_scenario, "main-game-start") != 0 ||
+          (g_observation.party_moved && g_observation.world_soaked)));
     const bool npc_state_reset_ok =
         strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
     const int result = driver_status == 0 && startup_ok &&
