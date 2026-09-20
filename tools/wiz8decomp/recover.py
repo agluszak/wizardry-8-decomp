@@ -103,14 +103,16 @@ def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
     return str(marker["source_file"]), line - 1, end_line
 
 
-def verify_marker_adjacency(original: str, first_line: int, address: int) -> bool:
-    """Whether the span's first line really is the address's marker line."""
+def verify_marker_adjacency(
+    original: str, first_line: int, address: int, *, target: str
+) -> bool:
+    """Whether the span's first line really is the target/address marker line."""
 
     lines = original.splitlines()
     if not 1 <= first_line <= len(lines):
         return False
     return lines[first_line - 1].strip().casefold() == (
-        f"// FUNCTION: WIZ8 0x{address:08x}".casefold()
+        f"// FUNCTION: {target.upper()} 0x{address:08x}".casefold()
     )
 
 
@@ -293,12 +295,18 @@ def graft_source_signature(marker: dict[str, Any], exported_body: str) -> str | 
     declaration = marker.get("declaration") or {}
     signature = declaration.get("source_signature")
     address = marker.get("address")
-    if not isinstance(signature, str) or not isinstance(address, int):
+    target = marker.get("target")
+    if (
+        not isinstance(signature, str)
+        or not isinstance(address, int)
+        or not isinstance(target, str)
+        or not target
+    ):
         return None
     body = exported_body.lstrip("\n")
     if body and not body.endswith("\n"):
         body += "\n"
-    return f"// FUNCTION: WIZ8 0x{address:08x}\n{signature}\n{body}"
+    return f"// FUNCTION: {target.upper()} 0x{address:08x}\n{signature}\n{body}"
 
 
 _GENERATED_ADDRESS_NAME = re.compile(r"\b(?:_?DAT|PTR|UNK|LAB)_([0-9A-Fa-f]{8})\b")
@@ -389,11 +397,27 @@ def suggest_includes(repo_dir: Path, diagnostics: list[str]) -> dict[str, list[s
     return found
 
 
+def _recovery_target(settings: Settings, target: str | None, program_selector: str) -> str:
+    """Resolve the owning reccmp target and reject cross-program recovery."""
+
+    from .source_index import target_for_program
+
+    program_target = target_for_program(settings.repo_dir, program_selector).upper()
+    if target is None:
+        return program_target
+    requested = target.upper()
+    if requested != program_target:
+        raise ValueError(
+            f"program {program_selector!r} belongs to {program_target}, not requested target {requested}"
+        )
+    return requested
+
+
 def regress(
     settings: Settings,
     selections: list[str],
     *,
-    target: str = "WIZ8",
+    target: str | None = None,
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
     from .build import build_target
@@ -403,6 +427,7 @@ def regress(
     from .ghidra.resolve import resolve_function_entries as resolve_ghidra_selectors
     from .source_index import bind_marker_declarations, load_source_index
 
+    target = _recovery_target(settings, target, program_selector)
     with open_program(settings, program_selector) as program:
         addresses = resolve_ghidra_selectors(program, selections)
     if not addresses:
@@ -412,6 +437,7 @@ def regress(
         marker["address"]: marker
         for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
         if marker["marker_kind"] == "FUNCTION"
+        and str(marker.get("target") or "").upper() == target
     }
 
     exported = recover_functions(
@@ -455,7 +481,7 @@ def regress(
         row["source_file"] = source_file
         path = settings.repo_dir / source_file
         original = path.read_text(encoding="utf-8")
-        if not verify_marker_adjacency(original, first_line, address):
+        if not verify_marker_adjacency(original, first_line, address, target=target):
             row["status"] = "unplaced"
             row["reason"] = "index span does not start at the address's marker line"
             continue
@@ -492,6 +518,8 @@ def regress(
             path.write_text(original, encoding="utf-8")
 
     summary = {
+        "target": target,
+        "program": program_selector,
         "selected": len(rows),
         "exact": sum(row.get("status") == "exact" for row in rows),
         "effective": sum(row.get("status") == "effective" for row in rows),
@@ -648,7 +676,7 @@ def attribute_diagnostics(
 
 
 def _sweep_selection(
-    settings: Settings, source_file: str | None, class_name: str | None
+    settings: Settings, source_file: str | None, class_name: str | None, target: str
 ) -> list[dict[str, Any]]:
     from .source_index import bind_marker_declarations, load_source_index
 
@@ -656,6 +684,7 @@ def _sweep_selection(
         marker
         for marker in bind_marker_declarations(load_source_index(settings.repo_dir))
         if marker["marker_kind"] == "FUNCTION"
+        and str(marker.get("target") or "").upper() == target
     ]
     if source_file is not None:
         markers = [marker for marker in markers if marker["source_file"] == source_file]
@@ -675,7 +704,7 @@ def sweep(
     *,
     source_file: str | None = None,
     class_name: str | None = None,
-    target: str = "WIZ8",
+    target: str | None = None,
     program_selector: str = "wiz8",
     rounds: int = 40,
 ) -> dict[str, Any]:
@@ -696,7 +725,8 @@ def sweep(
     from .comparison import compare_selected
     from .ghidra.recovery import recover_functions
 
-    markers = _sweep_selection(settings, source_file, class_name)
+    target = _recovery_target(settings, target, program_selector)
+    markers = _sweep_selection(settings, source_file, class_name, target)
     addresses = [marker["address"] for marker in markers]
     exported = recover_functions(
         settings,
@@ -737,7 +767,9 @@ def sweep(
         path = settings.repo_dir / marker["source_file"]
         if marker["source_file"] not in originals:
             originals[marker["source_file"]] = path.read_text(encoding="utf-8")
-        if not verify_marker_adjacency(originals[marker["source_file"]], span[1], address):
+        if not verify_marker_adjacency(
+            originals[marker["source_file"]], span[1], address, target=target
+        ):
             outcome["status"] = "unplaced"
             outcome["reason"] = "index span does not start at the marker line"
             continue
@@ -865,6 +897,8 @@ def sweep(
             grouped.get(outcome.get("status", "unknown"), 0) + 1
         )
     return {
+        "target": target,
+        "program": program_selector,
         "selected": len(outcomes),
         "summary": dict(sorted(grouped.items(), key=lambda kv: -kv[1])),
         "functions": [outcomes[address] for address in addresses],
