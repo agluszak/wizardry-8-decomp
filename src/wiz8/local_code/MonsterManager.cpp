@@ -1565,7 +1565,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             MonsterSetAnimating(monster, 1);
             MonsterSetRuntimeBehaviour(monster, static_cast<signed char>(behavior));
             MonsterSetPendingCycle(monster, cycle);
-            monster->m_pRep->value_066 = 0;
+            monster->m_pRep->pending_subcycle_066 = 0;
             MonsterForward4A84A0(monster);
             return;
         }

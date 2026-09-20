@@ -62,27 +62,27 @@ void W8NavigatorAttachment::RecordPosition(const srVector3T<float>* position)
 
 /* The stored route's total length, measured on first use from position_34
    through every recorded position at or past the current index and cached in
-   value_058 under the 0x00400000 flag. Entries whose preceding path value
+   path_length_058 under the 0x00400000 flag. Entries whose preceding path value
    carries bit 0x2 contribute nothing. */
 // FUNCTION: WIZ8 0x00456B00
 float W8NavigatorAttachment::MeasurePathLength00456B00()
 {
     unsigned int index = 1;
     if ((flags_00 & 0x400000) == 0) {
-        value_058 = 0;
-        if (value_04 > 0) {
-            index = value_04;
+        path_length_058 = 0;
+        if (path_cursor_04 > 0) {
+            index = path_cursor_04;
         }
         srVector3T<float> previous = position_34;
         for (; index <= path_position_index_08; ++index) {
             if ((path_values_50[index - 1] & 2) == 0) {
-                value_058 += (position_4c[index] - previous).Length();
+                path_length_058 += (position_4c[index] - previous).Length();
             }
             previous = position_4c[index];
         }
         flags_00 |= 0x400000;
     }
-    return value_058;
+    return path_length_058;
 }
 
 /* Grow the attachment's parallel route-position and per-position value arrays
@@ -142,11 +142,11 @@ W8Navigator::W8Navigator()
     minimum_height_034 = 10000.0f;
     maximum_height_038 = 20000.0f;
     movement_0c0.alternate_radius_0b4 = 500.0f;
-    movement_0c0.value_0b0 = 500.0f;
+    movement_0c0.collision_radius_0b0 = 500.0f;
     radius_084 = 500.0f;
     movement_0c0.height_offset_0b8 = 500.0f;
     movement_0c0.secondary_height_offset_0bc = 500.0f;
-    movement_0c0.value_0c4 = 1.0f;
+    movement_0c0.scale_0c4 = 1.0f;
     movement_0c0.position_adjusted_0c8 = 0;
     movement_callback_08c = NavigatorDefaultCallback00451EA0;
     unknown_094 = 0;
@@ -270,20 +270,20 @@ W8NavigatorAttachment::W8NavigatorAttachment()
 {
     flags_00 = 0;
     path_position_index_08 = 0;
-    value_04 = 0;
+    path_cursor_04 = 0;
     value_0c = 0;
     capacity_0a = 10;
     position_4c = static_cast<srVector3T<float>*>(srHeap.allocate(10 * sizeof(srVector3T<float>)));
     path_values_50 = static_cast<unsigned short*>(malloc(capacity_0a * sizeof(unsigned short)));
     memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
-    value_058 = 0;
+    path_length_058 = 0;
     separation_54 = 0.0f;
     position_10.SetZero();
     position_1c.SetZero();
 }
 
 /* The from/to attachment: a ready-made two-position route that starts at the
-   first recorded position, with value_058 carrying the direct segment length
+   first recorded position, with path_length_058 carrying the direct segment length
    until a real path is built over it. */
 // FUNCTION: WIZ8 0x00456280
 W8NavigatorAttachment::W8NavigatorAttachment(const srVector3T<float>* from,
@@ -291,20 +291,20 @@ W8NavigatorAttachment::W8NavigatorAttachment(const srVector3T<float>* from,
 {
     flags_00 = 0x2000000;
     path_position_index_08 = 1;
-    value_04 = 1;
+    path_cursor_04 = 1;
     value_0c = 0;
     capacity_0a = 10;
     position_4c = static_cast<srVector3T<float>*>(srHeap.allocate(10 * sizeof(srVector3T<float>)));
     path_values_50 = static_cast<unsigned short*>(malloc(capacity_0a * sizeof(unsigned short)));
     memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
-    value_058 = 0;
+    path_length_058 = 0;
     separation_54 = 0.0f;
     position_10 = *from;
     position_4c[0] = *from;
     position_1c = *to;
     position_4c[1] = *to;
     position_34 = position_10;
-    value_058 = (position_1c - position_10).Length();
+    path_length_058 = (position_1c - position_10).Length();
 }
 
 /* A second pass of defaults over the same tail, run straight after the
@@ -317,7 +317,7 @@ void W8NavigatorMovementState::Reset()
 {
     unknown_000 = 0;
     flag_06c = 0;
-    unknown_01c = 0.0f;
+    yaw_velocity_01c = 0.0f;
     pitch_020 = 0.0f;
     target_pitch_024 = 0.0f;
     roll_028 = 0.0f;
@@ -333,7 +333,7 @@ void W8NavigatorMovementState::Reset()
     callback_threshold_058 = 10000.0f;
     turn_rate_068 = 0.19634955f;
     unknown_076[0] = 1;
-    value_010 = -1;
+    target_location_id_010 = -1;
     movement_scale_060 = 1.0f;
     movement_speed_064 = 1.0f;
     vector_088.Set(1.0f, 0.0f, 0.0f);
@@ -342,7 +342,7 @@ void W8NavigatorMovementState::Reset()
 }
 
 /* The whole 0xCC tail starts cleared apart from a unit movement speed, the byte
-   at +0x76, the invalidated value_010 and the attachment, which the tail
+   at +0x76, the invalidated target_location_id_010 and the attachment, which the tail
    allocates and owns from construction rather than acquiring later. */
 // FUNCTION: WIZ8 0x004572c0
 W8NavigatorMovementState::W8NavigatorMovementState()
@@ -353,7 +353,7 @@ W8NavigatorMovementState::W8NavigatorMovementState()
     value_00c = 0;
     yaw = 0.0f;
     target_yaw = 0.0f;
-    unknown_01c = 0.0f;
+    yaw_velocity_01c = 0.0f;
     pitch_020 = 0.0f;
     target_pitch_024 = 0.0f;
     roll_028 = 0.0f;
@@ -371,7 +371,7 @@ W8NavigatorMovementState::W8NavigatorMovementState()
     roll_enabled_075 = 0;
     unknown_076[0] = 1;
     vertical_velocity_078 = 0.0f;
-    value_010 = -1;
+    target_location_id_010 = -1;
     vertical_base_07c = 0.0f;
     vertical_amplitude_080 = 0.0f;
     vertical_phase_084 = 0.0f;
@@ -383,7 +383,7 @@ W8NavigatorMovementState::W8NavigatorMovementState()
 }
 
 /* Only these eleven fields survive a transfer between navigators; everything
-   else in the tail stays whatever the destination already had, and value_010 is
+   else in the tail stays whatever the destination already had, and target_location_id_010 is
    invalidated rather than copied. */
 // FUNCTION: WIZ8 0x004574d0
 void W8NavigatorMovementState::CopySettingsFrom(const W8NavigatorMovementState& other)
@@ -399,7 +399,7 @@ void W8NavigatorMovementState::CopySettingsFrom(const W8NavigatorMovementState& 
     unknown_076[0] = other.unknown_076[0];
     vertical_base_07c = other.vertical_base_07c;
     vertical_amplitude_080 = other.vertical_amplitude_080;
-    value_010 = -1;
+    target_location_id_010 = -1;
 }
 
 /* The attachment and both allocations hanging off it. Each pointer is cleared
@@ -466,16 +466,16 @@ W8Navigator::W8Navigator(const W8Navigator& other)
     owned_object_0a0 = 0;
     tracked_distance_0b0 = other.tracked_distance_0b0;
     unknown_0bc[1] = other.unknown_0bc[1];
-    movement_0c0.value_0b0 = other.movement_0c0.value_0b0;
+    movement_0c0.collision_radius_0b0 = other.movement_0c0.collision_radius_0b0;
     movement_0c0.alternate_radius_0b4 = other.movement_0c0.alternate_radius_0b4;
     movement_0c0.height_offset_0b8 = other.movement_0c0.height_offset_0b8;
     movement_0c0.secondary_height_offset_0bc = other.movement_0c0.secondary_height_offset_0bc;
     movement_0c0.vertical_offset_0c0 = other.movement_0c0.vertical_offset_0c0;
-    movement_0c0.value_0c4 = other.movement_0c0.value_0c4;
+    movement_0c0.scale_0c4 = other.movement_0c0.scale_0c4;
     minimum_06c = other.minimum_06c;
     maximum_078 = other.maximum_078;
-    if (g_runtime_world_scale_6081e8 < movement_0c0.value_0b0) {
-        g_runtime_world_scale_6081e8 = movement_0c0.value_0b0;
+    if (g_runtime_world_scale_6081e8 < movement_0c0.collision_radius_0b0) {
+        g_runtime_world_scale_6081e8 = movement_0c0.collision_radius_0b0;
     }
     if (g_runtime_world_scale_6081e8 < movement_0c0.alternate_radius_0b4) {
         g_runtime_world_scale_6081e8 = movement_0c0.alternate_radius_0b4;
@@ -815,7 +815,7 @@ void W8Navigator::configureStartupRange(float range)
 {
     radius_084 = range;
     unknown_090 = 1;
-    movement_0c0.value_0b0 = range;
+    movement_0c0.collision_radius_0b0 = range;
     movement_0c0.alternate_radius_0b4 = range;
 }
 
@@ -845,9 +845,9 @@ unsigned short W8Navigator::SetMovementTargetToNavigator004526C0(W8Navigator* ta
     collision_margin_010 = separation;
     target_navigator_04c = target;
     if (target == g_startup_world_659c0c || target->movement_0c0.location_id_004 != 0) {
-        movement_0c0.value_010 = target->movement_0c0.location_id_004;
+        movement_0c0.target_location_id_010 = target->movement_0c0.location_id_004;
     } else {
-        movement_0c0.value_010 = -1;
+        movement_0c0.target_location_id_010 = -1;
     }
     PathAIClearOwned004A9BB0(path_ai_068);
     if (g_flag_006081e4 == 0) {
@@ -989,7 +989,8 @@ unsigned char W8Navigator::UpdateLinkedPosition00454FE0()
     if (linked_navigator_05c->movement_stopped_024 != 0) {
         if (g_octree_6598a4->FindNavigatorPosition(&linked_navigator_05c->movement_0c0.position_040,
                                                    linked_navigator_05c->movement_0c0.yaw,
-                                                   movement_0c0.value_0b0 + movement_0c0.value_0b0,
+                                                   movement_0c0.collision_radius_0b0 +
+                                                       movement_0c0.collision_radius_0b0,
                                                    1, &position, 1, 0, 0, 5, 1) == 0) {
             return 0;
         }
@@ -1130,8 +1131,8 @@ void W8NavigatorAttachment::InitializeSegment004563E0(const srVector3T<float>* s
 {
     flags_00 = (flags_00 & 0xc810000) | 0x2000000;
     path_position_index_08 = 1;
-    value_04 = 1;
-    value_058 = 0;
+    path_cursor_04 = 1;
+    path_length_058 = 0;
     separation_54 = 0;
     position_10 = *source;
     position_4c[0] = *source;
@@ -1141,17 +1142,17 @@ void W8NavigatorAttachment::InitializeSegment004563E0(const srVector3T<float>* s
     position_34 = position_10;
     value_0c = 0;
     memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
-    value_058 = (position_1c - position_10).Length();
+    path_length_058 = (position_1c - position_10).Length();
 }
 
 // FUNCTION: WIZ8 0x004564f0
 void W8NavigatorAttachment::CopyPathFrom004564F0(const W8NavigatorAttachment* other)
 {
     flags_00 = other->flags_00;
-    value_04 = other->value_04;
+    path_cursor_04 = other->path_cursor_04;
     path_position_index_08 = other->path_position_index_08;
     value_0c = other->value_0c;
-    value_058 = other->value_058;
+    path_length_058 = other->path_length_058;
     separation_54 = other->separation_54;
     position_10 = other->position_10;
     position_34 = other->position_10;
@@ -1183,8 +1184,8 @@ void W8NavigatorAttachment::GetNextPosition00456660(srVector3T<float>* position)
         *position = position_28;
         return;
     }
-    if (value_04 < path_position_index_08) {
-        *position = position_4c[value_04];
+    if (path_cursor_04 < path_position_index_08) {
+        *position = position_4c[path_cursor_04];
     } else {
         *position = position_1c;
     }
@@ -1208,41 +1209,42 @@ unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions00456830(float dis
         on_path = 1;
     }
     flags_00 &= 0xffbfffff;
-    delta = position_4c[value_04] - local;
+    delta = position_4c[path_cursor_04] - local;
     segment = srVector2T<float>(delta.x, delta.z).Length();
-    if (segment < g_double_005ebc30 && value_04 == path_position_index_08) {
+    if (segment < g_double_005ebc30 && path_cursor_04 == path_position_index_08) {
         return 0;
     }
     if (segment < distance) {
         do {
-            if (path_position_index_08 < value_04) {
+            if (path_position_index_08 < path_cursor_04) {
                 break;
             }
             distance -= segment;
-            local = position_4c[value_04];
-            ++value_04;
-            /* Retail reads position_4c[value_04] before the loop head re-tests
+            local = position_4c[path_cursor_04];
+            ++path_cursor_04;
+            /* Retail reads position_4c[path_cursor_04] before the loop head re-tests
                the cursor: when the consumed waypoint was the last one this
                samples one slot past path_position_index_08, inside the
                ten-entry allocation but never initialized. */
-            delta = position_4c[value_04] - local;
+            delta = position_4c[path_cursor_04] - local;
             segment = srVector2T<float>(delta.x, delta.z).Length();
         } while (segment < distance);
     }
-    if (path_position_index_08 < value_04) {
+    if (path_position_index_08 < path_cursor_04) {
         *position = position_1c;
-        value_04 = path_position_index_08;
+        path_cursor_04 = path_position_index_08;
         on_path = 0;
     } else {
         t = distance / segment;
-        *position = local * static_cast<float>(g_double_005ebc30 - t) + position_4c[value_04] * t;
+        *position =
+            local * static_cast<float>(g_double_005ebc30 - t) + position_4c[path_cursor_04] * t;
     }
-    if (value_04 > 1) {
-        for (unknown_06 = 0; value_04 + unknown_06 <= path_position_index_08; ++unknown_06) {
-            position_4c[unknown_06 + 1] = position_4c[unknown_06 + value_04];
+    if (path_cursor_04 > 1) {
+        for (unknown_06 = 0; path_cursor_04 + unknown_06 <= path_position_index_08; ++unknown_06) {
+            position_4c[unknown_06 + 1] = position_4c[unknown_06 + path_cursor_04];
         }
-        path_position_index_08 += 1 - value_04;
-        value_04 = 1;
+        path_position_index_08 += 1 - path_cursor_04;
+        path_cursor_04 = 1;
     }
     position_4c[0] = *position;
     position_10 = position_4c[0];
@@ -1265,7 +1267,7 @@ W8NavigatorAttachment::CheckPositionHopHeight00456CB0(const srVector3T<float>* p
     float to_height;
     W8PathSurface* surfaces;
 
-    base = value_04 - 1;
+    base = path_cursor_04 - 1;
     if (base == 0) {
         base = 1;
     }
@@ -1307,20 +1309,20 @@ W8NavigatorAttachment::CheckPredictedHopHeight00456DD0(const srVector3T<float>* 
 
     point.x = position->x;
     point.y = position->z;
-    from.x = position_4c[value_04 - 1].x;
-    from.y = position_4c[value_04 - 1].z;
-    to.x = position_4c[value_04].x;
-    to.y = position_4c[value_04].z;
+    from.x = position_4c[path_cursor_04 - 1].x;
+    from.y = position_4c[path_cursor_04 - 1].z;
+    to.x = position_4c[path_cursor_04].x;
+    to.y = position_4c[path_cursor_04].z;
     distance = PointToSegmentDistance2D00437760(&point, &from, &to, '\0', &fraction);
-    base = value_04 - 1;
-    if (value_04 < path_position_index_08 && path_values_50[value_04 + 1] != 0) {
+    base = path_cursor_04 - 1;
+    if (path_cursor_04 < path_position_index_08 && path_values_50[path_cursor_04 + 1] != 0) {
         from.x = to.x;
         from.y = to.y;
-        to.x = position_4c[value_04 + 1].x;
-        to.y = position_4c[value_04 + 1].z;
+        to.x = position_4c[path_cursor_04 + 1].x;
+        to.y = position_4c[path_cursor_04 + 1].z;
         other_distance = PointToSegmentDistance2D00437760(&point, &from, &to, '\0', other_fraction);
         if (other_distance < distance) {
-            base = value_04;
+            base = path_cursor_04;
             fraction = other_fraction[0];
             distance = other_distance;
         }
@@ -1351,10 +1353,10 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
 
     point.x = position->x;
     point.y = position->z;
-    from.x = position_4c[value_04 - 1].x;
-    from.y = position_4c[value_04 - 1].z;
-    to.x = position_4c[value_04].x;
-    to.y = position_4c[value_04].z;
+    from.x = position_4c[path_cursor_04 - 1].x;
+    from.y = position_4c[path_cursor_04 - 1].z;
+    to.x = position_4c[path_cursor_04].x;
+    to.y = position_4c[path_cursor_04].z;
     PointToSegmentDistance2D00437760(&point, &from, &to, '\x01', &fraction);
     dir_x = to.x - from.x;
     dir_z = to.y - from.y;
@@ -1363,12 +1365,12 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
         reached = 0;
     } else {
         reached = 1;
-        if (value_04 < path_position_index_08 && path_values_50[value_04 + 1] != 0) {
+        if (path_cursor_04 < path_position_index_08 && path_values_50[path_cursor_04 + 1] != 0) {
             distance -= remainder;
             point.x = to.x;
             point.y = to.y;
-            dir_x = position_4c[value_04 + 1].x - to.x;
-            dir_z = position_4c[value_04 + 1].z - to.y;
+            dir_x = position_4c[path_cursor_04 + 1].x - to.x;
+            dir_z = position_4c[path_cursor_04 + 1].z - to.y;
             remainder = srVector2T<float>(dir_x, dir_z).Length();
         }
     }
@@ -1394,16 +1396,16 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
 // FUNCTION: WIZ8 0x00452560
 void W8Navigator::SetScale(float scale)
 {
-    float ratio = scale / movement_0c0.value_0c4;
-    movement_0c0.value_0c4 = scale;
+    float ratio = scale / movement_0c0.scale_0c4;
+    movement_0c0.scale_0c4 = scale;
     radius_084 *= ratio;
-    movement_0c0.value_0b0 *= ratio;
+    movement_0c0.collision_radius_0b0 *= ratio;
     movement_0c0.alternate_radius_0b4 *= ratio;
     movement_0c0.height_offset_0b8 *= ratio;
     movement_0c0.secondary_height_offset_0bc *= ratio;
     movement_0c0.movement_scale_060 *= ratio;
-    if (g_runtime_world_scale_6081e8 < movement_0c0.value_0b0) {
-        g_runtime_world_scale_6081e8 = movement_0c0.value_0b0;
+    if (g_runtime_world_scale_6081e8 < movement_0c0.collision_radius_0b0) {
+        g_runtime_world_scale_6081e8 = movement_0c0.collision_radius_0b0;
     }
     if (g_runtime_world_scale_6081e8 < movement_0c0.alternate_radius_0b4) {
         g_runtime_world_scale_6081e8 = movement_0c0.alternate_radius_0b4;
@@ -1417,7 +1419,7 @@ void W8Navigator::SetScale(float scale)
 unsigned char W8Navigator::ConfigureMovementToPosition00452630(const srVector3T<float>* position)
 {
     flags_00c = 6;
-    movement_0c0.value_010 = -1;
+    movement_0c0.target_location_id_010 = -1;
     movement_target_018.SetZero();
     collision_margin_010 = 0.0;
     target_navigator_04c = 0;
@@ -1465,7 +1467,7 @@ unsigned char W8Navigator::LinkToNavigator004527A0(W8Navigator* target, double s
     collision_margin_010 = separation;
     flags_00c = 0;
     target_navigator_04c = target;
-    movement_0c0.value_010 = target->movement_0c0.location_id_004;
+    movement_0c0.target_location_id_010 = target->movement_0c0.location_id_004;
     PathAIClearOwned004A9BB0(path_ai_068);
     movement_0c0.attachment_0ac->InitializeSegment004563E0(&movement_0c0.position_040,
                                                            &target->movement_0c0.position_040);
@@ -1522,7 +1524,7 @@ unsigned short W8Navigator::ConfigureMovementToNavigator004529A0(
     collision_margin_010 = separation;
     flags_00c = 0x21;
     target_navigator_04c = target;
-    movement_0c0.value_010 = target->movement_0c0.location_id_004;
+    movement_0c0.target_location_id_010 = target->movement_0c0.location_id_004;
     movement_0c0.target_position_04c = target->movement_0c0.position_040;
     PathAIClearOwned004A9BB0(path_ai_068);
     radius_084 = movement_0c0.alternate_radius_0b4;
@@ -1719,7 +1721,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
         result = g_octree_6598a4->PrepareNavigatorTarget00434250(
             &movement_0c0, radius_084, static_cast<float>(collision_margin_010));
     } else {
-        radius_084 = movement_0c0.value_0b0;
+        radius_084 = movement_0c0.collision_radius_0b0;
         if ((flags_00c & 4) != 0 && (flags_00c & 1) != 0) {
             result = g_octree_6598a4->PrepareNavigatorTarget00434250(
                 &movement_0c0, radius_084,
@@ -2127,7 +2129,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     }
 
     if (movement_0c0.attachment_0ac != 0 &&
-        movement_0c0.attachment_0ac->value_04 >=
+        movement_0c0.attachment_0ac->path_cursor_04 >=
             movement_0c0.attachment_0ac->path_position_index_08 &&
         (movement_0c0.attachment_0ac->flags_00 & 0x80000) == 0 &&
         PathAIIsComplete004A9EF0(path_ai_068) != 0) {
@@ -2268,7 +2270,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
             movement_complete_026 = 1;
         } else {
             movement_0c0.value_00c = movement_0c0.value_008;
-            movement_0c0.value_010 = -1;
+            movement_0c0.target_location_id_010 = -1;
             if ((previous_flags & 0xff000000) != 0) {
                 flags_00c |= 6;
             }

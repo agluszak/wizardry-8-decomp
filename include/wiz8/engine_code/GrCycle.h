@@ -129,11 +129,14 @@ public:
     virtual bool IsCycleSupported(signed char cycle) = 0;
     virtual signed char GetTotalAnimationCount() = 0;
     virtual float GetCurrentAnimationScale() = 0;
+    /* The concrete cycle owns the representation placed in GrObject::m_pRep.
+       This typed view supplies animation, particles, lights, and model state;
+       neither base constructs or deletes that pointer. */
     virtual W8EmitterHost* GetRepresentation() = 0;
     void SetPosition004A6DF0(srVector3T<float>* position);
     /* Registry-wide lookups answered from this cycle's identity. */
-    const char* GetRegisteredName004A8650() const;              /* 0x004A8650 */
-    bool IsSoleRegisteredCycleForName004A8700() const;          /* 0x004A8700 */
+    const char* GetRegisteredName004A8650() const;     /* 0x004A8650 */
+    bool IsSoleRegisteredCycleForName004A8700() const; /* 0x004A8700 */
     virtual unsigned char GetAnimationBounds(srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);
@@ -177,7 +180,9 @@ public:
     srVector3T<float> m_axis_1c0;
     float scale_1cc;
     stGroundShadow* m_ground_shadow; /* 0x1d0: typed runtime class stGroundShadow */
-    float unknown_1d4;
+    /* Fractional frame progress after TickAnimation consumes whole frames.
+       Monster interpolation and light definition time use the same fraction. */
+    float frame_fraction_1d4;
 }; /* 0x1d8 */
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");

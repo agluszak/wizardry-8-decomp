@@ -3174,7 +3174,7 @@ render_world:
             if (monster) {
                 ClearSurfaceRect(0x122, 0x159, 0x226, 0x168);
                 SetFont(g_font_683660);
-                unsigned char frame = monster->m_pRep->flag_064;
+                unsigned char frame = monster->m_pRep->subcycle_064;
                 const char* cycle = g_cycle_names[monster->Query(6)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
                 mprintf(0x122, 0x159, (UINT16*)L"%2d/%2d %hs", frame, subcycles, cycle);

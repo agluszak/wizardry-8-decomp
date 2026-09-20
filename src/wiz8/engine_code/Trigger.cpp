@@ -809,7 +809,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
         Trigger* trigger = *world->triggers->GetAt(index);
         if (trigger->flag_0a0_25 != 0 && trigger->m_pProp != 0 &&
             (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
-             trigger->m_pProp->Rep()->flag_06d == 0)) {
+             trigger->m_pProp->Rep()->animation_playing_06d == 0)) {
             trigger->GenerateItemGroup();
             if (g_modal_owner_0068edd0 == 0 && trigger->world_item_group_34c != 0) {
                 W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
@@ -2737,7 +2737,7 @@ void Trigger::Run(int source)
             W8DoorTriggerActionData* action_data = 0;
 
             if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
-                m_pProp->Rep()->flag_06d != 0) {
+                m_pProp->Rep()->animation_playing_06d != 0) {
                 break;
             }
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
@@ -2787,7 +2787,7 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            active = m_pProp->Rep()->flag_06d;
+            active = m_pProp->Rep()->animation_playing_06d;
             if (active) {
                 break;
             }
@@ -2866,7 +2866,7 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            was_active = m_pProp->Rep()->flag_06d;
+            was_active = m_pProp->Rep()->animation_playing_06d;
             m_pProp->SetRepresentationActive(!was_active, 1);
             value_0b1 = value_0b1 == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
@@ -2912,7 +2912,7 @@ void Trigger::Run(int source)
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
         }
-        was_active = m_pProp->Rep()->flag_06d;
+        was_active = m_pProp->Rep()->animation_playing_06d;
 
         if (inline_action_data_24c[0] != '\0') {
             if (g_status_685170.item_in_cursor != 0) {
@@ -2943,7 +2943,7 @@ void Trigger::Run(int source)
                 W8WorldItem* item;
                 int contained_items = 0;
 
-                if (item_count != 1 && m_pProp->Rep()->flag_064 != 0) {
+                if (item_count != 1 && m_pProp->Rep()->subcycle_064 != 0) {
                     action_succeeded = false;
                 }
 
@@ -2965,7 +2965,7 @@ void Trigger::Run(int source)
                 }
 
                 if (item_count == 1) {
-                    if (m_pProp->Rep()->flag_064 == 0) {
+                    if (m_pProp->Rep()->subcycle_064 == 0) {
                         ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_0068c548
                                                                         : g_value_0068c520,
                                                          -1, 0, g_effect_argument_005ed8c8);
@@ -2974,7 +2974,7 @@ void Trigger::Run(int source)
                     item = world_item_group_34c->next;
                     MoveItem(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
-                    if (m_pProp->Rep()->flag_064 != 0) {
+                    if (m_pProp->Rep()->subcycle_064 != 0) {
                         goto toggle_item_prop;
                     }
                 } else {
@@ -3061,8 +3061,8 @@ void Trigger::Run(int source)
         }
 
         group->flag_28 = 1;
-        monster_info->monster->m_pRep->flag_06d = 1;
-        monster_info->monster->m_pRep->flag_06d = 1;
+        monster_info->monster->m_pRep->animation_playing_06d = 1;
+        monster_info->monster->m_pRep->animation_playing_06d = 1;
         monster_info->monster->m_pRep->timer_068 =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         monster_info->monster->ResetRepresentation004A7420();
@@ -3259,8 +3259,8 @@ void Trigger::Run(int source)
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
         }
-        if ((action_230 == 0x32 && m_pProp->Rep()->flag_06d != 0) ||
-            (action_230 == 0x33 && m_pProp->Rep()->flag_06d == 0)) {
+        if ((action_230 == 0x32 && m_pProp->Rep()->animation_playing_06d != 0) ||
+            (action_230 == 0x33 && m_pProp->Rep()->animation_playing_06d == 0)) {
             return;
         }
         m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
@@ -3342,10 +3342,10 @@ void Trigger::Run(int source)
         break;
 
     case 0x3b:
-        if (m_pProp == 0 || source != m_lData1 || m_pProp->Rep()->flag_06d == 0) {
+        if (m_pProp == 0 || source != m_lData1 || m_pProp->Rep()->animation_playing_06d == 0) {
             return;
         }
-        m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
@@ -3356,7 +3356,7 @@ void Trigger::Run(int source)
         if (m_pProp == 0 || source != m_lData1) {
             return;
         }
-        m_pProp->SetRepresentationActive(m_pProp->Rep()->flag_06d == 0, 1);
+        m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
@@ -3603,7 +3603,7 @@ bool Trigger::CanRunLinkedTriggers()
 {
     char* recipient;
 
-    if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
+    if (m_pProp != 0 && m_pProp->Rep()->animation_playing_06d != 0) {
         return 0;
     }
     recipient = m_pacRecipients;
@@ -3713,7 +3713,7 @@ bool Trigger::SelectAction()
         W8DoorTriggerActionData* action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
         bool linked_trigger_blocked = false;
 
-        if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
+        if (m_pProp != 0 && m_pProp->Rep()->animation_playing_06d != 0) {
             linked_trigger_blocked = true;
         } else {
             char* cursor = m_pacRecipients;

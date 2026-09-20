@@ -2008,7 +2008,7 @@ unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* mo
     srVector3T<float> target;
     if (movement->attachment_0ac != 0) {
         W8NavigatorAttachment* attachment = movement->attachment_0ac;
-        if (attachment->value_04 < attachment->path_position_index_08 ||
+        if (attachment->path_cursor_04 < attachment->path_position_index_08 ||
             (attachment->flags_00 & 0x80000) != 0) {
             return 0;
         }

@@ -2140,7 +2140,7 @@ void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlo
     effect = SpawnSpellEffect(&position, "hyp_lure2", argument, 0, 0);
     if (effect != 0) {
         effect->auto_release = 0;
-        effect->host->behaviour_071 = 3;
+        effect->host->pending_behaviour_071 = 3;
         owner->spell_visuals.Add(effect);
     }
 }

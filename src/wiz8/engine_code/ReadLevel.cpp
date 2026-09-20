@@ -622,7 +622,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
             }
             if (!active) {
                 group->flag_28 = 0;
-                monster->m_pRep->flag_06d = 0;
+                monster->m_pRep->animation_playing_06d = 0;
             }
             if (!update_representation) {
                 continue;

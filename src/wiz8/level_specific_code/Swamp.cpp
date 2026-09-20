@@ -124,8 +124,8 @@ bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
             MonsterGetIndexByLocationID(0x8f, SWAMP_CPP, index, 1));
         if (monster_info != 0) {
             g_swamp_spawned_monster_6834e4 = monster_info->monster;
-            monster_info->monster->m_pRep->value_05c = 1.0f;
-            monster_info->monster->m_pRep->flag_061 = 1;
+            monster_info->monster->m_pRep->instance_scale_05c = 1.0f;
+            monster_info->monster->m_pRep->apply_instance_scale_061 = 1;
             g_swamp_spawned_monster_6834e4->BeginFadeIn004C4F80(2.0f);
             g_swamp_spawned_monster_6834e4->GetMappedPosition004C72A0(&mapped);
             look_target = monster_info->monster->movement_0c0.position_040;

@@ -1341,7 +1341,7 @@ void HandleMonsterDebugKey00579900(unsigned short key)
             monster->SetRuntimeValueA6(cycle + 1);
         cycle_done:
             monster->SetSubCycle(0);
-            monster->m_pRep->value_066 = 0;
+            monster->m_pRep->pending_subcycle_066 = 0;
             world = GetWorld();
             WorldGetCameraLocation(world, &location);
             position = location;

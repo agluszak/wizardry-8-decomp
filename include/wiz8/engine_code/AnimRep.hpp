@@ -51,7 +51,11 @@ struct W8ModelInstanceRenderState {
    at 0x08c as a float extent, so those members take their actual scalar types. */
 
 /* The copy path at 0x004B87C0 and clone slot at 0x0044EDF0 establish the
-   0x64-byte polymorphic root below. Its original name is not available. */
+   0x64-byte polymorphic root below. The local point at +0x10 combines with
+   the parent point at +0x1c to produce the world point at +0x04; rotation
+   is stored separately at +0x28. Copy/clone preserve the transforms and
+   render block but reset the transient scale and two flags. Its original
+   name is not available. */
 class W8AnimRepBase005EC1D8 {
 public:
     W8AnimRepBase005EC1D8();
@@ -71,14 +75,20 @@ public:
     srVector3T<float> parent_location_01c;
     srMatrix3T<float> rotation_028;
     W8ModelInstanceRenderState render_state_04c;
-    float value_05c;
+    /* Set by monster scale transitions; GrCycle copies it to model instances
+       only when +0x61 enables that path. A value of one clears the instance
+       scale flag instead of storing a redundant scale. */
+    float instance_scale_05c;
     unsigned char flag_060;
-    unsigned char flag_061;
+    unsigned char apply_instance_scale_061;
     unsigned char unknown_062[2];
 };
 
 /* AnimRep.cpp's constructor and copy constructor extend the root through
-   0x98. The address suffix preserves the unresolved original class name. */
+   0x98. The derived copy preserves animation selection and frame bounds,
+   then restarts its timer from the shared clock; the base copy resets its
+   transient fields. The address suffix preserves the unresolved original
+   class name. */
 class W8AnimRep005ED050 : public W8AnimRepBase005EC1D8 {
 public:
     W8AnimRep005ED050();
@@ -87,9 +97,13 @@ public:
     void SetFrameMethod004B55C0(signed char method);
 
 public:
-    unsigned char flag_064;
+    /* Current frame/subcycle. GrCycle advances it and all derived renderers
+       use it to select the live mesh, event, particle, and light state. */
+    unsigned char subcycle_064;
     unsigned char unknown_065;
-    unsigned short value_066;
+    /* 0xffff means no queued subcycle; ApplyPendingCycle consumes and clears
+       this only after the pending cycle is accepted. */
+    unsigned short pending_subcycle_066;
     /* 0x68: a millisecond timestamp while the animation runs;
        SelectAnimationSlot reads its low two bytes as the transition's ordered
        animation-value pair. */
@@ -102,18 +116,27 @@ public:
         };
     };
     unsigned char active;
-    unsigned char flag_06d;
-    unsigned char flag_06e;
-    unsigned char flag_06f;
-    unsigned char flag_070;
-    unsigned char behaviour_071;
+    unsigned char animation_playing_06d;
+    /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
+       also occur in monster completion checks, so this remains a byte. */
+    unsigned char frame_direction_06e;
+    /* SetFrameMethod checks the retail DIR_FIRST..DIR_LAST range; endpoint
+       behavior 1 wraps and 2 reverses in AdvanceAnimationFrame. */
+    unsigned char frame_method_06f;
+    unsigned char animation_behaviour_070;
+    /* 0xff means no pending change. ApplyPendingCycle applies it to the
+       selected representation, then clears the old object's slot. */
+    unsigned char pending_behaviour_071;
     unsigned char unknown_072[2];
-    srVector3T<float> value_074;
-    srVector3T<float> value_080;
-    float value_08c;
+    /* Prop computes this pair from the animation's bounds, and stores the
+       scaled extent in +0x8c. Other representation families inherit the
+       storage even when their own use is not yet established. */
+    srVector3T<float> bounds_min_074;
+    srVector3T<float> bounds_max_080;
+    float bounds_extent_08c;
     unsigned int value_090;
-    unsigned char counter_094;
-    unsigned char counter_095;
+    unsigned char first_frame_094;
+    unsigned char last_frame_095;
     unsigned char unknown_096[2];
 };
 

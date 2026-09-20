@@ -31,9 +31,9 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
     render_state_04c.state_04 = 0;
     render_state_04c.state_08 = 0;
     render_state_04c.state_0c = 0;
-    value_05c = 1.0f;
+    instance_scale_05c = 1.0f;
     flag_060 = 0;
-    flag_061 = 0;
+    apply_instance_scale_061 = 0;
 }
 
 // FUNCTION: WIZ8 0x004b55c0
@@ -43,7 +43,7 @@ void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
         srAssertFail("bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x6a, 0);
     }
-    flag_06f = method;
+    frame_method_06f = method;
 }
 
 /* The root copy preserves five aggregate values, but deliberately resets its
@@ -57,9 +57,9 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
     parent_location_01c = other.parent_location_01c;
     rotation_028 = other.rotation_028;
     render_state_04c = other.render_state_04c;
-    value_05c = 1.0f;
+    instance_scale_05c = 1.0f;
     flag_060 = 0;
-    flag_061 = 0;
+    apply_instance_scale_061 = 0;
 }
 
 /* Store the representation's local location, then rebuild the world location
@@ -105,21 +105,21 @@ void W8AnimRepBase005EC1D8::GetRotation004B88F0(srMatrix3T<float>* rotation)
 // FUNCTION: WIZ8 0x004b53d0
 W8AnimRep005ED050::W8AnimRep005ED050()
 {
-    flag_064 = 0;
-    value_066 = 0xffff;
+    subcycle_064 = 0;
+    pending_subcycle_066 = 0xffff;
     timer_068 = 0;
     active = 0;
-    flag_06d = 0;
-    flag_06e = 0;
-    flag_06f = 0;
-    flag_070 = 0;
-    behaviour_071 = -1;
-    value_074.SetZero();
-    value_080.SetZero();
-    value_08c = 0;
+    animation_playing_06d = 0;
+    frame_direction_06e = 0;
+    frame_method_06f = 0;
+    animation_behaviour_070 = 0;
+    pending_behaviour_071 = -1;
+    bounds_min_074.SetZero();
+    bounds_max_080.SetZero();
+    bounds_extent_08c = 0;
     value_090 = 0;
-    counter_094 = 0xff;
-    counter_095 = 0xff;
+    first_frame_094 = 0xff;
+    last_frame_095 = 0xff;
     if (g_shared_timer_base == 0) {
         srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 0x4e, 0);
     }
@@ -143,21 +143,21 @@ W8AnimRepBase005EC1D8* W8AnimRepBase005EC1D8::Clone()
 // FUNCTION: WIZ8 0x004b54a0
 W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other) : W8AnimRepBase005EC1D8(other)
 {
-    flag_064 = other.flag_064;
-    value_066 = other.value_066;
+    subcycle_064 = other.subcycle_064;
+    pending_subcycle_066 = other.pending_subcycle_066;
     timer_068 = other.timer_068;
     active = other.active;
-    flag_06d = other.flag_06d;
-    flag_06e = other.flag_06e;
-    flag_06f = other.flag_06f;
-    flag_070 = other.flag_070;
-    behaviour_071 = other.behaviour_071;
-    value_074 = other.value_074;
-    value_080 = other.value_080;
-    value_08c = other.value_08c;
+    animation_playing_06d = other.animation_playing_06d;
+    frame_direction_06e = other.frame_direction_06e;
+    frame_method_06f = other.frame_method_06f;
+    animation_behaviour_070 = other.animation_behaviour_070;
+    pending_behaviour_071 = other.pending_behaviour_071;
+    bounds_min_074 = other.bounds_min_074;
+    bounds_max_080 = other.bounds_max_080;
+    bounds_extent_08c = other.bounds_extent_08c;
     value_090 = other.value_090;
-    counter_094 = other.counter_094;
-    counter_095 = other.counter_095;
+    first_frame_094 = other.first_frame_094;
+    last_frame_095 = other.last_frame_095;
 
     if (g_shared_timer_base == 0) {
         srAssertFail("gpsrTimer", "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp", 100, 0);
