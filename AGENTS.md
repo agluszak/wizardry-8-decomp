@@ -66,6 +66,15 @@ printing and put large disposable output under `build/`. Detailed operational re
 - Compiler-owned storage reuse is not source evidence. Never alias a parameter/local or add overlapping
   source variables merely to reproduce stack-slot, register, spill or temporary reuse. Introduce the
   logical source variables even when that lowers comparison score.
+- A machine-width access does not establish a source field of that width. Treat widened loads/stores,
+  dword/block moves, `memcpy`, and same-offset alternate interpretations as compiler/aggregate-copy
+  evidence first. Before adding an overlay or decomposing copied storage into sibling fields, trace the
+  complete source/destination extent and test an existing embedded record or ordinary assignment.
+  "Same offset", "same size", a wide move, or decompiler type disagreement is not positive union evidence.
+- Trace pointer identity through callers before assigning a callee offset to a class. If satisfying a
+  recovered signature requires reinterpret-casting one modeled W8/sr/st record pointer to another, the
+  signature/owner model is wrong or unresolved; do not bless the cast. Linker-folded sibling functions
+  likewise do not make their source parameter types interchangeable.
 - Search for the authored abstraction before spelling out a lowered sequence. Existing container/math/
   traversal helpers should be used when their semantics fit; repeated equivalent sequences across
   independently owned TUs trigger an inline/helper investigation rather than copy-pasted lowering.
@@ -93,6 +102,9 @@ printing and put large disposable output under `build/`. Detailed operational re
   serialized/pixel memory, tagged storage, deliberate address/bit reinterpretation or an explicitly
   unresolved site. New casts require an attached `reinterpret-ok: <reason>` comment; a marker never justifies
   hiding known type disagreement.
+- Source unions require positive evidence for overlapping authored storage: a real discriminant,
+  mutually exclusive lifecycle/state, an accepted source oracle, or equivalent source-level evidence.
+  Coincident offsets, equal sizes, widened copies and decompiler type disagreement do not qualify.
 - Do not convert a repository-typed object to `char*`/`unsigned char*` and add a literal byte
   offset. The whole-tree source-model gate hard-rejects this for `this` and typed W8/sr/st pointers
   or references; there is no waiver. `raw-offset-ok: <reason>` remains only for genuinely
