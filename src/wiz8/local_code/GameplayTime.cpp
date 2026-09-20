@@ -454,7 +454,7 @@ void ResolveSurpriseWake005029E0(void)
 
 /* 0x00502B50: the hit-point, stamina and per-realm spell regeneration rates
    are one tick of the pool ceiling's share, twenty points of base and a
-   twelveth of a minute each; the modifier block's three doubled-cost flags
+   twelveth of a minute each; the modifier block's three regeneration-boost flags
    raise their rate by half. */
 // FUNCTION: WIZ8 0x00502b50
 void RebuildCharacterRegenRates00502B50(W8Character* character)
@@ -488,8 +488,8 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
 }
 
 /* The monster counterpart of the character regen rebuild: the same pool-share
-   rates plus the modifier block's two regen channels, raised by half while the
-   conditioned-rate flags are set. */
+   rates plus the modifier block's two regen channels, raised by half while the corresponding
+   regeneration-boost flags are set. */
 // FUNCTION: WIZ8 0x00502c50
 void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
 {
