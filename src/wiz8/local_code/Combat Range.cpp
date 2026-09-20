@@ -207,9 +207,7 @@ bool CharacterActionReachesTarget(int party_slot, int action, W8TargetingContext
 
         GetCameraPosition(&camera);
         GetCameraPosition(&camera_top);
-        point.x = target->point.x;
-        point.y = target->point.y;
-        point.z = target->point.z;
+        point = target->point;
         unsigned int spell_id = GetActionSpellLikeId(party_slot, context);
         if (spell_id == 0) {
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);

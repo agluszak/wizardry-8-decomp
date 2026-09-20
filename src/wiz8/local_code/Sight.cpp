@@ -572,9 +572,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                 entry->state_04 = 1;
                                 entry->last_seen_clock_0c = g_status_685170.world_clock;
                                 entry->subject_position_10 = own_position;
-                                entry->target_position_1c.x = other_position.x;
-                                entry->target_position_1c.y = other_position.y;
-                                entry->target_position_1c.z = other_position.z;
+                                entry->target_position_1c = other_position;
                                 goto sight_flags;
                             }
                         }
