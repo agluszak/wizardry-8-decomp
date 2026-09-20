@@ -252,7 +252,7 @@ enum { W8_ENCOUNTER_STALE_SECONDS = 36000 };
    candidate is moved to slot zero because GenerateEncounter consumes slot zero. */
 // FUNCTION: WIZ8 0x0048B9A0
 int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
-                                                  W8GrowableVector<int>* candidates)
+                                      W8GrowableVector<int>* candidates)
 {
     int rarity_roll;
     int rarity_class;
@@ -965,9 +965,10 @@ unsigned char MonGen::Load(int handle)
         ok = ok && FileRead(handle, &generation_enabled, 1, 0);
     }
     loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &custom_spawn_chance, 1, 0) &&
-             FileRead(handle, &custom_interval_seconds, 2, 0) && FileRead(handle, &unknown_08, 2, 0) &&
-             FileRead(handle, &state_0c.x, 4, 0) && FileRead(handle, &state_0c.y, 4, 0) &&
-             FileRead(handle, &state_0c.z, 4, 0) && FileRead(handle, &encounter_table_index, 4, 0);
+             FileRead(handle, &custom_interval_seconds, 2, 0) &&
+             FileRead(handle, &unknown_08, 2, 0) && FileRead(handle, &state_0c.x, 4, 0) &&
+             FileRead(handle, &state_0c.y, 4, 0) && FileRead(handle, &state_0c.z, 4, 0) &&
+             FileRead(handle, &encounter_table_index, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
         m_pTimer->Load(handle);
@@ -1013,8 +1014,8 @@ void MonGen::Reset()
         }
         m_pTimer->m_flags &= 0xfffd;
     }
-    interval =
-        (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval : custom_interval_seconds;
+    interval = (flags & W8_MONGEN_USE_DEFAULT_SETTINGS) != 0 ? g_generator_default_interval
+                                                             : custom_interval_seconds;
     jitter = interval * g_generator_jitter_fraction;
     m_pTimer->SetDuration(static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval -
                           jitter);
