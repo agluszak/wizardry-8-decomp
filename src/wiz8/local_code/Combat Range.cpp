@@ -90,9 +90,7 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
     bool live_groups = CombatAllowsLiveGroups();
     if (flag != 1) {
         unsigned int index;
-        // reinterpret-ok: retail counts the pointer list through the IList API
-        for (index = 0; index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-             ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
                 monster_info->highest_condition < 0x12 &&

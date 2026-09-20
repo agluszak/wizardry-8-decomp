@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_OCT_BUILD_PRE_TREE_H
 
 #include "wiz8/engine_code/OctBuildTree.h"
+#include "wiz8/engine_code/ReadMesh.h"
 #include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/geometry.h"
 
@@ -41,13 +42,8 @@ struct W8OctRegionPolygon {
     unsigned char positional_42[2];
     /* Growable per-polygon run the cleanup releases. */
     int* face_indices_44;
-    /* Copy of the source mesh face: the three vertex indices. */
-    int face_vertices_48[3];
-    /* The three corners' texture coordinates SplitUVMaps deduplicates. */
-    srVector2T<float> uvs_54[3];
-    /* Copy of the source face's material index. */
-    unsigned long face_material_6c;
-    unsigned char face_tail_70;
+    /* Whole source mesh face copied by the polygon builder. */
+    W8ReadMeshFace face_48;
     unsigned char positional_71[3];
 
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;

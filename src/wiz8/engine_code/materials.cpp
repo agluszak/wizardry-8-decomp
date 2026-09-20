@@ -1271,7 +1271,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         face->vertices[2]);
                 goto invalid;
             }
-            memcpy(&polygon->face_vertices_48, face, sizeof(W8ReadMeshFace));
+            memcpy(&polygon->face_48, face, sizeof(W8ReadMeshFace));
             polygon->ordinal_04 = ordinal;
             polygon->material_24 = face->material_index;
             for (corner = 0; corner < 3; ++corner) {
@@ -1410,11 +1410,11 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         back->plane_08[1] = back->plane_08[1] * g_negative_one_005ebc38;
                         back->plane_08[2] = back->plane_08[2] * g_negative_one_005ebc38;
                         back->plane_08[3] = back->plane_08[3] * g_negative_one_005ebc38;
-                        back->face_vertices_48[0] = vertex_index[1];
-                        back->face_vertices_48[1] = vertex_index[0];
-                        back->face_vertices_48[2] = vertex_index[2];
-                        back->uvs_54[0] = face->texture_coordinates[1];
-                        back->uvs_54[1] = face->texture_coordinates[0];
+                        back->face_48.vertices[0] = vertex_index[1];
+                        back->face_48.vertices[1] = vertex_index[0];
+                        back->face_48.vertices[2] = vertex_index[2];
+                        back->face_48.texture_coordinates[0] = face->texture_coordinates[1];
+                        back->face_48.texture_coordinates[1] = face->texture_coordinates[0];
                         mesh->num_faces_08 = mesh->num_faces_08 + 1;
                     }
                 }
@@ -1496,7 +1496,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
             corner_vertex = polygon->vertices_34 + corner;
             if ((*corner_vertex)->vertex_index_04 == source && (*corner_vertex)->flag_0a == 0) {
                 *corner_vertex = record;
-                record->uv_4c = polygon->uvs_54[corner];
+                record->uv_4c = polygon->face_48.texture_coordinates[corner];
             }
         }
         while (remaining != 0) {
@@ -1534,7 +1534,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
                     if ((*corner_vertex)->vertex_index_04 == source &&
                         (*corner_vertex)->flag_0a == 0) {
                         *corner_vertex = record;
-                        record->uv_4c = polygon->uvs_54[corner];
+                        record->uv_4c = polygon->face_48.texture_coordinates[corner];
                     }
                 }
             }

@@ -434,11 +434,7 @@ unsigned char g_npc_join_races[5] = {13, 12, 14, 15, 11};
 bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item)
 {
     int index;
-    /* The record's three wanted item ids sit inside the packed
-       character-template byte run at 0x1f7 (record 0x2bb). */
-    short* wanted =
-        // reinterpret-ok: packed record byte run holding three shorts
-        reinterpret_cast<short*>(npc->record->character.unknown_1f7);
+    const short* wanted = npc->record->character.wanted_item_ids_1f7;
 
     for (index = 0; index < 3; ++index) {
         int wanted_id = wanted[index] - 1;

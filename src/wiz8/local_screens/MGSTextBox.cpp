@@ -2129,7 +2129,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
         return;
     }
     // reinterpret-ok: retail counts the pointer-list through the IList API
-    unsigned int count = ILLength(reinterpret_cast<W8IList*>(line->entries_18));
+    unsigned int count = PLLength(line->entries_18);
     for (int i = 0; i < static_cast<int>(count); ++i) {
         W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
         if (word->flag_08 != 0) {
@@ -2166,7 +2166,7 @@ void ResetUsedNoticeWords(int text_box, unsigned char redraw)
         W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
             // reinterpret-ok: retail counts the pointer-list through the IList API
-            unsigned int count = ILLength(reinterpret_cast<W8IList*>(list));
+            unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->flag_08 == 2) {
@@ -2188,7 +2188,7 @@ void ClearNoticeWordHover(int text_box, unsigned char redraw)
         W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
             // reinterpret-ok: retail counts the pointer-list through the IList API
-            unsigned int count = ILLength(reinterpret_cast<W8IList*>(list));
+            unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->flag_08 != 2) {
@@ -2216,7 +2216,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
         list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
             // reinterpret-ok: retail counts the pointer-list through the IList API
-            count = ILLength(reinterpret_cast<W8IList*>(list));
+            count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->flag_08 != 2) {
@@ -2241,7 +2241,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
             }
             list = g_message_storage_68f2d8[text_box][line].entries_18;
             // reinterpret-ok: retail counts the pointer-list through the IList API
-            count = ILLength(reinterpret_cast<W8IList*>(list));
+            count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
@@ -2279,7 +2279,7 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
             }
             list = g_message_storage_68f2d8[text_box][line].entries_18;
             // reinterpret-ok: retail counts the pointer-list through the IList API
-            count = ILLength(reinterpret_cast<W8IList*>(list));
+            count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 word = static_cast<W8NoticeWord*>(PLGet(list, i));

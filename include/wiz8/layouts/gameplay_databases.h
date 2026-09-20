@@ -258,7 +258,8 @@ struct W8NpcCharacterTemplate {
     unsigned short backpack_present[8];   /* 0x1d6, record 0x29a */
     unsigned short backpack_ids[8];       /* 0x1e6, record 0x2aa */
     signed char gender; /* 0x1f6, record 0x2ba: copied into the character's own sex field */
-    unsigned char unknown_1f7[0xf];
+    short wanted_item_ids_1f7[3];
+    unsigned char unknown_1fd[9];
 }; /* 0x206, record 0x0c4..0x2c9 */
 
 static_assert(sizeof(W8NpcCharacterTemplate) == 0x206, "W8NpcCharacterTemplate_size_must_be_0x206");
@@ -392,6 +393,14 @@ struct W8MonsterTreasureBlock {
 };
 static_assert(sizeof(W8MonsterTreasureBlock) == 0x84, "W8MonsterTreasureBlock_must_be_0x84");
 
+#pragma pack(push, 1)
+struct W8EncounterCompanionRecord {
+    short species;
+    unsigned char chance;
+};
+#pragma pack(pop)
+static_assert(sizeof(W8EncounterCompanionRecord) == 3, "W8EncounterCompanionRecord_size");
+
 struct W8MonsterRecord {
     wchar_t name_00[24]; /* 0x000: suffix after '#' removed at load */
     wchar_t name_30[24]; /* 0x030: suffix after '#' removed at load */
@@ -401,7 +410,7 @@ struct W8MonsterRecord {
     unsigned char can_open_doors_0c0;
     /* 0x0c1: rolled by the group-attack summon to size the spawned group. */
     W8Dice group_size_dice_0c1;
-    unsigned char unknown_0c5[6];
+    W8EncounterCompanionRecord companions_0c5[2];
     /* 0x0cb: the monster's kind. The alchemy-casting rule admits kinds four,
        five and thirteen and no others, which is the only body that reads it. */
     unsigned char kind_0cb;
