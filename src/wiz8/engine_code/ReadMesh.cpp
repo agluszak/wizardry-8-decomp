@@ -123,10 +123,10 @@ static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
 namespace {
 
 // TEMPLATE: WIZ8 0x00489fe0
-// W8HashTable<unsigned int,int>::W8HashTable
+// W8HashTable<unsigned int,W8MeshStripPolygon*>::W8HashTable
 
 // TEMPLATE: WIZ8 0x0055db80
-// W8HashTable<unsigned int,int>::~W8HashTable
+// W8HashTable<unsigned int,W8MeshStripPolygon*>::~W8HashTable
 
 bool ReadMeshFaceNeedsSplit(const W8ReadMeshFace& face, srMaterialIFace** materials)
 {
@@ -172,7 +172,7 @@ struct W8MeshStripBuilder {
     srVector3i* polygon_vertices;
     W8MeshStripPolygon* polygons;
     unsigned int count;
-    W8HashTable<unsigned int, int> edges;
+    W8HashTable<unsigned int, W8MeshStripPolygon*> edges;
 };
 
 /* The paired-sort templates live in stHash.hpp so every octree TU sees the
@@ -255,8 +255,7 @@ unsigned int W8MeshStripBuilder::EdgeKey(const W8MeshStripPolygon* polygon, int 
 
 W8MeshStripPolygon* W8MeshStripBuilder::EdgePolygon(int slot)
 {
-    int value = edges.entries[slot].value;
-    return reinterpret_cast<W8MeshStripPolygon*>(value); // reinterpret-ok: polygon address
+    return edges.entries[slot].value;
 }
 
 // FUNCTION: WIZ8 0x00487880
@@ -268,8 +267,7 @@ int W8MeshStripBuilder::CountNeighbors(int index)
         unsigned int key = EdgeKey(polygon, edge);
         for (int slot = edges.FindNextEntry(&key, -1); slot != -1;
              slot = edges.FindNextEntry(&key, slot)) {
-            int value = reinterpret_cast<int>(polygon); // reinterpret-ok: polygon address
-            if (edges.entries[slot].value != value) {
+            if (edges.entries[slot].value != polygon) {
                 ++neighbors;
                 break;
             }
@@ -293,10 +291,9 @@ void W8MeshStripBuilder::BuildEdgeTable()
 
     for (unsigned int index = 0; index < count; ++index) {
         W8MeshStripPolygon* polygon = polygons + index;
-        int value = reinterpret_cast<int>(polygon); // reinterpret-ok: polygon address
         for (int edge = 0; edge < 3; ++edge) {
             unsigned int key = EdgeKey(polygon, edge);
-            edges.Insert(&key, &value);
+            edges.Insert(&key, &polygon);
         }
     }
 }
