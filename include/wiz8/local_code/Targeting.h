@@ -117,6 +117,7 @@ void SelectSpellCastingPartySlot(int party_slot);
 void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind);
 /* 0x0053A830: commit the chosen spell target. */
 void CommitSelectedSpellTarget(void);
+bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item);
 void RefreshMonsterTargetCounts005398D0(void);
 bool AnyMonsterVisible0053A1D0(void);
 void UpdateTargetMarkerHighlight0053B1D0(void);

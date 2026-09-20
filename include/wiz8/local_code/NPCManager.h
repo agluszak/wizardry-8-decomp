@@ -103,6 +103,7 @@ void ReleaseNpcMonsterBindings0050C2E0(void);
 void ReleaseMarkedNpcBindings0050DA00(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
+bool NpcHasTopic(W8NpcState* npc, int topic);
 W8NpcState* GetNpcStateByKind(int kind);
 /* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped

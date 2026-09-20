@@ -91,6 +91,10 @@ unsigned char g_flag_00606994 = 1;
 // GLOBAL: WIZ8 0x0068c520
 int g_value_0068c520;
 
+// GLOBAL: WIZ8 0x0068C53C
+int g_value_0068c53c;
+// GLOBAL: WIZ8 0x0068C54C
+int g_value_0068c54c;
 // GLOBAL: WIZ8 0x0068c548
 int g_value_0068c548;
 
