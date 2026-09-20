@@ -308,7 +308,7 @@ void InitializeGameplayRuntimeObjects(void)
 // FUNCTION: WIZ8 0x0054b080
 void ResetGameplayStatusBlock(void)
 {
-    memset(gXStatus.status_block, 0, sizeof(gXStatus.status_block));
+    memset(gXStatus.spell_cooldown_clocks, 0, sizeof(gXStatus.spell_cooldown_clocks));
     gXStatus.character_event_queue->DestroyAllEvents();
     gXStatus.party_moving = 0;
     gXStatus.fSurprisePossible = 0;

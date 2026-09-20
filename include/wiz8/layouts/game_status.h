@@ -27,6 +27,25 @@ struct W8StatusBuffers {
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
+struct W8SpellUsageRecord {
+    unsigned int cast_count;
+    unsigned int usable_cast_count;
+    unsigned char unknown_08[8];
+};
+
+struct W8GlobalStatusFactView {
+    int status_ints_3121[1000];
+    unsigned char flag_40c1;
+    unsigned char unknown_40c2[0x17b];
+    int value_423d;
+    unsigned char unknown_4241[0x59d];
+};
+
+struct W8GlobalStatusSpellUsageView {
+    unsigned char unknown_3121[0xf9d];
+    W8SpellUsageRecord records[0x72];
+};
+
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
     bool game_started; /* 0x000c */
@@ -152,17 +171,17 @@ struct W8GlobalStatus {
     int party_slot_249c;
     unsigned char unknown_24a0[0xc80];
     unsigned char log_fact_checks_3120;
-    /* 0x3121 (ABS 0x688291): 1000 consecutive dwords. EndCombat walks exactly
-       this run flipping 1 -> 2; the extent is representation-proven even
-       though the semantics are not. */
-    int status_ints_3121[1000];
-    /* 0x40c1: the 0x88 fact reads and writes this byte. */
-    unsigned char flag_40c1;
-    unsigned char unknown_40c2[0x17b];
-    /* 0x423d: party-slot-like dword the 0x14c fact compares against occupied
-       slots. */
-    int value_423d;
-    unsigned char unknown_4241[0x731];
+    /* 0x3121..0x47dd has two proven overlapping retail views. EndCombat walks
+       1000 consecutive dwords from 0x3121, while spell execution indexes two
+       dwords in 0x10-byte records rooted at 0x40be. Fact handlers independently
+       address 0x40c1 and 0x423d. ResetGameStatus clears the complete enclosing
+       0x49c2-byte object, establishing one owner rather than adjacent globals. */
+    // union-ok: retail instructions use both exact overlapping views of the one bulk-cleared status object
+    union {
+        W8GlobalStatusFactView facts;
+        W8GlobalStatusSpellUsageView spell_usage;
+    } tail_3121;
+    unsigned char unknown_47de[0x194];
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
        the level-4 setup; the setup skips its work while this or value_2390
        holds. */
@@ -196,6 +215,9 @@ struct W8GlobalStatus {
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
+static_assert(sizeof(W8SpellUsageRecord) == 0x10, "W8SpellUsageRecord_must_be_0x10");
+static_assert(offsetof(W8GlobalStatusSpellUsageView, records) == 0xf9d,
+              "W8GlobalStatusSpellUsageView_records_offset");
 static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19, "W8GlobalStatus_party_gold_offset");
 static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
               "W8GlobalStatus_selected_character_offset");
@@ -247,7 +269,13 @@ static_assert(offsetof(W8GlobalStatus, flag_49bc) == 0x49bc, "W8GlobalStatus_fla
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
-static_assert(offsetof(W8GlobalStatus, flag_40c1) == 0x40c1, "W8GlobalStatus_flag_40c1_offset");
+static_assert(offsetof(W8GlobalStatus, tail_3121) + offsetof(W8GlobalStatusFactView, flag_40c1) ==
+                  0x40c1,
+              "W8GlobalStatus_flag_40c1_offset");
+static_assert(offsetof(W8GlobalStatus, tail_3121) +
+                      offsetof(W8GlobalStatusSpellUsageView, records) ==
+                  0x40be,
+              "W8GlobalStatus_spell_usage_offset");
 static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
 static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f,
               "W8GlobalStatus_value_498f_offset");
@@ -255,7 +283,9 @@ static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,
               "W8GlobalStatus_value_4993_offset");
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
-static_assert(offsetof(W8GlobalStatus, value_423d) == 0x423d, "W8GlobalStatus_value_423d_offset");
+static_assert(offsetof(W8GlobalStatus, tail_3121) + offsetof(W8GlobalStatusFactView, value_423d) ==
+                  0x423d,
+              "W8GlobalStatus_value_423d_offset");
 static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
               "W8GlobalStatus_regular_member_count_offset");
 static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,

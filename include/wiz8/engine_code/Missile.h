@@ -159,9 +159,13 @@ struct W8MissileTableRecord {
     char cycle_name_100[0x40];
     float radius_140;    /* 0x140: replaces the launched effect's radius */
     int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
-    unsigned char unknown_148[0x0c];
+    unsigned char unknown_148[8];
+    /* 0x150: copied into the launched effect block's value_1c. */
+    int value_150;
     unsigned char flag_154; /* 0x154: blocks ending combat while set */
-    unsigned char unknown_155[0x10];
+    /* 0x155: the percentage chances the missile's hit effect assigns each
+       condition; CastSpellFromSource copies them into its effect block. */
+    unsigned char condition_chances_155[0x10];
     /* 0x165: the missile weapon's impact sound class; MakePCHitSound bounds it
        against the 28 material-impact rows. */
     int weapon_sound_class_165;

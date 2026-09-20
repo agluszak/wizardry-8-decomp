@@ -184,6 +184,9 @@ extern const float g_float_005ebca0;
 extern float g_movement_speed_step_005ed490;
 
 extern const double g_zero_005ebb40;
+/* 0x005ED7D0: -1000000, the ground-settle failure height; the only reader is
+   the backfire scatter retry loop in Magic.cpp, so it owns the constant. */
+extern const float g_ground_settle_fail_005ed7d0;
 extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;

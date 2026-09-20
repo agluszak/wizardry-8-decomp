@@ -71,6 +71,10 @@ void InvalidatePortraitControl0059BBD0(unsigned int party_slot); /* 0x0059BBD0 *
 void RedrawCombatPortraits0059B720(void);
 void UpdatePortraitAdvanceButtons0059BC10(void);
 void UpdateConditionButtons0059C080(void);
+/* 0x0059AF40: stage the casting icon on a monster-manager entry; the spell's
+   realm picks the icon catalog base and the flag picks the dim variant. */
+void StageMonsterCastIcon0059AF40(unsigned int monster_index, int spell_realm, char flag,
+                                  int spell_id);
 /* 0x0059C030 / 0x0059BFC0: hide or show the condition-button region set for
    the current layout. SyncMainGameModeRegions picks between them. */
 void DisableConditionButtons0059C030(void);

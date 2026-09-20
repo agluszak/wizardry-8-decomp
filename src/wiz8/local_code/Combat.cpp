@@ -1104,7 +1104,7 @@ void EndCombat004EA310(int mode)
         }
         g_combat_state->value_010 /= active;
         AwardPartyExperience004EEF10(g_combat_state->value_014 + g_combat_state->value_010, 1);
-        int* entry = g_status_685170.status_ints_3121;
+        int* entry = g_status_685170.tail_3121.facts.status_ints_3121;
         int* end = entry + 1000;
         while (entry < end) {
             if (*entry == 1) {
