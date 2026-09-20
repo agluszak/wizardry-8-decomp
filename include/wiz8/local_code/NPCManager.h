@@ -3,6 +3,7 @@
 #include "surrender/srMath.h"
 #include "wiz8/layouts/npc_state.h"
 
+struct W8Chunk;
 class W8Monster;
 class Trigger;
 struct W8GameplayModifierBlock;
@@ -139,3 +140,5 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
 /* 0x0050DD50: record that the NPC has told the party the given fact. */
 void TellNpcFact(W8NpcState* npc, short fact);
+/* 0x00509F00: write every NPC state record into the open NPCT chunk. */
+unsigned char SaveNpcStates00509F00(W8Chunk* chunks);

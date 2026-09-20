@@ -355,6 +355,10 @@ public:
     void SetHeightRange(float minimum, float maximum);                     /* 0x00453EF0 */
     void SetFlag25(char value);                                            /* 0x004531F0 */
     void SetMovementStopped00453880();                                     /* 0x00453880 */
+    /* Save the presence-gated movement state LoadMovementState00454AD0
+       consumes: the flag byte, then for an ungrouped navigator with flag
+       0x20000000 set the height bounds, position and movement target. */
+    unsigned char SaveMovementState004549D0(unsigned int hFile);           /* 0x004549D0 */
     unsigned char LoadMovementState00454AD0(unsigned int hFile);           /* 0x00454AD0 */
     void PropagateGroupPosition();                                         /* 0x00454C80 */
     void UpdateAngles00453990();                                           /* 0x00453990 */

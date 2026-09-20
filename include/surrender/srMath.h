@@ -410,8 +410,32 @@ template <class T> srVector4T<T>& srVector4T<T>::operator*=(double scalar)
 
 template <class T> class srMatrix2T {
 public:
+    srMatrix2T<T>* MultiplyBy(const srMatrix2T<T>& other);
+
     srVector2T<T> vectors[2];
 };
+
+// TEMPLATE: WIZ8 0x004D6B80
+// srMatrix2T<float>::MultiplyBy
+template <class T> srMatrix2T<T>* srMatrix2T<T>::MultiplyBy(const srMatrix2T<T>& other)
+{
+    T result[4];
+    const T* right = &other.vectors[0].x;
+    const T* left = &vectors[0].x;
+
+    for (int index = 0; index != 2; ++index) {
+        T x = right[index];
+        T y = right[index + 2];
+
+        result[index] = x * left[0] + y * left[1];
+        result[index + 2] = x * left[2] + y * left[3];
+    }
+    vectors[0].x = result[0];
+    vectors[0].y = result[1];
+    vectors[1].x = result[2];
+    vectors[1].y = result[3];
+    return this;
+}
 
 template <class T> class srMatrix3T {
 public:

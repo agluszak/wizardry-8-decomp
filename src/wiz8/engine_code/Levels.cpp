@@ -578,7 +578,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
         if (level < W8_LEVEL_COUNT) {
             char trigger_name[8];
-            sprintf(trigger_name, "%3s%02d", g_level_folders[level].level_name, entrance);
+            sprintf(trigger_name, "%3s%02d", g_level_folders[level].location_code, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
         if (trigger != 0 && trigger->flag_0a0_11) {

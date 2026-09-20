@@ -70,6 +70,7 @@ unsigned char CreateLayoutArrowButtons(void); /* 0x005982D0 */
 /* MainGameScreenEnter's interface-button bank: submenu, scroll, panel,
    options disk, combat stance, roof, and layout arrows. */
 void CreateMainGameInterfaceButtons(void); /* 0x00598AB0 */
+void DestroyMainGameInterfaceButtons(void); /* 0x00598AE0 */
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */
 void DrawSubMenuCharacterAction(void); /* 0x00596FE0 */

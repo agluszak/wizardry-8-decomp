@@ -11,7 +11,7 @@ struct W8EncounterTableRuntime {
     W8GrowableVector<unsigned char> rarity_class;          /* 0x010: 3, 7, 20, or 70 */
     W8GrowableVector<unsigned char> time_condition;        /* 0x020 */
     W8GrowableVector<unsigned char> challenge_level;       /* 0x030: 1 through 50 */
-    W8GrowableVector<W8EncounterScriptName*> script_names; /* 0x040 */
+    W8Vector<W8EncounterScriptName*> script_names; /* 0x040 */
     char name[256];                                        /* 0x050 */
     unsigned int unknown_150;                              /* 0x150 */
     unsigned char version_two_flags;                       /* 0x154 */

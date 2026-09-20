@@ -114,11 +114,12 @@ class stModelInstance2D;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
 /* 0x00425190: build a 2D marker model instance over a texture. */
-stModelInstance2D* Function425190(srTextureIFace* texture, double width, double height,
-                                  char keep_aspect, char a5);
+stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
+                                           char keep_aspect, char a5);
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
-unsigned char Function426F80(srColorSurface* target, W8ScreenRect* rect, char render_secondary);
+unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
+                                           char render_secondary);
 
 struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
@@ -254,6 +255,7 @@ unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
    no-ops when the stored bounds already match. */
+void SetScaledViewport00425C90(int left, int top, int right, int bottom);
 void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);

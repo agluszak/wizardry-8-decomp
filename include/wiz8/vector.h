@@ -216,8 +216,9 @@ template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
    at 0x00438F70). The octree model-instance queries take the base pointer. */
 template <class T> class W8Vector : public W8GrowableVector<T> {
 public:
-    W8Vector() {}
-    explicit W8Vector(int initial_capacity) : W8GrowableVector<T>(initial_capacity) {}
+    /* Retail emits only the capacity form (0x00445FF0 takes the count); the
+       default argument carries unadorned declarations. */
+    explicit W8Vector(int initial_capacity = 5) : W8GrowableVector<T>(initial_capacity) {}
 };
 
 #endif

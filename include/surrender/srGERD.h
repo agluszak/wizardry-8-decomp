@@ -123,6 +123,7 @@ public:
     unsigned long getTextureCacheUsed() const;
     unsigned long getResidentTextureMemUsed() const;
     void setClearColor(float red, float green, float blue, float alpha);
+    void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
     void setFogColor(const srVector3T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
@@ -172,6 +173,8 @@ public:
                double far_plane);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
+    long getPolygonOffset() const;
+    void setPolygonOffset(long offset);
     void setTexture(srTextureIFace* texture, unsigned long layer);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);

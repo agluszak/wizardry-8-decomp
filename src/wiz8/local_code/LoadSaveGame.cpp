@@ -14,6 +14,10 @@
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/stScript.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
@@ -48,6 +52,13 @@
 #include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/Video2.h"
+#include "surrender/srColorSurface.h"
+#include "wiz8/location_variables.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
+
+#include "timer.h"
 
 #include <windows.h>
 
@@ -66,6 +77,9 @@
 #include "soundman.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_code/Factions.h"
+#include "wiz8/local_screens/JournalScreen.h"
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
@@ -120,6 +134,19 @@ struct W8StatusHeader {
 }; /* 0x314 */
 
 static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
+
+/* Same-unit bodies SaveGame reaches before their definitions. */
+void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
+void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
+void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks);
+unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index);
+
+/* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
+   creation-time pair before it lands in the status block. */
+// GLOBAL: WIZ8 0x0061A134
+unsigned int g_save_filetime_xor_low_0061a134 = 0x6b24e9f0;
+// GLOBAL: WIZ8 0x0061A138
+unsigned int g_save_filetime_xor_high_0061a138 = 0xe77c28c1;
 
 /* Established save-side callees without shared declarations yet. Their
    positional names preserve the current identity ceiling; the orchestration
@@ -359,6 +386,147 @@ int GetSaveGameLevel(const char* slot_name)
     return 0;
 }
 
+/* Write one whole save file: the live status block, the version triple, the
+   SHOT screenshot (rendered through an offscreen surface when the caller did
+   not supply one), then the TEXT, TVAR, NPCI, NPCT, NPCF, FATA, JRNL and HYPN
+   sections, and the header last. Before any of that the live state is folded
+   into the status block: the camera position goes to pending_move_location,
+   every shown message line snapshots whether its countdown was still ticking,
+   the gameplay timer restarts, ungrouped monsters are destroyed, the master
+   functions save, and an iron-man game additionally stores the file's creation
+   time XOR-masked by the two data constants. A save of anything but
+   CurrentGame first absorbs the loose character chunks from
+   Saves\CurrentGame.SAV through ReadSaveChunks. The NPCI section is the only
+   writer whose failure aborts the whole save; a failed header write leaves the
+   file open and returns zero. */
+// FUNCTION: WIZ8 0x005123F0
+unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot)
+{
+    W8Chunk chunks;
+    W8Chunk current_game;
+    W8ScreenRect bounds;
+    SGP_FILETIME creation_time;
+    SGP_FILETIME access_time;
+    SGP_FILETIME write_time;
+    srColorSurface* surface;
+    char path[260];
+    unsigned char generated;
+    short cursor;
+    int saved;
+    int version_major;
+    int version_minor;
+    int version_patch;
+    int region;
+    unsigned int index;
+
+    sprintf(path, "%s\\%s.%s", "Saves", name, g_save_extension);
+    if (_access(path, 2) != 0 && errno == EACCES) {
+        _chmod(path, _S_IREAD | _S_IWRITE);
+    }
+    if (chunks.OpenWrite(path) == 0) {
+        return 0;
+    }
+    if (_stricmp(name, "CurrentGame") != 0 &&
+        current_game.OpenRead("Saves\\CurrentGame.SAV") != 0) {
+        ReadSaveChunks(&current_game, &chunks);
+        current_game.Close();
+    }
+    GetWorldCameraState(GetWorld(), &g_status_685170.pending_move_location);
+    for (region = 0; region != 4; ++region) {
+        for (index = 0; index < g_status_685170.text_box_lines_shown_49a7[region]; ++index) {
+            g_message_storage_68f2d8[region][index].clock_ticking_0c =
+                ClockIsTicking(g_message_storage_68f2d8[region][index].clock_08);
+        }
+    }
+    g_gameplay_timer_685067->Restart();
+    DestroyUngroupedMonsters();
+    SaveMasterFunctions004D8EC0();
+    g_status_685170.buffers.save_version = 1.1f;
+    g_status_685170.difficulty = g_settings_6850c8.difficulty;
+    if (g_status_685170.iron_man != 0) {
+        GetFileManFileTime(chunks.m_hFile, &creation_time, &access_time, &write_time);
+        g_status_685170.save_filetime_xor_244b[0] =
+            creation_time.dwLowDateTime ^ g_save_filetime_xor_low_0061a134;
+        g_status_685170.save_filetime_xor_244b[1] =
+            creation_time.dwHighDateTime ^ g_save_filetime_xor_high_0061a138;
+    }
+    cursor = g_status_685170.text_line_cursor_1795;
+    if (cursor == 2) {
+        saved = 2;
+        cursor = 2;
+        g_status_685170.text_line_cursor_1795 = 0;
+        static_cast<void>(saved);
+    }
+    SaveGlobalStatus(&chunks, &g_status_685170);
+    g_status_685170.text_line_cursor_1795 = cursor;
+    chunks.OpenChunk(0x52455647, 0); /* GVER */
+    version_major = 1;
+    version_minor = 2;
+    version_patch = 4;
+    chunks.Write(&version_major, 4, 0);
+    chunks.Write(&version_minor, 4, 0);
+    chunks.Write(&version_patch, 4, 0);
+    chunks.ReleaseCurrentChunk();
+    generated = screenshot == 0;
+    if (generated != 0) {
+        screenshot = new W8SaveScreenshot;
+        screenshot->version = 1.0f;
+        bounds.left = 0;
+        bounds.top = 0;
+        bounds.right = 0x280;
+        bounds.bottom = 0x1e0;
+        surface = new W8ColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50,
+                                     0x3c, 0xa0);
+        SetRendererOption4Enabled(0);
+        screenshot->capture_result = RenderWorldToSurface00426F80(surface, &bounds, 1);
+        RenderFrame();
+        SetRendererOption4Enabled(1);
+        surface->release();
+    }
+    chunks.OpenChunk(0x544f4853, 0); /* SHOT */
+    chunks.Write(screenshot, 0x2588, 0);
+    chunks.ReleaseCurrentChunk();
+    if (generated != 0) {
+        delete screenshot;
+    }
+    chunks.OpenChunk(0x54584554, 0); /* TEXT */
+    SaveMessageStorage0058FB50(chunks.m_hFile);
+    chunks.ReleaseCurrentChunk();
+    if (g_location_variable_values_00659990.count != 0) {
+        chunks.OpenChunk(0x52415654, 0); /* TVAR */
+        SaveLocationVariables004441E0(chunks.m_hFile);
+        chunks.ReleaseCurrentChunk();
+    }
+    chunks.OpenChunk(0x4943504e, 0); /* NPCI */
+    if (SaveNpcDialogueTranscript00575290(chunks.m_hFile) == 0) {
+        chunks.ReleaseCurrentChunk();
+        return 0;
+    }
+    chunks.ReleaseCurrentChunk();
+    chunks.OpenChunk(0x5443504e, 0); /* NPCT */
+    SaveNpcStates00509F00(&chunks);
+    chunks.ReleaseCurrentChunk();
+    chunks.OpenChunk(0x4643504e, 0); /* NPCF */
+    SaveFactState(chunks.m_hFile);
+    chunks.ReleaseCurrentChunk();
+    chunks.OpenChunk(0x41544146, 0); /* FATA */
+    SaveFactionState00536030(chunks.m_hFile);
+    chunks.ReleaseCurrentChunk();
+    chunks.OpenChunk(0x4c4e524a, 0); /* JRNL */
+    SaveFactJournal00558A90(chunks.m_hFile);
+    chunks.ReleaseCurrentChunk();
+    if (FindMonsterControlSpellEffect() != 0) {
+        chunks.OpenChunk(0x4e505948, 0); /* HYPN */
+        SaveMonsterControlSpellEffect00516580(&chunks);
+        chunks.ReleaseCurrentChunk();
+    }
+    if (SaveStatusHeader(&chunks) == 0) {
+        return 0;
+    }
+    chunks.Close();
+    return 1;
+}
+
 /* Build the level-specific status path the save code falls back to when the
    current-game save has no matching level section. The regular levels use the
    database row's own folder and level names and level 56 is the shared default
@@ -513,8 +681,8 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
 
     if (g_flag_00659756) {
         chunks->OpenChunk(0x45425543, 0); /* CUBE */
-        Function48EAD0(chunks->m_hFile);
-        Function48E6D0(chunks->m_hFile);
+        SaveWorldCursorNodes0048EAD0(chunks->m_hFile);
+        SaveWorldCursorNodeStates0048E6D0(chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x474e4f4d, 0); /* MONG */
@@ -550,7 +718,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53425543, 0); /* CUBS */
-    Function48E6D0(chunks->m_hFile);
+    SaveWorldCursorNodeStates0048E6D0(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534e474d, 0); /* MGNS */
@@ -570,11 +738,177 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x5448474c, 0); /* LGHT */
-    Function49D120(chunks->m_hFile);
+    SaveLightStates0049D120(chunks->m_hFile);
     chunks->ReleaseCurrentChunk();
 
     chunks->ReleaseGroup();
     chunks->ReleaseCurrentChunk();
+    return 1;
+}
+
+/* MONS chunk: the group and monster totals, then every group's 0x12b-byte
+   record restamped to save version 3 with an "encountered" byte, then every
+   monster record. A missing group or a failed monster record releases the
+   chunk and fails the section. */
+// FUNCTION: WIZ8 0x005145a0
+unsigned char SaveMonsterStatus(W8Chunk* chunks)
+{
+    unsigned int group_count;
+    unsigned int monster_count;
+    unsigned int index;
+    unsigned int record_size;
+    W8MonsterGroup* group;
+
+    group_count =
+        PLLength(gXStatus.plsMonsterGroupEncounterList) + PLLength(gXStatus.plsMonsterGroupList);
+    monster_count = PLLength(gXStatus.plsUnbornMonsterList) + PLLength(gXStatus.plsMonsterList);
+    chunks->Write(&group_count, 4, 0);
+    chunks->Write(&monster_count, 4, 0);
+    for (index = 0; index < group_count; ++index) {
+        if (index < PLLength(gXStatus.plsMonsterGroupList)) {
+            unsigned char encountered;
+
+            group = GetMonsterGroupByListIndex(index);
+            if (group == 0) {
+                goto fail;
+            }
+            group->version = 3;
+            record_size = 0x12b;
+            chunks->Write(&record_size, 4, 0);
+            chunks->Write(group, record_size, 0);
+            encountered = PListIndexOf(gXStatus.plsMonsterGroupEncounterList, group) != -1;
+            chunks->Write(&encountered, 1, 0);
+        } else {
+            unsigned char encountered;
+
+            group =
+                GetMonsterGroupByListIndex(index - PLLength(gXStatus.plsMonsterGroupList) + 0x2710);
+            if (group == 0) {
+                goto fail;
+            }
+            group->version = 3;
+            record_size = 0x12b;
+            chunks->Write(&record_size, 4, 0);
+            chunks->Write(group, record_size, 0);
+            encountered = PListIndexOf(gXStatus.plsMonsterGroupEncounterList, group) != -1;
+            chunks->Write(&encountered, 1, 0);
+        }
+    }
+    for (index = 0; index < monster_count; ++index) {
+        if (index < PLLength(gXStatus.plsMonsterList)) {
+            if (SaveMonsterRecord005147A0(chunks, index) == 0) {
+                goto fail;
+            }
+        } else {
+            if (SaveMonsterRecord005147A0(chunks, index - PLLength(gXStatus.plsMonsterList) +
+                                                      0x2710) == 0) {
+                goto fail;
+            }
+        }
+    }
+    return 1;
+
+fail:
+    chunks->ReleaseCurrentChunk();
+    return 0;
+}
+
+/* One monster's save record: the version-7 tag, the 0x425-byte W8MonsterInfo
+   with position/angle refreshed while the entry is live, then the optional
+   script name and pending conditions, the unborn flag, the navigator movement
+   state and the order/patrol fields the loader reads back in record-version
+   order. */
+// FUNCTION: WIZ8 0x005147a0
+unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
+{
+    unsigned short script_name[0x20] = {g_empty_ambient_name_65a110};
+    int script_wait = -1;
+    int script_line = -1;
+    unsigned char has_script = 0;
+    unsigned int record_version = 7;
+    unsigned int record_size;
+    int queue_count;
+    int point_count;
+    int i;
+    int component;
+    float patrol_value;
+    unsigned char unborn;
+    unsigned char value;
+    srVector3T<float> location;
+    srVector3T<float> point;
+    W8MonsterInfo* info;
+    W8Monster* monster;
+
+    info = MonsterGetScriptPartByLocationIndex(index);
+    chunks->Write(&record_version, 4, 0);
+    if (info->fActive != 0) {
+        MonsterGetLocation(info->monster, &location);
+        location.y = SettlePositionToGround00420BD0(&location, 0);
+        info->position_17.x = location.x;
+        info->position_17.y = location.y;
+        info->position_17.z = location.z;
+        info->derived_23 = MonsterGetAngleD4004C5770(info->monster);
+    }
+    record_size = sizeof(*info);
+    chunks->Write(&record_size, 4, 0);
+    chunks->Write(info, record_size, 0);
+    if (info->monster->script_238 == 0) {
+        chunks->Write(&has_script, 1, 0);
+    } else {
+        has_script = 1;
+        chunks->Write(&has_script, 1, 0);
+        memset(script_name, 0, sizeof(script_name));
+        strcpy(reinterpret_cast<char*>(script_name), // reinterpret-ok: the 64-byte
+               // save field stores the narrow script name packed as bytes
+               info->monster->script_238 != 0 ? info->monster->script_238->getName() : 0);
+        script_wait = info->monster->script_wait_240;
+        script_line = info->monster->script_line_23c;
+        chunks->Write(script_name, 0x40, 0);
+        chunks->Write(&script_wait, 4, 0);
+        chunks->Write(&script_line, 4, 0);
+        queue_count = info->monster->script_conditions_244.GetCount();
+        chunks->Write(&queue_count, 4, 0);
+        for (i = 0; i < queue_count; ++i) {
+            value = *info->monster->script_conditions_244.GetAt(i);
+            chunks->Write(&value, 1, 0);
+        }
+    }
+    unborn = PListIndexOf(gXStatus.plsUnbornMonsterList, info) != -1;
+    chunks->Write(&unborn, 1, 0);
+    monster = info->monster;
+    monster->SaveMovementState004549D0(chunks->m_hFile);
+    value = monster->defining_orders_28c;
+    chunks->Write(&value, 1, 0);
+    value = monster->order_mode_28e;
+    chunks->Write(&value, 1, 0);
+    value = monster->orders_finished_28d;
+    chunks->Write(&value, 1, 0);
+    value = monster->deaf_28f;
+    chunks->Write(&value, 1, 0);
+    patrol_value = monster->patrol_distance_294;
+    chunks->Write(&patrol_value, 4, 0);
+    patrol_value = monster->patrol_variation_298;
+    chunks->Write(&patrol_value, 4, 0);
+    value = monster->patrol_index_2ac;
+    chunks->Write(&value, 1, 0);
+    point_count = monster->vector_29c.GetCount();
+    chunks->Write(&point_count, 4, 0);
+    for (i = 0; i < point_count; ++i) {
+        point = *monster->vector_29c.GetAt(i);
+        for (component = 0; component < 3; ++component) {
+            chunks->Write(&point.x + component, 4, 0);
+        }
+    }
+    point.x = monster->direction_x_2b0;
+    point.y = monster->direction_y_2b4;
+    point.z = monster->direction_z_2b8;
+    for (component = 0; component < 3; ++component) {
+        chunks->Write(&point.x + component, 4, 0);
+    }
+    value = monster->face_party_290;
+    chunks->Write(&value, 1, 0);
+    value = monster->stay_home_291;
+    chunks->Write(&value, 1, 0);
     return 1;
 }
 
@@ -694,7 +1028,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                             } else if (chunk_id == 0x54524150) { /* PART */
                                 LoadParticleStates0049B3B0(stream->m_hFile);
                             } else if (chunk_id == 0x5448474c) { /* LGHT */
-                                Function49D390(stream->m_hFile);
+                                LoadLightStates0049D390(stream->m_hFile);
                             }
                         }
                     chunk_done:
@@ -832,7 +1166,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         ActivateGroupMembers(group, 0);
         if (group->flag_c3 != 0 && group->leader_group_id == 0) {
-            ReleaseMonsterGroup(group);
+            RegisterActiveEncounterGroup(group);
         }
     }
     return 1;
@@ -1567,6 +1901,31 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     ShowNotice(0xc, gppStringList[0x1e10 / 4], -1, -1, 0);
+}
+
+/* Serialize the live monster-control effect into the open HYPN chunk. The
+   pointer-list vectors and the trailing result are deliberately skipped; the
+   loader rebuilds them. The assertion names the local pLure and belongs to
+   this unit at source line 3507. */
+// FUNCTION: WIZ8 0x00516580
+void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks)
+{
+    W8SpellEffectEntry* lure = FindMonsterControlSpellEffect();
+
+    if (lure == 0) {
+        srAssertFail("pLure", LOADSAVEGAME_CPP, 0xdb3, 0);
+    }
+    chunks->Write(&lure->kind, 4, 0);
+    chunks->Write(&lure->turns_remaining, 4, 0);
+    chunks->Write(&lure->Source, sizeof(lure->Source), 0);
+    chunks->Write(&lure->target, sizeof(lure->target), 0);
+    chunks->Write(&lure->OrigSource, sizeof(lure->OrigSource), 0);
+    chunks->Write(lure->unknown_03c, sizeof(lure->unknown_03c), 0);
+    chunks->Write(&lure->flag_120, 1, 0);
+    chunks->Write(&lure->flag_121, 1, 0);
+    chunks->Write(&lure->flag_122, 1, 0);
+    chunks->Write(&lure->flag_123, 1, 0);
+    chunks->Write(&lure->definition, sizeof(lure->definition), 0);
 }
 
 /* Choose the numbered quick-save slot that the next quick save should write.

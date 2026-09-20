@@ -99,8 +99,8 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index); /* 0x00510AC0 */
 void ShowMonsterGroupInfoNotice(int group_id); /* 0x00511670 */
 /* Whether the group has a member placed and rendered in the world; a nonzero
    second argument also demands the member's party-threat flag. */
-unsigned char MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
-                                              char require_threat); /* 0x00511B40 */
+bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group,
+                                     char require_threat); /* 0x00511B40 */
 /* Write `state` into the group's engagement byte and propagate it to its four
    allied groups; while the byte is set, each call ticks the counter beside
    it. The record kinds the special encounter ids carry ignore a set. */
@@ -135,11 +135,10 @@ void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode);
 wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group);
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
 
-void ReleaseMonsterGroup(W8MonsterGroup* group);
 W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* group);
 void RefreshMonsterGroup(W8MonsterGroup* monster_group);
 void DetachMonsterGroup(W8MonsterGroup* monster_group);
-void SetMonsterGroupMode(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
+
 void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id at

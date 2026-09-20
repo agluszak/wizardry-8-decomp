@@ -294,7 +294,10 @@ struct W8NpcDatabaseRecord {
        the disposition shift; the sub-one path negates the /5 quotient. */
     signed char charm_scale_5d;
     signed char talk_scale_5e;
-    unsigned char unknown_05f[5];
+    /* 0x05f: the faction the NPC belongs to; zero leaves GetNpcDisposition on
+       the record's own disposition byte. */
+    unsigned char faction_5f;
+    unsigned char unknown_060[4];
     /* 0x064: one-based index into g_item_tables selecting the record's item
        table; 0x0050B9E0 copies that table into the runtime state. The zero and
        past-the-end tests compare it signed. */
@@ -302,7 +305,11 @@ struct W8NpcDatabaseRecord {
     /* 0x068: one bit per service the NPC offers, matched against the table at
        0x00619DF8 that pairs each service id with its bit. */
     unsigned int service_flags;
-    unsigned char unknown_06c[3];
+    unsigned char unknown_06c[2];
+    /* 0x06e: an allied faction; while a front-rank party member's bound NPC
+       belongs to it, GetNpcDisposition pins this NPC's answer at fifty. The
+       compare sign-extends it. */
+    signed char allied_faction_6e;
     /* 0x06f: the minimum average party level the notice predicate at
        0x0050C870 requires before this NPC's group can be invited. */
     unsigned char min_party_level_6f;

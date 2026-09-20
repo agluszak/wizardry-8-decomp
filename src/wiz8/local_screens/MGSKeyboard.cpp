@@ -4,6 +4,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Cursor3d.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/3dapi.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/combat_state.h"
@@ -30,6 +31,7 @@
 #include "wiz8/local_screens/MGSButtons.h"
 #include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSFormation.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/local_screens/MGSPortraits.h"
 #include "wiz8/local_screens/MGSRadarMap.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
@@ -42,6 +44,7 @@
 #include "wiz8/npc_interaction.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/text_input.h"
 #include "wiz8/utility.h"
 #include "wiz8/version.h"
 #include "wiz8/virtual_file.h"
@@ -214,6 +217,41 @@ void ResetMGSKeyboardBindings()
 }
 
 #define MGSKEYBOARD_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSKeyboard.cpp"
+
+/* Route one non-mouse input atom: text entry, NPC dialogue and the trap text
+   box consume key presses first; the MIPE editor and the record-mode console
+   gate on their flags; everything else resolves to a bound MGS command.
+   Attribution-gap body leading the MGSKeyboard.cpp hull at 0x00591960. */
+// FUNCTION: WIZ8 0x00591890
+unsigned char HandleMainGameInputEvent(const InputAtom* input)
+{
+    if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
+        static_cast<char>(HandleTextInput(input)) != 0) {
+        return 1;
+    }
+    if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
+        gXStatus.fNpcDialogueMode != 0) {
+        HandleNpcDialogueKeyEvent00574BB0(input);
+        return 1;
+    }
+    if ((input->usEvent == KEY_DOWN || input->usEvent == KEY_REPEAT) &&
+        gXStatus.fTrapInteractMode != 0 && TextBoxHandleKey(input) != 0) {
+        return 1;
+    }
+    if (GetFlag68F105() != 0 && Function57C230(input) != 0) {
+        return 1;
+    }
+    if (GetFlag69DA6C() != 0) {
+        if (g_monster_combat_timer_enabled_006f0531 == 0 &&
+            Function5E3610(input, Function5E35A0) == 1) {
+            Function5E34B0();
+            return 1;
+        }
+    } else {
+        DispatchMGSCommand(g_mgs_keyboard->FindCommandForEvent(input));
+    }
+    return 1;
+}
 
 // FUNCTION: WIZ8 0x00591960
 void DispatchMGSCommand(int command)

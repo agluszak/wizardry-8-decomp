@@ -324,6 +324,8 @@ unsigned char LoadMonsterCycle004C5910(const W8GrCycleLoadContext* context, cons
 
 bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(W8Monster* monster, srVector3T<float>* location);
+/* Expose the first Navigator angle through the enclosing Monster. */
+float MonsterGetAngleD4004C5770(W8Monster* monster); /* 0x004C5770 */
 void MonsterGetLocalLocation(W8Monster* monster, srVector3T<float>* location);
 void UpdateMonster(W8Monster* monster);
 bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle);

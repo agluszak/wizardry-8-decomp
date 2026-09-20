@@ -89,6 +89,9 @@
 // TEMPLATE: WIZ8 0x004D6B30
 // srVector4T<float>::Set
 
+// TEMPLATE: WIZ8 0x004D6B80
+// srMatrix2T<float>::MultiplyBy
+
 // TEMPLATE: WIZ8 0x0049BAB0
 // srMatrix4T<float>::Invert
 

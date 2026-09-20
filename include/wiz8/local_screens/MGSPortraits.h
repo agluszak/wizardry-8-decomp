@@ -56,6 +56,9 @@ void CreateLevelButtons(void); /* 0x0059B940 */
 void SyncPartyPortraitVitalsBars(void); /* 0x0059A3A0 */
 /* Advance per-slot portrait FX counters on a 100ms clock and dirty redraw. */
 void TickPartyPortraitFx(void);                                  /* 0x0059B1A0 */
+/* Clear each occupied slot's damage-splat/effect-icon portrait overlays and
+   rearm the shared FX clock; run on the main-game screen leave. */
+void ResetPartyPortraitFx(void);                                 /* 0x0059B270 */
 void ToggleNumericHitPoints(void);                               /* 0x0059AA30 */
 void CreateConditionButtons(void);                               /* 0x0059BDB0 */
 void DisablePortraitControls0059BB40(void);                      /* 0x0059BB40 */

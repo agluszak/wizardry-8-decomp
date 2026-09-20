@@ -8,6 +8,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "FileMan.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -190,6 +191,19 @@ void SetFactionDispositionBand(signed char faction, signed char band)
     }
 }
 
+/* The disposition `faction` holds toward `other`: the party target reads the
+   live score band while any other target is answered by the static relation
+   matrix, reporting friendly unless the stored relation is neutral. */
+// FUNCTION: WIZ8 0x00535C50
+W8FactionDisposition GetFactionDispositionToward(signed char faction, signed char other)
+{
+    if (other == W8_FACTION_PARTY) {
+        return GetFactionDisposition(faction);
+    }
+    return g_faction_relations[faction][other] != W8_FACTION_NEUTRAL ? W8_FACTION_FRIENDLY
+                                                                     : W8_FACTION_HOSTILE;
+}
+
 /* The faction-effect dispatcher every caller funnels through: op 1 is the
    apply operation and skips the unaligned/party rows; mode 0 records a
    witnessed offense (value is the victim's monster location index) while
@@ -207,7 +221,6 @@ void ApplyFactionChange(char mode, char op, signed char faction, int value)
         }
     }
 }
-
 
 /* The raw score the band above is derived from. Unlike its neighbour this one
    asserts nothing, which is what makes the checked accessor the one callers
@@ -332,4 +345,15 @@ void AdjustFactionDisposition(signed char faction, char delta)
     }
     ShowNoticef(palette, gppStringList[0x247], gppStringList[g_faction_name_ids_61eacc[faction]],
                 notice);
+}
+
+/* Write both faction tables into the open FATA chunk: the 21x21 relation
+   matrix, then the 21 runtime disposition records. */
+// FUNCTION: WIZ8 0x00536030
+void SaveFactionState00536030(int file)
+{
+    unsigned int written;
+
+    FileWrite(file, g_faction_relations, sizeof(g_faction_relations), &written);
+    FileWrite(file, g_factions, sizeof(g_factions), &written);
 }

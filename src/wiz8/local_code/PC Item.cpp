@@ -292,9 +292,45 @@ void W8ItemVideoObjectCache::Clear()
     loaded_count = 0;
 }
 
-static const char g_item_video_object_fallback_names[8][0x30] = {
-    "Dagger.sti", "LongSword.sti", "Bipennis.sti", "BattleAxe.sti",
-    "Flail.sti",  "Mace.sti",      "Hammer.sti",   "ShortStaff.sti"};
+// GLOBAL: WIZ8 0x0062a88c
+static const char g_item_video_object_fallback_names[145][0x30] = {
+    "Dagger.sti",       "LongSword.sti",    "Bipennis.sti",   "BattleAxe.sti",
+    "Flail.sti",        "Mace.sti",         "Hammer.sti",     "ShortStaff.sti",
+    "Halberd.sti",      "Spear.sti",        "BoStaff.sti",    "LongBow.sti",
+    "Crossbow.sti",     "Sling.sti",        "GreatSword.sti", "Rapier.sti",
+    "Katana.sti",       "LongStaff.sti",    "Wand.sti",       "MagicStave.sti",
+    "QuestionMark.sti", "Shuriken.sti",     "Arrow.sti",      "SlingShot.sti",
+    "KiteShield.sti",   "Basnet.sti",       "PlateTorso.sti", "PlateLegs.sti",
+    "GauntletSteel.sti", "Sollerets.sti",   "Amulet.sti",     "Ring.sti",
+    "BluePotion.sti",   "Scroll.sti",       "PowderPouch.sti", "Key.sti",
+    "Locket.sti",       "GreatBow.sti",     "RoundShield.sti", "WizardCone.sti",
+    "LeatherHelm.sti",  "Cuirass.sti",      "LeatherHauberk.sti", "Greaves.sti",
+    "LeatherPants.sti", "Gloves.sti",       "Sandals.sti",    "Buskins.sti",
+    "Boots.sti",        "Book.sti",         "Ankh.sti",       "Ninjato.sti",
+    "WarHammer.sti",    "Flamberge.sti",    "Bullwhip.sti",   "Sai.sti",
+    "Nunchuka.sti",     "Glaive.sti",       "BlackSword.sti", "FireSword.sti",
+    "RobeUpper.sti",    "RobeLower.sti",    "HalterTop.sti",  "Skirt.sti",
+    "SkullCap.sti",     "FeatheredCap.sti", "Mitre.sti",      "QuestionMark.sti",
+    "Kabuto.sti",       "Do-MaruUpper.sti", "Tosei-GusokuLower.sti",
+    "Burgonet.sti",     "FurLegs.sti",      "Cloak.sti",      "QuestionMark.sti",
+    "QuestionMark.sti", "Garland.sti",      "CatONineTails.sti", "SilverCross.sti",
+    "QuestionMark.sti", "QuestionMark.sti", "Bracelet.sti",   "Necklace.sti",
+    "Quarrel.sti",      "QuestionMark.sti", "Coif.sti",       "Hauberk.sti",
+    "ChainLower.sti",   "MailMittens.sti",  "ChainHosen.sti", "Lance.sti",
+    "Armet.sti",        "NinjaCowl.sti",    "NinjaGarbUpper.sti",
+    "NinjaGarbLower.sti", "TabiBoots.sti",  "Heaume.sti",     "BoxHelm.sti",
+    "DiamondRing.sti",  "Bag.sti",          "RedPotion.sti",  "GreenPotion.sti",
+    "PurplePotion.sti", "YellowPotion.sti", "QuestionMark.sti", "T'RangStaff.sti",
+    "GauntletBronze.sti", "QuestionMark.sti", "LightSword.sti", "QuestionMark.sti",
+    "QuestionMark.sti", "QuestionMark.sti", "Dart.sti",       "PowderShot.sti",
+    "Musket.sti",       "QuestionMark.sti", "Stone.sti",      "Stick.sti",
+    "ShortSword.sti",   "QuestionMark.sti", "Bagpipes.sti",   "Lyre.sti",
+    "Lute.sti",         "Horn.sti",         "QuestionMark.sti", "Bracelet2.sti",
+    "Shuriken2.sti",    "QuestionMark.sti", "Wand2.sti",      "YellowPotion2.sti",
+    "MediumShield.sti", "Omnigun_1.sti",    "QuestionMark.sti", "QuestionMark.sti",
+    "QuestionMark.sti", "QuestionMark.sti", "Saxaphone.sti",  "Violin.sti",
+    "Drum.sti",         "Bullroar.sti",     "QuestionMark.sti", "emptybottle.sti",
+    "Stix.sti",         "rocket.sti",       "rocketlauncher.sti"};
 
 // FUNCTION: WIZ8 0x0055ce80
 int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)

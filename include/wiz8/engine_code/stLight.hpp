@@ -241,5 +241,5 @@ public:
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
-void Function49D120(int handle);
-void Function49D390(int handle);
+void SaveLightStates0049D120(int handle);
+void LoadLightStates0049D390(int handle);

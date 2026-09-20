@@ -5,6 +5,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
@@ -42,6 +43,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Sight.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/chunk.h"
+#include "FileMan.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/engine_code/World.h"
@@ -80,11 +84,67 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
+/* Same-unit body SaveNpcStates00509F00 reaches before its definition. */
+unsigned char SaveNpcItemLists0050AA10(int file);
+
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
 bool NpcRecordHasValue002(W8NpcState* npc)
 {
     return npc->record->value_002 != 0;
+}
+
+/* The NPC's effective disposition: the state's byte plus its bound monster's
+   modifier, forced fully hostile while that monster is turned. A factioned
+   NPC instead reports its faction score unless the record keeps the answer
+   static or the faction holds nothing toward the party; a factioned NPC whose
+   allied faction a living front-rank party RPC shares answers fifty. */
+// FUNCTION: WIZ8 0x0050A280
+char GetNpcDisposition(W8NpcState* npc)
+{
+    char disposition = npc->disposition;
+    char faction_disposition;
+    W8MonsterInfo* monster_info;
+    W8NpcState* bound;
+    int bound_index;
+    unsigned int slot;
+
+    if (npc->has_monster != 0 && npc->is_present != 0) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
+        if (monster_info != 0) {
+            disposition += monster_info->effect_2de;
+            if (monster_info->condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+                disposition = 0x64;
+            }
+        }
+    }
+    if (npc->record->faction_5f == 0) {
+        return disposition;
+    }
+    faction_disposition = GetFactionDispositionScore(npc->record->faction_5f);
+    if (npc->record->unknown_054 != 0) {
+        return faction_disposition;
+    }
+    if (GetFactionDispositionToward(npc->record->faction_5f, W8_FACTION_PARTY) == 0) {
+        return faction_disposition;
+    }
+    if (npc->record->allied_faction_6e != 0) {
+        for (slot = 0; slot < 2; ++slot) {
+            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                g_status_685170.buffers.characters[slot].hp_current > 0) {
+                bound_index = g_status_685170.buffers.party_rows[slot].animation_0fa;
+                if (g_npc_states != 0) {
+                    bound = *g_npc_states->GetAt(bound_index);
+                    if (bound != 0 && bound->binding_unavailable == 0 &&
+                        bound->record->faction_5f == npc->record->allied_faction_6e) {
+                        return 0x32;
+                    }
+                }
+            }
+        }
+    }
+    return disposition;
 }
 
 /* Which of the three disposition bands the NPC falls in. The bands are cut at
@@ -1420,9 +1480,73 @@ void ReleaseNpcBinding(int value)
     }
 }
 
+/* Serialize every NPC state record into the open NPCT chunk: a version byte,
+   the live count, then each 0x13d-byte state. A state whose embedded group
+   character exists is followed by a sizeof(W8Character) marker and the
+   character record itself. The item lists are a separate FileWrite pass. */
+// FUNCTION: WIZ8 0x00509F00
+unsigned char SaveNpcStates00509F00(W8Chunk* chunks)
+{
+    unsigned char version = 3;
+    W8NpcState* npc;
+    unsigned int count;
+    unsigned int index;
+    int size;
+
+    chunks->Write(&version, 1, 0);
+    count = g_npc_states->count;
+    chunks->Write(&count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        npc = *g_npc_states->GetAt(index);
+        chunks->Write(npc, sizeof(*npc), 0);
+        if (npc->character != 0) {
+            size = sizeof(*npc->character);
+            chunks->Write(&size, 4, 0);
+            chunks->Write(npc->character, size, 0);
+        }
+    }
+    return SaveNpcItemLists0050AA10(chunks->m_hFile);
+}
+
+/* Append every NPC's stock item list behind the NPCT state records: the
+   entry count followed by each 0x14-byte entry. A short FileWrite fails the
+   whole pass. */
+// FUNCTION: WIZ8 0x0050AA10
+unsigned char SaveNpcItemLists0050AA10(int file)
+{
+    unsigned int written = 0;
+    unsigned int item_count = 0;
+    unsigned int index;
+    unsigned int npc_index;
+    unsigned int count;
+    W8NpcState* npc;
+    W8NpcItemEntry* entry;
+
+    count = g_npc_states->count;
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        npc = *g_npc_states->GetAt(npc_index);
+        if (npc->items != 0) {
+            item_count = PLLength(npc->items);
+        } else {
+            item_count = 0;
+        }
+        if (FileWrite(file, &item_count, 4, &written) == 0 || written != 4) {
+            return 0;
+        }
+        for (index = 0; index < item_count; ++index) {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+            if (FileWrite(file, entry, sizeof(*entry), &written) == 0 ||
+                written != sizeof(*entry)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
 /* Hand back the NPC binding selected by a monster-list index, or null when
    the monster's record is missing, is not NPC-routed, binds no NPC, or the
-   binding has not been released. */
+   binding has been released. */
 // FUNCTION: WIZ8 0x0050A440
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
 {
@@ -1434,7 +1558,7 @@ W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index)
         return 0;
     }
     npc = *g_npc_states->GetAt(monster_info->bound_npc_index);
-    if (npc->binding_unavailable != 0) {
+    if (npc->binding_unavailable == 0) {
         return npc;
     }
     return 0;

@@ -264,17 +264,29 @@ class stModelInstance2D;
 
 struct W8EncounterScriptName;
 
+/* W8Vector<W8EncounterScriptName*>: the derived table 0x005ec164 rides over
+   the base W8GrowableVector table 0x005ec168. AutomapScreenEnter constructs
+   a five-element local through the shared base ctor 0x00474FB0 and stamps the
+   derived table itself; W8EncounterTableRuntime::script_names at +0x40 calls
+   the emitted derived ctor 0x00445FF0. The derived dtor 0x00446050 inlines the
+   base teardown (base table store plus delete[]). */
 // VTABLE: WIZ8 0x005ec164
+// class W8Vector<W8EncounterScriptName*>
+
+// VTABLE: WIZ8 0x005ec168
 // class W8GrowableVector<W8EncounterScriptName*>
 
 // TEMPLATE: WIZ8 0x00445ff0
-// W8GrowableVector<W8EncounterScriptName*>::W8GrowableVector
+// W8Vector<W8EncounterScriptName*>::W8Vector<W8EncounterScriptName*>
+
+// TEMPLATE: WIZ8 0x00474fb0
+// W8GrowableVector<W8EncounterScriptName*>::W8GrowableVector<W8EncounterScriptName*>
 
 // SYNTHETIC: WIZ8 0x00446190
-// W8GrowableVector<W8EncounterScriptName*>::`scalar deleting destructor'
+// W8Vector<W8EncounterScriptName*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00446050
-// W8GrowableVector<W8EncounterScriptName*>::~W8GrowableVector<W8EncounterScriptName*>
+// W8Vector<W8EncounterScriptName*>::~W8Vector<W8EncounterScriptName*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
