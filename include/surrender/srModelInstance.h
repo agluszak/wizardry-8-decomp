@@ -71,7 +71,15 @@ public:
         }
         alignment_flags_148.value &= ~1u;
     }
+    /* Wiz8 inlines this store; SR.DLL also exports an out-of-line copy. */
+#if defined(SURRENDER_BUILD)
     void setExclusionMask(unsigned long mask);
+#else
+    void setExclusionMask(unsigned long mask)
+    {
+        exclusion_mask_15c = mask;
+    }
+#endif
 
     /* Monster.cpp 0x004c6c30 calls `set` on this member - the receiver of
        0x004ca880 is the flag word itself - so the original member was a flag

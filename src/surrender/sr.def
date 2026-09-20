@@ -1,5 +1,6 @@
 LIBRARY sr
 EXPORTS
+    ?setExclusionMask@srModelInstance@@QAEXK@Z
     ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
     ?allocateID@srRegistry@@QAEKXZ
     ??0srRegistry@@QAE@XZ
