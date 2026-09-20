@@ -227,7 +227,8 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         if (action != 0 && action->type_004 == 10) {
             unsigned int flags = 0x08000000;
             if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
-                ((owner->flags_0a0 & 0x100) == 0 || (action->flags_008 & 5) != 0)) {
+                ((owner->flags_0a0 & 0x100) == 0 ||
+                 (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
                 flags = 0x28000000;
             }
             if (pathing != 0) {
@@ -260,7 +261,8 @@ void GDProp::BindTrigger(Trigger* owner)
             m_flags_00 |= 2;
             unsigned int path_flags = 0x08000000;
             if ((owner->value_368 == 0 || owner->state_370.state != 0) &&
-                (owner->flags_0a0 & 0x100) != 0 && (action->flags_008 & 5) == 0) {
+                (owner->flags_0a0 & 0x100) != 0 &&
+                (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) == 0) {
                 m_flags_00 |= 8;
             } else {
                 path_flags = 0x28000000;

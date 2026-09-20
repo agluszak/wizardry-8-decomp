@@ -1756,7 +1756,7 @@ void LayoutCampSecondaryRegions(void)
 unsigned char CampScreenEnter(void)
 {
     ClearPrimarySurface();
-    g_value_0069c0f8 = g_current_screen_state.parameter_3.character;
+    g_value_0069c0f8 = static_cast<W8Character*>(g_current_screen_state.parameter_3);
     giReviewCharSlot = g_current_screen_state.parameter_2;
     unsigned char entry_mode;
     if (g_current_screen_state.parameter_4 == 0) {

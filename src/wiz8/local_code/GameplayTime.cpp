@@ -407,7 +407,7 @@ void EndSurprise00502860(void)
             static_cast<unsigned int>(g_status_685170.world_clock) - g_status_685170.flag_2487) {
         g_status_685170.flag_2487 = 0;
         g_status_685170.skip_next_condition_reaction = 1;
-        int party_slot = g_status_685170.value_248f.party_slot;
+        int party_slot = g_status_685170.pending_condition_party_slot_248f;
         RemoveCharacterCondition(party_slot, 0x13, 0);
         QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee658, 0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);

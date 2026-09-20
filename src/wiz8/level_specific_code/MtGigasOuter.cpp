@@ -90,7 +90,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
     value = GetLocationVarValueByName("FlagPosition");
     if (value == 0) {
         ControlLiftGate(0xEFFFFFFF);
-        trigger->flag_0a0_08 = 0;
+        trigger->flags_0a0 &= ~0x100U;
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x16, 1, 0);
         return true;

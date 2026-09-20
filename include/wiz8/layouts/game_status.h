@@ -27,13 +27,6 @@ struct W8StatusBuffers {
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
-/* The pending condition event writes text here, while the delayed clear
-   consumes the same dword as a party slot. */
-union W8PendingConditionValue {
-    wchar_t* text;
-    int party_slot;
-};
-
 struct W8GlobalStatus {
     W8StatusBuffers buffers;
     bool game_started; /* 0x000c */
@@ -151,7 +144,7 @@ struct W8GlobalStatus {
        0x2493 with the world clock. */
     unsigned char flag_248a;
     unsigned int value_248b;
-    W8PendingConditionValue value_248f;
+    int pending_condition_party_slot_248f;
     int value_2493;
     unsigned char flag_2497;
     unsigned int camp_fatigue_count_2498;

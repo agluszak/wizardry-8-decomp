@@ -121,26 +121,9 @@ struct W8SpellEffectEntry {
        hostility walk and effect bodies hand to CollectHostileMonsters / damage. */
     W8TargetSource Source; /* 0x05c */
     W8CombatSlot target;   /* 0x090 */
-    /* 0x0b0: queued spell casts carry the whole 0x30-byte effect definition
-       here (CastSpellFromSource copies it in); control/lure effects place
-       their own argument pair at the same storage. */
-    union {
-        W8SpellEffectDefinition definition;
-        struct {
-            unsigned char unknown_0b0[0x18];
-            /* 0x0c8: the resist-check power the control-aura scan passes to
-               the 0x00552410 resistance roll. */
-            int power_0c8;
-            unsigned char unknown_0cc[4];
-            int argument; /* 0x0d0 */
-            /* 0x0d4: the second cast argument the 0x4f finalizer forwards. */
-            unsigned int value_0d4;
-            /* 0x0d8: the lingering-condition turns the 0x23 branch seeds from
-               the rolled argument plus the target's existing count. */
-            int value_0d8;
-            unsigned char unknown_0dc[4];
-        };
-    };
+    /* CastSpellFromSource copies the complete definition into the queue slot;
+       effect handlers interpret its existing fields for their own kind. */
+    W8SpellEffectDefinition definition;
     /* Two integer lists this body walks: the monster location ids
        CollectHostileMonsters gathers at 0x0e0, and a second index list at
        0x0f0 used both as party-slot indices and as monster-manager entry

@@ -40,7 +40,7 @@ extern float g_light_scale_0060bfe0;
    assignment, rather than the sequential load/store pairs four separate scalar
    parameters would emit - which is what makes this one object and not four.
    GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
-typedef W8ModelInstanceRenderState W8MonsterRuntimeBlock4C;
+typedef W8ModelInstance3DRenderState W8MonsterRuntimeBlock4C;
 
 /* One spell/condition icon attached to a monster: the icon id and the
    billboard object created for it. Field names come from the

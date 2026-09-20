@@ -866,7 +866,7 @@ void W8PartySelectionCharacterPanel005EF3C8::OpenCampForSelectedMember(int row)
         }
     }
     g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
-    g_pending_screen_state.parameter_3.character = g_party_selection_controller->m_character_18;
+    g_pending_screen_state.parameter_3 = g_party_selection_controller->m_character_18;
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
 
@@ -948,11 +948,10 @@ void W8PartySelectionPartySlotRow005EF3E4::OnRightButtonUp(int event)
             }
         }
         g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
-        g_pending_screen_state.parameter_3.character = g_party_selection_controller->m_character_18;
+        g_pending_screen_state.parameter_3 = g_party_selection_controller->m_character_18;
     } else {
         g_pending_screen_state.parameter_2 = m_row + 2;
-        g_pending_screen_state.parameter_3.character =
-            &g_status_685170.buffers.characters[m_row + 2];
+        g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[m_row + 2];
     }
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
@@ -1012,7 +1011,7 @@ void W8PartySelectionCharacterGridPanel005EF450::OnPrimary(W8TextControl* contro
         }
     }
     control->SetAlternateTextEnabled(0);
-    g_pending_screen_state.parameter_3.character = &g_status_685170.buffers.characters[index + 2];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[index + 2];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -1720,13 +1719,13 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             }
         }
         g_pending_screen_state.parameter_2 = slot < 6 ? slot + 2 : -1;
-        g_pending_screen_state.parameter_3.character = m_character_18;
+        g_pending_screen_state.parameter_3 = m_character_18;
         SetPendingScreenState(W8_SCREEN_CAMP);
         return;
     }
     if (control == m_text_40) {
         g_pending_screen_state.mode = 0;
-        g_pending_screen_state.parameter_3.character = 0;
+        g_pending_screen_state.parameter_3 = 0;
         SetPendingScreenState(W8_SCREEN_CHARACTER);
         return;
     }

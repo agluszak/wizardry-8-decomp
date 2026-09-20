@@ -3250,7 +3250,7 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
 // FUNCTION: WIZ8 0x00538510
 void HighlightPickedGroupMember00538510(int party_slot, W8MonsterGroup* group, int color)
 {
-    W8ModelInstanceRenderState block;
+    W8ModelInstance3DRenderState block;
 
     int location_id = PickNextTargetableGroupMember(party_slot, group);
     if (location_id != -1) {
@@ -3366,7 +3366,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
 // FUNCTION: WIZ8 0x005392e0
 void ModifyGroupColor(int group_id, int color)
 {
-    W8ModelInstanceRenderState block;
+    W8ModelInstance3DRenderState block;
 
     if (group_id == -1) {
         srAssertFail("uiGroupID != BAD_INDEX", TARGETING_CPP, 0x6e5, 0);
@@ -3673,7 +3673,7 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
             W8Monster* monster = monster_info->monster;
             if (monster_info->fActive != 0 && monster != 0) {
                 unsigned char flag = MonsterGetRuntimeFlag5BC(monster);
-                W8ModelInstanceRenderState block;
+                W8ModelInstance3DRenderState block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
                     block.highlight_red = 1.0f;
                     block.highlight_green = 0.0f;

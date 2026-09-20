@@ -268,15 +268,32 @@ static void CommitMipeEditFields005C4340(W8TriggerActionData* data, signed char 
     }
     fields = g_mipe_var_set_fields_0064edf8[static_cast<int>(bVarSet)];
     if (bVarSet == 0) {
-        data->flags_008 = (data->flags_008 & ~1) | (fields[0].value & 1);
-        data->flags_008 = (data->flags_008 & ~2) | ((fields[1].value & 1) << 1);
-        data->flags_008 = (data->flags_008 & ~4) | ((fields[2].value & 1) << 2);
-        data->flags_008 = (data->flags_008 & ~8) | ((fields[3].value & 1) << 3);
-        data->flags_008 = (data->flags_008 & ~0x10) | ((fields[4].value & 1) << 4);
-        data->flags_008 = (data->flags_008 & ~0x20) | ((fields[5].value & 1) << 5);
-        data->flags_008 = (data->flags_008 & ~0x40) | ((fields[6].value & 1) << 6);
-        data->flags_008 = (fields[7].value << 7) | (data->flags_008 & 0x7f);
-        data->flags_009 = (data->flags_009 & ~1) | (fields[8].value & 1);
-        data->item_00a = static_cast<signed char>(fields[9].value);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~1) | (fields[0].value & 1);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~2) |
+            ((fields[1].value & 1) << 1);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~4) |
+            ((fields[2].value & 1) << 2);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~8) |
+            ((fields[3].value & 1) << 3);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~0x10) |
+            ((fields[4].value & 1) << 4);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~0x20) |
+            ((fields[5].value & 1) << 5);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & ~0x40) |
+            ((fields[6].value & 1) << 6);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_008 =
+            (fields[7].value << 7) |
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_008 & 0x7f);
+        static_cast<W8DoorTriggerActionData*>(data)->flags_009 =
+            (static_cast<W8DoorTriggerActionData*>(data)->flags_009 & ~1) | (fields[8].value & 1);
+        static_cast<W8DoorTriggerActionData*>(data)->item_00a =
+            static_cast<signed char>(fields[9].value);
     }
 }

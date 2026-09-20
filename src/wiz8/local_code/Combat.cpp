@@ -507,7 +507,8 @@ void ApplyCombatEndEffects(void)
         if (row->occupied && character->condition_turns[0x12] == 0 &&
             character->condition_turns[0x13] != 0 &&
             gXStatus.monster_manager_entries[slot].condition_19_latch == 0 &&
-            (!g_status_685170.flag_2487 || g_status_685170.value_248f.party_slot != slot)) {
+            (!g_status_685170.flag_2487 ||
+             g_status_685170.pending_condition_party_slot_248f != slot)) {
             ApplyItemEffectToRandomCharacter(g_effect_005ee628, slot, 0,
                                              g_effect_argument_005ed8c8);
         }

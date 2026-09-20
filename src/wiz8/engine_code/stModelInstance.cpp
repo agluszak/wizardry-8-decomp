@@ -244,7 +244,7 @@ stModelInstance2D::~stModelInstance2D()
     }
 }
 
-/* Deliberately not a whole W8ModelInstanceRenderState assignment. Retail
+/* Deliberately not a whole W8ModelInstance3DRenderState assignment. Retail
    copies the 2D fields around the parent/state work and leaves the upper two
    bytes of state_0c untouched; GrCycle's separate whole-block copy is a
    different operation. */
@@ -461,10 +461,10 @@ srClass* stModelInstance::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    render_state_164.render_depth = 0;
-    render_state_164.state_04 = 0;
-    render_state_164.state_08 = 0;
-    render_state_164.state_0c = 0;
+    render_state_164.highlight_red = 0.0f;
+    render_state_164.highlight_green = 0.0f;
+    render_state_164.highlight_blue = 0.0f;
+    render_state_164.highlight_alpha = 0.0f;
     state_178 = 0;
     state_17c = static_cast<unsigned long>(-1);
     frame_index_180 = 0;
@@ -476,9 +476,9 @@ stModelInstance::stModelInstance(srNode* parent)
     retained_174 = 0;
     scale_194 = 1.0f;
     flag_1a0 = 0;
-    value_1a4 = 0;
+    scale_1a4 = 0.0f;
     flag_1a1 = 0;
-    value_1a8 = 0;
+    scale_1a8 = 0.0f;
     value_1ac = 0.0f;
 }
 
@@ -486,10 +486,10 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    render_state_164.render_depth = 0;
-    render_state_164.state_04 = 0;
-    render_state_164.state_08 = 0;
-    render_state_164.state_0c = 0;
+    render_state_164.highlight_red = 0.0f;
+    render_state_164.highlight_green = 0.0f;
+    render_state_164.highlight_blue = 0.0f;
+    render_state_164.highlight_alpha = 0.0f;
     state_178 = other.state_178;
     state_17c = other.state_17c;
     frame_index_180 = other.frame_index_180;
@@ -499,10 +499,10 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     value_190 = other.value_190;
     retained_174 = 0;
     scale_194 = other.scale_194;
-    value_1a4 = 0;
+    scale_1a4 = 0.0f;
     flag_1a0 = 0;
     flag_1a1 = other.flag_1a1;
-    value_1a8 = other.value_1a8;
+    scale_1a8 = other.scale_1a8;
     value_1ac = 0.0f;
     return *this;
 }

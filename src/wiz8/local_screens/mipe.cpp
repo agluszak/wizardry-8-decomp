@@ -2442,8 +2442,10 @@ static void HandleMipeLockTrapKey0057B880(unsigned short key)
             } else {
                 pending = 1;
             }
-            action->flags_008 = (pending << 2) | (action->flags_008 & 0xfb);
-            action->item_00a = static_cast<short>(trigger->value_380);
+            static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
+                (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
+            static_cast<W8DoorTriggerActionData*>(action)->item_00a =
+                static_cast<short>(trigger->value_380);
         }
         break;
     case 0x32:
@@ -2527,8 +2529,10 @@ void EditTriggerKeyID0057BA60(unsigned int key)
         } else {
             pending = 1;
         }
-        action->flags_008 = (pending << 2) | (action->flags_008 & 0xfb);
-        action->item_00a = static_cast<short>(trigger->value_380);
+        static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
+            (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
+        static_cast<W8DoorTriggerActionData*>(action)->item_00a =
+            static_cast<short>(trigger->value_380);
     }
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     ResetEditorStatusLine0058AA20(-1);

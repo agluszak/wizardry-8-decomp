@@ -33,17 +33,9 @@ struct W8GDSurface {
     int positional_10;
     int positional_14;
     int vertex_indices_18[3];
-    /* Tagged plane/normal overlay: srVector4T/srVector3T cannot be union
-       members under VC6 (C2620, user-provided ctor), so the arms stay raw
-       floats and the vector types live on the consumers. */
-    union {
-        float plane_24[4];
-        struct {
-            float normal_24[3];
-            unsigned short positional_30;
-            unsigned short region_32;
-        };
-    };
+    /* The first three plane coefficients are its surface normal. The region
+       word at +0x32 belongs to W8OctRegionPolygon, not this surface. */
+    float plane_24[4];
     float distance_34;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision0041DC10. */
     srVector4T<float>* hit_plane_38;
@@ -52,14 +44,13 @@ struct W8GDSurface {
     unsigned char positional_3e[2];
     float value_40;
     unsigned int positional_44;
-    float slope_48; /* face slope; generated surfaces derive it from normal_24[1] */
+    float slope_48; /* face slope; generated surfaces derive it from plane_24[1] */
 
-    /* The plane's leading three floats read as the surface normal; the union
-       keeps raw floats because srVector3T has a user-provided constructor. */
+    /* The plane's leading three floats read as the surface normal. */
     const srVector3T<float>* Normal() const
     {
         // reinterpret-ok: plane_24's leading three floats are the unit normal
-        return reinterpret_cast<const srVector3T<float>*>(&normal_24);
+        return reinterpret_cast<const srVector3T<float>*>(&plane_24);
     }
 
     /* 0x0041CF90: segment-vs-surface test used by env motion. On a hit `from`

@@ -462,7 +462,7 @@ bool MartensBluff2DoorControls004DDEB0(Trigger* pTrigger)
         if (action == 0 || action->type_004 != '\n') {
             action = 0;
         }
-        if ((action->flags_008 & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 1) != 0) {
             pDoor->Run(-1);
         }
         pDoor = FindTriggerByName("SquisherDoor1");
@@ -470,7 +470,7 @@ bool MartensBluff2DoorControls004DDEB0(Trigger* pTrigger)
         if (action == 0 || action->type_004 != '\n') {
             action = 0;
         }
-        if ((action->flags_008 & 1) != 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 1) != 0) {
             pDoor->Run(-1);
         }
     }

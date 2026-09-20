@@ -57,7 +57,8 @@ static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x
 
 extern int g_value_65be60;
 extern unsigned long g_value_65be58;
-extern W8GDSurface** g_pointer_65be64;
+/* Build scratch carries mode-2 region polygons and mode-3 GD surfaces. */
+extern void** g_pointer_65be64;
 extern W8GDSurface** g_pointer_65be68;
 extern unsigned short* g_pointer_65be5c;
 extern unsigned short g_value_65be6c;
@@ -66,16 +67,14 @@ extern unsigned short g_value_65be6c;
    "OctBuildPreTree::m_ppPolyList too long.", "m_pulRegPaths" and
    "m_psrvRegCenters" in Engine Code\OctBuildPreTree.cpp. */
 struct OctBuildPreTree : W8OctBuildTree00446390 {
-    OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
-                              srVector3T<float>* maximum, unsigned short item_limit,
-                              unsigned long path_capacity, short extent_mode);
+    OctBuildPreTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
+                    unsigned short item_limit, unsigned long path_capacity, short extent_mode);
     OctPreTree* BuildOctPreTree004B4640();
     unsigned short BuildRegions004B19F0();
     unsigned char BuildParticleRegions004B3820(const W8LevelFileParticleSystem* particles,
                                                int particle_count);
-    unsigned char BuildGeometryRegions004B3F90(const W8LevelFileProp* records,
-                                               int record_count, int base_index,
-                                               unsigned char finalize);
+    unsigned char BuildGeometryRegions004B3F90(const W8LevelFileProp* records, int record_count,
+                                               int base_index, unsigned char finalize);
 
     void AssignInitialRegions004B1D90(const W8OctSpatialState* spatial);
     unsigned char UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry, short value,

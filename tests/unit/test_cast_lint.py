@@ -347,6 +347,27 @@ def test_git_checkout_enforces_the_gate(tmp_path: Path) -> None:
     assert validate_cast_markers(tmp_path)["ok"] is True
 
 
+def test_new_layout_union_needs_positive_evidence(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True)
+    header = tmp_path / "include/surrender/example.h"
+    header.parent.mkdir(parents=True)
+    header.write_text("struct Example { int value; };\n")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-qm", "base"], check=True)
+
+    header.write_text("union Example { int value; float other; };\n")
+    with pytest.raises(CastGateError, match="union-ok"):
+        validate_cast_markers(tmp_path)
+
+    header.write_text(
+        "// union-ok: retail writes both alternatives under distinct tags\n"
+        "union Example { int value; float other; };\n"
+    )
+    assert validate_cast_markers(tmp_path)["ok"] is True
+
+
 def test_git_checkout_enforces_raw_offset_gate(tmp_path: Path) -> None:
     subprocess.run(["git", "init", "-q", "-b", "main", str(tmp_path)], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "test@invalid"], check=True)

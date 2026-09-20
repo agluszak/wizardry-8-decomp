@@ -36,11 +36,7 @@ static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
 
 void UpdateTimedTriggerEvents00443D30(void);
 
-/* Trigger's m_pActionData points at this polymorphic payload. Type-5 and
-   type-10 actions share the same 0x0c-byte layout: type 5 stores the previous
-   environment value as a float, while type 10 uses the flag/item view.
-   Type-5 Trigger::Run sites allocate this class directly; 0x005EC148 is a
-   second vtable copy of it, not an empty derived type. */
+/* The common polymorphic prefix of the trigger action payload family. */
 class W8TriggerActionData {
 public:
     W8TriggerActionData();
@@ -48,35 +44,38 @@ public:
 
     signed char type_004;
     unsigned char unknown_005[3];
-    union {
-        W8Dice value_008;
-        float float_value_008;
-        char* owned_string_008;
-        struct {
-            unsigned char flags_008;
-            unsigned char flags_009;
-            short item_00a;
-        };
-    };
 };
 
-static_assert(sizeof(W8TriggerActionData) == 0x0c, "W8TriggerActionData_must_be_0x0c");
+static_assert(sizeof(W8TriggerActionData) == 0x08, "W8TriggerActionData_must_be_0x08");
+
+/* Type 5 installs its own final table and retains the previous environment value. */
+class W8EnvironmentTriggerActionData : public W8TriggerActionData {
+public:
+    float previous_environment_008;
+};
+
+static_assert(sizeof(W8EnvironmentTriggerActionData) == 0x0c,
+              "W8EnvironmentTriggerActionData_must_be_0x0c");
 
 /* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
    are the common polymorphic payload above; the remaining bytes are the
    linked trigger name and optional world position read from the save. */
 class W8DoorTriggerActionData : public W8TriggerActionData {
 public:
+    unsigned char flags_008;
+    unsigned char flags_009;
+    short item_00a;
     char linked_trigger_00c[0x80];
     srVector3T<float> position_08c;
 };
 
 static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
 
-/* Type 6 owns the string stored in the common payload's +8 union. */
+/* Type 6 owns its string at +8. */
 class W8TriggerActionData005EC158 : public W8TriggerActionData {
 public:
     virtual ~W8TriggerActionData005EC158() override;
+    char* owned_string_008;
 };
 
 static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
@@ -141,51 +140,9 @@ public:
     int trigger_kind_018;
     char name_01c[0x80];
     int trigger_id_09c;
-    union {
-        unsigned int flags_0a0;
-        struct {
-            unsigned int flag_0a0_00 : 1;
-            unsigned int flag_0a0_01 : 1;
-            unsigned int flag_0a0_02 : 1;
-            unsigned int flag_0a0_03 : 1;
-            unsigned int flag_0a0_04 : 1;
-            unsigned int flag_0a0_05 : 1;
-            unsigned int flag_0a0_06 : 1;
-            unsigned int flag_0a0_07 : 1;
-            unsigned int flag_0a0_08 : 1;
-            unsigned int flag_0a0_09 : 1;
-            unsigned int flag_0a0_10 : 1;
-            unsigned int flag_0a0_11 : 1;
-            unsigned int flag_0a0_12 : 1;
-            unsigned int flag_0a0_13 : 1;
-            unsigned int flag_0a0_14 : 1;
-            unsigned int flag_0a0_15 : 1;
-            unsigned int flag_0a0_16 : 1;
-            unsigned int flag_0a0_17 : 1;
-            unsigned int flag_0a0_18 : 1;
-            unsigned int flag_0a0_19 : 1;
-            unsigned int flag_0a0_20 : 1;
-            unsigned int flag_0a0_21 : 1;
-            unsigned int flag_0a0_22 : 1;
-            unsigned int flag_0a0_23 : 1;
-            unsigned int flag_0a0_24 : 1;
-            unsigned int flag_0a0_25 : 1;
-            unsigned int flag_0a0_26 : 1;
-            unsigned int flag_0a0_27 : 1;
-            unsigned int flag_0a0_28 : 1;
-            unsigned int flag_0a0_29 : 1;
-            unsigned int flag_0a0_30 : 1;
-            unsigned int flag_0a0_31 : 1;
-        };
-    };
-    union {
-        int value_0a4;
-        float range_minimum_0a4;
-    };
-    union {
-        int value_0a8;
-        float range_maximum_0a8;
-    };
+    unsigned int flags_0a0;
+    float range_minimum_0a4;
+    float range_maximum_0a8;
     int value_0ac;
     unsigned char value_0b0;
     unsigned char value_0b1;

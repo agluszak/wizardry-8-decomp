@@ -398,7 +398,8 @@ char ResolvePickedProp(W8World* world)
                 ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
                 (g_flag_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
-                  (trigger->m_pActionData->flags_008 & 1) == 0)) &&
+                  (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
+                      0)) &&
                 representation->active != 0) {
                 srVector3T<float> minimum;
                 srVector3T<float> maximum;
@@ -935,7 +936,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         action = 0;
     }
     if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
-        (action != 0 && (action->flags_008 & 5) != 0)) {
+        (action != 0 && (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
         return false;
     }
     if (!m_gd_prop->ContainsPathCoordinate004B75F0(static_cast<unsigned short>(arg_2),

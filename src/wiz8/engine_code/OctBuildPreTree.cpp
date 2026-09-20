@@ -15,7 +15,7 @@ int g_value_65be60;
 // GLOBAL: WIZ8 0x0065be58
 unsigned long g_value_65be58;
 // GLOBAL: WIZ8 0x0065be64
-W8GDSurface** g_pointer_65be64;
+void** g_pointer_65be64;
 // GLOBAL: WIZ8 0x0065be68
 W8GDSurface** g_pointer_65be68;
 // GLOBAL: WIZ8 0x0065be5c
@@ -64,8 +64,8 @@ unsigned char W8OctBuildNode00446330::RearrangeNodePolys004AF7B0(short current_d
             if (leaf_kind_2a != 0 && links_00[mode] != 0) {
                 g_value_65be58 = 0;
                 CollectLinkedSurfaces004AF8F0(current_depth, target_depth, mode);
-                W8GDSurface** surfaces = static_cast<W8GDSurface**>(
-                    malloc(g_value_65be58 * sizeof(W8GDSurface*) + sizeof(W8GDSurface*)));
+                void** surfaces =
+                    static_cast<void**>(malloc(g_value_65be58 * sizeof(void*) + sizeof(void*)));
                 if (surfaces == 0) {
                     ReportBuildStatus00497690(
                         7, "RearrangeNodePolys: Could not allocate poly list.\n");
@@ -122,7 +122,7 @@ int W8OctBuildNode00446330::CollectLinkedSurfaces004AF8F0(short current_depth, s
 int W8OctBuildNode00446330::CollectSurfaceArray004AF9B0(short mode)
 {
     if (leaf_kind_2a != 0 && positional_2c == 0) {
-        W8GDSurface** surfaces = surface_arrays_00[mode];
+        void** surfaces = surface_arrays_00[mode];
         if (surfaces != 0) {
             while (*surfaces != 0) {
                 g_pointer_65be64[g_value_65be58++] = *surfaces++;
@@ -171,7 +171,8 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
             tree->m_owned_0a0[node_index].polygon_offset_08 = tree->polygon_cursor_3a0;
             ++tree->polygon_cursor_3a0;
             for (unsigned long surface = 0; surface < g_value_65be58; ++surface) {
-                tree->m_owned_0d0[tree->polygon_cursor_3a0++] = g_pointer_65be64[surface]->index_04;
+                tree->m_owned_0d0[tree->polygon_cursor_3a0++] =
+                    static_cast<W8OctRegionPolygon*>(g_pointer_65be64[surface])->ordinal_04;
             }
             free(surface_arrays_00[2]);
             surface_arrays_00[2] = 0;
@@ -198,7 +199,7 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
             ++tree->m_gd_surface_stream_len_124;
             for (unsigned long surface = 0; surface < g_value_65be58; ++surface) {
                 tree->m_owned_12c[tree->m_gd_surface_stream_len_124++] =
-                    g_pointer_65be64[surface]->index_04;
+                    static_cast<W8GDSurface*>(g_pointer_65be64[surface])->index_04;
             }
             free(surface_arrays_00[3]);
             surface_arrays_00[3] = 0;
@@ -256,7 +257,7 @@ OctBuildPreTree::OctBuildPreTree(float leaf_size, srVector3T<float>* minimum,
     positional_124 = 0;
     positional_128 = 0;
     positional_100 = 0;
-    g_pointer_65be64 = static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
+    g_pointer_65be64 = static_cast<void**>(malloc(10000 * sizeof(void*)));
     g_pointer_65be68 = static_cast<W8GDSurface**>(malloc(10000 * sizeof(W8GDSurface*)));
     mesh_particle_lookup_104 = 0;
     mesh_particles_108 = 0;
@@ -486,8 +487,7 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
 
         int contained_count = 0;
         for (unsigned long index = 0; index < g_value_65be58; ++index) {
-            W8OctRegionPolygon* polygon =
-                reinterpret_cast<W8OctRegionPolygon*>(g_pointer_65be64[index]);
+            W8OctRegionPolygon* polygon = static_cast<W8OctRegionPolygon*>(g_pointer_65be64[index]);
             if (polygon->region_32 == 0 &&
                 polygon->ContainsPoint004CFB30(&spatial->minimum_0c) != 0) {
                 ++contained_count;
@@ -503,7 +503,7 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
 
             for (unsigned long index = 0; index < g_value_65be58; ++index) {
                 W8OctRegionPolygon* polygon =
-                    reinterpret_cast<W8OctRegionPolygon*>(g_pointer_65be64[index]);
+                    static_cast<W8OctRegionPolygon*>(g_pointer_65be64[index]);
                 if (polygon->region_32 == spatial_00.region_id_bound_58) {
                     for (int vertex_index = 0; vertex_index != 3; ++vertex_index) {
                         const srVector3T<float>& position =
@@ -839,7 +839,8 @@ void OctBuildPreTree::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* 
     unsigned short selected_region = 0;
     unsigned short selected_count = 0;
     for (unsigned long index = 0; index < unique_count; ++index) {
-        unsigned short region = g_pointer_65be64[index]->region_32;
+        unsigned short region =
+            static_cast<W8OctRegionPolygon*>(g_pointer_65be64[index])->region_32;
         short slot = 0;
         while (regions[slot] != 0 && regions[slot] != region) {
             ++slot;

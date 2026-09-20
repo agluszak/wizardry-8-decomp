@@ -1082,7 +1082,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor00460680(W8NavigatorAttachm
                 if (action_data == 0 || action_data->type_004 != 10) {
                     action_data = 0;
                 }
-                if ((action_data->flags_008 & 1) == 0) {
+                if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 1) == 0) {
                     return 1;
                 }
             }

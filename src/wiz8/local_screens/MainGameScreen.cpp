@@ -5482,8 +5482,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3.character =
-                    &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5566,8 +5565,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3.character =
-                    &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -5691,8 +5689,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 if (gXStatus.fNpcDialogueMode != 0) {
                     CloseNpcDialogueForCamp();
                 }
-                g_pending_screen_state.parameter_3.character =
-                    &g_status_685170.buffers.characters[slot];
+                g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
                 g_pending_screen_state.parameter_4 = 0;
                 if (g_main_game_mode_0068eddc == 3) {
                     g_pending_screen_state.parameter_2 = slot;
@@ -7884,9 +7881,9 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
         CloseNpcDialogueForCamp();
     }
     g_pending_screen_state.parameter_2 = party_slot;
-    g_pending_screen_state.parameter_3.character = g_status_685170.buffers.characters + party_slot;
+    g_pending_screen_state.parameter_3 = g_status_685170.buffers.characters + party_slot;
     g_pending_screen_state.parameter_4 =
-        flag != 0 ? g_pending_screen_state.parameter_3.character : 0;
+        flag != 0 ? static_cast<W8Character*>(g_pending_screen_state.parameter_3) : 0;
     if (g_main_game_mode_0068eddc == 3) {
         if (gXStatus.fNpcDialogueMode != 0) {
             EndNpcDialogueSession0056E800(0);
