@@ -40,6 +40,10 @@
 
 void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
 void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
+void Function564BA0(int party_slot);                  /* 0x00564BA0 */
+void Function564D80(int party_slot);                  /* 0x00564D80 */
+void Function564710(int party_slot);                  /* 0x00564710 */
+void Function5651F0(int party_slot);                  /* 0x005651F0 */
 
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
