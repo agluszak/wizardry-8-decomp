@@ -24,6 +24,9 @@ char GetSourceNoticeColor(const W8TargetSource* source); /* 0x0053C320 */
 char GetTargetNoticeColor(const W8TargetSource* source,
                           const W8CombatSlot* target); /* 0x0053C3F0 */
 
+/* ABS 0x0068407F: cached world-space target point refreshed by the targeting
+   refresh path. */
+extern srVector3T<float> g_target_position_0068407f;
 extern int g_picked_monster;
 extern int g_picked_group;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
