@@ -487,7 +487,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
             }
             value += bonus;
         }
-        value += static_cast<signed char>(character->bonus_1770.unknown_13[index]);
+        value += static_cast<signed char>(character->bonus_1770.skill_adjustments[index]);
         if (value > 0x7d) {
             value = 0x7d;
         } else if (value < 0) {
@@ -564,7 +564,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
         }
         level += bonus;
     }
-    level += static_cast<signed char>(character->bonus_1770.unknown_13[skill_id]);
+    level += static_cast<signed char>(character->bonus_1770.skill_adjustments[skill_id]);
     if (level > 0x7d) {
         level = 0x7d;
     } else if (level < 0) {
@@ -696,7 +696,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     }
                     level += bonus;
                 }
-                level += static_cast<signed char>(character->bonus_1770.unknown_13[skill_id]);
+                level += static_cast<signed char>(character->bonus_1770.skill_adjustments[skill_id]);
                 if (level > 0x7d) {
                     level = 0x7d;
                 } else if (level < 0) {
