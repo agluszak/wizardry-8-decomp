@@ -172,7 +172,7 @@ unsigned char BitArray::Load(int handle)
 }
 
 /* Packed Huffman payload used by the octree alpha-bit and prop-sun-bit
-   arrays. Sampler is destroyed as its W8OwnedPtr and W8HashTable members
+   arrays. Sampler is destroyed as its srArray and srHashTable members
    rather than the imported ~Sampler; codes are looked up through the
    Compressor hash prefix and written with BitOStream::put. */
 // FUNCTION: WIZ8 0x0043b0e0

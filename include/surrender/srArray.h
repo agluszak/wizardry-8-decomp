@@ -22,8 +22,9 @@ public:
     }
 
     /* The shared teardown sr.dll emits out of line at 0x100027D0 for the
-       srHuffman::Sampler pair array: scalar operator delete plus zeroing both
-       words. setCapacity reaches it on the deep-inline paths. */
+       srHuffman::Sampler pair array. Wiz8 folds this operation at 0x004701B0
+       across arrays of different element types. Both delete with the scalar
+       operator and zero the pointer and capacity. */
     inline void release()
     {
         ::operator delete(data);

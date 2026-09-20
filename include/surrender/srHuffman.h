@@ -20,10 +20,10 @@
    ones Wiz8 never imports: compressSymbol is inlined by BitArray::Save, and
    BitOStream's assignment is the private noncopyable-style no-op.
 
-   Sampler's prefix is the srHashTable<unsigned long, int> open hash; the
-   same shared code lives on the Wiz8 side as W8HashTable. Save does not call
-   the imported ~Sampler (IAT 0x005eb768 is only an EH thunk); it destroys the
-   symbol buffer with W8OwnedPtr (~ 0x004701b0) and then the hash table.
+   Sampler's prefix is the srHashTable<unsigned long, int> open hash. Save does
+   not call the imported ~Sampler (IAT 0x005eb768 is only an EH thunk); it
+   destroys the srArray<Symbol> member through the folded local teardown at
+   0x004701b0 and then destroys the hash member locally.
    Compressor keeps the same hash prefix, mapping symbols to Node*. */
 class srHuffman {
 public:
