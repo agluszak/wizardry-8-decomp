@@ -14,7 +14,7 @@ from pathlib import Path
 
 REAL_CLANG_TIDY = "/usr/bin/clang-tidy-19"
 PLUGIN = "/usr/local/lib/wiz8-clang-tidy.so"
-# Historical name: both project-specific debt checks use the same changed-line scope.
+# Historical name: project-specific AST debt checks use the same changed-line scope.
 FILTER_ENV = "WIZ8_REDUNDANT_CAST_LINES"
 BOOL_FACTS_ENV = "WIZ8_BOOL_FACTS_DIR"
 BOOL_MARKER = re.compile(r"bool-byte-ok:\s*\S", re.IGNORECASE)
