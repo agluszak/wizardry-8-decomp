@@ -1986,7 +1986,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
             FileRead(hFile, &pProp->version_00, 1, 0) & FileRead(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version_00 > 4) {
             fSuccess &= FileRead(hFile, &pProp->unknown_02, 1, 0) &
-                        FileRead(hFile, pProp->unknown_03, 0xc, 0);
+                        FileRead(hFile, &pProp->position_03, sizeof(pProp->position_03), 0);
         }
         if (pProp->version_00 > 5) {
             fSuccess &= FileRead(hFile, pProp->unknown_0f, 4, 0);
@@ -2070,7 +2070,7 @@ bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
             FileWrite(hFile, &pProp->version_00, 1, 0) & FileWrite(hFile, &pProp->bNumFrames, 1, 0);
         if (pProp->version_00 > 4) {
             fSuccess &= FileWrite(hFile, &pProp->unknown_02, 1, 0) &
-                        FileWrite(hFile, pProp->unknown_03, 0xc, 0);
+                        FileWrite(hFile, &pProp->position_03, sizeof(pProp->position_03), 0);
         }
         if (pProp->version_00 > 5) {
             fSuccess &= FileWrite(hFile, pProp->unknown_0f, 4, 0);
