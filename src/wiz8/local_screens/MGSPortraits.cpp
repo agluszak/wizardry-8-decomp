@@ -873,7 +873,7 @@ portrait_fx:
         g_level_block->portrait_refresh_pending[party_slot] != 0 &&
         (g_level_block->condition_highlight_party_slot != -1 ||
          g_level_block->portrait_overlay_party_slot != -1)) {
-        Function563890();
+        RefreshTrackedPortraitOverlay();
     }
 
     if (overlay_ready != 0 && gXStatus.fNpcDialogueMode != 0 &&

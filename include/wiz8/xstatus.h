@@ -52,8 +52,9 @@ struct W8XStatus {
     unsigned char fEncumbranceDirty; /* 0x8e8: pending party-weight recalc */
     int active_monster_count;        /* 0x8e9 */
     /* 0x8ed: active in-combat monsters with DISP_HOSTILE, recomputed by
-       RecountCombatMonsters; nonzero starts combat and blocks ending it. */
-    int hostile_monster_count;
+       RecountCombatMonsters; nonzero starts combat and blocks ending it.
+       Retail compares it unsigned (JA/JBE/SETA), never signed. */
+    unsigned int hostile_monster_count;
     int item_manager_pending;              /* 0x8f1 */
     W8PList* plsMonsterList;               /* 0x8f5: 0x00683FAD */
     W8PList* plsMonsterGroupList;          /* 0x8f9: 0x00683FB1 */

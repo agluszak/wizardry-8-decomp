@@ -6,6 +6,7 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/local_code/GameplayMods.h"
@@ -299,7 +300,7 @@ bool CanHandReachTarget(int party_slot, unsigned int hand)
     if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play == 0) {
         return false;
     }
-    return CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) != -1;
+    return GetCharAttackRange(&g_status_685170.buffers.characters[party_slot], hand) != -1;
 }
 
 /* Whether either hand can. */
@@ -313,8 +314,7 @@ bool CanAnyHandReachTarget(int party_slot)
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
         }
         if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
-            CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) !=
-                -1) {
+            GetCharAttackRange(&g_status_685170.buffers.characters[party_slot], hand) != -1) {
             return true;
         }
     }
@@ -329,7 +329,7 @@ int GetHandAttackValue(int party_slot, unsigned int hand)
         srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
     }
     if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
-        CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) != -1) {
+        GetCharAttackRange(&g_status_685170.buffers.characters[party_slot], hand) != -1) {
         return g_status_685170.buffers.characters[party_slot].hand_attacks[hand].attacks;
     }
     return 0;
@@ -369,9 +369,8 @@ bool CanCharacterBerserk(int party_slot)
             srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
         }
         if (g_status_685170.buffers.characters[party_slot].hand_attacks[hand].in_play != 0 &&
-            CalcRangeCategoryToTarget(&g_status_685170.buffers.characters[party_slot], hand) !=
-                -1) {
-            return CalcRangeCategoryToTarget(character, 0) <= W8_RANGE_SHORT;
+            GetCharAttackRange(&g_status_685170.buffers.characters[party_slot], hand) != -1) {
+            return GetCharAttackRange(character, 0) <= W8_RANGE_SHORT;
         }
     }
     return 0;

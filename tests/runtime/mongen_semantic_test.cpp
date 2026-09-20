@@ -57,7 +57,7 @@ static bool CheckSerialization(MonGen* generator)
     bool restored = loaded.Load(file) && strcmp(loaded.name, "deterministic") == 0 &&
                     loaded.flags == 0 && loaded.generation_enabled == 1 &&
                     loaded.custom_spawn_chance == 17 && loaded.custom_interval_seconds == 10 &&
-                    loaded.unknown_08 == 0xffff && loaded.state_0c.x == 1.0f &&
+                    (unsigned short)loaded.unknown_08 == 0xffff && loaded.state_0c.x == 1.0f &&
                     loaded.state_0c.y == 2.0f && loaded.state_0c.z == 3.0f &&
                     loaded.encounter_table_index == -1;
     FileClose(file);

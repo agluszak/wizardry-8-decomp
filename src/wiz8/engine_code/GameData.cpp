@@ -896,7 +896,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     if (g_camera_motion_divisor_00603ac4 < environ_record->vector_24.Length()) {
         environ_record->vector_24.SetLength(g_camera_motion_divisor_00603ac4);
     }
-    environ_record->AddScaledMotion00421850(&adjusted_position);
+    environ_record->AddScaledMotion00421850(&level->vector_a0);
 
     if (level->camera_scale_14 == g_float_005ebb34) {
         level->vector_64.SetZero();
@@ -1792,6 +1792,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     static float s_second_limit_0065294c;
     static int s_first_surface_00652d78;
     static float s_first_limit_00652da0;
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-but-set-variable"
     /* Retail keeps these collision counters as function-local statics but

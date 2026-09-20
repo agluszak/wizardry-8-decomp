@@ -484,7 +484,7 @@ void ResetMainGameScreenState(void);
 struct W8NpcScriptQuote;
 struct W8NpcQuoteEntry;
 
-void Function563890(void); /* 0x00563890 */
+void RefreshTrackedPortraitOverlay(void); /* 0x00563890 */
 void __fastcall
 CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
 void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
@@ -590,7 +590,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event,
 /* Help 36: combat monster-list hit rows beside the radar map. */
 unsigned char MonsterListRegionEvent(const InputAtom* event,
                                      struct W8Region* region); /* 0x00568100 */
-void Function568390(int value);                                /* 0x00568390 */
+void SetMainGameMode00568390(int mode);                        /* 0x00568390 */
 void SetFormationBoardVisible(unsigned char visible);          /* 0x00569390 */
 void ToggleMainGamePause(void);                                /* 0x0056ABE0 */
 /* The numbered action-key space IsMGSActionKeyEnabled, RunMGSActionKey and

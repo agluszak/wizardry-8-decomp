@@ -11,6 +11,8 @@ void AdvanceTimedEffects00502D00(unsigned int minutes);
 void RestoreSurpriseView005029A0(void); /* 0x005029A0 */
 void ResolveSurpriseWake005029E0(void); /* 0x005029E0 */
 void EndSurprise00502860(void);         /* 0x00502860: end surprise and post the notice */
+/* 0x00502810: end a holding surprise sequence when combat starts. */
+void ResolveSurpriseHold00502810(void);
 /* 0x00503100: per-character share of the 0x00502D00 aging tick - damage/heal/
    stamina/spell-point modifiers, disease progression, regen accumulators and
    the condition/enchantment countdowns. */

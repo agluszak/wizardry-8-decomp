@@ -55,7 +55,6 @@ void ReleaseMessageStorage(void);
 /* 0x0058FB50/0x0058FC30: the TEXT section pair - the four message-storage
    runs persisted around the game-status record. */
 unsigned char SaveTextBoxState0058FB50(unsigned int file);
-unsigned char LoadTextBoxState0058FC30(unsigned int file);
 /* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
    translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */
@@ -136,6 +135,8 @@ void SetTextBoxRegionBounds(int left, int top, int right, int bottom); /* 0x0058
 void ResetMessageStorage(void);                                        /* 0x0058FEE0 */
 /* 0x0058FB50: write the four message runs into the open TEXT chunk. */
 unsigned char SaveMessageStorage0058FB50(int file);
+/* 0x0058FC30: rebuild the four message runs from the open TEXT chunk. */
+unsigned char LoadMessageStorage0058FC30(int file);
 void ShowNotice(unsigned int font_palette, const wchar_t* text, short text_box = -1,
                 unsigned int wrap_width = ~0U, bool force_dialog = false);
 /* 0x0058AAD0: vswprintf the format into a scratch buffer and ShowNotice it,

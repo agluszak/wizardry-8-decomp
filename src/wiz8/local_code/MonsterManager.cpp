@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/GameplayMods.h"
@@ -163,8 +164,6 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
 
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
-void StartCombat(int surprise);
-void EndCombat(unsigned char reason);
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species);
 
@@ -1508,7 +1507,7 @@ void ToggleCombatMode(void)
         ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
-    EndCombat(0);
+    EndCombat004EA310(0);
     ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_ENDED], -1, -1, 0);
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();

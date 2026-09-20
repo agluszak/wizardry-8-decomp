@@ -49,6 +49,8 @@ void CompactFormationRow(W8PartyFormationState* formation, unsigned char row);
    file. The pointer ABI is the formation record, not a byte buffer. */
 void InitializePartyFormation(W8PartyFormationState* state);
 void CopyPartyFormationState(W8PartyFormationState* dst, const W8PartyFormationState* src);
+/* 0x00554A20: remember the formation combat started with. */
+void SaveCombatFormation(void);
 /* 0x005545F0: reconcile an edited formation against the live one, re-seating
    characters that can no longer hold their edited place and writing the
    result back into both formations. */

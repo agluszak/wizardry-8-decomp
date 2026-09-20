@@ -465,10 +465,43 @@ void SaveLightStates0049D120(int handle)
                    // bytes
                    light->getName());
             FileWrite(handle, name, sizeof(name), 0);
-            unsigned char disabled = light->testFlag(srNode::FLAG_DISABLE) != 0;
-            FileWrite(handle, &disabled, sizeof(disabled), 0);
+            unsigned char enabled = light->testFlag(srNode::FLAG_DISABLE) == 0;
+            FileWrite(handle, &enabled, sizeof(enabled), 0);
         }
         light = static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), light));
+    }
+}
+
+/* Reload the serialized positional-light states: a version byte and count
+   followed by each light's 0x80-byte name and its enable flag, applied to the
+   light found by name in the registry. */
+// FUNCTION: WIZ8 0x0049D390
+void LoadLightStates0049D390(int handle)
+{
+    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned char version;
+    int count = 0;
+
+    FileRead(handle, &version, sizeof(version), 0);
+    FileRead(handle, &count, sizeof(count), 0);
+
+    for (int index = 0; index < count; ++index) {
+        unsigned char enabled;
+        FileRead(handle, name, sizeof(name), 0);
+        FileRead(handle, &enabled, sizeof(enabled), 0);
+
+        stLight* light = static_cast<stLight*>(srCore.getRegistry()->find(
+            stLight::sGetClassNode(),
+            reinterpret_cast<char*>(name), /* reinterpret-ok: the 0x80-byte save
+                field stores the narrow name packed as bytes */
+            0));
+        if (light != 0) {
+            if (enabled != 0) {
+                light->clearFlag(srNode::FLAG_DISABLE);
+            } else {
+                light->setFlag(srNode::FLAG_DISABLE);
+            }
+        }
     }
 }
 

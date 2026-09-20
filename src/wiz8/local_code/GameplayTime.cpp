@@ -357,6 +357,24 @@ void AcknowledgeSurprise00502790(void)
     }
 }
 
+/* While a surprise sequence is holding, end it for combat: restore the view,
+   navigator and time-scale overrides, reverse the fade and restart the level
+   music. */
+// FUNCTION: WIZ8 0x00502810
+void ResolveSurpriseHold00502810(void)
+{
+    if (gXStatus.surprise_phase == 1) {
+        SetViewDistance(12.0f);
+        SetNavigatorLinkMode00452F50(0);
+        g_game_time_accumulator_6598bc->ResetDurationScale();
+        ResetMonsterGeneratorTimers0048CBE0();
+        ReverseSurpriseFade0056B5F0();
+        gXStatus.surprise_phase = 2;
+        ReleaseMarkedNpcBindings0050DA00();
+        StartLevelMusic(1, 1);
+    }
+}
+
 /* End the surprise sequence: post the outcome notice and, if the condition-13
    rest event armed flag_2487 more than a world-clock day ago, clear the
    condition and queue the rest-benefit event for that character. */

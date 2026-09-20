@@ -132,7 +132,11 @@ struct W8CombatCharacterRow {
        (party_slots_170[4]); -1 draws nothing. */
     int portrait_image_084;
     int portrait_image_alternate_088;
-    unsigned char unknown_8c[4];
+    /* 0x8c: the slot's combat-strip status recomputed each combat-mode frame:
+       -1 slot empty or out of the fight, 0 ready, 1 cannot switch to combat,
+       2 dead or ineligible, 3 the acting combatant (portrait pulses). */
+    char combat_status_8c;
+    unsigned char unknown_8d[3];
     /* 0x90: how many times the character already rolled to notice an attacker
        this round; the first attempt always succeeds and each later one is 25
        points harder on the senses check. */

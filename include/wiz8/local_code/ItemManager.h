@@ -9,6 +9,7 @@ struct W8MonsterInfo;
 
 W8WorldItem* ItemInfo(unsigned int item_list_index);
 unsigned int ItemIndex(int runtime_id);
+void SetWorldItemHighlight(int runtime_id, char on); /* 0x004F71E0 */
 /* Runtime id of the nearest hovered world item inside `max_distance`, or -1. */
 int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y,
                                        float max_distance); /* 0x004F7370 */

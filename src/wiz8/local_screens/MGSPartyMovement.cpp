@@ -208,7 +208,7 @@ void DrawPartyMovementPanel(void)
     }
     DrawPartyMovementGauge(right, image, panel_live, caption);
     if (panel_live != 0) {
-        Function563890();
+        RefreshTrackedPortraitOverlay();
     }
 }
 

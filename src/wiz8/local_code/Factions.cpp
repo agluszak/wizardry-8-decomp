@@ -357,3 +357,15 @@ void SaveFactionState00536030(int file)
     FileWrite(file, g_faction_relations, sizeof(g_faction_relations), &written);
     FileWrite(file, g_factions, sizeof(g_factions), &written);
 }
+
+/* Read the relation matrix and runtime disposition records back from the open
+   FATA chunk, then re-arm the brotherhood's fixed score. */
+// FUNCTION: WIZ8 0x00536070
+void LoadFactionState00536070(int file)
+{
+    unsigned int transferred;
+
+    FileRead(file, g_faction_relations, sizeof(g_faction_relations), &transferred);
+    FileRead(file, g_factions, sizeof(g_factions), &transferred);
+    g_factions[W8_FACTION_PARTY].disposition_score = 100;
+}

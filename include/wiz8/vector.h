@@ -215,7 +215,6 @@ template <class T> void W8GrowableVector<T>::RemoveAtAndDelete(int position)
         delete entry;
     }
 }
-
 template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
 {
     int index = 0;

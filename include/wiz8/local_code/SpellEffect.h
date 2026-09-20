@@ -184,7 +184,7 @@ static_assert(offsetof(W8SpellEffectEntry, result_126) == 0x126, "W8SpellEffectE
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
-void AddSpellEffect(W8SpellEffectEntry* effect);
+void AddSpellEffect(W8SpellEffectEntry* effect); /* 0x005008A0 */
 /* Advance every queued spell effect one frame. */
 void UpdateSpellEffects00500930(void);
 /* Fold one missile's accumulated damage and reports into the queued effect

@@ -176,7 +176,7 @@ int GetQuadrantForPosition(srVector3T<float> position)
     int bearing;
 
     GetCameraPosition(&party);
-    bearing = static_cast<int>(NormalizeAngle(BearingBetween(party, position)));
+    bearing = static_cast<int>(NormalizeAngle(GetHeadingAngle(&party, &position)));
     bearing -= g_status_685170.party_facing;
     if (bearing < 0) {
         bearing += W8_DEGREES_PER_TURN;
@@ -397,8 +397,9 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 // FUNCTION: WIZ8 0x00555d60
 bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 {
-    float bearing = NormalizeAngle(BearingBetween(monster_info->monster->GetPosition(),
-                                                  g_startup_world_659c0c->GetPosition()));
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
+    float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
     float facing = monster_info->monster->GetYaw();
 
     return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance_005ee858;
@@ -410,7 +411,8 @@ bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00555ba0
 bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
 {
-    float bearing = NormalizeAngle(BearingBetween(monster_info->monster->GetPosition(), point));
+    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &point));
 
     return fabsf(bearing - monster_info->monster->GetYaw()) <= g_facing_tolerance_005ebcf4;
 }
@@ -760,6 +762,22 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
         }
         PostCharacterNotice(slot_a, gppStringList[0x938 / 4],
                             &g_formation_row_names_00649e54[row][0]);
+    }
+}
+
+/* Unseat every formation position whose party row is no longer occupied; a
+   live load restores party_rows first and the formation record second, so a
+   slot the save marked vacant still carries its old seat. */
+// FUNCTION: WIZ8 0x00555FA0
+void RebuildPartyStatus00555FA0(W8PartyFormationState* status)
+{
+    unsigned int slot;
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0 &&
+            status->positions[slot].bQuadrant != -1 &&
+            status->positions[slot].bQuadrantSlot != -1) {
+            SetFormationPosition(status, slot, -1, -1, 0, 1, 1);
+        }
     }
 }
 

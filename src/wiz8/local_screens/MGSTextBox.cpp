@@ -27,6 +27,7 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/engine_code/OctPath.h"
 #include "wiz8/fonts.h"
 #include "wiz8/utility.h"
 #include "vobject_blitters.h"
@@ -139,6 +140,26 @@ void ResetMessageStorage(void)
             }
         }
     }
+}
+
+// FUNCTION: WIZ8 0x0058AA20
+void ResetEditorStatusLine0058AA20(short line)
+{
+    if (line == -1) {
+        line = g_status_685170.text_line_cursor_1795;
+    }
+    g_status_685170.text_box_lines_used_4997[line] = 0;
+    g_status_685170.text_box_lines_shown_49a7[line] = 0;
+    if (!IsNpcDialogueTextBoxActive577830()) {
+        g_level_block->text_lines[line] = 0;
+    }
+    g_level_block->text_lines[4 + line] = -1;
+    g_level_block->text_slots_1d8[line] = -1;
+    g_level_block->text_slots_1e8[line] = -1;
+    g_level_block->text_content_region = 0x56;
+    g_level_block->dialogue_content_region = 0x59;
+    g_level_block->dialogue_text_input_open = 0;
+    RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
 // FUNCTION: WIZ8 0x0058af60
@@ -443,6 +464,49 @@ unsigned char SaveMessageStorage0058FB50(int file)
                       (unsigned int)record.wString * 2, // c-style-cast-ok: reads
                       // back the patched count for the string payload size
                       0);
+        }
+    }
+    return 1;
+}
+
+/* Read the four message runs back from the open TEXT chunk: a format dword,
+   then per region the used-line count followed by each 0x24-byte record and
+   its wide string. The serialized record's wString field is the character
+   count from the save, not a pointer; each live record gets a fresh buffer
+   sized from it, and the stale entries_18 list pointer is dropped. Saves
+   older than the prepath link-height constant never wrote a fourth region, so
+   its count is forced to zero without consuming a count slot. */
+// FUNCTION: WIZ8 0x0058FC30
+unsigned char LoadMessageStorage0058FC30(int file)
+{
+    W8MessageStorageRecord record;
+    int format;
+    unsigned int region;
+    unsigned int index;
+    unsigned int size;
+    wchar_t* text;
+
+    ReleaseMessageStorage();
+    FileRead(file, &format, 4, 0);
+    for (region = 0; region < 4; ++region) {
+        if (g_status_685170.buffers.save_version < g_prepath_link_height_5ed300 && region == 3) {
+            g_status_685170.text_box_lines_used_4997[3] = 0;
+        } else {
+            FileRead(file, &g_status_685170.text_box_lines_used_4997[region], 4, 0);
+        }
+        for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
+            FileRead(file, &record, sizeof(record), 0);
+            g_message_storage_68f2d8[region][index] = record;
+            g_message_storage_68f2d8[region][index].entries_18 = 0;
+            /* The serialized wString field is the wide-char count including
+               the terminator, patched over the live pointer on save. */
+            // c-style-cast-ok: reads back the patched count for the buffer size
+            size = (unsigned int)record.wString * 2;
+            text = static_cast<wchar_t*>(malloc(size));
+            g_message_storage_68f2d8[region][index].wString = text;
+            if (text != 0) {
+                FileRead(file, text, size, 0);
+            }
         }
     }
     return 1;

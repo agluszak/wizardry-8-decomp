@@ -47,7 +47,7 @@ void WriteGameLog(int channel, const wchar_t* format, ...);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 float NormalizeAngle(float angle);
-float BearingBetween(const srVector3T<float>& from, const srVector3T<float>& to);
+
 void FormatDebugMessage(int channel, const char* format, ...);
 /* The plain message reporter. ReadLevel.cpp uses it for load failures and
    GrCycle.cpp for a cycle with no usable LOD, so its name stays neutral. */

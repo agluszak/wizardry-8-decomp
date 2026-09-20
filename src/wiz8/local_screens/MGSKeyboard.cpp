@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "input.h"
 #include "wiz8/character_event_queue.h"
@@ -502,7 +503,7 @@ void DispatchMGSCommand(int command)
             strcpy(g_pending_screen_state.name, slot_name);
             g_pending_screen_state.parameter = GetSaveGameLevel(g_pending_screen_state.name);
             CloseMainGameOverlays();
-            Function568390(0);
+            SetMainGameMode00568390(0);
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
             ShowNotice(0xc, gppStringList[0x1e18 / 4], -1, -1, 0);
