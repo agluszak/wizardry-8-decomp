@@ -1569,8 +1569,7 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
    field marks is answered with the fixed skill outright. */
 // FUNCTION: WIZ8 0x004ff7f0
 unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
-                                           char prefer_unlocked, unsigned int power_level,
-                                           int level_bonus)
+                                           char prefer_unlocked, unsigned int power_level)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     unsigned char probe;
@@ -1639,7 +1638,8 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
 
             best_level = failure;
             chosen = GetMinimumCasterLevelForSpell(spell_id);
-            shortfall = (int)chosen - GetTotalCasterLevel(character, 0, book, 1) - 1 + level_bonus;
+            shortfall = static_cast<int>(chosen) - GetTotalCasterLevel(character, 0, book, 1) - 1 +
+                        power_level;
             if (shortfall > 0) {
                 unlocked_skill = g_spell_records[spell_id].spell_level * shortfall + power_level;
             }
@@ -1687,7 +1687,7 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
         return 0;
     }
 
-    skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level, 0);
+    skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     party_slot = CharacterPointerToPartySlot(character);
     skill_figure =
         (character->skills[skill].level +
