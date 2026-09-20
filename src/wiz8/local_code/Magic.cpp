@@ -2084,16 +2084,14 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
     SetTargetSourceToMonster(monster_info, &source);
 
     if (g_settings_6850c8.verbose_combat_messages == 0) {
-        WriteGameLog(9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
-                     GetMonsterName(monster_info, record, 0),
-                     g_spell_records[spell_id].display_name,
-                     SpellTargetString(&source, &monster_info->Target));
+        ShowNoticef(9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
+                    GetMonsterName(monster_info, record, 0), g_spell_records[spell_id].display_name,
+                    SpellTargetString(&source, &monster_info->Target));
         SetTextBoxMode(1, 9);
     } else {
-        WriteGameLog(9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
-                     GetMonsterName(monster_info, record, 0),
-                     g_spell_records[spell_id].display_name, power_level,
-                     SpellTargetString(&source, &monster_info->Target));
+        ShowNoticef(9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
+                    GetMonsterName(monster_info, record, 0), g_spell_records[spell_id].display_name,
+                    power_level, SpellTargetString(&source, &monster_info->Target));
     }
 
     record = GetMonsterDataForInfo(monster_info);
@@ -2234,7 +2232,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 effect->reported_124 = 1;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
-                WriteGameLog(
+                ShowNoticef(
                     9, L"%s %s", report->text,
                     gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
                 effect->reported_124 = 1;

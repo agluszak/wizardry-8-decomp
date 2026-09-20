@@ -56,8 +56,8 @@ unsigned char GetFact(int fact_id)
         } else {
             wcscpy(display_value, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
-                     display_value);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
+                    display_value);
     }
     return value;
 }
@@ -95,7 +95,7 @@ void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effec
             } else {
                 wcscpy(display_value, L"FALSE");
             }
-            WriteGameLog(5, L"%S set to %s", g_fact_records[fact_id].symbolic_name, display_value);
+            ShowNoticef(5, L"%S set to %s", g_fact_records[fact_id].symbolic_name, display_value);
         }
     }
 }
@@ -189,8 +189,8 @@ static __inline unsigned char CheckFactLogged(int fact_id)
         } else {
             wcscpy(text, L"FALSE");
         }
-        WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
-                     text);
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
+                    text);
     }
     return value;
 }
@@ -261,15 +261,15 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x3a);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[58].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[58].symbolic_name,
+                            text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x3c);
                 if (g_status_685170.log_fact_checks_3120) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
-                    WriteGameLog(5, L"Checking fact %S which is %s",
-                                 g_fact_records[60].symbolic_name, text);
+                    ShowNoticef(5, L"Checking fact %S which is %s",
+                                g_fact_records[60].symbolic_name, text);
                 }
                 if (value == 0) {
                     return 1;
@@ -301,15 +301,15 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x86);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[134].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[134].symbolic_name,
+                            text);
             }
             if (value == 0) {
                 value = EvaluateFact(0x83);
                 if (g_status_685170.log_fact_checks_3120) {
                     wcscpy(text, value ? L"TRUE" : L"FALSE");
-                    WriteGameLog(5, L"Checking fact %S which is %s",
-                                 g_fact_records[131].symbolic_name, text);
+                    ShowNoticef(5, L"Checking fact %S which is %s",
+                                g_fact_records[131].symbolic_name, text);
                 }
                 if (value != 0 && FindItemOnParty(0x271, 0, 0, 2, 0) == 0 &&
                     FindItemOnParty(0x272, 0, 0, 2, 0) == 0) {
@@ -374,8 +374,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x22);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[34].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[34].symbolic_name,
+                            text);
             }
             if (value != 0) {
                 return 1;
@@ -383,8 +383,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x30);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[48].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[48].symbolic_name,
+                            text);
             }
             if (value != 0) {
                 return 1;
@@ -392,8 +392,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x31);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[49].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[49].symbolic_name,
+                            text);
             }
             if (value != 0) {
                 return 1;
@@ -442,8 +442,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x268);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[616].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[616].symbolic_name,
+                            text);
             }
             if (value == 0) {
                 return 1;
@@ -451,8 +451,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x323);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[803].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[803].symbolic_name,
+                            text);
             }
             if (value == 0) {
                 return 1;
@@ -464,8 +464,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x7d);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[125].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[125].symbolic_name,
+                            text);
             }
             if (value != 0) {
                 return 1;
@@ -473,8 +473,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x3e);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[62].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[62].symbolic_name,
+                            text);
             }
             if (value != 0) {
                 return 1;
@@ -488,8 +488,8 @@ unsigned char EvaluateFact(int fact_id)
             value = EvaluateFact(0x156);
             if (g_status_685170.log_fact_checks_3120) {
                 wcscpy(text, value ? L"TRUE" : L"FALSE");
-                WriteGameLog(5, L"Checking fact %S which is %s", g_fact_records[342].symbolic_name,
-                             text);
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[342].symbolic_name,
+                            text);
             }
             return value;
         }

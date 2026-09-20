@@ -28,6 +28,11 @@
 #include "wiz8/utility.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
+#include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
@@ -99,6 +104,8 @@ struct RuntimeObservation {
     unsigned char combat_action_queued;
     unsigned char combat_party_moved;
     unsigned char combat_ended;
+    unsigned char combat_aggroed;
+    unsigned char monster_engaged;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;
@@ -1517,13 +1524,63 @@ static DWORD WINAPI DriveScenario(void*)
                     }
                 }
                 if (gfProgramIsRunning) {
+                    /* Ambient simulation proof: dormant monsters still tick
+                       their wander/idle navigation, so positions sampled
+                       around the soak window should drift for the ones whose
+                       AI is live. */
+                    unsigned int monster_indexes[64];
+                    srVector3T<float> monster_before[64];
+                    int monster_sampled = 0;
+                    if (gXStatus.plsMonsterList != 0) {
+                        unsigned int count =
+                            ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+                        for (unsigned int i = 0; i < count && monster_sampled < 64; ++i) {
+                            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                            if (info != 0 && info->fActive != 0 && info->monster != 0) {
+                                monster_indexes[monster_sampled] = i;
+                                monster_before[monster_sampled] = info->monster->GetPosition();
+                                ++monster_sampled;
+                            }
+                        }
+                    }
                     started = GetTickCount();
                     while (GetTickCount() - started < 15000 && gfProgramIsRunning) {
                         Sleep(200);
                     }
                     if (gfProgramIsRunning) {
+                        int monsters_moved = 0;
+                        for (int i = 0; i < monster_sampled; ++i) {
+                            W8MonsterInfo* info =
+                                MonsterGetScriptPartByLocationIndex(monster_indexes[i]);
+                            if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                                (info->monster->GetPosition() - monster_before[i]).Length() >
+                                    0.5f) {
+                                ++monsters_moved;
+                            }
+                        }
                         g_observation.world_soaked = 1;
                         ReportStep("world-soaked");
+                        srVector3T<float> camera_now;
+                        GetCameraPosition(&camera_now);
+                        float nearest = 1e30f;
+                        int nearest_index = -1;
+                        for (int k = 0; k < monster_sampled; ++k) {
+                            W8MonsterInfo* info =
+                                MonsterGetScriptPartByLocationIndex(monster_indexes[k]);
+                            if (info != 0 && info->fActive != 0 && info->monster != 0) {
+                                float dist = (info->monster->GetPosition() - camera_now).Length();
+                                if (dist < nearest) {
+                                    nearest = dist;
+                                    nearest_index = (int)monster_indexes[k];
+                                }
+                            }
+                        }
+                        fprintf(stderr,
+                                "runtime-test soak: monsters=%d moved=%d hostile=%u combat=%u "
+                                "move_ui=%u nearest=%.1f@%d\n",
+                                monster_sampled, monsters_moved, gXStatus.hostile_monster_count,
+                                gXStatus.fCombatMode, gXStatus.fPartyMovementUi, nearest,
+                                nearest_index);
                     }
                 }
                 /* Dispatched-command path: tapping the resolved AUTOMAP key
@@ -1830,6 +1887,160 @@ static DWORD WINAPI DriveScenario(void*)
                                 combat_index);
                     }
                 }
+                /* Real encounter: no monster sits within walking reach of the
+                   start room (the soak diagnostic measures the nearest ~17k
+                   units away), so provoke the nearest live group through
+                   MakeTargetGroupHostile - the same entry a party attack on
+                   the monster takes. The group turns hostile, its faction is
+                   alerted, combat stays engaged, and the monsters' own AI
+                   pathing toward the party proves the encounter simulates.
+                   The driver-side call races the render loop, so park the
+                   game loop for it the same way npc-state-reset does. */
+                if (gfProgramIsRunning && g_observation.combat_ended != 0 &&
+                    gXStatus.plsMonsterList != 0) {
+                    srVector3T<float> party_position;
+                    W8MonsterInfo* provoked_info = 0;
+                    float provoked_distance = 1e30f;
+                    GetCameraPosition(&party_position);
+                    for (unsigned int i = 0;
+                         i < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList)); ++i) {
+                        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                        if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                            info->monster_group_id != 0 && info->condition_turns[13] == 0) {
+                            float dist = (info->monster->GetPosition() - party_position).Length();
+                            if (dist < provoked_distance) {
+                                provoked_distance = dist;
+                                provoked_info = info;
+                            }
+                        }
+                    }
+                    if (provoked_info != 0) {
+                        gfApplicationActive = 0;
+                        Sleep(200);
+                        /* At ~17k units the hostile group's own navigation
+                           never finds a route to the party, so its combat
+                           turn can never commit a move. Relocate the party
+                           beside the group through PlacePartyAtPoint - the
+                           same call the recall spell and level loads use -
+                           so the encounter's pursuit has a reachable
+                           target. */
+                        srVector3T<float> drop_point = provoked_info->monster->GetPosition();
+                        drop_point.x += 1500.0f;
+                        PlacePartyAtPoint(&drop_point);
+                        party_position = drop_point;
+                        provoked_distance =
+                            (provoked_info->monster->GetPosition() - party_position).Length();
+                        W8TargetSource source;
+                        W8CombatSlot target;
+                        memset(&target, 0, sizeof(target));
+                        target.iChar = -1;
+                        target.iMonsterID = -1;
+                        target.iGroupID = -1;
+                        SetTargetSourceToCharacter(0, &source);
+                        target.iType = W8_TARGET_KIND_MONSTER;
+                        target.iMonsterID = provoked_info->location_id;
+                        MakeTargetGroupHostile(&source, &target);
+                        gfApplicationActive = 1;
+                        PostMessage(ghWindow, WM_NULL, 0, 0);
+                        fprintf(stderr,
+                                "runtime-test provoke: hp=%d cond=%d active=%d incombat=%d "
+                                "hostile=%u combat=%u\n",
+                                provoked_info->hp_current, provoked_info->highest_condition,
+                                provoked_info->fActive, provoked_info->fInCombat,
+                                gXStatus.hostile_monster_count, gXStatus.fCombatMode);
+                        /* The group is hostile and combat is engaged, but the
+                           provoked monster only acts on its own turn: in
+                           turn-based combat that takes a START_COMBAT_ROUND
+                           press, the same command that ran the voluntary
+                           round above. Dispatch it while watching for the
+                           monster's own movement to prove the encounter
+                           simulates past the hostility flag. */
+                        int aggro_round_index =
+                            g_mgs_keyboard != 0
+                                ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_START_COMBAT_ROUND)
+                                : -1;
+                        MGSKeyBinding* aggro_round_binding =
+                            aggro_round_index >= 0 ? g_mgs_keyboard->GetBinding(aggro_round_index)
+                                                   : 0;
+                        fprintf(stderr,
+                                "runtime-test round-binding: keyboard=%p index=%d "
+                                "binding=%p\n",
+                                (void*)g_mgs_keyboard, aggro_round_index,
+                                (void*)aggro_round_binding);
+                        float engage_distance = 1e30f;
+                        float engage_baseline = 1e30f;
+                        int party_hp = 0;
+                        for (unsigned int i = 0; i < 6; ++i) {
+                            if (g_status_685170.buffers.party_rows[i].occupied) {
+                                party_hp += g_status_685170.buffers.characters[i].hp_current;
+                            }
+                        }
+                        unsigned int round_presses = 0;
+                        started = GetTickCount();
+                        while (GetTickCount() - started < 20000 && gfProgramIsRunning &&
+                               g_observation.monster_engaged == 0) {
+                            Sleep(200);
+                            if (gXStatus.hostile_monster_count != 0 &&
+                                g_observation.combat_aggroed == 0) {
+                                g_observation.combat_aggroed = 1;
+                                ReportStep("combat-aggroed");
+                            }
+                            /* The provoked monster can die before it ever
+                               closes (a weak pick in a hostile faction), so
+                               engagement watches every live hostile: any
+                               approach on the party or any party damage a
+                               hostile action caused proves the encounter
+                               simulates. */
+                            for (unsigned int m = 0;
+                                 m < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+                                 ++m) {
+                                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(m);
+                                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                                    info->condition_turns[13] != 0) {
+                                    float dist =
+                                        (info->monster->GetPosition() - party_position).Length();
+                                    if (dist < engage_distance) {
+                                        engage_distance = dist;
+                                    }
+                                }
+                            }
+                            if (engage_baseline > 1e29f) {
+                                engage_baseline = engage_distance;
+                            }
+                            int party_hp_now = 0;
+                            for (unsigned int s = 0; s < 6; ++s) {
+                                if (g_status_685170.buffers.party_rows[s].occupied) {
+                                    party_hp_now +=
+                                        g_status_685170.buffers.characters[s].hp_current;
+                                }
+                            }
+                            if ((engage_baseline - engage_distance > 50.0f ||
+                                 party_hp_now < party_hp) &&
+                                gXStatus.hostile_monster_count != 0) {
+                                g_observation.monster_engaged = 1;
+                                ReportStep("monster-engaged");
+                            }
+                            if (g_observation.monster_engaged == 0 &&
+                                gXStatus.hostile_monster_count != 0 && aggro_round_binding != 0 &&
+                                round_presses < 6) {
+                                SendScenarioKeyHeld(aggro_round_binding->key, 0);
+                                SendScenarioKeyHeld(aggro_round_binding->key, 1);
+                                ++round_presses;
+                                Sleep(1500);
+                            }
+                        }
+                        if (g_observation.combat_aggroed == 0 ||
+                            g_observation.monster_engaged == 0) {
+                            fprintf(stderr,
+                                    "runtime-test aggro: hostile=%u combat=%u provoked=%.0f "
+                                    "engage=%.0f active=%d hp=%d cond=%d rounds=%u state=%p\n",
+                                    gXStatus.hostile_monster_count, gXStatus.fCombatMode,
+                                    provoked_distance, engage_distance, provoked_info->fActive,
+                                    provoked_info->hp_current, provoked_info->highest_condition,
+                                    round_presses, (void*)g_combat_state);
+                        }
+                    }
+                }
             }
             if (strcmp(g_scenario, "npc-state-reset") == 0) {
                 /* ResetLiveSessionForLoad tears the level down on the game's
@@ -2032,6 +2243,7 @@ int main(int argc, char** argv)
            "party_moved=%u party_turned=%u world_soaked=%u automap_opened=%u automap_closed=%u "
            "game_saved=%u game_loaded=%u load_restored=%u "
            "combat_started=%u combat_action_queued=%u combat_party_moved=%u combat_ended=%u "
+           "combat_aggroed=%u monster_engaged=%u "
            "return_observed=%u teardown=%u timed_out=%u "
            "npc_state_reset_ok=%u "
            "character_page_start=%d character_page_after=%d "
@@ -2057,6 +2269,7 @@ int main(int argc, char** argv)
            g_observation.game_loaded, g_observation.load_position_restored,
            g_observation.combat_started, g_observation.combat_action_queued,
            g_observation.combat_party_moved, g_observation.combat_ended,
+           g_observation.combat_aggroed, g_observation.monster_engaged,
            g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
            g_observation.npc_state_reset_ok, g_observation.character_page_start,
            g_observation.character_page_after, g_observation.tooltip_shown,

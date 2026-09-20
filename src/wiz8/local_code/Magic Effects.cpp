@@ -462,9 +462,8 @@ char InflictConditionOnTarget(W8CombatSlot* target, int condition_id, int realm,
                         magnitude = remaining;
                     } else {
                         if (announce != 0) {
-                            WriteGameLogAmount(
-                                9, L"%s %s!", GetMonsterName(monster_info, 0, 0),
-                                gppStringList[g_condition_notices_0061E570[5 * 4 + 1]]);
+                            ShowNoticef(9, L"%s %s!", GetMonsterName(monster_info, 0, 0),
+                                        gppStringList[g_condition_notices_0061E570[5 * 4 + 1]]);
                         }
                         return 1;
                     }
@@ -3957,8 +3956,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
             while (SpellCastFatigueCost(spell_id, 1) <= character->stamina) {
                 if (character->sp_left[g_spell_records[spell_id].realm] <
                         g_spell_records[spell_id].spell_point_cost ||
-                    ConsumeCastSpellPoints004FA4D0(effect->Source.iChar, spell_id, 8, &cost, 1) !=
-                        2) {
+                    ExecuteCharacterSpellCast(effect->Source.iChar, spell_id, 8, &cost, 1) != 2) {
                     break;
                 }
                 FatigueCharacter(effect->Source.iChar, cost, 1, 0);

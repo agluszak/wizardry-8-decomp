@@ -174,13 +174,14 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
         g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle_68c501 != 0;
 
     /* SetNpcDialogueLayoutMode: with the dialogue cursor down, a zero value
-       retires the current layout into value_104 and parks value_fc on NONE,
+       retires the current layout into previous_dialogue_layout and parks value_fc on NONE,
        while a nonzero value installs directly. The fake screen is freed below,
        so the layout fields need no restore. */
     fake_screen->value_fc = W8_DIALOGUE_LAYOUT_TOPIC_MENU;
     SetNpcDialogueLayoutMode(0);
-    result->layout_retired = fake_screen->value_104 == W8_DIALOGUE_LAYOUT_TOPIC_MENU &&
-                             fake_screen->value_fc == W8_DIALOGUE_LAYOUT_NONE;
+    result->layout_retired =
+        fake_screen->previous_dialogue_layout == W8_DIALOGUE_LAYOUT_TOPIC_MENU &&
+        fake_screen->value_fc == W8_DIALOGUE_LAYOUT_NONE;
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_TRANSCRIPT);
     result->layout_installed = fake_screen->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT;
 

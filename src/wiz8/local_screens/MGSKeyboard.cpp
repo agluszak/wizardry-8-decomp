@@ -320,9 +320,9 @@ void DispatchMGSCommand(int command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings_6850c8.combat_delay_ms = delay;
-            WriteGameLogAmount(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
         } else {
-            WriteGameLogAmount(0xc, L"%s (%d)", gppStringList[0x1eec / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1eec / 4], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -335,9 +335,9 @@ void DispatchMGSCommand(int command)
                 delay -= delay % 0xfa;
             }
             g_settings_6850c8.combat_delay_ms = delay;
-            WriteGameLogAmount(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x1ee8 / 4], 0x14 - delay / 0xfa);
         } else {
-            WriteGameLogAmount(0xc, L"%s (%d)", gppStringList[0x1ef0 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ef0 / 4], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -350,9 +350,9 @@ void DispatchMGSCommand(int command)
                 delay += 0xfa - delay % 0xfa;
             }
             g_settings_6850c8.text_display_delay_ms = delay;
-            WriteGameLogAmount(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
         } else {
-            WriteGameLogAmount(0xc, L"%s (%d)", gppStringList[0x1ee0 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ee0 / 4], 0x14 - delay / 0xfa);
         }
         break;
     }
@@ -365,9 +365,9 @@ void DispatchMGSCommand(int command)
                 delay -= delay % 0xfa;
             }
             g_settings_6850c8.text_display_delay_ms = delay;
-            WriteGameLogAmount(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s %d", gppStringList[0x1edc / 4], 0x14 - delay / 0xfa);
         } else {
-            WriteGameLogAmount(0xc, L"%s (%d)", gppStringList[0x1ee4 / 4], 0x14 - delay / 0xfa);
+            ShowNoticef(0xc, L"%s (%d)", gppStringList[0x1ee4 / 4], 0x14 - delay / 0xfa);
         }
         break;
     }

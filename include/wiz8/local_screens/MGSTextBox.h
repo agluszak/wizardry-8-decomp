@@ -52,7 +52,6 @@ void ResetEditorStatusLine0058AA20(short line);
 int GetTextBoxValue2E8(void);
 /* 0x00590D90: clear one text_lines slot on the level block. */
 void ClearTextLineEntry00590D90(int index);
-void WriteGameLogAmount(int color, const wchar_t* format, ...);
 void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0x0058AB60 */
 
 void ReleaseMessageStorage(void);

@@ -999,7 +999,7 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
         wcscpy(location_name, gppStringList[g_pc_hit_location_labels[hit_location][0]]);
     }
     if (g_settings_6850c8.verbose_combat_messages != 0) {
-        WriteGameLog(source_color, gppStringList[0x830 / 4], location_name);
+        ShowNoticef(source_color, gppStringList[0x830 / 4], location_name);
     }
 
     attack_mode = g_missile_table_65bde0[missile->missile_table_index_1d8].attack_mode_144;
@@ -1018,10 +1018,10 @@ void ResolveMissileHit(W8Missile* missile, bool deflected)
             }
             ApplyEffectConditions(source, target, &missile->definition_1fc, 1, 0, 0);
         } else if (g_settings_6850c8.verbose_combat_messages != 0) {
-            WriteGameLog(source_color, gppStringList[0x838 / 4]);
+            ShowNoticef(source_color, gppStringList[0x838 / 4]);
         }
     } else {
-        WriteGameLog(source_color, gppStringList[0x83c / 4]);
+        ShowNoticef(source_color, gppStringList[0x83c / 4]);
         MakePCHitSound(missile, target, hit_location, -1);
     }
 }

@@ -393,7 +393,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
     group->ubDisposition = static_cast<unsigned char>(hostility);
     group->flag_ca = 0;
     if (MonsterGroupHasVisibleThreat(group)) {
-        WriteGameLog(
+        ShowNoticef(
             9, L"%s %s %s!", GetMonsterGroupName(group),
             gppStringList[0x1d7 + (group->member_count != 1)],
             gppStringList[g_group_hostility_notice_ids[static_cast<unsigned char>(hostility)]]);
@@ -551,4 +551,22 @@ unsigned char CanPartySlotPray(int party_slot)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x005478A0
+void AlertSameFactionGroups(W8MonsterGroup* monster_group)
+{
+    W8MonsterRecord* record = MonsterGroupGetRecord(monster_group);
+    if (record->faction_id_25f != 0) {
+        for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+            W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
+            W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
+            if (other != monster_group &&
+                ((other_record->flags_0d0 & 1) == 0 || other->flag_ca == 0) &&
+                record->faction_id_25f == other_record->faction_id_25f &&
+                MonsterGroupCanSeeGroup(other, monster_group) != 0) {
+                SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);
+            }
+        }
+    }
 }

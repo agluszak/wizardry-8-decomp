@@ -1143,8 +1143,8 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         } else if (group->member_count != 1) {
             name += 1;
         }
-        WriteGameLog(9, L"%d %s %s nearby! (%dK)", count, name, verb,
-                     (registry_after - registry_before) >> 10);
+        ShowNoticef(9, L"%d %s %s nearby! (%dK)", count, name, verb,
+                    (registry_after - registry_before) >> 10);
     }
 
     return group;

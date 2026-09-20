@@ -236,8 +236,8 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         monster_info->monster->registry_weight_27c = registry_after - registry_before;
         g_monster_cycle_registry_weight_0065ba4c += registry_after - registry_before;
         if (GetFlag68F105() != 0) {
-            WriteGameLog(7, L"%dK\n",
-                         static_cast<unsigned int>(registry_after - registry_before) >> 10);
+            ShowNoticef(7, L"%dK\n",
+                        static_cast<unsigned int>(registry_after - registry_before) >> 10);
         }
         InitializeMonsterRangeCapabilities(
             monster_info, MonsterDBFromSpeciesInline(monster_info->monster_species));

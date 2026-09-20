@@ -326,6 +326,7 @@ public:
     int FindNavigatorPathDistance(float max_range, float* out_distance); /* 0x00453480 */
     void SetValue120(float value);                                       /* 0x00453C50 */
     float GetValue120();                                                 /* 0x00453C60 */
+    void SetMonsterTurnSpeed(float speed);                               /* 0x00453C70 */
     unsigned char
     ConfigureMovementToPosition00452630(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the
@@ -472,5 +473,3 @@ extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 /* Runtime scale applied to the startup navigator's radius_084 when the trace
    resolver tests the camera sphere; written during startup, not a constant. */
 extern float g_float_006081f4;
-
-void SetMonsterTurnSpeed(float speed); /* 0x00453C70 */

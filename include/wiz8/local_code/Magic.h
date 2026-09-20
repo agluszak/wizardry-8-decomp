@@ -38,9 +38,10 @@ unsigned int MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsign
    its database base plus its runtime bonus. */
 unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                                           int spell_id);
-/* 0x004FA4D0: one step of the queued spell-cast action; answers 0/1/2 while
-   the per-step point draw lands in `out_points`. */
-int Function4FA4D0(int party_slot, int spell_id, int power_level, int* out_points, char arg_5);
+/* 0x004FA4D0: one physical callable for queued and repeated casts; returns
+   0/1/2 and writes the per-step point cost. The body remains unrecovered. */
+int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_level,
+                              int* out_points, char continue_cast);
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
@@ -67,12 +68,6 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
-/* 0x004FA4D0: take the realm spell points one cast costs off the casting
-   character; the dispatcher's multi-cast loop keeps going while it answers
-   two. */
-int ConsumeCastSpellPoints004FA4D0(unsigned int party_slot, int spell_id, unsigned int amount,
-                                   int* cost, int flag);
-
 /* Resolve valid spell targets for one cast and append location ids to the
    caller's vectors. The party and monster vectors are separate outputs; the
    final flag enables radius highlighting rather than plain line-of-sight

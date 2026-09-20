@@ -150,13 +150,13 @@ void ToggleMipePanel0057D740(void)
     ResetEditorStatusLine0058AA20(-1);
     g_flag_68f105 = 1;
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"What would you like to do?", 0);
-    WriteGameLogAmount(15, L"1) Create a monster.", 0);
-    WriteGameLogAmount(15, L"2) Create an item.", 0);
-    WriteGameLogAmount(15, L"3) Edit object(s).", 0);
-    WriteGameLogAmount(15, L"4) Monster Generators.", 0);
-    WriteGameLogAmount(15, L"5) Select object(s).", 0);
-    WriteGameLogAmount(15, L"6) Handle triggers.", 0);
+    ShowNoticef(6, L"What would you like to do?", 0);
+    ShowNoticef(15, L"1) Create a monster.", 0);
+    ShowNoticef(15, L"2) Create an item.", 0);
+    ShowNoticef(15, L"3) Edit object(s).", 0);
+    ShowNoticef(15, L"4) Monster Generators.", 0);
+    ShowNoticef(15, L"5) Select object(s).", 0);
+    ShowNoticef(15, L"6) Handle triggers.", 0);
     g_mipe_mode_0068f108 = 0;
     InitializeWorldCursor00490210();
     g_flag_68f105 = 1;
@@ -453,14 +453,14 @@ void ShowMonsterSpeedStatus00577F10(void)
     float speed;
 
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"Type ',' to decrease speed, '.' to increase.");
-    WriteGameLogAmount(6, L"Type 'k' to decrease increment, 'l' to increase.");
-    WriteGameLogAmount(0xf, &g_wchar_00689b34);
-    WriteGameLogAmount(0xf, L"Increment: %g", (double)g_mipe_state_0068f100->speed_step);
-    WriteGameLogAmount(0xf, &g_wchar_00689b34);
-    WriteGameLogAmount(0xf, &g_wchar_00689b34);
+    ShowNoticef(6, L"Type ',' to decrease speed, '.' to increase.");
+    ShowNoticef(6, L"Type 'k' to decrease increment, 'l' to increase.");
+    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, L"Increment: %g", g_mipe_state_0068f100->speed_step);
+    ShowNoticef(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_wchar_00689b34);
     if (g_mipe_state_0068f100->monster == 0) {
-        WriteGameLogAmount(8, L"No monster available.");
+        ShowNoticef(8, L"No monster available.");
         return;
     }
     path = static_cast<W8PathAI*>(MonsterGetObject0C(g_mipe_state_0068f100->monster));
@@ -468,12 +468,12 @@ void ShowMonsterSpeedStatus00577F10(void)
         speed = PathAIGetScale004AAA50(path);
     } else {
         if (g_mipe_state_0068f100->monster == 0) {
-            WriteGameLogAmount(8, L"Monster has no path AI.");
+            ShowNoticef(8, L"Monster has no path AI.");
             return;
         }
         speed = MonsterGetNavigatorValue120(g_mipe_state_0068f100->monster);
     }
-    WriteGameLogAmount(0xf, L"Current speed: %g", (double)speed);
+    ShowNoticef(0xf, L"Current speed: %g", speed);
 }
 
 /* The "Parameters" pane for the selected volume cube. */
@@ -482,31 +482,29 @@ void ShowCubeParameters005780F0(void)
 {
     ResetEditorStatusLine0058AA20(-1);
     if (g_mipe_cube_0068f12c == 0) {
-        WriteGameLogAmount(6, L"No cube selected.");
+        ShowNoticef(6, L"No cube selected.");
         return;
     }
-    WriteGameLogAmount(6, L"Parameters:");
+    ShowNoticef(6, L"Parameters:");
     if (g_mipe_cube_param_0068f130 == 0) {
-        WriteGameLogAmount(0, L"Message: %d",
-                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
+        ShowNoticef(0, L"Message: %d",
+                    GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
     } else {
-        WriteGameLogAmount(0xf, L"Message: %d",
-                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
+        ShowNoticef(0xf, L"Message: %d",
+                    GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 0));
     }
     if (g_mipe_cube_param_0068f130 == 1) {
-        WriteGameLogAmount(0, L"Search: %d",
-                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
+        ShowNoticef(0, L"Search: %d", GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
     } else {
-        WriteGameLogAmount(0xf, L"Search: %d",
-                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
+        ShowNoticef(0xf, L"Search: %d",
+                    GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 1));
     }
     if (g_mipe_cube_param_0068f130 == 2) {
-        WriteGameLogAmount(0, L"Function: %d",
-                           GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
+        ShowNoticef(0, L"Function: %d",
+                    GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
         return;
     }
-    WriteGameLogAmount(0xf, L"Function: %d",
-                       GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
+    ShowNoticef(0xf, L"Function: %d", GetWorldCursorNodeParameter0048E2B0(g_mipe_cube_0068f12c, 2));
 }
 
 /* The monster generator top menu plus its selection status line. */
@@ -516,33 +514,33 @@ void ShowMonsterGeneratorStatus005781F0(void)
     const char* state;
 
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"Monster Generators (%d)", GetMonsterGeneratorCount());
-    WriteGameLogAmount(0xf, L"1) Create 2) Delete");
-    WriteGameLogAmount(0xf, L"3) Edit   4) Select");
+    ShowNoticef(6, L"Monster Generators (%d)", GetMonsterGeneratorCount());
+    ShowNoticef(0xf, L"1) Create 2) Delete");
+    ShowNoticef(0xf, L"3) Edit   4) Select");
     state = "On";
     if (g_mipe_mongen_visible_0068f0fe == 0) {
         state = "Off";
     }
-    WriteGameLogAmount(0xf, L"5) Toggle Display [%s]", state);
+    ShowNoticef(0xf, L"5) Toggle Display [%s]", state);
     state = "Off";
     if (g_generator_save_flag == 0) {
         state = "On";
     }
-    WriteGameLogAmount(0xf, L"6) Toggle Active  [%s]", state);
-    WriteGameLogAmount(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, L"6) Toggle Active  [%s]", state);
+    ShowNoticef(0xf, &g_wchar_00689b34);
     if (g_mipe_state_0068f100->generator != 0) {
         if (g_mipe_state_0068f100->selecting != 0) {
-            WriteGameLogAmount(3, L"<--- MOUSE OVER MONGEN --->");
+            ShowNoticef(3, L"<--- MOUSE OVER MONGEN --->");
             return;
         }
-        WriteGameLogAmount(8, L"MONGEN selected");
+        ShowNoticef(8, L"MONGEN selected");
         return;
     }
     if (g_mipe_state_0068f100->selecting != 0) {
-        WriteGameLogAmount(3, L"---> SELECTING MONGEN <---");
+        ShowNoticef(3, L"---> SELECTING MONGEN <---");
         return;
     }
-    WriteGameLogAmount(0xf, &g_wchar_00689b34);
+    ShowNoticef(0xf, &g_wchar_00689b34);
 }
 
 /* The "Edit Monster Generator" pane. */
@@ -558,19 +556,19 @@ void ShowMonsterGeneratorEditor005782D0(void)
     const wchar_t* format;
 
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"Edit Monster Generator");
-    WriteGameLogAmount(0xf, L"1) Name: %hs", g_mipe_state_0068f100->generator->name);
+    ShowNoticef(6, L"Edit Monster Generator");
+    ShowNoticef(0xf, L"1) Name: %hs", g_mipe_state_0068f100->generator->name);
     if (g_mipe_state_0068f100->generator->encounter_table_index == -1) {
-        WriteGameLogAmount(0xf, L"2) Table: Not Selected");
+        ShowNoticef(0xf, L"2) Table: Not Selected");
     } else {
         table = GetEncounterTable(g_mipe_state_0068f100->generator->encounter_table_index);
-        WriteGameLogAmount(0xf, L"2) Table: %hs", table->name);
+        ShowNoticef(0xf, L"2) Table: %hs", table->name);
     }
     state = "On";
     if (g_mipe_state_0068f100->generator->generation_enabled == 0) {
         state = "Off";
     }
-    WriteGameLogAmount(0xf, L"3) Toggle Active [%s]", state);
+    ShowNoticef(0xf, L"3) Toggle Active [%s]", state);
     generator = g_mipe_state_0068f100->generator;
     if ((generator->flags >> 3 & 1) == 0) {
         interval = generator->custom_interval_seconds;
@@ -583,8 +581,8 @@ void ShowMonsterGeneratorEditor005782D0(void)
         color = 8;
         interval = g_generator_default_interval;
     }
-    WriteGameLogAmount(color, format, chance, static_cast<int>(interval));
-    WriteGameLogAmount(0xf, L"8) to toggle chance default");
+    ShowNoticef(color, format, chance, static_cast<int>(interval));
+    ShowNoticef(0xf, L"8) to toggle chance default");
 }
 
 /* Mode-0x17 menu: current encounter-table category plus its six rows. */
@@ -1435,13 +1433,13 @@ void HandleWaypointKey00579DF0(unsigned short key)
         g_mipe_state_0068f100->waypoint_count = g_mipe_state_0068f100->waypoint_count + 1;
         PLAdoptAppend(&g_mipe_state_0068f100->waypoints, monster);
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Type 'C' to create a waypoint.");
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
+        ShowNoticef(6, L"Type 'C' to create a waypoint.");
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, L"Type X to delete last waypoint.");
     } else if (key == 0x58) {
         if (g_mipe_state_0068f100 != 0) {
             unsigned int count = PLLength(&g_mipe_state_0068f100->waypoints);
@@ -1460,13 +1458,13 @@ void HandleWaypointKey00579DF0(unsigned short key)
             }
         }
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Type 'C' to create a waypoint.");
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, &g_wchar_00689b34);
-        WriteGameLogAmount(0xf, L"Type X to delete last waypoint.");
+        ShowNoticef(6, L"Type 'C' to create a waypoint.");
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(3, L"Laying down waypoint %d", g_mipe_state_0068f100->waypoint_count);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, &g_wchar_00689b34);
+        ShowNoticef(0xf, L"Type X to delete last waypoint.");
     }
 }
 
@@ -1620,13 +1618,13 @@ int HandleCubeMenuKey0057A310(unsigned int key)
     switch (key & 0xffff) {
     case 0x20:
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Choose an action:");
-        WriteGameLogAmount(0xf, L"1) Create cube.");
-        WriteGameLogAmount(0xf, L"2) Delete cube.");
-        WriteGameLogAmount(0xf, L"3) Edit cube parameters.");
-        WriteGameLogAmount(0xf, L"4) Move cube.");
-        WriteGameLogAmount(0xf, L"5) Scale cube.");
-        WriteGameLogAmount(0xf, L"6) Select cube.");
+        ShowNoticef(6, L"Choose an action:");
+        ShowNoticef(0xf, L"1) Create cube.");
+        ShowNoticef(0xf, L"2) Delete cube.");
+        ShowNoticef(0xf, L"3) Edit cube parameters.");
+        ShowNoticef(0xf, L"4) Move cube.");
+        ShowNoticef(0xf, L"5) Scale cube.");
+        ShowNoticef(0xf, L"6) Select cube.");
         return 1;
     default:
         return 0;
@@ -1661,12 +1659,12 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         }
         g_mipe_mode_0068f108 = 0x11;
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Move Volume Trigger.");
+        ShowNoticef(6, L"Move Volume Trigger.");
         if (g_mipe_cube_0068f12c == 0) {
-            WriteGameLogAmount(0xf, L"Click on trigger to move.");
+            ShowNoticef(0xf, L"Click on trigger to move.");
         } else {
-            WriteGameLogAmount(0xf, L"Move trigger. Hold down SHIFT to");
-            WriteGameLogAmount(0xf, L"change elevation.");
+            ShowNoticef(0xf, L"Move trigger. Hold down SHIFT to");
+            ShowNoticef(0xf, L"change elevation.");
         }
         g_flag_68f104 = 0;
         ShowWorldCursor00490B10();
@@ -1685,11 +1683,11 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         scale_planes[1] = 'Y';
         scale_planes[2] = 'Z';
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Scale Volume Trigger.");
+        ShowNoticef(6, L"Scale Volume Trigger.");
         if (g_mipe_cube_0068f12c != 0) {
-            WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
-                               static_cast<int>(scale_planes[g_mipe_scale_plane_0068f134]));
-            WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
+            ShowNoticef(0xf, L"Scaling in the %c plane. ",
+                        static_cast<int>(scale_planes[g_mipe_scale_plane_0068f134]));
+            ShowNoticef(0xf, L"Press X/Y/Z to change plane.");
             g_flag_68f104 = 0;
             return 1;
         }
@@ -1698,7 +1696,7 @@ int HandleCubeMenuKey0057A310(unsigned int key)
     case 0x36:
         g_mipe_mode_0068f108 = 0x13;
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Select cube:");
+        ShowNoticef(6, L"Select cube:");
         if (g_mipe_cube_0068f12c == 0) {
             prompt = L"Click on a cube to select it.";
         } else {
@@ -1706,7 +1704,7 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         }
         break;
     }
-    WriteGameLogAmount(0xf, prompt);
+    ShowNoticef(0xf, prompt);
     g_flag_68f104 = 0;
     return 1;
 }
@@ -1734,13 +1732,13 @@ int HandleCubeParameterKey0057A630(unsigned int key)
         return 0;
     case 0x20:
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Choose an action:");
-        WriteGameLogAmount(0xf, L"1) Create cube.");
-        WriteGameLogAmount(0xf, L"2) Delete cube.");
-        WriteGameLogAmount(0xf, L"3) Edit cube parameters.");
-        WriteGameLogAmount(0xf, L"4) Move cube.");
-        WriteGameLogAmount(0xf, L"5) Scale cube.");
-        WriteGameLogAmount(0xf, L"6) Select cube.");
+        ShowNoticef(6, L"Choose an action:");
+        ShowNoticef(0xf, L"1) Create cube.");
+        ShowNoticef(0xf, L"2) Delete cube.");
+        ShowNoticef(0xf, L"3) Edit cube parameters.");
+        ShowNoticef(0xf, L"4) Move cube.");
+        ShowNoticef(0xf, L"5) Scale cube.");
+        ShowNoticef(0xf, L"6) Select cube.");
         return 1;
     case 0x26:
         if (0 < g_mipe_cube_param_0068f130) {
@@ -1794,14 +1792,14 @@ int HandleCubeScaleKey0057A800(unsigned short key)
         scale_planes[1] = 'Y';
         scale_planes[2] = 'Z';
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Scale Volume Trigger.");
+        ShowNoticef(6, L"Scale Volume Trigger.");
         if (g_mipe_cube_0068f12c == 0) {
-            WriteGameLogAmount(0xf, L"Click on trigger to scale.");
+            ShowNoticef(0xf, L"Click on trigger to scale.");
             return 1;
         }
-        WriteGameLogAmount(0xf, L"Scaling in the %c plane. ",
-                           static_cast<int>(scale_planes[g_mipe_scale_plane_0068f134]));
-        WriteGameLogAmount(0xf, L"Press X/Y/Z to change plane.");
+        ShowNoticef(0xf, L"Scaling in the %c plane. ",
+                    static_cast<int>(scale_planes[g_mipe_scale_plane_0068f134]));
+        ShowNoticef(0xf, L"Press X/Y/Z to change plane.");
         return 1;
     default:
         return 0;
@@ -1994,8 +1992,8 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
     case 0x31:
         g_mipe_mode_0068f108 = 0x19;
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Enter the name for this generator:");
-        WriteGameLogAmount(0xf, L"%S", g_mipe_state_0068f100->generator->name);
+        ShowNoticef(6, L"Enter the name for this generator:");
+        ShowNoticef(0xf, L"%S", g_mipe_state_0068f100->generator->name);
         return 1;
     case 0x32:
         current_index = g_mipe_state_0068f100->generator->encounter_table_index;
@@ -2038,8 +2036,7 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
         }
         g_mipe_mode_0068f108 = 0x17;
         ResetEditorStatusLine0058AA20(-1);
-        WriteGameLogAmount(6, L"Category: %S",
-                           *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
+        ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
         if (g_mipe_category_list_0068f11c == 0) {
             return 1;
         }
@@ -2048,10 +2045,9 @@ int HandleMonsterGeneratorEditKey0057AD10(unsigned short key)
             entry = static_cast<W8EncounterTableRuntime*>(
                 PLGet(g_mipe_category_list_0068f11c, g_mipe_table_base_0068f120 + slot));
             if (entry == 0) {
-                WriteGameLogAmount(0xf, &g_wchar_00689b34);
+                ShowNoticef(0xf, &g_wchar_00689b34);
             } else {
-                WriteGameLogAmount(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S",
-                                   entry->name);
+                ShowNoticef(slot == g_mipe_table_row_0068f118 ? 3 : 0xf, L"    %S", entry->name);
             }
             ++slot;
         } while (slot < 6);
@@ -2401,8 +2397,8 @@ void EditMonsterGeneratorName0057B7E0(unsigned short key)
         name[length + 1] = '\0';
     }
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"Enter the name for this generator:");
-    WriteGameLogAmount(0xf, L"%S", g_mipe_state_0068f100->generator->name);
+    ShowNoticef(6, L"Enter the name for this generator:");
+    ShowNoticef(0xf, L"%S", g_mipe_state_0068f100->generator->name);
 }
 
 /* Mode-0x1b key handler: the selected prop trigger's locks & traps editor.
@@ -2536,8 +2532,8 @@ void EditTriggerKeyID0057BA60(unsigned int key)
     }
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     ResetEditorStatusLine0058AA20(-1);
-    WriteGameLogAmount(6, L"Enter Key ID:");
-    WriteGameLogAmount(0xf, g_format_d_0060aa20, trigger->value_380);
+    ShowNoticef(6, L"Enter Key ID:");
+    ShowNoticef(0xf, g_format_d_0060aa20, trigger->value_380);
 }
 
 /* Mode-0x1d key handler: the prop trigger's treasure-table picker. Enter

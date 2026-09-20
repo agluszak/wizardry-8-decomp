@@ -2508,3 +2508,9 @@ W8OctreeTrace::W8OctreeTrace()
     state_2c = 0;
     hit_limit_24 = 1.0e20f;
 }
+
+// FUNCTION: WIZ8 0x00453c70
+void W8Navigator::SetMonsterTurnSpeed(float speed)
+{
+    movement_0c0.callback_threshold_058 = speed * g_world_scale_005ebc40;
+}

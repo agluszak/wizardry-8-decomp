@@ -2025,7 +2025,7 @@ void BindEquippedItem(W8Character* character, int equip_slot)
     }
     if (g_equip_slot_icons[equip_slot] != -1 && item->bound == 0) {
         item->bound = 1;
-        WriteGameLog(8, gppStringList[0x7a8 / 4], FormatItemDisplayName(item, 1));
+        ShowNoticef(8, gppStringList[0x7a8 / 4], FormatItemDisplayName(item, 1));
     }
 }
 
@@ -3363,7 +3363,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
     }
     if (announce) {
-        WriteGameLog(8, gppStringList[0x7a4 / 4], display_name);
+        ShowNoticef(8, gppStringList[0x7a4 / 4], display_name);
     }
     W8ItemInstance* stored_item = &g_status_685170.party_item_pool_0021[index];
     UpdateFactsAfterAcquiringItem(stored_item);
