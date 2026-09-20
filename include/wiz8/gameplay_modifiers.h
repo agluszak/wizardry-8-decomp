@@ -63,7 +63,7 @@ struct W8GameplayModifierBlock {
     signed char stamina_regen_adjustment;
     signed char spell_regen_adjustment;
     signed char attribute_adjustments[7];    /* 0x0c .. 0x12 */
-    signed char skill_adjustments[0x29];     /* 0x13 .. 0x3b: one per skill id */
+    signed char unknown_13[0x29];     /* 0x13 .. 0x3b: one per skill id */
     signed char resistance_bonus[6];         /* 0x3c .. 0x41 */
     /* 0x42..0x44: independent +50% regeneration-rate latches. */
     unsigned char boost_health_regen;
