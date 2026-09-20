@@ -309,7 +309,7 @@ unsigned char g_flag_006840bb;
 
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
-void Function59B4C0(void);
+void UpdateCombatPortraitStatus0059B4C0(void);
 void Function59B390(void);
 void ApplySavedRedrawInvalidates(void);                                   /* 0x00563D00 */
 void RedrawPanel69B940(void);                                             /* 0x0059BC00 */
@@ -340,7 +340,6 @@ double g_world_cursor_extent_table_00616eb0[18];
    run to 0x00616f4c, where the separate Magic Effects dword table starts. */
 // GLOBAL: WIZ8 0x00616f41
 signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 1, 1, 2, 2, 0};
-void StartCombat(int surprise);
 
 void ServiceNpcDialogue0056E510(void);
 // GLOBAL: WIZ8 0x0064BA80
@@ -2825,6 +2824,51 @@ void TickAmbientFollowUpIdle(unsigned char input_handled)
     }
 }
 
+/* Leave one main-game mode for another: mode 3 ends a live NPC dialogue
+   session, mode 5 releases its screen state, and mode 6 releases the dialogue
+   highlight sprite then clears and dirties the dialogue rectangle when it
+   crosses the viewport band. The new mode is stored last. */
+// FUNCTION: WIZ8 0x00568390
+void SetMainGameMode00568390(int mode)
+{
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        Function5187E0();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                break;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+    g_main_game_mode_0068eddc = mode;
+}
+
 // FUNCTION: WIZ8 0x005684E0
 unsigned char ProcessMainGameInput(void)
 {
@@ -3006,7 +3050,7 @@ update_screen:
     UpdateCharacterEventState();
     TickPartyPortraitFx();
     if (gXStatus.fCombatMode) {
-        Function59B4C0();
+        UpdateCombatPortraitStatus0059B4C0();
     }
     g_status_685170.value_2390 = 0;
     if (g_level_block->keyboard_menu_open || g_level_block->combat_slot != -1) {
@@ -3884,6 +3928,122 @@ void DrawMainGameScreen(void)
     }
 }
 
+/* Activate whichever portrait overlay is pending: the tracked slots are
+   checked in priority order, the highlight sprite and the mode-6 hover overlay
+   are torn down first, then the matching launcher runs for that slot. The same
+   sequence is inlined inside the mode-6 block of the redraw orchestrator. */
+// FUNCTION: WIZ8 0x00563890
+void RefreshTrackedPortraitOverlay(void)
+{
+    if (g_level_block->condition_orb_party_slot != -1) {
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        Function564BA0(g_level_block->condition_orb_party_slot);
+        return;
+    }
+    if (g_level_block->enchantment_orb_party_slot != -1) {
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        Function5651F0(g_level_block->enchantment_orb_party_slot);
+        return;
+    }
+    if (g_level_block->portrait_overlay_party_slot != -1) {
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        Function564710(g_level_block->portrait_overlay_party_slot);
+        return;
+    }
+    if (g_level_block->condition_highlight_party_slot != -1) {
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        g_main_game_mode_0068eddc = 0;
+        Function564D80(g_level_block->condition_highlight_party_slot);
+    }
+}
+
 /* Two callers of that with a fixed bit each, written out rather than
    forwarding - which is what shows the mask is a compile-time constant at
    every one of its callers. */
@@ -4558,6 +4718,189 @@ bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot)
         left = 0;
     }
     return IsCursorInRectangle(left, row.y1, right, row.y2) != 0;
+}
+
+/* The combat-strip portrait catalog index for one slot's chosen action and
+   status. Most actions map to a fixed base; attacks pick per weapon skill and
+   spells per realm, and the status selects the frame variant beside it. */
+// FUNCTION: WIZ8 0x0059A180
+short GetCombatPortraitImage0059A180(int action, int detail, char status, short slot)
+{
+    int image;
+
+    switch (action) {
+    case W8_ACTION_ATTACK:
+        switch (g_status_685170.buffers.characters[slot].hand_attacks[0].weapon_skill) {
+        case W8_SKILL_AXE:
+            image = 0x38;
+            break;
+        case W8_SKILL_POLEARM:
+            image = 0x62;
+            break;
+        case W8_SKILL_MACE_FLAIL:
+            image = 0x2a;
+            break;
+        case W8_SKILL_STAFF_WAND:
+            image = 0x54;
+            break;
+        case W8_SKILL_MODERN_WEAPONS:
+            image = 0x70;
+            break;
+        case W8_SKILL_BOW:
+            image = 0xe;
+            break;
+        case W8_SKILL_THROWING_SLING:
+            image = 0x1c;
+            break;
+        case W8_SKILL_PICKPOCKET:
+            image = 0x46;
+            break;
+        default:
+            image = 0;
+        }
+        break;
+    case W8_ACTION_BERSERK:
+        image = 0x7e;
+        break;
+    case W8_ACTION_BREATHE:
+        image = 0x8c;
+        break;
+    case W8_ACTION_TURN_UNDEAD:
+        image = 0x9a;
+        break;
+    case W8_ACTION_DEFEND:
+        image = 0xb6;
+        break;
+    case W8_ACTION_PROTECT:
+        image = 0xc4;
+        break;
+    case W8_ACTION_PRAY:
+        image = 0xa8;
+        break;
+    case W8_ACTION_CAST_SPELL:
+        switch (g_spell_records[detail].realm) {
+        case W8_SPELL_REALM_FIRE:
+            image = 0x126;
+            break;
+        case W8_SPELL_REALM_WATER:
+            image = 0xe0;
+            break;
+        case W8_SPELL_REALM_AIR:
+            image = 0x118;
+            break;
+        case W8_SPELL_REALM_EARTH:
+            image = 0xee;
+            break;
+        case W8_SPELL_REALM_MENTAL:
+            image = 0xfc;
+            break;
+        case W8_SPELL_REALM_DIVINE:
+            image = 0x10a;
+            break;
+        default:
+            image = 0xd2;
+        }
+        break;
+    case W8_ACTION_USE_ITEM:
+        image = 0x142;
+        break;
+    case W8_ACTION_EQUIP:
+        image = 0x134;
+        break;
+    case W8_ACTION_WALK:
+        image = 0x15e;
+        break;
+    case W8_ACTION_RUN:
+        image = 0x16c;
+        break;
+    default:
+        if (status == 2) {
+            return 0x17d;
+        }
+        return CanAnyHandReachTarget(slot) ? 0x17a : 0x17c;
+    }
+    switch (status) {
+    case 0:
+        break;
+    case 1:
+        return image + 2;
+    case 2:
+        return image + 3;
+    case 3:
+        return image + 4;
+    default:
+        image = 0x17a;
+    }
+    return image;
+}
+
+/* The per-frame combat-strip update: while combat mode is on, recompute each
+   party slot's status (-1 empty/dead, 0 ready, 1 cannot switch, 2 ineligible,
+   3 acting), refresh the portrait catalog images, and pulse the acting
+   combatant's portrait while the action pacing clock holds. */
+// FUNCTION: WIZ8 0x0059B4C0
+void UpdateCombatPortraitStatus0059B4C0(void)
+{
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
+        W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
+        int image = -1;
+        int alternate = -1;
+        char status = -1;
+
+        if (row->occupied && character->hp_current > 0 && character->highest_condition <= 0x11) {
+            if (g_combat_state->eCombatActionStatus == 0 || g_combat_state->iActionChar != slot ||
+                ClockIsTicking(g_combat_state->action_clock_7ac) > 800) {
+                if (IsPartySlotEligible00524A10(slot)) {
+                    if (combat_row->flag_34 == 1) {
+                        status = 2;
+                    } else {
+                        status =
+                            1 - CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0);
+                    }
+                } else {
+                    status = 2;
+                }
+            } else {
+                status = 3;
+            }
+            image = GetCombatPortraitImage0059A180(row->action_03d, row->action_detail_041, status,
+                                                   slot);
+            alternate = image;
+            if (status == 3) {
+                if (combat_row->combat_status_8c == 3) {
+                    if (ClockIsTicking(entry->acting_portrait_pulse_clock) == 0) {
+                        entry->acting_portrait_pulse = entry->acting_portrait_pulse + 1;
+                        if (entry->acting_portrait_pulse == 0xc) {
+                            entry->acting_portrait_pulse = 1;
+                            entry->acting_portrait_pulse_clock = SetCountdownClock(100);
+                        } else if (entry->acting_portrait_pulse < 7) {
+                            image = combat_row->portrait_image_084 + 1;
+                            entry->acting_portrait_pulse_clock = SetCountdownClock(100);
+                        } else {
+                            image = combat_row->portrait_image_084 - 1;
+                            entry->acting_portrait_pulse_clock = SetCountdownClock(100);
+                        }
+                    } else {
+                        image = combat_row->portrait_image_084;
+                    }
+                } else {
+                    entry->acting_portrait_pulse_clock = SetCountdownClock(100);
+                    entry->acting_portrait_pulse = 1;
+                }
+            } else {
+                alternate = image + 10;
+            }
+            if (image != -1 && image != combat_row->portrait_image_084) {
+                entry->combat_portrait_dirty = 1;
+            }
+        }
+        combat_row->combat_status_8c = status;
+        combat_row->portrait_image_084 = image;
+        combat_row->portrait_image_alternate_088 = alternate;
+    }
 }
 
 /* While the main UI is not in portrait mode, keep each party slot's formation
@@ -6635,6 +6978,209 @@ void ApplyPendingTooltip(void)
     g_level_block->tooltip_pending = 0;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
+}
+
+/* Re-picking the same monster while its tooltip clock is idle pops a
+   name-plus-health tooltip at the cursor. A pick change drops the old
+   monster's group or target highlight, and a valid new pick relights it in
+   the colour CanTargetMonster just judged, so the group tint always agrees
+   with the selection marker. */
+// FUNCTION: WIZ8 0x00569F70
+void SetCombatSelection(int value)
+{
+    int current = g_level_block->highlighted_item;
+
+    if (value == current) {
+        if (current != -1 && !ClockIsTicking(g_level_block->countdown_25c) &&
+            !HasScreenTransitionObjects()) {
+            POINT point;
+            wchar_t text[290];
+            wchar_t health[32];
+
+            SGPMouseGetPos(&point);
+            unsigned int monster_index = MonsterGetIndexByLocationID(
+                0x1d38, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+            if (monster_info != 0) {
+                wcscpy(text, GetMonsterName(monster_info, 0, 0));
+                wcscat(text, L" (");
+                FormatMonsterHealth(monster_info, health);
+                wcscat(text, health);
+                wcscat(text, L")");
+                VideoToolTip(
+                    reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+                int y = point.y - g_cursor_image_height_6596b8 / 2;
+                if (point.x < 0) {
+                    point.x = 2;
+                }
+                if (point.x + g_help_box_width + 2 > 0x27f) {
+                    point.x = 0x280 - (g_help_box_width + 2);
+                }
+                if (y < 0) {
+                    y = 2;
+                }
+                if (y + g_help_box_height + 2 > 0x1df) {
+                    y = 0x1e0 - (g_help_box_height + 2);
+                }
+                VideoPositionToolTip(point.x, y);
+            }
+        }
+        return;
+    }
+    if (current != -1) {
+        if (GetTargetNeededForCurrentAction(g_status_685170.selected_character) == 5) {
+            W8MonsterInfo* monster_info =
+                MonsterInfoFromID(0x1cf9, MAIN_GAME_SCREEN_CPP, g_level_block->highlighted_item, 1);
+            ModifyGroupColor(monster_info->monster_group_id, 0);
+        } else {
+            HighlightMonsterAsTarget(g_level_block->highlighted_item,
+                                     g_status_685170.selected_character, 0);
+        }
+        W8Monster* monster = GetMonsterByLocationID(g_level_block->highlighted_item);
+        if (monster != 0) {
+            monster->flag_331 = 0;
+        }
+    }
+    if (value == -1) {
+        g_level_block->highlighted_item = -1;
+    } else {
+        srVector3T<float> camera;
+        srVector3T<float> minimum;
+        srVector3T<float> maximum;
+        W8Monster* monster;
+
+        GetCameraPosition(&camera);
+        monster = GetMonsterByLocationID(value);
+        MonsterGetWorldAnimationBounds004CA4F0(monster, &minimum, &maximum);
+        if (TraceLineOfSightToBounds0046FAF0(&camera, &minimum, &maximum) != 0) {
+            g_level_block->highlighted_item = value;
+            g_level_block->unknown_290[0] =
+                HighlightMonsterAsTarget(value, g_status_685170.selected_character, 1);
+            if (GetTargetNeededForCurrentAction(g_status_685170.selected_character) == 5) {
+                W8MonsterInfo* monster_info =
+                    MonsterInfoFromID(0x1d19, MAIN_GAME_SCREEN_CPP, value, 1);
+                ModifyGroupColor(monster_info->monster_group_id,
+                                 (g_level_block->unknown_290[0] == 0) + 1);
+            }
+            CanTargetMonster(g_status_685170.selected_character, value, 1, 0);
+        }
+        monster = GetMonsterByLocationID(value);
+        monster->flag_331 = 1;
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x20000;
+    }
+    VideoRemoveToolTip();
+    unsigned int delay = g_settings_6850c8.tooltip_delay_ms;
+    if (delay > 500) {
+        delay = 500;
+    }
+    g_level_block->countdown_25c = SetCountdownClock(delay);
+}
+
+/* The world-item twin of SetCombatSelection: a pick change drops the old
+   item's highlight and lights a visible new one; re-picking the same item
+   while its tooltip clock is idle pops its display name at the cursor. */
+// FUNCTION: WIZ8 0x0056A2D0
+void SetCombatTarget(int value)
+{
+    int current = g_level_block->selected_item;
+
+    if (value != current) {
+        if (current != -1) {
+            SetWorldItemHighlight(current, 0);
+        }
+        if (value == -1) {
+            g_level_block->selected_item = -1;
+        } else {
+            W8WorldItem* item = ItemInfo(ItemIndex(value));
+            if (item != 0) {
+                srVector3T<float> minimum;
+                srVector3T<float> maximum;
+                srVector3T<float> camera;
+
+                GetItemWorldBounds(item->owner, &minimum, &maximum);
+                GetCameraPosition(&camera);
+                if (TraceLineOfSightToBounds0046FAF0(&camera, &minimum, &maximum) != 0) {
+                    g_level_block->selected_item = value;
+                    SetWorldItemHighlight(value, 1);
+                }
+            }
+        }
+        VideoRemoveToolTip();
+        unsigned int delay = g_settings_6850c8.tooltip_delay_ms;
+        if (delay > 500) {
+            delay = 500;
+        }
+        g_level_block->countdown_25c = SetCountdownClock(delay);
+        return;
+    }
+    if (current != -1 && !ClockIsTicking(g_level_block->countdown_25c) &&
+        !HasScreenTransitionObjects()) {
+        POINT point;
+        W8WorldItem* item;
+
+        SGPMouseGetPos(&point);
+        item = ItemInfo(ItemIndex(g_level_block->selected_item));
+        if (item != 0) {
+            wchar_t* text = FormatItemDisplayName(&item->item, 1);
+            int y;
+
+            VideoToolTip(
+                reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+            y = point.y - g_cursor_image_height_6596b8 / 2;
+            if (point.x < 0) {
+                point.x = 2;
+            }
+            if (point.x + g_help_box_width + 2 > 0x27f) {
+                point.x = 0x280 - (g_help_box_width + 2);
+            }
+            if (y < 0) {
+                y = 2;
+            }
+            if (y + g_help_box_height + 2 > 0x1df) {
+                y = 0x1e0 - (g_help_box_height + 2);
+            }
+            VideoPositionToolTip(point.x, y);
+        }
+    }
+}
+
+/* The group-targeting member of the selection family: a pick change clears
+   the old group's tint, then either empties the selection or re-tints the new
+   group - its lead member when the action picks monsters individually, the
+   whole group when it wants the group. The cursor follows the result. */
+// FUNCTION: WIZ8 0x0056A480
+void SetCombatAction(int value)
+{
+    int current = g_level_block->value_28c;
+
+    if (value == current) {
+        return;
+    }
+    if (current != -1) {
+        ModifyGroupColor(current, 0);
+    }
+    g_level_block->value_28c = value;
+    if (value == -1) {
+        g_level_block->unknown_290[0] = 0;
+    } else {
+        unsigned int group_index = GetMonsterGroupIndexByID(0x1dcf, MAIN_GAME_SCREEN_CPP, value, 1);
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+
+        g_level_block->unknown_290[0] =
+            CanTargetMonsterGroup(g_status_685170.selected_character, group);
+        int tint = (g_level_block->unknown_290[0] == 0) + 1;
+        if (GetTargetNeededForCurrentAction(g_status_685170.selected_character) == 5) {
+            ModifyGroupColor(g_level_block->value_28c, tint);
+        } else {
+            HighlightPickedGroupMember00538510(g_status_685170.selected_character, group, tint);
+        }
+    }
+    SetTargetCursor(GetTargetingCursorForState(g_level_block->unknown_290[0] != 0));
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->redraw_flags |= 0x20000;
+    }
 }
 
 /* Raise or drop the radar map panel and restore the viewport mode when the

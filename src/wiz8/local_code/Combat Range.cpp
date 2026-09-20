@@ -69,6 +69,103 @@ float g_float_005ec35c = 12500.0f;
    an empty place. Both live inside the block Formation & Facing.cpp saves and
    restores whole. */
 
+/* Whether the slot has any attack of `category` that reaches a valid target
+   in the scanned groups for `hand`; the condition interrupt uses it to tell
+   usable attacks from merely reachable ones. `flag` == 1 skips the monster
+   scan and only the out-of-combat and plain-attack categories also scan the
+   party for an opposing-side member the chosen action could actually
+   strike. */
+// FUNCTION: WIZ8 0x00518e30
+char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char hand)
+{
+    char side;
+    int first = party_slot;
+
+    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].flag_80 == 0) {
+        side = hand;
+    } else {
+        side = 1;
+    }
+    side = (side != 0) + 1;
+    bool live_groups = CombatAllowsLiveGroups();
+    if (flag != 1) {
+        unsigned int index;
+        // reinterpret-ok: retail counts the pointer list through the IList API
+        for (index = 0; index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+             ++index) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+            if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
+                monster_info->highest_condition < 0x12 &&
+                (live_groups || MonsterVsCharDisposition(first, monster_info) == side)) {
+                for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
+                    if (CanHandReachTarget(first, reach_hand) != 0 &&
+                        CanPartyMemberAimAtMonster(first, reach_hand, monster_info, category, 0) !=
+                            0) {
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    if (category == 0 || category == 8) {
+        W8Character* character = &g_status_685170.buffers.characters[first];
+        for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+            W8Character* candidate = &g_status_685170.buffers.characters[slot];
+            if (slot != first && g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                candidate->hp_current != 0 && candidate->highest_condition < 0x12 &&
+                CharacterVsCharacterDisposition(first, slot) == side) {
+                for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
+                    if (CanHandReachTarget(first, reach_hand) == 0) {
+                        continue;
+                    }
+                    if (static_cast<char>(first) == slot) {
+                        return 1;
+                    }
+                    int kind;
+                    int action;
+                    W8ActionDetailBlock* detail;
+                    ChooseCombatAction(first, category, &kind, &action, 0, &detail);
+                    int range;
+                    switch (kind) {
+                    case W8_ACTION_ATTACK:
+                    case W8_ACTION_BERSERK:
+                        range = GetCharAttackRange(character, reach_hand);
+                        break;
+                    case W8_ACTION_BREATHE:
+                        return 1;
+                    case W8_ACTION_PROTECT:
+                        if (FrontRankScreens(first, slot) == 0) {
+                            return 1;
+                        }
+                        continue;
+                    case W8_ACTION_CAST_SPELL:
+                        if (action == 0) {
+                            continue;
+                        }
+                        range = g_spell_records[action].range_category;
+                        break;
+                    case W8_ACTION_USE_ITEM:
+                        range = GetItemSpellRange(detail->item_use.item);
+                        break;
+                    default:
+                        continue;
+                    }
+                    if (range == -1) {
+                        continue;
+                    }
+                    if (range != 0) {
+                        return 1;
+                    }
+                    if (FrontRankScreens(first, slot) == 0) {
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 /* Whether the slot's chosen action reaches the target it was aimed at: a
    monster must be aimable, another party member takes the action's range
    (with the front-rank screen on melee), a point on the ground must sit
@@ -385,7 +482,7 @@ int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
    hand actually in play carrying a melee or thrown wield kind has a range to
    report at all. */
 // FUNCTION: WIZ8 0x00519ac0
-int GetCharAttackRange(W8Character* character, unsigned int hand)
+int GetCharAttackRange(const W8Character* character, unsigned int hand)
 {
     unsigned int index;
     int best;
@@ -429,7 +526,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
 
     for (hand = 0; hand < 2; ++hand) {
         if (character->hand_attacks[hand].in_play != 0) {
-            category = static_cast<W8RangeCategory>(CalcRangeCategoryToTarget(character, hand));
+            category = static_cast<W8RangeCategory>(GetCharAttackRange(character, hand));
             if (category > best) {
                 best = category;
             }

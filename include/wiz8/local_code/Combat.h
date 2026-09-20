@@ -31,6 +31,10 @@ void ScheduleCombatActor004E9490(void);
 int CheckCombatEnd004E9F90(unsigned int arg_1); /* 0x004E9F90 */
 void AdvanceCombatRound004E9B20(void);          /* 0x004E9B20 */
 void RollCombatSurprise004ECF50(char arg_1);    /* 0x004ECF50 */
+/* 0x004E7090: enter combat mode; queues a friendly NPC's combat-entry script
+   notice when one is still owed and declines while dialogue or a script event
+   defers it. */
+unsigned char StartCombat(int surprise);
 struct W8TargetSource;
 struct W8CombatSlot;
 union W8ActionDetailBlock;

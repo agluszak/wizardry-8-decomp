@@ -157,6 +157,28 @@ void SaveFactJournal00558A90(int file)
     }
 }
 
+/* Read the fact journal back from the open JRNL chunk: a format dword, the
+   entry count, then each 0x0c-byte entry straight into the vector. The vector
+   grows to the serialized count first; a failed grow leaves the count
+   unstored, the same outcome a failed load leaves behind. */
+// FUNCTION: WIZ8 0x00558B20
+void LoadJournalEntries00558B20(unsigned int file)
+{
+    int format;
+    int count;
+    int index;
+
+    InitializeFactJournal();
+    FileRead(file, &format, 4, 0);
+    FileRead(file, &count, 4, 0);
+    if (g_fact_journal_entries_0068de40->Grow(count) != 0) {
+        g_fact_journal_entries_0068de40->count = count;
+    }
+    for (index = 0; index < count; ++index) {
+        FileRead(file, g_fact_journal_entries_0068de40->GetAt(index), sizeof(W8JournalEntry), 0);
+    }
+}
+
 // FUNCTION: WIZ8 0x005bdd00
 void DrawJournalLine005BDD00(const wchar_t* text, int column, int y, int palette, char centered)
 {

@@ -94,6 +94,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
    above is the SGP video-manager surface the SGP C translation units
    reference; these stay ordinary C++ linkage because no C unit names them. */
 extern unsigned char g_flag_6596f4;
+extern int g_cursor_image_height_6596b8;
 /* 0x00652DA4: set while the swaying camera view is active; see
    SetCameraSwayMode in 3dapi.cpp. */
 extern bool g_camera_sway_active_652da4;

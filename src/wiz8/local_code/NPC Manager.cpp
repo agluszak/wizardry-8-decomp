@@ -91,8 +91,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 // GLOBAL: WIZ8 0x00689F94
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
-/* Same-unit body SaveNpcStates00509F00 reaches before its definition. */
-
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
 bool NpcRecordHasValue002(W8NpcState* npc)
@@ -1429,94 +1427,6 @@ unsigned char SaveNpcStates00509F00(W8Chunk* chunks)
    saves read as the legacy 0x185c length. Grouped NPCs re-bind to the loaded
    level; afterwards the missing runtime nodes for unflagged records are
    created. */
-// FUNCTION: WIZ8 0x00509FC0
-void LoadNpcStates00509FC0(W8Chunk* chunks)
-{
-    unsigned char version = 3;
-    unsigned int index;
-    unsigned int count;
-    unsigned int size;
-    unsigned int npc_id;
-
-    InitializeNpcStates();
-    if (g_npc_states != 0) {
-        for (index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
-            W8NpcState* npc = *g_npc_states->GetAt(index);
-            if (g_npc_states != 0) {
-                ReleaseNpcScriptFile0055A0A0(npc->script_file);
-                npc->script_file = 0;
-                if (npc->record != 0 && npc->record->flag_055 != 0) {
-                    ClearNpcItems(npc);
-                }
-                delete npc->character;
-                delete npc;
-            }
-        }
-        g_npc_states->count = 0;
-    }
-    chunks->Read(&version, 1, 0);
-    chunks->Read(&count, 4, 0);
-    for (index = 0; index < count; ++index) {
-        W8NpcState* npc = new W8NpcState;
-        chunks->Read(npc, sizeof(W8NpcState), 0);
-        npc->items = 0;
-        if (npc->character != 0) {
-            npc->character = new W8Character;
-            memset(npc->character, 0, sizeof(W8Character));
-            if (version < 3) {
-                size = 0x185c;
-            } else {
-                chunks->Read(&size, 4, 0);
-                if (size > sizeof(W8Character)) {
-                    srAssertFail("uiSize <= sizeof(*pNode->pPCData)", NPC_MANAGER_CPP, 0x217, 0);
-                }
-            }
-            chunks->Read(npc->character, size, 0);
-        }
-        if (npc->name_style == 0) {
-            npc->name_style = static_cast<unsigned char>(index);
-        }
-        npc->partner_index_2c = static_cast<unsigned char>(g_npc_states->Add(npc));
-    }
-    for (index = 0; index < count; ++index) {
-        W8NpcState* npc = *g_npc_states->GetAt(index);
-        npc->script_file = 0;
-        npc->has_monster = 0;
-        npc->record = &g_npc_records[npc->name_style];
-        if (npc->is_grouped != 0) {
-            npc->is_present = 0;
-            npc->has_monster = 1;
-            npc->level_band =
-                static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
-            npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-            ReloadNpcScriptResources(npc);
-        }
-        if (npc->unknown_04 == 0xffff) {
-            npc->unknown_04 = 0;
-        }
-    }
-    if (version > 1) {
-        LoadNpcItemLists0050AAF0(chunks->m_hFile);
-    }
-    for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
-        if (g_npc_records[npc_id].unknown_054 == 0) {
-            bool found = false;
-            for (index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
-                W8NpcState* candidate = *g_npc_states->GetAt(index);
-                if (candidate->record->kind == static_cast<int>(npc_id)) {
-                    if (candidate != 0) {
-                        found = true;
-                    }
-                    break;
-                }
-            }
-            if (!found) {
-                CreateNpcRuntimeNode(npc_id);
-            }
-        }
-    }
-}
-
 /* The stock-list tail of the NPCT section: for every NPC state the entry
    count, then each 0x14-byte stock entry in list order. */
 // FUNCTION: WIZ8 0x0050AA10
@@ -1555,43 +1465,6 @@ unsigned char SaveNpcItemLists0050AA10(int file)
 /* The matching read side of the stock-list tail: each saved count clears the
    state's list, then that many 0x14-byte entries are appended to a fresh
    list. */
-// FUNCTION: WIZ8 0x0050AAF0
-unsigned char LoadNpcItemLists0050AAF0(unsigned int file)
-{
-    unsigned int transferred = 0;
-    unsigned int count = 0;
-    unsigned int npc_count = g_npc_states->count;
-
-    for (unsigned int index = 0; index < npc_count; ++index) {
-        W8NpcState* npc = *g_npc_states->GetAt(index);
-        if (FileRead(file, &count, 4, &transferred) == 0 || transferred != 4) {
-            return 0;
-        }
-        if (npc->items != 0) {
-            ClearNpcItems(npc);
-        }
-        if (count == 0) {
-            npc->items = 0;
-        } else {
-            npc->items = PLCreate();
-            for (unsigned int entry = 0; entry < count; ++entry) {
-                W8NpcItemEntry* data = new W8NpcItemEntry;
-                if (data == 0) {
-                    return 0;
-                }
-                if (FileRead(file, data, sizeof(W8NpcItemEntry), &transferred) == 0) {
-                    return 0;
-                }
-                if (transferred != sizeof(W8NpcItemEntry)) {
-                    return 0;
-                }
-                PLAdoptAppend(npc->items, data);
-            }
-        }
-    }
-    return 1;
-}
-
 /* Build one runtime state from its database record: clear the 0x13d-byte
    block, bind the record, build the group-member character and stock, copy the
    item table, and insert the node into the shared vector. A node whose binding
@@ -1856,9 +1729,138 @@ void ReleaseNpcBinding(int value)
    character exists is followed by a sizeof(W8Character) marker and the
    character record itself. The item lists are a separate FileWrite pass. */
 
+/* Read every NPC state record back from the open NPCT chunk: a version byte,
+   the serialized count, then each 0x13d-byte state. A state whose serialized
+   group-character pointer is non-null carries a size-prefixed character
+   record behind it (format 3 and later; older saves store a raw 0x185c-byte
+   block). After the pass every state rebinds to its database record through
+   name_style, grouped states reload their script resources, and format two
+   and later append the item lists through the second pass. The walk ends by
+   backfilling runtime nodes for database records no loaded state claims. */
+// FUNCTION: WIZ8 0x00509FC0
+void LoadNpcStates00509FC0(W8Chunk* chunks)
+{
+    unsigned char version = 3;
+    int index;
+    unsigned int count;
+    unsigned int loaded;
+    unsigned int npc_id;
+    unsigned int size;
+    W8NpcState* npc;
+
+    InitializeNpcStates();
+    if (g_npc_states != 0) {
+        for (index = 0; index < g_npc_states->count; ++index) {
+            npc = *g_npc_states->GetAt(index);
+
+            ReleaseNpcScriptFile0055A0A0(npc->script_file);
+            npc->script_file = 0;
+            if (npc->record != 0 && npc->record->flag_055 != 0) {
+                ClearNpcItems(npc);
+            }
+            delete npc->character;
+            delete npc;
+        }
+        g_npc_states->count = 0;
+    }
+    chunks->Read(&version, 1, 0);
+    chunks->Read(&count, 4, 0);
+    for (loaded = 0; loaded < count; ++loaded) {
+        npc = new W8NpcState;
+        chunks->Read(npc, sizeof(*npc), 0);
+        npc->items = 0;
+        if (npc->character != 0) {
+            npc->character = new W8Character;
+            if (version < 3) {
+                memset(npc->character, 0, sizeof(*npc->character));
+                chunks->Read(npc->character, 0x185c, 0);
+            } else {
+                memset(npc->character, 0, sizeof(*npc->character));
+                chunks->Read(&size, 4, 0);
+                if (size > sizeof(*npc->character)) {
+                    srAssertFail("uiSize <= sizeof(*pNode->pPCData)", NPC_MANAGER_CPP, 0x217, 0);
+                }
+                chunks->Read(npc->character, size, 0);
+            }
+        }
+        if (npc->name_style == 0) {
+            npc->name_style = loaded;
+        }
+        npc->partner_index_2c = g_npc_states->Add(npc);
+    }
+    for (loaded = 0; loaded < count; ++loaded) {
+        npc = *g_npc_states->GetAt(loaded);
+
+        npc->script_file = 0;
+        npc->has_monster = 0;
+        npc->record = &g_npc_records[npc->name_style];
+        if (npc->is_grouped != 0) {
+            npc->is_present = 0;
+            npc->has_monster = 1;
+            npc->level_band = GetLevelBand(g_status_685170.current_level);
+            npc->bound_level = g_status_685170.current_level;
+            ReloadNpcScriptResources(npc);
+        }
+        if (npc->unknown_04 == 0xffff) {
+            npc->unknown_04 = 0;
+        }
+    }
+    if (version > 1) {
+        LoadNpcItemLists0050AAF0(chunks->m_hFile);
+    }
+    for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
+        if (g_npc_records[npc_id].unknown_054 == 0 && GetNpcStateByKind(npc_id) == 0) {
+            CreateNpcRuntimeNode(npc_id);
+        }
+    }
+}
+
 /* Append every NPC's stock item list behind the NPCT state records: the
    entry count followed by each 0x14-byte entry. A short FileWrite fails the
    whole pass. */
+
+/* Read every NPC's stock item list back from the open NPCT chunk tail: the
+   entry count followed by each 0x14-byte entry appended to a fresh plist. A
+   short FileRead or a failed allocation fails the whole pass. */
+// FUNCTION: WIZ8 0x0050AAF0
+unsigned char LoadNpcItemLists0050AAF0(unsigned int file)
+{
+    unsigned int transferred = 0;
+    unsigned int item_count = 0;
+    unsigned int index;
+    unsigned int npc_index;
+    unsigned int count;
+    W8NpcState* npc;
+    W8NpcItemEntry* entry;
+
+    count = g_npc_states->count;
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        npc = *g_npc_states->GetAt(npc_index);
+        if (FileRead(file, &item_count, 4, &transferred) == 0 || transferred != 4) {
+            return 0;
+        }
+        if (npc->items != 0) {
+            ClearNpcItems(npc);
+        }
+        if (item_count == 0) {
+            npc->items = 0;
+        } else {
+            npc->items = PLCreate();
+            for (index = 0; index < item_count; ++index) {
+                entry = new W8NpcItemEntry;
+                if (entry == 0) {
+                    return 0;
+                }
+                if (FileRead(file, entry, sizeof(*entry), &transferred) == 0 ||
+                    transferred != sizeof(*entry)) {
+                    return 0;
+                }
+                PLAdoptAppend(npc->items, entry);
+            }
+        }
+    }
+    return 1;
+}
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
    the monster's record is missing, is not NPC-routed, binds no NPC, or the

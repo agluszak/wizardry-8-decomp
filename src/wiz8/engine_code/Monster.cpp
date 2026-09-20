@@ -2715,7 +2715,7 @@ int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
     }
     to = monster->GetPosition();
     from = GetPosition();
-    bearing = NormalizeAngle(BearingBetween(from, to));
+    bearing = NormalizeAngle(GetHeadingAngle(&from, &to));
     facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
 }
@@ -2733,7 +2733,7 @@ int W8Monster::IsFacingPlayer004C4D40()
     }
     to = g_startup_world_659c0c->GetPosition();
     from = GetPosition();
-    bearing = NormalizeAngle(BearingBetween(from, to));
+    bearing = NormalizeAngle(GetHeadingAngle(&from, &to));
     facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
 }

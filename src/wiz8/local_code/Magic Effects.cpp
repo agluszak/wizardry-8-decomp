@@ -79,30 +79,32 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 // GLOBAL: WIZ8 0x005ee838
 float g_float_005ee838 = 0.7900000214576721f;
 
-/* 0x0060CFFC: eight bytes per effect id, whose leading dword names the
-   visual resource; -1 means the effect has none. The table ends where
-   the next unrelated data region begins. */
-// GLOBAL: WIZ8 0x0060cffc
-const int g_effect_visual_table[149][2] = {
-    {-1, -1},  {-1, 224}, {34, -1},  {38, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {1, 213},
-    {-1, -1},  {-1, -1},  {-1, -1},  {15, -1},  {14, -1},  {-1, -1},  {-1, -1}, {11, -1},
-    {-1, 211}, {-1, -1},  {-1, -1},  {-1, 212}, {25, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {10, -1},  {-1, 215}, {27, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {4, -1},  {13, 209},
-    {24, 210}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, 214},
-    {26, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, 216}, {-1, -1},  {7, -1},  {-1, 219},
-    {29, 218}, {28, -1},  {-1, -1},  {-1, -1},  {-1, 225}, {35, -1},  {-1, -1}, {-1, -1},
-    {21, -1},  {-1, -1},  {-1, 226}, {36, -1},  {39, -1},  {22, 227}, {37, -1}, {-1, 217},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {8, -1},   {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, 220}, {30, -1},  {-1, -1},  {-1, -1}, {-1, 223},
-    {33, 221}, {31, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {12, -1},  {-1, -1},  {-1, -1},  {-1, 222}, {32, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1}, {-1, -1},
-    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+/* 0x0060CFF8: eight bytes per effect id. The leading dword is the icon the
+   party and combat HUD strips show for the effect (-1 means none); the second
+   dword is the visual resource SetMonsterSpellIcon attaches to the monster.
+   The array fills the region between g_spellbook_name_ids_60cff0 and
+   g_spell_usage_name_ids_60d4a8 exactly. */
+// GLOBAL: WIZ8 0x0060cff8
+const int g_effect_visual_table[150][2] = {
+    {-1, -1},  {-1, -1},  {224, 34}, {-1, 38},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, 1},
+    {213, -1}, {-1, -1},  {-1, -1},  {-1, 15},  {-1, 14},  {-1, -1},  {-1, -1},  {-1, 11},
+    {-1, -1},  {211, -1}, {-1, -1},  {-1, -1},  {212, 25}, {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, 10},  {-1, -1},  {215, 27}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, 4},   {-1, 13},
+    {209, 24}, {210, -1}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {214, 26}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {216, -1}, {-1, 7},   {-1, -1},
+    {219, 29}, {218, 28}, {-1, -1},  {-1, -1},  {-1, -1},  {225, 35}, {-1, -1},  {-1, -1},
+    {-1, 21},  {-1, -1},  {-1, -1},  {226, 36}, {-1, 39},  {-1, 22},  {227, 37}, {-1, -1},
+    {217, -1}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, 8},   {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {220, 30}, {-1, -1},  {-1, -1},  {-1, -1},
+    {223, 33}, {221, 31}, {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, 12},  {-1, -1},  {-1, -1},  {-1, -1},  {222, 32}, {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
+    {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},  {-1, -1},
 };
 
 /* 0x00616F4C: the monster group the Insanity effect summons - one row of four
@@ -210,7 +212,7 @@ bool MonsterResistsSpellEffect(const W8CombatSlot* target, int power)
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 {
     if (slot->active != 0) {
-        SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[slot->effect_id][0], 0);
+        SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[slot->effect_id][1], 0);
     }
     slot->active = false;
     slot->effect_id = 0;
@@ -248,7 +250,7 @@ void ResetCombatEffects(void)
                 if (slot->active != 0) {
                     if (slot->active != 0) {
                         SetMonsterSpellIcon(monster_info->monster,
-                                            g_effect_visual_table[slot->effect_id][0], 0);
+                                            g_effect_visual_table[slot->effect_id][1], 0);
                     }
                     slot->active = 0;
                     slot->effect_id = 0;
@@ -276,7 +278,7 @@ void ResetCombatEffects(void)
                 if (slot->active != 0) {
                     if (slot->active != 0) {
                         SetMonsterSpellIcon(monster_info->monster,
-                                            g_effect_visual_table[slot->effect_id][0], 0);
+                                            g_effect_visual_table[slot->effect_id][1], 0);
                     }
                     slot->active = 0;
                     slot->effect_id = 0;
@@ -798,7 +800,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     }
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
-                        SetMonsterSpellIcon(summon->monster, g_effect_visual_table[spell_id][0], 1);
+                        SetMonsterSpellIcon(summon->monster, g_effect_visual_table[spell_id][1], 1);
                     }
                     effect_slot->active = 1;
                     effect_slot->effect_id = spell_id;
@@ -2020,7 +2022,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
         }
         slot = &monster_info->effect_slots_10f[slot_index];
         if (slot->active == 0 || slot->effect_id != effect->kind) {
-            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[effect->kind][0], 1);
+            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[effect->kind][1], 1);
         }
         slot->active = 1;
         slot->effect_id = effect->kind;
@@ -2169,7 +2171,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             }
             slot = &monster_info->pCombat->effect_slots_3e[slot_index];
             if (slot->active == 0 || slot->effect_id != spell_id) {
-                SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][0], 1);
+                SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][1], 1);
             }
             slot->active = 1;
             slot->effect_id = spell_id;
@@ -2264,7 +2266,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         }
         slot = &monster_info->pCombat->effect_slots_d7[slot_index];
         if (slot->active == 0 || slot->effect_id != spell_id) {
-            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][0], 1);
+            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][1], 1);
         }
         slot->active = 1;
         slot->effect_id = spell_id;
@@ -2984,7 +2986,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                         } else {
                             if (slot->active != 0) {
                                 SetMonsterSpellIcon(monster_info->monster,
-                                                    g_effect_visual_table[slot->effect_id][0], 0);
+                                                    g_effect_visual_table[slot->effect_id][1], 0);
                             }
                             slot->active = 0;
                             slot->effect_id = 0;

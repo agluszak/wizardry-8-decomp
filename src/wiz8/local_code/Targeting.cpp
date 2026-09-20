@@ -1138,7 +1138,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
 
         if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
             monster_info->hp_current == 0 || MonsterIsHostileTo(party_slot, monster_info) != 1 ||
-            !CanReachTarget(party_slot, 2, monster_info, context, 0)) {
+            !CanPartyMemberAimAtMonster(party_slot, 2, monster_info, context, 0)) {
             continue;
         }
 
@@ -2233,7 +2233,8 @@ bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x37a, TARGETING_CPP, IListGetAt(group->monsters, index), 1));
 
-        if (CanReachTarget(party_slot, 2, monster_info, W8_TARGETING_CONTEXT_CURRENT, 0)) {
+        if (CanPartyMemberAimAtMonster(party_slot, 2, monster_info, W8_TARGETING_CONTEXT_CURRENT,
+                                       0)) {
             ++reachable;
         }
     }
@@ -2582,7 +2583,8 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
         return IsSlotInRangeOfGroup(party_slot, monster_info->monster_group_id,
                                     W8_TARGETING_CONTEXT_CURRENT, reason) != 0;
     }
-    return CanReachTarget(party_slot, 2, monster_info, W8_TARGETING_CONTEXT_CURRENT, reason) != 0;
+    return CanPartyMemberAimAtMonster(party_slot, 2, monster_info, W8_TARGETING_CONTEXT_CURRENT,
+                                      reason) != 0;
 }
 
 /* Whether a party slot's chosen action has anything at all to aim at. Each

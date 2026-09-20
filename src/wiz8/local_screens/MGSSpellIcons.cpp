@@ -51,7 +51,7 @@ W8TextControl* g_combat_effect_left_rows_69c2c0[9];
 
 #define MGSSPELLICONS_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSSpellIcons.cpp"
 
-void Function5AEFC0(void); /* 0x005AEFC0: rebuild combat-effect HUD rows */
+void RebuildCombatEffectHudRows(void);
 
 // TEMPLATE: WIZ8 0x005b1b70
 // W8GrowableVector<W8CharacterPageEntry*>::~W8GrowableVector<W8CharacterPageEntry*>
@@ -184,7 +184,7 @@ void RefreshCombatEffectHud(void)
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    Function5AEFC0();
+    RebuildCombatEffectHudRows();
     g_combat_effect_left_panel_69c2bc->SetEnabled(true);
     g_combat_effect_right_panel_69c2b8->SetEnabled(true);
     if (g_combat_effect_left_count_69c2b4 != 0) {
@@ -198,6 +198,64 @@ void RefreshCombatEffectHud(void)
     }
     if (g_level_block->portrait_refresh_pending[1] != 0) {
         g_combat_effect_right_panel_69c2b8->SetEnabled(false);
+    }
+}
+
+/* Rebuild both combat-effect panels: nine left slots walk right from x=0,
+   six right slots walk left from x=0x69, one text control per active effect. */
+// FUNCTION: WIZ8 0x005AEFC0
+void RebuildCombatEffectHudRows(void)
+{
+    int left;
+    int right;
+    int icon;
+    int slot;
+    W8TextControl* control;
+    W8EffectSlot* effect;
+
+    g_combat_effect_left_panel_69c2bc->SetBounds(0x81, 0x14, 0x13d, 0x28);
+    left = 0;
+    right = 0x14;
+    g_combat_effect_left_count_69c2b4 = 0;
+    for (slot = 0; slot < 9; ++slot) {
+        effect = &g_combat_state->effect_slots[slot];
+        if (effect->active != 0) {
+            icon = g_effect_visual_table[effect->effect_id][0];
+            if (icon == -1) {
+                ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x228);
+            }
+            control = new W8TextControl(g_combat_effect_left_panel_69c2bc,
+                                        g_combat_effect_left_count_69c2b4 + 0xd6, left, 0, right,
+                                        0x14, icon, 0, 0, -1, -1, -1, -1);
+            g_combat_effect_left_rows_69c2c0[g_combat_effect_left_count_69c2b4] = control;
+            control->Invalidate(0);
+            EnableRegionInput(g_combat_effect_left_count_69c2b4 + 0xd6);
+            g_combat_effect_left_count_69c2b4 = g_combat_effect_left_count_69c2b4 + 1;
+            left = right + 1;
+            right = right + 0x15;
+        }
+    }
+    g_combat_effect_right_panel_69c2b8->SetBounds(0x182, 0x14, 0x1ff, 0x28);
+    left = 0x69;
+    right = 0x7d;
+    g_combat_effect_right_count_69c2ac = 0;
+    for (slot = 0; slot < 6; ++slot) {
+        effect = &g_combat_state->effect_slots_85a[slot];
+        if (effect->active != 0) {
+            icon = g_effect_visual_table[effect->effect_id][0];
+            if (icon == -1) {
+                ReportAssertion("iSpellIcon != BAD_INDEX", MGSSPELLICONS_CPP, 0x25e);
+            }
+            control = new W8TextControl(g_combat_effect_right_panel_69c2b8,
+                                        0xe4 - g_combat_effect_right_count_69c2ac, left, 0, right,
+                                        0x14, icon, 0, 0, -1, -1, -1, -1);
+            g_combat_effect_right_rows_69c294[g_combat_effect_right_count_69c2ac] = control;
+            control->Invalidate(0);
+            EnableRegionInput(0xe4 - g_combat_effect_right_count_69c2ac);
+            g_combat_effect_right_count_69c2ac = g_combat_effect_right_count_69c2ac + 1;
+            right = left - 1;
+            left = left - 0x15;
+        }
     }
 }
 

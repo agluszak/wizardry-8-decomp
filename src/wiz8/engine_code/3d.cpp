@@ -490,6 +490,51 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
     return 0;
 }
 
+/* The world-trace variant of HasLineOfSightToBounds0046FD70: same midpoint and
+   eight-corner probe, but through TraceLineOfSight, which reports a clear
+   trace as zero. */
+// FUNCTION: WIZ8 0x0046FAF0
+char TraceLineOfSightToBounds0046FAF0(const srVector3T<float>* origin, srVector3T<float>* minimum,
+                                      srVector3T<float>* maximum)
+{
+    srVector3T<float> point;
+
+    point = (*minimum + *maximum) * g_double_005ebe80;
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point = *maximum;
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point = *minimum;
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(minimum->x, maximum->y, maximum->z);
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(minimum->x, maximum->y, minimum->z);
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(maximum->x, maximum->y, minimum->z);
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(maximum->x, minimum->y, maximum->z);
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(minimum->x, minimum->y, maximum->z);
+    if (g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0) {
+        return 1;
+    }
+    point.Set(maximum->x, minimum->y, minimum->z);
+    return g_octree_6598a4->TraceLineOfSight(origin, &point, 1, -3, -3, 1, 0) == 0;
+}
+
 /* Report whether the eye sees a bounds box: true when the midpoint or any one
    of the eight min/max corner combinations has line of sight. */
 // FUNCTION: WIZ8 0x0046FD70

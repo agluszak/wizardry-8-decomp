@@ -15,8 +15,6 @@ class W8Monster;
    wrapper that decides whether a line of sight counts as unobstructed. */
 unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
 
-unsigned char CanReachTarget(int party_slot, int kind, W8MonsterInfo* monster_info,
-                             W8TargetingContext context, int arg_5);
 /* How many formation rows between `party_slot` and the monster block a short
    reach: zero when they share a row, otherwise occupants ahead of the monster
    and (when the gap is exactly two rows) the front rank. */
@@ -62,7 +60,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
                                             int* out_sight); /* 0x0051A840 */
 /* 0x00519AC0: the range category the weapon in `hand` attacks at; `hand` of 2
    asks for the better of the two. */
-int GetCharAttackRange(W8Character* character, unsigned int hand);
+int GetCharAttackRange(const W8Character* character, unsigned int hand);
 /* 0x005199F0: the range category the slot's chosen action works at. */
 int GetCharActionRange(int party_slot, int hand, W8TargetingContext context);
 bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext context,
@@ -101,6 +99,7 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
    characters check their own current target, monsters check `target`. */
 char SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target);
 /* 0x00518E30: whether the slot has any attack of `category` that reaches a
-   valid target in the scanned group for `hand`; the condition interrupt uses
-   it to tell usable attacks from merely reachable ones. */
-char Function518E30(int party_slot, int category, int flag, char hand);
+   valid target in the scanned groups for `hand`; the condition interrupt uses
+   it to tell usable attacks from merely reachable ones. `flag` == 1 skips the
+   monster scan. */
+char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char hand);

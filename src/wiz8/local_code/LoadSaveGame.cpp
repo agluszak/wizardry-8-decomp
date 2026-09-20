@@ -90,6 +90,8 @@
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/Factions.h"
 #include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/cursor.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
@@ -148,6 +150,7 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 /* Same-unit bodies SaveGame reaches before their definitions. */
 void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
+
 unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index);
 
 /* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
@@ -1296,7 +1299,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     for (index = 0; index < 12; ++index) {
         if (monster_info->effect_slots_10f[index].duration_0d != 0) {
             SetMonsterSpellIcon(
-                monster, g_effect_visual_table[monster_info->effect_slots_10f[index].effect_id][0],
+                monster, g_effect_visual_table[monster_info->effect_slots_10f[index].effect_id][1],
                 1);
         }
     }
@@ -2388,7 +2391,7 @@ unsigned char LoadGame(const char* slot_name)
                 LoadGameStatus(&chunks, &g_status_685170);
                 break;
             case 0x54584554: /* TEXT */
-                LoadTextBoxState0058FC30(chunks.m_hFile);
+                LoadMessageStorage0058FC30(chunks.m_hFile);
                 break;
             case 0x52415654: /* TVAR */
                 LoadLocationVariables00444310(chunks.m_hFile);

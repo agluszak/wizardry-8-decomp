@@ -109,7 +109,7 @@ struct W8Character;
 
 void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* dice);
 int GetCharacterHandDamageBonus(const W8Character* character, int hand);
-int CalcRangeCategoryToTarget(const W8Character* character, int hand);
+
 int GetHandAttackValue(int party_slot, unsigned int hand);
 int NormalizeAttackMode(int attack_mode);
 unsigned int ChooseAttackMode(unsigned int attack_modes);

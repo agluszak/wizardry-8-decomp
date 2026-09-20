@@ -8,6 +8,8 @@ struct W8VisibilityRecord;
 
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 void RefreshAllSight(void);
+/* 0x005048E0: put the sight subsystem back to its starting state. */
+void ResetSight(void);
 void RefreshOutwardSightForAllMonsters(void);
 void RefreshInwardSightForAllMonsters(void);
 void RefreshMonsterSight(W8MonsterInfo* monster_info);

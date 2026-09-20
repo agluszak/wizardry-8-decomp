@@ -75,9 +75,9 @@ unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, int condition, 
    no monster is near. */
 float HeadingTowardNearestMonster(srVector3T<float> point, char disposition, int exclusion);
 
-/* 0x0060CFFC: eight bytes per effect id; the leading dword names the monster
-   visual resource, -1 means the effect has none. */
-extern const int g_effect_visual_table[149][2];
+/* 0x0060CFF8: eight bytes per effect id; the leading dword names the HUD
+   effect icon and the second the monster visual resource, -1 means none. */
+extern const int g_effect_visual_table[150][2];
 
 void TickCombatEffectSlots(W8EffectSlot* slots, W8CombatSlot* target); /* 0x005526F0 */
 void TickRadiusBlastEffectSlots(W8EffectSlot* slots);                  /* 0x00552EF0 */

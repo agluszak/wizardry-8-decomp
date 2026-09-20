@@ -249,6 +249,45 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
     }
 }
 
+/* The load tail: drop equipment the loaded character can no longer wear, then
+   normalize the quantity byte on every worn and packed item and on the shared
+   party pool. */
+// FUNCTION: WIZ8 0x00522ef0
+void SanitizeLoadedItems00522EF0(void)
+{
+    unsigned int slot;
+    unsigned int index;
+    W8Character* character;
+
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            UnequipUnusableItems(&g_status_685170.buffers.characters[slot]);
+        }
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        character = &g_status_685170.buffers.characters[slot];
+        for (index = 0; index < 12; ++index) {
+            if (character->equipment[index].item_id != -1) {
+                NormalizeItemQuantityKind(&character->equipment[index]);
+            }
+        }
+        for (index = 0; index < 8; ++index) {
+            if (character->backpack[index].item_id != -1) {
+                NormalizeItemQuantityKind(&character->backpack[index]);
+            }
+        }
+    }
+    for (index = 0; index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
+         ++index) {
+        if (g_status_685170.party_item_pool_0021[index].item_id != -1) {
+            NormalizeItemQuantityKind(&g_status_685170.party_item_pool_0021[index]);
+        }
+    }
+}
+
 /* Condition immunity sets by monster kind. Each entry is a kind byte, one
    byte no recovered reader consumes, and twenty condition ids; a match means
    the condition never lands. The two-byte packing is load-bearing: padded to
@@ -980,6 +1019,61 @@ void RemoveConditionFromEveryone(int condition)
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->condition_turns[condition] != 0) {
             ClearMonsterCondition(monster_info->location_id, condition);
+        }
+    }
+}
+
+/* Strip all eight enchantment slots from every occupied party member and every
+   live monster, rescanning each character's top slot and flagging the special
+   slot's refresh. The monster count is re-read every iteration because
+   clearing one can remove a monster from the list. */
+// FUNCTION: WIZ8 0x00524540
+void RemoveAllEnchantments(void)
+{
+    for (unsigned int enchantment = 0; enchantment < 8; ++enchantment) {
+        for (int party_slot = 0; party_slot < 8; ++party_slot) {
+            W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+                character->enchantments[enchantment].value_08 != 0) {
+                memset(&character->enchantments[enchantment], 0, sizeof(W8Enchantment));
+                int top = 7;
+                W8Enchantment* scan = &character->enchantments[7];
+
+                do {
+                    if (scan->value_08 != 0 || top == 0) {
+                        character->enchantment_top = top;
+                        break;
+                    }
+                    --top;
+                    --scan;
+                } while (top > -1);
+                RequestPartySlotRedraw(party_slot);
+                if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                    RequestRedraw(0x200000);
+                    RequestRedraw(0x8000);
+                }
+                RebuildConditionsAndDerivedStats(party_slot);
+                if (enchantment == W8_ENCHANTMENT_SLOT_SPECIAL) {
+                    g_flag_006840bb = 1;
+                }
+            }
+        }
+        for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+
+            if (monster_info->enchantments[enchantment].value_08 != 0) {
+                int location_id = monster_info->location_id;
+
+                monster_info = MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(0x3b4, CONDITIONS_CPP, location_id, 1));
+                memset(&monster_info->enchantments[enchantment], 0, sizeof(W8Enchantment));
+                SetMonsterSpellIcon(monster_info->monster, enchantment + 0x10, 0);
+                RebuildMonsterDerivedStats(location_id);
+                if (enchantment == W8_ENCHANTMENT_SLOT_SPECIAL) {
+                    RefreshMonsterSight(monster_info);
+                }
+            }
         }
     }
 }

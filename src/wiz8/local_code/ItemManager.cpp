@@ -768,6 +768,26 @@ void DeactivateWorldItem(W8WorldItem* item)
     --gXStatus.item_manager_pending;
 }
 
+/* Highlight or un-highlight a world item by runtime id: the rep's highlight
+   bit tracks the SetHighlight call so the marker and the flag stay in step. */
+// FUNCTION: WIZ8 0x004F71E0
+void SetWorldItemHighlight(int runtime_id, char on)
+{
+    W8WorldItem* item = ItemInfo(ItemIndex(runtime_id));
+    W8Item* world_item = item->owner;
+    if (world_item == 0) {
+        srAssertFail("pItem", ITEM_MANAGER_CPP, 627, 0);
+    }
+    W8ItemRep* rep = static_cast<W8ItemRep*>(world_item->m_pRep);
+    if (on != 0) {
+        rep->flags |= 0x10;
+        world_item->SetHighlight(true);
+        return;
+    }
+    rep->flags &= ~0x10;
+    world_item->SetHighlight(false);
+}
+
 /* The runtime id of the nearest active world item the cursor is hovering over
    and whose screen distance stays inside `max_distance`, or -1. The cursor
    coordinates are carried but unused - the hover test is IsSelected. */

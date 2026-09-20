@@ -68,6 +68,7 @@ void SetTargetToCharacter(int character_slot, W8TargetingContext context);
 
 void SetTargetingMode(int state);
 void SetMonsterHighlight(int party_slot, int location_id, char on);
+void SetGroupHighlight(int party_slot, int group_id, char on);
 /* Location id of the nearest hovered live monster, or -1. */
 int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y); /* 0x005396D0 */
 char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight);
@@ -104,7 +105,8 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
 void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
 bool CanTargetMonster(int party_slot, int location_id, int allow_single_target,
-                      int reason); /* 0x00536AD0 */
+                      int reason);                                 /* 0x00536AD0 */
+bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60 */
 void ClearTargetingMode(int party_slot);
 void ClearSlotTargeting0053B050(int party_slot); /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
