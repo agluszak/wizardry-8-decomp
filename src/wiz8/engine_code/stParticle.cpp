@@ -669,9 +669,7 @@ void stParticle::Update00499FA0()
 
             if (value_1b4 == 1 &&
                 (g_world->octree == 0 ||
-                 !g_world->octree->HasLineOfSight(
-                     reinterpret_cast<const srVector3T<float>*>(&allocation_148[index]),
-                     reinterpret_cast<srVector3T<float>*>(&candidate), 1))) {
+                 !g_world->octree->HasLineOfSight(&allocation_148[index], &candidate, 1))) {
                 allocation_194[index] = 0;
                 update_flags_250 |= 2;
                 --active_particle_count_18c;
