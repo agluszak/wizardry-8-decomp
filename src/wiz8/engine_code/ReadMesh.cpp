@@ -1207,7 +1207,7 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
          ++g_read_mesh_index_65b9e4) {
         stMeshModel* model = meshes[g_read_mesh_index_65b9e4];
         model->setName(name);
-        if (model->next == 0) {
+        if (model->previous == 0) {
             stModelInstance* instance = CreateModelInstance0046F5C0(model);
             instance->setName("Multi Mesh Instance");
             instance->state_17c = g_read_mesh_index_65b9e4;

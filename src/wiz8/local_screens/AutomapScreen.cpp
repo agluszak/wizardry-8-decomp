@@ -34,6 +34,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/engine_code/Video2.h"
+#include "wiz8/layouts/encounter_tables.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/item_video_object_vector.h"
@@ -252,8 +253,6 @@ void SetAutomapCameraPoint0057FC70(srVector3T<float>* position);
 void SetAutomapButtonMode(int update);
 void RenderAutomapFrame00581030(void);
 void UpdateAutomapPageButtons00581200(void);
-void Function425C90(int left, int top, int right, int bottom);
-void Function474FB0(int value);
 void ResetAutomapLighting(void);
 void LightAutomapCell(const srVector3T<float>* position);
 unsigned int LightPendingAutomapCells005807B0(unsigned int max_count);
@@ -740,11 +739,10 @@ unsigned char AutomapScreenEnter(void)
     RenderFrame();
     RenderFrame();
     SetFlag603C60();
-    Function425C90(12, 32, 467, 467);
+    SetScaledViewport00425C90(12, 32, 467, 467);
     UpdateAutomapBounds00580380();
     if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
-        Function474FB0(5);
-        W8GrowableVector<char*> excluded_textures;
+        W8Vector<W8EncounterScriptName*> excluded_textures(5);
         int line = 0;
         int section = -1;
         while (section < g_status_685170.current_level && line < script.lines.count) {
@@ -758,7 +756,10 @@ unsigned char AutomapScreenEnter(void)
                 if (strchr(text, '['))
                     break;
                 if (!strstr(text, "LAYER_")) {
-                    excluded_textures.Add(text);
+                    // Elements are W8EncounterScriptName*; stored entries are borrowed
+                    // stScriptLine text pointers (value at +0).
+                    // reinterpret-ok: borrowed text pointer stored as the element type
+                    excluded_textures.Add(reinterpret_cast<W8EncounterScriptName*>(text));
                 } else {
                     float height = static_cast<float>(atof(text + 6));
                     srClipPlane::ClientType* clip = SR_NEW(srClipPlane)(static_cast<srNode*>(0));
@@ -1701,7 +1702,7 @@ void RenderAutomapFrame00581030(void)
                 view.top = (double)half;
                 g_world->camera->setViewPlane(view, (double)g_float_0064b920);
                 g_world->camera->setClipRange((double)g_float_0064b920, 1500000.0);
-                Function426F80(g_automap_surface, &g_automap_viewport, 0);
+                RenderWorldToSurface00426F80(g_automap_surface, &g_automap_viewport, 0);
                 g_automap_overlay_redraw = 0;
                 SetResidentTexturePolicy(0);
             }
@@ -2012,7 +2013,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f29c = Function425190(
+            g_class_68f29c = CreateSpriteFromTexture(
                 texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
                 (double)((float)(int)surface->getHeight() * g_scale_x_5ebb1c), 1, 1);
             g_class_68f29c->setParent(g_scene_square_65965c, 1);
@@ -2039,7 +2040,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a0 = Function425190(
+            g_class_68f2a0 = CreateSpriteFromTexture(
                 texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
                 (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a0->model())->setControlMask(0x40);
@@ -2058,7 +2059,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a4 = Function425190(
+            g_class_68f2a4 = CreateSpriteFromTexture(
                 texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
                 (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a4->model())->setControlMask(0x40);
@@ -2077,7 +2078,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a8 = Function425190(
+            g_class_68f2a8 = CreateSpriteFromTexture(
                 texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
                 (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a8->model())->setControlMask(0x40);
@@ -2096,7 +2097,7 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_automap_text_marker_0068f2ac = Function425190(
+            g_automap_text_marker_0068f2ac = CreateSpriteFromTexture(
                 texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
                 (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
             static_cast<srMeshModel*>(g_automap_text_marker_0068f2ac->model())

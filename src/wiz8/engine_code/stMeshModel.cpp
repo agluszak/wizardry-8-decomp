@@ -12,6 +12,7 @@
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srVectorProcessor.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/layouts/encounter_tables.h"
 
 #include <math.h>
 #include <string.h>
@@ -613,7 +614,8 @@ void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<flo
 }
 
 // FUNCTION: WIZ8 0x00473fa0
-void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)
+void stMeshModel::ApplyAutomapPolygonFilter(
+    const W8GrowableVector<W8EncounterScriptName*>* excluded_textures)
 {
     if (automap_polygons) {
         delete[] automap_polygons;
@@ -625,19 +627,19 @@ void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* exclu
     srPtr<srTextureIFace>* texture = getPolyTexture(0, 0, 0);
     if (texture) {
         for (unsigned int polygon = 0; polygon < static_cast<unsigned int>(polygon_count_230);
-             ++polygon, texture += 4) {
-            if (!*texture) {
-                automap_polygons[automap_polygon_count++] = polygon;
-            } else {
+             ++polygon, ++texture) {
+            if (*texture) {
                 char name[256];
                 strcpy(name, (*texture)->getName());
                 bool include = true;
                 for (int index = 0; index < excluded_textures->count; ++index) {
-                    if (_stricmp(name, *excluded_textures->GetAt(index)) == 0)
+                    if (_stricmp(name, (*excluded_textures->GetAt(index))->value) == 0)
                         include = false;
                 }
                 if (include)
                     automap_polygons[automap_polygon_count++] = polygon;
+            } else {
+                automap_polygons[automap_polygon_count++] = polygon;
             }
         }
     }

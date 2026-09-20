@@ -149,6 +149,8 @@ unsigned char g_flag_659711;
 unsigned char g_flag_65970f;
 // GLOBAL: WIZ8 0x00659634
 srGERD* g_gerd_659634;
+// GLOBAL: WIZ8 0x65971c
+srGERD* g_secondary_gerd_65971c;
 // GLOBAL: WIZ8 0x65969c
 LPDIRECTDRAW g_direct_draw_65969c;
 // GLOBAL: WIZ8 0x6596a0
@@ -1127,6 +1129,70 @@ void RenderFrame(void)
         SetWorldScenePosition004511D0(GetWorld(), &saved_world_position);
     }
 }
+/* Render the world into the locked frame buffer and copy the pixels onto a
+   caller-owned color surface. The secondary render device (the second Voodoo
+   board) takes over when present; `rect` selects a logical 640x480 viewport,
+   otherwise the stored game viewport globals apply. SaveGame uses it for the
+   SHOT screenshot; the automap uses it for its backdrop. */
+// FUNCTION: WIZ8 0x00426f80
+unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
+                                           char render_secondary)
+{
+    srGERD* gerd = g_secondary_gerd_65971c;
+    EnvironmentColour clear_color;
+    clear_color.red = 1.0f;
+    clear_color.green = 1.0f;
+    clear_color.blue = 1.0f;
+    if (gerd == 0) {
+        gerd = g_gerd_659634;
+    }
+    gerd->beginFrame();
+    gerd->setTextureReduction(g_resident_texture_policy_659714);
+    gerd->setScissor(0, 0, gerd->getWidth(), gerd->getHeight());
+    if (rect != 0) {
+        gerd->setViewPort(rect->left * gerd->getWidth() / 640, rect->top * gerd->getHeight() / 480,
+                          (rect->right - rect->left) * gerd->getWidth() / 640,
+                          (rect->bottom - rect->top) * gerd->getHeight() / 480);
+    } else {
+        gerd->setViewPort(
+            g_viewport_left_6595e8 * gerd->getWidth() / 640,
+            g_viewport_top_6595ec * gerd->getHeight() / 480,
+            (g_viewport_right_6595f0 - g_viewport_left_6595e8) * gerd->getWidth() / 640,
+            (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) * gerd->getHeight() / 480);
+    }
+    if (IsFogEnabled()) {
+        GetLightDirection(&clear_color);
+    } else {
+        GetWorldLightValue(g_world, &clear_color);
+    }
+    gerd->setClearColor(clear_color.red, clear_color.green, clear_color.blue, 1.0f);
+    if (g_flag_0065a0ee != 0) {
+        gerd->setClearDepth(0.0);
+    }
+    gerd->clear(srFlags<srGERD::e_buffer>(3));
+    if (render_secondary != 0 && g_render_flag_603c6c != 0 && g_world_659ab8 != 0) {
+        g_world_659ab8->static_scene->render(*gerd, g_world_659ab8->camera);
+    }
+    g_world->static_scene->render(*gerd, g_world->camera);
+    gerd->endFrame();
+    if (g_flag_0065a0ee != 0) {
+        gerd->setClearDepth(1.0);
+    }
+    gerd->flushRenderers();
+    gerd->setTextureReduction(0);
+    if (rect != 0) {
+        gerd->setViewPort(0, 0, gerd->getWidth(), gerd->getHeight());
+    }
+    srColorSurfaceIFace* buffer = gerd->lockBuffer();
+    if (buffer != 0) {
+        target->setFilter(&srBoxFilter);
+        target->copy(*buffer);
+        gerd->unlockBuffer();
+        return 1;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00427440
 void InvalidateRendererTextureCache(void)
 {
@@ -1271,6 +1337,59 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     instance->setName("Video2DMakePolygonBrush");
     instance->SetModel0047F3A0(model);
     instance->configure2D(static_cast<short>(width * 640.0), static_cast<short>(height * 480.0));
+    return instance;
+}
+
+// FUNCTION: WIZ8 0x00425190
+stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
+                                           char keep_aspect, char a5)
+{
+    srShader shader;
+    srModeler::MappingInfo mapping;
+    srVector3T<float> scale;
+    int w = static_cast<int>(width * 640.0);
+    int h = static_cast<int>(height * 480.0);
+
+    srMeshModel* model = SR_NEW(srMeshModel)(0L, 0L);
+    if (!model) {
+        return 0;
+    }
+    model->autoRelease();
+    model->setName("Video2DMakePolygonBrush");
+
+    float step = g_surface_scale_659680 * (g_float_005ebb38 / w);
+    g_modeler_65963c->createGrid(1, 1);
+    mapping.unknown_00 = 0;
+    mapping.unknown_04 = 1;
+    mapping.unknown_08 = mapping.unknown_0c = float_bits(g_float_005ebb38 - (step + step));
+    mapping.unknown_10 = mapping.unknown_14 = float_bits(step);
+    g_modeler_65963c->planarMap(0, 0, mapping);
+    scale.x = static_cast<float>(width);
+    scale.y = static_cast<float>(height);
+    scale.z = 1.0f;
+    g_modeler_65963c->scale(scale);
+    g_modeler_65963c->convert(*model, 1);
+    g_modeler_65963c->discard();
+
+    shader.value = keep_aspect ? g_surface_state_654ad8 : g_surface_state_6595dc;
+    if (!texture) {
+        shader.value &= ~srShader::MASK_TEXTURING;
+    } else {
+        model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
+        model->setTexture(texture, 0, 0);
+    }
+    model->setShader(shader, 0);
+
+    stModelInstance2D* instance = new stModelInstance2D(0);
+    if (instance) {
+        instance->render_state_164.left = static_cast<short>(w);
+        instance->render_state_164.top = static_cast<short>(h);
+        instance->setName("Video2DMakePolygonBrush");
+        instance->SetModel0047F3A0(model);
+        if (a5) {
+            instance->state_160 |= 1;
+        }
+    }
     return instance;
 }
 
@@ -1851,6 +1970,25 @@ void FlushDirtyTiles00425B40(void)
 }
 
 /* Viewport. */
+/* Scale a 640x480 design-space rect onto the GERD viewport and remember it;
+   no-ops when the stored bounds already match. */
+// FUNCTION: WIZ8 0x00425C90
+void SetScaledViewport00425C90(int left, int top, int right, int bottom)
+{
+    if (left == g_viewport_left_6595e8 && top == g_viewport_top_6595ec &&
+        right == g_viewport_right_6595f0 && bottom == g_viewport_bottom_6595f4) {
+        return;
+    }
+    g_gerd_659634->setViewPort(g_gerd_659634->getWidth() * left / 640,
+                               g_gerd_659634->getHeight() * top / 480,
+                               g_gerd_659634->getWidth() * (right - left) / 640,
+                               g_gerd_659634->getHeight() * (bottom - top) / 480);
+    g_viewport_left_6595e8 = left;
+    g_viewport_top_6595ec = top;
+    g_viewport_right_6595f0 = right;
+    g_viewport_bottom_6595f4 = bottom;
+}
+
 /*
  * Sets the viewport and rebuilds the camera view plane to match it.
  *
