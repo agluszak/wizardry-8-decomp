@@ -581,7 +581,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             sprintf(trigger_name, "%3s%02d", g_level_folders[level].location_code, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
-        if (trigger != 0 && trigger->flag_0a0_11) {
+        if (trigger != 0 && ((trigger->flags_0a0 & 0x800U) != 0)) {
             srVector3T<float> trigger_position;
             srVector3T<float> position;
 
@@ -663,7 +663,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
 
         if (effect != 0) {
-            SpawnLureEffects(effect, effect->argument, &effect->target);
+            SpawnLureEffects(effect, effect->definition.duration_scale, &effect->target);
         }
     }
 

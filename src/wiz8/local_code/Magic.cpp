@@ -851,8 +851,8 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
             SetTextBoxMode(1, -1);
         }
         target.point = position;
-        CastSpellFromSource(0x76, &effect->Source, &target, effect->argument, effect->value_0d4, 0,
-                            0, 0, 0, 0, 0);
+        CastSpellFromSource(0x76, &effect->Source, &target, effect->definition.duration_scale,
+                            effect->definition.percent, 0, 0, 0, 0, 0, 0);
     }
 }
 

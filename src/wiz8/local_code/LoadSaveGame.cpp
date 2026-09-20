@@ -2461,7 +2461,7 @@ void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
     chunks->Read(&effect->flag_121, 1, 0);
     chunks->Read(&effect->flag_122, 1, 0);
     chunks->Read(&effect->flag_123, 1, 0);
-    chunks->Read(effect->unknown_0b0, 0x30, 0);
+    chunks->Read(&effect->definition, sizeof(effect->definition), 0);
     AddSpellEffect(effect);
 }
 

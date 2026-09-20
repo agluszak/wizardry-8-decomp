@@ -81,7 +81,7 @@ bool RapaxMainFloorPlatform004DA460(Trigger* pTrigger)
     }
     ram_trigger = FindTriggerByName("RAM03");
     if (ram_trigger != 0) {
-        ram_trigger->flag_0a0_08 = 1;
+        ram_trigger->flags_0a0 |= 0x100U;
     }
     return true;
 }
@@ -94,11 +94,11 @@ bool RapaxMainFloorPlatform01004DA590(Trigger* pTrigger)
 
     ram_trigger = FindTriggerByName("RAM03");
     if (ram_trigger != 0) {
-        ram_trigger->flag_0a0_08 = 0;
+        ram_trigger->flags_0a0 &= ~0x100U;
     }
     ram_trigger = FindTriggerByName("RAM07");
     if (ram_trigger != 0) {
-        ram_trigger->flag_0a0_08 = 1;
+        ram_trigger->flags_0a0 |= 0x100U;
     }
     return true;
 }
@@ -111,11 +111,11 @@ bool RapaxMainFloorPlatform02004DA5D0(Trigger* pTrigger)
 
     ram_trigger = FindTriggerByName("RAM07");
     if (ram_trigger != 0) {
-        ram_trigger->flag_0a0_08 = 0;
+        ram_trigger->flags_0a0 &= ~0x100U;
     }
     ram_trigger = FindTriggerByName("RAM11");
     if (ram_trigger != 0) {
-        ram_trigger->flag_0a0_08 = 1;
+        ram_trigger->flags_0a0 |= 0x100U;
     }
     return true;
 }

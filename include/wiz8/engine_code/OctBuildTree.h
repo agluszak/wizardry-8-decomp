@@ -5,7 +5,7 @@
 #include "wiz8/geometry.h"
 
 struct W8OctBuildLink {
-    W8GDSurface* surface_00;
+    void* surface_00; /* region polygons and GD surfaces share the build links */
     W8OctBuildLink* next_04;
 };
 
@@ -13,7 +13,7 @@ class OctPreTree;
 
 struct W8OctBuildLinkLists {
     W8OctBuildLinkLists();
-    W8OctBuildLink* GetNewLink(W8GDSurface* surface);
+    W8OctBuildLink* GetNewLink(void* surface);
 
     unsigned short m_usCurrent;
     unsigned short padding_02;
@@ -32,21 +32,16 @@ struct W8OctBuildNode00446330 {
 
     union {
         W8OctBuildNode00446330* children_00[8];
-        /* Leaf link-list heads indexed by insert kind 0..0xb; the last four
-           heads overlay the post-build counters in the sibling member. */
-        W8OctBuildLink* links_00[12];
-        W8GDSurface** surface_arrays_00[8];
+        W8OctBuildLink* links_00[8];
+        void** surface_arrays_00[8]; /* elements follow the insert mode */
         unsigned short* region_arrays_00[8];
-        struct {
-            unsigned char head_slots_00[0x20];
-            unsigned long positional_20;
-            unsigned long positional_24;
-            unsigned short positional_28;
-            unsigned short leaf_kind_2a;
-            unsigned short positional_2c;
-            unsigned short positional_2e;
-        };
     };
+    unsigned long positional_20;
+    unsigned long positional_24;
+    unsigned short positional_28;
+    unsigned short leaf_kind_2a;
+    unsigned short positional_2c;
+    unsigned short positional_2e;
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its

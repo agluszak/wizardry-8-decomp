@@ -3030,7 +3030,7 @@ bool NotifyNpcTriggerActivation0050ABF0(Trigger* trigger)
     if (gXStatus.fNpcDialogueMode == 0) {
         W8NpcState* npc = *g_npc_states->GetAt(trigger->m_lData1);
 
-        if (trigger->flag_0a0_08 != 0 || npc->name_style == '{') {
+        if ((trigger->flags_0a0 & 0x100U) != 0 || npc->name_style == '{') {
             if (g_status_685170.item_in_cursor != 0) {
                 item = &g_status_685170.item_in_hand_235b;
             }

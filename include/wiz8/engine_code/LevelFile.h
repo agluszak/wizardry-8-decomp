@@ -292,19 +292,10 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     W8LevelFileLinkedRecord* pRecord_863; /* door_85e.kind_00 == 2 */
 };
 
-/* Serialized trigger payload; type_01 discriminates the record. */
-union W8LevelFileTriggerData {
-    W8LevelFileSwitch* switch_trigger;
-    W8LevelFileInvisible* invisible;
-    W8LevelFileSound* sound;
-    W8LevelFileSuperTrigger* super;
-    void* raw;
-};
-
 struct W8LevelFileTrigger {
     unsigned char version_00;
     unsigned char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
-    W8LevelFileTriggerData data_02;
+    void* pData_02;        /* type_01 selects the pointed-to record */
 };
 
 /* One LOD/morph frame: a flag byte, an embedded mesh record, and a texture

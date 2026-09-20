@@ -254,12 +254,7 @@ struct W8MainScreenState {
        W8ExperienceNoticePayload*, 2 a W8SkillNoticePayload*, 3 an int party
        slot pointer; producers arrive through a void* SetNpcQuoteBubbleVisible
        parameter. */
-    union {
-        W8ExperienceNoticePayload* experience;
-        W8SkillNoticePayload* skills;
-        int* level_up_slot;
-        void* raw;
-    } quote_notice_payload;
+    void* quote_notice_payload;
     unsigned char flag_250;
     unsigned char flag_251;
     unsigned char flag_252;

@@ -45,18 +45,15 @@ public:
                                                     srTextureIFace* replacement);
     unsigned char displayState() const
     {
-        return render_state_164.display_state;
-    }
-    void setRenderDepth(unsigned long depth)
-    {
-        render_state_164.render_depth = depth;
+        // reinterpret-ok: scene purge reads the low byte at +0x170; its relation to highlight alpha remains unresolved
+        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight_alpha);
     }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
     unsigned long state_160;
-    W8ModelInstanceRenderState render_state_164;
+    W8ModelInstance3DRenderState render_state_164;
     /* Lazily built highlight material; RenderMeshes0047F930 fills it from the
        render-state RGBA and installs it as the pass material. */
     srMaterial* retained_174;
@@ -70,19 +67,8 @@ public:
     unsigned char flag_1a0;
     unsigned char flag_1a1;
     unsigned char unknown_1a2[2];
-    /* stParticle's constructor stores the integer 2 here while GrCycle's
-       0x004A7470 stores a float; the storage carries both views, so name
-       both rather than pick one. */
-    union {
-        int value_1a4;
-        float scale_1a4;
-    };
-    /* Written as an integer toggle by callers but read back as the float
-       emissive override scale in RenderMeshes0047F930. */
-    union {
-        int value_1a8;
-        float scale_1a8;
-    };
+    float scale_1a4;
+    float scale_1a8;
     float value_1ac;
 };
 
@@ -139,7 +125,7 @@ public:
     }
 
     unsigned long state_160;
-    W8ModelInstanceRenderState render_state_164;
+    W8ModelInstance2DRenderState render_state_164;
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;
     srMaterial* m_pGlowMaterial;

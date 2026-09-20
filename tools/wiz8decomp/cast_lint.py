@@ -34,11 +34,16 @@ used by accepted SGP derivatives. This catches incidental edits to pristine
 source while allowing evidence-backed work in files already established as
 Wizardry revisions.
 
+New unions in recovered Wizardry and SurRender headers require a nearby
+``union-ok:`` comment citing positive evidence for overlapping source storage.
+Two accesses with different types at one offset are a reason to audit the
+record or class boundary, not positive union evidence.
+
 The gate inspects added lines of the current Jujutsu change stack (or of a Git
 checkout against its baseline branch). Existing casts are not re-litigated;
 ones moved between files are recognized by their removed counterpart. Cast and
-format checks cover recovered product headers and sources under ``src/wiz8``
-and ``include/wiz8``.
+format checks cover recovered product headers and sources under ``src/wiz8``,
+``include/wiz8`` and ``include/surrender``. The union check covers headers.
 """
 
 from __future__ import annotations
@@ -55,7 +60,8 @@ MARKER = "reinterpret-ok"
 C_STYLE_MARKER = "c-style-cast-ok"
 FORMAT_OFF_MARKER = "format-off-ok"
 RAW_OFFSET_MARKER = "raw-offset-ok"
-SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
+UNION_MARKER = "union-ok"
+SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
 _GIT_BASES: tuple[str, ...] = ("@{upstream}", "origin/main", "origin/master", "main", "master")
@@ -67,6 +73,8 @@ _C_STYLE_MARKER = re.compile(r"c-style-cast-ok:\s*\S", re.IGNORECASE)
 _FORMAT_OFF = re.compile(r"clang-format\s+off", re.IGNORECASE)
 _FORMAT_OFF_MARKER = re.compile(r"format-off-ok:\s*\S", re.IGNORECASE)
 _RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
+_UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
+_UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
 _RAW_BYTE_OFFSET = re.compile(
     r"reinterpret_cast\s*<\s*(?:const\s+)?(?:unsigned\s+)?char\s*\*\s*>\s*"
     r"\((?:(?![;{}]).)*?\)\s*(?:\+\s*(?:0[xX][0-9A-Fa-f]+|\d+)\b\s*)+",
@@ -424,6 +432,15 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
     format_violations = _added_format_off(diff)
     raw_offset_violations = _raw_offset_violations(repository, diff)
     sgp_violations = _sgp_notice_violations(repository, diff)
+    union_violations = []
+    for item in added_lines_without_marker(diff, _UNION, _UNION_MARKER):
+        if not item["file"].startswith(("include/wiz8/", "include/surrender/")):
+            continue
+        lines = (repository / item["file"]).read_text(encoding="utf-8").splitlines()
+        index = item["line"] - 1
+        if index > 0 and _UNION_MARKER.search(lines[index - 1]):
+            continue
+        union_violations.append(item)
 
     errors: list[str] = []
     if reinterpret_violations:
@@ -453,6 +470,12 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             "changed pristine SGP source needs the dated Wizardry-reconstruction modification "
             "notice before it can become a product derivative:\n  " + _render(sgp_violations)
         )
+    if union_violations:
+        errors.append(
+            "new recovered layout unions need a preceding 'union-ok: positive source evidence' "
+            "comment; differing types at one offset alone do not establish a source union:\n  "
+            + _render(union_violations)
+        )
     if errors:
         raise CastGateError("source hygiene gate failed:\n" + "\n".join(errors))
 
@@ -460,6 +483,6 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         "ok": True,
         "gate": "source-cast-format-hygiene",
         "base": base,
-        "markers": [MARKER, C_STYLE_MARKER, FORMAT_OFF_MARKER, RAW_OFFSET_MARKER],
+        "markers": [MARKER, C_STYLE_MARKER, FORMAT_OFF_MARKER, RAW_OFFSET_MARKER, UNION_MARKER],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],
     }

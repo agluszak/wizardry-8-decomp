@@ -7,44 +7,24 @@
 
 #pragma pack(push, 1)
 
-/* Sixteen-byte render block copied from an AnimRep into a model instance.
-   GrCycle assigns the whole 0x10 bytes at once; stModelInstance and
-   stModelInstance2D store the same layout at +0x164, including the 2D
-   left/top extent and right/bottom position shorts. */
-struct W8ModelInstanceRenderState {
-    union {
-        struct {
-            unsigned long render_depth;
-            union {
-                unsigned long state_04;
-                struct {
-                    short left;
-                    short top;
-                };
-            };
-            union {
-                unsigned long state_08;
-                struct {
-                    short right;
-                    short bottom;
-                };
-            };
-            union {
-                unsigned long state_0c;
-                struct {
-                    unsigned char display_state;
-                    unsigned char state_0d;
-                    unsigned char padding_0e[2];
-                };
-            };
-        };
-        struct {
-            float highlight_red;
-            float highlight_green;
-            float highlight_blue;
-            float highlight_alpha;
-        };
-    };
+/* AnimRep and the 3D mesh instance exchange four highlight coefficients. */
+struct W8ModelInstance3DRenderState {
+    float highlight_red;
+    float highlight_green;
+    float highlight_blue;
+    float highlight_alpha;
+};
+
+/* The 2D instance has a different sixteen-byte block at the same class offset. */
+struct W8ModelInstance2DRenderState {
+    unsigned long render_depth;
+    short left;
+    short top;
+    short right;
+    short bottom;
+    unsigned char display_state;
+    unsigned char state_0d;
+    unsigned char padding_0e[2];
 };
 
 /* Prop.cpp writes the triples at 0x074 and 0x080 as x/y/z bounds and the word
@@ -74,7 +54,7 @@ public:
     srVector3T<float> local_location_010;
     srVector3T<float> parent_location_01c;
     srMatrix3T<float> rotation_028;
-    W8ModelInstanceRenderState render_state_04c;
+    W8ModelInstance3DRenderState render_state_04c;
     /* Set by monster scale transitions; GrCycle copies it to model instances
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
@@ -140,8 +120,10 @@ public:
     unsigned char unknown_096[2];
 };
 
-static_assert(sizeof(W8ModelInstanceRenderState) == 0x10,
-              "W8ModelInstanceRenderState_size_must_be_0x10");
+static_assert(sizeof(W8ModelInstance3DRenderState) == 0x10,
+              "W8ModelInstance3DRenderState_size_must_be_0x10");
+static_assert(sizeof(W8ModelInstance2DRenderState) == 0x10,
+              "W8ModelInstance2DRenderState_size_must_be_0x10");
 static_assert(offsetof(W8AnimRepBase005EC1D8, render_state_04c) == 0x4c,
               "W8AnimRepBase_render_state_offset");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");

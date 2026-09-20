@@ -116,11 +116,7 @@ struct W8MessageBoxLine {
        - W8ItemInstance* item: REMOVE_SCRIPT_ITEM
        - int argument: QueueNpcMessageLine tags (npc kind, group/party slot,
          string index, event type, travel level id) and PARTY_SPEAKER_EVENT */
-    union {
-        wchar_t* text;
-        W8ItemInstance* item;
-        int argument;
-    };
+    void* payload_10;
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */
     unsigned char suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
     /* 0x1c: ownership is selected by `type`. SKILL_NOTICES hands a
@@ -129,20 +125,14 @@ struct W8MessageBoxLine {
        W8ExperienceNoticePayload* to the bubble. The bubble consumes and
        deletes each payload on dismissal; the immediate skill-notice path
        deletes its payload itself. */
-    union {
-        W8SkillNoticePayload* skill_notices;
-        int* level_up_slot;
-        W8ExperienceNoticePayload* experience;
-        void* raw;
-    } extra;
+    void* extra;
     W8NpcState* npc; /* 0x20: speaking NPC, copied from g_npc_scripting.npc */
 };
 
 static_assert(sizeof(W8MessageBoxLine) == 0x24, "W8MessageBoxLine_must_be_0x24");
 static_assert(offsetof(W8MessageBoxLine, quote_entry) == 0x08, "W8MessageBoxLine_quote_entry");
 static_assert(offsetof(W8MessageBoxLine, type) == 0x0c, "W8MessageBoxLine_type");
-static_assert(offsetof(W8MessageBoxLine, text) == 0x10, "W8MessageBoxLine_text");
-static_assert(offsetof(W8MessageBoxLine, argument) == 0x10, "W8MessageBoxLine_argument");
+static_assert(offsetof(W8MessageBoxLine, payload_10) == 0x10, "W8MessageBoxLine_payload");
 static_assert(offsetof(W8MessageBoxLine, continuation_quote) == 0x14,
               "W8MessageBoxLine_continuation_quote");
 static_assert(offsetof(W8MessageBoxLine, suppress_entries) == 0x18,

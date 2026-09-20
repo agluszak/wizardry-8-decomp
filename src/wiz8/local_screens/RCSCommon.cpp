@@ -258,9 +258,8 @@ void OpenLevelUpCharacterScreen(void)
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x888, 0);
     }
     g_current_screen_state.parameter_2 = giReviewCharSlot;
-    g_current_screen_state.parameter_3.character = g_value_0069c0f8;
-    g_pending_screen_state.parameter_3.character =
-        &g_status_685170.buffers.characters[giReviewCharSlot];
+    g_current_screen_state.parameter_3 = g_value_0069c0f8;
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[giReviewCharSlot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -409,10 +408,10 @@ unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event, W8Regio
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            g_current_screen_state.parameter_3.character = g_value_0069c0f8;
+            g_current_screen_state.parameter_3 = g_value_0069c0f8;
             g_current_screen_state.parameter_2 = giReviewCharSlot;
             g_pending_screen_state.mode = 1;
-            g_pending_screen_state.parameter_3.character = g_value_0069c0f8;
+            g_pending_screen_state.parameter_3 = g_value_0069c0f8;
             SetPendingScreenState(W8_SCREEN_CHARACTER);
             return 1;
         }

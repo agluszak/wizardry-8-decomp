@@ -37,7 +37,7 @@ W8OctBuildLinkLists::W8OctBuildLinkLists() : m_usCurrent(0), padding_02(0)
    50,000 eight-byte links.  A fresh zeroed link records the surface while its
    next pointer remains null. */
 // FUNCTION: WIZ8 0x00446250
-W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(W8GDSurface* surface)
+W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 {
     if (m_ausLinkCounts[m_usCurrent] > 49999) {
         ++m_usCurrent;
@@ -326,8 +326,8 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
    the tree watermark, then either extend the tail or seed the head. The same
    body is inlined inside InsertSurfaceRecursive's leaf path. */
 // FUNCTION: WIZ8 0x00446d00
-void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node,
-                                                W8GDSurface* surface, short kind)
+void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, W8GDSurface* surface,
+                                                short kind)
 {
     ++node->leaf_kind_2a;
     if (positional_b8 < node->leaf_kind_2a) {
@@ -350,9 +350,11 @@ void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node,
    walk the tree. `half_angle` is unused. Collected surfaces carry the 0x2000
    visit mark, which this clears before returning the count. */
 // FUNCTION: WIZ8 0x00446d80
-int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(
-    int** results, const srVector3T<float>* from, const srVector3T<float>* to,
-    float half_angle, float extent, unsigned short kind)
+int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(int** results,
+                                                               const srVector3T<float>* from,
+                                                               const srVector3T<float>* to,
+                                                               float half_angle, float extent,
+                                                               unsigned short kind)
 {
     W8OctSpatialState state(&spatial_00);
     float bounds[6];
@@ -395,9 +397,8 @@ int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(
     index = 0;
     if (count != 0) {
         do {
-            W8GDSurface* surface =
-                reinterpret_cast< // reinterpret-ok: scratch slot stores surface*
-                    W8GDSurface**>(*results)[index];
+            W8GDSurface* surface = reinterpret_cast< // reinterpret-ok: scratch slot stores surface*
+                W8GDSurface**>(*results)[index];
             ++index;
             surface->flags_00 &= ~0x2000;
         } while (index < static_cast<unsigned int>(count));
@@ -409,8 +410,8 @@ int W8OctBuildTree00446390::CollectObjectsAlongSegment00446D80(
    collect the whole leaf subtree (2), walk the eight octants (1), or skip
    (0). A state already at the bottom level collects as a leaf either way. */
 // FUNCTION: WIZ8 0x00446f20
-int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state,
-                                                     const float* bounds, short kind)
+int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, const float* bounds,
+                                                     short kind)
 {
     W8OctSpatialState child(state);
     int collected = 0;
@@ -482,11 +483,12 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
         if (kind == 9) {
             link = node->links_00[3];
             while (link != 0) {
-                surface = link->surface_00;
+                surface = static_cast<W8GDSurface*>(link->surface_00);
                 if ((surface->flags_00 & 0x2000) == 0) {
                     surface->flags_00 |= 0x2000;
-                    static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)
-                        [g_oct_build_count_00659a38] = link->surface_00;
+                    static_cast<W8GDSurface**>(
+                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                        static_cast<W8GDSurface*>(link->surface_00);
                     ++g_oct_build_count_00659a38;
                     ++collected;
                 }
@@ -495,7 +497,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             second = 0;
             if (node->links_00[4] != 0) {
                 for (link = node->links_00[4]; link != 0; link = link->next_04) {
-                    surface = link->surface_00;
+                    surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
                     scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
                     while (index < g_oct_build_count_00659a38) {
@@ -505,8 +507,8 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)
-                        [g_oct_build_count_00659a38] = surface;
+                    static_cast<W8GDSurface**>(
+                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] = surface;
                     ++g_oct_build_count_00659a38;
                     ++second;
                 next_link_4:;
@@ -517,7 +519,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
         if (kind == 10) {
             if (node->links_00[7] != 0) {
                 for (link = node->links_00[7]; link != 0; link = link->next_04) {
-                    surface = link->surface_00;
+                    surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
                     scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
                     while (index < g_oct_build_count_00659a38) {
@@ -527,18 +529,26 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
                         ++index;
                         ++scan;
                     }
-                    static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)
-                        [g_oct_build_count_00659a38] = surface;
+                    static_cast<W8GDSurface**>(
+                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] = surface;
                     ++g_oct_build_count_00659a38;
                     ++collected;
                 next_link_7:;
                 }
             }
             second = 0;
-            for (link = node->links_00[0xb]; link != 0; link = link->next_04) {
-                if (CollectSurfacePredicate004474C0(link->surface_00, 0xb) != 0) {
-                    static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)
-                        [g_oct_build_count_00659a38] = link->surface_00;
+            /* Retail's kind-10 path indexes the link-head storage at +0x2c,
+               beyond its eight live slots. No recovered producer supplies
+               that mode; retain the observed read without enlarging the
+               source union over the node metadata. */
+            // reinterpret-ok: kind-10's unresolved +0x2c read overlaps metadata in this dead retail path
+            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->positional_2c); link != 0;
+                 link = link->next_04) {
+                if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
+                                                    0xb) != 0) {
+                    static_cast<W8GDSurface**>(
+                        g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                        static_cast<W8GDSurface*>(link->surface_00);
                     ++g_oct_build_count_00659a38;
                     ++second;
                 }
@@ -546,9 +556,11 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             return second + collected;
         }
         for (link = node->links_00[kind]; link != 0; link = link->next_04) {
-            if (CollectSurfacePredicate004474C0(link->surface_00, kind) != 0) {
-                static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)
-                    [g_oct_build_count_00659a38] = link->surface_00;
+            if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
+                                                kind) != 0) {
+                static_cast<W8GDSurface**>(
+                    g_oct_build_scratch_00659a48)[g_oct_build_count_00659a38] =
+                    static_cast<W8GDSurface*>(link->surface_00);
                 ++g_oct_build_count_00659a38;
                 ++collected;
             }
@@ -583,9 +595,8 @@ int W8OctBuildTree00446390::ClassifyBoxBounds00447310(const float* box, const fl
                 float corner_x = box[x * 3];
                 float corner_y = box[y * 3 + 1];
                 float corner_z = box[z * 3 + 2];
-                if (corner_x < bounds[0] || corner_x >= bounds[3] ||
-                    corner_y < bounds[1] || corner_y >= bounds[4] ||
-                    corner_z < bounds[2] || corner_z >= bounds[5]) {
+                if (corner_x < bounds[0] || corner_x >= bounds[3] || corner_y < bounds[1] ||
+                    corner_y >= bounds[4] || corner_z < bounds[2] || corner_z >= bounds[5]) {
                     all_inside = 0;
                     if (inside != 0) {
                         x = y = z = 2;
@@ -609,9 +620,8 @@ int W8OctBuildTree00446390::ClassifyBoxBounds00447310(const float* box, const fl
                     float corner_x = bounds[x * 3];
                     float corner_y = bounds[y * 3 + 1];
                     float corner_z = bounds[z * 3 + 2];
-                    if (corner_x >= box[0] && corner_x <= box[3] &&
-                        corner_y >= box[1] && corner_y <= box[4] &&
-                        corner_z >= box[2] && corner_z <= box[5]) {
+                    if (corner_x >= box[0] && corner_x <= box[3] && corner_y >= box[1] &&
+                        corner_y <= box[4] && corner_z >= box[2] && corner_z <= box[5]) {
                         inside = 1;
                         x = y = z = 2;
                     }
@@ -632,8 +642,7 @@ char CollectSurfacePredicate004474C0(W8GDSurface* surface, short kind)
     if (kind != 3) {
         if (g_oct_build_count_00659a38 != 0) {
             for (unsigned long index = 0; index < g_oct_build_count_00659a38; ++index) {
-                if (surface ==
-                    static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)[index]) {
+                if (surface == static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48)[index]) {
                     return 0;
                 }
             }

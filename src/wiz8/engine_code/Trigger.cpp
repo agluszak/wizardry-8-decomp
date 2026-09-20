@@ -331,10 +331,13 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
             }
             action_data = trigger->m_pActionData;
             if (action_data != 0 && action_data->type_004 == 10 &&
-                ((action_data->flags_008 & 4) == 0 || action_data->item_00a == -1)) {
-                action_data->flags_008 =
-                    ((trigger->state_370.state == 0) << 2) | (action_data->flags_008 & 0xfb);
-                action_data->item_00a = static_cast<short>(trigger->value_380);
+                ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0 ||
+                 static_cast<W8DoorTriggerActionData*>(action_data)->item_00a == -1)) {
+                static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 =
+                    ((trigger->state_370.state == 0) << 2) |
+                    (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0xfb);
+                static_cast<W8DoorTriggerActionData*>(action_data)->item_00a =
+                    static_cast<short>(trigger->value_380);
             }
         }
         ++index;
@@ -385,34 +388,34 @@ bool Trigger::Save0043BE60(int hFile)
             progress_delay = 0;
             action_kind = 2;
             FileWrite(hFile, &action_kind, sizeof(action_kind), 0);
-            if ((action_data->flags_008 & 1) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 1) != 0) {
                 action_flags |= 1;
             }
-            if ((action_data->flags_008 & 2) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 2) != 0) {
                 action_flags |= 2;
             }
-            if ((action_data->flags_008 & 4) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) != 0) {
                 action_flags |= 4;
             }
-            if ((action_data->flags_008 & 8) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 8) != 0) {
                 action_flags |= 8;
             }
-            if ((action_data->flags_008 & 0x10) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0x10) != 0) {
                 action_flags |= 0x10;
             }
-            if ((action_data->flags_008 & 0x20) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0x20) != 0) {
                 action_flags |= 0x20;
             }
-            if ((action_data->flags_008 & 0x40) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0x40) != 0) {
                 action_flags |= 0x40;
             }
-            if ((action_data->flags_008 & 0x80) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0x80) != 0) {
                 action_flags |= 0x80;
             }
-            if ((action_data->flags_009 & 1) != 0) {
+            if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_009 & 1) != 0) {
                 action_flags |= 0x100;
             }
-            if (action_data->item_00a != 0) {
+            if (static_cast<W8DoorTriggerActionData*>(action_data)->item_00a != 0) {
                 action_flags |= 0x200;
             }
             FileWrite(hFile, &action_flags, sizeof(action_flags), 0);
@@ -807,7 +810,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
     int count = world->triggers->GetCount();
     for (int index = 0; index < count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if (trigger->flag_0a0_25 != 0 && trigger->m_pProp != 0 &&
+        if ((trigger->flags_0a0 & 0x2000000U) != 0 && trigger->m_pProp != 0 &&
             (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
              trigger->m_pProp->Rep()->animation_playing_06d == 0)) {
             trigger->GenerateItemGroup();
@@ -823,17 +826,19 @@ void UpdateWorldTriggers00443AE0(W8World* world)
             }
         }
         if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
-            trigger->flag_0a0_08 != 0 && trigger->flag_0a0_11 != 0 && trigger->flag_0a0_02 == 0) {
+            (trigger->flags_0a0 & 0x100U) != 0 && (trigger->flags_0a0 & 0x800U) != 0 &&
+            (trigger->flags_0a0 & 0x4U) == 0) {
             srVector3T<float> trigger_position(trigger->position_118.x, trigger->position_118.y,
                                                trigger->position_118.z);
             float distance = (trigger_position - camera).Length();
             if (trigger->range_maximum_0a8 <= distance) {
-                if (trigger->flag_0a0_06 != 0) {
+                if ((trigger->flags_0a0 & 0x40U) != 0) {
                     trigger->FinishAction();
                 }
-            } else if (trigger->flag_0a0_06 == 0 && trigger->range_minimum_0a4 <= distance) {
+            } else if ((trigger->flags_0a0 & 0x40U) == 0 &&
+                       trigger->range_minimum_0a4 <= distance) {
                 activated = true;
-                if (trigger->flag_0a0_20 == 0 || !running) {
+                if ((trigger->flags_0a0 & 0x100000U) == 0 || !running) {
                     trigger->Run(-1);
                     running = true;
                 }
@@ -942,7 +947,7 @@ void Trigger::CompleteItemInteraction004447F0()
     W8TriggerActionData* action_data = m_pActionData;
     state_370.state = 1;
     if (action_data != 0 && action_data->type_004 == 10) {
-        action_data->flags_008 &= ~4;
+        static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 &= ~4;
     }
 }
 
@@ -955,8 +960,9 @@ void Trigger::Activate00444750()
 {
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type_004 == 10 &&
-        (value_368 == 0 || state_370.state != 0) && (action_data->flags_008 & 4) == 0) {
-        if ((action_data->flags_008 & 1) == 0) {
+        (value_368 == 0 || state_370.state != 0) &&
+        (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0) {
+        if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 1) == 0) {
             flag_364 = 1;
             Run(-1);
             flag_364 = 0;
@@ -977,7 +983,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
 {
     srVector3T<float> center;
 
-    if (flag_0a0_11 != 0 || m_pProp != 0) {
+    if ((flags_0a0 & 0x800U) != 0 || m_pProp != 0) {
         if (m_pProp == 0) {
             center.Set(position_118.x, position_118.y, position_118.z);
         } else {
@@ -1028,7 +1034,7 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
     if (volume == 0) {
         volume = 100;
     }
-    if (flag_0a0_11 == 0) {
+    if ((flags_0a0 & 0x800U) == 0) {
         if (m_pProp == 0) {
             SOUNDPARMS options;
             memset(&options, -1, sizeof(options));
@@ -1087,7 +1093,8 @@ void W8TriggerEvent::Update()
     switch (action_004) {
     case 2:
         if (trigger_030->m_pActionData != 0 && trigger_030->m_pActionData->type_004 == 10 &&
-            (trigger_030->m_pActionData->flags_008 & 1) != 0) {
+            (static_cast<W8DoorTriggerActionData*>(trigger_030->m_pActionData)->flags_008 & 1) !=
+                0) {
             trigger_030->Run(-1);
         }
         break;
@@ -1276,12 +1283,11 @@ W8TriggerActionData::W8TriggerActionData() : type_004(-1) {}
 // FUNCTION: WIZ8 0x00445ee0
 W8TriggerActionData::~W8TriggerActionData() {}
 
-/* Trigger::Run inlines type-5 construction and installs 0x005EC148; the
-   ordinary destructor writes 0x005EC138. 0x005EC148 is that same class's
-   construction-phase table, so only the final table keeps the VTABLE marker.
-   0x00445EC0 is the construction-phase deleting wrapper of W8TriggerActionData;
-   type-10's final-table slot folds onto it in retail (the recompiled copy
-   resolves to the type-10 sdd, the only marked table that consumes it). */
+/* Type 5 installs 0x005EC148 after constructing the common base. Its deleting
+   destructor folds with the type-10 wrapper at 0x00445EC0: both call the
+   common destructor, then scalar operator delete when requested. */
+// VTABLE: WIZ8 0x005ec148
+// class W8EnvironmentTriggerActionData
 // SYNTHETIC: WIZ8 0x00445ec0
 // W8DoorTriggerActionData::`scalar deleting destructor'
 
@@ -1303,15 +1309,14 @@ W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
 }
 
 /* Clear the running bit and run every comma-separated recipient trigger once
-   when this trigger both links out (flag_0a0_07) and gates on state
-   (flag_0a0_09). */
+   when the link-out and state-gate bits are set. */
 // FUNCTION: WIZ8 0x00441590
 void Trigger::RunLinkedTriggers00441590()
 {
     char* recipient;
 
-    flag_0a0_06 = 0;
-    if (flag_0a0_07 != 0 && flag_0a0_09 != 0 && m_pacRecipients != 0) {
+    flags_0a0 &= ~0x40U;
+    if ((flags_0a0 & 0x80U) != 0 && (flags_0a0 & 0x200U) != 0 && m_pacRecipients != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -1475,7 +1480,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &action_data_kind, 1, 0);
                 if (action_data_kind == 1) {
                     trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                    trigger->value_0b1 = (trigger->m_pActionData->flags_008 & 1) != 0;
+                    trigger->value_0b1 =
+                        (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
+                         1) != 0;
                 }
             }
         }
@@ -1963,7 +1970,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &action_data_kind, 1, 0);
             if (action_data_kind == 1) {
                 trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                trigger->value_0b1 = (trigger->m_pActionData->flags_008 & 1) != 0;
+                trigger->value_0b1 =
+                    (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
+                     1) != 0;
             } else if (action_data_kind == 2) {
                 unsigned char count;
                 srVector3T<float> legacy_vertices[36];
@@ -2050,7 +2059,7 @@ void Trigger::GetPosition(srVector3T<float>* position) const
 // FUNCTION: WIZ8 0x00441780
 bool Trigger::HasActionMessage00441780()
 {
-    return flag_0a0_17 != 0;
+    return (flags_0a0 & 0x20000U) != 0;
 }
 
 // FUNCTION: WIZ8 0x00441790
@@ -2060,7 +2069,7 @@ bool Trigger::RequiresItem00441790()
         return true;
     }
     if (m_pActionData != 0 && m_pActionData->type_004 == 0xa && m_pActionData != 0 &&
-        m_pActionData->item_00a != -1) {
+        static_cast<W8DoorTriggerActionData*>(m_pActionData)->item_00a != -1) {
         return true;
     }
     return false;
@@ -2075,8 +2084,8 @@ Trigger::Trigger()
     trigger_kind_018 = 0;
     trigger_id_09c = 0;
     flags_0a0 = 0;
-    value_0a4 = 0;
-    value_0a8 = 0;
+    range_minimum_0a4 = 0.0f;
+    range_maximum_0a8 = 0.0f;
     value_0ac = 0;
     value_0b0 = 0;
     value_0b1 = 0;
@@ -2133,16 +2142,16 @@ void Trigger::UpdateActionAnimation()
 {
     char* action_data = action_data_128;
 
-    if (flag_0a0_01 == 0 && flag_0a0_23 == 0) {
+    if ((flags_0a0 & 0x2U) == 0 && (flags_0a0 & 0x800000U) == 0) {
         return;
     }
-    if (flag_0a0_23 != 0) {
+    if ((flags_0a0 & 0x800000U) != 0) {
         if (action_data_mode_228 == 0) {
-            if (flag_0a0_24 == 0) {
-                flag_0a0_24 = 1;
+            if ((flags_0a0 & 0x1000000U) == 0) {
+                flags_0a0 |= 0x1000000U;
             } else {
                 action_data = alternate_action_data_1a8;
-                flag_0a0_24 = 0;
+                flags_0a0 &= ~0x1000000U;
             }
         } else if (action_data_mode_228 == 1) {
             if (action_230 == value_22c) {
@@ -2160,11 +2169,11 @@ void Trigger::UpdateActionAnimation()
 // FUNCTION: WIZ8 0x00441110
 void Trigger::FinishAction()
 {
-    bool was_running = flag_0a0_06;
+    bool was_running = ((flags_0a0 & 0x40U) != 0);
     bool action_completed = false;
     char* recipient;
 
-    flag_0a0_06 = 0;
+    flags_0a0 &= ~0x40U;
 
     if (trigger_kind_018 == 1) {
         if (action_230 != 0x39) {
@@ -2207,7 +2216,7 @@ void Trigger::FinishAction()
         break;
     }
 
-    if (flag_0a0_03 == 0 && action_230 != 0) {
+    if ((flags_0a0 & 0x8U) == 0 && action_230 != 0) {
         if (action_230 == 4) {
             recipient = m_pacRecipients;
             action_completed = false;
@@ -2237,7 +2246,9 @@ void Trigger::FinishAction()
                 srAssertFail("m_pActionData", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              2822, "Trigger.cpp: Dark Area doesn't have action data");
             }
-            SetWorldEnvironmentValue00483AE0(g_world, m_pActionData->float_value_008);
+            SetWorldEnvironmentValue00483AE0(
+                g_world, static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
+                             ->previous_environment_008);
             delete m_pActionData;
             m_pActionData = 0;
             goto finish_linked_triggers;
@@ -2249,7 +2260,7 @@ void Trigger::FinishAction()
     }
 
 finish_linked_triggers:
-    if (flag_0a0_07 != 0) {
+    if ((flags_0a0 & 0x80U) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -2269,7 +2280,7 @@ finish_linked_triggers:
     }
 
 reactivate_linked_triggers:
-    if (was_running != 0 && flag_0a0_04 != 0 && flag_0a0_21 != 0) {
+    if (was_running != 0 && (flags_0a0 & 0x10U) != 0 && (flags_0a0 & 0x200000U) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -2315,15 +2326,15 @@ void Trigger::CommitActionResult(bool apply_state_changes)
 
     UpdateActionAnimation();
 
-    if (m_pacRecipients != 0 && flag_0a0_07 != 0 && flag_0a0_09 == 0) {
+    if (m_pacRecipients != 0 && (flags_0a0 & 0x80U) != 0 && (flags_0a0 & 0x200U) == 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
-                bool was_running = flag_0a0_06;
-                flag_0a0_06 = 1;
+                bool was_running = ((flags_0a0 & 0x40U) != 0);
+                flags_0a0 |= 0x40U;
                 trigger->Run(m_lData1);
-                flag_0a0_06 = was_running;
+                flags_0a0 = (flags_0a0 & ~0x40U) | (was_running != 0 ? 0x40U : 0);
             }
         }
     }
@@ -2365,7 +2376,7 @@ void Trigger::CommitActionResult(bool apply_state_changes)
     }
 
 show_action_message:
-    if (flag_0a0_17 != 0) {
+    if ((flags_0a0 & 0x20000U) != 0) {
         const char* level_folder = GetLevelFolderName(GetLoadedLevelID());
         int message_id;
 
@@ -2394,7 +2405,7 @@ show_action_message:
     }
 
 action_complete:
-    flag_0a0_19 = 1;
+    flags_0a0 |= 0x80000U;
 }
 
 /* Resolve an entity or a five-character level/entrance code, then either
@@ -2673,25 +2684,26 @@ void Trigger::Run(int source)
             }
             ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
                                              -1, 0, g_effect_argument_005ed8c8);
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             goto commit_action;
 
         case 0x11:
-            if (flag_0a0_06 != 0) {
+            if ((flags_0a0 & 0x40U) != 0) {
                 break;
             }
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             goto commit_action;
 
         case 0x22: {
             float previous_value = GetWorldValue24(g_world);
 
             delete m_pActionData;
-            m_pActionData = new W8TriggerActionData;
+            m_pActionData = new W8EnvironmentTriggerActionData;
             m_pActionData->type_004 = 5;
-            m_pActionData->float_value_008 = previous_value;
+            static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)->previous_environment_008 =
+                previous_value;
             SetWorldEnvironmentValue00483AE0(g_world, 0.0f);
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             goto commit_action;
         }
 
@@ -2716,7 +2728,7 @@ void Trigger::Run(int source)
                 m_pEvent->m_pCountdown->Restart();
             }
             g_timed_events_006599b8.Add(m_pEvent);
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             goto commit_action;
 
         case 0x34:
@@ -2756,7 +2768,7 @@ void Trigger::Run(int source)
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, 1);
             }
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             if (action_data != 0) {
                 action_data->flags_008 |= 1;
             }
@@ -2796,12 +2808,12 @@ void Trigger::Run(int source)
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
                 if (value_0b1 == 0) {
-                    m_pActionData->flags_008 &= ~1;
+                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 &= ~1;
                 } else {
-                    m_pActionData->flags_008 |= 1;
+                    static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 |= 1;
                 }
             }
             goto commit_action;
@@ -2826,7 +2838,7 @@ void Trigger::Run(int source)
                 }
             }
 
-            if (flag_0a0_00 != 0) {
+            if ((flags_0a0 & 0x1U) != 0) {
                 W8AnimObj* animation;
                 unsigned int count;
                 unsigned int index;
@@ -2873,9 +2885,9 @@ void Trigger::Run(int source)
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
             if (!was_active) {
-                flag_0a0_06 = 1;
+                flags_0a0 |= 0x40U;
             } else {
-                flag_0a0_06 = 0;
+                flags_0a0 &= ~0x40U;
             }
             if (action_data != 0) {
                 action_data->flags_008 = (action_data->flags_008 & ~1) | (value_0b1 & 1);
@@ -2930,7 +2942,7 @@ void Trigger::Run(int source)
                 g_flag_00606994 = 1;
                 return;
             }
-            if (flag_0a0_25 != 0) {
+            if ((flags_0a0 & 0x2000000U) != 0) {
                 return;
             }
 
@@ -2978,7 +2990,7 @@ void Trigger::Run(int source)
                         goto toggle_item_prop;
                     }
                 } else {
-                    flag_0a0_25 = 1;
+                    flags_0a0 |= 0x2000000U;
                 }
 
                 if (!action_succeeded) {
@@ -2994,9 +3006,9 @@ void Trigger::Run(int source)
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (!was_active) {
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
         } else {
-            flag_0a0_06 = 0;
+            flags_0a0 &= ~0x40U;
         }
         break;
     }
@@ -3027,7 +3039,7 @@ void Trigger::Run(int source)
             }
         }
         if (trigger_kind_018 == 2) {
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
         }
         if (!action_succeeded) {
             return;
@@ -3080,10 +3092,10 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
-                bool was_running = flag_0a0_06;
-                flag_0a0_06 = 1;
+                bool was_running = ((flags_0a0 & 0x40U) != 0);
+                flags_0a0 |= 0x40U;
                 target->Run(m_lData1);
-                flag_0a0_06 = was_running;
+                flags_0a0 = (flags_0a0 & ~0x40U) | (was_running != 0 ? 0x40U : 0);
                 action_succeeded = true;
             }
         }
@@ -3132,7 +3144,7 @@ void Trigger::Run(int source)
             m_pEvent->timer_008.SetDuration(duration);
             m_pEvent->timer_008.Restart();
             m_pEvent->trigger_030 = this;
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
             g_timed_events_006599b8.Add(m_pEvent);
         }
         break;
@@ -3156,7 +3168,7 @@ void Trigger::Run(int source)
         SetDice(&dice, (unsigned char)m_lData1, (unsigned char)m_lData2, (short)m_lData3);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
         if (trigger_kind_018 == 2) {
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
         }
         break;
     }
@@ -3222,7 +3234,7 @@ void Trigger::Run(int source)
             }
         }
         if (trigger_kind_018 == 2) {
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
         }
         break;
     }
@@ -3239,11 +3251,11 @@ void Trigger::Run(int source)
             Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
                 if (action_230 == 0x2d) {
-                    target->flag_0a0_04 = 1;
+                    target->flags_0a0 |= 0x10U;
                 } else if (action_230 == 0x2e) {
-                    target->flag_0a0_04 = 0;
+                    target->flags_0a0 &= ~0x10U;
                 } else {
-                    target->flag_0a0_04 = target->flag_0a0_04 == 0;
+                    target->flags_0a0 ^= 0x10U;
                 }
                 action_succeeded = true;
             }
@@ -3269,9 +3281,9 @@ void Trigger::Run(int source)
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (action_230 == 0x32) {
-            flag_0a0_06 = 1;
+            flags_0a0 |= 0x40U;
         } else {
-            flag_0a0_06 = 0;
+            flags_0a0 &= ~0x40U;
         }
         break;
 
@@ -3322,10 +3334,10 @@ void Trigger::Run(int source)
             }
         }
 
-        if (flag_0a0_06 == 0) {
+        if ((flags_0a0 & 0x40U) == 0) {
             g_timed_events_006599b8.Add(m_pEvent);
             if (trigger_kind_018 == 2) {
-                flag_0a0_06 = 1;
+                flags_0a0 |= 0x40U;
             } else if (m_lData3 == -1) {
                 srAssertFail("m_lData3 != -1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              0x7e4, "Non invisible triggers with shake must have a duration.");
@@ -3634,12 +3646,12 @@ bool Trigger::SelectAction()
     bool result = true;
 
     if (g_flag_006081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
-        (m_pActionData->flags_008 & 1) != 0) {
+        (static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 & 1) != 0) {
         return 0;
     }
 
-    if ((flag_0a0_06 != 0 && action_230 != 0x39) || flag_0a0_04 == 0 ||
-        (flag_0a0_18 != 0 && flag_0a0_19 != 0)) {
+    if (((flags_0a0 & 0x40U) != 0 && action_230 != 0x39) || (flags_0a0 & 0x10U) == 0 ||
+        ((flags_0a0 & 0x40000U) != 0 && (flags_0a0 & 0x80000U) != 0)) {
         action_state_232 = 1;
         return 0;
     }
@@ -3696,7 +3708,7 @@ bool Trigger::SelectAction()
     if (m_pActionData == 0 || m_pActionData->type_004 != 10) {
         if (value_23c >= 0) {
             if (GetItemInHand() == value_23c) {
-                if (flag_0a0_16 != 0) {
+                if ((flags_0a0 & 0x10000U) != 0) {
                     RemovePartyItemByID005215D0(value_23c, 0);
                     value_23c = -1;
                 }
@@ -3782,17 +3794,17 @@ bool Trigger::SelectAction()
     }
 
     if (!fallback_selected) {
-        if (flag_0a0_14 == 0) {
+        if ((flags_0a0 & 0x4000U) == 0) {
             action_230 = initial_action_22a;
             action_state_232 = 2;
-            if (flag_0a0_13 != 0) {
-                flag_0a0_14 = 1;
+            if ((flags_0a0 & 0x2000U) != 0) {
+                flags_0a0 |= 0x4000U;
             }
         } else {
             action_230 = value_22c;
             action_state_232 = 3;
-            if (flag_0a0_15 != 0) {
-                flag_0a0_14 = 0;
+            if ((flags_0a0 & 0x8000U) != 0) {
+                flags_0a0 &= ~0x4000U;
             }
         }
     } else if (action_230 == 0) {

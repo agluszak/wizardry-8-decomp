@@ -760,7 +760,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         for (int index = 0; index < instances.GetCount(); ++index) {
             stModelInstance* instance = *instances.GetAt(index);
             instance->flag_1a1 = 1;
-            instance->value_1a8 = glow;
+            instance->scale_1a8 = glow;
         }
     }
 
@@ -3560,7 +3560,7 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     if (cycle == 0x15) {
-        W8ModelInstanceRenderState empty = {0, 0, 0, 0};
+        W8ModelInstance3DRenderState empty = {0, 0, 0, 0};
         srModelInstance* instance;
 
         m_pRep->render_state_04c = empty;

@@ -642,9 +642,9 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
                 surface = &gd_prop->m_pGDSurfaces[surface_index];
                 surface->hit_plane_38 = 0;
                 if (direction_zero != 0) {
-                    test_direction.x = surface->normal_24[0];
-                    test_direction.y = surface->normal_24[1];
-                    test_direction.z = surface->normal_24[2];
+                    test_direction.x = surface->plane_24[0];
+                    test_direction.y = surface->plane_24[1];
+                    test_direction.z = surface->plane_24[2];
                 }
                 if (surface->TestSegment0041CF90(&probe, &test_direction, &hit_distance,
                                                  gd_prop->m_pVertices) != 0) {

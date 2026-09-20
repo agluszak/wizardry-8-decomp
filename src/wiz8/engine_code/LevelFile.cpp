@@ -886,7 +886,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 3) {
             ok &= FileRead(hFile, pSwitch->unknown_26d, 4, 0);
         }
-        pTrigger->data_02.switch_trigger = pSwitch;
+        pTrigger->pData_02 = pSwitch;
         g_level_file_6833fc->switch_triggers_6c5[g_level_file_6833fc->num_switch_triggers_6c1] =
             pSwitch;
         ++g_level_file_6833fc->num_switch_triggers_6c1;
@@ -933,7 +933,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSound->version_00 > 4) {
             ok &= FileRead(hFile, &pSound->field_16f, 1, 0);
         }
-        pTrigger->data_02.sound = pSound;
+        pTrigger->pData_02 = pSound;
         return ok;
     }
     case 4:
@@ -1005,7 +1005,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                 if ((ok & okRecord) != 0) {
                     pInvis->pRecord_23d->value_1b3 = pInvis->field_01;
                     pInvis->pRecord_23d->value_1b7 = 1.0f;
-                    pTrigger->data_02.invisible = pInvis;
+                    pTrigger->pData_02 = pInvis;
                     return ok & okRecord;
                 }
                 return 0;
@@ -1015,7 +1015,7 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
     g_level_file_6833fc->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
         pInvis->pPlane_19c;
     ++g_level_file_6833fc->num_invisible_planes_1665;
-    pTrigger->data_02.invisible = pInvis;
+    pTrigger->pData_02 = pInvis;
     return ok;
 }
 
@@ -1034,7 +1034,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess = (ok != 0) & fSuccess;
     switch (pTrigger->type_01) {
     case 1: {
-        W8LevelFileSwitch* pSwitch = pTrigger->data_02.switch_trigger;
+        W8LevelFileSwitch* pSwitch = static_cast<W8LevelFileSwitch*>(pTrigger->pData_02);
         if (pSwitch == 0) {
             srAssertFail("pSwitch", LEVELFILE_CPP, 0x4be, 0);
         }
@@ -1075,7 +1075,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         return ok;
     }
     case 2: {
-        W8LevelFileInvisible* pInvis = pTrigger->data_02.invisible;
+        W8LevelFileInvisible* pInvis = static_cast<W8LevelFileInvisible*>(pTrigger->pData_02);
         if (pInvis == 0) {
             srAssertFail("pInvis", LEVELFILE_CPP, 0x4ea, 0);
         }
@@ -1128,7 +1128,7 @@ bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
         return ok;
     }
     case 3: {
-        W8LevelFileSound* pSound = pTrigger->data_02.sound;
+        W8LevelFileSound* pSound = static_cast<W8LevelFileSound*>(pTrigger->pData_02);
         if (pSound == 0) {
             srAssertFail("pSound", LEVELFILE_CPP, 0x51e, 0);
         }
@@ -1331,14 +1331,14 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= ok;
         }
     }
-    pTrigger->data_02.super = pSuper;
+    pTrigger->pData_02 = pSuper;
     return fSuccess;
 }
 
 // FUNCTION: WIZ8 0x004D3000
 bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    W8LevelFileSuperTrigger* pSuper = pTrigger->data_02.super;
+    W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
         srAssertFail("pData", LEVELFILE_CPP, 0x59b, 0);
     }
@@ -1389,7 +1389,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
     if ((pSuper->flags_81 & 1) != 0) {
         fSuccess &= 1;
         free(pSuper);
-        pTrigger->data_02.raw = 0;
+        pTrigger->pData_02 = 0;
         return fSuccess;
     }
     fSuccess = FileWrite(hFile, &pSuper->door_kind_84f, 1, 0);
@@ -1432,7 +1432,7 @@ bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger)
         }
     }
     free(pSuper);
-    pTrigger->data_02.raw = 0;
+    pTrigger->pData_02 = 0;
     return fSuccess;
 }
 
