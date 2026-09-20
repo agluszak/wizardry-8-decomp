@@ -3058,9 +3058,7 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
         if (target->iType != W8_TARGET_KIND_PLACE) {
             return;
         }
-        position.x = target->point.x;
-        position.y = target->point.y;
-        position.z = target->point.z;
+        position = target->point;
         PointCameraAtTarget(&position, '\0', '\0');
         return;
     }

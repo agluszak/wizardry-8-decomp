@@ -1269,9 +1269,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
             static_cast<double>(point->y), static_cast<double>(point->z));
     NoOp();
     srVector3T<double> location;
-    location.x = point->x;
-    location.y = point->y;
-    location.z = point->z;
+    location.SetFromFloat(point);
     world->camera->setLocation(location);
     horizontal_fov_1f0 = static_cast<float>(world->camera->getHorizontalFOV());
     vertical_fov_1f4 = static_cast<float>(world->camera->getVerticalFOV());
@@ -1599,9 +1597,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
         }
     }
     srVector3T<double> restore_location;
-    restore_location.x = saved_location.x;
-    restore_location.y = saved_location.y;
-    restore_location.z = saved_location.z;
+    restore_location.SetFromFloat(&saved_location);
     world->camera->setLocation(restore_location);
     world->camera->setRotation(saved_rotation);
     g_light_update_flags_0060bfdc |= 1u;
@@ -2411,9 +2407,7 @@ bool W8Octree::HasLineOfSight(const srVector3T<float>* from, srVector3T<float>* 
         }
     }
     if (blocked != 0) {
-        to->x = trace.end_0c.x;
-        to->y = trace.end_0c.y;
-        to->z = trace.end_0c.z;
+        *to = trace.end_0c;
     } else if (allow_fallback != 0 && TraceAgainstProps(from, to, 1, 1) != 0) {
         blocked = 1;
     }
@@ -2552,9 +2546,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
         }
         result = 1;
         if (blocked != 0) {
-            to->x = trace.end_0c.x;
-            to->y = trace.end_0c.y;
-            to->z = trace.end_0c.z;
+            *to = trace.end_0c;
             return 1;
         }
     }
@@ -2563,9 +2555,7 @@ resolve:
         hit_location = to_location_id;
         if (ResolveTraceHit(&trace.start_00, &trace.end_0c, from_location_id, &hit_location,
                             to_location_id, 0, trace_mode) != 0) {
-            to->x = trace.end_0c.x;
-            to->y = trace.end_0c.y;
-            to->z = trace.end_0c.z;
+            *to = trace.end_0c;
             return -1;
         }
     }
@@ -2616,12 +2606,8 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
     } else {
         target = *hit_location;
     }
-    high.x = from->x;
-    high.y = from->y;
-    high.z = from->z;
-    low.x = from->x;
-    low.y = from->y;
-    low.z = from->z;
+    high = *from;
+    low = *from;
     if (low.x <= to->x) {
         high.x = to->x;
     } else {
@@ -2754,9 +2740,7 @@ no_probes:;
     }
     if (excluded != -1 && location != -1) {
         GetCameraPosition(&camera);
-        center.x = camera.x;
-        center.y = camera.y;
-        center.z = camera.z;
+        center = camera;
         float distance = PointToSegmentDistance00437540(&center, from, to, 1, 0);
         if (noise_adjust != 0) {
             distance =
@@ -3246,9 +3230,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
     if (current_prop < 0) {
         return 0;
     }
-    to->x = trace.end_0c.x;
-    to->y = trace.end_0c.y;
-    to->z = trace.end_0c.z;
+    *to = trace.end_0c;
     return current_prop + 1;
 }
 
@@ -3756,8 +3738,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
             } else {
-                fSuccess = FileRead(hOctFile, block, header.branch_count_6a * 0x24,
-                                    &uiRead);
+                fSuccess = FileRead(hOctFile, block, header.branch_count_6a * 0x24, &uiRead);
                 if (fSuccess == 0) {
                     strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
                 }
@@ -3771,8 +3752,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
                 } else {
-                    fSuccess = FileRead(hOctFile, block,
-                                        header.leaf_count_6e * 0x28, &uiRead);
+                    fSuccess = FileRead(hOctFile, block, header.leaf_count_6e * 0x28, &uiRead);
                     if (fSuccess == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
                     }
@@ -3787,8 +3767,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         strcpy(acMessage,
                                "ReadOctFile: Couldn't allocate polygon index list for leaves.");
                     } else {
-                        fLoaded = FileRead(hOctFile, block,
-                                           header.leaf_polygon_stream_len_82 * 4, &uiRead);
+                        fLoaded = FileRead(hOctFile, block, header.leaf_polygon_stream_len_82 * 4,
+                                           &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage,
                                    "ReadOctFile: Couldn't read polygon index list for leaves.");
@@ -3827,8 +3807,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
             fSuccess = 0;
             strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
         } else {
-            fLoaded =
-                FileRead(hOctFile, block, header.polygon_count_72 * 4, &uiRead);
+            fLoaded = FileRead(hOctFile, block, header.polygon_count_72 * 4, &uiRead);
             if (fLoaded == 0) {
                 strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
             }
@@ -3843,8 +3822,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
                         goto finish;
                     }
-                    fLoaded = FileRead(hOctFile, block, header.region_list_len_92 * 2,
-                                       &uiRead);
+                    fLoaded = FileRead(hOctFile, block, header.region_list_len_92 * 2, &uiRead);
                     if (fLoaded == 0) {
                         strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
                     }
@@ -3860,8 +3838,8 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
                             goto finish;
                         }
-                        fLoaded = FileRead(hOctFile, block,
-                                           header.gd_surface_stream_len_86 * 4, &uiRead);
+                        fLoaded =
+                            FileRead(hOctFile, block, header.gd_surface_stream_len_86 * 4, &uiRead);
                         if (fLoaded == 0) {
                             strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
                         }
@@ -3878,8 +3856,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 goto finish;
                             }
                             fLoaded =
-                                FileRead(hOctFile, block,
-                                         header.trigger_count_8a * 2, &uiRead);
+                                FileRead(hOctFile, block, header.trigger_count_8a * 2, &uiRead);
                             if (fLoaded == 0) {
                                 strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
                             }
@@ -3888,8 +3865,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                         fSuccess = 0;
                         if (fLoaded != 0) {
                             if (header.region_count_96 > 1) {
-                                block =
-                                    malloc((header.region_count_96 + 2) * 0xe8);
+                                block = malloc((header.region_count_96 + 2) * 0xe8);
                                 spatial_000.owned_5c = static_cast<W8OctRegionVolume*>(block);
                                 if (block == 0) {
                                     fSuccess = 0;
@@ -3897,8 +3873,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                            "ReadOctFile: Couldn't allocate region array.");
                                     goto finish;
                                 }
-                                fLoaded = FileRead(hOctFile, block,
-                                                   header.region_count_96 * 0xe8,
+                                fLoaded = FileRead(hOctFile, block, header.region_count_96 * 0xe8,
                                                    &uiRead);
                                 if (fLoaded == 0) {
                                     strcpy(acMessage, "ReadOctFile: Couldn't read region array.");
@@ -3916,19 +3891,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                 fSuccess = 0;
                                 if (fLoaded != 0) {
                                     if (header.submesh_count_66 != 0) {
-                                        block = malloc(
-                                            (header.submesh_count_66 + 1) * 0x10);
+                                        block = malloc((header.submesh_count_66 + 1) * 0x10);
                                         m_pSubmeshes = static_cast<W8OctSubmesh*>(block);
                                         if (block == 0) {
                                             fLoaded = 0;
                                             strcpy(acMessage,
                                                    "ReadOctFile: Couldn't allocate submesh array.");
                                         } else {
-                                            fLoaded = FileRead(
-                                                hOctFile, block,
-                                                (header.submesh_count_66 + 1) *
-                                                    0x10,
-                                                &uiRead);
+                                            fLoaded = FileRead(hOctFile, block,
+                                                               (header.submesh_count_66 + 1) * 0x10,
+                                                               &uiRead);
                                             if (fLoaded == 0) {
                                                 strcpy(acMessage,
                                                        "ReadOctFile: Couldn't read submesh array.");
@@ -3940,8 +3912,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
 
                                                 limit = 0;
                                                 scan = &m_pSubmeshes[0].polygon_count_0c;
-                                                remaining =
-                                                    header.submesh_count_66 + 1;
+                                                remaining = header.submesh_count_66 + 1;
                                                 do {
                                                     if (limit < *scan) {
                                                         limit = *scan;
@@ -4279,8 +4250,7 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         spatial_000.depth_44 = header->depth_62;
         spatial_000.region_id_bound_58 = header->region_id_bound_64;
         /* Retail reads the high word of grid dim z here, not region_count_96. */
-        spatial_000.region_count_46 =
-            static_cast<unsigned short>(header->grid_dims_56[2] >> 16);
+        spatial_000.region_count_46 = static_cast<unsigned short>(header->grid_dims_56[2] >> 16);
         /* Retail likewise derives leaf_level_52 from depth_62, not leaf_level_98. */
         spatial_000.leaf_level_52 = header->depth_62;
         spatial_000.submesh_count_74 = header->submesh_count_66;
@@ -4323,9 +4293,8 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         m_projected_regions_15c = new BitArray(header->submesh_count_66 + 1);
         m_current_regions_160 = new BitArray(header->submesh_count_66 + 1);
         m_previous_regions_164 = new BitArray(header->submesh_count_66 + 1);
-        m_owned_194 = new BitArray(header->surface_count_7a < 5000
-                                       ? 5000
-                                       : header->surface_count_7a);
+        m_owned_194 =
+            new BitArray(header->surface_count_7a < 5000 ? 5000 : header->surface_count_7a);
         m_accumulated_regions_198 = new BitArray(header->submesh_count_66 + 1);
         m_owned_19c = new BitArray(header->polygon_count_72);
 
@@ -4501,9 +4470,7 @@ void W8Octree::VisitPointCopy0042E620(unsigned short location_id, srVector3T<flo
 {
     srVector3T<float> copy;
 
-    copy.x = position->x;
-    copy.y = position->y;
-    copy.z = position->z;
+    copy = *position;
     UpdateMonsterLocation(location_id, &copy);
 }
 
@@ -5204,18 +5171,14 @@ float PointToSegmentDistance00437540(srVector3T<float>* point, const srVector3T<
     if (clamp_point != 0) {
         if (static_cast<float>(g_zero_005ebb40) <= t) {
             if (static_cast<float>(g_double_005ebc30) < t) {
-                point->x = to->x;
-                point->y = to->y;
-                point->z = to->z;
+                *point = *to;
             } else {
                 point->x = dx * t + from->x;
                 point->y = dy * t + from->y;
                 point->z = dz * t + from->z;
             }
         } else {
-            point->x = from->x;
-            point->y = from->y;
-            point->z = from->z;
+            *point = *from;
         }
     }
     if (out_t != 0) {
@@ -5474,9 +5437,7 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
                 accept:
                     if (found == 0) {
                         positions[0] = candidate;
-                        source.x = candidate.x;
-                        source.y = candidate.y;
-                        source.z = candidate.z;
+                        source = candidate;
                         found = 1;
                     } else if (pathing_180 == 0 || pathing_180->TestWaypointSpan0045A1B0(
                                                        &candidate, &source, 0, 0) != 0) {

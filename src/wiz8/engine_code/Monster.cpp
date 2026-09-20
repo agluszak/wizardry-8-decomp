@@ -3640,9 +3640,7 @@ unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
     if (GetAnimationBounds(&minimum, &maximum) != 0) {
         srVector3T<float> position = GetPosition();
 
-        center->x = position.x;
-        center->y = position.y;
-        center->z = position.z;
+        *center = position;
         center->y += (maximum.y - minimum.y) * g_monster_bounds_vertical_factor_005ecd88;
         return 1;
     }
@@ -4507,9 +4505,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
     srVector3T<float> local;
 
     if (monster != 0) {
-        local.x = position->x;
-        local.y = position->y;
-        local.z = position->z;
+        local = *position;
         monster->SelectLOD004A7BE0(&local);
     }
 }
@@ -4733,13 +4729,9 @@ void MonsterSetAdjustedPosition004C5F00(W8Monster* monster, const srVector3T<flo
     srVector3T<float>* adjusted_position;
     srVector3T<float> result;
 
-    current.x = position->x;
-    current.y = position->y;
-    current.z = position->z;
+    current = *position;
     adjusted_position = monster->AdjustPosition00454440(&adjusted, &current, &current);
-    result.x = adjusted_position->x;
-    result.y = adjusted_position->y;
-    result.z = adjusted_position->z;
+    result = *adjusted_position;
     monster->SetPositionInternal00453590(&result);
 }
 

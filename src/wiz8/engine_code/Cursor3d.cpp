@@ -436,9 +436,7 @@ void ApplyWorldCursorInput00490C60(void)
         lifted = g_world_cursor_0065ba8c->position_28;
         MonsterSetAdjustedPosition004C5F00(g_world_cursor_0065ba8c->monster_00, &lifted);
         if (g_cursor_node_0065ba90 != 0) {
-            node_location.x = g_world_cursor_0065ba8c->position_28.x;
-            node_location.y = g_world_cursor_0065ba8c->position_28.y;
-            node_location.z = g_world_cursor_0065ba8c->position_28.z;
+            node_location.SetFromFloat(&g_world_cursor_0065ba8c->position_28);
             g_cursor_node_0065ba90->setLocation(node_location);
         }
         if (g_cursor_value_0065ba94 != 0) {

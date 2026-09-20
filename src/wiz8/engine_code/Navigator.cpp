@@ -878,9 +878,7 @@ bool W8Navigator::StartPatrol(const srVector3T<float>* home, float distance, flo
         navigator = navigator->linked_navigator_05c;
     }
     navigator->navigation_mode_008 = 0;
-    navigator->position_03c.x = home->x;
-    navigator->position_03c.y = home->y;
-    navigator->position_03c.z = home->z;
+    navigator->position_03c = *home;
     navigator->minimum_height_034 = distance;
     navigator->maximum_height_038 = variation;
     return navigator->ConfigureMovement00453D20(distance, variation);
@@ -1871,9 +1869,7 @@ void W8Navigator::SetPosition(const srVector3T<float>* position)
         position->z != movement_0c0.position_040.z) {
         movement_0c0.position_040 = *position;
         srVector3T<double> widened;
-        widened.x = position->x;
-        widened.y = position->y;
-        widened.z = position->z;
+        widened.SetFromFloat(position);
         node_18c->setLocation(widened);
         if (movement_0c0.location_id_004 != 0 || this == g_startup_world_659c0c) {
             g_navigator_position_changed_659c11 = 1;
@@ -1895,12 +1891,8 @@ void W8Navigator::SetPositionInternal00453590(const srVector3T<float>* position)
 
     if (position->x != movement_0c0.position_040.x || position->y != movement_0c0.position_040.y ||
         position->z != movement_0c0.position_040.z) {
-        movement_0c0.position_040.x = position->x;
-        movement_0c0.position_040.y = position->y;
-        movement_0c0.position_040.z = position->z;
-        widened.x = position->x;
-        widened.y = position->y;
-        widened.z = position->z;
+        movement_0c0.position_040 = *position;
+        widened.SetFromFloat(position);
         node_18c->setLocation(widened);
         if (movement_0c0.location_id_004 != 0 || this == g_startup_world_659c0c) {
             g_navigator_position_changed_659c11 = 1;
