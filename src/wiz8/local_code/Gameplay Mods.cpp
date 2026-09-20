@@ -130,7 +130,7 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
         equipment_bonus->stamina_regen_adjustment += record->modifier_06d;
         equipment_bonus->spell_regen_adjustment += record->modifier_06e;
         if (record->modifier_0b1_index != -1) {
-            equipment_bonus->skill_adjustments[record->modifier_0b1_index] += record->modifier_0b1_value;
+            equipment_bonus->unknown_13[record->modifier_0b1_index] += record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
             equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
@@ -176,7 +176,7 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
         target->attribute_adjustments[index] += source->attribute_adjustments[index];
     }
     for (index = 0; index < 0x29; ++index) {
-        target->skill_adjustments[index] += source->skill_adjustments[index];
+        target->unknown_13[index] += source->unknown_13[index];
     }
     for (index = 0; index < 6; ++index) {
         target->resistance_bonus[index] += source->resistance_bonus[index];
@@ -445,7 +445,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
                 target->attribute_adjustments[i] -= 0x14;
             }
             for (i = 0; i < 0x29; ++i) {
-                target->skill_adjustments[i] -= 0x14;
+                target->unknown_13[i] -= 0x14;
             }
             break;
         case 0xb:
