@@ -502,10 +502,6 @@ W8GameData::W8GameData(int handle, bool secondary)
     W8LevelDataRecord* old_level = g_level_data_00652dac;
     g_environ_00652DB4 = m_ppEnvirons[0];
     if (old_level != 0) {
-        /* The embedded timer's most-derived type is unrecovered, so a plain
-           delete would dispatch the wrong destructor; the base teardown plus
-           deallocation below is the entire model until that type is known. */
-        ((W8GameTimer*)((unsigned char*)old_level + 0xC4))->~W8GameTimer();
         delete old_level;
         g_level_data_00652dac = 0;
     }

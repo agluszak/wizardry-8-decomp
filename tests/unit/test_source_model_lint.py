@@ -119,9 +119,7 @@ def test_function_marker_cannot_claim_class_template_emission(tmp_path: Path) ->
         ("FUNCTION", "W8Thing::Method`adjustor{12}'"),
     ],
 )
-def test_compiler_helpers_must_be_synthetic(
-    tmp_path: Path, kind: str, name: str
-) -> None:
+def test_compiler_helpers_must_be_synthetic(tmp_path: Path, kind: str, name: str) -> None:
     repository = _index(tmp_path, markers=[_marker(kind, name=name)])
 
     with pytest.raises(SourceModelGateError, match="compiler-helper-as-authored"):
@@ -129,9 +127,7 @@ def test_compiler_helpers_must_be_synthetic(
 
 
 @pytest.mark.parametrize("kind", ["SYNTHETIC", "LIBRARY"])
-def test_marker_only_emissions_cannot_bind_authored_declarations(
-    tmp_path: Path, kind: str
-) -> None:
+def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path, kind: str) -> None:
     declaration = _definition("W8Thing::Body", owning_class="W8Thing")
     marker = _marker(
         kind,
@@ -250,8 +246,7 @@ def test_normal_callback_invocation_is_allowed(tmp_path: Path) -> None:
     source = repository / "src/wiz8/example.cpp"
     source.parent.mkdir(parents=True, exist_ok=True)
     source.write_text(
-        "typedef void (__cdecl *Callback)(int);\n"
-        "void call(Callback callback) { callback(1); }\n",
+        "typedef void (__cdecl *Callback)(int);\nvoid call(Callback callback) { callback(1); }\n",
         encoding="utf-8",
     )
 

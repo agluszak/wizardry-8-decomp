@@ -156,9 +156,7 @@ def _template_emission(declaration: dict[str, Any]) -> bool:
     owner = str(declaration.get("owning_class") or "")
     semantic_id = str(declaration.get("semantic_id") or "")
     return (
-        "<" in owner
-        or "type-parameter-" in semantic_id
-        or semantic_id.startswith(("??$?", "??$"))
+        "<" in owner or "type-parameter-" in semantic_id or semantic_id.startswith(("??$?", "??$"))
     )
 
 
@@ -261,8 +259,7 @@ def validate_source_model(repository: Path) -> dict[str, Any]:
     violations = source_model_violations(repository)
     if violations:
         rendered = "\n  ".join(
-            f"{item['file']}:{item['line']} {item['kind']}: {item['detail']}"
-            for item in violations
+            f"{item['file']}:{item['line']} {item['kind']}: {item['detail']}" for item in violations
         )
         raise SourceModelGateError(
             "source-model hard gate failed; fix the typed/authored model rather than "

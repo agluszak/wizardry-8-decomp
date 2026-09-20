@@ -776,7 +776,7 @@ unsigned char FindNpcOfKind(int kind)
             if (npc == 0) {
                 break;
             }
-            return *((unsigned char*)npc + 4);
+            return static_cast<unsigned char>(npc->unknown_04);
         }
     }
     return 0;
