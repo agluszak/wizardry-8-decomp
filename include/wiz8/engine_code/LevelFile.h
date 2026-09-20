@@ -371,7 +371,7 @@ struct W8LevelFileProp { /* 0xbf */
     unsigned char bNumFrames;      /* 0x01: original name from the
        CreatePathProps assertion text (frame-count upper bound) */
     unsigned char unknown_02;      /* version_00 > 4 */
-    unsigned char unknown_03[0xc]; /* version_00 > 4 */
+    srVector3T<float> position_03; /* version_00 > 4: serialized prop position */
     unsigned char unknown_0f[4];   /* version_00 > 5 */
     char name_13[0x40];            /* version_00 > 6 */
     W8LevelFileAnimObj anim_obj_53;
@@ -561,7 +561,7 @@ static_assert(sizeof(W8LevelFileProp) == 0xbf, "W8LevelFileProp_must_be_0xbf");
 static_assert(offsetof(W8LevelFileProp, version_00) == 0x00, "W8LevelFileProp_version_00");
 static_assert(offsetof(W8LevelFileProp, bNumFrames) == 0x01, "W8LevelFileProp_bNumFrames");
 static_assert(offsetof(W8LevelFileProp, unknown_02) == 0x02, "W8LevelFileProp_unknown_02");
-static_assert(offsetof(W8LevelFileProp, unknown_03) == 0x03, "W8LevelFileProp_unknown_03");
+static_assert(offsetof(W8LevelFileProp, position_03) == 0x03, "W8LevelFileProp_position_03");
 static_assert(offsetof(W8LevelFileProp, unknown_0f) == 0x0f, "W8LevelFileProp_unknown_0f");
 static_assert(offsetof(W8LevelFileProp, name_13) == 0x13, "W8LevelFileProp_name_13");
 static_assert(offsetof(W8LevelFileProp, anim_obj_53) == 0x53, "W8LevelFileProp_anim_obj_53");
