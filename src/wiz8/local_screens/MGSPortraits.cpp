@@ -38,12 +38,12 @@
 #include "vobject.h"
 #include "vsurface.h"
 
-void Function59ADD0(unsigned int party_slot); /* 0x0059ADD0 */
-void Function59B0F0(unsigned int party_slot); /* 0x0059B0F0 */
-void Function564BA0(int party_slot);          /* 0x00564BA0 */
-void Function564D80(int party_slot);          /* 0x00564D80 */
-void Function564710(int party_slot);          /* 0x00564710 */
-void Function5651F0(int party_slot);          /* 0x005651F0 */
+void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
+void Function59B0F0(unsigned int party_slot);         /* 0x0059B0F0 */
+void Function564BA0(int party_slot);                  /* 0x00564BA0 */
+void Function564D80(int party_slot);                  /* 0x00564D80 */
+void Function564710(int party_slot);                  /* 0x00564710 */
+void Function5651F0(int party_slot);                  /* 0x005651F0 */
 
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
@@ -151,6 +151,110 @@ void SyncPartyPortraitVitalsBars(void)
         entry->cached_stamina_bar = static_cast<int>(stamina_bar);
         entry->cached_spell_bar = static_cast<int>(spell_bar);
         entry->cached_hp = static_cast<int>(character->hp_current);
+    }
+}
+
+/* Open the slot's floating damage-number splat on a fresh hit, or accumulate
+   into it while one is already up: the death variant runs the longer
+   0x92-catalog animation when the character's hit points are gone, a forced
+   portrait refresh defers the frame to -1, and a still-playing effect icon
+   defers it likewise. */
+// FUNCTION: WIZ8 0x0059AC40
+void RecordCharacterDamage(int party_slot, unsigned int amount)
+{
+    bool splat_started = false;
+
+    if (gXStatus.fSurprisePossible != 0) {
+        return;
+    }
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
+    if (entry->damage_splat_active == 0) {
+        entry->damage_splat_amount = amount;
+        entry->damage_splat_active = 1;
+        if (Random(2) == 0) {
+            entry->damage_splat_catalog = 0x90;
+        } else {
+            entry->damage_splat_catalog = 0x91;
+        }
+        if (g_status_685170.buffers.characters[party_slot].hp_current == 0) {
+            entry->damage_splat_death_variant = 1;
+            entry->damage_splat_end_frame = 0x1e;
+        } else {
+            entry->damage_splat_death_variant = 0;
+            entry->damage_splat_end_frame = 8;
+        }
+        entry->damage_splat_frame = 0;
+        splat_started = true;
+        if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+            g_level_block->portrait_refresh_pending[party_slot] == 0) {
+            RefreshSelectedPartyPortrait(party_slot);
+            entry->auto_portrait_refresh = 1;
+            entry->damage_splat_frame = -1;
+        }
+    } else {
+        entry->damage_splat_amount += amount;
+        entry->damage_splat_frame = 0;
+        if (g_status_685170.buffers.characters[party_slot].hp_current == 0 &&
+            entry->damage_splat_death_variant == 0) {
+            entry->damage_splat_death_variant = 1;
+            entry->damage_splat_end_frame = 0x1e;
+        }
+    }
+    if (entry->keyboard_menu_open == 0) {
+        RequestRedraw(1u << party_slot);
+    }
+    if (entry->effect_icon_active != 0 && splat_started) {
+        entry->damage_splat_frame = -1;
+        return;
+    }
+    entry->portrait_fx_clock = SetCountdownClock(100);
+}
+
+/* Draw the slot's floating damage-number splat over the portrait: the picked
+   (or death-variant) catalog image at the current frame plus the running
+   damage total in bold text for the first six frames. Frame -1 means the
+   splat is deferred behind a portrait refresh or a still-playing effect
+   icon. */
+// FUNCTION: WIZ8 0x0059ADD0
+void DrawDamageSplatOverlay(unsigned int party_slot)
+{
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
+    int frame = entry->damage_splat_frame;
+    int top = 0;
+
+    if (frame != -1) {
+        int left = ((party_slot & 1) != 0 ? 0x1ff : 0) + 0x16;
+        switch (party_slot >> 1) {
+        case 0:
+            top = 0x12;
+            break;
+        case 1:
+            top = 0x67;
+            break;
+        case 2:
+            top = 0xbc;
+            break;
+        case 3:
+            top = 0x111;
+            break;
+        }
+        unsigned int object =
+            entry->damage_splat_death_variant == 0 ? entry->damage_splat_catalog : 0x92;
+        DrawCatalogImage(-0xe, object, 0, static_cast<short>(frame), left, top, 2, 0);
+        if (entry->damage_splat_frame < 6) {
+            W8ControlsRect bounds;
+            bounds.left = left;
+            bounds.top = top + 4;
+            bounds.right = left + 0x52;
+            bounds.bottom = top + 0x4c;
+            W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
+            splat_text.SetText(FormatWideString(g_format_d_0060aa20, entry->damage_splat_amount),
+                               g_wiz_text_bold_font_683664);
+            splat_text.RenderToTarget(0, 0, -0xe);
+        }
+        if (gXStatus.fCombatMode != 0) {
+            entry->combat_portrait_dirty = 1;
+        }
     }
 }
 
@@ -829,7 +933,7 @@ draw_condition_icons:
 
 portrait_fx:
     if (entry->damage_splat_active != 0) {
-        Function59ADD0(party_slot);
+        DrawDamageSplatOverlay(party_slot);
     }
     if (entry->effect_icon_active != 0) {
         Function59B0F0(party_slot);

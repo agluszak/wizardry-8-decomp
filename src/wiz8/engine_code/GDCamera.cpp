@@ -71,7 +71,7 @@ extern const float g_camera_vertical_margin_005ec570 = 0.2168571501970291f;
 // GLOBAL: WIZ8 0x005ec3fc
 const float g_camera_half_pi_005ec3fc = 1.570796012878418f;
 // GLOBAL: WIZ8 0x0065a0f4
-float g_camera_transition_speed_65a0f4;
+float g_camera_transition_speed_65a0f4 = 0.02895967662334442f;
 // GLOBAL: WIZ8 0x00609ea4
 float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
 // GLOBAL: WIZ8 0x00603aac
