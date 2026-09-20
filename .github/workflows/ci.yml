@@ -251,6 +251,10 @@ jobs:
         if: env.LICENSED_INPUTS == 'true'
         run: uv run wiz8 build match
 
+      - name: Build SURRENDER comparison product
+        if: env.LICENSED_INPUTS == 'true'
+        run: uv run wiz8 build SURRENDER
+
       - name: Generate reccmp PR status
         id: reccmp-status
         if: env.TRUSTED_PR == 'true'
@@ -284,7 +288,7 @@ jobs:
                 "| Ignored | \($t.ignored) |",
                 "| Pair accuracy | \($t.accuracy | pct) |",
                 "",
-                "<details><summary>Per target</summary>",
+                "#### Per target",
                 "",
                 "| Target | Source | Coverage | Progress | Exact | Effective | Mismatch | Inconclusive | Unpaired | Accuracy |",
                 "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
@@ -298,7 +302,7 @@ jobs:
                       | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.progress | pct) | \($v.comparison.exact) | \($v.comparison.effective) | \($v.comparison.mismatch) | \($v.comparison.inconclusive) | \($v.comparison.unpaired) | \($v.comparison.accuracy | pct) |"
                     )
                 )
-              + ["", "</details>"]
+              + [""]
             ) | join("\n")
           ' "$status_json" > "$comment"
           printf '\n\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"

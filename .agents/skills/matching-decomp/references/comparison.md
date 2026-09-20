@@ -18,9 +18,12 @@ wrap. Do not build a generic comparison framework or wrap all of reccmp.
 
 ```sh
 uv run wiz8 compare 0x0044e010
+uv run wiz8 compare 0x1004a5a0 --program sr.dll
 ```
 
-Pass `--build` after source edits to build current inputs; without it the command reads the existing
+The selected Ghidra program determines the reccmp target: the default `wiz8` program selects
+`WIZ8`, while `--program sr.dll` selects `SURRENDER`. Pass `--build` after source edits to build
+current inputs; without it the command reads the existing
 comparison product and source index. Both paths return structured selected results.
 Mismatch details include `first_difference` (named original/recompiled entities and instruction
 indexes), `difference`, `reason`/`location` where available, a bounded `instruction_window`, and an

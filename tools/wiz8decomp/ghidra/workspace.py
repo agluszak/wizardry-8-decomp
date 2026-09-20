@@ -70,6 +70,10 @@ def resolve_seed_program(settings: Settings, selector: str | None = None) -> str
         canonical = [name for name in names if "--gog-base--wiz8--" in name]
         if len(canonical) == 1:
             return canonical[0]
+    if selector is not None and selector.casefold() in {"sr", "sr.dll"}:
+        canonical = [name for name in names if "--gog-base--sr--" in name]
+        if len(canonical) == 1:
+            return canonical[0]
     if selector is not None:
         matches = [name for name in names if name == selector or name.startswith(selector)]
         if len(matches) == 1:

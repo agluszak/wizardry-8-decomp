@@ -28,6 +28,24 @@ Use these distinctions without adding another target inventory:
 Presence in `reccmp-project.yml` establishes a known binary, not a recovered build product,
 usable replacement, import library, or tested runtime load.
 
+### Provider recovery workflow
+
+`SURRENDER` is its own comparison target and the canonical Ghidra program is the retail `sr.dll`.
+Do not recover provider bodies through WIZ8's default ProgramDB. The normal focused loop is:
+
+```sh
+uv run wiz8 build SURRENDER
+uv run wiz8 ghidra decompile 0x1003bee0 --program sr.dll
+uv run wiz8 compare 0x1003bee0 --program sr.dll
+uv run wiz8 recover regress 0x1003bee0 --program sr.dll
+uv run wiz8 recover sweep --program sr.dll --class srConfig
+```
+
+The recovery commands infer `SURRENDER` from `--program sr.dll`; supplying a conflicting
+`--target` is an error. A sweep only selects `FUNCTION: SURRENDER` markers, so same-named classes
+or evidence from another target cannot leak into the batch. The comparison DLL remains non-runnable
+and may retain unresolved provider internals while recovery is incomplete.
+
 The recovered extension and VP loaders deliberately retain their calls to unrecovered
 `srConfig::get`, the `srConfig` global, `srDebugPrintf`, and `srStreamPrintf`. Consequently
 `SURRENDER` now uses `/FORCE:UNRESOLVED` explicitly as a comparison image. Those unresolved calls
