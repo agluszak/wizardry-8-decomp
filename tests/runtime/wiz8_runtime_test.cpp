@@ -30,7 +30,9 @@
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/Traps.h"
@@ -2099,19 +2101,71 @@ static DWORD WINAPI DriveScenario(void*)
                         }
                     }
                     if (provoked_info != 0) {
+                        unsigned int provoked_location_id = provoked_info->location_id;
+                        unsigned int provoked_group_id = provoked_info->monster_group_id;
                         gfApplicationActive = 0;
                         Sleep(200);
                         /* At ~17k units the hostile group's own navigation
                            never finds a route to the party, so its combat
-                           turn can never commit a move. Relocate the party
-                           beside the group through PlacePartyAtPoint - the
-                           same call the recall spell and level loads use -
-                           so the encounter's pursuit has a reachable
-                           target. */
-                        srVector3T<float> drop_point = provoked_info->monster->GetPosition();
-                        drop_point.x += 1500.0f;
-                        PlacePartyAtPoint(&drop_point);
-                        party_position = drop_point;
+                           turn can never commit a move. Relocate the group
+                           beside the camera through
+                           PositionMonsterGroupNearCamera00511050 - the same
+                           placement GroupAttacks uses for summon encounters -
+                           so the party stays grounded where it stands. A
+                           party teleport drops the collision state the frame
+                           loop needs: without ground contact the camera
+                           falls below the level bounds, BeginPartyMovement
+                           reads as a fall death and PumpReviewTransition
+                           unloads the world before StartCombat ever sees a
+                           grounded party. */
+                        W8MonsterGroup* provoked_group =
+                            GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+                                __LINE__, "runtime-test", provoked_info->monster_group_id, 0));
+                        unsigned char placed = 0;
+                        if (provoked_group != 0) {
+                            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f,
+                                                                            0.0f, 1);
+                            if (placed == 0) {
+                                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
+                                                                                1500.0f, 0.0f, 1);
+                            }
+                            if (placed == 0) {
+                                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
+                                                                                3000.0f, 0.0f, 1);
+                            }
+                        }
+                        fprintf(stderr, "runtime-test drop: group=%p placed=%d\n",
+                                (void*)provoked_group, placed);
+                        if (provoked_group != 0 && placed != 0) {
+                            RefreshAllSight();
+                            SetMonsterGroupNavigatorDirty(provoked_group, 0);
+                        }
+                        /* Placement may drop members that found no scatter
+                           spot; RemoveMonster detaches their monster and frees
+                           the info, so re-resolve the chosen member and fall
+                           back to any surviving member of the same group. */
+                        {
+                            unsigned int re_index = MonsterGetIndexByLocationID(
+                                __LINE__, "runtime-test", provoked_location_id, 0);
+                            provoked_info = re_index != (unsigned int)-1
+                                                ? MonsterGetScriptPartByLocationIndex(re_index)
+                                                : 0;
+                        }
+                        if (provoked_info == 0 || provoked_info->monster == 0) {
+                            provoked_info = 0;
+                            for (unsigned int i = 0;
+                                 i < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+                                 ++i) {
+                                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                                    info->monster_group_id == provoked_group_id) {
+                                    provoked_info = info;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (provoked_info != 0 && provoked_info->monster != 0) {
                         provoked_distance =
                             (provoked_info->monster->GetPosition() - party_position).Length();
                         W8TargetSource source;
@@ -2153,6 +2207,13 @@ static DWORD WINAPI DriveScenario(void*)
                                 (void*)aggro_round_binding);
                         float engage_distance = 1e30f;
                         float engage_baseline = 1e30f;
+                        /* Per-monster approach tracking: the nearest-member min
+                           hides an approach by a farther member of the group,
+                           so watch each live hostile's own distance. */
+                        float monster_distance[512];
+                        memset(monster_distance, 0, sizeof(monster_distance));
+                        unsigned char monster_distance_seen[512];
+                        memset(monster_distance_seen, 0, sizeof(monster_distance_seen));
                         int party_hp = 0;
                         for (unsigned int i = 0; i < 6; ++i) {
                             if (g_status_685170.buffers.party_rows[i].occupied) {
@@ -2175,17 +2236,25 @@ static DWORD WINAPI DriveScenario(void*)
                                approach on the party or any party damage a
                                hostile action caused proves the encounter
                                simulates. */
-                            for (unsigned int m = 0;
-                                 m < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+                            for (unsigned int m = 0; m < ILLength(reinterpret_cast<W8IList*>(
+                                                             gXStatus.plsMonsterList)) &&
+                                                     m < 512;
                                  ++m) {
                                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(m);
                                 if (info != 0 && info->fActive != 0 && info->monster != 0 &&
-                                    info->condition_turns[13] != 0) {
+                                    (info->condition_turns[13] != 0 || info->fInCombat != 0)) {
                                     float dist =
                                         (info->monster->GetPosition() - party_position).Length();
                                     if (dist < engage_distance) {
                                         engage_distance = dist;
                                     }
+                                    if (monster_distance_seen[m] == 0) {
+                                        monster_distance_seen[m] = 1;
+                                    } else if (monster_distance[m] - dist > 50.0f) {
+                                        g_observation.monster_engaged = 1;
+                                        ReportStep("monster-engaged");
+                                    }
+                                    monster_distance[m] = dist;
                                 }
                             }
                             if (engage_baseline > 1e29f) {

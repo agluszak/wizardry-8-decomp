@@ -504,5 +504,5 @@ void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* 
     }
     RefreshAllSight();
     SetMonsterGroupNavigatorDirty(group, 0);
-    NotifyMonsterGroupActivity(group);
+    MonsterGroupEnterCombat(group);
 }
