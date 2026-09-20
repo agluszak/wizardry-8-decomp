@@ -27,6 +27,8 @@ source use [source oracles](references/source-oracles.md). Read only the referen
 2. Inspect native analysis with `uv run wiz8 ghidra decompile ADDRESS...`, `ghidra asm ADDRESS...`,
    or `ghidra sym ADDRESS...`. These reads do not compile source. Uncertain placement blocks insertion,
    not investigation. If ProgramDB is missing an established declaration, run `uv run wiz8 ghidra sync`.
+   For SurRender provider bodies use `--program sr.dll`; never inspect a `0x100...` SR address through
+   the default WIZ8 ProgramDB.
 3. Before writing a nontrivial body, do the source-model audit below: establish parameter contracts,
    search for existing abstractions/inlined helpers, and settle touched ownership/lifetime/type facts.
 4. Inspect only unanswered retail facts. Capstone, objdump and raw-byte inspection remain valid for
@@ -38,10 +40,17 @@ source use [source oracles](references/source-oracles.md). Read only the referen
 6. Recover straightforward authored circa-2000 C++; do not reproduce compiler lowering or tweak source
    spelling merely to manipulate registers/CFG/score.
 7. Run focused linked comparison, including affected callers when a shared declaration/ABI changed.
+   WIZ8 is the default program; SurRender comparison uses `--program sr.dll`.
 8. For an almost-match dominated by stack-offset/local-order differences, use `reccmp-stackcmp` as a
    diagnostic before guessing at source changes. If final linkage obscures the question, select the
    appropriate object/data/vtable modality from the comparison reference. Stop when no evidence-backed
    source correction remains.
+
+For zero-edit regeneration, prefer the batch harness over manually retyping already recovered bodies:
+`uv run wiz8 recover sweep --program sr.dll --class CLASS` for SurRender, or the default WIZ8
+program for game code. `uv run wiz8 recover regress ADDRESS... --program sr.dll` does the same
+focused export/splice/build/compare cycle for selected SR functions. The reccmp target is inferred from
+`--program`; an explicit `--target` is accepted only when it agrees with that program.
 
 `uv run wiz8 ghidra decompile ADDRESS...` prints readable C with address, ProgramDB prototype,
 attached source declaration, source-index freshness, ABI warnings, and artifact paths. Named
@@ -141,8 +150,9 @@ destructors, vtordisp/adjustor thunks and compiler helpers stay `SYNTHETIC`. Com
 provenance-only and contain no authored function/global definitions. Keep `GLOBAL` at the canonical
 definition.
 
-Preserve TU ownership/order in `src/wiz8/sources.cmake`. An independently emitted ordinary destructor
-uses `FUNCTION`; compiler deleting wrappers are `SYNTHETIC`; template emissions are `TEMPLATE`.
+Preserve TU ownership/order in the owning product inventory: `src/wiz8/sources.cmake` for WIZ8 and
+`src/surrender/CMakeLists.txt` for the SR provider. An independently emitted ordinary destructor uses
+`FUNCTION`; compiler deleting wrappers are `SYNTHETIC`; template emissions are `TEMPLATE`.
 
 ## Header visibility and inlining
 
