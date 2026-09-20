@@ -191,10 +191,7 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
     }
     mesh->setName("ItemRep::ReadFromFile");
     static_cast<stModelInstance*>(mesh)->state_178 |= 8;
-    SetChainValue15C(
-        reinterpret_cast< // reinterpret-ok: existing unresolved node-tail API in 3d.cpp
-            char*>(mesh),
-        4);
+    SetModelInstanceChainExclusionMask(mesh, 4);
     info->bitmap_folder = bitmap_folder;
     flags |= 0x40;
     m_psrMesh = mesh;

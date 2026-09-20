@@ -346,8 +346,8 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
 
 /* Bake the dynamic scene's light children into every not-yet-lit model
    instance under one static-scene subtree. state_178 bit 1 is the instance's
-   own lit marker; the first-child chain store is the same raw walk
-   SetChainValue15C performs. */
+   own lit marker; the first-child chain store is the same typed walk
+   SetModelInstanceChainExclusionMask performs. */
 // FUNCTION: WIZ8 0x0046F410
 unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
 {
@@ -360,14 +360,9 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
             srNode* lights = dynamic_scene->firstChild();
             if ((instance->state_178 & 2) == 0) {
                 instance->state_178 |= 2;
-                char* chain =
-                    reinterpret_cast< // reinterpret-ok: attachment fields are addressed by byte offset past the object
-                        char*>(instance);
-                for (; chain != 0;
-                     chain = *reinterpret_cast< // reinterpret-ok: next-link field at +0x134
-                             char**>(chain + 0x134)) {
-                    *reinterpret_cast< // reinterpret-ok: flag field at +0x15c
-                        int*>(chain + 0x15c) = 1;
+                for (srModelInstance* chain = instance; chain != 0;
+                     chain = static_cast<srModelInstance*>(chain->firstChild())) {
+                    chain->setExclusionMask(1);
                 }
                 BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
             }
@@ -377,7 +372,7 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
 }
 
 /* Bake dynamic-scene lights into one not-yet-lit model instance. state_178
-   bit 1 is the lit marker; the first-child walk matches SetChainValue15C. */
+   bit 1 is the lit marker; the first-child walk matches SetModelInstanceChainExclusionMask. */
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
                                                          srNode* dynamic_scene)
@@ -386,13 +381,9 @@ unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instan
 
     if ((instance->state_178 & 2) == 0) {
         instance->state_178 |= 2;
-        char* chain =
-            reinterpret_cast< // reinterpret-ok: attachment fields are addressed by byte offset past the object
-                char*>(instance);
-        for (; chain != 0; chain = *reinterpret_cast< // reinterpret-ok: next-link field at +0x134
-                                   char**>(chain + 0x134)) {
-            *reinterpret_cast< // reinterpret-ok: flag field at +0x15c
-                int*>(chain + 0x15c) = 1;
+        for (srModelInstance* chain = instance; chain != 0;
+             chain = static_cast<srModelInstance*>(chain->firstChild())) {
+            chain->setExclusionMask(1);
         }
         BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
     }
@@ -910,18 +901,12 @@ void FreeThroughRenderHeap(void* block)
     SetHeapFree(block);
 }
 
-/* Walk a chain through its link at 0x134 and set the same field on every node
-   of it. The link is srNode::first_child_ (+0x134), but the +0x15c store
-   lies past the 0x138-byte plain srNode base, inside the srModelInstance
-   tail (exclusion_mask_15c). Proven callers hand model instances, but the
-   trace-model node from CreateTraceModel0041C930 is only established as an
-   srNode, so the helper stays a raw walker until every chain member proves
-   the tail. */
+/* Propagate the model-instance exclusion mask through the first-child chain. */
 // FUNCTION: WIZ8 0x0046f4f0
-void SetChainValue15C(char* node, int value)
+void SetModelInstanceChainExclusionMask(srModelInstance* node, int value)
 {
-    for (; node != 0; node = *(char**)(node + 0x134)) {
-        *(int*)(node + 0x15c) = value;
+    for (; node != 0; node = static_cast<srModelInstance*>(node->firstChild())) {
+        node->setExclusionMask(value);
     }
 }
 

@@ -9,6 +9,7 @@ class W8Prop;
 struct W8World;
 class srScene;
 class srNode;
+class srModelInstance;
 class srLight;
 class stLight;
 class stMeshModel;
@@ -22,15 +23,15 @@ void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
 void AddMonsterToWorld0046E580(W8World* unused, W8Monster* monster);
 void AddItemToWorld0046E5C0(W8World* unused, W8Item* item);
 void RemoveItemFromWorld0046E5E0(W8World* unused, W8Item* item);
-void SetChainValue15C(char* node, int value);
+void SetModelInstanceChainExclusionMask(srModelInstance* node, int value);
 stModelInstance* DuplicateModelInstance0046F680(stModelInstance* instance);
 void ExpandBounds0046F510(srVector3T<float>* minimum, srVector3T<float>* maximum,
                           const srVector3T<float>* candidate_minimum,
                           const srVector3T<float>* candidate_maximum);
 void UpdateWorldMonsters0046DD70(W8World* world);
 void WorldUpdateProps(W8World* world);
-int WorldGetPropCount(W8World* unused);                 /* 0x0046E600 */
-W8Prop* WorldGetPropAt(W8World* unused, int index);     /* 0x0046E620 */
+int WorldGetPropCount(W8World* unused);             /* 0x0046E600 */
+W8Prop* WorldGetPropAt(W8World* unused, int index); /* 0x0046E620 */
 void ForwardThroughMember3C_46E750(W8World* owner, int argument);
 void ForwardThroughMember3C_46E640(W8World* owner, int argument);
 void FinalizeStaticScene0046F3A0(srScene* scene);

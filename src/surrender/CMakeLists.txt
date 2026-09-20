@@ -13,6 +13,7 @@ add_library(wiz8_surrender_objects OBJECT
     heap.cpp
     huffman.cpp
     io_managers.cpp
+    model_instance.cpp
     string_table.cpp
     system.cpp
     triangulator.cpp

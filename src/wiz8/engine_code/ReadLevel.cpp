@@ -960,7 +960,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         level_mesh->setName("ReadLevel");
         world->update_mesh_source = level_mesh;
         level_mesh->setParent(world->level, 1);
-        SetChainValue15C((char*)level_mesh, 1);
+        SetModelInstanceChainExclusionMask(level_mesh, 1);
     } else {
         if (!ReadMultipleLevelMeshes00488240(&info, world->psrMeshes, world->octree->GetMeshCount(),
                                              0)) {
@@ -970,7 +970,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
              ++mesh_index) {
             if (world->psrMeshes[mesh_index] != 0) {
                 world->psrMeshes[mesh_index]->setParent(world->level, 1);
-                SetChainValue15C((char*)world->psrMeshes[mesh_index], 1);
+                SetModelInstanceChainExclusionMask(world->psrMeshes[mesh_index], 1);
             }
         }
     }
@@ -1078,9 +1078,9 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                 for (; mesh != 0; mesh = mesh->next) {
                     if (!AnimationIsRunning(animation)) {
                         mesh->GetVertexSunlight(1);
-                        SetChainValue15C((char*)instance, 5);
+                        SetModelInstanceChainExclusionMask(instance, 5);
                     } else if (AnimationIsRunning(animation) == 1) {
-                        SetChainValue15C((char*)instance, 4);
+                        SetModelInstanceChainExclusionMask(instance, 4);
                     }
 
                     srMaterialIFace* material_iface = mesh->getMaterial(0, (srMeshModel::e_side)0);

@@ -3291,7 +3291,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         if (model != 0) {
             static_cast<stModelInstance*>(model)->value_1ac =
                 g_settings_6850c8.smooth_monster_animations != 0 ? frame_fraction_1d4 : 0.0f;
-            SetChainValue15C((char*)model, 4);
+            SetModelInstanceChainExclusionMask(model, 4);
         }
         if (m_pRep->monster_light_624 != 0) {
             m_pRep->monster_light_624->Update0049D990(&position);

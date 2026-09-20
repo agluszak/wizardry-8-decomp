@@ -1908,7 +1908,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
     if (g_octree_trace_node_00659894 == 0) {
         g_octree_trace_node_00659894 = g_octree_game_data_00652db0->CreateTraceModel0041C930();
         g_octree_trace_node_00659894->setParent(world->static_scene, 1);
-        SetChainValue15C(reinterpret_cast<char*>(g_octree_trace_node_00659894), 2);
+        SetModelInstanceChainExclusionMask(
+            static_cast<srModelInstance*>(g_octree_trace_node_00659894), 2);
     }
     g_octree_trace_node_00659894->clearFlag(srNode::FLAG_DISABLE);
     g_octree_trace_node_00659894->clearFlag(srNode::FLAG_TERMINATE);

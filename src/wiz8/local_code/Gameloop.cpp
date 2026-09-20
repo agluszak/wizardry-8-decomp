@@ -122,12 +122,8 @@ void GameLoop(void)
     if (g_pending_screen_state.id == -1 || g_pending_screen_state.id == state) {
         goto finish;
     }
-    /* The original tests only the low byte of the vector count. Preserve that
-       aliasing instead of widening the load to the field's full int type. */
-    if (*reinterpret_cast<const unsigned char*>(
-            &gXStatus.character_event_queue->active_events
-                 .count) != /* reinterpret-ok: retail reads only the low byte of active_events.count */
-        0) {
+    /* Retail tests only the low byte of the count. */
+    if (static_cast<unsigned char>(gXStatus.character_event_queue->active_events.count) != 0) {
         gXStatus.character_event_queue->CompleteFirstActiveEvent();
         state = g_current_screen_state.id;
     }
