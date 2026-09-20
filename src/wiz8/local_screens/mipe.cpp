@@ -806,22 +806,18 @@ static void HandleMipeItemCategoryKey00578850(unsigned short key)
         }
         break;
     case 0x22:
-        if (static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                6) <= g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
-            if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 6) <=
+            g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
+            if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
                 g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
                 return;
             }
             g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
             g_mipe_table_row_0068f118 = 0;
-            if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+            if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
                 g_mipe_table_base_0068f120) {
-                g_mipe_table_base_0068f120 = static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */));
+                g_mipe_table_base_0068f120 =
+                    static_cast<int>(PLLength(g_mipe_category_list_0068f11c));
                 --g_mipe_table_base_0068f120;
             }
         } else {
@@ -882,17 +878,12 @@ static void HandleMipeItemCategoryKey00578850(unsigned short key)
     case 0x28:
         if (g_mipe_table_row_0068f118 < 5 &&
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-                static_cast<int>(
-                    ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                    1)) {
+                static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_row_0068f118;
             break;
         }
-        if (static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                1) <= g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1) <=
+            g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
             return;
         }
         ++g_mipe_table_base_0068f120;
@@ -1002,10 +993,7 @@ static unsigned char HandleMipeItemCreateKey00578D00(unsigned short key)
         show_invisible = g_byte_0064a1cd == 0;
         g_byte_0064a1cd = show_invisible;
         item_index = 0;
-        if (ILLength(reinterpret_cast<W8IList*>(
-                gXStatus
-                    .plsItemList) /* reinterpret-ok: ILLength reads the shared PList/IList header */) !=
-            0) {
+        if (PLLength(gXStatus.plsItemList) != 0) {
             do {
                 world_item = ItemInfo(item_index);
                 if (ItemHasFlags(world_item, 1) != 0) {
@@ -1018,11 +1006,7 @@ static unsigned char HandleMipeItemCreateKey00578D00(unsigned short key)
                     }
                 }
                 ++item_index;
-            } while (
-                item_index <
-                ILLength(reinterpret_cast<W8IList*>(
-                    gXStatus
-                        .plsItemList) /* reinterpret-ok: ILLength reads the shared PList/IList header */));
+            } while (item_index < PLLength(gXStatus.plsItemList));
         }
         ShowMipeItemStatus00577CB0();
         return 1;
@@ -1121,10 +1105,7 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
         return;
     case 0x22:
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                6)) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 6)) {
             g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
             ResetEditorStatusLine0058AA20(-1);
             ShowNoticef(
@@ -1133,18 +1114,15 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
             ShowMipeTableRows00577D80(list);
             return;
         }
-        if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
             return;
         }
         g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
         g_mipe_table_row_0068f118 = 0;
-        if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
             g_mipe_table_base_0068f120) {
-            g_mipe_table_base_0068f120 = static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */));
+            g_mipe_table_base_0068f120 = static_cast<int>(PLLength(g_mipe_category_list_0068f11c));
             --g_mipe_table_base_0068f120;
         }
         break;
@@ -1174,11 +1152,7 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
                     } while (index < static_cast<int>(gXStatus.uiMonstersInDatabase));
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         break;
     case 0x26:
         if (g_mipe_table_row_0068f118 == 0) {
@@ -1215,19 +1189,12 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
                     } while (index < static_cast<int>(gXStatus.uiMonstersInDatabase));
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         break;
     case 0x28:
         if (g_mipe_table_row_0068f118 < 5 &&
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-                static_cast<int>(
-                    ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                    1)) {
+                static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_row_0068f118;
             ResetEditorStatusLine0058AA20(-1);
             ShowNoticef(
@@ -1236,10 +1203,8 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
             ShowMipeTableRows00577D80(list);
             return;
         }
-        if (static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                1) <= g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1) <=
+            g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
             return;
         }
         ++g_mipe_table_base_0068f120;
@@ -1561,8 +1526,7 @@ static void HandleMipePropEditKey00579FF0(unsigned short key)
                         }
                     }
                     index = 0;
-                    found = static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */));
+                    found = static_cast<int>(PLLength(g_mipe_category_list_0068f11c));
                     if (0 < found) {
                         do {
                             table = static_cast<W8ItemTableRecord*>(
@@ -1571,8 +1535,7 @@ static void HandleMipePropEditKey00579FF0(unsigned short key)
                                 break;
                             }
                             ++index;
-                            found = static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */));
+                            found = static_cast<int>(PLLength(g_mipe_category_list_0068f11c));
                         } while (index < found);
                     }
                     g_mipe_table_base_0068f120 = (index / 6) * 6;
@@ -2201,28 +2164,21 @@ static void HandleMipeGeneratorTableKey0057B1A0(unsigned short key)
         break;
     case 0x22:
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                6)) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 6)) {
             g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
             ShowMipeEncounterCategory005783C0();
             return;
         }
-        if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
             return;
         }
         g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
         g_mipe_table_row_0068f118 = 0;
-        if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+        if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
             g_mipe_table_base_0068f120) {
             g_mipe_table_base_0068f120 =
-                static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) -
-                1;
+                static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) - 1;
         }
         ShowMipeEncounterCategory005783C0();
         break;
@@ -2253,11 +2209,7 @@ static void HandleMipeGeneratorTableKey0057B1A0(unsigned short key)
                     } while (index < count);
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         ResetEditorStatusLine0058AA20(-1);
         ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
         if (g_mipe_category_list_0068f11c != 0) {
@@ -2329,11 +2281,7 @@ static void HandleMipeGeneratorTableKey0057B1A0(unsigned short key)
                     } while (index < count);
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         ResetEditorStatusLine0058AA20(-1);
         ShowNoticef(6, L"Category: %S", *g_encounter_names.GetAt(g_mipe_category_0068f114 & 0xff));
         if (g_mipe_category_list_0068f11c != 0) {
@@ -2355,19 +2303,13 @@ static void HandleMipeGeneratorTableKey0057B1A0(unsigned short key)
     case 0x28:
         if (g_mipe_table_row_0068f118 < 5 &&
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-                static_cast<int>(
-                    ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                    1)) {
+                static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_row_0068f118;
             ShowMipeEncounterCategory005783C0();
             return;
         }
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                1)) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_base_0068f120;
             ShowMipeEncounterCategory005783C0();
             return;
@@ -2618,26 +2560,19 @@ static void HandleMipeItemTableKey0057BBD0(unsigned short key)
         break;
     case 0x22:
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                6)) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 6)) {
             g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
             ShowMipeItemTableCategory00578470();
             return;
         }
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */))) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c))) {
             g_mipe_table_base_0068f120 = g_mipe_table_base_0068f120 + 6;
             g_mipe_table_row_0068f118 = 0;
-            if (static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) <=
+            if (static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) <=
                 g_mipe_table_base_0068f120) {
                 g_mipe_table_base_0068f120 =
-                    static_cast<int>(ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */)) -
-                    1;
+                    static_cast<int>(PLLength(g_mipe_category_list_0068f11c)) - 1;
             }
             ShowMipeItemTableCategory00578470();
         }
@@ -2668,11 +2603,7 @@ static void HandleMipeItemTableKey0057BBD0(unsigned short key)
                     } while (index < static_cast<int>(gXStatus.uiItemTablesInDatabase));
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         ResetEditorStatusLine0058AA20(-1);
         ShowNoticef(6, L"Category: %S",
                     g_item_table_category_names[g_mipe_category_0068f114 & 0xff]);
@@ -2745,11 +2676,7 @@ static void HandleMipeItemTableKey0057BBD0(unsigned short key)
                     } while (index < static_cast<int>(gXStatus.uiItemTablesInDatabase));
                 }
             }
-        } while (
-            ILLength(reinterpret_cast<W8IList*>(
-                g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) ==
-                0 &&
-            wraps < 2);
+        } while (PLLength(g_mipe_category_list_0068f11c) == 0 && wraps < 2);
         ResetEditorStatusLine0058AA20(-1);
         ShowNoticef(6, L"Category: %S",
                     g_item_table_category_names[g_mipe_category_0068f114 & 0xff]);
@@ -2772,19 +2699,13 @@ static void HandleMipeItemTableKey0057BBD0(unsigned short key)
     case 0x28:
         if (g_mipe_table_row_0068f118 < 5 &&
             g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-                static_cast<int>(
-                    ILLength(reinterpret_cast<W8IList*>(
-                        g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                    1)) {
+                static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_row_0068f118;
             ShowMipeItemTableCategory00578470();
             return;
         }
         if (g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118 <
-            static_cast<int>(
-                ILLength(reinterpret_cast<W8IList*>(
-                    g_mipe_category_list_0068f11c) /* reinterpret-ok: ILLength reads the shared PList/IList header */) -
-                1)) {
+            static_cast<int>(PLLength(g_mipe_category_list_0068f11c) - 1)) {
             ++g_mipe_table_base_0068f120;
             ShowMipeItemTableCategory00578470();
             return;

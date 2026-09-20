@@ -3622,9 +3622,8 @@ bool ItemUseNeedsTarget0053A770(int party_slot)
 // FUNCTION: WIZ8 0x0053b050
 void ClearSlotTargeting0053B050(int party_slot)
 {
-    // reinterpret-ok: retail counts the pointer list through the IList sibling
-    W8IList* monster_list = reinterpret_cast<W8IList*>(gXStatus.plsMonsterList);
-    for (unsigned int index = 0; index < ILLength(monster_list); ++index) {
+    W8PList* monster_list = gXStatus.plsMonsterList;
+    for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
         if (monster_info->fActive != 0 && monster != 0) {
@@ -3666,9 +3665,8 @@ W8TargetingContext GetCombatActionContext0053BC90(int party_slot)
 void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
 {
     if ((party_slot != g_status_685170.selected_character) || (gXStatus.iTargetingMode == 0)) {
-        // reinterpret-ok: retail counts the pointer list through the IList sibling
-        W8IList* monster_list = reinterpret_cast<W8IList*>(gXStatus.plsMonsterList);
-        for (unsigned int index = 0; index < ILLength(monster_list); ++index) {
+        W8PList* monster_list = gXStatus.plsMonsterList;
+        for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
             W8Monster* monster = monster_info->monster;
             if (monster_info->fActive != 0 && monster != 0) {

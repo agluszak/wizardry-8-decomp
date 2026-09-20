@@ -940,7 +940,8 @@ unsigned long OctPreTree::SplitUVMaps0046A4B0(W8OctSubmeshBuild* record,
     }
     unsigned long uv_count = record->vertex_count_14;
     for (unsigned long poly = 0; poly < record->polygon_count_1c; ++poly) {
-        const srVector2T<float>* uvs = geometry->polygons_0c[record->polygon_ids_24[poly]].uvs_54;
+        const srVector2T<float>* uvs =
+            geometry->polygons_0c[record->polygon_ids_24[poly]].face_48.texture_coordinates;
         for (unsigned long corner = 0; corner < 3; ++corner) {
             int vertex = (&record->poly_vertices_28[poly].x)[corner];
             int chain = vertex + 1;

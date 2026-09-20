@@ -332,10 +332,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
     srVector3T<float> location;
     srVector3T<float> offset;
 
-    for (index = 0; index < ILLength(reinterpret_cast< // reinterpret-ok: W8PList and W8IList
-                                                       // share their data/capacity/count layout
-                                     W8IList*>(gXStatus.plsMonsterList));
-         ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0) {
             MonsterGetLocation(monster_info->monster, &location);

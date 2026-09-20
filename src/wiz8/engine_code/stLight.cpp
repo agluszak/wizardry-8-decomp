@@ -397,9 +397,7 @@ void stLight::Update0049C960()
         index = 0;
     }
     PathAISetValue004A9F60(path, static_cast<float>(index));
-    PathAIApply004AA520(path, reinterpret_cast<stModelInstance*>(this)); /* reinterpret-ok:
-        PathAIApply walks the node children; stLight is an srNode, not an
-        stModelInstance, and the retail body passes `this` unchanged */
+    PathAIApply004AA520(path, this);
     m_path_index_248 = index;
     m_path_time_24c = seconds;
 }

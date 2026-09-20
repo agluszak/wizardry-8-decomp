@@ -997,9 +997,8 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
         if (target_info->fActive == 0) {
             srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 0x3fd, 0);
         }
-        // reinterpret-ok: retail counts the pointer list through the IList sibling
-        W8IList* visibility_list = reinterpret_cast<W8IList*>(source_info->plsVisMonToMon);
-        for (index = 0; index < static_cast<int>(ILLength(visibility_list)); ++index) {
+        W8PList* visibility_list = source_info->plsVisMonToMon;
+        for (index = 0; index < static_cast<int>(PLLength(visibility_list)); ++index) {
             visibility =
                 static_cast<W8VisibilityRecord*>(PLGet(source_info->plsVisMonToMon, index));
             if (visibility == 0) {

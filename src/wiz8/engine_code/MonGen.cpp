@@ -44,21 +44,6 @@
 unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
                                        W8MonsterGroup* monster_group); /* 0x0050FC20 */
 
-#pragma pack(push, 1)
-struct W8EncounterCompanionRecord {
-    short species;
-    unsigned char chance;
-};
-#pragma pack(pop)
-static_assert(sizeof(W8EncounterCompanionRecord) == 3, "W8EncounterCompanionRecord_size");
-
-static W8EncounterCompanionRecord GetEncounterCompanion(const W8MonsterRecord* record, int index)
-{
-    W8EncounterCompanionRecord companion;
-    memcpy(&companion, record->unknown_0c5 + index * sizeof(companion), sizeof(companion));
-    return companion;
-}
-
 // FUNCTION: WIZ8 0x0048A680
 MonGen::MonGen()
 {
@@ -410,7 +395,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
        reads it afterwards; the external calls can still populate cycle data. */
     encounter_weight = GetMonsterCycleFallbackValue004E5B50(species);
     for (index = 0; index < 2; ++index) {
-        companion_records[index] = GetEncounterCompanion(record, index);
+        companion_records[index] = record->companions_0c5[index];
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
             companion_active[index] = 1;
             encounter_weight +=

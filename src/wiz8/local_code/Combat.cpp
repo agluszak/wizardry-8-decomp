@@ -150,9 +150,7 @@ unsigned char StartCombat(int surprise)
         ClearMainGameTargetState();
     }
     if (g_npc_combat_notice_pending_68506c == 0) {
-        // reinterpret-ok: retail counts the pointer list through the IList API
-        for (index = 0; index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-             ++index) {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
                 monster_info->hp_current > 0 && monster_info->highest_condition < 0x10) {
@@ -231,9 +229,7 @@ unsigned char StartCombat(int surprise)
 
     nearest_distance = 999999.0f;
     nearest_info = 0;
-    // reinterpret-ok: retail counts the pointer list through the IList API
-    for (index = 0; index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-         ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current > 0 && monster_info->ubDisposition == DISP_HOSTILE) {
@@ -248,10 +244,7 @@ unsigned char StartCombat(int surprise)
         PointCameraAtMonster(nearest_info, 0, 1);
     }
     RefreshAllSight();
-
-    // reinterpret-ok: retail counts the pointer list through the IList API
-    for (index = 0; index < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-         ++index) {
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0) {
             monster_info->action_kind = -1;
