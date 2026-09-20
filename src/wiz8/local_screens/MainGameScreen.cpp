@@ -309,7 +309,6 @@ unsigned char g_flag_006840bb;
 
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
-void Function50B3B0(int value);
 void Function59B4C0(void);
 void Function59B390(void);
 void ApplySavedRedrawInvalidates(void);                                   /* 0x00563D00 */
@@ -2951,7 +2950,7 @@ update_screen:
         BeginPartyDeath005A68C0();
     }
     if (g_value_006840be != 0xffff) {
-        Function50B3B0(static_cast<short>(g_value_006840be));
+        UpdateNpcPartyMember0050B3B0(static_cast<short>(g_value_006840be));
         g_value_006840be = 0xffff;
     }
     if (gXStatus.unknown_026[0]) {

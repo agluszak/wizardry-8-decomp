@@ -42,18 +42,25 @@
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/local_code/GameplayDatabase.h"
+#include "wiz8/local_code/Factions.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/chunk.h"
 #include "FileMan.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/utility.h"
+#include "wiz8/chunk.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
+#include "FileMan.h"
 
 #include <stdio.h>
 #include <wchar.h>
 #include <string.h>
+#include <stdlib.h>
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/GameData.h"
 
@@ -85,7 +92,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 W8GrowableVector<W8NpcState*>* g_npc_states;
 
 /* Same-unit body SaveNpcStates00509F00 reaches before its definition. */
-unsigned char SaveNpcItemLists0050AA10(int file);
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
 // FUNCTION: WIZ8 0x0050aa00
@@ -149,6 +155,11 @@ char GetNpcDisposition(W8NpcState* npc)
 
 /* Which of the three disposition bands the NPC falls in. The bands are cut at
    0x21 and 0x42, and the hostile band answers two rather than zero. */
+/* The NPC's effective disposition: the stored byte adjusted by its monster's
+   effect, pinned to 'd' while the monster carries condition 0x0d, then replaced
+   by the faction score when the record names a faction - and finally pinned
+   friendly while a bound lead NPC belongs to the record's ally faction. */
+
 // FUNCTION: WIZ8 0x0050a500
 unsigned char GetNpcDispositionBand(W8NpcState* npc)
 {
@@ -418,6 +429,45 @@ const W8NpcServiceRow g_npc_services[] = {
 // GLOBAL: WIZ8 0x00619EAC
 unsigned char g_npc_join_races[5] = {13, 12, 14, 15, 11};
 
+/* Whether the NPC wants the offered item: it matches one of the record's
+   three wanted entries by id or by the shared 0x83 name kind, and a grouped
+   NPC whose member already carries more than one declines. */
+// FUNCTION: WIZ8 0x0050DC50
+bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item)
+{
+    int index;
+    /* The record's three wanted item ids sit inside the packed
+       character-template byte run at 0x1f7 (record 0x2bb). */
+    short* wanted =
+        // reinterpret-ok: packed record byte run holding three shorts
+        reinterpret_cast<short*>(npc->record->character.unknown_1f7);
+
+    for (index = 0; index < 3; ++index) {
+        int wanted_id = wanted[index] - 1;
+        if (wanted_id < 0) {
+            continue;
+        }
+        if (wanted_id == item->item_id) {
+            break;
+        }
+        if (g_item_records[wanted_id].unidentified_name_index != 0x83) {
+            continue;
+        }
+        if (g_item_records[item->item_id].unidentified_name_index == 0x83) {
+            break;
+        }
+    }
+    if (index == 3) {
+        return 0;
+    }
+    if (npc->is_grouped != 0 &&
+        CountItemOnCharacter(&g_status_685170.buffers.characters[npc->group_index], item->item_id,
+                             0, 2) > 1) {
+        return 0;
+    }
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x0050ddc0
 void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
 {
@@ -520,6 +570,59 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     memset(&npc->dismissed_timer, 0, sizeof(npc->dismissed_timer));
     npc->marked_e9 = 1;
     return 1;
+}
+
+/* The per-frame pass over a bound NPC's party slot: a dying member is handed
+   its held item back and removed, a flagged one removed outright, then the
+   NPC's placement is probed - failure complains, success runs the level's
+   service check and queues either the scripted group action or the slot's
+   ambient event. */
+// FUNCTION: WIZ8 0x0050B3B0
+void UpdateNpcPartyMember0050B3B0(int party_slot)
+{
+    W8NpcState* npc = GetNpcState(g_status_685170.buffers.party_rows[party_slot].animation_0fa);
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    srVector3T<float> position;
+
+    if (character->highest_condition == 0x12) {
+        ShowNoticef(0, gppStringList[0x7d4], character->name);
+        Function5223A0(character);
+        RemoveCharacterFromParty(party_slot, 0);
+        return;
+    }
+    if (character->highest_condition == 0x13) {
+        RemoveCharacterFromParty(party_slot, 0);
+        return;
+    }
+    if (ProbeNpcPlacementNearParty(party_slot, 0, &position) == 0) {
+        ShowNoticef(0, gppStringList[0x7d5]);
+        return;
+    }
+    int band = GetLevelBand(g_status_685170.current_level);
+    int service = 0;
+    if (g_npc_services[0].service_id != 0xffffffff) {
+        while (g_npc_services[service].service_id != 0xffffffff) {
+            if (g_npc_services[service].service_id == static_cast<unsigned int>(band)) {
+                if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
+                    if (character->highest_condition > 0xe) {
+                        npc->marked_e9 = 1;
+                        BeginScriptedWorldAction();
+                        QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, party_slot);
+                        return;
+                    }
+                    QueueCharacterEvent(character, 0x53, 0, g_effect_argument_005ed8c8,
+                                        g_effect_argument_005ed914);
+                    return;
+                }
+                break;
+            }
+            ++service;
+        }
+    }
+    if (character->highest_condition < 0xf) {
+        QueueCharacterEvent(character, g_effect_005ee69c, 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+    }
 }
 
 // FUNCTION: WIZ8 0x0050b160
@@ -635,6 +738,27 @@ void SetNpcDispositionBand(W8NpcState* npc, char band)
         return;
     }
     npc->disposition = band == 1 ? 0x32 : 0x4b;
+}
+
+/* Resume (or leave hostile) the NPC after its scripted pause: clamp the
+   disposition into the friendly band, then re-flag its monster group's
+   hostility from `enabled`. */
+// FUNCTION: WIZ8 0x0050AE40
+void ResumeNpc(W8NpcState* npc, int enabled)
+{
+    W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
+
+    GetNpcDisposition(npc);
+    if (GetNpcDisposition(npc) > ' ') {
+        npc->disposition = 0x19;
+    }
+    if (monster_info != 0) {
+        if (static_cast<char>(enabled) != 0) {
+            SetMonsterGroupHostilityByID(monster_info->monster_group_id, 1, 0);
+            return;
+        }
+        SetMonsterGroupHostilityByID(monster_info->monster_group_id, 0, 0);
+    }
 }
 
 /* Whether any NPC of one kind is in the world, and what its own byte at 0x04
@@ -795,6 +919,32 @@ const char* GetNpcDisplayName(W8NpcState* npc)
         return g_npc_name_buffer;
     }
     return npc->record->display_name;
+}
+
+/* The live NPC state whose display (or fact-substituted) name matches
+   case-insensitively; released bindings and non-matches are skipped. */
+// FUNCTION: WIZ8 0x0050ADA0
+W8NpcState* FindNpcStateByName(const char* name)
+{
+    int index;
+    const char* candidate;
+
+    for (index = 0; index < g_npc_states->count; ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+
+        if (npc->binding_unavailable == 0) {
+            if (npc->name_style == W8_NPC_RFS81_A && GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED) != 0) {
+                strcpy(g_npc_name_buffer, g_substituted_npc_name);
+                candidate = g_npc_name_buffer;
+            } else {
+                candidate = npc->record->display_name;
+            }
+            if (_stricmp(candidate, name) == 0) {
+                return npc;
+            }
+        }
+    }
+    return 0;
 }
 
 /* Age every bound NPC's timeout state once per game-time pass. The caller
@@ -1221,6 +1371,201 @@ void ResetNpcStates(void)
     }
 }
 
+/* The NPCT section writer: a version byte, the state count, then each 0x13d
+   state block followed by its 0x1862 character block when the NPC carries one.
+   The per-state stock lists trail through the section's file handle. */
+// FUNCTION: WIZ8 0x00509F00
+unsigned char SaveNpcStates00509F00(W8Chunk* chunks)
+{
+    unsigned char version = 3;
+    W8NpcState* npc;
+    unsigned int count;
+    unsigned int index;
+    int size;
+
+    chunks->Write(&version, 1, 0);
+    count = g_npc_states->count;
+    chunks->Write(&count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        npc = *g_npc_states->GetAt(index);
+        chunks->Write(npc, sizeof(*npc), 0);
+        if (npc->character != 0) {
+            size = sizeof(*npc->character);
+            chunks->Write(&size, 4, 0);
+            chunks->Write(npc->character, size, 0);
+        }
+    }
+    return SaveNpcItemLists0050AA10(chunks->m_hFile);
+}
+
+/* The NPCT section reader: release the live states, then rebuild them from the
+   saved blocks. Character blocks carry their size from version 3 on and older
+   saves read as the legacy 0x185c length. Grouped NPCs re-bind to the loaded
+   level; afterwards the missing runtime nodes for unflagged records are
+   created. */
+// FUNCTION: WIZ8 0x00509FC0
+void LoadNpcStates00509FC0(W8Chunk* chunks)
+{
+    unsigned char version = 3;
+    unsigned int index;
+    unsigned int count;
+    unsigned int size;
+    unsigned int npc_id;
+
+    InitializeNpcStates();
+    if (g_npc_states != 0) {
+        for (index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
+            W8NpcState* npc = *g_npc_states->GetAt(index);
+            if (g_npc_states != 0) {
+                ReleaseNpcScriptFile0055A0A0(npc->script_file);
+                npc->script_file = 0;
+                if (npc->record != 0 && npc->record->flag_055 != 0) {
+                    ClearNpcItems(npc);
+                }
+                delete npc->character;
+                delete npc;
+            }
+        }
+        g_npc_states->count = 0;
+    }
+    chunks->Read(&version, 1, 0);
+    chunks->Read(&count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        W8NpcState* npc = new W8NpcState;
+        chunks->Read(npc, sizeof(W8NpcState), 0);
+        npc->items = 0;
+        if (npc->character != 0) {
+            npc->character = new W8Character;
+            memset(npc->character, 0, sizeof(W8Character));
+            if (version < 3) {
+                size = 0x185c;
+            } else {
+                chunks->Read(&size, 4, 0);
+                if (size > sizeof(W8Character)) {
+                    srAssertFail("uiSize <= sizeof(*pNode->pPCData)", NPC_MANAGER_CPP, 0x217, 0);
+                }
+            }
+            chunks->Read(npc->character, size, 0);
+        }
+        if (npc->name_style == 0) {
+            npc->name_style = static_cast<unsigned char>(index);
+        }
+        npc->partner_index_2c = static_cast<unsigned char>(g_npc_states->Add(npc));
+    }
+    for (index = 0; index < count; ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+        npc->script_file = 0;
+        npc->has_monster = 0;
+        npc->record = &g_npc_records[npc->name_style];
+        if (npc->is_grouped != 0) {
+            npc->is_present = 0;
+            npc->has_monster = 1;
+            npc->level_band =
+                static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
+            npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+            ReloadNpcScriptResources(npc);
+        }
+        if (npc->unknown_04 == 0xffff) {
+            npc->unknown_04 = 0;
+        }
+    }
+    if (version > 1) {
+        LoadNpcItemLists0050AAF0(chunks->m_hFile);
+    }
+    for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
+        if (g_npc_records[npc_id].unknown_054 == 0) {
+            bool found = false;
+            for (index = 0; index < static_cast<unsigned int>(g_npc_states->count); ++index) {
+                W8NpcState* candidate = *g_npc_states->GetAt(index);
+                if (candidate->record->kind == static_cast<int>(npc_id)) {
+                    if (candidate != 0) {
+                        found = true;
+                    }
+                    break;
+                }
+            }
+            if (!found) {
+                CreateNpcRuntimeNode(npc_id);
+            }
+        }
+    }
+}
+
+/* The stock-list tail of the NPCT section: for every NPC state the entry
+   count, then each 0x14-byte stock entry in list order. */
+// FUNCTION: WIZ8 0x0050AA10
+unsigned char SaveNpcItemLists0050AA10(int file)
+{
+    unsigned int written = 0;
+    unsigned int item_count = 0;
+    unsigned int index;
+    unsigned int npc_index;
+    unsigned int count;
+    W8NpcState* npc;
+    W8NpcItemEntry* entry;
+
+    count = g_npc_states->count;
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        npc = *g_npc_states->GetAt(npc_index);
+        if (npc->items != 0) {
+            item_count = PLLength(npc->items);
+        } else {
+            item_count = 0;
+        }
+        if (FileWrite(file, &item_count, 4, &written) == 0 || written != 4) {
+            return 0;
+        }
+        for (index = 0; index < item_count; ++index) {
+            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+            if (FileWrite(file, entry, sizeof(*entry), &written) == 0 ||
+                written != sizeof(*entry)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+/* The matching read side of the stock-list tail: each saved count clears the
+   state's list, then that many 0x14-byte entries are appended to a fresh
+   list. */
+// FUNCTION: WIZ8 0x0050AAF0
+unsigned char LoadNpcItemLists0050AAF0(unsigned int file)
+{
+    unsigned int transferred = 0;
+    unsigned int count = 0;
+    unsigned int npc_count = g_npc_states->count;
+
+    for (unsigned int index = 0; index < npc_count; ++index) {
+        W8NpcState* npc = *g_npc_states->GetAt(index);
+        if (FileRead(file, &count, 4, &transferred) == 0 || transferred != 4) {
+            return 0;
+        }
+        if (npc->items != 0) {
+            ClearNpcItems(npc);
+        }
+        if (count == 0) {
+            npc->items = 0;
+        } else {
+            npc->items = PLCreate();
+            for (unsigned int entry = 0; entry < count; ++entry) {
+                W8NpcItemEntry* data = new W8NpcItemEntry;
+                if (data == 0) {
+                    return 0;
+                }
+                if (FileRead(file, data, sizeof(W8NpcItemEntry), &transferred) == 0) {
+                    return 0;
+                }
+                if (transferred != sizeof(W8NpcItemEntry)) {
+                    return 0;
+                }
+                PLAdoptAppend(npc->items, data);
+            }
+        }
+    }
+    return 1;
+}
+
 /* Build one runtime state from its database record: clear the 0x13d-byte
    block, bind the record, build the group-member character and stock, copy the
    item table, and insert the node into the shared vector. A node whose binding
@@ -1484,65 +1829,10 @@ void ReleaseNpcBinding(int value)
    the live count, then each 0x13d-byte state. A state whose embedded group
    character exists is followed by a sizeof(W8Character) marker and the
    character record itself. The item lists are a separate FileWrite pass. */
-// FUNCTION: WIZ8 0x00509F00
-unsigned char SaveNpcStates00509F00(W8Chunk* chunks)
-{
-    unsigned char version = 3;
-    W8NpcState* npc;
-    unsigned int count;
-    unsigned int index;
-    int size;
-
-    chunks->Write(&version, 1, 0);
-    count = g_npc_states->count;
-    chunks->Write(&count, 4, 0);
-    for (index = 0; index < count; ++index) {
-        npc = *g_npc_states->GetAt(index);
-        chunks->Write(npc, sizeof(*npc), 0);
-        if (npc->character != 0) {
-            size = sizeof(*npc->character);
-            chunks->Write(&size, 4, 0);
-            chunks->Write(npc->character, size, 0);
-        }
-    }
-    return SaveNpcItemLists0050AA10(chunks->m_hFile);
-}
 
 /* Append every NPC's stock item list behind the NPCT state records: the
    entry count followed by each 0x14-byte entry. A short FileWrite fails the
    whole pass. */
-// FUNCTION: WIZ8 0x0050AA10
-unsigned char SaveNpcItemLists0050AA10(int file)
-{
-    unsigned int written = 0;
-    unsigned int item_count = 0;
-    unsigned int index;
-    unsigned int npc_index;
-    unsigned int count;
-    W8NpcState* npc;
-    W8NpcItemEntry* entry;
-
-    count = g_npc_states->count;
-    for (npc_index = 0; npc_index < count; ++npc_index) {
-        npc = *g_npc_states->GetAt(npc_index);
-        if (npc->items != 0) {
-            item_count = PLLength(npc->items);
-        } else {
-            item_count = 0;
-        }
-        if (FileWrite(file, &item_count, 4, &written) == 0 || written != 4) {
-            return 0;
-        }
-        for (index = 0; index < item_count; ++index) {
-            entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            if (FileWrite(file, entry, sizeof(*entry), &written) == 0 ||
-                written != sizeof(*entry)) {
-                return 0;
-            }
-        }
-    }
-    return 1;
-}
 
 /* Hand back the NPC binding selected by a monster-list index, or null when
    the monster's record is missing, is not NPC-routed, binds no NPC, or the
@@ -1759,6 +2049,167 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         break;
     }
     GetNpcDisposition(npc);
+}
+
+/* The 0..127 theft score the pickpocket resolutions compare against a d100
+   roll: the character's stealth skill (rogues add a dexterity share), a
+   quarter of the NPC's disposition swing, a random penalty scaled by the
+   NPC's suspicion byte, the level gap to the NPC's monster, and - when an
+   item is offered - its weight and price penalties, all scaled by the
+   character's difficulty. */
+// FUNCTION: WIZ8 0x0050BAF0
+char ScoreNpcTheft0050BAF0(W8Character* character, W8NpcState* npc, int item_id, int count)
+{
+    W8ItemInstance item;
+    int score;
+
+    unsigned int skill = character->skills[0xd].level;
+    if (character->current_profession == W8_PROFESSION_ROGUE) {
+        skill += character->attributes[4].effective / 10;
+    } else if (static_cast<int>(skill) >= 1) {
+        skill += character->attributes[4].effective / 0x14;
+    }
+    score = skill + (GetNpcDisposition(npc) - 0x32) / 4;
+    score -= (Random(5) + 10) * static_cast<signed char>(npc->flag_84);
+    W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    unsigned int penalty = character->skills[0xd].level >> 2;
+    score += (character->level - record->effective_level_24f) * 5;
+    if (item_id != -1) {
+        unsigned int weight = g_item_records[item_id].weight * count;
+        ReplaceOrCreateItem(&item, item_id, 0, 0, 0);
+        item.stack_count = static_cast<unsigned char>(count);
+        penalty = penalty - weight / 10 - GetItemStackValue(&item) / 100;
+    }
+    if (static_cast<int>(penalty) > 0) {
+        penalty = 0;
+    }
+    score += penalty;
+    unsigned int slot = CharacterPointerToPartySlot(character);
+    ScaleValueForCharacterDifficulty(slot, &score);
+    unsigned int result = score < 0 ? 0 : score;
+    if (static_cast<int>(result) > 0x7e) {
+        result = 0x7f;
+    }
+    return result;
+}
+
+/* Resolve one pickpocket attempt against the NPC's stock: the PRNG is reseeded
+   from the living party's experience and spun by the NPC's naming style and
+   suspicion, then either the purse or a random eligible item is scored.
+   Results: 0 item taken, 1 gold taken, 2 refused, 3 caught, 4 nothing left. */
+// FUNCTION: WIZ8 0x0050BC90
+int AttemptNpcPickpocket0050BC90(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
+                                 unsigned int* gold_out)
+{
+    bool empty_pick = false;
+    W8GrowableVector<int> candidates;
+    unsigned int picked = 0xffffffff;
+    int index;
+
+    int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
+                static_cast<signed char>(npc->flag_84) * 7;
+    unsigned int seed = 0;
+    for (index = 2; index < 8; ++index) {
+        if (g_status_685170.buffers.party_rows[index].occupied != 0) {
+            seed += g_status_685170.buffers.characters[index].experience;
+        }
+    }
+    srand(seed);
+    for (; spins != 0; --spins) {
+        Random(100);
+    }
+    for (index = 0; index < 40; ++index) {
+        short item_id = npc->item_ids_30[index];
+        if (item_id != -1 && item_id != 0x242 && item_id != 0x244 && item_id != 0x243) {
+            candidates.Add(index);
+        }
+    }
+    char score;
+    if (candidates.count == 0 || Random(100) < 0x21) {
+        empty_pick = true;
+        score = ScoreNpcTheft0050BAF0(character, npc, -1, 0);
+    } else {
+        W8ItemInstance item;
+        picked = *candidates.GetAt(Random(candidates.count));
+        ReplaceOrCreateItem(&item, npc->item_ids_30[picked], 1, 1, 0);
+        score = ScoreNpcTheft0050BAF0(character, npc, item.item_id, 1);
+    }
+    if (static_cast<signed char>(npc->flag_84) < 'd') {
+        ++npc->flag_84;
+    }
+    char roll = static_cast<char>(Random(100));
+    if (roll > '_' || score * 2 < roll) {
+        return 3;
+    }
+    if (score <= roll) {
+        return 2;
+    }
+    if (empty_pick) {
+        if (npc->gold_80 != 0) {
+            PracticeCharacterSkill(character, 0xd, 5, 0);
+            unsigned int taken = Random(100) * 7;
+            if (static_cast<unsigned int>(npc->gold_80) < taken) {
+                taken = npc->gold_80;
+            }
+            npc->gold_80 -= taken;
+            if (npc->gold_80 < 0) {
+                npc->gold_80 = 0;
+            }
+            *gold_out = taken;
+            return 1;
+        }
+        if (candidates.count == 0) {
+            return 4;
+        }
+        return 2;
+    }
+    if (npc == 0) {
+        srAssertFail("pNPC", NPC_MANAGER_CPP, 0x7a4, 0);
+    }
+    short item_id = npc->item_ids_30[picked & 0xff];
+    if (item_id != -1) {
+        if (item_out != 0) {
+            ReplaceOrCreateItem(item_out, item_id, 1, 1, 0);
+        }
+        npc->item_ids_30[picked & 0xff] = -1;
+        PracticeCharacterSkill(character, 0xd, 5, 0);
+    }
+    return 0;
+}
+
+/* The trade-screen steal of one offered item, scored by the same pickpocket
+   roll: 0 takes it (and practices the skill), 1 is refused, 2 is caught. */
+// FUNCTION: WIZ8 0x0050C040
+char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int item_id, int count)
+{
+    int index;
+
+    int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
+                static_cast<signed char>(npc->flag_84) * 7;
+    unsigned int seed = 0;
+    for (index = 2; index < 8; ++index) {
+        if (g_status_685170.buffers.party_rows[index].occupied != 0) {
+            seed += g_status_685170.buffers.characters[index].experience;
+        }
+    }
+    srand(seed);
+    for (; spins != 0; --spins) {
+        Random(100);
+    }
+    char score = ScoreNpcTheft0050BAF0(character, npc, item_id, count);
+    if (static_cast<signed char>(npc->flag_84) < 'd') {
+        ++npc->flag_84;
+    }
+    char roll = static_cast<char>(Random(100));
+    if (roll < '`' && roll <= score * 2) {
+        if (roll < score) {
+            PracticeCharacterSkill(character, 0xd, 5, 0);
+            return 0;
+        }
+        return 1;
+    }
+    return 2;
 }
 
 // GLOBAL: WIZ8 0x005EC29C
@@ -2224,6 +2675,45 @@ void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level)
     }
 }
 
+/* Release the monster binding of the first NPC whose record kind matches:
+   its live monster is destroyed and the partner node its index names gets its
+   binding handed back. */
+// FUNCTION: WIZ8 0x0050C680
+void ReleaseNpcMonsterByKind(int kind)
+{
+    W8NpcState* npc = 0;
+
+    for (int index = 0; index < g_npc_states->count; ++index) {
+        W8NpcState* candidate = *g_npc_states->GetAt(index);
+        if (candidate->record->kind == kind) {
+            npc = candidate;
+            break;
+        }
+    }
+    if (npc->has_monster) {
+        if (npc->is_present) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
+            if (monster_info != 0) {
+                RemoveMonster(MonsterGetIndexByLocationID(0x9bb, NPC_MANAGER_CPP,
+                                                          monster_info->location_id, 1),
+                              1);
+            }
+        }
+        unsigned int partner_index = npc->partner_index_2c;
+        if (partner_index != 0xffffffff && static_cast<int>(partner_index) <= g_npc_states->count) {
+            W8NpcState* target = *g_npc_states->GetAt(partner_index);
+
+            target->has_monster = 0;
+            ReleaseNpcScriptFile0055A0A0(target->script_file);
+            target->script_file = 0;
+            if (target->record->unknown_054 != 0) {
+                target->binding_unavailable = 1;
+            }
+        }
+    }
+}
+
 /* Place or move this NPC's monster at the named world entity. Without a live
    monster it loads MONSTERS.DBS, finds the NPC-linked species whose name-style
    byte matches, and asks CreateGroup to create it; with a live monster it
@@ -2581,6 +3071,235 @@ void RebindNpcLevelTriggers0050AC60(void)
             count = g_npc_states->count;
             ++npc_index;
         } while (npc_index < count);
+    }
+}
+
+/* Clear the first item_ids_30 slot matching `item_id`, optionally building the
+   item into `out` first - the scheduled-stock handoff the pickpocket and trade
+   resolutions run. */
+// FUNCTION: WIZ8 0x0050BA80
+unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance* out)
+{
+    if (npc == 0) {
+        srAssertFail("pNPC", NPC_MANAGER_CPP, 0x7b7, 0);
+    }
+    for (int index = 0; index < 40; ++index) {
+        if (npc->item_ids_30[index] == item_id) {
+            if (out != 0) {
+                ReplaceOrCreateItem(out, npc->item_ids_30[index], 1, 1, 0);
+            }
+            npc->item_ids_30[index] = -1;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Scan the two bound lead NPCs for ones that refuse the destination level: an
+   NPC that serves the destination region but not the current one queues its
+   departure event, and on level 13 a Rodan or Drazic travelling without its
+   healthy partner does the same. Any queued event raises the travel-confirm
+   message and resets the level data vectors. */
+// FUNCTION: WIZ8 0x0050DEC0
+char QueueNpcDepartureEvents0050DEC0(int destination_level)
+{
+    char queued = 0;
+
+    for (int slot = 0; slot < 2; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+
+        if (row->occupied == 0 || character->hp_current == 0) {
+            continue;
+        }
+        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        if (character->highest_condition >= 0xf) {
+            continue;
+        }
+        int service = 0;
+        if (g_npc_services[0].service_id != 0xffffffff) {
+            while (g_npc_services[service].service_id != 0xffffffff) {
+                if (g_npc_services[service].service_id ==
+                    static_cast<unsigned int>(GetLevelBand(destination_level))) {
+                    if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
+                        int other = 0;
+                        bool serves_here = false;
+                        if (g_npc_services[0].service_id != 0xffffffff) {
+                            while (g_npc_services[other].service_id != 0xffffffff) {
+                                if (g_npc_services[other].service_id ==
+                                    static_cast<unsigned int>(
+                                        GetLevelBand(g_status_685170.current_level))) {
+                                    if ((npc->record->service_flags & g_npc_services[other].bit) !=
+                                        0) {
+                                        serves_here = true;
+                                    }
+                                    break;
+                                }
+                                ++other;
+                            }
+                        }
+                        if (!serves_here) {
+                            int departure = 0;
+                            if (g_npc_services[0].service_id != 0xffffffff) {
+                                while (g_npc_services[departure].service_id != 0xffffffff) {
+                                    if (g_npc_services[departure].service_id ==
+                                        static_cast<unsigned int>(
+                                            GetLevelBand(destination_level))) {
+                                        QueueCharacterEvent(
+                                            character, g_npc_services[departure].npc_id, 0,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                        queued = 1;
+                                        break;
+                                    }
+                                    ++departure;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                ++service;
+            }
+        }
+        if (GetLevelBand(g_status_685170.current_level) == 0xd) {
+            int event = 0;
+            if (npc->name_style == W8_NPC_RODAN) {
+                bool paired = false;
+                if (g_status_685170.buffers.party_rows[0].occupied != 0) {
+                    W8NpcState* lead =
+                        GetNpcState(g_status_685170.buffers.party_rows[0].animation_0fa);
+                    if (lead->name_style == W8_NPC_DRAZIC &&
+                        g_status_685170.buffers.characters[0].highest_condition < 0xf) {
+                        paired = true;
+                    }
+                }
+                if (!paired && g_status_685170.buffers.party_rows[1].occupied != 0) {
+                    W8NpcState* lead =
+                        GetNpcState(g_status_685170.buffers.party_rows[1].animation_0fa);
+                    if (lead->name_style == W8_NPC_DRAZIC &&
+                        g_status_685170.buffers.characters[1].highest_condition < 0xf) {
+                        paired = true;
+                    }
+                }
+                if (!paired) {
+                    event = 0x6c;
+                }
+            } else if (npc->name_style == W8_NPC_DRAZIC) {
+                bool paired = false;
+                if (g_status_685170.buffers.party_rows[0].occupied != 0) {
+                    W8NpcState* lead =
+                        GetNpcState(g_status_685170.buffers.party_rows[0].animation_0fa);
+                    if (lead->name_style == W8_NPC_RODAN &&
+                        g_status_685170.buffers.characters[0].highest_condition < 0xf) {
+                        paired = true;
+                    }
+                }
+                if (!paired && g_status_685170.buffers.party_rows[1].occupied != 0) {
+                    W8NpcState* lead =
+                        GetNpcState(g_status_685170.buffers.party_rows[1].animation_0fa);
+                    if (lead->name_style == W8_NPC_RODAN &&
+                        g_status_685170.buffers.characters[1].highest_condition < 0xf) {
+                        paired = true;
+                    }
+                }
+                if (!paired) {
+                    event = 0x67;
+                }
+            }
+            if (event != 0) {
+                QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+                queued = 1;
+            }
+        }
+    }
+    if (queued != 0) {
+        QueueNpcMessageLine(W8_NPC_MSG_TRAVEL_CONFIRM, destination_level);
+        ResetLevelDataVectors0041F0D0();
+    }
+    return queued;
+}
+
+/* Refuse the destination level on behalf of each bound lead NPC: an NPC that
+   serves the destination region speaks the group-action line, and a Rodan or
+   Drazic whose healthy partner is not also in the party does the same. */
+// FUNCTION: WIZ8 0x0050E230
+void QueueNpcTravelRefusals(int destination_level)
+{
+    ClearLevelDataFlag6();
+    for (int slot = 0; slot < 2; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8Character* character = &g_status_685170.buffers.characters[slot];
+
+        if (row->occupied == 0 || character->hp_current == 0) {
+            continue;
+        }
+        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        if (character->highest_condition >= 0xf) {
+            continue;
+        }
+        int service = 0;
+        if (g_npc_services[0].service_id != 0xffffffff) {
+            while (g_npc_services[service].service_id != 0xffffffff) {
+                if (g_npc_services[service].service_id ==
+                    static_cast<unsigned int>(GetLevelBand(destination_level))) {
+                    if ((npc->record->service_flags & g_npc_services[service].bit) != 0) {
+                        BeginScriptedWorldAction();
+                        QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                    }
+                    break;
+                }
+                ++service;
+            }
+        }
+        if (npc->name_style == W8_NPC_RODAN) {
+            bool paired = false;
+            if (g_status_685170.buffers.party_rows[0].occupied != 0) {
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.party_rows[0].animation_0fa);
+                if (lead->name_style == W8_NPC_DRAZIC &&
+                    g_status_685170.buffers.characters[0].highest_condition < 0xf) {
+                    paired = true;
+                }
+            }
+            if (!paired) {
+                if (g_status_685170.buffers.party_rows[1].occupied == 0) {
+                    BeginScriptedWorldAction();
+                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                    return;
+                }
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.party_rows[1].animation_0fa);
+                if (lead->name_style != W8_NPC_DRAZIC ||
+                    g_status_685170.buffers.characters[1].highest_condition >= 0xf) {
+                    BeginScriptedWorldAction();
+                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                    return;
+                }
+            }
+        }
+        if (npc->name_style == W8_NPC_DRAZIC) {
+            bool paired = false;
+            if (g_status_685170.buffers.party_rows[0].occupied != 0) {
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.party_rows[0].animation_0fa);
+                if (lead->name_style == W8_NPC_RODAN &&
+                    g_status_685170.buffers.characters[0].highest_condition < 0xf) {
+                    paired = true;
+                }
+            }
+            if (!paired) {
+                if (g_status_685170.buffers.party_rows[1].occupied == 0) {
+                    BeginScriptedWorldAction();
+                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                    return;
+                }
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.party_rows[1].animation_0fa);
+                if (lead->name_style != W8_NPC_RODAN ||
+                    g_status_685170.buffers.characters[1].highest_condition >= 0xf) {
+                    BeginScriptedWorldAction();
+                    QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
+                    return;
+                }
+            }
+        }
     }
 }
 

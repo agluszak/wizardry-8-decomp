@@ -122,7 +122,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* centre);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
-int GiveBirthToMonster(W8MonsterGroup* monster_group); /* 0x00511990 */
+unsigned char GiveBirthToMonster(W8MonsterGroup* monster_group); /* 0x00511990 */
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
                             const srVector3T<float>* position, unsigned char flag_1,
                             unsigned char flag_2, unsigned char flag_3);
@@ -141,9 +141,11 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group);
 
 void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
-/* MonsterGroup.cpp: respawns a same-sized group of a different monster id at
-   the source group's member positions; NULL on failure. */
-W8MonsterGroup* Function511A40(W8MonsterGroup* group, unsigned int monster_id); /* 0x00511A40 */
+/* MonsterGroup.cpp: respawns a same-sized group of a different monster id
+   beside the source group, deactivating the old members as each replacement
+   activates; NULL on failure. */
+W8MonsterGroup* ReplaceMonsterGroupSpecies00511A40(W8MonsterGroup* group,
+                                                   unsigned int monster_id); /* 0x00511A40 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
 void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);

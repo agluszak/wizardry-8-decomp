@@ -65,7 +65,7 @@ public:
        SetRendererOption4Enabled. Option 5 wraps/unwraps srDebugDD. GERD dump
        has no enable-name table. */
     enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
-    enum e_winding { WINDING_POSITIONAL_0 = 0 };
+    enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
 
     static const char* sGetClassName();
@@ -125,6 +125,7 @@ public:
     void setClearColor(float red, float green, float blue, float alpha);
     void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
+    void setAmbientLight(const srVector4T<float>& light);
     void setFogColor(const srVector3T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void flipFrame();
@@ -141,6 +142,7 @@ public:
     srMatrix4T<float>::e_scaleType getModelViewScaleType();
     e_cullMode getCullMode() const;
     e_winding getWinding() const;
+    void setWinding(e_winding winding);
     Renderer* lockRenderer();
     void unlockRenderer(Renderer* renderer, int submit);
     srColorSurfaceIFace* lockBuffer();
@@ -151,6 +153,7 @@ public:
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
+    void setExclusionMask(unsigned long mask);
     /* The pipeline's single-stage mask branch inlines this exported getter. */
     long getMaxTextureStages() const
     {
@@ -165,6 +168,7 @@ public:
     void rotate(double angle, const srVector3T<float>& axis);
     void scale(double x, double y, double z);
     void translate(const srVector3T<float>& offset);
+    void translate(double x, double y, double z);
     e_visibility testBoundingSphere(const srVector3T<float>& center, float radius);
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
                                  const srVector3T<float>& maximum);
@@ -173,8 +177,6 @@ public:
                double far_plane);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
-    long getPolygonOffset() const;
-    void setPolygonOffset(long offset);
     void setTexture(srTextureIFace* texture, unsigned long layer);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
@@ -190,6 +192,8 @@ public:
     unsigned long getTextureCacheSize() const;
     void setTextureCacheSize(unsigned long bytes);
     void setSwapInterval(unsigned long interval);
+    long getPolygonOffset() const;
+    void setPolygonOffset(long offset);
 
     /* These ordinary methods are header-visible in Wiz8 call sites even
        though SR.DLL also exports out-of-line copies. */

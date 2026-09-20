@@ -352,14 +352,14 @@ public:
     bool StartPatrol(const srVector3T<float>* home, float distance,
                      float variation); /* 0x00453CC0 */
     /* Stores each non-negative bound as the minimum and maximum height. */
-    void SetHeightRange(float minimum, float maximum);                     /* 0x00453EF0 */
-    void SetFlag25(char value);                                            /* 0x004531F0 */
-    void SetMovementStopped00453880();                                     /* 0x00453880 */
+    void SetHeightRange(float minimum, float maximum); /* 0x00453EF0 */
+    void SetFlag25(char value);                        /* 0x004531F0 */
+    void SetMovementStopped00453880();                 /* 0x00453880 */
     /* Save the presence-gated movement state LoadMovementState00454AD0
        consumes: the flag byte, then for an ungrouped navigator with flag
        0x20000000 set the height bounds, position and movement target. */
-    unsigned char SaveMovementState004549D0(unsigned int hFile);           /* 0x004549D0 */
     unsigned char LoadMovementState00454AD0(unsigned int hFile);           /* 0x00454AD0 */
+    unsigned char SaveMovementState004549D0(unsigned int hFile);           /* 0x004549D0 */
     void PropagateGroupPosition();                                         /* 0x00454C80 */
     void UpdateAngles00453990();                                           /* 0x00453990 */
     unsigned char ConfigureMovement00453D20(float minimum, float maximum); /* 0x00453D20 */
@@ -439,7 +439,9 @@ public:
     unsigned int unknown_090;
     unsigned int unknown_094;
     unsigned int unknown_098;
-    bool position_dirty_09c;
+    /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
+       parameter raw, with no bool normalization. */
+    unsigned char position_dirty_09c;
     unsigned char unknown_09d[3];
     W8NavigatorOwned0A0* owned_object_0a0;
     srVector3T<float> tracked_position_0a4;

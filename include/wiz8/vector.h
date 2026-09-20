@@ -130,6 +130,12 @@ public:
        value, while callers such as the dialog destructor delete it. */
     T RemoveAt(int position);
 
+    /* Removes the entry at position and deletes the object it pointed at.
+       The spell-effect list teardown is its only retail use: LoadGame calls
+       the out-of-line emission at 0x00516A00 while ResetLiveSessionForLoad
+       inlines the same sequence. */
+    void RemoveAtAndDelete(int position);
+
     /* Removes the first matching entry, if any, and reports whether one was
        there. The startup entry queues reach it through QueueEntry. */
     unsigned char Remove(T entry);
@@ -193,6 +199,21 @@ template <class T> T W8GrowableVector<T>::RemoveAt(int position)
     }
     --count;
     return result;
+}
+
+template <class T> void W8GrowableVector<T>::RemoveAtAndDelete(int position)
+{
+    int index;
+    T entry;
+
+    if (position < count && position >= 0) {
+        entry = data[position];
+        for (index = position; index < count - 1; ++index) {
+            data[index] = data[index + 1];
+        }
+        --count;
+        delete entry;
+    }
 }
 
 template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)

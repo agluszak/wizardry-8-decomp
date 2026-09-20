@@ -73,11 +73,11 @@ static_assert(sizeof(W8NormalTexcoordMapper004B89A0) == 4,
 W8NormalTexcoordMapper004B89A0 g_normal_texcoord_mapper_0065bea8;
 
 // GLOBAL: WIZ8 0x0065BA9E
-unsigned char g_material_diffuse_scale_enabled_0065ba9e;
+bool g_material_diffuse_scale_enabled_0065ba9e;
 // GLOBAL: WIZ8 0x0065BAA0
 float g_material_diffuse_scale_0065baa0;
 // GLOBAL: WIZ8 0x0065BAA4
-unsigned char g_material_emissive_override_enabled_0065baa4;
+bool g_material_emissive_override_enabled_0065baa4;
 // GLOBAL: WIZ8 0x0065BAA8
 float g_material_emissive_override_0065baa8;
 
@@ -148,10 +148,10 @@ srClass* stMaterial::clone()
 void stMaterial::getMaterialInfo(srVertexProcessor::MaterialInfo& info)
 {
     srMaterial::getMaterialInfo(info);
-    if (g_material_diffuse_scale_enabled_0065ba9e != 0) {
+    if (g_material_diffuse_scale_enabled_0065ba9e) {
         info.diffuse.w *= g_material_diffuse_scale_0065baa0;
     }
-    if (g_material_emissive_override_enabled_0065baa4 != 0) {
+    if (g_material_emissive_override_enabled_0065baa4) {
         info.emissive.Set(g_material_emissive_override_0065baa8,
                           g_material_emissive_override_0065baa8,
                           g_material_emissive_override_0065baa8, 1.0f);
@@ -846,10 +846,9 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             }
                             sprintf(message, fmt, i, submeshes[i].polygon_count_44,
                                     submeshes[i].vertex_count_40);
-                            strcat(message,
-                                   static_cast<int>(tree->spatial_000.region_count_46) <= i
-                                       ? "\n"
-                                       : " Regioned Manually\n");
+                            strcat(message, static_cast<int>(tree->spatial_000.region_count_46) <= i
+                                                ? "\n"
+                                                : " Regioned Manually\n");
                             ReportBuildStatus00497690(5, message);
                             total_vertices += submeshes[i].vertex_count_40;
                             total_faces += submeshes[i].polygon_count_44;

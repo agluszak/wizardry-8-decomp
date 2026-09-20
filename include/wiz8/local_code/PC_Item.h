@@ -133,6 +133,13 @@ void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance*
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
 void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,
                                     W8Character* character);
+/* How many of one item a character holds, counting a stack as its count and
+   anything else as one, and optionally reporting the first slot it is in. */
+int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** first,
+                         int include_backpack);
+/* 0x005223A0: move the departing character's soul-bound equipment to the
+   party pool or the held-item display before the slot is released. */
+void Function5223A0(W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */

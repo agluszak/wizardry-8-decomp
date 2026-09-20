@@ -7,6 +7,7 @@
 #include "wiz8/vector.h"
 
 #include <stddef.h>
+#include <string.h>
 
 class W8SpellVisual;
 class W8Missile;
@@ -88,6 +89,27 @@ static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_
 
 #pragma pack(push, 1)
 struct W8SpellEffectEntry {
+    /* Every construction site inlines this sequence: the member vectors are
+       built first, then the working source, the target slot, the carried
+       effect definition, the state flags and the whole result block are
+       cleared; OrigSource and unknown_03c are left for the caller to fill. */
+    W8SpellEffectEntry()
+    {
+        kind = 0;
+        turns_remaining = 0;
+        memset(&Source, 0, sizeof(Source));
+        memset(&target, 0, sizeof(target));
+        memset(&definition, 0, sizeof(definition));
+        flag_120 = 0;
+        flag_121 = 0;
+        flag_122 = 0;
+        flag_123 = 0;
+        reported_124 = 0;
+        applied_125 = 0;
+        /* The retail rep-stosd zeroes the whole result block, including the
+           reports vector's freshly assigned vftable at 0x17e. */
+        memset(static_cast<void*>(&result_126), 0, sizeof(result_126));
+    }
     ~W8SpellEffectEntry(); /* 0x0042BAC0 */
 
     int kind;            /* 0x000 */
@@ -162,6 +184,7 @@ static_assert(offsetof(W8SpellEffectEntry, result_126) == 0x126, "W8SpellEffectE
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
+void AddSpellEffect(W8SpellEffectEntry* effect);
 /* Advance every queued spell effect one frame. */
 void UpdateSpellEffects00500930(void);
 /* Fold one missile's accumulated damage and reports into the queued effect

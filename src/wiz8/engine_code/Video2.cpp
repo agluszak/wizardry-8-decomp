@@ -40,6 +40,7 @@
 #include "surrender/srModeler.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srPixelConvert.h"
+#include "surrender/srPalette.h"
 #include "surrender/srCamera.h"
 #include "surrender/srTextureMap.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -73,8 +74,8 @@
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
-srNode* Function424BA0(srTextureIFace* texture, float width, float height,
-                       unsigned char positional_3);
+srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
+                               unsigned char positional_3);
 srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
                                             srNode* parent, unsigned char overlay);
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
@@ -2199,7 +2200,7 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
         hint = srTextureIFace::HINT_POSITIONAL_2;
     }
     texture->enableHint(hint);
-    return Function424BA0(texture, width, height, positional_3);
+    return MakePosterQuad00424BA0(texture, width, height, positional_3);
 }
 
 void PresentMenuOverlayFrame(void)
@@ -3570,3 +3571,129 @@ void EndRenderProbe004289C0(void)
 
 // SYNTHETIC: WIZ8 0x00423f00
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00424BA0
+srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
+                               unsigned char positional_3)
+{
+    srShader shader;
+    srPtr<srPalette> palette;
+    srTextureIFace::Dimensions dimensions;
+    srPixelConvert::PixelFormat format;
+    format.flags = 0;
+    dimensions.width = 64;
+    dimensions.height = 64;
+    palette = srCore.getPalette();
+    srFilter* filter = srCore.getFilter();
+    srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb), format);
+
+    stMeshModel* model = SR_NEW(stMeshModel)(0, 0);
+    if (model == 0) {
+        return 0;
+    }
+    float extent_w = g_float_005ebb38 / dimensions.width * g_surface_scale_659680;
+    float extent_h = g_float_005ebb38 / dimensions.height * g_surface_scale_659680;
+    model->autoRelease();
+    model->setName("VideoMakePoster");
+    texture->getDimensions(dimensions);
+    g_modeler_65963c->createGrid(1, 1);
+    srModeler::MappingInfo mapping;
+    mapping.unknown_00 = 0;
+    mapping.unknown_04 = 1;
+    // reinterpret-ok: the planarMap UV slots carry raw float bits
+    *reinterpret_cast<float*>(&mapping.unknown_08) = g_float_005ebb38 - extent_w;
+    // reinterpret-ok: the planarMap UV slots carry raw float bits
+    *reinterpret_cast<float*>(&mapping.unknown_0c) = g_float_005ebb38 - extent_h;
+    // reinterpret-ok: the planarMap UV slots carry raw float bits
+    mapping.unknown_10 = *reinterpret_cast<unsigned long*>(&extent_w);
+    // reinterpret-ok: the planarMap UV slots carry raw float bits
+    mapping.unknown_14 = *reinterpret_cast<unsigned long*>(&extent_h);
+    g_modeler_65963c->planarMap(0, 0, mapping);
+    srVector3T<float> scale;
+    scale.x = width;
+    scale.y = height;
+    scale.z = 1.0f;
+    g_modeler_65963c->scale(scale);
+    g_modeler_65963c->convert(*model, 1);
+    g_modeler_65963c->discard();
+
+    shader.value = 0x100a013;
+    if (positional_3 != 0) {
+        shader.value = 0x100c0b3;
+        model->setControlMask(0x40);
+    }
+    model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
+    model->setTexture(texture, 0, 0);
+    srShader shader_copy;
+    CopyLevelDataHandle(&shader_copy.value, &shader.value);
+    model->setShader(shader_copy, 0);
+
+    stModelInstance* instance = SR_NEW(stModelInstance)(static_cast<srNode*>(0));
+    instance->setName("VideoMakePoster");
+    if (instance != 0) {
+        instance->setModel(model);
+    }
+    instance->state_178 |= 0x10;
+    return instance;
+}
+
+// FUNCTION: WIZ8 0x00425590
+void DrawColorSurface00425590(srColorSurface* surface, int x, int y)
+{
+    g_primary_color_surface_659660->blit(x, y, *surface, 0, 0, surface->getWidth(),
+                                         surface->getHeight());
+}
+
+// FUNCTION: WIZ8 0x00425DA0
+void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
+{
+    if (left == g_viewport_left_6595e8 && top == g_viewport_top_6595ec &&
+        right == g_viewport_right_6595f0 && bottom == g_viewport_bottom_6595f4) {
+        return;
+    }
+    if (left == g_viewport_left_6595e8) {
+        if (top == g_viewport_top_6595ec && right == g_viewport_right_6595f0 &&
+            bottom == g_viewport_bottom_6595f4) {
+            goto store;
+        }
+    }
+    g_gerd_659634->setViewPort(g_gerd_659634->getWidth() * left / 640,
+                               g_gerd_659634->getHeight() * top / 480,
+                               g_gerd_659634->getWidth() * (right - left) / 640,
+                               g_gerd_659634->getHeight() * (bottom - top) / 480);
+store:
+    g_viewport_left_6595e8 = left;
+    g_viewport_top_6595ec = top;
+    g_viewport_right_6595f0 = right;
+    g_viewport_bottom_6595f4 = bottom;
+}
+
+// FUNCTION: WIZ8 0x00426490
+void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* pixel)
+{
+    if (x0 != 0 && y0 != 0 && x1 != 0 && y1 != 0) {
+        srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+        if (surface != 0) {
+            surface->setLine(x0, y0, x1, y1, *pixel);
+            g_gerd_659634->unlockBuffer();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004273F0
+void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
+{
+    left_top[0] = g_viewport_left_6595e8 * g_scale_x_5ebb1c;
+    left_top[1] = g_viewport_top_6595ec * g_scale_y_5ebb20;
+    right_bottom[0] = g_viewport_right_6595f0 * g_scale_x_5ebb1c;
+    right_bottom[1] = g_viewport_bottom_6595f4 * g_scale_y_5ebb20;
+}
+
+// FUNCTION: WIZ8 0x004277F0
+void SetPickKey004277F0(void* key)
+{
+    if (g_gerd_659634) {
+        g_gerd_659634->setPickKey(
+            reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
+    }
+}

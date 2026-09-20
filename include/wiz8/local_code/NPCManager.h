@@ -106,7 +106,7 @@ W8NpcState* GetNpcStateByKind(int kind);
 /* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped
    NPC whose member already carries more than one declines. */
-char NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
+bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
 bool NpcLeadHasNameStyle(unsigned int kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
    owned item-list teardown. */
@@ -123,8 +123,8 @@ bool NpcRecordHasValue002(W8NpcState* npc);
 /* 0x0050BC90: resolve one pickpocket attempt; the taken item goes to
    item_out and the taken gold to gold_out. Result codes feed the
    0x00576D80 dispatch. */
-int Function50BC90(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
-                   unsigned int* gold_out);
+int AttemptNpcPickpocket0050BC90(W8Character* character, W8NpcState* npc, W8ItemInstance* item_out,
+                                 unsigned int* gold_out);
 /* 0x0050E4B0: clear the npc's item_ids_30 slots matching the item the quote
    entry just handed out. */
 void ClearNpcItemId(W8NpcState* npc, int item_id);
@@ -140,5 +140,12 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id,
 void ReleaseNpcMonsterByKind(int kind);                   /* 0x0050C680 */
 /* 0x0050DD50: record that the NPC has told the party the given fact. */
 void TellNpcFact(W8NpcState* npc, short fact);
-/* 0x00509F00: write every NPC state record into the open NPCT chunk. */
+struct W8Chunk;
 unsigned char SaveNpcStates00509F00(W8Chunk* chunks);
+void LoadNpcStates00509FC0(W8Chunk* chunks);
+unsigned char SaveNpcItemLists0050AA10(int file);
+unsigned char LoadNpcItemLists0050AAF0(unsigned int file);
+char ScoreNpcTheft0050BAF0(W8Character* character, W8NpcState* npc, int item_id, int count);
+char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int item_id, int count);
+void UpdateNpcPartyMember0050B3B0(int party_slot);
+char QueueNpcDepartureEvents0050DEC0(int destination_level);

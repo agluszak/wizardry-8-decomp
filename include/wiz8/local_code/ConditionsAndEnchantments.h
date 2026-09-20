@@ -96,3 +96,6 @@ void RemoveConditionFromParty(int condition);    /* 0x005246C0 */
 void RemoveAllEnchantments(void);                /* 0x00524540 */
 
 void NormalizeItemQuantityKind(W8ItemInstance* item);
+/* 0x00522EF0: the post-load repair LoadGame runs - unequip unusable items on
+   every character and normalize quantity kinds on carried and pooled items. */
+void SanitizeLoadedItems00522EF0(void);
