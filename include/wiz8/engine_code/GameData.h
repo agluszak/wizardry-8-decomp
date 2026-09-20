@@ -8,7 +8,9 @@
 
 extern unsigned char g_flag_00652dce;
 
-void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source);
+/* Retail emits this helper with the thiscall convention: `destination` arrives
+   in ECX and `source` on the stack with callee cleanup. */
+void __thiscall CopyLevelDataHandle(unsigned long* destination, const unsigned long* source);
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
